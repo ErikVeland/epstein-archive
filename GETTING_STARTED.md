@@ -32,6 +32,14 @@ To use it, update your `.env` file (or `start.sh`) to point to the sample:
 DB_PATH=./sample.db
 ```
 
+If you need to recreate `sample.db` from scratch using the lightweight documents under `data/originals`, run:
+
+```bash
+pnpx tsx scripts/generate_local_sample.ts
+```
+
+The script wipes `sample.db`, ingests up to 25 local PDFs/EMLs (configurable via `SAMPLE_DOC_LIMIT`, `SAMPLE_SOURCE_DIR`, etc.), and records every processed file in `sample_db.log` with its status and entity count. This is useful when you do not have access to the full `epstein-archive.db` but still want a functional demo dataset.
+
 ### 3. Start the App
 
 ```bash
@@ -39,7 +47,7 @@ pnpm dev
 # App will run at http://localhost:5173
 ```
 
-You can regenerate the sample database anytime (requires a full `epstein-archive.db` source):
+You can also regenerate the sample database from the full corpus (if you have `epstein-archive.db`) with:
 
 ```bash
 npx tsx scripts/create_sample_db.ts

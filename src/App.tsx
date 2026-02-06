@@ -1664,7 +1664,7 @@ function App() {
                           <div className="hidden md:flex items-center gap-2">
                             <Icon name="Users" size="md" color="info" className="flex-shrink-0" />
                             <p className="text-slate-400 text-sm">
-                              {totalPeople.toLocaleString()} subjects
+                              {(totalPeople ?? 0).toLocaleString()} subjects
                               {totalPages > 1 && ` • Page ${currentPage}/${totalPages}`}
                             </p>
                           </div>
