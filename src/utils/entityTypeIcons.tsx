@@ -40,9 +40,12 @@ export const ENTITY_TYPE_ICONS: Record<EntityType, string> = {
 /**
  * Get the appropriate icon name for an entity type and optional role
  */
-export function getEntityTypeIconName(entityType: string, role?: string): string {
+export function getEntityTypeIconName(entityType?: string, role?: string): string {
+  // Guard against undefined/empty types (happens with fallback/sample data)
+  const safeType = entityType && entityType.trim().length > 0 ? entityType : 'Person';
+
   // Normalize the entity type to match our keys
-  const normalizedType = (entityType.charAt(0).toUpperCase() + entityType.slice(1)) as EntityType;
+  const normalizedType = (safeType.charAt(0).toUpperCase() + safeType.slice(1)) as EntityType;
 
   // Specific Role Overrides
   if (role) {
@@ -62,7 +65,7 @@ export function getEntityTypeIconName(entityType: string, role?: string): string
  * Get the Icon component for an entity type
  */
 export function getEntityTypeIcon(
-  entityType: string,
+  entityType?: string,
   size: 'sm' | 'md' | 'lg' = 'md',
   role?: string,
 ) {

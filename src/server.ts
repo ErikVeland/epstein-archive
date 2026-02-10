@@ -157,7 +157,14 @@ const apiLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
-app.use('/api/', apiLimiter);
+
+if (config.nodeEnv === 'production' && process.env.DISABLE_RATE_LIMIT !== 'true') {
+  app.use('/api/', apiLimiter);
+} else {
+  console.warn(
+    '[RateLimit] Skipping API rate limiter in development (set DISABLE_RATE_LIMIT=false to re-enable).',
+  );
+}
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
