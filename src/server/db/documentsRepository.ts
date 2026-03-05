@@ -329,28 +329,50 @@ export const documentsRepository = {
       metadata = document.metadataJson;
     }
 
-    const entityRowsRes = await getApiPool().query(
-      `
-      SELECT 
-        e.id as "entityId", 
-        e.full_name as "name", 
-        e.entity_type as "entityType", 
-        COUNT(em.id) as "mentions",
-        (
-          SELECT f.crop_path 
-          FROM face_clusters fc
-          JOIN faces f ON f.id = fc.representative_face_id
-          WHERE fc.name = e.full_name AND fc.is_hidden = false
-          LIMIT 1
-        ) as "thumbnailPath"
-      FROM entity_mentions em
-      JOIN entities e ON em.entity_id = e.id
-      WHERE em.document_id = $1
-      GROUP BY e.id, e.full_name, e.entity_type
-      ORDER BY "mentions" DESC
-      `,
-      [docId],
-    );
+    let entityRowsRes;
+    try {
+      entityRowsRes = await getApiPool().query(
+        `
+        SELECT 
+          e.id as "entityId", 
+          e.full_name as "name", 
+          e.entity_type as "entityType", 
+          COUNT(em.id) as "mentions",
+          (
+            SELECT f.crop_path 
+            FROM face_clusters fc
+            JOIN faces f ON f.id = fc.representative_face_id
+            WHERE fc.name = e.full_name AND fc.is_hidden = false
+            LIMIT 1
+          ) as "thumbnailPath"
+        FROM entity_mentions em
+        JOIN entities e ON em.entity_id = e.id
+        WHERE em.document_id = $1
+        GROUP BY e.id, e.full_name, e.entity_type
+        ORDER BY "mentions" DESC
+        `,
+        [docId],
+      );
+    } catch (error: any) {
+      // Face table migrations may not exist in some deployments; degrade gracefully.
+      if (error?.code !== '42P01') throw error;
+      entityRowsRes = await getApiPool().query(
+        `
+        SELECT
+          e.id as "entityId",
+          e.full_name as "name",
+          e.entity_type as "entityType",
+          COUNT(em.id) as "mentions",
+          NULL::text as "thumbnailPath"
+        FROM entity_mentions em
+        JOIN entities e ON em.entity_id = e.id
+        WHERE em.document_id = $1
+        GROUP BY e.id, e.full_name, e.entity_type
+        ORDER BY "mentions" DESC
+        `,
+        [docId],
+      );
+    }
     const entityRows = entityRowsRes.rows;
 
     // Batch all mention-context fetches into a single query to avoid N+1

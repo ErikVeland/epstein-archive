@@ -19,6 +19,7 @@
 ### Search & Reliability
 
 - **Prefix Query Safety:** Removed the universal-match fallback for empty prefix tokens; invalid tokenized prefix queries now return empty, explicit result sets.
+- **Document Detail Resilience:** `/api/documents/:id` now degrades gracefully when face-cluster tables are absent, instead of returning 500.
 - **Production Gate Readiness:** Local CI-equivalent checks passed (`type-check`, `lint`, `test:unit`, `build`) before release cut.
 
 ## 15.5.0 - 2026-03-05 - Unified Modern Viewer + Gmail-Style Email Workspace
