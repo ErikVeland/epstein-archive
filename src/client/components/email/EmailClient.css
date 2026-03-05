@@ -9,7 +9,7 @@
 }
 
 .mailbox-pane {
-  width: 320px;
+  width: 300px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -22,7 +22,7 @@
 }
 
 .thread-pane {
-  width: 520px;
+  width: 440px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -91,10 +91,9 @@
 
 /* Message styling */
 .message-thread {
-  padding: var(--space-6);
-  max-width: 900px;
-  margin: 0 auto;
-  width: 100%;
+  padding: var(--space-5) var(--space-6) var(--space-8);
+  width: min(100%, 1280px);
+  margin: 0;
   min-width: 0;
 }
 
@@ -148,7 +147,7 @@
     width: 260px;
   }
   .thread-pane {
-    width: 380px;
+    width: 360px;
   }
 
   .pane-subheader {
@@ -158,10 +157,10 @@
 
 @media (min-width: 1440px) {
   .mailbox-pane {
-    width: 360px;
+    width: 320px;
   }
 
   .thread-pane {
-    width: 600px;
+    width: 460px;
   }
 }

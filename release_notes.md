@@ -1,5 +1,28 @@
 # Release Notes
 
+## 15.5.0 - 2026-03-05 - Unified Modern Viewer + Gmail-Style Email Workspace
+
+### Viewer Architecture
+
+- **Legacy Viewer Deleted:** Removed the old inline `DocumentViewer` implementation from `DocumentBrowser` and all associated dead code/imports.
+- **One Viewer Path:** Document selection now always routes through `DocumentModal`, eliminating split behavior and regressions between two viewer stacks.
+
+### UX Simplification
+
+- **Reduced Tab Overload:** Consolidated top-level viewer tabs to `Summary`, `PDF View`, `Text Analysis`, `Annotations`, and `Provenance`.
+- **Text Modes Grouped:** Merged `Clean Text`, `Raw OCR`, and `Diff View` into a single `Text Analysis` workspace with in-panel mode toggles.
+- **Not Everything is a Tab:** Detailed entity and related-document exploration moved into the `Summary` flow while retaining click-through and dossier actions.
+
+### Intel Rail Behavior
+
+- **Info Pane Collapsed by Default:** Right intelligence pane now defaults to collapsed on open for cleaner first-read focus while still available on demand.
+
+### Email Workspace UX
+
+- **Filter Drawer, Not Always-On Panel:** Conversation filters are now hidden behind a compact `Filters` dropdown in the thread toolbar, preserving vertical space for thread scanning.
+- **Body-First Layout:** Rebalanced pane widths to prioritize the reading surface so message bodies remain the focal area.
+- **No Centered Reading Canvas:** Removed centered/narrow message thread positioning to keep long-form email content left-anchored and easier to read at speed.
+
 ## 15.4.8 - 2026-03-05 - Unified Modern Document Viewer
 
 ### Viewer Consistency

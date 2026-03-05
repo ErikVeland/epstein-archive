@@ -252,6 +252,7 @@ export const EmailClient: React.FC = () => {
 
   const [selectedEntityId, setSelectedEntityId] = useState<string | null>(null);
   const [mobilePane, setMobilePane] = useState<'mailboxes' | 'threads' | 'messages'>('threads');
+  const [showFilterPanel, setShowFilterPanel] = useState(false);
 
   const selectedThread = selectedThreadId ? threadDetails[selectedThreadId] || null : null;
   const selectedMailbox =
@@ -795,21 +796,11 @@ export const EmailClient: React.FC = () => {
                   Compact
                 </button>
               </div>
-              <button
-                onClick={clearQuickFilters}
-                className="text-[11px] text-slate-400 flex items-center gap-1 disabled:opacity-50"
-                disabled={activeQuickFilterCount === 0}
-                title={
-                  activeQuickFilterCount > 0
-                    ? `Clear ${activeQuickFilterCount} active email filters`
-                    : 'No active filters'
-                }
-              >
-                <SlidersHorizontal className="w-3.5 h-3.5" />
+              <div className="text-[11px] text-slate-500">
                 {activeQuickFilterCount > 0
-                  ? `Clear filters (${activeQuickFilterCount})`
+                  ? `${activeQuickFilterCount} active filter${activeQuickFilterCount > 1 ? 's' : ''}`
                   : 'No active filters'}
-              </button>
+              </div>
             </div>
           </div>
 
@@ -867,138 +858,137 @@ export const EmailClient: React.FC = () => {
             </div>
           </div>
           <div className="pane-subheader">
-            <span>
-              {threads.length.toLocaleString()} of {threadsTotal.toLocaleString()} threads
-            </span>
-            <span
-              className="flex items-center gap-1"
-              title="Thread lists are metadata-only; message bodies are lazy-loaded."
-            >
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-300" />
-              Metadata-only list
-            </span>
-          </div>
-          <div className="px-3 py-3 border-b border-slate-800/80 bg-gradient-to-b from-slate-950/80 to-slate-950/50">
-            <div className="rounded-2xl border border-slate-800/80 bg-slate-900/45 backdrop-blur-sm p-3 md:p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
-              <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-                <div className="flex items-center gap-2">
-                  <div className="h-8 w-8 rounded-xl border border-cyan-500/20 bg-cyan-500/10 flex items-center justify-center">
-                    <SlidersHorizontal className="w-4 h-4 text-cyan-300" />
-                  </div>
-                  <div>
-                    <div className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">
-                      Filters
-                    </div>
-                    <div className="text-[12px] text-slate-500">
-                      Refine conversations by sender, recipient, date, attachments, and risk
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="h-8 px-3 rounded-full border border-slate-700/80 bg-slate-950/70 text-[11px] text-slate-300 inline-flex items-center gap-2">
-                    <span className="text-slate-500">Active</span>
-                    <span className="font-bold text-cyan-200">{activeQuickFilterCount}</span>
-                  </div>
-                  <button
-                    onClick={clearQuickFilters}
-                    className="h-8 px-3 rounded-full border border-slate-700 text-[11px] text-slate-300 bg-slate-900/70 inline-flex items-center gap-1 disabled:opacity-50"
-                    disabled={activeQuickFilterCount === 0}
-                  >
-                    <X className="w-3 h-3" />
-                    Clear all
-                  </button>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 xl:grid-cols-[1.15fr_1.15fr_0.95fr_0.95fr] gap-2 md:gap-3">
-                <label className="space-y-1">
-                  <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 px-1">
-                    From
-                  </span>
-                  <input
-                    value={fromFilter}
-                    onChange={(event) => setFromFilter(event.target.value)}
-                    placeholder="sender@domain.com or name"
-                    className="h-9 w-full rounded-xl bg-slate-950/80 border border-slate-700 px-3 text-xs text-white placeholder:text-slate-500"
-                  />
-                </label>
-                <label className="space-y-1">
-                  <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 px-1">
-                    To
-                  </span>
-                  <input
-                    value={toFilter}
-                    onChange={(event) => setToFilter(event.target.value)}
-                    placeholder="recipient@domain.com or name"
-                    className="h-9 w-full rounded-xl bg-slate-950/80 border border-slate-700 px-3 text-xs text-white placeholder:text-slate-500"
-                  />
-                </label>
-                <label className="space-y-1">
-                  <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 px-1">
-                    Date From
-                  </span>
-                  <input
-                    value={dateFrom}
-                    onChange={(event) => setDateFrom(event.target.value)}
-                    type="date"
-                    className="h-9 w-full rounded-xl bg-slate-950/80 border border-slate-700 px-3 text-xs text-white"
-                  />
-                </label>
-                <label className="space-y-1">
-                  <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 px-1">
-                    Date To
-                  </span>
-                  <input
-                    value={dateTo}
-                    onChange={(event) => setDateTo(event.target.value)}
-                    type="date"
-                    className="h-9 w-full rounded-xl bg-slate-950/80 border border-slate-700 px-3 text-xs text-white"
-                  />
-                </label>
-              </div>
-
-              <div className="mt-3 pt-3 border-t border-slate-800/80 flex flex-wrap items-center gap-2 md:gap-3">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 px-1">
-                  Quick Toggles
-                </span>
-                <button
-                  onClick={() => setHasAttachmentsOnly((prev) => !prev)}
-                  className={`h-8 px-3 rounded-full border text-[11px] font-medium ${
-                    hasAttachmentsOnly
-                      ? 'border-amber-400 text-amber-200 bg-amber-500/10'
-                      : 'border-slate-700 text-slate-300 bg-slate-900/70'
-                  }`}
-                >
-                  Has attachments
-                </button>
-                <div className="inline-flex items-center gap-2 h-8 px-2 rounded-full border border-slate-700 bg-slate-900/70">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 pl-1">
-                    Min Risk
-                  </span>
-                  <select
-                    value={minRisk}
-                    onChange={(event) => setMinRisk(Number(event.target.value))}
-                    className="h-6 rounded-lg border border-slate-700 bg-slate-950 px-2 text-[11px] text-slate-200 min-w-[110px]"
-                    aria-label="Minimum risk"
-                  >
-                    <option value={0}>Any</option>
-                    <option value={1}>≥ 1</option>
-                    <option value={2}>≥ 2</option>
-                    <option value={3}>≥ 3</option>
-                    <option value={4}>≥ 4</option>
-                  </select>
-                </div>
-
+            <div className="flex items-center gap-3 flex-wrap">
+              <span>
+                {threads.length.toLocaleString()} of {threadsTotal.toLocaleString()} threads
+              </span>
+              <span
+                className="flex items-center gap-1"
+                title="Thread lists are metadata-only; message bodies are lazy-loaded."
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-300" />
+                Metadata-only list
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowFilterPanel((prev) => !prev)}
+                className={`h-8 px-3 rounded-full border text-[11px] inline-flex items-center gap-1.5 transition-colors ${
+                  showFilterPanel
+                    ? 'border-cyan-400/60 text-cyan-200 bg-cyan-500/10'
+                    : 'border-slate-700 text-slate-300 bg-slate-900/70 hover:border-slate-600'
+                }`}
+                title="Show or hide conversation filters"
+              >
+                <SlidersHorizontal className="w-3.5 h-3.5" />
+                Filters
                 {activeQuickFilterCount > 0 && (
-                  <div className="ml-auto hidden xl:flex items-center gap-2 text-[10px] text-slate-500">
-                    <span className="uppercase tracking-widest">State</span>
-                    <span className="h-2 w-2 rounded-full bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.6)]" />
-                    <span className="text-cyan-200 font-medium">Filtered results</span>
-                  </div>
+                  <span className="h-5 min-w-5 px-1 rounded-full bg-cyan-400/20 text-cyan-100 text-[10px] font-bold inline-flex items-center justify-center">
+                    {activeQuickFilterCount}
+                  </span>
                 )}
-              </div>
+                <ChevronDown
+                  className={`w-3.5 h-3.5 transition-transform ${showFilterPanel ? 'rotate-180' : ''}`}
+                />
+              </button>
+              <button
+                onClick={clearQuickFilters}
+                className="h-8 px-3 rounded-full border border-slate-700 text-[11px] text-slate-300 bg-slate-900/70 inline-flex items-center gap-1 disabled:opacity-50"
+                disabled={activeQuickFilterCount === 0}
+              >
+                <X className="w-3 h-3" />
+                Clear
+              </button>
             </div>
           </div>
+          {showFilterPanel && (
+            <div className="px-3 py-3 border-b border-slate-800/80 bg-gradient-to-b from-slate-950/80 to-slate-950/50">
+              <div className="rounded-2xl border border-slate-800/80 bg-slate-900/45 backdrop-blur-sm p-3 md:p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
+                <div className="text-[11px] font-medium text-slate-400 mb-3">
+                  Refine by sender, recipient, date, attachments, and risk.
+                </div>
+                <div className="grid grid-cols-1 xl:grid-cols-[1.15fr_1.15fr_0.95fr_0.95fr] gap-2 md:gap-3">
+                  <label className="space-y-1">
+                    <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 px-1">
+                      From
+                    </span>
+                    <input
+                      value={fromFilter}
+                      onChange={(event) => setFromFilter(event.target.value)}
+                      placeholder="sender@domain.com or name"
+                      className="h-9 w-full rounded-xl bg-slate-950/80 border border-slate-700 px-3 text-xs text-white placeholder:text-slate-500"
+                    />
+                  </label>
+                  <label className="space-y-1">
+                    <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 px-1">
+                      To
+                    </span>
+                    <input
+                      value={toFilter}
+                      onChange={(event) => setToFilter(event.target.value)}
+                      placeholder="recipient@domain.com or name"
+                      className="h-9 w-full rounded-xl bg-slate-950/80 border border-slate-700 px-3 text-xs text-white placeholder:text-slate-500"
+                    />
+                  </label>
+                  <label className="space-y-1">
+                    <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 px-1">
+                      Date From
+                    </span>
+                    <input
+                      value={dateFrom}
+                      onChange={(event) => setDateFrom(event.target.value)}
+                      type="date"
+                      className="h-9 w-full rounded-xl bg-slate-950/80 border border-slate-700 px-3 text-xs text-white"
+                    />
+                  </label>
+                  <label className="space-y-1">
+                    <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 px-1">
+                      Date To
+                    </span>
+                    <input
+                      value={dateTo}
+                      onChange={(event) => setDateTo(event.target.value)}
+                      type="date"
+                      className="h-9 w-full rounded-xl bg-slate-950/80 border border-slate-700 px-3 text-xs text-white"
+                    />
+                  </label>
+                </div>
+
+                <div className="mt-3 pt-3 border-t border-slate-800/80 flex flex-wrap items-center gap-2 md:gap-3">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 px-1">
+                    Quick Toggles
+                  </span>
+                  <button
+                    onClick={() => setHasAttachmentsOnly((prev) => !prev)}
+                    className={`h-8 px-3 rounded-full border text-[11px] font-medium ${
+                      hasAttachmentsOnly
+                        ? 'border-amber-400 text-amber-200 bg-amber-500/10'
+                        : 'border-slate-700 text-slate-300 bg-slate-900/70'
+                    }`}
+                  >
+                    Has attachments
+                  </button>
+                  <div className="inline-flex items-center gap-2 h-8 px-2 rounded-full border border-slate-700 bg-slate-900/70">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 pl-1">
+                      Min Risk
+                    </span>
+                    <select
+                      value={minRisk}
+                      onChange={(event) => setMinRisk(Number(event.target.value))}
+                      className="h-6 rounded-lg border border-slate-700 bg-slate-950 px-2 text-[11px] text-slate-200 min-w-[110px]"
+                      aria-label="Minimum risk"
+                    >
+                      <option value={0}>Any</option>
+                      <option value={1}>≥ 1</option>
+                      <option value={2}>≥ 2</option>
+                      <option value={3}>≥ 3</option>
+                      <option value={4}>≥ 4</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="flex-1 min-h-0">
             {threadsLoading ? (

@@ -34,16 +34,9 @@ interface Props {
   initialDoc?: any;
 }
 
-type ViewerTab =
-  | 'summary'
-  | 'pdf'
-  | 'clean'
-  | 'ocr'
-  | 'diff'
-  | 'entities'
-  | 'related'
-  | 'annotations'
-  | 'provenance';
+type ViewerTab = 'analysis' | 'pdf' | 'annotations' | 'provenance';
+
+type TextSubview = 'clean' | 'ocr' | 'diff';
 
 const VIEWER_TABS: Array<{
   key: ViewerTab;
@@ -51,13 +44,8 @@ const VIEWER_TABS: Array<{
   icon?: React.ReactNode;
   count?: number;
 }> = [
-  { key: 'summary', label: 'Summary' },
+  { key: 'analysis', label: 'Summary & Analysis' },
   { key: 'pdf', label: 'PDF View' },
-  { key: 'clean', label: 'Clean Text' },
-  { key: 'ocr', label: 'Raw OCR' },
-  { key: 'diff', label: 'Diff View' },
-  { key: 'entities', label: 'Entities' },
-  { key: 'related', label: 'Related' },
   { key: 'annotations', label: 'Annotations' },
   { key: 'provenance', label: 'Provenance' },
 ];
@@ -154,7 +142,7 @@ export const DocumentModal: React.FC<Props> = ({
     if (current && VIEWER_TABS.some((tab) => tab.key === current)) {
       return current as ViewerTab;
     }
-    return 'summary';
+    return 'analysis';
   };
 
   const activeTab = readTab();
@@ -181,8 +169,18 @@ export const DocumentModal: React.FC<Props> = ({
   const [entityModalId, setEntityModalId] = useState<string | null>(null);
   const [showRecoveryHighlights, setShowRecoveryHighlights] = useState(true);
   const [expandedEntities, setExpandedEntities] = useState(false);
-  const [rightPaneCollapsed, setRightPaneCollapsed] = useState(false);
+  const [rightPaneCollapsed, setRightPaneCollapsed] = useState(true);
   const [rightPaneWidth, setRightPaneWidth] = useState(320);
+  const [textSubview, setTextSubviewState] = useState<TextSubview>(
+    (urlParams.get('textMode') as TextSubview) || 'clean',
+  );
+
+  const setTextSubview = (mode: TextSubview) => {
+    setTextSubviewState(mode);
+    const params = new URLSearchParams(window.location.search);
+    params.set('textMode', mode);
+    navigate(`${location.pathname}?${params.toString()}`, { replace: true });
+  };
   const [localSearchTerm, setLocalSearchTerm] = useState(initialSearchTerm || '');
   const [isLoadingRelated, setIsLoadingRelated] = useState(false);
   const [isReadingMode, setIsReadingMode] = useState(false);
@@ -241,13 +239,20 @@ export const DocumentModal: React.FC<Props> = ({
   }, [doc?.title, doc?.fileName]);
 
   useEffect(() => {
-    if (!localSearchTerm || !contentRef.current || !['clean', 'ocr'].includes(activeTab)) return;
+    if (!localSearchTerm || !contentRef.current || activeTab !== 'analysis') return;
     const timeout = setTimeout(() => {
       const firstMark = contentRef.current?.querySelector('mark');
       if (firstMark) firstMark.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 120);
     return () => clearTimeout(timeout);
-  }, [activeTab, localSearchTerm, doc?.content, doc?.contentRefined]);
+  }, [activeTab, textSubview, localSearchTerm, doc?.content, doc?.contentRefined]);
+
+  useEffect(() => {
+    const modeFromUrl = new URLSearchParams(location.search).get('textMode') as TextSubview;
+    if (modeFromUrl && modeFromUrl !== textSubview) {
+      setTextSubviewState(modeFromUrl);
+    }
+  }, [location.search, textSubview, setTextSubviewState]);
 
   useEffect(() => {
     const syncPaneMode = () => {
@@ -353,230 +358,226 @@ export const DocumentModal: React.FC<Props> = ({
   const cleanText = String(doc.contentRefined || doc.content || '');
   const ocrText = String(doc.content || '');
 
+  const entitiesPanel = (
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold text-white">Extracted Entities</h3>
+        <span className="text-xs text-slate-500 uppercase tracking-widest">
+          {entities.length} TOTAL
+        </span>
+      </div>
+      {entities.length === 0 ? (
+        <div className="surface-quiet p-12 text-center">
+          <p className="text-sm text-slate-500">No extracted entities available in this record.</p>
+        </div>
+      ) : (
+        <div className="space-y-8">
+          {groupedEntities.map(([groupName, groupItems]) => (
+            <section key={groupName} className="space-y-4">
+              <h4 className="text-[10px] uppercase tracking-[0.2em] text-cyan-400/70 font-black flex items-center gap-3">
+                {groupName}
+                <div className="h-px flex-1 bg-cyan-900/30" />
+                <span className="text-slate-600">{groupItems.length}</span>
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {groupItems.map((entity, index) => (
+                  <div
+                    key={`${entity.id || entity.name}-${index}`}
+                    className="surface-quiet p-4 hover:border-cyan-500/40 transition-all group relative overflow-hidden flex flex-col justify-between"
+                  >
+                    <div className="flex items-start justify-between gap-3 min-w-0">
+                      <div className="min-w-0">
+                        <button
+                          type="button"
+                          className="text-left font-medium text-cyan-300 hover:text-cyan-100 truncate block w-full"
+                          onClick={() => setSelectedEntity(entity)}
+                        >
+                          {entity.name}
+                        </button>
+                        <span className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">
+                          {entity.primary_role || entity.role || entity.entity_type || 'ENTITY'}
+                        </span>
+                      </div>
+                      {entity.risk_rating && (
+                        <div
+                          className={`px-2 py-0.5 rounded text-[10px] font-bold shrink-0 ${
+                            entity.risk_rating > 3
+                              ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                              : 'bg-slate-700 text-slate-300'
+                          }`}
+                        >
+                          RISK {entity.risk_rating}
+                        </div>
+                      )}
+                    </div>
+                    {entity.mentions > 0 && (
+                      <div className="mt-3 pt-3 border-t border-white/5 flex items-center justify-between">
+                        <span className="text-[9px] text-slate-500 uppercase font-bold">
+                          {entity.mentions} Mentions
+                        </span>
+                        <button
+                          onClick={() => setEntityModalId(String(entity.id))}
+                          className="text-[9px] text-cyan-500/60 hover:text-cyan-400 uppercase font-black tracking-widest"
+                        >
+                          View Dossier
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  const relatedPanel = (
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold text-white">Related Documents</h3>
+        <span className="text-xs text-slate-500 uppercase tracking-widest">
+          SHARED ENTITY LINKS
+        </span>
+      </div>
+
+      {isLoadingRelated ? (
+        <div className="p-12 text-center">
+          <div className="w-8 h-8 border-2 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-sm text-slate-500 italic">Analyzing cross-references...</p>
+        </div>
+      ) : relatedDocs.length === 0 ? (
+        <div className="surface-quiet p-12 text-center">
+          <p className="text-sm text-slate-500">
+            No related documents identified through shared entities.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4">
+          {relatedDocs.map((relatedDoc) => (
+            <div
+              key={relatedDoc.id}
+              className="surface-quiet p-5 hover:border-cyan-500/40 transition-all group border-l-4 border-l-slate-800 hover:border-l-cyan-500 cursor-pointer"
+              onClick={() => navigate(`${location.pathname}?documentId=${relatedDoc.id}`)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  navigate(`${location.pathname}?documentId=${relatedDoc.id}`);
+                }
+              }}
+            >
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <FileText className="w-3.5 h-3.5 text-slate-500" />
+                    <span className="text-left font-bold text-slate-100 group-hover:text-cyan-400 truncate text-base">
+                      {relatedDoc.title || relatedDoc.fileName}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3 mt-1">
+                    <span className="text-[10px] uppercase font-bold text-slate-500">
+                      {relatedDoc.evidenceType}
+                    </span>
+                    <div className="w-1 h-1 rounded-full bg-slate-700" />
+                    <span className="text-[10px] text-slate-400 font-mono">
+                      {formatDate(relatedDoc.dateCreated)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col items-end gap-2 shrink-0">
+                  <div className="flex flex-wrap gap-1.5 max-w-xs justify-end">
+                    {relatedDoc.sharedEntities?.map((ent: string, idx: number) => (
+                      <span
+                        key={idx}
+                        className="px-2 py-0.5 bg-cyan-950/40 text-cyan-400 text-[10px] font-bold rounded border border-cyan-900/30 whitespace-nowrap"
+                      >
+                        {ent}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="text-[9px] text-slate-600 uppercase font-black tracking-widest flex items-center gap-2">
+                    <Users className="w-2.5 h-2.5" />
+                    {relatedDoc.sharedCount} SHARED ENTITIES
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
   const mainPanel = () => {
     switch (activeTab) {
       case 'pdf':
         return <PDFVariantViewer documentId={id} className="h-[calc(100vh-320px)] min-h-[600px]" />;
-      case 'summary':
-        return (
-          <div className="space-y-4">
-            <section className="surface-quiet p-4 border-l-4 border-violet-500/50">
-              <h3 className="text-sm font-semibold text-slate-100 mb-2 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-violet-300" />
-                Key Insights
-              </h3>
-              {summary.bullets.length > 0 ? (
-                <ul className="list-disc pl-5 space-y-2 text-slate-200 text-sm leading-relaxed">
-                  {summary.bullets.slice(0, 5).map((bullet, index) => (
-                    <li key={`summary-${index}`}>{bullet}</li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-slate-400 text-sm italic">
-                  No summary insights available for this document.
-                </p>
-              )}
-              <div className="text-[10px] uppercase tracking-wider text-slate-500 mt-4 flex items-center gap-1">
-                <div className="w-1 h-1 rounded-full bg-violet-500" />
-                {summary.sourceLabel}
-              </div>
-            </section>
-
-            <InvestigationTextRenderer
-              document={doc}
-              mode="clean"
-              searchTerm={localSearchTerm}
-              showRecoveryHighlights={showRecoveryHighlights}
-              isReadingMode={isReadingMode}
-              onToggleReadingMode={() => setIsReadingMode(!isReadingMode)}
-              onToggleRecoveryHighlights={setShowRecoveryHighlights}
-              onEntitySelect={(entity) => setSelectedEntity(entity)}
-            />
-          </div>
-        );
-      case 'clean':
-        return (
-          <InvestigationTextRenderer
-            document={doc}
-            mode="clean"
-            searchTerm={localSearchTerm}
-            showRecoveryHighlights={showRecoveryHighlights}
-            isReadingMode={isReadingMode}
-            onToggleReadingMode={() => setIsReadingMode(!isReadingMode)}
-            onToggleRecoveryHighlights={setShowRecoveryHighlights}
-            onEntitySelect={(entity) => setSelectedEntity(entity)}
-          />
-        );
-      case 'ocr':
-        return (
-          <InvestigationTextRenderer
-            document={doc}
-            mode="ocr"
-            searchTerm={localSearchTerm}
-            showRecoveryHighlights={false}
-            isReadingMode={isReadingMode}
-            onToggleReadingMode={() => setIsReadingMode(!isReadingMode)}
-            onToggleRecoveryHighlights={setShowRecoveryHighlights}
-            onEntitySelect={(entity) => setSelectedEntity(entity)}
-          />
-        );
-      case 'diff':
-        return <DocumentDiffView cleanText={cleanText} originalText={ocrText} />;
-      case 'entities':
+      case 'analysis':
         return (
           <div className="space-y-8">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-white">Extracted Entities</h3>
-              <span className="text-xs text-slate-500 uppercase tracking-widest">
-                {entities.length} TOTAL
-              </span>
-            </div>
-            {entities.length === 0 ? (
-              <div className="surface-quiet p-12 text-center">
-                <p className="text-sm text-slate-500">
-                  No extracted entities available in this record.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-8">
-                {groupedEntities.map(([groupName, groupItems]) => (
-                  <section key={groupName} className="space-y-4">
-                    <h4 className="text-[10px] uppercase tracking-[0.2em] text-cyan-400/70 font-black flex items-center gap-3">
-                      {groupName}
-                      <div className="h-px flex-1 bg-cyan-900/30" />
-                      <span className="text-slate-600">{groupItems.length}</span>
-                    </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {groupItems.map((entity, index) => (
-                        <div
-                          key={`${entity.id || entity.name}-${index}`}
-                          className="surface-quiet p-4 hover:border-cyan-500/40 transition-all group relative overflow-hidden flex flex-col justify-between"
-                        >
-                          <div className="flex items-start justify-between gap-3 min-w-0">
-                            <div className="min-w-0">
-                              <button
-                                type="button"
-                                className="text-left font-medium text-cyan-300 hover:text-cyan-100 truncate block w-full"
-                                onClick={() => setSelectedEntity(entity)}
-                              >
-                                {entity.name}
-                              </button>
-                              <span className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">
-                                {entity.primary_role ||
-                                  entity.role ||
-                                  entity.entity_type ||
-                                  'ENTITY'}
-                              </span>
-                            </div>
-                            {entity.risk_rating && (
-                              <div
-                                className={`px-2 py-0.5 rounded text-[10px] font-bold shrink-0 ${
-                                  entity.risk_rating > 3
-                                    ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-                                    : 'bg-slate-700 text-slate-300'
-                                }`}
-                              >
-                                RISK {entity.risk_rating}
-                              </div>
-                            )}
-                          </div>
-                          {entity.mentions > 0 && (
-                            <div className="mt-3 pt-3 border-t border-white/5 flex items-center justify-between">
-                              <span className="text-[9px] text-slate-500 uppercase font-bold">
-                                {entity.mentions} Mentions
-                              </span>
-                              <button
-                                onClick={() => setEntityModalId(String(entity.id))}
-                                className="text-[9px] text-cyan-500/60 hover:text-cyan-400 uppercase font-black tracking-widest"
-                              >
-                                View Dossier
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </section>
-                ))}
-              </div>
+            {textSubview === 'clean' && (
+              <section className="surface-quiet p-4 border-l-4 border-violet-500/50 mb-6 group hover:border-violet-400 transition-colors">
+                <h3 className="text-sm font-semibold text-slate-100 mb-2 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-violet-300" />
+                  Key Insights
+                </h3>
+                {summary.bullets.length > 0 ? (
+                  <ul className="list-disc pl-5 space-y-2 text-slate-200 text-sm leading-relaxed">
+                    {summary.bullets.slice(0, 5).map((bullet, index) => (
+                      <li key={`summary-${index}`}>{bullet}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-slate-400 text-sm italic">
+                    No summary insights available for this document.
+                  </p>
+                )}
+                <div className="text-[10px] uppercase tracking-wider text-slate-500 mt-4 flex items-center gap-1">
+                  <div className="w-1 h-1 rounded-full bg-violet-500" />
+                  {summary.sourceLabel}
+                </div>
+              </section>
             )}
-          </div>
-        );
-      case 'related':
-        return (
-          <div className="space-y-8">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-white">Related Documents</h3>
-              <span className="text-xs text-slate-500 uppercase tracking-widest">
-                SHARED ENTITY LINKS
-              </span>
+
+            <div className="flex flex-wrap items-center gap-2">
+              {(['clean', 'ocr', 'diff'] as TextSubview[]).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => setTextSubview(mode)}
+                  className={`px-3 py-1.5 rounded-md text-xs uppercase tracking-wider border transition-colors ${
+                    textSubview === mode
+                      ? 'bg-cyan-500/20 border-cyan-500/40 text-cyan-200'
+                      : 'bg-slate-900/40 border-slate-700/50 text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  {mode === 'clean' ? 'Clean Text' : mode === 'ocr' ? 'Raw OCR' : 'Diff View'}
+                </button>
+              ))}
             </div>
-
-            {isLoadingRelated ? (
-              <div className="p-12 text-center">
-                <div className="w-8 h-8 border-2 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin mx-auto mb-4" />
-                <p className="text-sm text-slate-500 italic">Analyzing cross-references...</p>
-              </div>
-            ) : relatedDocs.length === 0 ? (
-              <div className="surface-quiet p-12 text-center">
-                <p className="text-sm text-slate-500">
-                  No related documents identified through shared entities.
-                </p>
-              </div>
+            {textSubview === 'diff' ? (
+              <DocumentDiffView cleanText={cleanText} originalText={ocrText} />
             ) : (
-              <div className="grid grid-cols-1 gap-4">
-                {relatedDocs.map((relatedDoc) => (
-                  <div
-                    key={relatedDoc.id}
-                    className="surface-quiet p-5 hover:border-cyan-500/40 transition-all group border-l-4 border-l-slate-800 hover:border-l-cyan-500 cursor-pointer"
-                    onClick={() => navigate(`${location.pathname}?documentId=${relatedDoc.id}`)}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        navigate(`${location.pathname}?documentId=${relatedDoc.id}`);
-                      }
-                    }}
-                  >
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <FileText className="w-3.5 h-3.5 text-slate-500" />
-                          <span className="text-left font-bold text-slate-100 group-hover:text-cyan-400 truncate text-base">
-                            {relatedDoc.title || relatedDoc.fileName}
-                          </span>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-3 mt-1">
-                          <span className="text-[10px] uppercase font-bold text-slate-500">
-                            {relatedDoc.evidenceType}
-                          </span>
-                          <div className="w-1 h-1 rounded-full bg-slate-700" />
-                          <span className="text-[10px] text-slate-400 font-mono">
-                            {formatDate(relatedDoc.dateCreated)}
-                          </span>
-                        </div>
-                      </div>
+              <InvestigationTextRenderer
+                document={doc}
+                mode={textSubview}
+                searchTerm={localSearchTerm}
+                showRecoveryHighlights={textSubview !== 'ocr' && showRecoveryHighlights}
+                isReadingMode={isReadingMode}
+                onToggleReadingMode={() => setIsReadingMode(!isReadingMode)}
+                onToggleRecoveryHighlights={setShowRecoveryHighlights}
+                onEntitySelect={(entity) => setSelectedEntity(entity)}
+              />
+            )}
 
-                      <div className="flex flex-col items-end gap-2 shrink-0">
-                        <div className="flex flex-wrap gap-1.5 max-w-xs justify-end">
-                          {relatedDoc.sharedEntities?.map((ent: string, idx: number) => (
-                            <span
-                              key={idx}
-                              className="px-2 py-0.5 bg-cyan-950/40 text-cyan-400 text-[10px] font-bold rounded border border-cyan-900/30 whitespace-nowrap"
-                            >
-                              {ent}
-                            </span>
-                          ))}
-                        </div>
-                        <div className="text-[9px] text-slate-600 uppercase font-black tracking-widest flex items-center gap-2">
-                          <Users className="w-2.5 h-2.5" />
-                          {relatedDoc.sharedCount} SHARED ENTITIES
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+            {textSubview === 'clean' && (
+              <div className="pt-12 border-t border-white/5 space-y-12">
+                {entitiesPanel}
+                {relatedPanel}
               </div>
             )}
           </div>
@@ -601,34 +602,34 @@ export const DocumentModal: React.FC<Props> = ({
 
   const rightPaneContent = (
     <div className="space-y-6 pb-8">
-      <section className="surface-quiet p-4 overflow-hidden">
-        <h3 className="text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-4 font-bold flex items-center gap-2">
-          <FileText className="w-3 h-3" />
+      <section className="bg-slate-900/40 border border-white/5 rounded-2xl p-5 overflow-hidden shadow-xl shadow-black/20">
+        <h3 className="text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-5 font-black flex items-center gap-2.5">
+          <FileText className="w-3.5 h-3.5 text-cyan-500/80" />
           Core Metadata
         </h3>
-        <div className="space-y-4">
-          <div className="bg-slate-900/40 p-3 rounded-lg border border-slate-700/30">
-            <span className="text-[10px] text-slate-500 block mb-1 uppercase font-semibold">
+        <div className="space-y-5">
+          <div className="bg-slate-950/60 p-4 rounded-xl border border-white/5 group hover:border-cyan-500/20 transition-all">
+            <span className="text-[9px] text-slate-500 block mb-1.5 uppercase font-black tracking-widest">
               System Index ID
             </span>
-            <span className="font-mono text-xs text-cyan-200 break-all">
+            <span className="font-mono text-sm text-cyan-200 break-all leading-tight">
               {String(doc.id || id)}
             </span>
           </div>
-          <div className="grid grid-cols-1 gap-4">
-            <div>
-              <span className="text-[10px] text-slate-500 block mb-1 uppercase font-semibold">
+          <div className="grid grid-cols-1 gap-5 px-1">
+            <div className="flex flex-col gap-0.5">
+              <span className="text-[9px] text-slate-500 block uppercase font-black tracking-widest">
                 Origin Collection
               </span>
-              <span className="text-xs text-slate-200">
+              <span className="text-xs text-slate-200 font-medium">
                 {doc.metadata?.source_collection || 'Classified / Internal'}
               </span>
             </div>
-            <div>
-              <span className="text-[10px] text-slate-500 block mb-1 uppercase font-semibold">
+            <div className="flex flex-col gap-0.5">
+              <span className="text-[9px] text-slate-500 block uppercase font-black tracking-widest">
                 Thread Depth
               </span>
-              <span className="text-xs text-slate-200">
+              <span className="text-xs text-slate-200 font-medium font-mono">
                 {thread?.messages?.length || 0} Related Comms
               </span>
             </div>
@@ -636,17 +637,17 @@ export const DocumentModal: React.FC<Props> = ({
         </div>
       </section>
 
-      <section className="surface-quiet p-4">
+      <section className="bg-slate-900/40 border border-white/5 rounded-2xl p-5 shadow-lg shadow-black/10">
         <button
           type="button"
           onClick={() => setExpandedEntities((prev) => !prev)}
           className="w-full flex items-center justify-between text-left group"
         >
-          <h3 className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold">
+          <h3 className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black">
             Live Entities ({entities.length})
           </h3>
           <ChevronDown
-            className={`w-4 h-4 text-slate-500 transition-transform duration-300 ${expandedEntities ? 'rotate-180 text-cyan-400' : 'group-hover:text-slate-300'}`}
+            className={`w-4 h-4 text-slate-500 transition-all duration-300 ${expandedEntities ? 'rotate-180 text-cyan-400' : 'group-hover:text-slate-300'}`}
           />
         </button>
         {expandedEntities && (
@@ -721,19 +722,19 @@ export const DocumentModal: React.FC<Props> = ({
         )}
       </section>
 
-      <div className="grid grid-cols-1 gap-4">
-        <section className="surface-quiet p-4">
-          <h3 className="text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-3 font-bold">
+      <div className="grid grid-cols-1 gap-5">
+        <section className="bg-slate-900/40 border border-white/5 rounded-2xl p-5 shadow-lg shadow-black/10">
+          <h3 className="text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-4 font-black">
             Case Reference
           </h3>
           {caseLinks.length === 0 ? (
-            <p className="text-xs text-slate-600 italic">No formal linkage.</p>
+            <p className="text-xs text-slate-500/80 italic font-light">No formal linkage.</p>
           ) : (
             <div className="flex flex-wrap gap-2">
               {caseLinks.map((entry, index) => (
                 <span
                   key={`case-link-${index}`}
-                  className="px-2 py-1 bg-slate-800 text-slate-200 text-[10px] rounded border border-slate-700"
+                  className="px-2.5 py-1.5 bg-slate-950/50 text-slate-200 text-[10px] font-bold rounded-lg border border-white/5 hover:border-cyan-500/30 transition-colors"
                 >
                   {entry}
                 </span>
@@ -742,18 +743,18 @@ export const DocumentModal: React.FC<Props> = ({
           )}
         </section>
 
-        <section className="surface-quiet p-4">
-          <h3 className="text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-3 font-bold">
+        <section className="bg-slate-900/40 border border-white/5 rounded-2xl p-5 shadow-lg shadow-black/10">
+          <h3 className="text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-4 font-black">
             Timeline Hook
           </h3>
           {timelineReferences.length === 0 ? (
-            <p className="text-xs text-slate-600 italic">No chronological tag.</p>
+            <p className="text-xs text-slate-500/80 italic font-light">No chronological tag.</p>
           ) : (
             <div className="flex flex-wrap gap-2">
               {timelineReferences.map((entry, index) => (
                 <span
                   key={`timeline-ref-${index}`}
-                  className="px-2 py-1 bg-slate-800 text-slate-200 text-[10px] rounded border border-slate-700"
+                  className="px-2.5 py-1.5 bg-slate-950/50 text-slate-200 text-[10px] font-bold rounded-lg border border-white/5 hover:border-cyan-500/30 transition-colors"
                 >
                   {entry}
                 </span>
