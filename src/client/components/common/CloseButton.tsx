@@ -34,7 +34,7 @@ export const CloseButton: React.FC<CloseButtonProps> = ({
       aria-label={label}
       title={label}
       className={cn(
-        'inline-flex items-center justify-center rounded-full border border-slate-600/80 bg-slate-900/70 text-slate-300 transition-colors',
+        'inline-flex items-center justify-center shrink-0 leading-none rounded-full border border-slate-600/80 bg-slate-900/70 text-slate-300 transition-colors',
         'hover:bg-slate-800 hover:text-white',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400/70 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950',
         sizeClassMap[size],
@@ -42,7 +42,7 @@ export const CloseButton: React.FC<CloseButtonProps> = ({
       )}
       {...rest}
     >
-      <X className={iconSizeClassMap[size]} />
+      <X className={cn('block shrink-0', iconSizeClassMap[size])} />
     </button>
   );
 };

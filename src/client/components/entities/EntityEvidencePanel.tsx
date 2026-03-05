@@ -21,7 +21,8 @@ import { NetworkVisualization } from '../visualizations/NetworkVisualization';
 import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
 
 interface Evidence {
-  id: number;
+  id: string | number;
+  document_id?: string | number | null;
   evidence_type: string;
   title: string;
   description: string;
@@ -158,6 +159,13 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
 
   const visibleEvidence = filteredEvidence.slice(0, itemsToShow);
   const hasMore = itemsToShow < filteredEvidence.length;
+
+  const resolveDocumentId = (item: Evidence): string | null => {
+    const raw = item.document_id ?? item.id;
+    if (raw === null || raw === undefined) return null;
+    const asString = String(raw).trim();
+    return /^\d+$/.test(asString) ? asString : null;
+  };
 
   if (loading) {
     return (
@@ -515,88 +523,95 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
 
         {/* Evidence List */}
         <div className="space-y-3">
-          {visibleEvidence.map((item) => (
-            <div
-              key={item.id}
-              className="border border-slate-700 rounded-lg p-4 hover:bg-slate-700/50 transition bg-slate-800/50"
-            >
-              <div className="flex items-start justify-between mb-2">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2 mb-1">
-                    <FileText className="w-4 h-4 text-slate-400" />
-                    <h4 className="font-semibold text-slate-200">{item.title || 'Untitled'}</h4>
+          {visibleEvidence.map((item) => {
+            const documentId = resolveDocumentId(item);
+            return (
+              <div
+                key={item.id}
+                className="border border-slate-700 rounded-lg p-4 hover:bg-slate-700/50 transition bg-slate-800/50"
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <FileText className="w-4 h-4 text-slate-400" />
+                      <h4 className="font-semibold text-slate-200">{item.title || 'Untitled'}</h4>
+                    </div>
+                    {item.description && (
+                      <p className="text-sm text-slate-400 line-clamp-2 mb-2">{item.description}</p>
+                    )}
+                    {item.context_snippet && (
+                      <p className="text-xs text-slate-400 italic bg-yellow-900/20 p-2 rounded border-l-2 border-yellow-600/50 text-yellow-200/90 break-words">
+                        "{item.context_snippet}"
+                      </p>
+                    )}
                   </div>
-                  {item.description && (
-                    <p className="text-sm text-slate-400 line-clamp-2 mb-2">{item.description}</p>
-                  )}
-                  {item.context_snippet && (
-                    <p className="text-xs text-slate-400 italic bg-yellow-900/20 p-2 rounded border-l-2 border-yellow-600/50 text-yellow-200/90 break-words">
-                      "{item.context_snippet}"
-                    </p>
-                  )}
-                </div>
-                <div className="flex flex-col items-end space-y-1 ml-4">
-                  {item.role && (
-                    <span className={`text-xs px-2 py-1 rounded ${getRoleColor(item.role)}`}>
-                      {item.role}
-                    </span>
-                  )}
-                  {item.red_flag_rating > 0 && (
-                    <div className="flex items-center space-x-1">
-                      <AlertTriangle className="w-4 h-4 text-red-500" />
-                      <span className="text-xs font-semibold text-red-400">
-                        {item.red_flag_rating}
+                  <div className="flex flex-col items-end space-y-1 ml-4">
+                    {item.role && (
+                      <span className={`text-xs px-2 py-1 rounded ${getRoleColor(item.role)}`}>
+                        {item.role}
                       </span>
-                    </div>
-                  )}
-                  {item.was_agentic && (
-                    <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-purple-900/20 border border-purple-500/20 text-purple-400 text-[10px] uppercase font-bold">
-                      <Fingerprint size={10} />
-                      Agentic
-                    </div>
-                  )}
-                  {item.confidence && (
-                    <span className="text-xs text-slate-500">
-                      {Math.round(item.confidence * 100)}% conf
+                    )}
+                    {item.red_flag_rating > 0 && (
+                      <div className="flex items-center space-x-1">
+                        <AlertTriangle className="w-4 h-4 text-red-500" />
+                        <span className="text-xs font-semibold text-red-400">
+                          {item.red_flag_rating}
+                        </span>
+                      </div>
+                    )}
+                    {item.was_agentic && (
+                      <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-purple-900/20 border border-purple-500/20 text-purple-400 text-[10px] uppercase font-bold">
+                        <Fingerprint size={10} />
+                        Agentic
+                      </div>
+                    )}
+                    {item.confidence && (
+                      <span className="text-xs text-slate-500">
+                        {Math.round(item.confidence * 100)}% conf
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Forensic Details (Hidden by default, toggle or tooltip could be here) */}
+                <div className="mt-3 overflow-hidden">
+                  <EvidenceLadder
+                    level={
+                      item.evidence_type === 'entity_creation' ? 3 : item.confidence > 0.8 ? 1 : 2
+                    }
+                    confidence={item.confidence}
+                    ingestRunId={item.ingestRunId}
+                    wasAgentic={item.was_agentic}
+                    className="bg-slate-950/30 p-3 rounded-lg border border-slate-700/50"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-700/50 mt-3">
+                  <div className="flex items-center space-x-3">
+                    <span className="flex items-center space-x-1">
+                      <Tag className="w-3 h-3" />
+                      <span>{getEvidenceTypeLabel(item.evidence_type)}</span>
                     </span>
+                    <span className="flex items-center space-x-1">
+                      <Calendar className="w-3 h-3" />
+                      <span>{new Date(item.created_at).toLocaleDateString()}</span>
+                    </span>
+                  </div>
+                  {documentId ? (
+                    <Link
+                      to={`/documents?id=${documentId}`}
+                      className="flex items-center space-x-1 text-blue-400 hover:text-blue-300"
+                    >
+                      <span>View</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </Link>
+                  ) : (
+                    <span className="text-slate-600">No document link</span>
                   )}
                 </div>
               </div>
-
-              {/* Forensic Details (Hidden by default, toggle or tooltip could be here) */}
-              <div className="mt-3 overflow-hidden">
-                <EvidenceLadder
-                  level={
-                    item.evidence_type === 'entity_creation' ? 3 : item.confidence > 0.8 ? 1 : 2
-                  }
-                  confidence={item.confidence}
-                  ingestRunId={item.ingestRunId}
-                  wasAgentic={item.was_agentic}
-                  className="bg-slate-950/30 p-3 rounded-lg border border-slate-700/50"
-                />
-              </div>
-
-              <div className="flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-700/50 mt-3">
-                <div className="flex items-center space-x-3">
-                  <span className="flex items-center space-x-1">
-                    <Tag className="w-3 h-3" />
-                    <span>{getEvidenceTypeLabel(item.evidence_type)}</span>
-                  </span>
-                  <span className="flex items-center space-x-1">
-                    <Calendar className="w-3 h-3" />
-                    <span>{new Date(item.created_at).toLocaleDateString()}</span>
-                  </span>
-                </div>
-                <Link
-                  to={`/evidence/${item.id}`}
-                  className="flex items-center space-x-1 text-blue-400 hover:text-blue-300"
-                >
-                  <span>View</span>
-                  <ExternalLink className="w-3 h-3" />
-                </Link>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Load More Check */}

@@ -921,7 +921,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
       {showFullTranscriptOverlay && (
         <div className="fixed inset-0 z-[1300] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-5xl h-[80vh] bg-slate-950 border border-slate-800 rounded-lg shadow-2xl overflow-hidden flex flex-col">
+          <div className="w-full max-w-5xl h-[90vh] max-h-[90vh] bg-slate-950 border border-slate-800 rounded-lg shadow-2xl overflow-hidden flex flex-col">
             <div className="flex items-center justify-between p-3 bg-slate-900 border-b border-slate-800">
               <div className="flex items-center gap-2">
                 <button

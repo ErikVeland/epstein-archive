@@ -434,6 +434,21 @@ export const documentsRepository = {
       getApiPool(),
     );
 
+    let derivedContent = (document.content || '').trim();
+    if (!derivedContent) {
+      const pageTextRes = await getApiPool().query<{ combined_text: string | null }>(
+        `
+        SELECT STRING_AGG(dp.extracted_text, E'\n\n' ORDER BY dp.page_number) AS combined_text
+        FROM document_pages dp
+        WHERE dp.document_id = $1
+          AND dp.extracted_text IS NOT NULL
+          AND BTRIM(dp.extracted_text) <> ''
+        `,
+        [docId],
+      );
+      derivedContent = (pageTextRes.rows[0]?.combined_text || '').trim();
+    }
+
     const normalizedDocument = {
       ...document,
       id: String(document.id),
@@ -444,11 +459,13 @@ export const documentsRepository = {
       dateCreated: document.dateCreated,
       extractedDate: document.extractedDate,
       evidenceType: document.evidenceType || 'document',
-      content: document.content || '',
-      contentRefined: document.content || '', // In PG version we only have content_refined usually
+      content: derivedContent,
+      contentRefined: derivedContent, // Fall back to OCR/page text when content_refined is empty.
       metadata,
       redFlagRating: Number(document.redFlagRating || 0),
-      wordCount: Number(document.wordCount || 0),
+      wordCount: Number(
+        document.wordCount || (derivedContent ? derivedContent.split(/\s+/).length : 0),
+      ),
     };
 
     return {

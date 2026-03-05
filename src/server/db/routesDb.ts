@@ -2,7 +2,7 @@ import { adminQueries, analyticsQueries, graphQueries } from '@epstein/db';
 import { getApiPool } from './connection.js';
 
 export async function getDatabaseMetadata() {
-  const rows = await (adminQueries.getDbStats as any).run(undefined, getApiPool());
+  const rows = await (adminQueries.getDbMeta as any).run(undefined, getApiPool());
   return rows;
 }
 

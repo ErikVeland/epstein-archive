@@ -907,7 +907,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
       {selectedItem &&
         createPortal(
           <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 md:p-8 animate-in fade-in duration-200">
-            <div className="w-full max-w-5xl h-[80vh] shadow-2xl ring-1 ring-white/10 rounded-lg overflow-hidden">
+            <div className="w-full max-w-5xl h-[90vh] max-h-[90vh] shadow-2xl ring-1 ring-white/10 rounded-lg overflow-hidden">
               <AudioPlayer
                 key={selectedItem.id}
                 src={`/api/media/audio/${selectedItem.id}/stream`}

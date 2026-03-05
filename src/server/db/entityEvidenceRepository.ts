@@ -25,6 +25,7 @@ export const entityEvidenceRepository = {
     // Normalize evidence shape to match EntityEvidencePanel expectations
     const evidence = evidenceRows.map((row: any) => ({
       id: row.evidence_id,
+      document_id: row.document_id,
       evidence_type: row.evidence_type || 'document_context',
       title: row.title || `Document ${row.document_id}`,
       description: '',

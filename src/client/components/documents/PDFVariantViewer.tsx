@@ -59,19 +59,23 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
       setIsLoading(true);
       setError(null);
       try {
-        const res = await fetch(`/api/evidence/${documentId}`);
-        if (res.ok) {
-          const data = await res.json();
-          setDocMeta({
-            fileName: data.fileName || data.file_name,
-            filePath: data.filePath,
-            originalFilePath: data.originalFilePath || data.original_file_path,
-            cleanedPath: data.cleanedPath || data.cleaned_path,
-            mimeType: data.mimeType || data.mime_type,
-          });
-        } else {
+        const primaryRes = await fetch(`/api/documents/${documentId}`);
+        const fallbackRes = !primaryRes.ok ? await fetch(`/api/evidence/${documentId}`) : null;
+        const res = primaryRes.ok ? primaryRes : fallbackRes;
+
+        if (!res || !res.ok) {
           setError('Failed to fetch document metadata');
+          return;
         }
+
+        const data = await res.json();
+        setDocMeta({
+          fileName: data.fileName || data.file_name,
+          filePath: data.filePath || data.file_path,
+          originalFilePath: data.originalFilePath || data.original_file_path,
+          cleanedPath: data.cleanedPath || data.cleaned_path,
+          mimeType: data.mimeType || data.mime_type || data.fileType || data.file_type,
+        });
       } catch (err) {
         console.error('Error fetching document metadata:', err);
         setError('Error connecting to API');

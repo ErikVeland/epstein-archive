@@ -78,7 +78,10 @@ router.post('/login', authLimiter, async (req, res) => {
     );
 
     // Update last login timestamp
-    await pool.query('UPDATE users SET last_login_at = CURRENT_TIMESTAMP WHERE id = $1', [user.id]);
+    await pool.query(
+      'UPDATE users SET last_login_at = CURRENT_TIMESTAMP, last_active = CURRENT_TIMESTAMP WHERE id = $1',
+      [user.id],
+    );
 
     // Set Refresh Token in Secure Cookie
     res.cookie('refreshToken', refreshToken, {
