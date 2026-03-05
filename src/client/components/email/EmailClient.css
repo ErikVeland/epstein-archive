@@ -9,7 +9,6 @@
 }
 
 .mailbox-pane {
-  width: 300px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -22,7 +21,6 @@
 }
 
 .thread-pane {
-  width: 440px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -141,6 +139,28 @@
   color: var(--text-strong);
 }
 
+.pane-resizer {
+  align-items: stretch;
+  justify-content: center;
+  cursor: col-resize;
+  background: linear-gradient(
+    to right,
+    rgba(15, 23, 42, 0) 0%,
+    rgba(56, 189, 248, 0.18) 50%,
+    rgba(15, 23, 42, 0) 100%
+  );
+  transition: background 120ms ease;
+}
+
+.pane-resizer:hover {
+  background: linear-gradient(
+    to right,
+    rgba(15, 23, 42, 0) 0%,
+    rgba(56, 189, 248, 0.34) 50%,
+    rgba(15, 23, 42, 0) 100%
+  );
+}
+
 /* Mobile adjustments */
 @media (max-width: 1024px) {
   .mailbox-pane {
@@ -156,11 +176,7 @@
 }
 
 @media (min-width: 1440px) {
-  .mailbox-pane {
-    width: 320px;
-  }
-
-  .thread-pane {
-    width: 460px;
+  .message-thread {
+    width: min(100%, 1380px);
   }
 }

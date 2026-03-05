@@ -49,19 +49,6 @@ const verifyToken = async (req: Request): Promise<any | null> => {
 export const authenticateRequest = async (req: Request, res: Response, next: NextFunction) => {
   const authReq = req as AuthRequest;
 
-  // Check if Auth is enabled
-  const isAuthEnabled = true;
-
-  if (!isAuthEnabled) {
-    authReq.user = {
-      id: 'dev-user',
-      username: 'Developer',
-      role: 'admin',
-      email: 'dev@local.test',
-    };
-    return next();
-  }
-
   const user = await verifyToken(req);
   if (!user) {
     return res

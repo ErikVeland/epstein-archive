@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import toobusy from 'toobusy-js';
@@ -22,6 +23,11 @@ import { getEntityAndDocumentCounts } from './server/db/routesDb.js';
 
 // Route imports
 import authRoutes from './server/auth/routes.js';
+import {
+  authenticateRequest,
+  optionalAuthenticate,
+  requireRole,
+} from './server/auth/middleware.js';
 import statsRoutes from './server/routes/stats.js';
 import relationshipsRoutes from './server/routes/relationships.js';
 import analyticsRoutes from './server/routes/analytics.js';
@@ -44,8 +50,10 @@ import timelineRoutes from './server/routes/timelineRoutes.js';
 import flightsRoutes from './server/routes/flightsRoutes.js';
 import propertiesRoutes from './server/routes/propertiesRoutes.js';
 import blackBookRoutes from './server/routes/blackBookRoutes.js';
+import faceRoutes from './server/routes/faceRoutes.js';
 import { entitiesRepository } from './server/db/entitiesRepository.js';
 import {
+  mapEntityDetailDto,
   mapEntityListResponseDto,
   mapSubjectsListResponseDto,
 } from './server/mappers/entitiesDtoMapper.js';
@@ -90,6 +98,9 @@ export class App {
   }
 
   private initializeMiddleware() {
+    const isProduction = process.env.NODE_ENV === 'production';
+    const scriptSrc = isProduction ? ["'self'"] : ["'self'", "'unsafe-inline'", "'unsafe-eval'"];
+
     // Respect real client IP from upstream proxy (nginx) so rate limits are per-user, not global.
     this.app.set('trust proxy', 1);
 
@@ -100,7 +111,7 @@ export class App {
         contentSecurityPolicy: {
           directives: {
             defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"], // Required for Vite/React dev mode and some legacy scripts
+            scriptSrc,
             styleSrc: ["'self'", "'unsafe-inline'"],
             imgSrc: ["'self'", 'data:', 'blob:'],
             fontSrc: ["'self'", 'data:'],
@@ -112,7 +123,37 @@ export class App {
         crossOriginEmbedderPolicy: false,
       }),
     );
-    this.app.use(cors());
+    this.app.use(
+      cors({
+        origin: (origin, callback) => {
+          const configured = String(process.env.CORS_ORIGIN || '')
+            .split(',')
+            .map((item) => item.trim())
+            .filter(Boolean);
+          const defaultDevOrigins = [
+            'http://localhost:3000',
+            'http://localhost:3002',
+            'http://127.0.0.1:3000',
+            'http://127.0.0.1:3002',
+          ];
+          const allowedOrigins =
+            configured.length > 0
+              ? configured
+              : process.env.NODE_ENV === 'production'
+                ? []
+                : defaultDevOrigins;
+
+          if (!origin) {
+            return callback(null, true);
+          }
+          if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+          }
+          return callback(new Error('CORS origin denied'));
+        },
+        credentials: true,
+      }),
+    );
     this.app.use(compression());
 
     // 2. Load Shedding
@@ -139,8 +180,10 @@ export class App {
     this.app.use(limiter);
 
     // 4. Parsing
-    this.app.use(express.json({ limit: '50mb' }));
-    this.app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+    this.app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || '1mb' }));
+    this.app.use(
+      express.urlencoded({ extended: true, limit: process.env.URLENCODED_BODY_LIMIT || '1mb' }),
+    );
     this.app.use(cookieParser());
 
     // 5. Custom Headers
@@ -167,17 +210,33 @@ export class App {
       const wildcardPath = (req.params as Record<string, string | undefined>)['0'];
       const filePath = wildcardPath ?? '';
 
-      // Basic security check to prevent directory traversal
-      if (filePath.includes('..')) {
+      const decodedPath = (() => {
+        try {
+          return decodeURIComponent(filePath);
+        } catch {
+          return filePath;
+        }
+      })();
+      const dataRoot = path.resolve(process.cwd(), 'data');
+      const requestedPath = path.resolve(dataRoot, decodedPath);
+      const normalizedRoot = dataRoot.endsWith(path.sep) ? dataRoot : `${dataRoot}${path.sep}`;
+
+      if (requestedPath !== dataRoot && !requestedPath.startsWith(normalizedRoot)) {
+        return res.status(400).send('Invalid path');
+      }
+      if (!fs.existsSync(requestedPath)) {
+        return res.status(404).send('File not found');
+      }
+      const realDataRoot = fs.realpathSync(dataRoot);
+      const realRequestedPath = fs.realpathSync(requestedPath);
+      const normalizedRealRoot = realDataRoot.endsWith(path.sep)
+        ? realDataRoot
+        : `${realDataRoot}${path.sep}`;
+      if (realRequestedPath !== realDataRoot && !realRequestedPath.startsWith(normalizedRealRoot)) {
         return res.status(400).send('Invalid path');
       }
 
-      // Map /files/path/to/doc -> /data/path/to/doc or CORPUS_BASE_PATH
-      // For now, we assume files are in /data/
-      // In a real scenario, we'd use the mapping logic more robustly
-      const absolutePath = path.join(process.cwd(), 'data', filePath);
-
-      res.sendFile(absolutePath, (err) => {
+      res.sendFile(realRequestedPath, (err) => {
         if (err) {
           if (!res.headersSent) {
             res.status(404).send('File not found');
@@ -404,6 +463,19 @@ export class App {
 
     // Mount routes
     router.use('/auth', authRoutes);
+    router.use(optionalAuthenticate);
+    router.use((req, res, next) => {
+      if (req.path.startsWith('/auth')) {
+        return next();
+      }
+      if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS') {
+        return next();
+      }
+      return authenticateRequest(req, res, (authErr?: any) => {
+        if (authErr) return next(authErr);
+        return requireRole('admin')(req, res, next);
+      });
+    });
     router.get('/subjects', validate(subjectsQuerySchema), async (req, res, next) => {
       try {
         const query = req.query as any;
@@ -481,7 +553,8 @@ export class App {
     });
     router.get('/entities/all', async (req, res, next) => {
       try {
-        const limit = Math.max(0, Number((req.query as any).limit || 0));
+        const requestedLimit = Number((req.query as any).limit || 1000);
+        const limit = Math.min(5000, Math.max(1, requestedLimit));
         const entities = await entitiesRepository.getAllEntities(limit);
         res.json(entities);
       } catch (error) {
@@ -507,7 +580,7 @@ export class App {
       try {
         const entity = await entitiesRepository.getEntityById(req.params.id);
         if (!entity) return res.status(404).json({ error: 'Entity not found' });
-        return res.json(entity);
+        return res.json(mapEntityDetailDto(entity));
       } catch (error) {
         next(error);
       }
@@ -535,6 +608,7 @@ export class App {
     router.use('/flights', flightsRoutes);
     router.use('/properties', propertiesRoutes);
     router.use('/black-book', blackBookRoutes);
+    router.use('/faces', faceRoutes);
 
     // Legacy/Direct routes that might need adjustment
     router.use('/investigation-evidence', investigationEvidenceRoutes);

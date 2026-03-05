@@ -16,6 +16,7 @@ interface BlackBookEntry {
   entry_category: 'original' | 'contact' | 'credential';
   document_id?: number;
   person_name?: string;
+  thumbnail_path?: string;
 }
 
 export const BlackBookViewer: React.FC = () => {
@@ -118,6 +119,7 @@ export const BlackBookViewer: React.FC = () => {
                 ? Number(entry.documentId)
                 : undefined,
           person_name: (entry.person_name ?? entry.displayName ?? undefined) || undefined,
+          thumbnail_path: entry.thumbnail_path || entry.thumbnailPath,
         };
       });
 
@@ -289,20 +291,39 @@ export const BlackBookViewer: React.FC = () => {
               className="bg-slate-800/50 border border-slate-700 rounded-lg p-4 hover:border-cyan-500/50 transition-all"
             >
               {/* Name - clickable if known entity */}
-              <div className="flex items-center space-x-2 mb-3">
-                <User className="w-5 h-5 text-cyan-400" />
-                {entry.person_name ? (
-                  <button
-                    onClick={() => handleEntityClick(entry.person_id || 0)}
-                    className="text-lg font-semibold text-cyan-400 hover:text-cyan-300 hover:underline flex items-center gap-1 transition-colors text-left"
-                    title="Click to view entity profile"
-                  >
-                    {displayName}
-                    <ExternalLink className="w-3 h-3 opacity-60" />
-                  </button>
+              <div className="flex items-center space-x-3 mb-3">
+                {entry.thumbnail_path ? (
+                  <div className="w-10 h-10 rounded-full overflow-hidden border border-slate-600 shrink-0 bg-slate-900">
+                    <img
+                      src={
+                        entry.thumbnail_path.startsWith('/')
+                          ? entry.thumbnail_path
+                          : `/${entry.thumbnail_path}`
+                      }
+                      alt={displayName}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
                 ) : (
-                  <h3 className="text-lg font-semibold text-white">{displayName}</h3>
+                  <div className="w-10 h-10 rounded-full border border-slate-700 bg-slate-800 flex items-center justify-center shrink-0">
+                    <User className="w-5 h-5 text-cyan-400" />
+                  </div>
                 )}
+                <div className="min-w-0 flex-1">
+                  {entry.person_name ? (
+                    <button
+                      onClick={() => handleEntityClick(entry.person_id || 0)}
+                      className="text-lg font-semibold text-cyan-400 hover:text-cyan-300 hover:underline flex items-center gap-1 transition-colors text-left truncate w-full"
+                      title="Click to view entity profile"
+                    >
+                      <span className="truncate">{displayName}</span>
+                      <ExternalLink className="w-3 h-3 opacity-60 shrink-0" />
+                    </button>
+                  ) : (
+                    <h3 className="text-lg font-semibold text-white truncate">{displayName}</h3>
+                  )}
+                </div>
                 <div className="ml-auto">
                   <AddToInvestigationButton
                     item={{

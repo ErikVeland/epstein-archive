@@ -108,7 +108,10 @@ export const globalErrorHandler = (
       method: req.method,
       path: req.path,
       query: req.query,
-      body: (req as any).body,
+      bodyKeys:
+        req.body && typeof req.body === 'object' && !Array.isArray(req.body)
+          ? Object.keys(req.body as Record<string, unknown>)
+          : undefined,
       message: err.message,
       stack: err.stack,
       userAgent: req.get('User-Agent'),

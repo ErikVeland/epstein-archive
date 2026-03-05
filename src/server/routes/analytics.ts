@@ -5,6 +5,7 @@ import { getApiPool } from '../db/runtime.js';
 import { resetJunkFlags } from '../db/routesDb.js';
 import { analyticsRateLimiter } from '../middleware/rateLimit.js';
 import { cacheResponse } from '../utils/perfCache.js';
+import { authenticateRequest, requireRole } from '../auth/middleware.js';
 
 const router = Router();
 
@@ -27,6 +28,7 @@ router.get('/enhanced', analyticsRateLimiter, cacheResponse(60), async (_req, re
       topRelationshipsRows,
       totalCountsRows,
       reconciliationRows,
+      riskByTypeRows,
     ] = await Promise.all([
       analyticsQueries.getDocsByType.run(undefined, pool),
       analyticsQueries.getTimelineData.run(undefined, pool),
@@ -36,6 +38,14 @@ router.get('/enhanced', analyticsRateLimiter, cacheResponse(60), async (_req, re
       analyticsQueries.getTopRelationships.run(undefined, pool),
       analyticsQueries.getTotalCounts.run(undefined, pool),
       analyticsQueries.getReconciliationCounts.run(undefined, pool),
+      pool.query<{ riskLevel: number; count: number }>(`
+        SELECT red_flag_rating AS "riskLevel", COUNT(*)::integer AS count
+        FROM entities
+        WHERE red_flag_rating IS NOT NULL
+          AND COALESCE(junk_tier, 'clean') = 'clean'
+        GROUP BY red_flag_rating
+        ORDER BY red_flag_rating
+      `),
     ]);
 
     const tc = totalCountsRows[0];
@@ -47,7 +57,7 @@ router.get('/enhanced', analyticsRateLimiter, cacheResponse(60), async (_req, re
       timelineData: timelineRows,
       topConnectedEntities: topConnectedRows,
       entityTypeDistribution: entityDistRows,
-      riskByType: [], // not in mat-view; omit or calculate on demand
+      riskByType: riskByTypeRows.rows,
       redactionStats: redactionStatsRows[0] ?? null,
       topRelationships: topRelationshipsRows,
       totalCounts: {
@@ -75,34 +85,44 @@ router.get('/', (_req, res) => {
 });
 
 // Admin Route: Trigger Junk Entity Reconciliation
-router.post('/reconcile/junk', async (_req, res, next) => {
-  try {
-    entitiesRepository.startBackgroundJunkBackfill();
-    res.json({
-      success: true,
-      message: 'Junk reconciliation started in background',
-      timestamp: new Date().toISOString(),
-    });
-  } catch (error: any) {
-    console.error('❌ Error in junk reconciliation:', error);
-    next(error);
-  }
-});
+router.post(
+  '/reconcile/junk',
+  authenticateRequest,
+  requireRole('admin'),
+  async (_req, res, next) => {
+    try {
+      entitiesRepository.startBackgroundJunkBackfill();
+      res.json({
+        success: true,
+        message: 'Junk reconciliation started in background',
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error: any) {
+      console.error('❌ Error in junk reconciliation:', error);
+      next(error);
+    }
+  },
+);
 
 // Admin Route: Reset Junk Flags
-router.post('/reconcile/reset', async (_req, res, next) => {
-  try {
-    const changes = await resetJunkFlags();
-    res.json({
-      success: true,
-      changes,
-      message: 'All junk flags have been reset',
-      timestamp: new Date().toISOString(),
-    });
-  } catch (error) {
-    console.error('❌ Error resetting junk flags:', error);
-    next(error);
-  }
-});
+router.post(
+  '/reconcile/reset',
+  authenticateRequest,
+  requireRole('admin'),
+  async (_req, res, next) => {
+    try {
+      const changes = await resetJunkFlags();
+      res.json({
+        success: true,
+        changes,
+        message: 'All junk flags have been reset',
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error('❌ Error resetting junk flags:', error);
+      next(error);
+    }
+  },
+);
 
 export default router;

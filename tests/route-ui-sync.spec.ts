@@ -3,7 +3,7 @@ import { expect, test, type APIRequestContext } from '@playwright/test';
 const API_BASE =
   process.env.NODE_ENV === 'production'
     ? 'https://epstein.academy/api'
-    : 'http://localhost:3012/api';
+    : `${process.env.PW_API_BASE_URL || 'http://localhost:3312'}/api`;
 
 const resolveFirstEntityId = async (request: APIRequestContext): Promise<string | null> => {
   const response = await request.get(
@@ -63,6 +63,11 @@ const preparePage = async (page: import('@playwright/test').Page) => {
 
 test.describe('Route to UI state synchronization', () => {
   test.setTimeout(120_000);
+  test.beforeAll(async ({ request }) => {
+    const response = await request.get(`${API_BASE}/subjects?page=1&limit=1`, { timeout: 15000 });
+    expect(response.ok()).toBeTruthy();
+  });
+
   test('entity modal quick actions update modal state (not just URL)', async ({
     page,
     request,
@@ -128,7 +133,7 @@ test.describe('Route to UI state synchronization', () => {
     }
 
     await preparePage(page);
-    await page.goto(`/documents/${documentId}?modalTab=summary`);
+    await page.goto(`/documents/${documentId}?modalTab=analysis`);
 
     const modal = page.locator('#DocumentModal');
     const openedFromRoute = await modal.isVisible({ timeout: 20000 }).catch(() => false);
@@ -162,13 +167,13 @@ test.describe('Route to UI state synchronization', () => {
       });
     expect(scrollRegionCount).toBeLessThanOrEqual(1);
 
-    await page.getByRole('tab', { name: 'Clean Text' }).click();
-    await expect(page).toHaveURL(/modalTab=clean/);
-    await expect(page.getByTestId('document-modal-tabpanel-clean')).toBeVisible();
+    await page.getByText('Clean Text').click();
+    await expect(page).toHaveURL(/textMode=clean/);
+    await expect(page.getByTestId('document-modal-tabpanel-analysis')).toBeVisible();
 
-    await page.getByRole('tab', { name: 'Raw OCR' }).click();
-    await expect(page).toHaveURL(/modalTab=ocr/);
-    await expect(page.getByTestId('document-modal-tabpanel-ocr')).toBeVisible();
+    await page.getByText('Raw OCR').click();
+    await expect(page).toHaveURL(/textMode=ocr/);
+    await expect(page.getByTestId('document-modal-tabpanel-analysis')).toBeVisible();
 
     const afterBox = await modal.boundingBox();
     expect(afterBox).toBeTruthy();

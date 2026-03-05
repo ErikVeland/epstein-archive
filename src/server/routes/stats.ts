@@ -14,6 +14,7 @@ import {
 import { ingestRunsRepository } from '../db/ingestRunsRepository.js';
 import { BackupService } from '../services/BackupService.js';
 import { cacheMiddleware } from '../middleware/cache.js';
+import { authenticateRequest } from '../auth/middleware.js';
 
 const router = Router();
 
@@ -317,7 +318,7 @@ router.get('/backups', async (_req, res, next) => {
 });
 
 // Trigger Manual Backup
-router.post('/backups/trigger', async (_req, res, next) => {
+router.post('/backups/trigger', authenticateRequest, async (_req, res, next) => {
   try {
     const path = await BackupService.createBackup();
     res.json({ success: true, path });

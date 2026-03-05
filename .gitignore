@@ -86,6 +86,8 @@ tmp/
 eng.traineddata
 data/media/images/
 data/thumbnails/
+data/faces_crops/
+data/models/
 thumbnails/
 data/media/audio/
 data/media/videos/
@@ -94,6 +96,11 @@ aggressive_consolidation_audit.json
 data_quality_report.json
 timeline-normalisation.rtf
 epstein-archive-deployment-*.tar.gz
+
+# Python venv
+venv/
+__pycache__/
+*.pyc
 
 # Additional database and backup files
 *.db

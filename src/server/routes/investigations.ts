@@ -567,30 +567,40 @@ router.get('/:id/evidence-by-type', validate(numericIdParamSchema), async (req, 
   }
 });
 
-router.get('/:id/board', validate(boardQuerySchema), async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const { evidenceLimit, hypothesisLimit } = req.query as any;
-    const snapshot = await investigationsRepository.getBoardSnapshot(Number(id), {
-      evidenceLimit,
-      hypothesisLimit,
-    });
-    res.json(snapshot);
-  } catch (error) {
-    next(error);
-  }
-});
+router.get(
+  '/:id/board',
+  authenticateRequest,
+  validate(boardQuerySchema),
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const { evidenceLimit, hypothesisLimit } = req.query as any;
+      const snapshot = await investigationsRepository.getBoardSnapshot(Number(id), {
+        evidenceLimit,
+        hypothesisLimit,
+      });
+      res.json(snapshot);
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 // Notebook persistence
-router.get('/:id/notebook', validate(numericIdParamSchema), async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const notebook = await investigationsRepository.getNotebook(Number(id));
-    res.json(notebook);
-  } catch (error) {
-    next(error);
-  }
-});
+router.get(
+  '/:id/notebook',
+  authenticateRequest,
+  validate(numericIdParamSchema),
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const notebook = await investigationsRepository.getNotebook(Number(id));
+      res.json(notebook);
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 router.put(
   '/:id/notebook',
@@ -609,79 +619,86 @@ router.put(
 );
 
 // Publish Briefing (Markdown)
-router.get('/:id/briefing', validate(numericIdParamSchema), async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const repoModule = await import('../db/evidenceRepository.js');
-    const summary = await repoModule.evidenceRepository.getInvestigationEvidenceSummary(String(id));
-    const notebook = await investigationsRepository.getNotebook(Number(id));
-    let md = `# Investigation Briefing\\n\\nTotal Evidence: ${summary.totalEvidence}\\n\\n`;
-    const byType: Record<string, any[]> = {};
-    for (const e of summary.evidence) {
-      const t = e.evidence_type || 'unknown';
-      byType[t] = byType[t] || [];
-      byType[t].push(e);
-    }
-    for (const [type, list] of Object.entries(byType)) {
-      md += `## ${type.toUpperCase()}\\n`;
-      for (const e of list) {
-        const title = e.title || 'Untitled';
-        const desc = e.description || '';
-        md += `- ${title}\\n`;
-        if (desc) md += `  - ${desc}\\n`;
-      }
-      md += `\\n`;
-    }
-
-    const annotations = Array.isArray(notebook?.annotations) ? notebook.annotations : [];
-    const caseNotes = annotations.find((a: any) => a?.id === 'case-notes')?.content || '';
-    const evidenceAnnotations = annotations.filter((a: any) => a?.source === 'evidence');
-
-    md += `## Notebook\\n\\n`;
-    if (typeof caseNotes === 'string' && caseNotes.trim().length > 0) {
-      md += `${caseNotes.trim()}\\n\\n`;
-    } else {
-      md += `_No case notes yet._\\n\\n`;
-    }
-
-    md += `### Evidence annotations\\n\\n`;
-    if (evidenceAnnotations.length === 0) {
-      md += `_No synced evidence annotations yet._\\n`;
-    } else {
-      const groupedByEvidenceId = evidenceAnnotations.reduce(
-        (acc: Record<string, any[]>, ann: any) => {
-          const evidenceId = String(ann?.evidenceId || 'unknown');
-          if (!acc[evidenceId]) acc[evidenceId] = [];
-          acc[evidenceId].push(ann);
-          return acc;
-        },
-        {},
+router.get(
+  '/:id/briefing',
+  authenticateRequest,
+  validate(numericIdParamSchema),
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const repoModule = await import('../db/evidenceRepository.js');
+      const summary = await repoModule.evidenceRepository.getInvestigationEvidenceSummary(
+        String(id),
       );
+      const notebook = await investigationsRepository.getNotebook(Number(id));
+      let md = `# Investigation Briefing\\n\\nTotal Evidence: ${summary.totalEvidence}\\n\\n`;
+      const byType: Record<string, any[]> = {};
+      for (const e of summary.evidence) {
+        const t = e.evidence_type || 'unknown';
+        byType[t] = byType[t] || [];
+        byType[t].push(e);
+      }
+      for (const [type, list] of Object.entries(byType)) {
+        md += `## ${type.toUpperCase()}\\n`;
+        for (const e of list) {
+          const title = e.title || 'Untitled';
+          const desc = e.description || '';
+          md += `- ${title}\\n`;
+          if (desc) md += `  - ${desc}\\n`;
+        }
+        md += `\\n`;
+      }
 
-      const sortedEvidenceIds = Object.keys(groupedByEvidenceId).sort((a, b) => {
-        if (a === 'unknown') return 1;
-        if (b === 'unknown') return -1;
-        return Number(a) - Number(b);
-      });
+      const annotations = Array.isArray(notebook?.annotations) ? notebook.annotations : [];
+      const caseNotes = annotations.find((a: any) => a?.id === 'case-notes')?.content || '';
+      const evidenceAnnotations = annotations.filter((a: any) => a?.source === 'evidence');
 
-      for (const evidenceId of sortedEvidenceIds) {
-        md += `- Evidence #${evidenceId}\\n`;
-        for (const ann of groupedByEvidenceId[evidenceId]) {
-          const typeLabel = String(ann?.type || 'note').toUpperCase();
-          const content = String(ann?.content || '').trim();
-          if (content) {
-            md += `  - [${typeLabel}] ${content}\\n`;
-          } else {
-            md += `  - [${typeLabel}]\\n`;
+      md += `## Notebook\\n\\n`;
+      if (typeof caseNotes === 'string' && caseNotes.trim().length > 0) {
+        md += `${caseNotes.trim()}\\n\\n`;
+      } else {
+        md += `_No case notes yet._\\n\\n`;
+      }
+
+      md += `### Evidence annotations\\n\\n`;
+      if (evidenceAnnotations.length === 0) {
+        md += `_No synced evidence annotations yet._\\n`;
+      } else {
+        const groupedByEvidenceId = evidenceAnnotations.reduce(
+          (acc: Record<string, any[]>, ann: any) => {
+            const evidenceId = String(ann?.evidenceId || 'unknown');
+            if (!acc[evidenceId]) acc[evidenceId] = [];
+            acc[evidenceId].push(ann);
+            return acc;
+          },
+          {},
+        );
+
+        const sortedEvidenceIds = Object.keys(groupedByEvidenceId).sort((a, b) => {
+          if (a === 'unknown') return 1;
+          if (b === 'unknown') return -1;
+          return Number(a) - Number(b);
+        });
+
+        for (const evidenceId of sortedEvidenceIds) {
+          md += `- Evidence #${evidenceId}\\n`;
+          for (const ann of groupedByEvidenceId[evidenceId]) {
+            const typeLabel = String(ann?.type || 'note').toUpperCase();
+            const content = String(ann?.content || '').trim();
+            if (content) {
+              md += `  - [${typeLabel}] ${content}\\n`;
+            } else {
+              md += `  - [${typeLabel}]\\n`;
+            }
           }
         }
       }
+      res.header('Content-Type', 'text/markdown').send(md);
+    } catch (error) {
+      next(error);
     }
-    res.header('Content-Type', 'text/markdown').send(md);
-  } catch (error) {
-    next(error);
-  }
-});
+  },
+);
 
 // Export Case Bundle as ZIP
 router.get(

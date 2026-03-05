@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import DOMPurify from 'isomorphic-dompurify';
 import {
   Search,
   Filter,
@@ -387,7 +388,7 @@ const GlobalSearch: React.FC = () => {
                 {inv.snippet && (
                   <div
                     className="text-gray-400 text-sm italic"
-                    dangerouslySetInnerHTML={{ __html: inv.snippet }}
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(inv.snippet) }}
                   />
                 )}
               </div>
@@ -425,7 +426,7 @@ const GlobalSearch: React.FC = () => {
                 {art.snippet && (
                   <div
                     className="text-gray-400 text-sm"
-                    dangerouslySetInnerHTML={{ __html: art.snippet }}
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(art.snippet) }}
                   />
                 )}
               </div>
@@ -456,7 +457,7 @@ const GlobalSearch: React.FC = () => {
                 {med.snippet && (
                   <div
                     className="text-gray-400 text-sm"
-                    dangerouslySetInnerHTML={{ __html: med.snippet }}
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(med.snippet) }}
                   />
                 )}
               </div>
@@ -494,9 +495,12 @@ const GlobalSearch: React.FC = () => {
                           <span className="mt-1 text-cyan-500">•</span>
                           <span
                             dangerouslySetInnerHTML={{
-                              __html: highlight.replace(
-                                /<mark>/g,
-                                '<mark class="bg-yellow-500/30 text-yellow-200 rounded px-0.5">',
+                              __html: DOMPurify.sanitize(
+                                highlight.replace(
+                                  /<mark>/g,
+                                  '<mark class="bg-yellow-500/30 text-yellow-200 rounded px-0.5">',
+                                ),
+                                { ALLOWED_TAGS: ['mark'], ALLOWED_ATTR: ['class'] },
                               ),
                             }}
                           />

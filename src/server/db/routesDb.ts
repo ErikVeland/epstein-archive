@@ -730,6 +730,7 @@ const getJunkFilterClause = (showSuppressedJunk: boolean) => {
 
 export async function getEmailMailboxes(showSuppressedJunk: boolean) {
   const junkFilter = getJunkFilterClause(showSuppressedJunk);
+  const mailboxScanLimit = Math.max(1_000, Number(process.env.EMAIL_MAILBOX_SCAN_LIMIT || 10_000));
 
   const { rows: totalsRows } = await getApiPool().query(
     `
@@ -750,55 +751,69 @@ export async function getEmailMailboxes(showSuppressedJunk: boolean) {
   );
   const totals = totalsRows[0];
 
-  const { rows } = await getApiPool().query(
-    `
-      WITH email_docs AS (
+  let rows: any[] = [];
+  try {
+    const result = await getApiPool().query(
+      `
+        WITH email_docs AS (
+          SELECT
+            d.id,
+            COALESCE(d.date_created, '1970-01-01T00:00:00.000Z'::timestamptz) AS "dateCreated",
+            COALESCE(
+              d.metadata_json ->> 'thread_id',
+              d.metadata_json ->> 'threadId',
+              d.metadata_json ->> 'conversation_id',
+              d.metadata_json ->> 'message_id',
+              d.id::text
+            ) AS "threadId",
+            COALESCE(d.red_flag_rating, 0) AS "redFlagRating"
+          FROM documents d
+          WHERE d.evidence_type = 'email'
+          ${junkFilter}
+          ORDER BY COALESCE(d.date_created, '1970-01-01T00:00:00.000Z'::timestamptz) DESC
+          LIMIT $1
+        ),
+        mailbox_entity_stats AS (
+          SELECT
+            em.entity_id AS "entityId",
+            e.full_name AS "displayName",
+            COUNT(DISTINCT ed."threadId") AS "totalThreads",
+            COUNT(DISTINCT ed.id) AS "totalMessages",
+            MAX(ed."dateCreated") AS "lastActivityAt",
+            MAX(ed."redFlagRating") AS "topRisk"
+          FROM email_docs ed
+          JOIN entity_mentions em ON em.document_id = ed.id
+          JOIN entities e ON e.id = em.entity_id
+          WHERE COALESCE(e.type, '') = 'Person'
+            ${showSuppressedJunk ? '' : "AND COALESCE(e.junk_tier, 'clean') = 'clean'"}
+            AND COALESCE(e.full_name, '') <> ''
+          GROUP BY em.entity_id, e.full_name
+        )
         SELECT
-          d.id,
-          COALESCE(d.date_created, '1970-01-01T00:00:00.000Z'::timestamptz) AS "dateCreated",
-          COALESCE(
-            d.metadata_json ->> 'thread_id',
-            d.metadata_json ->> 'threadId',
-            d.metadata_json ->> 'conversation_id',
-            d.metadata_json ->> 'message_id',
-            d.id::text
-          ) AS "threadId",
-          COALESCE(d.red_flag_rating, 0) AS "redFlagRating"
-        FROM documents d
-        WHERE d.evidence_type = 'email'
-        ${junkFilter}
-        ORDER BY COALESCE(d.date_created, '1970-01-01T00:00:00.000Z'::timestamptz) DESC
-        LIMIT 250000
-      ),
-      mailbox_entity_stats AS (
-        SELECT
-          em.entity_id AS "entityId",
-          e.full_name AS "displayName",
-          COUNT(DISTINCT ed."threadId") AS "totalThreads",
-          COUNT(DISTINCT ed.id) AS "totalMessages",
-          MAX(ed."dateCreated") AS "lastActivityAt",
-          MAX(ed."redFlagRating") AS "topRisk"
-        FROM email_docs ed
-        JOIN entity_mentions em ON em.document_id = ed.id
-        JOIN entities e ON e.id = em.entity_id
-        WHERE COALESCE(e.type, '') = 'Person'
-          ${showSuppressedJunk ? '' : "AND COALESCE(e.junk_tier, 'clean') = 'clean'"}
-          AND COALESCE(e.full_name, '') <> ''
-        GROUP BY em.entity_id, e.full_name
-      )
-      SELECT
-        "entityId",
-        "displayName",
-        "totalThreads",
-        "totalMessages",
-        "lastActivityAt",
-        "topRisk"
-      FROM mailbox_entity_stats
-      WHERE "totalThreads" >= 1
-      ORDER BY "totalThreads" DESC, "totalMessages" DESC, "displayName" ASC
-      LIMIT 60
-    `,
-  );
+          "entityId",
+          "displayName",
+          "totalThreads",
+          "totalMessages",
+          "lastActivityAt",
+          "topRisk"
+        FROM mailbox_entity_stats
+        WHERE "totalThreads" >= 1
+        ORDER BY "totalThreads" DESC, "totalMessages" DESC, "displayName" ASC
+        LIMIT 60
+      `,
+      [mailboxScanLimit],
+    );
+    rows = result.rows;
+  } catch (error: any) {
+    if (error?.code === '57014') {
+      console.warn(
+        `[emails] mailbox entity aggregation timed out at scan limit ${mailboxScanLimit}; returning totals only`,
+      );
+      rows = [];
+    } else {
+      throw error;
+    }
+  }
 
   return { totals, rows };
 }

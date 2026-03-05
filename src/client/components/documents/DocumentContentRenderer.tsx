@@ -738,7 +738,11 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
               (e.target as HTMLImageElement).style.display = 'none';
               const parent = (e.target as HTMLImageElement).parentElement;
               if (parent) {
-                parent.innerHTML = `<pre class="whitespace-pre-wrap text-sm text-gray-300 font-mono leading-relaxed break-words">${doc.content || 'No content available'}</pre>`;
+                const pre = document.createElement('pre');
+                pre.className =
+                  'whitespace-pre-wrap text-sm text-gray-300 font-mono leading-relaxed break-words';
+                pre.textContent = doc.content || 'No content available';
+                parent.appendChild(pre);
               }
             }}
           />

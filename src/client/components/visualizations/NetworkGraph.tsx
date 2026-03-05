@@ -152,6 +152,16 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
 
   // Track avatar fetch status
   const [avatarUrls, setAvatarUrls] = useState<Record<string, string>>({});
+  const blobUrlsRef = React.useRef<Set<string>>(new Set());
+
+  // Revoke all blob URLs on unmount to prevent memory leaks
+  React.useEffect(() => {
+    const blobUrls = blobUrlsRef.current;
+    return () => {
+      blobUrls.forEach((url) => URL.revokeObjectURL(url));
+      blobUrls.clear();
+    };
+  }, []);
 
   // Level of Detail (LOD) based on zoom level
   const lod = useMemo(() => GraphService.getLodConfig(transform.k), [transform.k]);
@@ -349,7 +359,15 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
         const blob = await res.blob();
         if (blob.size < 100) throw new Error('Too small');
         const objectUrl = URL.createObjectURL(blob);
-        setAvatarUrls((prev) => ({ ...prev, [node.id]: objectUrl }));
+        blobUrlsRef.current.add(objectUrl);
+        setAvatarUrls((prev) => {
+          const old = prev[node.id];
+          if (old && old.startsWith('blob:')) {
+            URL.revokeObjectURL(old);
+            blobUrlsRef.current.delete(old);
+          }
+          return { ...prev, [node.id]: objectUrl };
+        });
       } catch {
         setAvatarUrls((prev) => ({ ...prev, [node.id]: 'error' }));
       } finally {

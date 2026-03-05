@@ -292,4 +292,203 @@ router.post('/images/batch/metadata', authenticateRequest, (_req, res) => {
   res.status(501).json({ error: 'Not implemented' });
 });
 
+// ─── Shared schema for audio/video list queries ───────────────────────────────
+
+const avListQuerySchema = z.object({
+  query: z.object({
+    page: z.coerce.number().int().min(1).default(1),
+    limit: z.coerce.number().int().min(1).max(500).default(24),
+    albumId: z.coerce.number().int().positive().optional(),
+    sortBy: z.enum(['title', 'date', 'rating']).optional(),
+    transcriptQuery: z.string().optional(),
+  }),
+});
+
+const makeAvListHandler =
+  (fileType: 'audio' | 'video') => async (req: any, res: any, next: any) => {
+    try {
+      const { page, limit, albumId, sortBy, transcriptQuery } = req.query as any;
+      const result = await mediaRepository.getMediaItemsPaginated(
+        Number(page || 1),
+        Number(limit || 24),
+        {
+          fileType,
+          albumId: albumId ? Number(albumId) : undefined,
+          sortBy: sortBy ?? 'title',
+          sortOrder: 'asc',
+          transcriptQuery: transcriptQuery || undefined,
+        } as any,
+      );
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+// ─── Audio routes ─────────────────────────────────────────────────────────────
+
+router.get('/audio/albums', cacheResponse(120), async (_req, res, next) => {
+  try {
+    const albums = await mediaRepository.getAlbumsByMediaType('audio');
+    res.json(albums);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/audio', validate(avListQuerySchema), makeAvListHandler('audio'));
+
+router.get('/audio/:id', validate(mediaIdParamSchema), async (req, res, next) => {
+  try {
+    const item = await mediaRepository.getMediaItemById(Number(req.params.id));
+    if (!item) return res.status(404).json({ error: 'Audio item not found' });
+    res.json(item);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/audio/:id/stream', validate(mediaIdParamSchema), async (req, res, next) => {
+  try {
+    const item = await mediaRepository.getMediaItemById(Number(req.params.id));
+    if (!item) return res.status(404).json({ error: 'Audio item not found' });
+
+    const resolvedPath = findFirstExistingPath([String(item.filePath || '')]);
+    if (!resolvedPath) return res.status(404).json({ error: 'Audio file not found on disk' });
+
+    if (item.fileType) res.type(String(item.fileType));
+    return res.sendFile(resolvedPath);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ─── Video routes ─────────────────────────────────────────────────────────────
+
+router.get('/video/albums', cacheResponse(120), async (_req, res, next) => {
+  try {
+    const albums = await mediaRepository.getAlbumsByMediaType('video');
+    res.json(albums);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/video', validate(avListQuerySchema), makeAvListHandler('video'));
+
+router.get('/video/:id', validate(mediaIdParamSchema), async (req, res, next) => {
+  try {
+    const item = await mediaRepository.getMediaItemById(Number(req.params.id));
+    if (!item) return res.status(404).json({ error: 'Video item not found' });
+    res.json(item);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/video/:id/thumbnail', validate(mediaIdParamSchema), async (req, res, next) => {
+  try {
+    await sendImageFile(Number(req.params.id), res, true);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/video/:id/stream', validate(mediaIdParamSchema), async (req, res, next) => {
+  try {
+    const item = await mediaRepository.getMediaItemById(Number(req.params.id));
+    if (!item) return res.status(404).json({ error: 'Video item not found' });
+
+    const resolvedPath = findFirstExistingPath([String(item.filePath || '')]);
+    if (!resolvedPath) return res.status(404).json({ error: 'Video file not found on disk' });
+
+    if (item.fileType) res.type(String(item.fileType));
+    return res.sendFile(resolvedPath);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ─── PDF route ────────────────────────────────────────────────────────────────
+
+const pdfQuerySchema = z.object({
+  query: z.object({
+    filePath: z.string().min(1),
+  }),
+});
+
+router.get('/pdf', validate(pdfQuerySchema), async (req, res, next) => {
+  try {
+    const filePath = req.query.filePath as string;
+    const resolvedPath = findFirstExistingPath([filePath]);
+    if (!resolvedPath) return res.status(404).json({ error: 'PDF file not found on disk' });
+    res.type('application/pdf');
+    return res.sendFile(resolvedPath);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ─── Batch tag / people operations (audio + video items) ─────────────────────
+
+const batchTagsSchema = z.object({
+  body: z.object({
+    itemIds: z.array(z.number().int().positive()),
+    tagIds: z.array(z.number().int().positive()),
+    action: z.enum(['add', 'remove']),
+  }),
+});
+
+const batchPeopleSchema = z.object({
+  body: z.object({
+    itemIds: z.array(z.number().int().positive()),
+    personIds: z.array(z.number().int().positive()),
+    action: z.enum(['add', 'remove']).optional(),
+  }),
+});
+
+router.put('/items/batch/tags', validate(batchTagsSchema), async (req, res, next) => {
+  try {
+    const { itemIds, tagIds, action } = req.body as {
+      itemIds: number[];
+      tagIds: number[];
+      action: 'add' | 'remove';
+    };
+    for (const itemId of itemIds) {
+      for (const tagId of tagIds) {
+        if (action === 'add') {
+          await mediaService.addTagToItem(itemId, tagId);
+        } else {
+          await mediaService.removeTagFromItem(itemId, tagId);
+        }
+      }
+    }
+    res.json({ ok: true });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.put('/items/batch/people', validate(batchPeopleSchema), async (req, res, next) => {
+  try {
+    const { itemIds, personIds, action } = req.body as {
+      itemIds: number[];
+      personIds: number[];
+      action?: 'add' | 'remove';
+    };
+    for (const itemId of itemIds) {
+      for (const personId of personIds) {
+        if (action === 'remove') {
+          await mediaService.removePersonFromItem(itemId, personId);
+        } else {
+          await mediaService.addPersonToItem(itemId, personId);
+        }
+      }
+    }
+    res.json({ ok: true });
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;

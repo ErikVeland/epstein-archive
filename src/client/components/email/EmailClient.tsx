@@ -7,7 +7,6 @@ import {
   ArrowLeft,
   ChevronDown,
   ChevronRight,
-  Folder,
   Loader2,
   Mail,
   Paperclip,
@@ -253,6 +252,15 @@ export const EmailClient: React.FC = () => {
   const [selectedEntityId, setSelectedEntityId] = useState<string | null>(null);
   const [mobilePane, setMobilePane] = useState<'mailboxes' | 'threads' | 'messages'>('threads');
   const [showFilterPanel, setShowFilterPanel] = useState(false);
+  const desktopLayoutRef = useRef<HTMLDivElement | null>(null);
+  const [mailboxWidth, setMailboxWidth] = useState(() => {
+    const saved = window.localStorage.getItem('email-pane-mailbox-width');
+    return saved ? Number(saved) : 300;
+  });
+  const [threadWidth, setThreadWidth] = useState(() => {
+    const saved = window.localStorage.getItem('email-pane-thread-width');
+    return saved ? Number(saved) : 440;
+  });
 
   const selectedThread = selectedThreadId ? threadDetails[selectedThreadId] || null : null;
   const selectedMailbox =
@@ -678,6 +686,60 @@ export const EmailClient: React.FC = () => {
 
   const canLoadMore = threadsHasMore && !!threadsNextCursor;
   const threadRowHeight = density === 'compact' ? 72 : 94;
+
+  const clampWidths = useCallback((nextMailbox: number, nextThread: number) => {
+    const containerWidth = desktopLayoutRef.current?.clientWidth || window.innerWidth;
+    const contentMin = 480;
+    const handles = 20;
+    const maxMailbox = Math.max(240, containerWidth - nextThread - contentMin - handles);
+    const mailbox = Math.min(Math.max(nextMailbox, 240), maxMailbox);
+    const maxThread = Math.max(320, containerWidth - mailbox - contentMin - handles);
+    const thread = Math.min(Math.max(nextThread, 320), maxThread);
+    return { mailbox, thread };
+  }, []);
+
+  const startResize = useCallback(
+    (target: 'mailbox' | 'thread') => (event: React.MouseEvent<HTMLDivElement>) => {
+      if (window.innerWidth < 768) return;
+      event.preventDefault();
+      const startX = event.clientX;
+      const startMailbox = mailboxWidth;
+      const startThread = threadWidth;
+
+      const onMove = (moveEvent: MouseEvent) => {
+        const delta = moveEvent.clientX - startX;
+        if (target === 'mailbox') {
+          const { mailbox } = clampWidths(startMailbox + delta, startThread);
+          setMailboxWidth(mailbox);
+        } else {
+          const { thread } = clampWidths(startMailbox, startThread + delta);
+          setThreadWidth(thread);
+        }
+      };
+
+      const onUp = () => {
+        window.removeEventListener('mousemove', onMove);
+        window.removeEventListener('mouseup', onUp);
+      };
+
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('mouseup', onUp);
+    },
+    [mailboxWidth, threadWidth, clampWidths],
+  );
+
+  useEffect(() => {
+    if (window.innerWidth < 768) return;
+    const { mailbox, thread } = clampWidths(mailboxWidth, threadWidth);
+    if (mailbox !== mailboxWidth) setMailboxWidth(mailbox);
+    if (thread !== threadWidth) setThreadWidth(thread);
+  }, [clampWidths, mailboxWidth, threadWidth]);
+
+  useEffect(() => {
+    window.localStorage.setItem('email-pane-mailbox-width', String(Math.round(mailboxWidth)));
+    window.localStorage.setItem('email-pane-thread-width', String(Math.round(threadWidth)));
+  }, [mailboxWidth, threadWidth]);
+
   const clearQuickFilters = useCallback(() => {
     setFromFilter('');
     setToFilter('');
@@ -700,35 +762,60 @@ export const EmailClient: React.FC = () => {
 
   return (
     <div className="email-workspace flex flex-col">
-      <div className="md:hidden px-4 py-3 border-b border-white/5 bg-slate-950/40 flex items-center justify-between">
-        <button
-          onClick={() => setMobilePane(mobilePane === 'mailboxes' ? 'threads' : 'mailboxes')}
-          className="text-sm text-cyan-300 flex items-center gap-2"
-        >
-          {mobilePane === 'messages' ? (
-            <ArrowLeft
-              className="w-4 h-4"
-              onClick={(e) => {
-                e.stopPropagation();
-                setMobilePane('threads');
-              }}
+      <div className="md:hidden px-4 py-3 border-b border-white/5 bg-slate-950/50 backdrop-blur-sm space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="text-sm font-semibold text-slate-100">Mail</div>
+          <div className="text-xs text-slate-400">{threadsTotal.toLocaleString()} threads</div>
+        </div>
+        <div className="inline-flex w-full rounded-full border border-slate-700 overflow-hidden bg-slate-900/70">
+          <button
+            onClick={() => setMobilePane('mailboxes')}
+            className={`flex-1 h-9 text-xs font-semibold ${
+              mobilePane === 'mailboxes' ? 'bg-cyan-500/20 text-cyan-100' : 'text-slate-300'
+            }`}
+          >
+            Mailboxes
+          </button>
+          <button
+            onClick={() => setMobilePane('threads')}
+            className={`flex-1 h-9 text-xs font-semibold ${
+              mobilePane === 'threads' ? 'bg-cyan-500/20 text-cyan-100' : 'text-slate-300'
+            }`}
+          >
+            Threads
+          </button>
+          <button
+            onClick={() => selectedThreadId && setMobilePane('messages')}
+            disabled={!selectedThreadId}
+            className={`flex-1 h-9 text-xs font-semibold ${
+              mobilePane === 'messages' ? 'bg-cyan-500/20 text-cyan-100' : 'text-slate-300'
+            } disabled:opacity-50`}
+          >
+            Message
+          </button>
+        </div>
+        {mobilePane === 'threads' && (
+          <div className="relative">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              value={searchInput}
+              onChange={(event) => setSearchInput(event.target.value)}
+              placeholder="Search threads"
+              className="w-full h-10 rounded-full bg-slate-900 border border-slate-700 pl-9 pr-3 text-sm text-white placeholder:text-slate-500"
             />
-          ) : (
-            <Folder className="w-4 h-4" />
-          )}
-          <span className="truncate max-w-[220px]">
-            {mobilePane === 'messages'
-              ? 'Back to Threads'
-              : selectedMailbox?.displayName || 'Mailboxes'}
-          </span>
-          {mobilePane !== 'messages' && <ChevronDown className="w-4 h-4" />}
-        </button>
-        <div className="text-xs text-slate-400">{threadsTotal.toLocaleString()} threads</div>
+          </div>
+        )}
       </div>
 
-      <div className="flex-1 min-h-0 flex overflow-hidden relative">
+      <div
+        ref={desktopLayoutRef}
+        className="flex-1 min-h-0 flex md:grid overflow-hidden relative"
+        style={{
+          gridTemplateColumns: `${mailboxWidth}px 10px ${threadWidth}px 10px minmax(420px, 1fr)`,
+        }}
+      >
         <aside
-          className={`mailbox-pane ${mobilePane === 'mailboxes' ? 'flex absolute inset-0 z-50 w-full' : 'hidden md:flex'}`}
+          className={`mailbox-pane ${mobilePane === 'mailboxes' ? 'flex absolute inset-0 z-50 w-full' : 'hidden md:flex'} md:col-[1]`}
         >
           <div className="p-4 border-b border-white/5 space-y-4">
             <div className="flex items-center justify-between text-xs text-slate-400 uppercase tracking-wide">
@@ -838,8 +925,16 @@ export const EmailClient: React.FC = () => {
           </div>
         </aside>
 
+        <div
+          className="pane-resizer hidden md:flex md:col-[2]"
+          onMouseDown={startResize('mailbox')}
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize mailbox pane"
+        />
+
         <section
-          className={`thread-pane ${mobilePane === 'threads' ? 'flex w-full md:w-auto' : 'hidden md:flex'}`}
+          className={`thread-pane ${mobilePane === 'threads' ? 'flex w-full md:w-auto' : 'hidden md:flex'} md:col-[3]`}
         >
           <div className="pane-header">
             <div className="flex items-center gap-2">
@@ -1058,8 +1153,16 @@ export const EmailClient: React.FC = () => {
           </div>
         </section>
 
+        <div
+          className="pane-resizer hidden md:flex md:col-[4]"
+          onMouseDown={startResize('thread')}
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize thread pane"
+        />
+
         <section
-          className={`content-pane overflow-hidden flex flex-col ${mobilePane === 'messages' ? 'flex w-full md:w-auto' : 'hidden md:flex'}`}
+          className={`content-pane overflow-hidden flex flex-col ${mobilePane === 'messages' ? 'flex w-full md:w-auto' : 'hidden md:flex'} md:col-[5]`}
         >
           {selectedThreadId ? (
             threadLoading && !selectedThread ? (

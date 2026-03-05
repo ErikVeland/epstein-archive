@@ -329,10 +329,29 @@ export const documentsRepository = {
       metadata = document.metadataJson;
     }
 
-    const entityRows = await (documentsQueries.getDocumentEntities as any).run(
-      { documentId: docId },
-      getApiPool(),
+    const entityRowsRes = await getApiPool().query(
+      `
+      SELECT 
+        e.id as "entityId", 
+        e.full_name as "name", 
+        e.entity_type as "entityType", 
+        COUNT(em.id) as "mentions",
+        (
+          SELECT f.crop_path 
+          FROM face_clusters fc
+          JOIN faces f ON f.id = fc.representative_face_id
+          WHERE fc.name = e.full_name AND fc.is_hidden = false
+          LIMIT 1
+        ) as "thumbnailPath"
+      FROM entity_mentions em
+      JOIN entities e ON em.entity_id = e.id
+      WHERE em.document_id = $1
+      GROUP BY e.id, e.full_name, e.entity_type
+      ORDER BY "mentions" DESC
+      `,
+      [docId],
     );
+    const entityRows = entityRowsRes.rows;
 
     // Batch all mention-context fetches into a single query to avoid N+1
     const entityIds = entityRows.map((r: any) => Number(r.entityId));
@@ -372,6 +391,7 @@ export const documentsRepository = {
         type: row.entityType,
         mentions: Number(row.mentions),
         significance,
+        thumbnail_path: row.thumbnailPath,
         contexts: contextStrings.map((ctx) => ({
           context: ctx,
           source: (document as any).source_collection || 'Document',

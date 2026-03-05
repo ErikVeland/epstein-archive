@@ -356,8 +356,6 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
       if (hasPeopleOnly) params.append('hasPeople', 'true');
       params.append('verificationStatus', 'verified');
       params.append('minRedFlagRating', '2');
-      params.append('sortField', 'date_added');
-      params.append('sortOrder', 'desc');
       if (sortField) params.append('sortField', sortField);
       if (sortOrder) params.append('sortOrder', sortOrder);
       if (searchQuery) params.append('search', searchQuery);

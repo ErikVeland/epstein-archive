@@ -386,17 +386,32 @@ export const DocumentModal: React.FC<Props> = ({
                     className="surface-quiet p-4 hover:border-cyan-500/40 transition-all group relative overflow-hidden flex flex-col justify-between"
                   >
                     <div className="flex items-start justify-between gap-3 min-w-0">
-                      <div className="min-w-0">
-                        <button
-                          type="button"
-                          className="text-left font-medium text-cyan-300 hover:text-cyan-100 truncate block w-full"
-                          onClick={() => setSelectedEntity(entity)}
-                        >
-                          {entity.name}
-                        </button>
-                        <span className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">
-                          {entity.primary_role || entity.role || entity.entity_type || 'ENTITY'}
-                        </span>
+                      <div className="flex items-start gap-3 min-w-0 flex-1">
+                        {entity.thumbnail_path && (
+                          <div className="w-10 h-10 rounded-full overflow-hidden border border-slate-600 shrink-0">
+                            <img
+                              src={
+                                entity.thumbnail_path.startsWith('/')
+                                  ? entity.thumbnail_path
+                                  : `/${entity.thumbnail_path}`
+                              }
+                              alt={entity.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <button
+                            type="button"
+                            className="text-left font-medium text-cyan-300 hover:text-cyan-100 truncate block w-full"
+                            onClick={() => setSelectedEntity(entity)}
+                          >
+                            {entity.name}
+                          </button>
+                          <span className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">
+                            {entity.primary_role || entity.role || entity.entity_type || 'ENTITY'}
+                          </span>
+                        </div>
                       </div>
                       {entity.risk_rating && (
                         <div
@@ -665,11 +680,26 @@ export const DocumentModal: React.FC<Props> = ({
                 }`}
                 onClick={() => setSelectedEntity(entity)}
               >
-                <div className="flex items-center justify-between">
-                  <span className="font-medium truncate">{entity.name}</span>
-                  <span className="text-[8px] uppercase text-slate-600 font-black">
-                    {entity.entity_type || 'ENT'}
-                  </span>
+                <div className="flex items-center gap-2">
+                  {entity.thumbnail_path && (
+                    <img
+                      src={
+                        entity.thumbnail_path.startsWith('/')
+                          ? entity.thumbnail_path
+                          : `/${entity.thumbnail_path}`
+                      }
+                      alt=""
+                      className="w-6 h-6 rounded-full object-cover border border-slate-600 shrink-0"
+                    />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium truncate">{entity.name}</span>
+                      <span className="text-[8px] uppercase text-slate-600 font-black ml-1">
+                        {entity.entity_type || 'ENT'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </button>
             ))}

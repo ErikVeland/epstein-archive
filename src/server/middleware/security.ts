@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { getApiPool } from '../db/connection.js';
 import { logAudit } from '../utils/auditLogger.js';
+import { requireRole as canonicalRequireRole } from '../auth/middleware.js';
 
 // Extend Express Request to include user info
 export interface AuthenticatedRequest extends Request {
@@ -64,27 +65,7 @@ export const enforceQuarantine = (resourceType: 'document' | 'media') => {
 /**
  * 3. Role-Based Access Control
  */
-export const requireRole = (requiredRole: string) => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    const user = (req as AuthenticatedRequest).user;
-
-    // Simple role hierarchy: admin > user > guest
-    const roles = ['guest', 'user', 'admin'];
-    const userRoleIndex = roles.indexOf(user?.role || 'guest');
-    const requiredRoleIndex = roles.indexOf(requiredRole);
-
-    if (userRoleIndex >= requiredRoleIndex) {
-      next();
-    } else {
-      // Log failed access due to role
-      // Warning: 'access_denied' isn't a standard action in our schema, 'view' with failure is better but logAudit is void.
-      // We'll log 'view' with reason.
-      // But we don't know the target resource here?
-      // Just log access denied.
-      res.status(403).json({ error: 'Insufficient permissions' });
-    }
-  };
-};
+export const requireRole = canonicalRequireRole;
 
 /**
  * 4. Audit Log Middleware
@@ -101,7 +82,11 @@ export const auditAccess = (
       if (res.statusCode >= 200 && res.statusCode < 300) {
         const id = req.params.id;
         if (id) {
-          logAudit(action, (req as any).user?.id || null, resourceType, id, {});
+          void logAudit(action, (req as any).user?.id || null, resourceType, id, {}).catch(
+            (err) => {
+              console.error('Audit log write failed in auditAccess middleware:', err);
+            },
+          );
         }
       }
     });

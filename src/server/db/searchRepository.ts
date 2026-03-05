@@ -49,7 +49,7 @@ function buildPrefixQuery(phrase: string): string {
     .split(/\s+/)
     .map((w) => w.replace(/[^a-zA-Z0-9_]/g, ''))
     .filter((w) => w.length > 1);
-  return tokens.length > 0 ? tokens.map((w) => `${w}:*`).join(' & ') : "'a'";
+  return tokens.length > 0 ? tokens.map((w) => `${w}:*`).join(' & ') : '';
 }
 
 export const searchRepository = {
@@ -65,6 +65,16 @@ export const searchRepository = {
     const isPrefix = filters.mode === 'prefix';
 
     const tsArg = isPrefix ? buildPrefixQuery(searchTerm) : searchTerm;
+    if (isPrefix && !tsArg) {
+      return {
+        entities: [],
+        documents: [],
+        investigations: [],
+        articles: [],
+        media: [],
+        didYouMean: [],
+      };
+    }
 
     // ── Entities ─────────────────────────────────────────────────────────────
     const entityRows = isPrefix

@@ -7,12 +7,21 @@ export const logAudit = async (
   objectId: string | null,
   payload?: any,
   ip?: string,
+  requestId?: string,
 ) => {
   try {
     const pool = getApiPool();
 
     const actorId = userId || 'system';
     const actorType = userId ? 'user' : 'system';
+
+    const payloadWithRequestId =
+      payload || requestId
+        ? JSON.stringify({
+            ...(payload || {}),
+            ...(requestId ? { _requestId: requestId } : {}),
+          })
+        : null;
 
     await pool.query(
       `
@@ -21,17 +30,10 @@ export const logAudit = async (
         )
         VALUES ($1, $2, $3, $4, $5, $6, $7)
       `,
-      [
-        actorId,
-        actorType,
-        action,
-        objectType,
-        objectId,
-        payload ? JSON.stringify(payload) : null,
-        ip || null,
-      ],
+      [actorId, actorType, action, objectType, objectId, payloadWithRequestId, ip || null],
     );
   } catch (error) {
     console.error('FAILED TO LOG AUDIT:', error);
+    throw error;
   }
 };

@@ -1,5 +1,26 @@
 # Release Notes
 
+## 15.6.0 - 2026-03-05 - Public Read / Admin Write Policy + Security Hardening
+
+### Access Control Policy
+
+- **Public Read Surface:** Read endpoints remain publicly accessible for investigative browsing, including static corpus serving.
+- **Admin-Only Writes:** Non-read API methods are now centrally enforced as authenticated admin-only, covering media edits, tagging, and user-management style mutations.
+- **Auth Route Tightening:** Password change operations are explicitly restricted to admin role.
+
+### Security & Audit Integrity
+
+- **Error Log Redaction:** Removed full request-body logging from global error handling and replaced it with key-only context.
+- **Audit Logging Fail-Closed:** Audit insert failures now throw instead of being silently swallowed, preventing untracked sensitive actions.
+- **Request Correlation:** Audit payloads now support request-id linkage for traceable forensic timelines.
+- **Upload Chain-of-Custody Fix:** Evidence upload now correctly awaits DB insert and logs valid document IDs.
+- **Refresh Token Rotation:** Added refresh-token persistence/rotation plumbing and migration support for revocation-aware session handling.
+
+### Search & Reliability
+
+- **Prefix Query Safety:** Removed the universal-match fallback for empty prefix tokens; invalid tokenized prefix queries now return empty, explicit result sets.
+- **Production Gate Readiness:** Local CI-equivalent checks passed (`type-check`, `lint`, `test:unit`, `build`) before release cut.
+
 ## 15.5.0 - 2026-03-05 - Unified Modern Viewer + Gmail-Style Email Workspace
 
 ### Viewer Architecture

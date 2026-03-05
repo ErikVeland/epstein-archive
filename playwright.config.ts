@@ -85,13 +85,13 @@ export default defineConfig({
           {
             command: 'npm run dev',
             port: 3002,
-            reuseExistingServer: !process.env.CI,
+            reuseExistingServer: false,
             timeout: 120 * 1000,
           },
           {
-            command: 'npm run server',
-            port: 3012,
-            reuseExistingServer: !process.env.CI,
+            command: 'PORT=3312 npm run server',
+            port: 3312,
+            reuseExistingServer: false,
             timeout: 120 * 1000,
           },
         ],

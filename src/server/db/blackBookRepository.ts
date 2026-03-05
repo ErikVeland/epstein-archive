@@ -63,10 +63,31 @@ export const blackBookRepository = {
         letter: filters?.letter === 'ALL' ? null : filters?.letter || null,
         search: filters?.search || null,
         hasPhone: filters?.hasPhone || null,
-        limit: filters?.limit ? BigInt(filters.limit) : BigInt(100),
+        limit: filters?.limit ? String(filters.limit) : '100',
       },
       getApiPool(),
     );
+
+    // Enrich with profile pictures
+    const names = entries
+      .map((e: { displayName?: string | null }) => e.displayName)
+      .filter((n: unknown): n is string => typeof n === 'string' && n.length > 0);
+
+    const thumbnailsByName = new Map<string, string>();
+    if (names.length > 0) {
+      const thumbRes = await getApiPool().query(
+        `
+        SELECT fc.name, f.crop_path
+        FROM face_clusters fc
+        JOIN faces f ON f.id = fc.representative_face_id
+        WHERE fc.name = ANY($1::text[]) AND fc.is_hidden = false
+        `,
+        [names],
+      );
+      for (const row of thumbRes.rows) {
+        thumbnailsByName.set(row.name, row.crop_path);
+      }
+    }
 
     return correctEntries(
       entries.map((e: any) => ({
@@ -74,6 +95,7 @@ export const blackBookRepository = {
         id: Number(e.id),
         personId: e.personId ? Number(e.personId) : null,
         documentId: e.documentId ? Number(e.documentId) : null,
+        thumbnailPath: e.displayName ? thumbnailsByName.get(e.displayName) : undefined,
       })),
     );
   },

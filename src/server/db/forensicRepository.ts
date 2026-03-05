@@ -6,9 +6,10 @@ export const forensicRepository = {
    */
   getMetrics: async (documentId: number | string) => {
     const pool = getApiPool();
-    const res = await pool.query('SELECT * FROM document_forensic_metrics WHERE document_id = $1', [
-      documentId,
-    ]);
+    const res = await pool.query(
+      'SELECT document_id, metrics_json, authenticity_score, last_analyzed_at FROM document_forensic_metrics WHERE document_id = $1',
+      [documentId],
+    );
     return res.rows[0];
   },
 
@@ -35,7 +36,7 @@ export const forensicRepository = {
   getChainOfCustody: async (evidenceId: number | string) => {
     const pool = getApiPool();
     const res = await pool.query(
-      'SELECT * FROM chain_of_custody WHERE evidence_id = $1 ORDER BY date DESC',
+      'SELECT id, evidence_id, actor, action, date, notes, signature FROM chain_of_custody WHERE evidence_id = $1 ORDER BY date DESC',
       [evidenceId],
     );
     return res.rows;

@@ -118,7 +118,11 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({
   // Prepare Data for Risk Distribution
   const riskDistribution = useMemo(() => {
     // 1. Prefer analyticsData.riskByType (server-side aggregated)
-    if (analyticsData?.riskByType && Array.isArray(analyticsData.riskByType)) {
+    if (
+      analyticsData?.riskByType &&
+      Array.isArray(analyticsData.riskByType) &&
+      analyticsData.riskByType.length > 0
+    ) {
       const high = analyticsData.riskByType
         .filter((d: any) => Number(d.riskLevel) >= 4)
         .reduce((acc: number, curr: any) => acc + curr.count, 0);

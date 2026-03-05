@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { blackBookRepository } from '../db/blackBookRepository.js';
+import { authenticateRequest } from '../auth/middleware.js';
 
 const router = Router();
 
@@ -50,6 +51,7 @@ router.get('/', async (req, res, next) => {
       document_id: entry.documentId ? Number(entry.documentId) : null,
       entry_category: entry.entryCategory || 'original',
       person_name: entry.displayName || null,
+      thumbnail_path: entry.thumbnailPath || null,
     }));
 
     res.json({
@@ -76,7 +78,7 @@ router.get('/review', async (_req, res, next) => {
   }
 });
 
-router.post('/review/:id', async (req, res, next) => {
+router.post('/review/:id', authenticateRequest, async (req, res, next) => {
   try {
     const id = Number(req.params.id);
     if (!Number.isFinite(id)) return res.status(400).json({ error: 'Invalid entry id' });

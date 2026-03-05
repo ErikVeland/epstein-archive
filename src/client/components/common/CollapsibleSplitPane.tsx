@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { ChevronLeft, ChevronRight, GripVertical } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface CollapsibleSplitPaneProps {
   mode?: 'split' | 'singleRight';
@@ -135,11 +135,11 @@ export const CollapsibleSplitPane: React.FC<CollapsibleSplitPaneProps> = ({
     return (
       <div ref={rootRef} className={`flex h-full min-h-0 min-w-0 ${className}`}>
         <div className="shrink-0 flex items-stretch" style={rightStyle}>
-          <div className="w-9 border-r border-slate-700/60 bg-slate-900/35 flex flex-col items-center justify-center gap-2">
+          <div className="w-10 border-r border-white/5 bg-slate-950/40 flex flex-col items-center py-6 gap-6 shrink-0 relative z-10">
             <button
               type="button"
               onClick={() => setCollapsed(!collapsed)}
-              className="control h-8 w-8 p-0 flex items-center justify-center text-slate-300 hover:text-white"
+              className="h-8 w-8 rounded-full flex items-center justify-center text-slate-400 hover:text-cyan-400 hover:bg-cyan-500/10 hover:border-cyan-500/20 border border-transparent transition-all outline-none"
               aria-label={collapsed ? expandAriaLabel : collapseAriaLabel}
               title={collapsed ? expandAriaLabel : collapseAriaLabel}
             >
@@ -155,11 +155,11 @@ export const CollapsibleSplitPane: React.FC<CollapsibleSplitPaneProps> = ({
                 type="button"
                 onPointerDown={startResize}
                 onKeyDown={handleDividerKeyDown}
-                className="control h-10 w-8 p-0 flex items-center justify-center text-slate-400 hover:text-white cursor-col-resize"
+                className="h-12 w-8 flex items-center justify-center text-slate-600 hover:text-cyan-400/60 cursor-col-resize outline-none group"
                 aria-label={dividerAriaLabel}
                 title={dividerAriaLabel}
               >
-                <GripVertical className="w-4 h-4" />
+                <div className="w-1 h-8 rounded-full bg-slate-800 group-hover:bg-cyan-500/30 transition-colors" />
               </button>
             )}
           </div>
@@ -177,11 +177,11 @@ export const CollapsibleSplitPane: React.FC<CollapsibleSplitPaneProps> = ({
       <div className="flex-1 min-w-0 min-h-0">{left}</div>
 
       <div className="shrink-0 flex items-stretch" style={rightStyle}>
-        <div className="w-9 border-l border-slate-700/60 bg-slate-900/35 flex flex-col items-center justify-center gap-2">
+        <div className="w-10 border-l border-white/5 bg-slate-950/40 flex flex-col items-center py-6 gap-6 shrink-0 relative z-10">
           <button
             type="button"
             onClick={() => setCollapsed(!collapsed)}
-            className="control h-8 w-8 p-0 flex items-center justify-center text-slate-300 hover:text-white"
+            className="h-8 w-8 rounded-full flex items-center justify-center text-slate-400 hover:text-cyan-400 hover:bg-cyan-500/10 hover:border-cyan-500/20 border border-transparent transition-all outline-none"
             aria-label={collapsed ? expandAriaLabel : collapseAriaLabel}
             title={collapsed ? expandAriaLabel : collapseAriaLabel}
           >
@@ -193,11 +193,11 @@ export const CollapsibleSplitPane: React.FC<CollapsibleSplitPaneProps> = ({
               type="button"
               onPointerDown={startResize}
               onKeyDown={handleDividerKeyDown}
-              className="control h-10 w-8 p-0 flex items-center justify-center text-slate-400 hover:text-white cursor-col-resize"
+              className="h-12 w-8 flex items-center justify-center text-slate-600 hover:text-cyan-400/60 cursor-col-resize outline-none group"
               aria-label={dividerAriaLabel}
               title={dividerAriaLabel}
             >
-              <GripVertical className="w-4 h-4" />
+              <div className="w-1 h-8 rounded-full bg-slate-800 group-hover:bg-cyan-500/30 transition-colors" />
             </button>
           )}
         </div>

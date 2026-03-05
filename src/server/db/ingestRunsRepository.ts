@@ -28,21 +28,15 @@ export class IngestRunsRepository {
       `
       SELECT 
         id,
-        started_at as "startedAt",
+        created_at as "startedAt",
         finished_at as "finishedAt",
         status,
         git_commit as "gitCommit",
-        schema_version as "schemaVersion",
         pipeline_version as "pipelineVersion",
-        extractor_versions as "extractorVersions",
-        ocr_versions as "ocrVersions",
         agentic_enabled as "agenticEnabled",
-        agentic_model_id as "agenticModelId",
-        agentic_prompt_version as "agenticPromptVersion",
-        agentic_params as "agenticParams",
         notes
       FROM ingest_runs 
-      ORDER BY started_at DESC 
+      ORDER BY created_at DESC 
       LIMIT $1
     `,
       [limit],
@@ -51,14 +45,12 @@ export class IngestRunsRepository {
     return res.rows.map((row: any) => ({
       ...row,
       agenticEnabled: Boolean(row.agenticEnabled),
-      extractorVersions:
-        typeof row.extractorVersions === 'string'
-          ? JSON.parse(row.extractorVersions)
-          : row.extractorVersions,
-      ocrVersions:
-        typeof row.ocrVersions === 'string' ? JSON.parse(row.ocrVersions) : row.ocrVersions,
-      agenticParams:
-        typeof row.agenticParams === 'string' ? JSON.parse(row.agenticParams) : row.agenticParams,
+      extractorVersions: null,
+      ocrVersions: null,
+      agenticParams: null,
+      schemaVersion: null,
+      agenticModelId: null,
+      agenticPromptVersion: null,
     }));
   }
 
@@ -82,25 +74,18 @@ export class IngestRunsRepository {
 
     return {
       id: row.id,
-      startedAt: row.started_at,
+      startedAt: row.created_at,
       finishedAt: row.finished_at,
       status: row.status,
       gitCommit: row.git_commit,
-      schemaVersion: row.schema_version,
+      schemaVersion: null,
       pipelineVersion: row.pipeline_version,
-      extractorVersions:
-        typeof row.extractor_versions === 'string'
-          ? JSON.parse(row.extractor_versions)
-          : row.extractor_versions,
-      ocrVersions:
-        typeof row.ocr_versions === 'string' ? JSON.parse(row.ocr_versions) : row.ocr_versions,
+      extractorVersions: null,
+      ocrVersions: null,
       agenticEnabled: Boolean(row.agentic_enabled),
-      agenticModelId: row.agentic_model_id,
-      agenticPromptVersion: row.agentic_prompt_version,
-      agenticParams:
-        typeof row.agentic_params === 'string'
-          ? JSON.parse(row.agentic_params)
-          : row.agentic_params,
+      agenticModelId: null,
+      agenticPromptVersion: null,
+      agenticParams: null,
       notes: row.notes,
     };
   }

@@ -134,3 +134,68 @@ export const mapEntityListResponseDto = (input: {
   pageSize: Number(input.pageSize || 0),
   totalPages: Math.ceil(Number(input.total || 0) / Math.max(1, Number(input.pageSize || 1))),
 });
+
+export const mapEntityDetailDto = (entity: any) => {
+  const name = entity.full_name || entity.fullName || entity.name || 'Unknown';
+  const redFlagRating = Number(entity.red_flag_rating ?? entity.redFlagRating ?? 0);
+  const secondaryRolesRaw = entity.secondary_roles || entity.secondaryRoles;
+  const secondaryRoles = Array.isArray(secondaryRolesRaw)
+    ? secondaryRolesRaw
+    : typeof secondaryRolesRaw === 'string' && secondaryRolesRaw.trim().length > 0
+      ? secondaryRolesRaw
+          .split(',')
+          .map((role: string) => role.trim())
+          .filter(Boolean)
+      : [];
+  const contexts = Array.isArray(entity.contexts) ? entity.contexts : [];
+  const evidenceTypesRaw = entity.evidence_types || entity.evidenceTypes;
+  const evidenceTypes = Array.isArray(evidenceTypesRaw) ? evidenceTypesRaw : [];
+  const fileReferences = Array.isArray(entity.fileReferences) ? entity.fileReferences : [];
+  const timelineEvents = Array.isArray(entity.timelineEvents) ? entity.timelineEvents : [];
+  const networkConnections = Array.isArray(entity.networkConnections)
+    ? entity.networkConnections
+    : Array.isArray(entity.relationships)
+      ? entity.relationships
+      : [];
+  const blackBookEntries = Array.isArray(entity.blackBookEntries) ? entity.blackBookEntries : [];
+  const photos = Array.isArray(entity.photos) ? entity.photos : [];
+  const significantPassages = Array.isArray(entity.significant_passages)
+    ? entity.significant_passages
+    : [];
+  const bio = String(entity.bio || entity.summary || '');
+
+  return {
+    id: String(entity.id),
+    name,
+    fullName: name,
+    entity_type: entity.entity_type || entity.entityType || 'Person',
+    primaryRole: entity.primary_role || entity.primaryRole || 'Unknown',
+    secondaryRoles,
+    mentions: Number(entity.mentions || 0),
+    files: Number(
+      entity.files ?? entity.document_count ?? entity.documentCount ?? fileReferences.length,
+    ),
+    contexts,
+    evidence_types: evidenceTypes,
+    evidenceTypes,
+    likelihood_score: String(
+      entity.likelihood_score || entity.risk_level || entity.riskLevel || 'LOW',
+    ).toUpperCase(),
+    red_flag_score: Number(entity.red_flag_score ?? entity.redFlagScore ?? 0),
+    red_flag_rating: redFlagRating,
+    red_flag_peppers: redFlagRating > 0 ? '🚩'.repeat(redFlagRating) : '🏳️',
+    red_flag_description:
+      entity.red_flag_description || entity.redFlagDescription || `Red Flag Index ${redFlagRating}`,
+    connectionsToEpstein: entity.connections_summary || entity.connectionsSummary || '',
+    fileReferences,
+    timelineEvents,
+    networkConnections,
+    blackBookEntries,
+    bio,
+    description: String(entity.description || bio),
+    photos,
+    significant_passages: significantPassages,
+    birthDate: entity.birthDate ?? entity.birth_date ?? null,
+    deathDate: entity.deathDate ?? entity.death_date ?? null,
+  };
+};

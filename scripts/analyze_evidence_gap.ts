@@ -70,15 +70,15 @@ async function main() {
   const topPeople = result.rows;
 
   console.log(`\nFound ${topPeople.length} Top People.`);
-  const needsFix = topPeople.filter((p: any) => p.photo_count === 0);
+  const needsFix = topPeople.filter((p: any) => Number(p.photo_count) === 0);
 
   console.table(
     topPeople.slice(0, 20).map((p: any) => ({
       id: p.id,
       name: p.full_name.substring(0, 20),
       mentions: p.mentions,
-      photos: p.photo_count,
-      NEEDS_FIX: p.photo_count === 0 ? 'YES' : '',
+      photos: Number(p.photo_count),
+      NEEDS_FIX: Number(p.photo_count) === 0 ? 'YES' : '',
     })),
   );
 

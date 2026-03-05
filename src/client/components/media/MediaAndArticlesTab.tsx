@@ -1,24 +1,30 @@
 import React, { Suspense, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Newspaper, Image, Music, Film } from 'lucide-react';
+import { Newspaper, Image, Music, Film, User } from 'lucide-react';
 import ScopedErrorBoundary from '../common/ScopedErrorBoundary';
+import { useAuth } from '../../contexts/AuthContext';
 
 // Lazy load the tabs to prevent crashes
 const ArticlesTab = React.lazy(() => import('./ArticlesTab'));
 const MediaTab = React.lazy(() => import('./MediaTab'));
 const AudioTab = React.lazy(() => import('./AudioTab'));
 const VideoTab = React.lazy(() => import('./VideoTab'));
+const FaceGallery = React.lazy(() =>
+  import('../faces/FaceGallery').then((m) => ({ default: m.FaceGallery })),
+);
 
 export const MediaAndArticlesTab: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
 
   // Determine active sub-tab from URL path
-  const getActiveSubTab = (): 'articles' | 'photos' | 'audio' | 'video' => {
+  const getActiveSubTab = (): 'articles' | 'photos' | 'audio' | 'video' | 'faces' => {
     if (location.pathname === '/media/articles') return 'articles';
     if (location.pathname === '/media/photos') return 'photos';
     if (location.pathname === '/media/audio') return 'audio';
     if (location.pathname === '/media/video') return 'video';
+    if (location.pathname === '/media/faces') return 'faces';
     return 'photos'; // default
   };
 
@@ -85,6 +91,19 @@ export const MediaAndArticlesTab: React.FC = () => {
           <Newspaper className="h-4 w-4" />
           <span className="font-medium text-sm">Articles</span>
         </button>
+        {isAdmin && (
+          <button
+            onClick={() => navigateToTab('faces')}
+            className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-all ${
+              activeSubTab === 'faces'
+                ? 'border-blue-500 text-blue-500 bg-blue-500/5'
+                : 'border-transparent text-slate-500 hover:text-slate-300 hover:bg-slate-800/50'
+            }`}
+          >
+            <User className="h-4 w-4" />
+            <span className="font-medium text-sm">Faces (Admin)</span>
+          </button>
+        )}
       </div>
 
       {/* Content Area with isolation */}
@@ -120,6 +139,11 @@ export const MediaAndArticlesTab: React.FC = () => {
             {activeSubTab === 'video' && (
               <ScopedErrorBoundary>
                 <VideoTab />
+              </ScopedErrorBoundary>
+            )}
+            {activeSubTab === 'faces' && isAdmin && (
+              <ScopedErrorBoundary>
+                <FaceGallery />
               </ScopedErrorBoundary>
             )}
           </Suspense>

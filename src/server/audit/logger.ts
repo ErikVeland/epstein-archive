@@ -24,5 +24,6 @@ export async function logAudit(event: AuditEvent) {
     );
   } catch (e) {
     console.error('Failed to write audit log entry', e);
+    throw e;
   }
 }

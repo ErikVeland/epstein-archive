@@ -33,7 +33,7 @@ const updateUserSchema = z.object({
 // User Management Endpoints
 router.get('/', authenticateRequest, requireRole('admin'), async (_req, res, next) => {
   try {
-    const users = listUsers();
+    const users = await listUsers();
     res.json(users);
   } catch (e) {
     next(e);
@@ -45,7 +45,7 @@ router.get('/current', authenticateRequest, async (req: any, res, next) => {
     const userId = req.user?.id;
     if (!userId) return res.status(401).json({ error: 'Not authenticated' });
 
-    const user = getUserById(userId);
+    const user = await getUserById(userId);
     if (!user) return res.status(404).json({ error: 'User not found' });
     res.json(user);
   } catch (e) {
@@ -67,7 +67,7 @@ router.post(
       // Hash password
       const passwordHash = bcrypt.hashSync(password, 10);
 
-      createUser({
+      await createUser({
         id,
         username,
         email: email || null,
@@ -75,7 +75,15 @@ router.post(
         passwordHash,
       });
 
-      logAudit('create_user', req.user?.id || null, 'user', id, { username, role });
+      await logAudit(
+        'create_user',
+        req.user?.id || null,
+        'user',
+        id,
+        { username, role },
+        undefined,
+        req.requestId,
+      );
       res.status(201).json({ id, username, email, role });
     } catch (e) {
       next(e);
@@ -117,9 +125,17 @@ router.put('/:id', authenticateRequest, validate(updateUserSchema), async (req: 
       return res.status(400).json({ error: 'No fields to update' });
     }
 
-    updateUser(id, fields);
+    await updateUser(id, fields);
 
-    logAudit('update_user', currentUser.id, 'user', id, { username, role });
+    await logAudit(
+      'update_user',
+      currentUser.id,
+      'user',
+      id,
+      { username, role },
+      undefined,
+      req.requestId,
+    );
     res.json({ success: true });
   } catch (e) {
     next(e);

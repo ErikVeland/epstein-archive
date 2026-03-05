@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import { authenticateRequest } from '../auth/middleware.js';
 import { evidenceRepository } from '../db/evidenceRepository.js';
 
 const router = Router();
@@ -27,7 +28,7 @@ router.get('/evidence/:entityId', async (req: Request, res: Response) => {
  * POST /api/investigation/add-evidence
  * Add evidence to an investigation session
  */
-router.post('/add-evidence', async (req: Request, res: Response) => {
+router.post('/add-evidence', authenticateRequest, async (req: Request, res: Response) => {
   try {
     const { investigationId, evidenceId, notes, relevance } = req.body;
     if (!investigationId || !evidenceId) {
@@ -49,7 +50,7 @@ router.post('/add-evidence', async (req: Request, res: Response) => {
   }
 });
 
-router.post('/add-media', async (req: Request, res: Response) => {
+router.post('/add-media', authenticateRequest, async (req: Request, res: Response) => {
   try {
     const { investigationId, mediaItemId, notes, relevance } = req.body;
     if (!investigationId || !mediaItemId) {
@@ -75,7 +76,7 @@ router.post('/add-media', async (req: Request, res: Response) => {
  * POST /api/investigation/add-snippet
  * Add a text snippet from a document to an investigation
  */
-router.post('/add-snippet', async (req: Request, res: Response) => {
+router.post('/add-snippet', authenticateRequest, async (req: Request, res: Response) => {
   try {
     const { investigationId, documentId, snippetText, notes, relevance } = req.body;
     if (!investigationId || !documentId || !snippetText) {
@@ -117,18 +118,22 @@ router.get('/:investigationId/evidence-summary', async (req: Request, res: Respo
  * DELETE /api/investigation/remove-evidence/:investigationEvidenceId
  * Remove evidence from an investigation
  */
-router.delete('/remove-evidence/:investigationEvidenceId', async (req: Request, res: Response) => {
-  try {
-    const { investigationEvidenceId } = req.params as { investigationEvidenceId: string };
+router.delete(
+  '/remove-evidence/:investigationEvidenceId',
+  authenticateRequest,
+  async (req: Request, res: Response) => {
+    try {
+      const { investigationEvidenceId } = req.params as { investigationEvidenceId: string };
 
-    const success =
-      await evidenceRepository.removeEvidenceFromInvestigation(investigationEvidenceId);
+      const success =
+        await evidenceRepository.removeEvidenceFromInvestigation(investigationEvidenceId);
 
-    res.json({ success });
-  } catch (error) {
-    console.error('Error removing evidence from investigation:', error);
-    res.status(500).json({ error: 'Failed to remove evidence from investigation' });
-  }
-});
+      res.json({ success });
+    } catch (error) {
+      console.error('Error removing evidence from investigation:', error);
+      res.status(500).json({ error: 'Failed to remove evidence from investigation' });
+    }
+  },
+);
 
 export default router;

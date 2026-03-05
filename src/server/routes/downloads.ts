@@ -27,10 +27,18 @@ router.get('/release/:id', async (req, res) => {
         const userId = (req as any).user?.id || 'anonymous';
 
         // Log the download event
-        logAudit('download', userId, 'document', releaseId, {
-          status: 'success',
-          static_release: true,
-        });
+        await logAudit(
+          'download',
+          userId,
+          'document',
+          releaseId,
+          {
+            status: 'success',
+            static_release: true,
+          },
+          undefined,
+          (req as any).requestId,
+        );
         return res.download(filePath);
       }
     }
