@@ -436,17 +436,55 @@ export const documentsRepository = {
 
     let derivedContent = (document.content || '').trim();
     if (!derivedContent) {
-      const pageTextRes = await getApiPool().query<{ combined_text: string | null }>(
-        `
-        SELECT STRING_AGG(dp.extracted_text, E'\n\n' ORDER BY dp.page_number) AS combined_text
-        FROM document_pages dp
-        WHERE dp.document_id = $1
-          AND dp.extracted_text IS NOT NULL
-          AND BTRIM(dp.extracted_text) <> ''
-        `,
-        [docId],
-      );
-      derivedContent = (pageTextRes.rows[0]?.combined_text || '').trim();
+      // Some production schemas use document_pages.content instead of extracted_text.
+      // Prefer extracted_text when available, then gracefully fall back.
+      try {
+        const pageTextRes = await getApiPool().query<{ combined_text: string | null }>(
+          `
+          SELECT STRING_AGG(dp.extracted_text, E'\n\n' ORDER BY dp.page_number) AS combined_text
+          FROM document_pages dp
+          WHERE dp.document_id = $1
+            AND dp.extracted_text IS NOT NULL
+            AND BTRIM(dp.extracted_text) <> ''
+          `,
+          [docId],
+        );
+        derivedContent = (pageTextRes.rows[0]?.combined_text || '').trim();
+      } catch (error: any) {
+        if (!['42703', '42P01'].includes(String(error?.code || ''))) throw error;
+      }
+
+      if (!derivedContent) {
+        try {
+          const legacyPageTextRes = await getApiPool().query<{ combined_text: string | null }>(
+            `
+            SELECT STRING_AGG(dp.content, E'\n\n' ORDER BY dp.page_number) AS combined_text
+            FROM document_pages dp
+            WHERE dp.document_id = $1
+              AND dp.content IS NOT NULL
+              AND BTRIM(dp.content) <> ''
+            `,
+            [docId],
+          );
+          derivedContent = (legacyPageTextRes.rows[0]?.combined_text || '').trim();
+        } catch (error: any) {
+          if (!['42703', '42P01'].includes(String(error?.code || ''))) throw error;
+        }
+      }
+
+      if (!derivedContent) {
+        const sentenceTextRes = await getApiPool().query<{ combined_text: string | null }>(
+          `
+          SELECT STRING_AGG(ds.sentence_text, ' ' ORDER BY ds.sentence_index) AS combined_text
+          FROM document_sentences ds
+          WHERE ds.document_id = $1
+            AND ds.sentence_text IS NOT NULL
+            AND BTRIM(ds.sentence_text) <> ''
+          `,
+          [docId],
+        );
+        derivedContent = (sentenceTextRes.rows[0]?.combined_text || '').trim();
+      }
     }
 
     const normalizedDocument = {

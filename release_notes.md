@@ -16,6 +16,7 @@
 
 - **Black Book Filter Safety:** Stopped sending `letter=ALL` as a literal API filter from the Black Book UI.
 - **About/Stats Fetch Hardening:** Switched About page aggregate fetches to JSON-validated `Promise.allSettled` handling so one failing endpoint no longer zeros all displayed metrics.
+- **Document Detail Schema Fallback:** Hardened `/api/documents/:id` text derivation to support both `document_pages.extracted_text` and legacy `document_pages.content`, with `document_sentences` fallback, preventing 500s on mixed production schemas.
 
 ## 15.6.0 - 2026-03-05 - Public Read / Admin Write Policy + Security Hardening
 
