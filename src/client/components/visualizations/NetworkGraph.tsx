@@ -36,6 +36,7 @@ interface NetworkGraphProps {
   onZoomLevelChange?: (zoom: number) => void;
   onFilterUpdate?: (stats: { visible: number; total: number; label: string }) => void;
   onEdgeClick?: (edge: Relationship) => void;
+  nodeRiskActions?: React.ReactNode;
 }
 
 interface Point {
@@ -109,6 +110,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
   onZoomLevelChange,
   onFilterUpdate,
   onEdgeClick,
+  nodeRiskActions,
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const [nodes, setNodes] = useState<GraphNode[]>([]);
@@ -277,7 +279,14 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
 
   // High-performance Label Collision Management (Grid-based approximation of Quadtree)
   const visibleLabels = useMemo(() => {
-    if (!lod.showLabels) return new Set<string | number>();
+    const importantLabels = new Set<string | number>();
+    if (selectedNodeId !== null) importantLabels.add(selectedNodeId);
+    if (hoveredNode) {
+      const hovered = filteredNodes.find((n) => n.label === hoveredNode);
+      if (hovered) importantLabels.add(hovered.id);
+    }
+
+    if (!lod.showLabels) return importantLabels;
 
     const visible = new Set<string | number>();
     const collisionGrid = new Set<string>();
@@ -315,8 +324,16 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
         visible.add(node.id);
       }
     }
+    importantLabels.forEach((id) => visible.add(id));
     return visible;
   }, [filteredNodes, lod, transform.k, selectedNodeId, hoveredNode]);
+
+  const labelFontSize = useMemo(() => {
+    if (transform.k < 0.8) return 1.05;
+    if (transform.k < 1.4) return 1.2;
+    if (transform.k < 2.2) return 1.4;
+    return 1.6;
+  }, [transform.k]);
 
   // Avatar Fetch Policy
   useEffect(() => {
@@ -775,7 +792,12 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
 
       {/* Legend */}
       <div className="absolute top-4 left-4 z-20 bg-slate-800/90 backdrop-blur-sm rounded-lg p-4 border border-slate-700/50 shadow-xl pointer-events-none sm:pointer-events-auto opacity-80 sm:opacity-100 hover:opacity-100 transition-opacity">
-        <p className="text-xs text-slate-400 mb-3 font-bold uppercase tracking-wider">Node Risk</p>
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Node Risk</p>
+          {nodeRiskActions ? (
+            <div className="pointer-events-auto flex items-center gap-1">{nodeRiskActions}</div>
+          ) : null}
+        </div>
         <div className="space-y-2">
           {[
             { level: 5, label: 'Critical Risk', color: '#a855f7' },
@@ -901,51 +923,52 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
           transform={`translate(${transform.x - 50 * transform.k}, ${transform.y - 50 * transform.k}) scale(${transform.k})`}
         >
           {/* Links */}
-          {lod.showEdges && (
-            <g className="links" style={{ opacity: lod.opacity }}>
-              {links.map((link, i) => {
-                const isHighlight =
-                  hoveredNode === link.source.label || hoveredNode === link.target.label;
-                const type = String(link.type || '').toLowerCase();
-                const isInferred = link.classification === 'INFERRED' || type.includes('infer');
-                const isAgentic = type.includes('agentic') || type.includes('derived');
-                const stroke = isAgentic ? '#a855f7' : isInferred ? '#22d3ee' : '#60a5fa';
-                // Dynamic width based on weight (0.05 to 0.3 base)
-                // @ts-ignore - normalizedWeight added in useMemo
-                const weightBonus = (link.normalizedWeight || 0) * 0.15;
-                const baseWidth = 0.05 + weightBonus;
-                const highlightWidth = 0.3 + weightBonus;
+          <g className="links" style={{ opacity: lod.opacity }}>
+            {links.map((link, i) => {
+              const isHighlight =
+                hoveredNode === link.source.label || hoveredNode === link.target.label;
+              const type = String(link.type || '').toLowerCase();
+              const isInferred = link.classification === 'INFERRED' || type.includes('infer');
+              const isAgentic = type.includes('agentic') || type.includes('derived');
+              const stroke = isAgentic ? '#a855f7' : isInferred ? '#22d3ee' : '#60a5fa';
+              // Dynamic width based on weight (0.05 to 0.3 base)
+              // @ts-ignore - normalizedWeight added in useMemo
+              const weightBonus = (link.normalizedWeight || 0) * 0.15;
+              const baseWidth = 0.05 + weightBonus;
+              const highlightWidth = 0.3 + weightBonus;
+              const baseOpacity =
+                transform.k < 0.4
+                  ? 0.12
+                  : transform.k < 0.8
+                    ? 0.18
+                    : 0.22 + (link.normalizedWeight || 0) * 0.24;
 
-                return (
-                  <line
-                    key={i}
-                    x1={link.source.x}
-                    y1={link.source.y}
-                    x2={link.target.x}
-                    y2={link.target.y}
-                    stroke={isHighlight ? '#e2e8f0' : stroke}
-                    strokeWidth={isHighlight ? highlightWidth : baseWidth}
-                    strokeOpacity={isHighlight ? 0.85 : 0.2 + (link.normalizedWeight || 0) * 0.28}
-                    strokeDasharray={isInferred || isAgentic ? '1.6 1.2' : undefined}
-                    className="transition-all duration-300 cursor-pointer hover:stroke-cyan-400"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      // Reconstruct original relationship object or pass the mapped one
-                      // NetworkGraph uses mapped object but onEdgeClick expects Relationship
-                      // Mapped object usually has source/target as GraphNodes
-                      // We need to pass back { sourceId: source.id, targetId: target.id, ... }
-                      onEdgeClick?.({
-                        sourceId: Number(link.source.id),
-                        targetId: Number(link.target.id),
-                        type: link.type,
-                        weight: link.weight,
-                      } as any);
-                    }}
-                  />
-                );
-              })}
-            </g>
-          )}
+              return (
+                <line
+                  key={i}
+                  x1={link.source.x}
+                  y1={link.source.y}
+                  x2={link.target.x}
+                  y2={link.target.y}
+                  stroke={isHighlight ? '#e2e8f0' : stroke}
+                  strokeWidth={isHighlight ? highlightWidth : baseWidth}
+                  strokeOpacity={isHighlight ? 0.85 : baseOpacity}
+                  strokeDasharray={isInferred || isAgentic ? '1.6 1.2' : undefined}
+                  vectorEffect="non-scaling-stroke"
+                  className="transition-all duration-300 cursor-pointer hover:stroke-cyan-400"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdgeClick?.({
+                      sourceId: Number(link.source.id),
+                      targetId: Number(link.target.id),
+                      type: link.type,
+                      weight: link.weight,
+                    } as any);
+                  }}
+                />
+              );
+            })}
+          </g>
 
           {/* Nodes */}
           <g className="nodes">
@@ -1019,14 +1042,14 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
                       dy={size + 2}
                       textAnchor="middle"
                       fill="#e2e8f0"
-                      fontSize={Math.max(1.5, 4 / transform.k)}
+                      fontSize={labelFontSize}
                       className="pointer-events-none select-none transition-all duration-300"
                       style={{
                         textShadow: '0 1px 3px rgba(0,0,0,0.9)',
                         opacity: hoveredNode && hoveredNode !== node.label ? 0.4 : 1.0,
                       }}
                     >
-                      {node.label}
+                      {transform.k < 1 ? node.label.slice(0, 24) : node.label.slice(0, 48)}
                     </text>
                   )}
                 </g>

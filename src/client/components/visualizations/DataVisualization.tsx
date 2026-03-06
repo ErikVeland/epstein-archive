@@ -117,6 +117,46 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({
 
   // Prepare Data for Risk Distribution
   const riskDistribution = useMemo(() => {
+    if (
+      analyticsData?.redFlagDistribution &&
+      Array.isArray(analyticsData.redFlagDistribution) &&
+      analyticsData.redFlagDistribution.length > 0
+    ) {
+      const high = analyticsData.redFlagDistribution
+        .filter((d: any) => Number(d.rating) >= 4)
+        .reduce((acc: number, curr: any) => acc + Number(curr.count || 0), 0);
+      const medium = analyticsData.redFlagDistribution
+        .filter((d: any) => Number(d.rating) >= 2 && Number(d.rating) < 4)
+        .reduce((acc: number, curr: any) => acc + Number(curr.count || 0), 0);
+      const low = analyticsData.redFlagDistribution
+        .filter((d: any) => Number(d.rating) < 2)
+        .reduce((acc: number, curr: any) => acc + Number(curr.count || 0), 0);
+
+      return [
+        { name: 'High Risk (4-5)', value: high, color: COLORS.HIGH },
+        { name: 'Medium Risk (2-3)', value: medium, color: COLORS.MEDIUM },
+        { name: 'Low Risk (0-1)', value: low, color: COLORS.LOW },
+      ];
+    }
+
+    if (
+      analyticsData?.likelihoodDistribution &&
+      Array.isArray(analyticsData.likelihoodDistribution) &&
+      analyticsData.likelihoodDistribution.length > 0
+    ) {
+      const byLevel = new Map<string, number>(
+        analyticsData.likelihoodDistribution.map((d: any) => [
+          String(d.level || '').toUpperCase(),
+          Number(d.count || 0),
+        ]),
+      );
+      return [
+        { name: 'High Risk (4-5)', value: byLevel.get('HIGH') || 0, color: COLORS.HIGH },
+        { name: 'Medium Risk (2-3)', value: byLevel.get('MEDIUM') || 0, color: COLORS.MEDIUM },
+        { name: 'Low Risk (0-1)', value: byLevel.get('LOW') || 0, color: COLORS.LOW },
+      ];
+    }
+
     // 1. Prefer analyticsData.riskByType (server-side aggregated)
     if (
       analyticsData?.riskByType &&
@@ -175,7 +215,7 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({
         redFlagRating: Number(p.riskLevel || p.red_flag_rating || p.redFlagRating || 0),
         person: p,
       }))
-      .filter((e) => e.name.length > 0 && !isJunkEntity(e.name))
+      .filter((e) => e.name.length > 0 && e.mentions > 0 && !isJunkEntity(e.name))
       .sort((a, b) => b.mentions - a.mentions)
       .slice(0, 30);
   }, [analyticsData, filteredPersons]);
@@ -233,7 +273,7 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({
                 <BarChart
                   data={topEntities.slice(0, 30)}
                   layout="vertical"
-                  margin={{ left: 0, right: 30, top: 0, bottom: 0 }}
+                  margin={{ left: 120, right: 30, top: 0, bottom: 0 }}
                   barCategoryGap={10}
                 >
                   <defs>
@@ -290,13 +330,14 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({
                     type="category"
                     stroke="#94a3b8"
                     fontSize={11}
-                    width={200}
+                    width={300}
                     tick={({ x, y, payload }: any) => {
                       const label = payload.value || 'Unknown';
+                      const truncated = label.length > 30 ? `${label.slice(0, 27)}...` : label;
                       // No truncation needed with horizontal scroll
                       return (
                         <text
-                          x={x}
+                          x={x - 8}
                           y={y}
                           dy={4}
                           fill="#f8fafc"
@@ -309,7 +350,7 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({
                             if (person && onPersonSelect) onPersonSelect(person);
                           }}
                         >
-                          {label}
+                          {truncated}
                         </text>
                       );
                     }}
@@ -419,7 +460,11 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({
 
         <div className="relative z-10">
           <TreeMap
-            people={people.length > 0 ? people : analyticsData?.topConnectedEntities || []}
+            people={
+              people.length > 0
+                ? people
+                : analyticsData?.topConnectedEntities || analyticsData?.topEntities || []
+            }
             onPersonClick={onPersonSelect}
           />
         </div>

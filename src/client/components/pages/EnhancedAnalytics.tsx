@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Info,
   Users,
@@ -374,20 +374,6 @@ export const EnhancedAnalytics: React.FC<EnhancedAnalyticsProps> = ({
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center">
-          <div
-            className="animate-spin rounded-full h-16 w-16 border-b-2 border-cyan-500 mx-auto mb-4"
-            style={{ boxShadow: '0 0 30px rgba(6, 182, 212, 0.5)' }}
-          />
-          <p className="text-slate-400 animate-pulse">Loading analytics...</p>
-        </div>
-      </div>
-    );
-  }
-
   const handleReconcileJunk = async () => {
     try {
       await apiClient.post('/analytics/reconcile/junk');
@@ -408,6 +394,53 @@ export const EnhancedAnalytics: React.FC<EnhancedAnalyticsProps> = ({
       console.error('Error resetting junk:', error);
     }
   };
+
+  const documentsByCategory = useMemo(() => {
+    const buckets = new Map<
+      string,
+      { type: string; count: number; redacted: number; avgRisk: number }
+    >();
+    const classifyType = (rawType: string) => {
+      const t = String(rawType || '').toLowerCase();
+      if (t.includes('pdf')) return 'PDF';
+      if (t.includes('message/rfc822') || t.includes('email')) return 'Email';
+      if (t.includes('image')) return 'Image';
+      if (t.includes('video')) return 'Video';
+      if (t.includes('audio')) return 'Audio';
+      if (t.includes('html') || t.includes('plain') || t.includes('text')) return 'Text';
+      return 'Other';
+    };
+
+    for (const row of data?.documentsByType || []) {
+      const key = classifyType(row.type);
+      const existing = buckets.get(key) || { type: key, count: 0, redacted: 0, avgRisk: 0 };
+      const nextCount = existing.count + Number(row.count || 0);
+      const weightedRisk =
+        existing.avgRisk * existing.count + Number(row.avgRisk || 0) * Number(row.count || 0);
+      buckets.set(key, {
+        type: key,
+        count: nextCount,
+        redacted: existing.redacted + Number(row.redacted || 0),
+        avgRisk: nextCount > 0 ? weightedRisk / nextCount : 0,
+      });
+    }
+
+    return Array.from(buckets.values()).sort((a, b) => b.count - a.count);
+  }, [data?.documentsByType]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <div
+            className="animate-spin rounded-full h-16 w-16 border-b-2 border-cyan-500 mx-auto mb-4"
+            style={{ boxShadow: '0 0 30px rgba(6, 182, 212, 0.5)' }}
+          />
+          <p className="text-slate-400 animate-pulse">Loading analytics...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (error || !data) {
     return (
@@ -475,30 +508,6 @@ export const EnhancedAnalytics: React.FC<EnhancedAnalyticsProps> = ({
                   </div>
                 </div>
               )}
-            </div>
-
-            <div className="flex items-center gap-2">
-              <div className="h-4 w-px bg-slate-700 mx-1" />
-              <button
-                onClick={handleReconcileJunk}
-                className="p-1.5 hover:bg-slate-700/50 rounded-lg text-slate-400 hover:text-amber-400 transition-all group relative"
-                title="Reconcile Junk Entities"
-              >
-                <Database className="h-4 w-4" />
-                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 p-2 bg-slate-900 text-[10px] rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50">
-                  Reconcile Junk Entities
-                </span>
-              </button>
-              <button
-                onClick={handleResetJunk}
-                className="p-1.5 hover:bg-slate-700/50 rounded-lg text-slate-400 hover:text-red-400 transition-all group relative"
-                title="Reset Junk Flags"
-              >
-                <RotateCcw className="h-4 w-4" />
-                <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 p-2 bg-slate-900 text-[10px] rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50">
-                  Reset Junk Flags
-                </span>
-              </button>
             </div>
           </div>
         )}
@@ -597,6 +606,30 @@ export const EnhancedAnalytics: React.FC<EnhancedAnalyticsProps> = ({
             maxNodes={Number(filters.limit)}
             onZoomLevelChange={handleZoomLevelChange}
             onEdgeClick={handleEdgeClick}
+            nodeRiskActions={
+              <>
+                <button
+                  onClick={handleReconcileJunk}
+                  className="p-1.5 hover:bg-slate-700/50 rounded-lg text-slate-400 hover:text-amber-400 transition-all group relative"
+                  title="Reconcile Junk Entities"
+                >
+                  <Database className="h-4 w-4" />
+                  <span className="absolute bottom-full right-0 mb-2 p-2 bg-slate-900 text-[10px] rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50">
+                    Reconcile Junk Entities
+                  </span>
+                </button>
+                <button
+                  onClick={handleResetJunk}
+                  className="p-1.5 hover:bg-slate-700/50 rounded-lg text-slate-400 hover:text-red-400 transition-all group relative"
+                  title="Reset Junk Flags"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                  <span className="absolute bottom-full right-0 mb-2 p-2 bg-slate-900 text-[10px] rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50">
+                    Reset Junk Flags
+                  </span>
+                </button>
+              </>
+            }
           />
           {isGraphLoading && (
             <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-slate-900/80 px-4 py-2 rounded-full text-xs text-cyan-400 border border-cyan-500/30 backdrop-blur-md animate-pulse">
@@ -751,7 +784,7 @@ export const EnhancedAnalytics: React.FC<EnhancedAnalyticsProps> = ({
 
           <div className="relative z-10">
             <SunburstChart
-              data={data.documentsByType}
+              data={documentsByCategory}
               onSegmentClick={(type) => onTypeFilter?.(type)}
             />
           </div>

@@ -1,5 +1,24 @@
 # Release Notes
 
+## 15.8.0 - 2026-03-06 - Analytics Data Integrity + Map/Chart Reliability
+
+### Analytics Data Quality
+
+- **Top Mentioned Individuals De-Junked:** Replaced the prior top-entities aggregation path with stricter person-only, non-junk, non-quarantined server filtering and canonical-name consolidation so OCR/UI artifact entities no longer dominate rankings.
+- **Risk Distribution Fallbacks Fixed:** Classic analytics now correctly derives risk buckets from `redFlagDistribution` / `likelihoodDistribution` when `riskByType` is absent, preventing empty risk charts.
+- **Tree Map Data Source Corrected:** Interactive entity treemap now falls back to `topEntities` when `topConnectedEntities` is unavailable, eliminating empty map states in classic analytics.
+
+### Timeline + Type Visuals
+
+- **Document Distribution Readability:** Timeline bars now aggregate to yearly buckets (1980–2026 window) with stable year ticks, making the expected historical span visible instead of being visually dominated by ingestion-month spikes.
+- **Document Type Normalization:** Enhanced analytics document types are grouped into meaningful categories (`PDF`, `Email`, `Image`, `Video`, `Audio`, `Text`, `Other`) before rendering, so the chart surface no longer presents as a single undifferentiated total.
+- **Top Mentioned Chart Alignment:** Increased Y-axis label space and tick anchoring in the horizontal bar chart to fix label/bar misalignment and overflow.
+
+### Geospatial Reliability
+
+- **Map No-Data Fallback:** When entity geocoordinates are unavailable, the interactive map now falls back to real flight-airport coordinates from `/api/flights/airports` instead of rendering zero locations.
+- **World-Zoom Constraint:** The interactive map now enforces world bounds and minimum zoom at full-world scale, preventing zoom-out beyond a 1:1 world frame.
+
 ## 15.7.0 - 2026-03-06 - Degraded Mode Stability + 503 Read Availability
 
 ### Runtime Stability

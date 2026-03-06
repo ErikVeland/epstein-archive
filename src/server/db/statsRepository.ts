@@ -151,10 +151,64 @@ export const statsRepository = {
       undefined,
       getApiPool(),
     );
-    const topEntitiesRows = await statsQueries.getTopEntities.run(
-      { limit: BigInt(30) },
-      getApiPool(),
-    );
+    const topEntitiesRows = (
+      await getApiPool().query(
+        `
+        WITH canonical_people AS (
+          SELECT
+            MIN(id)::bigint AS id,
+            CASE
+              WHEN full_name IN ('Donald Trump', 'President Trump', 'Mr Trump', 'Trump', 'Donald J Trump', 'Donald J. Trump') THEN 'Donald Trump'
+              WHEN full_name IN ('Jeffrey Epstein', 'Epstein', 'Jeffrey', 'Jeff Epstein', 'Mr Epstein') THEN 'Jeffrey Epstein'
+              WHEN full_name IN ('Ghislaine Maxwell', 'Maxwell', 'Ghislaine', 'Ms Maxwell', 'Miss Maxwell') THEN 'Ghislaine Maxwell'
+              WHEN full_name IN ('Bill Clinton', 'President Clinton', 'Mr Clinton', 'Clinton', 'William Clinton')
+                AND lower(full_name) NOT LIKE '%hillary%' AND lower(full_name) NOT LIKE '%chelsea%' THEN 'Bill Clinton'
+              WHEN full_name IN ('Prince Andrew', 'Duke of York', 'Andrew') OR lower(full_name) LIKE '%prince andrew%' THEN 'Prince Andrew'
+              WHEN full_name IN ('Alan Dershowitz', 'Dershowitz', 'Mr Dershowitz') THEN 'Alan Dershowitz'
+              ELSE regexp_replace(trim(full_name), '\\s+', ' ', 'g')
+            END AS canonical_name,
+            SUM(COALESCE(mentions, 0))::bigint AS mentions,
+            MAX(COALESCE(red_flag_rating, 0))::int AS red_flag_rating,
+            MAX(primary_role) AS primary_role
+          FROM entities
+          WHERE mentions > 0
+            AND entity_type = 'Person'
+            AND COALESCE(junk_tier, 'clean') = 'clean'
+            AND COALESCE(quarantine_status, 0) = 0
+            AND full_name IS NOT NULL
+            AND length(trim(full_name)) >= 4
+            AND full_name !~ '[0-9]'
+            AND full_name !~ '\\n'
+            AND full_name NOT ILIKE 'the %'
+            AND full_name NOT ILIKE '% group'
+            AND full_name NOT ILIKE '% inc'
+            AND full_name NOT ILIKE '% llc'
+            AND full_name NOT ILIKE '% corp'
+            AND full_name NOT ILIKE '% data%'
+            AND full_name NOT ILIKE '% regular'
+            AND full_name NOT ILIKE '% stock %'
+            AND full_name NOT ILIKE '% market %'
+            AND full_name NOT ILIKE '% newsletter%'
+            AND full_name NOT ILIKE '% search %'
+            AND full_name NOT ILIKE '% click %'
+            AND full_name NOT ILIKE '% privacy %'
+          GROUP BY 2
+        )
+        SELECT
+          id,
+          canonical_name AS name,
+          mentions,
+          red_flag_rating AS "redFlagRating",
+          primary_role AS "primaryRole",
+          'Person'::text AS "entityType",
+          NULL::text AS "redFlagDescription"
+        FROM canonical_people
+        WHERE mentions > 0
+        ORDER BY mentions DESC, "redFlagRating" DESC, name ASC
+        LIMIT 30
+        `,
+      )
+    ).rows;
     const collectionCountsRows = await statsQueries.getCollectionCounts.run(
       undefined,
       getApiPool(),
@@ -193,11 +247,13 @@ export const statsRepository = {
     ];
 
     const topEntities = topEntitiesRows.map((r: any) => ({
-      id: String(r.id),
+      id: String(r.id || ''),
       name: r.name,
-      role: r.role,
+      role: r.primaryRole || '',
       mentions: Number(r.mentions || 0),
-      riskLevel: r.riskLevel || 'LOW',
+      riskLevel: Number(r.redFlagRating || 0),
+      red_flag_rating: Number(r.redFlagRating || 0),
+      type: 'Person',
     }));
 
     return {

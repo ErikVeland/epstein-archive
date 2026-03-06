@@ -26,7 +26,7 @@ const DefaultIcon = L.icon({
 L.Marker.prototype.options.icon = DefaultIcon;
 
 interface MapEntity {
-  id: number;
+  id: number | string;
   label: string;
   lat: number;
   lng: number;
@@ -47,9 +47,16 @@ const MapController: React.FC<{ entities: MapEntity[] }> = ({ entities }) => {
   const map = useMap();
 
   useEffect(() => {
+    map.setMinZoom(2);
+    map.setMaxBounds([
+      [-90, -180],
+      [90, 180],
+    ]);
+    map.options.maxBoundsViscosity = 1.0;
+
     if (entities.length > 0) {
       const bounds = L.latLngBounds(entities.map((e) => [e.lat, e.lng]));
-      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
+      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 8 });
     } else {
       map.setView([20, 0], 2); // World view
     }
@@ -71,11 +78,38 @@ export const InteractiveEntityMap: React.FC<InteractiveEntityMapProps> = ({
   const fetchMapEntities = useCallback(async () => {
     try {
       setLoading(true);
+      setError(null);
       const res = await apiClient.get<MapEntity[]>(`/map/entities?minRisk=${minRiskLevel}`, {
         useCache: true,
       });
-      if (res) {
-        setEntities(res);
+
+      const entityRows = Array.isArray(res) ? res : [];
+      if (entityRows.length > 0) {
+        setEntities(entityRows);
+        return;
+      }
+
+      // Real-data fallback: show airport locations from flight logs when entity geo coords are absent.
+      const airports = await apiClient.get<
+        Record<string, { lat: number; lng: number; city: string }>
+      >('/flights/airports', { useCache: true });
+
+      const airportEntities: MapEntity[] = Object.entries(airports || {}).map(([code, value]) => ({
+        id: `airport-${code}`,
+        label: `${code} (${value.city})`,
+        lat: Number(value.lat),
+        lng: Number(value.lng),
+        mentions: 0,
+        risk_level: 'LOW',
+        risk_score: 0,
+        type: 'Airport',
+      }));
+
+      if (airportEntities.length > 0) {
+        setEntities(airportEntities);
+      } else {
+        setEntities([]);
+        setError('No geospatial coordinates available for entities or flights');
       }
     } catch (err) {
       console.error('Failed to fetch map entities:', err);
@@ -182,7 +216,9 @@ export const InteractiveEntityMap: React.FC<InteractiveEntityMapProps> = ({
                 </div>
 
                 <button
-                  onClick={() => onEntitySelect?.(entity.id)}
+                  onClick={() => {
+                    if (typeof entity.id === 'number') onEntitySelect?.(entity.id);
+                  }}
                   className="w-full mt-2 px-3 py-1.5 bg-slate-900 text-white text-xs rounded hover:bg-slate-700 transition-colors flex items-center justify-center gap-1"
                 >
                   View Profile <Navigation className="w-3 h-3" />

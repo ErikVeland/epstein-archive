@@ -77,19 +77,58 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export const DocumentBarChart: React.FC<DocumentBarChartProps> = ({ data, onPeriodClick }) => {
-  // Process and sort data by period
+  // Process and sort data by period, then aggregate by year for a readable long-range timeline.
   const chartData = useMemo(() => {
-    return data
+    const monthly = data
       .filter((d) => d.period === 'Unknown' || (d.period && d.period.length >= 7))
       .map((d) => ({
         ...d,
-        displayPeriod: formatPeriod(d.period),
+        period: d.period,
       }))
       .sort((a, b) => {
         if (a.period === 'Unknown') return 1;
         if (b.period === 'Unknown') return -1;
         return a.period.localeCompare(b.period);
       });
+
+    const yearly = new Map<
+      string,
+      {
+        period: string;
+        displayPeriod: string;
+        total: number;
+        emails: number;
+        photos: number;
+        documents: number;
+        sensitive: number;
+      }
+    >();
+
+    for (const row of monthly) {
+      if (row.period === 'Unknown') continue;
+      const year = row.period.slice(0, 4);
+      // Prioritize historical range the team expects to inspect.
+      if (!/^\d{4}$/.test(year) || Number(year) < 1980 || Number(year) > 2026) continue;
+
+      const existing = yearly.get(year) || {
+        period: year,
+        displayPeriod: year,
+        total: 0,
+        emails: 0,
+        photos: 0,
+        documents: 0,
+        sensitive: 0,
+      };
+
+      existing.total += Number(row.total || 0);
+      existing.emails += Number(row.emails || 0);
+      existing.photos += Number(row.photos || 0);
+      existing.documents += Number(row.documents || 0);
+      existing.sensitive += Number(row.sensitive || 0);
+      yearly.set(year, existing);
+    }
+
+    return Array.from(yearly.values()).sort((a, b) => a.period.localeCompare(b.period));
   }, [data]);
 
   if (chartData.length === 0) {
@@ -120,8 +159,11 @@ export const DocumentBarChart: React.FC<DocumentBarChartProps> = ({ data, onPeri
             tickLine={false}
             axisLine={false}
             tick={{ fill: '#94a3b8' }}
-            interval="preserveStartEnd"
-            minTickGap={30}
+            interval={0}
+            minTickGap={20}
+            tickFormatter={(value: string, index: number) =>
+              index % 5 === 0 || value === '2026' ? value : ''
+            }
           />
           <YAxis
             stroke="#64748b"
@@ -129,7 +171,13 @@ export const DocumentBarChart: React.FC<DocumentBarChartProps> = ({ data, onPeri
             tickLine={false}
             axisLine={false}
             tick={{ fill: '#94a3b8' }}
-            tickFormatter={(value) => (value >= 1000 ? `${(value / 1000).toFixed(0)}k` : value)}
+            tickFormatter={(value) =>
+              value >= 1000000
+                ? `${(value / 1000000).toFixed(1)}m`
+                : value >= 1000
+                  ? `${(value / 1000).toFixed(0)}k`
+                  : value
+            }
           />
           <Tooltip content={<CustomTooltip />} cursor={{ fill: '#1e293b', opacity: 0.4 }} />
           <Legend
@@ -143,8 +191,8 @@ export const DocumentBarChart: React.FC<DocumentBarChartProps> = ({ data, onPeri
 
           {/* Highlight the 2000-2002 period */}
           <ReferenceArea
-            x1="Jan '00"
-            x2="Dec '02"
+            x1="2000"
+            x2="2002"
             fill="rgba(239, 68, 68, 0.05)"
             stroke="rgba(239, 68, 68, 0.1)"
             strokeDasharray="3 3"
@@ -195,34 +243,5 @@ export const DocumentBarChart: React.FC<DocumentBarChartProps> = ({ data, onPeri
     </div>
   );
 };
-
-// Format period from YYYY-MM to MMM 'YY
-function formatPeriod(period: string): string {
-  if (period === 'Unknown') return 'Unknown';
-  if (!period || period.length < 5) return period;
-
-  const parts = period.split('-');
-  if (parts.length < 2) return period;
-
-  const [year, month] = parts;
-  const months = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ];
-  const monthName = months[parseInt(month, 10) - 1] || month;
-
-  const shortYear = year.length === 4 ? year.slice(2) : year;
-  return `${monthName} '${shortYear}`;
-}
 
 export default DocumentBarChart;
