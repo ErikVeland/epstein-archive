@@ -158,8 +158,15 @@ export class App {
 
     // 2. Load Shedding
     this.app.use((_req, res, next) => {
-      if (toobusy()) {
-        res.status(503).send('Server Too Busy');
+      // Keep public read access available under load; shed mutating traffic first.
+      const method = _req.method.toUpperCase();
+      const isReadOnly = method === 'GET' || method === 'HEAD' || method === 'OPTIONS';
+
+      if (!isReadOnly && toobusy()) {
+        if (_req.path.startsWith('/api/')) {
+          return res.status(503).json({ error: 'Server Too Busy' });
+        }
+        return res.status(503).send('Server Too Busy');
       } else {
         next();
       }

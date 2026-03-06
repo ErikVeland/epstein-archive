@@ -1,5 +1,22 @@
 # Release Notes
 
+## 15.7.0 - 2026-03-06 - Degraded Mode Stability + 503 Read Availability
+
+### Runtime Stability
+
+- **Degraded Mode Provider Wiring:** Added `DegradedModeProvider` to the client root tree so `useDegradedMode` consumers (including the degraded banner) no longer throw runtime context errors.
+- **Crash Loop Resolved:** Eliminated the `useDegradedMode must be used within DegradedModeProvider` production failure path surfaced through `ScopedErrorBoundary`.
+
+### Availability Under Load
+
+- **Load Shedding Policy Adjustment:** Updated server-side `toobusy` handling to prioritize shedding mutating traffic first while keeping public read requests (`GET/HEAD/OPTIONS`) available.
+- **503 Handling Improvement:** Mutating `/api/*` requests now receive structured JSON `503` responses during overload, while read/UI traffic remains serviceable.
+
+### Data Surface Reliability
+
+- **Black Book Filter Safety:** Stopped sending `letter=ALL` as a literal API filter from the Black Book UI.
+- **About/Stats Fetch Hardening:** Switched About page aggregate fetches to JSON-validated `Promise.allSettled` handling so one failing endpoint no longer zeros all displayed metrics.
+
 ## 15.6.0 - 2026-03-05 - Public Read / Admin Write Policy + Security Hardening
 
 ### Access Control Policy

@@ -11,6 +11,7 @@ import ToastProvider from './components/common/ToastProvider';
 
 import { SensitiveSettingsProvider } from './contexts/SensitiveSettingsContext';
 import { FilterProvider } from './contexts/FilterContext';
+import { DegradedModeProvider } from './contexts/DegradedModeContext';
 
 // Global error handlers for production debugging
 window.onerror = function (message, source, lineno, colno, error) {
@@ -34,9 +35,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             <SensitiveSettingsProvider>
               <BrowserRouter>
                 <NavigationProvider>
-                  <FilterProvider>
-                    <App />
-                  </FilterProvider>
+                  <DegradedModeProvider>
+                    <FilterProvider>
+                      <App />
+                    </FilterProvider>
+                  </DegradedModeProvider>
                 </NavigationProvider>
               </BrowserRouter>
             </SensitiveSettingsProvider>
