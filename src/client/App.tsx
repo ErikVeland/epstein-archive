@@ -10,7 +10,7 @@ import { Document } from './types/documents';
 import { useNavigation } from './services/NavigationContext';
 import { apiClient } from './services/apiClient';
 import { DocumentProcessor } from './services/documentProcessor';
-// SECURITY: Removed synthetic sample documents import - never fall back to fake data
+// SECURITY: Removed non-authoritative document import paths
 import { useCountUp } from './hooks/useCountUp';
 import MobileMenu from './components/layout/MobileMenu';
 import UndoProvider from './components/UndoManager';
@@ -857,7 +857,7 @@ function App() {
         setDocumentLoadingProgress('Connecting to document database...');
         setDocumentLoadingProgressValue(10);
         // Fetch recent documents for client-side processing
-        // Pull a bounded sample for client-side initialization
+        // Pull a bounded subset for client-side initialization
         const response = await apiClient.getDocuments({}, 1, 200);
 
         console.log('API response:', response);
@@ -913,7 +913,7 @@ function App() {
       } catch (error) {
         console.error('Error loading documents:', error);
         console.error('Error details:', error instanceof Error ? error.message : 'Unknown error');
-        // SECURITY: Never fall back to sample/synthetic data - show clear error
+        // SECURITY: Never fall back to non-authoritative records; show clear error
         setDocumentLoadingProgress('Failed to load documents from server');
         setDocumentLoadingProgressValue(0);
         setDocumentProcessor(null);

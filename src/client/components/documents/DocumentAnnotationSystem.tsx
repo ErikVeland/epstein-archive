@@ -1,537 +1,457 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Annotation, TextPosition } from '../../types/investigation';
-import { Highlighter, MessageSquare, Tag, Flag, CheckCircle, XCircle } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { CheckCircle, Flag, Highlighter, MessageSquare, Tag, XCircle } from 'lucide-react';
+import { apiClient } from '../../services/apiClient';
+
+type AnnotationType = 'highlight' | 'note' | 'evidence' | 'question' | 'contradiction' | 'tag';
+
+type PublicDocumentAnnotation = {
+  id: string;
+  documentId: string;
+  type: AnnotationType;
+  selectedText: string;
+  note: string;
+  position: { start: number; end: number };
+  contextBefore?: string | null;
+  contextAfter?: string | null;
+  author?: string;
+  createdAt: string;
+  updatedAt: string;
+};
 
 interface DocumentAnnotationSystemProps {
   documentId: string;
   content: string;
-  annotations?: Annotation[];
-  currentUserId?: string;
   searchTerm?: string;
   renderHighlightedText?: (text: string, term?: string) => React.ReactNode;
   mode?: 'inline' | 'full';
-  onAnnotationCreate?: (annotation: Omit<Annotation, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  onAnnotationUpdate?: (annotationId: string, updates: Partial<Annotation>) => void;
-  onAnnotationDelete?: (annotationId: string) => void;
+  onAnnotationCreate?: (annotation: PublicDocumentAnnotation) => void;
 }
+
+type PendingSelection = {
+  selectedText: string;
+  start: number;
+  end: number;
+  contextBefore: string;
+  contextAfter: string;
+};
+
+const annotationTypes: Array<{
+  type: AnnotationType;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  className: string;
+}> = [
+  { type: 'highlight', label: 'Highlight', icon: Highlighter, className: 'bg-yellow-300/25' },
+  { type: 'note', label: 'Note', icon: MessageSquare, className: 'bg-blue-300/25' },
+  { type: 'evidence', label: 'Evidence', icon: CheckCircle, className: 'bg-emerald-300/25' },
+  { type: 'question', label: 'Question', icon: Flag, className: 'bg-fuchsia-300/25' },
+  { type: 'contradiction', label: 'Contradiction', icon: XCircle, className: 'bg-rose-300/25' },
+  { type: 'tag', label: 'Tag', icon: Tag, className: 'bg-cyan-300/25' },
+];
+
+const getTypeMeta = (type: AnnotationType) => {
+  return annotationTypes.find((entry) => entry.type === type) || annotationTypes[0];
+};
+
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+
+const parseDateLabel = (iso: string) => {
+  const parsed = new Date(iso);
+  if (Number.isNaN(parsed.getTime())) return iso;
+  return parsed.toLocaleString();
+};
 
 export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> = ({
   documentId,
   content,
-  annotations: externalAnnotations,
-  currentUserId = 'investigator-001',
   searchTerm,
   renderHighlightedText,
   mode = 'inline',
   onAnnotationCreate,
-  onAnnotationUpdate,
-  onAnnotationDelete,
 }) => {
-  const [selectedText, setSelectedText] = useState<string>('');
-  const [selectionPosition, setSelectionPosition] = useState<TextPosition | null>(null);
-  const [showAnnotationMenu, setShowAnnotationMenu] = useState(false);
-  const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
-  const [activeAnnotation, setActiveAnnotation] = useState<Annotation | null>(null);
-  const [showAnnotationPanel, setShowAnnotationPanel] = useState(false);
-  const [localAnnotations, setLocalAnnotations] = useState<Annotation[]>([]);
   const contentRef = useRef<HTMLDivElement>(null);
+  const [annotations, setAnnotations] = useState<PublicDocumentAnnotation[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [activeAnnotationId, setActiveAnnotationId] = useState<string | null>(null);
+  const [pendingSelection, setPendingSelection] = useState<PendingSelection | null>(null);
+  const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
+  const [draftType, setDraftType] = useState<AnnotationType>('highlight');
+  const [draftNote, setDraftNote] = useState('');
+  const [draftAuthor, setDraftAuthor] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
-  // Use external annotations if provided, otherwise use local state
-  const annotations = externalAnnotations || localAnnotations;
+  const activeAnnotation = useMemo(() => {
+    if (!activeAnnotationId) return null;
+    return annotations.find((annotation) => annotation.id === activeAnnotationId) || null;
+  }, [annotations, activeAnnotationId]);
 
-  // Mock annotations for demonstration
   useEffect(() => {
-    if (!externalAnnotations && localAnnotations.length === 0) {
-      const mockAnnotations: Annotation[] = [
-        {
-          id: 'annotation-001',
-          documentId: documentId,
-          position: { start: 100, end: 114 },
-          type: 'evidence',
-          content: 'Primary subject of investigation',
-          tags: ['target', 'key-person'],
-          investigatorId: 'investigator-001',
-          visibility: 'team',
-          relatedAnnotations: [],
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-        {
-          id: 'annotation-002',
-          documentId: documentId,
-          position: { start: 250, end: 270 },
-          type: 'highlight',
-          content: 'Potential money laundering evidence',
-          tags: ['financial', 'evidence'],
-          investigatorId: 'investigator-002',
-          visibility: 'team',
-          relatedAnnotations: [],
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
-      ];
-      setLocalAnnotations(mockAnnotations);
-    }
-  }, [documentId, externalAnnotations, localAnnotations.length]);
+    const savedAuthor = localStorage.getItem('public_annotation_author') || '';
+    setDraftAuthor(savedAuthor);
+  }, []);
 
-  const handleTextSelection = () => {
-    const selection = window.getSelection();
-    if (!selection || selection.isCollapsed || !contentRef.current) {
-      setSelectedText('');
-      setShowAnnotationMenu(false);
-      return;
-    }
+  useEffect(() => {
+    let mounted = true;
+    setIsLoading(true);
+    setLoadError(null);
 
-    const selectedText = selection.toString().trim();
-    if (selectedText.length > 0) {
-      setSelectedText(selectedText);
-
-      // Get selection position
-      const range = selection.getRangeAt(0);
-      const rect = range.getBoundingClientRect();
-
-      // Calculate position relative to content container
-      const containerRect = contentRef.current.getBoundingClientRect();
-      setMenuPosition({
-        x: rect.left - containerRect.left + rect.width / 2,
-        y: rect.top - containerRect.top - 40,
+    apiClient
+      .getPublicDocumentAnnotations(documentId)
+      .then((rows) => {
+        if (!mounted) return;
+        setAnnotations(rows);
+      })
+      .catch((error) => {
+        if (!mounted) return;
+        setLoadError(error instanceof Error ? error.message : 'Failed to load annotations');
+      })
+      .finally(() => {
+        if (mounted) setIsLoading(false);
       });
 
-      // Calculate text position for annotation
-      const startOffset = getTextOffset(range.startContainer, range.startOffset);
-      const endOffset = startOffset + selectedText.length;
-
-      setSelectionPosition({
-        start: startOffset,
-        end: endOffset,
-      });
-
-      setShowAnnotationMenu(true);
-    } else {
-      setSelectedText('');
-      setShowAnnotationMenu(false);
-    }
-  };
-
-  const getTextOffset = (node: Node, offset: number): number => {
-    let textOffset = 0;
-    const walker = document.createTreeWalker(contentRef.current!, NodeFilter.SHOW_TEXT, null);
-
-    let currentNode;
-    while ((currentNode = walker.nextNode())) {
-      if (currentNode === node) {
-        return textOffset + offset;
-      }
-      textOffset += currentNode.textContent?.length || 0;
-    }
-    return textOffset;
-  };
-
-  const createAnnotation = (type: Annotation['type'], content: string) => {
-    if (!selectionPosition) return;
-
-    const annotation: Omit<Annotation, 'id' | 'createdAt' | 'updatedAt'> = {
-      documentId,
-      investigatorId: currentUserId,
-      type,
-      content,
-      position: selectionPosition,
-      tags: [],
-      visibility: 'private',
-      evidenceRating: type === 'evidence' ? 'supporting' : undefined,
-      relatedAnnotations: [],
+    return () => {
+      mounted = false;
     };
+  }, [documentId]);
 
-    if (onAnnotationCreate) {
-      onAnnotationCreate(annotation);
-    } else {
-      // Create annotation locally
-      const newAnnotation: Annotation = {
-        ...annotation,
-        id: `annotation-${Date.now()}`,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      setLocalAnnotations((prev) => [...prev, newAnnotation]);
-    }
-
-    setShowAnnotationMenu(false);
-    setSelectedText('');
+  const clearSelectionDraft = () => {
+    setPendingSelection(null);
+    setDraftNote('');
     window.getSelection()?.removeAllRanges();
   };
 
-  const getAnnotationColor = (type: Annotation['type']) => {
-    switch (type) {
-      case 'highlight':
-        return 'bg-yellow-200 text-yellow-800';
-      case 'note':
-        return 'bg-blue-200 text-blue-800';
-      case 'tag':
-        return 'bg-green-200 text-green-800';
-      case 'question':
-        return 'bg-purple-200 text-purple-800';
-      case 'evidence':
-        return 'bg-red-200 text-red-800';
-      case 'contradiction':
-        return 'bg-orange-200 text-orange-800';
-      default:
-        return 'bg-gray-200 text-gray-800';
-    }
-  };
-
-  const getAnnotationIcon = (type: Annotation['type']) => {
-    switch (type) {
-      case 'highlight':
-        return Highlighter;
-      case 'note':
-        return MessageSquare;
-      case 'tag':
-        return Tag;
-      case 'question':
-        return Flag;
-      case 'evidence':
-        return CheckCircle;
-      case 'contradiction':
-        return XCircle;
-      default:
-        return MessageSquare;
-    }
-  };
-
-  const renderHighlightedContent = () => {
-    if (!content) return content;
-
-    let result = content;
-
-    // First apply search term highlighting if provided
-    if (searchTerm && renderHighlightedText) {
-      const highlighted = renderHighlightedText(content, searchTerm);
-      if (typeof highlighted === 'string') {
-        result = highlighted;
-      } else {
-        // If renderHighlightedText returns JSX, we need to handle it differently
-        // For now, just use the original content
-        result = content;
-      }
+  const handleSelection = () => {
+    if (!contentRef.current) return;
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
+      return;
     }
 
-    // Sort annotations by start position
-    const sortedAnnotations = [...annotations].sort(
-      (a, b) => (a.position?.start || 0) - (b.position?.start || 0),
-    );
+    const range = selection.getRangeAt(0);
+    if (!contentRef.current.contains(range.commonAncestorContainer)) {
+      return;
+    }
 
-    let offset = 0;
+    const rawSelection = selection.toString();
+    const selectedText = rawSelection.trim();
+    if (!selectedText) {
+      clearSelectionDraft();
+      return;
+    }
 
-    sortedAnnotations.forEach((annotation) => {
-      if (!annotation.position) return;
+    const leadingWhitespaceCount = rawSelection.indexOf(selectedText);
 
-      const { start, end } = annotation.position;
-      const beforeText = result.substring(0, start + offset);
-      const highlightedText = result.substring(start + offset, end + offset);
-      const afterText = result.substring(end + offset);
+    const preSelectionRange = range.cloneRange();
+    preSelectionRange.selectNodeContents(contentRef.current);
+    preSelectionRange.setEnd(range.startContainer, range.startOffset);
 
-      const annotationClass = getAnnotationColor(annotation.type)
-        .replace('bg-', 'bg-opacity-30 ')
-        .replace('text-', '');
+    const start = preSelectionRange.toString().length + Math.max(0, leadingWhitespaceCount);
+    const end = start + selectedText.length;
+    const safeStart = clamp(start, 0, Math.max(content.length - 1, 0));
+    const safeEnd = clamp(end, safeStart + 1, Math.max(content.length, safeStart + 1));
 
-      result = `${beforeText}<span class="${annotationClass} cursor-pointer hover:bg-opacity-50 transition-colors" data-annotation-id="${annotation.id}">${highlightedText}</span>${afterText}`;
-      offset += 40; // Account for added HTML
+    const rect = range.getBoundingClientRect();
+    const containerRect = contentRef.current.getBoundingClientRect();
+    setMenuPosition({
+      x: rect.left - containerRect.left + rect.width / 2,
+      y: rect.top - containerRect.top - 16,
     });
 
-    return result;
+    setPendingSelection({
+      selectedText,
+      start: safeStart,
+      end: safeEnd,
+      contextBefore: content.slice(Math.max(0, safeStart - 120), safeStart),
+      contextAfter: content.slice(safeEnd, Math.min(content.length, safeEnd + 120)),
+    });
   };
 
-  const handleAnnotationClick = React.useCallback(
-    (annotationId: string) => {
-      const annotation = annotations.find((a) => a.id === annotationId);
-      if (annotation) {
-        setActiveAnnotation(annotation);
-        setShowAnnotationPanel(true);
+  const createAnnotation = async () => {
+    if (!pendingSelection || isSaving) return;
+    setIsSaving(true);
+    setLoadError(null);
+
+    try {
+      const saved = await apiClient.createPublicDocumentAnnotation(documentId, {
+        type: draftType,
+        selectedText: pendingSelection.selectedText,
+        note: draftNote.trim(),
+        start: pendingSelection.start,
+        end: pendingSelection.end,
+        contextBefore: pendingSelection.contextBefore,
+        contextAfter: pendingSelection.contextAfter,
+        author: draftAuthor.trim() || undefined,
+      });
+
+      if (draftAuthor.trim()) {
+        localStorage.setItem('public_annotation_author', draftAuthor.trim());
       }
+
+      setAnnotations((prev) => [...prev, saved]);
+      setActiveAnnotationId(saved.id);
+      onAnnotationCreate?.(saved);
+      clearSelectionDraft();
+      setDraftNote('');
+    } catch (error) {
+      setLoadError(error instanceof Error ? error.message : 'Failed to save annotation');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const renderSearchHighlighted = useCallback(
+    (text: string, keyPrefix: string): React.ReactNode => {
+      const term = searchTerm?.trim();
+      if (!term) {
+        if (renderHighlightedText) return renderHighlightedText(text, searchTerm);
+        return text;
+      }
+
+      const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(`(${escaped})`, 'gi');
+      const parts = text.split(regex);
+
+      return parts.map((part, idx) =>
+        part.toLowerCase() === term.toLowerCase() ? (
+          <mark
+            key={`${keyPrefix}-mark-${idx}`}
+            className="bg-cyan-300/30 text-cyan-100 rounded px-0.5"
+          >
+            {part}
+          </mark>
+        ) : (
+          <React.Fragment key={`${keyPrefix}-text-${idx}`}>{part}</React.Fragment>
+        ),
+      );
     },
-    [annotations],
+    [renderHighlightedText, searchTerm],
   );
 
-  useEffect(() => {
-    const element = contentRef.current;
-    if (!element) return;
+  const renderedContent = useMemo(() => {
+    if (!content) return null;
 
-    // Add click handlers to annotation spans
-    const annotationSpans = element.querySelectorAll('[data-annotation-id]');
-    annotationSpans.forEach((span) => {
-      span.addEventListener('click', () => {
-        const annotationId = span.getAttribute('data-annotation-id');
-        if (annotationId) handleAnnotationClick(annotationId);
-      });
-    });
+    const normalized = annotations
+      .map((annotation) => ({
+        ...annotation,
+        start: clamp(annotation.position.start, 0, content.length),
+        end: clamp(annotation.position.end, 0, content.length),
+      }))
+      .filter((annotation) => annotation.end > annotation.start)
+      .sort((a, b) => a.start - b.start || a.end - b.end);
 
-    return () => {
-      const spans = element.querySelectorAll('[data-annotation-id]');
-      spans.forEach((span) => {
-        span.replaceWith(span.textContent || '');
-      });
-    };
-  }, [content, annotations, handleAnnotationClick]);
+    const fragments: React.ReactNode[] = [];
+    let cursor = 0;
+
+    for (let i = 0; i < normalized.length; i += 1) {
+      const annotation = normalized[i];
+      if (annotation.start < cursor) continue;
+
+      if (annotation.start > cursor) {
+        const plain = content.slice(cursor, annotation.start);
+        fragments.push(
+          <React.Fragment key={`plain-${cursor}`}>
+            {renderSearchHighlighted(plain, `plain-${cursor}`)}
+          </React.Fragment>,
+        );
+      }
+
+      const highlighted = content.slice(annotation.start, annotation.end);
+      const isActive = annotation.id === activeAnnotationId;
+      const typeMeta = getTypeMeta(annotation.type);
+
+      fragments.push(
+        <button
+          key={`ann-${annotation.id}`}
+          type="button"
+          className={`rounded-sm px-0.5 text-left align-baseline transition-colors ${
+            typeMeta.className
+          } ${isActive ? 'ring-1 ring-cyan-300/80' : 'hover:ring-1 hover:ring-white/30'}`}
+          title={`${typeMeta.label}: ${annotation.note || annotation.selectedText}`}
+          onClick={() => setActiveAnnotationId(annotation.id)}
+        >
+          {renderSearchHighlighted(highlighted, `ann-${annotation.id}`)}
+        </button>,
+      );
+
+      cursor = annotation.end;
+    }
+
+    if (cursor < content.length) {
+      const tail = content.slice(cursor);
+      fragments.push(
+        <React.Fragment key={`plain-tail-${cursor}`}>
+          {renderSearchHighlighted(tail, `plain-tail-${cursor}`)}
+        </React.Fragment>,
+      );
+    }
+
+    return fragments;
+  }, [annotations, content, activeAnnotationId, renderSearchHighlighted]);
 
   return (
     <div className={`relative ${mode === 'full' ? 'h-full flex' : ''}`}>
       <div className={`${mode === 'full' ? 'flex-1 pr-4' : 'w-full'}`}>
-        {/* Document Content with Annotations */}
+        <div className="mb-3 flex items-center justify-between">
+          <div className="text-xs text-slate-400">
+            {annotations.length} annotation{annotations.length === 1 ? '' : 's'}
+          </div>
+          {isLoading && <div className="text-xs text-slate-400">Loading…</div>}
+        </div>
+
         <div
           ref={contentRef}
-          className="prose prose-invert max-w-none text-slate-300 leading-relaxed select-text whitespace-pre-wrap"
-          onMouseUp={handleTextSelection}
-          dangerouslySetInnerHTML={{ __html: renderHighlightedContent() }}
-        />
+          className="prose prose-invert max-w-none text-slate-300 leading-relaxed whitespace-pre-wrap select-text min-h-[300px]"
+          onMouseUp={handleSelection}
+        >
+          {renderedContent}
+        </div>
 
-        {/* Annotation Menu */}
-        {showAnnotationMenu && (
-          <div
-            className="absolute z-50 bg-slate-800 border border-slate-600 rounded-lg shadow-xl p-2"
-            style={{
-              left: `${menuPosition.x}px`,
-              top: `${menuPosition.y}px`,
-              transform: 'translateX(-50%)',
-            }}
-          >
-            <div className="flex space-x-1">
-              <button
-                onClick={() => createAnnotation('highlight', selectedText)}
-                className="p-2 hover:bg-slate-700 rounded text-yellow-400"
-                title="Highlight"
-              >
-                <Highlighter className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => createAnnotation('note', selectedText)}
-                className="p-2 hover:bg-slate-700 rounded text-blue-400"
-                title="Add Note"
-              >
-                <MessageSquare className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => createAnnotation('evidence', selectedText)}
-                className="p-2 hover:bg-slate-700 rounded text-green-400"
-                title="Mark as Evidence"
-              >
-                <CheckCircle className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => createAnnotation('contradiction', selectedText)}
-                className="p-2 hover:bg-slate-700 rounded text-red-400"
-                title="Mark Contradiction"
-              >
-                <XCircle className="w-4 h-4" />
-              </button>
-            </div>
+        {loadError && (
+          <div className="mt-3 text-xs text-rose-300 bg-rose-900/30 border border-rose-400/30 rounded-md px-3 py-2">
+            {loadError}
           </div>
         )}
 
         {mode === 'inline' && (
-          /* Annotation Summary - Only show in inline mode */
-          <div className="mt-4 flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <span className="text-sm text-slate-400">
-                {annotations.length} annotation{annotations.length !== 1 ? 's' : ''}
-              </span>
+          <div className="mt-3 text-xs text-slate-400">
+            Select text to add a public annotation with highlight and optional note.
+          </div>
+        )}
+
+        {pendingSelection && (
+          <div
+            className="absolute z-50 w-[340px] bg-slate-900 border border-slate-600 rounded-lg shadow-xl p-3"
+            style={{
+              left: `${menuPosition.x}px`,
+              top: `${menuPosition.y}px`,
+              transform: 'translate(-50%, -100%)',
+            }}
+          >
+            <div className="text-xs text-slate-400 mb-2 truncate">
+              "{pendingSelection.selectedText}"
             </div>
-            <button
-              onClick={() => setShowAnnotationPanel(true)}
-              className="text-sm text-blue-400 hover:text-blue-300"
-            >
-              View All
-            </button>
+            <div className="grid grid-cols-3 gap-1 mb-2">
+              {annotationTypes.map((option) => {
+                const Icon = option.icon;
+                const active = draftType === option.type;
+                return (
+                  <button
+                    key={option.type}
+                    type="button"
+                    className={`px-2 py-1 rounded text-xs flex items-center gap-1 justify-center border ${
+                      active
+                        ? 'border-cyan-400/60 bg-cyan-500/10 text-cyan-100'
+                        : 'border-slate-600 text-slate-300 hover:bg-slate-700/70'
+                    }`}
+                    onClick={() => setDraftType(option.type)}
+                  >
+                    <Icon className="w-3 h-3" />
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
+            <input
+              value={draftAuthor}
+              onChange={(event) => setDraftAuthor(event.target.value)}
+              placeholder="Display name (optional)"
+              className="w-full mb-2 px-2 py-1.5 rounded bg-slate-800 border border-slate-600 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+              maxLength={32}
+            />
+            <textarea
+              value={draftNote}
+              onChange={(event) => setDraftNote(event.target.value)}
+              placeholder="Add note (optional)"
+              className="w-full mb-2 px-2 py-1.5 rounded bg-slate-800 border border-slate-600 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+              rows={3}
+              maxLength={4000}
+            />
+            <div className="flex justify-between gap-2">
+              <button
+                type="button"
+                onClick={clearSelectionDraft}
+                className="px-2 py-1 text-xs rounded border border-slate-600 text-slate-300 hover:bg-slate-700"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={createAnnotation}
+                disabled={isSaving}
+                className="px-2 py-1 text-xs rounded border border-cyan-500/60 bg-cyan-500/10 text-cyan-100 hover:bg-cyan-500/20 disabled:opacity-50"
+              >
+                {isSaving ? 'Saving…' : 'Save Annotation'}
+              </button>
+            </div>
           </div>
         )}
       </div>
 
       {mode === 'full' && (
-        /* Annotation Sidebar - Only show in full mode */
-        <div className="w-80 bg-slate-800 border-l border-slate-600 p-4 overflow-y-auto">
+        <aside className="w-80 bg-slate-800/70 border-l border-slate-600 p-4 overflow-y-auto">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-medium text-white">Annotations</h3>
             <span className="text-sm text-slate-400">{annotations.length} total</span>
           </div>
 
           <div className="space-y-3">
-            {annotations.map((annotation) => (
-              <div
-                key={annotation.id}
-                className="bg-slate-700 rounded-lg p-3 cursor-pointer hover:bg-slate-600 transition-colors"
-                onClick={() => {
-                  setActiveAnnotation(annotation);
-                  setShowAnnotationPanel(true);
-                }}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center space-x-2">
-                    {React.createElement(getAnnotationIcon(annotation.type), {
-                      className: `w-4 h-4 ${getAnnotationColor(annotation.type).split(' ')[0].replace('bg-', 'text-')}`,
-                    })}
-                    <span className="text-sm font-medium text-white capitalize">
-                      {annotation.type}
-                    </span>
+            {annotations.map((annotation) => {
+              const typeMeta = getTypeMeta(annotation.type);
+              const Icon = typeMeta.icon;
+              const active = annotation.id === activeAnnotationId;
+              return (
+                <button
+                  key={annotation.id}
+                  type="button"
+                  className={`w-full text-left rounded-lg p-3 border transition-colors ${
+                    active
+                      ? 'bg-slate-700 border-cyan-400/60'
+                      : 'bg-slate-700/60 border-slate-600 hover:bg-slate-700'
+                  }`}
+                  onClick={() => setActiveAnnotationId(annotation.id)}
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <Icon className="w-4 h-4 text-cyan-300" />
+                    <span className="text-sm font-medium text-white">{typeMeta.label}</span>
                   </div>
-                </div>
-                <div className="text-sm text-slate-300 mb-2">"{annotation.content}"</div>
-                <div className="flex items-center justify-between text-xs text-slate-500">
-                  <span>{annotation.investigatorId}</span>
-                  <span>{new Date(annotation.createdAt).toLocaleDateString()}</span>
-                </div>
-              </div>
-            ))}
+                  <div className="text-xs text-slate-300 mb-2">"{annotation.selectedText}"</div>
+                  {annotation.note ? (
+                    <div className="text-xs text-slate-200 mb-2">{annotation.note}</div>
+                  ) : null}
+                  <div className="flex justify-between text-[11px] text-slate-400">
+                    <span>{annotation.author || 'anonymous'}</span>
+                    <span>{parseDateLabel(annotation.createdAt)}</span>
+                  </div>
+                </button>
+              );
+            })}
 
-            {annotations.length === 0 && (
+            {annotations.length === 0 && !isLoading && (
               <div className="text-center py-8 text-slate-400">
                 <MessageSquare className="w-8 h-8 mx-auto mb-2 opacity-50" />
                 <p className="text-sm">No annotations yet</p>
-                <p className="text-xs mt-1">Select text to add annotations</p>
+                <p className="text-xs mt-1">Select text in the document to annotate it.</p>
               </div>
             )}
           </div>
-        </div>
-      )}
 
-      {/* Annotation Panel Modal */}
-      {showAnnotationPanel && activeAnnotation && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-slate-800 border border-slate-600 rounded-lg p-6 w-full max-w-md">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-2">
-                {React.createElement(getAnnotationIcon(activeAnnotation.type), {
-                  className: 'w-5 h-5',
-                })}
-                <h3 className="text-lg font-medium text-white capitalize">
-                  {activeAnnotation.type}
-                </h3>
+          {activeAnnotation && (
+            <div className="mt-4 p-3 rounded-lg border border-slate-600 bg-slate-900/60">
+              <div className="text-xs uppercase tracking-wider text-slate-400 mb-2">
+                Active annotation
               </div>
-              <button
-                onClick={() => setShowAnnotationPanel(false)}
-                className="text-slate-400 hover:text-white"
-              >
-                <XCircle className="w-5 h-5" />
-              </button>
+              <div className="text-sm text-slate-100 mb-2">"{activeAnnotation.selectedText}"</div>
+              {activeAnnotation.note ? (
+                <div className="text-xs text-slate-300 whitespace-pre-wrap">
+                  {activeAnnotation.note}
+                </div>
+              ) : (
+                <div className="text-xs text-slate-500">No note text.</div>
+              )}
             </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Annotation Content
-                </label>
-                <textarea
-                  value={activeAnnotation.content}
-                  onChange={(e) => {
-                    if (onAnnotationUpdate) {
-                      onAnnotationUpdate(activeAnnotation.id, { content: e.target.value });
-                    } else {
-                      // Update locally
-                      setLocalAnnotations((prev) =>
-                        prev.map((ann) =>
-                          ann.id === activeAnnotation.id
-                            ? { ...ann, content: e.target.value, updatedAt: new Date() }
-                            : ann,
-                        ),
-                      );
-                    }
-                  }}
-                  className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  rows={4}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Evidence Rating
-                </label>
-                <select
-                  value={activeAnnotation.evidenceRating || ''}
-                  onChange={(e) => {
-                    if (onAnnotationUpdate) {
-                      onAnnotationUpdate(activeAnnotation.id, {
-                        evidenceRating: e.target.value as any,
-                      });
-                    } else {
-                      // Update locally
-                      setLocalAnnotations((prev) =>
-                        prev.map((ann) =>
-                          ann.id === activeAnnotation.id
-                            ? {
-                                ...ann,
-                                evidenceRating: e.target.value as any,
-                                updatedAt: new Date(),
-                              }
-                            : ann,
-                        ),
-                      );
-                    }
-                  }}
-                  className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Select rating</option>
-                  <option value="crucial">Crucial Evidence</option>
-                  <option value="supporting">Supporting Evidence</option>
-                  <option value="weak">Weak Evidence</option>
-                  <option value="contradictory">Contradictory Evidence</option>
-                  <option value="uncertain">Uncertain</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Visibility</label>
-                <select
-                  value={activeAnnotation.visibility}
-                  onChange={(e) => {
-                    if (onAnnotationUpdate) {
-                      onAnnotationUpdate(activeAnnotation.id, {
-                        visibility: e.target.value as any,
-                      });
-                    } else {
-                      // Update locally
-                      setLocalAnnotations((prev) =>
-                        prev.map((ann) =>
-                          ann.id === activeAnnotation.id
-                            ? { ...ann, visibility: e.target.value as any, updatedAt: new Date() }
-                            : ann,
-                        ),
-                      );
-                    }
-                  }}
-                  className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="private">Private</option>
-                  <option value="team">Team Only</option>
-                  <option value="investigation">Investigation</option>
-                  <option value="public">Public</option>
-                </select>
-              </div>
-
-              <div className="flex justify-between pt-4">
-                <button
-                  onClick={() => {
-                    if (onAnnotationDelete) {
-                      onAnnotationDelete(activeAnnotation.id);
-                    } else {
-                      // Delete locally
-                      setLocalAnnotations((prev) =>
-                        prev.filter((ann) => ann.id !== activeAnnotation.id),
-                      );
-                    }
-                    setShowAnnotationPanel(false);
-                  }}
-                  className="px-4 py-2 text-sm font-medium text-red-400 hover:text-red-300"
-                >
-                  Delete
-                </button>
-                <button
-                  onClick={() => setShowAnnotationPanel(false)}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+          )}
+        </aside>
       )}
     </div>
   );

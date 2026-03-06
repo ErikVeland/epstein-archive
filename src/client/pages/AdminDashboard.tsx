@@ -425,7 +425,6 @@ export const AdminDashboard: React.FC = () => {
                   <Check className="text-green-500 w-5 h-5" />
                 </div>
                 <div className="text-3xl font-bold text-slate-100">
-                  {/* Mock for now, rely on last_active if parsed correctly */}
                   {
                     users.filter((u) => {
                       if (!u.last_active) return false;

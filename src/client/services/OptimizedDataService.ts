@@ -65,71 +65,14 @@ export class OptimizedDataService {
   async initialize(): Promise<void> {
     if (this.isInitialized) return;
 
-    try {
-      // Test API connection
-      const health = await apiClient.healthCheck();
-      if (!(health.status === 'ok' || health.status === 'healthy')) {
-        throw new Error('API server not ready');
-      }
-
-      this.isInitialized = true;
-      console.log('OptimizedDataService initialized with API backend');
-    } catch (error) {
-      console.warn('API backend not available, falling back to JSON data files:', error);
-
-      // Try to load from JSON files as fallback
-      try {
-        await this.loadDataFromJsonFiles();
-        this.isInitialized = true;
-        console.log('OptimizedDataService initialized with JSON file fallback');
-      } catch (jsonError) {
-        console.error('Failed to initialize with JSON files:', jsonError);
-        throw jsonError;
-      }
+    // API-only initialization for production correctness.
+    const health = await apiClient.healthCheck();
+    if (!(health.status === 'ok' || health.status === 'healthy')) {
+      throw new Error('API server not ready');
     }
+    this.isInitialized = true;
+    console.log('OptimizedDataService initialized with API backend');
   }
-
-  private async loadDataFromJsonFiles(): Promise<void> {
-    try {
-      // Load people data from JSON file
-      const peopleResponse = await fetch('/data/people.json');
-      if (!peopleResponse.ok) {
-        throw new Error(`Failed to load people data: ${peopleResponse.status}`);
-      }
-
-      const peopleData = await peopleResponse.json();
-      console.log(`Loaded ${peopleData.length} people from JSON file`);
-
-      // Store the data for use in getPaginatedData
-      this.jsonFallbackData = {
-        people: peopleData.map((person: any, index: number) => ({
-          id: `person_${index}`,
-          name: person.fullName,
-          likelihood_score: person.likelihoodLevel || 'UNKNOWN',
-          mentions: person.mentions || 0,
-          files: person.fileReferences?.split(',').length || 0,
-          evidence_types: (person.keyEvidence?.split(',') || []).map((type: string) => type.trim()),
-          contexts: [], // Will be populated from evidence data
-          red_flag_rating: person.redFlagRating ?? 0,
-          role: person.primaryRole || '',
-          secondary_roles: person.secondaryRoles || '',
-          status: person.currentStatus || '',
-          fileReferences: person.fileReferences
-            ? typeof person.fileReferences === 'string'
-              ? []
-              : person.fileReferences
-            : [],
-        })),
-      };
-
-      console.log('JSON fallback data prepared successfully');
-    } catch (error) {
-      console.error('Error loading JSON data files:', error);
-      throw error;
-    }
-  }
-
-  private jsonFallbackData: { people: any[] } | null = null;
 
   private getCacheKey(type: string, params: any): string {
     return `${type}:${JSON.stringify(params)}`;
@@ -271,10 +214,7 @@ export class OptimizedDataService {
           );
           return result;
         } catch (error) {
-          console.warn(
-            `API fetch failed (attempt ${attempt + 1}/${maxRetries + 1}), using JSON fallback data:`,
-            error,
-          );
+          console.warn(`API fetch failed (attempt ${attempt + 1}/${maxRetries + 1}):`, error);
 
           // If this isn't the last attempt, wait before retrying
           if (attempt < maxRetries) {
@@ -283,179 +223,8 @@ export class OptimizedDataService {
             continue;
           }
 
-          // On final attempt, try without likelihood filter then apply client-side filtering
-          try {
-            const apiFiltersNoLikelihood = {
-              search: filters.searchTerm,
-              role: filters.evidenceTypes?.[0],
-              likelihood: undefined,
-              sortBy: filters.sortBy,
-              sortOrder: filters.sortOrder,
-              entityType: filters.entityType,
-              minRedFlagIndex: filters.minRedFlagIndex,
-              maxRedFlagIndex: filters.maxRedFlagIndex,
-            };
-            const result = await apiClient.getEntities(apiFiltersNoLikelihood, page, pageSize);
-            if (result.data) {
-              const term = (filters.searchTerm || '').toLowerCase();
-              result.data = result.data
-                .map((person: any) => {
-                  const baseRating = person.red_flag_rating ?? person.redFlagRating ?? 0;
-                  const mentions = person.mentions || 0;
-                  const displayName = person.fullName || person.name || '';
-
-                  let mentionRisk = 0;
-                  if (mentions >= 2000) mentionRisk = 5;
-                  else if (mentions >= 250) mentionRisk = 4;
-                  else if (mentions >= 50) mentionRisk = 3;
-                  else if (mentions >= 10) mentionRisk = 2;
-
-                  const calibratedRating = Math.max(baseRating, mentionRisk);
-                  const baselineRating = isFiveFlagBaselineEntity(displayName)
-                    ? Math.max(5, calibratedRating)
-                    : calibratedRating;
-
-                  return {
-                    ...person,
-                    name: displayName,
-                    files: person.documentCount || person.files || 0,
-                    likelihood_score: person.likelihoodLevel || person.likelihood_score,
-                    role: person.primaryRole || person.role,
-                    title: person.title,
-                    title_variants: person.titleVariants || person.title_variants,
-                    red_flag_rating: baselineRating,
-                    evidence_types: person.evidenceTypes || person.evidence_types || [],
-                  };
-                })
-                .filter((p) => (term ? (p.name || '').toLowerCase().includes(term) : true));
-              if (filters.likelihoodScore && filters.likelihoodScore.length > 0) {
-                const filterLevels = filters.likelihoodScore.map((l) => l.toUpperCase());
-                result.data = result.data.filter((p: any) => {
-                  const pLevel = (p.likelihood_score || '').toUpperCase();
-                  return filterLevels.includes(pLevel);
-                });
-              }
-            }
-            this.setCachedData(cacheKey, result);
-            this.prefetchCache.delete(cacheKey);
-            return result;
-          } catch (retryError) {
-            console.warn(
-              'Secondary API fetch without likelihood also failed; falling back to JSON data',
-              retryError,
-            );
-          }
-
-          // Use JSON fallback data if available (only after secondary attempt)
-          if (this.jsonFallbackData && this.jsonFallbackData.people) {
-            let filteredPeople = [...this.jsonFallbackData.people];
-
-            // Apply filters
-            if (filters.searchTerm) {
-              const searchLower = filters.searchTerm.toLowerCase();
-              filteredPeople = filteredPeople.filter(
-                (person) =>
-                  person.name.toLowerCase().includes(searchLower) ||
-                  (person.connections && person.connections.toLowerCase().includes(searchLower)) ||
-                  (person.role && person.role.toLowerCase().includes(searchLower)),
-              );
-            }
-
-            if (filters.likelihoodScore && filters.likelihoodScore.length > 0) {
-              filteredPeople = filteredPeople.filter((person) =>
-                filters.likelihoodScore!.includes(person.likelihood_score),
-              );
-            }
-
-            if (filters.evidenceTypes && filters.evidenceTypes.length > 0) {
-              filteredPeople = filteredPeople.filter((person) =>
-                person.evidence_types.some((type: string) => filters.evidenceTypes!.includes(type)),
-              );
-            }
-
-            if (filters.minRedFlagIndex !== undefined) {
-              filteredPeople = filteredPeople.filter(
-                (person) => (person.red_flag_rating ?? 0) >= filters.minRedFlagIndex!,
-              );
-            }
-
-            if (filters.maxRedFlagIndex !== undefined) {
-              filteredPeople = filteredPeople.filter(
-                (person) => (person.red_flag_rating ?? 0) <= filters.maxRedFlagIndex!,
-              );
-            }
-
-            // Apply entity type filtering
-            if (filters.entityType && filters.entityType !== 'all') {
-              filteredPeople = filteredPeople.filter((person) => {
-                // Map role/type to entity type
-                // This is a heuristic since JSON data might not have explicit entity_type field
-                // We assume 'Person' if not specified, or infer from role
-                const type =
-                  (person as any).entity_type ||
-                  (person.role && person.role.includes('Organization') ? 'Organization' : 'Person');
-                return type === filters.entityType;
-              });
-            }
-
-            // Apply sorting
-            if (filters.sortBy) {
-              filteredPeople.sort((a, b) => {
-                let aValue: any, bValue: any;
-
-                switch (filters.sortBy) {
-                  case 'name':
-                    aValue = a.name;
-                    bValue = b.name;
-                    break;
-                  case 'mentions':
-                    aValue = a.mentions;
-                    bValue = b.mentions;
-                    break;
-                    bValue = b.mentions * 0.3 + (b.red_flag_score || 0) * 0.7;
-                    break;
-                  case 'risk':
-                    aValue = a.likelihood_score;
-                    bValue = b.likelihood_score;
-                    break;
-                  default:
-                    aValue = a.mentions;
-                    bValue = b.mentions;
-                }
-
-                if (filters.sortOrder === 'asc') {
-                  return aValue > bValue ? 1 : -1;
-                } else {
-                  return aValue < bValue ? 1 : -1;
-                }
-              });
-            }
-
-            // Apply pagination
-            const startIndex = (page - 1) * pageSize;
-            const endIndex = startIndex + pageSize;
-            const paginatedData = filteredPeople.slice(startIndex, endIndex);
-
-            const result: PaginatedResponse = {
-              data: paginatedData,
-              total: filteredPeople.length,
-              page,
-              totalPages: Math.ceil(filteredPeople.length / pageSize),
-              pageSize,
-            };
-
-            // Cache the result
-            this.setCachedData(cacheKey, result);
-            this.prefetchCache.delete(cacheKey);
-
-            console.log(
-              `Fetched page ${page} with ${result.data.length} entities from JSON fallback (${filteredPeople.length} total)`,
-            );
-            return result;
-          } else {
-            console.error('No JSON fallback data available');
-            throw error;
-          }
+          this.prefetchCache.delete(cacheKey);
+          throw error;
         }
       }
 

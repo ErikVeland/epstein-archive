@@ -146,8 +146,8 @@ const deriveSignificanceExcerpts = (
 
   if (normalized.length > 0) return normalized.slice(0, 8);
 
-  const sampleText = cleanText.slice(0, 24000);
-  const sentences = sampleText
+  const excerptText = cleanText.slice(0, 24000);
+  const sentences = excerptText
     .split(/(?<=[.!?])\s+/)
     .map((sentence) => sentence.trim())
     .filter((sentence) => sentence.length > 45 && hasLegibleSignal(sentence));

@@ -174,7 +174,7 @@ const MailboxRow = React.memo(
       <button
         style={style}
         onClick={() => data.onSelect(mailbox.mailboxId)}
-        className={`w-full email-row py-3 px-4 focus:outline-none ${active ? 'active' : ''}`}
+        className={`w-full text-left email-row py-3 px-4 focus:outline-none ${active ? 'active' : ''}`}
       >
         <div className="flex items-center justify-between gap-3 relative z-10">
           <div className="min-w-0 flex-1">

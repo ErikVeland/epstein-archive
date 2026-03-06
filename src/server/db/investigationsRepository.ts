@@ -14,6 +14,23 @@ export interface Investigation {
   updated_at: string;
 }
 
+type InvestigationEvidenceAnnotationType = 'highlight' | 'note' | 'tag' | 'classification';
+
+type InvestigationEvidenceAnnotationRow = {
+  id: number;
+  investigation_id: number;
+  evidence_id: number;
+  annotation_type: InvestigationEvidenceAnnotationType;
+  content: string;
+  color: string | null;
+  start_offset: number | null;
+  end_offset: number | null;
+  created_by: string | null;
+  metadata_json: any;
+  created_at: string;
+  updated_at: string;
+};
+
 const mapInvestigation = (inv: any) => ({
   id: Number(inv.id),
   uuid: inv.uuid,
@@ -371,6 +388,181 @@ export const investigationsRepository = {
       getApiPool(),
     );
     return true;
+  },
+
+  getEvidenceAnnotations: async (investigationId: number, evidenceId: number) => {
+    const result = await getApiPool().query<InvestigationEvidenceAnnotationRow>(
+      `
+        SELECT
+          id,
+          investigation_id,
+          evidence_id,
+          annotation_type,
+          content,
+          color,
+          start_offset,
+          end_offset,
+          created_by,
+          metadata_json,
+          created_at::text,
+          updated_at::text
+        FROM investigation_evidence_annotations
+        WHERE investigation_id = $1 AND evidence_id = $2
+        ORDER BY created_at ASC
+      `,
+      [investigationId, evidenceId],
+    );
+
+    return result.rows.map((row) => ({
+      id: String(row.id),
+      evidenceId: Number(row.evidence_id),
+      type: row.annotation_type,
+      content: row.content,
+      color: row.color || undefined,
+      startOffset: row.start_offset ?? undefined,
+      endOffset: row.end_offset ?? undefined,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      createdBy: row.created_by || undefined,
+      metadata: row.metadata_json || {},
+    }));
+  },
+
+  addEvidenceAnnotation: async (
+    investigationId: number,
+    evidenceId: number,
+    annotation: {
+      type: InvestigationEvidenceAnnotationType;
+      content: string;
+      color?: string;
+      startOffset?: number;
+      endOffset?: number;
+      createdBy?: string;
+      metadata?: Record<string, any>;
+    },
+  ) => {
+    const result = await getApiPool().query<InvestigationEvidenceAnnotationRow>(
+      `
+        INSERT INTO investigation_evidence_annotations (
+          investigation_id,
+          evidence_id,
+          annotation_type,
+          content,
+          color,
+          start_offset,
+          end_offset,
+          created_by,
+          metadata_json
+        )
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb)
+        RETURNING
+          id,
+          investigation_id,
+          evidence_id,
+          annotation_type,
+          content,
+          color,
+          start_offset,
+          end_offset,
+          created_by,
+          metadata_json,
+          created_at::text,
+          updated_at::text
+      `,
+      [
+        investigationId,
+        evidenceId,
+        annotation.type,
+        annotation.content,
+        annotation.color || null,
+        annotation.startOffset ?? null,
+        annotation.endOffset ?? null,
+        annotation.createdBy || null,
+        JSON.stringify(annotation.metadata || {}),
+      ],
+    );
+
+    const row = result.rows[0];
+    return {
+      id: String(row.id),
+      evidenceId: Number(row.evidence_id),
+      type: row.annotation_type,
+      content: row.content,
+      color: row.color || undefined,
+      startOffset: row.start_offset ?? undefined,
+      endOffset: row.end_offset ?? undefined,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      createdBy: row.created_by || undefined,
+      metadata: row.metadata_json || {},
+    };
+  },
+
+  updateEvidenceAnnotation: async (
+    investigationId: number,
+    evidenceId: number,
+    annotationId: number,
+    updates: {
+      content?: string;
+      color?: string | null;
+      startOffset?: number | null;
+      endOffset?: number | null;
+      metadata?: Record<string, any>;
+    },
+  ) => {
+    const result = await getApiPool().query<InvestigationEvidenceAnnotationRow>(
+      `
+        UPDATE investigation_evidence_annotations
+        SET
+          content = COALESCE($4, content),
+          color = COALESCE($5, color),
+          start_offset = COALESCE($6, start_offset),
+          end_offset = COALESCE($7, end_offset),
+          metadata_json = COALESCE($8::jsonb, metadata_json),
+          updated_at = CURRENT_TIMESTAMP
+        WHERE id = $1 AND investigation_id = $2 AND evidence_id = $3
+        RETURNING
+          id,
+          investigation_id,
+          evidence_id,
+          annotation_type,
+          content,
+          color,
+          start_offset,
+          end_offset,
+          created_by,
+          metadata_json,
+          created_at::text,
+          updated_at::text
+      `,
+      [
+        annotationId,
+        investigationId,
+        evidenceId,
+        updates.content ?? null,
+        updates.color ?? null,
+        updates.startOffset ?? null,
+        updates.endOffset ?? null,
+        updates.metadata ? JSON.stringify(updates.metadata) : null,
+      ],
+    );
+
+    return result.rows[0] || null;
+  },
+
+  deleteEvidenceAnnotation: async (
+    investigationId: number,
+    evidenceId: number,
+    annotationId: number,
+  ) => {
+    const result = await getApiPool().query(
+      `
+        DELETE FROM investigation_evidence_annotations
+        WHERE id = $1 AND investigation_id = $2 AND evidence_id = $3
+      `,
+      [annotationId, investigationId, evidenceId],
+    );
+    return (result.rowCount || 0) > 0;
   },
 
   // --- Hypotheses ---

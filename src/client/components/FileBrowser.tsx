@@ -31,6 +31,7 @@ const FileBrowser: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedFile, setSelectedFile] = useState<FileItem | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const categories = [
     { id: 'all', name: 'All Files', icon: Folder, color: 'text-blue-400' },
@@ -53,129 +54,46 @@ const FileBrowser: React.FC = () => {
 
   const loadFiles = async () => {
     try {
-      // This would typically load from your backend/API
-      // For now, we'll create sample file data based on the document structure
-      const sampleFiles: FileItem[] = [
-        // Emails & Communications
-        {
-          name: 'Epstein_Email_Archive_001.txt',
-          path: '/emails/epstein_emails_001.txt',
-          type: 'file',
-          category: 'emails',
-          size: 156789,
-          modified: '2024-01-15',
-        },
-        {
-          name: 'Clinton_Correspondence.txt',
-          path: '/emails/clinton_emails.txt',
-          type: 'file',
-          category: 'emails',
-          size: 89234,
-          modified: '2024-01-14',
-        },
-        {
-          name: 'Trump_Communications.txt',
-          path: '/emails/trump_emails.txt',
-          type: 'file',
-          category: 'emails',
-          size: 234567,
-          modified: '2024-01-13',
-        },
+      setLoadError(null);
+      const response = await fetch('/api/documents?page=1&limit=500');
+      if (!response.ok) {
+        throw new Error(`Failed to load files: ${response.status}`);
+      }
+      const payload = await response.json();
+      const rows = Array.isArray(payload?.documents) ? payload.documents : [];
 
-        // Legal Documents
-        {
-          name: 'Indictment_Documents.pdf',
-          path: '/documents/indictment.pdf',
-          type: 'file',
-          category: 'documents',
-          size: 456789,
-          modified: '2024-01-12',
-        },
-        {
-          name: 'Plea_Agreement.txt',
-          path: '/documents/plea_agreement.txt',
-          type: 'file',
-          category: 'documents',
-          size: 123456,
-          modified: '2024-01-11',
-        },
-        {
-          name: 'Court_Transcripts.pdf',
-          path: '/documents/court_transcripts.pdf',
-          type: 'file',
-          category: 'documents',
-          size: 678901,
-          modified: '2024-01-10',
-        },
+      const mapped: FileItem[] = rows.map((doc: any) => {
+        const rawType = String(
+          doc.evidenceType || doc.evidence_type || doc.fileType || '',
+        ).toLowerCase();
+        const category = rawType.includes('email')
+          ? 'emails'
+          : rawType.includes('flight')
+            ? 'flight_logs'
+            : rawType.includes('financial')
+              ? 'financial'
+              : rawType.includes('image') || rawType.includes('photo')
+                ? 'images'
+                : rawType.includes('deposition') || rawType.includes('testimony')
+                  ? 'testimonies'
+                  : 'documents';
 
-        // Flight Records
-        {
-          name: 'Flight_Log_1995_2005.csv',
-          path: '/flight_logs/flight_log_1995_2005.csv',
+        return {
+          name: String(doc.title || doc.fileName || `Document ${doc.id}`),
+          path: String(doc.filePath || doc.file_path || `/api/documents/${doc.id}/file`),
           type: 'file',
-          category: 'flight_logs',
-          size: 34567,
-          modified: '2024-01-09',
-        },
-        {
-          name: 'Passenger_Manifests.txt',
-          path: '/flight_logs/passenger_manifests.txt',
-          type: 'file',
-          category: 'flight_logs',
-          size: 234567,
-          modified: '2024-01-08',
-        },
+          category,
+          size: Number(doc.fileSize || doc.file_size || 0),
+          modified: String(doc.dateCreated || doc.date_created || ''),
+        };
+      });
 
-        // Testimonies
-        {
-          name: 'Virginia_Giuffre_Testimony.txt',
-          path: '/testimonies/virginia_giuffre.txt',
-          type: 'file',
-          category: 'testimonies',
-          size: 456789,
-          modified: '2024-01-07',
-        },
-        {
-          name: 'Survivor_Statements.pdf',
-          path: '/testimonies/survivor_statements.pdf',
-          type: 'file',
-          category: 'testimonies',
-          size: 567890,
-          modified: '2024-01-06',
-        },
-
-        // Financial Records
-        {
-          name: 'Bank_Statements_2000_2019.csv',
-          path: '/financial/bank_statements.csv',
-          type: 'file',
-          category: 'financial',
-          size: 1234567,
-          modified: '2024-01-05',
-        },
-        {
-          name: 'Real_Estate_Transactions.txt',
-          path: '/financial/real_estate.txt',
-          type: 'file',
-          category: 'financial',
-          size: 234567,
-          modified: '2024-01-04',
-        },
-
-        // Images
-        {
-          name: 'Evidence_Photos_001/',
-          path: '/images/evidence_photos/',
-          type: 'folder',
-          category: 'images',
-        },
-        { name: 'Property_Images/', path: '/images/property/', type: 'folder', category: 'images' },
-      ];
-
-      setFiles(sampleFiles);
+      setFiles(mapped);
       setLoading(false);
     } catch (error) {
       console.error('Error loading files:', error);
+      setFiles([]);
+      setLoadError(error instanceof Error ? error.message : 'Unable to load files');
       setLoading(false);
     }
   };
@@ -244,6 +162,11 @@ const FileBrowser: React.FC = () => {
       {/* Category Filter */}
       <div className="bg-gray-800 p-4 rounded-xl">
         <h3 className="text-lg font-semibold text-white mb-4">Browse by Category</h3>
+        {loadError && (
+          <div className="mb-4 text-sm text-rose-300 bg-rose-900/30 border border-rose-400/30 rounded px-3 py-2">
+            {loadError}
+          </div>
+        )}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
           {categories.map((category) => {
             const Icon = category.icon;

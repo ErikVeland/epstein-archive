@@ -888,6 +888,73 @@ class ApiClient {
     };
   }
 
+  async getPublicDocumentAnnotations(documentId: string): Promise<
+    Array<{
+      id: string;
+      documentId: string;
+      type: 'highlight' | 'note' | 'evidence' | 'question' | 'contradiction' | 'tag';
+      selectedText: string;
+      note: string;
+      position: { start: number; end: number };
+      contextBefore?: string | null;
+      contextAfter?: string | null;
+      author?: string;
+      createdAt: string;
+      updatedAt: string;
+    }>
+  > {
+    const response = await this.fetchWithErrorHandling<{ annotations?: any[] }>(
+      `${API_BASE_URL}/documents/${documentId}/annotations`,
+      { useCache: false },
+    );
+    return Array.isArray(response.annotations) ? response.annotations : [];
+  }
+
+  async createPublicDocumentAnnotation(
+    documentId: string,
+    payload: {
+      type: 'highlight' | 'note' | 'evidence' | 'question' | 'contradiction' | 'tag';
+      selectedText: string;
+      note?: string;
+      start: number;
+      end: number;
+      contextBefore?: string;
+      contextAfter?: string;
+      author?: string;
+    },
+  ): Promise<{
+    id: string;
+    documentId: string;
+    type: 'highlight' | 'note' | 'evidence' | 'question' | 'contradiction' | 'tag';
+    selectedText: string;
+    note: string;
+    position: { start: number; end: number };
+    contextBefore?: string | null;
+    contextAfter?: string | null;
+    author?: string;
+    createdAt: string;
+    updatedAt: string;
+  }> {
+    const response = await this.fetchWithErrorHandling<{ annotation: any }>(
+      `${API_BASE_URL}/documents/${documentId}/annotations`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          type: payload.type,
+          selectedText: payload.selectedText,
+          note: payload.note || '',
+          start: payload.start,
+          end: payload.end,
+          contextBefore: payload.contextBefore,
+          contextAfter: payload.contextAfter,
+        }),
+        headers: payload.author ? { 'x-public-author': payload.author } : undefined,
+        useCache: false,
+      },
+    );
+    return response.annotation;
+  }
+
   async getRelatedDocuments(id: string, limit: number = 10): Promise<any[]> {
     const url = `${API_BASE_URL}/documents/${id}/related?limit=${limit}`;
     return this.fetchWithErrorHandling<any[]>(url);

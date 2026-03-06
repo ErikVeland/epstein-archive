@@ -114,6 +114,61 @@ const addEvidenceSchema = z.object({
     .passthrough(),
 });
 
+const evidenceAnnotationParamsSchema = z.object({
+  params: z.object({
+    id: z.coerce.number().int().min(1),
+    evidenceId: z.coerce.number().int().min(1),
+  }),
+});
+
+const evidenceAnnotationCreateSchema = z.object({
+  params: z.object({
+    id: z.coerce.number().int().min(1),
+    evidenceId: z.coerce.number().int().min(1),
+  }),
+  body: z.object({
+    type: z.enum(['highlight', 'note', 'tag', 'classification']),
+    content: z.string().min(1).max(5000),
+    color: z.string().max(32).optional(),
+    startOffset: z.number().int().min(0).optional(),
+    endOffset: z.number().int().min(1).optional(),
+    metadata: z.record(z.any()).optional(),
+  }),
+});
+
+const evidenceAnnotationUpdateSchema = z.object({
+  params: z.object({
+    id: z.coerce.number().int().min(1),
+    evidenceId: z.coerce.number().int().min(1),
+    annotationId: z.coerce.number().int().min(1),
+  }),
+  body: z
+    .object({
+      content: z.string().min(1).max(5000).optional(),
+      color: z.string().max(32).nullable().optional(),
+      startOffset: z.number().int().min(0).nullable().optional(),
+      endOffset: z.number().int().min(1).nullable().optional(),
+      metadata: z.record(z.any()).optional(),
+    })
+    .refine(
+      (body) =>
+        Object.prototype.hasOwnProperty.call(body, 'content') ||
+        Object.prototype.hasOwnProperty.call(body, 'color') ||
+        Object.prototype.hasOwnProperty.call(body, 'startOffset') ||
+        Object.prototype.hasOwnProperty.call(body, 'endOffset') ||
+        Object.prototype.hasOwnProperty.call(body, 'metadata'),
+      { message: 'At least one field is required' },
+    ),
+});
+
+const evidenceAnnotationDeleteSchema = z.object({
+  params: z.object({
+    id: z.coerce.number().int().min(1),
+    evidenceId: z.coerce.number().int().min(1),
+    annotationId: z.coerce.number().int().min(1),
+  }),
+});
+
 const createHypothesisSchema = z.object({
   params: z.object({
     id: z.coerce.number().int(),
@@ -404,6 +459,128 @@ router.post(
       const { id } = req.params;
       const evidenceId = await investigationsRepository.addEvidence(Number(id), req.body);
       res.status(201).json({ id: evidenceId, ...req.body });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+router.get(
+  '/:id/evidence/:evidenceId/annotations',
+  validate(evidenceAnnotationParamsSchema),
+  async (req, res, next) => {
+    try {
+      const { id, evidenceId } = req.params;
+      const annotations = await investigationsRepository.getEvidenceAnnotations(
+        Number(id),
+        Number(evidenceId),
+      );
+      res.json({ annotations });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+router.post(
+  '/:id/evidence/:evidenceId/annotations',
+  authenticateRequest,
+  validate(evidenceAnnotationCreateSchema),
+  async (req, res, next) => {
+    try {
+      const { id, evidenceId } = req.params;
+      const { type, content, color, startOffset, endOffset, metadata } = req.body;
+      if (
+        (typeof startOffset === 'number' && typeof endOffset !== 'number') ||
+        (typeof startOffset !== 'number' && typeof endOffset === 'number')
+      ) {
+        return res
+          .status(400)
+          .json({ error: 'Both startOffset and endOffset are required together' });
+      }
+      if (
+        typeof startOffset === 'number' &&
+        typeof endOffset === 'number' &&
+        endOffset <= startOffset
+      ) {
+        return res.status(400).json({ error: 'Invalid highlight range' });
+      }
+      const created = await investigationsRepository.addEvidenceAnnotation(
+        Number(id),
+        Number(evidenceId),
+        {
+          type,
+          content,
+          color,
+          startOffset,
+          endOffset,
+          metadata,
+          createdBy: (req as any).user?.username || (req as any).user?.id || 'system',
+        },
+      );
+      res.status(201).json(created);
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+router.put(
+  '/:id/evidence/:evidenceId/annotations/:annotationId',
+  authenticateRequest,
+  validate(evidenceAnnotationUpdateSchema),
+  async (req, res, next) => {
+    try {
+      const { id, evidenceId, annotationId } = req.params;
+      const { startOffset, endOffset } = req.body || {};
+      if (
+        (typeof startOffset === 'number' && typeof endOffset !== 'number') ||
+        (typeof startOffset !== 'number' && typeof endOffset === 'number')
+      ) {
+        return res
+          .status(400)
+          .json({ error: 'Both startOffset and endOffset are required together' });
+      }
+      if (
+        typeof startOffset === 'number' &&
+        typeof endOffset === 'number' &&
+        endOffset <= startOffset
+      ) {
+        return res.status(400).json({ error: 'Invalid highlight range' });
+      }
+
+      const updated = await investigationsRepository.updateEvidenceAnnotation(
+        Number(id),
+        Number(evidenceId),
+        Number(annotationId),
+        req.body,
+      );
+      if (!updated) {
+        return res.status(404).json({ error: 'Annotation not found' });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+router.delete(
+  '/:id/evidence/:evidenceId/annotations/:annotationId',
+  authenticateRequest,
+  validate(evidenceAnnotationDeleteSchema),
+  async (req, res, next) => {
+    try {
+      const { id, evidenceId, annotationId } = req.params;
+      const removed = await investigationsRepository.deleteEvidenceAnnotation(
+        Number(id),
+        Number(evidenceId),
+        Number(annotationId),
+      );
+      if (!removed) {
+        return res.status(404).json({ error: 'Annotation not found' });
+      }
+      res.json({ success: true });
     } catch (error) {
       next(error);
     }

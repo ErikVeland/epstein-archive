@@ -39,7 +39,8 @@ export const BlackBookViewer: React.FC = () => {
       setLoading(true);
       const params = new URLSearchParams();
       if (searchTerm.trim()) params.set('search', searchTerm.trim());
-      if (selectedLetter) params.set('letter', selectedLetter);
+      // Do not send ALL as a literal server-side filter.
+      if (selectedLetter && selectedLetter !== 'ALL') params.set('letter', selectedLetter);
       if (hasPhone) params.set('hasPhone', 'true');
       if (hasEmail) params.set('hasEmail', 'true');
       if (hasAddress) params.set('hasAddress', 'true');

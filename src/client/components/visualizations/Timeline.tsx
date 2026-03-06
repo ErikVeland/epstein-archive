@@ -128,12 +128,12 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
       } else {
         console.warn('No timeline events found in API response');
         console.log('API response was:', JSON.stringify(data).substring(0, 500));
-        // Don't fall back to sample data - show empty state
+        // Do not use fallback records; render empty state
         setEvents([]);
       }
     } catch (error) {
       console.error('Error loading timeline data:', error);
-      // Don't fall back to sample data - show empty state
+      // Do not use fallback records; render empty state
       setEvents([]);
     } finally {
       setLoading(false);

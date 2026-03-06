@@ -202,29 +202,6 @@ const mapEvidenceAnnotations = (
     metadata: annotation.metadata,
   }));
 
-const collectEvidenceAnnotationsFromStorage = (investigationId: number): NotebookAnnotation[] => {
-  const prefix = `annotations_${investigationId}_`;
-  const merged: NotebookAnnotation[] = [];
-
-  for (let i = 0; i < window.localStorage.length; i += 1) {
-    const key = window.localStorage.key(i);
-    if (!key || !key.startsWith(prefix)) continue;
-
-    const evidenceId = Number(key.replace(prefix, ''));
-    if (!Number.isFinite(evidenceId)) continue;
-
-    try {
-      const parsed = JSON.parse(window.localStorage.getItem(key) || '[]');
-      if (!Array.isArray(parsed)) continue;
-      merged.push(...mapEvidenceAnnotations(evidenceId, parsed));
-    } catch (_error) {
-      // Ignore malformed local cache entries.
-    }
-  }
-
-  return merged;
-};
-
 export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) => {
   const navigate = useNavigate();
   const [summary, setSummary] = useState<any | null>(null);
@@ -246,6 +223,36 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
   const notesEditorRef = useRef<HTMLTextAreaElement | null>(null);
   const renderCountRef = useRef(0);
   const localDraftKey = `notebook_draft_${investigationId}`;
+
+  const loadEvidenceAnnotationsFromApi = useCallback(
+    async (evidenceItems: EvidenceRecord[]): Promise<NotebookAnnotation[]> => {
+      if (!Array.isArray(evidenceItems) || evidenceItems.length === 0) return [];
+
+      const batches = await Promise.all(
+        evidenceItems.map(async (item) => {
+          const evidenceId = Number(item.id);
+          if (!Number.isFinite(evidenceId)) return [] as NotebookAnnotation[];
+
+          try {
+            const response = await fetch(
+              `/api/investigations/${investigationId}/evidence/${evidenceId}/annotations`,
+            );
+            if (!response.ok) return [] as NotebookAnnotation[];
+            const payload = await response.json();
+            const incoming = Array.isArray(payload?.annotations)
+              ? (payload.annotations as IncomingEvidenceAnnotation[])
+              : [];
+            return mapEvidenceAnnotations(evidenceId, incoming);
+          } catch (_error) {
+            return [] as NotebookAnnotation[];
+          }
+        }),
+      );
+
+      return batches.flat();
+    },
+    [investigationId],
+  );
 
   const parseMeta = (s?: string) => {
     try {
@@ -388,10 +395,13 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
         const loadedAnnotations = Array.isArray(notebook?.annotations)
           ? (notebook.annotations as NotebookAnnotation[])
           : [];
-        const mirroredEvidenceAnnotations = collectEvidenceAnnotationsFromStorage(investigationId);
+        const evidenceItems = Array.isArray((evidenceSummary as any)?.evidence)
+          ? ((evidenceSummary as any).evidence as EvidenceRecord[])
+          : [];
+        const persistedEvidenceAnnotations = await loadEvidenceAnnotationsFromApi(evidenceItems);
 
         const nonEvidence = loadedAnnotations.filter((a) => a.source !== 'evidence');
-        const mergedAnnotations = [...nonEvidence, ...mirroredEvidenceAnnotations];
+        const mergedAnnotations = [...nonEvidence, ...persistedEvidenceAnnotations];
         setAnnotations(mergedAnnotations);
 
         const caseNotes = mergedAnnotations.find((a) => a.id === 'case-notes')?.content || '';
@@ -432,7 +442,7 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
       mounted = false;
       if (debounceRef.current) window.clearTimeout(debounceRef.current);
     };
-  }, [investigationId, localDraftKey]);
+  }, [investigationId, localDraftKey, loadEvidenceAnnotationsFromApi]);
 
   useEffect(() => {
     const onEvidenceAnnotationUpdated = (event: Event) => {

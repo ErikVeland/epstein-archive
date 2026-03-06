@@ -394,7 +394,7 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
           if (emailHeaders && (emailHeaders.from || emailHeaders.to || emailHeaders.subject)) {
             return (
               <>
-                {/* Mock Email Client Header */}
+                {/* Email client header */}
                 <div className="bg-slate-800 rounded-lg border border-slate-600 mb-4 overflow-hidden">
                   {/* Email toolbar */}
                   <div className="flex items-center gap-2 px-4 py-2 bg-slate-700 border-b border-slate-600">

@@ -91,21 +91,34 @@ export const AboutPage: React.FC = () => {
   const [activeFaq, setActiveFaq] = useState(0);
 
   useEffect(() => {
+    const fetchJson = async (url: string) => {
+      const response = await fetch(url);
+      const contentType = response.headers.get('content-type') || '';
+      if (!response.ok || !contentType.includes('application/json')) {
+        throw new Error(`Failed to fetch ${url}: ${response.status} ${response.statusText}`);
+      }
+      return response.json();
+    };
+
     const fetchData = async () => {
       try {
-        const [statsRes, blackBookRes, mediaRes] = await Promise.all([
-          fetch('/api/stats').then((r) => r.json()),
-          fetch('/api/black-book?limit=1').then((r) => r.json()),
-          fetch('/api/media/stats').then((r) => r.json()),
+        const [statsResult, blackBookResult, mediaResult] = await Promise.allSettled([
+          fetchJson('/api/stats'),
+          fetchJson('/api/black-book?limit=1'),
+          fetchJson('/api/media/stats'),
         ]);
 
+        const statsRes = statsResult.status === 'fulfilled' ? statsResult.value : {};
+        const blackBookRes = blackBookResult.status === 'fulfilled' ? blackBookResult.value : {};
+        const mediaRes = mediaResult.status === 'fulfilled' ? mediaResult.value : {};
+
         setStats({
-          documents: statsRes.totalDocuments || 0,
-          entities: statsRes.totalEntities || 0,
-          blackBook: blackBookRes.total || 0,
-          media: mediaRes.totalImages || 0,
-          albums: mediaRes.totalAlbums || 0,
-          documentsFixed: statsRes.documentsFixed || 0,
+          documents: Number(statsRes.totalDocuments || 0),
+          entities: Number(statsRes.totalEntities || 0),
+          blackBook: Number(blackBookRes.total || 0),
+          media: Number(mediaRes.totalImages || 0),
+          albums: Number(mediaRes.totalAlbums || 0),
+          documentsFixed: Number(statsRes.documentsFixed || 0),
         });
 
         if (statsRes.collectionStats) {

@@ -746,7 +746,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
         });
       } catch (error) {
         console.error('Error fetching network data:', error);
-        // Set empty arrays on error - no mock data
+        // Set empty arrays on error; never inject fallback records
         setNetworkNodes([]);
         setNetworkEdges([]);
       }

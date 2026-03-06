@@ -44,6 +44,7 @@ export const FinancialTransactionAnalysis: React.FC<FinancialTransactionAnalysis
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [selectedPattern, setSelectedPattern] = useState<TransactionPattern | null>(null);
   const [analysisProgress, setAnalysisProgress] = useState(0);
+  const [analysisMessage, setAnalysisMessage] = useState<string>('');
   const [filterType, setFilterType] = useState<
     'all' | 'flow' | 'timing' | 'amount' | 'geographic' | 'entity' | 'anomaly'
   >('all');
@@ -52,6 +53,7 @@ export const FinancialTransactionAnalysis: React.FC<FinancialTransactionAnalysis
   const analyzeTransactions = async () => {
     setIsAnalyzing(true);
     setAnalysisProgress(0);
+    setAnalysisMessage('');
 
     // Simulate progressive analysis
     const progressSteps = [
@@ -70,144 +72,99 @@ export const FinancialTransactionAnalysis: React.FC<FinancialTransactionAnalysis
       setAnalysisProgress(step.progress);
     }
 
-    // Generate mock financial patterns based on Epstein investigation
-    const mockPatterns: TransactionPattern[] = [
-      {
-        id: 'finance-001',
-        type: 'flow',
-        title: 'Unusual Circular Money Flows',
-        description:
-          'Complex circular transaction patterns where funds move through multiple entities before returning to origin, suggesting money laundering.',
-        confidence: 94,
-        severity: 'critical',
-        entities: ['Jeffrey Epstein', 'Shell Company A', 'Offshore Account', 'Real Estate LLC'],
-        evidenceIds: ['evidence-2'],
-        metadata: {
-          totalAmount: 15000000,
-          transactionCount: 47,
-          timeRange: { start: '2005-01-01', end: '2008-12-31' },
-          locations: ['US Virgin Islands', 'Delaware', 'New York'],
-          averageAmount: 319149,
-          largestTransaction: 2500000,
-          flowDirection: 'circular',
-          anomalyScore: 9.2,
-        },
-        recommendations: [
-          'Subpoena complete transaction records for all identified entities',
-          'Investigate beneficial ownership of shell companies',
-          'Coordinate with international financial intelligence units',
-        ],
-      },
-      {
-        id: 'finance-002',
-        type: 'timing',
-        title: 'Investigation-Linked Transactions',
-        description:
-          'Large financial transfers occurring immediately before or after key investigation milestones, suggesting influence attempts.',
-        confidence: 89,
-        severity: 'high',
-        entities: ['Jeffrey Epstein', 'Legal Defense Fund', 'Political Donations'],
-        evidenceIds: ['evidence-2'],
-        metadata: {
-          totalAmount: 8500000,
-          transactionCount: 23,
-          timeRange: { start: '2006-07-01', end: '2007-04-30' },
-          locations: ['Florida', 'New York', 'Washington DC'],
-          averageAmount: 369565,
-          largestTransaction: 2000000,
-          frequency: 23,
-          anomalyScore: 8.1,
-        },
-        recommendations: [
-          'Cross-reference transaction dates with investigation timeline',
-          'Analyze recipients of political donations',
-          'Trace ultimate beneficiaries of legal payments',
-        ],
-      },
-      {
-        id: 'finance-003',
-        type: 'amount',
-        title: 'Structured Transactions Below Reporting Threshold',
-        description:
-          'Multiple transactions just below $10,000 reporting threshold, consistent with structuring to avoid detection.',
-        confidence: 91,
-        severity: 'high',
-        entities: ['Jeffrey Epstein', 'Multiple Cash Recipients'],
-        evidenceIds: ['evidence-2'],
-        metadata: {
-          totalAmount: 485000,
-          transactionCount: 52,
-          timeRange: { start: '2009-01-01', end: '2009-12-31' },
-          locations: ['Palm Beach', 'New York', 'St. Thomas'],
-          averageAmount: 9327,
-          largestTransaction: 9950,
-          frequency: 52,
-          anomalyScore: 8.6,
-        },
-        recommendations: [
-          'Review all transactions in $9,000-$10,000 range',
-          'Interview bank personnel about suspicious activity reports',
-          'Analyze cash withdrawal patterns',
-        ],
-      },
-      {
-        id: 'finance-004',
-        type: 'geographic',
-        title: 'High-Risk Jurisdiction Activity',
-        description:
-          'Concentrated financial activity in jurisdictions with weak financial oversight and strong banking secrecy laws.',
-        confidence: 86,
-        severity: 'high',
-        entities: ['Jeffrey Epstein', 'Offshore Banks', 'Trust Companies'],
-        evidenceIds: ['evidence-2'],
-        metadata: {
-          totalAmount: 32000000,
-          transactionCount: 78,
-          timeRange: { start: '2000-01-01', end: '2019-12-31' },
-          locations: ['British Virgin Islands', 'Cayman Islands', 'Switzerland', 'Luxembourg'],
-          averageAmount: 410256,
-          largestTransaction: 8500000,
-          flowDirection: 'outflow',
-          anomalyScore: 7.9,
-        },
-        recommendations: [
-          'Request mutual legal assistance from relevant jurisdictions',
-          'Analyze beneficial ownership disclosure requirements',
-          'Map complete offshore corporate structure',
-        ],
-      },
-      {
-        id: 'finance-005',
-        type: 'entity',
-        title: 'Rapid Entity Creation and Dissolution',
-        description:
-          'Pattern of creating and dissolving corporate entities in rapid succession, potentially to obscure transaction trails.',
-        confidence: 83,
-        severity: 'medium',
-        entities: ['Jeffrey Epstein', 'Multiple Shell Companies'],
-        evidenceIds: ['evidence-2'],
-        metadata: {
-          transactionCount: 34,
-          timeRange: { start: '2010-01-01', end: '2015-12-31' },
-          locations: ['Delaware', 'Nevada', 'Wyoming'],
-          averageAmount: 127500,
-          largestTransaction: 750000,
-          frequency: 34,
-          anomalyScore: 7.2,
-        },
-        recommendations: [
-          'Review corporate formation and dissolution timeline',
-          'Analyze transaction patterns for each entity',
-          'Investigate registered agents and legal representatives',
-        ],
-      },
-    ];
+    try {
+      const response = await fetch('/api/financial/transactions?limit=5000');
+      const payload = await response.json();
+      const transactions = Array.isArray(payload)
+        ? payload
+        : Array.isArray(payload?.transactions)
+          ? payload.transactions
+          : [];
 
-    setTransactionPatterns(mockPatterns);
-    setIsAnalyzing(false);
+      const txAmounts = transactions
+        .map((tx: any) => Number(tx.amount ?? tx.transaction_amount ?? 0))
+        .filter((amount: number) => Number.isFinite(amount) && amount > 0);
 
-    if (onTransactionPatternDetected) {
-      onTransactionPatternDetected(mockPatterns);
+      const totalAmount = txAmounts.reduce((sum: number, value: number) => sum + value, 0);
+      const largest = txAmounts.reduce((max: number, value: number) => Math.max(max, value), 0);
+      const avg = txAmounts.length > 0 ? totalAmount / txAmounts.length : 0;
+
+      const highRisk = transactions.filter((tx: any) => {
+        const risk = String(tx.risk_level ?? tx.risk ?? '').toLowerCase();
+        return risk === 'high' || risk === 'critical';
+      });
+
+      const byLocation = new Map<string, number>();
+      for (const tx of transactions) {
+        const location = String(
+          tx.location ?? tx.country ?? tx.origin_country ?? tx.destination_country ?? '',
+        ).trim();
+        if (!location) continue;
+        byLocation.set(location, (byLocation.get(location) || 0) + 1);
+      }
+      const frequentLocations = [...byLocation.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([location]) => location);
+
+      const derivedPatterns: TransactionPattern[] = [];
+
+      if (transactions.length > 0) {
+        derivedPatterns.push({
+          id: 'finance-derived-overview',
+          type: 'amount',
+          title: 'Transaction volume profile',
+          description:
+            'Derived from ingested financial transactions. Review totals, distribution, and concentration before escalation.',
+          confidence: 80,
+          severity: highRisk.length > 0 ? 'high' : 'medium',
+          entities: [],
+          evidenceIds: [],
+          metadata: {
+            totalAmount,
+            transactionCount: transactions.length,
+            averageAmount: avg,
+            largestTransaction: largest,
+          },
+          recommendations: [
+            'Investigate top-value transactions first.',
+            'Cross-check outliers against source documents.',
+          ],
+        });
+      }
+
+      if (frequentLocations.length > 0) {
+        derivedPatterns.push({
+          id: 'finance-derived-geography',
+          type: 'geographic',
+          title: 'Transaction location concentration',
+          description: 'Most frequent locations computed from live transaction location fields.',
+          confidence: 72,
+          severity: 'medium',
+          entities: [],
+          evidenceIds: [],
+          metadata: {
+            transactionCount: transactions.length,
+            locations: frequentLocations,
+          },
+          recommendations: [
+            'Verify jurisdictional risk and banking secrecy exposure.',
+            'Correlate location clusters with timeline events.',
+          ],
+        });
+      }
+
+      setTransactionPatterns(derivedPatterns);
+      if (derivedPatterns.length === 0) {
+        setAnalysisMessage('No transaction records are currently available to analyze.');
+      }
+      onTransactionPatternDetected?.(derivedPatterns);
+    } catch (error) {
+      console.error('Failed to analyze transactions from API:', error);
+      setTransactionPatterns([]);
+      setAnalysisMessage('Financial analysis failed because transaction data could not be loaded.');
+    } finally {
+      setIsAnalyzing(false);
     }
   };
 
@@ -614,6 +571,11 @@ export const FinancialTransactionAnalysis: React.FC<FinancialTransactionAnalysis
             Start financial transaction analysis to identify suspicious patterns in money flows,
             timing, amounts, and geographic distribution.
           </p>
+          {analysisMessage ? (
+            <p className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-2 mb-4">
+              {analysisMessage}
+            </p>
+          ) : null}
           <button
             onClick={analyzeTransactions}
             className="px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 transition-colors"

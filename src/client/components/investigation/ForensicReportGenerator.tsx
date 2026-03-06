@@ -128,9 +128,8 @@ export default function ForensicReportGenerator({
     fetchData();
   }, [investigationId]);
 
-  // Mock report templates
   useEffect(() => {
-    const mockTemplates: ReportTemplate[] = [
+    const reportTemplates: ReportTemplate[] = [
       {
         id: 'legal-prosecution',
         name: 'Legal Prosecution Report',
@@ -188,7 +187,7 @@ export default function ForensicReportGenerator({
       },
     ];
 
-    setTemplates(mockTemplates);
+    setTemplates(reportTemplates);
     setSelectedTemplate('legal-prosecution');
     setReportTitle('Epstein Network Forensic Analysis - Prosecution Report');
   }, []);

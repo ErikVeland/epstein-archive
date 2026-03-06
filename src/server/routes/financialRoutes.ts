@@ -39,8 +39,7 @@ router.get('/stats', authenticateRequest, async (_req, res, next) => {
   }
 });
 
-// NOTE: The /seed endpoint has been removed. It populated the financial module with
-// hardcoded mock transactions that could be mistaken for real evidentiary data.
-// Wire the financial module to corpus-extracted transaction data before re-enabling.
+// NOTE: The /seed endpoint has been removed to prevent non-corpus transaction records
+// from entering the evidentiary workflow.
 
 export default router;

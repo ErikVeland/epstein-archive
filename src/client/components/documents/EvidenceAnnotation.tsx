@@ -121,7 +121,7 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
     setLoading(true);
     try {
       const response = await fetch(
-        `/api/investigation/${investigationId}/evidence/${evidenceId}/annotations`,
+        `/api/investigations/${investigationId}/evidence/${evidenceId}/annotations`,
       );
       if (response.ok) {
         const data = await response.json();
@@ -143,21 +143,14 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
           setClassification(existingClassification.content);
           setClassificationNotes(existingClassification.metadata?.notes || '');
         }
+      } else {
+        throw new Error(`Failed to load annotations (${response.status})`);
       }
     } catch (error) {
       console.error('Error loading annotations:', error);
-      // Initialize with empty annotations from localStorage as fallback
-      const stored = localStorage.getItem(`annotations_${investigationId}_${evidenceId}`);
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored);
-          setAnnotations(parsed);
-          onAnnotationsChange?.(parsed);
-          emitAnnotationUpdate(parsed);
-        } catch (_e) {
-          setAnnotations([]);
-        }
-      }
+      setAnnotations([]);
+      onAnnotationsChange?.([]);
+      emitAnnotationUpdate([]);
     } finally {
       setLoading(false);
     }
@@ -167,21 +160,14 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
     annotation: Omit<EvidenceAnnotation, 'id' | 'createdAt' | 'updatedAt'>,
   ) => {
     setSaving(true);
-    const now = new Date().toISOString();
-    const newAnnotation: EvidenceAnnotation = {
-      ...annotation,
-      id: `ann_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      createdAt: now,
-      updatedAt: now,
-    };
 
     try {
       const response = await fetch(
-        `/api/investigation/${investigationId}/evidence/${evidenceId}/annotations`,
+        `/api/investigations/${investigationId}/evidence/${evidenceId}/annotations`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newAnnotation),
+          body: JSON.stringify(annotation),
         },
       );
 
@@ -192,24 +178,10 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
         onAnnotationsChange?.(updated);
         emitAnnotationUpdate(updated);
       } else {
-        // Fallback to local storage
-        const updated = [...annotations, newAnnotation];
-        setAnnotations(updated);
-        localStorage.setItem(
-          `annotations_${investigationId}_${evidenceId}`,
-          JSON.stringify(updated),
-        );
-        onAnnotationsChange?.(updated);
-        emitAnnotationUpdate(updated);
+        throw new Error(`Failed to save annotation (${response.status})`);
       }
     } catch (error) {
       console.error('Error saving annotation:', error);
-      // Fallback to local storage
-      const updated = [...annotations, newAnnotation];
-      setAnnotations(updated);
-      localStorage.setItem(`annotations_${investigationId}_${evidenceId}`, JSON.stringify(updated));
-      onAnnotationsChange?.(updated);
-      emitAnnotationUpdate(updated);
     } finally {
       setSaving(false);
     }
@@ -222,44 +194,43 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
     );
 
     try {
-      await fetch(
-        `/api/investigation/${investigationId}/evidence/${evidenceId}/annotations/${id}`,
+      const response = await fetch(
+        `/api/investigations/${investigationId}/evidence/${evidenceId}/annotations/${id}`,
         {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(updates),
         },
       );
+      if (!response.ok) {
+        throw new Error(`Failed to update annotation (${response.status})`);
+      }
+      setAnnotations(updatedAnnotations);
+      onAnnotationsChange?.(updatedAnnotations);
+      emitAnnotationUpdate(updatedAnnotations);
     } catch (_error) {
-      // Continue with local update
+      // Keep existing state when server update fails.
     }
-
-    setAnnotations(updatedAnnotations);
-    localStorage.setItem(
-      `annotations_${investigationId}_${evidenceId}`,
-      JSON.stringify(updatedAnnotations),
-    );
-    onAnnotationsChange?.(updatedAnnotations);
-    emitAnnotationUpdate(updatedAnnotations);
     setSaving(false);
   };
 
   const deleteAnnotation = async (id: string) => {
     setSaving(true);
     try {
-      await fetch(
-        `/api/investigation/${investigationId}/evidence/${evidenceId}/annotations/${id}`,
+      const response = await fetch(
+        `/api/investigations/${investigationId}/evidence/${evidenceId}/annotations/${id}`,
         { method: 'DELETE' },
       );
+      if (!response.ok) {
+        throw new Error(`Failed to delete annotation (${response.status})`);
+      }
+      const updated = annotations.filter((a) => a.id !== id);
+      setAnnotations(updated);
+      onAnnotationsChange?.(updated);
+      emitAnnotationUpdate(updated);
     } catch (_error) {
-      // Continue with local deletion
+      // Keep existing state when server delete fails.
     }
-
-    const updated = annotations.filter((a) => a.id !== id);
-    setAnnotations(updated);
-    localStorage.setItem(`annotations_${investigationId}_${evidenceId}`, JSON.stringify(updated));
-    onAnnotationsChange?.(updated);
-    emitAnnotationUpdate(updated);
     setSaving(false);
   };
 

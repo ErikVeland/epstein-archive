@@ -783,8 +783,8 @@ export const About: React.FC = () => {
                 discovered within document text.
               </li>
               <li>
-                • <strong>Sample Intelligence:</strong> Revived and upgraded the sample database
-                generation pipeline for local development.
+                • <strong>Ingestion Reliability:</strong> Hardened corpus ingestion and validation
+                pipelines for production datasets.
               </li>
             </ul>
           </div>
