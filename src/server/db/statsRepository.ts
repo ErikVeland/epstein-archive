@@ -171,19 +171,32 @@ export const statsRepository = {
             MAX(COALESCE(red_flag_rating, 0))::int AS red_flag_rating,
             MAX(primary_role) AS primary_role
           FROM entities
-          WHERE mentions > 0
+          WHERE mentions >= 2
             AND entity_type = 'Person'
             AND COALESCE(junk_tier, 'clean') = 'clean'
             AND COALESCE(quarantine_status, 0) = 0
             AND full_name IS NOT NULL
             AND length(trim(full_name)) >= 4
+            -- Exclude names with digits or line breaks
             AND full_name !~ '[0-9]'
             AND full_name !~ '\\n'
+            -- Exclude org-like suffixes
             AND full_name NOT ILIKE 'the %'
             AND full_name NOT ILIKE '% group'
             AND full_name NOT ILIKE '% inc'
             AND full_name NOT ILIKE '% llc'
             AND full_name NOT ILIKE '% corp'
+            AND full_name NOT ILIKE '% ltd'
+            -- Exclude construction/line-item artifacts
+            AND full_name NOT ILIKE '% demolition'
+            AND full_name NOT ILIKE '% bracket'
+            AND full_name NOT ILIKE '% column%'
+            AND full_name NOT ILIKE '% haul%'
+            AND full_name NOT ILIKE '%provided'
+            AND full_name NOT ILIKE '%direction'
+            -- Exclude generic word fragments and OCR noise
+            AND full_name NOT ILIKE '% name'
+            AND full_name NOT ILIKE '% name%'
             AND full_name NOT ILIKE '% data%'
             AND full_name NOT ILIKE '% regular'
             AND full_name NOT ILIKE '% stock %'
@@ -192,6 +205,8 @@ export const statsRepository = {
             AND full_name NOT ILIKE '% search %'
             AND full_name NOT ILIKE '% click %'
             AND full_name NOT ILIKE '% privacy %'
+            -- Exclude names that are more than 3 words (person names rarely exceed 3)
+            AND array_length(regexp_split_to_array(trim(full_name), '\\s+'), 1) <= 3
           GROUP BY 2
         )
         SELECT

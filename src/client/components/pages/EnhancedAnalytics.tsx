@@ -663,7 +663,7 @@ export const EnhancedAnalytics: React.FC<EnhancedAnalyticsProps> = ({
         {data?.entityTypeDistribution &&
           (() => {
             const totalEntities = data.entityTypeDistribution.reduce(
-              (acc, curr) => acc + curr.count,
+              (acc, curr) => acc + Number(curr.count),
               0,
             );
             const shownEntities = graphData?.nodes.length || 0;
@@ -736,7 +736,7 @@ export const EnhancedAnalytics: React.FC<EnhancedAnalyticsProps> = ({
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard
           icon={<FileText className="h-5 w-5 text-cyan-400" />}
-          value={redactionStats?.totalDocuments || 0}
+          value={data.totalCounts?.documents || redactionStats?.totalDocuments || 0}
           label="Total Documents"
           color="cyan"
         />

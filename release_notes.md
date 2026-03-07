@@ -1,5 +1,19 @@
 # Release Notes
 
+## 15.9.0 - 2026-03-07 - Pipeline Snapshot + Analytics Fixes
+
+### Data Integrity
+
+- **Document Type Chart Fixed:** Rebuilt `mv_docs_by_type` materialized view using `file_type` (was silently referencing renamed column `mime_type`, freezing all documents as "Other").
+- **Extracted Date Backfill:** 225,440 documents now carry historical `extracted_date` values derived from YYYYMMDD filename prefixes and RFC 2822 email `Date:` headers — timeline now shows accurate 1952–2024 document distribution instead of all-2026 ingestion dates.
+- **Total Documents Stat Card:** Stat now reads from live `totalCounts.documents` query rather than stale `mv_redaction_stats`, eliminating the "0 documents" display bug.
+- **Top Entities De-Junked:** Entity count display fixed (BigInt string concatenation → numeric add); stricter SQL filters (word-count ≤ 3, mentions ≥ 2, expanded NOT ILIKE patterns) remove construction/OCR artifacts like "Dumpster Hauls Provided" from rankings.
+
+### Pipeline Status
+
+- **Ingestion Progress:** 286,638 / 1,425,126 documents (20.1%) have extracted content. DOJ Data Set 9 is 42.7% processed; DS10 is actively ingesting (2.4%); DS11 queued.
+- **Enrichment:** 532,374 entities extracted; 1,675,020 relationships mapped.
+
 ## 15.8.0 - 2026-03-06 - Analytics Data Integrity + Map/Chart Reliability
 
 ### Analytics Data Quality
