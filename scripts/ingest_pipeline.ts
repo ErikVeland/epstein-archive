@@ -45,13 +45,19 @@ import { markViewsDirty } from '../src/server/services/matViewRefresh.js';
 // CONFIGURATION & VERSIONING
 // ============================================================================
 
-const PIPELINE_VERSION = '1.2.5'; // Aligned with the new hardening refactor
+const PIPELINE_VERSION = '1.3.0';
 const STEP_VERSIONS = {
   collector: '1.0.0',
-  reader_pdf: '1.0.0',
+  reader_pdf: '1.1.0', // Tesseract fallback for scanned PDFs
   reader_ocr: 'Tesseract-7.0.0',
   reader_email: '1.0.0',
+  reader_rtf: '1.0.0', // RTF → plain text via regex stripper
+  reader_media: '1.0.0', // audio/video transcription via Whisper CLI
 };
+
+// Minimum real-word count before we consider a PDF extraction "sparse"
+// and fall back to Tesseract page rendering.
+const OCR_FALLBACK_WORD_THRESHOLD = 50;
 
 const DB_PATH = process.env.DB_PATH || 'epstein-archive.db';
 
@@ -264,6 +270,17 @@ async function detectMimeType(filePath: string): Promise<string> {
           '.png': 'image/png',
           '.eml': 'message/rfc822',
           '.txt': 'text/plain',
+          '.rtf': 'application/rtf',
+          '.mp4': 'video/mp4',
+          '.mov': 'video/quicktime',
+          '.avi': 'video/x-msvideo',
+          '.mkv': 'video/x-matroska',
+          '.m4v': 'video/mp4',
+          '.mp3': 'audio/mpeg',
+          '.wav': 'audio/wav',
+          '.m4a': 'audio/mp4',
+          '.aac': 'audio/aac',
+          '.flac': 'audio/flac',
         };
         return resolve(map[ext] || 'application/octet-stream');
       }
@@ -339,6 +356,226 @@ async function extractTextFromImage(
   } catch (e) {
     console.warn('  ⚠️  Image OCR failed:', (e as Error).message);
     return { text: '', pageCount: 1 };
+  }
+}
+
+/**
+ * Strip RTF markup and return plain text.
+ * Handles control words, hex escapes (\'XX), ignorable destinations,
+ * and nested groups. Works for all common RTF v1.x documents.
+ */
+function stripRtf(rtf: string): string {
+  let text = rtf;
+
+  // Remove ignorable destinations (\*\keyword ... ) entirely — these hold
+  // generator tags, font tables, stylesheets, etc., never useful body text.
+  text = text.replace(/\{\\\*\\[a-zA-Z]+[^{}]*\}/gs, '');
+
+  // Remove embedded pictures / OLE objects (can be large binary blobs)
+  text = text.replace(/\{\\(?:pict|object|objdata)[^}]*\}/gs, '');
+
+  // Decode Windows-1252 hex escapes \'XX → character
+  text = text.replace(/\\'([0-9a-fA-F]{2})/g, (_, hex) => {
+    const code = parseInt(hex, 16);
+    // Map common Win-1252 extras that differ from Latin-1
+    const win1252: Record<number, string> = {
+      0x80: '€',
+      0x82: '‚',
+      0x83: 'ƒ',
+      0x84: '„',
+      0x85: '…',
+      0x86: '†',
+      0x87: '‡',
+      0x88: 'ˆ',
+      0x89: '‰',
+      0x8a: 'Š',
+      0x8b: '‹',
+      0x8c: 'Œ',
+      0x91: '\u2018',
+      0x92: '\u2019',
+      0x93: '\u201c',
+      0x94: '\u201d',
+      0x95: '•',
+      0x96: '–',
+      0x97: '—',
+      0x99: '™',
+      0x9a: 'š',
+      0x9c: 'œ',
+    };
+    return win1252[code] ?? String.fromCharCode(code);
+  });
+
+  // Replace paragraph / line-break control words with newlines
+  text = text.replace(/\\(?:par|line|page)\b\s*/g, '\n');
+
+  // Replace tab control word with tab character
+  text = text.replace(/\\tab\b\s*/g, '\t');
+
+  // Remove all remaining control words (e.g. \b, \i, \f0, \cf1, \fs24 …)
+  text = text.replace(/\\[a-zA-Z]+[-\d]* ?/g, '');
+
+  // Remove control symbols (\ followed by a single non-alpha, e.g. \~, \-, \:)
+  text = text.replace(/\\[^a-zA-Z\r\n]/g, '');
+
+  // Remove group delimiters
+  text = text.replace(/[{}]/g, '');
+
+  // Normalise whitespace: collapse runs, trim
+  return text
+    .replace(/\r\n|\r/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .replace(/[ \t]{2,}/g, ' ')
+    .trim();
+}
+
+/**
+ * Tesseract OCR fallback for scanned PDFs.
+ * Renders each page via sharp (which uses libvips+poppler) and OCRs it.
+ * Called when pdf-parse returns sparse/empty text — i.e. the PDF has no
+ * embedded text layer (pure image scan).
+ */
+async function ocrFallbackForPdf(
+  pdfPath: string,
+  pageCount: number,
+): Promise<{
+  text: string;
+  pages: { text: string; pageNumber: number; source: 'ocr' }[];
+}> {
+  const pages: { text: string; pageNumber: number; source: 'ocr' }[] = [];
+  const worker = await createWorker('eng');
+
+  try {
+    for (let i = 0; i < pageCount; i++) {
+      try {
+        // Render PDF page to a high-res PNG buffer — same path sharp already
+        // uses for phash generation, so we know this works on this corpus.
+        const imageBuffer = await sharp(pdfPath, { page: i })
+          .resize({ width: 2400 }) // ~300 DPI equivalent — sweet spot for Tesseract
+          .png()
+          .toBuffer();
+
+        const {
+          data: { text },
+        } = await worker.recognize(imageBuffer);
+        pages.push({ text: text.trim(), pageNumber: i + 1, source: 'ocr' });
+      } catch (pageErr) {
+        console.warn(`  ⚠️  OCR failed on page ${i + 1}:`, (pageErr as Error).message);
+        pages.push({ text: '', pageNumber: i + 1, source: 'ocr' });
+      }
+    }
+  } finally {
+    await worker.terminate();
+  }
+
+  return {
+    text: pages.map((p) => p.text).join('\n\n'),
+    pages,
+  };
+}
+
+const FFMPEG_BIN = '/usr/local/bin/ffmpeg';
+const WHISPER_BIN = '/usr/local/bin/whisper';
+// Whisper model to use for transcription. 'base' balances speed and accuracy
+// well for phone-quality recordings common in surveillance/legal evidence.
+// Upgrade to 'medium' or 'large' for cleaner studio audio.
+const WHISPER_MODEL = process.env.WHISPER_MODEL || 'base';
+// Hard ceiling per file so a 3-hour video doesn't monopolise the pipeline
+const WHISPER_TIMEOUT_MS = parseInt(process.env.WHISPER_TIMEOUT_MS || String(30 * 60 * 1000), 10);
+
+/**
+ * Transcribe an audio or video file using the local OpenAI Whisper CLI.
+ *
+ * Steps:
+ *  1. ffmpeg extracts a 16 kHz mono WAV (optimal format for Whisper, avoids
+ *     issues with exotic video containers).
+ *  2. whisper writes a plain-text transcript to a temp directory.
+ *  3. We read the .txt file and return the text + media duration in seconds.
+ *
+ * Errors are non-fatal: on any failure we return empty text so the document
+ * still gets a DB record (with processing_status reflecting the gap).
+ */
+async function transcribeMedia(
+  filePath: string,
+): Promise<{ text: string; durationSeconds: number }> {
+  const tmpDir = mkdtempSync(join(tmpdir(), 'epstein-media-'));
+  const audioPath = join(tmpDir, 'audio.wav');
+
+  try {
+    // ── Step 1: extract audio ──────────────────────────────────────────────
+    await new Promise<void>((resolve, reject) => {
+      execFile(
+        FFMPEG_BIN,
+        [
+          '-i',
+          filePath,
+          '-ar',
+          '16000', // 16 kHz sample rate
+          '-ac',
+          '1', // mono
+          '-f',
+          'wav',
+          '-y',
+          audioPath, // overwrite if exists
+        ],
+        { timeout: 5 * 60 * 1000 },
+        (err) => (err ? reject(err) : resolve()),
+      );
+    });
+
+    // ── Step 2: probe duration via ffprobe ─────────────────────────────────
+    let durationSeconds = 0;
+    try {
+      const probe = await new Promise<string>((resolve, reject) => {
+        execFile(
+          '/usr/local/bin/ffprobe',
+          [
+            '-v',
+            'error',
+            '-show_entries',
+            'format=duration',
+            '-of',
+            'default=noprint_wrappers=1:nokey=1',
+            filePath,
+          ],
+          (err, stdout) => (err ? reject(err) : resolve(stdout.trim())),
+        );
+      });
+      durationSeconds = parseFloat(probe) || 0;
+    } catch {
+      // Duration is optional metadata; don't fail ingestion over it
+    }
+
+    // ── Step 3: transcribe ─────────────────────────────────────────────────
+    await new Promise<void>((resolve, reject) => {
+      execFile(
+        WHISPER_BIN,
+        [
+          audioPath,
+          '--model',
+          WHISPER_MODEL,
+          '--output_format',
+          'txt',
+          '--output_dir',
+          tmpDir,
+          '--verbose',
+          'False',
+          '--language',
+          'en', // Epstein corpus is English-dominant
+        ],
+        { timeout: WHISPER_TIMEOUT_MS },
+        (err) => (err ? reject(err) : resolve()),
+      );
+    });
+
+    // Whisper names the output file after the input stem (audio.txt)
+    const txtPath = join(tmpDir, 'audio.txt');
+    const text = existsSync(txtPath) ? readFileSync(txtPath, 'utf-8').trim() : '';
+    return { text, durationSeconds };
+  } catch (err) {
+    console.warn(`  ⚠️  Transcription failed for ${basename(filePath)}:`, (err as Error).message);
+    return { text: '', durationSeconds: 0 };
+  } finally {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
   }
 }
 
@@ -1109,6 +1346,9 @@ async function processDocument(
     else if (mimeType === 'message/rfc822') fileType = 'EML';
     else if (mimeType === 'text/plain') fileType = 'TXT';
     else if (mimeType === 'text/html') fileType = 'HTML';
+    else if (mimeType === 'application/rtf' || ext === '.rtf') fileType = 'RTF';
+    else if (mimeType.startsWith('video/')) fileType = 'VIDEO';
+    else if (mimeType.startsWith('audio/')) fileType = 'AUDIO';
 
     let phash: string | null = null;
     if (mimeType.startsWith('image/')) {
@@ -1175,14 +1415,40 @@ async function processDocument(
       const result = await extractTextFromPdf(pdfBuffer);
       const unredactedText = (result.text || '').trim();
 
+      // ── OCR fallback for scanned PDFs ─────────────────────────────────────
+      // If pdf-parse returned fewer than threshold real words the PDF has no
+      // embedded text layer — it's a scan.  Render each page via sharp and
+      // run Tesseract on the image instead.
+      const extractedWords = unredactedText.match(/\b[a-zA-Z]{3,}\b/g)?.length ?? 0;
+      let pdfTextForCleaning = unredactedText;
+
+      if (extractedWords < OCR_FALLBACK_WORD_THRESHOLD && result.pageCount > 0) {
+        console.log(
+          `   🔍 Sparse PDF text (${extractedWords} words) — running Tesseract OCR on ${result.pageCount} page(s)...`,
+        );
+        const ocrResult = await ocrFallbackForPdf(pdfPathForOcr, result.pageCount);
+        const ocrWords = ocrResult.text.match(/\b[a-zA-Z]{3,}\b/g)?.length ?? 0;
+
+        if (ocrWords > extractedWords) {
+          console.log(`   ✅ OCR yielded ${ocrWords} words (vs ${extractedWords} from text layer)`);
+          pdfTextForCleaning = ocrResult.text;
+          granularPages = ocrResult.pages; // override with per-page OCR results
+        } else {
+          console.log(
+            `   ⚠️  OCR (${ocrWords} words) did not improve on text layer — keeping original`,
+          );
+        }
+      }
+      // ─────────────────────────────────────────────────────────────────────
+
       // AI Forensic Repair Integration
       content = await TextCleaner.cleanOcrTextAsync(
-        unredactedText,
+        pdfTextForCleaning,
         metadataObj.subject || basename(filePath),
       );
 
+      if (!granularPages.length) granularPages = result.pages;
       pageCount = result.pageCount;
-      granularPages = result.pages;
 
       const afterCoverage = await estimateTextCoverage(unredactedText, pageCount || 1);
       redactionCoverageBefore = 1 - baselineCoverage;
@@ -1201,7 +1467,12 @@ async function processDocument(
       if (granularPages.length === 0 && originalResult.pages.length > 0) {
         granularPages = originalResult.pages;
       }
-    } else if (mimeType === 'text/plain' || mimeType === 'application/rtf' || ext === '.rtf') {
+    } else if (mimeType === 'application/rtf' || ext === '.rtf') {
+      const raw = readFileSync(filePath, 'utf-8');
+      content = stripRtf(raw);
+      pageCount = 1;
+      evidenceType = evidenceType ?? 'document';
+    } else if (mimeType === 'text/plain') {
       content = readFileSync(filePath, 'utf-8');
       pageCount = 1;
     } else if (mimeType.startsWith('image/')) {
@@ -1239,6 +1510,32 @@ async function processDocument(
         meta.date_created = result.date;
       }
       evidenceType = 'email'; // Explicitly set type
+    } else if (
+      mimeType.startsWith('video/') ||
+      mimeType.startsWith('audio/') ||
+      ['.mp4', '.mov', '.avi', '.mkv', '.m4v', '.wav', '.mp3', '.m4a', '.aac', '.flac'].includes(
+        ext,
+      )
+    ) {
+      const mediaType = mimeType.startsWith('audio/') ? 'audio' : 'video';
+      console.log(`   🎬 Transcribing ${mediaType}: ${basename(filePath)}`);
+      const result = await transcribeMedia(filePath);
+
+      if (result.text.length > 20) {
+        content = result.text;
+      } else {
+        content = `[${ext.toUpperCase()} FILE — transcription produced no output]`;
+      }
+
+      pageCount = 1;
+      evidenceType = mediaType;
+      if (result.durationSeconds > 0) {
+        (meta as any).durationSeconds = result.durationSeconds;
+        (meta as any).durationFormatted = new Date(result.durationSeconds * 1000)
+          .toISOString()
+          .substr(11, 8); // HH:MM:SS
+      }
+      (meta as any).transcribedBy = `whisper-${WHISPER_MODEL}`;
     } else {
       // For other file types, mark as unprocessed
       content = `[${ext.toUpperCase()} FILE - OCR NOT YET PROCESSED]`;
@@ -1498,7 +1795,7 @@ async function processCollection(
   // Find all files
   const pattern = join(
     collection.rootPath,
-    '**/*.{pdf,txt,rtf,jpg,jpeg,png,eml,msg,meta,html,mp4,mov,avi,mkv,m4v,wav,mp3}',
+    '**/*.{pdf,txt,rtf,jpg,jpeg,png,eml,msg,meta,html,mp4,mov,avi,mkv,m4v,wav,mp3,m4a,aac,flac}',
   );
   const files = globSync(pattern, {
     ignore: ['**/thumbs/**', '**/.DS_Store'],

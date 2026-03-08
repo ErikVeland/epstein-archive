@@ -862,16 +862,16 @@ export async function getEmailThreads(params: {
 
   const queryParams: any[] = [];
   let where = getJunkFilterClause(showSuppressedJunk);
-  let threadedWhere = '';
+  const threadedWhere = '';
 
   if (tab !== 'all') {
     where += ` AND (${buildCategoryCaseSql}) = $${queryParams.length + 1}`;
     queryParams.push(tab);
   }
-  if (tab === 'primary') {
-    // "Primary" should behave like person-to-person conversations, not bulk one-way marketing mail.
-    threadedWhere = `WHERE ${buildConversationThreadFilter('threaded')}`;
-  }
+  // NOTE:
+  // Primary is already defined by buildCategoryCaseSql as "not updates/promotions".
+  // Applying an extra participant-count gate here over-filters real threads because
+  // participantsRaw is sender-centric and many legitimate threads collapse to 1 sender.
 
   if (mailboxId.startsWith('entity:')) {
     const entityId = Number(mailboxId.replace('entity:', ''));

@@ -293,9 +293,14 @@ export class App {
         const migrationMetrics = await getMigrationMetrics();
         const apiPoolMetrics = migrationMetrics.pools.api;
         const saturated = Boolean(apiPoolMetrics && apiPoolMetrics.waiting >= 3);
-        const status: 'ok' | 'degraded' = !hasMinimumData || saturated ? 'degraded' : 'ok';
+        const hardFailure = !hasMinimumData;
+        const status: 'ok' | 'degraded' | 'down' = hardFailure
+          ? 'down'
+          : saturated
+            ? 'degraded'
+            : 'ok';
 
-        return res.status(status === 'ok' ? 200 : 503).json({
+        return res.status(status === 'down' ? 503 : 200).json({
           status,
           timestamp: new Date().toISOString(),
           checks: {
@@ -309,6 +314,9 @@ export class App {
             },
             pool: apiPoolMetrics,
             readiness: { mode: 'o1-plus-core-counts', timeoutMs },
+            degraded: saturated
+              ? { reason: 'api_pool_waiting', waiting: apiPoolMetrics?.waiting || 0 }
+              : undefined,
           },
           durationMs: Date.now() - startedAt,
         });

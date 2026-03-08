@@ -46,7 +46,7 @@ const FAQPage = () => {
           Starting is easy. Create a new case file, then browse entities and documents. When you
           find something relevant, click "Add to Investigation". For a detailed walkthrough, see our{' '}
           <a
-            href="https://github.com/epstein-archive/blob/main/INVESTIGATION_GUIDE.md"
+            href="https://github.com/ErikVeland/epstein-archive/blob/main/INVESTIGATION_GUIDE.md"
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-400 hover:text-blue-300 underline"

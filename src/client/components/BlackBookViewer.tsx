@@ -24,6 +24,7 @@ export const BlackBookViewer: React.FC = () => {
   const [filteredEntries, setFilteredEntries] = useState<BlackBookEntry[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedLetter, setSelectedLetter] = useState<string>('ALL');
   const [hasPhone, setHasPhone] = useState<boolean>(false);
   const [hasEmail, setHasEmail] = useState<boolean>(false);
@@ -37,6 +38,7 @@ export const BlackBookViewer: React.FC = () => {
   const fetchBlackBookEntries = useCallback(async () => {
     try {
       setLoading(true);
+      setError(null);
       const params = new URLSearchParams();
       if (searchTerm.trim()) params.set('search', searchTerm.trim());
       // Do not send ALL as a literal server-side filter.
@@ -48,6 +50,9 @@ export const BlackBookViewer: React.FC = () => {
       params.set('limit', '5000');
 
       const response = await fetch(`/api/black-book?${params.toString()}`);
+      if (!response.ok) {
+        throw new Error(`Black Book API request failed (${response.status})`);
+      }
       const result = await response.json();
 
       // API now returns {data: [...], total, page, pageSize, totalPages}
@@ -128,6 +133,9 @@ export const BlackBookViewer: React.FC = () => {
       setFilteredEntries(parsedEntries);
     } catch (error) {
       console.error('Error fetching Black Book entries:', error);
+      setEntries([]);
+      setFilteredEntries([]);
+      setError(error instanceof Error ? error.message : 'Failed to load Black Book entries');
     } finally {
       setLoading(false);
     }
@@ -451,8 +459,20 @@ export const BlackBookViewer: React.FC = () => {
       {filteredEntries.length === 0 && (
         <div className="text-center py-12">
           <Book className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-          <p className="text-slate-400 text-lg">No contacts found</p>
-          <p className="text-slate-500 text-sm mt-2">Try adjusting your search or filter</p>
+          <p className={`text-lg ${error ? 'text-red-400' : 'text-slate-400'}`}>
+            {error ? 'Failed to load contacts' : 'No contacts found'}
+          </p>
+          <p className="text-slate-500 text-sm mt-2">
+            {error || 'Try adjusting your search or filter'}
+          </p>
+          {error && (
+            <button
+              onClick={fetchBlackBookEntries}
+              className="mt-4 px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700 transition-colors"
+            >
+              Retry
+            </button>
+          )}
         </div>
       )}
     </div>

@@ -87,6 +87,14 @@ const JUNK_PATTERNS = [
   /\bSearch\s+Furvenel\s+Name\b/i,
   /\bSp\s+Name\b/i,
   /\bTheInformation\b/i,
+  /\bEast\s+If\b/i,
+  /\bMagstea\s+Jedge\b/i,
+  /\bMarg(?:ar|er)et\s+Gir(?:and|ara)\b/i,
+  /\bMargarlt\s+Girara\b/i,
+  /\bMy\s+Tunsi\b/i,
+  /\bSos\s+Kimber(?:y|ly)\s+Meder\b/i,
+  /\bKimber(?:y|ly)\s+Meder\b/i,
+  /\bDechiqu\b/i,
   /^\.+$/,
   /^[_\-]+$/,
 ];
@@ -127,6 +135,7 @@ export const isJunkEntity = (name: string): boolean => {
       trimmed,
     ) ||
     /\b(en\s+espa|hong\s+kong)\b/i.test(trimmed) ||
+    /\b(east\s+if|magstea|jedge|girand|girara|margarlt|tunsi|dechiqu)\b/i.test(trimmed) ||
     lower.includes('see attachment')
   ) {
     return true;

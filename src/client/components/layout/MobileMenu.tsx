@@ -43,6 +43,19 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
     };
   }, [open]);
 
+  // Ensure mobile menu doesn't linger when viewport switches to desktop.
+  useEffect(() => {
+    if (!open) return;
+
+    const closeOnDesktop = () => {
+      if (window.innerWidth >= 768) onClose();
+    };
+
+    closeOnDesktop();
+    window.addEventListener('resize', closeOnDesktop);
+    return () => window.removeEventListener('resize', closeOnDesktop);
+  }, [open, onClose]);
+
   // Handle navigation without closing on content click
   const handleNavigation = (path: string) => {
     onNavigate(path);
@@ -51,7 +64,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
 
   return (
     <div
-      className={`mobile-nav fixed inset-0 z-[60] transition-opacity duration-300 ${open ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+      className={`mobile-nav md:hidden fixed inset-0 z-[60] transition-opacity duration-300 ${open ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
     >
       {/* Backdrop overlay - closes menu when clicked */}
       <div

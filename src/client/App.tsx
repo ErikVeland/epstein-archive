@@ -1826,9 +1826,7 @@ function App() {
                         loading={analyticsLoading}
                         error={analyticsError}
                         onRetry={fetchAnalyticsData}
-                        onPersonSelect={(person) => {
-                          setSelectedPerson(person);
-                        }}
+                        onPersonSelect={handlePersonClick}
                       />
                     )}
 

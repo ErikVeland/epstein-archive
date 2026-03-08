@@ -35,6 +35,17 @@ function escapeRegExp(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+function parseArrayValue(value: unknown): string[] {
+  if (Array.isArray(value)) return value.map((v) => String(v));
+  if (typeof value !== 'string' || value.trim().length === 0) return [];
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed.map((v) => String(v)) : [];
+  } catch {
+    return [];
+  }
+}
+
 /**
  * Apply corrections to all entries in a result set
  */
@@ -62,35 +73,53 @@ export const blackBookRepository = {
       {
         letter: filters?.letter === 'ALL' ? null : filters?.letter || null,
         search: filters?.search || null,
-        hasPhone: filters?.hasPhone || null,
+        hasPhone: filters?.hasPhone ?? null,
         limit: filters?.limit ? String(filters.limit) : '100',
       },
       getApiPool(),
     );
 
+    const filteredEntries = entries.filter((e: any) => {
+      const emails = parseArrayValue(e.emailAddresses);
+      const addresses = parseArrayValue(e.addresses);
+
+      if (filters?.hasEmail && (!Array.isArray(emails) || emails.length === 0)) return false;
+      if (filters?.hasAddress && (!Array.isArray(addresses) || addresses.length === 0))
+        return false;
+      if (filters?.category && String(e.entryCategory || '').toLowerCase() !== filters.category)
+        return false;
+      return true;
+    });
+
     // Enrich with profile pictures
-    const names = entries
+    const names = filteredEntries
       .map((e: { displayName?: string | null }) => e.displayName)
       .filter((n: unknown): n is string => typeof n === 'string' && n.length > 0);
 
     const thumbnailsByName = new Map<string, string>();
-    if (names.length > 0) {
-      const thumbRes = await getApiPool().query(
-        `
-        SELECT fc.name, f.crop_path
-        FROM face_clusters fc
-        JOIN faces f ON f.id = fc.representative_face_id
-        WHERE fc.name = ANY($1::text[]) AND fc.is_hidden = false
-        `,
-        [names],
-      );
-      for (const row of thumbRes.rows) {
-        thumbnailsByName.set(row.name, row.crop_path);
+    const dedupedNames = Array.from(new Set(names)).slice(0, 2000);
+    if (dedupedNames.length > 0) {
+      try {
+        const thumbRes = await getApiPool().query(
+          `
+          SELECT fc.name, f.crop_path
+          FROM face_clusters fc
+          JOIN faces f ON f.id = fc.representative_face_id
+          WHERE fc.name = ANY($1::text[]) AND fc.is_hidden = false
+          `,
+          [dedupedNames],
+        );
+        for (const row of thumbRes.rows) {
+          thumbnailsByName.set(row.name, row.crop_path);
+        }
+      } catch (error: any) {
+        // Face thumbnail enrichment is optional; never fail the Black Book response on this step.
+        console.warn('[BlackBook] Thumbnail enrichment skipped:', error?.message || error);
       }
     }
 
     return correctEntries(
-      entries.map((e: any) => ({
+      filteredEntries.map((e: any) => ({
         ...e,
         id: Number(e.id),
         personId: e.personId ? Number(e.personId) : null,

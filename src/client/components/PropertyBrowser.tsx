@@ -288,131 +288,135 @@ const PropertyBrowser: React.FC = () => {
       </div>
 
       {/* Property List */}
-      {loading ? (
-        <div className="loading-state">
-          <Icon name="Loader2" className="spin" size="sm" /> Loading properties...
-        </div>
-      ) : (
-        <>
-          <div className="property-grid">
-            {properties.map((property) => (
-              <div
-                key={property.id}
-                className={`property-card ${property.is_known_associate ? 'flagged' : ''}`}
-              >
-                {property.is_known_associate === 1 && (
-                  <div className="associate-badge">
-                    <Icon name="AlertTriangle" size="sm" />
-                    Known Associate
-                  </div>
-                )}
-                {property.is_epstein_property === 1 && (
-                  <div className="associate-badge epstein">
-                    <Icon name="AlertTriangle" size="sm" />
-                    Epstein Property
-                  </div>
-                )}
-                <div className="property-header">
-                  <h4>{property.owner_name_1 || 'Unknown Owner'}</h4>
-                  <span className="property-value">{formatCurrency(property.total_tax_value)}</span>
-                </div>
-                <div className="property-address">
-                  <Icon name="MapPin" size="sm" />
-                  {property.site_address || property.street_name || 'Address N/A'}
-                </div>
-                <div className="property-details">
-                  <span>
-                    <strong>Type:</strong> {property.property_use || 'N/A'}
-                  </span>
-                  <span>
-                    <strong>Built:</strong> {property.year_built || 'N/A'}
-                  </span>
-                  {property.bedrooms && property.bedrooms > 0 && (
-                    <span>
-                      <strong>Beds:</strong> {property.bedrooms}
-                    </span>
-                  )}
-                  {property.full_bathrooms && property.full_bathrooms > 0 && (
-                    <span>
-                      <strong>Baths:</strong> {property.full_bathrooms}
-                    </span>
-                  )}
-                  {property.living_area && property.living_area > 0 && (
-                    <span>
-                      <strong>Living:</strong> {formatNumber(property.living_area)} sqft
-                    </span>
-                  )}
-                  {property.acres && property.acres > 0 && (
-                    <span>
-                      <strong>Acres:</strong> {property.acres.toFixed(2)}
-                    </span>
-                  )}
-                </div>
-                <div className="property-values">
-                  <div>
-                    <span className="label">Building</span>
-                    <span className="value">{formatCurrency(property.building_value)}</span>
-                  </div>
-                </div>
-                {property.is_known_associate === 1 && property.linked_entity_id && (
-                  <Link to={`/entity/${property.linked_entity_id}`} className="associate-link">
-                    <Icon name="User" size="sm" />
-                    View Entity Profile
-                  </Link>
-                )}
+      <div className="property-list-section">
+        {loading ? (
+          <div className="loading-state">
+            <Icon name="Loader2" className="spin" size="sm" /> Loading properties...
+          </div>
+        ) : (
+          <>
+            <div className="property-grid">
+              {properties.map((property) => (
                 <div
-                  className="property-actions"
-                  style={{
-                    marginTop: '12px',
-                    paddingTop: '12px',
-                    borderTop: '1px solid rgba(255,255,255,0.1)',
-                  }}
+                  key={property.id}
+                  className={`property-card ${property.is_known_associate ? 'flagged' : ''}`}
                 >
-                  <AddToInvestigationButton
-                    item={{
-                      id: String(property.id),
-                      title: `${property.owner_name_1 || 'Unknown'} - ${property.site_address || property.street_name || 'Unknown Address'}`,
-                      description: `${property.property_use || 'Property'} valued at ${formatCurrency(property.total_tax_value)}${property.is_known_associate ? ' (Known Associate)' : ''}`,
-                      type: 'property',
-                      sourceId: String(property.id),
-                      metadata: {
-                        owner: property.owner_name_1,
-                        address: property.site_address || property.street_name,
-                        value: property.total_tax_value,
-                        isKnownAssociate: property.is_known_associate === 1,
-                        linkedEntityId: property.linked_entity_id,
-                      },
+                  {property.is_known_associate === 1 && (
+                    <div className="associate-badge">
+                      <Icon name="AlertTriangle" size="sm" />
+                      Known Associate
+                    </div>
+                  )}
+                  {property.is_epstein_property === 1 && (
+                    <div className="associate-badge epstein">
+                      <Icon name="AlertTriangle" size="sm" />
+                      Epstein Property
+                    </div>
+                  )}
+                  <div className="property-header">
+                    <h4>{property.owner_name_1 || 'Unknown Owner'}</h4>
+                    <span className="property-value">
+                      {formatCurrency(property.total_tax_value)}
+                    </span>
+                  </div>
+                  <div className="property-address">
+                    <Icon name="MapPin" size="sm" />
+                    {property.site_address || property.street_name || 'Address N/A'}
+                  </div>
+                  <div className="property-details">
+                    <span>
+                      <strong>Type:</strong> {property.property_use || 'N/A'}
+                    </span>
+                    <span>
+                      <strong>Built:</strong> {property.year_built || 'N/A'}
+                    </span>
+                    {property.bedrooms && property.bedrooms > 0 && (
+                      <span>
+                        <strong>Beds:</strong> {property.bedrooms}
+                      </span>
+                    )}
+                    {property.full_bathrooms && property.full_bathrooms > 0 && (
+                      <span>
+                        <strong>Baths:</strong> {property.full_bathrooms}
+                      </span>
+                    )}
+                    {property.living_area && property.living_area > 0 && (
+                      <span>
+                        <strong>Living:</strong> {formatNumber(property.living_area)} sqft
+                      </span>
+                    )}
+                    {property.acres && property.acres > 0 && (
+                      <span>
+                        <strong>Acres:</strong> {property.acres.toFixed(2)}
+                      </span>
+                    )}
+                  </div>
+                  <div className="property-values">
+                    <div>
+                      <span className="label">Building</span>
+                      <span className="value">{formatCurrency(property.building_value)}</span>
+                    </div>
+                  </div>
+                  {property.is_known_associate === 1 && property.linked_entity_id && (
+                    <Link to={`/entity/${property.linked_entity_id}`} className="associate-link">
+                      <Icon name="User" size="sm" />
+                      View Entity Profile
+                    </Link>
+                  )}
+                  <div
+                    className="property-actions"
+                    style={{
+                      marginTop: '12px',
+                      paddingTop: '12px',
+                      borderTop: '1px solid rgba(255,255,255,0.1)',
                     }}
-                    variant="quick"
-                    className="w-full justify-center"
-                  />
+                  >
+                    <AddToInvestigationButton
+                      item={{
+                        id: String(property.id),
+                        title: `${property.owner_name_1 || 'Unknown'} - ${property.site_address || property.street_name || 'Unknown Address'}`,
+                        description: `${property.property_use || 'Property'} valued at ${formatCurrency(property.total_tax_value)}${property.is_known_associate ? ' (Known Associate)' : ''}`,
+                        type: 'property',
+                        sourceId: String(property.id),
+                        metadata: {
+                          owner: property.owner_name_1,
+                          address: property.site_address || property.street_name,
+                          value: property.total_tax_value,
+                          isKnownAssociate: property.is_known_associate === 1,
+                          linkedEntityId: property.linked_entity_id,
+                        },
+                      }}
+                      variant="quick"
+                      className="w-full justify-center"
+                    />
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
 
-          {/* Pagination */}
-          <div className="pagination">
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="page-btn"
-            >
-              <Icon name="ChevronLeft" size="sm" />
-            </button>
-            <span className="page-info">
-              Page {page} of {totalPages}
-            </span>
-            <button
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
-              className="page-btn"
-            >
-              <Icon name="ChevronRight" size="sm" />
-            </button>
-          </div>
-        </>
-      )}
+            {/* Pagination */}
+            <div className="pagination">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="page-btn"
+              >
+                <Icon name="ChevronLeft" size="sm" />
+              </button>
+              <span className="page-info">
+                Page {page} of {totalPages}
+              </span>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="page-btn"
+              >
+                <Icon name="ChevronRight" size="sm" />
+              </button>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 
@@ -739,6 +743,10 @@ const PropertyBrowser: React.FC = () => {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
           gap: 16px;
+        }
+
+        .property-list-section {
+          padding-top: 12px;
         }
 
         .property-card {

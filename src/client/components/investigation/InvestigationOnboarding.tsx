@@ -148,7 +148,7 @@ export const InvestigationOnboarding: React.FC<InvestigationOnboardingProps> = (
           </motion.button>
 
           <a
-            href="https://github.com/epstein-archive/blob/main/INVESTIGATION_GUIDE.md"
+            href="https://github.com/ErikVeland/epstein-archive/blob/main/INVESTIGATION_GUIDE.md"
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs text-blue-400 hover:text-blue-300 text-center py-1 transition-colors"

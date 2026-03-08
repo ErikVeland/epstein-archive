@@ -48,8 +48,8 @@ graph TD
     Evidence --"Drag & Drop"--> Board
     Board --"Links to"--> Tools
 
-    click Context "https://github.com/epstein-archive/blob/main/src/contexts/InvestigationsContext.tsx"
-    click Container "https://github.com/epstein-archive/blob/main/src/components/investigation/InvestigationWorkspace.tsx"
+    click Context "https://github.com/ErikVeland/epstein-archive/blob/main/src/contexts/InvestigationsContext.tsx"
+    click Container "https://github.com/ErikVeland/epstein-archive/blob/main/src/client/components/investigation/InvestigationWorkspace.tsx"
 ```
 
 ## 🧩 Key Components

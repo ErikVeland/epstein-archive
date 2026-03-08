@@ -89,7 +89,7 @@ async function runIngestPhase(
     return { filesProcessed: 0, errors: 0 };
   }
 
-  const exitCode = await runScript('scripts/ingest_pipeline.ts', ['--source', sourceDir]);
+  const exitCode = await runScript('scripts/ingest_pipeline.ts');
 
   return {
     filesProcessed: fileCount,
@@ -269,12 +269,14 @@ async function main() {
   try {
     if (mode === 'ingest' || mode === 'full') {
       stats.ingestStats = await runIngestPhase(sourceDir);
+      stats.intelStats = await runIntelPhase();
     }
     if (mode === 'backfill') {
       stats.enrichStats = await runEnrichPhase('backfill');
     } else if (mode === 'ingest') {
-      stats.enrichStats = await runEnrichPhase('backfill');
-    } else {
+      // intel already ran above; enrich only newly ingested docs
+      stats.enrichStats = await runEnrichPhase('new');
+    } else if (mode === 'full') {
       stats.enrichStats = await runEnrichPhase('all');
     }
 

@@ -107,8 +107,8 @@ export const DocumentBarChart: React.FC<DocumentBarChartProps> = ({ data, onPeri
     for (const row of monthly) {
       if (row.period === 'Unknown') continue;
       const year = row.period.slice(0, 4);
-      // Prioritize historical range the team expects to inspect.
-      if (!/^\d{4}$/.test(year) || Number(year) < 1980 || Number(year) > 2026) continue;
+      // Keep the full archival historical range visible.
+      if (!/^\d{4}$/.test(year) || Number(year) < 1900 || Number(year) > 2026) continue;
 
       const existing = yearly.get(year) || {
         period: year,
