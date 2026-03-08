@@ -115,9 +115,22 @@ export const isJunkEntity = (name: string): boolean => {
   if (!name) return true;
   const trimmed = name.trim();
   if (trimmed.length <= 2) return true;
+  const lower = trimmed.toLowerCase();
 
   // Basic patterns
   if (JUNK_PATTERNS.some((pattern) => pattern.test(trimmed))) return true;
+
+  // Strong non-person keyword guard for OCR/boilerplate artifacts that still look title-cased.
+  // These terms repeatedly appear in noisy extracted entity output and are not human names.
+  if (
+    /\b(attachment|attachmert|rewritable|disc|building|contact|number|memo|case|bags|roof|beam|jobs|floor)\b/i.test(
+      trimmed,
+    ) ||
+    /\b(en\s+espa|hong\s+kong)\b/i.test(trimmed) ||
+    lower.includes('see attachment')
+  ) {
+    return true;
+  }
 
   // OCR heuristics
   if (hasOcrArtifacts(trimmed)) return true;
@@ -130,7 +143,8 @@ export const isJunkEntity = (name: string): boolean => {
  */
 export const filterPeopleOnly = (people: Person[]): Person[] => {
   return people.filter((p) => {
-    if (!p.name) return false;
+    const rawName = (p.name || (p as any).full_name || (p as any).fullName || '').trim();
+    if (!rawName) return false;
 
     // Check type explicitly if available
     const type = p.entity_type || (p as any).type;
@@ -138,8 +152,12 @@ export const filterPeopleOnly = (people: Person[]): Person[] => {
       return false;
     }
 
+    const junkTier = String((p as any).junk_tier || (p as any).junkTier || '').toLowerCase();
+    const junkFlag = Number((p as any).junk_flag || (p as any).junkFlag || 0);
+    if (junkTier === 'junk' || junkFlag > 0) return false;
+
     // Apply junk filters
-    if (isJunkEntity(p.name)) return false;
+    if (isJunkEntity(rawName)) return false;
 
     return true;
   });

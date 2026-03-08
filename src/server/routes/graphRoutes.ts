@@ -13,6 +13,55 @@ import {
 
 const router = Router();
 
+function normalizeGraphLabel(raw: string): string {
+  const trimmed = String(raw || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!trimmed) return '';
+
+  const withoutHonorific = trimmed.replace(/^(mr|mrs|ms|miss|dr|prof|sir)\.?\s+/i, '').trim();
+  const canonicalRules: Array<{ pattern: RegExp; canonical: string }> = [
+    {
+      pattern: /\b(jeffrey\s+epstein|mr\s+epstein|jeff\s+epstein)\b/i,
+      canonical: 'Jeffrey Epstein',
+    },
+    {
+      pattern: /\b(donald\s+j\.?\s*trump|president\s+trump|mr\s+trump)\b/i,
+      canonical: 'Donald Trump',
+    },
+    {
+      pattern: /\b(ghislaine\s+maxwell|ms\s+maxwell|miss\s+maxwell)\b/i,
+      canonical: 'Ghislaine Maxwell',
+    },
+    {
+      pattern: /\b(bill\s+clinton|president\s+clinton|mr\s+clinton)\b/i,
+      canonical: 'Bill Clinton',
+    },
+  ];
+
+  for (const rule of canonicalRules) {
+    if (rule.pattern.test(withoutHonorific)) return rule.canonical;
+  }
+
+  return withoutHonorific;
+}
+
+function isLikelyJunkGraphLabel(label: string): boolean {
+  const v = label.toLowerCase();
+  if (!v) return true;
+  return (
+    v.includes('see attachment') ||
+    v.includes('attachment') ||
+    v.includes('building no') ||
+    v.includes('bluray disc') ||
+    v.includes('en espa') ||
+    v.includes('search ') ||
+    v.includes('click ') ||
+    v.includes('privacy ') ||
+    v.startsWith('mango ')
+  );
+}
+
 class MinPriorityQueue<T> {
   private heap: Array<{ value: T; priority: number }> = [];
 
@@ -213,9 +262,53 @@ router.get('/global', graphRateLimiter, async (req, res, next) => {
 
     // 1. Fetch Top Entities (Nodes) - Aggregated by Canonical ID
     // Deterministic Sort: Risk DESC, Degree DESC, ID ASC
-    const nodesArr = await getGlobalGraphNodes({ minRisk, limit, startDate, endDate });
+    const rawNodes = await getGlobalGraphNodes({ minRisk, limit, startDate, endDate });
+    const remapToCanonicalId = new Map<string, string>();
+    const groupedByLabel = new Map<string, any>();
 
-    const canonicalIds = nodesArr.map((n: any) => n.id);
+    for (const n of rawNodes) {
+      const id = String(n.id);
+      const normalizedLabel = normalizeGraphLabel(String(n.label || ''));
+      if (!normalizedLabel || isLikelyJunkGraphLabel(normalizedLabel)) continue;
+
+      const dedupeKey = normalizedLabel.toLowerCase();
+      const current = groupedByLabel.get(dedupeKey);
+      const candidateScore =
+        Number(n.connectionCount || 0) * 1000 + Number(n.risk || 0) * 100 + Number(n.mentions || 0);
+
+      if (!current) {
+        groupedByLabel.set(dedupeKey, {
+          ...n,
+          id,
+          label: normalizedLabel,
+          __mergedIds: [id],
+          __score: candidateScore,
+        });
+        remapToCanonicalId.set(id, id);
+      } else {
+        current.__mergedIds.push(id);
+        remapToCanonicalId.set(id, String(current.id));
+        if (candidateScore > Number(current.__score || 0)) {
+          const oldPrimary = String(current.id);
+          current.id = id;
+          current.label = normalizedLabel;
+          current.type = n.type;
+          current.risk = n.risk;
+          current.connectionCount = n.connectionCount;
+          current.mentions = n.mentions;
+          current.entity_type = n.entity_type;
+          current.community_id = n.community_id;
+          current.__score = candidateScore;
+          for (const mergedId of current.__mergedIds as string[]) {
+            remapToCanonicalId.set(String(mergedId), id);
+          }
+          remapToCanonicalId.set(oldPrimary, id);
+        }
+      }
+    }
+
+    const nodesArr = Array.from(groupedByLabel.values());
+    const canonicalIds = rawNodes.map((n: any) => String(n.id));
 
     // Quick exit if no nodes
     if (canonicalIds.length === 0) {
@@ -223,7 +316,33 @@ router.get('/global', graphRateLimiter, async (req, res, next) => {
     }
 
     // 2. Fetch Relationships between these nodes — injection-safe ANY($N::bigint[]) binding
-    const edgesArr = await getGlobalGraphEdges({ canonicalIds, startDate, endDate });
+    const rawEdges = await getGlobalGraphEdges({ canonicalIds, startDate, endDate });
+    const edgeMap = new Map<string, any>();
+    for (const e of rawEdges) {
+      const sourceRemapped = remapToCanonicalId.get(String(e.source)) || String(e.source);
+      const targetRemapped = remapToCanonicalId.get(String(e.target)) || String(e.target);
+      if (sourceRemapped === targetRemapped) continue;
+
+      const edgeKey = `${sourceRemapped}|${targetRemapped}|${e.type}`;
+      const existing = edgeMap.get(edgeKey);
+      const weight = Number(e.weight || 0.1);
+      const confidence = Number(e.confidence || 1.0);
+
+      if (!existing) {
+        edgeMap.set(edgeKey, {
+          source: sourceRemapped,
+          target: targetRemapped,
+          type: e.type,
+          weight,
+          confidence,
+          classification: e.classification,
+        });
+      } else {
+        existing.weight = Math.max(existing.weight, weight);
+        existing.confidence = Math.max(existing.confidence, confidence);
+      }
+    }
+    const edgesArr = Array.from(edgeMap.values());
 
     // Return formatting aligned with GraphService
     res.json({

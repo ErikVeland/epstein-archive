@@ -266,11 +266,12 @@ export const InteractiveEntityMap: React.FC<InteractiveEntityMapProps> = ({
     <div
       className={`relative rounded-xl overflow-hidden border border-slate-700/50 shadow-lg ${className}`}
     >
-      <div className="absolute top-4 left-4 z-[400]">
+      <div className="absolute bottom-4 left-4 z-[400]">
         <button
           onClick={() => setIsExpanded(true)}
           className="p-2 bg-slate-900/90 backdrop-blur hover:bg-slate-800 border border-slate-700 rounded-lg text-white transition-colors"
           title="Expand Map"
+          aria-label="Expand map"
         >
           <Maximize2 className="w-4 h-4" />
         </button>

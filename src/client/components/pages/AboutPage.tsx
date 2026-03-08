@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Database,
   Search,
@@ -89,6 +89,32 @@ export const AboutPage: React.FC = () => {
   const [documentSources, setDocumentSources] = useState<any[]>([]);
   const [pipelineStatus, setPipelineStatus] = useState<any | null>(null);
   const [activeFaq, setActiveFaq] = useState(0);
+
+  const pipelineOverview = useMemo(() => {
+    const datasets = Array.isArray(pipelineStatus?.datasets) ? pipelineStatus.datasets : [];
+    if (datasets.length === 0) return null;
+
+    const totals = datasets.reduce(
+      (acc: { target: number; ingested: number; downloaded: number }, d: any) => {
+        acc.target += Number(d.target || 0);
+        acc.ingested += Number(d.ingested || 0);
+        acc.downloaded += Number(d.downloaded || 0);
+        return acc;
+      },
+      { target: 0, ingested: 0, downloaded: 0 },
+    );
+
+    const ingestPercent =
+      totals.target > 0 ? Math.min(100, (totals.ingested / totals.target) * 100) : 0;
+    const downloadPercent =
+      totals.target > 0 ? Math.min(100, (totals.downloaded / totals.target) * 100) : 0;
+
+    return {
+      ...totals,
+      ingestPercent,
+      downloadPercent,
+    };
+  }, [pipelineStatus]);
 
   useEffect(() => {
     const fetchJson = async (url: string) => {
@@ -499,9 +525,18 @@ export const AboutPage: React.FC = () => {
           <p>
             The latest release comprises over 1.3 million documents from the post-Maxwell trial era.
             This massive tranche includes "Data Set 12" (DOJ VOL00012). Ingestion for Data Sets 9-12
-            is complete, with ongoing reruns through our <strong>Semantic Repair Pipeline</strong>{' '}
-            and <strong>Hardened Entity Engine</strong> to improve OCR quality, purge junk data, and
-            strengthen entity-role extraction.
+            is ongoing and is continuously re-run through our{' '}
+            <strong>Semantic Repair Pipeline</strong> and <strong>Hardened Entity Engine</strong> to
+            improve OCR quality, purge junk data, and strengthen entity-role extraction.
+            {pipelineOverview && (
+              <>
+                {' '}
+                Live aggregate status currently reports{' '}
+                <strong>{pipelineOverview.ingested.toLocaleString()}</strong> ingested of{' '}
+                <strong>{pipelineOverview.target.toLocaleString()}</strong> tracked files (
+                <strong>{pipelineOverview.ingestPercent.toFixed(1)}%</strong>).
+              </>
+            )}
           </p>
 
           {/* Ingestion Progress Dashboard (Requested placement) */}
@@ -958,10 +993,12 @@ export const AboutPage: React.FC = () => {
         </p>
         <div className="bg-blue-900/30 border border-blue-500/30 rounded-lg p-4 mt-4">
           <p className="text-blue-200 text-sm">
-            <strong>Current Status:</strong> DOJ Data Sets 9-12 are in the archive, including the
-            fully ingested and enriched Dataset 12 referral tranche. Ongoing pipeline reruns focus
-            on quality gains: OCR cleanup, alias consolidation, and stronger role metadata across
-            entities and documents.
+            <strong>Current Status:</strong>{' '}
+            {pipelineOverview
+              ? `DOJ Data Sets 9-12 are staged in the archive. Live ingestion currently reads ${pipelineOverview.ingested.toLocaleString()} / ${pipelineOverview.target.toLocaleString()} (${pipelineOverview.ingestPercent.toFixed(1)}%) with ${pipelineOverview.downloaded.toLocaleString()} files secured (${pipelineOverview.downloadPercent.toFixed(1)}% download coverage).`
+              : 'DOJ Data Sets 9-12 are staged in the archive with active ingestion and enrichment reruns in progress.'}{' '}
+            Ongoing pipeline reruns focus on quality gains: OCR cleanup, alias consolidation, and
+            stronger role metadata across entities and documents.
             <a
               href="https://github.com/ErikVeland/epstein-archive/tree/main/docs/data-governance-standards.md"
               target="_blank"

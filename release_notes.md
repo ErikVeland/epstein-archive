@@ -1,5 +1,23 @@
 # Release Notes
 
+## 15.9.2 - 2026-03-08 - Pipeline Resume
+
+### Infrastructure
+
+- **Pipeline Tracking Tables:** Added `pipeline_runs` and `pipeline_steps` tables (migration 1753500000000) so the ingestion pipeline can resume on production after 20-day idle gap.
+
+## 15.9.1 - 2026-03-08 - Civ-Style Mentions Board + About Status Accuracy
+
+### Visualizations
+
+- **Top Mentioned Individuals Rebuilt:** Replaced the prior bar chart with a Civ VI-style ranked scoreboard UI (rank badge, mentions meter, risk tier chip) for faster scanability.
+- **Non-Junk Person Enforcement:** Leaderboard now hard-filters to person-like entities only and excludes junk/suppressed rows via `isJunkEntity`, `junk_tier`, and `junk_flag`.
+
+### Content Accuracy
+
+- **About Page Ingestion Language Updated:** Removed outdated “Data Sets 9–12 complete” wording and replaced with live-progress framing.
+- **Live Status Summary:** About page now derives ingestion summary text from the runtime `pipeline_status.datasets` payload, so headline status tracks real ingest state.
+
 ## 15.9.0 - 2026-03-07 - Pipeline Snapshot + Analytics Fixes
 
 ### Data Integrity

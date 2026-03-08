@@ -1,17 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Info, Users, AlertTriangle, Activity, ShieldAlert } from 'lucide-react';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-} from 'recharts';
+import { Tooltip, PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { Person } from '../../types';
 import { TreeMap } from './TreeMap';
 import { filterPeopleOnly, isJunkEntity } from '../../utils/entityFilters';
@@ -213,11 +202,24 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({
         name: (p.name || p.full_name || p.fullName || '').trim(),
         mentions: Number(p.mentions || 0),
         redFlagRating: Number(p.riskLevel || p.red_flag_rating || p.redFlagRating || 0),
+        entityType: String(p.entity_type || p.entityType || p.type || 'person').toLowerCase(),
+        junkTier: String(p.junk_tier || p.junkTier || 'clean').toLowerCase(),
+        junkFlag: Number(p.junk_flag || p.junkFlag || 0),
         person: p,
       }))
-      .filter((e) => e.name.length > 0 && e.mentions > 0 && !isJunkEntity(e.name))
+      .filter(
+        (e) =>
+          e.name.length > 0 &&
+          e.mentions > 0 &&
+          !isJunkEntity(e.name) &&
+          (e.entityType.includes('person') ||
+            e.entityType.includes('individual') ||
+            e.entityType === 'unknown') &&
+          e.junkTier !== 'junk' &&
+          e.junkFlag === 0,
+      )
       .sort((a, b) => b.mentions - a.mentions)
-      .slice(0, 30);
+      .slice(0, 50);
   }, [analyticsData, filteredPersons]);
 
   if (loading) {
@@ -267,105 +269,72 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({
             </span>
           </div>
 
-          <div className="h-[400px] relative z-10 overflow-y-auto pr-2 custom-scrollbar">
-            <div style={{ height: `${Math.max(400, topEntities.length * 40)}px` }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={topEntities.slice(0, 30)}
-                  layout="vertical"
-                  margin={{ left: 120, right: 30, top: 0, bottom: 0 }}
-                  barCategoryGap={10}
-                >
-                  <defs>
-                    {topEntities.slice(0, 30).map((entry: any, index: number) => (
-                      <linearGradient
-                        key={`gradient-${index}`}
-                        id={`barGradient-${index}`}
-                        x1="0"
-                        y1="0"
-                        x2="1"
-                        y2="0"
-                      >
-                        <stop
-                          offset="0%"
-                          stopColor={
-                            entry.redFlagRating >= 5
-                              ? '#581c87'
-                              : entry.redFlagRating >= 4
-                                ? '#b91c1c'
-                                : '#1d4ed8'
-                          }
-                          stopOpacity={0.7}
-                        />
-                        <stop
-                          offset="100%"
-                          stopColor={
-                            entry.redFlagRating >= 5
-                              ? '#7e22ce'
-                              : entry.redFlagRating >= 4
-                                ? '#ef4444'
-                                : '#3b82f6'
-                          }
-                          stopOpacity={1}
-                        />
-                      </linearGradient>
-                    ))}
-                  </defs>
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    stroke="#334155"
-                    horizontal={false}
-                    vertical={true}
-                    opacity={0.3}
-                  />
-                  <XAxis
-                    type="number"
-                    stroke="#94a3b8"
-                    fontSize={11}
-                    tickLine={false}
-                    axisLine={false}
-                  />
-                  <YAxis
-                    dataKey="name"
-                    type="category"
-                    stroke="#94a3b8"
-                    fontSize={11}
-                    width={300}
-                    tick={({ x, y, payload }: any) => {
-                      const label = payload.value || 'Unknown';
-                      const truncated = label.length > 30 ? `${label.slice(0, 27)}...` : label;
-                      // No truncation needed with horizontal scroll
-                      return (
-                        <text
-                          x={x - 8}
-                          y={y}
-                          dy={4}
-                          fill="#f8fafc"
-                          textAnchor="end"
-                          className="text-[11px] cursor-pointer font-bold hover:fill-cyan-400 transition-colors"
-                          onClick={() => {
-                            const person = topEntities.find(
-                              (p: any) => (p.name || p.label) === label,
-                            )?.person;
-                            if (person && onPersonSelect) onPersonSelect(person);
-                          }}
+          <div className="h-[400px] relative z-10 overflow-y-auto pr-2 custom-scrollbar space-y-2">
+            {topEntities.length === 0 ? (
+              <div className="h-full flex items-center justify-center text-slate-400 text-sm">
+                No non-junk person entities with mentions available.
+              </div>
+            ) : (
+              topEntities.map((entry: any, index: number) => {
+                const maxMentions = Math.max(1, topEntities[0]?.mentions || 1);
+                const barWidth = Math.max(4, Math.round((entry.mentions / maxMentions) * 100));
+                const risk = entry.redFlagRating;
+                const riskLabel =
+                  risk >= 5
+                    ? 'Critical'
+                    : risk >= 4
+                      ? 'High'
+                      : risk >= 3
+                        ? 'Elevated'
+                        : risk >= 2
+                          ? 'Guarded'
+                          : 'Low';
+                const riskColor =
+                  risk >= 5
+                    ? 'text-fuchsia-300 border-fuchsia-500/40 bg-fuchsia-900/30'
+                    : risk >= 4
+                      ? 'text-red-300 border-red-500/40 bg-red-900/30'
+                      : risk >= 3
+                        ? 'text-amber-300 border-amber-500/40 bg-amber-900/30'
+                        : risk >= 2
+                          ? 'text-cyan-300 border-cyan-500/40 bg-cyan-900/30'
+                          : 'text-emerald-300 border-emerald-500/40 bg-emerald-900/30';
+
+                return (
+                  <button
+                    key={`${entry.name}-${index}`}
+                    type="button"
+                    onClick={() => onPersonSelect && onPersonSelect(entry.person)}
+                    className="w-full text-left rounded-lg border border-slate-700/60 bg-slate-900/45 hover:bg-slate-800/70 hover:border-cyan-500/40 transition-colors p-3"
+                  >
+                    <div className="grid grid-cols-[40px_minmax(0,1fr)_120px] items-center gap-3">
+                      <div className="w-10 h-10 rounded-md border border-amber-500/40 bg-gradient-to-b from-amber-900/50 to-slate-900/70 flex items-center justify-center font-bold text-amber-200">
+                        {index + 1}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-slate-100 font-semibold truncate">{entry.name}</div>
+                        <div className="mt-2 h-2.5 rounded bg-slate-800 overflow-hidden">
+                          <div
+                            className="h-full bg-gradient-to-r from-amber-400 via-cyan-400 to-blue-500"
+                            style={{ width: `${barWidth}%` }}
+                          />
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-slate-100 font-mono text-sm">
+                          {entry.mentions.toLocaleString()}
+                        </div>
+                        <div
+                          className={`inline-flex mt-1 px-2 py-0.5 rounded border text-[10px] uppercase tracking-wider ${riskColor}`}
                         >
-                          {truncated}
-                        </text>
-                      );
-                    }}
-                    tickLine={false}
-                    axisLine={false}
-                  />
-                  <Tooltip
-                    content={<CustomTooltip />}
-                    cursor={{ fill: '#ffffff', opacity: 0.05 }}
-                  />
-                  <Bar dataKey="mentions" fill="#3b82f6" name="Mentions" />
-                  <Bar dataKey="riskScore" fill="#ef4444" name="Risk Score" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+                          {riskLabel}
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })
+            )}
           </div>
         </div>
 
@@ -460,11 +429,16 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({
 
         <div className="relative z-10">
           <TreeMap
-            people={
-              people.length > 0
-                ? people
-                : analyticsData?.topConnectedEntities || analyticsData?.topEntities || []
-            }
+            people={topEntities.map((entry: any) => ({
+              ...(entry.person || {}),
+              name: entry.name,
+              full_name: entry.name,
+              mentions: entry.mentions,
+              red_flag_rating: entry.redFlagRating,
+              entity_type: entry.entityType,
+              junk_tier: entry.junkTier,
+              junk_flag: entry.junkFlag,
+            }))}
             onPersonClick={onPersonSelect}
           />
         </div>
