@@ -202,7 +202,7 @@ router.get('/enhanced', analyticsRateLimiter, cacheResponse(60), async (_req, re
 
       const key = normalizedName.toLowerCase();
       const mentions = Number(row?.mentions || 0);
-      const connections = Number(row?.connectionCount || row?.connection_count || 0);
+      const connections = Number(row?.connectionCount || 0);
       const score = connections * 1000 + mentions;
       const existing = topConnectedMap.get(key);
 
@@ -215,11 +215,7 @@ router.get('/enhanced', analyticsRateLimiter, cacheResponse(60), async (_req, re
       }
     }
     const topConnectedRows = Array.from(topConnectedMap.values())
-      .sort(
-        (a, b) =>
-          Number(b?.connectionCount || b?.connection_count || 0) -
-          Number(a?.connectionCount || a?.connection_count || 0),
-      )
+      .sort((a, b) => Number(b?.connectionCount || 0) - Number(a?.connectionCount || 0))
       .slice(0, 100)
       .map(({ __score, ...row }) => row);
     const topConnectedIds = new Set(topConnectedRows.map((row: any) => Number(row.id)));
