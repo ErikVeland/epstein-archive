@@ -2,10 +2,10 @@
   "running": true,
   "phase": "PHASE 0: QUEUE DRAIN",
   "currentTask": "queue",
-  "currentFile": "EFTA02190144.pdf",
+  "currentFile": "EFTA02189479.pdf",
   "currentCollection": "Queued Jobs",
   "lastError": null,
-  "updatedAt": "2026-03-09T12:07:18.345Z",
+  "updatedAt": "2026-03-09T12:19:23.397Z",
   "updatedBy": "ingest_pipeline",
   "pid": 65355
 }

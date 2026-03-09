@@ -90,51 +90,51 @@ const COLLECTIONS: CollectionConfig[] = [
     enabled: false,
   },
   {
-    name: 'DOJ Discovery VOL00001',
+    name: 'DOJ Data Set 1',
     rootPath: 'data/originals/DOJ VOL00001',
-    description: 'FBI Discovery Materials Vol 1',
+    description: 'DOJ Data Set 1',
     enabled: false,
   },
   {
-    name: 'DOJ Discovery VOL00002',
+    name: 'DOJ Data Set 2',
     rootPath: 'data/originals/DOJ VOL00002',
-    description: 'FBI Discovery Materials Vol 2',
+    description: 'DOJ Data Set 2',
     enabled: false,
   },
   {
-    name: 'DOJ Discovery VOL00003',
+    name: 'DOJ Data Set 3',
     rootPath: 'data/originals/DOJ VOL00003',
-    description: 'FBI Discovery Materials Vol 3',
+    description: 'DOJ Data Set 3',
     enabled: false,
   },
   {
-    name: 'DOJ Discovery VOL00004',
+    name: 'DOJ Data Set 4',
     rootPath: 'data/originals/DOJ VOL00004',
-    description: 'FBI Discovery Materials Vol 4',
+    description: 'DOJ Data Set 4',
     enabled: false,
   },
   {
-    name: 'DOJ Discovery VOL00005',
+    name: 'DOJ Data Set 5',
     rootPath: 'data/originals/DOJ VOL00005',
-    description: 'FBI Discovery Materials Vol 5',
+    description: 'DOJ Data Set 5',
     enabled: false,
   },
   {
-    name: 'DOJ Discovery VOL00006',
+    name: 'DOJ Data Set 6',
     rootPath: 'data/originals/DOJ VOL00006',
-    description: 'FBI Discovery Materials Vol 6',
+    description: 'DOJ Data Set 6',
     enabled: false,
   },
   {
-    name: 'DOJ Discovery VOL00007',
+    name: 'DOJ Data Set 7',
     rootPath: 'data/originals/DOJ VOL00007',
-    description: 'FBI Discovery Materials Vol 7',
+    description: 'DOJ Data Set 7',
     enabled: false,
   },
   {
-    name: 'DOJ Discovery VOL00008',
+    name: 'DOJ Data Set 8',
     rootPath: 'data/originals/DOJ VOL00008',
-    description: 'FBI Discovery Materials Vol 8',
+    description: 'DOJ Data Set 8',
     enabled: false,
   },
   {
@@ -195,12 +195,6 @@ const COLLECTIONS: CollectionConfig[] = [
     name: 'DOJ Data Set 12',
     rootPath: 'data/ingest/DOJVOL00012',
     description: 'Data Set 12 from DOJ',
-    enabled: false,
-  },
-  {
-    name: 'DOJ Discovery VOL00012',
-    rootPath: 'data/originals/DOJ VOL00012',
-    description: 'DOJ Discovery Materials Vol 12',
     enabled: false,
   },
 ];
@@ -1980,11 +1974,47 @@ async function processQueue() {
   let processedCount = 0;
   let hasMore = true;
 
+  // Pre-compute collection priority: collections closest to 100% go first so
+  // tranches complete fully rather than all advancing in parallel.
+  const priorityRows = (
+    await db.query<{ source_collection: string; pct_done: string; remaining: string }>(`
+      SELECT
+        source_collection,
+        ROUND(
+          COUNT(*) FILTER (WHERE processing_status IN ('succeeded','completed')) * 100.0 / COUNT(*),
+          1
+        ) AS pct_done,
+        COUNT(*) FILTER (WHERE processing_status = 'queued') AS remaining
+      FROM documents
+      WHERE source_collection IS NOT NULL
+        AND processing_status IN ('queued','succeeded','completed','processing','failed')
+      GROUP BY source_collection
+      HAVING COUNT(*) FILTER (WHERE processing_status = 'queued') > 0
+      ORDER BY pct_done DESC
+    `)
+  ).rows;
+  // These massive datasets are deprioritized — any other queued collection
+  // (including newly ingested ones) drains first regardless of completion %.
+  const DEPRIORITIZED = new Set(['DOJ Data Set 10', 'DOJ Data Set 11']);
+
+  const normal = priorityRows.filter((r) => !DEPRIORITIZED.has(r.source_collection));
+  const deprio = priorityRows.filter((r) => DEPRIORITIZED.has(r.source_collection));
+  // Within deprioritized, still process the further-along one first
+  deprio.sort((a, b) => parseFloat(b.pct_done) - parseFloat(a.pct_done));
+
+  const collectionPriority = [...normal, ...deprio].map((r) => r.source_collection);
+  console.log('   📊 Collection priority (closest to done first; large sets deprioritized):');
+  [...normal, ...deprio].forEach((r) =>
+    console.log(
+      `      ${DEPRIORITIZED.has(r.source_collection) ? '[deprio] ' : '         '}${r.source_collection}: ${r.pct_done}% done, ${r.remaining} remaining`,
+    ),
+  );
+
   console.log(`   ⚡️  Concurrency Level: ${CONCURRENCY} workers`);
 
   while (hasMore || activePromises.size > 0) {
     while (hasMore && activePromises.size < CONCURRENCY) {
-      const doc = await jobManager.acquireJob(600);
+      const doc = await jobManager.acquireJob(600, collectionPriority);
 
       if (!doc) {
         hasMore = false;

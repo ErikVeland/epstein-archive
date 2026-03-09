@@ -10,28 +10,54 @@ export class JobManager {
   }
 
   /**
-   * Acquires a lock on the next available document
+   * Acquires a lock on the next available document.
+   * @param collectionPriority Optional ordered list of source_collection values —
+   *   collections listed first are drained before later ones. Compute once per
+   *   pipeline run (e.g. sorted by % complete desc) and reuse across all calls.
    */
-  async acquireJob(ttlSeconds: number = 300) {
+  async acquireJob(ttlSeconds: number = 300, collectionPriority?: string[]) {
     const pool = getApiPool();
     const client = await pool.connect();
 
     try {
       await client.query('BEGIN');
 
-      const findSql = `
-        SELECT id, file_path, processing_attempts 
-        FROM documents 
-        WHERE processing_status = 'queued' 
-           OR (processing_status = 'processing' AND lease_expires_at < now())
-        ORDER BY 
-           CASE WHEN processing_status = 'processing' THEN 0 ELSE 1 END,
-           created_at ASC
-        LIMIT 1
-        FOR UPDATE SKIP LOCKED
-      `;
+      let findSql: string;
+      let findParams: unknown[];
 
-      const { rows } = await client.query(findSql);
+      if (collectionPriority && collectionPriority.length > 0) {
+        const cases = collectionPriority
+          .map((_, i) => `WHEN source_collection = $${i + 1} THEN ${i}`)
+          .join(' ');
+        findParams = [...collectionPriority];
+        findSql = `
+          SELECT id, file_path, processing_attempts
+          FROM documents
+          WHERE processing_status = 'queued'
+             OR (processing_status = 'processing' AND lease_expires_at < now())
+          ORDER BY
+             CASE WHEN processing_status = 'processing' THEN 0 ELSE 1 END,
+             CASE ${cases} ELSE ${collectionPriority.length} END,
+             created_at ASC
+          LIMIT 1
+          FOR UPDATE SKIP LOCKED
+        `;
+      } else {
+        findParams = [];
+        findSql = `
+          SELECT id, file_path, processing_attempts
+          FROM documents
+          WHERE processing_status = 'queued'
+             OR (processing_status = 'processing' AND lease_expires_at < now())
+          ORDER BY
+             CASE WHEN processing_status = 'processing' THEN 0 ELSE 1 END,
+             created_at ASC
+          LIMIT 1
+          FOR UPDATE SKIP LOCKED
+        `;
+      }
+
+      const { rows } = await client.query(findSql, findParams);
       const candidate = rows[0];
 
       if (!candidate) {

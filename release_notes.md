@@ -1,5 +1,17 @@
 # Release Notes
 
+## 15.10.0 - 2026-03-09 - Ingestion Snapshot + Document Browser Stabilization
+
+### Pipeline Snapshot
+
+- **Ingestion State Captured:** Added runtime snapshot at `backups/ingestion_snapshots/ingestion_snapshot_20260309_220536.json` with ingest run status, queue phase, current file, and unlock/crash indicators.
+- **Dataset Totals Captured:** Snapshot includes current Postgres totals at capture time: 1,425,126 documents and 4,278,383 entity mentions.
+
+### UI Reliability
+
+- **Document Browser Build Fixes:** Resolved TypeScript and lint blockers in document browser list/header/filter integration so production build and deploy gates pass again.
+- **List Rendering Cleanup:** Removed stale imports/state wiring that was causing CI-style no-unused-local failures during release build.
+
 ## 15.9.2 - 2026-03-08 - Pipeline Resume
 
 ### Infrastructure
