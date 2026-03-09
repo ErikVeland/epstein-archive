@@ -215,3 +215,5 @@ pipeline_checkpoints/live_status.json
 
 epstein-archive.db.snapshot-journal
 CHANGELOG.md
+
+scripts/pipeline_checkpoints/live_status.json

@@ -1974,6 +1974,29 @@ async function processQueue() {
   let processedCount = 0;
   let hasMore = true;
 
+  // Re-queue failed docs so near-complete tranches can reach 100%.
+  // Skip permanent failures: corrupted, encrypted, or password-protected files,
+  // and anything that has already been attempted 5+ times.
+  const requeued = await db.query(`
+    UPDATE documents
+    SET processing_status = 'queued',
+        worker_id         = NULL,
+        lease_expires_at  = NULL,
+        processing_error  = NULL
+    WHERE processing_status = 'failed'
+      AND (processing_attempts IS NULL OR processing_attempts < 5)
+      AND (
+        processing_error IS NULL
+        OR (
+          processing_error NOT ILIKE '%corrupt%'
+          AND processing_error NOT ILIKE '%encrypt%'
+          AND processing_error NOT ILIKE '%password%'
+          AND processing_error NOT ILIKE '%invalid pdf%'
+        )
+      )
+  `);
+  console.log(`   ♻️  Re-queued ${requeued.rowCount ?? 0} failed documents for retry.`);
+
   // Pre-compute collection priority: collections closest to 100% go first so
   // tranches complete fully rather than all advancing in parallel.
   const priorityRows = (
@@ -1993,9 +2016,10 @@ async function processQueue() {
       ORDER BY pct_done DESC
     `)
   ).rows;
-  // These massive datasets are deprioritized — any other queued collection
-  // (including newly ingested ones) drains first regardless of completion %.
-  const DEPRIORITIZED = new Set(['DOJ Data Set 10', 'DOJ Data Set 11']);
+  // These large datasets are deprioritized — all other collections drain to
+  // 100% first. DS 9 joins DS 10/11 so near-complete tranches finish before
+  // the big multi-day sets get any slots.
+  const DEPRIORITIZED = new Set(['DOJ Data Set 9', 'DOJ Data Set 10', 'DOJ Data Set 11']);
 
   const normal = priorityRows.filter((r) => !DEPRIORITIZED.has(r.source_collection));
   const deprio = priorityRows.filter((r) => DEPRIORITIZED.has(r.source_collection));
@@ -2012,55 +2036,80 @@ async function processQueue() {
 
   console.log(`   ⚡️  Concurrency Level: ${CONCURRENCY} workers`);
 
-  while (hasMore || activePromises.size > 0) {
-    while (hasMore && activePromises.size < CONCURRENCY) {
-      const doc = await jobManager.acquireJob(600, collectionPriority);
+  // Track per-collection remaining counts so we can celebrate completions.
+  const collectionRemaining = new Map<string, number>();
+  for (const row of [...normal, ...deprio]) {
+    collectionRemaining.set(row.source_collection, parseInt(row.remaining, 10));
+  }
 
-      if (!doc) {
-        hasMore = false;
-        break;
-      }
+  const launchDoc = (doc: {
+    id: number;
+    file_path: string;
+    source_collection: string | null;
+    processing_attempts: number;
+  }) => {
+    const promise = (async () => {
+      const docId = Math.floor(doc.id);
+      try {
+        await jobManager.renewLease(docId, 600);
 
-      const promise = (async () => {
-        const docId = Math.floor(doc.id);
-        try {
-          await jobManager.renewLease(docId, 600);
+        const fullDoc =
+          (await db.query('SELECT content, content_preview FROM documents WHERE id = $1', [docId]))
+            .rows[0] ?? null;
 
-          const fullDoc =
-            (
-              await db.query('SELECT content, content_preview FROM documents WHERE id = $1', [
-                docId,
-              ])
-            ).rows[0] ?? null;
+        if (fullDoc && fullDoc.content) {
+          const context = fullDoc.content.slice(0, 2000);
+          const refined = await AIEnrichmentService.repairMimeWildcards(fullDoc.content, context);
 
-          if (fullDoc && fullDoc.content) {
-            const context = fullDoc.content.slice(0, 2000);
-            const refined = await AIEnrichmentService.repairMimeWildcards(fullDoc.content, context);
-
-            if (refined !== fullDoc.content) {
-              await db.query(
-                'UPDATE documents SET content = $1, content_refined = $2, last_processed_at = NOW() WHERE id = $3',
-                [refined, refined, docId],
-              );
-            }
-          }
-
-          await jobManager.completeJob(docId);
-          processedCount++;
-
-          if (processedCount % 10 === 0) {
-            process.stdout.write(
-              `\r   ✅ Processed ${processedCount} documents (Active: ${activePromises.size})`,
+          if (refined !== fullDoc.content) {
+            await db.query(
+              'UPDATE documents SET content = $1, content_refined = $2, last_processed_at = NOW() WHERE id = $3',
+              [refined, refined, docId],
             );
           }
-        } catch (e) {
-          console.error(`\n      ❌ Job Failed (Doc ${docId}): ${(e as Error).message}`);
-          await jobManager.failJob(docId, (e as Error).message);
         }
-      })();
 
-      promise.then(() => activePromises.delete(promise));
-      activePromises.add(promise);
+        await jobManager.completeJob(docId);
+        processedCount++;
+
+        // Celebrate when a collection drains to zero.
+        if (doc.source_collection) {
+          const prev = collectionRemaining.get(doc.source_collection) ?? 1;
+          const next = Math.max(0, prev - 1);
+          collectionRemaining.set(doc.source_collection, next);
+          if (next === 0) {
+            process.stdout.write(`\n   🎉 ${doc.source_collection} — 100% COMPLETE\n`);
+          }
+        }
+
+        if (processedCount % 10 === 0) {
+          process.stdout.write(
+            `\r   ✅ Processed ${processedCount} documents (Active: ${activePromises.size})`,
+          );
+        }
+      } catch (e) {
+        console.error(`\n      ❌ Job Failed (Doc ${docId}): ${(e as Error).message}`);
+        await jobManager.failJob(docId, (e as Error).message);
+      }
+    })();
+
+    promise.finally(() => activePromises.delete(promise));
+    activePromises.add(promise);
+  };
+
+  while (hasMore || activePromises.size > 0) {
+    // Batch-fill all open slots in one DB round-trip so every AI call fires
+    // simultaneously instead of serialising behind individual acquires.
+    const slots = CONCURRENCY - activePromises.size;
+    if (slots > 0 && hasMore) {
+      const batch = await jobManager.acquireJobBatch(slots, 600, collectionPriority);
+      if (batch.length === 0) {
+        hasMore = false;
+      } else {
+        for (const doc of batch) {
+          launchDoc(doc);
+        }
+      }
     }
 
     if (activePromises.size > 0) {

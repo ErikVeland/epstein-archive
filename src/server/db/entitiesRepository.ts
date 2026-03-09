@@ -233,6 +233,106 @@ const EVIDENCE_LADDER_RANK: Record<'NONE' | 'L3' | 'L2' | 'L1', number> = {
   L1: 3,
 };
 
+async function getSubjectCardsFallback(
+  page: number,
+  limit: number,
+  filters?: SearchFilters,
+  sortBy?: SortOption,
+): Promise<SubjectCardRepositoryResult> {
+  const offset = (page - 1) * limit;
+  const searchTerm = filters?.searchTerm ? `%${filters.searchTerm.trim()}%` : null;
+  const riskLevels = filters?.likelihoodScore
+    ? filters.likelihoodScore.map((s) => String(s).toUpperCase())
+    : null;
+  const role = filters?.role && filters.role !== 'all' ? filters.role : null;
+  const minRedFlag =
+    typeof filters?.minRedFlagIndex === 'number' ? Number(filters.minRedFlagIndex) : null;
+  const maxRedFlag =
+    typeof filters?.maxRedFlagIndex === 'number' ? Number(filters.maxRedFlagIndex) : null;
+  const sortKey = String(sortBy || 'red_flag')
+    .toLowerCase()
+    .replace(/-/g, '_');
+  const pgSort = sortKey === 'name' || sortKey === 'recent' ? sortKey : null;
+
+  const pool = getApiPool();
+  const [rows, countRows, maxConnResult, vipDisplayLookup] = await Promise.all([
+    (entitiesQueries.getSubjectCards as any).run(
+      {
+        searchTerm,
+        riskLevels,
+        minRedFlag,
+        maxRedFlag,
+        role,
+        sortBy: pgSort,
+        limit,
+        offset,
+      },
+      pool,
+    ),
+    (entitiesQueries.countSubjectCards as any).run(
+      {
+        searchTerm,
+        riskLevels,
+      },
+      pool,
+    ),
+    (entitiesQueries.getMaxConnectivity as any).run(undefined, pool),
+    buildVipDisplayLookup(),
+  ]);
+
+  const maxConnectivityCount = Math.max(1, Number(maxConnResult?.[0]?.maxConn || 1));
+  const subjects: SubjectCardListItemDto[] = (rows as any[]).map((row) => {
+    const mentions = Number(row.mentions || 0);
+    const mediaCount = Number(row.mediaCount || 0);
+    const blackBookCount = Number(row.blackBookCount || 0);
+    const connStr = String(row.connections || '');
+    const connCount = /^\d+$/.test(connStr)
+      ? parseInt(connStr, 10)
+      : (connStr.match(/,/g) || []).length;
+
+    let ladder: 'L1' | 'L2' | 'L3' | 'NONE' = 'L3';
+    if (blackBookCount > 0 || mediaCount > 0) ladder = 'L1';
+    else if (mentions > 50) ladder = 'L2';
+    else if (mentions === 0) ladder = 'NONE';
+
+    const drivers: string[] = [];
+    if (blackBookCount > 0) drivers.push('Black Book');
+    if (mediaCount > 0) drivers.push('Media Mentions');
+
+    return {
+      id: String(row.id),
+      name: resolveDisplayName(String(row.fullName || 'Unknown'), vipDisplayLookup),
+      role: String(row.primaryRole || 'Unknown'),
+      short_bio: row.bio || undefined,
+      stats: {
+        mentions,
+        documents: 0,
+        distinct_sources: 0,
+        verified_media: mediaCount,
+      },
+      forensics: {
+        risk_level: String(row.riskLevel || 'LOW').toUpperCase(),
+        evidence_ladder: ladder,
+        red_flag_objective: Number(row.redFlagRating || 0),
+        red_flag_subjective: Number(row.redFlagRating || 0),
+        signal_strength: {
+          exposure: Math.min(100, (Math.log10(mentions + 1) / 3) * 100),
+          connectivity: Math.min(100, (connCount / maxConnectivityCount) * 100),
+          corroboration: Math.min(100, mediaCount * 20),
+        },
+        driver_labels: drivers,
+      },
+      top_preview: undefined,
+      ...(row.topPhotoId ? ({ topPhotoId: String(row.topPhotoId) } as any) : {}),
+    };
+  });
+
+  return {
+    subjects,
+    total: Number(countRows?.[0]?.total || 0),
+  };
+}
+
 export const entitiesRepository = {
   getSubjectCards: async (
     page: number = 1,
@@ -340,8 +440,10 @@ export const entitiesRepository = {
     const orderBySql = orderByTerms.join(', ');
 
     const listParams = [...params, limit, offset];
-    const rawEntitiesResult = await pool.query(
-      `
+
+    try {
+      const rawEntitiesResult = await pool.query(
+        `
         WITH mention_counts AS (
           SELECT
             em.entity_id,
@@ -392,47 +494,47 @@ export const entitiesRepository = {
         ${whereSql}
         ORDER BY ${orderBySql}
         LIMIT $${listParams.length - 1} OFFSET $${listParams.length}
-      `,
-      listParams,
-    );
-    const rawEntities = rawEntitiesResult.rows as any[];
+        `,
+        listParams,
+      );
+      const rawEntities = rawEntitiesResult.rows as any[];
 
-    const countResult = await pool.query<{ total: string }>(
-      `
+      const countResult = await pool.query<{ total: string }>(
+        `
         SELECT COUNT(*)::bigint AS total
         FROM entities e
         ${whereSql}
-      `,
-      params,
-    );
-    const total = Number(countResult.rows[0]?.total || 0);
+        `,
+        params,
+      );
+      const total = Number(countResult.rows[0]?.total || 0);
 
-    const maxConnResult = await (entitiesQueries.getMaxConnectivity as any).run(undefined, pool);
-    const maxConnectivityCount = Number(maxConnResult[0]?.maxConn || 1);
+      const maxConnResult = await (entitiesQueries.getMaxConnectivity as any).run(undefined, pool);
+      const maxConnectivityCount = Number(maxConnResult[0]?.maxConn || 1);
 
-    const vipDisplayLookup = await buildVipDisplayLookup();
+      const vipDisplayLookup = await buildVipDisplayLookup();
 
-    const pageNormalizedKeys = Array.from(
-      new Set(
-        rawEntities
-          .map((row) => resolveDisplayName(String(row.fullName || ''), vipDisplayLookup))
-          .map((name) => normalizeSubjectDedupeKey(name))
-          .filter(Boolean),
-      ),
-    );
+      const pageNormalizedKeys = Array.from(
+        new Set(
+          rawEntities
+            .map((row) => resolveDisplayName(String(row.fullName || ''), vipDisplayLookup))
+            .map((name) => normalizeSubjectDedupeKey(name))
+            .filter(Boolean),
+        ),
+      );
 
-    let entitiesForPageMerge = rawEntities;
-    if (pageNormalizedKeys.length > 0) {
-      const supplementalParams = [...params];
-      const keysParam = `$${supplementalParams.length + 1}`;
-      supplementalParams.push(pageNormalizedKeys);
+      let entitiesForPageMerge = rawEntities;
+      if (pageNormalizedKeys.length > 0) {
+        const supplementalParams = [...params];
+        const keysParam = `$${supplementalParams.length + 1}`;
+        supplementalParams.push(pageNormalizedKeys);
 
-      const whereWithKeysSql = whereParts.length
-        ? `WHERE ${whereParts.join(' AND ')} AND ${normalizeSubjectKeySql('e.full_name')} = ANY(${keysParam}::text[])`
-        : `WHERE ${normalizeSubjectKeySql('e.full_name')} = ANY(${keysParam}::text[])`;
+        const whereWithKeysSql = whereParts.length
+          ? `WHERE ${whereParts.join(' AND ')} AND ${normalizeSubjectKeySql('e.full_name')} = ANY(${keysParam}::text[])`
+          : `WHERE ${normalizeSubjectKeySql('e.full_name')} = ANY(${keysParam}::text[])`;
 
-      const supplementalResult = await pool.query(
-        `
+        const supplementalResult = await pool.query(
+          `
           WITH mention_counts AS (
             SELECT
               em.entity_id,
@@ -481,33 +583,33 @@ export const entitiesRepository = {
           FROM entities e
           LEFT JOIN mention_counts mc ON mc.entity_id = e.id
           ${whereWithKeysSql}
-        `,
-        supplementalParams,
-      );
+          `,
+          supplementalParams,
+        );
 
-      const byId = new Map<string, any>();
-      for (const row of [...rawEntities, ...supplementalResult.rows]) {
-        byId.set(String(row.id), row);
+        const byId = new Map<string, any>();
+        for (const row of [...rawEntities, ...supplementalResult.rows]) {
+          byId.set(String(row.id), row);
+        }
+        entitiesForPageMerge = Array.from(byId.values());
       }
-      entitiesForPageMerge = Array.from(byId.values());
-    }
 
-    const subjectIds = entitiesForPageMerge
-      .map((row) => Number(row.id))
-      .filter((id) => Number.isFinite(id) && id > 0);
+      const subjectIds = entitiesForPageMerge
+        .map((row) => Number(row.id))
+        .filter((id) => Number.isFinite(id) && id > 0);
 
-    const aggregateStatsByEntity = new Map<
-      number,
-      { documents: number; distinctSources: number; verifiedMedia: number }
-    >();
-    if (subjectIds.length > 0) {
-      const aggregateResult = await pool.query<{
-        entity_id: number;
-        documents: string | number;
-        distinct_sources: string | number;
-        verified_media: string | number;
-      }>(
-        `
+      const aggregateStatsByEntity = new Map<
+        number,
+        { documents: number; distinctSources: number; verifiedMedia: number }
+      >();
+      if (subjectIds.length > 0) {
+        const aggregateResult = await pool.query<{
+          entity_id: number;
+          documents: string | number;
+          distinct_sources: string | number;
+          verified_media: string | number;
+        }>(
+          `
           SELECT
             em.entity_id,
             COUNT(DISTINCT em.document_id) AS documents,
@@ -545,222 +647,232 @@ export const entitiesRepository = {
           WHERE em.entity_id = ANY($1::bigint[])
           GROUP BY em.entity_id
         `,
-        [subjectIds],
-      );
+          [subjectIds],
+        );
 
-      for (const row of aggregateResult.rows) {
-        aggregateStatsByEntity.set(Number(row.entity_id), {
-          documents: Number(row.documents || 0),
-          distinctSources: Number(row.distinct_sources || 0),
-          verifiedMedia: Number(row.verified_media || 0),
-        });
+        for (const row of aggregateResult.rows) {
+          aggregateStatsByEntity.set(Number(row.entity_id), {
+            documents: Number(row.documents || 0),
+            distinctSources: Number(row.distinct_sources || 0),
+            verifiedMedia: Number(row.verified_media || 0),
+          });
+        }
       }
-    }
 
-    const subjects: SubjectCardListItemDto[] = entitiesForPageMerge.map((e) => {
-      const entityId = Number(e.id || 0);
-      const aggregateStats = aggregateStatsByEntity.get(entityId);
-      const mentions = Number(e.mentions || 0);
-      const mediaCount = Number(
-        aggregateStats?.verifiedMedia ?? Number((e as any).mediaCount || 0),
-      );
-      const blackBookCount = Number((e as any).blackBookCount || 0);
+      const subjects: SubjectCardListItemDto[] = entitiesForPageMerge.map((e) => {
+        const entityId = Number(e.id || 0);
+        const aggregateStats = aggregateStatsByEntity.get(entityId);
+        const mentions = Number(e.mentions || 0);
+        const mediaCount = Number(
+          aggregateStats?.verifiedMedia ?? Number((e as any).mediaCount || 0),
+        );
+        const blackBookCount = Number((e as any).blackBookCount || 0);
 
-      let ladder: 'L1' | 'L2' | 'L3' | 'NONE' = 'L3';
-      if (blackBookCount > 0 || mediaCount > 0) ladder = 'L1';
-      else if (mentions > 50) ladder = 'L2';
-      else if (mentions === 0) ladder = 'NONE';
+        let ladder: 'L1' | 'L2' | 'L3' | 'NONE' = 'L3';
+        if (blackBookCount > 0 || mediaCount > 0) ladder = 'L1';
+        else if (mentions > 50) ladder = 'L2';
+        else if (mentions === 0) ladder = 'NONE';
 
-      const exposure = Math.min(100, (Math.log10(mentions + 1) / 3) * 100);
+        const exposure = Math.min(100, (Math.log10(mentions + 1) / 3) * 100);
 
-      let connCount = 0;
-      const connStr = String(e.connections || '');
-      if (/^\d+$/.test(connStr)) connCount = parseInt(connStr, 10);
-      else connCount = (connStr.match(/,/g) || []).length;
-      const connectivity = Math.min(100, (connCount / maxConnectivityCount) * 100);
+        let connCount = 0;
+        const connStr = String(e.connections || '');
+        if (/^\d+$/.test(connStr)) connCount = parseInt(connStr, 10);
+        else connCount = (connStr.match(/,/g) || []).length;
+        const connectivity = Math.min(100, (connCount / maxConnectivityCount) * 100);
 
-      const drivers: string[] = [];
-      if (blackBookCount > 0) drivers.push('Black Book');
-      if (mediaCount > 0) drivers.push('Media Mentions');
+        const drivers: string[] = [];
+        if (blackBookCount > 0) drivers.push('Black Book');
+        if (mediaCount > 0) drivers.push('Media Mentions');
+
+        return {
+          id: String(e.id),
+          name: resolveDisplayName(e.fullName || 'Unknown', vipDisplayLookup),
+          role: e.primaryRole || 'Unknown',
+          short_bio: e.bio || undefined,
+          stats: {
+            mentions,
+            documents: aggregateStats?.documents ?? 0,
+            distinct_sources: aggregateStats?.distinctSources ?? 0,
+            verified_media: mediaCount,
+          },
+          forensics: {
+            risk_level: String((e.riskLevel as any) || 'LOW').toUpperCase(),
+            evidence_ladder: ladder,
+            red_flag_objective: Number(e.redFlagRating || 0),
+            red_flag_subjective: Number(e.redFlagRating || 0),
+            signal_strength: {
+              exposure,
+              connectivity,
+              corroboration: Math.min(100, mediaCount * 20),
+            },
+            driver_labels: drivers.slice(0, 4),
+          },
+          top_preview: undefined,
+          ...((e as any).topPhotoId ? ({ topPhotoId: String((e as any).topPhotoId) } as any) : {}),
+        };
+      });
+
+      const mergedByNormalizedName = new Map<
+        string,
+        SubjectCardListItemDto & { topPhotoId?: string }
+      >();
+      for (const subject of subjects) {
+        const norm = normalizeSubjectDedupeKey(subject.name);
+        if (!norm) continue;
+
+        const existing = mergedByNormalizedName.get(norm);
+        if (!existing) {
+          mergedByNormalizedName.set(norm, { ...subject });
+          continue;
+        }
+
+        const existingPenalty = inferredEntityPenalty(existing.name, existing.role);
+        const incomingPenalty = inferredEntityPenalty(subject.name, subject.role);
+        const preferIncoming =
+          incomingPenalty < existingPenalty ||
+          (incomingPenalty === existingPenalty &&
+            (subject.stats.mentions > existing.stats.mentions ||
+              (subject.stats.mentions === existing.stats.mentions &&
+                (subject.stats.documents > existing.stats.documents ||
+                  subject.stats.verified_media > existing.stats.verified_media))));
+
+        const mergedDrivers = Array.from(
+          new Set([
+            ...(existing.forensics.driver_labels || []),
+            ...(subject.forensics.driver_labels || []),
+          ]),
+        ).slice(0, 4);
+
+        const mergedMentions =
+          Number(existing.stats.mentions || 0) + Number(subject.stats.mentions || 0);
+        const mergedDocuments =
+          Number(existing.stats.documents || 0) + Number(subject.stats.documents || 0);
+        const mergedVerifiedMedia =
+          Number(existing.stats.verified_media || 0) + Number(subject.stats.verified_media || 0);
+
+        const base = preferIncoming ? subject : existing;
+        const other = preferIncoming ? existing : subject;
+
+        const merged: SubjectCardListItemDto & { topPhotoId?: string } = {
+          ...base,
+          role:
+            base.role && base.role !== 'Unknown'
+              ? base.role
+              : other.role && other.role !== 'Unknown'
+                ? other.role
+                : base.role,
+          short_bio: base.short_bio || other.short_bio,
+          stats: {
+            mentions: mergedMentions,
+            documents: mergedDocuments,
+            distinct_sources: Math.max(
+              Number(existing.stats.distinct_sources || 0),
+              Number(subject.stats.distinct_sources || 0),
+            ),
+            verified_media: mergedVerifiedMedia,
+          },
+          forensics: {
+            ...base.forensics,
+            risk_level:
+              Number(subject.forensics.red_flag_objective || 0) >
+              Number(existing.forensics.red_flag_objective || 0)
+                ? subject.forensics.risk_level
+                : existing.forensics.risk_level,
+            evidence_ladder:
+              EVIDENCE_LADDER_RANK[
+                subject.forensics.evidence_ladder as 'NONE' | 'L3' | 'L2' | 'L1'
+              ] >
+              EVIDENCE_LADDER_RANK[
+                existing.forensics.evidence_ladder as 'NONE' | 'L3' | 'L2' | 'L1'
+              ]
+                ? subject.forensics.evidence_ladder
+                : existing.forensics.evidence_ladder,
+            red_flag_objective: Math.max(
+              Number(existing.forensics.red_flag_objective || 0),
+              Number(subject.forensics.red_flag_objective || 0),
+            ),
+            red_flag_subjective: Math.max(
+              Number(existing.forensics.red_flag_subjective || 0),
+              Number(subject.forensics.red_flag_subjective || 0),
+            ),
+            signal_strength: {
+              exposure: Math.min(100, (Math.log10(mergedMentions + 1) / 3) * 100),
+              connectivity: Math.max(
+                Number(existing.forensics.signal_strength?.connectivity || 0),
+                Number(subject.forensics.signal_strength?.connectivity || 0),
+              ),
+              corroboration: Math.min(100, mergedVerifiedMedia * 20),
+            },
+            driver_labels: mergedDrivers,
+          },
+          topPhotoId: (base as any).topPhotoId || (other as any).topPhotoId,
+        };
+
+        mergedByNormalizedName.set(norm, merged);
+      }
+
+      const riskRank = (value: string | undefined): number => {
+        const level = String(value || 'LOW').toUpperCase();
+        if (level === 'HIGH') return 3;
+        if (level === 'MEDIUM') return 2;
+        return 1;
+      };
+      const dir = sortOrder === 'ASC' ? 1 : -1;
+      const normalizedSubjects = Array.from(mergedByNormalizedName.values()).sort((a, b) => {
+        const aRfi = Number(a.forensics.red_flag_objective || a.forensics.red_flag_subjective || 0);
+        const bRfi = Number(b.forensics.red_flag_objective || b.forensics.red_flag_subjective || 0);
+        const aRisk = riskRank(a.forensics.risk_level);
+        const bRisk = riskRank(b.forensics.risk_level);
+        const aMentions = Number(a.stats.mentions || 0);
+        const bMentions = Number(b.stats.mentions || 0);
+        const aDocs = Number(a.stats.documents || 0);
+        const bDocs = Number(b.stats.documents || 0);
+        const aPenalty = inferredEntityPenalty(a.name, a.role);
+        const bPenalty = inferredEntityPenalty(b.name, b.role);
+        const aInferred = isLikelyInferredEntity(a.name, a.role);
+        const bInferred = isLikelyInferredEntity(b.name, b.role);
+
+        if (aInferred !== bInferred) return aInferred ? 1 : -1;
+
+        if (sortKey === 'red_flag' || sortKey === 'rfi' || sortKey === 'default') {
+          if (aRfi !== bRfi) return (aRfi - bRfi) * dir;
+          if (aRisk !== bRisk) return (aRisk - bRisk) * dir;
+          if (aPenalty !== bPenalty) return aPenalty - bPenalty;
+          if (aMentions !== bMentions) return (aMentions - bMentions) * dir;
+        } else if (sortKey === 'risk') {
+          if (aRisk !== bRisk) return (aRisk - bRisk) * dir;
+          if (aRfi !== bRfi) return (aRfi - bRfi) * dir;
+          if (aPenalty !== bPenalty) return aPenalty - bPenalty;
+          if (aMentions !== bMentions) return (aMentions - bMentions) * dir;
+        } else if (sortKey === 'mentions') {
+          if (aMentions !== bMentions) return (aMentions - bMentions) * dir;
+          if (aPenalty !== bPenalty) return aPenalty - bPenalty;
+          if (aRfi !== bRfi) return bRfi - aRfi;
+          if (aRisk !== bRisk) return bRisk - aRisk;
+        } else if (sortKey === 'document_count' || sortKey === 'document-count') {
+          if (aDocs !== bDocs) return (aDocs - bDocs) * dir;
+          if (aPenalty !== bPenalty) return aPenalty - bPenalty;
+          if (aRfi !== bRfi) return bRfi - aRfi;
+          if (aRisk !== bRisk) return bRisk - aRisk;
+          if (aMentions !== bMentions) return bMentions - aMentions;
+        }
+
+        const vipCmp = Number((b as any).isVip || 0) - Number((a as any).isVip || 0);
+        if (vipCmp !== 0) return vipCmp;
+        return a.name.localeCompare(b.name);
+      });
 
       return {
-        id: String(e.id),
-        name: resolveDisplayName(e.fullName || 'Unknown', vipDisplayLookup),
-        role: e.primaryRole || 'Unknown',
-        short_bio: e.bio || undefined,
-        stats: {
-          mentions,
-          documents: aggregateStats?.documents ?? 0,
-          distinct_sources: aggregateStats?.distinctSources ?? 0,
-          verified_media: mediaCount,
-        },
-        forensics: {
-          risk_level: String((e.riskLevel as any) || 'LOW').toUpperCase(),
-          evidence_ladder: ladder,
-          red_flag_objective: Number(e.redFlagRating || 0),
-          red_flag_subjective: Number(e.redFlagRating || 0),
-          signal_strength: {
-            exposure,
-            connectivity,
-            corroboration: Math.min(100, mediaCount * 20),
-          },
-          driver_labels: drivers.slice(0, 4),
-        },
-        top_preview: undefined,
-        ...((e as any).topPhotoId ? ({ topPhotoId: String((e as any).topPhotoId) } as any) : {}),
+        subjects: normalizedSubjects,
+        total,
       };
-    });
-
-    const mergedByNormalizedName = new Map<
-      string,
-      SubjectCardListItemDto & { topPhotoId?: string }
-    >();
-    for (const subject of subjects) {
-      const norm = normalizeSubjectDedupeKey(subject.name);
-      if (!norm) continue;
-
-      const existing = mergedByNormalizedName.get(norm);
-      if (!existing) {
-        mergedByNormalizedName.set(norm, { ...subject });
-        continue;
-      }
-
-      const existingPenalty = inferredEntityPenalty(existing.name, existing.role);
-      const incomingPenalty = inferredEntityPenalty(subject.name, subject.role);
-      const preferIncoming =
-        incomingPenalty < existingPenalty ||
-        (incomingPenalty === existingPenalty &&
-          (subject.stats.mentions > existing.stats.mentions ||
-            (subject.stats.mentions === existing.stats.mentions &&
-              (subject.stats.documents > existing.stats.documents ||
-                subject.stats.verified_media > existing.stats.verified_media))));
-
-      const mergedDrivers = Array.from(
-        new Set([
-          ...(existing.forensics.driver_labels || []),
-          ...(subject.forensics.driver_labels || []),
-        ]),
-      ).slice(0, 4);
-
-      const mergedMentions =
-        Number(existing.stats.mentions || 0) + Number(subject.stats.mentions || 0);
-      const mergedDocuments =
-        Number(existing.stats.documents || 0) + Number(subject.stats.documents || 0);
-      const mergedVerifiedMedia =
-        Number(existing.stats.verified_media || 0) + Number(subject.stats.verified_media || 0);
-
-      const base = preferIncoming ? subject : existing;
-      const other = preferIncoming ? existing : subject;
-
-      const merged: SubjectCardListItemDto & { topPhotoId?: string } = {
-        ...base,
-        role:
-          base.role && base.role !== 'Unknown'
-            ? base.role
-            : other.role && other.role !== 'Unknown'
-              ? other.role
-              : base.role,
-        short_bio: base.short_bio || other.short_bio,
-        stats: {
-          mentions: mergedMentions,
-          documents: mergedDocuments,
-          distinct_sources: Math.max(
-            Number(existing.stats.distinct_sources || 0),
-            Number(subject.stats.distinct_sources || 0),
-          ),
-          verified_media: mergedVerifiedMedia,
-        },
-        forensics: {
-          ...base.forensics,
-          risk_level:
-            Number(subject.forensics.red_flag_objective || 0) >
-            Number(existing.forensics.red_flag_objective || 0)
-              ? subject.forensics.risk_level
-              : existing.forensics.risk_level,
-          evidence_ladder:
-            EVIDENCE_LADDER_RANK[subject.forensics.evidence_ladder as 'NONE' | 'L3' | 'L2' | 'L1'] >
-            EVIDENCE_LADDER_RANK[existing.forensics.evidence_ladder as 'NONE' | 'L3' | 'L2' | 'L1']
-              ? subject.forensics.evidence_ladder
-              : existing.forensics.evidence_ladder,
-          red_flag_objective: Math.max(
-            Number(existing.forensics.red_flag_objective || 0),
-            Number(subject.forensics.red_flag_objective || 0),
-          ),
-          red_flag_subjective: Math.max(
-            Number(existing.forensics.red_flag_subjective || 0),
-            Number(subject.forensics.red_flag_subjective || 0),
-          ),
-          signal_strength: {
-            exposure: Math.min(100, (Math.log10(mergedMentions + 1) / 3) * 100),
-            connectivity: Math.max(
-              Number(existing.forensics.signal_strength?.connectivity || 0),
-              Number(subject.forensics.signal_strength?.connectivity || 0),
-            ),
-            corroboration: Math.min(100, mergedVerifiedMedia * 20),
-          },
-          driver_labels: mergedDrivers,
-        },
-        topPhotoId: (base as any).topPhotoId || (other as any).topPhotoId,
-      };
-
-      mergedByNormalizedName.set(norm, merged);
+    } catch (error: any) {
+      const message = String(error?.message || '');
+      const isStatementTimeout = error?.code === '57014' || /statement timeout/i.test(message);
+      if (!isStatementTimeout) throw error;
+      return getSubjectCardsFallback(page, limit, filters, sortBy);
     }
-
-    const riskRank = (value: string | undefined): number => {
-      const level = String(value || 'LOW').toUpperCase();
-      if (level === 'HIGH') return 3;
-      if (level === 'MEDIUM') return 2;
-      return 1;
-    };
-    const dir = sortOrder === 'ASC' ? 1 : -1;
-    const normalizedSubjects = Array.from(mergedByNormalizedName.values()).sort((a, b) => {
-      const aRfi = Number(a.forensics.red_flag_objective || a.forensics.red_flag_subjective || 0);
-      const bRfi = Number(b.forensics.red_flag_objective || b.forensics.red_flag_subjective || 0);
-      const aRisk = riskRank(a.forensics.risk_level);
-      const bRisk = riskRank(b.forensics.risk_level);
-      const aMentions = Number(a.stats.mentions || 0);
-      const bMentions = Number(b.stats.mentions || 0);
-      const aDocs = Number(a.stats.documents || 0);
-      const bDocs = Number(b.stats.documents || 0);
-      const aPenalty = inferredEntityPenalty(a.name, a.role);
-      const bPenalty = inferredEntityPenalty(b.name, b.role);
-      const aInferred = isLikelyInferredEntity(a.name, a.role);
-      const bInferred = isLikelyInferredEntity(b.name, b.role);
-
-      if (aInferred !== bInferred) return aInferred ? 1 : -1;
-
-      if (sortKey === 'red_flag' || sortKey === 'rfi' || sortKey === 'default') {
-        if (aRfi !== bRfi) return (aRfi - bRfi) * dir;
-        if (aRisk !== bRisk) return (aRisk - bRisk) * dir;
-        if (aPenalty !== bPenalty) return aPenalty - bPenalty;
-        if (aMentions !== bMentions) return (aMentions - bMentions) * dir;
-      } else if (sortKey === 'risk') {
-        if (aRisk !== bRisk) return (aRisk - bRisk) * dir;
-        if (aRfi !== bRfi) return (aRfi - bRfi) * dir;
-        if (aPenalty !== bPenalty) return aPenalty - bPenalty;
-        if (aMentions !== bMentions) return (aMentions - bMentions) * dir;
-      } else if (sortKey === 'mentions') {
-        if (aMentions !== bMentions) return (aMentions - bMentions) * dir;
-        if (aPenalty !== bPenalty) return aPenalty - bPenalty;
-        if (aRfi !== bRfi) return bRfi - aRfi;
-        if (aRisk !== bRisk) return bRisk - aRisk;
-      } else if (sortKey === 'document_count' || sortKey === 'document-count') {
-        if (aDocs !== bDocs) return (aDocs - bDocs) * dir;
-        if (aPenalty !== bPenalty) return aPenalty - bPenalty;
-        if (aRfi !== bRfi) return bRfi - aRfi;
-        if (aRisk !== bRisk) return bRisk - aRisk;
-        if (aMentions !== bMentions) return bMentions - aMentions;
-      }
-
-      const vipCmp = Number((b as any).isVip || 0) - Number((a as any).isVip || 0);
-      if (vipCmp !== 0) return vipCmp;
-      return a.name.localeCompare(b.name);
-    });
-
-    return {
-      subjects: normalizedSubjects,
-      total,
-    };
   },
 
   startBackgroundJunkBackfill: () => {

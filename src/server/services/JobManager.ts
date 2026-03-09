@@ -11,76 +11,91 @@ export class JobManager {
 
   /**
    * Acquires a lock on the next available document.
-   * @param collectionPriority Optional ordered list of source_collection values —
-   *   collections listed first are drained before later ones. Compute once per
-   *   pipeline run (e.g. sorted by % complete desc) and reuse across all calls.
+   * Single-job variant — prefer acquireJobBatch for throughput-sensitive loops.
    */
   async acquireJob(ttlSeconds: number = 300, collectionPriority?: string[]) {
+    const batch = await this.acquireJobBatch(1, ttlSeconds, collectionPriority);
+    return batch[0] ?? null;
+  }
+
+  /**
+   * Atomically leases up to `n` documents in a single transaction.
+   * One DB round-trip fills all available worker slots at once, so AI calls
+   * launch simultaneously instead of serialising behind individual acquires.
+   *
+   * Returns an array of { id, file_path, source_collection, processing_attempts }.
+   */
+  async acquireJobBatch(
+    n: number,
+    ttlSeconds: number = 300,
+    collectionPriority?: string[],
+  ): Promise<
+    Array<{
+      id: number;
+      file_path: string;
+      source_collection: string | null;
+      processing_attempts: number;
+    }>
+  > {
+    if (n <= 0) return [];
     const pool = getApiPool();
     const client = await pool.connect();
 
     try {
       await client.query('BEGIN');
 
-      let findSql: string;
+      let orderClause: string;
       let findParams: unknown[];
 
       if (collectionPriority && collectionPriority.length > 0) {
         const cases = collectionPriority
-          .map((_, i) => `WHEN source_collection = $${i + 1} THEN ${i}`)
+          .map((_, i) => `WHEN source_collection = $${i + 2} THEN ${i}`)
           .join(' ');
-        findParams = [...collectionPriority];
-        findSql = `
-          SELECT id, file_path, processing_attempts
-          FROM documents
-          WHERE processing_status = 'queued'
-             OR (processing_status = 'processing' AND lease_expires_at < now())
-          ORDER BY
-             CASE WHEN processing_status = 'processing' THEN 0 ELSE 1 END,
-             CASE ${cases} ELSE ${collectionPriority.length} END,
-             created_at ASC
-          LIMIT 1
-          FOR UPDATE SKIP LOCKED
+        // $1 = limit n, $2..$(n+1) = collection names
+        findParams = [n, ...collectionPriority];
+        orderClause = `
+          CASE WHEN processing_status = 'processing' THEN 0 ELSE 1 END,
+          CASE ${cases} ELSE ${collectionPriority.length} END,
+          created_at ASC
         `;
       } else {
-        findParams = [];
-        findSql = `
-          SELECT id, file_path, processing_attempts
-          FROM documents
-          WHERE processing_status = 'queued'
-             OR (processing_status = 'processing' AND lease_expires_at < now())
-          ORDER BY
-             CASE WHEN processing_status = 'processing' THEN 0 ELSE 1 END,
-             created_at ASC
-          LIMIT 1
-          FOR UPDATE SKIP LOCKED
+        findParams = [n];
+        orderClause = `
+          CASE WHEN processing_status = 'processing' THEN 0 ELSE 1 END,
+          created_at ASC
         `;
       }
 
-      const { rows } = await client.query(findSql, findParams);
-      const candidate = rows[0];
-
-      if (!candidate) {
-        await client.query('ROLLBACK');
-        return null;
-      }
-
-      // 2. Lock it
-      const lockSql = `
-        UPDATE documents 
-        SET 
-          processing_status = 'processing',
-          worker_id = $1,
-          lease_expires_at = now() + ($2 || ' seconds')::interval,
-          processing_attempts = processing_attempts + 1,
-          last_processed_at = now()
-        WHERE id = $3
+      const findSql = `
+        SELECT id, file_path, source_collection, processing_attempts
+        FROM documents
+        WHERE processing_status = 'queued'
+           OR (processing_status = 'processing' AND lease_expires_at < now())
+        ORDER BY ${orderClause}
+        LIMIT $1
+        FOR UPDATE SKIP LOCKED
       `;
 
-      await client.query(lockSql, [this.workerId, ttlSeconds, candidate.id]);
-      await client.query('COMMIT');
+      const { rows } = await client.query(findSql, findParams);
+      if (rows.length === 0) {
+        await client.query('ROLLBACK');
+        return [];
+      }
 
-      return candidate;
+      const ids = rows.map((r) => r.id);
+      await client.query(
+        `UPDATE documents
+         SET processing_status    = 'processing',
+             worker_id            = $1,
+             lease_expires_at     = now() + ($2 || ' seconds')::interval,
+             processing_attempts  = processing_attempts + 1,
+             last_processed_at    = now()
+         WHERE id = ANY($3)`,
+        [this.workerId, ttlSeconds, ids],
+      );
+
+      await client.query('COMMIT');
+      return rows;
     } catch (e) {
       await client.query('ROLLBACK');
       throw e;
