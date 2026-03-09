@@ -187,9 +187,14 @@ export const DocumentModal: React.FC<Props> = ({
     'metadata' | 'entities' | 'case' | 'timeline'
   >('metadata');
   const rightPaneScrollRef = useRef<HTMLDivElement | null>(null);
+  const hasAutoSwitchedNoOcrRef = useRef(false);
 
   const { modalRef } = useModalFocusTrap(true);
   useScrollLock(true);
+
+  useEffect(() => {
+    hasAutoSwitchedNoOcrRef.current = false;
+  }, [id]);
 
   useEffect(() => {
     let mounted = true;
@@ -228,6 +233,19 @@ export const DocumentModal: React.FC<Props> = ({
       mounted = false;
     };
   }, [id]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const hasExplicitTab = params.has('modalTab');
+    const hasAnyText = Boolean(String(doc?.contentRefined || doc?.content || '').trim());
+
+    if (hasExplicitTab || hasAnyText || hasAutoSwitchedNoOcrRef.current || activeTab !== 'analysis') {
+      return;
+    }
+
+    hasAutoSwitchedNoOcrRef.current = true;
+    setActiveTab('pdf');
+  }, [activeTab, doc?.content, doc?.contentRefined, location.search]);
 
   useEffect(() => {
     const announcement = document.createElement('div');
