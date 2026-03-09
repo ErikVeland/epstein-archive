@@ -149,28 +149,35 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
       </div>
 
       {/* Desktop inline detailed filters */}
-      <div className="bg-slate-900/80 border border-slate-700/60 rounded-xl p-6 shadow-2xl backdrop-blur-md">
+      <div className="bg-slate-900/80 border border-slate-700/60 rounded-[var(--radius-md)] p-6 shadow-2xl backdrop-blur-md">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* File Type Filter */}
           <div>
             <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">
               File Formats
             </label>
-            <div className="grid grid-cols-2 gap-2">
-              {fileTypeOptions.map((option) => (
-                <label key={option.value} className="flex items-center gap-2 cursor-pointer group">
-                  <input
-                    type="checkbox"
-                    checked={localFilters.fileType?.includes(option.value) || false}
-                    onChange={() => handleFileTypeToggle(option.value)}
-                    className="w-4 h-4 rounded border-slate-700 bg-slate-800 text-blue-600 focus:ring-blue-500/20"
-                  />
-                  <span className="text-xs text-slate-300 group-hover:text-white transition-colors">
-                    {option.label}
-                  </span>
-                </label>
-              ))}
-            </div>
+            {fileTypeOptions.length === 0 ? (
+              <div className="text-xs text-slate-500 italic">No file-type facets available.</div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                {fileTypeOptions.map((option) => (
+                  <label
+                    key={option.value}
+                    className="flex items-center gap-2 cursor-pointer group"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={localFilters.fileType?.includes(option.value) || false}
+                      onChange={() => handleFileTypeToggle(option.value)}
+                      className="w-4 h-4 rounded-[var(--radius-sm)] border-slate-700 bg-slate-800 text-blue-600 focus:ring-blue-500/20"
+                    />
+                    <span className="text-xs text-slate-300 group-hover:text-white transition-colors">
+                      {option.label}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Source Filter */}
@@ -178,23 +185,27 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
             <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">
               Archive Source
             </label>
-            <select
-              multiple
-              value={localFilters.source || []}
-              onChange={(e) =>
-                handleFilterChange(
-                  'source',
-                  Array.from(e.target.selectedOptions, (opt) => opt.value),
-                )
-              }
-              className="w-full h-32 bg-slate-800/50 border border-slate-700/50 rounded-lg p-2 text-xs text-slate-300 focus:ring-1 focus:ring-blue-500/50 outline-none scrollbar-thin"
-            >
-              {sourceOptions.map((opt) => (
-                <option key={opt.value} value={opt.value} className="py-1 px-1">
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+            {sourceOptions.length === 0 ? (
+              <div className="text-xs text-slate-500 italic">No source facets available.</div>
+            ) : (
+              <select
+                multiple
+                value={localFilters.source || []}
+                onChange={(e) =>
+                  handleFilterChange(
+                    'source',
+                    Array.from(e.target.selectedOptions, (opt) => opt.value),
+                  )
+                }
+                className="w-full h-32 bg-slate-800/50 border border-slate-700/50 rounded-[var(--radius-md)] p-2 text-xs text-slate-300 focus:ring-1 focus:ring-blue-500/50 outline-none scrollbar-thin"
+              >
+                {sourceOptions.map((opt) => (
+                  <option key={opt.value} value={opt.value} className="py-1 px-1">
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
 
           {/* Date range */}
@@ -213,7 +224,7 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
                       start: e.target.value,
                     })
                   }
-                  className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-3 py-2 text-xs text-slate-200 outline-none focus:border-blue-500/50"
+                  className="w-full bg-slate-800/50 border border-slate-700/50 rounded-[var(--radius-md)] px-3 py-2 text-xs text-slate-200 outline-none focus:border-blue-500/50"
                 />
                 <span className="absolute -top-2 left-2 px-1 bg-slate-900 text-[10px] text-slate-500">
                   From
@@ -229,7 +240,7 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
                       end: e.target.value,
                     })
                   }
-                  className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-3 py-2 text-xs text-slate-200 outline-none focus:border-blue-500/50"
+                  className="w-full bg-slate-800/50 border border-slate-700/50 rounded-[var(--radius-md)] px-3 py-2 text-xs text-slate-200 outline-none focus:border-blue-500/50"
                 />
                 <span className="absolute -top-2 left-2 px-1 bg-slate-900 text-[10px] text-slate-500">
                   To
@@ -244,7 +255,7 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
               <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">
                 Trust & Integrity
               </label>
-              <label className="flex items-center gap-3 p-3 bg-slate-800/40 border border-slate-700/40 rounded-lg cursor-pointer hover:bg-slate-800/60 transition-colors">
+              <label className="flex items-center gap-3 p-3 bg-slate-800/40 border border-slate-700/40 rounded-[var(--radius-md)] cursor-pointer hover:bg-slate-800/60 transition-colors">
                 <input
                   type="checkbox"
                   checked={hideLowCredibility}
@@ -261,7 +272,7 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
                   Logical Collections
                 </label>
                 <select
-                  className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg p-2 text-xs text-slate-300 outline-none"
+                  className="w-full bg-slate-800/50 border border-slate-700/50 rounded-[var(--radius-md)] p-2 text-xs text-slate-300 outline-none"
                   value={localFilters.collectionId || ''}
                   onChange={(e) => handleFilterChange('collectionId', e.target.value || undefined)}
                 >

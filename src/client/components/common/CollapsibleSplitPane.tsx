@@ -67,7 +67,7 @@ export const CollapsibleSplitPane: React.FC<CollapsibleSplitPaneProps> = ({
   );
 
   const startResize = useCallback(
-    (event: React.PointerEvent<HTMLButtonElement>) => {
+    (event: React.PointerEvent<HTMLElement>) => {
       if (collapsed) return;
       const root = rootRef.current;
       if (!root) return;
@@ -176,33 +176,29 @@ export const CollapsibleSplitPane: React.FC<CollapsibleSplitPaneProps> = ({
     <div ref={rootRef} className={`flex h-full min-h-0 min-w-0 ${className}`}>
       <div className="flex-1 min-w-0 min-h-0">{left}</div>
 
-      <div className="shrink-0 flex items-stretch" style={rightStyle}>
-        <div className="w-10 border-l border-white/5 bg-slate-950/40 flex flex-col items-center py-6 gap-6 shrink-0 relative z-10">
+      <div className="shrink-0 relative min-h-0" style={rightStyle}>
+        {!collapsed && (
           <button
             type="button"
-            onClick={() => setCollapsed(!collapsed)}
-            className="h-8 w-8 rounded-full flex items-center justify-center text-slate-400 hover:text-cyan-400 hover:bg-cyan-500/10 hover:border-cyan-500/20 border border-transparent transition-all outline-none"
-            aria-label={collapsed ? expandAriaLabel : collapseAriaLabel}
-            title={collapsed ? expandAriaLabel : collapseAriaLabel}
-          >
-            {collapsed ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-          </button>
+            onPointerDown={startResize}
+            onKeyDown={handleDividerKeyDown}
+            className="absolute left-0 top-0 h-full w-2 cursor-col-resize z-20 bg-transparent hover:bg-cyan-500/10 transition-colors outline-none"
+            aria-label={dividerAriaLabel}
+            title={dividerAriaLabel}
+          />
+        )}
 
-          {!collapsed && (
-            <button
-              type="button"
-              onPointerDown={startResize}
-              onKeyDown={handleDividerKeyDown}
-              className="h-12 w-8 flex items-center justify-center text-slate-600 hover:text-cyan-400/60 cursor-col-resize outline-none group"
-              aria-label={dividerAriaLabel}
-              title={dividerAriaLabel}
-            >
-              <div className="w-1 h-8 rounded-full bg-slate-800 group-hover:bg-cyan-500/30 transition-colors" />
-            </button>
-          )}
-        </div>
+        <button
+          type="button"
+          onClick={() => setCollapsed(!collapsed)}
+          className="absolute left-2 top-4 h-8 w-8 rounded-full flex items-center justify-center text-slate-400 hover:text-cyan-400 hover:bg-cyan-500/10 hover:border-cyan-500/20 border border-transparent transition-all outline-none z-30"
+          aria-label={collapsed ? expandAriaLabel : collapseAriaLabel}
+          title={collapsed ? expandAriaLabel : collapseAriaLabel}
+        >
+          {collapsed ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+        </button>
 
-        <div className="min-w-0 min-h-0 flex-1 border-l border-slate-700/60 bg-slate-900/45">
+        <div className="min-w-0 min-h-0 h-full border-l border-slate-700/60 bg-slate-900/45">
           {collapsed ? collapsedRight : right}
         </div>
       </div>

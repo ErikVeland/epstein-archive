@@ -14,6 +14,7 @@ interface ViewerShellProps {
   bodyClassName?: string;
   bodyRef?: React.RefObject<HTMLDivElement>;
   bodyTestId?: string;
+  bodyScrollable?: boolean;
 }
 
 export const ViewerShell: React.FC<ViewerShellProps> = ({
@@ -29,6 +30,7 @@ export const ViewerShell: React.FC<ViewerShellProps> = ({
   bodyClassName = '',
   bodyRef,
   bodyTestId,
+  bodyScrollable = true,
 }) => {
   return (
     <div className={`flex h-full min-h-0 flex-col overflow-hidden ${className}`}>
@@ -36,7 +38,9 @@ export const ViewerShell: React.FC<ViewerShellProps> = ({
         className={`shrink-0 flex items-center justify-between gap-6 border-b border-white/5 bg-slate-900/20 ${headerClassName}`}
       >
         <div className="min-w-0 flex-1">{header}</div>
-        {actions ? <div className="shrink-0 flex items-center gap-3">{actions}</div> : null}
+        {actions ? (
+          <div className="shrink-0 flex items-center gap-3 pr-4 md:pr-8">{actions}</div>
+        ) : null}
       </header>
 
       {tabs && activeTab && onTabChange ? (
@@ -47,7 +51,7 @@ export const ViewerShell: React.FC<ViewerShellProps> = ({
 
       <div
         ref={bodyRef}
-        className={`flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar ${bodyClassName}`}
+        className={`flex-1 min-h-0 overflow-x-hidden ${bodyScrollable ? 'overflow-y-auto custom-scrollbar' : 'overflow-hidden'} ${bodyClassName}`}
         data-testid={bodyTestId}
       >
         {children}

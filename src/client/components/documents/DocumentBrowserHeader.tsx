@@ -89,6 +89,11 @@ export const DocumentBrowserHeader: React.FC<DocumentBrowserHeaderProps> = ({
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             className="control w-full h-11 pl-10 pr-10 text-sm bg-slate-900 border-slate-700 focus:outline-none focus:border-blue-500"
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="off"
+            spellCheck={false}
+            name="document_browser_search"
           />
           {searchInput && (
             <button
@@ -152,36 +157,21 @@ export const DocumentBrowserHeader: React.FC<DocumentBrowserHeaderProps> = ({
           >
             {densityMode === 'compact' ? 'Compact' : 'Comfortable'}
           </button>
-          <div
-            className="control h-11 p-1 inline-flex items-center gap-1"
-            role="group"
-            aria-label="Document view mode"
+          <button
+            onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
+            className="control h-11 px-3 inline-flex items-center gap-2 text-sm"
+            aria-label={`Switch to ${viewMode === 'grid' ? 'list' : 'grid'} view`}
+            title={`Switch to ${viewMode === 'grid' ? 'list' : 'grid'} view`}
           >
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`h-9 w-9 p-0 inline-flex items-center justify-center rounded-[calc(var(--radius-md)-4px)] transition-colors ${
-                viewMode === 'grid'
-                  ? 'bg-blue-600/30 text-blue-200'
-                  : 'text-gray-300 hover:bg-slate-800/70 hover:text-white'
-              }`}
-              aria-label="Grid view"
-              aria-pressed={viewMode === 'grid'}
-            >
+            {viewMode === 'grid' ? (
               <LayoutGrid className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setViewMode('list')}
-              className={`h-9 w-9 p-0 inline-flex items-center justify-center rounded-[calc(var(--radius-md)-4px)] transition-colors ${
-                viewMode === 'list'
-                  ? 'bg-blue-600/30 text-blue-200'
-                  : 'text-gray-300 hover:bg-slate-800/70 hover:text-white'
-              }`}
-              aria-label="List view"
-              aria-pressed={viewMode === 'list'}
-            >
+            ) : (
               <ListIcon className="w-4 h-4" />
-            </button>
-          </div>
+            )}
+            <span className="text-xs uppercase tracking-wider font-semibold">
+              {viewMode === 'grid' ? 'Grid' : 'List'}
+            </span>
+          </button>
           <button
             onClick={() => setShowFilters(!showFilters)}
             className="control h-11 px-3 text-sm inline-flex items-center gap-1.5"

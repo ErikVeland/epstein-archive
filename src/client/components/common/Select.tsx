@@ -32,7 +32,7 @@ export const Select: React.FC<SelectProps> = ({
         <select
           className={`
             w-full appearance-none bg-slate-900 border border-slate-700 
-            text-white text-sm rounded-lg pl-3 pr-10 py-2.5 
+            text-white text-sm rounded-[var(--radius-md)] pl-3 pr-10 py-2.5 
             focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500
             hover:bg-slate-800 hover:border-slate-600 transition-all cursor-pointer
             ${error ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : ''}

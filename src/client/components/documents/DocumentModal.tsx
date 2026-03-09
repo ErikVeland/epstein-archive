@@ -34,7 +34,7 @@ interface Props {
   initialDoc?: any;
 }
 
-type ViewerTab = 'analysis' | 'pdf' | 'annotations' | 'provenance';
+type ViewerTab = 'analysis' | 'pdf' | 'provenance';
 
 type TextSubview = 'clean' | 'ocr' | 'diff';
 
@@ -45,8 +45,7 @@ const VIEWER_TABS: Array<{
   count?: number;
 }> = [
   { key: 'analysis', label: 'Summary & Analysis' },
-  { key: 'pdf', label: 'PDF View' },
-  { key: 'annotations', label: 'Annotations' },
+  { key: 'pdf', label: 'Original Document' },
   { key: 'provenance', label: 'Provenance' },
 ];
 
@@ -184,6 +183,10 @@ export const DocumentModal: React.FC<Props> = ({
   const [localSearchTerm, setLocalSearchTerm] = useState(initialSearchTerm || '');
   const [isLoadingRelated, setIsLoadingRelated] = useState(false);
   const [isReadingMode, setIsReadingMode] = useState(false);
+  const [activeRailSection, setActiveRailSection] = useState<
+    'metadata' | 'entities' | 'case' | 'timeline'
+  >('metadata');
+  const rightPaneScrollRef = useRef<HTMLDivElement | null>(null);
 
   const { modalRef } = useModalFocusTrap(true);
   useScrollLock(true);
@@ -265,6 +268,18 @@ export const DocumentModal: React.FC<Props> = ({
     return () => window.removeEventListener('resize', syncPaneMode);
   }, []);
 
+  useEffect(() => {
+    if (rightPaneCollapsed) return;
+    const scroller = rightPaneScrollRef.current;
+    if (!scroller) return;
+    const target = scroller.querySelector<HTMLElement>(
+      `[data-rail-section="${activeRailSection}"]`,
+    );
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [activeRailSection, rightPaneCollapsed]);
+
   const entities = useMemo(() => {
     const fromDoc = Array.isArray(doc?.entities) ? doc.entities : [];
     const fromMentioned = Array.isArray(doc?.mentionedEntities) ? doc.mentionedEntities : [];
@@ -345,14 +360,19 @@ export const DocumentModal: React.FC<Props> = ({
     );
   }
 
-  const downloadText = () => {
-    const blob = new Blob([String(doc.content || '')], { type: 'text/plain' });
+  const getOriginalDocumentUrl = () => `/api/documents/${id}/file?variant=dirty`;
+
+  const downloadOriginalDocument = () => {
     const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `${doc.fileName || 'document'}.txt`;
+    link.href = getOriginalDocumentUrl();
+    link.download = `${doc.fileName || 'original-document'}`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const openOriginalDocument = () => {
+    window.open(getOriginalDocumentUrl(), '_blank', 'noopener,noreferrer');
   };
 
   const cleanText = String(doc.contentRefined || doc.content || '');
@@ -530,7 +550,61 @@ export const DocumentModal: React.FC<Props> = ({
   const mainPanel = () => {
     switch (activeTab) {
       case 'pdf':
-        return <PDFVariantViewer documentId={id} className="h-[calc(100vh-320px)] min-h-[600px]" />;
+        if (String(doc.evidenceType || '').toLowerCase() === 'email') {
+          return (
+            <div className="space-y-5">
+              <div className="surface-quiet p-5">
+                <h3 className="text-sm font-semibold text-slate-100 mb-3">Email Viewer</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <div className="text-[10px] uppercase tracking-widest text-slate-500 mb-1">
+                      From
+                    </div>
+                    <div className="text-slate-200 break-all">{doc.metadata?.from || 'N/A'}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] uppercase tracking-widest text-slate-500 mb-1">
+                      To
+                    </div>
+                    <div className="text-slate-200 break-all">{doc.metadata?.to || 'N/A'}</div>
+                  </div>
+                  <div className="md:col-span-2">
+                    <div className="text-[10px] uppercase tracking-widest text-slate-500 mb-1">
+                      Subject
+                    </div>
+                    <div className="text-slate-100">
+                      {doc.metadata?.subject || doc.title || 'No subject'}
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <button
+                    type="button"
+                    onClick={openOriginalDocument}
+                    className="control h-10 px-4 text-xs font-semibold"
+                  >
+                    Open Original Email Source
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        }
+
+        return (
+          <div className="space-y-5">
+            <PDFVariantViewer documentId={id} className="h-[calc(100vh-360px)] min-h-[520px]" />
+            <section className="surface-quiet p-5">
+              <h3 className="text-sm font-semibold text-slate-100 mb-3">Annotations</h3>
+              <DocumentAnnotationSystem
+                documentId={String(doc.id || id)}
+                content={cleanText || ocrText}
+                searchTerm={localSearchTerm}
+                mode="inline"
+              />
+            </section>
+          </div>
+        );
       case 'analysis':
         return (
           <div className="space-y-8">
@@ -574,7 +648,24 @@ export const DocumentModal: React.FC<Props> = ({
                 </button>
               ))}
             </div>
-            {textSubview === 'diff' ? (
+            {!cleanText.trim() && !ocrText.trim() ? (
+              <section className="surface-quiet p-6">
+                <h3 className="text-sm font-semibold text-slate-100 mb-2">
+                  No OCR Text Available Yet
+                </h3>
+                <p className="text-sm text-slate-400 mb-4">
+                  This record does not have extracted text yet. You can still inspect the original
+                  file now.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('pdf')}
+                  className="control h-10 px-4 text-xs font-semibold"
+                >
+                  View Original Document
+                </button>
+              </section>
+            ) : textSubview === 'diff' ? (
               <DocumentDiffView cleanText={cleanText} originalText={ocrText} />
             ) : (
               <InvestigationTextRenderer
@@ -591,21 +682,19 @@ export const DocumentModal: React.FC<Props> = ({
 
             {textSubview === 'clean' && (
               <div className="pt-12 border-t border-white/5 space-y-12">
+                <section className="surface-quiet p-5">
+                  <h3 className="text-sm font-semibold text-slate-100 mb-3">Annotations</h3>
+                  <DocumentAnnotationSystem
+                    documentId={String(doc.id || id)}
+                    content={cleanText || ocrText}
+                    searchTerm={localSearchTerm}
+                    mode="inline"
+                  />
+                </section>
                 {entitiesPanel}
                 {relatedPanel}
               </div>
             )}
-          </div>
-        );
-      case 'annotations':
-        return (
-          <div className="h-full flex flex-col">
-            <DocumentAnnotationSystem
-              documentId={String(doc.id || id)}
-              content={cleanText || ocrText}
-              searchTerm={localSearchTerm}
-              mode="full"
-            />
           </div>
         );
       case 'provenance':
@@ -617,7 +706,12 @@ export const DocumentModal: React.FC<Props> = ({
 
   const rightPaneContent = (
     <div className="space-y-6 pb-8">
-      <section className="bg-slate-900/40 border border-white/5 rounded-2xl p-5 overflow-hidden shadow-xl shadow-black/20">
+      <section
+        data-rail-section="metadata"
+        className={`bg-slate-900/40 border rounded-2xl p-5 overflow-hidden shadow-xl shadow-black/20 ${
+          activeRailSection === 'metadata' ? 'border-cyan-500/35' : 'border-white/5'
+        }`}
+      >
         <h3 className="text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-5 font-black flex items-center gap-2.5">
           <FileText className="w-3.5 h-3.5 text-cyan-500/80" />
           Core Metadata
@@ -652,7 +746,12 @@ export const DocumentModal: React.FC<Props> = ({
         </div>
       </section>
 
-      <section className="bg-slate-900/40 border border-white/5 rounded-2xl p-5 shadow-lg shadow-black/10">
+      <section
+        data-rail-section="entities"
+        className={`bg-slate-900/40 border rounded-2xl p-5 shadow-lg shadow-black/10 ${
+          activeRailSection === 'entities' ? 'border-cyan-500/35' : 'border-white/5'
+        }`}
+      >
         <button
           type="button"
           onClick={() => setExpandedEntities((prev) => !prev)}
@@ -753,7 +852,12 @@ export const DocumentModal: React.FC<Props> = ({
       </section>
 
       <div className="grid grid-cols-1 gap-5">
-        <section className="bg-slate-900/40 border border-white/5 rounded-2xl p-5 shadow-lg shadow-black/10">
+        <section
+          data-rail-section="case"
+          className={`bg-slate-900/40 border rounded-2xl p-5 shadow-lg shadow-black/10 ${
+            activeRailSection === 'case' ? 'border-cyan-500/35' : 'border-white/5'
+          }`}
+        >
           <h3 className="text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-4 font-black">
             Case Reference
           </h3>
@@ -773,7 +877,12 @@ export const DocumentModal: React.FC<Props> = ({
           )}
         </section>
 
-        <section className="bg-slate-900/40 border border-white/5 rounded-2xl p-5 shadow-lg shadow-black/10">
+        <section
+          data-rail-section="timeline"
+          className={`bg-slate-900/40 border rounded-2xl p-5 shadow-lg shadow-black/10 ${
+            activeRailSection === 'timeline' ? 'border-cyan-500/35' : 'border-white/5'
+          }`}
+        >
           <h3 className="text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-4 font-black">
             Timeline Hook
           </h3>
@@ -902,6 +1011,11 @@ export const DocumentModal: React.FC<Props> = ({
                   className="control !h-12 w-full pl-10 pr-4 !bg-slate-950/40 border-white/5 focus:!border-cyan-500/50 transition-all text-sm"
                   value={localSearchTerm}
                   onChange={(e) => setLocalSearchTerm(e.target.value)}
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck={false}
+                  name="document_record_search"
                 />
               </div>
               <div className="h-8 w-px bg-white/5 mx-1 md:block hidden" />
@@ -915,9 +1029,9 @@ export const DocumentModal: React.FC<Props> = ({
                 </button>
               )}
               <button
-                onClick={downloadText}
+                onClick={downloadOriginalDocument}
                 className="control !h-12 w-12 flex items-center justify-center text-slate-400 hover:text-cyan-400"
-                title="Download Document"
+                title="Download Original Document"
               >
                 <Download className="w-5 h-5" />
               </button>
@@ -935,12 +1049,13 @@ export const DocumentModal: React.FC<Props> = ({
           tabsClassName="px-4 md:px-8"
           bodyRef={contentRef}
           bodyClassName="selection:bg-cyan-500/30"
+          bodyScrollable={false}
           bodyTestId="document-modal-scroll-region"
         >
           <CollapsibleSplitPane
             left={
               <div
-                className="h-full px-5 md:px-12 py-8 md:py-10"
+                className="h-full overflow-y-auto custom-scrollbar px-5 md:px-12 py-8 md:py-10"
                 role="tabpanel"
                 id={`panel-${activeTab}`}
                 aria-labelledby={`tab-${activeTab}`}
@@ -950,24 +1065,68 @@ export const DocumentModal: React.FC<Props> = ({
               </div>
             }
             right={
-              <aside className="h-full bg-slate-950/10">
-                <div className="h-full px-6 md:px-8 py-8 md:py-10">{rightPaneContent}</div>
+              <aside className="h-full bg-slate-950/10 overflow-y-auto custom-scrollbar">
+                <div ref={rightPaneScrollRef} className="h-full px-6 md:px-8 py-8 md:py-10">
+                  {rightPaneContent}
+                </div>
               </aside>
             }
             collapsedRight={
               <div className="h-full flex flex-col items-center py-8 gap-8 bg-slate-900/10">
                 <button
                   type="button"
-                  onClick={() => setRightPaneCollapsed(false)}
+                  onClick={() => {
+                    setActiveRailSection('metadata');
+                    setRightPaneCollapsed(false);
+                  }}
                   className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 hover:bg-cyan-500/20 transition-all shadow-lg shadow-cyan-900/20"
-                  title="Expand Intelligence Rail"
+                  title="Core metadata"
                 >
                   <Sparkles className="w-6 h-6" />
                 </button>
                 <div className="w-8 h-px bg-white/5" />
-                <Users className="w-5 h-5 text-slate-600 hover:text-cyan-400/60 cursor-pointer transition-colors" />
-                <Link2 className="w-5 h-5 text-slate-600 hover:text-cyan-400/60 cursor-pointer transition-colors" />
-                <Calendar className="w-5 h-5 text-slate-600 hover:text-cyan-400/60 cursor-pointer transition-colors" />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveRailSection('entities');
+                    setRightPaneCollapsed(false);
+                  }}
+                  className="relative group w-10 h-10 rounded-xl inline-flex items-center justify-center text-slate-500 hover:text-cyan-300 hover:bg-cyan-500/10 transition-colors"
+                  aria-label="Live entities"
+                >
+                  <Users className="w-5 h-5" />
+                  <span className="pointer-events-none absolute left-12 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-[10px] text-slate-200 opacity-0 group-hover:opacity-100 transition-opacity">
+                    Live Entities
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveRailSection('case');
+                    setRightPaneCollapsed(false);
+                  }}
+                  className="relative group w-10 h-10 rounded-xl inline-flex items-center justify-center text-slate-500 hover:text-cyan-300 hover:bg-cyan-500/10 transition-colors"
+                  aria-label="Case references"
+                >
+                  <Link2 className="w-5 h-5" />
+                  <span className="pointer-events-none absolute left-12 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-[10px] text-slate-200 opacity-0 group-hover:opacity-100 transition-opacity">
+                    Case References
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveRailSection('timeline');
+                    setRightPaneCollapsed(false);
+                  }}
+                  className="relative group w-10 h-10 rounded-xl inline-flex items-center justify-center text-slate-500 hover:text-cyan-300 hover:bg-cyan-500/10 transition-colors"
+                  aria-label="Timeline hooks"
+                >
+                  <Calendar className="w-5 h-5" />
+                  <span className="pointer-events-none absolute left-12 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-[10px] text-slate-200 opacity-0 group-hover:opacity-100 transition-opacity">
+                    Timeline Hooks
+                  </span>
+                </button>
               </div>
             }
             defaultRightWidth={rightPaneWidth}
