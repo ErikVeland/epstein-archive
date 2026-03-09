@@ -3,7 +3,7 @@ import './Tabs.css';
 
 export interface TabItem {
   key: string;
-  label: string;
+  label: React.ReactNode;
   icon?: React.ReactNode;
   count?: number;
 }
