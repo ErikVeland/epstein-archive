@@ -134,8 +134,8 @@ export const CollapsibleSplitPane: React.FC<CollapsibleSplitPaneProps> = ({
   if (mode === 'singleRight') {
     return (
       <div ref={rootRef} className={`flex h-full min-h-0 min-w-0 ${className}`}>
-        <div className="shrink-0 flex items-stretch" style={rightStyle}>
-          <div className="w-10 border-r border-white/5 bg-slate-950/40 flex flex-col items-center py-6 gap-6 shrink-0 relative z-10">
+        <div className="shrink-0 flex items-stretch relative z-20" style={rightStyle}>
+          <div className="w-10 border-r border-white/5 bg-slate-950/60 flex flex-col items-center py-6 gap-6 shrink-0 relative z-30">
             <button
               type="button"
               onClick={() => setCollapsed(!collapsed)}
@@ -164,7 +164,7 @@ export const CollapsibleSplitPane: React.FC<CollapsibleSplitPaneProps> = ({
             )}
           </div>
 
-          <div className="min-w-0 min-h-0 flex-1 bg-slate-900/45">
+          <div className="min-w-0 min-h-0 flex-1 relative z-20 overflow-visible border-l border-slate-700/60 bg-slate-950/50">
             {collapsed ? collapsedRight : right}
           </div>
         </div>

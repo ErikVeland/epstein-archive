@@ -1072,7 +1072,7 @@ export const DocumentModal: React.FC<Props> = ({
               </aside>
             }
             collapsedRight={
-              <div className="h-full flex flex-col items-center py-8 gap-8 bg-slate-900/10">
+              <div className="h-full flex flex-col items-center pt-14 pb-8 gap-8 bg-slate-950/40 overflow-visible">
                 <button
                   type="button"
                   onClick={() => {
@@ -1095,7 +1095,7 @@ export const DocumentModal: React.FC<Props> = ({
                   aria-label="Live entities"
                 >
                   <Users className="w-5 h-5" />
-                  <span className="pointer-events-none absolute left-12 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-[10px] text-slate-200 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="pointer-events-none absolute right-12 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-[10px] text-slate-200 opacity-0 group-hover:opacity-100 transition-opacity z-50">
                     Live Entities
                   </span>
                 </button>
@@ -1109,7 +1109,7 @@ export const DocumentModal: React.FC<Props> = ({
                   aria-label="Case references"
                 >
                   <Link2 className="w-5 h-5" />
-                  <span className="pointer-events-none absolute left-12 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-[10px] text-slate-200 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="pointer-events-none absolute right-12 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-[10px] text-slate-200 opacity-0 group-hover:opacity-100 transition-opacity z-50">
                     Case References
                   </span>
                 </button>
@@ -1123,7 +1123,7 @@ export const DocumentModal: React.FC<Props> = ({
                   aria-label="Timeline hooks"
                 >
                   <Calendar className="w-5 h-5" />
-                  <span className="pointer-events-none absolute left-12 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-[10px] text-slate-200 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="pointer-events-none absolute right-12 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-[10px] text-slate-200 opacity-0 group-hover:opacity-100 transition-opacity z-50">
                     Timeline Hooks
                   </span>
                 </button>
