@@ -270,7 +270,9 @@ export class App {
     router.get('/health/ready', async (req, res) => {
       const startedAt = Date.now();
       const timeoutMs = Math.max(100, Number(process.env.READINESS_TIMEOUT_MS || 1200) || 1200);
-      const softMode = String(req.query.soft || '') === '1';
+      const userAgent = String(req.headers['user-agent'] || '');
+      const browserRequest = /\bmozilla\/\d/i.test(userAgent);
+      const softMode = String(req.query.soft || '') === '1' || browserRequest;
 
       const withTimeout = async <T>(promise: Promise<T>, label: string): Promise<T> => {
         const timeoutPromise = new Promise<never>((_, reject) =>

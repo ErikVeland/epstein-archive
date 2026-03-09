@@ -5,11 +5,9 @@ import { createPortal } from 'react-dom';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 // Icons imported as needed via Icon component
 import { Person } from './types';
-import { Document } from './types/documents';
 
 import { useNavigation } from './services/NavigationContext';
 import { apiClient } from './services/apiClient';
-import { DocumentProcessor } from './services/documentProcessor';
 // SECURITY: Removed non-authoritative document import paths
 import { useCountUp } from './hooks/useCountUp';
 import MobileMenu from './components/layout/MobileMenu';
@@ -253,10 +251,6 @@ function App() {
   const [selectedDocumentSearchTerm, setSelectedDocumentSearchTerm] = useState<string>('');
   const [documentModalId, setDocumentModalId] = useState<string | null>(null);
   const [documentModalInitial, setDocumentModalInitial] = useState<any>(null);
-
-  // Document Processor
-  const [documentProcessor, setDocumentProcessor] = useState<DocumentProcessor | null>(null);
-  const [documentsLoaded, setDocumentsLoaded] = useState(false);
 
   const [investigateAttract, setInvestigateAttract] = useState<boolean>(false);
   const [investigatePopoverOpen, setInvestigatePopoverOpen] = useState<boolean>(false);
@@ -846,89 +840,6 @@ function App() {
     };
   }, [investigatePopoverOpen]);
 
-  const [documentLoadingProgress, setDocumentLoadingProgress] = useState<string>('');
-  const [, setDocumentLoadingProgressValue] = useState<number>(0);
-
-  useEffect(() => {
-    // Initialize document processor with REAL database documents
-    const loadRealDocuments = async () => {
-      try {
-        console.log('Loading documents from API...');
-        setDocumentLoadingProgress('Connecting to document database...');
-        setDocumentLoadingProgressValue(10);
-        // Fetch recent documents for client-side processing
-        // Pull a bounded subset for client-side initialization
-        const response = await apiClient.getDocuments({}, 1, 200);
-
-        console.log('API response:', response);
-
-        if (!response || !response.data) {
-          throw new Error('Invalid API response structure');
-        }
-
-        if (response.data.length === 0) {
-          throw new Error('No documents found in API response');
-        }
-
-        console.log(`Loaded ${response.data.length} documents from API (total: ${response.total})`);
-        setDocumentLoadingProgress(`Processing ${response.data.length} documents...`);
-        setDocumentLoadingProgressValue(40);
-
-        const documents: Document[] = response.data.map((doc: any, index: number) => {
-          // Update progress periodically
-          if (index % 100 === 0) {
-            const progress = 40 + Math.floor((index / response.data.length) * 40);
-            setDocumentLoadingProgressValue(progress);
-          }
-
-          return {
-            id: doc.id,
-            title: doc.fileName,
-            filename: doc.fileName,
-            fileType: doc.fileType || 'unknown',
-            fileSize: doc.fileSize || 0,
-            dateCreated: doc.dateCreated,
-            dateModified: doc.dateModified,
-            content: doc.content || '',
-            metadata: {
-              source: 'Epstein Files',
-              confidentiality: 'Public',
-              categories: [],
-              ...doc.metadata,
-            },
-            entities: [], // Entities are loaded separately or on demand
-            redFlagRating: doc.redFlagRating || 1,
-            redFlagPeppers: '🚩'.repeat(doc.redFlagRating || 1),
-            redFlagDescription: `Red Flag Index ${doc.redFlagRating || 1}`,
-          };
-        });
-
-        setDocumentLoadingProgress('Initializing document processor...');
-        setDocumentLoadingProgressValue(80);
-        const processor = new DocumentProcessor();
-        await processor.loadDocuments(documents);
-        setDocumentLoadingProgress('Documents ready');
-        setDocumentLoadingProgressValue(100);
-        setDocumentProcessor(processor);
-      } catch (error) {
-        console.error('Error loading documents:', error);
-        console.error('Error details:', error instanceof Error ? error.message : 'Unknown error');
-        // SECURITY: Never fall back to non-authoritative records; show clear error
-        setDocumentLoadingProgress('Failed to load documents from server');
-        setDocumentLoadingProgressValue(0);
-        setDocumentProcessor(null);
-        addToast({
-          text: 'Could not load documents. Please check server connection.',
-          type: 'error',
-        });
-      } finally {
-        setDocumentsLoaded(true);
-      }
-    };
-
-    loadRealDocuments();
-  }, [addToast]);
-
   // Handler for risk level click clicks
   const handleRiskLevelClick = useCallback((level: 'HIGH' | 'MEDIUM' | 'LOW') => {
     // Toggle: if clicking the same level, deselect it
@@ -972,7 +883,8 @@ function App() {
       }
     };
 
-    const interval = window.setInterval(pollForNewBuild, 60000);
+    pollForNewBuild();
+    const interval = window.setInterval(pollForNewBuild, 15000);
     return () => {
       cancelled = true;
       window.clearInterval(interval);
@@ -1499,18 +1411,8 @@ function App() {
               </div>
               {/* Simple loading indicator - no text labels */}
               <LoadingIndicator
-                isLoading={
-                  isInitializing ||
-                  (!documentsLoaded && activeTab === 'documents') ||
-                  analyticsLoading
-                }
-                label={
-                  isInitializing
-                    ? loadingProgress
-                    : !documentsLoaded && activeTab === 'documents'
-                      ? documentLoadingProgress
-                      : undefined
-                }
+                isLoading={isInitializing || analyticsLoading}
+                label={isInitializing ? loadingProgress : undefined}
               />
               {/* Navigation Tabs - segmented pill with responsive horizontal track */}
               <div id="navigation" className="hidden md:block mb-6 text-sm font-medium">
@@ -1834,7 +1736,6 @@ function App() {
 
                     {activeTab === 'documents' && (
                       <DocumentsPage
-                        processor={documentProcessor}
                         searchTerm={selectedDocumentSearchTerm}
                         onSearchTermChange={setSelectedDocumentSearchTerm}
                         selectedDocumentId={selectedDocumentId || ''}

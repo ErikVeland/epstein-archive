@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Document, BrowseFilters, DocumentCollection } from '../../types/documents';
-import { DocumentProcessor } from '../../services/documentProcessor';
 import { useNavigation } from '../../services/NavigationContext';
 import { apiClient } from '../../services/apiClient';
 import { DocumentModal } from './DocumentModal';
@@ -56,7 +55,6 @@ const mapApiDocumentToDocument = (doc: any): Document => ({
 });
 
 interface DocumentBrowserProps {
-  processor: DocumentProcessor;
   searchTerm?: string;
   onSearchTermChange?: (term: string) => void;
   selectedDocumentId?: string;
@@ -64,7 +62,6 @@ interface DocumentBrowserProps {
 }
 
 export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
-  processor: _processor,
   searchTerm: externalSearchTerm,
   onSearchTermChange,
   selectedDocumentId,
