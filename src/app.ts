@@ -267,9 +267,10 @@ export class App {
     });
 
     // Readiness endpoint: validates DB connectivity + core data path availability.
-    router.get('/health/ready', async (_req, res) => {
+    router.get('/health/ready', async (req, res) => {
       const startedAt = Date.now();
       const timeoutMs = Math.max(100, Number(process.env.READINESS_TIMEOUT_MS || 1200) || 1200);
+      const softMode = String(req.query.soft || '') === '1';
 
       const withTimeout = async <T>(promise: Promise<T>, label: string): Promise<T> => {
         const timeoutPromise = new Promise<never>((_, reject) =>
@@ -285,46 +286,66 @@ export class App {
         await withTimeout(pool.query('SELECT 1 AS ok'), 'db ping');
         const dbLatencyMs = Date.now() - dbPingStart;
 
-        const countsStart = Date.now();
-        const counts = await withTimeout(getEntityAndDocumentCounts(), 'core counts');
-        const countsLatencyMs = Date.now() - countsStart;
-        const hasMinimumData = counts.entities > 0 && counts.documents > 0;
+        let countsLatencyMs: number | undefined;
+        let countsError: string | undefined;
+        let counts: { entities: number; documents: number } | undefined;
+        try {
+          const countsStart = Date.now();
+          counts = await withTimeout(getEntityAndDocumentCounts(), 'core counts');
+          countsLatencyMs = Date.now() - countsStart;
+        } catch (countErr: any) {
+          countsError = countErr?.message || 'core counts unavailable';
+        }
+
+        const hasMinimumData = counts ? counts.entities > 0 && counts.documents > 0 : true;
 
         const migrationMetrics = await getMigrationMetrics();
         const apiPoolMetrics = migrationMetrics.pools.api;
         const saturated = Boolean(apiPoolMetrics && apiPoolMetrics.waiting >= 3);
         const hardFailure = !hasMinimumData;
+        const degraded = saturated || Boolean(countsError);
         const status: 'ok' | 'degraded' | 'down' = hardFailure
           ? 'down'
-          : saturated
+          : degraded
             ? 'degraded'
             : 'ok';
 
-        return res.status(status === 'down' ? 503 : 200).json({
+        return res.status(status === 'down' && !softMode ? 503 : 200).json({
           status,
           timestamp: new Date().toISOString(),
           checks: {
             db: { ok: true, latencyMs: dbLatencyMs, dialect: 'postgres' },
             data: {
               ok: hasMinimumData,
-              entities: counts.entities,
-              documents: counts.documents,
+              entities: counts?.entities,
+              documents: counts?.documents,
               latencyMs: countsLatencyMs,
-              error: hasMinimumData ? undefined : 'Core data unavailable',
+              error: countsError || (hasMinimumData ? undefined : 'Core data unavailable'),
             },
             pool: apiPoolMetrics,
-            readiness: { mode: 'o1-plus-core-counts', timeoutMs },
+            readiness: {
+              mode: softMode ? 'o1-plus-core-counts-soft' : 'o1-plus-core-counts',
+              timeoutMs,
+            },
             degraded: saturated
               ? { reason: 'api_pool_waiting', waiting: apiPoolMetrics?.waiting || 0 }
-              : undefined,
+              : countsError
+                ? { reason: 'core_counts_timeout_or_error', detail: countsError }
+                : undefined,
           },
           durationMs: Date.now() - startedAt,
         });
       } catch (error: any) {
-        return res.status(503).json({
+        return res.status(softMode ? 200 : 503).json({
           status: 'down',
           timestamp: new Date().toISOString(),
-          checks: { db: { ok: false, error: error?.message || 'unknown' } },
+          checks: {
+            db: { ok: false, error: error?.message || 'unknown' },
+            readiness: {
+              mode: softMode ? 'o1-plus-core-counts-soft' : 'o1-plus-core-counts',
+              timeoutMs,
+            },
+          },
           durationMs: Date.now() - startedAt,
         });
       }

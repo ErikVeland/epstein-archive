@@ -1259,7 +1259,7 @@ class ApiClient {
     };
     durationMs: number;
   }> {
-    const url = `${API_BASE_URL}/health/ready`;
+    const url = `${API_BASE_URL}/health/ready?soft=1`;
     return this.fetchWithErrorHandling<any>(url, { useCache: false });
   }
 
