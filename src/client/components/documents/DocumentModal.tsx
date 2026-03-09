@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
@@ -44,8 +44,8 @@ const VIEWER_TABS: Array<{
   icon?: React.ReactNode;
   count?: number;
 }> = [
-  { key: 'analysis', label: 'Summary & Analysis' },
   { key: 'pdf', label: 'Original Document' },
+  { key: 'analysis', label: 'Summary & Analysis' },
   { key: 'provenance', label: 'Provenance' },
 ];
 
@@ -146,14 +146,17 @@ export const DocumentModal: React.FC<Props> = ({
 
   const activeTab = readTab();
 
-  const setActiveTab = (tab: ViewerTab) => {
-    if (contentRef.current) {
-      scrollPositions.current[activeTab] = contentRef.current.scrollTop;
-    }
-    const params = new URLSearchParams(location.search);
-    params.set('modalTab', tab);
-    navigate(`${location.pathname}?${params.toString()}`, { replace: true });
-  };
+  const setActiveTab = useCallback(
+    (tab: ViewerTab) => {
+      if (contentRef.current) {
+        scrollPositions.current[activeTab] = contentRef.current.scrollTop;
+      }
+      const params = new URLSearchParams(location.search);
+      params.set('modalTab', tab);
+      navigate(`${location.pathname}?${params.toString()}`, { replace: true });
+    },
+    [activeTab, location.pathname, location.search, navigate],
+  );
 
   useEffect(() => {
     if (contentRef.current) {
@@ -239,13 +242,18 @@ export const DocumentModal: React.FC<Props> = ({
     const hasExplicitTab = params.has('modalTab');
     const hasAnyText = Boolean(String(doc?.contentRefined || doc?.content || '').trim());
 
-    if (hasExplicitTab || hasAnyText || hasAutoSwitchedNoOcrRef.current || activeTab !== 'analysis') {
+    if (
+      hasExplicitTab ||
+      hasAnyText ||
+      hasAutoSwitchedNoOcrRef.current ||
+      activeTab !== 'analysis'
+    ) {
       return;
     }
 
     hasAutoSwitchedNoOcrRef.current = true;
     setActiveTab('pdf');
-  }, [activeTab, doc?.content, doc?.contentRefined, location.search]);
+  }, [activeTab, doc?.content, doc?.contentRefined, location.search, setActiveTab]);
 
   useEffect(() => {
     const announcement = document.createElement('div');
@@ -650,39 +658,35 @@ export const DocumentModal: React.FC<Props> = ({
               </section>
             )}
 
-            <div className="flex flex-wrap items-center gap-2">
-              {(['clean', 'ocr', 'diff'] as TextSubview[]).map((mode) => (
-                <button
-                  key={mode}
-                  type="button"
-                  onClick={() => setTextSubview(mode)}
-                  className={`px-3 py-1.5 rounded-md text-xs uppercase tracking-wider border transition-colors ${
-                    textSubview === mode
-                      ? 'bg-cyan-500/20 border-cyan-500/40 text-cyan-200'
-                      : 'bg-slate-900/40 border-slate-700/50 text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  {mode === 'clean' ? 'Clean Text' : mode === 'ocr' ? 'Raw OCR' : 'Diff View'}
-                </button>
-              ))}
-            </div>
+            {(cleanText.trim() || ocrText.trim()) && (
+              <div className="flex flex-wrap items-center gap-2">
+                {(['clean', 'ocr', 'diff'] as TextSubview[]).map((mode) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    onClick={() => setTextSubview(mode)}
+                    className={`px-3 py-1.5 rounded-md text-xs uppercase tracking-wider border transition-colors ${
+                      textSubview === mode
+                        ? 'bg-cyan-500/20 border-cyan-500/40 text-cyan-200'
+                        : 'bg-slate-900/40 border-slate-700/50 text-slate-400 hover:text-slate-200'
+                    }`}
+                  >
+                    {mode === 'clean' ? 'Clean Text' : mode === 'ocr' ? 'Raw OCR' : 'Diff View'}
+                  </button>
+                ))}
+              </div>
+            )}
             {!cleanText.trim() && !ocrText.trim() ? (
-              <section className="surface-quiet p-6">
-                <h3 className="text-sm font-semibold text-slate-100 mb-2">
-                  No OCR Text Available Yet
-                </h3>
-                <p className="text-sm text-slate-400 mb-4">
-                  This record does not have extracted text yet. You can still inspect the original
-                  file now.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('pdf')}
-                  className="control h-10 px-4 text-xs font-semibold"
-                >
-                  View Original Document
-                </button>
-              </section>
+              <div className="space-y-4">
+                <div className="surface-quiet p-4 border-l-4 border-slate-600/50 flex items-center gap-3">
+                  <FileText className="w-4 h-4 text-slate-500 shrink-0" />
+                  <p className="text-xs text-slate-400">
+                    Text extraction is pending for this record. The original document is shown
+                    below.
+                  </p>
+                </div>
+                <PDFVariantViewer documentId={id} className="h-[calc(100vh-400px)] min-h-[480px]" />
+              </div>
             ) : textSubview === 'diff' ? (
               <DocumentDiffView cleanText={cleanText} originalText={ocrText} />
             ) : (
