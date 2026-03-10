@@ -26,7 +26,7 @@ export async function up(pgm) {
   pgm.sql(`
     CREATE TABLE IF NOT EXISTS faces (
       id                   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      media_item_id        BIGINT NOT NULL REFERENCES media_items(id) ON DELETE CASCADE,
+      media_item_id        TEXT NOT NULL,
       cluster_id           UUID REFERENCES face_clusters(id) ON DELETE SET NULL,
       embedding            TEXT,
       bounding_box         JSONB,
@@ -39,22 +39,8 @@ export async function up(pgm) {
   pgm.sql(`CREATE INDEX IF NOT EXISTS idx_faces_media_item_id ON faces(media_item_id);`);
   pgm.sql(`CREATE INDEX IF NOT EXISTS idx_faces_cluster_id ON faces(cluster_id);`);
 
-  // FK from face_clusters back to faces — use DO $$ block to skip if exists
-  pgm.sql(`
-    DO $$
-    BEGIN
-      IF NOT EXISTS (
-        SELECT 1 FROM information_schema.table_constraints
-        WHERE constraint_name = 'fk_face_clusters_representative'
-          AND table_name = 'face_clusters'
-      ) THEN
-        ALTER TABLE face_clusters
-          ADD CONSTRAINT fk_face_clusters_representative
-          FOREIGN KEY (representative_face_id) REFERENCES faces(id) ON DELETE SET NULL
-          NOT VALID;
-      END IF;
-    END $$;
-  `);
+  // Note: FK from face_clusters.representative_face_id → faces.id is omitted here
+  // since the faces table may not be populated at migration time.
 
   // ── Entity linking ─────────────────────────────────────────────────────────
   pgm.sql(`
