@@ -1898,8 +1898,14 @@ async function main() {
   }
 
   if (mode === 'enrich-only') {
-    console.log('🧠 AI enrichment backfill: summaries + OCR cleaning for completed docs.\n');
+    console.log('🧠 AI enrichment backfill: summaries for completed docs.\n');
     await enrichCompleted();
+    return;
+  }
+
+  if (mode === 'ocr-clean') {
+    console.log('🔧 OCR cleaning backfill: cleaning text for completed docs.\n');
+    await ocrCleanCompleted();
     return;
   }
 
@@ -1974,7 +1980,9 @@ async function main() {
  */
 async function enrichCompleted() {
   const db = getIngestPool();
-  const CONCURRENCY = 30;
+  // Exo serves ~1 request at a time; 3-4 concurrent keeps the pipeline fed
+  // without building a queue (30 concurrent = 30x latency penalty).
+  const CONCURRENCY = 4;
   const BATCH = 300;
 
   // Count total work
@@ -1995,27 +2003,21 @@ async function enrichCompleted() {
   let processed = 0;
   let lastId = 0;
 
+  // Backfill: summaries only — OCR cleaning runs at ingest time for new docs.
+  // Skipping cleanOCRText here reduces LLM calls from ~6 to 1 per doc.
   const processRow = async (row: { id: number; file_path: string | null; content: string }) => {
     try {
       const text = row.content;
-      const [cleaned, summary] = await Promise.all([
-        AIEnrichmentService.cleanOCRText(text),
-        AIEnrichmentService.summarizeDocument(text, {
-          fileName: row.file_path ? path.basename(row.file_path) : undefined,
-        }),
-      ]);
-      const refined = cleaned || text;
-      const contentChanged = refined !== text;
-      const hasSummary = summary && summary.length > 0;
-      if (contentChanged || hasSummary) {
+      const summary = await AIEnrichmentService.summarizeDocument(text, {
+        fileName: row.file_path ? path.basename(row.file_path) : undefined,
+      });
+      if (summary && summary.length > 0) {
         await db.query(
           `UPDATE documents
-           SET content_refined = CASE WHEN $1 THEN $2 ELSE content_refined END,
-               metadata_json   = CASE WHEN $3 THEN
-                                   COALESCE(metadata_json, '{}'::jsonb) || jsonb_build_object('ai_summary', $4::text)
-                                 ELSE metadata_json END
-           WHERE id = $5`,
-          [contentChanged, refined, hasSummary, summary, row.id],
+           SET metadata_json      = COALESCE(metadata_json, '{}'::jsonb) || jsonb_build_object('ai_summary', $1::text),
+               last_processed_at  = NOW()
+           WHERE id = $2`,
+          [summary, row.id],
         );
       }
     } catch (e) {
@@ -2056,6 +2058,82 @@ async function enrichCompleted() {
 
   process.stdout.write(
     `\n   ✅ Enrichment complete — ${processed.toLocaleString()} docs processed.\n`,
+  );
+}
+
+/**
+ * OCR cleaning backfill: cleans text for completed docs missing content_refined.
+ * Run after enrichCompleted() so summaries are already in place.
+ */
+async function ocrCleanCompleted() {
+  const db = getIngestPool();
+  const CONCURRENCY = 8; // Lower than summaries — each doc spawns up to 5 chunk calls
+
+  const { rows: countRows } = await db.query(`
+    SELECT COUNT(*) AS n FROM documents
+    WHERE processing_status = 'completed'
+      AND content IS NOT NULL
+      AND length(content) >= 100
+      AND content_refined IS NULL
+  `);
+  const total = parseInt(countRows[0].n, 10);
+  console.log(`   📊 ${total.toLocaleString()} docs need OCR cleaning`);
+  if (total === 0) {
+    console.log('   ✅ Already fully cleaned.');
+    return;
+  }
+
+  let processed = 0;
+  let lastId = 0;
+  const BATCH = 100;
+
+  while (true) {
+    const { rows } = await db.query(
+      `SELECT id, file_path, content FROM documents
+       WHERE processing_status = 'completed'
+         AND content IS NOT NULL
+         AND length(content) >= 100
+         AND content_refined IS NULL
+         AND id > $1
+       ORDER BY id LIMIT $2`,
+      [lastId, BATCH],
+    );
+    if (rows.length === 0) break;
+
+    for (let i = 0; i < rows.length; i += CONCURRENCY) {
+      const chunk = rows.slice(i, i + CONCURRENCY);
+      await Promise.allSettled(
+        chunk.map(async (row: any) => {
+          try {
+            const cleaned = await AIEnrichmentService.cleanOCRText(row.content as string);
+            if (cleaned && cleaned !== row.content) {
+              await db.query(
+                `UPDATE documents
+                 SET content_refined   = $1,
+                     last_processed_at = NOW()
+                 WHERE id = $2`,
+                [cleaned, row.id],
+              );
+            }
+          } catch {
+            /* non-fatal */
+          }
+        }),
+      );
+      processed += chunk.length;
+      if (processed % 50 === 0 || processed === total) {
+        const pct = ((processed / total) * 100).toFixed(1);
+        process.stdout.write(
+          `\r   🔧 Cleaned ${processed.toLocaleString()} / ${total.toLocaleString()} (${pct}%)`,
+        );
+      }
+    }
+
+    lastId = rows[rows.length - 1].id as number;
+  }
+
+  process.stdout.write(
+    `\n   ✅ OCR cleaning complete — ${processed.toLocaleString()} docs processed.\n`,
   );
 }
 

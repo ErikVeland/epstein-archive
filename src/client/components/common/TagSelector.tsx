@@ -48,13 +48,13 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
 
   // Fetch all available tags
   useEffect(() => {
-    fetch('/api/tags')
+    fetch('/api/media/tags')
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
           setAllTags(data);
         } else {
-          console.error('Invalid response from /api/tags - expected array:', data);
+          console.error('Invalid response from /api/media/tags - expected array:', data);
           setAllTags([]);
         }
       })
@@ -105,7 +105,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
     if (!newTagName.trim()) return;
 
     try {
-      const res = await fetch('/api/tags', {
+      const res = await fetch('/api/media/tags', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: newTagName.trim(), color: newTagColor }),

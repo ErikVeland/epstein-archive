@@ -133,6 +133,9 @@ export class AIEnrichmentService {
               messages: [{ role: 'user', content: prompt }],
               max_tokens: maxTokens,
               temperature,
+              // Disable Qwen3/thinking-model chain-of-thought so content is
+              // returned directly rather than consumed by reasoning_content.
+              enable_thinking: false,
             }),
           });
 
@@ -141,7 +144,10 @@ export class AIEnrichmentService {
           }
 
           const data = (await response.json()) as any;
-          return data.choices?.[0]?.message?.content?.trim() || '';
+          const msg = data.choices?.[0]?.message;
+          // Qwen3 thinking models put output in reasoning_content when thinking
+          // is not fully disabled — prefer content, fall back to reasoning_content.
+          return msg?.content?.trim() || msg?.reasoning_content?.trim() || '';
         } else {
           // Ollama native API
           const response = await fetch(`${this.OLLAMA_HOST}/api/generate`, {
