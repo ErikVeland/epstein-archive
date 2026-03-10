@@ -28,7 +28,7 @@ export async function up(pgm) {
       id                   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       media_item_id        BIGINT NOT NULL REFERENCES media_items(id) ON DELETE CASCADE,
       cluster_id           UUID REFERENCES face_clusters(id) ON DELETE SET NULL,
-      embedding            VECTOR(512),
+      embedding            TEXT,
       bounding_box         JSONB,
       detection_confidence FLOAT NOT NULL DEFAULT 0,
       crop_path            TEXT,
