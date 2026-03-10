@@ -305,7 +305,9 @@ export class App {
         const apiPoolMetrics = migrationMetrics.pools.api;
         const saturated = Boolean(apiPoolMetrics && apiPoolMetrics.waiting >= 3);
         const hardFailure = !hasMinimumData;
-        const degraded = saturated || Boolean(countsError);
+        // Core-count timeouts are treated as non-fatal telemetry warnings as long as DB ping and
+        // minimum-data guarantees hold, preventing false degraded readiness during heavy load.
+        const degraded = saturated;
         const status: 'ok' | 'degraded' | 'down' = hardFailure
           ? 'down'
           : degraded
@@ -331,9 +333,10 @@ export class App {
             },
             degraded: saturated
               ? { reason: 'api_pool_waiting', waiting: apiPoolMetrics?.waiting || 0 }
-              : countsError
-                ? { reason: 'core_counts_timeout_or_error', detail: countsError }
-                : undefined,
+              : undefined,
+            warnings: countsError
+              ? [{ reason: 'core_counts_timeout_or_error', detail: countsError }]
+              : undefined,
           },
           durationMs: Date.now() - startedAt,
         });
