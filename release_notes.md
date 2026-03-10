@@ -1,5 +1,13 @@
 # Release Notes
 
+## 16.0.2 - 2026-03-10 - Sascha Riley Entity + Media Linking
+
+### Entities & Media
+
+- **Canonical Profile Alignment:** Normalized Sascha profile handling so `Sascha Riley`/`Sasha Riley` aliases resolve consistently in ingestion and entity lookups.
+- **Testimony Media Linking:** Linked all six Sascha testimony audio assets plus album cover image to the canonical `Sascha Riley` entity in media relations.
+- **People Tag Reliability:** Added explicit `media_item_people` associations for testimony assets so they surface correctly in entity/media views and people filters.
+
 ## 16.0.1 - 2026-03-10 - Face Cluster Entity Linking
 
 ### Face Gallery
