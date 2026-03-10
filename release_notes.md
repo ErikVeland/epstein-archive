@@ -1,5 +1,19 @@
 # Release Notes
 
+## 16.0.1 - 2026-03-10 - Face Cluster Entity Linking
+
+### Face Gallery
+
+- **Entity Linking:** Face clusters can now be linked to canonical entities via an autocomplete search in the Face Gallery detail view.
+- **Auto-tagging:** Linking a cluster automatically upserts all photos in that cluster into `media_item_people`, making them immediately discoverable via the PhotoBrowser "People" filter.
+- **Link Badge:** Gallery cards show a cyan link indicator when a cluster is associated with an entity.
+- **Unlink:** One-click unlink removes the entity association from a cluster.
+- **Photo Count Toast:** Confirmation toast on link shows how many photos were tagged.
+
+### Database
+
+- Migration `1753600000000_face_cluster_entity_link`: adds `entity_id` FK column and index to `face_clusters`.
+
 ## 16.0.0 - 2026-03-10 - Full Ingestion Milestone
 
 ### Milestone

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Icon from '../common/Icon';
 import { useToasts } from '../common/useToasts';
 
@@ -6,6 +6,8 @@ interface FaceCluster {
   id: string;
   name: string;
   is_hidden: boolean;
+  entity_id: number | null;
+  entity_name: string | null;
   face_count: number;
   thumbnail_path: string | null;
   created_at: string;
@@ -24,15 +26,104 @@ interface ClusterDetail {
   faces: Face[];
 }
 
+interface EntityResult {
+  id: number;
+  name: string;
+  role: string;
+}
+
+const EntitySearch: React.FC<{
+  onSelect: (entity: EntityResult) => void;
+  placeholder?: string;
+}> = ({ onSelect, placeholder = 'Search entities…' }) => {
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState<EntityResult[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const debounce = useRef<ReturnType<typeof setTimeout>>();
+
+  useEffect(() => {
+    const close = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, []);
+
+  useEffect(() => {
+    if (debounce.current) clearTimeout(debounce.current);
+    if (!query.trim()) {
+      setResults([]);
+      return;
+    }
+    debounce.current = setTimeout(async () => {
+      setSearching(true);
+      try {
+        const res = await fetch(`/api/entities?search=${encodeURIComponent(query)}&limit=10`);
+        const data = await res.json();
+        setResults(
+          (data.data || data).map((e: any) => ({
+            id: e.id,
+            name: e.fullName || e.full_name || e.name,
+            role: e.primaryRole || e.primary_role || e.role || '',
+          })),
+        );
+      } catch {
+        /* ignore */
+      }
+      setSearching(false);
+    }, 250);
+  }, [query]);
+
+  return (
+    <div className="relative" ref={ref}>
+      <input
+        type="text"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        onFocus={() => setOpen(true)}
+        placeholder={placeholder}
+        className="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-cyan-500 focus:outline-none"
+      />
+      {open && (results.length > 0 || searching) && (
+        <div className="absolute z-50 mt-1 w-full bg-slate-900 border border-slate-700 rounded-lg shadow-xl overflow-hidden">
+          {searching ? (
+            <div className="p-3 text-sm text-slate-400 text-center">Searching…</div>
+          ) : (
+            <div className="max-h-52 overflow-y-auto">
+              {results.map((entity) => (
+                <button
+                  key={entity.id}
+                  onClick={() => {
+                    onSelect(entity);
+                    setQuery('');
+                    setOpen(false);
+                  }}
+                  className="w-full flex items-center justify-between px-3 py-2 hover:bg-slate-700/60 text-left"
+                >
+                  <div>
+                    <div className="text-sm text-white font-medium">{entity.name}</div>
+                    {entity.role && <div className="text-xs text-slate-400">{entity.role}</div>}
+                  </div>
+                  <Icon name="Link" size="xs" className="text-slate-500 flex-shrink-0 ml-2" />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const FaceGallery: React.FC = () => {
   const [clusters, setClusters] = useState<FaceCluster[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedClusterId, setSelectedClusterId] = useState<string | null>(null);
   const [clusterDetail, setClusterDetail] = useState<ClusterDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
-  const [editingName, setEditingName] = useState(false);
-  const [newName, setNewName] = useState('');
-
+  const [saving, setSaving] = useState(false);
   const { addToast } = useToasts();
 
   const fetchClusters = useCallback(async () => {
@@ -40,90 +131,102 @@ export const FaceGallery: React.FC = () => {
       setLoading(true);
       const res = await fetch('/api/faces/clusters');
       if (!res.ok) throw new Error('Failed to fetch clusters');
-      const data = await res.json();
-      setClusters(data);
-    } catch (error) {
-      console.error(error);
+      setClusters(await res.json());
+    } catch {
       addToast({ text: 'Failed to load face clusters', type: 'error' });
     } finally {
       setLoading(false);
     }
   }, [addToast]);
 
-  // Load Clusters
   useEffect(() => {
     void fetchClusters();
   }, [fetchClusters]);
 
-  // Load Detail
   useEffect(() => {
     if (!selectedClusterId) {
       setClusterDetail(null);
       return;
     }
-
-    const fetchDetail = async () => {
+    const load = async () => {
+      setDetailLoading(true);
       try {
-        setDetailLoading(true);
         const res = await fetch(`/api/faces/clusters/${selectedClusterId}`);
-        if (!res.ok) throw new Error('Failed to fetch cluster details');
-        const data = await res.json();
-        setClusterDetail(data);
-        setNewName(data.cluster.name);
-      } catch (error) {
-        console.error(error);
+        if (!res.ok) throw new Error('Failed');
+        setClusterDetail(await res.json());
+      } catch {
         addToast({ text: 'Failed to load cluster details', type: 'error' });
       } finally {
         setDetailLoading(false);
       }
     };
-
-    void fetchDetail();
+    void load();
   }, [selectedClusterId, addToast]);
 
-  const handleRename = async () => {
-    if (!selectedClusterId || !newName.trim()) return;
-
+  const patchCluster = async (payload: Record<string, unknown>) => {
+    if (!selectedClusterId) return null;
+    setSaving(true);
     try {
       const res = await fetch(`/api/faces/clusters/${selectedClusterId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newName }),
+        body: JSON.stringify(payload),
       });
-
-      if (!res.ok) throw new Error('Failed to rename cluster');
-
-      const updated = await res.json();
-
-      // Update local state
-      setClusterDetail((prev) => (prev ? { ...prev, cluster: updated } : null));
-      setClusters((prev) =>
-        prev.map((c) => (c.id === updated.id ? { ...c, name: updated.name } : c)),
-      );
-      setEditingName(false);
-      addToast({ text: 'Cluster renamed', type: 'success' });
-    } catch (error) {
-      console.error(error);
-      addToast({ text: 'Failed to rename', type: 'error' });
+      if (!res.ok) throw new Error('Failed');
+      return await res.json();
+    } finally {
+      setSaving(false);
     }
   };
 
-  const getImageUrl = (path: string | null) => {
-    if (!path) return '/images/placeholder-face.png'; // You might need a placeholder
-    // Ensure path starts with /
-    return path.startsWith('/') ? path : `/${path}`;
+  const handleLinkEntity = async (entity: EntityResult) => {
+    try {
+      const updated = await patchCluster({ entity_id: entity.id, name: entity.name });
+      if (!updated) return;
+      setClusterDetail((prev) =>
+        prev ? { ...prev, cluster: { ...prev.cluster, ...updated } } : null,
+      );
+      setClusters((prev) => prev.map((c) => (c.id === updated.id ? { ...c, ...updated } : c)));
+      const count = updated.tagged_photos ?? 0;
+      addToast({
+        text: `Linked to ${entity.name} — ${count} photo${count !== 1 ? 's' : ''} tagged`,
+        type: 'success',
+      });
+    } catch {
+      addToast({ text: 'Failed to link entity', type: 'error' });
+    }
+  };
+
+  const handleUnlink = async () => {
+    try {
+      const updated = await patchCluster({ entity_id: null });
+      if (!updated) return;
+      setClusterDetail((prev) =>
+        prev ? { ...prev, cluster: { ...prev.cluster, ...updated } } : null,
+      );
+      setClusters((prev) => prev.map((c) => (c.id === updated.id ? { ...c, ...updated } : c)));
+      addToast({ text: 'Entity link removed', type: 'success' });
+    } catch {
+      addToast({ text: 'Failed to unlink', type: 'error' });
+    }
+  };
+
+  const getImageUrl = (p: string | null) => {
+    if (!p) return null;
+    return p.startsWith('/') ? p : `/${p}`;
   };
 
   if (loading && !clusters.length) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400" />
       </div>
     );
   }
 
-  // Detail View
+  // ── Detail View ─────────────────────────────────────────────────────────────
   if (selectedClusterId) {
+    const cluster = clusterDetail?.cluster;
     return (
       <div className="p-6">
         <button
@@ -136,96 +239,99 @@ export const FaceGallery: React.FC = () => {
 
         {detailLoading || !clusterDetail ? (
           <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400" />
           </div>
         ) : (
           <div>
-            <div className="flex items-center justify-between mb-8 border-b border-slate-700 pb-6">
-              <div className="flex items-center gap-6">
-                <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-cyan-500/50 bg-slate-800">
-                  {clusterDetail.cluster.thumbnail_path ? (
-                    <img
-                      src={getImageUrl(clusterDetail.cluster.thumbnail_path)}
-                      alt={clusterDetail.cluster.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-slate-500">
-                      <Icon name="User" size="lg" />
-                    </div>
-                  )}
+            {/* Header */}
+            <div className="flex items-start gap-6 mb-8 border-b border-slate-700 pb-6">
+              {/* Avatar */}
+              <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-cyan-500/50 bg-slate-800 flex-shrink-0">
+                {cluster?.thumbnail_path ? (
+                  <img
+                    src={getImageUrl(cluster.thumbnail_path) ?? undefined}
+                    alt={cluster.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-slate-500">
+                    <Icon name="User" size="lg" />
+                  </div>
+                )}
+              </div>
+
+              {/* Identity panel */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-3 mb-1">
+                  <h1 className="text-2xl font-bold text-white truncate">{cluster?.name}</h1>
+                  <span className="text-slate-500 text-sm flex-shrink-0">
+                    {cluster?.face_count} faces
+                  </span>
                 </div>
 
-                <div>
-                  {editingName ? (
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        value={newName}
-                        onChange={(e) => setNewName(e.target.value)}
-                        className="bg-slate-800 border border-slate-600 rounded px-3 py-1 text-xl text-white focus:border-cyan-500 outline-none"
-                        autoFocus
-                        onKeyDown={(e) => e.key === 'Enter' && handleRename()}
-                      />
-                      <button
-                        onClick={handleRename}
-                        className="p-2 bg-cyan-600 rounded hover:bg-cyan-500 text-white"
-                      >
-                        <Icon name="Check" size="sm" />
-                      </button>
-                      <button
-                        onClick={() => setEditingName(false)}
-                        className="p-2 bg-slate-700 rounded hover:bg-slate-600 text-slate-300"
-                      >
-                        <Icon name="X" size="sm" />
-                      </button>
+                {/* Entity link */}
+                {cluster?.entity_id ? (
+                  <div className="flex items-center gap-2 mt-2">
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-cyan-500/10 border border-cyan-500/30 rounded-lg">
+                      <Icon name="Link" size="xs" className="text-cyan-400" />
+                      <span className="text-sm text-cyan-300 font-medium">
+                        {cluster.entity_name ?? cluster.name}
+                      </span>
                     </div>
-                  ) : (
-                    <div className="flex items-center gap-3">
-                      <h1 className="text-3xl font-bold text-white">
-                        {clusterDetail.cluster.name}
-                      </h1>
-                      <button
-                        onClick={() => {
-                          setNewName(clusterDetail.cluster.name);
-                          setEditingName(true);
-                        }}
-                        className="p-1.5 text-slate-400 hover:text-cyan-400 transition-colors"
-                      >
-                        <Icon name="Edit2" size="sm" />
-                      </button>
-                    </div>
-                  )}
-                  <div className="text-slate-400 mt-1">
-                    {clusterDetail.cluster.face_count} faces detected
+                    <button
+                      onClick={handleUnlink}
+                      disabled={saving}
+                      className="p-1.5 text-slate-500 hover:text-red-400 transition-colors"
+                      title="Remove entity link"
+                    >
+                      <Icon name="Unlink" size="xs" />
+                    </button>
                   </div>
-                </div>
+                ) : (
+                  <div className="mt-3 max-w-xs">
+                    <div className="text-xs text-slate-500 mb-1.5 uppercase tracking-wider font-medium">
+                      Link to entity
+                    </div>
+                    <EntitySearch onSelect={handleLinkEntity} placeholder="Search for a person…" />
+                    <p className="text-xs text-slate-600 mt-1.5">
+                      Linking tags all {cluster?.face_count} photos to this person in the media
+                      browser.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
+            {/* Face grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
               {clusterDetail.faces.map((face) => (
                 <div
                   key={face.id}
                   className="relative group aspect-square bg-slate-800 rounded-lg overflow-hidden border border-slate-700 hover:border-cyan-500/50 transition-all"
                 >
-                  <img
-                    src={getImageUrl(face.crop_path)}
-                    alt="Face crop"
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2">
-                    <div className="text-xs text-slate-300 truncate">
-                      Confidence: {(face.detection_confidence * 100).toFixed(0)}%
+                  {face.crop_path ? (
+                    <img
+                      src={getImageUrl(face.crop_path) ?? undefined}
+                      alt="Face crop"
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-slate-600">
+                      <Icon name="User" size="md" />
                     </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2">
+                    <span className="text-xs text-slate-300">
+                      {(face.detection_confidence * 100).toFixed(0)}%
+                    </span>
                   </div>
                   <a
-                    href={`/documents?id=${face.media_item_id}`} // Assuming media_item_id links to documents/media
+                    href={`/media?id=${face.media_item_id}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="absolute top-2 right-2 p-1.5 bg-black/60 rounded-full text-white opacity-0 group-hover:opacity-100 hover:bg-cyan-600 transition-all"
-                    title="View original image"
+                    title="View original photo"
                   >
                     <Icon name="ExternalLink" size="xs" />
                   </a>
@@ -238,7 +344,7 @@ export const FaceGallery: React.FC = () => {
     );
   }
 
-  // Gallery Grid View
+  // ── Gallery Grid ─────────────────────────────────────────────────────────────
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
@@ -259,7 +365,7 @@ export const FaceGallery: React.FC = () => {
             <div className="aspect-square w-full bg-slate-800 relative overflow-hidden">
               {cluster.thumbnail_path ? (
                 <img
-                  src={getImageUrl(cluster.thumbnail_path)}
+                  src={getImageUrl(cluster.thumbnail_path) ?? undefined}
                   alt={cluster.name}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   loading="lazy"
@@ -273,13 +379,24 @@ export const FaceGallery: React.FC = () => {
               <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm px-2 py-0.5 rounded text-xs font-mono text-cyan-300 border border-cyan-900/50">
                 {cluster.face_count}
               </div>
+              {cluster.entity_id && (
+                <div
+                  className="absolute top-2 left-2 p-1 bg-cyan-500/80 rounded-full"
+                  title="Linked to entity"
+                >
+                  <Icon name="Link" size="xs" className="text-white" />
+                </div>
+              )}
             </div>
 
             <div className="p-3">
               <div className="font-medium text-slate-200 truncate group-hover:text-cyan-400 transition-colors">
-                {cluster.name}
+                {cluster.entity_name ?? cluster.name}
               </div>
-              <div className="text-xs text-slate-500 mt-1">
+              {cluster.entity_id && cluster.entity_name && cluster.entity_name !== cluster.name && (
+                <div className="text-xs text-slate-500 truncate mt-0.5">{cluster.name}</div>
+              )}
+              <div className="text-xs text-slate-600 mt-0.5">
                 {new Date(cluster.created_at).toLocaleDateString()}
               </div>
             </div>

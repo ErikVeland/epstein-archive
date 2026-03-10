@@ -451,6 +451,19 @@ const BASE_VIP_RULES: VipRule[] = [
     },
   },
   {
+    canonicalName: 'Sascha Riley',
+    type: 'Person',
+    aliases: ['Sasha Riley'],
+    patterns: [/Sascha\s+Riley/i, /Sasha\s+Riley/i],
+    metadata: {
+      category: 'Survivor',
+      riskLevel: 'low',
+      notes:
+        'Self-reported testimony source; allegations remain unverified pending independent corroboration.',
+      bio: 'Referenced in published 2025 testimony/audio material as an alleged survivor. Claims are tracked as allegations only unless corroborated.',
+    },
+  },
+  {
     canonicalName: 'Carolyn Andriano',
     type: 'Person',
     aliases: ['Carolyn'],

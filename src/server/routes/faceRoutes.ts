@@ -4,44 +4,35 @@ import { faceClustersRepository } from '../db/faceClustersRepository.js';
 
 const router = Router();
 
-// GET /api/faces/clusters - List all clusters
+// GET /api/faces/clusters
 router.get('/clusters', authenticateRequest, requireRole('admin'), async (_req, res, next) => {
   try {
-    const clusters = await faceClustersRepository.listClusters();
-    res.json(clusters);
+    res.json(await faceClustersRepository.listClusters());
   } catch (error) {
     next(error);
   }
 });
 
-// GET /api/faces/clusters/:id - Get cluster details and faces
+// GET /api/faces/clusters/:id
 router.get('/clusters/:id', authenticateRequest, requireRole('admin'), async (req, res, next) => {
   try {
-    const { id } = req.params;
+    const cluster = await faceClustersRepository.getClusterById(req.params.id);
+    if (!cluster) return res.status(404).json({ error: 'Cluster not found' });
 
-    const cluster = await faceClustersRepository.getClusterById(id);
-    if (!cluster) {
-      return res.status(404).json({ error: 'Cluster not found' });
-    }
-
-    const faces = await faceClustersRepository.getFacesByClusterId(id);
-
-    res.json({
-      cluster,
-      faces,
-    });
+    const faces = await faceClustersRepository.getFacesByClusterId(req.params.id);
+    res.json({ cluster, faces });
   } catch (error) {
     next(error);
   }
 });
 
-// PATCH /api/faces/clusters/:id - Update cluster (rename)
+// PATCH /api/faces/clusters/:id — rename, hide, or link to entity
 router.patch('/clusters/:id', authenticateRequest, requireRole('admin'), async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { name, is_hidden } = req.body;
+    const { name, is_hidden, entity_id } = req.body;
 
-    if (name === undefined && is_hidden === undefined) {
+    if (name === undefined && is_hidden === undefined && entity_id === undefined) {
       return res.status(400).json({ error: 'No fields to update' });
     }
 
@@ -49,10 +40,15 @@ router.patch('/clusters/:id', authenticateRequest, requireRole('admin'), async (
       id,
       name,
       isHidden: is_hidden,
+      entityId: entity_id,
     });
 
-    if (!updated) {
-      return res.status(404).json({ error: 'Cluster not found' });
+    if (!updated) return res.status(404).json({ error: 'Cluster not found' });
+
+    // Return tagged photo count when an entity was just linked
+    if (entity_id != null) {
+      const tagged = await faceClustersRepository.countLinkedPhotos(id, entity_id);
+      return res.json({ ...updated, tagged_photos: tagged });
     }
 
     res.json(updated);
