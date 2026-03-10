@@ -1,5 +1,19 @@
 # Release Notes
 
+## 16.0.0 - 2026-03-10 - Full Ingestion Milestone
+
+### Milestone
+
+- **100% Ingestion Reached:** The tracked DOJ and media corpus has reached full ingestion coverage.
+- **Phase Transition:** The pipeline focus now shifts from ingestion throughput to intelligence analysis, OCR quality reruns, and graph/entity refinement.
+
+### About Page
+
+- **Milestone Messaging:** Replaced "ingestion ongoing" copy with completion-aware language tied to live pipeline totals.
+- **Status Banner Upgrade:** Ingestion dashboard now flips to a "Milestone Reached" state once aggregate target coverage is complete.
+- **ETA Behavior Update:** ETA/throughput panel is hidden once ingestion completes and replaced with post-ingest intelligence-phase status messaging.
+- **Roadmap Framing:** "Built for Future Releases" section now reflects a fully ingested baseline with ongoing intelligence work.
+
 ## 15.10.3 - 2026-03-10 - Enrichment Backfill Mode Stabilization
 
 ### Ingestion Pipeline

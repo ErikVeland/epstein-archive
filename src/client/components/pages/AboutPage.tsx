@@ -116,6 +116,12 @@ export const AboutPage: React.FC = () => {
     };
   }, [pipelineStatus]);
 
+  const ingestionComplete = useMemo(() => {
+    if (!pipelineOverview) return false;
+    if (!pipelineOverview.target) return false;
+    return pipelineOverview.ingested >= pipelineOverview.target;
+  }, [pipelineOverview]);
+
   useEffect(() => {
     const fetchJson = async (url: string) => {
       const response = await fetch(url);
@@ -524,10 +530,22 @@ export const AboutPage: React.FC = () => {
           <h4 className="text-xl font-semibold text-white mt-4">DOJ Data Sets 9-12 (2026)</h4>
           <p>
             The latest release comprises over 1.3 million documents from the post-Maxwell trial era.
-            This massive tranche includes "Data Set 12" (DOJ VOL00012). Ingestion for Data Sets 9-12
-            is ongoing and is continuously re-run through our{' '}
-            <strong>Semantic Repair Pipeline</strong> and <strong>Hardened Entity Engine</strong> to
-            improve OCR quality, purge junk data, and strengthen entity-role extraction.
+            This massive tranche includes "Data Set 12" (DOJ VOL00012).{' '}
+            {ingestionComplete ? (
+              <>
+                Ingestion for Data Sets 9-12 is now complete. The current phase is intelligence
+                analysis and quality reruns through our <strong>Semantic Repair Pipeline</strong>{' '}
+                and <strong>Hardened Entity Engine</strong> to improve OCR quality, purge junk data,
+                and strengthen entity-role extraction.
+              </>
+            ) : (
+              <>
+                Ingestion for Data Sets 9-12 is ongoing and is continuously re-run through our{' '}
+                <strong>Semantic Repair Pipeline</strong> and{' '}
+                <strong>Hardened Entity Engine</strong> to improve OCR quality, purge junk data, and
+                strengthen entity-role extraction.
+              </>
+            )}
             {pipelineOverview && (
               <>
                 {' '}
@@ -544,8 +562,14 @@ export const AboutPage: React.FC = () => {
             <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-3">
               <Database className="h-6 w-6 text-blue-400" />
               Dataset Ingestion Dashboard
-              <span className="ml-auto text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/20 animate-pulse uppercase tracking-wider">
-                Live Status
+              <span
+                className={`ml-auto text-xs px-2 py-0.5 rounded-full border uppercase tracking-wider ${
+                  ingestionComplete
+                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                    : 'bg-blue-500/20 text-blue-400 border-blue-500/20 animate-pulse'
+                }`}
+              >
+                {ingestionComplete ? 'Milestone Reached' : 'Live Status'}
               </span>
             </h3>
             <div className="space-y-8">
@@ -592,7 +616,7 @@ export const AboutPage: React.FC = () => {
                 );
               })}
             </div>
-            {pipelineStatus?.eta_minutes && (
+            {!ingestionComplete && pipelineStatus?.eta_minutes && (
               <div className="mt-6 pt-4 border-t border-slate-700/50 flex flex-col gap-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-slate-400 text-xs">
@@ -631,6 +655,15 @@ export const AboutPage: React.FC = () => {
                     </span>
                   </div>
                 )}
+              </div>
+            )}
+            {ingestionComplete && (
+              <div className="mt-6 pt-4 border-t border-slate-700/50 flex items-start gap-3">
+                <CheckCircle2 className="h-4 w-4 mt-0.5 text-emerald-400" />
+                <p className="text-xs text-emerald-300/90 font-mono">
+                  Ingestion has reached 100%. Remaining pipeline work is intelligence analysis,
+                  entity normalization, OCR cleanup reruns, and graph enrichment.
+                </p>
               </div>
             )}
           </div>
@@ -979,23 +1012,25 @@ export const AboutPage: React.FC = () => {
       <section className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 rounded-lg p-8 space-y-4">
         <div className="flex items-center gap-3 mb-4">
           <ImageIcon className="h-8 w-8 text-blue-400" />
-          <h2 className="text-3xl font-bold text-white">Built for Future Releases</h2>
+          <h2 className="text-3xl font-bold text-white">Fully Ingested, Intelligence Ongoing</h2>
         </div>
         <p className="text-slate-300 leading-relaxed">
-          This archive is designed to rapidly ingest and analyse new document releases as they are
-          unsealed. Our automated pipeline can process thousands of pages, extract entities, and
-          update the relationship graph within hours of new documents becoming available.
+          The archive has now reached full ingestion coverage for the currently tracked DOJ and
+          media collections. The next stage focuses on intelligence quality: relationship expansion,
+          high-confidence entity resolution, and improved provenance linking.
         </p>
         <p className="text-slate-300 leading-relaxed">
-          As more documents are released through ongoing legal proceedings, FOIA requests, and court
-          unsealing orders, this database will continue to grow and provide increasingly
-          comprehensive coverage of the Epstein case and its connections.
+          As new documents are released through legal proceedings, FOIA requests, and court
+          unsealing orders, this platform remains ready for rapid ingestion while preserving the
+          current fully indexed corpus.
         </p>
         <div className="bg-blue-900/30 border border-blue-500/30 rounded-lg p-4 mt-4">
           <p className="text-blue-200 text-sm">
             <strong>Current Status:</strong>{' '}
             {pipelineOverview
-              ? `DOJ Data Sets 9-12 are staged in the archive. Live ingestion currently reads ${pipelineOverview.ingested.toLocaleString()} / ${pipelineOverview.target.toLocaleString()} (${pipelineOverview.ingestPercent.toFixed(1)}%) with ${pipelineOverview.downloaded.toLocaleString()} files secured (${pipelineOverview.downloadPercent.toFixed(1)}% download coverage).`
+              ? ingestionComplete
+                ? `DOJ Data Sets 9-12 ingestion is complete at ${pipelineOverview.ingested.toLocaleString()} / ${pipelineOverview.target.toLocaleString()} (${pipelineOverview.ingestPercent.toFixed(1)}%), with ${pipelineOverview.downloaded.toLocaleString()} files secured (${pipelineOverview.downloadPercent.toFixed(1)}% download coverage). Intelligence analysis is still running across the fully ingested corpus.`
+                : `DOJ Data Sets 9-12 are staged in the archive. Live ingestion currently reads ${pipelineOverview.ingested.toLocaleString()} / ${pipelineOverview.target.toLocaleString()} (${pipelineOverview.ingestPercent.toFixed(1)}%) with ${pipelineOverview.downloaded.toLocaleString()} files secured (${pipelineOverview.downloadPercent.toFixed(1)}% download coverage).`
               : 'DOJ Data Sets 9-12 are staged in the archive with active ingestion and enrichment reruns in progress.'}{' '}
             Ongoing pipeline reruns focus on quality gains: OCR cleanup, alias consolidation, and
             stronger role metadata across entities and documents.
