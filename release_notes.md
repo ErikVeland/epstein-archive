@@ -1,5 +1,24 @@
 # Release Notes
 
+## 15.10.1 - 2026-03-10 - Modal Header + File Route + API Contract Stabilization
+
+### Document Modal UX
+
+- **Find Input Spacing Fix:** Increased left input padding so `Find in record...` no longer overlaps the search icon.
+- **Header Right Alignment:** Reduced right header padding so the close control sits closer to the modal edge.
+
+### Original Document Reliability
+
+- **Email File Route Hardening:** `/api/documents/:id/file` now ignores URL-like pseudo-paths and resolves only valid local file candidates.
+- **Email Fallback Delivery:** When no local file exists for email records, the route returns an inline RFC822 `.eml` payload built from metadata/content instead of failing with invalid-path errors.
+
+### API Stability
+
+- **Subjects Timeout Fallback:** `/api/subjects` now falls back to a lighter query path on Postgres statement timeout, preventing 503s from heavy aggregation paths.
+- **Audit Logging Compatibility:** `audit_log` writes now auto-detect legacy/modern schemas and never fail request paths.
+- **Evidence DTO Normalization:** `/api/evidence/:id` now returns canonical document-detail fields required by shared DTO contracts.
+- **Graph DTO Type Fix:** `/api/graph/global` now returns numeric `connectionCount` values (and numeric `risk`/`community`) for schema compliance.
+
 ## 15.10.0 - 2026-03-09 - Ingestion Snapshot + Document Browser Stabilization
 
 ### Pipeline Snapshot
