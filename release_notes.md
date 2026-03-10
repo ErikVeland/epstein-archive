@@ -1,5 +1,13 @@
 # Release Notes
 
+## 15.10.3 - 2026-03-10 - Enrichment Backfill Mode Stabilization
+
+### Ingestion Pipeline
+
+- **Backfill Mode Added:** `scripts/ingest_pipeline.ts` now supports `enrich-only` mode to enrich completed documents without touching queue leases.
+- **Safe Pagination Fix:** Backfill iteration now uses `id > lastId` keyset pagination (not mutable `OFFSET`) to avoid skipping records while updates are applied.
+- **Bounded Concurrency:** Processing now runs in fixed-size chunks with `Promise.allSettled`, keeping concurrency predictable and resilient to per-document failures.
+
 ## 15.10.2 - 2026-03-10 - Ingestion AI Text Cleanup Inclusion
 
 ### Ingestion Pipeline
