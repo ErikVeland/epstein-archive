@@ -2088,12 +2088,31 @@ async function processQueue() {
 
         if (fullDoc && fullDoc.content) {
           const context = fullDoc.content.slice(0, 2000);
-          const refined = await AIEnrichmentService.repairMimeWildcards(fullDoc.content, context);
+          const repaired = await AIEnrichmentService.repairMimeWildcards(fullDoc.content, context);
 
-          if (refined !== fullDoc.content) {
+          // Run OCR cleaning and summary generation in parallel on the repaired text
+          const [cleaned, summary] = await Promise.all([
+            AIEnrichmentService.cleanOCRText(repaired),
+            AIEnrichmentService.summarizeDocument(repaired, {
+              fileName: doc.file_path ? path.basename(doc.file_path) : undefined,
+            }),
+          ]);
+
+          const refined = cleaned || repaired;
+          const contentChanged = refined !== fullDoc.content;
+          const hasSummary = summary && summary.length > 0;
+
+          if (contentChanged || hasSummary) {
             await db.query(
-              'UPDATE documents SET content = $1, content_refined = $2, last_processed_at = NOW() WHERE id = $3',
-              [refined, refined, docId],
+              `UPDATE documents
+               SET content           = CASE WHEN $1 THEN $2 ELSE content END,
+                   content_refined   = CASE WHEN $1 THEN $3 ELSE content_refined END,
+                   metadata_json     = CASE WHEN $4 THEN
+                                         COALESCE(metadata_json, '{}'::jsonb) || jsonb_build_object('ai_summary', $5::text)
+                                       ELSE metadata_json END,
+                   last_processed_at = NOW()
+               WHERE id = $6`,
+              [contentChanged, refined, refined, hasSummary, summary, docId],
             );
           }
         }

@@ -191,15 +191,154 @@ export class AIEnrichmentService {
   }
 
   /**
-   * REPAIR: Contextual MIME Wildcard Reconstruction
-   * Replaces deterministic repair (regex/dictionary) with semantic inference.
+   * DECODE: Deterministic HTML entity and unicode normalisation.
+   * Runs before any LLM step — no tokens wasted on &amp; or mojibake.
    */
+  static decodeHtmlAndUnicode(text: string): string {
+    if (!text) return text;
+
+    const HTML_ENTITIES: Record<string, string> = {
+      '&amp;': '&',
+      '&lt;': '<',
+      '&gt;': '>',
+      '&quot;': '"',
+      '&apos;': "'",
+      '&nbsp;': ' ',
+      '&ndash;': '\u2013',
+      '&mdash;': '\u2014',
+      '&lsquo;': '\u2018',
+      '&rsquo;': '\u2019',
+      '&ldquo;': '\u201C',
+      '&rdquo;': '\u201D',
+      '&hellip;': '\u2026',
+      '&bull;': '\u2022',
+      '&copy;': '\u00A9',
+      '&reg;': '\u00AE',
+      '&trade;': '\u2122',
+      '&deg;': '\u00B0',
+      '&cent;': '\u00A2',
+      '&pound;': '\u00A3',
+      '&euro;': '\u20AC',
+      '&yen;': '\u00A5',
+    };
+
+    let r = text;
+    for (const [ent, ch] of Object.entries(HTML_ENTITIES)) r = r.replaceAll(ent, ch);
+
+    // Numeric HTML entities: &#160; &#xA0;
+    r = r.replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16)));
+    r = r.replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(parseInt(d, 10)));
+
+    // Common UTF-8 mojibake
+    const MOJIBAKE: Record<string, string> = {
+      'â€™': '\u2019',
+      'â€˜': '\u2018',
+      'â€œ': '\u201C',
+      'â€': '\u201D',
+      'â€”': '\u2014',
+      'â€“': '\u2013',
+      'â€¦': '\u2026',
+      'Ã©': 'é',
+      'Ã¨': 'è',
+      'Ã ': 'à',
+      'Ã¢': 'â',
+      'Ã®': 'î',
+      'Ã´': 'ô',
+      'Ã»': 'û',
+      'Ã§': 'ç',
+      'Ã«': 'ë',
+      'Ã¯': 'ï',
+      'Ã¼': 'ü',
+      'Ã¶': 'ö',
+      'Ã¤': 'ä',
+      'Ã±': 'ñ',
+    };
+    for (const [bad, good] of Object.entries(MOJIBAKE)) r = r.replaceAll(bad, good);
+
+    // OCR ligature artifacts
+    r = r
+      .replace(/ﬁ/g, 'fi')
+      .replace(/ﬂ/g, 'fl')
+      .replace(/ﬀ/g, 'ff')
+      .replace(/ﬃ/g, 'ffi')
+      .replace(/ﬄ/g, 'ffl')
+      .replace(/ﬅ/g, 'st');
+
+    // Invisible / problematic unicode
+    r = r
+      .replace(/\u00A0/g, ' ')
+      .replace(/\u200B/g, '')
+      .replace(/\u00AD/g, '')
+      .replace(/\uFEFF/g, '');
+
+    return r;
+  }
+
+  /**
+   * CLEAN: AI-assisted OCR text normalisation.
+   * Fixes line-break artifacts, joins mid-word hyphenation, strips page
+   * headers/footers, and corrects obvious character confusions. Operates on
+   * paragraph-sized chunks so context is preserved across sentences.
+   */
+  static async cleanOCRText(text: string, evidenceType?: string): Promise<string> {
+    const isAiEnabled = process.env.ENABLE_AI_ENRICHMENT === 'true';
+    if (!isAiEnabled || !text || text.length < 100) return text;
+
+    // Chunk at paragraph boundaries, cap at 5 chunks to keep latency reasonable
+    const MAX_CHUNK = 1400;
+    const MAX_CHUNKS = 5;
+    const paragraphs = text.split(/\n{2,}/);
+    const chunks: string[] = [];
+    let current = '';
+    for (const para of paragraphs) {
+      if (current.length + para.length > MAX_CHUNK && current.length > 0) {
+        chunks.push(current.trim());
+        current = para;
+      } else {
+        current = current ? current + '\n\n' + para : para;
+      }
+    }
+    if (current.trim()) chunks.push(current.trim());
+
+    const toProcess = chunks.slice(0, MAX_CHUNKS);
+    const cleaned = await Promise.all(toProcess.map((c) => this.cleanOCRChunk(c, evidenceType)));
+
+    const remainder = chunks.slice(MAX_CHUNKS).join('\n\n');
+    return [cleaned.join('\n\n'), remainder].filter(Boolean).join('\n\n');
+  }
+
+  private static async cleanOCRChunk(chunk: string, evidenceType?: string): Promise<string> {
+    try {
+      const docLabel = evidenceType || 'legal document';
+      const prompt = `Task: Clean OCR-extracted text from a ${docLabel}. Fix hyphenated line-break splits (e.g. "con-\nfidential" → "confidential"), join sentences broken by hard line breaks, remove page numbers and headers that appear mid-text, and correct obvious OCR character confusions (0/O, 1/l/I, rn/m). Preserve all factual content and paragraph structure exactly.
+
+Text:
+${chunk}
+
+Cleaned text (output ONLY the cleaned text, no explanation):`;
+
+      const result = await this.callLLM(prompt, {
+        maxTokens: Math.floor(chunk.length * 1.3),
+        temperature: 0.05,
+      });
+
+      if (!result || result.length < chunk.length * 0.4 || result.length > chunk.length * 2.5)
+        return chunk;
+      return result;
+    } catch {
+      return chunk;
+    }
+  }
+
   /**
    * REPAIR: Contextual MIME Wildcard Reconstruction
+   * HTML/unicode decode runs first as a free deterministic pre-pass.
    */
   static async repairMimeWildcards(text: string, context: string): Promise<string> {
     const isAiEnabled = process.env.ENABLE_AI_ENRICHMENT === 'true';
-    if (!isAiEnabled || !text.includes('=')) return text;
+    // Always run the deterministic decode regardless of AI flag
+    const decoded = this.decodeHtmlAndUnicode(text);
+    if (!isAiEnabled || !decoded.includes('=')) return decoded;
 
     const lines = text.split('\n');
     const repairedLines: string[] = new Array(lines.length);

@@ -1,5 +1,17 @@
 # Release Notes
 
+## 15.10.2 - 2026-03-10 - Ingestion AI Text Cleanup Inclusion
+
+### Ingestion Pipeline
+
+- **Parallel AI Post-Processing:** The queue now runs wildcard-repair, OCR cleanup, and summary generation in one pass for ingested document text.
+- **Conditional Metadata Update:** `metadata_json.ai_summary` is only written when summary output exists, while content fields are only updated when text actually changed.
+
+### AI Enrichment
+
+- **Deterministic Decode Pre-Pass:** Added HTML entity, numeric entity, unicode mojibake, ligature, and invisible-character normalization before MIME wildcard repair.
+- **Chunked OCR Cleaner:** Added bounded chunk-level OCR cleanup (`max 5` chunks) with strict guardrails to reject unstable LLM output lengths.
+
 ## 15.10.1 - 2026-03-10 - Modal Header + File Route + API Contract Stabilization
 
 ### Document Modal UX
