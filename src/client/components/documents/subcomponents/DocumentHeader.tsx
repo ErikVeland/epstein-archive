@@ -23,7 +23,7 @@ export const DocumentHeader: React.FC<DocumentHeaderProps> = ({
   onClose,
 }) => {
   return (
-    <div className="flex items-center gap-4 py-6 px-8 min-w-0">
+    <div className="flex items-center gap-4 py-6 pl-8 pr-4 min-w-0">
       <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0 shadow-lg shadow-cyan-900/20">
         <FileText className="w-6 h-6 text-cyan-400" />
       </div>
@@ -57,7 +57,7 @@ export const DocumentHeader: React.FC<DocumentHeaderProps> = ({
           <input
             type="text"
             placeholder="Find in record..."
-            className="control !h-12 w-full pl-10 pr-4 !bg-slate-950/40 border-white/5 focus:!border-cyan-500/50 transition-all text-sm"
+            className="control !h-12 w-full !pl-12 pr-4 !bg-slate-950/40 border-white/5 focus:!border-cyan-500/50 transition-all text-sm"
             value={localSearchTerm}
             onChange={(e) => setLocalSearchTerm(e.target.value)}
             autoComplete="off"

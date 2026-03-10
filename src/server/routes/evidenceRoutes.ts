@@ -273,7 +273,54 @@ router.get('/:id', validate(evidenceIdSchema), async (req: Request, res: Respons
       (req as any).requestId,
     );
 
-    res.json(evidence);
+    const canonical = {
+      ...evidence,
+      id: String(evidence.id ?? id),
+      fileName: String(evidence.fileName || evidence.file_name || ''),
+      filePath: evidence.filePath ?? evidence.file_path ?? null,
+      fileType: String(evidence.fileType || evidence.file_type || ''),
+      fileSize: Number(evidence.fileSize || evidence.file_size || 0),
+      dateCreated: evidence.dateCreated ?? evidence.date_created ?? null,
+      title: String(evidence.title || evidence.fileName || evidence.file_name || `Document ${id}`),
+      content: String(evidence.content || ''),
+      contentRefined:
+        evidence.contentRefined !== undefined && evidence.contentRefined !== null
+          ? String(evidence.contentRefined)
+          : null,
+      contentPreview:
+        evidence.contentPreview !== undefined && evidence.contentPreview !== null
+          ? String(evidence.contentPreview)
+          : String(evidence.content || '').slice(0, 320) || null,
+      metadata:
+        evidence.metadata &&
+        typeof evidence.metadata === 'object' &&
+        !Array.isArray(evidence.metadata)
+          ? evidence.metadata
+          : {},
+      evidenceType: String(evidence.evidenceType || evidence.evidence_type || 'document'),
+      redFlagRating: Number(evidence.redFlagRating || evidence.red_flag_rating || 0),
+      sourceCollection:
+        evidence.sourceCollection ??
+        evidence.source_collection ??
+        evidence.metadata?.source_collection ??
+        null,
+      fileUrl: `/api/documents/${id}/file?variant=clean`,
+      originalFileUrl: `/api/documents/${id}/file?variant=dirty`,
+      entities: Array.isArray(evidence.entities)
+        ? evidence.entities.map((entity: any) => ({
+            id: entity.id,
+            name: String(entity.name || ''),
+            mentions: Number(entity.mentions || 0),
+            contexts: Array.isArray(entity.contexts)
+              ? entity.contexts
+                  .map((ctx: any) => (typeof ctx === 'string' ? ctx : String(ctx?.context || '')))
+                  .filter((ctx: string) => ctx.length > 0)
+              : [],
+          }))
+        : [],
+    };
+
+    res.json(canonical);
   } catch (error) {
     console.error('Evidence retrieval error:', error);
     res.status(500).json({ error: 'Retrieval failed' });

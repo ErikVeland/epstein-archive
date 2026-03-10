@@ -379,9 +379,9 @@ router.get('/global', graphRateLimiter, async (req, res, next) => {
         id: String(n.id),
         label: n.label,
         type: n.type || 'unknown',
-        risk: n.risk || 0,
-        connectionCount: n.connectionCount,
-        community: n.community_id || 0,
+        risk: Number(n.risk || 0),
+        connectionCount: Number(n.connectionCount || 0),
+        community: Number(n.community_id || 0),
       })),
       edges: edgesArr.map((e: any) => ({
         id: `${e.source}-${e.target}-${e.type}`,

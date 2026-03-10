@@ -243,34 +243,91 @@ router.get('/:id/file', validate(documentIdSchema), async (req, res, next) => {
     const doc = await documentsRepository.getDocumentById(id);
     if (!doc) return res.status(404).json({ error: 'Document not found' });
 
-    const dirtyPath = (doc.filePath || (doc as any).file_path || '') as string;
-    const originalPath = (doc.originalFilePath || (doc as any).original_file_path || '') as string;
-    const cleanedPath = ((doc as any).cleanedPath ||
-      (doc as any).cleaned_path ||
-      (doc as any).metadata?.cleanedPath ||
-      (doc as any).metadata?.cleaned_path ||
-      '') as string;
+    const metadata = ((doc as any).metadata || {}) as Record<string, any>;
+    const isHttpUrl = (value: string): boolean => /^https?:\/\//i.test(value);
+    const firstNonUrl = (values: Array<unknown>): string => {
+      for (const candidate of values) {
+        const normalized = String(candidate || '').trim();
+        if (!normalized) continue;
+        if (isHttpUrl(normalized)) continue;
+        return normalized;
+      }
+      return '';
+    };
+
+    const dirtyPath = firstNonUrl([
+      doc.filePath,
+      (doc as any).file_path,
+      metadata.filePath,
+      metadata.file_path,
+      metadata.originalPath,
+      metadata.original_path,
+    ]);
+    const originalPath = firstNonUrl([
+      (doc as any).originalFilePath,
+      (doc as any).original_file_path,
+      metadata.originalFilePath,
+      metadata.original_file_path,
+      metadata.source_path,
+    ]);
+    const cleanedPath = firstNonUrl([
+      (doc as any).cleanedPath,
+      (doc as any).cleaned_path,
+      metadata.cleanedPath,
+      metadata.cleaned_path,
+    ]);
 
     let selectedPath = dirtyPath;
     if (variant === 'original' && originalPath) selectedPath = originalPath;
     if (variant === 'cleaned' && cleanedPath) selectedPath = cleanedPath;
 
-    if (!selectedPath) {
-      return res.status(404).json({ error: 'No file path available for document' });
-    }
-
     const dataRoot = path.resolve(process.cwd(), 'data');
-    const normalizedRelative = selectedPath.replace(/^\/+/, '');
-    const absolutePath = path.isAbsolute(selectedPath)
-      ? selectedPath
-      : path.resolve(process.cwd(), normalizedRelative);
+    const rawCorpusBasePath = process.env.RAW_CORPUS_BASE_PATH
+      ? path.resolve(process.env.RAW_CORPUS_BASE_PATH)
+      : null;
 
-    if (!absolutePath.startsWith(dataRoot)) {
-      return res.status(400).json({ error: 'Invalid file path' });
-    }
+    const absolutePath = selectedPath
+      ? path.isAbsolute(selectedPath)
+        ? selectedPath
+        : path.resolve(process.cwd(), selectedPath.replace(/^\/+/, ''))
+      : '';
+    const withinAllowedRoots =
+      absolutePath &&
+      (absolutePath.startsWith(dataRoot) ||
+        (rawCorpusBasePath ? absolutePath.startsWith(rawCorpusBasePath) : false));
 
-    if (!fs.existsSync(absolutePath)) {
-      return res.status(404).json({ error: 'File not found on disk' });
+    const isEmailRecord = String((doc as any).evidenceType || (doc as any).evidence_type || '')
+      .toLowerCase()
+      .includes('email');
+
+    if (!selectedPath || !withinAllowedRoots || !fs.existsSync(absolutePath)) {
+      if (isEmailRecord) {
+        const from = String(metadata.from || metadata.sender || 'unknown@archive.local');
+        const to = String(metadata.to || metadata.recipients || 'undisclosed-recipients');
+        const subject = String(metadata.subject || doc.title || doc.fileName || 'Untitled Email');
+        const date = String(metadata.date || doc.dateCreated || new Date().toUTCString());
+        const body = String((doc as any).contentRefined || (doc as any).content || '').trim();
+        const eml = [
+          `From: ${from}`,
+          `To: ${to}`,
+          `Subject: ${subject}`,
+          `Date: ${date}`,
+          'MIME-Version: 1.0',
+          'Content-Type: text/plain; charset=utf-8',
+          '',
+          body || '[No extracted body available]',
+          '',
+        ].join('\r\n');
+
+        res.setHeader('Content-Type', 'message/rfc822; charset=utf-8');
+        res.setHeader(
+          'Content-Disposition',
+          `inline; filename="${String(doc.fileName || `email-${id}.eml`).replace(/"/g, '')}"`,
+        );
+        return res.status(200).send(eml);
+      }
+
+      return res.status(404).json({ error: 'No local file path available for document' });
     }
 
     res.setHeader('Content-Disposition', 'inline');

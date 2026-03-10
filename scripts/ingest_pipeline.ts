@@ -1974,28 +1974,57 @@ async function processQueue() {
   let processedCount = 0;
   let hasMore = true;
 
-  // Re-queue failed docs so near-complete tranches can reach 100%.
-  // Skip permanent failures: corrupted, encrypted, or password-protected files,
-  // and anything that has already been attempted 5+ times.
-  const requeued = await db.query(`
+  // These are the large in-progress sets we want to save for last.
+  const GIANT_COLLECTIONS = ['DOJ Data Set 9', 'DOJ Data Set 10', 'DOJ Data Set 11'];
+
+  // Permanent failure signatures — never retry these regardless of collection.
+  const PERMANENT_ERROR_FILTER = `
+    processing_error IS NULL
+    OR (
+      processing_error NOT ILIKE '%corrupt%'
+      AND processing_error NOT ILIKE '%encrypt%'
+      AND processing_error NOT ILIKE '%password%'
+      AND processing_error NOT ILIKE '%invalid pdf%'
+    )
+  `;
+
+  // Non-giant collections: re-queue ALL retryable failures regardless of
+  // attempt count — "database is locked" and similar transient errors must
+  // not leave a tranche permanently stuck below 100%.
+  const requeuedMopUp = await db.query(
+    `
     UPDATE documents
     SET processing_status = 'queued',
         worker_id         = NULL,
         lease_expires_at  = NULL,
         processing_error  = NULL
     WHERE processing_status = 'failed'
+      AND source_collection != ALL($1)
+      AND (${PERMANENT_ERROR_FILTER})
+  `,
+    [GIANT_COLLECTIONS],
+  );
+
+  // Giant collections: only re-queue docs that haven't exhausted retries
+  // (we'll get to them eventually, no need to hammer them).
+  const requeuedGiants = await db.query(
+    `
+    UPDATE documents
+    SET processing_status = 'queued',
+        worker_id         = NULL,
+        lease_expires_at  = NULL,
+        processing_error  = NULL
+    WHERE processing_status = 'failed'
+      AND source_collection = ANY($1)
       AND (processing_attempts IS NULL OR processing_attempts < 5)
-      AND (
-        processing_error IS NULL
-        OR (
-          processing_error NOT ILIKE '%corrupt%'
-          AND processing_error NOT ILIKE '%encrypt%'
-          AND processing_error NOT ILIKE '%password%'
-          AND processing_error NOT ILIKE '%invalid pdf%'
-        )
-      )
-  `);
-  console.log(`   ♻️  Re-queued ${requeued.rowCount ?? 0} failed documents for retry.`);
+      AND (${PERMANENT_ERROR_FILTER})
+  `,
+    [GIANT_COLLECTIONS],
+  );
+
+  console.log(
+    `   ♻️  Re-queued ${requeuedMopUp.rowCount ?? 0} mop-up docs (non-giant) + ${requeuedGiants.rowCount ?? 0} giant-collection docs.`,
+  );
 
   // Pre-compute collection priority: collections closest to 100% go first so
   // tranches complete fully rather than all advancing in parallel.
