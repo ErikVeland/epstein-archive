@@ -75,40 +75,53 @@ export const evidenceRepository = {
       throw new Error('Document not found');
     }
     const sourcePath = doc.file_path || `doc:${doc.id}`;
-    const [evidenceIdRow] = await (evidenceQueries.createEvidenceFull as any).run(
-      {
-        evidenceType: doc.evidence_type || 'investigative_report',
-        sourcePath,
-        originalFilename: doc.file_name || `Document ${doc.id}`,
-        title: `Snippet from ${doc.file_name || 'Document'} (${doc.id})`,
-        description: notes || '',
-        extractedText: snippetText || '',
-        redFlagRating: doc.red_flag_rating || 0,
-        evidenceTags: '[]',
-        metadata: JSON.stringify({ document_id: doc.id }),
-      },
-      getApiPool(),
-    );
-    const evidenceId = String(evidenceIdRow.id);
 
-    const [link] = await (evidenceQueries.addEvidenceToInvestigation as any).run(
-      {
-        investigationId,
-        evidenceId,
-        notes: notes || '',
-        relevance: relevance || 'medium',
-      },
-      getApiPool(),
-    );
+    const client = await getApiPool().connect();
+    try {
+      await client.query('BEGIN');
 
-    const [evidence] = await (evidenceQueries.getEvidenceByIdDetailed as any).run(
-      { id: evidenceId },
-      getApiPool(),
-    );
-    return {
-      investigationEvidenceId: link.id,
-      evidence,
-    };
+      const [evidenceIdRow] = await (evidenceQueries.createEvidenceFull as any).run(
+        {
+          evidenceType: doc.evidence_type || 'investigative_report',
+          sourcePath,
+          originalFilename: doc.file_name || `Document ${doc.id}`,
+          title: `Snippet from ${doc.file_name || 'Document'} (${doc.id})`,
+          description: notes || '',
+          extractedText: snippetText || '',
+          redFlagRating: doc.red_flag_rating || 0,
+          evidenceTags: '[]',
+          metadata: JSON.stringify({ document_id: doc.id }),
+        },
+        client,
+      );
+      const evidenceId = String(evidenceIdRow.id);
+
+      const [link] = await (evidenceQueries.addEvidenceToInvestigation as any).run(
+        {
+          investigationId,
+          evidenceId,
+          notes: notes || '',
+          relevance: relevance || 'medium',
+        },
+        client,
+      );
+
+      await client.query('COMMIT');
+
+      const [evidence] = await (evidenceQueries.getEvidenceByIdDetailed as any).run(
+        { id: evidenceId },
+        getApiPool(),
+      );
+      return {
+        investigationEvidenceId: link.id,
+        evidence,
+      };
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
   },
 
   // Add evidence to an investigation session
@@ -197,43 +210,60 @@ export const evidenceRepository = {
       );
       const evidenceTags = JSON.stringify(tags.map((t: any) => t.name));
 
-      const [ins] = await (evidenceQueries.createEvidenceFull as any).run(
-        {
-          evidenceType,
-          sourcePath,
-          originalFilename: sourcePath ? sourcePath.split('/').pop()! : `media_${media.id}`,
-          title: media.title || `Media ${media.id}`,
-          description: media.description || '',
-          extractedText: transcriptText || '',
-          redFlagRating: Number(media.redFlagRating || 0),
-          evidenceTags,
-          metadata: JSON.stringify({
-            media_item_id: media.id,
-            file_type: media.fileType,
-            duration: metadata.duration,
-            chapters: metadata.chapters,
-          }),
-        },
-        getApiPool(),
-      );
-      evidenceId = String(ins.id);
+      const client = await getApiPool().connect();
+      try {
+        await client.query('BEGIN');
 
-      const people = await (evidenceQueries.getMediaItemPeople as any).run(
-        { mediaItemId },
-        getApiPool(),
-      );
-      for (const p of people) {
-        await (evidenceQueries.insertEvidenceEntity as any).run(
+        const [ins] = await (evidenceQueries.createEvidenceFull as any).run(
           {
-            evidenceId,
-            entityId: String(p.entity_id),
-            role: String(p.role || 'participant'),
-            confidence: 0.8,
-            mentionContext: '',
+            evidenceType,
+            sourcePath,
+            originalFilename: sourcePath ? sourcePath.split('/').pop()! : `media_${media.id}`,
+            title: media.title || `Media ${media.id}`,
+            description: media.description || '',
+            extractedText: transcriptText || '',
+            redFlagRating: Number(media.redFlagRating || 0),
+            evidenceTags,
+            metadata: JSON.stringify({
+              media_item_id: media.id,
+              file_type: media.fileType,
+              duration: metadata.duration,
+              chapters: metadata.chapters,
+            }),
           },
+          client,
+        );
+        evidenceId = String(ins.id);
+
+        const people = await (evidenceQueries.getMediaItemPeople as any).run(
+          { mediaItemId },
           getApiPool(),
         );
+        if (people.length > 0) {
+          // Batch insert all entity links in one query instead of N+1 individual inserts
+          const values = people.map((_: any, i: number) => {
+            const base = i * 5;
+            return `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5})`;
+          });
+          const params: (string | number)[] = [];
+          for (const p of people) {
+            params.push(evidenceId, String(p.entity_id), String(p.role || 'participant'), 0.8, '');
+          }
+          await client.query(
+            `INSERT INTO evidence_entity (evidence_id, entity_id, role, confidence, mention_context)
+             VALUES ${values.join(', ')}
+             ON CONFLICT DO NOTHING`,
+            params,
+          );
+        }
+
+        await client.query('COMMIT');
+      } catch (err) {
+        await client.query('ROLLBACK');
+        client.release();
+        throw err;
       }
+      client.release();
     }
 
     const [res] = await (evidenceQueries.addEvidenceToInvestigation as any).run(
@@ -346,25 +376,42 @@ export const evidenceRepository = {
       getApiPool(),
     );
 
-    // Enrich with entities
-    const finalResults = await Promise.all(
-      results.map(async (result: any) => {
-        const entities = await (evidenceQueries.getEvidenceEntities as any).run(
-          { evidenceId: result.id },
-          getApiPool(),
-        );
-        return {
-          ...result,
-          entities: entities.map((e: any) => ({
-            id: e.id,
-            name: e.full_name,
-            category: e.primary_role,
-            role: e.role,
-          })),
-          tags: result.evidenceTags ? JSON.parse(result.evidenceTags) : [],
-        };
-      }),
-    );
+    // Enrich with entities — single batch query instead of N+1
+    const resultIds: number[] = results.map((r: any) => Number(r.id));
+    const entityRows = resultIds.length
+      ? await getApiPool()
+          .query<{
+            evidence_id: number;
+            id: string;
+            name: string;
+            category: string;
+            role: string;
+          }>(
+            `SELECT ee.evidence_id, ent.id, ent.full_name AS name,
+                  ent.primary_role AS category, ee.role
+           FROM evidence_entity ee
+           INNER JOIN entities ent ON ent.id = ee.entity_id
+           WHERE ee.evidence_id = ANY($1::int[])`,
+            [resultIds],
+          )
+          .then((r) => r.rows)
+      : [];
+    const entityMap = new Map<number, typeof entityRows>();
+    for (const row of entityRows) {
+      const key = Number(row.evidence_id);
+      if (!entityMap.has(key)) entityMap.set(key, []);
+      entityMap.get(key)!.push(row);
+    }
+    const finalResults = results.map((result: any) => ({
+      ...result,
+      entities: (entityMap.get(Number(result.id)) ?? []).map((e) => ({
+        id: e.id,
+        name: e.name,
+        category: e.category,
+        role: e.role,
+      })),
+      tags: result.evidenceTags ? JSON.parse(result.evidenceTags) : [],
+    }));
 
     const totalNum = Number(total || 0);
     const totalPages = Math.ceil(totalNum / limitNum);

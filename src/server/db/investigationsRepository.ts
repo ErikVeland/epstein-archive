@@ -180,43 +180,57 @@ export const investigationsRepository = {
       `manual:${Date.now()}`;
     const type = evidenceData.type || 'document';
 
-    // 1. Check if evidence exists by sourcePath
-    const existing = await (investigationsQueries.getEvidenceBySourcePath as any).run(
-      { sourcePath },
-      getApiPool(),
-    );
-    let evidenceId = existing[0]?.id ? Number(existing[0].id) : null;
+    const client = await getApiPool().connect();
+    let resultId: number;
+    try {
+      await client.query('BEGIN');
 
-    if (!evidenceId) {
-      const result = await (investigationsQueries.createEvidence as any).run(
-        {
-          title,
-          description,
-          evidenceType: type,
-          sourcePath,
-          originalFilename: title,
-          redFlagRating: evidenceData.red_flag_rating || 0,
-        },
-        getApiPool(),
+      // 1. Check if evidence exists by sourcePath
+      const existing = await (investigationsQueries.getEvidenceBySourcePath as any).run(
+        { sourcePath },
+        client,
       );
-      evidenceId = Number(result[0]?.id);
+      let evidenceId = existing[0]?.id ? Number(existing[0].id) : null;
+
+      if (!evidenceId) {
+        const result = await (investigationsQueries.createEvidence as any).run(
+          {
+            title,
+            description,
+            evidenceType: type,
+            sourcePath,
+            originalFilename: title,
+            redFlagRating: evidenceData.red_flag_rating || 0,
+          },
+          client,
+        );
+        evidenceId = Number(result[0]?.id);
+      }
+
+      if (!evidenceId) throw new Error('Failed to create evidence');
+
+      // 2. Link to investigation
+      const result = await (investigationsQueries.addEvidenceToInvestigation as any).run(
+        {
+          investigationId,
+          evidenceId,
+          notes: evidenceData.notes || '',
+          relevance,
+          addedBy: userId,
+        },
+        client,
+      );
+
+      await client.query('COMMIT');
+      resultId = Number(result[0]?.id || evidenceId);
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
     }
 
-    if (!evidenceId) throw new Error('Failed to create evidence');
-
-    // 2. Link to investigation
-    const result = await (investigationsQueries.addEvidenceToInvestigation as any).run(
-      {
-        investigationId,
-        evidenceId,
-        notes: evidenceData.notes || '',
-        relevance,
-        addedBy: userId,
-      },
-      getApiPool(),
-    );
-
-    // Log activity
+    // Log activity outside the transaction — failure here doesn't roll back the evidence link
     try {
       await investigationsRepository.logActivity({
         investigationId,
@@ -224,7 +238,7 @@ export const investigationsRepository = {
         userName: 'system',
         actionType: 'evidence_added',
         targetType: type,
-        targetId: String(evidenceId),
+        targetId: String(resultId),
         targetTitle: title,
         metadata: { relevance, sourcePath },
       });
@@ -232,7 +246,7 @@ export const investigationsRepository = {
       console.warn('Failed to log activity:', e);
     }
 
-    return Number(result[0]?.id || evidenceId);
+    return resultId;
   },
 
   getTimelineEvents: async (investigationId: number) => {

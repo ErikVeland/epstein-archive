@@ -35,8 +35,13 @@ export function resolveMediaPath(dbPath: string, fallbackDir: string = 'data'): 
     return path.join(cwd, 'data', dbPath.substring(1));
   }
 
-  // Absolute path - use as-is
+  // Absolute path - only allow if it's within the data directory
   if (path.isAbsolute(dbPath)) {
+    const dataRoot = path.resolve(cwd, 'data');
+    const normalizedRoot = dataRoot.endsWith(path.sep) ? dataRoot : `${dataRoot}${path.sep}`;
+    if (dbPath !== dataRoot && !dbPath.startsWith(normalizedRoot)) {
+      return ''; // Reject paths outside data/
+    }
     return dbPath;
   }
 

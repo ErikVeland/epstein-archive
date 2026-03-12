@@ -193,11 +193,7 @@ export class App {
     );
     this.app.use(cookieParser());
 
-    // 5. Custom Headers
-    this.app.use((_req, res, next) => {
-      res.setHeader('X-DB-Dialect', 'postgres');
-      next();
-    });
+    // 5. Custom Headers (none needed beyond helmet defaults)
 
     // 6. Static files
     this.app.use((req, res, next) => {
@@ -357,7 +353,7 @@ export class App {
     });
 
     // Canonical DB metadata endpoint used by monitors and deploy verification.
-    router.get('/_meta/db', async (_req, res, next) => {
+    router.get('/_meta/db', authenticateRequest, async (_req, res, next) => {
       try {
         const pool = getApiPool();
         const { rows } = await pool.query<{

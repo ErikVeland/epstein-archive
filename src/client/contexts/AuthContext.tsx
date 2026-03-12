@@ -53,7 +53,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = (userData: User, accessToken: string) => {
     setUser(userData);
     apiClient.setAccessToken(accessToken);
-    localStorage.setItem('auth_user', JSON.stringify(userData));
   };
 
   const logout = async () => {
@@ -64,7 +63,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
     setUser(null);
     apiClient.setAccessToken(null);
-    localStorage.removeItem('auth_user');
+    localStorage.removeItem('epstein-archive-show-sensitive');
   };
 
   return (

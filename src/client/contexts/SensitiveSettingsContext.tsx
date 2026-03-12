@@ -12,12 +12,12 @@ export const SensitiveSettingsProvider: React.FC<{ children: React.ReactNode }> 
   children,
 }) => {
   const [showAllSensitive, setShowAllSensitiveState] = useState(() => {
-    return localStorage.getItem('epstein-archive-show-sensitive') === 'true';
+    return sessionStorage.getItem('epstein-archive-show-sensitive') === 'true';
   });
 
   const setShowAllSensitive = (show: boolean) => {
     setShowAllSensitiveState(show);
-    localStorage.setItem('epstein-archive-show-sensitive', String(show));
+    sessionStorage.setItem('epstein-archive-show-sensitive', String(show));
   };
 
   const toggleShowAllSensitive = () => setShowAllSensitive(!showAllSensitive);

@@ -12,7 +12,15 @@ const JWT_ACCESS_SECRET = process.env.JWT_SECRET || 'dev-access-secret';
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'dev-refresh-secret';
 const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
-if (JWT_ACCESS_SECRET === 'dev-access-secret' || JWT_REFRESH_SECRET === 'dev-refresh-secret') {
+if (process.env.NODE_ENV === 'production') {
+  if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_SECRET) {
+    console.error('CRITICAL: JWT_SECRET and JWT_REFRESH_SECRET must be set in production.');
+    process.exit(1);
+  }
+} else if (
+  JWT_ACCESS_SECRET === 'dev-access-secret' ||
+  JWT_REFRESH_SECRET === 'dev-refresh-secret'
+) {
   const mode = process.env.NODE_ENV || 'development';
   console.warn(`⚠️ WARNING: Using fallback JWT secret(s) in ${mode} mode.`);
 }

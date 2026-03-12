@@ -65,7 +65,7 @@ router.post(
 
       const id = `user-${Date.now()}`;
       // Hash password
-      const passwordHash = bcrypt.hashSync(password, 10);
+      const passwordHash = bcrypt.hashSync(password, 12);
 
       await createUser({
         id,

@@ -6,6 +6,7 @@
 
 import { Router, Request, Response } from 'express';
 import { getRevisionInfo } from '../revisionManager';
+import { authenticateRequest } from '../auth/middleware.js';
 
 const router = Router();
 
@@ -14,12 +15,12 @@ const router = Router();
  *
  * Get canonical dataset revision token
  */
-router.get('/revision', async (_req: Request, res: Response) => {
+router.get('/revision', authenticateRequest, async (_req: Request, res: Response) => {
   try {
     const revisionInfo = await getRevisionInfo();
     res.json(revisionInfo);
-  } catch (error: any) {
-    res.status(500).json({ error: error.message });
+  } catch (_error) {
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 

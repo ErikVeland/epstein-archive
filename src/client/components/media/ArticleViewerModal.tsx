@@ -1,5 +1,6 @@
 import { createPortal } from 'react-dom';
 import { ExternalLink } from 'lucide-react';
+import DOMPurify from 'isomorphic-dompurify';
 import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
 import { useScrollLock } from '../../hooks/useScrollLock';
 import { CloseButton } from '../common/CloseButton';
@@ -35,7 +36,30 @@ function highlightText(text: string, term?: string) {
 export const ArticleViewerModal: React.FC<Props> = ({ article, highlight, onClose }) => {
   useScrollLock(!!article);
   if (!article) return null;
-  const content = highlightText(article.content || article.summary || '', highlight);
+  const content = DOMPurify.sanitize(
+    highlightText(article.content || article.summary || '', highlight),
+    {
+      ALLOWED_TAGS: [
+        'p',
+        'br',
+        'b',
+        'i',
+        'em',
+        'strong',
+        'mark',
+        'a',
+        'ul',
+        'ol',
+        'li',
+        'blockquote',
+        'h1',
+        'h2',
+        'h3',
+        'h4',
+      ],
+      ALLOWED_ATTR: ['href', 'target', 'rel', 'class'],
+    },
+  );
 
   return createPortal(
     <div

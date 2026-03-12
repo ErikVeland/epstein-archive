@@ -12,17 +12,20 @@ interface CacheEntry<T> {
 
 class QueryCache {
   private cache: Map<string, CacheEntry<any>> = new Map();
+  private inFlight: Map<string, Promise<any>> = new Map();
   private defaultTTL: number; // milliseconds
 
   constructor(defaultTTLSeconds: number = 60) {
     this.defaultTTL = defaultTTLSeconds * 1000;
 
     // Periodic cleanup of expired entries (every 5 minutes)
-    setInterval(() => this.cleanup(), 5 * 60 * 1000);
+    const timer = setInterval(() => this.cleanup(), 5 * 60 * 1000);
+    // Allow Node.js to exit cleanly even if the cache is still running
+    if (typeof timer.unref === 'function') timer.unref();
   }
 
   /**
-   * Get cached value or compute and cache it
+   * Get cached value or compute and cache it (synchronous compute only)
    */
   getOrSet<T>(key: string, compute: () => T, ttlSeconds?: number): T {
     const existing = this.get<T>(key);
@@ -33,6 +36,32 @@ class QueryCache {
     const value = compute();
     this.set(key, value, ttlSeconds);
     return value;
+  }
+
+  /**
+   * Get cached value or compute and cache it (async compute with thundering-herd protection)
+   * Concurrent callers sharing the same key will await the same in-flight Promise.
+   */
+  async getOrSetAsync<T>(key: string, compute: () => Promise<T>, ttlSeconds?: number): Promise<T> {
+    const existing = this.get<T>(key);
+    if (existing !== undefined) return existing;
+
+    const inFlight = this.inFlight.get(key) as Promise<T> | undefined;
+    if (inFlight) return inFlight;
+
+    const promise = compute()
+      .then((value) => {
+        this.set(key, value, ttlSeconds);
+        this.inFlight.delete(key);
+        return value;
+      })
+      .catch((err) => {
+        this.inFlight.delete(key);
+        throw err;
+      });
+
+    this.inFlight.set(key, promise);
+    return promise;
   }
 
   /**
@@ -119,5 +148,6 @@ export const CacheKeys = {
   documentCount: () => 'count:documents',
   forensicSummary: () => 'forensic:summary',
   entityById: (id: string | number) => `entity:${id}`,
-  investigationList: () => 'investigations:list',
+  investigationList: (userId?: string) =>
+    userId ? `investigations:list:${userId}` : 'investigations:list',
 } as const;

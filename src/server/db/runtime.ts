@@ -121,8 +121,8 @@ export function initPools(): void {
       'SET idle_in_transaction_session_timeout = 0',
     ];
     settings
-      .reduce((p, sql) => p.then(() => client.query(sql)), Promise.resolve())
-      .catch((err) => {
+      .reduce((p, sql) => p.then(() => client.query(sql)), Promise.resolve() as Promise<unknown>)
+      .catch((err: { message: string }) => {
         console.error('[PG INGEST POOL] Failed to apply session settings:', err.message);
       });
   });

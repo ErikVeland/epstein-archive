@@ -242,10 +242,18 @@ export class ArticleFeedService {
   }
 
   private cleanText(text: string): string {
-    // Remove HTML tags and decode HTML entities
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = text;
-    return tempDiv.textContent || tempDiv.innerText || text;
+    // Strip HTML tags and decode common HTML entities without executing scripts
+    return text
+      .replace(/<[^>]*>/g, '')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#039;/g, "'")
+      .replace(/&apos;/g, "'")
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&#(\d+);/g, (_m, n) => String.fromCharCode(Number(n)))
+      .replace(/&#x([0-9a-f]+);/gi, (_m, h) => String.fromCharCode(parseInt(h, 16)));
   }
 
   formatPubDate(dateString: string): string {

@@ -456,48 +456,58 @@ const batchPeopleSchema = z.object({
   }),
 });
 
-router.put('/items/batch/tags', validate(batchTagsSchema), async (req, res, next) => {
-  try {
-    const { itemIds, tagIds, action } = req.body as {
-      itemIds: number[];
-      tagIds: number[];
-      action: 'add' | 'remove';
-    };
-    for (const itemId of itemIds) {
-      for (const tagId of tagIds) {
-        if (action === 'add') {
-          await mediaService.addTagToItem(itemId, tagId);
-        } else {
-          await mediaService.removeTagFromItem(itemId, tagId);
+router.put(
+  '/items/batch/tags',
+  authenticateRequest,
+  validate(batchTagsSchema),
+  async (req, res, next) => {
+    try {
+      const { itemIds, tagIds, action } = req.body as {
+        itemIds: number[];
+        tagIds: number[];
+        action: 'add' | 'remove';
+      };
+      for (const itemId of itemIds) {
+        for (const tagId of tagIds) {
+          if (action === 'add') {
+            await mediaService.addTagToItem(itemId, tagId);
+          } else {
+            await mediaService.removeTagFromItem(itemId, tagId);
+          }
         }
       }
+      res.json({ ok: true });
+    } catch (error) {
+      next(error);
     }
-    res.json({ ok: true });
-  } catch (error) {
-    next(error);
-  }
-});
+  },
+);
 
-router.put('/items/batch/people', validate(batchPeopleSchema), async (req, res, next) => {
-  try {
-    const { itemIds, personIds, action } = req.body as {
-      itemIds: number[];
-      personIds: number[];
-      action?: 'add' | 'remove';
-    };
-    for (const itemId of itemIds) {
-      for (const personId of personIds) {
-        if (action === 'remove') {
-          await mediaService.removePersonFromItem(itemId, personId);
-        } else {
-          await mediaService.addPersonToItem(itemId, personId);
+router.put(
+  '/items/batch/people',
+  authenticateRequest,
+  validate(batchPeopleSchema),
+  async (req, res, next) => {
+    try {
+      const { itemIds, personIds, action } = req.body as {
+        itemIds: number[];
+        personIds: number[];
+        action?: 'add' | 'remove';
+      };
+      for (const itemId of itemIds) {
+        for (const personId of personIds) {
+          if (action === 'remove') {
+            await mediaService.removePersonFromItem(itemId, personId);
+          } else {
+            await mediaService.addPersonToItem(itemId, personId);
+          }
         }
       }
+      res.json({ ok: true });
+    } catch (error) {
+      next(error);
     }
-    res.json({ ok: true });
-  } catch (error) {
-    next(error);
-  }
-});
+  },
+);
 
 export default router;

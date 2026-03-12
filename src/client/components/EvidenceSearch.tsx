@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import DOMPurify from 'isomorphic-dompurify';
 import { useLocation } from 'react-router-dom';
 import { optimizedDataService } from '../services/OptimizedDataService';
 import { Person } from '../types';
@@ -842,7 +843,12 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
                       {d.snippet && (
                         <div
                           className="text-sm text-gray-300 font-mono bg-black/30 p-2 rounded mb-2 border-l-2 border-blue-500/30"
-                          dangerouslySetInnerHTML={{ __html: d.snippet }}
+                          dangerouslySetInnerHTML={{
+                            __html: DOMPurify.sanitize(d.snippet, {
+                              ALLOWED_TAGS: ['mark'],
+                              ALLOWED_ATTR: ['class'],
+                            }),
+                          }}
                         />
                       )}
                       <div className="flex items-center gap-4 text-xs text-gray-500">

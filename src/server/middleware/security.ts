@@ -42,8 +42,7 @@ export const enforceQuarantine = (resourceType: 'document' | 'media') => {
             reason: 'access_denied_quarantine',
           });
           return res.status(403).json({
-            error: 'Resource is quarantined',
-            reason: item.quarantine_reason,
+            error: 'Resource unavailable',
           });
         }
 

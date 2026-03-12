@@ -111,13 +111,32 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
     }
   }, []);
 
-  const renderHighlightedText = useCallback(
-    (text: string, term?: string) => {
-      if (!term) return text;
-      return <span dangerouslySetInnerHTML={{ __html: highlightText(text, term) }} />;
-    },
-    [highlightText],
-  );
+  const renderHighlightedText = useCallback((text: string, term?: string): React.ReactNode => {
+    if (!term || !text) return text;
+    try {
+      const escapeRegExp = (str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const terms = term.split(/\s+/).filter((t) => t.length > 2);
+      const pattern = terms.length > 0 ? terms.map(escapeRegExp).join('|') : escapeRegExp(term);
+      if (!pattern) return text;
+      const regex = new RegExp(`(${pattern})`, 'gi');
+      const parts = text.split(regex);
+      return (
+        <span>
+          {parts.map((part, i) =>
+            regex.test(part) ? (
+              <mark key={i} className="bg-yellow-500 text-black px-1 rounded">
+                {part}
+              </mark>
+            ) : (
+              part
+            ),
+          )}
+        </span>
+      );
+    } catch {
+      return text;
+    }
+  }, []);
 
   // Optimized Helper function to link entities in text
   const linkEntitiesInText = useCallback(

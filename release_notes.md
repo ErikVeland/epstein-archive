@@ -1,5 +1,39 @@
 # Release Notes
 
+## 16.2.0 - 2026-03-12 - Security Hardening Round 2 & DB Performance
+
+### Security
+
+- Removed unauthenticated access to `GET /api/admin/revision` — now requires auth; error response no longer leaks internal message
+- Added `authenticateRequest` to `PUT /api/media/items/batch/tags` and `/batch/people` — bulk write endpoints were previously open to anonymous callers
+- Added `authenticateRequest` to `GET /api/_meta/db` — endpoint leaked PostgreSQL version string and pool metrics publicly
+- Removed `X-DB-Dialect: postgres` response header from all responses — eliminated technology disclosure
+- Stripped `quarantine_reason` field from 403 response in `enforceQuarantine` — internal investigative notes no longer reach callers
+- Path traversal fix in `pathResolver.ts` — absolute DB paths outside `data/` now rejected instead of served
+- XSS fix in `EvidenceSearch.tsx` — search snippets now sanitized with DOMPurify (mark tags only)
+- XSS fix in `ArticleViewerModal.tsx` — article content sanitized with DOMPurify before render
+- XSS fix in `DocumentContentRenderer.tsx` — highlighted text rewritten as safe React elements (no raw HTML injection)
+- XSS fix in `articleFeedService.ts` — replaced `div.innerHTML` entity decoder with pure-regex approach
+- Added `process.exit(1)` guard for missing `JWT_REFRESH_SECRET` in production — previously only warned
+- Normalized bcrypt cost factor to 12 for new-user creation (was 10, inconsistent with change-password handler)
+- Removed redundant `auth_user` write to `localStorage` in `AuthContext` — data was never read back
+- `logout()` now clears sensitive-content preference so it does not persist to next user on a shared machine
+- Changed sensitive-content toggle from `localStorage` to `sessionStorage` — resets on tab close
+
+### Performance
+
+- `evidenceRepository.searchEvidence` — eliminated N+1 query: entity relationships fetched in a single `ANY($1::int[])` batch (was up to 100 queries per search, exhausting the API pool under load)
+- `evidenceRepository.addSnippetToInvestigation` — wrapped in `BEGIN/COMMIT`; partial writes no longer leave orphaned evidence rows
+- `evidenceRepository.addMediaToInvestigation` — N+1 per-person INSERT loop replaced with single batch INSERT; wrapped in transaction
+- `investigationsRepository.addEvidence` — evidence check/create/link wrapped in `BEGIN/COMMIT`; activity log runs outside transaction
+
+### Reliability
+
+- `QueryCache.getOrSetAsync` — new async cache method with in-flight Promise deduplication (thundering-herd protection)
+- `CacheKeys.investigationList` — key now accepts optional `userId` to prevent cross-user cache collisions
+- `cache.ts` cleanup interval is now `unref()`'d — allows clean Node.js exit in scripts and test environments
+- Fixed TypeScript error in `runtime.ts` ingest pool session-settings chain (`Promise.resolve()` cast + typed `err`)
+
 ## 16.1.0 - 2026-03-12 - Security Hardening & Schema Sync
 
 ### Security
