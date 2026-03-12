@@ -5,6 +5,15 @@
     <link rel="icon" type="image/png" href="/icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Epstein Files Archive</title>
+    <meta
+      name="description"
+      content="Search and analyze the Epstein Files archive: documents, emails, media, entities, timelines, flights, and linked evidence."
+    />
+    <meta
+      name="robots"
+      content="index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1"
+    />
+    <link rel="canonical" href="https://epstein.academy/" />
 
     <!-- Default Open Graph Tags -->
     <meta property="og:title" content="Epstein Files Archive" />
@@ -13,6 +22,7 @@
       content="Comprehensive archive of the Epstein files, documents, and photos."
     />
     <meta property="og:image" content="https://epstein.academy/epstein-files.jpg" />
+    <meta property="og:image:alt" content="Epstein Files Archive cover image" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:url" content="https://epstein.academy" />
@@ -25,7 +35,22 @@
       content="Comprehensive archive of the Epstein files, documents, and photos."
     />
     <meta name="twitter:image" content="https://epstein.academy/epstein-files.jpg" />
+    <meta name="twitter:image:alt" content="Epstein Files Archive cover image" />
     <!-- End Default Open Graph Tags -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Epstein Files Archive",
+        "url": "https://epstein.academy/",
+        "inLanguage": "en",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://epstein.academy/search?q={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
+      }
+    </script>
     <style>
       html,
       body {
@@ -39,7 +64,27 @@
   <body
     class="bg-[#020617] text-slate-100 antialiased selection:bg-cyan-500/30 selection:text-cyan-100"
   >
-    <div id="root"></div>
+    <div id="root">
+      <main style="max-width: 960px; margin: 2rem auto; padding: 0 1rem; line-height: 1.6">
+        <h1>Epstein Files Archive</h1>
+        <p>
+          Public-facing archive for searching and reviewing documents, emails, media, timelines,
+          entities, and related evidence.
+        </p>
+        <nav aria-label="Primary archive sections">
+          <ul>
+            <li><a href="/documents">Documents</a></li>
+            <li><a href="/people">People</a></li>
+            <li><a href="/media">Media</a></li>
+            <li><a href="/emails">Emails</a></li>
+            <li><a href="/timeline">Timeline</a></li>
+            <li><a href="/flights">Flights</a></li>
+            <li><a href="/properties">Properties</a></li>
+            <li><a href="/about">About</a></li>
+          </ul>
+        </nav>
+      </main>
+    </div>
     <script type="module" src="/src/client/main.tsx"></script>
   </body>
 </html>

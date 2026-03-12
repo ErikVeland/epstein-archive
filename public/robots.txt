@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+
+# Avoid indexing API/debug surfaces.
+Disallow: /api/
+Disallow: /admin
+Disallow: /login
+Disallow: /debug.html
+Disallow: /test.html
+Disallow: /comprehensive-test.html
+Disallow: /data-test.html
+
+Sitemap: https://epstein.academy/sitemap.xml

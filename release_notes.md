@@ -1,5 +1,14 @@
 # Release Notes
 
+## 16.2.1 - 2026-03-12 - SEO Crawlability Hardening
+
+### Search Engine Visibility
+
+- Added real `robots.txt` and `sitemap.xml` artifacts to the production build output so crawlers can discover and index core archive routes.
+- Added default canonical URL, standard description meta tag, robots directives, Open Graph image alt text, and JSON-LD website metadata to the HTML shell.
+- Added crawlable fallback HTML content and section links in the initial `#root` markup so non-JS and low-JS crawlers see meaningful page content.
+- Enhanced runtime SEO tags in the `SEO` component with canonical normalization, robots directives, and JSON-LD page metadata.
+
 ## 16.2.0 - 2026-03-12 - Search Performance & Investigation Reliability
 
 ### Improvements
