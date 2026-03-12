@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-// TODO: Add evidence deletion feature - see UNUSED_VARIABLES_RECOMMENDATIONS.md
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   FileText,
   Plus,
@@ -13,11 +12,16 @@ import {
   Filter,
   BarChart3,
   MessageSquare,
+  Trash2,
+  Shield,
 } from 'lucide-react';
 import { ENTITY_CATEGORY_ICONS } from '../../../config/entityIcons';
 import { EvidenceAnnotationPanel, EvidenceAnnotation } from '../documents/EvidenceAnnotation';
 import { CloseButton } from '../common/CloseButton';
+import Icon from '../common/Icon';
 import { apiClient } from '../../services/apiClient';
+
+type EntityRef = { entityId: string; fullName: string; entityCategory: string };
 
 interface Evidence {
   id: number;
@@ -43,11 +47,13 @@ interface Entity {
 interface InvestigationEvidencePanelProps {
   investigationId: string;
   onClose?: () => void;
+  onChainOfCustody?: (evidenceId: string) => void;
 }
 
 export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProps> = ({
   investigationId,
   onClose,
+  onChainOfCustody,
 }) => {
   const [evidence, setEvidence] = useState<Evidence[]>([]);
   const [entityCoverage, setEntityCoverage] = useState<Entity[]>([]);
@@ -65,6 +71,13 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
     Record<number, EvidenceAnnotation[]>
   >({});
 
+  // Entity connection state
+  const [entityByEvidence, setEntityByEvidence] = useState<Record<string, EntityRef[]>>({});
+  const [evidenceByEntity, setEvidenceByEntity] = useState<Record<string, string[]>>({});
+  const [pivotEntityId, setPivotEntityId] = useState<string | null>(null);
+  const [pivotEntityName, setPivotEntityName] = useState('');
+  const [clusterMode, setClusterMode] = useState<'none' | 'entity' | 'date'>('none');
+
   useEffect(() => {
     loadEvidenceSummary();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- loadEvidenceSummary is stable and only depends on investigationId
@@ -77,10 +90,22 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
       setEvidence(data.evidence || []);
       setEntityCoverage(data.entityCoverage || []);
       setTypeBreakdown(data.typeBreakdown || {});
+      setEntityByEvidence(data.entityByEvidence || {});
+      setEvidenceByEntity(data.evidenceByEntity || {});
     } catch (error) {
       console.error('Error loading evidence summary:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteEvidence = async (id: number) => {
+    if (!window.confirm('Remove this evidence item from the investigation?')) return;
+    try {
+      await apiClient.removeEvidenceFromInvestigation(String(id));
+      setEvidence((prev) => prev.filter((e) => e.id !== id));
+    } catch (error) {
+      console.error('Error removing evidence:', error);
     }
   };
 
@@ -141,8 +166,31 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
       e.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = filterType === 'all' || e.evidence_type === filterType;
     const matchesRelevance = filterRelevance === 'all' || e.relevance === filterRelevance;
+    if (pivotEntityId) {
+      const linked = evidenceByEntity[pivotEntityId] || [];
+      if (!linked.includes(String(e.id))) return false;
+    }
     return matchesSearch && matchesType && matchesRelevance;
   });
+
+  const clusteredEvidence = useMemo((): Array<[string, Evidence[]]> | null => {
+    if (clusterMode === 'none') return null;
+    const groups: Record<string, Evidence[]> = {};
+    filteredEvidence.forEach((e) => {
+      let key: string;
+      if (clusterMode === 'date') {
+        key = new Date(e.created_at).toLocaleString('default', {
+          month: 'long',
+          year: 'numeric',
+        });
+      } else {
+        const topEntity = (entityByEvidence[String(e.id)] || [])[0];
+        key = topEntity?.fullName || 'No entity link';
+      }
+      (groups[key] ??= []).push(e);
+    });
+    return Object.entries(groups).sort(([, a], [, b]) => b.length - a.length);
+  }, [clusterMode, filteredEvidence, entityByEvidence]);
 
   const getEvidenceTypeLabel = (type: string) => {
     return type
@@ -159,6 +207,130 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
     };
     return colors[relevance as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
+
+  const renderEvidenceRow = (item: Evidence) => (
+    <div
+      key={item.id}
+      className="border border-slate-700 rounded-lg p-4 hover:bg-slate-700 transition cursor-pointer bg-slate-800"
+      onClick={() => setSelectedEvidence(item)}
+    >
+      <div className="flex items-start justify-between mb-2">
+        <div className="flex-1">
+          <div className="flex items-center space-x-2 mb-1">
+            <FileText className="w-4 h-4 text-slate-400" />
+            <h4 className="font-semibold text-white truncate">{item.title || 'Untitled'}</h4>
+          </div>
+          <p className="text-sm text-slate-300 line-clamp-2">{item.description}</p>
+          {(entityByEvidence[String(item.id)] || []).length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-2">
+              {(entityByEvidence[String(item.id)] || []).slice(0, 4).map((ref) => (
+                <button
+                  key={ref.entityId}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setPivotEntityId(ref.entityId);
+                    setPivotEntityName(ref.fullName);
+                  }}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-slate-700 hover:bg-cyan-900/40 border border-slate-600 hover:border-cyan-700/50 text-slate-300 hover:text-cyan-300 transition-colors"
+                  title={`Filter by ${ref.fullName}`}
+                >
+                  <Icon
+                    name={
+                      ((ENTITY_CATEGORY_ICONS as any)[ref.entityCategory]?.icon || 'User') as any
+                    }
+                    size="xs"
+                    className="w-2.5 h-2.5 flex-shrink-0"
+                  />
+                  <span className="max-w-[120px] truncate">{ref.fullName}</span>
+                </button>
+              ))}
+              {(entityByEvidence[String(item.id)] || []).length > 4 && (
+                <span className="text-xs text-slate-500 self-center">
+                  +{(entityByEvidence[String(item.id)] || []).length - 4}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+        <div className="flex flex-col items-end space-y-1 ml-4">
+          {item.relevance && (
+            <span className={`text-xs px-2 py-1 rounded ${getRelevanceBadge(item.relevance)}`}>
+              {item.relevance}
+            </span>
+          )}
+          {item.red_flag_rating > 0 && (
+            <div className="flex items-center space-x-1">
+              <AlertTriangle className="w-4 h-4 text-red-500" />
+              <span className="text-xs font-semibold text-red-400">{item.red_flag_rating}</span>
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="flex items-center justify-between text-xs text-slate-400">
+        <div className="flex items-center space-x-3">
+          <span className="flex items-center space-x-1">
+            <Tag className="w-3 h-3" />
+            <span>{getEvidenceTypeLabel(item.evidence_type)}</span>
+          </span>
+          <span className="flex items-center space-x-1">
+            <Calendar className="w-3 h-3" />
+            <span>{new Date(item.created_at).toLocaleDateString()}</span>
+          </span>
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setAnnotatingEvidence(item);
+            }}
+            className="flex items-center space-x-1 text-purple-400 hover:text-purple-300"
+            title="Annotate evidence"
+          >
+            <MessageSquare className="w-3 h-3" />
+            <span>Annotate</span>
+            {(evidenceAnnotations[item.id]?.length || 0) > 0 && (
+              <span className="ml-1 px-1.5 py-0.5 text-xs bg-purple-900/50 rounded-full">
+                {evidenceAnnotations[item.id]?.length}
+              </span>
+            )}
+          </button>
+          <a
+            href={`/evidence/${item.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center space-x-1 text-blue-400 hover:text-blue-300"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <span>View</span>
+            <ExternalLink className="w-3 h-3" />
+          </a>
+          {onChainOfCustody && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onChainOfCustody(String(item.id));
+              }}
+              className="flex items-center space-x-1 text-slate-400 hover:text-cyan-300"
+              title="Chain of custody"
+            >
+              <Shield className="w-3 h-3" />
+              <span>Custody</span>
+            </button>
+          )}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDeleteEvidence(item.id);
+            }}
+            className="flex items-center space-x-1 text-slate-400 hover:text-red-400"
+            title="Remove from investigation"
+          >
+            <Trash2 className="w-3 h-3" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 
   if (loading) {
     return (
@@ -261,9 +433,22 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
                   <IconComponent className="w-4 h-4 text-slate-400 flex-shrink-0" />
                   <span className="text-sm text-slate-200 truncate">{entity.full_name}</span>
                 </div>
-                <span className="text-xs font-semibold text-blue-400 ml-2">
-                  {entity.evidence_count}
-                </span>
+                <div className="flex items-center gap-1">
+                  <span className="text-xs font-semibold text-blue-400 ml-2">
+                    {entity.evidence_count}
+                  </span>
+                  <button
+                    title={`Filter evidence by ${entity.full_name}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setPivotEntityId(String(entity.id));
+                      setPivotEntityName(entity.full_name);
+                    }}
+                    className="ml-1 text-slate-500 hover:text-cyan-400 transition-colors"
+                  >
+                    <Filter className="w-3 h-3" />
+                  </button>
+                </div>
               </div>
             );
           })}
@@ -322,89 +507,59 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
             <option value="medium">Medium Relevance</option>
             <option value="low">Low Relevance</option>
           </select>
+          <div className="flex items-center gap-0.5 border border-slate-600 rounded-lg overflow-hidden h-10">
+            {(['none', 'entity', 'date'] as const).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => setClusterMode(mode)}
+                className={`px-2.5 h-full text-xs transition-colors whitespace-nowrap ${
+                  clusterMode === mode
+                    ? 'bg-blue-600 text-white'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                {mode === 'none' ? 'List' : mode === 'entity' ? 'By Entity' : 'By Date'}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
+      {/* Pivot Banner */}
+      {pivotEntityId && (
+        <div className="mx-6 mt-4 px-3 py-2 bg-cyan-900/30 border border-cyan-700/50 rounded-lg flex items-center justify-between text-sm">
+          <span className="text-cyan-300">
+            Showing {filteredEvidence.length} items containing <strong>{pivotEntityName}</strong>
+          </span>
+          <button
+            onClick={() => {
+              setPivotEntityId(null);
+              setPivotEntityName('');
+            }}
+            className="text-cyan-400 hover:text-white ml-3"
+          >
+            × Clear
+          </button>
+        </div>
+      )}
+
       {/* Evidence List */}
       <div className="p-6 max-h-96 overflow-y-auto">
-        <div className="space-y-3">
-          {filteredEvidence.map((item) => (
-            <div
-              key={item.id}
-              className="border border-slate-700 rounded-lg p-4 hover:bg-slate-700 transition cursor-pointer bg-slate-800"
-              onClick={() => setSelectedEvidence(item)}
-            >
-              <div className="flex items-start justify-between mb-2">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2 mb-1">
-                    <FileText className="w-4 h-4 text-slate-400" />
-                    <h4 className="font-semibold text-white truncate">
-                      {item.title || 'Untitled'}
-                    </h4>
-                  </div>
-                  <p className="text-sm text-slate-300 line-clamp-2">{item.description}</p>
-                </div>
-                <div className="flex flex-col items-end space-y-1 ml-4">
-                  {item.relevance && (
-                    <span
-                      className={`text-xs px-2 py-1 rounded ${getRelevanceBadge(item.relevance)}`}
-                    >
-                      {item.relevance}
-                    </span>
-                  )}
-                  {item.red_flag_rating > 0 && (
-                    <div className="flex items-center space-x-1">
-                      <AlertTriangle className="w-4 h-4 text-red-500" />
-                      <span className="text-xs font-semibold text-red-400">
-                        {item.red_flag_rating}
-                      </span>
-                    </div>
-                  )}
-                </div>
+        {clusteredEvidence ? (
+          clusteredEvidence.map(([groupName, items]) => (
+            <div key={groupName} className="mb-4">
+              <div className="sticky top-0 z-10 bg-slate-800/95 backdrop-blur-sm px-1 py-1.5 mb-2 border-b border-slate-700/50 flex items-center gap-2">
+                <span className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
+                  {groupName}
+                </span>
+                <span className="text-xs text-slate-600">({items.length})</span>
               </div>
-              <div className="flex items-center justify-between text-xs text-slate-400">
-                <div className="flex items-center space-x-3">
-                  <span className="flex items-center space-x-1">
-                    <Tag className="w-3 h-3" />
-                    <span>{getEvidenceTypeLabel(item.evidence_type)}</span>
-                  </span>
-                  <span className="flex items-center space-x-1">
-                    <Calendar className="w-3 h-3" />
-                    <span>{new Date(item.created_at).toLocaleDateString()}</span>
-                  </span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setAnnotatingEvidence(item);
-                    }}
-                    className="flex items-center space-x-1 text-purple-400 hover:text-purple-300"
-                    title="Annotate evidence"
-                  >
-                    <MessageSquare className="w-3 h-3" />
-                    <span>Annotate</span>
-                    {(evidenceAnnotations[item.id]?.length || 0) > 0 && (
-                      <span className="ml-1 px-1.5 py-0.5 text-xs bg-purple-900/50 rounded-full">
-                        {evidenceAnnotations[item.id]?.length}
-                      </span>
-                    )}
-                  </button>
-                  <a
-                    href={`/evidence/${item.id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center space-x-1 text-blue-400 hover:text-blue-300"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <span>View</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                </div>
-              </div>
+              <div className="space-y-3">{items.map(renderEvidenceRow)}</div>
             </div>
-          ))}
-        </div>
+          ))
+        ) : (
+          <div className="space-y-3">{filteredEvidence.map(renderEvidenceRow)}</div>
+        )}
       </div>
 
       {/* Add Evidence Modal */}

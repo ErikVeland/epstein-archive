@@ -7,7 +7,7 @@ import {
   Annotation,
   Investigator,
 } from '../../types/investigation';
-// TODO: Re-enable EvidenceChainService when chain-of-custody features are needed
+// EvidenceChainService available for future chain-of-custody workflow extensions
 // import { EvidenceChainService } from '../../services/evidenceChainService';
 import {
   Calendar,
@@ -32,7 +32,7 @@ import {
   BookOpen,
 } from 'lucide-react';
 import FinancialTransactionMapper from '../visualizations/FinancialTransactionMapper';
-// Removed unused ChainOfCustodyModal import
+import { ChainOfCustodyModal } from './ChainOfCustodyModal';
 import {
   NetworkVisualization,
   NetworkNode,
@@ -170,6 +170,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   });
   const [showTasksPanel, setShowTasksPanel] = useState(false);
   const [showMemoryPanel, setShowMemoryPanel] = useState(false);
+  const [custodyEvidenceId, setCustodyEvidenceId] = useState<string | null>(null);
 
   // Determine active tab from URL
   type ActiveTab =
@@ -1505,7 +1506,10 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
 
             {activeTab === 'evidence' && selectedInvestigation && (
               <div>
-                <InvestigationEvidencePanel investigationId={selectedInvestigation.id} />
+                <InvestigationEvidencePanel
+                  investigationId={selectedInvestigation.id}
+                  onChainOfCustody={(id) => setCustodyEvidenceId(id)}
+                />
               </div>
             )}
 
@@ -1602,9 +1606,9 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                     <EvidencePacketExporter
                       investigationId={selectedInvestigation.id}
                       investigationTitle={selectedInvestigation.title}
-                      onExport={(format: 'json' | 'zip') => {
+                      onExport={(format, meta) => {
                         addToast({
-                          text: `Evidence packet export started (${format.toUpperCase()})`,
+                          text: `Evidence packet export started (${format.toUpperCase()}) — "${meta.investigationTitle}"`,
                           type: 'info',
                         });
                       }}
@@ -2022,6 +2026,12 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
       )}
       {caseFolderDocumentId && (
         <DocumentModal id={caseFolderDocumentId} onClose={closeCaseFolderDocumentModal} />
+      )}
+      {custodyEvidenceId && (
+        <ChainOfCustodyModal
+          evidenceId={custodyEvidenceId}
+          onClose={() => setCustodyEvidenceId(null)}
+        />
       )}
     </div>
   );

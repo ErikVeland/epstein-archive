@@ -1,8 +1,9 @@
-import React, { Suspense, useEffect } from 'react';
+import React, { Suspense, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Newspaper, Image, Music, Film, User } from 'lucide-react';
 import ScopedErrorBoundary from '../common/ScopedErrorBoundary';
 import { useAuth } from '../../contexts/AuthContext';
+import { SEO } from '../common/SEO';
 
 // Lazy load the tabs to prevent crashes
 const ArticlesTab = React.lazy(() => import('./ArticlesTab'));
@@ -17,6 +18,12 @@ export const MediaAndArticlesTab: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { isAdmin } = useAuth();
+  const [shareMetadata, setShareMetadata] = useState<{
+    title: string;
+    description: string;
+    image?: string;
+    imageAlt?: string;
+  } | null>(null);
 
   // Determine active sub-tab from URL path
   const getActiveSubTab = (): 'articles' | 'photos' | 'audio' | 'video' | 'faces' => {
@@ -29,6 +36,10 @@ export const MediaAndArticlesTab: React.FC = () => {
   };
 
   const activeSubTab = getActiveSubTab();
+  const shareUrl = useMemo(
+    () => `https://epstein.academy${location.pathname}${location.search}`,
+    [location.pathname, location.search],
+  );
 
   // Redirect /media to /media/photos by default
   useEffect(() => {
@@ -39,12 +50,113 @@ export const MediaAndArticlesTab: React.FC = () => {
     }
   }, [location.pathname, location.search, navigate]);
 
+  useEffect(() => {
+    let cancelled = false;
+    const params = new URLSearchParams(location.search);
+    const albumId = params.get('albumId');
+    const mediaId = params.get('id') || params.get('photoId');
+
+    const setDefault = () => {
+      if (!cancelled) {
+        setShareMetadata({
+          title: 'Epstein Media Archive',
+          description:
+            'Explore photos, audio, and video records linked to the Epstein files archive.',
+          image: 'https://epstein.academy/epstein-files.jpg',
+          imageAlt: 'Epstein Files media archive',
+        });
+      }
+    };
+
+    const resolve = async () => {
+      try {
+        if (location.pathname === '/media/photos' && mediaId) {
+          const imageUrl = `https://epstein.academy/api/media/images/${mediaId}/file`;
+          setShareMetadata({
+            title: `Epstein Photo ${mediaId}`,
+            description: 'Shared image from the Epstein Files media archive.',
+            image: imageUrl,
+            imageAlt: `Epstein media image ${mediaId}`,
+          });
+          return;
+        }
+
+        if (location.pathname === '/media/audio' && mediaId) {
+          setShareMetadata({
+            title: `Epstein Audio ${mediaId}`,
+            description: 'Shared audio record from the Epstein Files media archive.',
+            image: `https://epstein.academy/api/media/audio/${mediaId}/thumbnail`,
+            imageAlt: `Audio thumbnail ${mediaId}`,
+          });
+          return;
+        }
+
+        if (location.pathname === '/media/video' && mediaId) {
+          setShareMetadata({
+            title: `Epstein Video ${mediaId}`,
+            description: 'Shared video record from the Epstein Files media archive.',
+            image: `https://epstein.academy/api/media/video/${mediaId}/thumbnail`,
+            imageAlt: `Video thumbnail ${mediaId}`,
+          });
+          return;
+        }
+
+        if (albumId) {
+          const firstImageRes = await fetch(`/api/media/images?albumId=${albumId}&page=1&limit=1`);
+          if (firstImageRes.ok) {
+            const payload = await firstImageRes.json();
+            const firstImageId = payload?.data?.[0]?.id;
+            if (firstImageId) {
+              setShareMetadata({
+                title: `Epstein Media Album ${albumId}`,
+                description: 'Shared media album from the Epstein Files archive.',
+                image: `https://epstein.academy/api/media/images/${firstImageId}/file`,
+                imageAlt: `Album ${albumId} preview`,
+              });
+              return;
+            }
+          }
+        }
+
+        setDefault();
+      } catch {
+        setDefault();
+      }
+    };
+
+    void resolve();
+    return () => {
+      cancelled = true;
+    };
+  }, [location.pathname, location.search]);
+
   const navigateToTab = (tab: string) => {
     navigate(`/media/${tab}`);
   };
 
   return (
     <div className="flex flex-col h-full bg-slate-950 overflow-hidden">
+      <SEO
+        title={shareMetadata?.title || 'Epstein Media Archive'}
+        description={
+          shareMetadata?.description ||
+          'Explore photos, audio, and video records linked to the Epstein files archive.'
+        }
+        image={shareMetadata?.image || 'https://epstein.academy/epstein-files.jpg'}
+        imageAlt={shareMetadata?.imageAlt || 'Epstein media archive'}
+        type="article"
+        url={shareUrl}
+        canonical={shareUrl}
+        schema={{
+          '@context': 'https://schema.org',
+          '@type': 'MediaGallery',
+          name: shareMetadata?.title || 'Epstein Media Archive',
+          description:
+            shareMetadata?.description ||
+            'Photos, audio, and video records from the Epstein Files archive.',
+          url: shareUrl,
+        }}
+      />
       {/* Sub-tab Navigation */}
       <div className="flex-none flex gap-2 border-b border-slate-800 bg-slate-900 px-4 pt-2 z-20 overflow-x-auto scrollbar-thin scrollbar-thumb-slate-700/60 scrollbar-track-transparent -mx-4 sm:mx-0">
         <button

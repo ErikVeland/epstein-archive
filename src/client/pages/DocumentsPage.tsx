@@ -1,5 +1,6 @@
 import React from 'react';
 import { DocumentBrowser } from '../components/documents/DocumentBrowser';
+import ScopedErrorBoundary from '../components/common/ScopedErrorBoundary';
 
 interface DocumentsPageProps {
   searchTerm: string;
@@ -15,13 +16,15 @@ export const DocumentsPage: React.FC<DocumentsPageProps> = ({
   onDocumentClose,
 }) => {
   return (
-    <div className="space-y-6">
-      <DocumentBrowser
-        searchTerm={searchTerm}
-        onSearchTermChange={onSearchTermChange}
-        selectedDocumentId={selectedDocumentId}
-        onDocumentClose={onDocumentClose}
-      />
-    </div>
+    <ScopedErrorBoundary>
+      <div className="space-y-6">
+        <DocumentBrowser
+          searchTerm={searchTerm}
+          onSearchTermChange={onSearchTermChange}
+          selectedDocumentId={selectedDocumentId}
+          onDocumentClose={onDocumentClose}
+        />
+      </div>
+    </ScopedErrorBoundary>
   );
 };

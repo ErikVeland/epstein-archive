@@ -32,8 +32,7 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
   const [showAnnotations, setShowAnnotations] = useState(false);
   // Optimize entity lookup map
   const [entityMap, setEntityMap] = useState<Map<string, any>>(new Map());
-  // TODO: Use entities for related entities sidebar - see UNUSED_VARIABLES_RECOMMENDATIONS.md
-  const [_entities, setEntities] = useState<any[]>([]);
+  const [entities, setEntities] = useState<any[]>([]);
   const [entityRegexes, setEntityRegexes] = useState<RegExp[]>([]);
   const [showUnredactedHighlights, setShowUnredactedHighlights] = useState(true);
 
@@ -878,7 +877,7 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
       )}
 
       {/* Related Entities Section (Surfaced Feature) */}
-      {_entities.length > 0 && (
+      {entities.length > 0 && (
         <div className="mt-8 pt-6 border-t border-slate-700">
           <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-widest mb-4">
             Mentions & Related Entities
@@ -886,7 +885,7 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
           <div className="flex flex-wrap gap-2">
             {(() => {
               // Optimization: Only regex match if we have entities
-              if (!_entities.length || entityRegexes.length === 0)
+              if (!entities.length || entityRegexes.length === 0)
                 return <span className="text-gray-500 text-xs">No entities detected yet.</span>;
 
               // Find unique entities present in content
@@ -906,7 +905,7 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
                 if (matches.size > 50) break;
               }
 
-              const found = _entities.filter((e) => {
+              const found = entities.filter((e) => {
                 const entityName = getEntityName(e);
                 return entityName.length > 0 && matches.has(entityName.toLowerCase());
               });

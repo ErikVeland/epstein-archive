@@ -157,6 +157,36 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
                   </span>
                 </Link>
               </li>
+              <li>
+                <Link
+                  to="/the-epstein-files"
+                  className="hover:text-cyan-400 transition-colors flex items-center gap-2 group w-fit"
+                >
+                  <span className="group-hover:translate-x-1 transition-transform">
+                    The Epstein Files
+                  </span>
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/epstein-documents"
+                  className="hover:text-cyan-400 transition-colors flex items-center gap-2 group w-fit"
+                >
+                  <span className="group-hover:translate-x-1 transition-transform">
+                    Epstein Documents
+                  </span>
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/epstein-media"
+                  className="hover:text-cyan-400 transition-colors flex items-center gap-2 group w-fit"
+                >
+                  <span className="group-hover:translate-x-1 transition-transform">
+                    Epstein Media
+                  </span>
+                </Link>
+              </li>
             </ul>
           </div>
 

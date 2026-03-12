@@ -136,8 +136,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
   );
 
   const [modifierKeyPressed, setModifierKeyPressed] = useState(false);
-  // TODO: Track space key for pan mode - see UNUSED_VARIABLES_RECOMMENDATIONS.md
-  const [spacePressed, _setSpacePressed] = useState(false);
+  const [spacePressed, setSpacePressed] = useState(false);
   const [totalDragDistance, setTotalDragDistance] = useState(0);
   const workerRef = useRef<Worker | null>(null);
   const useWorkerRef = useRef(false);
@@ -168,13 +167,18 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
   // Level of Detail (LOD) based on zoom level
   const lod = useMemo(() => GraphService.getLodConfig(transform.k), [transform.k]);
 
-  // Track modifier keys (Shift or Alt for forced node dragging)
+  // Track modifier keys (Shift or Alt for forced node dragging) and Space for pan mode
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.shiftKey || e.altKey) setModifierKeyPressed(true);
+      if (e.key === ' ') {
+        e.preventDefault();
+        setSpacePressed(true);
+      }
     };
     const handleKeyUp = (e: KeyboardEvent) => {
       if (!e.shiftKey && !e.altKey) setModifierKeyPressed(false);
+      if (e.key === ' ') setSpacePressed(false);
     };
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);

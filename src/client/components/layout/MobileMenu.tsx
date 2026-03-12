@@ -10,15 +10,16 @@ interface MobileMenuProps {
   onSearchTermChange: (term: string) => void;
   onNavigate: (path: string) => void;
   onClose: () => void;
+  onSearch?: (term: string) => void;
 }
 
-// TODO: Implement search in mobile menu - see UNUSED_VARIABLES_RECOMMENDATIONS.md
 export const MobileMenu: React.FC<MobileMenuProps> = ({
   open,
   searchTerm,
   onSearchTermChange,
   onNavigate,
   onClose,
+  onSearch,
 }) => {
   const [attract, setAttract] = useState<boolean>(false);
   const { isAdmin } = useAuth();
@@ -117,10 +118,11 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   const query = searchTerm.trim();
-                  if (query) {
+                  if (query && onSearch) {
+                    onSearch(query);
+                    onClose();
+                  } else if (query) {
                     handleNavigation(`/search?q=${encodeURIComponent(query)}`);
-                  } else {
-                    handleNavigation('/search');
                   }
                 }
               }}

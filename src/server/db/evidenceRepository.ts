@@ -300,10 +300,44 @@ export const evidenceRepository = {
       getApiPool(),
     );
 
+    // Get entity-evidence membership for chips and pivot filtering
+    const memberRows = await getApiPool().query<{
+      evidenceId: string;
+      entityId: string;
+      fullName: string;
+      entityCategory: string;
+    }>(
+      `SELECT ie.evidence_id::text AS "evidenceId",
+              ent.id::text         AS "entityId",
+              ent.full_name        AS "fullName",
+              ent.entity_category  AS "entityCategory"
+       FROM investigation_evidence ie
+       JOIN evidence_entity ee  ON ee.evidence_id = ie.evidence_id
+       JOIN entities        ent ON ent.id = ee.entity_id
+       WHERE ie.investigation_id = $1`,
+      [investigationId],
+    );
+
+    const entityByEvidence: Record<
+      string,
+      Array<{ entityId: string; fullName: string; entityCategory: string }>
+    > = {};
+    const evidenceByEntity: Record<string, string[]> = {};
+    for (const row of memberRows.rows) {
+      (entityByEvidence[row.evidenceId] ??= []).push({
+        entityId: row.entityId,
+        fullName: row.fullName,
+        entityCategory: row.entityCategory,
+      });
+      (evidenceByEntity[row.entityId] ??= []).push(row.evidenceId);
+    }
+
     return {
       totalEvidence: evidence.length,
       evidence,
       entityCoverage,
+      entityByEvidence,
+      evidenceByEntity,
       typeBreakdown: evidence.reduce((acc: any, e: any) => {
         acc[e.evidenceType!] = (acc[e.evidenceType!] || 0) + 1;
         return acc;

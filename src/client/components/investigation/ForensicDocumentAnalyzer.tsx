@@ -142,11 +142,10 @@ interface ForensicDocumentAnalyzerProps {
   };
 }
 
-// TODO: Use case context for document analysis - see UNUSED_VARIABLES_RECOMMENDATIONS.md
 export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> = ({
   documentId,
   onAnalysisComplete,
-  caseContext: _caseContext,
+  caseContext,
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -287,10 +286,14 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
     setIsAnalyzing(true);
     try {
       if (documentId) {
-        const resp = await fetch(`/api/forensic/analyze/${documentId}`);
+        const params = new URLSearchParams();
+        if (caseContext?.caseId) params.set('caseId', caseContext.caseId);
+        if (caseContext?.keyEntities?.length)
+          params.set('keyEntities', caseContext.keyEntities.join(','));
+        const query = params.toString() ? `?${params.toString()}` : '';
+        const resp = await fetch(`/api/forensic/analyze/${documentId}${query}`);
         const data = await resp.json();
         setAnalysis(data);
-        if (onAnalysisComplete) onAnalysisComplete(data);
         if (onAnalysisComplete) onAnalysisComplete(data);
       }
     } catch (e) {

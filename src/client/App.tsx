@@ -79,6 +79,9 @@ const AboutPage = lazy(() =>
 const FAQPage = lazy(() =>
   import('./components/pages/FAQPage').then((module) => ({ default: module.default })),
 );
+const TheEpsteinFilesPage = lazy(() =>
+  import('./pages/TheEpsteinFilesPage').then((module) => ({ default: module.TheEpsteinFilesPage })),
+);
 
 const AdminDashboard = lazy(() =>
   import('./pages/AdminDashboard').then((module) => ({ default: module.AdminDashboard })),
@@ -190,6 +193,12 @@ function App() {
   // Determine active tab from URL
   const getTabFromPath = (pathname: string): Tab => {
     if (pathname === '/' || pathname === '/people') return 'people';
+    if (pathname === '/the-epstein-files') return 'landing';
+    if (pathname === '/epstein-documents') return 'landing';
+    if (pathname === '/epstein-people') return 'landing';
+    if (pathname === '/epstein-media') return 'landing';
+    if (pathname === '/epstein-timeline') return 'landing';
+    if (pathname === '/epstein-flights') return 'landing';
     if (pathname.startsWith('/entity/')) return 'people'; // Entity modal opens on people tab
     if (pathname.startsWith('/search')) return 'search';
     if (pathname.startsWith('/documents')) return 'documents';
@@ -228,8 +237,190 @@ function App() {
     | 'evidence'
     | 'faq'
     | 'review'
-    | 'admin';
+    | 'admin'
+    | 'landing';
   const activeTab = getTabFromPath(location.pathname);
+  const landingVariant = (() => {
+    if (location.pathname === '/epstein-documents') return 'documents';
+    if (location.pathname === '/epstein-people') return 'people';
+    if (location.pathname === '/epstein-media') return 'media';
+    if (location.pathname === '/epstein-timeline') return 'timeline';
+    if (location.pathname === '/epstein-flights') return 'flights';
+    return 'overview';
+  })() as 'overview' | 'documents' | 'people' | 'media' | 'timeline' | 'flights';
+  const seoConfig = useMemo(() => {
+    const origin = 'https://epstein.academy';
+    const canonical = `${origin}${location.pathname}`;
+    const commonKeywords = ['Epstein Files', 'Epstein documents', 'Jeffrey Epstein archive'];
+
+    if (location.pathname.startsWith('/documents')) {
+      return {
+        title: 'Epstein Documents',
+        description:
+          'Search Epstein files by document title, source, OCR text, and linked entities in the document browser.',
+        url: canonical,
+        canonical,
+        type: 'CollectionPage',
+        keywords: [...commonKeywords, 'court documents', 'depositions', 'evidence files'],
+        schema: {
+          '@context': 'https://schema.org',
+          '@type': 'Dataset',
+          name: 'Epstein Documents Dataset',
+          description:
+            'Searchable collection of documents, OCR text, and metadata from the Epstein files archive.',
+          url: canonical,
+          inLanguage: 'en',
+          isAccessibleForFree: true,
+        },
+      };
+    }
+
+    if (location.pathname.startsWith('/people')) {
+      return {
+        title: 'Epstein People Index',
+        description:
+          'Browse entities, mention context, and supporting references across the Epstein files archive.',
+        url: canonical,
+        canonical,
+        type: 'CollectionPage',
+        keywords: [...commonKeywords, 'Epstein people', 'entity index', 'named entities'],
+        schema: {
+          '@context': 'https://schema.org',
+          '@type': 'CollectionPage',
+          name: 'Epstein People Index',
+          description: 'Entity index and relationship navigation for people linked in the archive.',
+          url: canonical,
+        },
+      };
+    }
+
+    if (location.pathname.startsWith('/media')) {
+      const hasShareParams =
+        location.search.includes('id=') || location.search.includes('albumId=');
+      const mediaCanonical = hasShareParams ? `${canonical}${location.search}` : canonical;
+      return {
+        title: 'Epstein Media Archive',
+        description:
+          'Explore photos, audio, and video connected to the Epstein files with album and document context.',
+        url: mediaCanonical,
+        canonical: mediaCanonical,
+        type: 'CollectionPage',
+        keywords: [...commonKeywords, 'epstein media', 'epstein photos', 'epstein audio'],
+        schema: {
+          '@context': 'https://schema.org',
+          '@type': 'CollectionPage',
+          name: 'Epstein Media Archive',
+          description:
+            'Image, audio, and video records linked to entities and documents in the Epstein archive.',
+          url: mediaCanonical,
+        },
+      };
+    }
+
+    if (location.pathname.startsWith('/timeline')) {
+      return {
+        title: 'Epstein Timeline',
+        description:
+          'Trace key events and evidence chronology in the Epstein files timeline with linked source records.',
+        url: canonical,
+        canonical,
+        type: 'CollectionPage',
+        keywords: [...commonKeywords, 'epstein timeline', 'chronology', 'event sequence'],
+        schema: {
+          '@context': 'https://schema.org',
+          '@type': 'CollectionPage',
+          name: 'Epstein Timeline',
+          description: 'Chronological view of archive events linked to documents and entities.',
+          url: canonical,
+        },
+      };
+    }
+
+    if (location.pathname.startsWith('/flights')) {
+      return {
+        title: 'Epstein Flight Logs',
+        description:
+          'Analyze Epstein flight records, routes, and travel patterns with searchable evidence context.',
+        url: canonical,
+        canonical,
+        type: 'CollectionPage',
+        keywords: [...commonKeywords, 'epstein flight logs', 'flight records', 'travel routes'],
+        schema: {
+          '@context': 'https://schema.org',
+          '@type': 'Dataset',
+          name: 'Epstein Flight Logs',
+          description: 'Structured flight records linked to entities and documents.',
+          url: canonical,
+          isAccessibleForFree: true,
+        },
+      };
+    }
+
+    if (location.pathname === '/the-epstein-files' || location.pathname.startsWith('/epstein-')) {
+      return {
+        title: 'The Epstein Files',
+        description:
+          'Primary archive landing page for searching the Epstein files across documents, media, entities, flights, and timelines.',
+        url: canonical,
+        canonical,
+        type: 'CollectionPage',
+        keywords: [...commonKeywords, 'the epstein files', 'epstein files archive', 'epstein data'],
+        schema: [
+          {
+            '@context': 'https://schema.org',
+            '@type': 'CollectionPage',
+            name: 'The Epstein Files',
+            description:
+              'Public-facing archive for browsing documents, entities, and evidence linked to the Epstein files.',
+            url: canonical,
+          },
+          {
+            '@context': 'https://schema.org',
+            '@type': 'Dataset',
+            name: 'Epstein Files Archive Dataset',
+            description:
+              'Searchable structured archive of records, OCR text, media, and entities tied to the Epstein files.',
+            url: canonical,
+            isAccessibleForFree: true,
+          },
+          {
+            '@context': 'https://schema.org',
+            '@type': 'NewsArticle',
+            headline: 'The Epstein Files Archive: public search access',
+            dateModified: new Date().toISOString(),
+            mainEntityOfPage: canonical,
+            publisher: {
+              '@type': 'Organization',
+              name: 'Glass Academy',
+              url: 'https://epstein.academy',
+            },
+          },
+        ],
+      };
+    }
+
+    if (location.pathname.startsWith('/about')) {
+      return {
+        title: 'About the Epstein Files Archive',
+        description:
+          'Methodology, source provenance, and ingestion status for the Epstein Files Archive.',
+        url: canonical,
+        canonical,
+        type: 'article',
+        keywords: [...commonKeywords, 'methodology', 'archive status', 'data provenance'],
+      };
+    }
+
+    return {
+      title: 'Epstein Files Archive',
+      description:
+        'Search and analyze the Epstein Files archive: documents, emails, media, entities, timelines, and flights.',
+      url: canonical,
+      canonical,
+      type: 'website',
+      keywords: commonKeywords,
+    };
+  }, [location.pathname, location.search]);
 
   // people state removed - PeoplePage handles its own data fetching
 
@@ -1014,7 +1205,7 @@ function App() {
       <UndoProvider>
         <InvestigationsProvider>
           <div className="min-h-screen bg-gradient-to-br from-gray-950 via-slate-900 to-black relative overflow-x-hidden overflow-y-auto flex flex-col">
-            <SEO />
+            <SEO {...seoConfig} />
             {shouldShowOnboarding && (
               <FirstRunOnboarding onComplete={completeOnboarding} onSkip={skipOnboarding} />
             )}
@@ -1682,6 +1873,10 @@ function App() {
                 onSearchTermChange={setSearchTerm}
                 onNavigate={(p) => navigate(p)}
                 onClose={() => setIsMobileMenuOpen(false)}
+                onSearch={(term) => {
+                  setSearchTerm(term);
+                  setIsMobileMenuOpen(false);
+                }}
               />
 
               {/* Tab Content */}
@@ -1691,7 +1886,12 @@ function App() {
                   <Breadcrumb
                     items={[
                       { label: 'Home', href: '/' },
-                      { label: activeTab.charAt(0).toUpperCase() + activeTab.slice(1) },
+                      {
+                        label:
+                          activeTab === 'landing'
+                            ? 'The Epstein Files'
+                            : activeTab.charAt(0).toUpperCase() + activeTab.slice(1),
+                      },
                     ]}
                   />
                 </div>
@@ -1755,6 +1955,7 @@ function App() {
 
                     {activeTab === 'about' && <AboutPage />}
                     {activeTab === 'faq' && <FAQPage />}
+                    {activeTab === 'landing' && <TheEpsteinFilesPage variant={landingVariant} />}
 
                     {activeTab === 'login' && <LoginPage />}
 
@@ -1862,7 +2063,13 @@ function App() {
               )}
             </Suspense>
             {/* Inline Document Modal */}
-            <Suspense fallback={null}>
+            <Suspense
+              fallback={
+                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+                  <div className="w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+                </div>
+              }
+            >
               {documentModalId && (
                 <DocumentModal
                   id={documentModalId}
@@ -1882,6 +2089,7 @@ function App() {
             </Suspense>
 
             <Suspense fallback={null}>
+              {/* ReleaseNotesPanel: intentionally no spinner — panel appears inline */}
               <ReleaseNotesPanel
                 isOpen={showReleaseNotes}
                 onClose={() => setShowReleaseNotes(false)}

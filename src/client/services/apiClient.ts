@@ -849,6 +849,15 @@ class ApiClient {
     return this.fetchWithLegacyFallback<any>(canonicalUrl, legacyUrl);
   }
 
+  async removeEvidenceFromInvestigation(
+    investigationEvidenceId: string,
+  ): Promise<{ success: boolean }> {
+    return this.fetchWithErrorHandling(
+      `${API_BASE_URL}/investigation/remove-evidence/${investigationEvidenceId}`,
+      { method: 'DELETE' },
+    );
+  }
+
   async getInvestigationEvidenceSummary(investigationId: string): Promise<any> {
     const canonicalUrl = `${API_BASE_URL}/investigations/${investigationId}/analytics/evidence-summary`;
     const legacyPluralUrl = `${API_BASE_URL}/investigations/${investigationId}/evidence-summary`;

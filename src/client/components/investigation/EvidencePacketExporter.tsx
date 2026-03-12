@@ -1,16 +1,21 @@
 import React, { useState } from 'react';
 import { Download, FileJson, FileArchive } from 'lucide-react';
 
+interface ExportMeta {
+  investigationId: string;
+  investigationTitle: string;
+  exportedAt: string;
+}
+
 interface EvidencePacketExporterProps {
   investigationId: string;
   investigationTitle: string;
-  onExport: (format: 'json' | 'zip') => void;
+  onExport: (format: 'json' | 'zip', meta: ExportMeta) => void;
 }
 
-// TODO: Use investigation metadata in export - see UNUSED_VARIABLES_RECOMMENDATIONS.md
 export const EvidencePacketExporter: React.FC<EvidencePacketExporterProps> = ({
-  investigationId: _investigationId,
-  investigationTitle: _investigationTitle,
+  investigationId,
+  investigationTitle,
   onExport,
 }) => {
   const [selectedFormat, setSelectedFormat] = useState<'json' | 'zip'>('zip');
@@ -19,7 +24,11 @@ export const EvidencePacketExporter: React.FC<EvidencePacketExporterProps> = ({
   const handleExport = async () => {
     setIsExporting(true);
     try {
-      onExport(selectedFormat);
+      onExport(selectedFormat, {
+        investigationId,
+        investigationTitle,
+        exportedAt: new Date().toISOString(),
+      });
     } finally {
       setIsExporting(false);
     }

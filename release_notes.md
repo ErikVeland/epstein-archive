@@ -1,5 +1,16 @@
 # Release Notes
 
+## 16.3.0 - 2026-03-12 - SEO Intent Pages + Rich Metadata
+
+### Search Engine Visibility
+
+- Added high-intent landing routes for search discovery: `/the-epstein-files`, `/epstein-documents`, `/epstein-people`, `/epstein-media`, `/epstein-timeline`, and `/epstein-flights`.
+- Added static prerendered HTML counterparts under `public/` for crawler-first indexing on those intent pages.
+- Extended app SEO metadata with per-route title/description/keywords/canonical controls and route-specific structured data (`CollectionPage`, `Dataset`, `NewsArticle` where relevant).
+- Added stronger internal linking from homepage fallback and footer to intent pages and high-value sections.
+- Expanded sitemap coverage to include all new intent landing URLs for faster discovery across search engines.
+- Added media share metadata behavior so media deep links and album links resolve OG images/canonical URLs with item/album-specific context.
+
 ## 16.2.1 - 2026-03-12 - SEO Crawlability Hardening
 
 ### Search Engine Visibility

@@ -33,11 +33,10 @@ interface ForensicAnalysisWorkspaceProps {
   useGlobalContext?: boolean;
 }
 
-// TODO: Implement evidence update callback - see UNUSED_VARIABLES_RECOMMENDATIONS.md
 export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps> = ({
   investigation,
   evidence,
-  onEvidenceUpdate: _onEvidenceUpdate,
+  onEvidenceUpdate,
   timelineEvents,
   useGlobalContext = false,
 }) => {
@@ -404,6 +403,7 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
     setActiveTool(toolId);
     await new Promise((resolve) => setTimeout(resolve, 250));
     setToolRunState((prev) => ({ ...prev, [toolId]: 'complete' }));
+    onEvidenceUpdate(evidence);
     addToast({
       text: `${forensicTools.find((t) => t.id === toolId)?.name} ready`,
       type: 'success',
