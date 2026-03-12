@@ -38,7 +38,8 @@
       "Bash(claude auth status:*)",
       "Bash(claude whoami:*)",
       "Bash(security find-generic-password -s \"claude-cli\" -a \"auth-token\")",
-      "Bash(lsof:*)"
+      "Bash(lsof:*)",
+      "Skill(commit-commands:commit-push-pr)"
     ]
   }
 }
