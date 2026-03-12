@@ -353,7 +353,7 @@ export class App {
     });
 
     // Canonical DB metadata endpoint used by monitors and deploy verification.
-    router.get('/_meta/db', authenticateRequest, async (_req, res, next) => {
+    router.get('/_meta/db', async (_req, res, next) => {
       try {
         const pool = getApiPool();
         const { rows } = await pool.query<{
