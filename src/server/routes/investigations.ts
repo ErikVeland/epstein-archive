@@ -13,6 +13,7 @@ import fs from 'fs';
 import path from 'path';
 
 const router = Router();
+const DATA_ROOT = path.resolve(process.cwd(), 'data');
 const HARD_CAP_INVESTIGATIONS_LIMIT = Math.max(
   1,
   Number(process.env.HARD_CAP_INVESTIGATIONS_LIMIT || 100),
@@ -906,9 +907,16 @@ router.get(
       archive.append(JSON.stringify(evidenceList, null, 2), { name: 'evidence.json' });
 
       for (const item of evidenceList) {
-        if (item.file_path && fs.existsSync(item.file_path)) {
-          const fileName = path.basename(item.file_path);
-          archive.file(item.file_path, { name: `files/${fileName}` });
+        if (item.file_path) {
+          const absolutePath = path.resolve(item.file_path);
+          if (
+            (absolutePath.startsWith(DATA_ROOT + path.sep) ||
+              absolutePath.startsWith(DATA_ROOT + '/')) &&
+            fs.existsSync(absolutePath)
+          ) {
+            const fileName = path.basename(absolutePath);
+            archive.file(absolutePath, { name: `files/${fileName}` });
+          }
         }
       }
 

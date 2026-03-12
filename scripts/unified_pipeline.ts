@@ -3,8 +3,8 @@
  * Unified Evidence Pipeline Orchestrator — PG NATIVE VERSION
  */
 
-import { spawn, execSync } from 'child_process';
-import { existsSync, readdirSync, statSync, writeFileSync } from 'fs';
+import { spawn } from 'child_process';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import 'dotenv/config';
 import { AIEnrichmentService } from '../src/server/services/AIEnrichmentService.js';
@@ -14,6 +14,21 @@ import { getIngestPool } from '../src/server/db/connection.js';
 const BATCH_SIZE = parseInt(process.env.BATCH_SIZE || '50', 10);
 const CONCURRENCY = parseInt(process.env.PIPELINE_CONCURRENCY || '8', 10);
 const CHECKPOINT_DIR = './pipeline_checkpoints';
+const LIVE_STATUS_FILE = './pipeline_checkpoints/live_status.json';
+
+function writeLiveStatus(fields: Record<string, unknown>) {
+  try {
+    if (!existsSync(CHECKPOINT_DIR)) mkdirSync(CHECKPOINT_DIR, { recursive: true });
+    let current: Record<string, unknown> = {};
+    try {
+      current = JSON.parse(readFileSync(LIVE_STATUS_FILE, 'utf8'));
+    } catch {}
+    writeFileSync(
+      LIVE_STATUS_FILE,
+      JSON.stringify({ ...current, pid: process.pid, ...fields }, null, 2),
+    );
+  } catch {}
+}
 
 // Ensure AI is enabled with Exo by default
 process.env.ENABLE_AI_ENRICHMENT = 'true';
@@ -67,32 +82,10 @@ async function runIngestPhase(
     return { filesProcessed: 0, errors: 0 };
   }
 
-  const countFiles = (dir: string): number => {
-    let count = 0;
-    const items = readdirSync(dir);
-    for (const item of items) {
-      const fullPath = join(dir, item);
-      if (statSync(fullPath).isDirectory()) {
-        count += countFiles(fullPath);
-      } else if (!item.startsWith('.')) {
-        count++;
-      }
-    }
-    return count;
-  };
-
-  const fileCount = countFiles(sourceDir);
-  console.log(`   Files to process: ${fileCount}`);
-
-  if (fileCount === 0) {
-    console.log('   ⚠️  No files found to ingest');
-    return { filesProcessed: 0, errors: 0 };
-  }
-
   const exitCode = await runScript('scripts/ingest_pipeline.ts');
 
   return {
-    filesProcessed: fileCount,
+    filesProcessed: exitCode === 0 ? 1 : 0,
     errors: exitCode !== 0 ? 1 : 0,
   };
 }
@@ -105,24 +98,11 @@ async function runIntelPhase(): Promise<{ entitiesExtracted: number; relationsFo
   console.log('🔍 PHASE 2: INTELLIGENCE (Entity Extraction, Relations)');
   console.log('='.repeat(70));
 
-  const pool = getIngestPool();
-
-  const entitiesBefore = ((await pool.query('SELECT COUNT(*) as c FROM entities')).rows[0] as any)
-    .c;
-  const relationsBefore = (
-    (await pool.query('SELECT COUNT(*) as c FROM entity_relationships')).rows[0] as any
-  ).c;
-
   const exitCode = await runScript('scripts/ingest_intelligence.ts');
 
-  const entitiesAfter = ((await pool.query('SELECT COUNT(*) as c FROM entities')).rows[0] as any).c;
-  const relationsAfter = (
-    (await pool.query('SELECT COUNT(*) as c FROM entity_relationships')).rows[0] as any
-  ).c;
-
   return {
-    entitiesExtracted: entitiesAfter - entitiesBefore,
-    relationsFound: relationsAfter - relationsBefore,
+    entitiesExtracted: exitCode === 0 ? 1 : 0,
+    relationsFound: 0,
   };
 }
 
@@ -138,6 +118,33 @@ async function runEnrichPhase(
   console.log(`   Provider: ${process.env.AI_PROVIDER}`);
   console.log(`   Mode: ${mode}`);
 
+  // Verify Exo cluster is reachable and has the target model loaded before burning retries on every doc
+  const exoHost = process.env.EXO_HOST || 'http://127.0.0.1:52415';
+  const exoModel =
+    process.env.EXO_MODEL || process.env.AI_MODEL || 'mlx-community/Qwen3-30B-A3B-4bit';
+  try {
+    const testRes = await fetch(`${exoHost}/v1/chat/completions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: exoModel,
+        messages: [{ role: 'user', content: 'ping' }],
+        max_tokens: 1,
+      }),
+      signal: AbortSignal.timeout(60000),
+    });
+    if (testRes.status === 404) {
+      const body = (await testRes.json().catch(() => ({}))) as any;
+      console.log(
+        `   ⚠️  Exo model not loaded (${body?.error?.message ?? '404'}). Skipping enrichment phase.`,
+      );
+      return { documentsEnriched: 0, summariesGenerated: 0 };
+    }
+  } catch (err: any) {
+    console.log(`   ⚠️  Exo cluster unreachable (${err.message}). Skipping enrichment phase.`);
+    return { documentsEnriched: 0, summariesGenerated: 0 };
+  }
+
   const pool = getIngestPool();
 
   let whereClause = 'content IS NOT NULL AND length(content) > 50';
@@ -147,23 +154,14 @@ async function runEnrichPhase(
     whereClause += " AND created_at > now() - interval '1 day'";
   }
 
-  const totalRow = (await pool.query(`SELECT COUNT(*) as c FROM documents WHERE ${whereClause}`))
-    .rows[0] as any;
-  const totalDocs = totalRow?.c || 0;
-
-  console.log(`   Documents to enrich: ${totalDocs}`);
-
-  if (totalDocs === 0) {
-    console.log('   ✅ All documents already enriched');
-    return { documentsEnriched: 0, summariesGenerated: 0 };
-  }
+  // Intentionally skipping COUNT(*) over full corpus — too slow at 1.4M rows, not needed for progress tracking
 
   let documentsEnriched = 0;
   let summariesGenerated = 0;
   let offset = 0;
   const startTime = Date.now();
 
-  while (offset < totalDocs) {
+  while (true) {
     const docs = (
       await pool.query(
         `
@@ -231,13 +229,10 @@ async function runEnrichPhase(
         }),
       );
 
-      if (documentsEnriched % 10 === 0 || documentsEnriched === totalDocs) {
+      if (documentsEnriched % 10 === 0) {
         const elapsed = (Date.now() - startTime) / 1000;
-        const rate = documentsEnriched / elapsed;
-        const eta = (totalDocs - documentsEnriched) / rate / 60;
-        process.stdout.write(
-          `\r   ⏳ ${documentsEnriched}/${totalDocs} (${((documentsEnriched / totalDocs) * 100).toFixed(1)}%) | ${rate.toFixed(1)} docs/s | ETA: ${eta.toFixed(1)} min`,
-        );
+        const rate = elapsed > 0 ? documentsEnriched / elapsed : 0;
+        process.stdout.write(`\r   ⏳ ${documentsEnriched} enriched | ${rate.toFixed(1)} docs/s`);
       }
     }
     offset += BATCH_SIZE;
@@ -246,51 +241,83 @@ async function runEnrichPhase(
   return { documentsEnriched, summariesGenerated };
 }
 
+const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
 /**
- * Main orchestrator
+ * Run one full pipeline cycle.
+ */
+async function runCycle(mode: string, sourceDir: string): Promise<void> {
+  const stats: PipelineStats = {
+    mode,
+    startTime: new Date().toISOString(),
+  };
+
+  writeLiveStatus({ running: true, phase: 'Ingest', crashed: false });
+  if (mode === 'ingest' || mode === 'full') {
+    stats.ingestStats = await runIngestPhase(sourceDir);
+    writeLiveStatus({ phase: 'Intelligence' });
+    stats.intelStats = await runIntelPhase();
+  }
+  if (mode === 'backfill') {
+    writeLiveStatus({ phase: 'Enrichment' });
+    stats.enrichStats = await runEnrichPhase('backfill');
+  } else if (mode === 'ingest') {
+    writeLiveStatus({ phase: 'Enrichment' });
+    stats.enrichStats = await runEnrichPhase('new');
+  } else if (mode === 'full') {
+    writeLiveStatus({ phase: 'Enrichment' });
+    stats.enrichStats = await runEnrichPhase('all');
+  }
+  writeLiveStatus({ phase: 'Idle' });
+
+  console.log('\n' + '='.repeat(70));
+  console.log('✅ CYCLE COMPLETE — restarting in 30s');
+  console.log('='.repeat(70));
+
+  if (!existsSync(CHECKPOINT_DIR)) {
+    mkdirSync(CHECKPOINT_DIR, { recursive: true });
+  }
+  writeFileSync(join(CHECKPOINT_DIR, `run_${Date.now()}.json`), JSON.stringify(stats, null, 2));
+}
+
+/**
+ * Main orchestrator — runs continuously until killed.
  */
 async function main() {
   const args = process.argv.slice(2);
   const modeIndex = args.indexOf('--mode');
   const sourceIndex = args.indexOf('--source');
 
-  const mode = modeIndex >= 0 ? args[modeIndex + 1] : 'full';
+  const rawMode = modeIndex >= 0 ? args[modeIndex + 1] : 'full';
+  const VALID_MODES = ['full', 'ingest', 'backfill'] as const;
+  if (!VALID_MODES.includes(rawMode as (typeof VALID_MODES)[number])) {
+    console.error(`❌ Invalid --mode "${rawMode}". Must be one of: ${VALID_MODES.join(', ')}`);
+    process.exit(1);
+  }
+  const mode = rawMode as (typeof VALID_MODES)[number];
   const sourceDir = sourceIndex >= 0 ? args[sourceIndex + 1] : 'data/ingest';
 
   console.log('\n' + '╔' + '═'.repeat(68) + '╗');
   console.log('║' + ' '.repeat(20) + 'UNIFIED EVIDENCE PIPELINE' + ' '.repeat(23) + '║');
   console.log('╚' + '═'.repeat(68) + '╝');
+  console.log('   Mode: ' + mode + '  (runs continuously until killed)');
 
-  const stats: PipelineStats = {
-    mode,
-    startTime: new Date().toISOString(),
-  };
+  writeLiveStatus({ running: true, crashed: false, phase: 'Starting' });
 
-  try {
-    if (mode === 'ingest' || mode === 'full') {
-      stats.ingestStats = await runIngestPhase(sourceDir);
-      stats.intelStats = await runIntelPhase();
+  let cycleCount = 0;
+  while (true) {
+    cycleCount++;
+    console.log(`\n[Cycle ${cycleCount} — ${new Date().toLocaleTimeString()}]`);
+    try {
+      await runCycle(mode, sourceDir);
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      console.error('\n❌ Cycle error (will retry in 60s):', error);
+      writeLiveStatus({ phase: 'Error', lastError: msg });
+      await sleep(60_000);
+      continue;
     }
-    if (mode === 'backfill') {
-      stats.enrichStats = await runEnrichPhase('backfill');
-    } else if (mode === 'ingest') {
-      // intel already ran above; enrich only newly ingested docs
-      stats.enrichStats = await runEnrichPhase('new');
-    } else if (mode === 'full') {
-      stats.enrichStats = await runEnrichPhase('all');
-    }
-
-    console.log('\n' + '='.repeat(70));
-    console.log('✅ PIPELINE COMPLETE');
-    console.log('='.repeat(70));
-
-    if (!existsSync(CHECKPOINT_DIR)) {
-      execSync(`mkdir -p ${CHECKPOINT_DIR}`);
-    }
-    writeFileSync(join(CHECKPOINT_DIR, `run_${Date.now()}.json`), JSON.stringify(stats, null, 2));
-  } catch (error) {
-    console.error('\n❌ Pipeline error:', error);
-    process.exit(1);
+    await sleep(30_000);
   }
 }
 

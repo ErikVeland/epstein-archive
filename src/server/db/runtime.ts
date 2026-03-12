@@ -114,15 +114,17 @@ export function initPools(): void {
   });
   ingressPool = wrapPool(ingressPool, 'ingressPool');
   ingressPool.on('connect', (client) => {
-    client
-      .query(
-        [
-          "SET statement_timeout = '60000ms'",
-          "SET lock_timeout = '500ms'",
-          "SET idle_in_transaction_session_timeout = '3000ms'",
-        ].join('; '),
-      )
-      .catch(() => {});
+    // Apply each setting individually — multi-statement joins are silently dropped by pg
+    const settings = [
+      'SET statement_timeout = 0',
+      "SET lock_timeout = '5000ms'",
+      'SET idle_in_transaction_session_timeout = 0',
+    ];
+    settings
+      .reduce((p, sql) => p.then(() => client.query(sql)), Promise.resolve())
+      .catch((err) => {
+        console.error('[PG INGEST POOL] Failed to apply session settings:', err.message);
+      });
   });
 }
 
@@ -174,29 +176,29 @@ export function assertProductionPg(): void {
 // ─── Session settings ────────────────────────────────────────────────────────
 
 function applyApiSessionSettings(client: pg.PoolClient): void {
-  client
-    .query(
-      [
-        "SET statement_timeout = '8000ms'",
-        "SET lock_timeout = '500ms'",
-        "SET idle_in_transaction_session_timeout = '3000ms'",
-      ].join('; '),
-    )
+  // Apply each setting individually — multi-statement joins are silently dropped by pg
+  const settings = [
+    "SET statement_timeout = '8000ms'",
+    "SET lock_timeout = '500ms'",
+    "SET idle_in_transaction_session_timeout = '3000ms'",
+  ];
+  settings
+    .reduce((p, sql) => p.then(() => client.query(sql)), Promise.resolve() as Promise<unknown>)
     .catch((err) => {
       console.error('[PG API POOL] Failed to apply session settings:', err.message);
     });
 }
 
 function applyMaintenanceSessionSettings(client: pg.PoolClient): void {
-  client
-    .query(
-      [
-        "SET statement_timeout = '300000ms'",
-        "SET lock_timeout = '500ms'",
-        "SET idle_in_transaction_session_timeout = '3000ms'",
-        "SET work_mem = '256MB'",
-      ].join('; '),
-    )
+  // Apply each setting individually — multi-statement joins are silently dropped by pg
+  const settings = [
+    "SET statement_timeout = '300000ms'",
+    "SET lock_timeout = '500ms'",
+    "SET idle_in_transaction_session_timeout = '3000ms'",
+    "SET work_mem = '256MB'",
+  ];
+  settings
+    .reduce((p, sql) => p.then(() => client.query(sql)), Promise.resolve() as Promise<unknown>)
     .catch((err) => {
       console.error('[PG MAINTENANCE POOL] Failed to apply session settings:', err.message);
     });

@@ -1,4 +1,4 @@
-import { getApiPool } from './connection.js';
+import { getIngestPool } from './connection.js';
 import { createHash } from 'crypto';
 
 export interface DocumentPage {
@@ -25,7 +25,7 @@ export const discoveryRepository = {
    * Add a page record.
    */
   addPage: async (page: DocumentPage): Promise<number> => {
-    const pool = getApiPool();
+    const pool = getIngestPool();
     const res = await pool.query(
       `
       INSERT INTO document_pages (
@@ -50,40 +50,53 @@ export const discoveryRepository = {
    * Add a sentence record.
    */
   addSentence: async (sentence: DocumentSentence): Promise<void> => {
-    const pool = getApiPool();
+    const pool = getIngestPool();
+    const client = await pool.connect();
 
-    // 1. Normalize & Hash
-    const norm = sentence.sentence_text.toLowerCase().replace(/\s+/g, ' ').trim();
-    const hash = createHash('sha256').update(norm).digest('hex');
+    try {
+      // 1. Normalize & Hash
+      const norm = sentence.sentence_text.toLowerCase().replace(/\s+/g, ' ').trim();
+      const hash = createHash('sha256').update(norm).digest('hex');
+      const sample = sentence.sentence_text.slice(0, 500);
 
-    // 2. Upsert Phrase & Get Status
-    const phraseRes = await pool.query(
-      `
-      INSERT INTO boilerplate_phrases (sentence_hash, sentence_text_sample, frequency)
-      VALUES ($1, $2, 1)
-      ON CONFLICT(sentence_hash) DO UPDATE SET frequency = boilerplate_phrases.frequency + 1
-      RETURNING status
-    `,
-      [hash, sentence.sentence_text],
-    );
+      await client.query('BEGIN');
 
-    const phrase = phraseRes.rows[0];
-    const isBoilerplate = phrase && phrase.status === 'confirmed' ? 1 : 0;
+      // 2. Upsert Phrase & Get Status
+      const phraseRes = await client.query(
+        `
+        INSERT INTO boilerplate_phrases (sentence_hash, sentence_text_sample, frequency)
+        VALUES ($1, $2, 1)
+        ON CONFLICT(sentence_hash) DO UPDATE SET frequency = boilerplate_phrases.frequency + 1
+        RETURNING status
+      `,
+        [hash, sample],
+      );
 
-    // 3. Insert Sentence
-    await pool.query(
-      `
-      INSERT INTO document_sentences (
-        document_id, page_id, sentence_index, sentence_text, is_boilerplate, signal_score
-      ) VALUES ($1, $2, $3, $4, $5, 0.0)
-    `,
-      [
-        sentence.document_id,
-        sentence.page_id || null,
-        sentence.sentence_index,
-        sentence.sentence_text,
-        isBoilerplate,
-      ],
-    );
+      const phrase = phraseRes.rows[0];
+      const isBoilerplate = phrase && phrase.status === 'confirmed' ? 1 : 0;
+
+      // 3. Insert Sentence (same transaction — both succeed or both roll back)
+      await client.query(
+        `
+        INSERT INTO document_sentences (
+          document_id, page_id, sentence_index, sentence_text, is_boilerplate, signal_score
+        ) VALUES ($1, $2, $3, $4, $5, 0.0)
+      `,
+        [
+          sentence.document_id,
+          sentence.page_id || null,
+          sentence.sentence_index,
+          sentence.sentence_text,
+          isBoilerplate,
+        ],
+      );
+
+      await client.query('COMMIT');
+    } catch (e) {
+      await client.query('ROLLBACK');
+      throw e;
+    } finally {
+      client.release();
+    }
   },
 };

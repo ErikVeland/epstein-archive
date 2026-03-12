@@ -1,4 +1,4 @@
-import { getApiPool } from '../db/connection.js';
+import { getIngestPool } from '../db/connection.js';
 import os from 'os';
 
 export class JobManager {
@@ -38,7 +38,7 @@ export class JobManager {
     }>
   > {
     if (n <= 0) return [];
-    const pool = getApiPool();
+    const pool = getIngestPool();
     const client = await pool.connect();
 
     try {
@@ -108,7 +108,7 @@ export class JobManager {
    * Heartbeat to keep the job alive
    */
   async renewLease(documentId: number | string, ttlSeconds: number = 300) {
-    const pool = getApiPool();
+    const pool = getIngestPool();
     await pool.query(
       `
       UPDATE documents 
@@ -123,7 +123,7 @@ export class JobManager {
    * Mark job as complete
    */
   async completeJob(documentId: number | string) {
-    const pool = getApiPool();
+    const pool = getIngestPool();
     await pool.query(
       `
       UPDATE documents 
@@ -142,7 +142,7 @@ export class JobManager {
    * Fail the job
    */
   async failJob(documentId: number | string, error: string) {
-    const pool = getApiPool();
+    const pool = getIngestPool();
     await pool.query(
       `
       UPDATE documents 

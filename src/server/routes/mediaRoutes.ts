@@ -2,11 +2,14 @@ import { Router } from 'express';
 import { mediaRepository } from '../db/mediaRepository.js';
 import { cacheResponse } from '../utils/perfCache.js';
 import crypto from 'crypto';
+import path from 'path';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
 import { MediaService } from '../services/MediaService.js';
 import { authenticateRequest } from '../auth/middleware.js';
 import { findFirstExistingPath } from '../utils/pathResolver.js';
+
+const DATA_ROOT = path.resolve(process.cwd(), 'data');
 
 const router = Router();
 const mediaService = new MediaService(null);
@@ -422,6 +425,12 @@ router.get('/pdf', validate(pdfQuerySchema), async (req, res, next) => {
     const filePath = req.query.filePath as string;
     const resolvedPath = findFirstExistingPath([filePath]);
     if (!resolvedPath) return res.status(404).json({ error: 'PDF file not found on disk' });
+    if (
+      !resolvedPath.startsWith(DATA_ROOT + path.sep) &&
+      !resolvedPath.startsWith(DATA_ROOT + '/')
+    ) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
     res.type('application/pdf');
     return res.sendFile(resolvedPath);
   } catch (error) {

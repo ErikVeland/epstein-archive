@@ -59,7 +59,7 @@ function withSafeStatsContract(input: any) {
 }
 
 // ── /meta/db ─── Canary endpoint: database dialect, version, timeouts, pool stats
-router.get('/meta/db', async (_req, res, next) => {
+router.get('/meta/db', authenticateRequest, async (_req, res, next) => {
   try {
     const rows = await getDatabaseMetadata();
     const metrics = await getMigrationMetrics();
@@ -298,7 +298,7 @@ router.get('/health/deep', async (_req, res) => {
 // --- ADMIN OPS ENDPOINTS (Phase 4) ---
 
 // Get Ingestion History
-router.get('/ingest-runs', async (_req, res, next) => {
+router.get('/ingest-runs', authenticateRequest, async (_req, res, next) => {
   try {
     const runs = ingestRunsRepository.getRuns(50);
     res.json(runs);
@@ -308,7 +308,7 @@ router.get('/ingest-runs', async (_req, res, next) => {
 });
 
 // List Backups
-router.get('/backups', async (_req, res, next) => {
+router.get('/backups', authenticateRequest, async (_req, res, next) => {
   try {
     const backups = BackupService.listBackups();
     res.json(backups);

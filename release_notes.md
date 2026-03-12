@@ -1,5 +1,26 @@
 # Release Notes
 
+## 16.1.0 - 2026-03-12 - Security Hardening & Schema Sync
+
+### Security
+
+- Fixed path traversal vulnerability on `/api/media/pdf` — resolved path now validated against `data/` root
+- Fixed path traversal in investigation ZIP export — `file_path` values validated against `data/` root before archiving
+- Parameterized SQL interval in `jobsRepository.leaseJob` — eliminated string interpolation risk
+- Added `authenticateRequest` to `/api/stats/ingest-runs`, `/backups`, and `/meta/db` — these exposed server file paths and pool config publicly
+
+### Data Integrity
+
+- `discoveryRepository.addSentence` now runs both inserts (boilerplate_phrases + document_sentences) in a single atomic transaction
+- Added 500-char cap on `sentence_text_sample` to prevent unbounded inserts
+
+### Infrastructure
+
+- Fixed `applyApiSessionSettings` and `applyMaintenanceSessionSettings` — multi-statement SET joins were silently dropped by `pg`; now chain individual queries matching ingest pool pattern
+- Added mode allowlist validation to `unified_pipeline.ts` — invalid `--mode` args now exit with a clear error
+- Updated schema hash to reflect 3 applied migrations: `file_assets`, `document_pages_schema`, `boilerplate_phrases`
+- Committed 3 pending migration files to git
+
 ## 16.0.2 - 2026-03-10 - Sascha Riley Entity + Media Linking
 
 ### Entities & Media

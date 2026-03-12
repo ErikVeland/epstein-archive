@@ -106,17 +106,16 @@ export const jobsRepository = {
 
     try {
       await client.query('BEGIN');
-      const leaseExpirySql = `CURRENT_TIMESTAMP - INTERVAL '${leaseTimeMinutes} minutes'`;
 
       const findSql = `
-        SELECT id FROM processing_jobs 
-        WHERE (status = 'queued' OR (status = 'running' AND locked_at < ${leaseExpirySql}))
-        ORDER BY priority DESC, created_at ASC 
+        SELECT id FROM processing_jobs
+        WHERE (status = 'queued' OR (status = 'running' AND locked_at < CURRENT_TIMESTAMP - ($1 * INTERVAL '1 minute')))
+        ORDER BY priority DESC, created_at ASC
         LIMIT 1
         FOR UPDATE SKIP LOCKED
       `;
 
-      const res = await client.query(findSql);
+      const res = await client.query(findSql, [leaseTimeMinutes]);
       const job = res.rows[0];
       if (!job) {
         await client.query('ROLLBACK');

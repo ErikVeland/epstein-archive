@@ -18,9 +18,9 @@
 import { join, basename, extname } from 'path';
 import * as path from 'path';
 import { statSync, readFileSync, existsSync, mkdtempSync, mkdirSync, copyFileSync } from 'fs';
+import { opendir } from 'fs/promises';
 import * as fs from 'fs';
 import { tmpdir } from 'os';
-import { globSync } from 'glob';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 // Fix for pdf-parse v2 import issues
@@ -822,7 +822,11 @@ function buildBaselineVocab(text: string): string {
 /**
  * Split text into sentences and store them.
  */
-function storeSentences(documentId: number, pageId: number | undefined, text: string) {
+async function storeSentences(
+  documentId: number,
+  pageId: number | undefined,
+  text: string,
+): Promise<void> {
   if (!text) return;
 
   // Simple sentence splitter
@@ -832,12 +836,16 @@ function storeSentences(documentId: number, pageId: number | undefined, text: st
     .filter((s) => s.length > 10); // Filter out noise
 
   for (let i = 0; i < sentences.length; i++) {
-    discoveryRepository.addSentence({
-      document_id: documentId,
-      page_id: pageId,
-      sentence_index: i,
-      sentence_text: sentences[i],
-    });
+    try {
+      await discoveryRepository.addSentence({
+        document_id: documentId,
+        page_id: pageId,
+        sentence_index: i,
+        sentence_text: sentences[i],
+      });
+    } catch {
+      // Non-fatal: sentence storage failure should not kill the pipeline
+    }
   }
 }
 
@@ -857,7 +865,7 @@ async function storeGranularData(
       // page.pageNumber is 1-indexed, sharp uses 0-indexed
       const phash = await generatePagePhash(filePath, page.pageNumber - 1);
 
-      const pageId = discoveryRepository.addPage({
+      const pageId = await discoveryRepository.addPage({
         document_id: documentId,
         page_number: page.pageNumber,
         extracted_text: page.text,
@@ -865,7 +873,7 @@ async function storeGranularData(
         ocr_quality_score: ocrScore,
         phash: phash || undefined,
       });
-      storeSentences(documentId, pageId, page.text);
+      await storeSentences(documentId, pageId, page.text);
     }
   } else {
     // Single page / non-PDF
@@ -879,7 +887,7 @@ async function storeGranularData(
       phash = await generatePhash(filePath);
     }
 
-    const pageId = discoveryRepository.addPage({
+    const pageId = await discoveryRepository.addPage({
       document_id: documentId,
       page_number: 1,
       extracted_text: content,
@@ -887,7 +895,7 @@ async function storeGranularData(
       ocr_quality_score: ocrScore,
       phash,
     });
-    storeSentences(documentId, pageId, content);
+    await storeSentences(documentId, pageId, content);
   }
 }
 
@@ -1164,8 +1172,10 @@ async function processDocument(
     const pathCheck =
       (
         await db.query(
-          `SELECT id, content_sha256, processing_status FROM documents
-       WHERE (file_path = $1 OR file_path = $2 OR file_path = $3)`,
+          `SELECT id, content_sha256, processing_status,
+                  (content IS NOT NULL AND length(content) > 50) AS has_content
+           FROM documents
+           WHERE (file_path = $1 OR file_path = $2 OR file_path = $3)`,
           [filePath, encodedPath, spaceEncodedPath],
         )
       ).rows[0] ?? null;
@@ -1178,8 +1188,9 @@ async function processDocument(
       existingDoc = pathCheck;
 
       if (
-        pathCheck.processing_status === 'succeeded' ||
-        pathCheck.processing_status === 'completed'
+        (pathCheck.processing_status === 'succeeded' ||
+          pathCheck.processing_status === 'completed') &&
+        pathCheck.has_content
       ) {
         console.log(`   ⏭️  Fast-Skipping (${pathCheck.processing_status}): ${basename(filePath)}`);
         return { success: true, documentId: pathCheck.id };
@@ -1194,9 +1205,12 @@ async function processDocument(
       // Check by SHA-256 for deduplication
       existingDoc =
         (
-          await db.query('SELECT id, processing_status FROM documents WHERE content_sha256 = $1', [
-            sha256,
-          ])
+          await db.query(
+            `SELECT id, processing_status,
+                    (content IS NOT NULL AND length(content) > 50) AS has_content
+             FROM documents WHERE content_sha256 = $1`,
+            [sha256],
+          )
         ).rows[0] ?? null;
     }
 
@@ -1231,7 +1245,9 @@ async function processDocument(
         existingDoc =
           (
             await db.query(
-              'SELECT id, processing_status FROM documents WHERE content_sha256 = $1 OR file_path = $2',
+              `SELECT id, processing_status,
+                      (content IS NOT NULL AND length(content) > 50) AS has_content
+               FROM documents WHERE content_sha256 = $1 OR file_path = $2`,
               [sha256, filePath],
             )
           ).rows[0] ?? null;
@@ -1245,8 +1261,9 @@ async function processDocument(
     }
 
     if (
-      existingDoc.processing_status === 'succeeded' ||
-      existingDoc.processing_status === 'completed'
+      (existingDoc.processing_status === 'succeeded' ||
+        existingDoc.processing_status === 'completed') &&
+      existingDoc.has_content
     ) {
       console.log(`   ⏭️  Skipping (${existingDoc.processing_status}): ${basename(filePath)}`);
       return { success: true, documentId: existingDoc.id };
@@ -1775,6 +1792,66 @@ async function generatePagePhash(filePath: string, pageIndex: number): Promise<s
 // COLLECTION PROCESSING
 // ============================================================================
 
+const INGEST_EXTENSIONS = new Set([
+  'pdf',
+  'txt',
+  'rtf',
+  'jpg',
+  'jpeg',
+  'png',
+  'eml',
+  'msg',
+  'meta',
+  'html',
+  'mp4',
+  'mov',
+  'avi',
+  'mkv',
+  'm4v',
+  'wav',
+  'mp3',
+  'm4a',
+  'aac',
+  'flac',
+]);
+
+/**
+ * Stream files from a directory tree one entry at a time.
+ * Uses fs.opendir (async, streaming) instead of glob to avoid OOM on
+ * directories with 300K+ files. Follows symlinks to support volumes mounted
+ * via symlink (e.g. data/ingest/DOJVOL00009 → /Volumes/Music/Torrents/...).
+ */
+async function* walkDir(dir: string): AsyncGenerator<string> {
+  let d;
+  try {
+    d = await opendir(dir);
+  } catch {
+    return;
+  }
+  for await (const entry of d) {
+    if (entry.name === '.DS_Store' || entry.name.startsWith('._')) continue;
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      if (entry.name.toLowerCase() !== 'thumbs') yield* walkDir(full);
+    } else if (entry.isSymbolicLink()) {
+      try {
+        const s = statSync(full);
+        if (s.isDirectory()) {
+          if (entry.name.toLowerCase() !== 'thumbs') yield* walkDir(full);
+        } else if (s.isFile()) {
+          const ext = extname(entry.name).slice(1).toLowerCase();
+          if (INGEST_EXTENSIONS.has(ext)) yield full;
+        }
+      } catch {
+        /* broken symlink */
+      }
+    } else if (entry.isFile()) {
+      const ext = extname(entry.name).slice(1).toLowerCase();
+      if (INGEST_EXTENSIONS.has(ext)) yield full;
+    }
+  }
+}
+
 async function processCollection(
   collection: CollectionConfig,
 ): Promise<{ processed: number; skipped: number; errors: number }> {
@@ -1786,21 +1863,21 @@ async function processCollection(
     return { processed: 0, skipped: 0, errors: 0 };
   }
 
-  // Find all files
-  const pattern = join(
-    collection.rootPath,
-    '**/*.{pdf,txt,rtf,jpg,jpeg,png,eml,msg,meta,html,mp4,mov,avi,mkv,m4v,wav,mp3,m4a,aac,flac}',
-  );
-  const files = globSync(pattern, {
-    ignore: ['**/thumbs/**', '**/.DS_Store'],
-  });
-
-  console.log(`   Found ${files.length} files`);
-
-  // Concurrency control
+  // Stream files via walkDir (fs.opendir) — reads one entry at a time to avoid
+  // OOM / event-loop blocking on collections with 300K+ files in one directory.
   const CONCURRENCY_LIMIT = parseInt(process.env.INGEST_CONCURRENCY || '30', 10);
   let activePromises = 0;
-  const queue = [...files];
+  const completionCallbacks: Array<() => void> = [];
+
+  const waitForSlot = (): Promise<void> => {
+    if (activePromises < CONCURRENCY_LIMIT) return Promise.resolve();
+    return new Promise<void>((resolve) => completionCallbacks.push(resolve));
+  };
+
+  const releaseSlot = (): void => {
+    activePromises--;
+    if (completionCallbacks.length > 0) completionCallbacks.shift()!();
+  };
 
   const results: { processed: number; skipped: number; errors: number } = {
     processed: 0,
@@ -1808,46 +1885,37 @@ async function processCollection(
     errors: 0,
   };
 
-  const processNext = async (): Promise<void> => {
-    if (queue.length === 0) return;
-
-    const file = queue.shift()!;
+  for await (const file of walkDir(collection.rootPath)) {
+    await waitForSlot();
     activePromises++;
 
-    try {
-      const result = await processDocument(file, collection);
-      if (result.success && result.documentId) {
-        results.processed++;
-        if (results.processed % 50 === 0) {
-          process.stdout.write(
-            `   Progress: ${results.processed}/${files.length} (Active: ${activePromises})...\r`,
-          );
+    processDocument(file, collection)
+      .then((result) => {
+        if (result.success && result.documentId) {
+          results.processed++;
+          if (results.processed % 50 === 0) {
+            process.stdout.write(
+              `   Progress: ${results.processed} processed (Active: ${activePromises})...\r`,
+            );
+          }
+        } else if (result.success) {
+          results.skipped++;
+        } else {
+          results.errors++;
+          console.error(`   ❌ Error processing ${basename(file)}: ${result.error}`);
         }
-      } else if (result.success) {
-        results.skipped++;
-      } else {
+      })
+      .catch((err) => {
         results.errors++;
-        console.error(`   ❌ Error processing ${basename(file)}: ${result.error}`);
-      }
-    } catch (err) {
-      results.errors++;
-      console.error(`   ❌ Unhandled error processing ${basename(file)}:`, err);
-    } finally {
-      activePromises--;
-      if (queue.length > 0) {
-        await processNext();
-      }
-    }
-  };
-
-  // Start initial batch
-  const initialWorkers = Math.min(files.length, CONCURRENCY_LIMIT);
-  const workers = [];
-  for (let i = 0; i < initialWorkers; i++) {
-    workers.push(processNext());
+        console.error(`   ❌ Unhandled error processing ${basename(file)}:`, err);
+      })
+      .finally(releaseSlot);
   }
 
-  await Promise.all(workers);
+  // Drain any remaining in-flight work
+  while (activePromises > 0) {
+    await new Promise<void>((resolve) => completionCallbacks.push(resolve));
+  }
 
   console.log(
     `   ✅ Complete: ${results.processed} processed, ${results.skipped} skipped, ${results.errors} errors`,
