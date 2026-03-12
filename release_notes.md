@@ -1,5 +1,14 @@
 # Release Notes
 
+## 16.3.1 - 2026-03-12 - Server-Side Media Share Metadata
+
+### Search & Sharing
+
+- Added server-side Open Graph/Twitter meta rendering for `/media` deep links with `id`, `photoId`, or `albumId` query parameters.
+- Media item links now return bot-visible OG tags and canonical URLs without requiring JavaScript execution.
+- Album share links now attempt to use the first image in the selected album as the OG preview image.
+- Preserved SPA fallback behavior if metadata enrichment fails, with safe no-cache headers for share endpoints.
+
 ## 16.3.0 - 2026-03-12 - SEO Intent Pages + Rich Metadata
 
 ### Search Engine Visibility

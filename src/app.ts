@@ -1,4 +1,4 @@
-import express, { Express } from 'express';
+import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
@@ -52,6 +52,7 @@ import propertiesRoutes from './server/routes/propertiesRoutes.js';
 import blackBookRoutes from './server/routes/blackBookRoutes.js';
 import faceRoutes from './server/routes/faceRoutes.js';
 import { entitiesRepository } from './server/db/entitiesRepository.js';
+import { mediaRepository } from './server/db/mediaRepository.js';
 import {
   mapEntityDetailDto,
   mapEntityListResponseDto,
@@ -61,6 +62,8 @@ import { validate, subjectsQuerySchema } from './server/middleware/validate.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const DIST_INDEX_PATH = path.join(__dirname, '../dist/index.html');
+let cachedIndexTemplate: string | null = null;
 
 export class App {
   public app: Express;
@@ -653,12 +656,175 @@ export class App {
     this.app.use('/api', router);
 
     // SPA Fallback
-    this.app.get('*', (_req, res) => {
+    this.app.get('*', async (req, res) => {
+      if (await this.tryServeMediaShareMeta(req, res)) {
+        return;
+      }
       res.setHeader('Cache-Control', 'no-store, max-age=0, must-revalidate');
       res.setHeader('Pragma', 'no-cache');
       res.setHeader('Expires', '0');
-      res.sendFile(path.join(__dirname, '../dist/index.html'));
+      res.sendFile(DIST_INDEX_PATH);
     });
+  }
+
+  private escapeHtml(value: string): string {
+    return value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  private replaceMetaTag(html: string, regex: RegExp, replacement: string): string {
+    if (regex.test(html)) return html.replace(regex, replacement);
+    return html.replace('</head>', `    ${replacement}\n  </head>`);
+  }
+
+  private async loadIndexTemplate(): Promise<string> {
+    if (cachedIndexTemplate) return cachedIndexTemplate;
+    cachedIndexTemplate = await fs.promises.readFile(DIST_INDEX_PATH, 'utf8');
+    return cachedIndexTemplate;
+  }
+
+  private async tryServeMediaShareMeta(req: Request, res: Response): Promise<boolean> {
+    try {
+      if (!req.path.startsWith('/media')) return false;
+      const itemId = String(req.query.id || req.query.photoId || '').trim();
+      const albumId = String(req.query.albumId || '').trim();
+      if (!itemId && !albumId) return false;
+
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      const canonical = `${baseUrl}${req.originalUrl}`;
+      const pathLower = req.path.toLowerCase();
+
+      let title = 'Epstein Media Archive';
+      let description = 'Shared media from the Epstein Files archive.';
+      let image = `${baseUrl}/epstein-files.jpg`;
+      let imageAlt = 'Epstein Files media preview';
+
+      if (itemId) {
+        const numericId = Number(itemId);
+        if (!Number.isNaN(numericId) && numericId > 0) {
+          const mediaItem = await mediaRepository.getMediaItemById(numericId);
+          if (mediaItem?.title) {
+            title = mediaItem.title;
+          } else if (pathLower.includes('/audio')) {
+            title = `Epstein Audio ${numericId}`;
+          } else if (pathLower.includes('/video')) {
+            title = `Epstein Video ${numericId}`;
+          } else {
+            title = `Epstein Photo ${numericId}`;
+          }
+
+          if (mediaItem?.description) {
+            description = mediaItem.description;
+          }
+
+          if (pathLower.includes('/audio')) {
+            image = `${baseUrl}/api/media/audio/${numericId}/thumbnail`;
+            imageAlt = `Audio thumbnail ${numericId}`;
+          } else if (pathLower.includes('/video')) {
+            image = `${baseUrl}/api/media/video/${numericId}/thumbnail`;
+            imageAlt = `Video thumbnail ${numericId}`;
+          } else {
+            image = `${baseUrl}/api/media/images/${numericId}/file`;
+            imageAlt = `Media image ${numericId}`;
+          }
+        }
+      } else if (albumId) {
+        const numericAlbumId = Number(albumId);
+        if (!Number.isNaN(numericAlbumId) && numericAlbumId > 0) {
+          const { mediaItems } = await mediaRepository.getMediaItemsPaginated(1, 1, {
+            albumId: numericAlbumId,
+            fileType: 'image',
+          });
+          const firstImage = mediaItems?.[0];
+          title = `Epstein Media Album ${numericAlbumId}`;
+          description = `Shared media album ${numericAlbumId} from the Epstein Files archive.`;
+          if (firstImage?.id) {
+            image = `${baseUrl}/api/media/images/${firstImage.id}/file`;
+            imageAlt = `Album ${numericAlbumId} preview`;
+          }
+        }
+      }
+
+      let html = await this.loadIndexTemplate();
+      const escapedTitle = this.escapeHtml(title);
+      const escapedDescription = this.escapeHtml(description);
+      const escapedCanonical = this.escapeHtml(canonical);
+      const escapedImage = this.escapeHtml(image);
+      const escapedImageAlt = this.escapeHtml(imageAlt);
+
+      html = html.replace(
+        /<title>[^<]*<\/title>/i,
+        `<title>${escapedTitle} | Epstein Files Archive</title>`,
+      );
+      html = this.replaceMetaTag(
+        html,
+        /<meta\s+name="description"\s+content="[^"]*"\s*\/?>/i,
+        `<meta name="description" content="${escapedDescription}" />`,
+      );
+      html = this.replaceMetaTag(
+        html,
+        /<link\s+rel="canonical"\s+href="[^"]*"\s*\/?>/i,
+        `<link rel="canonical" href="${escapedCanonical}" />`,
+      );
+      html = this.replaceMetaTag(
+        html,
+        /<meta\s+property="og:title"\s+content="[^"]*"\s*\/?>/i,
+        `<meta property="og:title" content="${escapedTitle}" />`,
+      );
+      html = this.replaceMetaTag(
+        html,
+        /<meta\s+property="og:description"\s+content="[^"]*"\s*\/?>/i,
+        `<meta property="og:description" content="${escapedDescription}" />`,
+      );
+      html = this.replaceMetaTag(
+        html,
+        /<meta\s+property="og:image"\s+content="[^"]*"\s*\/?>/i,
+        `<meta property="og:image" content="${escapedImage}" />`,
+      );
+      html = this.replaceMetaTag(
+        html,
+        /<meta\s+property="og:image:alt"\s+content="[^"]*"\s*\/?>/i,
+        `<meta property="og:image:alt" content="${escapedImageAlt}" />`,
+      );
+      html = this.replaceMetaTag(
+        html,
+        /<meta\s+property="og:url"\s+content="[^"]*"\s*\/?>/i,
+        `<meta property="og:url" content="${escapedCanonical}" />`,
+      );
+      html = this.replaceMetaTag(
+        html,
+        /<meta\s+name="twitter:title"\s+content="[^"]*"\s*\/?>/i,
+        `<meta name="twitter:title" content="${escapedTitle}" />`,
+      );
+      html = this.replaceMetaTag(
+        html,
+        /<meta\s+name="twitter:description"\s+content="[^"]*"\s*\/?>/i,
+        `<meta name="twitter:description" content="${escapedDescription}" />`,
+      );
+      html = this.replaceMetaTag(
+        html,
+        /<meta\s+name="twitter:image"\s+content="[^"]*"\s*\/?>/i,
+        `<meta name="twitter:image" content="${escapedImage}" />`,
+      );
+      html = this.replaceMetaTag(
+        html,
+        /<meta\s+name="twitter:image:alt"\s+content="[^"]*"\s*\/?>/i,
+        `<meta name="twitter:image:alt" content="${escapedImageAlt}" />`,
+      );
+
+      res.setHeader('Cache-Control', 'no-store, max-age=0, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      res.status(200).type('html').send(html);
+      return true;
+    } catch (error) {
+      logger.warn({ err: error }, 'Failed to render media OG metadata, falling back to SPA shell');
+      return false;
+    }
   }
 
   private initializeErrorHandling() {
