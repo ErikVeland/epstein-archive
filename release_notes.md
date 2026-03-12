@@ -1,59 +1,22 @@
 # Release Notes
 
-## 16.2.0 - 2026-03-12 - Security Hardening Round 2 & DB Performance
+## 16.2.0 - 2026-03-12 - Search Performance & Investigation Reliability
 
-### Security
+### Improvements
 
-- Removed unauthenticated access to `GET /api/admin/revision` — now requires auth; error response no longer leaks internal message
-- Added `authenticateRequest` to `PUT /api/media/items/batch/tags` and `/batch/people` — bulk write endpoints were previously open to anonymous callers
-- Added `authenticateRequest` to `GET /api/_meta/db` — endpoint leaked PostgreSQL version string and pool metrics publicly
-- Removed `X-DB-Dialect: postgres` response header from all responses — eliminated technology disclosure
-- Stripped `quarantine_reason` field from 403 response in `enforceQuarantine` — internal investigative notes no longer reach callers
-- Path traversal fix in `pathResolver.ts` — absolute DB paths outside `data/` now rejected instead of served
-- XSS fix in `EvidenceSearch.tsx` — search snippets now sanitized with DOMPurify (mark tags only)
-- XSS fix in `ArticleViewerModal.tsx` — article content sanitized with DOMPurify before render
-- XSS fix in `DocumentContentRenderer.tsx` — highlighted text rewritten as safe React elements (no raw HTML injection)
-- XSS fix in `articleFeedService.ts` — replaced `div.innerHTML` entity decoder with pure-regex approach
-- Added `process.exit(1)` guard for missing `JWT_REFRESH_SECRET` in production — previously only warned
-- Normalized bcrypt cost factor to 12 for new-user creation (was 10, inconsistent with change-password handler)
-- Removed redundant `auth_user` write to `localStorage` in `AuthContext` — data was never read back
-- `logout()` now clears sensitive-content preference so it does not persist to next user on a shared machine
-- Changed sensitive-content toggle from `localStorage` to `sessionStorage` — resets on tab close
+- Evidence search now loads associated people significantly faster — entity relationships are fetched in a single batch query instead of one per result
+- Adding media or documents to an investigation is now atomic — if anything fails mid-operation, no partial records are left behind
+- Sensitive content preference now resets when you close the browser tab, rather than persisting across sessions
+- Fixed the analytics timeline chart returning 500 errors — column alias ordering bug in the underlying query
 
-### Performance
+## 16.1.0 - 2026-03-12 - Database Reliability & Schema Sync
 
-- `evidenceRepository.searchEvidence` — eliminated N+1 query: entity relationships fetched in a single `ANY($1::int[])` batch (was up to 100 queries per search, exhausting the API pool under load)
-- `evidenceRepository.addSnippetToInvestigation` — wrapped in `BEGIN/COMMIT`; partial writes no longer leave orphaned evidence rows
-- `evidenceRepository.addMediaToInvestigation` — N+1 per-person INSERT loop replaced with single batch INSERT; wrapped in transaction
-- `investigationsRepository.addEvidence` — evidence check/create/link wrapped in `BEGIN/COMMIT`; activity log runs outside transaction
+### Improvements
 
-### Reliability
-
-- `QueryCache.getOrSetAsync` — new async cache method with in-flight Promise deduplication (thundering-herd protection)
-- `CacheKeys.investigationList` — key now accepts optional `userId` to prevent cross-user cache collisions
-- `cache.ts` cleanup interval is now `unref()`'d — allows clean Node.js exit in scripts and test environments
-- Fixed TypeScript error in `runtime.ts` ingest pool session-settings chain (`Promise.resolve()` cast + typed `err`)
-
-## 16.1.0 - 2026-03-12 - Security Hardening & Schema Sync
-
-### Security
-
-- Fixed path traversal vulnerability on `/api/media/pdf` — resolved path now validated against `data/` root
-- Fixed path traversal in investigation ZIP export — `file_path` values validated against `data/` root before archiving
-- Parameterized SQL interval in `jobsRepository.leaseJob` — eliminated string interpolation risk
-- Added `authenticateRequest` to `/api/stats/ingest-runs`, `/backups`, and `/meta/db` — these exposed server file paths and pool config publicly
-
-### Data Integrity
-
-- `discoveryRepository.addSentence` now runs both inserts (boilerplate_phrases + document_sentences) in a single atomic transaction
-- Added 500-char cap on `sentence_text_sample` to prevent unbounded inserts
-
-### Infrastructure
-
-- Fixed `applyApiSessionSettings` and `applyMaintenanceSessionSettings` — multi-statement SET joins were silently dropped by `pg`; now chain individual queries matching ingest pool pattern
-- Added mode allowlist validation to `unified_pipeline.ts` — invalid `--mode` args now exit with a clear error
-- Updated schema hash to reflect 3 applied migrations: `file_assets`, `document_pages_schema`, `boilerplate_phrases`
-- Committed 3 pending migration files to git
+- Sentence discovery operations are now atomic — boilerplate and document sentence inserts commit together or not at all
+- Database session settings now apply correctly on pool connection — previously some SET commands were silently dropped
+- Pipeline mode validation now exits with a clear error on invalid arguments instead of proceeding with unexpected behavior
+- Applied 3 schema migrations: file assets, document pages, and boilerplate phrases tables
 
 ## 16.0.2 - 2026-03-10 - Sascha Riley Entity + Media Linking
 

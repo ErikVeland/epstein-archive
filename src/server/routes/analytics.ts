@@ -53,19 +53,21 @@ router.get('/enhanced', analyticsRateLimiter, cacheResponse(60), async (_req, re
       documents: string | number;
       financial: string | number;
     }>(`
-      SELECT
-        CASE
-          WHEN COALESCE(extracted_date, date_created) IS NULL THEN 'Unknown'
-          WHEN COALESCE(extracted_date, date_created) > '2026-12-31'::date THEN 'Unknown'
-          ELSE to_char(COALESCE(extracted_date, date_created), 'YYYY-MM')
-        END AS period,
-        COUNT(*)::bigint AS total,
-        SUM(CASE WHEN file_type LIKE '%email%' OR file_type = 'message/rfc822' THEN 1 ELSE 0 END)::bigint AS emails,
-        SUM(CASE WHEN file_type LIKE '%image%' THEN 1 ELSE 0 END)::bigint AS photos,
-        SUM(CASE WHEN file_type LIKE '%pdf%' OR file_type = 'application/pdf' THEN 1 ELSE 0 END)::bigint AS documents,
-        0::bigint AS financial
-      FROM documents
-      GROUP BY 1
+      SELECT * FROM (
+        SELECT
+          CASE
+            WHEN COALESCE(extracted_date, date_created) IS NULL THEN 'Unknown'
+            WHEN COALESCE(extracted_date, date_created) > '2026-12-31'::date THEN 'Unknown'
+            ELSE to_char(COALESCE(extracted_date, date_created), 'YYYY-MM')
+          END AS period,
+          COUNT(*)::bigint AS total,
+          SUM(CASE WHEN file_type LIKE '%email%' OR file_type = 'message/rfc822' THEN 1 ELSE 0 END)::bigint AS emails,
+          SUM(CASE WHEN file_type LIKE '%image%' THEN 1 ELSE 0 END)::bigint AS photos,
+          SUM(CASE WHEN file_type LIKE '%pdf%' OR file_type = 'application/pdf' THEN 1 ELSE 0 END)::bigint AS documents,
+          0::bigint AS financial
+        FROM documents
+        GROUP BY 1
+      ) t
       ORDER BY (CASE WHEN period = 'Unknown' THEN '9999-99' ELSE period END) ASC
     `);
 
