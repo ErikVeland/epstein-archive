@@ -1,10 +1,28 @@
 import * as crypto from 'crypto';
 import { execSync } from 'child_process';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { extractEvidence, scoreCategoryMatch } from './utils/evidence_extractor.js';
 import { recalculateRisk } from './recalculate_entity_risk.js';
 import { JobManager } from '../src/server/services/JobManager.js';
 import os from 'os';
 import { getIngestPool } from '../src/server/db/connection.js';
+
+const CHECKPOINT_DIR = './pipeline_checkpoints';
+const LIVE_STATUS_FILE = './pipeline_checkpoints/live_status.json';
+
+function writeLiveStatus(fields: Record<string, unknown>) {
+  try {
+    if (!existsSync(CHECKPOINT_DIR)) mkdirSync(CHECKPOINT_DIR, { recursive: true });
+    let current: Record<string, unknown> = {};
+    try {
+      current = JSON.parse(readFileSync(LIVE_STATUS_FILE, 'utf8'));
+    } catch {}
+    writeFileSync(
+      LIVE_STATUS_FILE,
+      JSON.stringify({ ...current, pid: process.pid, ...fields }, null, 2),
+    );
+  } catch {}
+}
 
 let db: any;
 let currentResolverRunId: string;
@@ -230,7 +248,7 @@ export async function runIntelligencePipeline() {
 
     const docs = (
       await db.query(`
-      SELECT id, content, file_name, metadata_json
+      SELECT id, content, file_name, source_collection, metadata_json
       FROM documents
       WHERE content IS NOT NULL
         AND (processing_status = 'succeeded' OR processing_status = 'completed')
@@ -238,9 +256,19 @@ export async function runIntelligencePipeline() {
     `)
     ).rows.filter((d: any) => !processedDocIds.has(d.id));
 
-    console.log(`   Found ${docs.length} documents for intelligence extraction.`);
+    const totalDocs = docs.length;
+    console.log(`   Found ${totalDocs} documents for intelligence extraction.`);
 
-    for (const doc of docs) {
+    writeLiveStatus({
+      running: true,
+      phase: 'Intelligence',
+      crashed: false,
+      intelTotal: totalDocs,
+      intelProcessed: 0,
+    });
+
+    for (let docIdx = 0; docIdx < docs.length; docIdx++) {
+      const doc = docs[docIdx];
       const content = doc.content;
       if (!content || content.length < 10) continue;
 
@@ -351,12 +379,28 @@ export async function runIntelligencePipeline() {
 
       await extractCredentials(doc, content);
       await harvestContacts(doc, content, entitiesFound);
+
+      // Write live status every 25 docs so the widget shows real-time progress
+      if (docIdx % 25 === 0) {
+        writeLiveStatus({
+          currentFile: doc.file_name || `doc:${doc.id}`,
+          currentCollection: doc.source_collection || 'Unknown',
+          intelProcessed: docIdx + 1,
+          intelTotal: totalDocs,
+        });
+      }
     }
 
     await db.query(
       "UPDATE ingest_runs SET status = 'completed', finished_at = CURRENT_TIMESTAMP WHERE id = $1",
       [ingestRunId],
     );
+    writeLiveStatus({
+      currentFile: null,
+      currentCollection: null,
+      intelProcessed: totalDocs,
+      intelTotal: totalDocs,
+    });
     console.log('✅ Intelligence Pipeline complete.');
   } catch (error) {
     console.error('❌ Intelligence Pipeline failed:', error);
