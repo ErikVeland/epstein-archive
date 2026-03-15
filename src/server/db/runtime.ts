@@ -188,8 +188,11 @@ function applyApiSessionSettings(client: pg.PoolClient): void {
   ];
   settings
     .reduce((p, sql) => p.then(() => client.query(sql)), Promise.resolve() as Promise<unknown>)
-    .catch((err) => {
+    .catch((err: { message: string }) => {
       console.error('[PG API POOL] Failed to apply session settings:', err.message);
+      // Destroy the connection so it cannot be used without timeout protection.
+      // pg-pool will create a fresh connection with settings applied on next acquire.
+      (client as unknown as { end: () => void }).end();
     });
 }
 

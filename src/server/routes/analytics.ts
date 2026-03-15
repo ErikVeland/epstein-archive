@@ -71,15 +71,22 @@ router.get('/enhanced', analyticsRateLimiter, cacheResponse(60), async (_req, re
       ORDER BY (CASE WHEN period = 'Unknown' THEN '9999-99' ELSE period END) ASC
     `);
 
-    const topConnectedLivePromise = pool.query<{
-      id: number;
-      name: string;
-      role: string | null;
-      type: string;
-      riskLevel: number;
-      connectionCount: number;
-      mentions: number;
-    }>(`
+    // Wrap the expensive rel_counts query in a transaction with SET LOCAL so the
+    // 60-second cap is guaranteed to apply regardless of pool session-settings races.
+    const topConnectedLivePromise = (async () => {
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+        await client.query("SET LOCAL statement_timeout = '60000ms'");
+        const result = await client.query<{
+          id: number;
+          name: string;
+          role: string | null;
+          type: string;
+          riskLevel: number;
+          connectionCount: number;
+          mentions: number;
+        }>(`
       WITH rel_counts AS (
         SELECT entity_id, SUM(cnt)::bigint AS cnt
         FROM (
@@ -166,7 +173,17 @@ router.get('/enhanced', analyticsRateLimiter, cacheResponse(60), async (_req, re
       WHERE mentions > 0
       ORDER BY "connectionCount" DESC, mentions DESC, name ASC
       LIMIT 100
-    `);
+        `);
+        await client.query('ROLLBACK');
+        return result;
+      } catch (err) {
+        await client.query('ROLLBACK').catch(() => {});
+        console.warn('[Analytics] topConnected query failed:', (err as Error).message);
+        return { rows: [] };
+      } finally {
+        client.release();
+      }
+    })();
 
     const [
       docsByTypeRows,
@@ -181,7 +198,7 @@ router.get('/enhanced', analyticsRateLimiter, cacheResponse(60), async (_req, re
     ] = await Promise.all([
       analyticsQueries.getDocsByType.run(undefined, pool),
       timelineLivePromise.then((r) => r.rows),
-      topConnectedLivePromise.then((r) => r.rows),
+      topConnectedLivePromise.then((r) => r.rows ?? []),
       analyticsQueries.getEntityTypeDistribution.run(undefined, pool),
       analyticsQueries.getRedactionStats.run(undefined, pool),
       analyticsQueries.getTopRelationships.run(undefined, pool),
