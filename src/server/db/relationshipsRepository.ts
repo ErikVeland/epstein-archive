@@ -126,7 +126,7 @@ export const relationshipsRepository = {
       if (d >= safeDepth) continue;
 
       const rels = await relationshipsQueries.getNeighborsCached.run(
-        { entityId: BigInt(id), limit: 100 },
+        { entityId: id, limit: 100 },
         pool,
       );
 
@@ -182,7 +182,7 @@ export const relationshipsRepository = {
            ) AS rn
          FROM entities e
          JOIN media_item_people mip ON mip.entity_id = e.id
-         JOIN media_items mi ON mi.id = mip.media_item_id
+         JOIN media_items mi ON mi.id = mip.media_item_id::text
          WHERE e.canonical_id = ANY($1::bigint[])
            AND (mi.file_type LIKE 'image/%' OR mi.file_type IS NULL)
        )
