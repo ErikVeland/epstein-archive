@@ -183,6 +183,7 @@ export const mapEntityDetailDto = (entity: any) => {
     ).toUpperCase(),
     red_flag_score: Number(entity.red_flag_score ?? entity.redFlagScore ?? 0),
     red_flag_rating: redFlagRating,
+    redFlagRating,
     red_flag_peppers: redFlagRating > 0 ? '🚩'.repeat(redFlagRating) : '🏳️',
     red_flag_description:
       entity.red_flag_description || entity.redFlagDescription || `Red Flag Index ${redFlagRating}`,

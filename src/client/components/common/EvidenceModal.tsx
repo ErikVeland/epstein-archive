@@ -663,7 +663,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
 
   const forensicSummary = useMemo(() => {
     if (!entity || !forensicData) return '';
-    const docsCount = totalDocs > 0 ? totalDocs : documents.length;
+    const docsCount = totalDocs > 0 ? totalDocs : documents.length || entity.mentions;
     const mediaCount = entity.photos?.length || 0;
     const relationCount = relationships.length;
     const riskDescriptor =
