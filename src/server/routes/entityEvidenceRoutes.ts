@@ -47,7 +47,7 @@ const getEntityGraph = async (req: Request, res: Response) => {
       ? Math.min(4, Math.max(1, parseInt(req.query.depth as string)))
       : 2;
     const { relationshipsRepository } = await import('../db/relationshipsRepository.js');
-    const graph = relationshipsRepository.getGraphSlice(dbEntityId, depth);
+    const graph = await relationshipsRepository.getGraphSlice(dbEntityId, depth);
     res.json(graph);
   } catch (error) {
     console.error('Error fetching entity graph:', error);
