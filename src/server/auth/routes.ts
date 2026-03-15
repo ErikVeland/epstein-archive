@@ -67,7 +67,10 @@ router.post('/login', authLimiter, async (req, res) => {
     );
     const user = rows[0];
 
-    if (!user || !user.password_hash || !bcrypt.compareSync(password, user.password_hash)) {
+    const passwordValid = user?.password_hash
+      ? await bcrypt.compare(password, user.password_hash)
+      : false;
+    if (!user || !passwordValid) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
@@ -125,56 +128,75 @@ router.post('/refresh', authLimiter, async (req, res) => {
     const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET) as any;
     const pool = getApiPool();
     const refreshTokenHash = hashToken(refreshToken);
-    const activeRefreshRows = await pool.query(
-      `
-        SELECT id, user_id
-        FROM refresh_tokens
-        WHERE token_hash = $1
-          AND revoked_at IS NULL
-          AND expires_at > NOW()
-        LIMIT 1
-      `,
-      [refreshTokenHash],
-    );
-    const activeRefresh = activeRefreshRows.rows[0];
-    if (!activeRefresh || String(activeRefresh.user_id) !== String(decoded.id)) {
-      return res.status(401).json({ error: 'Invalid refresh token' });
+
+    // Use a transaction with SELECT FOR UPDATE to prevent concurrent refresh races
+    // where two requests both pass the validity check before either revoke commits.
+    const client = await pool.connect();
+    let accessToken: string;
+    let nextRefreshToken: string;
+    try {
+      await client.query('BEGIN');
+
+      const activeRefreshRows = await client.query(
+        `
+          SELECT id, user_id
+          FROM refresh_tokens
+          WHERE token_hash = $1
+            AND revoked_at IS NULL
+            AND expires_at > NOW()
+          LIMIT 1
+          FOR UPDATE
+        `,
+        [refreshTokenHash],
+      );
+      const activeRefresh = activeRefreshRows.rows[0];
+      if (!activeRefresh || String(activeRefresh.user_id) !== String(decoded.id)) {
+        await client.query('ROLLBACK');
+        return res.status(401).json({ error: 'Invalid refresh token' });
+      }
+
+      const { rows } = await client.query(
+        `
+          SELECT id, username, email, role
+          FROM users
+          WHERE id = $1
+        `,
+        [decoded.id],
+      );
+      const user = rows[0];
+      if (!user) {
+        await client.query('ROLLBACK');
+        return res.status(401).json({ error: 'User not found' });
+      }
+
+      accessToken = generateAccessToken(user);
+      nextRefreshToken = generateRefreshToken(user);
+      const nextRefreshTokenHash = hashToken(nextRefreshToken);
+      const nextRefreshExpiresAt = new Date(Date.now() + REFRESH_TOKEN_TTL_MS).toISOString();
+
+      await client.query(
+        `
+          UPDATE refresh_tokens
+          SET revoked_at = NOW(), last_used_at = NOW()
+          WHERE id = $1
+        `,
+        [activeRefresh.id],
+      );
+      await client.query(
+        `
+          INSERT INTO refresh_tokens (user_id, token_hash, expires_at)
+          VALUES ($1, $2, $3)
+        `,
+        [user.id, nextRefreshTokenHash, nextRefreshExpiresAt],
+      );
+
+      await client.query('COMMIT');
+    } catch (txErr) {
+      await client.query('ROLLBACK');
+      throw txErr;
+    } finally {
+      client.release();
     }
-
-    const { rows } = await pool.query(
-      `
-        SELECT id, username, email, role
-        FROM users
-        WHERE id = $1
-      `,
-      [decoded.id],
-    );
-    const user = rows[0];
-
-    if (!user) {
-      return res.status(401).json({ error: 'User not found' });
-    }
-
-    const accessToken = generateAccessToken(user);
-    const nextRefreshToken = generateRefreshToken(user);
-    const nextRefreshTokenHash = hashToken(nextRefreshToken);
-    const nextRefreshExpiresAt = new Date(Date.now() + REFRESH_TOKEN_TTL_MS).toISOString();
-
-    await pool.query(
-      `
-        UPDATE refresh_tokens
-        SET revoked_at = NOW(), last_used_at = NOW()
-        WHERE id = $1
-      `,
-      [activeRefresh.id],
-    );
-    await pool.query(
-      `
-        INSERT INTO refresh_tokens (user_id, token_hash, expires_at)
-        VALUES ($1, $2, $3)
-      `,
-      [user.id, nextRefreshTokenHash, nextRefreshExpiresAt],
-    );
 
     res.cookie('refreshToken', nextRefreshToken, {
       httpOnly: true,
@@ -246,11 +268,14 @@ router.post(
       ]);
       const user = rows[0];
 
-      if (!user || !bcrypt.compareSync(currentPassword, user.password_hash)) {
+      const currentPasswordValid = user?.password_hash
+        ? await bcrypt.compare(currentPassword, user.password_hash)
+        : false;
+      if (!user || !currentPasswordValid) {
         return res.status(401).json({ error: 'Incorrect current password' });
       }
 
-      const newHash = bcrypt.hashSync(newPassword, 12); // Slightly higher rounds for prod
+      const newHash = await bcrypt.hash(newPassword, 12);
       await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [newHash, req.user.id]);
 
       res.json({ success: true });

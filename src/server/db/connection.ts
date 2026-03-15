@@ -4,6 +4,7 @@ export {
   getIngressPool,
   getIngestPool,
   initPools,
+  drainPools,
   assertProductionPg,
   getMigrationMetrics,
   getSlowQueryLogThresholdMs,

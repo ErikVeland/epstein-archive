@@ -59,28 +59,24 @@ const updateInvestigationSchema = z.object({
   params: z.object({
     id: z.coerce.number().int(),
   }),
-  body: z
-    .object({
-      title: z.string().optional(),
-      description: z.string().optional(),
-      status: z.string().optional(),
-      ownerId: z.string().optional(),
-    })
-    .passthrough(),
+  body: z.object({
+    title: z.string().optional(),
+    description: z.string().optional(),
+    status: z.string().optional(),
+    ownerId: z.string().optional(),
+  }),
 });
 
 const timelineEventSchema = z.object({
   params: z.object({
     id: z.coerce.number().int(),
   }),
-  body: z
-    .object({
-      title: z.string().min(1),
-      description: z.string().optional(),
-      event_date: z.string().optional(),
-      event_type: z.string().optional(),
-    })
-    .passthrough(),
+  body: z.object({
+    title: z.string().min(1),
+    description: z.string().optional(),
+    event_date: z.string().optional(),
+    event_type: z.string().optional(),
+  }),
 });
 
 const updateTimelineEventSchema = z.object({
@@ -88,7 +84,12 @@ const updateTimelineEventSchema = z.object({
     id: z.coerce.number().int(),
     eventId: z.coerce.number().int(),
   }),
-  body: z.object({}).passthrough(),
+  body: z.object({
+    title: z.string().optional(),
+    description: z.string().optional(),
+    event_date: z.string().optional(),
+    event_type: z.string().optional(),
+  }),
 });
 
 const evidenceParamsSchema = z.object({
@@ -105,14 +106,19 @@ const addEvidenceSchema = z.object({
   params: z.object({
     id: z.coerce.number().int(),
   }),
-  body: z
-    .object({
-      title: z.string().min(1),
-      evidence_type: z.string().optional(),
-      description: z.string().optional(),
-      url: z.string().url().optional().or(z.literal('')),
-    })
-    .passthrough(),
+  body: z.object({
+    title: z.string().min(1),
+    type: z.string().optional(),
+    evidence_type: z.string().optional(),
+    description: z.string().optional(),
+    url: z.string().url().optional().or(z.literal('')),
+    relevance: z.string().optional(),
+    notes: z.string().optional(),
+    source_path: z.string().optional(),
+    entity_id: z.union([z.string(), z.number()]).optional(),
+    document_id: z.union([z.string(), z.number()]).optional(),
+    metadata: z.record(z.unknown()).optional(),
+  }),
 });
 
 const evidenceAnnotationParamsSchema = z.object({
@@ -185,7 +191,11 @@ const updateHypothesisSchema = z.object({
     id: z.coerce.number().int(),
     hypId: z.coerce.number().int(),
   }),
-  body: z.object({}).passthrough(),
+  body: z.object({
+    title: z.string().optional(),
+    description: z.string().optional(),
+    status: z.string().optional(),
+  }),
 });
 
 const hypothesisEvidenceSchema = z.object({
@@ -893,10 +903,27 @@ router.get(
         return res.status(404).json({ error: 'Investigation not found' });
       }
 
-      const evidence = await investigationsRepository.getEvidence(numericId, { limit: 1000 });
-      const archive = archiver('zip', { zlib: { level: 9 } });
+      const ZIP_FILE_LIMIT = 100;
+      const ZIP_SIZE_LIMIT_BYTES = 500 * 1024 * 1024; // 500 MB
+
+      const evidence = await investigationsRepository.getEvidence(numericId, {
+        limit: ZIP_FILE_LIMIT,
+      });
+      const archive = archiver('zip', { zlib: { level: 6 } });
+
+      // Wire up error handler before piping so we can still send a 500 if headers not yet sent
+      let headersSent = false;
+      archive.on('error', (err) => {
+        if (!headersSent) {
+          next(err);
+        } else {
+          // Headers already sent — destroy the socket to signal a broken download
+          res.destroy(err);
+        }
+      });
 
       res.attachment(`investigation-bundle-${numericId}.zip`);
+      headersSent = true;
       archive.pipe(res);
 
       // Add investigation metadata
@@ -906,6 +933,7 @@ router.get(
       const evidenceList = Array.isArray(evidence) ? evidence : (evidence as any).data || [];
       archive.append(JSON.stringify(evidenceList, null, 2), { name: 'evidence.json' });
 
+      let totalBytes = 0;
       for (const item of evidenceList) {
         if (item.file_path) {
           const absolutePath = path.resolve(item.file_path);
@@ -914,6 +942,9 @@ router.get(
               absolutePath.startsWith(DATA_ROOT + '/')) &&
             fs.existsSync(absolutePath)
           ) {
+            const stat = fs.statSync(absolutePath);
+            if (totalBytes + stat.size > ZIP_SIZE_LIMIT_BYTES) break;
+            totalBytes += stat.size;
             const fileName = path.basename(absolutePath);
             archive.file(absolutePath, { name: `files/${fileName}` });
           }

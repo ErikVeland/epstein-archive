@@ -9,6 +9,21 @@ async function bootstrap() {
     const app = new App();
     await app.init();
     await app.listen(PORT);
+
+    const shutdown = async (signal: string) => {
+      logger.info(`Received ${signal}, shutting down gracefully`);
+      try {
+        await app.shutdown();
+        logger.info('Graceful shutdown complete');
+        process.exit(0);
+      } catch (err) {
+        logger.error({ err }, 'Error during shutdown');
+        process.exit(1);
+      }
+    };
+
+    process.once('SIGTERM', () => shutdown('SIGTERM'));
+    process.once('SIGINT', () => shutdown('SIGINT'));
   } catch (error) {
     logger.error({ err: error }, 'Failed to start server');
     process.exit(1);

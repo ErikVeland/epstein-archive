@@ -29,6 +29,19 @@ export async function getCurrentDatabaseSizeBytes(): Promise<number | null> {
   return Number.isFinite(n) ? n : null;
 }
 
+const ALLOWED_CRITICAL_TABLES = new Set([
+  'entities',
+  'documents',
+  'entity_relationships',
+  'entity_mentions',
+  'investigations',
+  'black_book_entries',
+  'media_items',
+  'media_albums',
+  'refresh_tokens',
+  'users',
+]);
+
 export async function getCriticalTableCounts(tables: string[]) {
   const results: Record<
     string,
@@ -39,8 +52,11 @@ export async function getCriticalTableCounts(tables: string[]) {
     }
   > = {};
   for (const table of tables) {
+    if (!ALLOWED_CRITICAL_TABLES.has(table)) {
+      results[table] = { ok: false, count: 0, error: `Table "${table}" not in allowlist` };
+      continue;
+    }
     try {
-      // Use raw query for dynamic table name safely here since this is an admin/internal tool
       const { rows } = await getApiPool().query(`SELECT COUNT(*) as count FROM ${table}`);
       results[table] = { ok: true, count: Number(rows[0].count) };
     } catch (e: any) {

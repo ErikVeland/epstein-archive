@@ -1,5 +1,32 @@
 # Release Notes
 
+## 16.4.0 - 2026-03-15 - Security, Reliability & Pipeline Observability
+
+### Security
+
+- Removed unauthenticated `express.static('/data', ...)` handler; `/data/*` URLs now route through the same audited, path-traversal-protected handler as `/files/*`, preserving all document browser and download functionality.
+- Token rotation endpoint (`POST /api/auth/refresh`) now uses a `BEGIN/COMMIT` transaction with `SELECT ... FOR UPDATE`, eliminating the race condition where concurrent refresh requests could produce two live tokens for the same session.
+- Update schemas in investigations routes no longer use `.passthrough()`; unknown fields are stripped at validation time, preventing callers from injecting arbitrary DB columns via `updateInvestigation`, `updateTimelineEvent`, `updateHypothesis`, and `addEvidence`.
+- `getCriticalTableCounts` now validates table names against an explicit allowlist before interpolating into SQL.
+- User IDs now generated with `crypto.randomUUID()` instead of `Date.now()`, eliminating creation-timestamp disclosure and collision risk under concurrent admin requests.
+
+### Reliability
+
+- `recordWebVitals` call in vitals route is now fire-and-forget with an explicit `.catch()` logger; DB errors no longer become unhandled promise rejections on the hot vitals path.
+- `createAlbumArchive` now registers an `archive.on('error', ...)` handler to cleanly destroy the response stream on mid-archive filesystem errors.
+- People page fallback query path now runs the main entity query, count query, max-connectivity, and VIP lookup in a single `Promise.all`, reducing sequential DB round-trips from 4 to 1 parallel batch.
+
+### Auth / UX
+
+- `AuthContext` now attempts `POST /api/auth/refresh` on page reload when `/api/auth/me` returns no user, restoring session state from the refresh cookie without requiring a manual re-login.
+- `InvestigationsContext` now uses the authenticated user's ID (from `AuthContext`) instead of the hardcoded `'1'` when creating investigations and populating the team lead field.
+
+### Pipeline Observability
+
+- AI Enrichment progress bar in the Übersicht desktop widget now displays real-time throughput (docs/s) and an ETA derived from elapsed time since `enrichStartedAt`, replacing the stale ingest-rate approximation.
+- `unified_pipeline.ts` writes `enrichStartedAt` timestamp to `live_status.json` at the beginning of each enrichment run so the rate calculation survives widget and pipeline restarts.
+- `get_stats.sh` passes `enrichStartedAt`, `enrichProcessed`, and `enrichTotal` from the status JSON through to the widget's merged output.
+
 ## 16.3.1 - 2026-03-12 - Server-Side Media Share Metadata
 
 ### Search & Sharing

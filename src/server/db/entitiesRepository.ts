@@ -345,7 +345,7 @@ export const entitiesRepository = {
     const riskLevels = filters?.likelihoodScore
       ? filters.likelihoodScore.map((s) => String(s).toUpperCase())
       : null;
-    const sortOrder = filters?.sortOrder === 'asc' ? 'ASC' : 'DESC';
+    const sortOrder: 'ASC' | 'DESC' = filters?.sortOrder === 'asc' ? 'ASC' : 'DESC';
 
     const pool = getApiPool();
     const whereParts: string[] = [];
@@ -391,9 +391,21 @@ export const entitiesRepository = {
         OR LOWER(COALESCE(e.full_name, '')) ~* '\\m.+''s\\M\\s+(lawyer|assistant|aide|counsel|staff|pilot|masseuse)\\M'
         OR LOWER(COALESCE(e.full_name, '')) ~* '^(lawyer|assistant|aide|counsel|staff|pilot|masseuse)\\b\\s+'
       THEN 1 ELSE 0 END`;
-    const sortKey = String(sortBy || 'red_flag')
+    const ALLOWED_SORT_KEYS = new Set([
+      'red_flag',
+      'rfi',
+      'default',
+      'risk',
+      'mentions',
+      'document_count',
+      'document-count',
+      'recent',
+      'name',
+    ]);
+    const sortKeyRaw = String(sortBy || 'red_flag')
       .toLowerCase()
       .replace(/-/g, '_');
+    const sortKey = ALLOWED_SORT_KEYS.has(sortKeyRaw) ? sortKeyRaw : 'red_flag';
 
     const orderByTerms: string[] = [];
     orderByTerms.push(`${inferredRankExpr} ASC`);
@@ -442,77 +454,78 @@ export const entitiesRepository = {
     const listParams = [...params, limit, offset];
 
     try {
-      const rawEntitiesResult = await pool.query(
-        `
-        WITH mention_counts AS (
+      // Run main query, count, max-connectivity, and VIP lookup in parallel
+      const [rawEntitiesResult, countResult, maxConnResult, vipDisplayLookup] = await Promise.all([
+        pool.query(
+          `
+          WITH mention_counts AS (
+            SELECT
+              em.entity_id,
+              COUNT(*)::bigint AS mentions,
+              COUNT(DISTINCT em.document_id)::bigint AS documents
+            FROM entity_mentions em
+            GROUP BY em.entity_id
+          )
           SELECT
-            em.entity_id,
-            COUNT(*)::bigint AS mentions,
-            COUNT(DISTINCT em.document_id)::bigint AS documents
-          FROM entity_mentions em
-          GROUP BY em.entity_id
-        )
-        SELECT
-          e.id,
-          e.full_name as "fullName",
-          e.primary_role as "primaryRole",
-          e.bio,
-          COALESCE(mc.mentions, COALESCE(e.mentions, 0)) as mentions,
-          e.risk_level as "riskLevel",
-          e.red_flag_rating as "redFlagRating",
-          e.connections_summary as "connections",
-          e.was_agentic as "wasAgentic",
-          (
-            SELECT COUNT(*)
-            FROM entity_mentions em2
-            JOIN documents d ON d.id = em2.document_id
-            WHERE em2.entity_id = e.id
-              AND d.evidence_type = 'media'
-          ) as "mediaCount",
-          (SELECT COUNT(*) FROM black_book_entries WHERE person_id = e.id) as "blackBookCount",
-          (
-            SELECT m.id
-            FROM media_items m
-            LEFT JOIN media_item_people mip ON m.id = mip.media_item_id::text
-            LEFT JOIN media_albums ma ON ma.id = m.album_id
-            WHERE (
-              COALESCE(mip.entity_id, m.entity_id) = e.id
-              OR LOWER(COALESCE(ma.name, '')) = LOWER(COALESCE(e.full_name, ''))
-              OR EXISTS (
-                SELECT 1
-                FROM unnest(regexp_split_to_array(LOWER(COALESCE(e.aliases, '')), '\\s*,\\s*')) alias_name
-                WHERE alias_name <> ''
-                  AND alias_name = LOWER(COALESCE(ma.name, ''))
+            e.id,
+            e.full_name as "fullName",
+            e.primary_role as "primaryRole",
+            e.bio,
+            COALESCE(mc.mentions, COALESCE(e.mentions, 0)) as mentions,
+            e.risk_level as "riskLevel",
+            e.red_flag_rating as "redFlagRating",
+            e.connections_summary as "connections",
+            e.was_agentic as "wasAgentic",
+            (
+              SELECT COUNT(*)
+              FROM entity_mentions em2
+              JOIN documents d ON d.id = em2.document_id
+              WHERE em2.entity_id = e.id
+                AND d.evidence_type = 'media'
+            ) as "mediaCount",
+            (SELECT COUNT(*) FROM black_book_entries WHERE person_id = e.id) as "blackBookCount",
+            (
+              SELECT m.id
+              FROM media_items m
+              LEFT JOIN media_item_people mip ON m.id = mip.media_item_id::text
+              LEFT JOIN media_albums ma ON ma.id = m.album_id
+              WHERE (
+                COALESCE(mip.entity_id, m.entity_id) = e.id
+                OR LOWER(COALESCE(ma.name, '')) = LOWER(COALESCE(e.full_name, ''))
+                OR EXISTS (
+                  SELECT 1
+                  FROM unnest(regexp_split_to_array(LOWER(COALESCE(e.aliases, '')), '\\s*,\\s*')) alias_name
+                  WHERE alias_name <> ''
+                    AND alias_name = LOWER(COALESCE(ma.name, ''))
+                )
               )
-            )
-              AND (m.file_type ILIKE 'image/%' OR m.file_type IS NULL)
-            ORDER BY COALESCE(m.red_flag_rating, 0) DESC, m.id DESC
-            LIMIT 1
-          ) as "topPhotoId"
-        FROM entities e
-        LEFT JOIN mention_counts mc ON mc.entity_id = e.id
-        ${whereSql}
-        ORDER BY ${orderBySql}
-        LIMIT $${listParams.length - 1} OFFSET $${listParams.length}
-        `,
-        listParams,
-      );
+                AND (m.file_type ILIKE 'image/%' OR m.file_type IS NULL)
+              ORDER BY COALESCE(m.red_flag_rating, 0) DESC, m.id DESC
+              LIMIT 1
+            ) as "topPhotoId"
+          FROM entities e
+          LEFT JOIN mention_counts mc ON mc.entity_id = e.id
+          ${whereSql}
+          ORDER BY ${orderBySql}
+          LIMIT $${listParams.length - 1} OFFSET $${listParams.length}
+          `,
+          listParams,
+        ),
+        pool.query<{ total: string }>(
+          `
+          SELECT COUNT(*)::bigint AS total
+          FROM entities e
+          ${whereSql}
+          `,
+          params,
+        ),
+        (entitiesQueries.getMaxConnectivity as any).run(undefined, pool),
+        buildVipDisplayLookup(),
+      ]);
+
       const rawEntities = rawEntitiesResult.rows as any[];
-
-      const countResult = await pool.query<{ total: string }>(
-        `
-        SELECT COUNT(*)::bigint AS total
-        FROM entities e
-        ${whereSql}
-        `,
-        params,
-      );
       const total = Number(countResult.rows[0]?.total || 0);
-
-      const maxConnResult = await (entitiesQueries.getMaxConnectivity as any).run(undefined, pool);
       const maxConnectivityCount = Number(maxConnResult[0]?.maxConn || 1);
-
-      const vipDisplayLookup = await buildVipDisplayLookup();
 
       const pageNormalizedKeys = Array.from(
         new Set(

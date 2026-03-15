@@ -208,12 +208,13 @@ export class App {
       next();
     });
     this.app.use(express.static(path.join(__dirname, '../dist')));
-    this.app.use('/data', express.static(path.join(__dirname, '../data')));
 
     // 7. Secure File Serving
-    // This replicates the logic from server.ts for handling /files/*
-    this.app.get('/files/*', (req, res) => {
-      const wildcardPath = (req.params as Record<string, string | undefined>)['0'];
+    // Both /files/* and /data/* serve from the data/ directory with path-traversal protection.
+    // /data/* is kept as a backward-compatible alias; /files/* is the canonical secure path.
+    this.app.get(['/files/*', '/data/*'], (req, res) => {
+      const prefix = req.path.startsWith('/files/') ? '/files/' : '/data/';
+      const wildcardPath = req.path.slice(prefix.length);
       const filePath = wildcardPath ?? '';
 
       const decodedPath = (() => {
@@ -831,12 +832,26 @@ export class App {
     this.app.use(globalErrorHandler);
   }
 
+  private server: import('http').Server | null = null;
+
   public async listen(port: number) {
     return new Promise<void>((resolve) => {
-      this.app.listen(port, () => {
+      this.server = this.app.listen(port, () => {
         logger.info(`Server running on port ${port}`);
         resolve();
       });
     });
+  }
+
+  public async shutdown(): Promise<void> {
+    const { drainPools } = await import('./server/db/connection.js');
+    await new Promise<void>((resolve) => {
+      if (this.server) {
+        this.server.close(() => resolve());
+      } else {
+        resolve();
+      }
+    });
+    await drainPools();
   }
 }

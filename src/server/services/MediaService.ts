@@ -236,7 +236,8 @@ export class MediaService {
     query += ` ORDER BY ${orderField} ${orderDir}, i.id DESC`;
 
     if (filter?.limit) {
-      query += ` LIMIT ${bind(Number(filter.limit))}`;
+      const cappedLimit = Math.min(Math.max(1, Number(filter.limit)), 1000);
+      query += ` LIMIT ${bind(cappedLimit)}`;
       if (filter?.offset) query += ` OFFSET ${bind(Number(filter.offset))}`;
     }
 
@@ -595,6 +596,58 @@ export class MediaService {
     );
   }
 
+  async batchAddTagsToItems(itemIds: number[], tagIds: number[]): Promise<void> {
+    if (itemIds.length === 0 || tagIds.length === 0) return;
+    await this.pgExec(
+      `
+      INSERT INTO media_item_tags (media_item_id, tag_id)
+      SELECT i.item_id, t.tag_id
+      FROM unnest($1::int[]) AS i(item_id)
+      CROSS JOIN unnest($2::int[]) AS t(tag_id)
+      ON CONFLICT DO NOTHING
+      `,
+      [itemIds, tagIds],
+    );
+  }
+
+  async batchRemoveTagsFromItems(itemIds: number[], tagIds: number[]): Promise<void> {
+    if (itemIds.length === 0 || tagIds.length === 0) return;
+    await this.pgExec(
+      `
+      DELETE FROM media_item_tags
+      WHERE media_item_id = ANY($1::int[])
+        AND tag_id = ANY($2::int[])
+      `,
+      [itemIds, tagIds],
+    );
+  }
+
+  async batchAddPeopleToItems(itemIds: number[], personIds: number[]): Promise<void> {
+    if (itemIds.length === 0 || personIds.length === 0) return;
+    await this.pgExec(
+      `
+      INSERT INTO media_item_people (media_item_id, entity_id)
+      SELECT i.item_id, p.person_id
+      FROM unnest($1::int[]) AS i(item_id)
+      CROSS JOIN unnest($2::int[]) AS p(person_id)
+      ON CONFLICT DO NOTHING
+      `,
+      [itemIds, personIds],
+    );
+  }
+
+  async batchRemovePeopleFromItems(itemIds: number[], personIds: number[]): Promise<void> {
+    if (itemIds.length === 0 || personIds.length === 0) return;
+    await this.pgExec(
+      `
+      DELETE FROM media_item_people
+      WHERE media_item_id = ANY($1::int[])
+        AND entity_id = ANY($2::int[])
+      `,
+      [itemIds, personIds],
+    );
+  }
+
   // ============ STATISTICS ============
 
   async getMediaStats(): Promise<MediaStats> {
@@ -848,6 +901,12 @@ export class MediaService {
 
     const images = await this.getAllImages({ albumId });
     const archive = archiver('zip', { zlib: { level: 9 } });
+
+    archive.on('error', (err) => {
+      console.error(`Archive error for album ${albumId}:`, err);
+      // Headers may already be sent; destroy the response stream to signal failure
+      res.destroy(err);
+    });
 
     res.attachment(`${album.name.replace(/[^a-z0-9]/gi, '_')}.zip`);
     archive.pipe(res);

@@ -109,18 +109,15 @@ export const propertiesRepository = {
 
     // Determine sort column
     let orderClause = '';
-    const dir = sortOrder.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
-    switch (sortBy) {
-      case 'owner':
-        orderClause = `ORDER BY owner_name_1 ${dir}`;
-        break;
-      case 'year':
-        orderClause = `ORDER BY year_built ${dir} NULLS LAST`;
-        break;
-      case 'value':
-      default:
-        orderClause = `ORDER BY total_tax_value ${dir} NULLS LAST`;
-    }
+    const dir: 'ASC' | 'DESC' = sortOrder.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+    const ALLOWED_SORT_COLS: Record<string, string> = {
+      owner: 'owner_name_1',
+      year: 'year_built',
+      value: 'total_tax_value',
+    };
+    const sortCol = ALLOWED_SORT_COLS[sortBy] ?? 'total_tax_value';
+    const nullsClause = sortBy === 'owner' ? '' : ' NULLS LAST';
+    orderClause = `ORDER BY ${sortCol} ${dir}${nullsClause}`;
 
     // Get properties
     const query = `

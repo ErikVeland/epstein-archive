@@ -18,16 +18,44 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const checkAuth = async () => {
     try {
-      // First try to check current session
+      // First try to check current session via Authorization header (if token already in memory)
       const res = await fetch('/api/auth/me', { credentials: 'include' });
       if (res.ok) {
         const data = await res.json();
         if (data.user) {
           setUser(data.user);
-          // If we have a user but no access token in memory yet,
-          // apiClient will handle it on first request failure via /refresh
         } else {
-          setUser(null);
+          // No in-memory token — attempt to exchange the refresh cookie for a new access token.
+          // This handles page reloads where the access token was lost but the cookie is still valid.
+          try {
+            const refreshRes = await fetch('/api/auth/refresh', {
+              method: 'POST',
+              credentials: 'include',
+            });
+            if (refreshRes.ok) {
+              const refreshData = await refreshRes.json();
+              if (refreshData.accessToken) {
+                apiClient.setAccessToken(refreshData.accessToken);
+                // Re-check /me with the new access token
+                const meRes = await fetch('/api/auth/me', {
+                  credentials: 'include',
+                  headers: { Authorization: `Bearer ${refreshData.accessToken}` },
+                });
+                if (meRes.ok) {
+                  const meData = await meRes.json();
+                  setUser(meData.user ?? null);
+                } else {
+                  setUser(null);
+                }
+              } else {
+                setUser(null);
+              }
+            } else {
+              setUser(null);
+            }
+          } catch {
+            setUser(null);
+          }
         }
       } else {
         setUser(null);

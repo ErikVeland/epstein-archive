@@ -467,14 +467,10 @@ router.put(
         tagIds: number[];
         action: 'add' | 'remove';
       };
-      for (const itemId of itemIds) {
-        for (const tagId of tagIds) {
-          if (action === 'add') {
-            await mediaService.addTagToItem(itemId, tagId);
-          } else {
-            await mediaService.removeTagFromItem(itemId, tagId);
-          }
-        }
+      if (action === 'add') {
+        await mediaService.batchAddTagsToItems(itemIds, tagIds);
+      } else {
+        await mediaService.batchRemoveTagsFromItems(itemIds, tagIds);
       }
       res.json({ ok: true });
     } catch (error) {
@@ -494,14 +490,10 @@ router.put(
         personIds: number[];
         action?: 'add' | 'remove';
       };
-      for (const itemId of itemIds) {
-        for (const personId of personIds) {
-          if (action === 'remove') {
-            await mediaService.removePersonFromItem(itemId, personId);
-          } else {
-            await mediaService.addPersonToItem(itemId, personId);
-          }
-        }
+      if (action === 'remove') {
+        await mediaService.batchRemovePeopleFromItems(itemIds, personIds);
+      } else {
+        await mediaService.batchAddPeopleToItems(itemIds, personIds);
       }
       res.json({ ok: true });
     } catch (error) {

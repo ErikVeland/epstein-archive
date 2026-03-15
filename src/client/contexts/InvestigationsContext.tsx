@@ -8,6 +8,7 @@ import React, {
   useMemo,
 } from 'react';
 import { Investigation } from '../types/investigation';
+import { useAuth } from './AuthContext';
 
 interface InvestigationsContextType {
   investigations: Investigation[];
@@ -33,6 +34,7 @@ interface InvestigationsProviderProps {
 }
 
 export const InvestigationsProvider: React.FC<InvestigationsProviderProps> = ({ children }) => {
+  const { user } = useAuth();
   const [investigations, setInvestigations] = useState<Investigation[]>([]);
   const [selectedInvestigation, setSelectedInvestigation] = useState<Investigation | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -107,7 +109,7 @@ export const InvestigationsProvider: React.FC<InvestigationsProviderProps> = ({ 
           body: JSON.stringify({
             title: data.title,
             description: data.description,
-            ownerId: '1', // This should come from auth context
+            ownerId: user?.id,
             scope: data.hypothesis,
           }),
         });
@@ -136,9 +138,9 @@ export const InvestigationsProvider: React.FC<InvestigationsProviderProps> = ({ 
           updatedAt: new Date(inv.updated_at),
           team: [
             {
-              id: '1', // This should come from auth context
-              name: 'Current User',
-              email: '',
+              id: user?.id || '',
+              name: user?.username || 'Current User',
+              email: user?.email || '',
               role: 'lead',
               permissions: ['read', 'write', 'admin'],
               joinedAt: new Date(inv.created_at),
@@ -147,7 +149,7 @@ export const InvestigationsProvider: React.FC<InvestigationsProviderProps> = ({ 
               status: 'active',
             },
           ],
-          leadInvestigator: '1',
+          leadInvestigator: user?.id || '',
           permissions: [],
           tags: [],
           priority: 'medium',
@@ -163,7 +165,7 @@ export const InvestigationsProvider: React.FC<InvestigationsProviderProps> = ({ 
         setIsLoading(false);
       }
     },
-    [loadInvestigations],
+    [loadInvestigations, user],
   );
 
   const addToInvestigation = useCallback(

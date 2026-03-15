@@ -6,13 +6,22 @@
  */
 
 import { Router, Request, Response } from 'express';
+import rateLimit from 'express-rate-limit';
 import {
   getWebVitalsAggregates,
   getWebVitalsAggregatesAverage,
   recordWebVitals,
 } from '../db/routesDb.js';
+import { authenticateRequest, requireRole } from '../auth/middleware.js';
 
 const router = Router();
+
+const vitalsPostLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 interface VitalsPayload {
   sessionId: string;
@@ -30,7 +39,7 @@ interface VitalsPayload {
  * Collect Web Vitals from production clients
  * 1% sampling, privacy-safe
  */
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', vitalsPostLimiter, async (req: Request, res: Response) => {
   try {
     const payload: VitalsPayload = req.body;
 
@@ -45,7 +54,8 @@ router.post('/', async (req: Request, res: Response) => {
       return res.status(413).json({ error: 'Payload too large' });
     }
 
-    recordWebVitals(payload);
+    // Fire-and-forget: respond immediately, log DB errors without affecting the client
+    recordWebVitals(payload).catch((err) => console.error('Failed to record vitals:', err));
 
     // Return 204 No Content (fastest response)
     res.status(204).send();
@@ -61,25 +71,30 @@ router.post('/', async (req: Request, res: Response) => {
  *
  * Get daily p75 aggregates (admin only)
  */
-router.get('/aggregates', async (req: Request, res: Response) => {
-  try {
-    const days = parseInt(req.query.days as string) || 7;
-
-    const aggregates = getWebVitalsAggregates(days);
-
-    res.json({ aggregates });
-  } catch (_error: any) {
-    // Fallback if PERCENTILE_CONT not supported
+router.get(
+  '/aggregates',
+  authenticateRequest,
+  requireRole('admin'),
+  async (req: Request, res: Response) => {
     try {
       const days = parseInt(req.query.days as string) || 7;
 
-      const aggregates = getWebVitalsAggregatesAverage(days);
+      const aggregates = getWebVitalsAggregates(days);
 
-      res.json({ aggregates, note: 'Using averages (PERCENTILE_CONT not supported)' });
-    } catch (fallbackError: any) {
-      res.status(500).json({ error: fallbackError.message });
+      res.json({ aggregates });
+    } catch (_error: any) {
+      // Fallback if PERCENTILE_CONT not supported
+      try {
+        const days = parseInt(req.query.days as string) || 7;
+
+        const aggregates = getWebVitalsAggregatesAverage(days);
+
+        res.json({ aggregates, note: 'Using averages (PERCENTILE_CONT not supported)' });
+      } catch (fallbackError: any) {
+        res.status(500).json({ error: fallbackError.message });
+      }
     }
-  }
-});
+  },
+);
 
 export default router;

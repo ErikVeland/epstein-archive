@@ -154,12 +154,19 @@ async function runEnrichPhase(
     whereClause += " AND created_at > now() - interval '1 day'";
   }
 
-  // Intentionally skipping COUNT(*) over full corpus — too slow at 1.4M rows, not needed for progress tracking
+  // Get enrichable total once at start for progress tracking
+  const enrichTotalRow = (
+    await pool.query(`SELECT COUNT(*) AS total FROM documents WHERE ${whereClause}`)
+  ).rows[0];
+  const enrichTotal = Number(enrichTotalRow?.total || 0);
 
   let documentsEnriched = 0;
   let summariesGenerated = 0;
   let offset = 0;
   const startTime = Date.now();
+
+  // Record when this enrichment run began so the widget can compute throughput/ETA
+  writeLiveStatus({ enrichStartedAt: new Date().toISOString() });
 
   while (true) {
     const docs = (
@@ -177,6 +184,14 @@ async function runEnrichPhase(
     ).rows as any[];
 
     if (docs.length === 0) break;
+
+    // Write progress to live_status.json once per batch so the widget stays current
+    writeLiveStatus({
+      phase: 'Enrichment',
+      enrichProcessed: offset,
+      enrichTotal,
+      currentFile: docs[0]?.file_name ?? null,
+    });
 
     for (let i = 0; i < docs.length; i += CONCURRENCY) {
       const chunk = docs.slice(i, i + CONCURRENCY);

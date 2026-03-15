@@ -151,6 +151,10 @@ export function getIngressPool(): pg.Pool {
 
 export const getIngestPool = getIngressPool;
 
+export async function drainPools(): Promise<void> {
+  await Promise.allSettled([apiPool?.end(), maintenancePool?.end(), ingressPool?.end()]);
+}
+
 export function getSlowQueryLogThresholdMs(): number {
   return SLOW_QUERY_LOG_THRESHOLD_MS;
 }

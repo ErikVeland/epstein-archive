@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import crypto from 'crypto';
 import { authenticateRequest, requireRole } from '../auth/middleware.js';
 import { logAudit } from '../utils/auditLogger.js';
 import bcrypt from 'bcryptjs';
@@ -63,7 +64,7 @@ router.post(
     try {
       const { username, password, email, role } = req.body;
 
-      const id = `user-${Date.now()}`;
+      const id = crypto.randomUUID();
       // Hash password
       const passwordHash = bcrypt.hashSync(password, 12);
 

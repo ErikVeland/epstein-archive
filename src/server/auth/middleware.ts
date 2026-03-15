@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from 'express';
-import { getApiPool } from '../db/connection.js';
 
 // Extend Request locally to avoid global type conflicts for now
 // Extend Request locally to avoid global type conflicts for now
@@ -22,8 +21,9 @@ if (!JWT_SECRET && process.env.NODE_ENV === 'production') {
 // Fallback only for development
 const ACTUAL_SECRET = JWT_SECRET || 'dev-secret-do-not-use-in-prod';
 
-// Shared verification helper
-const verifyToken = async (req: Request): Promise<any | null> => {
+// Shared verification helper — uses JWT payload claims directly (no DB round-trip).
+// Access tokens have no server-side revocation table, so re-fetching adds latency with no benefit.
+const verifyToken = (req: Request): AuthRequest['user'] | null => {
   let token: string | undefined;
 
   // ACCESS TOKEN should only be in the Authorization header
@@ -35,21 +35,22 @@ const verifyToken = async (req: Request): Promise<any | null> => {
 
   try {
     const decoded = jwt.verify(token, ACTUAL_SECRET) as any;
-    const pool = getApiPool();
-    const { rows } = await pool.query('SELECT id, username, role, email FROM users WHERE id = $1', [
-      decoded.id,
-    ]);
-    const user = rows[0];
-    return user || null;
+    if (!decoded?.id) return null;
+    return {
+      id: String(decoded.id),
+      username: String(decoded.username ?? ''),
+      role: String(decoded.role ?? 'viewer'),
+      email: decoded.email ?? null,
+    };
   } catch (_error) {
     return null;
   }
 };
 
-export const authenticateRequest = async (req: Request, res: Response, next: NextFunction) => {
+export const authenticateRequest = (req: Request, res: Response, next: NextFunction) => {
   const authReq = req as AuthRequest;
 
-  const user = await verifyToken(req);
+  const user = verifyToken(req);
   if (!user) {
     return res
       .status(401)
@@ -60,10 +61,9 @@ export const authenticateRequest = async (req: Request, res: Response, next: Nex
   next();
 };
 
-export const optionalAuthenticate = async (req: Request, _res: Response, next: NextFunction) => {
+export const optionalAuthenticate = (req: Request, _res: Response, next: NextFunction) => {
   const authReq = req as AuthRequest;
-  // Always try to verify, but don't error if it fails
-  const user = await verifyToken(req);
+  const user = verifyToken(req);
   if (user) {
     authReq.user = user;
   }
