@@ -139,21 +139,37 @@ const getCollectionStatsHelper = async () => {
 
 export const statsRepository = {
   getStatistics: async () => {
-    const pipelineProgress = await statsRepository.getPipelineProgress();
-
-    const [globalStatsRows] = await statsQueries.getGlobalStats.run(undefined, getApiPool());
-    const totalRelationshipsRes = await getApiPool().query<{ count: string }>(
-      'SELECT COUNT(*)::text AS count FROM entity_relationships',
-    );
+    // Run independent queries in parallel to reduce wall time
+    const [
+      pipelineProgress,
+      [globalStatsRows],
+      totalRelationshipsRes,
+      topRoles,
+      redFlagDistributionRows,
+      collectionCountsRows,
+      activeInvestigationsRows,
+    ] = await Promise.all([
+      statsRepository.getPipelineProgress(),
+      statsQueries.getGlobalStats.run(undefined, getApiPool()),
+      getApiPool().query<{ count: string }>(
+        'SELECT COUNT(*)::text AS count FROM entity_relationships',
+      ),
+      statsQueries.getTopRoles.run({ limit: BigInt(10) }, getApiPool()),
+      statsQueries.getRedFlagDistribution.run(undefined, getApiPool()),
+      statsQueries.getCollectionCounts.run(undefined, getApiPool()),
+      statsQueries.getActiveInvestigationsCount.run(undefined, getApiPool()),
+    ]);
     const totalRelationships = Number(totalRelationshipsRes.rows[0]?.count || 0);
-    const topRoles = await statsQueries.getTopRoles.run({ limit: BigInt(10) }, getApiPool());
-    const redFlagDistributionRows = await statsQueries.getRedFlagDistribution.run(
-      undefined,
-      getApiPool(),
-    );
-    const topEntitiesRows = (
-      await getApiPool().query(
-        `
+
+    // topEntities CTE is heavy — run in a transaction with an extended local timeout
+    // so it doesn't hit the 8s apiPool statement_timeout
+    const topEntitiesRows = await (async () => {
+      const client = await getApiPool().connect();
+      try {
+        await client.query('BEGIN');
+        await client.query("SET LOCAL statement_timeout = '60000ms'");
+        const result = await client.query(
+          `
         WITH canonical_people AS (
           SELECT
             MIN(id)::bigint AS id,
@@ -222,17 +238,17 @@ export const statsRepository = {
         ORDER BY mentions DESC, "redFlagRating" DESC, name ASC
         LIMIT 30
         `,
-      )
-    ).rows;
-    const collectionCountsRows = await statsQueries.getCollectionCounts.run(
-      undefined,
-      getApiPool(),
-    );
+        );
+        await client.query('ROLLBACK');
+        return result.rows;
+      } catch (err) {
+        await client.query('ROLLBACK').catch(() => {});
+        throw err;
+      } finally {
+        client.release();
+      }
+    })();
 
-    const activeInvestigationsRows = await statsQueries.getActiveInvestigationsCount.run(
-      undefined,
-      getApiPool(),
-    );
     const activeInvestigations = Number(activeInvestigationsRows[0]?.count || 0);
 
     const redFlagDistribution = redFlagDistributionRows.map((r: any) => ({
