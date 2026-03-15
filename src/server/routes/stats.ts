@@ -114,22 +114,59 @@ router.get('/health', async (_req, res) => {
   res.status(healthCheck.status === 'healthy' ? 200 : 503).json(healthCheck);
 });
 
-// O(1) Instantaneous Readiness Check (STEP 1)
-router.get('/health/ready', async (_req, res) => {
+// Readiness Check — fast O(1) ping; add ?soft=1 for richer checks+data payload
+router.get('/health/ready', async (req, res) => {
+  const soft = req.query.soft === '1';
+  const start = Date.now();
   try {
-    // const _pool = getApiPool();
+    const pingStart = Date.now();
     const pingPromise = pingDatabase();
+    const timeoutMs = soft ? 5000 : 50;
     const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('timeout')), 50),
+      setTimeout(() => reject(new Error('timeout')), timeoutMs),
     );
 
     await Promise.race([pingPromise, timeoutPromise]);
+    const latencyMs = Date.now() - pingStart;
 
-    res.status(200).json({ status: 'ready' });
+    if (!soft) {
+      return res.status(200).json({ status: 'ready' });
+    }
+
+    // Soft mode: also fetch entity/document counts for footer health widget
+    let dataCounts = { entities: 0, documents: 0 };
+    let dataOk = false;
+    try {
+      dataCounts = await getEntityAndDocumentCounts();
+      dataOk = dataCounts.entities > 0 && dataCounts.documents > 0;
+    } catch {
+      // non-fatal — DB is reachable, data counts unavailable
+    }
+
+    return res.status(200).json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      durationMs: Date.now() - start,
+      checks: {
+        db: { ok: true, latencyMs },
+        data: { ok: dataOk, ...dataCounts },
+      },
+    });
   } catch (e: any) {
-    res.status(503).json({
+    const isTimeout = e.message === 'timeout';
+    if (!soft) {
+      return res.status(503).json({
+        status: 'degraded',
+        error: isTimeout ? 'DB ping timeout' : 'DB error',
+      });
+    }
+    return res.status(503).json({
       status: 'degraded',
-      error: e.message === 'timeout' ? 'DB ping timeout' : 'DB error',
+      timestamp: new Date().toISOString(),
+      durationMs: Date.now() - start,
+      checks: {
+        db: { ok: false, error: isTimeout ? 'DB ping timeout' : e.message },
+      },
     });
   }
 });
