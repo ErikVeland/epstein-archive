@@ -205,7 +205,7 @@ export class App {
     }
     function deepCamelKeys(obj: unknown): unknown {
       if (Array.isArray(obj)) return obj.map(deepCamelKeys);
-      if (obj !== null && typeof obj === 'object') {
+      if (obj !== null && typeof obj === 'object' && !(obj instanceof Date)) {
         return Object.fromEntries(
           Object.entries(obj as Record<string, unknown>).map(([k, v]) => [
             toCamelCaseKey(k),
