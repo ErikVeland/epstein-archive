@@ -11,7 +11,10 @@ import type {
 
 export type EvidenceTargetType = 'document' | 'entity' | 'media' | null;
 
-export interface NormalizedCaseEvidenceItem extends InvestigationCaseEvidenceItemDto {
+export interface NormalizedCaseEvidenceItem extends Omit<
+  InvestigationCaseEvidenceItemDto,
+  'targetId' | 'targetType'
+> {
   targetType: EvidenceTargetType;
   targetId: string | null;
   metadata: Record<string, any>;
@@ -41,10 +44,10 @@ export const mapApiInvestigation = (inv: any): Investigation & { uuid?: string }
         : inv.status === 'closed'
           ? 'published'
           : 'archived',
-  createdAt: new Date(inv.createdAt || inv.created_at),
-  updatedAt: new Date(inv.updatedAt || inv.updated_at),
+  createdAt: new Date(inv.createdAt),
+  updatedAt: new Date(inv.updatedAt),
   team: [],
-  leadInvestigator: String(inv.ownerId || inv.owner_id || ''),
+  leadInvestigator: String(inv.ownerId || ''),
   permissions: [],
   tags: [],
   priority: 'medium',
@@ -59,11 +62,11 @@ export const normalizeEvidenceListItem = (
   description: row.description || '',
   type: (row.type || 'document') as WorkspaceEvidenceItem['type'],
   sourceId: String(row.id || ''),
-  source: row.source_path || '',
+  source: row.sourcePath || '',
   relevance: (row.relevance || 'medium') as WorkspaceEvidenceItem['relevance'],
   credibility: 'verified',
-  extractedAt: new Date(row.extracted_at || Date.now()),
-  extractedBy: row.extracted_by || 'system',
+  extractedAt: new Date(row.extractedAt || Date.now()),
+  extractedBy: row.extractedBy || 'system',
 });
 
 export const normalizeEvidencePage = (payload: InvestigationEvidenceListResponseDto) => ({
@@ -76,11 +79,11 @@ export const normalizeEvidencePage = (payload: InvestigationEvidenceListResponse
 export const resolveCaseEvidenceTarget = (
   item: InvestigationCaseEvidenceItemDto,
 ): { targetType: EvidenceTargetType; targetId: string | null; metadata: Record<string, any> } => {
-  const metadata = safeParseJson(item.metadata_json);
-  const sourcePath = String(item.source_path || '');
+  const metadata = safeParseJson(item.metadataJson);
+  const sourcePath = String(item.sourcePath || '');
 
-  const explicitType = item.target_type || null;
-  const explicitId = item.target_id;
+  const explicitType = item.targetType || null;
+  const explicitId = item.targetId;
   if (explicitType && explicitId != null) {
     return { targetType: explicitType, targetId: String(explicitId), metadata };
   }
@@ -141,8 +144,8 @@ export const findEvidenceByDeepLinkId = (
     evidence.all.find(
       (item) =>
         String(item.id) === linked ||
-        String(item.investigation_evidence_id || '') === linked ||
-        String(item.investigation_evidence_id || item.id) === linked,
+        String(item.investigationEvidenceId || '') === linked ||
+        String(item.investigationEvidenceId || item.id) === linked,
     ) || null
   );
 };

@@ -321,14 +321,14 @@ const GlobalSearch: React.FC = () => {
                   </div>
                   <div
                     className={`px-2 py-1 rounded text-xs font-bold ${
-                      (entity.red_flag_rating || 0) > 3
+                      (entity.redFlagRating || 0) > 3
                         ? 'bg-red-900 text-red-200'
                         : 'bg-gray-600 text-gray-300'
                     }`}
                   >
                     <span className="inline-flex items-center gap-1">
                       <ShieldAlert className="h-3 w-3" />
-                      {entity.red_flag_rating || 0}
+                      {entity.redFlagRating || 0}
                     </span>
                   </div>
                 </div>

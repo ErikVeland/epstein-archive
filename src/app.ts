@@ -198,6 +198,31 @@ export class App {
 
     // 5. Custom Headers (none needed beyond helmet defaults)
 
+    // 5b. API response normalisation: recursively convert all object keys to camelCase
+    // so client code can reliably use camelCase regardless of how raw DB rows are named.
+    function toCamelCaseKey(str: string): string {
+      return str.replace(/_([a-z0-9])/g, (_, c: string) => c.toUpperCase());
+    }
+    function deepCamelKeys(obj: unknown): unknown {
+      if (Array.isArray(obj)) return obj.map(deepCamelKeys);
+      if (obj !== null && typeof obj === 'object') {
+        return Object.fromEntries(
+          Object.entries(obj as Record<string, unknown>).map(([k, v]) => [
+            toCamelCaseKey(k),
+            deepCamelKeys(v),
+          ]),
+        );
+      }
+      return obj;
+    }
+    this.app.use('/api', (_req, res, next) => {
+      const originalJson = res.json.bind(res);
+      res.json = function (body: unknown) {
+        return originalJson(deepCamelKeys(body));
+      };
+      next();
+    });
+
     // 6. Static files
     this.app.use((req, res, next) => {
       if (req.method === 'GET' && (req.path === '/' || req.path.endsWith('.html'))) {

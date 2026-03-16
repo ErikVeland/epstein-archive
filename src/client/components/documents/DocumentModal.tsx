@@ -263,7 +263,7 @@ export const DocumentModal: React.FC<Props> = ({
     const byName = new Map<string, any>();
 
     [...fromDoc, ...fromMentioned].forEach((entity: any) => {
-      const name = String(entity?.full_name || entity?.name || '').trim();
+      const name = String(entity?.fullName || entity?.name || '').trim();
       if (!name) return;
       if (!byName.has(name.toLowerCase())) {
         byName.set(name.toLowerCase(), { ...entity, name });
@@ -283,7 +283,7 @@ export const DocumentModal: React.FC<Props> = ({
     };
 
     entities.forEach((ent) => {
-      const type = (ent.entity_type || ent.type || 'unknown').toLowerCase();
+      const type = (ent.entityType || ent.type || 'unknown').toLowerCase();
       if (type === 'person' || type === 'individual') groups['People'].push(ent);
       else if (type === 'organization' || type === 'company' || type === 'agency')
         groups['Organizations'].push(ent);

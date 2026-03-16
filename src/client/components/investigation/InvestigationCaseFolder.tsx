@@ -107,7 +107,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
     : filteredEvidence;
 
   const getSourceLink = (item: EvidenceItem): string | null => {
-    const [type, id] = (item.source_path || '').split(':');
+    const [type, id] = (item.sourcePath || '').split(':');
     if (type === 'entity' && id) return `/entity/${id}`;
     if (type === 'document' && id) return `/documents/${id}`;
     if (type === 'flight' && id) return `/flights?id=${id}`;
@@ -119,21 +119,21 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
   const getProvenance = (item: EvidenceItem) => {
     let metadata: any = {};
     try {
-      metadata = item.metadata_json ? JSON.parse(item.metadata_json) : {};
+      metadata = item.metadataJson ? JSON.parse(item.metadataJson) : {};
     } catch (_error) {
       metadata = {};
     }
-    const ingestRunId =
-      item.ingest_run_id || metadata.ingest_run_id || metadata.ingestRunId || null;
+    // Old pipeline records may have snake_case keys inside the JSON blob
+    const ingestRunId = item.ingestRunId || metadata.ingestRunId || metadata.ingest_run_id || null;
     const ladder =
-      item.evidence_ladder || metadata.evidence_ladder || metadata.evidenceLadder || 'N/A';
+      item.evidenceLadder || metadata.evidenceLadder || metadata.evidence_ladder || 'N/A';
     const pipelineVersion =
-      item.pipeline_version || metadata.pipeline_version || metadata.pipelineVersion || null;
+      item.pipelineVersion || metadata.pipelineVersion || metadata.pipeline_version || null;
     const evidencePack =
-      item.evidence_pack || metadata.evidence_pack || metadata.evidencePack || null;
+      item.evidencePack || metadata.evidencePack || metadata.evidence_pack || null;
     const confidence = metadata.confidence_score ?? metadata.confidence ?? null;
     const wasAgentic = Boolean(
-      item.was_agentic ?? metadata.was_agentic ?? metadata.wasAgentic ?? false,
+      item.wasAgentic ?? metadata.wasAgentic ?? metadata.was_agentic ?? false,
     );
     return {
       ingestRunId,
@@ -146,14 +146,14 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
   };
 
   const resolveEvidenceKey = (item: EvidenceItem): string =>
-    String(item.investigation_evidence_id || item.id);
+    String(item.investigationEvidenceId || item.id);
 
   const isDeepLinkedItem = (item: EvidenceItem): boolean => {
     if (!deepLinkedEvidenceId) return false;
     const linked = String(deepLinkedEvidenceId);
     return (
       String(item.id) === linked ||
-      String(item.investigation_evidence_id || '') === linked ||
+      String(item.investigationEvidenceId || '') === linked ||
       resolveEvidenceKey(item) === linked
     );
   };
@@ -164,7 +164,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
     const match = evidence.all.find(
       (item) =>
         String(item.id) === linked ||
-        String(item.investigation_evidence_id || '') === linked ||
+        String(item.investigationEvidenceId || '') === linked ||
         resolveEvidenceKey(item) === linked,
     );
     if (!match) return;
@@ -173,7 +173,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
     if (selectedType !== match.type) setSelectedType(match.type || null);
 
     window.requestAnimationFrame(() => {
-      const key = String(match.investigation_evidence_id || match.id);
+      const key = String(match.investigationEvidenceId || match.id);
       const rowButton = evidenceButtonRefs.current.get(key);
       if (rowButton) {
         rowButton.scrollIntoView({ block: 'center', behavior: 'smooth' });
@@ -369,10 +369,10 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
                         >
                           {item.relevance}
                         </span>
-                        {item.red_flag_rating > 0 && (
+                        {item.redFlagRating > 0 && (
                           <span className="flex items-center gap-1 text-xs text-red-400">
                             <Icon name="Flag" size="xs" />
-                            {item.red_flag_rating}
+                            {item.redFlagRating}
                           </span>
                         )}
                       </div>
@@ -388,8 +388,8 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
                       )}
 
                       <div className="flex items-center gap-4 text-xs text-slate-500">
-                        <span>Added {new Date(item.added_at).toLocaleDateString()}</span>
-                        <span>by {item.added_by}</span>
+                        <span>Added {new Date(item.addedAt).toLocaleDateString()}</span>
+                        <span>by {item.addedBy}</span>
                         {provenance.ingestRunId && (
                           <span className="px-1.5 py-0.5 rounded bg-slate-700 text-slate-300">
                             run {provenance.ingestRunId}
@@ -420,7 +420,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
                       </div>
                       <div className="mt-2 text-[11px] text-slate-500">
                         Why in case: linked by investigator relevance "{item.relevance}" from{' '}
-                        {item.source_path || 'unknown source'}
+                        {item.sourcePath || 'unknown source'}
                         {provenance.pipelineVersion
                           ? ` • pipeline ${provenance.pipelineVersion}`
                           : ''}
@@ -434,7 +434,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
                         <button
                           onClick={(e) => onEvidenceClick(item, e.currentTarget)}
                           ref={(el) => {
-                            const key = String(item.investigation_evidence_id || item.id);
+                            const key = String(item.investigationEvidenceId || item.id);
                             if (el) evidenceButtonRefs.current.set(key, el);
                             else evidenceButtonRefs.current.delete(key);
                           }}

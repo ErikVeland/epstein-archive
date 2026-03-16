@@ -61,7 +61,7 @@ export const PeopleSelector: React.FC<PeopleSelectorProps> = ({
           id: e.id,
           name: e.fullName || e.name,
           role: e.primaryRole || e.role || 'Unknown',
-          redFlagRating: e.red_flag_rating || e.redFlagRating,
+          redFlagRating: e.redFlagRating ?? 0,
         }));
         setSearchResults(
           people.filter((p: PersonData) => !selectedPeople.some((sp) => sp.id === p.id)),

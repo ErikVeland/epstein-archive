@@ -114,7 +114,7 @@ export const DocumentMetadataRail: React.FC<DocumentMetadataRailProps> = ({
                 <div className="flex items-center justify-between">
                   <span className="font-medium truncate">{entity.name}</span>
                   <span className="text-[8px] uppercase text-slate-600 font-black ml-1">
-                    {entity.entity_type || 'ENT'}
+                    {entity.entityType || 'ENT'}
                   </span>
                 </div>
               </button>

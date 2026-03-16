@@ -71,7 +71,7 @@ interface EntityDetails {
   likelihoodLevel: string;
   redFlagRating: number;
   fileReferences: any[]; // Kept for types but unused in virtualized view
-  significant_passages: any[];
+  significantPassages: any[];
   photos: any[];
   evidenceTypes: string[];
   blackBookEntries?: BlackBookEntry[];
@@ -509,7 +509,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
       name: entity.fullName, // Required by PersonAdapter
       files: 0,
       contexts: [],
-      evidence_types: entity.evidenceTypes || [],
+      evidenceTypes: entity.evidenceTypes || [],
     } as any;
 
     return {
@@ -952,14 +952,14 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                       </div>
 
                       {/* HIGH SIGNIFICANCE EVIDENCE */}
-                      {entity.significant_passages && entity.significant_passages.length > 0 && (
+                      {entity.significantPassages && entity.significantPassages.length > 0 && (
                         <div>
                           <h3 className="text-slate-300 font-semibold flex items-center gap-2 font-mono uppercase tracking-widest text-xs mb-4">
                             <AlertTriangle size={14} className="text-amber-500" /> High Significance
                             Evidence
                           </h3>
                           <div className="grid gap-4">
-                            {entity.significant_passages.map((passage, idx) => (
+                            {entity.significantPassages.map((passage, idx) => (
                               <article
                                 key={idx}
                                 className={`bg-slate-950 border border-slate-800 rounded-[var(--radius-md)] p-4 hover:border-indigo-500/30 transition-colors ${

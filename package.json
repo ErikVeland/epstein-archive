@@ -1,7 +1,7 @@
 {
   "name": "epstein-archive",
   "private": true,
-  "version": "16.4.0",
+  "version": "16.5.0",
   "description": "Epstein Archive Analyzer",
   "type": "module",
   "engines": {
@@ -19,6 +19,7 @@
     "go:prod": "tsx scripts/go_prod.ts",
     "db:migrate:pg": "tsx scripts/pg_migrate.ts && tsx scripts/pg_analyze_after_migrate.ts",
     "db:backfill:pg": "tsx scripts/pg_backfill.ts",
+    "risk:recalculate": "tsx scripts/recalculate_entity_risk.ts",
     "db:analyze": "tsx scripts/pg_analyze_after_migrate.ts",
     "seed:structure": "tsx scripts/ensure_structure.ts",
     "verify": "tsx scripts/verify_ops.ts",

@@ -102,7 +102,7 @@ export default function ForensicReportGenerator({
             .filter((e: any) => e.type === 'entity')
             .map((e: any) => ({
               name: e.title,
-              red_flag_rating: 0, // Need to fetch this if important
+              redFlagRating: 0, // Need to fetch this if important
               id: e.source_id,
             }));
           // Timeline format might differ slightly between endpoints, normalize it
@@ -214,7 +214,7 @@ export default function ForensicReportGenerator({
       .join(', ');
     const entityCount = stats?.totalEntities || entities.length;
     const documentCount = stats?.totalDocuments || 0;
-    const highRiskEntities = entities.filter((e: any) => e.red_flag_rating >= 4).length;
+    const highRiskEntities = entities.filter((e: any) => e.redFlagRating >= 4).length;
 
     const currencyFormatter = new Intl.NumberFormat('en-US', {
       style: 'currency',

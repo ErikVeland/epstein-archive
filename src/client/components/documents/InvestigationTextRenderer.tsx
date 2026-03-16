@@ -88,7 +88,7 @@ const getEntityList = (document: any): any[] => {
 
   const byName = new Map<string, any>();
   for (const entity of combined) {
-    const name = String(entity?.full_name || entity?.name || '').trim();
+    const name = String(entity?.fullName || entity?.name || '').trim();
     if (!name) continue;
     if (!byName.has(name.toLowerCase())) {
       byName.set(name.toLowerCase(), { ...entity, name });
@@ -613,10 +613,10 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
             <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse" />
           </div>
           <div className="font-bold text-sm text-slate-100 mb-1">
-            {hover.entity.name || hover.entity.full_name}
+            {hover.entity.name || hover.entity.fullName}
           </div>
           <div className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">
-            {hover.entity.entity_type || hover.entity.type || 'IDENTIFIED ENTITY'}
+            {hover.entity.entityType || hover.entity.type || 'IDENTIFIED ENTITY'}
           </div>
           {hover.entity.role && (
             <div className="mt-2 text-slate-400 italic">"{hover.entity.role}"</div>

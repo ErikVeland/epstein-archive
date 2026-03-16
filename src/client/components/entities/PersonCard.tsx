@@ -21,7 +21,7 @@ interface PersonCardProps {
 }
 
 const PersonCard: React.FC<PersonCardProps> = ({ person, onClick, searchTerm }) => {
-  const rating = Number((person as any).red_flag_rating ?? (person as any).redFlagRating ?? 0);
+  const rating = Number((person as any).redFlagRating ?? 0);
 
   // Forensic Calculations
   const evidenceLevel = calculateEvidenceLadder(person);
@@ -31,7 +31,7 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onClick, searchTerm }) 
   const photos = React.useMemo(() => person.photos || [], [person.photos]);
 
   // Identity
-  const entityType = (person as any).entity_type || (person as any).entityType;
+  const entityType = (person as any).entityType;
   const role = person.title || person.role || (person as any).primaryRole || 'Unknown';
   const avatarPhoto = photos.length > 0 ? photos[0] : null;
 
@@ -89,7 +89,7 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onClick, searchTerm }) 
             <EvidenceBadge
               level={evidenceLevel.level}
               ratingObjective={rating}
-              ratingSubjective={Number((person as any).red_flag_score ?? 0)}
+              ratingSubjective={Number((person as any).redFlagScore ?? 0)}
             />
           </div>
 

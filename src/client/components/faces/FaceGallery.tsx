@@ -65,8 +65,8 @@ const EntitySearch: React.FC<{
         setResults(
           (data.data || data).map((e: any) => ({
             id: e.id,
-            name: e.fullName || e.full_name || e.name,
-            role: e.primaryRole || e.primary_role || e.role || '',
+            name: e.fullName || e.name,
+            role: e.primaryRole || e.role || '',
           })),
         );
       } catch {

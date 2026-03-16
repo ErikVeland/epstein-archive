@@ -74,10 +74,9 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({
         activeInvestigations: analyticsData.activeInvestigations || 0,
       });
     } else if (people.length > 0) {
-      const highRisk = people.filter((p) => (p.red_flag_rating ?? 0) >= 4).length;
+      const highRisk = people.filter((p) => (p.redFlagRating ?? 0) >= 4).length;
       const totalMentions = people.reduce((acc, p) => acc + (p.mentions || 0), 0);
-      const avgRedFlag =
-        people.reduce((acc, p) => acc + (p.red_flag_rating || 0), 0) / people.length;
+      const avgRedFlag = people.reduce((acc, p) => acc + (p.redFlagRating || 0), 0) / people.length;
 
       const uniqueRoles = new Set<string>();
       people.forEach((p) => {
@@ -85,8 +84,6 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({
 
         if (p.secondaryRoles && Array.isArray(p.secondaryRoles)) {
           p.secondaryRoles.forEach((r) => uniqueRoles.add(r));
-        } else if (p.secondary_roles) {
-          p.secondary_roles.split(',').forEach((r) => uniqueRoles.add(r.trim()));
         }
       });
 
@@ -173,19 +170,19 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({
     return [
       {
         name: 'High Risk (4-5)',
-        value: filteredPersons.filter((p) => (p.red_flag_rating ?? 0) >= 4).length,
+        value: filteredPersons.filter((p) => (p.redFlagRating ?? 0) >= 4).length,
         color: COLORS.HIGH,
       },
       {
         name: 'Medium Risk (2-3)',
         value: filteredPersons.filter(
-          (p) => (p.red_flag_rating ?? 0) >= 2 && (p.red_flag_rating ?? 0) < 4,
+          (p) => (p.redFlagRating ?? 0) >= 2 && (p.redFlagRating ?? 0) < 4,
         ).length,
         color: COLORS.MEDIUM,
       },
       {
         name: 'Low Risk (0-1)',
-        value: filteredPersons.filter((p) => (p.red_flag_rating ?? 0) < 2).length,
+        value: filteredPersons.filter((p) => (p.redFlagRating ?? 0) < 2).length,
         color: COLORS.LOW,
       },
     ];
@@ -199,12 +196,12 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({
 
     return source
       .map((p: any) => ({
-        name: (p.name || p.full_name || p.fullName || '').trim(),
+        name: (p.name || p.fullName || '').trim(),
         mentions: Number(p.mentions || 0),
-        redFlagRating: Number(p.riskLevel || p.red_flag_rating || p.redFlagRating || 0),
-        entityType: String(p.entity_type || p.entityType || p.type || 'person').toLowerCase(),
-        junkTier: String(p.junk_tier || p.junkTier || 'clean').toLowerCase(),
-        junkFlag: Number(p.junk_flag || p.junkFlag || 0),
+        redFlagRating: Number(p.redFlagRating || 0),
+        entityType: String(p.entityType || p.type || 'person').toLowerCase(),
+        junkTier: String(p.junkTier || 'clean').toLowerCase(),
+        junkFlag: Number(p.junkFlag || 0),
         person: p,
       }))
       .filter(
@@ -432,12 +429,12 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({
             people={topEntities.map((entry: any) => ({
               ...(entry.person || {}),
               name: entry.name,
-              full_name: entry.name,
+              fullName: entry.name,
               mentions: entry.mentions,
-              red_flag_rating: entry.redFlagRating,
-              entity_type: entry.entityType,
-              junk_tier: entry.junkTier,
-              junk_flag: entry.junkFlag,
+              redFlagRating: entry.redFlagRating,
+              entityType: entry.entityType,
+              junkTier: entry.junkTier,
+              junkFlag: entry.junkFlag,
             }))}
             onPersonClick={onPersonSelect}
           />

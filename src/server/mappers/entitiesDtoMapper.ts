@@ -10,63 +10,87 @@ export const mapSubjectCardDto = (subject: any): SubjectCardListItemDto => ({
   id: String(subject.id),
   name: String(subject.name || subject.displayName || ''),
   role: String(subject.role || 'Unknown'),
-  short_bio: subject.short_bio
+  shortBio: subject.short_bio
     ? String(subject.short_bio)
-    : subject.bio
-      ? String(subject.bio)
-      : undefined,
+    : subject.shortBio
+      ? String(subject.shortBio)
+      : subject.bio
+        ? String(subject.bio)
+        : undefined,
   stats: {
     mentions: Number(subject?.stats?.mentions ?? subject?.mentions ?? 0),
     documents: Number(subject?.stats?.documents ?? subject?.documents ?? 0),
-    distinct_sources: Number(
-      subject?.stats?.distinct_sources ??
+    distinctSources: Number(
+      subject?.stats?.distinctSources ??
+        subject?.stats?.distinct_sources ??
         subject?.distinct_sources ??
         subject?.distinctSources ??
         0,
     ),
-    verified_media: Number(
-      subject?.stats?.verified_media ?? subject?.verified_media ?? subject?.mediaCount ?? 0,
+    verifiedMedia: Number(
+      subject?.stats?.verifiedMedia ??
+        subject?.stats?.verified_media ??
+        subject?.verified_media ??
+        subject?.mediaCount ??
+        0,
     ),
   },
   forensics: {
-    risk_level: String(
-      subject?.forensics?.risk_level || subject?.riskLevel || 'LOW',
+    riskLevel: String(
+      subject?.forensics?.riskLevel ||
+        subject?.forensics?.risk_level ||
+        subject?.riskLevel ||
+        'LOW',
     ).toUpperCase() as RiskLevel,
-    evidence_ladder: (subject?.forensics?.evidence_ladder || subject?.ladder || 'NONE') as
-      | 'L1'
-      | 'L2'
-      | 'L3'
-      | 'NONE',
-    red_flag_objective:
-      typeof subject?.forensics?.red_flag_objective === 'number'
-        ? subject.forensics.red_flag_objective
-        : typeof subject?.redFlagRating === 'number'
-          ? subject.redFlagRating
-          : undefined,
-    red_flag_subjective:
-      typeof subject?.forensics?.red_flag_subjective === 'number'
-        ? subject.forensics.red_flag_subjective
-        : typeof subject?.redFlagRating === 'number'
-          ? subject.redFlagRating
-          : undefined,
-    signal_strength: {
+    evidenceLadder: (subject?.forensics?.evidenceLadder ||
+      subject?.forensics?.evidence_ladder ||
+      subject?.ladder ||
+      'NONE') as 'L1' | 'L2' | 'L3' | 'NONE',
+    redFlagObjective:
+      typeof subject?.forensics?.redFlagObjective === 'number'
+        ? subject.forensics.redFlagObjective
+        : typeof subject?.forensics?.red_flag_objective === 'number'
+          ? subject.forensics.red_flag_objective
+          : typeof subject?.redFlagRating === 'number'
+            ? subject.redFlagRating
+            : undefined,
+    redFlagSubjective:
+      typeof subject?.forensics?.redFlagSubjective === 'number'
+        ? subject.forensics.redFlagSubjective
+        : typeof subject?.forensics?.red_flag_subjective === 'number'
+          ? subject.forensics.red_flag_subjective
+          : typeof subject?.redFlagRating === 'number'
+            ? subject.redFlagRating
+            : undefined,
+    signalStrength: {
       exposure: Number(
-        subject?.forensics?.signal_strength?.exposure ?? subject?.signals?.exposure ?? 0,
+        subject?.forensics?.signalStrength?.exposure ??
+          subject?.forensics?.signal_strength?.exposure ??
+          subject?.signals?.exposure ??
+          0,
       ),
       connectivity: Number(
-        subject?.forensics?.signal_strength?.connectivity ?? subject?.signals?.connectivity ?? 0,
+        subject?.forensics?.signalStrength?.connectivity ??
+          subject?.forensics?.signal_strength?.connectivity ??
+          subject?.signals?.connectivity ??
+          0,
       ),
       corroboration: Number(
-        subject?.forensics?.signal_strength?.corroboration ?? subject?.signals?.corroboration ?? 0,
+        subject?.forensics?.signalStrength?.corroboration ??
+          subject?.forensics?.signal_strength?.corroboration ??
+          subject?.signals?.corroboration ??
+          0,
       ),
     },
-    driver_labels: Array.isArray(subject?.forensics?.driver_labels)
-      ? subject.forensics.driver_labels.map((value: unknown) => String(value))
-      : Array.isArray(subject?.drivers)
-        ? subject.drivers.map((value: unknown) => String(value))
-        : [],
+    driverLabels: Array.isArray(subject?.forensics?.driverLabels)
+      ? subject.forensics.driverLabels.map((value: unknown) => String(value))
+      : Array.isArray(subject?.forensics?.driver_labels)
+        ? subject.forensics.driver_labels.map((value: unknown) => String(value))
+        : Array.isArray(subject?.drivers)
+          ? subject.drivers.map((value: unknown) => String(value))
+          : [],
   },
-  top_preview: subject?.top_preview,
+  topPreview: subject?.topPreview ?? subject?.top_preview,
   ...(subject?.topPhotoId ? { topPhotoId: String(subject.topPhotoId) } : {}),
 });
 
@@ -83,7 +107,7 @@ export const mapEntityListItemDto = (
   name: entity.full_name || entity.fullName || entity.name || 'Unknown',
   fullName: entity.full_name || entity.fullName || entity.name || 'Unknown',
   bio: entity.bio || '',
-  entity_type: entity.entity_type || entity.entityType || 'Person',
+  entityType: entity.entity_type || entity.entityType || 'Person',
   primaryRole: entity.primary_role || entity.primaryRole || 'Person of Interest',
   secondaryRoles: Array.isArray(entity.secondary_roles || entity.secondaryRoles)
     ? entity.secondary_roles || entity.secondaryRoles
@@ -91,9 +115,6 @@ export const mapEntityListItemDto = (
   mentions: Number(entity.mentions || 0),
   files: Number(entity.document_count || entity.files || entity.documentCount || 0),
   contexts: Array.isArray(entity.contexts) ? entity.contexts : [],
-  evidence_types: Array.isArray(entity.evidence_types || entity.evidenceTypes)
-    ? entity.evidence_types || entity.evidenceTypes
-    : [],
   evidenceTypes: Array.isArray(entity.evidence_types || entity.evidenceTypes)
     ? entity.evidence_types || entity.evidenceTypes
     : [],
@@ -102,19 +123,21 @@ export const mapEntityListItemDto = (
     ((entity?.topPhotoId || entity?.top_photo_id
       ? [{ id: Number(entity?.topPhotoId || entity?.top_photo_id) }]
       : []) as any[]),
-  significant_passages: Array.isArray(entity.significant_passages)
+  significantPassages: Array.isArray(entity.significant_passages)
     ? entity.significant_passages
     : [],
-  likelihood_score: String(
+  likelihoodScore: String(
     entity.likelihood_score || entity.risk_level || entity.riskLevel || 'LOW',
   ).toUpperCase() as RiskLevel,
-  red_flag_score: Number(entity.red_flag_score ?? entity.redFlagScore ?? 0),
-  red_flag_rating: Number(entity.red_flag_rating ?? entity.redFlagRating ?? 0),
-  red_flag_peppers:
+  redFlagScore: Number(entity.red_flag_score ?? entity.redFlagScore ?? 0),
+  redFlagRating: Number(entity.red_flag_rating ?? entity.redFlagRating ?? 0),
+  redFlagPeppers:
     typeof entity.red_flag_rating === 'number' && entity.red_flag_rating > 0
       ? '🚩'.repeat(entity.red_flag_rating)
-      : '🏳️',
-  red_flag_description:
+      : typeof entity.redFlagRating === 'number' && entity.redFlagRating > 0
+        ? '🚩'.repeat(entity.redFlagRating)
+        : '🏳️',
+  redFlagDescription:
     entity.red_flag_description ||
     entity.redFlagDescription ||
     `Red Flag Index ${entity.red_flag_rating || entity.redFlagRating || 0}`,
@@ -168,7 +191,7 @@ export const mapEntityDetailDto = (entity: any) => {
     id: String(entity.id),
     name,
     fullName: name,
-    entity_type: entity.entity_type || entity.entityType || 'Person',
+    entityType: entity.entity_type || entity.entityType || 'Person',
     primaryRole: entity.primary_role || entity.primaryRole || 'Unknown',
     secondaryRoles,
     mentions: Number(entity.mentions || 0),
@@ -176,16 +199,14 @@ export const mapEntityDetailDto = (entity: any) => {
       entity.files ?? entity.document_count ?? entity.documentCount ?? fileReferences.length,
     ),
     contexts,
-    evidence_types: evidenceTypes,
     evidenceTypes,
-    likelihood_score: String(
+    likelihoodScore: String(
       entity.likelihood_score || entity.risk_level || entity.riskLevel || 'LOW',
     ).toUpperCase(),
-    red_flag_score: Number(entity.red_flag_score ?? entity.redFlagScore ?? 0),
-    red_flag_rating: redFlagRating,
+    redFlagScore: Number(entity.red_flag_score ?? entity.redFlagScore ?? 0),
     redFlagRating,
-    red_flag_peppers: redFlagRating > 0 ? '🚩'.repeat(redFlagRating) : '🏳️',
-    red_flag_description:
+    redFlagPeppers: redFlagRating > 0 ? '🚩'.repeat(redFlagRating) : '🏳️',
+    redFlagDescription:
       entity.red_flag_description || entity.redFlagDescription || `Red Flag Index ${redFlagRating}`,
     connectionsToEpstein: entity.connections_summary || entity.connectionsSummary || '',
     fileReferences,
@@ -195,7 +216,7 @@ export const mapEntityDetailDto = (entity: any) => {
     bio,
     description: String(entity.description || bio),
     photos,
-    significant_passages: significantPassages,
+    significantPassages,
     birthDate: entity.birthDate ?? entity.birth_date ?? null,
     deathDate: entity.deathDate ?? entity.death_date ?? null,
   };

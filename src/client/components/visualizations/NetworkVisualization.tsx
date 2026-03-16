@@ -48,7 +48,7 @@ export interface NetworkEdge {
     context?: string;
     evidence?: string[];
     confidence?: number;
-    was_agentic?: boolean;
+    wasAgentic?: boolean;
     ingestRunId?: string;
   };
 }
@@ -447,7 +447,7 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
       ctx.lineWidth = edge.strength * 0.5; // Fine lines
       ctx.globalAlpha = 0.25; // Translucent lines
 
-      if (edge.metadata.was_agentic) {
+      if (edge.metadata.wasAgentic) {
         ctx.setLineDash([2, 4]); // Dotted for agentic
       } else if (edge.direction === 'bidirectional') {
         ctx.setLineDash([]); // Solid for verified/regular

@@ -54,12 +54,10 @@ export const GraphService = {
   normalizeNode: (raw: any): GraphNode => {
     return {
       id: String(raw.id),
-      label: raw.label || raw.full_name || raw.name || 'Unknown',
-      type: normalizeType(raw.type || raw.primary_role),
-      risk: raw.risk || raw.red_flag_rating || raw.riskLevel || 0,
-      image: raw.top_photo_id
-        ? `/api/media/images/${raw.top_photo_id}/thumbnail`
-        : raw.image || raw.photo_url,
+      label: raw.label || raw.fullName || raw.name || 'Unknown',
+      type: normalizeType(raw.type || raw.primaryRole),
+      risk: raw.risk || raw.redFlagRating || 0,
+      image: raw.topPhotoId ? `/api/media/images/${raw.topPhotoId}/thumbnail` : raw.image,
       community: raw.community,
       isEgo: !!raw.isEgo,
       connectionCount: raw.connectionCount || raw.properties?.connectionCount || 0,

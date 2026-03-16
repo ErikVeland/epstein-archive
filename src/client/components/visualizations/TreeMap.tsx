@@ -25,16 +25,16 @@ export const TreeMap: React.FC<TreeMapProps> = ({ people, onPersonClick }) => {
   // Filter for entities that are likely people or have connection counts
   const nodes: TreeMapNode[] = (people || [])
     .filter((p) => {
-      const type = (p.type || p.entity_type || '').toLowerCase();
+      const type = (p.type || p.entityType || '').toLowerCase();
       return type === 'person' || type === '' || !type;
     })
-    .filter((p) => (p.name || p.full_name) && filterPeopleOnly([p as any]).length > 0)
+    .filter((p) => (p.name || p.fullName) && filterPeopleOnly([p as any]).length > 0)
     .sort((a, b) => Number(b.mentions || 0) - Number(a.mentions || 0))
     .slice(0, 50)
     .map((p) => ({
-      name: (p.name || p.full_name || 'Unknown').trim(),
+      name: (p.name || p.fullName || 'Unknown').trim(),
       value: Number(p.mentions || 0),
-      redFlagRating: Number(p.riskLevel || p.red_flag_rating || 0),
+      redFlagRating: Number(p.redFlagRating || 0),
       person: p,
     }));
 

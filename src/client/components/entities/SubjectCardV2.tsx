@@ -29,17 +29,17 @@ const SubjectCardV2: React.FC<SubjectCardV2Props> = React.memo(
     const stats = subject.stats || {
       mentions: 0,
       documents: 0,
-      distinct_sources: 0,
-      verified_media: 0,
+      distinctSources: 0,
+      verifiedMedia: 0,
     };
     const forensics = subject.forensics || {
-      risk_level: 'LOW',
-      evidence_ladder: 'NONE',
-      signal_strength: { exposure: 0, connectivity: 0, corroboration: 0 },
-      driver_labels: [],
+      riskLevel: 'LOW',
+      evidenceLadder: 'NONE',
+      signalStrength: { exposure: 0, connectivity: 0, corroboration: 0 },
+      driverLabels: [],
     };
     const riskRating = Number(
-      forensics.red_flag_objective || forensics.red_flag_subjective || subject.red_flag_rating || 0,
+      forensics.redFlagObjective || forensics.redFlagSubjective || subject.redFlagRating || 0,
     );
     const riskTone = riskToneFromRating(riskRating);
 
@@ -61,7 +61,7 @@ const SubjectCardV2: React.FC<SubjectCardV2Props> = React.memo(
           active = false;
         };
       }
-      const hasMedia = (subject.stats?.verified_media || 0) > 0;
+      const hasMedia = (subject.stats?.verifiedMedia || 0) > 0;
       if (!hasMedia) {
         setAvatarUrl(null);
         return;
@@ -86,7 +86,7 @@ const SubjectCardV2: React.FC<SubjectCardV2Props> = React.memo(
       return () => {
         active = false;
       };
-    }, [subject.id, subject.stats?.verified_media, topPhotoId]);
+    }, [subject.id, subject.stats?.verifiedMedia, topPhotoId]);
     return (
       <div style={style}>
         <div
@@ -130,9 +130,9 @@ const SubjectCardV2: React.FC<SubjectCardV2Props> = React.memo(
                   {subject.name}
                 </h3>
                 <EvidenceBadge
-                  level={forensics.evidence_ladder as any}
-                  ratingObjective={forensics.red_flag_objective}
-                  ratingSubjective={forensics.red_flag_subjective}
+                  level={forensics.evidenceLadder as any}
+                  ratingObjective={forensics.redFlagObjective}
+                  ratingSubjective={forensics.redFlagSubjective}
                 />
               </div>
               <div className="text-[10px] text-slate-500 uppercase tracking-wider truncate">
@@ -142,10 +142,10 @@ const SubjectCardV2: React.FC<SubjectCardV2Props> = React.memo(
           </div>
 
           <div className="mb-2">
-            <SignalPanel metrics={forensics.signal_strength} />
+            <SignalPanel metrics={forensics.signalStrength} />
             <div className="mt-2 text-[10px] text-slate-500 flex flex-wrap gap-1">
               <DriverChips
-                chips={forensics.driver_labels.map((label) => {
+                chips={(forensics.driverLabels || []).map((label) => {
                   let type: 'critical' | 'verified' | 'context' | 'unverified' = 'context';
                   const l = label.toLowerCase();
                   if (l.includes('black book') || l.includes('flight')) type = 'critical';
@@ -161,7 +161,7 @@ const SubjectCardV2: React.FC<SubjectCardV2Props> = React.memo(
           <div className="grid grid-cols-3 gap-1 py-2 border-t border-slate-700/50 mb-auto">
             <Metric label="Mentions" value={stats.mentions} />
             <Metric label="Docs" value={stats.documents} />
-            <Metric label="Sources" value={stats.distinct_sources} />
+            <Metric label="Sources" value={stats.distinctSources} />
           </div>
 
           <div className="mt-2 pt-2 border-t border-slate-700/50 flex items-center justify-between">

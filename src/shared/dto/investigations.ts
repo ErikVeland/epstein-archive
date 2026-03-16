@@ -3,12 +3,12 @@ export interface InvestigationEvidenceListItemDto {
   type: string;
   title: string;
   description: string;
-  source_path: string;
-  metadata_json: string | null;
-  investigation_evidence_id: number;
+  sourcePath: string;
+  metadataJson: string | null;
+  investigationEvidenceId: number;
   relevance: string;
-  extracted_at: string;
-  extracted_by: string | null;
+  extractedAt: string;
+  extractedBy: string | null;
 }
 
 export interface InvestigationEvidenceListResponseDto {
@@ -23,23 +23,23 @@ export interface InvestigationCaseEvidenceItemDto {
   type: string;
   title: string;
   description: string;
-  source_path: string;
-  metadata_json: string | null;
-  investigation_evidence_id?: number;
-  document_id?: number | null;
-  media_item_id?: number | null;
-  red_flag_rating: number;
+  sourcePath: string;
+  metadataJson: string | null;
+  investigationEvidenceId?: number;
+  documentId?: number | null;
+  mediaItemId?: number | null;
+  redFlagRating: number;
   relevance: string;
-  added_at: string;
-  added_by: string | null;
+  addedAt: string;
+  addedBy: string | null;
   notes: string;
-  target_type?: 'document' | 'entity' | 'media' | null;
-  target_id?: number | null;
-  ingest_run_id?: string | number | null;
-  evidence_ladder?: string | null;
-  pipeline_version?: string | null;
-  evidence_pack?: unknown;
-  was_agentic?: boolean;
+  targetType?: 'document' | 'entity' | 'media' | null;
+  targetId?: number | null;
+  ingestRunId?: string | number | null;
+  evidenceLadder?: string | null;
+  pipelineVersion?: string | null;
+  evidencePack?: unknown;
+  wasAgentic?: boolean;
 }
 
 export interface InvestigationEvidenceByTypeResponseDto {

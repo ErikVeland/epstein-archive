@@ -100,11 +100,11 @@ export const PeoplePage: React.FC<PeoplePageProps> = ({
         role: subject.role,
         mentions: subject.stats.mentions,
         files: subject.stats.documents,
-        evidence_types: [],
+        evidenceTypes: [],
         contexts: [],
-        significant_passages: [],
+        significantPassages: [],
         fileReferences: [],
-        red_flag_rating: 0,
+        redFlagRating: 0,
       };
       onPersonClick(personLike, searchTerm);
     },

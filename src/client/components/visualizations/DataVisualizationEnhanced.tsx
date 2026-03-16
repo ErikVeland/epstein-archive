@@ -106,19 +106,19 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({ people }) 
   const likelihoodData = [
     {
       name: 'HIGH RISK',
-      value: people.filter((p) => p.likelihood_score === 'HIGH').length,
+      value: people.filter((p) => p.likelihoodScore === 'HIGH').length,
       color: COLORS.HIGH,
       description: 'Extensively mentioned with significant evidence',
     },
     {
       name: 'MEDIUM RISK',
-      value: people.filter((p) => p.likelihood_score === 'MEDIUM').length,
+      value: people.filter((p) => p.likelihoodScore === 'MEDIUM').length,
       color: COLORS.MEDIUM,
       description: 'Regularly mentioned with moderate evidence',
     },
     {
       name: 'LOW RISK',
-      value: people.filter((p) => p.likelihood_score === 'LOW').length,
+      value: people.filter((p) => p.likelihoodScore === 'LOW').length,
       color: COLORS.LOW,
       description: 'Occasionally mentioned with limited evidence',
     },
@@ -130,15 +130,15 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({ people }) 
     .map((person) => ({
       name: person.name.length > 25 ? person.name.substring(0, 25) + '...' : person.name,
       mentions: person.mentions,
-      level: person.likelihood_score,
-      role: person.evidence_types?.[0] || 'Unknown',
+      level: person.likelihoodScore,
+      role: person.evidenceTypes?.[0] || 'Unknown',
     }));
 
   // Role distribution with enhanced data
   const roleData = people
     .reduce(
       (acc, person) => {
-        const role = person.evidence_types?.[0] || 'Unknown';
+        const role = person.evidenceTypes?.[0] || 'Unknown';
         const existing = acc.find((item) => item.name === role);
         if (existing) {
           existing.count += 1;
@@ -162,7 +162,7 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({ people }) 
   // Status distribution
   const statusData = people.reduce(
     (acc, person) => {
-      const status = person.likelihood_score || 'Unknown';
+      const status = person.likelihoodScore || 'Unknown';
       const existing = acc.find((item) => item.name === status);
       if (existing) {
         existing.count += 1;
@@ -193,8 +193,8 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({ people }) 
   const treemapData = people.slice(0, 50).map((person) => ({
     name: person.name,
     size: person.mentions,
-    level: person.likelihood_score,
-    role: person.evidence_types?.[0] || 'Unknown',
+    level: person.likelihoodScore,
+    role: person.evidenceTypes?.[0] || 'Unknown',
   }));
 
   return (
@@ -202,19 +202,19 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({ people }) 
       {/* Animated Header Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <AnimatedCounter
-          value={people.filter((p) => p.likelihood_score === 'HIGH').length}
+          value={people.filter((p) => p.likelihoodScore === 'HIGH').length}
           label="High Risk Individuals"
           color="from-red-600 to-red-800"
           icon={<span className="text-red-300 text-2xl">⚠️</span>}
         />
         <AnimatedCounter
-          value={people.filter((p) => p.likelihood_score === 'MEDIUM').length}
+          value={people.filter((p) => p.likelihoodScore === 'MEDIUM').length}
           label="Medium Risk Individuals"
           color="from-yellow-600 to-orange-600"
           icon={<span className="text-yellow-300 text-2xl">⚡</span>}
         />
         <AnimatedCounter
-          value={people.filter((p) => p.likelihood_score === 'LOW').length}
+          value={people.filter((p) => p.likelihoodScore === 'LOW').length}
           label="Low Risk Individuals"
           color="from-green-600 to-emerald-600"
           icon={<span className="text-green-300 text-2xl">✓</span>}

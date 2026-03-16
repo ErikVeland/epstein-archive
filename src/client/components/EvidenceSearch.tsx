@@ -142,7 +142,7 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
   const allEvidenceTypes = useMemo(() => {
     const types = new Set<string>();
     people.forEach((person) => {
-      person.evidence_types.forEach((type) => types.add(type));
+      person.evidenceTypes.forEach((type) => types.add(type));
     });
     return Array.from(types).sort();
   }, [people]);
@@ -267,8 +267,8 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
     return people.map((person) => ({
       person,
       matchingContexts: person.contexts.slice(0, 3),
-      matchingPassages: person.significant_passages?.slice(0, 3) || [],
-      score: person.red_flag_score || person.mentions,
+      matchingPassages: person.significantPassages?.slice(0, 3) || [],
+      score: person.redFlagScore || person.mentions,
     }));
   }, [people, loading]);
 
@@ -679,18 +679,18 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
                       />
                       <span
                         className={`px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase shrink-0 ${
-                          result.person.likelihood_score === 'HIGH'
+                          result.person.likelihoodScore === 'HIGH'
                             ? 'bg-red-900/80 text-red-200'
-                            : result.person.likelihood_score === 'MEDIUM'
+                            : result.person.likelihoodScore === 'MEDIUM'
                               ? 'bg-yellow-900/80 text-yellow-200'
                               : 'bg-green-900/80 text-green-200'
                         }`}
                       >
-                        {result.person.likelihood_score}
+                        {result.person.likelihoodScore}
                       </span>
-                      {result.person.red_flag_rating !== undefined && (
+                      {result.person.redFlagRating !== undefined && (
                         <RedFlagIndex
-                          value={result.person.red_flag_rating}
+                          value={result.person.redFlagRating}
                           size="sm"
                           variant="combined"
                           showTextLabel={false}
@@ -723,7 +723,7 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
                 {/* Evidence Types */}
                 <div className="p-4 border-b border-gray-700">
                   <div className="flex flex-wrap gap-2">
-                    {result.person.evidence_types.map((type, i) => (
+                    {result.person.evidenceTypes.map((type, i) => (
                       <span key={i} className="px-2 py-1 bg-blue-900 text-blue-200 rounded text-xs">
                         {type.replace('_', ' ').toUpperCase()}
                       </span>

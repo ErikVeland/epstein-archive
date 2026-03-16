@@ -1,10 +1,13 @@
 import { execSync } from 'child_process';
+import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { reconcileHistoricalMigrationLedger } from '../src/server/db/migrator.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const MIGRATIONS_DIR = path.join(__dirname, '..', 'src', 'server', 'db', 'postgres', 'migrations');
+
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 async function runMigrations() {
   const connectionString = process.env.DATABASE_URL;

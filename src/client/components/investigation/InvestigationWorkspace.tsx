@@ -361,25 +361,25 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
               const node: NetworkNode = {
                 id: String(entity.id),
                 type:
-                  entity.entity_type === 'ORGANIZATION'
+                  entity.entityType === 'ORGANIZATION'
                     ? 'organization'
-                    : entity.entity_type === 'LOCATION'
+                    : entity.entityType === 'LOCATION'
                       ? 'location'
                       : 'person',
-                label: entity.full_name,
-                description: entity.primary_role || entity.title || 'Person of Interest',
-                importance: entity.red_flag_rating || 0,
+                label: entity.fullName,
+                description: entity.primaryRole || entity.title || 'Person of Interest',
+                importance: entity.redFlagRating || 0,
                 metadata: {
                   mentions: entity.mentions || 0,
                   riskLevel:
-                    (entity.red_flag_rating || 0) >= 5
+                    (entity.redFlagRating || 0) >= 5
                       ? 'critical'
-                      : (entity.red_flag_rating || 0) >= 4
+                      : (entity.redFlagRating || 0) >= 4
                         ? 'high'
-                        : (entity.red_flag_rating || 0) >= 2
+                        : (entity.redFlagRating || 0) >= 2
                           ? 'medium'
                           : 'low',
-                  category: entity.primary_role || entity.title || 'Person of Interest',
+                  category: entity.primaryRole || entity.title || 'Person of Interest',
                   documents: [],
                   connections: [],
                 },
@@ -639,21 +639,21 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
         // Transform entities to network nodes
         const nodes: NetworkNode[] = entities.map((e: any) => ({
           id: String(e.id),
-          type: e.entity_type?.toLowerCase() || 'person',
-          label: e.full_name,
-          description: e.primary_role || e.title || 'Person of Interest',
-          importance: e.red_flag_rating || 0,
+          type: e.entityType?.toLowerCase() || 'person',
+          label: e.fullName,
+          description: e.primaryRole || e.title || 'Person of Interest',
+          importance: e.redFlagRating || 0,
           metadata: {
             mentions: e.mentions || 0,
             riskLevel:
-              (e.red_flag_rating || 0) >= 4
+              (e.redFlagRating || 0) >= 4
                 ? 'critical'
-                : (e.red_flag_rating || 0) >= 3
+                : (e.redFlagRating || 0) >= 3
                   ? 'high'
-                  : (e.red_flag_rating || 0) >= 2
+                  : (e.redFlagRating || 0) >= 2
                     ? 'medium'
                     : 'low',
-            category: e.primary_role || e.title || 'Person of Interest',
+            category: e.primaryRole || e.title || 'Person of Interest',
           },
         }));
 
@@ -670,7 +670,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
               nodes.push({
                 id: String(e.id),
                 type: 'person',
-                label: e.full_name,
+                label: e.fullName || e.name,
                 description: 'Primary Subject',
                 importance: 5,
                 metadata: {
@@ -780,31 +780,31 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
         const rangeStart = rangeDays ? Date.now() - rangeDays * 24 * 60 * 60 * 1000 : null;
 
         const filteredEvidence = allEvidence.filter((item: any) => {
-          const addedAt = item?.added_at ? new Date(item.added_at).getTime() : null;
+          const addedAt = item?.addedAt ? new Date(item.addedAt).getTime() : null;
           const inRange = rangeStart ? !!addedAt && addedAt >= rangeStart : true;
           const sourcePass =
             analyticsSourceType === 'all' ||
-            String(item?.target_type || item?.type || '')
+            String(item?.targetType || item?.type || '')
               .toLowerCase()
               .includes(analyticsSourceType);
           const agenticPass = analyticsIncludeAgentic
             ? true
-            : !String(item?.added_by || '')
+            : !String(item?.addedBy || '')
                 .toLowerCase()
                 .includes('agent');
           return inRange && sourcePass && agenticPass;
         });
 
         const documentLinked = filteredEvidence.filter(
-          (item: any) => item?.target_type === 'document',
+          (item: any) => item?.targetType === 'document',
         ).length;
         const entityLinked = filteredEvidence.filter(
-          (item: any) => item?.target_type === 'entity',
+          (item: any) => item?.targetType === 'entity',
         ).length;
 
         const topSourcesMap = new Map<string, number>();
         filteredEvidence.forEach((item: any) => {
-          const t = String(item?.type || item?.target_type || 'unknown').toLowerCase();
+          const t = String(item?.type || item?.targetType || 'unknown').toLowerCase();
           topSourcesMap.set(t, (topSourcesMap.get(t) || 0) + 1);
         });
         const topSources = Array.from(topSourcesMap.entries())
@@ -814,7 +814,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
 
         const evidenceTimelineMap = new Map<string, number>();
         filteredEvidence.forEach((item: any) => {
-          const raw = item?.added_at || item?.extracted_at;
+          const raw = item?.addedAt || item?.extractedAt;
           if (!raw) return;
           const day = new Date(raw).toISOString().slice(0, 10);
           evidenceTimelineMap.set(day, (evidenceTimelineMap.get(day) || 0) + 1);

@@ -25,23 +25,23 @@ type EntityRef = { entityId: string; fullName: string; entityCategory: string };
 
 interface Evidence {
   id: number;
-  evidence_type: string;
+  evidenceType: string;
   title: string;
   description: string;
-  source_path: string;
-  red_flag_rating: number;
-  created_at: string;
+  sourcePath: string;
+  redFlagRating: number;
+  createdAt: string;
   notes?: string;
   relevance?: 'high' | 'medium' | 'low';
-  added_at?: string;
+  addedAt?: string;
   annotationCount?: number;
 }
 
 interface Entity {
   id: number;
-  full_name: string;
-  entity_category: string;
-  evidence_count: number;
+  fullName: string;
+  entityCategory: string;
+  evidenceCount: number;
 }
 
 interface InvestigationEvidencePanelProps {
@@ -164,7 +164,7 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
       !searchTerm ||
       e.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       e.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = filterType === 'all' || e.evidence_type === filterType;
+    const matchesType = filterType === 'all' || e.evidenceType === filterType;
     const matchesRelevance = filterRelevance === 'all' || e.relevance === filterRelevance;
     if (pivotEntityId) {
       const linked = evidenceByEntity[pivotEntityId] || [];
@@ -179,7 +179,7 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
     filteredEvidence.forEach((e) => {
       let key: string;
       if (clusterMode === 'date') {
-        key = new Date(e.created_at).toLocaleString('default', {
+        key = new Date(e.createdAt).toLocaleString('default', {
           month: 'long',
           year: 'numeric',
         });
@@ -258,10 +258,10 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
               {item.relevance}
             </span>
           )}
-          {item.red_flag_rating > 0 && (
+          {item.redFlagRating > 0 && (
             <div className="flex items-center space-x-1">
               <AlertTriangle className="w-4 h-4 text-red-500" />
-              <span className="text-xs font-semibold text-red-400">{item.red_flag_rating}</span>
+              <span className="text-xs font-semibold text-red-400">{item.redFlagRating}</span>
             </div>
           )}
         </div>
@@ -270,11 +270,11 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
         <div className="flex items-center space-x-3">
           <span className="flex items-center space-x-1">
             <Tag className="w-3 h-3" />
-            <span>{getEvidenceTypeLabel(item.evidence_type)}</span>
+            <span>{getEvidenceTypeLabel(item.evidenceType)}</span>
           </span>
           <span className="flex items-center space-x-1">
             <Calendar className="w-3 h-3" />
-            <span>{new Date(item.created_at).toLocaleDateString()}</span>
+            <span>{new Date(item.createdAt).toLocaleDateString()}</span>
           </span>
         </div>
         <div className="flex items-center gap-3">
@@ -423,7 +423,7 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
         </div>
         <div className="grid grid-cols-2 gap-3 max-h-48 overflow-y-auto">
           {entityCoverage.slice(0, 20).map((entity) => {
-            const IconComponent = (ENTITY_CATEGORY_ICONS as any)[entity.entity_category] || User;
+            const IconComponent = (ENTITY_CATEGORY_ICONS as any)[entity.entityCategory] || User;
             return (
               <div
                 key={entity.id}
@@ -431,18 +431,18 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
               >
                 <div className="flex items-center space-x-2 flex-1 min-w-0">
                   <IconComponent className="w-4 h-4 text-slate-400 flex-shrink-0" />
-                  <span className="text-sm text-slate-200 truncate">{entity.full_name}</span>
+                  <span className="text-sm text-slate-200 truncate">{entity.fullName}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <span className="text-xs font-semibold text-blue-400 ml-2">
-                    {entity.evidence_count}
+                    {entity.evidenceCount}
                   </span>
                   <button
-                    title={`Filter evidence by ${entity.full_name}`}
+                    title={`Filter evidence by ${entity.fullName}`}
                     onClick={(e) => {
                       e.stopPropagation();
                       setPivotEntityId(String(entity.id));
-                      setPivotEntityName(entity.full_name);
+                      setPivotEntityName(entity.fullName);
                     }}
                     className="ml-1 text-slate-500 hover:text-cyan-400 transition-colors"
                   >
@@ -615,13 +615,13 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
                             {result.source}
                           </span>
                           <h4 className="font-semibold text-white truncate">
-                            {result.title || result.full_name || 'Untitled'}
+                            {result.title || result.fullName || 'Untitled'}
                           </h4>
                         </div>
                         <p className="text-sm text-slate-300 line-clamp-2">{result.description}</p>
                         {result.source === 'entity' && (
                           <p className="text-xs text-slate-400 mt-1">
-                            Category: {result.entity_category}
+                            Category: {result.entityCategory}
                           </p>
                         )}
                       </div>
@@ -629,7 +629,7 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-slate-400">
                         {result.source === 'evidence'
-                          ? getEvidenceTypeLabel(result.evidence_type)
+                          ? getEvidenceTypeLabel(result.evidenceType)
                           : result.source === 'document'
                             ? 'Document'
                             : 'Entity'}

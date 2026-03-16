@@ -4,15 +4,15 @@ import Icon from '../common/Icon';
 
 interface ActivityItem {
   id: number;
-  investigation_id: number;
-  user_id: string;
-  user_name: string;
-  action_type: string;
-  target_type: string | null;
-  target_id: string | null;
-  target_title: string | null;
+  investigationId: number;
+  userId: string;
+  userName: string;
+  actionType: string;
+  targetType: string | null;
+  targetId: string | null;
+  targetTitle: string | null;
   metadata: any;
-  created_at: string;
+  createdAt: string;
 }
 
 interface InvestigationActivityFeedProps {
@@ -161,30 +161,30 @@ export const InvestigationActivityFeed: React.FC<InvestigationActivityFeedProps>
         >
           {/* Action icon */}
           <div
-            className={`flex-shrink-0 w-8 h-8 rounded-full bg-slate-700/50 flex items-center justify-center ${getActionColor(activity.action_type)}`}
+            className={`flex-shrink-0 w-8 h-8 rounded-full bg-slate-700/50 flex items-center justify-center ${getActionColor(activity.actionType)}`}
           >
-            <Icon name={getActionIcon(activity.action_type) as any} size="sm" />
+            <Icon name={getActionIcon(activity.actionType) as any} size="sm" />
           </div>
 
           {/* Content */}
           <div className="flex-1 min-w-0">
             <div className={`${compact ? 'text-xs' : 'text-sm'} text-slate-200`}>
-              <span className="font-medium text-cyan-400">{activity.user_name}</span>{' '}
+              <span className="font-medium text-cyan-400">{activity.userName}</span>{' '}
               <span className="text-slate-400">
-                {actionLabels[activity.action_type] || activity.action_type.replace(/_/g, ' ')}
+                {actionLabels[activity.actionType] || activity.actionType.replace(/_/g, ' ')}
               </span>
-              {activity.target_title && (
+              {activity.targetTitle && (
                 <>
                   {' '}
                   <span className="text-white font-medium">
-                    {activity.target_type && (
+                    {activity.targetType && (
                       <Icon
-                        name={(targetTypeIcons[activity.target_type] || 'File') as any}
+                        name={(targetTypeIcons[activity.targetType] || 'File') as any}
                         size="xs"
                         className="inline mr-1 opacity-60"
                       />
                     )}
-                    {activity.target_title}
+                    {activity.targetTitle}
                   </span>
                 </>
               )}
@@ -211,7 +211,7 @@ export const InvestigationActivityFeed: React.FC<InvestigationActivityFeedProps>
 
             {/* Timestamp */}
             <div className={`${compact ? 'text-[10px]' : 'text-xs'} text-slate-500 mt-0.5`}>
-              {formatTimeAgo(activity.created_at)}
+              {formatTimeAgo(activity.createdAt)}
             </div>
           </div>
         </div>

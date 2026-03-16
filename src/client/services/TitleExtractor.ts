@@ -147,12 +147,12 @@ export class TitleExtractor {
    * Batch extract titles from multiple entities
    */
   static extractBatch(
-    entities: Array<{ id: string; full_name: string }>,
+    entities: Array<{ id: string; fullName: string }>,
   ): Map<string, TitleExtractionResult> {
     const results = new Map<string, TitleExtractionResult>();
 
     for (const entity of entities) {
-      const result = this.extract(entity.full_name);
+      const result = this.extract(entity.fullName);
       if (result) {
         results.set(entity.id, result);
       }

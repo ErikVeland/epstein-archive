@@ -55,7 +55,7 @@ export const ArticlesTab: React.FC = () => {
             published_date: item.pub_date || item.published_date || '',
             summary: item.description || item.summary || '',
             tags: item.tags || '',
-            redFlagRating: item.red_flag_rating ?? item.redFlagRating ?? 0,
+            redFlagRating: item.redFlagRating ?? 0,
             imageUrl: item.image_url || item.imageUrl || null,
             reading_time: item.reading_time || item.readingTime || null,
           }));

@@ -4,16 +4,16 @@ import { Shield, CheckCircle, XCircle, AlertTriangle, Eye, Clock } from 'lucide-
 interface ReviewItem {
   id: string;
   type: string;
-  subject_id: string;
-  ingest_run_id: string;
+  subjectId: string;
+  ingestRunId: string;
   status: 'pending' | 'reviewed' | 'rejected';
   priority: 'high' | 'medium' | 'low';
-  payload_json: {
+  payloadJson: {
     before: any;
     after: any;
   };
   notes?: string;
-  created_at: string;
+  createdAt: string;
 }
 
 export const ReviewQueuePanel: React.FC = () => {
@@ -93,10 +93,10 @@ export const ReviewQueuePanel: React.FC = () => {
                   <span className="text-xs font-mono text-slate-400 uppercase">{item.type}</span>
                   {item.priority === 'high' && <AlertTriangle className="w-4 h-4 text-amber-500" />}
                 </div>
-                <div className="text-sm font-medium text-slate-200 truncate">{item.subject_id}</div>
+                <div className="text-sm font-medium text-slate-200 truncate">{item.subjectId}</div>
                 <div className="text-[10px] text-slate-500 mt-2 flex items-center gap-1">
                   <Clock className="w-3 h-3" />
-                  {new Date(item.created_at).toLocaleString()}
+                  {new Date(item.createdAt).toLocaleString()}
                 </div>
               </button>
             ))
@@ -126,7 +126,7 @@ export const ReviewQueuePanel: React.FC = () => {
                         Baseline (Before)
                       </label>
                       <pre className="bg-slate-950 p-4 rounded-lg border border-slate-800 text-xs font-mono text-slate-400 overflow-x-auto">
-                        {JSON.stringify(item.payload_json.before, null, 2)}
+                        {JSON.stringify(item.payloadJson.before, null, 2)}
                       </pre>
                     </div>
                     <div className="space-y-2">
@@ -134,7 +134,7 @@ export const ReviewQueuePanel: React.FC = () => {
                         Agentic Output (After)
                       </label>
                       <pre className="bg-slate-950 p-4 rounded-lg border border-indigo-900/30 text-xs font-mono text-indigo-100 overflow-x-auto shadow-inner shadow-indigo-500/5">
-                        {JSON.stringify(item.payload_json.after, null, 2)}
+                        {JSON.stringify(item.payloadJson.after, null, 2)}
                       </pre>
                     </div>
                   </div>

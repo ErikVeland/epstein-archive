@@ -27,7 +27,7 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
   showRaw = false,
 }) => {
   const getEntityName = (entity: any): string =>
-    String(entity?.full_name || entity?.fullName || entity?.name || '').trim();
+    String(entity?.fullName || entity?.name || '').trim();
 
   const [showAnnotations, setShowAnnotations] = useState(false);
   // Optimize entity lookup map
@@ -929,8 +929,8 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
                   }}
                 >
                   {getEntityName(e)}
-                  {e.entity_type && (
-                    <span className="ml-1.5 opacity-50 text-[10px] uppercase">{e.entity_type}</span>
+                  {e.entityType && (
+                    <span className="ml-1.5 opacity-50 text-[10px] uppercase">{e.entityType}</span>
                   )}
                 </span>
               ));

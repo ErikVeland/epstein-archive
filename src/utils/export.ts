@@ -20,12 +20,12 @@ export const exportData = {
       ...people.map((person) =>
         [
           `"${person.name}"`,
-          `"${person.evidence_types?.[0] || 'Unknown'}"`,
-          `"${person.evidence_types?.slice(1).join(', ') || ''}"`,
-          `"${person.likelihood_score}"`,
+          `"${person.evidenceTypes?.[0] || 'Unknown'}"`,
+          `"${person.evidenceTypes?.slice(1).join(', ') || ''}"`,
+          `"${person.likelihoodScore}"`,
           `"${person.mentions}"`,
-          `"${person.likelihood_score}"`,
-          `"${person.red_flag_description || 'No key evidence'}"`,
+          `"${person.likelihoodScore}"`,
+          `"${person.redFlagDescription || 'No key evidence'}"`,
           '${person.files}',
           "${person.contexts?.[0]?.context || 'No connections data'}",
         ].join(','),
@@ -68,9 +68,9 @@ function downloadFile(content: string, filename: string, mimeType: string) {
 }
 
 function generateSummary(people: Person[]): string {
-  const highRisk = people.filter((p) => p.likelihood_score === 'HIGH').length;
-  const mediumRisk = people.filter((p) => p.likelihood_score === 'MEDIUM').length;
-  const lowRisk = people.filter((p) => p.likelihood_score === 'LOW').length;
+  const highRisk = people.filter((p) => p.likelihoodScore === 'HIGH').length;
+  const mediumRisk = people.filter((p) => p.likelihoodScore === 'MEDIUM').length;
+  const lowRisk = people.filter((p) => p.likelihoodScore === 'LOW').length;
   const totalMentions = people.reduce((sum, p) => sum + p.mentions, 0);
   const avgMentions = Math.round(totalMentions / people.length);
 
@@ -82,7 +82,7 @@ function generateSummary(people: Person[]): string {
 
   const roleDistribution = people.reduce(
     (acc, person) => {
-      const role = person.evidence_types?.[0] || 'Unknown';
+      const role = person.evidenceTypes?.[0] || 'Unknown';
       acc[role] = (acc[role] || 0) + 1;
       return acc;
     },

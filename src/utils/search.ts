@@ -30,12 +30,12 @@ export function searchPeople(
 
   // Apply filters
   if (filters.likelihood !== 'all') {
-    filtered = filtered.filter((person) => person.likelihood_score === filters.likelihood);
+    filtered = filtered.filter((person) => person.likelihoodScore === filters.likelihood);
   }
 
   if (filters.role !== 'all') {
     filtered = filtered.filter((person) =>
-      person.evidence_types?.some((type) =>
+      person.evidenceTypes?.some((type) =>
         type.toLowerCase().includes(filters.role?.toLowerCase() || ''),
       ),
     );
@@ -69,8 +69,8 @@ export async function getEvidenceByPerson(personName: string): Promise<Evidence[
 export function getRoleCategories(people: Person[]): string[] {
   const roles = new Set<string>();
   people.forEach((person) => {
-    if (person.evidence_types?.[0]) roles.add(person.evidence_types[0]);
-    person.evidence_types?.slice(1).forEach((role) => roles.add(role));
+    if (person.evidenceTypes?.[0]) roles.add(person.evidenceTypes[0]);
+    person.evidenceTypes?.slice(1).forEach((role) => roles.add(role));
   });
   return Array.from(roles).sort();
 }
@@ -78,8 +78,8 @@ export function getRoleCategories(people: Person[]): string[] {
 export function getStatusCategories(people: Person[]): string[] {
   const statuses = new Set<string>();
   people.forEach((person) => {
-    if (person.likelihood_score) {
-      statuses.add(person.likelihood_score);
+    if (person.likelihoodScore) {
+      statuses.add(person.likelihoodScore);
     }
   });
   return Array.from(statuses).sort();

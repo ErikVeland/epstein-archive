@@ -27,12 +27,15 @@ export const mapInvestigationEvidenceListItemDto = (
   type: String(row.type || 'document'),
   title: String(row.title || 'Untitled evidence'),
   description: String(row.description || ''),
-  source_path: String(row.source_path || ''),
-  metadata_json: safeMetadataJson(row.metadata_json),
-  investigation_evidence_id: Number(row.investigation_evidence_id || row.id || 0),
+  sourcePath: String(row.source_path || row.sourcePath || ''),
+  metadataJson: safeMetadataJson(row.metadata_json ?? row.metadataJson),
+  investigationEvidenceId: Number(
+    row.investigation_evidence_id ?? row.investigationEvidenceId ?? row.id ?? 0,
+  ),
   relevance: String(row.relevance || 'medium'),
-  extracted_at: String(row.extracted_at || row.added_at || ''),
-  extracted_by: row.extracted_by ? String(row.extracted_by) : null,
+  extractedAt: String(row.extracted_at || row.extractedAt || row.added_at || ''),
+  extractedBy:
+    row.extracted_by || row.extractedBy ? String(row.extracted_by ?? row.extractedBy) : null,
 });
 
 export const mapInvestigationEvidenceListResponseDto = (
@@ -55,41 +58,49 @@ export const mapInvestigationCaseEvidenceItemDto = (
   type: String(row.type || 'other'),
   title: String(row.title || 'Untitled evidence'),
   description: String(row.description || ''),
-  source_path: String(row.source_path || ''),
-  metadata_json: safeMetadataJson(row.metadata_json),
-  investigation_evidence_id:
+  sourcePath: String(row.source_path || row.sourcePath || ''),
+  metadataJson: safeMetadataJson(row.metadata_json ?? row.metadataJson),
+  investigationEvidenceId:
     typeof row.investigation_evidence_id === 'number'
       ? row.investigation_evidence_id
-      : Number(row.investigation_evidence_id || 0) || undefined,
-  document_id:
-    row.document_id == null
+      : typeof row.investigationEvidenceId === 'number'
+        ? row.investigationEvidenceId
+        : Number(row.investigation_evidence_id ?? row.investigationEvidenceId ?? 0) || undefined,
+  documentId:
+    (row.document_id ?? row.documentId) == null
       ? null
-      : Number.isFinite(Number(row.document_id))
-        ? Number(row.document_id)
+      : Number.isFinite(Number(row.document_id ?? row.documentId))
+        ? Number(row.document_id ?? row.documentId)
         : null,
-  media_item_id:
-    row.media_item_id == null
+  mediaItemId:
+    (row.media_item_id ?? row.mediaItemId) == null
       ? null
-      : Number.isFinite(Number(row.media_item_id))
-        ? Number(row.media_item_id)
+      : Number.isFinite(Number(row.media_item_id ?? row.mediaItemId))
+        ? Number(row.media_item_id ?? row.mediaItemId)
         : null,
-  red_flag_rating: Number(row.red_flag_rating || 0),
+  redFlagRating: Number(row.red_flag_rating ?? row.redFlagRating ?? 0),
   relevance: String(row.relevance || 'medium'),
-  added_at: String(row.added_at || row.extracted_at || ''),
-  added_by: row.added_by ? String(row.added_by) : null,
+  addedAt: String(row.added_at || row.addedAt || row.extracted_at || ''),
+  addedBy: row.added_by || row.addedBy ? String(row.added_by ?? row.addedBy) : null,
   notes: String(row.notes || ''),
-  target_type: normalizeTargetType(row.target_type),
-  target_id:
-    row.target_id == null
+  targetType: normalizeTargetType(row.target_type ?? row.targetType),
+  targetId:
+    (row.target_id ?? row.targetId) == null
       ? null
-      : Number.isFinite(Number(row.target_id))
-        ? Number(row.target_id)
+      : Number.isFinite(Number(row.target_id ?? row.targetId))
+        ? Number(row.target_id ?? row.targetId)
         : null,
-  ingest_run_id: row.ingest_run_id ?? null,
-  evidence_ladder: row.evidence_ladder ? String(row.evidence_ladder) : null,
-  pipeline_version: row.pipeline_version ? String(row.pipeline_version) : null,
-  evidence_pack: row.evidence_pack ?? null,
-  was_agentic: Boolean(row.was_agentic),
+  ingestRunId: row.ingest_run_id ?? row.ingestRunId ?? null,
+  evidenceLadder:
+    (row.evidence_ladder ?? row.evidenceLadder)
+      ? String(row.evidence_ladder ?? row.evidenceLadder)
+      : null,
+  pipelineVersion:
+    (row.pipeline_version ?? row.pipelineVersion)
+      ? String(row.pipeline_version ?? row.pipelineVersion)
+      : null,
+  evidencePack: row.evidence_pack ?? row.evidencePack ?? null,
+  wasAgentic: Boolean(row.was_agentic ?? row.wasAgentic),
 });
 
 export const mapInvestigationEvidenceByTypeResponseDto = (

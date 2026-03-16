@@ -170,10 +170,7 @@ export const DocumentAnalysisTab: React.FC<DocumentAnalysisTabProps> = ({
                                 {entity.name}
                               </button>
                               <span className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">
-                                {entity.primary_role ||
-                                  entity.role ||
-                                  entity.entity_type ||
-                                  'ENTITY'}
+                                {entity.primaryRole || entity.role || entity.entityType || 'ENTITY'}
                               </span>
                             </div>
                           </div>

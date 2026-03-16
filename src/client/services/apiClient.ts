@@ -510,9 +510,9 @@ class ApiClient {
       const data = Array.isArray(resp.data) ? resp.data : [];
       const normalized = data.map((e: any) => ({
         ...e,
-        name: e.name ?? e.fullName ?? e.full_name,
-        fullName: e.fullName ?? e.name ?? e.full_name,
-        red_flag_rating: e.red_flag_rating ?? e.redFlagRating ?? 0,
+        name: e.name ?? e.fullName,
+        fullName: e.fullName ?? e.name,
+        redFlagRating: e.redFlagRating ?? 0,
         files: e.files ?? e.documentCount ?? 0,
         blackBookEntry: e.blackBookEntry || null,
       }));
@@ -534,32 +534,31 @@ class ApiClient {
 
       const fallbackData = (subjects.subjects || []).map((s: any) => {
         const redFlag =
-          s?.forensics?.red_flag_objective ??
-          s?.forensics?.red_flag_subjective ??
-          s?.red_flag_rating ??
+          s?.forensics?.redFlagObjective ??
+          s?.forensics?.redFlagSubjective ??
+          s?.redFlagRating ??
           0;
         return {
           id: s.id,
           name: s.name || 'Unknown',
           fullName: s.name || 'Unknown',
-          bio: s.short_bio || '',
-          entity_type: 'Person',
+          bio: s.shortBio || '',
+          entityType: 'Person',
           primaryRole: s.role || 'Unknown',
           secondaryRoles: [],
           mentions: Number(s?.stats?.mentions || 0),
           files: Number(s?.stats?.documents || 0),
           contexts: [],
-          evidence_types: [],
           evidenceTypes: [],
           photos: [],
-          significant_passages: [],
+          significantPassages: [],
           keyEvidence: '',
           fileReferences: [],
-          likelihood_score: s?.forensics?.risk_level || 'LOW',
-          red_flag_score: Number(redFlag || 0),
-          red_flag_rating: Number(redFlag || 0),
-          red_flag_peppers: Number(redFlag || 0) > 0 ? '🚩'.repeat(Number(redFlag || 0)) : '🏳️',
-          red_flag_description: `Red Flag Index ${Number(redFlag || 0)}`,
+          likelihoodScore: s?.forensics?.riskLevel || 'LOW',
+          redFlagScore: Number(redFlag || 0),
+          redFlagRating: Number(redFlag || 0),
+          redFlagPeppers: Number(redFlag || 0) > 0 ? '🚩'.repeat(Number(redFlag || 0)) : '🏳️',
+          redFlagDescription: `Red Flag Index ${Number(redFlag || 0)}`,
           connectionsToEpstein: '',
           blackBookEntry: null,
         };
@@ -580,9 +579,9 @@ class ApiClient {
     const e = await this.fetchWithErrorHandling<any>(url);
     return {
       ...e,
-      name: e.name ?? e.fullName ?? e.full_name,
-      fullName: e.fullName ?? e.name ?? e.full_name,
-      red_flag_rating: e.red_flag_rating ?? e.redFlagRating ?? 0,
+      name: e.name ?? e.fullName,
+      fullName: e.fullName ?? e.name,
+      redFlagRating: e.redFlagRating ?? 0,
       blackBookEntry: e.blackBookEntry || null,
     } as Person;
   }
@@ -746,9 +745,9 @@ class ApiClient {
     const ents = Array.isArray(r.entities)
       ? r.entities.map((e: any) => ({
           ...e,
-          name: e.name ?? e.fullName ?? e.full_name,
-          fullName: e.fullName ?? e.name ?? e.full_name,
-          red_flag_rating: e.red_flag_rating ?? e.redFlagRating ?? 0,
+          name: e.name ?? e.fullName,
+          fullName: e.fullName ?? e.name,
+          redFlagRating: e.redFlagRating ?? 0,
           blackBookEntry: e.blackBookEntry || null,
         }))
       : [];
@@ -892,8 +891,8 @@ class ApiClient {
       fileName: d.fileName ?? d.file_name,
       fileType: d.fileType ?? d.file_type,
       contentPreview: d.contentPreview ?? d.content_preview,
-      redFlagRating: d.redFlagRating ?? d.red_flag_rating ?? 0,
-      title: d.title ?? d.fileName ?? d.file_name,
+      redFlagRating: d.redFlagRating ?? 0,
+      title: d.title ?? d.fileName,
     };
   }
 

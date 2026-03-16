@@ -514,11 +514,11 @@ function App() {
           matchedAlias: e.matchedAlias || null,
           role: e.primaryRole || e.role || 'Unknown',
           mentions: e.mention_count || e.mentions || 0,
-          red_flag_rating: e.red_flag_rating || e.redFlagRating || 0,
+          redFlagRating: e.redFlagRating ?? 0,
           files: e.document_count || e.files || 0,
           contexts: [],
-          evidence_types: [],
-          significant_passages: [],
+          evidenceTypes: [],
+          significantPassages: [],
           fileReferences: [],
         }));
         setSearchSuggestions(normalized);
@@ -561,24 +561,24 @@ function App() {
             if (data && data.id) {
               const person: Person = {
                 id: data.id,
-                name: data.fullName || data.full_name || 'Unknown',
-                fullName: data.fullName || data.full_name || 'Unknown',
-                role: data.primaryRole || data.primary_role || 'Unknown',
+                name: data.fullName || 'Unknown',
+                fullName: data.fullName || 'Unknown',
+                role: data.primaryRole || 'Unknown',
                 mentions: data.mentions || data.mention_count || 0,
-                red_flag_rating: data.redFlagRating || data.red_flag_rating || 0,
+                redFlagRating: data.redFlagRating ?? 0,
                 files: data.documentCount || data.document_count || 0,
                 contexts: [],
-                evidence_types: data.evidenceTypes || [],
-                significant_passages: [],
-                likelihood_score: data.likelihoodLevel || 'MEDIUM',
+                evidenceTypes: data.evidenceTypes || [],
+                significantPassages: [],
+                likelihoodScore: data.likelihoodLevel || 'MEDIUM',
                 fileReferences: [],
                 bio: data.bio || data.description,
                 birthDate: data.birthDate,
                 deathDate: data.deathDate,
                 photos: data.photos,
                 blackBookEntries: data.blackBookEntry,
-                entity_type: data.entity_type || (data as any).type,
-                red_flag_description: data.redFlagDescription || data.red_flag_description,
+                entityType: data.entityType || (data as any).type,
+                redFlagDescription: data.redFlagDescription,
               };
               setSelectedPerson(person);
             }
@@ -876,18 +876,13 @@ function App() {
         setLoadingProgressValue(60);
         const normalized = (result.data || []).map((p: any) => ({
           ...p,
-          red_flag_rating: p.red_flag_rating ?? p.redFlagRating ?? 0,
-          name: p.name ?? p.fullName ?? p.full_name,
+          redFlagRating: p.redFlagRating ?? 0,
+          name: p.name ?? p.fullName,
           files: p.files ?? p.documentCount ?? 0,
-          likelihood_score:
-            p.likelihood_score ??
+          likelihoodScore:
+            p.likelihoodScore ??
             p.likelihoodLevel ??
-            p.likelihood_level ??
-            ((p.red_flag_rating ?? p.redFlagRating ?? 0) >= 4
-              ? 'HIGH'
-              : (p.red_flag_rating ?? p.redFlagRating ?? 0) >= 2
-                ? 'MEDIUM'
-                : 'LOW'),
+            ((p.redFlagRating ?? 0) >= 4 ? 'HIGH' : (p.redFlagRating ?? 0) >= 2 ? 'MEDIUM' : 'LOW'),
         }));
         // Cache first page for next load
         try {

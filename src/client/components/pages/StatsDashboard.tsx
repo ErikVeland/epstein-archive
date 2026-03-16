@@ -9,7 +9,7 @@ interface StatsDashboardProps {
 const StatsDashboard: React.FC<StatsDashboardProps> = ({ people }) => {
   const stats = {
     total: people.length,
-    highRisk: people.filter((p) => p.likelihood_score === 'HIGH').length,
+    highRisk: people.filter((p) => p.likelihoodScore === 'HIGH').length,
     totalMentions: people.reduce((sum, p) => sum + p.mentions, 0),
     avgMentions: Math.round(people.reduce((sum, p) => sum + p.mentions, 0) / people.length),
   };

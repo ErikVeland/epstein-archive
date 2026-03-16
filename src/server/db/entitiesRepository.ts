@@ -303,26 +303,26 @@ async function getSubjectCardsFallback(
       id: String(row.id),
       name: resolveDisplayName(String(row.fullName || 'Unknown'), vipDisplayLookup),
       role: String(row.primaryRole || 'Unknown'),
-      short_bio: row.bio || undefined,
+      shortBio: row.bio || undefined,
       stats: {
         mentions,
         documents: 0,
-        distinct_sources: 0,
-        verified_media: mediaCount,
+        distinctSources: 0,
+        verifiedMedia: mediaCount,
       },
       forensics: {
-        risk_level: String(row.riskLevel || 'LOW').toUpperCase(),
-        evidence_ladder: ladder,
-        red_flag_objective: Number(row.redFlagRating || 0),
-        red_flag_subjective: Number(row.redFlagRating || 0),
-        signal_strength: {
+        riskLevel: String(row.riskLevel || 'LOW').toUpperCase(),
+        evidenceLadder: ladder,
+        redFlagObjective: Number(row.redFlagRating || 0),
+        redFlagSubjective: Number(row.redFlagRating || 0),
+        signalStrength: {
           exposure: Math.min(100, (Math.log10(mentions + 1) / 3) * 100),
           connectivity: Math.min(100, (connCount / maxConnectivityCount) * 100),
           corroboration: Math.min(100, mediaCount * 20),
         },
-        driver_labels: drivers,
+        driverLabels: drivers,
       },
-      top_preview: undefined,
+      topPreview: undefined,
       ...(row.topPhotoId ? ({ topPhotoId: String(row.topPhotoId) } as any) : {}),
     };
   });
@@ -363,7 +363,7 @@ export const entitiesRepository = {
     }
     if (riskLevels && riskLevels.length > 0) {
       const p = addParam(riskLevels);
-      whereParts.push(`e.risk_level = ANY(${p}::text[])`);
+      whereParts.push(`e.riskLevel = ANY(${p}::text[])`);
     }
     if (filters?.minRedFlagIndex !== undefined) {
       const p = addParam(filters.minRedFlagIndex);
@@ -384,7 +384,7 @@ export const entitiesRepository = {
 
     const whereSql = whereParts.length ? `WHERE ${whereParts.join(' AND ')}` : '';
 
-    const riskRankExpr = `CASE UPPER(COALESCE(e.risk_level, 'LOW')) WHEN 'HIGH' THEN 3 WHEN 'MEDIUM' THEN 2 WHEN 'LOW' THEN 1 ELSE 0 END`;
+    const riskRankExpr = `CASE UPPER(COALESCE(e.riskLevel, 'LOW')) WHEN 'HIGH' THEN 3 WHEN 'MEDIUM' THEN 2 WHEN 'LOW' THEN 1 ELSE 0 END`;
     const inferredRankExpr = `CASE
       WHEN LOWER(COALESCE(e.full_name, '')) ~* '^(to|from|cc|bcc|subject|re|fwd|fw|of)\\b[:\\s-]*'
         OR LOWER(COALESCE(e.full_name, '')) ~* '\\m(to|from|cc|bcc|subject|re|fwd|fw)\\M\\s*$'
@@ -472,7 +472,7 @@ export const entitiesRepository = {
             e.primary_role as "primaryRole",
             e.bio,
             COALESCE(mc.mentions, COALESCE(e.mentions, 0)) as mentions,
-            e.risk_level as "riskLevel",
+            e.riskLevel as "riskLevel",
             e.red_flag_rating as "redFlagRating",
             e.connections_summary as "connections",
             e.was_agentic as "wasAgentic",
@@ -562,7 +562,7 @@ export const entitiesRepository = {
             e.primary_role as "primaryRole",
             e.bio,
             COALESCE(mc.mentions, COALESCE(e.mentions, 0)) as mentions,
-            e.risk_level as "riskLevel",
+            e.riskLevel as "riskLevel",
             e.red_flag_rating as "redFlagRating",
             e.connections_summary as "connections",
             e.was_agentic as "wasAgentic",
@@ -702,26 +702,26 @@ export const entitiesRepository = {
           id: String(e.id),
           name: resolveDisplayName(e.fullName || 'Unknown', vipDisplayLookup),
           role: e.primaryRole || 'Unknown',
-          short_bio: e.bio || undefined,
+          shortBio: e.bio || undefined,
           stats: {
             mentions,
             documents: aggregateStats?.documents ?? 0,
-            distinct_sources: aggregateStats?.distinctSources ?? 0,
-            verified_media: mediaCount,
+            distinctSources: aggregateStats?.distinctSources ?? 0,
+            verifiedMedia: mediaCount,
           },
           forensics: {
-            risk_level: String((e.riskLevel as any) || 'LOW').toUpperCase(),
-            evidence_ladder: ladder,
-            red_flag_objective: Number(e.redFlagRating || 0),
-            red_flag_subjective: Number(e.redFlagRating || 0),
-            signal_strength: {
+            riskLevel: String((e.riskLevel as any) || 'LOW').toUpperCase(),
+            evidenceLadder: ladder,
+            redFlagObjective: Number(e.redFlagRating || 0),
+            redFlagSubjective: Number(e.redFlagRating || 0),
+            signalStrength: {
               exposure,
               connectivity,
               corroboration: Math.min(100, mediaCount * 20),
             },
-            driver_labels: drivers.slice(0, 4),
+            driverLabels: drivers.slice(0, 4),
           },
-          top_preview: undefined,
+          topPreview: undefined,
           ...((e as any).topPhotoId ? ({ topPhotoId: String((e as any).topPhotoId) } as any) : {}),
         };
       });
@@ -748,12 +748,12 @@ export const entitiesRepository = {
             (subject.stats.mentions > existing.stats.mentions ||
               (subject.stats.mentions === existing.stats.mentions &&
                 (subject.stats.documents > existing.stats.documents ||
-                  subject.stats.verified_media > existing.stats.verified_media))));
+                  subject.stats.verifiedMedia > existing.stats.verifiedMedia))));
 
         const mergedDrivers = Array.from(
           new Set([
-            ...(existing.forensics.driver_labels || []),
-            ...(subject.forensics.driver_labels || []),
+            ...(existing.forensics.driverLabels || []),
+            ...(subject.forensics.driverLabels || []),
           ]),
         ).slice(0, 4);
 
@@ -762,7 +762,7 @@ export const entitiesRepository = {
         const mergedDocuments =
           Number(existing.stats.documents || 0) + Number(subject.stats.documents || 0);
         const mergedVerifiedMedia =
-          Number(existing.stats.verified_media || 0) + Number(subject.stats.verified_media || 0);
+          Number(existing.stats.verifiedMedia || 0) + Number(subject.stats.verifiedMedia || 0);
 
         const base = preferIncoming ? subject : existing;
         const other = preferIncoming ? existing : subject;
@@ -775,49 +775,47 @@ export const entitiesRepository = {
               : other.role && other.role !== 'Unknown'
                 ? other.role
                 : base.role,
-          short_bio: base.short_bio || other.short_bio,
+          shortBio: base.shortBio || other.shortBio,
           stats: {
             mentions: mergedMentions,
             documents: mergedDocuments,
-            distinct_sources: Math.max(
-              Number(existing.stats.distinct_sources || 0),
-              Number(subject.stats.distinct_sources || 0),
+            distinctSources: Math.max(
+              Number(existing.stats.distinctSources || 0),
+              Number(subject.stats.distinctSources || 0),
             ),
-            verified_media: mergedVerifiedMedia,
+            verifiedMedia: mergedVerifiedMedia,
           },
           forensics: {
             ...base.forensics,
-            risk_level:
-              Number(subject.forensics.red_flag_objective || 0) >
-              Number(existing.forensics.red_flag_objective || 0)
-                ? subject.forensics.risk_level
-                : existing.forensics.risk_level,
-            evidence_ladder:
+            riskLevel:
+              Number(subject.forensics.redFlagObjective || 0) >
+              Number(existing.forensics.redFlagObjective || 0)
+                ? subject.forensics.riskLevel
+                : existing.forensics.riskLevel,
+            evidenceLadder:
               EVIDENCE_LADDER_RANK[
-                subject.forensics.evidence_ladder as 'NONE' | 'L3' | 'L2' | 'L1'
+                subject.forensics.evidenceLadder as 'NONE' | 'L3' | 'L2' | 'L1'
               ] >
-              EVIDENCE_LADDER_RANK[
-                existing.forensics.evidence_ladder as 'NONE' | 'L3' | 'L2' | 'L1'
-              ]
-                ? subject.forensics.evidence_ladder
-                : existing.forensics.evidence_ladder,
-            red_flag_objective: Math.max(
-              Number(existing.forensics.red_flag_objective || 0),
-              Number(subject.forensics.red_flag_objective || 0),
+              EVIDENCE_LADDER_RANK[existing.forensics.evidenceLadder as 'NONE' | 'L3' | 'L2' | 'L1']
+                ? subject.forensics.evidenceLadder
+                : existing.forensics.evidenceLadder,
+            redFlagObjective: Math.max(
+              Number(existing.forensics.redFlagObjective || 0),
+              Number(subject.forensics.redFlagObjective || 0),
             ),
-            red_flag_subjective: Math.max(
-              Number(existing.forensics.red_flag_subjective || 0),
-              Number(subject.forensics.red_flag_subjective || 0),
+            redFlagSubjective: Math.max(
+              Number(existing.forensics.redFlagSubjective || 0),
+              Number(subject.forensics.redFlagSubjective || 0),
             ),
-            signal_strength: {
+            signalStrength: {
               exposure: Math.min(100, (Math.log10(mergedMentions + 1) / 3) * 100),
               connectivity: Math.max(
-                Number(existing.forensics.signal_strength?.connectivity || 0),
-                Number(subject.forensics.signal_strength?.connectivity || 0),
+                Number(existing.forensics.signalStrength?.connectivity || 0),
+                Number(subject.forensics.signalStrength?.connectivity || 0),
               ),
               corroboration: Math.min(100, mergedVerifiedMedia * 20),
             },
-            driver_labels: mergedDrivers,
+            driverLabels: mergedDrivers,
           },
           topPhotoId: (base as any).topPhotoId || (other as any).topPhotoId,
         };
@@ -833,10 +831,10 @@ export const entitiesRepository = {
       };
       const dir = sortOrder === 'ASC' ? 1 : -1;
       const normalizedSubjects = Array.from(mergedByNormalizedName.values()).sort((a, b) => {
-        const aRfi = Number(a.forensics.red_flag_objective || a.forensics.red_flag_subjective || 0);
-        const bRfi = Number(b.forensics.red_flag_objective || b.forensics.red_flag_subjective || 0);
-        const aRisk = riskRank(a.forensics.risk_level);
-        const bRisk = riskRank(b.forensics.risk_level);
+        const aRfi = Number(a.forensics.redFlagObjective || a.forensics.redFlagSubjective || 0);
+        const bRfi = Number(b.forensics.redFlagObjective || b.forensics.redFlagSubjective || 0);
+        const aRisk = riskRank(a.forensics.riskLevel);
+        const bRisk = riskRank(b.forensics.riskLevel);
         const aMentions = Number(a.stats.mentions || 0);
         const bMentions = Number(b.stats.mentions || 0);
         const aDocs = Number(a.stats.documents || 0);
@@ -906,7 +904,7 @@ export const entitiesRepository = {
 
     const normalizedEntities = result.subjects.map((subject) => {
       const redFlag = Number(
-        subject.forensics.red_flag_objective ?? subject.forensics.red_flag_subjective ?? 0,
+        subject.forensics.redFlagObjective ?? subject.forensics.redFlagSubjective ?? 0,
       );
       return {
         id: String(subject.id),
@@ -914,12 +912,11 @@ export const entitiesRepository = {
         primaryRole: subject.role || 'Unknown',
         mentions: Number(subject.stats.mentions || 0),
         documentCount: Number(subject.stats.documents || 0),
-        distinctSources: Number(subject.stats.distinct_sources || 0),
-        verifiedMedia: Number(subject.stats.verified_media || 0),
-        riskLevel: String(subject.forensics.risk_level || 'LOW').toUpperCase(),
+        distinctSources: Number(subject.stats.distinctSources || 0),
+        verifiedMedia: Number(subject.stats.verifiedMedia || 0),
+        riskLevel: String(subject.forensics.riskLevel || 'LOW').toUpperCase(),
         redFlagRating: redFlag,
-        red_flag_rating: redFlag,
-        bio: subject.short_bio || '',
+        bio: subject.shortBio || '',
         topPhotoId: (subject as any).topPhotoId || undefined,
       };
     });

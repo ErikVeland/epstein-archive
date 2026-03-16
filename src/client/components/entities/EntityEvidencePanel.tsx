@@ -22,26 +22,26 @@ import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
 
 interface Evidence {
   id: string | number;
-  document_id?: string | number | null;
-  evidence_type: string;
+  documentId?: string | number | null;
+  evidenceType: string;
   title: string;
   description: string;
-  source_path: string;
-  cleaned_path: string;
-  red_flag_rating: number;
-  created_at: string;
+  sourcePath: string;
+  cleanedPath: string;
+  redFlagRating: number;
+  createdAt: string;
   role: string;
   confidence: number;
-  context_snippet: string;
+  contextSnippet: string;
   ingestRunId?: string;
-  was_agentic?: boolean;
+  wasAgentic?: boolean;
 }
 
 interface RelatedEntity {
   id: number;
-  full_name: string;
-  entity_category: string;
-  shared_evidence_count: number;
+  fullName: string;
+  entityCategory: string;
+  sharedEvidenceCount: number;
 }
 
 interface EntityEvidencePanelProps {
@@ -57,9 +57,9 @@ interface RelationEvidenceEdge {
   weight: number;
   evidence: {
     id: string;
-    document_id: number | null;
-    document_title?: string | null;
-    quote_text?: string | null;
+    documentId: number | null;
+    documentTitle?: string | null;
+    quoteText?: string | null;
     confidence?: number | null;
   }[];
 }
@@ -141,14 +141,14 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
   };
 
   const filteredEvidence = evidence.filter((e) => {
-    const matchesType = filterType === 'all' || e.evidence_type === filterType;
+    const matchesType = filterType === 'all' || e.evidenceType === filterType;
     const matchesRole = filterRole === 'all' || e.role === filterRole;
     const searchLower = searchTerm.toLowerCase();
     const matchesSearch =
       !searchTerm ||
       (e.title && e.title.toLowerCase().includes(searchLower)) ||
       (e.description && e.description.toLowerCase().includes(searchLower)) ||
-      (e.context_snippet && e.context_snippet.toLowerCase().includes(searchLower));
+      (e.contextSnippet && e.contextSnippet.toLowerCase().includes(searchLower));
     return matchesType && matchesRole && matchesSearch;
   });
 
@@ -161,7 +161,7 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
   const hasMore = itemsToShow < filteredEvidence.length;
 
   const resolveDocumentId = (item: Evidence): string | null => {
-    const raw = item.document_id ?? item.id;
+    const raw = item.documentId ?? item.id;
     if (raw === null || raw === undefined) return null;
     const asString = String(raw).trim();
     return /^\d+$/.test(asString) ? asString : null;
@@ -217,9 +217,9 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
         </div>
         <div className="space-y-2">
           {stats.typeBreakdown.map((item: any) => (
-            <div key={item.evidence_type} className="flex items-center justify-between">
+            <div key={item.evidenceType} className="flex items-center justify-between">
               <span className="text-sm text-slate-300">
-                {getEvidenceTypeLabel(item.evidence_type)}
+                {getEvidenceTypeLabel(item.evidenceType)}
               </span>
               <div className="flex items-center space-x-3">
                 <div className="w-32 bg-slate-700 rounded-full h-2">
@@ -297,9 +297,9 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
                   to={`/entity/${entity.id}`}
                   className="flex items-center justify-between p-3 bg-slate-900/50 rounded-lg hover:bg-slate-700 transition border border-slate-700/50"
                 >
-                  <span className="text-sm font-medium text-slate-200">{entity.full_name}</span>
+                  <span className="text-sm font-medium text-slate-200">{entity.fullName}</span>
                   <span className="text-xs font-semibold text-blue-400">
-                    {entity.shared_evidence_count} shared
+                    {entity.sharedEvidenceCount} shared
                   </span>
                 </Link>
               ))}
@@ -317,15 +317,15 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
                   },
                   ...stats.relatedEntities.slice(0, 15).map((e: RelatedEntity) => ({
                     id: String(e.id),
-                    label: e.full_name,
+                    label: e.fullName,
                     type: 'person',
                     importance: Math.min(
                       5,
-                      Math.max(1, Math.ceil(Math.log(e.shared_evidence_count) * 1.5)),
+                      Math.max(1, Math.ceil(Math.log(e.sharedEvidenceCount) * 1.5)),
                     ),
                     metadata: {
                       connections: [entityId],
-                      category: e.entity_category,
+                      category: e.entityCategory,
                     },
                   })),
                 ]}
@@ -336,10 +336,10 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
                   type: 'connection',
                   strength: Math.min(
                     10,
-                    Math.max(1, Math.ceil(Math.log(e.shared_evidence_count) * 2)),
+                    Math.max(1, Math.ceil(Math.log(e.sharedEvidenceCount) * 2)),
                   ),
                   metadata: {
-                    frequency: e.shared_evidence_count,
+                    frequency: e.sharedEvidenceCount,
                   },
                 }))}
                 height={400}
@@ -456,12 +456,12 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
                   <ul className="mt-1 space-y-1">
                     {rel.evidence.slice(0, 3).map((ev) => (
                       <li key={ev.id} className="text-xs text-slate-400">
-                        {ev.document_title && (
-                          <span className="font-medium text-slate-300">{ev.document_title}</span>
+                        {ev.documentTitle && (
+                          <span className="font-medium text-slate-300">{ev.documentTitle}</span>
                         )}
-                        {ev.quote_text && (
+                        {ev.quoteText && (
                           <span className="block text-slate-500 italic truncate">
-                            “{ev.quote_text}”
+                            “{ev.quoteText}”
                           </span>
                         )}
                       </li>
@@ -501,8 +501,8 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
             >
               <option value="all">All Types</option>
               {stats.typeBreakdown.map((item: any) => (
-                <option key={item.evidence_type} value={item.evidence_type}>
-                  {getEvidenceTypeLabel(item.evidence_type)}
+                <option key={item.evidenceType} value={item.evidenceType}>
+                  {getEvidenceTypeLabel(item.evidenceType)}
                 </option>
               ))}
             </select>
@@ -539,9 +539,9 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
                     {item.description && (
                       <p className="text-sm text-slate-400 line-clamp-2 mb-2">{item.description}</p>
                     )}
-                    {item.context_snippet && (
+                    {item.contextSnippet && (
                       <p className="text-xs text-slate-400 italic bg-yellow-900/20 p-2 rounded border-l-2 border-yellow-600/50 text-yellow-200/90 break-words">
-                        "{item.context_snippet}"
+                        "{item.contextSnippet}"
                       </p>
                     )}
                   </div>
@@ -551,15 +551,15 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
                         {item.role}
                       </span>
                     )}
-                    {item.red_flag_rating > 0 && (
+                    {item.redFlagRating > 0 && (
                       <div className="flex items-center space-x-1">
                         <AlertTriangle className="w-4 h-4 text-red-500" />
                         <span className="text-xs font-semibold text-red-400">
-                          {item.red_flag_rating}
+                          {item.redFlagRating}
                         </span>
                       </div>
                     )}
-                    {item.was_agentic && (
+                    {item.wasAgentic && (
                       <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-purple-900/20 border border-purple-500/20 text-purple-400 text-[10px] uppercase font-bold">
                         <Fingerprint size={10} />
                         Agentic
@@ -577,11 +577,11 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
                 <div className="mt-3 overflow-hidden">
                   <EvidenceLadder
                     level={
-                      item.evidence_type === 'entity_creation' ? 3 : item.confidence > 0.8 ? 1 : 2
+                      item.evidenceType === 'entity_creation' ? 3 : item.confidence > 0.8 ? 1 : 2
                     }
                     confidence={item.confidence}
                     ingestRunId={item.ingestRunId}
-                    wasAgentic={item.was_agentic}
+                    wasAgentic={item.wasAgentic}
                     className="bg-slate-950/30 p-3 rounded-lg border border-slate-700/50"
                   />
                 </div>
@@ -590,11 +590,11 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
                   <div className="flex items-center space-x-3">
                     <span className="flex items-center space-x-1">
                       <Tag className="w-3 h-3" />
-                      <span>{getEvidenceTypeLabel(item.evidence_type)}</span>
+                      <span>{getEvidenceTypeLabel(item.evidenceType)}</span>
                     </span>
                     <span className="flex items-center space-x-1">
                       <Calendar className="w-3 h-3" />
-                      <span>{new Date(item.created_at).toLocaleDateString()}</span>
+                      <span>{new Date(item.createdAt).toLocaleDateString()}</span>
                     </span>
                   </div>
                   {documentId ? (

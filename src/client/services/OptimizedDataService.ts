@@ -153,7 +153,7 @@ export class OptimizedDataService {
             const term = (filters.searchTerm || '').toLowerCase();
             result.data = result.data
               .map((person: any) => {
-                const baseRating = person.red_flag_rating ?? person.redFlagRating ?? 0;
+                const baseRating = person.redFlagRating ?? 0;
                 const mentions = person.mentions || 0;
                 const displayName = person.fullName || person.name || '';
 
@@ -175,12 +175,11 @@ export class OptimizedDataService {
                   ...person,
                   name: displayName,
                   files: person.documentCount || person.files || 0,
-                  likelihood_score: person.likelihoodLevel || person.likelihood_score,
+                  likelihoodScore: person.likelihoodScore || person.likelihoodLevel,
                   role: person.primaryRole || person.role,
                   title: person.title,
-                  title_variants: person.titleVariants || person.title_variants,
-                  red_flag_rating: baselineRating,
-                  evidence_types: person.evidenceTypes || person.evidence_types || [],
+                  redFlagRating: baselineRating,
+                  evidenceTypes: person.evidenceTypes || [],
                 };
               })
               .filter((p) => (term ? (p.name || '').toLowerCase().includes(term) : true));
@@ -191,7 +190,7 @@ export class OptimizedDataService {
               result.data = result.data.filter((p: any) => {
                 // Relaxed check: Keep if any relevance signal is present
                 return (
-                  (p.red_flag_rating || 0) >= 1 ||
+                  (p.redFlagRating || 0) >= 1 ||
                   (p.mentions || 0) >= 1 ||
                   (p.photos && p.photos.length > 0) ||
                   (p.role && p.role !== 'Unknown')

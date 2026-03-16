@@ -17,14 +17,14 @@ import { apiClient } from '../../services/apiClient';
 
 interface EvidenceRecord {
   id: number;
-  evidence_type: string;
+  evidenceType: string;
   title?: string;
   description?: string;
-  red_flag_rating?: number;
-  created_at?: string;
+  redFlagRating?: number;
+  createdAt?: string;
   notes?: string;
   relevance?: string;
-  metadata_json?: string;
+  metadataJson?: string;
 }
 
 interface NotebookProps {
@@ -494,7 +494,7 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
     });
 
     for (const e of orderedList) {
-      const type = e.evidence_type || '';
+      const type = e.evidenceType || '';
       if (type === 'audio') result.audio.push(e);
       else if (type === 'video') result.video.push(e);
       else if (
@@ -529,11 +529,11 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
     const videoIds: number[] = [];
 
     for (const e of grouped.audio) {
-      const meta = parseMeta(e.metadata_json);
+      const meta = parseMeta(e.metadataJson);
       if (meta.media_item_id) audioIds.push(meta.media_item_id);
     }
     for (const e of grouped.video) {
-      const meta = parseMeta(e.metadata_json);
+      const meta = parseMeta(e.metadataJson);
       if (meta.media_item_id) videoIds.push(meta.media_item_id);
     }
 
@@ -832,7 +832,7 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
           </div>
           <div className="space-y-3">
             {grouped.snippet.map((e) => {
-              const meta = parseMeta(e.metadata_json);
+              const meta = parseMeta(e.metadataJson);
               const docId = meta.document_id;
               const highlight = (e as any).description || '';
               const viewUrl = docId
@@ -886,7 +886,7 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
           </div>
           <div className="space-y-3">
             {grouped.audio.map((e) => {
-              const meta = parseMeta(e.metadata_json);
+              const meta = parseMeta(e.metadataJson);
               const mediaId = meta.media_item_id;
               const albumId = meta.album_id;
               const details = mediaId ? mediaCache[mediaId] : null;
@@ -948,7 +948,7 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
           </div>
           <div className="space-y-3">
             {grouped.video.map((e) => {
-              const meta = parseMeta(e.metadata_json);
+              const meta = parseMeta(e.metadataJson);
               const mediaId = meta.media_item_id;
               const albumId = meta.album_id;
               const details = mediaId ? mediaCache[mediaId] : null;

@@ -3,21 +3,21 @@ export type RiskLevel = 'HIGH' | 'MEDIUM' | 'LOW';
 export interface SubjectCardStatsDto {
   mentions: number;
   documents: number;
-  distinct_sources: number;
-  verified_media: number;
+  distinctSources: number;
+  verifiedMedia: number;
 }
 
 export interface SubjectCardForensicsDto {
-  risk_level: RiskLevel;
-  evidence_ladder: 'L1' | 'L2' | 'L3' | 'NONE';
-  red_flag_objective?: number;
-  red_flag_subjective?: number;
-  signal_strength: {
+  riskLevel: RiskLevel;
+  evidenceLadder: 'L1' | 'L2' | 'L3' | 'NONE';
+  redFlagObjective?: number;
+  redFlagSubjective?: number;
+  signalStrength: {
     exposure: number;
     connectivity: number;
     corroboration: number;
   };
-  driver_labels: string[];
+  driverLabels: string[];
 }
 
 export interface SubjectCardTopPreviewDto {
@@ -33,10 +33,10 @@ export interface SubjectCardListItemDto {
   id: string;
   name: string;
   role: string;
-  short_bio?: string;
+  shortBio?: string;
   stats: SubjectCardStatsDto;
   forensics: SubjectCardForensicsDto;
-  top_preview?: SubjectCardTopPreviewDto;
+  topPreview?: SubjectCardTopPreviewDto;
   topPhotoId?: string;
 }
 
@@ -50,21 +50,20 @@ export interface EntityListItemDto {
   name: string;
   fullName: string;
   bio?: string;
-  entity_type: string;
+  entityType: string;
   primaryRole: string;
   secondaryRoles: string[];
   mentions: number;
   files: number;
   contexts: Record<string, unknown>[];
-  evidence_types: string[];
   evidenceTypes: string[];
   photos: Record<string, unknown>[];
-  significant_passages: Record<string, unknown>[];
-  likelihood_score: RiskLevel;
-  red_flag_score: number;
-  red_flag_rating: number;
-  red_flag_peppers: string;
-  red_flag_description: string;
+  significantPassages: Record<string, unknown>[];
+  likelihoodScore: RiskLevel;
+  redFlagScore: number;
+  redFlagRating: number;
+  redFlagPeppers: string;
+  redFlagDescription: string;
   connectionsToEpstein: string;
 }
 

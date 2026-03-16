@@ -23,16 +23,12 @@ export interface Person {
   id: number | string;
   name: string;
   fullName: string;
-  full_name?: string;
   title?: string;
   role?: string;
   primaryRole?: string;
-  primary_role?: string;
-  secondary_roles?: string;
   secondaryRoles?: string[];
   status?: string;
   connections?: string;
-  title_variants?: string[];
   mentions: number;
   files: number;
   documentCount?: number;
@@ -42,9 +38,8 @@ export interface Person {
     date: string;
     source?: string;
   }>;
-  evidence_types: string[];
-  evidenceTypes?: string[];
-  significant_passages: Array<{
+  evidenceTypes: string[];
+  significantPassages: Array<{
     keyword: string;
     passage: string;
     filename: string;
@@ -52,20 +47,14 @@ export interface Person {
     contentSnippet?: string;
     documentId?: string;
   }>;
-  likelihood_score?: 'HIGH' | 'MEDIUM' | 'LOW' | string;
-  likelihood_level?: string;
+  likelihoodScore?: 'HIGH' | 'MEDIUM' | 'LOW' | string;
   likelihoodLevel?: string;
-  red_flag_rating?: number;
-  red_flag_score?: number;
-  red_flag_peppers?: string;
-  red_flag_description?: string;
   redFlagRating?: number;
+  redFlagScore?: number;
+  redFlagPeppers?: string;
   redFlagDescription?: string;
-  risk_level?: 'HIGH' | 'MEDIUM' | 'LOW' | string;
   riskLevel?: string;
-  entity_type?: string;
   entityType?: string;
-  is_vip?: boolean | number;
   isVip?: boolean;
   blackBookEntries?: {
     id: number;
@@ -74,8 +63,8 @@ export interface Person {
     addresses?: string[];
     entryText?: string;
     notes?: string;
-    entry_category?: string;
-    document_id?: number;
+    entryCategory?: string;
+    documentId?: number;
   }[];
   hasBlackBook?: boolean;
 
@@ -90,21 +79,16 @@ export interface Person {
   description?: string;
   birthDate?: string;
   deathDate?: string;
-  birth_date?: string;
-  death_date?: string;
   photos?: Photo[];
 
   // DB & Internal Fields
   connectionsSummary?: string;
-  significantPassages?: any[];
   mediaCount?: number;
   timelineEvents?: any[];
   networkConnections?: any[];
   connectionsToEpstein?: string;
   wasAgentic?: boolean;
-  was_agentic?: boolean;
   ingestRunId?: string;
-  ingest_run_id?: string;
 }
 
 export interface Mention {
@@ -175,26 +159,26 @@ export interface SubjectCardDTO {
   id: string;
   name: string;
   role: string;
-  short_bio?: string;
+  shortBio?: string;
   stats: {
     mentions: number;
     documents: number;
-    distinct_sources: number;
-    verified_media: number;
+    distinctSources: number;
+    verifiedMedia: number;
   };
   forensics: {
-    risk_level: 'HIGH' | 'MEDIUM' | 'LOW' | string;
-    evidence_ladder: 'L1' | 'L2' | 'L3' | 'NONE';
-    red_flag_objective?: number;
-    red_flag_subjective?: number;
-    signal_strength: {
+    riskLevel: 'HIGH' | 'MEDIUM' | 'LOW' | string;
+    evidenceLadder: 'L1' | 'L2' | 'L3' | 'NONE';
+    redFlagObjective?: number;
+    redFlagSubjective?: number;
+    signalStrength: {
       exposure: number;
       connectivity: number;
       corroboration: number;
     };
-    driver_labels: string[];
+    driverLabels: string[];
   };
-  top_preview?: {
+  topPreview?: {
     id: string;
     type: 'document' | 'flight_log' | 'black_book' | 'testimony';
     title: string;
@@ -203,5 +187,5 @@ export interface SubjectCardDTO {
     year?: number;
   };
   topPhotoId?: string;
-  red_flag_rating?: number;
+  redFlagRating?: number;
 }

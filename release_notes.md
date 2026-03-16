@@ -1,5 +1,24 @@
 # Release Notes
 
+## 16.5.0 - 2026-03-16 - API camelCase Standardisation & Risk Score Backfill
+
+### API Contract
+
+- All `/api` responses now return camelCase keys unconditionally. A global `deepCamelKeys` middleware on the Express router recursively transforms every response object before it is sent, eliminating the previous mixed state where some routes returned snake_case fields and others returned camelCase.
+- Removed dual-field outputs (`evidence_types` + `evidenceTypes`, `red_flag_rating` + `redFlagRating`, etc.) from all entity and investigation DTO mappers.
+- All shared DTOs (`src/shared/dto/`), Zod schemas (`src/shared/schemas/`), and the root `Person` / `SubjectCardDTO` interfaces (`src/types.ts`) updated to camelCase-only field names.
+- Client components, hooks, services, and utilities updated across 50+ files to read camelCase properties exclusively.
+
+### Risk Score Backfill
+
+- Ran `scripts/recalculate_entity_risk.ts` to recompute risk scores for all 532,791 entities using the current `entityRisk-v1` algorithm; anchor score 250, Jeffrey Epstein normalised to 100/100.
+
+### Bug Fixes
+
+- Fixed `PersonCard` showing 0/5 risk rating: `EvidenceModal` was reading `entity.redFlagRating` but the mapper was emitting `red_flag_rating`; resolved by the global middleware.
+- Fixed `GraphService.normalizeNode` reading stale `primary_role`, `top_photo_id`, `photo_url` properties; updated to `primaryRole`, `topPhotoId`.
+- Fixed `InvestigationWorkspace` entity category fallback reading `entity.primary_role` instead of `entity.primaryRole`.
+
 ## 16.4.0 - 2026-03-15 - Security, Reliability & Pipeline Observability
 
 ### Security

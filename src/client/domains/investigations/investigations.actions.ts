@@ -105,7 +105,7 @@ export const investigationActions = {
       return true;
     }
 
-    const evidenceLinkId = item.investigation_evidence_id;
+    const evidenceLinkId = item.investigationEvidenceId;
     deps.addToast({
       text: 'Source missing for this evidence link.',
       type: 'warning',

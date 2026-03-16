@@ -95,7 +95,7 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
         id: e.id,
         name: e.fullName || e.name,
         role: e.primaryRole || e.role || 'Unknown',
-        redFlagRating: e.red_flag_rating || e.redFlagRating || 0,
+        redFlagRating: e.redFlagRating ?? 0,
       }));
       setPeople(formattedPeople);
     } catch (error) {

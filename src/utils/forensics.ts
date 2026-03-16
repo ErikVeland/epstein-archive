@@ -7,7 +7,8 @@ export interface PersonAdapter {
   files?: number;
   mentions: number;
   contexts?: any[];
-  evidence_types?: string[];
+  evidenceTypes?: string[];
+  wasAgentic?: boolean;
   [key: string]: any;
 }
 
@@ -43,7 +44,7 @@ export interface EvidenceLadderResult {
  * L3: Agentic/Derivative (AI Summary only)
  */
 export const calculateEvidenceLadder = (person: Person | PersonAdapter): EvidenceLadderResult => {
-  const evidenceTypes = (person.evidence_types || []).map((t) => t.toLowerCase());
+  const evidenceTypes = (person.evidenceTypes || []).map((t) => t.toLowerCase());
   const hasPhotos = person.photos && person.photos.length > 0;
   const inBlackBook = person.blackBookEntries && person.blackBookEntries.length > 0;
 
@@ -102,7 +103,7 @@ export const calculateSignalMetrics = (person: Person | PersonAdapter): SignalMe
   // A person with 100 mentions in 50 docs = High corroboration.
   const docRatio =
     (person.files || 0) > 0 ? Math.min(1, (person.files || 0) / (person.mentions || 1)) : 0;
-  const typeCount = (person.evidence_types || []).length;
+  const typeCount = (person.evidenceTypes || []).length;
 
   // Mix of doc diversity and evidence variety
   const corroboration = Math.min(100, typeCount * 20 + docRatio * 50);
@@ -115,7 +116,7 @@ export const calculateSignalMetrics = (person: Person | PersonAdapter): SignalMe
  */
 export const generateDriverChips = (person: Person | PersonAdapter): DriverChip[] => {
   const chips: DriverChip[] = [];
-  const evidenceTypes = (person.evidence_types || []).map((t) => t.toLowerCase());
+  const evidenceTypes = (person.evidenceTypes || []).map((t) => t.toLowerCase());
 
   if (person.blackBookEntries && person.blackBookEntries.length > 0) {
     chips.push({ label: 'Black Book Entry', type: 'critical' });
@@ -138,7 +139,7 @@ export const generateDriverChips = (person: Person | PersonAdapter): DriverChip[
   }
 
   // Fallback for purely agentic/low-signal
-  if (chips.length === 0 && person.was_agentic) {
+  if (chips.length === 0 && person.wasAgentic) {
     chips.push({ label: 'AI Derived', type: 'unverified' });
   }
 

@@ -87,13 +87,13 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
         const fromCaseFolder = allItems
           .filter(
             (item: any) =>
-              item?.target_type === 'entity' ||
-              String(item?.source_path || '').startsWith('entity:') ||
+              item?.targetType === 'entity' ||
+              String(item?.sourcePath || '').startsWith('entity:') ||
               ['entity', 'person', 'organization'].includes(String(item?.type || '').toLowerCase()),
           )
           .map((item: any) => {
-            if (item?.target_id) return String(item.target_id);
-            const sourcePath = String(item?.source_path || '');
+            if (item?.targetId) return String(item.targetId);
+            const sourcePath = String(item?.sourcePath || '');
             const match = sourcePath.match(/^entity:(\d+)$/);
             return match ? match[1] : null;
           })

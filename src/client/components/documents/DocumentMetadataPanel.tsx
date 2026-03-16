@@ -33,7 +33,7 @@ export const DocumentMetadataPanel: React.FC<DocumentMetadataPanelProps> = ({
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
-  const riskRating = document.redFlagRating || document.red_flag_rating || 0;
+  const riskRating = document.redFlagRating ?? 0;
   const riskClass =
     riskRating >= 4
       ? 'risk-critical'

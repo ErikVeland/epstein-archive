@@ -156,7 +156,7 @@ export const filterPeopleOnly = (people: Person[]): Person[] => {
     if (!rawName) return false;
 
     // Check type explicitly if available
-    const type = p.entity_type || (p as any).type;
+    const type = p.entityType || (p as any).type;
     if (type && !['person', 'Person', 'Individual', 'Unknown'].includes(type)) {
       return false;
     }
