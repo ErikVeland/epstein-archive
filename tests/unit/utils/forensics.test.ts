@@ -17,7 +17,7 @@ describe('calculateEvidenceLadder', () => {
       id: 2,
       name: 'Flyer',
       mentions: 10,
-      evidence_types: ['flight_log'],
+      evidenceTypes: ['flight_log'],
     } as any);
     expect(result.level).toBe('L1');
   });
