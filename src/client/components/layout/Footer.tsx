@@ -39,10 +39,11 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
         const stats = statsRes.value;
 
         const dbOk = health.checks?.db?.ok === true;
-        const entities = Number(health.checks?.data?.entities || 0);
-        const documents = Number(health.checks?.data?.documents || 0);
         const statsEntities = Number(stats?.totalEntities || 0);
         const statsDocuments = Number(stats?.totalDocuments || 0);
+        // Use ?? so undefined (counts timed out) falls back to stats; only explicit 0 is an error
+        const entities = Number(health.checks?.data?.entities ?? statsEntities);
+        const documents = Number(health.checks?.data?.documents ?? statsDocuments);
         const probeFailures: string[] = [];
 
         if (subjectsRes.status !== 'fulfilled') probeFailures.push('subjects');

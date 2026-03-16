@@ -294,7 +294,7 @@ export class App {
     // Readiness endpoint: validates DB connectivity + core data path availability.
     router.get('/health/ready', async (req, res) => {
       const startedAt = Date.now();
-      const timeoutMs = Math.max(100, Number(process.env.READINESS_TIMEOUT_MS || 1200) || 1200);
+      const timeoutMs = Math.max(100, Number(process.env.READINESS_TIMEOUT_MS || 8000) || 8000);
       const userAgent = String(req.headers['user-agent'] || '');
       const browserRequest = /\bmozilla\/\d/i.test(userAgent);
       const softMode = String(req.query.soft || '') === '1' || browserRequest;
