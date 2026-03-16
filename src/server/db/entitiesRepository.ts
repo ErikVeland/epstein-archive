@@ -363,7 +363,7 @@ export const entitiesRepository = {
     }
     if (riskLevels && riskLevels.length > 0) {
       const p = addParam(riskLevels);
-      whereParts.push(`e.riskLevel = ANY(${p}::text[])`);
+      whereParts.push(`e.risk_level = ANY(${p}::text[])`);
     }
     if (filters?.minRedFlagIndex !== undefined) {
       const p = addParam(filters.minRedFlagIndex);
@@ -384,7 +384,7 @@ export const entitiesRepository = {
 
     const whereSql = whereParts.length ? `WHERE ${whereParts.join(' AND ')}` : '';
 
-    const riskRankExpr = `CASE UPPER(COALESCE(e.riskLevel, 'LOW')) WHEN 'HIGH' THEN 3 WHEN 'MEDIUM' THEN 2 WHEN 'LOW' THEN 1 ELSE 0 END`;
+    const riskRankExpr = `CASE UPPER(COALESCE(e.risk_level, 'LOW')) WHEN 'HIGH' THEN 3 WHEN 'MEDIUM' THEN 2 WHEN 'LOW' THEN 1 ELSE 0 END`;
     const inferredRankExpr = `CASE
       WHEN LOWER(COALESCE(e.full_name, '')) ~* '^(to|from|cc|bcc|subject|re|fwd|fw|of)\\b[:\\s-]*'
         OR LOWER(COALESCE(e.full_name, '')) ~* '\\m(to|from|cc|bcc|subject|re|fwd|fw)\\M\\s*$'
@@ -472,7 +472,7 @@ export const entitiesRepository = {
             e.primary_role as "primaryRole",
             e.bio,
             COALESCE(mc.mentions, COALESCE(e.mentions, 0)) as mentions,
-            e.riskLevel as "riskLevel",
+            e.risk_level as "riskLevel",
             e.red_flag_rating as "redFlagRating",
             e.connections_summary as "connections",
             e.was_agentic as "wasAgentic",
@@ -562,7 +562,7 @@ export const entitiesRepository = {
             e.primary_role as "primaryRole",
             e.bio,
             COALESCE(mc.mentions, COALESCE(e.mentions, 0)) as mentions,
-            e.riskLevel as "riskLevel",
+            e.risk_level as "riskLevel",
             e.red_flag_rating as "redFlagRating",
             e.connections_summary as "connections",
             e.was_agentic as "wasAgentic",
