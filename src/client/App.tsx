@@ -1234,9 +1234,6 @@ function App() {
                       to="/"
                       className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
                     >
-                      <div className="bg-gradient-to-br from-cyan-500 to-blue-600 p-2 rounded-lg shadow-lg shadow-cyan-500/20 flex-shrink-0">
-                        <Icon name="Database" size="md" color="white" />
-                      </div>
                       <RedactedLogo text="THE EPSTEIN FILES" />
                     </Link>
 

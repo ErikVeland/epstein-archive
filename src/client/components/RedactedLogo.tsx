@@ -159,17 +159,7 @@ export const RedactedLogo: React.FC<RedactedLogoProps> = ({ text, className = ''
               █
             </span>
           ) : (
-            // Normal gradient letter
-            <span
-              style={{
-                background: 'linear-gradient(90deg, #22d3ee, #60a5fa, #a78bfa)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-              }}
-            >
-              {char}
-            </span>
+            <span style={{ color: '#f1f5f9' }}>{char}</span>
           )}
         </span>
       );
@@ -208,20 +198,7 @@ export const RedactedLogo: React.FC<RedactedLogoProps> = ({ text, className = ''
           filter: globalGlitch ? 'hue-rotate(20deg)' : 'none',
         }}
       >
-        {isAnimating ? (
-          renderText()
-        ) : (
-          <span
-            style={{
-              background: 'linear-gradient(90deg, #22d3ee, #60a5fa, #a78bfa)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-            }}
-          >
-            {text}
-          </span>
-        )}
+        {isAnimating ? renderText() : <span style={{ color: '#f1f5f9' }}>{text}</span>}
       </h1>
     </div>
   );
