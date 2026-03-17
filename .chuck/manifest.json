@@ -1,0 +1,13 @@
+{
+  "domains": {
+    "GLOBAL": {
+      "state": "active",
+      "rules_file": "domains/global.md",
+      "description": "Always-on global rules (keep < 200 tokens)"
+    }
+  },
+  "global_exclude": ["ignore rules", "skip chuck", "no context"],
+  "token_budget": 2000,
+  "devmode": false,
+  "injection_mode": "decisions_only"
+}
