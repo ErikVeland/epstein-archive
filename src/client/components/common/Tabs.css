@@ -43,10 +43,10 @@
   background: transparent;
   color: var(--tab-text-muted);
   font-family: var(--font-sans);
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0.02em;
   transition: all var(--duration-normal) var(--easing-liquid);
   white-space: nowrap;
   outline: none;
@@ -102,7 +102,7 @@
   bottom: 0;
   height: 2px;
   background: var(--accent);
-  box-shadow: 0 0 15px var(--accent-glow);
+  box-shadow: none;
   transition: all var(--duration-normal) var(--easing-liquid);
   pointer-events: none;
   border-radius: 999px;

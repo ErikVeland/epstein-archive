@@ -4,33 +4,20 @@
   flex-direction: column;
   gap: var(--space-3);
   padding: var(--space-4);
-  background: rgba(15, 23, 42, 0.4);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: var(--radius-lg);
+  background: #15151a;
+  backdrop-filter: none;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-md);
   transition: all var(--duration-normal) var(--easing-liquid);
   cursor: pointer;
   overflow: hidden;
 }
 
-.document-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.1) 0%, transparent 100%);
-  opacity: 0;
-  transition: opacity var(--duration-normal) var(--easing-liquid);
-}
-
 .document-card:hover {
-  background: rgba(15, 23, 42, 0.6);
-  border-color: rgba(59, 130, 246, 0.3);
-  transform: translateY(-2px);
-  box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.4);
-}
-
-.document-card:hover::before {
-  opacity: 1;
+  background: #1a1a20;
+  border-color: rgba(255, 255, 255, 0.12);
+  transform: none;
+  box-shadow: none;
 }
 
 .document-card.dense {
@@ -164,25 +151,15 @@
   position: fixed;
   z-index: 1000;
   width: 420px;
-  background: rgba(15, 23, 42, 0.9);
+  background: #0e0e11;
   backdrop-filter: blur(16px);
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  border-radius: var(--radius-xl);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md);
   box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6);
   pointer-events: none;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-}
-
-.preview-glow {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 200px;
-  height: 100px;
-  background: radial-gradient(ellipse at center, rgba(59, 130, 246, 0.2) 0%, transparent 70%);
 }
 
 .preview-content {

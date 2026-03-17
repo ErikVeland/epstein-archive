@@ -210,6 +210,7 @@ export async function runIntelligencePipeline() {
     const insertMentionSql = `
       INSERT INTO entity_mentions (id, entity_id, document_id, surface_text, mention_context, confidence, ingest_run_id)
       VALUES ($1, $2, $3, $4, $5, $6, $7)
+      ON CONFLICT DO NOTHING
     `;
 
     const updateEvidenceCountSql = `
@@ -237,7 +238,7 @@ export async function runIntelligencePipeline() {
         AND (processing_status = 'succeeded' OR processing_status = 'completed')
       ORDER BY id ASC
     `)
-    ).rows.filter((d: any) => !processedDocIds.has(d.id));
+    ).rows.filter((d: any) => !processedDocIds.has(Number(d.id)));
 
     const totalDocs = docs.length;
     console.log(`   Found ${totalDocs} documents for intelligence extraction.`);

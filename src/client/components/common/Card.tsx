@@ -61,14 +61,14 @@ export const Card: React.FC<CardProps> = ({
         <div className="flex items-start justify-between mb-5 gap-4">
           <div className="flex items-start space-x-4 overflow-hidden">
             {icon && (
-              <div className="bg-gradient-to-br from-slate-700 to-slate-800 rounded-xl p-3.5 group-hover:from-slate-600 group-hover:to-slate-700 transition-all duration-300 shrink-0 shadow-inner border border-white/5">
+              <div className="shrink-0 mt-0.5">
                 <Icon name={icon} size="md" color={iconColor} />
               </div>
             )}
             <div className="min-w-0">
               {title && (
                 <h3
-                  className="text-lg font-bold text-white group-hover:text-blue-400 transition-colors line-clamp-2 leading-tight break-all"
+                  className="text-lg font-bold text-white group-hover:text-[var(--accent)] transition-colors line-clamp-2 leading-tight break-all"
                   title={title}
                 >
                   {title}

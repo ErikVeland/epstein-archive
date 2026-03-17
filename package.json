@@ -29,6 +29,7 @@
     "db:merge": "tsx scripts/sync-db.ts",
     "db:push": "./deploy.sh --db-only",
     "ingest:intelligence": "tsx scripts/ingest_intelligence.ts",
+    "pipeline:backfill": "tsx scripts/unified_pipeline.ts --mode backfill",
     "black-book:enrich": "tsx scripts/enrich_black_book.ts",
     "media:thumbnails:backfill": "tsx scripts/backfill_thumbnails.ts",
     "lint": "eslint . --ext .ts,.tsx",

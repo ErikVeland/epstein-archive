@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ExternalLink, Heart, Shield, BookOpen, Github, Eye, EyeOff } from 'lucide-react';
+import { ExternalLink, Github, Eye, EyeOff } from 'lucide-react';
 import { useSensitiveSettings } from '../../contexts/SensitiveSettingsContext';
 import { Link } from 'react-router-dom';
 import { apiClient } from '../../services/apiClient';
@@ -88,7 +88,7 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
 
   const statusConfig = {
     checking: { color: 'bg-yellow-500', text: 'Checking Status' },
-    operational: { color: 'bg-green-500 animate-pulse', text: 'System Operational' },
+    operational: { color: 'bg-green-600', text: 'Operational' },
     error: { color: 'bg-red-500', text: 'System Issue Detected' },
   };
 
@@ -98,7 +98,7 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 mb-12">
           {/* Column 1: Brand & Copyright */}
           <div className="space-y-6">
-            <h3 className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent neon-text-cyan inline-block">
+            <h3 className="font-display text-xl font-normal text-white tracking-tight">
               The Epstein Files
             </h3>
             <p className="text-slate-400 text-sm leading-relaxed max-w-xs">
@@ -133,8 +133,8 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
 
           {/* Column 2: Mission & Transparency */}
           <div className="space-y-6">
-            <h4 className="text-slate-100 font-bold flex items-center gap-2 text-sm uppercase tracking-wider">
-              <Shield className="w-4 h-4 text-cyan-400" /> Mission
+            <h4 className="text-xs font-medium text-slate-500 border-l-2 border-slate-700 pl-3 mb-1 tracking-wide">
+              Mission
             </h4>
             <ul className="space-y-3 text-sm text-slate-400">
               <li>
@@ -193,8 +193,8 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
 
           {/* Column 3: Support */}
           <div className="space-y-6">
-            <h4 className="text-slate-100 font-bold flex items-center gap-2 text-sm uppercase tracking-wider">
-              <Heart className="w-4 h-4 text-pink-500" /> Support
+            <h4 className="text-xs font-medium text-slate-500 border-l-2 border-slate-700 pl-3 mb-1 tracking-wide">
+              Support
             </h4>
             <ul className="space-y-3 text-sm text-slate-400">
               <li>
@@ -220,8 +220,8 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
 
           {/* Column 4: Network */}
           <div className="space-y-6">
-            <h4 className="text-slate-100 font-bold flex items-center gap-2 text-sm uppercase tracking-wider">
-              <BookOpen className="w-4 h-4 text-blue-400" /> Network
+            <h4 className="text-xs font-medium text-slate-500 border-l-2 border-slate-700 pl-3 mb-1 tracking-wide">
+              Network
             </h4>
             <ul className="space-y-3 text-sm text-slate-400">
               <li>

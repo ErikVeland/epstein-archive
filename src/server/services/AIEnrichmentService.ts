@@ -137,6 +137,7 @@ export class AIEnrichmentService {
               // returned directly rather than consumed by reasoning_content.
               enable_thinking: false,
             }),
+            signal: AbortSignal.timeout(120_000),
           });
 
           if (!response.ok) {

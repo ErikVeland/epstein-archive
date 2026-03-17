@@ -11,7 +11,7 @@ import { AIEnrichmentService } from '../src/server/services/AIEnrichmentService.
 import { getIngestPool } from '../src/server/db/connection.js';
 
 // Configuration
-const BATCH_SIZE = parseInt(process.env.BATCH_SIZE || '50', 10);
+const BATCH_SIZE = parseInt(process.env.BATCH_SIZE || '20', 10);
 const CONCURRENCY = parseInt(process.env.PIPELINE_CONCURRENCY || '8', 10);
 const CHECKPOINT_DIR = './pipeline_checkpoints';
 const LIVE_STATUS_FILE = './pipeline_checkpoints/live_status.json';
@@ -149,7 +149,7 @@ async function runEnrichPhase(
 
   let whereClause = 'content IS NOT NULL AND length(content) > 50';
   if (mode === 'backfill') {
-    whereClause += " AND (metadata_json IS NULL OR metadata_json NOT LIKE '%ai_summary%')";
+    whereClause += " AND (metadata_json IS NULL OR NOT metadata_json ? 'ai_summary')";
   } else if (mode === 'new') {
     whereClause += " AND created_at > now() - interval '1 day'";
   }
@@ -162,24 +162,24 @@ async function runEnrichPhase(
 
   let documentsEnriched = 0;
   let summariesGenerated = 0;
-  let offset = 0;
   const startTime = Date.now();
 
   // Record when this enrichment run began so the widget can compute throughput/ETA
   writeLiveStatus({ enrichStartedAt: new Date().toISOString() });
 
-  while (true) {
+  while (!shuttingDown) {
+    // Always query at offset 0: enriched docs drop out of the WHERE clause
+    // so the result set naturally shrinks each iteration.
     const docs = (
       await pool.query(
         `
-      SELECT id, content, metadata_json, file_name
+      SELECT id, LEFT(content, 4000) AS content, metadata_json, file_name
       FROM documents
       WHERE ${whereClause}
       ORDER BY id ASC
       LIMIT $1
-      OFFSET $2
     `,
-        [BATCH_SIZE, offset],
+        [BATCH_SIZE],
       )
     ).rows as any[];
 
@@ -188,61 +188,68 @@ async function runEnrichPhase(
     // Write progress to live_status.json once per batch so the widget stays current
     writeLiveStatus({
       phase: 'Enrichment',
-      enrichProcessed: offset,
+      enrichProcessed: documentsEnriched,
       enrichTotal,
       currentFile: docs[0]?.file_name ?? null,
     });
 
-    for (let i = 0; i < docs.length; i += CONCURRENCY) {
-      const chunk = docs.slice(i, i + CONCURRENCY);
-
-      await Promise.all(
-        chunk.map(async (doc) => {
-          try {
-            let meta: Record<string, any> = {};
-            if (doc.metadata_json) {
-              try {
-                meta = JSON.parse(doc.metadata_json);
-              } catch {
-                meta = { _original: doc.metadata_json };
-              }
+    // Process sequentially: EXO is local so parallel requests queue up on its side
+    // anyway, while concurrent fetches multiply Node.js heap usage for no throughput gain.
+    for (const doc of docs) {
+      if (shuttingDown) break;
+      try {
+        // node-postgres auto-parses jsonb into objects; handle both cases
+        let meta: Record<string, any> = {};
+        if (doc.metadata_json) {
+          if (typeof doc.metadata_json === 'object') {
+            meta = doc.metadata_json;
+          } else {
+            try {
+              meta = JSON.parse(doc.metadata_json);
+            } catch {
+              meta = {};
             }
-
-            const subject = meta.subject || meta.title || doc.file_name || 'Unknown Document';
-            let refinedText = doc.content;
-            if (doc.content.includes('=')) {
-              refinedText = await AIEnrichmentService.repairMimeWildcards(doc.content, subject);
-            }
-
-            let summary = await AIEnrichmentService.summarizeDocument(refinedText, {
-              fileName: doc.file_name,
-              subject,
-            });
-
-            if (!summary || summary.length < 10) {
-              const preview = refinedText
-                .replace(/[\r\n]+/g, ' ')
-                .replace(/\s+/g, ' ')
-                .trim()
-                .slice(0, 200);
-              summary = `Document "${doc.file_name}" summary preview: ${preview}...`;
-            }
-
-            meta.ai_summary = summary;
-            meta.ai_enriched_at = new Date().toISOString();
-            meta.ai_provider = process.env.AI_PROVIDER;
-
-            await pool.query(
-              'UPDATE documents SET metadata_json = $1, content_refined = $2 WHERE id = $3',
-              [JSON.stringify(meta), refinedText, doc.id],
-            );
-            summariesGenerated++;
-            documentsEnriched++;
-          } catch (error) {
-            console.error(`   ❌ Failed to enrich document ${doc.id}:`, error);
           }
-        }),
-      );
+        }
+        // Release metadata_json from the row object immediately after parsing
+        doc.metadata_json = null;
+
+        const subject = meta.subject || meta.title || doc.file_name || 'Unknown Document';
+
+        // Skip expensive MIME repair during backfill — it generates hundreds
+        // of LLM calls per large doc and overwhelms the inference backend.
+        // Use deterministic decode only; summarizer truncates to 2000 chars anyway.
+        const refinedText = AIEnrichmentService.decodeHtmlAndUnicode(doc.content);
+        // Release raw content from row object — refinedText is the only copy we need
+        doc.content = null;
+
+        let summary = await AIEnrichmentService.summarizeDocument(refinedText, {
+          fileName: doc.file_name,
+          subject,
+        });
+
+        if (!summary || summary.length < 10) {
+          const preview = refinedText
+            .replace(/[\r\n]+/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .slice(0, 200);
+          summary = `Document "${doc.file_name}" summary preview: ${preview}...`;
+        }
+
+        meta.ai_summary = summary;
+        meta.ai_enriched_at = new Date().toISOString();
+        meta.ai_provider = process.env.AI_PROVIDER;
+
+        await pool.query(
+          'UPDATE documents SET metadata_json = $1, content_refined = $2 WHERE id = $3',
+          [JSON.stringify(meta), refinedText, doc.id],
+        );
+        summariesGenerated++;
+        documentsEnriched++;
+      } catch (error) {
+        console.error(`   ❌ Failed to enrich document ${doc.id}:`, error);
+      }
 
       if (documentsEnriched % 10 === 0) {
         const elapsed = (Date.now() - startTime) / 1000;
@@ -250,13 +257,19 @@ async function runEnrichPhase(
         process.stdout.write(`\r   ⏳ ${documentsEnriched} enriched | ${rate.toFixed(1)} docs/s`);
       }
     }
-    offset += BATCH_SIZE;
+
+    // Brief pause between batches — allows V8 GC to reclaim the just-processed docs
+    // before loading the next batch.
+    await sleep(200);
   }
   console.log('\n');
   return { documentsEnriched, summariesGenerated };
 }
 
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+// Graceful shutdown flag — set by SIGTERM/SIGINT so loops can exit cleanly.
+let shuttingDown = false;
 
 /**
  * Run one full pipeline cycle.
@@ -299,6 +312,47 @@ async function runCycle(mode: string, sourceDir: string): Promise<void> {
  * Main orchestrator — runs continuously until killed.
  */
 async function main() {
+  // Catch silent crashes
+  process.on('uncaughtException', (err: Error) => {
+    console.error('\n💀 UNCAUGHT EXCEPTION:', err);
+    writeLiveStatus({ crashed: true, lastError: err.message, phase: 'Crashed' });
+    process.exit(1);
+  });
+  process.on('unhandledRejection', (reason: unknown) => {
+    console.error('\n💀 UNHANDLED REJECTION:', reason);
+    writeLiveStatus({ crashed: true, lastError: String(reason), phase: 'Crashed' });
+    process.exit(1);
+  });
+  // SIGTERM = macOS memory pressure. Spawn a fresh instance (clean heap) and exit
+  // immediately — do not wait for the current doc; macOS won't give us enough time.
+  process.on('SIGTERM', () => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    writeLiveStatus({ running: false, phase: 'Respawning' });
+    console.log('\n↩ SIGTERM — respawning with fresh heap...');
+    try {
+      const child = spawn(process.argv[0], [...process.execArgv, ...process.argv.slice(1)], {
+        detached: true,
+        stdio: 'inherit',
+        env: process.env,
+        cwd: process.cwd(),
+      });
+      child.unref();
+      console.log(`↩ Continuing as PID ${child.pid}`);
+    } catch (err) {
+      console.error('Failed to respawn:', err);
+    }
+    process.exit(0);
+  });
+  // SIGINT (Ctrl+C) = intentional stop, no respawn.
+  process.on('SIGINT', () => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    console.log('\n🛑 Stopped.');
+    writeLiveStatus({ running: false, phase: 'Stopped' });
+    process.exit(0);
+  });
+
   const args = process.argv.slice(2);
   const modeIndex = args.indexOf('--mode');
   const sourceIndex = args.indexOf('--source');
@@ -320,7 +374,7 @@ async function main() {
   writeLiveStatus({ running: true, crashed: false, phase: 'Starting' });
 
   let cycleCount = 0;
-  while (true) {
+  while (!shuttingDown) {
     cycleCount++;
     console.log(`\n[Cycle ${cycleCount} — ${new Date().toLocaleTimeString()}]`);
     try {
@@ -332,8 +386,11 @@ async function main() {
       await sleep(60_000);
       continue;
     }
-    await sleep(30_000);
+    if (!shuttingDown) await sleep(30_000);
   }
+  writeLiveStatus({ running: false, phase: 'Stopped' });
+  console.log('✅ Pipeline stopped cleanly.');
+  process.exit(0);
 }
 
 import { pathToFileURL } from 'url';
