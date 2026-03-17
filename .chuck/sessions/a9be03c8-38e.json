@@ -1,0 +1,8 @@
+{
+  "id": "a9be03c8-38e",
+  "prompt_count": 1,
+  "domain_hits": {},
+  "created_at": "2026-03-17T14:17:46.954883",
+  "miss_prompts": ["Deploy minor version"],
+  "last_active": "2026-03-17T14:17:46.954989"
+}

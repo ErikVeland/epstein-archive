@@ -1,5 +1,38 @@
 # Release Notes
 
+## 16.6.0 - 2026-03-17 - Humanistic Design Refactor
+
+### Visual Design
+
+- Replaced ambient radial gradient blobs on the page body with a clean flat dark background (`#0a0a0b`).
+- Swapped Inter for **IBM Plex Sans** (body/UI) and added **DM Serif Display** as a display typeface for editorial contexts; IBM Plex Mono replaces JetBrains Mono.
+- Replaced cyan accent (`#33a8ff`) with archival amber (`#d4a84b`) across tab indicators, search button, focus outlines, and card hover titles.
+- Domain accents desaturated: docs → deep editorial red, emails → steel-blue, investigations → measured purple, evidence → teal.
+- Risk scale collapsed from 6 saturated colours to 3 visual bands: deep red (critical/high), dark goldenrod (medium), forest green (low/minimal).
+- Border radii sharpened: `8/12/16px` → `4/6/8px`.
+
+### Glass-morphism Removal
+
+- `.glass-panel`, `.glass-card`, `.glass-surface` converted to opaque solid surfaces (`#15151a`); backdrop-filter and `--glass-shine` pseudo-element removed.
+- Card and control hover states no longer apply `translateY` lift.
+- Document cards: solid background, no blur, no lift on hover; `.document-card::before` radial glow and `.preview-glow` deleted.
+- Blur preserved only on justified overlay elements: sticky header, dropdowns, header search pill.
+
+### Footer
+
+- Brand name gradient clip-text replaced with DM Serif Display plain white.
+- Column headings (`Mission`, `Support`, `Network`) changed from uppercase+icon to a quiet `border-l` label style.
+- Status indicator pulsing animation removed.
+
+### Tabs
+
+- Tab labels: uppercase + heavy tracking removed; `font-weight: 500`, `text-transform: none`, `letter-spacing: 0.02em`.
+- Tab indicator glow (`box-shadow`) removed.
+
+### Card Component
+
+- Decorative gradient icon wrapper removed; icon rendered bare with `shrink-0` positioning.
+
 ## 16.5.0 - 2026-03-16 - API camelCase Standardisation & Risk Score Backfill
 
 ### API Contract

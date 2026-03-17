@@ -21,8 +21,8 @@
 
   /* Typography */
   --font-display: 'DM Serif Display', Georgia, serif;
-  --font-sans:    'IBM Plex Sans', 'Inter', system-ui, sans-serif;
-  --font-mono:    'IBM Plex Mono', ui-monospace, monospace;
+  --font-sans: 'IBM Plex Sans', 'Inter', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 
   /* Liquid Motion */
   --easing-liquid: cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -32,7 +32,7 @@
   --duration-slow: 500ms;
 
   /* Color Palette */
-  --bg-dark:    #0a0a0b;
+  --bg-dark: #0a0a0b;
   --bg-surface: #111114;
   --glass-bg: rgba(15, 23, 42, 0.56);
   --glass-bg-strong: rgba(15, 23, 42, 0.74);
@@ -47,20 +47,20 @@
   --text-muted: #94a3b8;
   --text-dim: #64748b;
 
-  --accent:      #d4a84b;
+  --accent: #d4a84b;
   --accent-glow: rgba(212, 168, 75, 0.35);
-  --accent-docs:        #c0392b;
-  --accent-emails:      #5b7fa6;
+  --accent-docs: #c0392b;
+  --accent-emails: #5b7fa6;
   --accent-investigate: #9b5ea3;
-  --accent-evidence:    #3d8b8b;
+  --accent-evidence: #3d8b8b;
 
   /* Semantic Risk Scale */
   --risk-critical: #c0392b;
-  --risk-high:     #c0392b;
-  --risk-medium:   #b8860b;
-  --risk-low:      #2e7d5a;
-  --risk-minimal:  #2e7d5a;
-  --risk-unknown:  #6b7280;
+  --risk-high: #c0392b;
+  --risk-medium: #b8860b;
+  --risk-low: #2e7d5a;
+  --risk-minimal: #2e7d5a;
+  --risk-unknown: #6b7280;
   --confidence-high: #8b5cf6;
 }
 
