@@ -1235,32 +1235,26 @@ function App() {
                       <RedactedLogo text="THE EPSTEIN FILES" />
                     </Link>
 
-                    {/* Stats - Desktop only */}
-                    <div className="hidden lg:flex items-center space-x-5 ml-6 pl-6 border-l border-[var(--glass-border)]">
-                      <div className="flex flex-col items-start px-2 gap-0 relative group">
-                        <span className="text-[9px] text-[var(--text-muted)] uppercase tracking-[0.2em] font-semibold mb-0.5">
-                          Subjects
-                        </span>
-                        <span className="text-base font-light tracking-tighter text-[var(--accent)] font-mono transition-transform duration-300 group-hover:scale-105">
-                          {headerTotalPeople.toLocaleString()}
-                        </span>
-                      </div>
-                      <div className="flex flex-col items-start px-2 gap-0 relative group">
-                        <span className="text-[9px] text-[var(--text-muted)] uppercase tracking-[0.2em] font-semibold mb-0.5">
-                          Mentions
-                        </span>
-                        <span className="text-base font-light tracking-tighter text-[var(--accent-info)] font-mono transition-transform duration-300 group-hover:scale-105">
-                          {headerTotalMentions.toLocaleString()}
-                        </span>
-                      </div>
-                      <div className="flex flex-col items-start px-2 gap-0 relative group">
-                        <span className="text-[9px] text-[var(--text-muted)] uppercase tracking-[0.2em] font-semibold mb-0.5">
-                          Files
-                        </span>
-                        <span className="text-base font-light tracking-tighter text-[var(--accent-docs)] font-mono transition-transform duration-300 group-hover:scale-105">
-                          {headerTotalFiles.toLocaleString()}
-                        </span>
-                      </div>
+                    {/* Stats - Desktop only, single-line */}
+                    <div className="hidden lg:flex items-center gap-5 ml-6 pl-6 border-l border-[var(--glass-border)]">
+                      <span
+                        className="text-sm font-mono font-light tracking-tight text-[var(--accent)]"
+                        title="Subjects"
+                      >
+                        {headerTotalPeople.toLocaleString()}
+                      </span>
+                      <span
+                        className="text-sm font-mono font-light tracking-tight text-[var(--accent-info)]"
+                        title="Mentions"
+                      >
+                        {headerTotalMentions.toLocaleString()}
+                      </span>
+                      <span
+                        className="text-sm font-mono font-light tracking-tight text-[var(--accent-docs)]"
+                        title="Files"
+                      >
+                        {headerTotalFiles.toLocaleString()}
+                      </span>
                     </div>
                   </div>
 
@@ -1293,48 +1287,16 @@ function App() {
                       </button>
 
                       {/* Sources */}
-                      <div className="group relative">
-                        <button
-                          onClick={() => navigate('/about')}
-                          className="group control flex items-center rounded-full h-11 pl-2.5 pr-2.5 hover:pr-4 transition-all duration-300"
-                          title="Verified Sources"
-                        >
-                          <Icon name="Shield" size="sm" color="success" />
-                          <span className="max-w-0 group-hover:max-w-xs overflow-hidden transition-all duration-300 opacity-0 group-hover:opacity-100 whitespace-nowrap text-sm text-[var(--text-primary)] ml-0 group-hover:ml-2">
-                            Sources
-                          </span>
-                        </button>
-                        {/* Tooltip Panel */}
-                        <div className="absolute hidden group-hover:block z-50 right-0 top-full mt-2 w-80 glass-panel p-4 shadow-xl transition-opacity duration-300">
-                          <div className="text-sm font-semibold text-[var(--text-primary)] mb-2">
-                            Verified Sources
-                          </div>
-                          <div className="text-xs text-[var(--text-secondary)] space-y-2">
-                            <div>
-                              <div className="font-medium text-[var(--accent-success)] mb-1">
-                                Source Types:
-                              </div>
-                              <ul className="list-disc list-inside space-y-1 text-[var(--text-muted)]">
-                                <li>Court Documents & Legal Filings</li>
-                                <li>Flight Logs & Travel Records</li>
-                                <li>Email Correspondence</li>
-                                <li>Deposition Transcripts</li>
-                                <li>Financial Records</li>
-                                <li>Photographic Evidence</li>
-                              </ul>
-                            </div>
-                            <div className="pt-2 border-t border-[var(--glass-border)]">
-                              <div className="font-medium text-[var(--accent)]">
-                                Total Documents: {headerTotalFiles.toLocaleString()}
-                              </div>
-                              <div className="text-[var(--text-muted)] mt-1">
-                                All sources verified through public court records and official
-                                filings
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                      <button
+                        onClick={() => navigate('/about')}
+                        className="group control flex items-center rounded-full h-11 pl-2.5 pr-2.5 hover:pr-4 transition-all duration-300"
+                        title="Verified Sources"
+                      >
+                        <Icon name="Shield" size="sm" color="success" />
+                        <span className="max-w-0 group-hover:max-w-xs overflow-hidden transition-all duration-300 opacity-0 group-hover:opacity-100 whitespace-nowrap text-sm text-[var(--text-primary)] ml-0 group-hover:ml-2">
+                          Sources
+                        </span>
+                      </button>
 
                       {/* What's New */}
                       <button

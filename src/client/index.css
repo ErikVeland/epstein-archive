@@ -423,7 +423,7 @@ body {
 }
 .data-emphasis {
   font-family: var(--font-mono);
-  font-size: clamp(2rem, 3vw, 2.75rem);
+  font-size: clamp(1.1rem, 2vw, 1.5rem);
   font-weight: var(--weight-thin);
   letter-spacing: var(--tracking-tight);
 }

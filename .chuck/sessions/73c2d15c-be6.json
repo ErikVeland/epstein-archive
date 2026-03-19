@@ -1,0 +1,10 @@
+{
+  "id": "73c2d15c-be6",
+  "prompt_count": 1,
+  "domain_hits": {},
+  "created_at": "2026-03-19T19:07:15.043510",
+  "miss_prompts": [
+    "<task-notification>\n<task-id>b0kk0obhi</task-id>\n<tool-use-id>toolu_01GxQ15o7ZtzH4AYKRaNyqaZ</tool-use-id>\n<output-file>/private/tmp/claude-503/-Volumes-Media-Epstein-Files-epstein-archive/67b4b16e-6b"
+  ],
+  "last_active": "2026-03-19T19:07:15.043631"
+}
