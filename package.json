@@ -1,7 +1,7 @@
 {
   "name": "epstein-archive",
   "private": true,
-  "version": "16.7.0",
+  "version": "16.8.0",
   "description": "Epstein Archive Analyzer",
   "type": "module",
   "engines": {
@@ -103,6 +103,7 @@
     "open": "^11.0.0",
     "pg": "^8.18.0",
     "pino": "^10.3.1",
+    "pino-http": "^11.0.0",
     "quoted-printable": "^1.0.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
