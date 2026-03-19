@@ -57,11 +57,12 @@ module.exports = {
       wait_ready: true, // Wait for 'ready' event from application (if implemented)
 
       // === ENVIRONMENT ===
+      // Secrets (JWT_SECRET, JWT_REFRESH_SECRET, DATABASE_URL) MUST be in the remote .env file.
+      // Never hardcode secrets in this file — it is tracked in Git.
       env: {
         NODE_ENV: 'production',
         PORT: 3012,
         RAW_CORPUS_BASE_PATH: './data',
-        JWT_REFRESH_SECRET: 'epstein-archive-prod-refresh-secret-2026',
         CORS_ORIGIN:
           'https://epstein.academy,https://www.epstein.academy,https://glasscode.academy,https://www.glasscode.academy',
         EXO_MODEL: 'mlx-community/Qwen3-30B-A3B-4bit',
@@ -70,7 +71,8 @@ module.exports = {
         NODE_ENV: 'production',
         PORT: 3012,
         RAW_CORPUS_BASE_PATH: './data',
-        JWT_REFRESH_SECRET: 'epstein-archive-prod-refresh-secret-2026',
+        CORS_ORIGIN:
+          'https://epstein.academy,https://www.epstein.academy,https://glasscode.academy,https://www.glasscode.academy',
         EXO_MODEL: 'mlx-community/Qwen3-30B-A3B-4bit',
       },
     },

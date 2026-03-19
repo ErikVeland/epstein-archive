@@ -8,6 +8,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import toobusy from 'toobusy-js';
 import rateLimit from 'express-rate-limit';
+import pinoHttp from 'pino-http';
 import { logger } from './server/services/Logger.js';
 import { requestIdMiddleware } from './server/middleware/requestId.js';
 import { globalErrorHandler } from './server/utils/errorHandler.js';
@@ -109,6 +110,32 @@ export class App {
 
     // 1. Core Security & Performance
     this.app.use(requestIdMiddleware);
+
+    // 1b. Structured HTTP access logging
+    this.app.use(
+      pinoHttp({
+        logger,
+        autoLogging: {
+          ignore: (req) => {
+            const url = (req as any).originalUrl || req.url || '';
+            return url === '/api/health' || url === '/api/ready' || url.startsWith('/api/health/');
+          },
+        },
+        customLogLevel: (_req, res, err) => {
+          if (res.statusCode >= 500 || err) return 'error';
+          if (res.statusCode >= 400) return 'warn';
+          return 'info';
+        },
+        serializers: {
+          req: (req) => ({
+            method: req.method,
+            url: req.url,
+            remoteAddress: req.remoteAddress,
+          }),
+          res: (res) => ({ statusCode: res.statusCode }),
+        },
+      }),
+    );
     this.app.use(
       helmet({
         contentSecurityPolicy: {
@@ -146,6 +173,8 @@ export class App {
                 ? []
                 : defaultDevOrigins;
 
+          // Allow same-origin / server-to-server requests (no Origin header).
+          // Write-route protection is handled by auth middleware, not CORS.
           if (!origin) {
             return callback(null, true);
           }
@@ -863,20 +892,36 @@ export class App {
     return new Promise<void>((resolve) => {
       this.server = this.app.listen(port, () => {
         logger.info(`Server running on port ${port}`);
+        // Signal PM2 that the process is ready to accept traffic.
+        if (typeof process.send === 'function') {
+          process.send('ready');
+        }
         resolve();
       });
     });
   }
 
   public async shutdown(): Promise<void> {
+    const SHUTDOWN_TIMEOUT_MS = 8_000;
     const { drainPools } = await import('./server/db/connection.js');
+
+    // Stop accepting new connections.
     await new Promise<void>((resolve) => {
       if (this.server) {
         this.server.close(() => resolve());
+
+        // Force-close lingering connections after the grace period so shutdown
+        // is not blocked by long-running requests (graph paths, deep health).
+        setTimeout(() => {
+          logger.warn('Shutdown grace period exceeded, forcing remaining connections closed');
+          this.server?.closeAllConnections();
+          resolve();
+        }, SHUTDOWN_TIMEOUT_MS);
       } else {
         resolve();
       }
     });
+
     await drainPools();
   }
 }
