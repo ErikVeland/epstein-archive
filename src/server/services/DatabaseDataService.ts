@@ -62,7 +62,7 @@ export class DatabaseDataService {
       const subject = await entitiesRepository.getEntityById(id);
       return subject as Person | null;
     } catch (error) {
-      logger.error(`Error fetching entity ${id} from database:`, error);
+      logger.error({ err: error }, `Error fetching entity ${id} from database`);
       throw new Error(
         `Failed to fetch entity: ${error instanceof Error ? error.message : String(error)}`,
       );

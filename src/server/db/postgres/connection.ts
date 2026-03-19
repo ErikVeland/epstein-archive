@@ -21,7 +21,7 @@ export function getPgPool(): pg.Pool {
   });
 
   pool.on('error', (err) => {
-    logger.error('Unexpected error on idle Postgres client', err);
+    logger.error({ err }, 'Unexpected error on idle Postgres client');
     process.exit(-1);
   });
 

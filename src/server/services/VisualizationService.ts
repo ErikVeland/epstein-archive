@@ -179,7 +179,7 @@ export class VisualizationService {
         }
       });
     } catch (e) {
-      logger.info('Flight data not available for geospatial visualization', e);
+      logger.info({ err: e }, 'Flight data not available for geospatial visualization');
     }
 
     return locations;

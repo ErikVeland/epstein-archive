@@ -32,18 +32,21 @@ function wrapPool(pool: pg.Pool, label: string): pg.Pool {
         const store = requestContext.getStore();
         const requestId = store?.requestId || 'no-req-id';
         const rowCount = (res as any).rowCount ?? (res as any).rows?.length ?? 0;
-        logger.warn('[PG_QUERY]', {
-          requestId,
-          queryName,
-          durationMs,
-          rowCount,
-          pool: {
-            total: pool.totalCount,
-            idle: pool.idleCount,
-            waitingBefore,
-            waitingAfter: pool.waitingCount,
+        logger.warn(
+          {
+            requestId,
+            queryName,
+            durationMs,
+            rowCount,
+            pool: {
+              total: pool.totalCount,
+              idle: pool.idleCount,
+              waitingBefore,
+              waitingAfter: pool.waitingCount,
+            },
           },
-        });
+          '[PG_QUERY]',
+        );
       }
       return res;
     } catch (err: any) {

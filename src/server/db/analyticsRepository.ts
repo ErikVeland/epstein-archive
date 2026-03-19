@@ -117,7 +117,7 @@ export const analyticsRepository = {
       return result.rows;
     } catch (err) {
       await client.query('ROLLBACK').catch(() => {});
-      logger.warn('[Analytics] getTopConnectedPeople failed:', (err as Error).message);
+      logger.warn({ err }, '[Analytics] getTopConnectedPeople failed');
       return [];
     } finally {
       client.release();

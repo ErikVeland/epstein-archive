@@ -90,7 +90,7 @@ export class BackupService {
           fs.unlinkSync(path.join(this.BACKUP_DIR, backup.filename));
           logger.info(`[BackupService] Rotated old backup: ${backup.filename}`);
         } catch (e) {
-          logger.error(`[BackupService] Failed to rotate backup ${backup.filename}:`, e);
+          logger.error({ err: e }, `[BackupService] Failed to rotate backup ${backup.filename}`);
         }
       }
     }

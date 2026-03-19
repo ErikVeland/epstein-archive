@@ -1,5 +1,40 @@
 # Release Notes
 
+## v16.9.0 - 2026-03-19 - Production Readiness Hardening
+
+### Security
+
+- Removed hardcoded `JWT_REFRESH_SECRET` from PM2 ecosystem config; all secrets now loaded exclusively from the remote `.env`.
+- Untracked `.env.production` and `.env.audit` from Git; broadened `.gitignore` to blanket-exclude `.env.*` except `.env.example`.
+- Added `CORS_ORIGIN` to the `env_production` PM2 block to prevent empty-origin misconfiguration.
+
+### Observability
+
+- Added `pino-http` structured access logging for all HTTP requests (health probes excluded).
+- Migrated 120+ `console.error/warn/log` calls across server code to the structured `pino` logger.
+- Global error handler now emits structured JSON logs with request context, PG metadata, and pool stats.
+
+### Reliability
+
+- Added `process.on('unhandledRejection')` and `process.on('uncaughtException')` safety nets in the server entry point.
+- Graceful shutdown now force-closes lingering HTTP connections after an 8-second grace period, preventing stale requests from blocking deploys.
+- Added `process.send('ready')` for PM2 `wait_ready` integration.
+- API response cache is now automatically purged after any successful write operation.
+
+### Deployment
+
+- Added `pg_dump -Fc` pre-migration backup step to the deploy pipeline.
+- Rollback procedure updated from legacy SQLite restore to Postgres `pg_restore --clean --if-exists`.
+
+### Database
+
+- Ran pending schema sync migration (entities.needs_review, entities.manually_reviewed, evidence.original_file_path, articles.link unique index, investigation_evidence unique constraint).
+- Ran `red_flag_score` column migration.
+
+### Verification
+
+- Zero TypeScript compiler errors and zero ESLint errors across the full codebase.
+
 ## v16.8.0 - 2026-03-19 - Error Fixes, Security Hardening & Deployment Refresh
 
 ### Bug Fixes

@@ -46,8 +46,8 @@ export async function refreshIfDue(): Promise<void> {
     const apiPool = getApiPool();
     if (apiPool.waitingCount > 0) {
       logger.warn(
-        '[MatViewRefresh] Deferred — API pool has waiting connections:',
-        apiPool.waitingCount,
+        { waitingCount: apiPool.waitingCount },
+        '[MatViewRefresh] Deferred — API pool has waiting connections',
       );
       return;
     }
@@ -71,7 +71,7 @@ export async function refreshIfDue(): Promise<void> {
         await pool.query(`REFRESH MATERIALIZED VIEW ${view}`);
       } catch (fallbackErr: any) {
         status = 'error';
-        logger.error(`[MatViewRefresh] Failed to refresh ${view}:`, fallbackErr.message);
+        logger.error({ err: fallbackErr }, `[MatViewRefresh] Failed to refresh ${view}`);
       }
     }
 

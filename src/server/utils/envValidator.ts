@@ -1,3 +1,5 @@
+import { logger } from '../services/Logger.js';
+
 export const validateEnvironment = () => {
   const requiredVars = ['RAW_CORPUS_BASE_PATH'];
   if (process.env.NODE_ENV === 'production') {

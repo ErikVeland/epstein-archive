@@ -9,6 +9,8 @@
  *   - Exo (distributed cluster via macOS 26.2 Thunderbolt 5 RDMA)
  */
 
+import { logger } from './Logger.js';
+
 declare const process: any;
 
 export interface EnrichmentOutput {
@@ -44,7 +46,7 @@ export class AIEnrichmentService {
     if (this.discoveredExoModel) return this.discoveredExoModel;
 
     try {
-      logger.info('🔍 Attempting Exo model discovery via:', `${this.EXO_HOST}/v1/models`);
+      logger.info(`🔍 Attempting Exo model discovery via: ${this.EXO_HOST}/v1/models`);
       const response = await fetch(`${this.EXO_HOST}/v1/models`);
       if (!response.ok) throw new Error(`Exo discovery failed: ${response.status}`);
 
@@ -75,7 +77,7 @@ export class AIEnrichmentService {
         return this.discoveredExoModel!;
       }
     } catch (err: any) {
-      logger.warn('⚠️ Failed to discover Exo model:', err.message);
+      logger.warn({ err }, '⚠️ Failed to discover Exo model');
     }
 
     const fallback = '306A62B7'; // Confirmed active instance ID
@@ -177,7 +179,7 @@ export class AIEnrichmentService {
           e.cause?.code === 'ECONNRESET';
 
         if (attempt > retryCount) {
-          logger.error(`❌ AI Enrichment failed after ${retryCount + 1} attempts:`, e);
+          logger.error({ err: e }, `❌ AI Enrichment failed after ${retryCount + 1} attempts`);
           return '';
         }
 

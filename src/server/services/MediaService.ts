@@ -891,7 +891,7 @@ export class MediaService {
       try {
         await this.deleteImage(id);
       } catch (err) {
-        logger.error(`Failed to delete image ${id} in bulk:`, err);
+        logger.error({ err }, `Failed to delete image ${id} in bulk`);
       }
     }
   }
@@ -904,7 +904,7 @@ export class MediaService {
     const archive = archiver('zip', { zlib: { level: 9 } });
 
     archive.on('error', (err) => {
-      logger.error(`Archive error for album ${albumId}:`, err);
+      logger.error({ err }, `Archive error for album ${albumId}`);
       // Headers may already be sent; destroy the response stream to signal failure
       res.destroy(err);
     });
