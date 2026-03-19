@@ -74,13 +74,13 @@ const GlobalSearch: React.FC = () => {
   }, []);
 
   const categories = [
-    { id: 'all', name: 'All Categories', color: 'bg-gray-600' },
+    { id: 'all', name: 'All Categories', color: 'bg-[var(--glass-bg-highlight)]' },
     { id: 'emails', name: 'Emails', color: 'bg-green-600' },
     { id: 'legal_documents', name: 'Legal Documents', color: 'bg-red-600' },
     { id: 'flight_logs', name: 'Flight Records', color: 'bg-yellow-600' },
-    { id: 'testimonies', name: 'Testimonies', color: 'bg-cyan-600' },
+    { id: 'testimonies', name: 'Testimonies', color: 'bg-[var(--accent)]' },
     { id: 'financial_records', name: 'Financial', color: 'bg-orange-600' },
-    { id: 'general_documents', name: 'General', color: 'bg-blue-600' },
+    { id: 'general_documents', name: 'General', color: 'bg-[var(--accent)]' },
   ];
 
   useEffect(() => {
@@ -177,7 +177,7 @@ const GlobalSearch: React.FC = () => {
 
   const getCategoryColor = (category: string) => {
     const cat = categories.find((c) => c.id === category);
-    return cat?.color || 'bg-gray-600';
+    return cat?.color || 'bg-[var(--glass-bg-highlight)]';
   };
 
   const formatWordCount = (count: number) => {
@@ -189,15 +189,15 @@ const GlobalSearch: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Search Header */}
-      <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-gray-700">
+      <div className="bg-[var(--glass-bg)]/50 backdrop-blur-sm p-6 rounded-[var(--radius-xl)] border border-[var(--glass-border)]">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold text-white flex items-center space-x-2">
-            <Search className="h-6 w-6 text-cyan-400" />
+          <h2 className="text-2xl font-bold text-[var(--text-primary)] flex items-center space-x-2">
+            <Search className="h-6 w-6 text-[var(--accent)]" />
             <span>Global Evidence Search</span>
           </h2>
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center space-x-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-white transition-colors"
+            className="flex items-center space-x-2 px-4 py-2 bg-[var(--glass-bg-highlight)] hover:bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] text-[var(--text-primary)] transition-colors"
           >
             <Filter className="h-4 w-4" />
             <span>Filters</span>
@@ -209,18 +209,18 @@ const GlobalSearch: React.FC = () => {
 
         {/* Search Input */}
         <div className="relative">
-          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[var(--text-muted)]" />
           <input
             type="text"
             placeholder="Search across all evidence files... (e.g., Trump, Clinton, Epstein, flight logs, emails)"
-            className="w-full pl-12 pr-12 py-4 bg-gray-900/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-cyan-500 focus:border-transparent text-lg"
+            className="w-full pl-12 pr-12 py-4 bg-[var(--glass-bg-strong)]/50 border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] placeholder-gray-400 focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent text-lg"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
           {searchTerm && !loading && (
             <button
               onClick={() => setSearchTerm('')}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 p-1 rounded-full hover:bg-gray-800 text-gray-400 hover:text-white transition-colors"
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 p-1 rounded-full hover:bg-[var(--glass-bg)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
               title="Clear search"
             >
               <Search className="h-4 w-4" />
@@ -228,12 +228,12 @@ const GlobalSearch: React.FC = () => {
           )}
           {loading && (
             <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-cyan-400"></div>
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[var(--accent)]"></div>
             </div>
           )}
         </div>
 
-        <p className="text-gray-400 text-sm mt-2">
+        <p className="text-[var(--text-muted)] text-sm mt-2">
           Search across {stats?.totalDocuments?.toLocaleString() || 'thousands of'} evidence files.
           Try names, dates, document types, or key terms.
         </p>
@@ -241,14 +241,16 @@ const GlobalSearch: React.FC = () => {
 
       {/* Filters Panel */}
       {showFilters && (
-        <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-gray-700">
+        <div className="bg-[var(--glass-bg)]/50 backdrop-blur-sm p-6 rounded-[var(--radius-xl)] border border-[var(--glass-border)]">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
-              <label className="block text-white text-sm font-medium mb-2">Category</label>
+              <label className="block text-[var(--text-primary)] text-sm font-medium mb-2">
+                Category
+              </label>
               <select
                 value={filters.category}
                 onChange={(e) => setFilters({ ...filters, category: e.target.value })}
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-cyan-500"
+                className="w-full px-3 py-2 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--accent)]"
               >
                 {categories.map((cat) => (
                   <option key={cat.id} value={cat.id}>
@@ -259,18 +261,22 @@ const GlobalSearch: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-white text-sm font-medium mb-2">Entity</label>
+              <label className="block text-[var(--text-primary)] text-sm font-medium mb-2">
+                Entity
+              </label>
               <input
                 type="text"
                 placeholder="e.g., Trump, Epstein, Clinton"
                 value={filters.entity}
                 onChange={(e) => setFilters({ ...filters, entity: e.target.value })}
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-cyan-500"
+                className="w-full px-3 py-2 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] placeholder-gray-400 focus:ring-2 focus:ring-[var(--accent)]"
               />
             </div>
 
             <div>
-              <label className="block text-white text-sm font-medium mb-2">Min Word Count</label>
+              <label className="block text-[var(--text-primary)] text-sm font-medium mb-2">
+                Min Word Count
+              </label>
               <input
                 type="number"
                 min="0"
@@ -278,7 +284,7 @@ const GlobalSearch: React.FC = () => {
                 onChange={(e) =>
                   setFilters({ ...filters, min_word_count: parseInt(e.target.value) || 0 })
                 }
-                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-2 focus:ring-cyan-500"
+                className="w-full px-3 py-2 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--accent)]"
               />
             </div>
 
@@ -292,7 +298,7 @@ const GlobalSearch: React.FC = () => {
                     min_word_count: 0,
                   })
                 }
-                className="w-full px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-white transition-colors"
+                className="w-full px-4 py-2 bg-red-600 hover:bg-red-700 rounded-[var(--radius-lg)] text-[var(--text-primary)] transition-colors"
               >
                 Clear Filters
               </button>
@@ -303,27 +309,29 @@ const GlobalSearch: React.FC = () => {
 
       {/* Entity Results */}
       {entityResults.length > 0 && (
-        <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-6">
-          <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-            <User className="h-5 w-5 text-cyan-400" />
+        <div className="bg-[var(--glass-bg)]/50 backdrop-blur-sm rounded-[var(--radius-xl)] border border-[var(--glass-border)] p-6">
+          <h3 className="text-xl font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+            <User className="h-5 w-5 text-[var(--accent)]" />
             Matched Entities
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {entityResults.map((entity) => (
               <div
                 key={entity.id}
-                className="bg-gray-700/50 p-4 rounded-lg border border-gray-600 hover:border-cyan-500 transition-colors cursor-pointer"
+                className="bg-[var(--glass-bg-highlight)]/50 p-4 rounded-[var(--radius-lg)] border border-[var(--glass-border)] hover:border-[var(--accent)] transition-colors cursor-pointer"
               >
                 <div className="flex items-start justify-between">
                   <div>
-                    <h4 className="text-white font-medium">{entity.name}</h4>
-                    <p className="text-sm text-gray-400">{entity.role || 'Unknown Role'}</p>
+                    <h4 className="text-[var(--text-primary)] font-medium">{entity.name}</h4>
+                    <p className="text-sm text-[var(--text-muted)]">
+                      {entity.role || 'Unknown Role'}
+                    </p>
                   </div>
                   <div
                     className={`px-2 py-1 rounded text-xs font-bold ${
                       (entity.redFlagRating || 0) > 3
                         ? 'bg-red-900 text-red-200'
-                        : 'bg-gray-600 text-gray-300'
+                        : 'bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)]'
                     }`}
                   >
                     <span className="inline-flex items-center gap-1">
@@ -332,7 +340,7 @@ const GlobalSearch: React.FC = () => {
                     </span>
                   </div>
                 </div>
-                <div className="mt-3 flex items-center gap-4 text-xs text-gray-400">
+                <div className="mt-3 flex items-center gap-4 text-xs text-[var(--text-muted)]">
                   <span className="flex items-center gap-1">
                     <Eye className="h-3 w-3" />
                     {entity.files || 0} docs
@@ -349,13 +357,13 @@ const GlobalSearch: React.FC = () => {
       )}
 
       {/* Document Results */}
-      <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700">
-        <div className="p-6 border-b border-gray-700">
+      <div className="bg-[var(--glass-bg)]/50 backdrop-blur-sm rounded-[var(--radius-xl)] border border-[var(--glass-border)]">
+        <div className="p-6 border-b border-[var(--glass-border)]">
           <div className="flex items-center justify-between">
-            <h3 className="text-xl font-semibold text-white">
+            <h3 className="text-xl font-semibold text-[var(--text-primary)]">
               Evidence Results {searchTerm && `for "${searchTerm}"`}
             </h3>
-            <span className="text-gray-400">
+            <span className="text-[var(--text-muted)]">
               {filteredResults.length +
                 investigationResults.length +
                 articleResults.length +
@@ -375,19 +383,19 @@ const GlobalSearch: React.FC = () => {
                 onClick={() => (window.location.href = `/investigations/${inv.uuid}`)}
               >
                 <div className="flex items-center space-x-3 mb-2">
-                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-purple-600 text-white">
+                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-purple-600 text-[var(--text-primary)]">
                     Investigation
                   </span>
                   <span
-                    className={`px-2 py-1 rounded-full text-xs font-medium bg-gray-700 text-gray-300 uppercase`}
+                    className={`px-2 py-1 rounded-full text-xs font-medium bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] uppercase`}
                   >
                     {inv.status}
                   </span>
                 </div>
-                <h4 className="text-white font-medium text-lg mb-2">{inv.title}</h4>
+                <h4 className="text-[var(--text-primary)] font-medium text-lg mb-2">{inv.title}</h4>
                 {inv.snippet && (
                   <div
-                    className="text-gray-400 text-sm italic"
+                    className="text-[var(--text-muted)] text-sm italic"
                     dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(inv.snippet) }}
                   />
                 )}
@@ -410,22 +418,22 @@ const GlobalSearch: React.FC = () => {
                 }
               >
                 <div className="flex items-center space-x-3 mb-2">
-                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-orange-600 text-white">
+                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-orange-600 text-[var(--text-primary)]">
                     Article
                   </span>
-                  <span className="text-gray-400 text-sm">
+                  <span className="text-[var(--text-muted)] text-sm">
                     {art.source} by {art.author}
                   </span>
                   {art.pubDate && (
-                    <span className="text-gray-500 text-xs">
+                    <span className="text-[var(--text-muted)] text-xs">
                       {new Date(art.pubDate).toLocaleDateString()}
                     </span>
                   )}
                 </div>
-                <h4 className="text-white font-medium text-lg mb-2">{art.title}</h4>
+                <h4 className="text-[var(--text-primary)] font-medium text-lg mb-2">{art.title}</h4>
                 {art.snippet && (
                   <div
-                    className="text-gray-400 text-sm"
+                    className="text-[var(--text-muted)] text-sm"
                     dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(art.snippet) }}
                   />
                 )}
@@ -437,7 +445,7 @@ const GlobalSearch: React.FC = () => {
             mediaResults.map((med, index) => (
               <div
                 key={`med-${index}`}
-                className="p-6 hover:bg-blue-900/10 cursor-pointer transition-colors border-l-4 border-blue-500"
+                className="p-6 hover:bg-blue-900/10 cursor-pointer transition-colors border-l-4 border-[var(--accent)]"
                 onClick={() =>
                   setSelectedResult({
                     ...med,
@@ -448,15 +456,17 @@ const GlobalSearch: React.FC = () => {
                 }
               >
                 <div className="flex items-center space-x-3 mb-2">
-                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-600 text-white">
+                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-[var(--accent)] text-[var(--text-primary)]">
                     Media
                   </span>
-                  <span className="text-gray-400 text-sm font-mono">{med.fileType}</span>
+                  <span className="text-[var(--text-muted)] text-sm font-mono">{med.fileType}</span>
                 </div>
-                <h4 className="text-white font-medium text-lg mb-2">{med.title || med.filename}</h4>
+                <h4 className="text-[var(--text-primary)] font-medium text-lg mb-2">
+                  {med.title || med.filename}
+                </h4>
                 {med.snippet && (
                   <div
-                    className="text-gray-400 text-sm"
+                    className="text-[var(--text-muted)] text-sm"
                     dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(med.snippet) }}
                   />
                 )}
@@ -467,32 +477,39 @@ const GlobalSearch: React.FC = () => {
           {filteredResults.map((result, index) => (
             <div
               key={`doc-${index}`}
-              className="p-6 hover:bg-gray-800/30 cursor-pointer transition-colors border-l-4 border-emerald-500"
+              className="p-6 hover:bg-[var(--glass-bg)]/30 cursor-pointer transition-colors border-l-4 border-emerald-500"
               onClick={() => setSelectedResult(result)}
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center space-x-3 mb-2">
                     <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium text-white ${getCategoryColor(result.category)}`}
+                      className={`px-2 py-1 rounded-full text-xs font-medium text-[var(--text-primary)] ${getCategoryColor(result.category)}`}
                     >
                       {categories.find((c) => c.id === result.category)?.name || result.category}
                     </span>
-                    <span className="text-gray-400 text-sm">
+                    <span className="text-[var(--text-muted)] text-sm">
                       {result.wordCount ? formatWordCount(result.wordCount) : '0'} words
                     </span>
-                    <span className="text-cyan-400 text-sm font-medium">Score: {result.score}</span>
+                    <span className="text-[var(--accent)] text-sm font-medium">
+                      Score: {result.score}
+                    </span>
                   </div>
 
-                  <h4 className="text-white font-medium text-lg mb-2">{result.filename}</h4>
+                  <h4 className="text-[var(--text-primary)] font-medium text-lg mb-2">
+                    {result.filename}
+                  </h4>
 
-                  <p className="text-gray-400 text-sm mb-3">{result.file}</p>
+                  <p className="text-[var(--text-muted)] text-sm mb-3">{result.file}</p>
 
                   {result.highlights.length > 0 && (
                     <div className="space-y-1">
                       {result.highlights.slice(0, 3).map((highlight, idx) => (
-                        <div key={idx} className="text-gray-300 text-sm flex items-start space-x-2">
-                          <span className="mt-1 text-cyan-500">•</span>
+                        <div
+                          key={idx}
+                          className="text-[var(--text-secondary)] text-sm flex items-start space-x-2"
+                        >
+                          <span className="mt-1 text-[var(--accent)]">•</span>
                           <span
                             dangerouslySetInnerHTML={{
                               __html: DOMPurify.sanitize(
@@ -516,7 +533,7 @@ const GlobalSearch: React.FC = () => {
                       e.stopPropagation();
                       // Handle file preview
                     }}
-                    className="p-2 bg-cyan-600 hover:bg-cyan-700 rounded-lg text-white transition-colors"
+                    className="p-2 bg-[var(--accent)] hover:bg-cyan-700 rounded-[var(--radius-lg)] text-[var(--text-primary)] transition-colors"
                   >
                     <Eye className="h-4 w-4" />
                   </button>
@@ -525,7 +542,7 @@ const GlobalSearch: React.FC = () => {
                       e.stopPropagation();
                       // Handle file download
                     }}
-                    className="p-2 bg-gray-600 hover:bg-gray-700 rounded-lg text-white transition-colors"
+                    className="p-2 bg-[var(--glass-bg-highlight)] hover:bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] text-[var(--text-primary)] transition-colors"
                   >
                     <Download className="h-4 w-4" />
                   </button>
@@ -542,10 +559,12 @@ const GlobalSearch: React.FC = () => {
           mediaResults.length === 0 &&
           searchTerm && (
             <div className="p-12 text-center">
-              <Search className="h-12 w-12 text-gray-500 mx-auto mb-4" />
-              <h4 className="text-gray-300 font-medium mb-2">No results found</h4>
-              <p className="text-gray-500 mb-4">Try adjusting your search terms or filters</p>
-              <p className="text-gray-600 text-sm">
+              <Search className="h-12 w-12 text-[var(--text-muted)] mx-auto mb-4" />
+              <h4 className="text-[var(--text-secondary)] font-medium mb-2">No results found</h4>
+              <p className="text-[var(--text-muted)] mb-4">
+                Try adjusting your search terms or filters
+              </p>
+              <p className="text-[var(--text-primary)] text-sm">
                 Search tips: Try different spellings, use fewer keywords, or check entity names
               </p>
             </div>
@@ -553,9 +572,11 @@ const GlobalSearch: React.FC = () => {
 
         {!searchTerm && (
           <div className="p-12 text-center">
-            <Search className="h-12 w-12 text-gray-500 mx-auto mb-4" />
-            <h4 className="text-gray-300 font-medium mb-2">Start your investigation</h4>
-            <p className="text-gray-500">
+            <Search className="h-12 w-12 text-[var(--text-muted)] mx-auto mb-4" />
+            <h4 className="text-[var(--text-secondary)] font-medium mb-2">
+              Start your investigation
+            </h4>
+            <p className="text-[var(--text-muted)]">
               Enter a search term to begin exploring the evidence archive
             </p>
           </div>
@@ -566,22 +587,24 @@ const GlobalSearch: React.FC = () => {
       {selectedResult &&
         createPortal(
           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
-            <div className="bg-slate-800 rounded-xl max-w-4xl w-full max-h-[80vh] overflow-hidden border border-slate-700">
-              <div className="p-6 border-b border-slate-700">
+            <div className="bg-[var(--glass-bg)] rounded-[var(--radius-xl)] max-w-4xl w-full max-h-[80vh] overflow-hidden border border-[var(--glass-border)]">
+              <div className="p-6 border-b border-[var(--glass-border)]">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <span
-                      className={`px-3 py-1 rounded-full text-sm font-medium text-white ${getCategoryColor(selectedResult.category)}`}
+                      className={`px-3 py-1 rounded-full text-sm font-medium text-[var(--text-primary)] ${getCategoryColor(selectedResult.category)}`}
                     >
                       {categories.find((c) => c.id === selectedResult.category)?.name}
                     </span>
-                    <h3 className="text-xl font-semibold text-white">{selectedResult.filename}</h3>
+                    <h3 className="text-xl font-semibold text-[var(--text-primary)]">
+                      {selectedResult.filename}
+                    </h3>
                   </div>
                   <CloseButton
                     onClick={() => setSelectedResult(null)}
                     size="sm"
                     label="Close search result"
-                    className="border-slate-600 bg-slate-900/70 text-white"
+                    className="border-[var(--glass-border)] bg-[var(--glass-bg-strong)]/70 text-[var(--text-primary)]"
                   />
                 </div>
               </div>
@@ -589,31 +612,41 @@ const GlobalSearch: React.FC = () => {
               <div className="p-6 overflow-y-auto max-h-[60vh]">
                 <div className="grid grid-cols-2 gap-4 mb-6">
                   <div>
-                    <label className="block text-gray-400 text-sm mb-1">File Path</label>
-                    <p className="text-white text-sm font-mono">{selectedResult.file}</p>
+                    <label className="block text-[var(--text-muted)] text-sm mb-1">File Path</label>
+                    <p className="text-[var(--text-primary)] text-sm font-mono">
+                      {selectedResult.file}
+                    </p>
                   </div>
                   <div>
-                    <label className="block text-gray-400 text-sm mb-1">Word Count</label>
-                    <p className="text-white">{(selectedResult.wordCount || 0).toLocaleString()}</p>
+                    <label className="block text-[var(--text-muted)] text-sm mb-1">
+                      Word Count
+                    </label>
+                    <p className="text-[var(--text-primary)]">
+                      {(selectedResult.wordCount || 0).toLocaleString()}
+                    </p>
                   </div>
                   <div>
-                    <label className="block text-gray-400 text-sm mb-1">Search Score</label>
-                    <p className="text-cyan-400 font-medium">{selectedResult.score}</p>
+                    <label className="block text-[var(--text-muted)] text-sm mb-1">
+                      Search Score
+                    </label>
+                    <p className="text-[var(--accent)] font-medium">{selectedResult.score}</p>
                   </div>
                   <div>
-                    <label className="block text-gray-400 text-sm mb-1">Category</label>
-                    <p className="text-white">{selectedResult.category}</p>
+                    <label className="block text-[var(--text-muted)] text-sm mb-1">Category</label>
+                    <p className="text-[var(--text-primary)]">{selectedResult.category}</p>
                   </div>
                 </div>
 
                 {selectedResult.entities.length > 0 && (
                   <div className="mb-6">
-                    <label className="block text-gray-400 text-sm mb-2">Entities Mentioned</label>
+                    <label className="block text-[var(--text-muted)] text-sm mb-2">
+                      Entities Mentioned
+                    </label>
                     <div className="flex flex-wrap gap-2">
                       {selectedResult.entities.map((entity, idx) => (
                         <span
                           key={idx}
-                          className="px-3 py-1 bg-gray-700 text-gray-300 rounded-full text-sm"
+                          className="px-3 py-1 bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] rounded-full text-sm"
                         >
                           {entity}
                         </span>
@@ -624,12 +657,14 @@ const GlobalSearch: React.FC = () => {
 
                 {selectedResult.dates.length > 0 && (
                   <div className="mb-6">
-                    <label className="block text-gray-400 text-sm mb-2">Dates Mentioned</label>
+                    <label className="block text-[var(--text-muted)] text-sm mb-2">
+                      Dates Mentioned
+                    </label>
                     <div className="flex flex-wrap gap-2">
                       {selectedResult.dates.map((date, idx) => (
                         <span
                           key={idx}
-                          className="px-3 py-1 bg-gray-700 text-gray-300 rounded-full text-sm flex items-center space-x-2"
+                          className="px-3 py-1 bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] rounded-full text-sm flex items-center space-x-2"
                         >
                           <Calendar className="h-3 w-3" />
                           <span>{date}</span>
@@ -641,11 +676,16 @@ const GlobalSearch: React.FC = () => {
 
                 {selectedResult.highlights.length > 0 && (
                   <div>
-                    <label className="block text-gray-400 text-sm mb-2">Search Highlights</label>
+                    <label className="block text-[var(--text-muted)] text-sm mb-2">
+                      Search Highlights
+                    </label>
                     <div className="space-y-2">
                       {selectedResult.highlights.map((highlight, idx) => (
-                        <div key={idx} className="p-3 bg-gray-900 rounded-lg">
-                          <p className="text-cyan-300 text-sm">{highlight}</p>
+                        <div
+                          key={idx}
+                          className="p-3 bg-[var(--glass-bg-strong)] rounded-[var(--radius-lg)]"
+                        >
+                          <p className="text-[var(--accent)] text-sm">{highlight}</p>
                         </div>
                       ))}
                     </div>
@@ -653,10 +693,10 @@ const GlobalSearch: React.FC = () => {
                 )}
               </div>
 
-              <div className="p-6 border-t border-gray-700 flex justify-end space-x-3">
+              <div className="p-6 border-t border-[var(--glass-border)] flex justify-end space-x-3">
                 <button
                   onClick={() => setSelectedResult(null)}
-                  className="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg text-white transition-colors"
+                  className="px-4 py-2 bg-[var(--glass-bg-highlight)] hover:bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] text-[var(--text-primary)] transition-colors"
                 >
                   Close
                 </button>
@@ -664,7 +704,7 @@ const GlobalSearch: React.FC = () => {
                   onClick={() => {
                     // Handle file preview
                   }}
-                  className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 rounded-lg text-white transition-colors flex items-center space-x-2"
+                  className="px-4 py-2 bg-[var(--accent)] hover:bg-cyan-700 rounded-[var(--radius-lg)] text-[var(--text-primary)] transition-colors flex items-center space-x-2"
                 >
                   <Eye className="h-4 w-4" />
                   <span>View File</span>

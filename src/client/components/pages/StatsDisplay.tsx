@@ -48,19 +48,21 @@ export function StatsDisplay({
       <MetricStat label="Mentions" icon="MessageSquare" value={mentionsCount} />
       <button
         onClick={onResetFilters}
-        className="surface-glass p-3 text-left hover:border-cyan-400/40 transition-colors"
+        className="surface-glass p-3 text-left hover:border-[var(--accent)]/40 transition-colors"
         title="Reset all filters"
       >
         <div className="flex items-center justify-between mb-2">
-          <span className="text-[11px] tracking-[0.12em] uppercase text-slate-400">Documents</span>
-          <span className="chip h-6 px-2 flex items-center text-cyan-200 border-cyan-300/25">
+          <span className="text-[11px] tracking-[0.12em] uppercase text-[var(--text-muted)]">
+            Documents
+          </span>
+          <span className="chip h-6 px-2 flex items-center text-[var(--chip-accent)] border-[var(--chip-accent-border)]">
             <Icon name="FileText" size="xs" />
           </span>
         </div>
-        <div className="text-2xl md:text-3xl font-semibold text-white tabular-nums">
+        <div className="data-emphasis text-[var(--text-primary)] tabular-nums">
           {documentsCount.toLocaleString()}
         </div>
-        <div className="mt-1 text-[11px] text-slate-400 uppercase tracking-[0.1em]">
+        <div className="mt-1 text-[11px] text-[var(--text-muted)] uppercase tracking-[0.1em]">
           {stats.totalPeople.toLocaleString()} Subjects
         </div>
       </button>
@@ -88,19 +90,21 @@ function RiskStat({
   return (
     <button
       onClick={onClick}
-      className={`surface-glass p-3 text-left transition-colors ${active ? 'ring-2 ring-cyan-400/45' : ''}`}
+      className={`surface-glass p-3 text-left transition-colors ${active ? 'ring-2 ring-[var(--accent)]/45' : ''}`}
       title={`Filter by ${label}`}
     >
       <div className="flex items-center justify-between mb-2">
-        <span className="text-[11px] tracking-[0.12em] uppercase text-slate-400">{label}</span>
+        <span className="text-[11px] tracking-[0.12em] uppercase text-[var(--text-muted)]">
+          {label}
+        </span>
         <span className={`chip h-6 px-2 flex items-center ${tone.className}`}>
           <Icon name={icon as any} size="xs" />
         </span>
       </div>
-      <div className="text-2xl md:text-3xl font-semibold text-white tabular-nums">
+      <div className="data-emphasis text-[var(--text-primary)] tabular-nums">
         {value.toLocaleString()}
       </div>
-      <div className="mt-1 text-[11px] text-slate-400 uppercase tracking-[0.1em]">
+      <div className="mt-1 text-[11px] text-[var(--text-muted)] uppercase tracking-[0.1em]">
         {label === 'High Risk' ? 'Priority One' : 'Monitor'}
       </div>
     </button>
@@ -111,12 +115,14 @@ function MetricStat({ label, icon, value }: { label: string; icon: string; value
   return (
     <div className="surface-glass p-3 text-left">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-[11px] tracking-[0.12em] uppercase text-slate-400">{label}</span>
+        <span className="text-[11px] tracking-[0.12em] uppercase text-[var(--text-muted)]">
+          {label}
+        </span>
         <span className="chip h-6 px-2 flex items-center text-cyan-200 border-cyan-300/25">
           <Icon name={icon as any} size="xs" />
         </span>
       </div>
-      <div className="text-2xl md:text-3xl font-semibold text-white tabular-nums">
+      <div className="data-emphasis text-[var(--text-primary)] tabular-nums">
         {value.toLocaleString()}
       </div>
     </div>

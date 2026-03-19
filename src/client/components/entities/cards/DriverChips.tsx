@@ -19,7 +19,7 @@ export const DriverChips: React.FC<DriverChipsProps> = ({ chips }) => {
               ? 'risk-minimal'
               : chip.type === 'unverified'
                 ? 'risk-low'
-                : 'bg-slate-800/60 text-slate-400 border-slate-700/50';
+                : 'bg-[var(--glass-bg)]/60 text-[var(--text-muted)] border-[var(--glass-border)]';
         const descriptions: Record<string, string> = {
           critical: 'Direct evidence driver (e.g., Black Book, Flight Logs).',
           verified: 'Verified media driver (e.g., photos).',

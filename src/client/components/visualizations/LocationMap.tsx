@@ -35,12 +35,12 @@ export const LocationMap: React.FC<LocationMapProps> = ({
     return (
       <div className="fixed inset-0 z-50 bg-black/90 flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 bg-slate-900/95 border-b border-slate-700">
+        <div className="flex items-center justify-between p-4 bg-[var(--glass-bg-strong)]/95 border-b border-[var(--glass-border)]">
           <div className="flex items-center gap-3">
-            <MapPin className="w-5 h-5 text-blue-400" />
+            <MapPin className="w-5 h-5 text-[var(--accent)]" />
             <div>
-              <h3 className="text-white font-semibold">{title}</h3>
-              <p className="text-sm text-slate-400">
+              <h3 className="text-[var(--text-primary)] font-semibold">{title}</h3>
+              <p className="text-sm text-[var(--text-muted)]">
                 {latDisplay}, {lngDisplay}
               </p>
             </div>
@@ -50,14 +50,14 @@ export const LocationMap: React.FC<LocationMapProps> = ({
               href={isAppleDevice ? appleMapsUrl : googleMapsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-medium transition-colors"
+              className="flex items-center gap-2 px-3 py-2 bg-[var(--accent)] hover:bg-[var(--accent)] text-[var(--text-primary)] rounded-[var(--radius-lg)] text-sm font-medium transition-colors"
             >
               <Navigation className="w-4 h-4" />
               Open in Maps
             </a>
             <button
               onClick={() => setIsExpanded(false)}
-              className="p-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors"
+              className="p-2 bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] rounded-[var(--radius-lg)] transition-colors"
             >
               <Minimize2 className="w-5 h-5" />
             </button>
@@ -79,17 +79,17 @@ export const LocationMap: React.FC<LocationMapProps> = ({
 
   return (
     <div
-      className={`bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 rounded-xl overflow-hidden ${className}`}
+      className={`bg-[var(--glass-bg)]/60 backdrop-blur-sm border border-[var(--glass-border)] rounded-[var(--radius-xl)] overflow-hidden ${className}`}
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-3 border-b border-slate-700/50">
+      <div className="flex items-center justify-between p-3 border-b border-[var(--glass-border)]">
         <div className="flex items-center gap-2">
-          <MapPin className="w-4 h-4 text-blue-400" />
-          <span className="text-sm font-medium text-white">Location</span>
+          <MapPin className="w-4 h-4 text-[var(--accent)]" />
+          <span className="text-sm font-medium text-[var(--text-primary)]">Location</span>
         </div>
         <button
           onClick={() => setIsExpanded(true)}
-          className="p-1.5 hover:bg-slate-700 rounded-lg transition-colors text-slate-400 hover:text-white"
+          className="p-1.5 hover:bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] transition-colors text-[var(--text-muted)] hover:text-[var(--text-primary)]"
           title="Expand map"
         >
           <Maximize2 className="w-4 h-4" />
@@ -109,7 +109,7 @@ export const LocationMap: React.FC<LocationMapProps> = ({
 
       {/* Coordinates & Links */}
       <div className="p-3 space-y-2">
-        <div className="text-xs text-slate-400 font-mono">
+        <div className="text-xs text-[var(--text-muted)] font-mono">
           {latDisplay}, {lngDisplay}
         </div>
         <div className="flex gap-2">
@@ -117,7 +117,7 @@ export const LocationMap: React.FC<LocationMapProps> = ({
             href={appleMapsUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 bg-slate-700/50 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg text-xs font-medium transition-colors"
+            className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 bg-[var(--glass-bg-highlight)]/50 hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-[var(--radius-lg)] text-xs font-medium transition-colors"
           >
             <ExternalLink className="w-3 h-3" />
             Apple Maps
@@ -126,7 +126,7 @@ export const LocationMap: React.FC<LocationMapProps> = ({
             href={googleMapsUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 bg-slate-700/50 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg text-xs font-medium transition-colors"
+            className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 bg-[var(--glass-bg-highlight)]/50 hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-[var(--radius-lg)] text-xs font-medium transition-colors"
           >
             <ExternalLink className="w-3 h-3" />
             Google Maps

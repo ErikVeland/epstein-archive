@@ -40,7 +40,7 @@ export function MobileAlbumDropdown({
     <div className="md:hidden">
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-sm h-8"
+        className="w-full flex items-center justify-between px-3 py-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] text-sm h-8"
       >
         <span className="flex items-center gap-2">
           <Icon name="Folder" size="sm" />
@@ -53,8 +53,8 @@ export function MobileAlbumDropdown({
           <button
             className={`w-full px-4 py-3 text-left text-sm flex items-center justify-between ${
               selectedAlbum === null
-                ? 'bg-cyan-900/20 text-cyan-400'
-                : 'text-slate-300 hover:bg-slate-700'
+                ? 'bg-cyan-900/20 text-[var(--accent)]'
+                : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)]'
             }`}
             onClick={() => handleSelect(null)}
           >
@@ -64,10 +64,10 @@ export function MobileAlbumDropdown({
           {albums.map((album) => (
             <button
               key={album.id}
-              className={`w-full px-4 py-3 text-left text-sm flex items-center justify-between border-t border-slate-700/50 ${
+              className={`w-full px-4 py-3 text-left text-sm flex items-center justify-between border-t border-[var(--glass-border)] ${
                 selectedAlbum === album.id
-                  ? 'bg-cyan-900/20 text-cyan-400'
-                  : 'text-slate-300 hover:bg-slate-700'
+                  ? 'bg-cyan-900/20 text-[var(--accent)]'
+                  : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)]'
               }`}
               onClick={() => handleSelect(album.id)}
             >

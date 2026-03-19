@@ -27,7 +27,7 @@ function highlightText(text: string, term?: string) {
   if (!term || !term.trim()) return text;
   try {
     const rx = new RegExp(`(${term.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')})`, 'gi');
-    return text.replace(rx, '<mark class="bg-yellow-500/40 text-white">$1</mark>');
+    return text.replace(rx, '<mark class="bg-yellow-500/40 text-[var(--text-primary)]">$1</mark>');
   } catch {
     return text;
   }
@@ -67,7 +67,10 @@ export const ArticleViewerModal: React.FC<Props> = ({ article, highlight, onClos
       className="fixed inset-0 z-[10000] flex items-center justify-center p-4 md:p-8"
     >
       {/* Background Backdrop with Hero Image Blur */}
-      <div className="absolute inset-0 bg-black/90 header-blur-backdrop" onClick={onClose} />
+      <div
+        className="absolute inset-0 bg-[var(--app-bg)]/90 header-blur-backdrop"
+        onClick={onClose}
+      />
       {article.imageUrl && (
         <div
           className="absolute inset-0 bg-cover bg-center opacity-30 blur-2xl"
@@ -75,8 +78,8 @@ export const ArticleViewerModal: React.FC<Props> = ({ article, highlight, onClos
         />
       )}
 
-      <div className="relative w-full max-w-4xl h-full max-h-[90vh] overflow-hidden bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl shadow-2xl flex flex-col animate-in fade-in zoom-in-95 duration-200">
-        <div className="overflow-y-auto flex-1 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
+      <div className="relative w-full max-w-4xl h-full max-h-[90vh] overflow-hidden bg-[var(--glass-bg-strong)] backdrop-blur-xl border border-[var(--glass-border)] rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] flex flex-col animate-in fade-in zoom-in-95 duration-200">
+        <div className="overflow-y-auto flex-1 scrollbar-thin scrollbar-thumb-[var(--scroll-thumb)] scrollbar-track-transparent">
           {/* Hero Header */}
           <div className="relative h-64 md:h-80 shrink-0 w-full group">
             {article.imageUrl ? (
@@ -86,16 +89,16 @@ export const ArticleViewerModal: React.FC<Props> = ({ article, highlight, onClos
                 alt={article.title}
               />
             ) : (
-              <div className="w-full h-full bg-gradient-to-br from-slate-800 to-slate-950" />
+              <div className="w-full h-full bg-gradient-to-br from-[var(--glass-bg-strong)] to-[var(--app-bg)] border-b border-[var(--glass-border)]" />
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[var(--glass-bg-strong)] via-[var(--glass-bg-strong)]/60 to-transparent" />
 
             <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
               <div className="flex items-center gap-3 mb-3">
-                <span className="px-2.5 py-0.5 bg-cyan-500/20 text-cyan-300 text-xs font-bold uppercase tracking-wider rounded border border-cyan-500/30 backdrop-blur-sm">
+                <span className="px-2.5 py-0.5 bg-[var(--accent)]/20 text-[var(--accent)] text-xs font-bold uppercase tracking-wider rounded-[var(--radius-sm)] border border-[var(--accent)]/30 backdrop-blur-sm">
                   {article.publication}
                 </span>
-                <span className="text-slate-300 text-sm font-medium drop-shadow-md">
+                <span className="text-[var(--text-secondary)] text-sm font-medium drop-shadow-[var(--glass-shadow)]">
                   {new Date(article.published_date).toLocaleDateString(undefined, {
                     year: 'numeric',
                     month: 'long',
@@ -103,7 +106,7 @@ export const ArticleViewerModal: React.FC<Props> = ({ article, highlight, onClos
                   })}
                 </span>
               </div>
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-tight drop-shadow-lg text-balance">
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[var(--text-primary)] leading-tight drop-shadow-[var(--glass-shadow)] text-balance">
                 {article.title}
               </h2>
             </div>
@@ -112,20 +115,22 @@ export const ArticleViewerModal: React.FC<Props> = ({ article, highlight, onClos
               onClick={onClose}
               size="md"
               label="Close article viewer"
-              className="absolute top-4 right-4 bg-black/40 hover:bg-black/60 text-white border-white/10 z-10"
+              className="absolute top-4 right-4 bg-[var(--app-bg)]/40 hover:bg-[var(--app-bg)]/60 text-[var(--text-primary)] border border-[var(--glass-border)] z-10"
             />
           </div>
 
           <div className="p-6 md:p-10">
             {/* Author & Actions */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 pb-8 border-b border-white/10">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 pb-8 border-b border-[var(--glass-border)]">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center text-white font-bold text-lg border border-white/10 shadow-inner">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[var(--glass-bg)] to-[var(--glass-bg-strong)] flex items-center justify-center text-[var(--text-primary)] font-bold text-lg border border-[var(--glass-border)] shadow-inner">
                   {article.author.charAt(0)}
                 </div>
                 <div>
-                  <div className="text-white font-bold text-lg">{article.author}</div>
-                  <div className="text-cyan-400 text-sm">Investigative Journalist</div>
+                  <div className="text-[var(--text-primary)] font-bold text-lg">
+                    {article.author}
+                  </div>
+                  <div className="text-[var(--accent)] text-sm">Investigative Journalist</div>
                 </div>
               </div>
             </div>
@@ -141,7 +146,7 @@ export const ArticleViewerModal: React.FC<Props> = ({ article, highlight, onClos
                   sourceId: String(article.id),
                 }}
                 variant="button"
-                className="bg-purple-600 hover:bg-purple-700"
+                className="bg-[var(--accent)] hover:bg-[var(--accent)]/90 text-[var(--app-bg)] font-medium rounded-[var(--radius-lg)] border-[var(--glass-border)] shadow-[var(--glass-shadow)]"
               />
 
               {article.url && (
@@ -149,7 +154,7 @@ export const ArticleViewerModal: React.FC<Props> = ({ article, highlight, onClos
                   href={article.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 px-5 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg transition-all shadow-lg shadow-cyan-900/20 font-medium group"
+                  className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] rounded-[var(--radius-lg)] transition-all shadow-[var(--glass-shadow)] border border-[var(--glass-border)] font-medium group"
                 >
                   Read Original Source
                   <ExternalLink
@@ -162,7 +167,7 @@ export const ArticleViewerModal: React.FC<Props> = ({ article, highlight, onClos
 
             {/* Content */}
             <div
-              className="prose prose-invert prose-lg max-w-none prose-p:text-slate-300 prose-headings:text-white prose-a:text-cyan-400 hover:prose-a:text-cyan-300 prose-strong:text-white prose-blockquote:border-l-cyan-500 prose-blockquote:bg-slate-800/30 prose-blockquote:py-1 prose-blockquote:px-4 prose-img:rounded-xl prose-img:shadow-xl"
+              className="prose prose-invert prose-lg max-w-none prose-p:text-[var(--text-secondary)] prose-headings:text-[var(--text-primary)] prose-a:text-[var(--accent)] hover:prose-a:text-[var(--accent)]/80 prose-strong:text-[var(--text-primary)] prose-blockquote:border-l-[var(--accent)] prose-blockquote:bg-[var(--glass-bg)] prose-blockquote:py-1 prose-blockquote:px-4 prose-img:rounded-[var(--radius-xl)] prose-img:shadow-[var(--glass-shadow)]"
               dangerouslySetInnerHTML={{ __html: content }}
             />
 

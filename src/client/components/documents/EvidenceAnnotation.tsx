@@ -56,7 +56,7 @@ const CLASSIFICATION_OPTIONS = [
     icon: AlertTriangle,
     color: 'text-yellow-400',
   },
-  { label: 'Corroborating', value: 'corroborating', icon: Flag, color: 'text-blue-400' },
+  { label: 'Corroborating', value: 'corroborating', icon: Flag, color: 'text-[var(--accent)]' },
   { label: 'Contradicting', value: 'contradicting', icon: X, color: 'text-red-400' },
   { label: 'Needs Review', value: 'needs_review', icon: Clock, color: 'text-orange-400' },
 ];
@@ -313,10 +313,10 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
   if (loading) {
     return (
       <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-        <div className="bg-slate-800 rounded-xl p-8 max-w-md">
+        <div className="bg-[var(--glass-bg)] rounded-[var(--radius-xl)] p-8 max-w-md">
           <div className="animate-pulse flex flex-col items-center">
-            <div className="h-8 w-48 bg-slate-700 rounded mb-4"></div>
-            <div className="h-4 w-32 bg-slate-700 rounded"></div>
+            <div className="h-8 w-48 bg-[var(--glass-bg-highlight)] rounded mb-4"></div>
+            <div className="h-4 w-32 bg-[var(--glass-bg-highlight)] rounded"></div>
           </div>
         </div>
       </div>
@@ -325,22 +325,28 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-slate-800 rounded-xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col border border-slate-700">
+      <div className="bg-[var(--glass-bg)] rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] w-full max-w-3xl max-h-[90vh] flex flex-col border border-[var(--glass-border)]">
         {/* Header */}
-        <div className="border-b border-slate-700 p-6">
+        <div className="border-b border-[var(--glass-border)] p-6">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1 min-w-0">
-              <h2 className="text-xl font-semibold text-white truncate">{evidenceTitle}</h2>
-              <p className="text-sm text-slate-400 mt-1">Annotate and classify this evidence</p>
+              <h2 className="text-xl font-semibold text-[var(--text-primary)] truncate">
+                {evidenceTitle}
+              </h2>
+              <p className="text-sm text-[var(--text-muted)] mt-1">
+                Annotate and classify this evidence
+              </p>
               {evidenceDescription && (
-                <p className="text-sm text-slate-500 mt-2 line-clamp-2">{evidenceDescription}</p>
+                <p className="text-sm text-[var(--text-muted)] mt-2 line-clamp-2">
+                  {evidenceDescription}
+                </p>
               )}
             </div>
             <CloseButton
               onClick={onClose}
               size="md"
               label="Close evidence annotation"
-              className="bg-transparent hover:bg-white/10 border-slate-700 text-slate-400 hover:text-white shrink-0"
+              className="bg-transparent hover:bg-white/10 border-[var(--glass-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)] shrink-0"
             />
           </div>
 
@@ -384,20 +390,22 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
           {activeTab === 'notes' && (
             <div className="space-y-4">
               {/* Add Note Form */}
-              <div className="bg-slate-900 rounded-lg p-4 border border-slate-700">
-                <label className="block text-sm font-medium text-slate-300 mb-2">Add a Note</label>
+              <div className="bg-[var(--glass-bg-strong)] rounded-[var(--radius-lg)] p-4 border border-[var(--glass-border)]">
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                  Add a Note
+                </label>
                 <textarea
                   value={newNote}
                   onChange={(e) => setNewNote(e.target.value)}
                   placeholder="Write your observations, analysis, or comments..."
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  className="w-full px-3 py-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] placeholder-slate-500 focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent resize-none"
                   rows={3}
                 />
                 <div className="flex justify-end mt-3">
                   <button
                     onClick={handleAddNote}
                     disabled={!newNote.trim() || saving}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] text-[var(--text-primary)] rounded-[var(--radius-lg)] hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     <Plus className="w-4 h-4" />
                     Add Note
@@ -408,33 +416,33 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
               {/* Notes List */}
               <div className="space-y-3">
                 {noteAnnotations.length === 0 ? (
-                  <p className="text-slate-500 text-center py-8">
+                  <p className="text-[var(--text-muted)] text-center py-8">
                     No notes yet. Add your first note above.
                   </p>
                 ) : (
                   noteAnnotations.map((note) => (
                     <div
                       key={note.id}
-                      className="bg-slate-900 rounded-lg p-4 border border-slate-700"
+                      className="bg-[var(--glass-bg-strong)] rounded-[var(--radius-lg)] p-4 border border-[var(--glass-border)]"
                     >
                       {editingNote === note.id ? (
                         <div>
                           <textarea
                             value={editNoteContent}
                             onChange={(e) => setEditNoteContent(e.target.value)}
-                            className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 resize-none"
+                            className="w-full px-3 py-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--accent)] resize-none"
                             rows={3}
                           />
                           <div className="flex justify-end gap-2 mt-2">
                             <button
                               onClick={() => setEditingNote(null)}
-                              className="px-3 py-1.5 text-sm text-slate-400 hover:text-white transition-colors"
+                              className="px-3 py-1.5 text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
                             >
                               Cancel
                             </button>
                             <button
                               onClick={handleUpdateNoteEdit}
-                              className="flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                              className="flex items-center gap-1 px-3 py-1.5 text-sm bg-[var(--accent)] text-[var(--text-primary)] rounded hover:bg-blue-700 transition-colors"
                             >
                               <Save className="w-3 h-3" />
                               Save
@@ -443,9 +451,11 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                         </div>
                       ) : (
                         <>
-                          <p className="text-slate-200 whitespace-pre-wrap">{note.content}</p>
-                          <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-700">
-                            <span className="text-xs text-slate-500">
+                          <p className="text-[var(--text-primary)] whitespace-pre-wrap">
+                            {note.content}
+                          </p>
+                          <div className="flex items-center justify-between mt-3 pt-3 border-t border-[var(--glass-border)]">
+                            <span className="text-xs text-[var(--text-muted)]">
                               <Clock className="w-3 h-3 inline mr-1" />
                               {new Date(note.createdAt).toLocaleString()}
                             </span>
@@ -455,14 +465,14 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                                   setEditingNote(note.id);
                                   setEditNoteContent(note.content);
                                 }}
-                                className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-700 rounded transition-colors"
+                                className="p-1.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)] rounded transition-colors"
                                 title="Edit"
                               >
                                 <Edit3 className="w-4 h-4" />
                               </button>
                               <button
                                 onClick={() => deleteAnnotation(note.id)}
-                                className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-slate-700 rounded transition-colors"
+                                className="p-1.5 text-[var(--text-muted)] hover:text-red-400 hover:bg-[var(--glass-bg-highlight)] rounded transition-colors"
                                 title="Delete"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -482,20 +492,20 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
           {activeTab === 'highlights' && (
             <div className="space-y-4">
               {/* Add Highlight Form */}
-              <div className="bg-slate-900 rounded-lg p-4 border border-slate-700">
-                <label className="block text-sm font-medium text-slate-300 mb-2">
+              <div className="bg-[var(--glass-bg-strong)] rounded-[var(--radius-lg)] p-4 border border-[var(--glass-border)]">
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                   Add a Highlight
                 </label>
                 <textarea
                   value={newHighlight.text}
                   onChange={(e) => setNewHighlight({ ...newHighlight, text: e.target.value })}
                   placeholder="Paste or type the text you want to highlight..."
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 resize-none"
+                  className="w-full px-3 py-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] placeholder-slate-500 focus:ring-2 focus:ring-[var(--accent)] resize-none"
                   rows={2}
                 />
                 <div className="flex items-center justify-between mt-3">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-slate-400">Color:</span>
+                    <span className="text-sm text-[var(--text-muted)]">Color:</span>
                     {HIGHLIGHT_COLORS.map((color) => (
                       <button
                         key={color.value}
@@ -512,7 +522,7 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                   <button
                     onClick={handleAddHighlight}
                     disabled={!newHighlight.text.trim() || saving}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] text-[var(--text-primary)] rounded-[var(--radius-lg)] hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     <Highlighter className="w-4 h-4" />
                     Add Highlight
@@ -523,14 +533,14 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
               {/* Highlights List */}
               <div className="space-y-3">
                 {highlightAnnotations.length === 0 ? (
-                  <p className="text-slate-500 text-center py-8">
+                  <p className="text-[var(--text-muted)] text-center py-8">
                     No highlights yet. Add key passages above.
                   </p>
                 ) : (
                   highlightAnnotations.map((highlight) => (
                     <div
                       key={highlight.id}
-                      className="bg-slate-900 rounded-lg p-4 border border-slate-700"
+                      className="bg-[var(--glass-bg-strong)] rounded-[var(--radius-lg)] p-4 border border-[var(--glass-border)]"
                     >
                       <div className="flex items-start gap-3">
                         <div
@@ -539,18 +549,18 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                         />
                         <div className="flex-1">
                           <p
-                            className="text-slate-200 px-2 py-1 rounded"
+                            className="text-[var(--text-primary)] px-2 py-1 rounded"
                             style={{ backgroundColor: highlight.color + '40' }}
                           >
                             {highlight.content}
                           </p>
                           <div className="flex items-center justify-between mt-2">
-                            <span className="text-xs text-slate-500">
+                            <span className="text-xs text-[var(--text-muted)]">
                               {new Date(highlight.createdAt).toLocaleString()}
                             </span>
                             <button
                               onClick={() => deleteAnnotation(highlight.id)}
-                              className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-slate-700 rounded transition-colors"
+                              className="p-1.5 text-[var(--text-muted)] hover:text-red-400 hover:bg-[var(--glass-bg-highlight)] rounded transition-colors"
                               title="Delete"
                             >
                               <Trash2 className="w-4 h-4" />
@@ -570,7 +580,9 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
             <div className="space-y-6">
               {/* Common Tags */}
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-3">Common Tags</label>
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-3">
+                  Common Tags
+                </label>
                 <div className="flex flex-wrap gap-2">
                   {COMMON_TAGS.map((tag) => (
                     <button
@@ -578,8 +590,8 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                       onClick={() => handleToggleTag(tag)}
                       className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                         selectedTags.includes(tag)
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                          ? 'bg-[var(--accent)] text-[var(--text-primary)]'
+                          : 'bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)]'
                       }`}
                     >
                       {selectedTags.includes(tag) && <span className="mr-1">✓</span>}
@@ -591,7 +603,7 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
 
               {/* Custom Tag */}
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                   Add Custom Tag
                 </label>
                 <div className="flex gap-2">
@@ -601,12 +613,12 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                     onChange={(e) => setCustomTag(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleAddCustomTag()}
                     placeholder="Enter custom tag..."
-                    className="flex-1 px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 px-3 py-2 bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] placeholder-slate-500 focus:ring-2 focus:ring-[var(--accent)]"
                   />
                   <button
                     onClick={handleAddCustomTag}
                     disabled={!customTag.trim() || saving}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                    className="px-4 py-2 bg-[var(--accent)] text-[var(--text-primary)] rounded-[var(--radius-lg)] hover:bg-blue-700 disabled:opacity-50 transition-colors"
                   >
                     Add
                   </button>
@@ -616,20 +628,20 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
               {/* Selected Tags */}
               {selectedTags.length > 0 && (
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-3">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-3">
                     Applied Tags ({selectedTags.length})
                   </label>
                   <div className="flex flex-wrap gap-2">
                     {selectedTags.map((tag) => (
                       <span
                         key={tag}
-                        className="flex items-center gap-1 px-3 py-1.5 bg-blue-900/50 text-blue-300 rounded-full text-sm border border-blue-700"
+                        className="flex items-center gap-1 px-3 py-1.5 bg-blue-900/50 text-[var(--accent)] rounded-full text-sm border border-blue-700"
                       >
                         <Tag className="w-3 h-3" />
                         {tag}
                         <button
                           onClick={() => handleToggleTag(tag)}
-                          className="ml-1 hover:text-white"
+                          className="ml-1 hover:text-[var(--text-primary)]"
                         >
                           <X className="w-3 h-3" />
                         </button>
@@ -645,7 +657,7 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
           {activeTab === 'classification' && (
             <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-3">
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-3">
                   Evidence Classification
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -653,16 +665,16 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                     <button
                       key={option.value}
                       onClick={() => handleSetClassification(option.value)}
-                      className={`flex items-center gap-3 p-4 rounded-lg border transition-colors ${
+                      className={`flex items-center gap-3 p-4 rounded-[var(--radius-lg)] border transition-colors ${
                         classification === option.value
-                          ? 'bg-slate-700 border-blue-500'
-                          : 'bg-slate-900 border-slate-700 hover:bg-slate-800'
+                          ? 'bg-[var(--glass-bg-highlight)] border-[var(--accent)]'
+                          : 'bg-[var(--glass-bg-strong)] border-[var(--glass-border)] hover:bg-[var(--glass-bg)]'
                       }`}
                     >
                       <option.icon className={`w-5 h-5 ${option.color}`} />
-                      <span className="text-white font-medium">{option.label}</span>
+                      <span className="text-[var(--text-primary)] font-medium">{option.label}</span>
                       {classification === option.value && (
-                        <CheckCircle className="w-5 h-5 text-blue-400 ml-auto" />
+                        <CheckCircle className="w-5 h-5 text-[var(--accent)] ml-auto" />
                       )}
                     </button>
                   ))}
@@ -671,14 +683,14 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
 
               {/* Classification Notes */}
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                   Classification Notes
                 </label>
                 <textarea
                   value={classificationNotes}
                   onChange={(e) => setClassificationNotes(e.target.value)}
                   placeholder="Explain why you classified this evidence this way..."
-                  className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:ring-2 focus:ring-blue-500 resize-none"
+                  className="w-full px-3 py-2 bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] placeholder-slate-500 focus:ring-2 focus:ring-[var(--accent)] resize-none"
                   rows={4}
                 />
                 {classification && (
@@ -694,7 +706,7 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                         }
                       }}
                       disabled={saving}
-                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                      className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] text-[var(--text-primary)] rounded-[var(--radius-lg)] hover:bg-blue-700 disabled:opacity-50 transition-colors"
                     >
                       <Save className="w-4 h-4" />
                       Save Notes
@@ -705,14 +717,14 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
 
               {/* Current Classification Display */}
               {classificationAnnotation && (
-                <div className="bg-slate-900 rounded-lg p-4 border border-slate-700">
+                <div className="bg-[var(--glass-bg-strong)] rounded-[var(--radius-lg)] p-4 border border-[var(--glass-border)]">
                   <div className="flex items-center gap-2 mb-2">
-                    <FolderOpen className="w-4 h-4 text-blue-400" />
-                    <span className="text-sm font-medium text-slate-300">
+                    <FolderOpen className="w-4 h-4 text-[var(--accent)]" />
+                    <span className="text-sm font-medium text-[var(--text-secondary)]">
                       Current Classification
                     </span>
                   </div>
-                  <p className="text-white font-medium">
+                  <p className="text-[var(--text-primary)] font-medium">
                     {
                       CLASSIFICATION_OPTIONS.find(
                         (o) => o.value === classificationAnnotation.content,
@@ -720,11 +732,11 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                     }
                   </p>
                   {classificationAnnotation.metadata?.notes && (
-                    <p className="text-slate-400 text-sm mt-2">
+                    <p className="text-[var(--text-muted)] text-sm mt-2">
                       {classificationAnnotation.metadata.notes}
                     </p>
                   )}
-                  <p className="text-xs text-slate-500 mt-2">
+                  <p className="text-xs text-[var(--text-muted)] mt-2">
                     Last updated: {new Date(classificationAnnotation.updatedAt).toLocaleString()}
                   </p>
                 </div>
@@ -734,13 +746,13 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
         </div>
 
         {/* Footer */}
-        <div className="border-t border-slate-700 p-4 flex items-center justify-between">
-          <div className="text-sm text-slate-400">
+        <div className="border-t border-[var(--glass-border)] p-4 flex items-center justify-between">
+          <div className="text-sm text-[var(--text-muted)]">
             {annotations.length} annotation{annotations.length !== 1 ? 's' : ''} on this evidence
           </div>
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-colors"
+            className="px-4 py-2 bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] rounded-[var(--radius-lg)] hover:bg-[var(--glass-bg-highlight)] transition-colors"
           >
             Close
           </button>

@@ -33,9 +33,9 @@ export const EvidenceLadder: React.FC<EvidenceLadderProps> = ({
       name: 'Derived Link',
       description: 'Established via proximity or co-occurrence analysis.',
       icon: Shield,
-      color: 'text-blue-400',
-      bgColor: 'bg-blue-500/10',
-      borderColor: 'border-blue-500/20',
+      color: 'text-[var(--accent)]',
+      bgColor: 'bg-[var(--accent)]/10',
+      borderColor: 'border-[var(--accent)]/20',
     },
     {
       id: 3,
@@ -54,9 +54,11 @@ export const EvidenceLadder: React.FC<EvidenceLadderProps> = ({
     <div className={`space-y-4 ${className}`}>
       {/* Active Level Badge */}
       <div
-        className={`flex items-start gap-4 p-4 rounded-xl border ${activeLevel.borderColor} ${activeLevel.bgColor} backdrop-blur-sm`}
+        className={`flex items-start gap-4 p-4 rounded-[var(--radius-xl)] border ${activeLevel.borderColor} ${activeLevel.bgColor} backdrop-blur-sm`}
       >
-        <div className={`p-2 rounded-lg ${activeLevel.borderColor} border bg-slate-950/50`}>
+        <div
+          className={`p-2 rounded-[var(--radius-lg)] ${activeLevel.borderColor} border bg-slate-950/50`}
+        >
           <activeLevel.icon size={20} className={activeLevel.color} />
         </div>
         <div className="flex-1">
@@ -64,8 +66,10 @@ export const EvidenceLadder: React.FC<EvidenceLadderProps> = ({
             <h4 className={`font-bold text-sm uppercase tracking-wider ${activeLevel.color}`}>
               {activeLevel.name}
             </h4>
-            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-950/50 border border-slate-800">
-              <span className="text-[10px] font-bold text-slate-400 uppercase">Confidence</span>
+            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-950/50 border border-[var(--glass-border)]">
+              <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase">
+                Confidence
+              </span>
               <span
                 className={`text-xs font-bold ${confidence * 100 > 80 ? 'text-emerald-400' : 'text-amber-400'}`}
               >
@@ -73,7 +77,9 @@ export const EvidenceLadder: React.FC<EvidenceLadderProps> = ({
               </span>
             </div>
           </div>
-          <p className="text-slate-300 text-sm leading-relaxed">{activeLevel.description}</p>
+          <p className="text-[var(--text-secondary)] text-sm leading-relaxed">
+            {activeLevel.description}
+          </p>
         </div>
       </div>
 
@@ -81,20 +87,20 @@ export const EvidenceLadder: React.FC<EvidenceLadderProps> = ({
       {(ingestRunId || wasAgentic) && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {ingestRunId && (
-            <div className="p-3 bg-slate-900/40 border border-slate-800 rounded-lg flex items-center gap-3">
-              <Database size={14} className="text-slate-500" />
+            <div className="p-3 bg-[var(--glass-bg-strong)]/40 border border-[var(--glass-border)] rounded-[var(--radius-lg)] flex items-center gap-3">
+              <Database size={14} className="text-[var(--text-muted)]" />
               <div className="flex-1 min-w-0">
-                <span className="block text-[10px] uppercase tracking-tighter text-slate-500 font-bold">
+                <span className="block text-[10px] uppercase tracking-tighter text-[var(--text-muted)] font-bold">
                   Ingest Run
                 </span>
-                <span className="block text-xs font-mono text-slate-300 truncate">
+                <span className="block text-xs font-mono text-[var(--text-secondary)] truncate">
                   {ingestRunId}
                 </span>
               </div>
             </div>
           )}
           {wasAgentic && (
-            <div className="p-3 bg-purple-900/10 border border-purple-500/20 rounded-lg flex items-center gap-3">
+            <div className="p-3 bg-purple-900/10 border border-purple-500/20 rounded-[var(--radius-lg)] flex items-center gap-3">
               <Fingerprint size={14} className="text-purple-400" />
               <div className="flex-1">
                 <span className="block text-[10px] uppercase tracking-tighter text-purple-400 font-bold">
@@ -109,19 +115,19 @@ export const EvidenceLadder: React.FC<EvidenceLadderProps> = ({
 
       {/* Evidence Pack Details (Optional) */}
       {evidencePack && (
-        <div className="bg-slate-950/50 border border-slate-800 rounded-lg p-3 space-y-2">
-          <div className="flex items-center gap-2 text-slate-400 text-[10px] font-bold uppercase tracking-widest px-1">
+        <div className="bg-slate-950/50 border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-3 space-y-2">
+          <div className="flex items-center gap-2 text-[var(--text-muted)] text-[10px] font-bold uppercase tracking-widest px-1">
             <ChevronRight size={12} />
             Structural Context
           </div>
           <div className="flex flex-wrap gap-2">
             {evidencePack.proximity && (
-              <span className="px-2 py-1 rounded bg-slate-900 border border-slate-800 text-[10px] text-slate-300 font-mono">
+              <span className="px-2 py-1 rounded bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] text-[10px] text-[var(--text-secondary)] font-mono">
                 PROX: {evidencePack.proximity} chars
               </span>
             )}
             {evidencePack.document_count && (
-              <span className="px-2 py-1 rounded bg-slate-900 border border-slate-800 text-[10px] text-slate-300 font-mono">
+              <span className="px-2 py-1 rounded bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] text-[10px] text-[var(--text-secondary)] font-mono">
                 DOCS: {evidencePack.document_count}
               </span>
             )}

@@ -36,16 +36,20 @@ const CustomTooltip = ({ active, payload }: any) => {
       data.redacted && data.count ? Math.round((data.redacted / data.count) * 100) : 0;
 
     return (
-      <div className="bg-slate-900/95 backdrop-blur-md p-4 rounded-xl shadow-2xl border border-slate-700/50">
-        <p className="text-white font-bold text-lg mb-2">{formatLabel(data.type)}</p>
+      <div className="bg-[var(--glass-bg-strong)]/95 backdrop-blur-md p-4 rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] border border-[var(--glass-border)]">
+        <p className="text-[var(--text-primary)] font-bold text-lg mb-2">
+          {formatLabel(data.type)}
+        </p>
         <div className="space-y-1 text-sm">
           <div className="flex justify-between gap-4">
-            <span className="text-slate-400">Documents:</span>
-            <span className="text-white font-mono font-bold">{data.count.toLocaleString()}</span>
+            <span className="text-[var(--text-muted)]">Documents:</span>
+            <span className="text-[var(--text-primary)] font-mono font-bold">
+              {data.count.toLocaleString()}
+            </span>
           </div>
           {data.redacted > 0 && (
             <div className="flex justify-between gap-4">
-              <span className="text-slate-400">Redacted:</span>
+              <span className="text-[var(--text-muted)]">Redacted:</span>
               <span className="text-orange-400 font-mono">
                 {data.redacted.toLocaleString()} ({redactedPercent}%)
               </span>
@@ -53,7 +57,7 @@ const CustomTooltip = ({ active, payload }: any) => {
           )}
           {data.avgRisk && (
             <div className="flex justify-between gap-4">
-              <span className="text-slate-400">Avg Risk:</span>
+              <span className="text-[var(--text-muted)]">Avg Risk:</span>
               <span
                 className={`font-mono ${data.avgRisk >= 4 ? 'text-red-400' : data.avgRisk >= 2 ? 'text-amber-400' : 'text-green-400'}`}
               >
@@ -83,7 +87,7 @@ const CustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, type
       fill="white"
       textAnchor="middle"
       dominantBaseline="central"
-      className="text-xs font-semibold drop-shadow-lg"
+      className="text-xs font-semibold drop-shadow-[var(--glass-shadow)]"
     >
       {formatLabel(type)}
     </text>
@@ -162,10 +166,10 @@ export const SunburstChart: React.FC<SunburstChartProps> = ({ data, onSegmentCli
 
         {/* Center stats overlay */}
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <span className="text-4xl font-bold text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]">
+          <span className="text-4xl font-bold text-[var(--text-primary)] drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]">
             {total.toLocaleString()}
           </span>
-          <span className="text-xs text-slate-400 uppercase tracking-wider mt-1 font-semibold">
+          <span className="text-xs text-[var(--text-muted)] uppercase tracking-wider mt-1 font-semibold">
             Total Files
           </span>
         </div>
@@ -177,7 +181,7 @@ export const SunburstChart: React.FC<SunburstChartProps> = ({ data, onSegmentCli
           <button
             key={item.type}
             onClick={() => onSegmentClick?.(item.type)}
-            className="flex items-center gap-2 px-2 py-1 bg-slate-800/50 hover:bg-slate-700/50 rounded-full border border-slate-700/50 transition-all hover:scale-105 shrink-0 max-w-[150px]"
+            className="flex items-center gap-2 px-2 py-1 bg-[var(--glass-bg)]/50 hover:bg-[var(--glass-bg-highlight)]/50 rounded-full border border-[var(--glass-border)] transition-all hover:scale-105 shrink-0 max-w-[150px]"
             title={`${formatLabel(item.type)}: ${item.count.toLocaleString()}`}
           >
             <div
@@ -187,10 +191,10 @@ export const SunburstChart: React.FC<SunburstChartProps> = ({ data, onSegmentCli
                 boxShadow: `0 0 8px ${COLORS[index % COLORS.length].shadow}`,
               }}
             />
-            <span className="text-[10px] text-slate-300 font-medium truncate">
+            <span className="text-[10px] text-[var(--text-secondary)] font-medium truncate">
               {formatLabel(item.type)}
             </span>
-            <span className="text-[10px] text-slate-500 font-mono shrink-0">
+            <span className="text-[10px] text-[var(--text-muted)] font-mono shrink-0">
               {item.count.toLocaleString()}
             </span>
           </button>

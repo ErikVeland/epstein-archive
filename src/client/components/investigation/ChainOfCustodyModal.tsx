@@ -72,84 +72,97 @@ export const ChainOfCustodyModal: React.FC<Props> = ({ evidenceId, onClose }) =>
   return createPortal(
     <div
       id="ChainOfCustodyModal"
-      className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
+      className="fixed inset-0 bg-[var(--app-bg)]/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
     >
-      <div className="bg-slate-800 rounded-lg w-full max-w-2xl">
-        <div className="px-6 py-4 border-b border-slate-700 flex items-center justify-between">
-          <h3 className="text-white font-semibold">Chain of Custody</h3>
+      <div className="bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-xl)] w-full max-w-2xl">
+        <div className="px-6 py-4 border-b border-[var(--glass-border)] flex items-center justify-between">
+          <h3 className="text-[var(--text-primary)] font-bold text-xl">Chain of Custody</h3>
           <CloseButton
             onClick={onClose}
             size="sm"
             label="Close chain of custody"
-            className="bg-transparent border-slate-700 text-slate-400 hover:text-white"
+            className="bg-transparent border-[var(--glass-border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)]"
           />
         </div>
         <div className="p-6 space-y-4">
-          <div className="text-sm text-slate-300">Evidence ID: {evidenceId}</div>
-          <div>
+          <div className="text-sm text-[var(--text-muted)] font-mono uppercase tracking-widest hidden">
+            Evidence ID: {evidenceId}
+          </div>
+          <div className="flex gap-2">
             <button
               onClick={exportReport}
-              className="px-3 py-2 bg-slate-700 text-white rounded text-sm hover:bg-slate-600 mr-2"
+              className="px-3 py-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-primary)] rounded-[var(--radius-lg)] text-sm hover:bg-[var(--glass-bg-highlight)] transition-colors"
             >
               Export Report
             </button>
             <button
               onClick={exportCsv}
-              className="px-3 py-2 bg-slate-700 text-white rounded text-sm hover:bg-slate-600 mr-2"
+              className="px-3 py-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-primary)] rounded-[var(--radius-lg)] text-sm hover:bg-[var(--glass-bg-highlight)] transition-colors"
             >
               Export CSV
             </button>
             <button
               onClick={openPrintable}
-              className="px-3 py-2 bg-slate-700 text-white rounded text-sm hover:bg-slate-600"
+              className="px-3 py-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-primary)] rounded-[var(--radius-lg)] text-sm hover:bg-[var(--glass-bg-highlight)] transition-colors"
             >
               Printable PDF
             </button>
           </div>
           {loading ? (
-            <div className="text-slate-400">Loading...</div>
+            <div className="text-[var(--text-muted)] animate-pulse">Loading...</div>
           ) : (
             <div className="space-y-2">
               {events.map((ev) => (
-                <div key={ev.id} className="p-3 bg-slate-700 rounded-md">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-300">{ev.action}</span>
-                    <span className="text-slate-400">{ev.date}</span>
+                <div
+                  key={ev.id}
+                  className="p-3 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)]"
+                >
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="text-[var(--text-primary)] font-bold">{ev.action}</span>
+                    <span className="text-[var(--text-muted)] text-[10px] uppercase font-mono tracking-widest">
+                      {ev.date}
+                    </span>
                   </div>
-                  <div className="text-xs text-slate-400">Actor: {ev.actor}</div>
-                  {ev.notes && <div className="text-xs text-slate-400">{ev.notes}</div>}
+                  <div className="text-xs text-[var(--text-secondary)] font-medium">
+                    Actor: <span className="text-[var(--text-primary)]">{ev.actor}</span>
+                  </div>
+                  {ev.notes && (
+                    <div className="text-xs text-[var(--text-secondary)] mt-1">{ev.notes}</div>
+                  )}
                 </div>
               ))}
               {events.length === 0 && (
-                <div className="text-slate-400 text-sm">No custody events yet.</div>
+                <div className="text-[var(--text-muted)] text-sm italic">
+                  No custody events yet.
+                </div>
               )}
             </div>
           )}
-          <div className="mt-4">
-            <h4 className="text-white font-medium mb-2 text-sm">Add Event</h4>
+          <div className="mt-4 pt-4 border-t border-[var(--glass-border)]">
+            <h4 className="text-[var(--text-primary)] font-bold mb-3 text-sm">Add Event</h4>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
               <input
                 value={actor}
                 onChange={(e) => setActor(e.target.value)}
                 placeholder="Actor"
-                className="bg-slate-700 text-white p-2 rounded"
+                className="bg-[var(--app-bg)] border border-[var(--glass-border)] text-[var(--text-primary)] px-3 py-2 rounded-[var(--radius-md)] focus:outline-none focus:border-[var(--accent)]"
               />
               <input
                 value={action}
                 onChange={(e) => setAction(e.target.value)}
                 placeholder="Action"
-                className="bg-slate-700 text-white p-2 rounded"
+                className="bg-[var(--app-bg)] border border-[var(--glass-border)] text-[var(--text-primary)] px-3 py-2 rounded-[var(--radius-md)] focus:outline-none focus:border-[var(--accent)]"
               />
               <input
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Notes"
-                className="bg-slate-700 text-white p-2 rounded"
+                className="bg-[var(--app-bg)] border border-[var(--glass-border)] text-[var(--text-primary)] px-3 py-2 rounded-[var(--radius-md)] focus:outline-none focus:border-[var(--accent)]"
               />
             </div>
             <button
               onClick={addEvent}
-              className="mt-3 px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+              className="mt-3 px-4 py-2 bg-[var(--accent)] text-[var(--app-bg)] font-medium rounded-[var(--radius-lg)] hover:bg-[var(--accent)]/90 transition-colors text-sm"
             >
               Add
             </button>

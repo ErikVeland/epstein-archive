@@ -21,13 +21,13 @@ const FormField: React.FC<FormFieldProps> = ({
 }) => {
   return (
     <div className={`mb-4 ${className}`}>
-      <label htmlFor={id} className="block text-sm font-medium text-gray-300 mb-2">
+      <label htmlFor={id} className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
         {label}
         {required && <span className="text-red-500 ml-1">*</span>}
       </label>
       {children}
       {helpText && (
-        <p className="mt-1 text-xs text-gray-500" id={`${id}-description`}>
+        <p className="mt-1 text-xs text-[var(--text-muted)]" id={`${id}-description`}>
           {helpText}
         </p>
       )}

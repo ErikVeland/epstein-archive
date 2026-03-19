@@ -35,7 +35,7 @@ export const EvidenceBadge: React.FC<EvidenceBadgeProps> = ({
 
   if (hasObjective || hasSubjective) {
     return (
-      <div className="flex items-center gap-2 px-2 py-0.5 rounded border border-slate-700 bg-slate-800/40">
+      <div className="flex items-center gap-2 px-2 py-0.5 rounded border border-[var(--glass-border)] bg-[var(--glass-bg)]/40">
         {hasObjective ? (
           <div
             className="flex items-center gap-1"
@@ -57,7 +57,7 @@ export const EvidenceBadge: React.FC<EvidenceBadgeProps> = ({
     L1: { color: 'evidence-direct', icon: 'AlertOctagon', label: 'Direct Evidence' },
     L2: { color: 'evidence-inferred', icon: 'AlertTriangle', label: 'Inferred Evidence' },
     L3: { color: 'evidence-agentic', icon: 'HelpCircle', label: 'Agentic Evidence' },
-    NONE: { color: 'text-slate-500', icon: 'Minus', label: 'No Signal' },
+    NONE: { color: 'text-[var(--text-muted)]', icon: 'Minus', label: 'No Signal' },
   } as const;
   const cfg = ladderConfig[level] || ladderConfig.NONE;
 

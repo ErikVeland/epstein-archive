@@ -30,9 +30,9 @@ export const InvestigationOnboarding: React.FC<InvestigationOnboardingProps> = (
       description:
         'Begin by creating a new investigation. Give it a meaningful name and description to help you stay organized.',
       icon: Search,
-      color: 'text-blue-400',
-      bg: 'bg-blue-500/10',
-      border: 'border-blue-500/20',
+      color: 'text-[var(--accent)]',
+      bg: 'bg-[var(--accent)]/10',
+      border: 'border-[var(--accent)]/20',
       glow: 'shadow-blue-500/20',
     },
     {
@@ -73,10 +73,10 @@ export const InvestigationOnboarding: React.FC<InvestigationOnboardingProps> = (
         initial={{ scale: 0.95, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         transition={{ type: 'spring', duration: 0.5, bounce: 0.3 }}
-        className="relative bg-slate-900/90 border border-white/10 rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden backdrop-blur-xl"
+        className="relative bg-[var(--glass-bg-strong)]/90 border border-white/10 rounded-3xl shadow-[var(--glass-shadow)] w-full max-w-lg overflow-hidden backdrop-blur-xl"
       >
         {/* Decorative Background Gradients */}
-        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-[var(--accent)]/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* Header */}
@@ -88,10 +88,10 @@ export const InvestigationOnboarding: React.FC<InvestigationOnboardingProps> = (
                 key={s.id}
                 className={`h-1.5 rounded-full transition-all duration-500 ${
                   s.id === step
-                    ? 'w-8 bg-blue-400'
+                    ? 'w-8 bg-[var(--accent)]'
                     : s.id < step
-                      ? 'w-1.5 bg-blue-400/50'
-                      : 'w-1.5 bg-slate-700'
+                      ? 'w-1.5 bg-[var(--accent)]/50'
+                      : 'w-1.5 bg-[var(--glass-bg-highlight)]'
                 }`}
               />
             ))}
@@ -118,13 +118,15 @@ export const InvestigationOnboarding: React.FC<InvestigationOnboardingProps> = (
             >
               {/* Icon Container */}
               <div
-                className={`mb-8 p-6 rounded-2xl ${currentStep.bg} ${currentStep.border} border shadow-[0_0_30px_-5px] ${currentStep.glow} ring-1 ring-white/5`}
+                className={`mb-8 p-6 rounded-[var(--radius-xl)] ${currentStep.bg} ${currentStep.border} border shadow-[0_0_30px_-5px] ${currentStep.glow} ring-1 ring-white/5`}
               >
                 <Icon className={`h-10 w-10 ${currentStep.color}`} />
               </div>
 
-              <h2 className="text-2xl font-bold text-white mb-3">{currentStep.title}</h2>
-              <p className="text-slate-400 text-lg leading-relaxed max-w-xs mx-auto">
+              <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-3">
+                {currentStep.title}
+              </h2>
+              <p className="text-[var(--text-muted)] text-lg leading-relaxed max-w-xs mx-auto">
                 {currentStep.description}
               </p>
             </motion.div>
@@ -137,13 +139,13 @@ export const InvestigationOnboarding: React.FC<InvestigationOnboardingProps> = (
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={handleNext}
-            className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl font-medium shadow-lg shadow-blue-900/20 border border-t-white/10 flex items-center justify-center gap-2 transition-all group"
+            className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-[var(--text-primary)] rounded-[var(--radius-xl)] font-medium shadow-[var(--glass-shadow)] shadow-blue-900/20 border border-t-white/10 flex items-center justify-center gap-2 transition-all group"
           >
             <span>{step === totalSteps ? 'Get Started' : 'Continue'}</span>
             {step === totalSteps ? (
-              <CheckCircle className="w-4 h-4 text-white/90" />
+              <CheckCircle className="w-4 h-4 text-[var(--text-primary)]/90" />
             ) : (
-              <ArrowRight className="w-4 h-4 text-white/80 group-hover:translate-x-0.5 transition-transform" />
+              <ArrowRight className="w-4 h-4 text-[var(--text-primary)]/80 group-hover:translate-x-0.5 transition-transform" />
             )}
           </motion.button>
 
@@ -151,14 +153,14 @@ export const InvestigationOnboarding: React.FC<InvestigationOnboardingProps> = (
             href="https://github.com/ErikVeland/epstein-archive/blob/main/INVESTIGATION_GUIDE.md"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs text-blue-400 hover:text-blue-300 text-center py-1 transition-colors"
+            className="text-xs text-[var(--accent)] hover:text-[var(--accent)] text-center py-1 transition-colors"
           >
             Read the Full Guide
           </a>
 
           <button
             onClick={onSkip}
-            className="text-sm text-slate-500 hover:text-slate-400 py-2 transition-colors"
+            className="text-sm text-[var(--text-muted)] hover:text-[var(--text-muted)] py-2 transition-colors"
           >
             Skip Introduction
           </button>

@@ -128,7 +128,7 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
       part.toLowerCase() === search.toLowerCase() ? (
         <mark
           key={index}
-          className="bg-amber-500/40 text-slate-50 px-0.5 rounded transition-all duration-300"
+          className="bg-amber-500/40 text-[var(--text-primary)] px-0.5 rounded transition-all duration-300"
         >
           {part}
         </mark>
@@ -161,7 +161,7 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
               <span
                 key={sent.id}
                 className={`transition-colors ${
-                  sent.is_boilerplate ? 'text-slate-500 text-xs' : ''
+                  sent.is_boilerplate ? 'text-[var(--text-muted)] text-xs' : ''
                 } ${sent.signal_score > 0.8 ? 'bg-violet-500/10 border-b border-violet-500/30' : ''}`}
                 title={`Signal: ${(sent.signal_score * 100).toFixed(0)}% ${
                   sent.is_boilerplate ? '(Boilerplate)' : ''
@@ -193,31 +193,31 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
 
   return (
     <div className="h-full flex flex-col animate-in fade-in duration-700">
-      <div className="shrink-0 p-4 md:p-6 border-b border-white/5 flex items-center justify-between flex-wrap gap-4 bg-slate-900/40">
+      <div className="shrink-0 p-4 md:p-6 border-b border-white/5 flex items-center justify-between flex-wrap gap-4 bg-[var(--glass-bg-strong)]/40">
         <div className="flex-1 min-w-[240px] max-w-md relative group">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 group-focus-within:text-cyan-400 transition-colors" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-muted)] group-focus-within:text-[var(--accent)] transition-colors" />
           <input
             type="text"
             placeholder="Scoping search..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="control w-full pl-10 pr-20 py-2 !bg-slate-950/40 border-white/5 focus:!border-cyan-500/50"
+            className="control w-full pl-10 pr-20 py-2 !bg-slate-950/40 border-white/5 focus:!border-[var(--accent)]/50"
           />
           {totalMatches > 0 && (
             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
-              <span className="text-[10px] font-black text-cyan-400 tracking-tighter uppercase whitespace-nowrap">
+              <span className="text-[10px] font-black text-[var(--accent)] tracking-tighter uppercase whitespace-nowrap">
                 {currentMatch}/{totalMatches}
               </span>
               <div className="flex gap-1 border-l border-white/10 pl-2">
                 <button
                   onClick={() => navigateMatch('prev')}
-                  className="text-slate-500 hover:text-white"
+                  className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => navigateMatch('next')}
-                  className="text-slate-500 hover:text-white"
+                  className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
@@ -228,16 +228,16 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
 
         <div className="flex items-center gap-2">
           {/* Quick Actions */}
-          <div className="flex p-1 bg-slate-950/40 rounded-xl border border-white/5 gap-1">
+          <div className="flex p-1 bg-slate-950/40 rounded-[var(--radius-xl)] border border-white/5 gap-1">
             <button
               onClick={() => setShowRaw(false)}
-              className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${!showRaw ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' : 'text-slate-600 hover:text-slate-400'}`}
+              className={`px-3 py-1.5 rounded-[var(--radius-lg)] text-[10px] font-black uppercase tracking-widest transition-all ${!showRaw ? 'bg-[var(--accent)]/20 text-[var(--accent)] border border-[var(--accent)]/30' : 'text-[var(--text-primary)] hover:text-[var(--text-muted)]'}`}
             >
               Refined
             </button>
             <button
               onClick={() => setShowRaw(true)}
-              className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${showRaw ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'text-slate-600 hover:text-slate-400'}`}
+              className={`px-3 py-1.5 rounded-[var(--radius-lg)] text-[10px] font-black uppercase tracking-widest transition-all ${showRaw ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'text-[var(--text-primary)] hover:text-[var(--text-muted)]'}`}
             >
               Raw OCR
             </button>
@@ -246,10 +246,10 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
           {hasSentences && !showRaw && (
             <button
               onClick={() => setHideBoilerplate(!hideBoilerplate)}
-              className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest border transition-all ${
+              className={`px-3 py-1.5 rounded-[var(--radius-lg)] text-[10px] font-black uppercase tracking-widest border transition-all ${
                 hideBoilerplate
-                  ? 'bg-slate-700/60 border-slate-500 text-slate-200'
-                  : 'border-slate-700 text-slate-500 hover:text-slate-200'
+                  ? 'bg-[var(--glass-bg-highlight)]/60 border-[var(--glass-border)] text-[var(--text-primary)]'
+                  : 'border-[var(--glass-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)]'
               }`}
             >
               {hideBoilerplate ? 'Show Boilerplate' : 'Hide Boilerplate'}
@@ -258,12 +258,12 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
 
           <button
             onClick={copyText}
-            className="control !h-10 px-4 flex items-center gap-2 text-xs font-bold border-white/5 bg-slate-900/60"
+            className="control !h-10 px-4 flex items-center gap-2 text-xs font-bold border-white/5 bg-[var(--glass-bg-strong)]/60"
           >
             {copied ? (
               <Check className="w-4 h-4 text-emerald-500" />
             ) : (
-              <Copy className="w-4 h-4 text-slate-400" />
+              <Copy className="w-4 h-4 text-[var(--text-muted)]" />
             )}
             {copied ? 'Copied' : 'Copy'}
           </button>
@@ -274,7 +274,7 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
               download
               target="_blank"
               rel="noopener noreferrer"
-              className="control !h-10 w-10 flex items-center justify-center border-white/5 text-slate-400 hover:text-white"
+              className="control !h-10 w-10 flex items-center justify-center border-white/5 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
               title="Download Original"
             >
               <Download className="w-4 h-4" />
@@ -283,7 +283,7 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
 
           {redactionSummary.length > 0 && (
             <div className="flex items-center gap-2 pl-3 border-l border-white/10">
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">
                 Contains Redactions
               </span>
               {redactionSummary.slice(0, 3).map((item) => (
@@ -315,7 +315,10 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
                 </span>
               </div>
               {evidence.metadata.key_excerpts.map((excerpt: string, i: number) => (
-                <p key={i} className="text-sm text-slate-300 italic leading-relaxed mb-4 last:mb-0">
+                <p
+                  key={i}
+                  className="text-sm text-[var(--text-secondary)] italic leading-relaxed mb-4 last:mb-0"
+                >
                   "{excerpt}"
                 </p>
               ))}
@@ -324,7 +327,7 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
 
           <div className="prose prose-invert max-w-none">
             <div
-              className={`whitespace-pre-wrap leading-relaxed ${showRaw ? 'font-mono text-xs opacity-70' : 'font-sans text-base text-slate-200'}`}
+              className={`whitespace-pre-wrap leading-relaxed ${showRaw ? 'font-mono text-xs opacity-70' : 'font-sans text-base text-[var(--text-primary)]'}`}
             >
               {renderContent()}
             </div>

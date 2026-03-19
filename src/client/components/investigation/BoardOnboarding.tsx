@@ -38,9 +38,9 @@ export const BoardOnboarding: React.FC<BoardOnboardingProps> = ({ onComplete, on
       description:
         'Items you "Add to Investigation" from around the app appear in the middle Evidence Pool. Drag them onto Hypotheses to prove or disprove them.',
       icon: FileText,
-      color: 'text-blue-400',
-      bg: 'bg-blue-500/10',
-      border: 'border-blue-500/20',
+      color: 'text-[var(--accent)]',
+      bg: 'bg-[var(--accent)]/10',
+      border: 'border-[var(--accent)]/20',
       glow: 'shadow-blue-500/20',
     },
     {
@@ -70,12 +70,12 @@ export const BoardOnboarding: React.FC<BoardOnboardingProps> = ({ onComplete, on
         initial={{ scale: 0.95, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         transition={{ type: 'spring', duration: 0.5, bounce: 0.3 }}
-        className="relative bg-slate-900 border border-slate-700/50 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
+        className="relative bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] w-full max-w-md overflow-hidden"
       >
         {/* Progress Bar */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-slate-800">
+        <div className="absolute top-0 left-0 right-0 h-1 bg-[var(--glass-bg)]">
           <motion.div
-            className="h-full bg-indigo-500"
+            className="h-full bg-[var(--accent)]"
             initial={{ width: '0%' }}
             animate={{ width: `${(step / totalSteps) * 100}%` }}
             transition={{ duration: 0.3 }}
@@ -89,7 +89,7 @@ export const BoardOnboarding: React.FC<BoardOnboardingProps> = ({ onComplete, on
               onClick={onSkip}
               size="sm"
               label="Close board onboarding"
-              className="bg-transparent hover:bg-slate-800 border-slate-700"
+              className="bg-transparent hover:bg-[var(--glass-bg)] border-[var(--glass-border)]"
             />
           </div>
 
@@ -103,13 +103,17 @@ export const BoardOnboarding: React.FC<BoardOnboardingProps> = ({ onComplete, on
               className="flex flex-col items-center"
             >
               <div
-                className={`mb-6 p-4 rounded-xl ${currentStep.bg} ${currentStep.border} border shadow-lg ${currentStep.glow} ring-1 ring-white/5`}
+                className={`mb-6 p-4 rounded-[var(--radius-xl)] ${currentStep.bg} ${currentStep.border} border shadow-[var(--glass-shadow)] ${currentStep.glow} ring-1 ring-white/5`}
               >
                 <Icon className={`h-8 w-8 ${currentStep.color}`} />
               </div>
 
-              <h2 className="text-xl font-bold text-white mb-3">{currentStep.title}</h2>
-              <p className="text-slate-400 text-sm leading-relaxed">{currentStep.description}</p>
+              <h2 className="text-xl font-bold text-[var(--text-primary)] mb-3">
+                {currentStep.title}
+              </h2>
+              <p className="text-[var(--text-muted)] text-sm leading-relaxed">
+                {currentStep.description}
+              </p>
             </motion.div>
           </AnimatePresence>
         </div>
@@ -118,7 +122,7 @@ export const BoardOnboarding: React.FC<BoardOnboardingProps> = ({ onComplete, on
         <div className="p-6 pt-2 flex flex-col gap-3">
           <button
             onClick={handleNext}
-            className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium shadow-lg shadow-indigo-900/20 flex items-center justify-center gap-2 transition-all"
+            className="w-full py-3 bg-[var(--accent)] hover:bg-[var(--accent)] text-[var(--text-primary)] rounded-[var(--radius-lg)] font-medium shadow-[var(--glass-shadow)] shadow-indigo-900/20 flex items-center justify-center gap-2 transition-all"
           >
             <span>{step === totalSteps ? 'Start Investigating' : 'Next'}</span>
             {step === totalSteps ? (
@@ -129,7 +133,7 @@ export const BoardOnboarding: React.FC<BoardOnboardingProps> = ({ onComplete, on
           </button>
 
           <div className="text-center">
-            <span className="text-xs text-slate-600">
+            <span className="text-xs text-[var(--text-primary)]">
               Step {step} of {totalSteps}
             </span>
           </div>

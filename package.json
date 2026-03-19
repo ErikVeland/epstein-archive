@@ -1,7 +1,7 @@
 {
   "name": "epstein-archive",
   "private": true,
-  "version": "16.6.0",
+  "version": "16.7.0",
   "description": "Epstein Archive Analyzer",
   "type": "module",
   "engines": {
@@ -29,7 +29,7 @@
     "db:merge": "tsx scripts/sync-db.ts",
     "db:push": "./deploy.sh --db-only",
     "ingest:intelligence": "tsx scripts/ingest_intelligence.ts",
-    "pipeline:backfill": "tsx scripts/unified_pipeline.ts --mode backfill",
+    "pipeline:backfill": "BATCH_SIZE=3 tsx scripts/unified_pipeline.ts --mode backfill",
     "black-book:enrich": "tsx scripts/enrich_black_book.ts",
     "media:thumbnails:backfill": "tsx scripts/backfill_thumbnails.ts",
     "lint": "eslint . --ext .ts,.tsx",

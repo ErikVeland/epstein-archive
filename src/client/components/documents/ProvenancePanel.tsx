@@ -98,64 +98,68 @@ export const ProvenancePanel: React.FC<ProvenancePanelProps> = ({ document }) =>
   );
 
   return (
-    <div className="space-y-4 text-sm text-slate-200">
+    <div className="space-y-4 text-sm text-[var(--text-primary)]">
       <section className="surface-quiet p-4">
-        <h3 className="text-xs uppercase tracking-wide text-slate-400 mb-3">Pipeline provenance</h3>
+        <h3 className="text-xs uppercase tracking-wide text-[var(--text-muted)] mb-3">
+          Pipeline provenance
+        </h3>
         <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <dt className="text-xs text-slate-500 mb-1">Ingest run id</dt>
+            <dt className="text-xs text-[var(--text-muted)] mb-1">Ingest run id</dt>
             <dd className="font-mono text-xs break-all">{ingestRunId}</dd>
           </div>
           <div>
-            <dt className="text-xs text-slate-500 mb-1">Ruleset version</dt>
+            <dt className="text-xs text-[var(--text-muted)] mb-1">Ruleset version</dt>
             <dd className="font-mono text-xs break-all">{rulesetVersion}</dd>
           </div>
           <div>
-            <dt className="text-xs text-slate-500 mb-1">Model id</dt>
+            <dt className="text-xs text-[var(--text-muted)] mb-1">Model id</dt>
             <dd className="font-mono text-xs break-all">{modelId}</dd>
           </div>
           <div>
-            <dt className="text-xs text-slate-500 mb-1">Recovery model</dt>
+            <dt className="text-xs text-[var(--text-muted)] mb-1">Recovery model</dt>
             <dd className="font-mono text-xs break-all">{recoveryModel}</dd>
           </div>
           <div className="sm:col-span-2">
-            <dt className="text-xs text-slate-500 mb-1">Processed timestamp</dt>
+            <dt className="text-xs text-[var(--text-muted)] mb-1">Processed timestamp</dt>
             <dd className="font-mono text-xs break-all">{timestamp}</dd>
           </div>
         </dl>
       </section>
 
       <section className="surface-quiet p-4">
-        <h3 className="text-xs uppercase tracking-wide text-slate-400 mb-3">
+        <h3 className="text-xs uppercase tracking-wide text-[var(--text-muted)] mb-3">
           Confidence breakdown
         </h3>
         <dl className="grid grid-cols-2 md:grid-cols-5 gap-3">
           <div>
-            <dt className="text-xs text-slate-500 mb-1">Coverage</dt>
+            <dt className="text-xs text-[var(--text-muted)] mb-1">Coverage</dt>
             <dd>{confidence.coverage}</dd>
           </div>
           <div>
-            <dt className="text-xs text-slate-500 mb-1">Signal</dt>
+            <dt className="text-xs text-[var(--text-muted)] mb-1">Signal</dt>
             <dd>{confidence.signal}</dd>
           </div>
           <div>
-            <dt className="text-xs text-slate-500 mb-1">Corroboration</dt>
+            <dt className="text-xs text-[var(--text-muted)] mb-1">Corroboration</dt>
             <dd>{confidence.corroboration}</dd>
           </div>
           <div>
-            <dt className="text-xs text-slate-500 mb-1">Model certainty</dt>
+            <dt className="text-xs text-[var(--text-muted)] mb-1">Model certainty</dt>
             <dd>{confidence.model}</dd>
           </div>
           <div>
-            <dt className="text-xs text-slate-500 mb-1">Final</dt>
+            <dt className="text-xs text-[var(--text-muted)] mb-1">Final</dt>
             <dd>{confidence.final}</dd>
           </div>
         </dl>
       </section>
 
       <section className="surface-quiet p-4">
-        <h3 className="text-xs uppercase tracking-wide text-slate-400 mb-2">Determinism</h3>
-        <p className="text-slate-300 text-sm leading-relaxed">
+        <h3 className="text-xs uppercase tracking-wide text-[var(--text-muted)] mb-2">
+          Determinism
+        </h3>
+        <p className="text-[var(--text-secondary)] text-sm leading-relaxed">
           This view reflects persisted extraction outputs for this document and ingest run.
           Re-running the same ruleset and model against the same source should reproduce materially
           equivalent results; differences indicate upstream source, ruleset, or model-version

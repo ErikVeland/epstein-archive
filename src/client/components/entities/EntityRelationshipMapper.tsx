@@ -440,18 +440,18 @@ export const EntityRelationshipMapper: React.FC<EntityRelationshipMapperProps> =
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-bold text-white">Entity Relationship Map</h2>
+        <h2 className="text-xl font-bold text-[var(--text-primary)]">Entity Relationship Map</h2>
         <div className="flex space-x-2">
           <button
             onClick={() => handleZoom(1)}
-            className="px-3 py-1 bg-slate-700 text-white rounded hover:bg-slate-600 transition-colors"
+            className="px-3 py-1 bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] rounded hover:bg-[var(--glass-bg-highlight)] transition-colors"
             aria-label="Zoom in"
           >
             +
           </button>
           <button
             onClick={() => handleZoom(-1)}
-            className="px-3 py-1 bg-slate-700 text-white rounded hover:bg-slate-600 transition-colors"
+            className="px-3 py-1 bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] rounded hover:bg-[var(--glass-bg-highlight)] transition-colors"
             aria-label="Zoom out"
           >
             -
@@ -459,7 +459,7 @@ export const EntityRelationshipMapper: React.FC<EntityRelationshipMapperProps> =
           <button
             onClick={exportAsPNG}
             disabled={exporting}
-            className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            className="px-3 py-1 bg-[var(--accent)] text-[var(--text-strong)] rounded hover:brightness-110 disabled:opacity-50 transition-all"
           >
             {exporting ? 'Exporting...' : 'Export PNG'}
           </button>
@@ -468,7 +468,7 @@ export const EntityRelationshipMapper: React.FC<EntityRelationshipMapperProps> =
 
       <div
         ref={containerRef}
-        className="w-full h-[600px] bg-slate-900 rounded-lg border border-slate-700 overflow-hidden relative"
+        className="w-full h-[600px] bg-[var(--glass-bg-strong)] rounded-[var(--radius-lg)] border border-[var(--glass-border)] overflow-hidden relative"
         onMouseDown={(e) => {
           const startX = e.clientX;
           const startY = e.clientY;
@@ -491,20 +491,22 @@ export const EntityRelationshipMapper: React.FC<EntityRelationshipMapperProps> =
         <svg ref={svgRef} className="w-full h-full" viewBox="0 0 800 600" />
 
         {simulationRunning && (
-          <div className="absolute top-4 left-4 bg-slate-800/80 text-white px-3 py-1 rounded text-sm">
+          <div className="absolute top-4 left-4 bg-[var(--glass-bg)]/80 text-[var(--text-primary)] px-3 py-1 rounded text-sm">
             Simulating...
           </div>
         )}
       </div>
 
       {selectedEntity && (
-        <div className="bg-slate-800 p-4 rounded-lg border border-slate-700">
-          <h3 className="text-lg font-bold text-white mb-2">{selectedEntity.label}</h3>
-          <p className="text-slate-300">Type: {selectedEntity.type}</p>
+        <div className="bg-[var(--glass-bg)] p-4 rounded-[var(--radius-lg)] border border-[var(--glass-border)]">
+          <h3 className="text-lg font-bold text-[var(--text-primary)] mb-2">
+            {selectedEntity.label}
+          </h3>
+          <p className="text-[var(--text-secondary)]">Type: {selectedEntity.type}</p>
           {selectedEntity.properties && (
             <div className="mt-2">
               {Object.entries(selectedEntity.properties).map(([key, value]) => (
-                <p key={key} className="text-slate-400 text-sm">
+                <p key={key} className="text-[var(--text-muted)] text-sm">
                   <span className="font-medium">{key}:</span> {String(value)}
                 </p>
               ))}

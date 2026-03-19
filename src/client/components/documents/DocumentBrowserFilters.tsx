@@ -33,7 +33,7 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
       {/* Category + significance chips row */}
       <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div className="overflow-x-auto pb-1 min-w-0 flex-1">
-          <div className="inline-flex min-w-max items-center rounded-full border border-slate-700/75 bg-slate-900/65 overflow-hidden divide-x divide-slate-700/80">
+          <div className="inline-flex min-w-max items-center rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg-strong)] overflow-hidden divide-x divide-[var(--glass-border)]">
             {[
               { type: 'all', label: 'All', icon: <Folder className="w-3.5 h-3.5" /> },
               { type: 'legal', label: 'Legal', icon: <Scale className="w-3.5 h-3.5" /> },
@@ -63,8 +63,8 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
                   (type === 'all' &&
                     (!localFilters.categories || localFilters.categories.length === 0)) ||
                   localFilters.categories?.includes(type)
-                    ? 'bg-blue-600/95 text-white'
-                    : 'text-gray-300 hover:bg-slate-800/70 hover:text-white'
+                    ? 'bg-[var(--accent)]/90 text-[var(--text-primary)]'
+                    : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)] hover:text-[var(--text-primary)]'
                 }`}
               >
                 <span>{icon}</span>
@@ -76,11 +76,11 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
 
         <div className="flex flex-wrap items-center gap-2 md:justify-end md:shrink-0">
           {selectedTranche !== 'all' && (
-            <span className="px-3 py-1.5 rounded-full text-sm bg-cyan-900/40 text-cyan-100 border border-cyan-600/40">
+            <span className="px-3 py-1.5 rounded-full text-sm bg-[var(--accent)]/20 text-[var(--text-primary)] border border-[var(--accent)]/40">
               Tranche: {DOJ_TRANCHE_OPTIONS.find((entry) => entry.value === selectedTranche)?.label}
             </span>
           )}
-          <div className="inline-flex min-w-max items-center rounded-full border border-slate-700/75 bg-slate-900/65 overflow-hidden divide-x divide-slate-700/80">
+          <div className="inline-flex min-w-max items-center rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg-strong)] overflow-hidden divide-x divide-[var(--glass-border)]">
             <button
               onClick={() => {
                 const isActive =
@@ -89,8 +89,8 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
               }}
               className={`inline-flex items-center gap-2 h-11 px-4 text-sm font-medium transition-colors shrink-0 ${
                 localFilters.redFlagLevel?.min === 4 && localFilters.redFlagLevel?.max === 5
-                  ? 'bg-red-900/80 text-white'
-                  : 'text-gray-300 hover:bg-slate-800/70 hover:text-white'
+                  ? 'bg-red-500/20 text-[var(--text-primary)]'
+                  : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)] hover:text-[var(--text-primary)]'
               }`}
             >
               <div
@@ -110,8 +110,8 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
               }}
               className={`inline-flex items-center gap-2 h-11 px-4 text-sm font-medium transition-colors shrink-0 ${
                 localFilters.redFlagLevel?.min === 2 && localFilters.redFlagLevel?.max === 3
-                  ? 'bg-amber-900/80 text-white'
-                  : 'text-gray-300 hover:bg-slate-800/70 hover:text-white'
+                  ? 'bg-amber-500/20 text-[var(--text-primary)]'
+                  : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)] hover:text-[var(--text-primary)]'
               }`}
             >
               <div
@@ -131,8 +131,8 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
               }}
               className={`inline-flex items-center gap-2 h-11 px-4 text-sm font-medium transition-colors shrink-0 ${
                 localFilters.redFlagLevel?.min === 0 && localFilters.redFlagLevel?.max === 1
-                  ? 'bg-emerald-900/80 text-white'
-                  : 'text-gray-300 hover:bg-slate-800/70 hover:text-white'
+                  ? 'bg-emerald-500/20 text-[var(--text-primary)]'
+                  : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)] hover:text-[var(--text-primary)]'
               }`}
             >
               <div
@@ -149,15 +149,17 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
       </div>
 
       {/* Desktop inline detailed filters */}
-      <div className="bg-slate-900/80 border border-slate-700/60 rounded-[var(--radius-md)] p-6 shadow-2xl backdrop-blur-md">
+      <div className="glass-panel p-6 shadow-[var(--glass-shadow)] backdrop-blur-md">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* File Type Filter */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">
+            <label className="block text-xs font-bold uppercase tracking-widest text-[var(--text-muted)] mb-4">
               File Formats
             </label>
             {fileTypeOptions.length === 0 ? (
-              <div className="text-xs text-slate-500 italic">No file-type facets available.</div>
+              <div className="text-xs text-[var(--text-muted)] italic">
+                No file-type facets available.
+              </div>
             ) : (
               <div className="grid grid-cols-2 gap-2">
                 {fileTypeOptions.map((option) => (
@@ -169,9 +171,9 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
                       type="checkbox"
                       checked={localFilters.fileType?.includes(option.value) || false}
                       onChange={() => handleFileTypeToggle(option.value)}
-                      className="w-4 h-4 rounded-[var(--radius-sm)] border-slate-700 bg-slate-800 text-blue-600 focus:ring-blue-500/20"
+                      className="w-4 h-4 rounded-[var(--radius-sm)] border-[var(--glass-border)] bg-[var(--glass-bg-strong)] text-[var(--accent)] focus:ring-[var(--accent)]/20"
                     />
-                    <span className="text-xs text-slate-300 group-hover:text-white transition-colors">
+                    <span className="text-xs text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">
                       {option.label}
                     </span>
                   </label>
@@ -182,11 +184,13 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
 
           {/* Source Filter */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">
+            <label className="block text-xs font-bold uppercase tracking-widest text-[var(--text-muted)] mb-4">
               Archive Source
             </label>
             {sourceOptions.length === 0 ? (
-              <div className="text-xs text-slate-500 italic">No source facets available.</div>
+              <div className="text-xs text-[var(--text-muted)] italic">
+                No source facets available.
+              </div>
             ) : (
               <select
                 multiple
@@ -197,7 +201,7 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
                     Array.from(e.target.selectedOptions, (opt) => opt.value),
                   )
                 }
-                className="w-full h-32 bg-slate-800/50 border border-slate-700/50 rounded-[var(--radius-md)] p-2 text-xs text-slate-300 focus:ring-1 focus:ring-blue-500/50 outline-none scrollbar-thin"
+                className="w-full h-32 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-md)] p-2 text-xs text-[var(--text-secondary)] focus:ring-1 focus:ring-[var(--accent)]/50 outline-none scrollbar-thin"
               >
                 {sourceOptions.map((opt) => (
                   <option key={opt.value} value={opt.value} className="py-1 px-1">
@@ -210,7 +214,7 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
 
           {/* Date range */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">
+            <label className="block text-xs font-bold uppercase tracking-widest text-[var(--text-muted)] mb-4">
               Temporal Window
             </label>
             <div className="space-y-3">
@@ -224,9 +228,9 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
                       start: e.target.value,
                     })
                   }
-                  className="w-full bg-slate-800/50 border border-slate-700/50 rounded-[var(--radius-md)] px-3 py-2 text-xs text-slate-200 outline-none focus:border-blue-500/50"
+                  className="w-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-md)] px-3 py-2 text-xs text-[var(--text-secondary)] outline-none focus:border-[var(--accent)]/50"
                 />
-                <span className="absolute -top-2 left-2 px-1 bg-slate-900 text-[10px] text-slate-500">
+                <span className="absolute -top-2 left-2 px-1 bg-[var(--glass-bg-strong)] text-[10px] text-[var(--text-muted)]">
                   From
                 </span>
               </div>
@@ -240,9 +244,9 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
                       end: e.target.value,
                     })
                   }
-                  className="w-full bg-slate-800/50 border border-slate-700/50 rounded-[var(--radius-md)] px-3 py-2 text-xs text-slate-200 outline-none focus:border-blue-500/50"
+                  className="w-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-md)] px-3 py-2 text-xs text-[var(--text-secondary)] outline-none focus:border-[var(--accent)]/50"
                 />
-                <span className="absolute -top-2 left-2 px-1 bg-slate-900 text-[10px] text-slate-500">
+                <span className="absolute -top-2 left-2 px-1 bg-[var(--glass-bg-strong)] text-[10px] text-[var(--text-muted)]">
                   To
                 </span>
               </div>
@@ -252,27 +256,29 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
           {/* Reliability & Collections */}
           <div className="space-y-6">
             <div>
-              <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">
+              <label className="block text-xs font-bold uppercase tracking-widest text-[var(--text-muted)] mb-4">
                 Trust & Integrity
               </label>
-              <label className="flex items-center gap-3 p-3 bg-slate-800/40 border border-slate-700/40 rounded-[var(--radius-md)] cursor-pointer hover:bg-slate-800/60 transition-colors">
+              <label className="flex items-center gap-3 p-3 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-md)] cursor-pointer hover:bg-[var(--glass-bg-highlight)] transition-colors">
                 <input
                   type="checkbox"
                   checked={hideLowCredibility}
                   onChange={(e) => setHideLowCredibility(e.target.checked)}
-                  className="w-4 h-4 rounded border-slate-700 bg-slate-700 text-cyan-500 focus:ring-cyan-500/20"
+                  className="w-4 h-4 rounded border-[var(--glass-border)] bg-[var(--glass-bg-strong)] text-[var(--accent)] focus:ring-[var(--accent)]/20"
                 />
-                <span className="text-xs text-slate-300">Exclude low-reliability items</span>
+                <span className="text-xs text-[var(--text-secondary)]">
+                  Exclude low-reliability items
+                </span>
               </label>
             </div>
 
             {availableCollections?.length > 0 && (
               <div>
-                <label className="block text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">
+                <label className="block text-xs font-bold uppercase tracking-widest text-[var(--text-muted)] mb-2">
                   Logical Collections
                 </label>
                 <select
-                  className="w-full bg-slate-800/50 border border-slate-700/50 rounded-[var(--radius-md)] p-2 text-xs text-slate-300 outline-none"
+                  className="w-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-md)] p-2 text-xs text-[var(--text-secondary)] outline-none"
                   value={localFilters.collectionId || ''}
                   onChange={(e) => handleFilterChange('collectionId', e.target.value || undefined)}
                 >

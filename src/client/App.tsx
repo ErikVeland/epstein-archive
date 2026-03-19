@@ -901,7 +901,6 @@ function App() {
         // fetchGlobalStats will handle the authoritative stats
       } catch (error) {
         console.error('Error initializing data service:', error);
-        addToast({ text: 'Failed to load subjects', type: 'error' });
       } finally {
         setIsInitializing(false);
       }
@@ -948,7 +947,6 @@ function App() {
         setLoadingProgressValue(100);
       } catch (error) {
         console.error('Error fetching global stats:', error);
-        addToast({ text: 'Failed to load statistics', type: 'error' });
       }
     };
 
@@ -1140,20 +1138,20 @@ function App() {
   } rounded-none transition-all duration-200 whitespace-nowrap border-0 bg-transparent ${
     navLayoutMode === 'icons' ? 'max-w-11' : ''
   }`;
-  const getNavSegmentClass = (isActive: boolean, activeClass: string, extraClass: string = '') =>
+  const getNavSegmentClass = (isActive: boolean, extraClass: string = '') =>
     `${navSegmentBaseClass} ${
       isActive
-        ? `${activeClass} text-white`
-        : 'text-slate-300 hover:text-white hover:bg-slate-800/55'
+        ? `bg-[var(--glass-bg-highlight)] shadow-[var(--glass-shadow-soft)] ring-1 ring-[var(--glass-border-highlight)] text-[var(--text-strong)]`
+        : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)]'
     } ${extraClass}`.trim();
   const navItemClass = 'flex-1 min-w-0 h-full';
   const navLabelClass = navLayoutMode === 'icons' ? 'hidden' : 'inline truncate';
   const navPillClass =
     navLayoutMode === 'normal'
-      ? 'flex w-full h-11 items-stretch rounded-full border overflow-hidden divide-x divide-slate-700/80'
+      ? 'flex w-full h-11 items-stretch rounded-full overflow-hidden bg-[var(--glass-bg)]/40 hover:bg-[var(--glass-bg)]/60 shadow-[var(--glass-shadow-soft)] transition-colors'
       : navLayoutMode === 'compact'
-        ? 'flex w-full h-10 items-stretch rounded-full border overflow-hidden divide-x divide-slate-700/80'
-        : 'flex w-full h-11 items-stretch rounded-full border overflow-hidden divide-x divide-slate-700/80';
+        ? 'flex w-full h-10 items-stretch rounded-full overflow-hidden bg-[var(--glass-bg)]/40 hover:bg-[var(--glass-bg)]/60 shadow-[var(--glass-shadow-soft)] transition-colors'
+        : 'flex w-full h-11 items-stretch rounded-full overflow-hidden bg-[var(--glass-bg)]/40 hover:bg-[var(--glass-bg)]/60 shadow-[var(--glass-shadow-soft)] transition-colors';
 
   useEffect(() => {
     const track = navTrackRef.current;
@@ -1199,7 +1197,7 @@ function App() {
     <ToastProvider>
       <UndoProvider>
         <InvestigationsProvider>
-          <div className="min-h-screen bg-gradient-to-br from-gray-950 via-slate-900 to-black relative overflow-x-hidden overflow-y-auto flex flex-col">
+          <div className="min-h-screen app-backdrop relative overflow-x-hidden overflow-y-auto flex flex-col">
             <SEO {...seoConfig} />
             {shouldShowOnboarding && (
               <FirstRunOnboarding onComplete={completeOnboarding} onSkip={skipOnboarding} />
@@ -1207,12 +1205,12 @@ function App() {
 
             {/* Skip links for accessibility */}
             <div className="sr-only">
-              <a className="sr-only focus:not-sr-only focus:absolute focus:p-4 focus:bg-slate-900 focus:text-white z-50">
+              <a className="sr-only focus:not-sr-only focus:absolute focus:p-4 focus:bg-[var(--glass-bg-strong)] focus:text-[var(--text-primary)] z-50">
                 Skip to main content
               </a>
               <a
                 href="#navigation"
-                className="sr-only focus:not-sr-only focus:absolute focus:p-4 focus:bg-slate-900 focus:text-white z-50 mt-10"
+                className="sr-only focus:not-sr-only focus:absolute focus:p-4 focus:bg-[var(--glass-bg-strong)] focus:text-[var(--text-primary)] z-50 mt-10"
               >
                 Skip to navigation
               </a>
@@ -1225,8 +1223,8 @@ function App() {
 
             {/* Header */}
             <header className="app-header-glass transition-all duration-300">
-              <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex flex-col md:flex-row items-center justify-between py-2.5 min-h-[68px] gap-4">
+              <div className="content-shell">
+                <div className="flex flex-col md:flex-row items-center justify-between py-1.5 min-h-[52px] gap-3">
                   {/* LEFT: Logo and Stats */}
                   <div className="flex items-center gap-6">
                     {/* Logo */}
@@ -1238,28 +1236,28 @@ function App() {
                     </Link>
 
                     {/* Stats - Desktop only */}
-                    <div className="hidden lg:flex items-center space-x-4 ml-4 pl-4 border-l border-slate-700/50">
-                      <div className="flex flex-col items-start px-2 gap-0.5">
-                        <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
+                    <div className="hidden lg:flex items-center space-x-5 ml-6 pl-6 border-l border-[var(--glass-border)]">
+                      <div className="flex flex-col items-start px-2 gap-0 relative group">
+                        <span className="text-[9px] text-[var(--text-muted)] uppercase tracking-[0.2em] font-semibold mb-0.5">
                           Subjects
                         </span>
-                        <span className="text-sm font-bold text-cyan-400 font-mono">
+                        <span className="text-base font-light tracking-tighter text-[var(--accent)] font-mono transition-transform duration-300 group-hover:scale-105">
                           {headerTotalPeople.toLocaleString()}
                         </span>
                       </div>
-                      <div className="flex flex-col items-start px-2 gap-0.5">
-                        <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
+                      <div className="flex flex-col items-start px-2 gap-0 relative group">
+                        <span className="text-[9px] text-[var(--text-muted)] uppercase tracking-[0.2em] font-semibold mb-0.5">
                           Mentions
                         </span>
-                        <span className="text-sm font-bold text-blue-400 font-mono">
+                        <span className="text-base font-light tracking-tighter text-[var(--accent-info)] font-mono transition-transform duration-300 group-hover:scale-105">
                           {headerTotalMentions.toLocaleString()}
                         </span>
                       </div>
-                      <div className="flex flex-col items-start px-2 gap-0.5">
-                        <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
+                      <div className="flex flex-col items-start px-2 gap-0 relative group">
+                        <span className="text-[9px] text-[var(--text-muted)] uppercase tracking-[0.2em] font-semibold mb-0.5">
                           Files
                         </span>
-                        <span className="text-sm font-bold text-purple-400 font-mono">
+                        <span className="text-base font-light tracking-tighter text-[var(--accent-docs)] font-mono transition-transform duration-300 group-hover:scale-105">
                           {headerTotalFiles.toLocaleString()}
                         </span>
                       </div>
@@ -1302,19 +1300,21 @@ function App() {
                           title="Verified Sources"
                         >
                           <Icon name="Shield" size="sm" color="success" />
-                          <span className="max-w-0 group-hover:max-w-xs overflow-hidden transition-all duration-300 opacity-0 group-hover:opacity-100 whitespace-nowrap text-sm text-white ml-0 group-hover:ml-2">
+                          <span className="max-w-0 group-hover:max-w-xs overflow-hidden transition-all duration-300 opacity-0 group-hover:opacity-100 whitespace-nowrap text-sm text-[var(--text-primary)] ml-0 group-hover:ml-2">
                             Sources
                           </span>
                         </button>
                         {/* Tooltip Panel */}
-                        <div className="absolute hidden group-hover:block z-50 right-0 top-full mt-2 w-80 bg-slate-900 border border-slate-700 rounded-lg p-4 shadow-xl transition-opacity duration-300">
-                          <div className="text-sm font-semibold text-white mb-2">
+                        <div className="absolute hidden group-hover:block z-50 right-0 top-full mt-2 w-80 glass-panel p-4 shadow-xl transition-opacity duration-300">
+                          <div className="text-sm font-semibold text-[var(--text-primary)] mb-2">
                             Verified Sources
                           </div>
-                          <div className="text-xs text-slate-300 space-y-2">
+                          <div className="text-xs text-[var(--text-secondary)] space-y-2">
                             <div>
-                              <div className="font-medium text-emerald-400 mb-1">Source Types:</div>
-                              <ul className="list-disc list-inside space-y-1 text-slate-400">
+                              <div className="font-medium text-[var(--accent-success)] mb-1">
+                                Source Types:
+                              </div>
+                              <ul className="list-disc list-inside space-y-1 text-[var(--text-muted)]">
                                 <li>Court Documents & Legal Filings</li>
                                 <li>Flight Logs & Travel Records</li>
                                 <li>Email Correspondence</li>
@@ -1323,11 +1323,11 @@ function App() {
                                 <li>Photographic Evidence</li>
                               </ul>
                             </div>
-                            <div className="pt-2 border-t border-slate-700">
-                              <div className="font-medium text-cyan-400">
+                            <div className="pt-2 border-t border-[var(--glass-border)]">
+                              <div className="font-medium text-[var(--accent)]">
                                 Total Documents: {headerTotalFiles.toLocaleString()}
                               </div>
-                              <div className="text-slate-500 mt-1">
+                              <div className="text-[var(--text-muted)] mt-1">
                                 All sources verified through public court records and official
                                 filings
                               </div>
@@ -1355,8 +1355,8 @@ function App() {
                           className="group control flex items-center rounded-full h-11 pl-2.5 pr-2.5 hover:pr-4 transition-all duration-300"
                           title="Admin Dashboard"
                         >
-                          <Icon name="Shield" size="sm" className="text-blue-400" />
-                          <span className="max-w-0 group-hover:max-w-xs overflow-hidden transition-all duration-300 opacity-0 group-hover:opacity-100 whitespace-nowrap text-sm text-blue-100 ml-0 group-hover:ml-2">
+                          <Icon name="Shield" size="sm" className="text-[var(--accent-info)]" />
+                          <span className="max-w-0 group-hover:max-w-xs overflow-hidden transition-all duration-300 opacity-0 group-hover:opacity-100 whitespace-nowrap text-sm text-[var(--text-default)] ml-0 group-hover:ml-2">
                             Admin
                           </span>
                         </button>
@@ -1376,7 +1376,7 @@ function App() {
                           <input
                             type="text"
                             placeholder="Search evidence..."
-                            className="w-full h-11 pl-9 pr-9 bg-transparent text-white placeholder-slate-400 focus:outline-none focus:ring-0 focus:border-none text-sm"
+                            className="w-full h-11 pl-9 pr-9 bg-transparent text-[var(--text-strong)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-0 focus:border-none text-sm"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             onKeyDown={(e) => {
@@ -1390,7 +1390,7 @@ function App() {
                               type="button"
                               onClick={() => setSearchTerm('')}
                               aria-label="Clear search"
-                              className="absolute right-1 top-1/2 -translate-y-1/2 inline-flex items-center justify-center h-7 w-7 rounded-full text-slate-400 hover:text-white hover:bg-slate-700/70"
+                              className="absolute right-1 top-1/2 -translate-y-1/2 inline-flex items-center justify-center h-7 w-7 rounded-full text-[var(--text-secondary)] hover:text-[var(--text-strong)] hover:bg-[var(--glass-bg-strong)]"
                             >
                               <Icon name="X" size="xs" />
                             </button>
@@ -1411,44 +1411,44 @@ function App() {
                         </button>
                       </div>
                       {searchTerm.trim().length >= 2 && (
-                        <div className="absolute top-full right-0 mt-2 w-full md:w-96 dropdown-surface z-50 max-h-96 overflow-y-auto">
-                          <div className="p-2 text-xs text-slate-400 border-b border-slate-700">
+                        <div className="absolute top-full right-0 mt-2 w-full md:w-96 glass-panel z-50 max-h-96 overflow-y-auto">
+                          <div className="p-2 text-xs text-[var(--text-secondary)] border-b border-[var(--glass-border)]">
                             Search results for "{searchTerm}"
                           </div>
                           {searchSuggestionsLoading ? (
-                            <div className="px-3 py-4 text-sm text-slate-400 flex items-center gap-2">
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-cyan-400"></div>
+                            <div className="px-3 py-4 text-sm text-[var(--text-secondary)] flex items-center gap-2">
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[var(--accent)]"></div>
                               Searching...
                             </div>
                           ) : searchSuggestions.length > 0 ? (
                             searchSuggestions.slice(0, 8).map((p, i) => (
                               <button
                                 key={`sugg-${p.id}-${i}`}
-                                className="w-full text-left px-3 py-2 text-sm text-slate-200 hover:bg-slate-800 flex items-center gap-2"
+                                className="w-full text-left px-3 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)] flex items-center gap-2"
                                 onClick={() => handlePersonClick(p)}
                               >
                                 <Icon name="User" size="sm" color="gray" />
                                 <span className="truncate flex-1">
                                   {p.canonicalName || p.name}
                                   {p.matchedAlias && (
-                                    <span className="ml-1 text-[11px] text-slate-400">
+                                    <span className="ml-1 text-[11px] text-[var(--text-muted)]">
                                       ({p.matchedAlias})
                                     </span>
                                   )}
                                 </span>
-                                <span className="text-xs text-slate-500">
+                                <span className="text-xs text-[var(--text-secondary)]">
                                   {p.role !== 'Unknown' ? p.role : 'Subject'}
                                 </span>
                               </button>
                             ))
                           ) : (
-                            <div className="px-3 py-2 text-sm text-slate-400">
+                            <div className="px-3 py-2 text-sm text-[var(--text-secondary)]">
                               No subjects found
                             </div>
                           )}
-                          <div className="border-t border-slate-700 mt-1 pt-1">
+                          <div className="border-t border-[var(--glass-border)] mt-1 pt-1">
                             <button
-                              className="w-full text-left px-3 py-2 text-sm text-cyan-400 hover:bg-slate-800 flex items-center gap-2"
+                              className="w-full text-left px-3 py-2 text-sm text-[var(--accent)] hover:bg-[var(--glass-bg-strong)] flex items-center gap-2"
                               onClick={() =>
                                 navigate(`/search?q=${encodeURIComponent(searchTerm)}`)
                               }
@@ -1467,7 +1467,7 @@ function App() {
                         onClick={() => setShowDateRangePicker((v) => !v)}
                         aria-expanded={showDateRangePicker}
                         aria-haspopup="dialog"
-                        className={`group control flex items-center rounded-full h-11 px-3 gap-2 transition-all duration-300${filters.timeRange[0] || filters.timeRange[1] ? ' text-amber-300' : ''}`}
+                        className={`group control flex items-center rounded-full h-11 px-3 gap-2 transition-all duration-300${filters.timeRange[0] || filters.timeRange[1] ? ' text-[var(--accent-warning)]' : ''}`}
                         title="Global date range filter"
                       >
                         <Icon
@@ -1476,32 +1476,32 @@ function App() {
                           color={filters.timeRange[0] || filters.timeRange[1] ? 'warning' : 'gray'}
                         />
                         {(filters.timeRange[0] || filters.timeRange[1]) && (
-                          <span className="text-xs text-amber-300 whitespace-nowrap max-w-[120px] truncate">
+                          <span className="text-xs text-[var(--accent-warning)] whitespace-nowrap max-w-[120px] truncate">
                             {filters.timeRange[0] ?? '…'} – {filters.timeRange[1] ?? '…'}
                           </span>
                         )}
                       </button>
                       {showDateRangePicker && (
                         <div
-                          className="absolute top-full right-0 mt-2 z-50 dropdown-surface p-4 w-72"
+                          className="absolute top-full right-0 mt-2 z-50 glass-panel p-4 w-72"
                           role="dialog"
                           aria-label="Global date range filter"
                         >
-                          <div className="text-xs font-semibold text-slate-400 mb-3 uppercase tracking-wider">
+                          <div className="text-xs font-semibold text-[var(--text-secondary)] mb-3 uppercase tracking-wider">
                             Global Date Filter
                           </div>
                           <div className="space-y-3">
                             <div>
                               <label
                                 htmlFor="global-date-from"
-                                className="block text-xs text-slate-500 mb-1"
+                                className="block text-xs text-[var(--text-muted)] mb-1"
                               >
                                 From
                               </label>
                               <input
                                 id="global-date-from"
                                 type="date"
-                                className="w-full bg-slate-800 border border-slate-700 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-600"
+                                className="w-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-md px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
                                 value={filters.timeRange[0] ?? ''}
                                 onChange={(e) =>
                                   setFilters({
@@ -1513,14 +1513,14 @@ function App() {
                             <div>
                               <label
                                 htmlFor="global-date-to"
-                                className="block text-xs text-slate-500 mb-1"
+                                className="block text-xs text-[var(--text-muted)] mb-1"
                               >
                                 To
                               </label>
                               <input
                                 id="global-date-to"
                                 type="date"
-                                className="w-full bg-slate-800 border border-slate-700 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-600"
+                                className="w-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-md px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
                                 value={filters.timeRange[1] ?? ''}
                                 onChange={(e) =>
                                   setFilters({
@@ -1535,7 +1535,7 @@ function App() {
                                   setFilters({ timeRange: [null, null] });
                                   setShowDateRangePicker(false);
                                 }}
-                                className="w-full text-xs text-slate-400 hover:text-white border border-slate-700 rounded-md py-2 transition-colors"
+                                className="w-full text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--glass-border)] rounded-md py-2 transition-colors"
                               >
                                 Clear date filter
                               </button>
@@ -1548,7 +1548,7 @@ function App() {
                     {/* Mobile Menu Toggle */}
                     <button
                       onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                      className="md:hidden p-2 text-slate-400 hover:text-white"
+                      className="md:hidden p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                     >
                       {isMobileMenuOpen ? (
                         <Icon name="X" size="sm" />
@@ -1561,33 +1561,39 @@ function App() {
               </div>
             </header>
 
-            <div className="w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8 relative z-10 flex-grow">
+            <div className="content-shell flex-grow">
               {/* Mobile Stats Row */}
               <div className="md:hidden grid grid-cols-3 gap-2 mb-6 text-center">
                 <button
                   onClick={() => navigate('/search')}
-                  className="bg-slate-800/50 border border-slate-700 rounded-lg p-2 hover:bg-slate-700/50 transition-colors cursor-pointer"
+                  className="surface-glass-card rounded-lg p-2 hover:bg-[var(--glass-bg-strong)] transition-colors cursor-pointer"
                 >
-                  <div className="text-xs text-slate-400 uppercase tracking-wider">Subjects</div>
-                  <div className="text-lg font-bold text-cyan-400">
+                  <div className="text-xs text-[var(--text-secondary)] uppercase tracking-wider">
+                    Subjects
+                  </div>
+                  <div className="text-lg font-bold text-[var(--accent)]">
                     {headerTotalPeople.toLocaleString()}
                   </div>
                 </button>
                 <button
                   onClick={() => navigate('/search')}
-                  className="bg-slate-800/50 border border-slate-700 rounded-lg p-2 hover:bg-slate-700/50 transition-colors cursor-pointer"
+                  className="surface-glass-card rounded-lg p-2 hover:bg-[var(--glass-bg-strong)] transition-colors cursor-pointer"
                 >
-                  <div className="text-xs text-slate-400 uppercase tracking-wider">Mentions</div>
-                  <div className="text-lg font-bold text-blue-400">
+                  <div className="text-xs text-[var(--text-secondary)] uppercase tracking-wider">
+                    Mentions
+                  </div>
+                  <div className="text-lg font-bold text-[var(--accent-info)]">
                     {headerTotalMentions.toLocaleString()}
                   </div>
                 </button>
                 <button
                   onClick={() => navigate('/documents')}
-                  className="bg-slate-800/50 border border-slate-700 rounded-lg p-2 hover:bg-slate-700/50 transition-colors cursor-pointer"
+                  className="surface-glass-card rounded-lg p-2 hover:bg-[var(--glass-bg-strong)] transition-colors cursor-pointer"
                 >
-                  <div className="text-xs text-slate-400 uppercase tracking-wider">Files</div>
-                  <div className="text-lg font-bold text-purple-400">
+                  <div className="text-xs text-[var(--text-secondary)] uppercase tracking-wider">
+                    Files
+                  </div>
+                  <div className="text-lg font-bold text-[var(--accent-docs)]">
                     {headerTotalFiles.toLocaleString()}
                   </div>
                 </button>
@@ -1602,56 +1608,19 @@ function App() {
                 <div className="relative">
                   <div ref={navTrackRef} className="main-nav-track">
                     <div className={`main-nav-pill ${navPillClass}`}>
-                      <div className={`relative group ${navItemClass}`}>
+                      <div className={navItemClass}>
                         <button
                           onClick={() => navigate('/people')}
-                          className={getNavSegmentClass(
-                            activeTab === 'people',
-                            'bg-gradient-to-r from-cyan-600 to-cyan-500 text-white shadow-sm shadow-cyan-500/20',
-                          )}
+                          className={getNavSegmentClass(activeTab === 'people')}
                         >
                           <Icon name="Users" size="sm" />
                           <span className={navLabelClass}>Subjects</span>
                         </button>
-                        {/* Help Tooltip */}
-                        <div className="absolute hidden group-hover:block z-50 left-0 top-full mt-2 w-80 bg-slate-900 border border-slate-700 rounded-lg p-4 shadow-xl">
-                          <div className="text-sm font-semibold text-white mb-2 flex items-center gap-2">
-                            <Icon name="HelpCircle" size="sm" color="info" />
-                            What are Subjects?
-                          </div>
-                          <div className="text-xs text-slate-300 space-y-2">
-                            <p>
-                              Subjects are individuals or entities mentioned in the Epstein archive
-                              documents. Each subject has:
-                            </p>
-                            <ul className="list-disc list-inside space-y-1 text-slate-400 ml-2">
-                              <li>
-                                <strong className="text-cyan-400">Red Flag Index (RFI)</strong>:
-                                Risk rating from 1-5 based on mention context
-                              </li>
-                              <li>
-                                <strong className="text-cyan-400">Mentions</strong>: Number of
-                                document references
-                              </li>
-                              <li>
-                                <strong className="text-cyan-400">Evidence Types</strong>:
-                                Categories of supporting documents
-                              </li>
-                            </ul>
-                            <p className="text-slate-500 pt-1 border-t border-slate-700 mt-2">
-                              Click any subject card to view their full profile and connected
-                              evidence.
-                            </p>
-                          </div>
-                        </div>
                       </div>
                       <div className={navItemClass}>
                         <button
                           onClick={() => navigate('/documents')}
-                          className={getNavSegmentClass(
-                            activeTab === 'documents',
-                            'bg-gradient-to-r from-red-600 to-red-500 text-white shadow-sm shadow-red-500/20',
-                          )}
+                          className={getNavSegmentClass(activeTab === 'documents')}
                         >
                           <Icon name="FileText" size="sm" />
                           <span className={navLabelClass}>Docs</span>
@@ -1672,9 +1641,8 @@ function App() {
                           }}
                           className={getNavSegmentClass(
                             activeTab === 'investigations',
-                            'bg-gradient-to-r from-pink-600 to-pink-500 text-white shadow-sm shadow-pink-500/20',
                             investigateAttract && activeTab !== 'investigations'
-                              ? 'ring-2 ring-pink-500 shadow-lg shadow-pink-500/30 animate-pulse'
+                              ? 'ring-2 ring-[var(--accent-danger)] shadow-lg shadow-[var(--accent-danger)]/30 animate-pulse'
                               : '',
                           )}
                           aria-haspopup="dialog"
@@ -1683,14 +1651,14 @@ function App() {
                           data-investigation-nav-top
                         >
                           <Icon name="Target" size="sm" />
-                          <span className={navLabelClass}>Investigate</span>
+                          <span className={navLabelClass}>Cases</span>
                         </button>
                         {investigatePopoverOpen &&
                           activeTab !== 'investigations' &&
                           investigatePopoverPos.x !== 0 &&
                           createPortal(
                             <div
-                              className="fixed w-[320px] bg-slate-900 border border-pink-500/40 rounded-xl shadow-xl p-4 pointer-events-auto"
+                              className="fixed w-[320px] bg-[var(--glass-bg-strong)] border border-[var(--glass-border-highlight)] rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] backdrop-blur-md p-4 pointer-events-auto"
                               style={{
                                 left: investigatePopoverPos.x,
                                 top: investigatePopoverPos.y,
@@ -1701,16 +1669,18 @@ function App() {
                                 className="absolute -top-2"
                                 style={{ left: `${investigateArrowLeft}px` }}
                               >
-                                <div className="w-4 h-4 bg-slate-900 border border-pink-500/40 rotate-45"></div>
+                                <div className="w-4 h-4 bg-[var(--bg-dark)] border border-[var(--glass-border-highlight)] rotate-45"></div>
                               </div>
-                              <div className="text-white font-semibold mb-1">Investigations</div>
-                              <div className="text-slate-300 text-sm mb-3">
+                              <div className="text-[var(--text-primary)] font-semibold mb-1">
+                                Investigations
+                              </div>
+                              <div className="text-[var(--text-secondary)] text-sm mb-3">
                                 Create and manage deep-dive investigations, link evidence, and track
                                 findings.
                               </div>
                               <div className="flex items-center gap-2">
                                 <button
-                                  className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-200 hover:bg-slate-700"
+                                  className="px-3 py-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-md)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)] transition-colors"
                                   onClick={() => {
                                     try {
                                       localStorage.setItem('investigate_popover_dismissed', 'true');
@@ -1724,7 +1694,7 @@ function App() {
                                   Got it
                                 </button>
                                 <button
-                                  className="px-3 py-2 bg-pink-600 hover:bg-pink-700 text-white rounded-lg"
+                                  className="px-3 py-2 bg-[var(--accent)] hover:brightness-110 text-[var(--text-strong)] rounded-[var(--radius-md)] transition-all"
                                   onClick={() => {
                                     try {
                                       localStorage.setItem('investigate_popover_dismissed', 'true');
@@ -1748,10 +1718,7 @@ function App() {
                         <button
                           onClick={() => navigate('/timeline')}
                           onMouseEnter={() => preloader.prefetchJson('/api/timeline')}
-                          className={getNavSegmentClass(
-                            activeTab === 'timeline',
-                            'bg-gradient-to-r from-orange-600 to-orange-500 text-white shadow-sm shadow-orange-500/20',
-                          )}
+                          className={getNavSegmentClass(activeTab === 'timeline')}
                         >
                           <Icon name="Clock" size="sm" />
                           <span className={navLabelClass}>Timeline</span>
@@ -1761,10 +1728,7 @@ function App() {
                         <button
                           onClick={() => navigate('/flights')}
                           onMouseEnter={() => preloader.prefetchJson('/api/flights')}
-                          className={getNavSegmentClass(
-                            activeTab === 'flights',
-                            'bg-gradient-to-r from-cyan-600 to-cyan-500 text-white shadow-sm shadow-cyan-500/20',
-                          )}
+                          className={getNavSegmentClass(activeTab === 'flights')}
                         >
                           <Icon name="Navigation" size="sm" />
                           <span className={navLabelClass}>Flights</span>
@@ -1774,10 +1738,7 @@ function App() {
                         <button
                           onClick={() => navigate('/properties')}
                           onMouseEnter={() => preloader.prefetchJson('/api/properties/stats')}
-                          className={getNavSegmentClass(
-                            activeTab === 'properties',
-                            'bg-gradient-to-r from-emerald-600 to-emerald-500 text-white shadow-sm shadow-emerald-500/20',
-                          )}
+                          className={getNavSegmentClass(activeTab === 'properties')}
                         >
                           <Icon name="Building" size="sm" />
                           <span className={navLabelClass}>Property</span>
@@ -1790,10 +1751,7 @@ function App() {
                             preloader.prefetchJson('/api/media/albums');
                             preloader.prefetchJson('/api/media/images?limit=24');
                           }}
-                          className={getNavSegmentClass(
-                            activeTab === 'media',
-                            'bg-gradient-to-r from-indigo-600 to-indigo-500 text-white shadow-sm shadow-indigo-500/20',
-                          )}
+                          className={getNavSegmentClass(activeTab === 'media')}
                         >
                           <Icon name="Newspaper" size="sm" />
                           <span className={navLabelClass}>Media</span>
@@ -1803,10 +1761,7 @@ function App() {
                         <button
                           onClick={() => navigate('/emails')}
                           onMouseEnter={() => preloader.prefetchJson('/api/emails')}
-                          className={getNavSegmentClass(
-                            activeTab === 'emails',
-                            'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-sm shadow-blue-500/20',
-                          )}
+                          className={getNavSegmentClass(activeTab === 'emails')}
                         >
                           <Icon name="Mail" size="sm" />
                           <span className={navLabelClass}>Emails</span>
@@ -1816,22 +1771,16 @@ function App() {
                         <button
                           onClick={() => navigate('/blackbook')}
                           onMouseEnter={() => preloader.prefetchJson('/api/media/albums')}
-                          className={getNavSegmentClass(
-                            activeTab === 'blackbook',
-                            'bg-gradient-to-r from-amber-600 to-amber-500 text-white shadow-sm shadow-amber-500/20',
-                          )}
+                          className={getNavSegmentClass(activeTab === 'blackbook')}
                         >
                           <Icon name="BookOpen" size="sm" />
-                          <span className={navLabelClass}>Black Book</span>
+                          <span className={navLabelClass}>Blackbook</span>
                         </button>
                       </div>
                       <div className={navItemClass}>
                         <button
                           onClick={() => navigate('/analytics')}
-                          className={getNavSegmentClass(
-                            activeTab === 'analytics',
-                            'bg-gradient-to-r from-purple-600 to-purple-500 text-white shadow-sm shadow-purple-500/20',
-                          )}
+                          className={getNavSegmentClass(activeTab === 'analytics')}
                         >
                           <Icon name="BarChart3" size="sm" />
                           <span className={navLabelClass}>Stats</span>
@@ -1840,10 +1789,7 @@ function App() {
                       <div className={navItemClass}>
                         <button
                           onClick={() => navigate('/about')}
-                          className={getNavSegmentClass(
-                            activeTab === 'about',
-                            'bg-gradient-to-r from-cyan-600 to-cyan-500 text-white shadow-sm shadow-cyan-500/20',
-                          )}
+                          className={getNavSegmentClass(activeTab === 'about')}
                         >
                           <Icon name="Shield" size="sm" />
                           <span className={navLabelClass}>About</span>
@@ -1852,10 +1798,10 @@ function App() {
                     </div>
                   </div>
                   {navEdgeFade.left && (
-                    <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-10 bg-gradient-to-r from-slate-900/95 via-slate-900/70 to-transparent" />
+                    <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-10 bg-gradient-to-r from-[var(--bg-dark)] via-[var(--bg-dark)]/70 to-transparent" />
                   )}
                   {navEdgeFade.right && (
-                    <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-slate-900/95 via-slate-900/70 to-transparent" />
+                    <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-[var(--bg-dark)] via-[var(--bg-dark)]/70 to-transparent" />
                   )}
                 </div>
               </div>
@@ -1891,7 +1837,7 @@ function App() {
                   <Suspense
                     fallback={
                       <div className="flex items-center justify-center h-64">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400"></div>
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent)]"></div>
                       </div>
                     }
                   >
@@ -2020,7 +1966,7 @@ function App() {
                         <Suspense
                           fallback={
                             <div className="flex items-center justify-center h-64">
-                              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500"></div>
+                              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent)]"></div>
                             </div>
                           }
                         >
@@ -2037,7 +1983,7 @@ function App() {
             <Suspense
               fallback={
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400"></div>
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent)]"></div>
                 </div>
               }
             >
@@ -2058,7 +2004,7 @@ function App() {
             <Suspense
               fallback={
                 <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-                  <div className="w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
+                  <div className="w-8 h-8 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin" />
                 </div>
               }
             >

@@ -121,26 +121,26 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProps> = (
   return createPortal(
     <div
       id="CreateRelationshipModal"
-      className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
+      className="fixed inset-0 bg-[var(--app-bg)]/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
       role="dialog"
       aria-modal="true"
     >
       <div
         ref={modalRef}
-        className="bg-slate-800 rounded-xl w-full max-w-2xl border border-slate-700 shadow-2xl flex flex-col max-h-[90vh]"
+        className="bg-[var(--glass-bg-strong)] rounded-[var(--radius-xl)] w-full max-w-2xl border border-[var(--glass-border)] shadow-[var(--glass-shadow)] flex flex-col max-h-[90vh]"
       >
-        <div className="flex items-center justify-between p-6 border-b border-slate-700">
+        <div className="flex items-center justify-between p-6 border-b border-[var(--glass-border)]">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-purple-500/10 rounded-lg">
-              <Network className="w-6 h-6 text-purple-400" />
+            <div className="p-2 bg-[var(--accent)]/10 rounded-[var(--radius-lg)]">
+              <Network className="w-6 h-6 text-[var(--accent)]" />
             </div>
-            <h2 className="text-xl font-bold text-white">Create Connection</h2>
+            <h2 className="text-xl font-bold text-[var(--text-primary)]">Create Connection</h2>
           </div>
           <CloseButton
             onClick={onClose}
             size="sm"
             label="Close create relationship modal"
-            className="bg-white/10 hover:bg-white/20 border-white/20 text-white"
+            className="bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] border-[var(--glass-border)] text-[var(--text-primary)]"
           />
         </div>
 
@@ -148,19 +148,21 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProps> = (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Source Entity Selection */}
             <div className="relative">
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                 Source Entity *
               </label>
               {selectedSource ? (
-                <div className="flex items-center justify-between p-3 bg-slate-700 rounded-lg border border-slate-600">
-                  <span className="text-white font-medium">{selectedSource.name}</span>
+                <div className="flex items-center justify-between p-3 bg-[var(--glass-bg)] rounded-[var(--radius-lg)] border border-[var(--glass-border)]">
+                  <span className="text-[var(--text-primary)] font-medium">
+                    {selectedSource.name}
+                  </span>
                   <button
                     type="button"
                     onClick={() => {
                       setSelectedSource(null);
                       setSourceSearch('');
                     }}
-                    className="text-slate-400 hover:text-white"
+                    className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -168,17 +170,17 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProps> = (
               ) : (
                 <div>
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                     <input
                       type="text"
                       value={sourceSearch}
                       onChange={(e) => handleSearch(e.target.value, 'source')}
-                      className="w-full bg-slate-900 border border-slate-600 rounded-lg pl-10 pr-4 py-2 text-white focus:outline-none focus:border-blue-500"
+                      className="w-full bg-[var(--app-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] pl-10 pr-4 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
                       placeholder="Search entity..."
                     />
                   </div>
                   {sourceResults.length > 0 && (
-                    <div className="absolute z-50 w-full mt-1 dropdown-surface max-h-60 overflow-y-auto">
+                    <div className="absolute z-50 w-full mt-1 bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)] max-h-60 overflow-y-auto">
                       {sourceResults.map((p) => (
                         <button
                           key={p.id}
@@ -187,11 +189,13 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProps> = (
                             setSelectedSource(p);
                             setSourceResults([]);
                           }}
-                          className="w-full text-left px-4 py-2 hover:bg-slate-700 text-sm text-slate-200 transition-colors border-b border-slate-700/50 last:border-0"
+                          className="w-full text-left px-4 py-3 hover:bg-[var(--glass-bg-highlight)] text-sm transition-colors border-b border-[var(--glass-border)] last:border-0"
                         >
-                          <div className="font-medium text-white">{p.name}</div>
+                          <div className="font-medium text-[var(--text-primary)]">{p.name}</div>
                           {p.primaryRole && (
-                            <div className="text-xs text-slate-400">{p.primaryRole}</div>
+                            <div className="text-xs text-[var(--text-muted)] mt-0.5">
+                              {p.primaryRole}
+                            </div>
                           )}
                         </button>
                       ))}
@@ -203,19 +207,21 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProps> = (
 
             {/* Target Entity Selection */}
             <div className="relative">
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                 Target Entity *
               </label>
               {selectedTarget ? (
-                <div className="flex items-center justify-between p-3 bg-slate-700 rounded-lg border border-slate-600">
-                  <span className="text-white font-medium">{selectedTarget.name}</span>
+                <div className="flex items-center justify-between p-3 bg-[var(--glass-bg)] rounded-[var(--radius-lg)] border border-[var(--glass-border)]">
+                  <span className="text-[var(--text-primary)] font-medium">
+                    {selectedTarget.name}
+                  </span>
                   <button
                     type="button"
                     onClick={() => {
                       setSelectedTarget(null);
                       setTargetSearch('');
                     }}
-                    className="text-slate-400 hover:text-white"
+                    className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -223,17 +229,17 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProps> = (
               ) : (
                 <div>
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                     <input
                       type="text"
                       value={targetSearch}
                       onChange={(e) => handleSearch(e.target.value, 'target')}
-                      className="w-full bg-slate-900 border border-slate-600 rounded-lg pl-10 pr-4 py-2 text-white focus:outline-none focus:border-blue-500"
+                      className="w-full bg-[var(--app-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] pl-10 pr-4 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
                       placeholder="Search entity..."
                     />
                   </div>
                   {targetResults.length > 0 && (
-                    <div className="absolute z-50 w-full mt-1 dropdown-surface max-h-60 overflow-y-auto">
+                    <div className="absolute z-50 w-full mt-1 bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)] max-h-60 overflow-y-auto">
                       {targetResults.map((p) => (
                         <button
                           key={p.id}
@@ -242,11 +248,13 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProps> = (
                             setSelectedTarget(p);
                             setTargetResults([]);
                           }}
-                          className="w-full text-left px-4 py-2 hover:bg-slate-700 text-sm text-slate-200 transition-colors border-b border-slate-700/50 last:border-0"
+                          className="w-full text-left px-4 py-3 hover:bg-[var(--glass-bg-highlight)] text-sm transition-colors border-b border-[var(--glass-border)] last:border-0"
                         >
-                          <div className="font-medium text-white">{p.name}</div>
+                          <div className="font-medium text-[var(--text-primary)]">{p.name}</div>
                           {p.primaryRole && (
-                            <div className="text-xs text-slate-400">{p.primaryRole}</div>
+                            <div className="text-xs text-[var(--text-muted)] mt-0.5">
+                              {p.primaryRole}
+                            </div>
                           )}
                         </button>
                       ))}
@@ -262,7 +270,7 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProps> = (
               id="relationship_type"
               value={formData.relationship_type}
               onChange={(e) => setFormData({ ...formData, relationship_type: e.target.value })}
-              className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500"
+              className="w-full bg-[var(--app-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] px-4 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
             >
               <option value="associated">Associated</option>
               <option value="financial">Financial</option>
@@ -308,24 +316,24 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProps> = (
             <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500"
+              className="w-full bg-[var(--app-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] px-4 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
               rows={3}
               placeholder="Describe the nature of this connection..."
             />
           </FormField>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-700">
+          <div className="flex justify-end gap-3 pt-4 border-t border-[var(--glass-border)]">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-slate-300 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
+              className="px-4 py-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading || !selectedSource || !selectedTarget}
-              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 bg-[var(--accent)] hover:bg-[var(--accent)]/90 text-[var(--app-bg)] font-medium rounded-[var(--radius-lg)] flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {loading ? (
                 'Creating...'

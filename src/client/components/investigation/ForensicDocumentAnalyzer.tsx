@@ -336,29 +336,31 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
   };
 
   return (
-    <div className="h-full bg-gray-900 text-gray-100 flex flex-col">
+    <div className="h-full bg-[var(--glass-bg-strong)] text-[var(--text-primary)] flex flex-col">
       {/* Main Content */}
       <div className="flex-1 overflow-hidden">
         <div className="h-full flex flex-col gap-6 p-6">
           {/* Document Viewer */}
-          <div className="flex flex-col bg-gray-800 rounded-lg overflow-hidden min-h-[500px]">
+          <div className="flex flex-col bg-[var(--glass-bg)] rounded-[var(--radius-lg)] overflow-hidden min-h-[500px]">
             <PDFVariantViewer documentId={documentId} className="flex-1" />
           </div>
 
           {/* Analysis Panel */}
-          <div className="flex flex-col bg-gray-800 rounded-lg overflow-hidden">
+          <div className="flex flex-col bg-[var(--glass-bg)] rounded-[var(--radius-lg)] overflow-hidden">
             {!analysis && !isAnalyzing && (
               <div className="flex-1 flex flex-col items-center justify-center p-8">
-                <Fingerprint className="w-20 h-20 text-gray-600 mb-6" />
-                <h3 className="text-xl font-semibold text-gray-300 mb-3">No Analysis Yet</h3>
-                <p className="text-gray-400 text-center mb-6 max-w-sm">
+                <Fingerprint className="w-20 h-20 text-[var(--text-primary)] mb-6" />
+                <h3 className="text-xl font-semibold text-[var(--text-secondary)] mb-3">
+                  No Analysis Yet
+                </h3>
+                <p className="text-[var(--text-muted)] text-center mb-6 max-w-sm">
                   Perform forensic analysis to authenticate this document and extract key
                   information
                 </p>
                 <button
                   onClick={startForensicAnalysis}
                   disabled={!documentId}
-                  className={`flex items-center gap-2 px-6 py-3 rounded-lg transition-colors font-medium ${documentId ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-gray-700 text-gray-400 cursor-not-allowed'}`}
+                  className={`flex items-center gap-2 px-6 py-3 rounded-[var(--radius-lg)] transition-colors font-medium ${documentId ? 'bg-red-600 hover:bg-red-700 text-[var(--text-primary)]' : 'bg-[var(--glass-bg-highlight)] text-[var(--text-muted)] cursor-not-allowed'}`}
                 >
                   <Fingerprint className="w-5 h-5" />
                   Analyze Document
@@ -369,8 +371,10 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
             {isAnalyzing && (
               <div className="flex-1 flex flex-col items-center justify-center p-8">
                 <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-red-600 mb-6"></div>
-                <h3 className="text-xl font-semibold text-gray-300 mb-3">Analyzing Document...</h3>
-                <p className="text-gray-400 text-center max-w-sm">
+                <h3 className="text-xl font-semibold text-[var(--text-secondary)] mb-3">
+                  Analyzing Document...
+                </h3>
+                <p className="text-[var(--text-muted)] text-center max-w-sm">
                   Performing forensic analysis and cross-referencing with case database
                 </p>
               </div>
@@ -379,9 +383,11 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
             {analysis && (
               <div className="flex-1 flex flex-col overflow-hidden">
                 {/* Authenticity Score - Always Visible */}
-                <div className="bg-gray-800 border-b border-gray-700 p-6">
+                <div className="bg-[var(--glass-bg)] border-b border-[var(--glass-border)] p-6">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-lg font-semibold text-white">Authenticity Score</h3>
+                    <h3 className="text-lg font-semibold text-[var(--text-primary)]">
+                      Authenticity Score
+                    </h3>
                     <div className="flex items-center gap-2">
                       {analysis.authenticity.verdict === 'authentic' && (
                         <CheckCircle className="w-5 h-5 text-green-500" />
@@ -405,7 +411,7 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                       </span>
                     </div>
                   </div>
-                  <div className="w-full bg-gray-700 rounded-full h-2.5 mb-3">
+                  <div className="w-full bg-[var(--glass-bg-highlight)] rounded-full h-2.5 mb-3">
                     <div
                       className={`h-2.5 rounded-full transition-all ${
                         analysis.authenticity.score >= 90
@@ -417,15 +423,17 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                       style={{ width: `${analysis.authenticity.score}%` }}
                     ></div>
                   </div>
-                  <p className="text-sm text-gray-400 capitalize">
+                  <p className="text-sm text-[var(--text-muted)] capitalize">
                     Verdict:{' '}
-                    <span className="text-white font-medium">{analysis.authenticity.verdict}</span>
+                    <span className="text-[var(--text-primary)] font-medium">
+                      {analysis.authenticity.verdict}
+                    </span>
                   </p>
 
                   {/* Collapsible Factors */}
                   <button
                     onClick={() => toggleSection('factors')}
-                    className="flex items-center gap-2 mt-4 text-sm text-gray-400 hover:text-gray-300"
+                    className="flex items-center gap-2 mt-4 text-sm text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
                   >
                     {expandedSections.factors ? (
                       <ChevronUp className="w-4 h-4" />
@@ -437,14 +445,19 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                   {expandedSections.factors && (
                     <div className="mt-3 space-y-2">
                       {analysis.authenticity.factors.map((factor, idx) => (
-                        <div key={idx} className="p-3 bg-gray-700 rounded-lg">
+                        <div
+                          key={idx}
+                          className="p-3 bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)]"
+                        >
                           <div className="flex items-center justify-between mb-1">
-                            <span className="text-sm font-medium text-white capitalize">
+                            <span className="text-sm font-medium text-[var(--text-primary)] capitalize">
                               {factor.type.replace('_', ' ')}
                             </span>
-                            <span className="text-sm text-gray-400">{factor.score}%</span>
+                            <span className="text-sm text-[var(--text-muted)]">
+                              {factor.score}%
+                            </span>
                           </div>
-                          <p className="text-xs text-gray-400">{factor.description}</p>
+                          <p className="text-xs text-[var(--text-muted)]">{factor.description}</p>
                         </div>
                       ))}
                     </div>
@@ -481,7 +494,7 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                   ]}
                   activeTab={activeTab}
                   onChange={(key) => setActiveTab(key as any)}
-                  className="!bg-gray-800 !border-gray-700 !px-6"
+                  className="!bg-[var(--glass-bg)] !border-[var(--glass-border)] !px-6"
                 />
 
                 {/* Tab Content */}
@@ -489,36 +502,38 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                   {activeTab === 'dashboard' && (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {/* Technical Forensics */}
-                      <div className="p-4 bg-gray-700 rounded-lg">
-                        <h4 className="text-white font-medium mb-2">Technical Forensics</h4>
-                        <div className="text-sm text-gray-300 space-y-1">
+                      <div className="p-4 bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)]">
+                        <h4 className="text-[var(--text-primary)] font-medium mb-2">
+                          Technical Forensics
+                        </h4>
+                        <div className="text-sm text-[var(--text-secondary)] space-y-1">
                           <div>
                             Producer:{' '}
-                            <span className="text-gray-100">
+                            <span className="text-[var(--text-primary)]">
                               {metrics?.technical?.producer ?? 'Unknown'}
                             </span>
                           </div>
                           <div>
                             Creator:{' '}
-                            <span className="text-gray-100">
+                            <span className="text-[var(--text-primary)]">
                               {metrics?.technical?.creator ?? 'Unknown'}
                             </span>
                           </div>
                           <div>
                             Created:{' '}
-                            <span className="text-gray-100">
+                            <span className="text-[var(--text-primary)]">
                               {metrics?.technical?.creationDate ?? '—'}
                             </span>
                           </div>
                           <div>
                             Modified:{' '}
-                            <span className="text-gray-100">
+                            <span className="text-[var(--text-primary)]">
                               {metrics?.technical?.modificationDate ?? '—'}
                             </span>
                           </div>
                           <div>
                             Page Count:{' '}
-                            <span className="text-gray-100">
+                            <span className="text-[var(--text-primary)]">
                               {metrics?.technical?.pageCount ?? '—'}
                             </span>
                           </div>
@@ -536,7 +551,7 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                                 a.click();
                                 URL.revokeObjectURL(url);
                               }}
-                              className="px-2 py-1 bg-gray-600 text-white rounded text-xs hover:bg-gray-500"
+                              className="px-2 py-1 bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] rounded text-xs hover:bg-[var(--glass-bg-highlight)]"
                             >
                               Download Metrics JSON
                             </button>
@@ -544,12 +559,12 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                         </div>
                       </div>
                       {/* Structural Analysis */}
-                      <div className="p-4 bg-gray-700 rounded-lg">
-                        <h4 className="text-white font-medium mb-2">Structural</h4>
-                        <div className="text-sm text-gray-300 space-y-1">
+                      <div className="p-4 bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)]">
+                        <h4 className="text-[var(--text-primary)] font-medium mb-2">Structural</h4>
+                        <div className="text-sm text-[var(--text-secondary)] space-y-1">
                           <div>
                             JavaScript:{' '}
-                            <span className="text-gray-100">
+                            <span className="text-[var(--text-primary)]">
                               {metrics?.structural?.containsJavascript
                                 ? 'Detected'
                                 : 'None/Unknown'}
@@ -557,19 +572,19 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                           </div>
                           <div>
                             Font Count:{' '}
-                            <span className="text-gray-100">
+                            <span className="text-[var(--text-primary)]">
                               {metrics?.structural?.fontCount ?? 'Unknown'}
                             </span>
                           </div>
                           <div>
                             PDF Version:{' '}
-                            <span className="text-gray-100">
+                            <span className="text-[var(--text-primary)]">
                               {metrics?.structural?.pdfVersion ?? 'Unknown'}
                             </span>
                           </div>
                           <div>
                             JS Object IDs:{' '}
-                            <span className="text-gray-100">
+                            <span className="text-[var(--text-primary)]">
                               {Array.isArray(metrics?.structural?.jsObjectIds)
                                 ? metrics.structural.jsObjectIds.length
                                 : 0}
@@ -578,8 +593,10 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                           {Array.isArray(metrics?.structural?.jsObjectIds) &&
                             metrics.structural.jsObjectIds.length > 0 && (
                               <details className="mt-1">
-                                <summary className="cursor-pointer text-gray-300">Show IDs</summary>
-                                <div className="text-xs text-gray-300">
+                                <summary className="cursor-pointer text-[var(--text-secondary)]">
+                                  Show IDs
+                                </summary>
+                                <div className="text-xs text-[var(--text-secondary)]">
                                   {metrics.structural.jsObjectIds.join(', ')}
                                 </div>
                               </details>
@@ -587,68 +604,68 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                         </div>
                       </div>
                       {/* Linguistic */}
-                      <div className="p-4 bg-gray-700 rounded-lg">
-                        <h4 className="text-white font-medium mb-2">Linguistic</h4>
-                        <div className="text-sm text-gray-300 space-y-1">
+                      <div className="p-4 bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)]">
+                        <h4 className="text-[var(--text-primary)] font-medium mb-2">Linguistic</h4>
+                        <div className="text-sm text-[var(--text-secondary)] space-y-1">
                           <div>
                             Flesch-Kincaid:{' '}
-                            <span className="text-gray-100">
+                            <span className="text-[var(--text-primary)]">
                               {metrics?.linguistic?.readabilityFKGL ?? '—'}
                             </span>
                           </div>
                           <div>
                             Sentiment:{' '}
-                            <span className="text-gray-100 capitalize">
+                            <span className="text-[var(--text-primary)] capitalize">
                               {metrics?.linguistic?.sentiment ?? 'neutral'}
                             </span>
                           </div>
                           <div>
                             TTR:{' '}
-                            <span className="text-gray-100">
+                            <span className="text-[var(--text-primary)]">
                               {metrics?.linguistic?.typeTokenRatio ?? '—'}%
                             </span>
                           </div>
                         </div>
                       </div>
                       {/* Temporal */}
-                      <div className="p-4 bg-gray-700 rounded-lg">
-                        <h4 className="text-white font-medium mb-2">Temporal</h4>
-                        <div className="text-sm text-gray-300 space-y-1">
+                      <div className="p-4 bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)]">
+                        <h4 className="text-[var(--text-primary)] font-medium mb-2">Temporal</h4>
+                        <div className="text-sm text-[var(--text-secondary)] space-y-1">
                           <div>
                             Business Hours:{' '}
-                            <span className="text-gray-100">
+                            <span className="text-[var(--text-primary)]">
                               {metrics?.temporal?.businessHours ? 'Yes' : 'No'}
                             </span>
                           </div>
                           <div>
                             Day of Week:{' '}
-                            <span className="text-gray-100">
+                            <span className="text-[var(--text-primary)]">
                               {metrics?.temporal?.dayOfWeek ?? '—'}
                             </span>
                           </div>
                         </div>
                       </div>
                       {/* Network */}
-                      <div className="p-4 bg-gray-700 rounded-lg">
-                        <h4 className="text-white font-medium mb-2">Network</h4>
-                        <div className="text-sm text-gray-300 space-y-1">
+                      <div className="p-4 bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)]">
+                        <h4 className="text-[var(--text-primary)] font-medium mb-2">Network</h4>
+                        <div className="text-sm text-[var(--text-secondary)] space-y-1">
                           <div>
                             Entity Density / 1000 words:{' '}
-                            <span className="text-gray-100">
+                            <span className="text-[var(--text-primary)]">
                               {metrics?.network?.entityDensityPer1000Words ?? '—'}
                             </span>
                           </div>
                           <div>
                             Risk Score:{' '}
-                            <span className="text-gray-100">
+                            <span className="text-[var(--text-primary)]">
                               {metrics?.network?.riskScore ?? '—'}%
                             </span>
                           </div>
                         </div>
                       </div>
                       {/* Readability Distribution */}
-                      <div className="p-4 bg-gray-700 rounded-lg col-span-1 md:col-span-2">
-                        <h4 className="text-white font-medium mb-2">
+                      <div className="p-4 bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] col-span-1 md:col-span-2">
+                        <h4 className="text-[var(--text-primary)] font-medium mb-2">
                           Readability Distribution (FKGL)
                         </h4>
                         <div className="h-40">
@@ -669,8 +686,10 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                         </div>
                       </div>
                       {/* Sentiment Breakdown */}
-                      <div className="p-4 bg-gray-700 rounded-lg">
-                        <h4 className="text-white font-medium mb-2">Sentiment Breakdown</h4>
+                      <div className="p-4 bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)]">
+                        <h4 className="text-[var(--text-primary)] font-medium mb-2">
+                          Sentiment Breakdown
+                        </h4>
                         <div className="h-40">
                           <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
@@ -711,9 +730,11 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                         </div>
                       </div>
                       {/* Top JS-heavy PDFs */}
-                      <div className="p-4 bg-gray-700 rounded-lg">
-                        <h4 className="text-white font-medium mb-2">Top JS-heavy PDFs</h4>
-                        <div className="text-xs text-gray-300 space-y-1">
+                      <div className="p-4 bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)]">
+                        <h4 className="text-[var(--text-primary)] font-medium mb-2">
+                          Top JS-heavy PDFs
+                        </h4>
+                        <div className="text-xs text-[var(--text-secondary)] space-y-1">
                           {topJs.slice(0, 5).map((t: any) => (
                             <div
                               key={t.id}
@@ -756,19 +777,19 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                               <div className="flex gap-1">
                                 <button
                                   onClick={() => setCompareAId(String(t.id))}
-                                  className="px-1.5 py-0.5 bg-gray-600 text-white rounded text-xs"
+                                  className="px-1.5 py-0.5 bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] rounded text-xs"
                                 >
                                   A
                                 </button>
                                 <button
                                   onClick={() => setCompareBId(String(t.id))}
-                                  className="px-1.5 py-0.5 bg-gray-600 text-white rounded text-xs"
+                                  className="px-1.5 py-0.5 bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] rounded text-xs"
                                 >
                                   B
                                 </button>
                               </div>
                               {hoveredId === String(t.id) && (
-                                <div className="ml-2 text-[10px] text-gray-300">
+                                <div className="ml-2 text-[10px] text-[var(--text-secondary)]">
                                   <span>
                                     FKGL:{' '}
                                     {quickMetrics[String(t.id)]?.linguistic?.readabilityFKGL ?? '—'}
@@ -784,9 +805,11 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                         </div>
                       </div>
                       {/* High Entity Density */}
-                      <div className="p-4 bg-gray-700 rounded-lg">
-                        <h4 className="text-white font-medium mb-2">High Entity Density</h4>
-                        <div className="text-xs text-gray-300 space-y-1">
+                      <div className="p-4 bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)]">
+                        <h4 className="text-[var(--text-primary)] font-medium mb-2">
+                          High Entity Density
+                        </h4>
+                        <div className="text-xs text-[var(--text-secondary)] space-y-1">
                           {topDensity.slice(0, 5).map((t: any) => (
                             <div
                               key={t.id}
@@ -829,19 +852,19 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                               <div className="flex gap-1">
                                 <button
                                   onClick={() => setCompareAId(String(t.id))}
-                                  className="px-1.5 py-0.5 bg-gray-600 text-white rounded text-xs"
+                                  className="px-1.5 py-0.5 bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] rounded text-xs"
                                 >
                                   A
                                 </button>
                                 <button
                                   onClick={() => setCompareBId(String(t.id))}
-                                  className="px-1.5 py-0.5 bg-gray-600 text-white rounded text-xs"
+                                  className="px-1.5 py-0.5 bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] rounded text-xs"
                                 >
                                   B
                                 </button>
                               </div>
                               {hoveredId === String(t.id) && (
-                                <div className="ml-2 text-[10px] text-gray-300">
+                                <div className="ml-2 text-[10px] text-[var(--text-secondary)]">
                                   <span>
                                     FKGL:{' '}
                                     {quickMetrics[String(t.id)]?.linguistic?.readabilityFKGL ?? '—'}
@@ -857,9 +880,11 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                         </div>
                       </div>
                       {/* Highest Risk Score */}
-                      <div className="p-4 bg-gray-700 rounded-lg">
-                        <h4 className="text-white font-medium mb-2">Highest Risk Score</h4>
-                        <div className="text-xs text-gray-300 space-y-1">
+                      <div className="p-4 bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)]">
+                        <h4 className="text-[var(--text-primary)] font-medium mb-2">
+                          Highest Risk Score
+                        </h4>
+                        <div className="text-xs text-[var(--text-secondary)] space-y-1">
                           {topRisk.slice(0, 5).map((t: any) => (
                             <div
                               key={t.id}
@@ -902,19 +927,19 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                               <div className="flex gap-1">
                                 <button
                                   onClick={() => setCompareAId(String(t.id))}
-                                  className="px-1.5 py-0.5 bg-gray-600 text-white rounded text-xs"
+                                  className="px-1.5 py-0.5 bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] rounded text-xs"
                                 >
                                   A
                                 </button>
                                 <button
                                   onClick={() => setCompareBId(String(t.id))}
-                                  className="px-1.5 py-0.5 bg-gray-600 text-white rounded text-xs"
+                                  className="px-1.5 py-0.5 bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] rounded text-xs"
                                 >
                                   B
                                 </button>
                               </div>
                               {hoveredId === String(t.id) && (
-                                <div className="ml-2 text=[10px] text-gray-300">
+                                <div className="ml-2 text=[10px] text-[var(--text-secondary)]">
                                   <span>
                                     FKGL:{' '}
                                     {quickMetrics[String(t.id)]?.linguistic?.readabilityFKGL ?? '—'}
@@ -930,20 +955,22 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                         </div>
                       </div>
                       {/* Compare Documents */}
-                      <div className="p-4 bg-gray-700 rounded-lg col-span-1 md:col-span-2">
-                        <h4 className="text-white font-medium mb-2">Compare Documents</h4>
+                      <div className="p-4 bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] col-span-1 md:col-span-2">
+                        <h4 className="text-[var(--text-primary)] font-medium mb-2">
+                          Compare Documents
+                        </h4>
                         <div className="flex gap-2 mb-2">
                           <input
                             value={compareAId}
                             onChange={(e) => setCompareAId(e.target.value)}
                             placeholder="Doc ID A"
-                            className="bg-gray-600 text-white p-2 rounded text-sm"
+                            className="bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] p-2 rounded text-sm"
                           />
                           <input
                             value={compareBId}
                             onChange={(e) => setCompareBId(e.target.value)}
                             placeholder="Doc ID B"
-                            className="bg-gray-600 text-white p-2 rounded text-sm"
+                            className="bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] p-2 rounded text-sm"
                           />
                           <button
                             onClick={async () => {
@@ -965,14 +992,14 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                                 // Ignore fetch errors
                               }
                             }}
-                            className="px-3 py-2 bg-blue-600 text-white rounded text-sm"
+                            className="px-3 py-2 bg-[var(--accent)] text-[var(--text-primary)] rounded text-sm"
                           >
                             Load
                           </button>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="bg-gray-700 rounded p-3">
-                            <h5 className="text-white text-sm mb-2">FKGL</h5>
+                          <div className="bg-[var(--glass-bg-highlight)] rounded p-3">
+                            <h5 className="text-[var(--text-primary)] text-sm mb-2">FKGL</h5>
                             <div className="h-32">
                               <ResponsiveContainer width="100%" height="100%">
                                 <BarChart
@@ -988,8 +1015,10 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                               </ResponsiveContainer>
                             </div>
                           </div>
-                          <div className="bg-gray-700 rounded p-3">
-                            <h5 className="text-white text-sm mb-2">Entity Density / 1000</h5>
+                          <div className="bg-[var(--glass-bg-highlight)] rounded p-3">
+                            <h5 className="text-[var(--text-primary)] text-sm mb-2">
+                              Entity Density / 1000
+                            </h5>
                             <div className="h-32">
                               <ResponsiveContainer width="100%" height="100%">
                                 <BarChart
@@ -1020,24 +1049,30 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                       {analysis.entities.map((entity, index) => (
                         <div
                           key={index}
-                          className="p-4 bg-gray-700 rounded-lg hover:bg-gray-650 transition-colors cursor-pointer"
+                          className="p-4 bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] hover:bg-gray-650 transition-colors cursor-pointer"
                           onClick={() => setSelectedEntity(entity)}
                         >
                           <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 bg-gray-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <div className="w-10 h-10 bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] flex items-center justify-center flex-shrink-0">
                               {React.createElement(getEntityIcon(entity.type), {
-                                className: 'w-5 h-5 text-gray-300',
+                                className: 'w-5 h-5 text-[var(--text-secondary)]',
                               })}
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between mb-1">
-                                <p className="text-white font-medium truncate">{entity.text}</p>
-                                <span className="text-xs text-gray-400 ml-2">
+                                <p className="text-[var(--text-primary)] font-medium truncate">
+                                  {entity.text}
+                                </p>
+                                <span className="text-xs text-[var(--text-muted)] ml-2">
                                   {Math.round(entity.confidence)}%
                                 </span>
                               </div>
-                              <p className="text-sm text-gray-400 capitalize mb-1">{entity.type}</p>
-                              <p className="text-xs text-gray-500 line-clamp-2">{entity.context}</p>
+                              <p className="text-sm text-[var(--text-muted)] capitalize mb-1">
+                                {entity.type}
+                              </p>
+                              <p className="text-xs text-[var(--text-muted)] line-clamp-2">
+                                {entity.context}
+                              </p>
                             </div>
                           </div>
                         </div>
@@ -1050,7 +1085,7 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                       {analysis.patterns.map((pattern, index) => (
                         <div
                           key={index}
-                          className="p-4 bg-gray-700 rounded-lg border-l-4"
+                          className="p-4 bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] border-l-4"
                           style={{
                             borderLeftColor:
                               pattern.significance === 'high'
@@ -1061,31 +1096,37 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                           }}
                         >
                           <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs text-gray-400 uppercase font-medium">
+                            <span className="text-xs text-[var(--text-muted)] uppercase font-medium">
                               {pattern.type}
                             </span>
                             <span
-                              className={`text-xs px-2 py-1 rounded font-medium ${pattern.significance === 'high' ? 'bg-red-700 text-white' : pattern.significance === 'medium' ? 'bg-yellow-700 text-white' : 'bg-green-700 text-white'}`}
+                              className={`text-xs px-2 py-1 rounded font-medium ${pattern.significance === 'high' ? 'bg-red-700 text-[var(--text-primary)]' : pattern.significance === 'medium' ? 'bg-yellow-700 text-[var(--text-primary)]' : 'bg-green-700 text-[var(--text-primary)]'}`}
                             >
                               {pattern.significance}
                             </span>
                           </div>
-                          <div className="bg-gray-700/50 rounded-lg p-4">
+                          <div className="bg-[var(--glass-bg-highlight)]/50 rounded-[var(--radius-lg)] p-4">
                             <div className="flex items-start gap-3">
                               <AlertTriangle className="w-5 h-5 text-yellow-500 mt-0.5" />
                               <div>
-                                <h4 className="text-white font-medium mb-1">{pattern.type}</h4>
-                                <p className="text-sm text-gray-400 mb-2">{pattern.description}</p>
+                                <h4 className="text-[var(--text-primary)] font-medium mb-1">
+                                  {pattern.type}
+                                </h4>
+                                <p className="text-sm text-[var(--text-muted)] mb-2">
+                                  {pattern.description}
+                                </p>
                                 <div className="flex items-center gap-2">
-                                  <span className="text-xs text-gray-500">Severity:</span>
-                                  <div className="flex-1 h-1.5 bg-gray-600 rounded-full w-24">
+                                  <span className="text-xs text-[var(--text-muted)]">
+                                    Severity:
+                                  </span>
+                                  <div className="flex-1 h-1.5 bg-[var(--glass-bg-highlight)] rounded-full w-24">
                                     <div
                                       className={`h-full rounded-full ${
                                         pattern.severity === 'high'
                                           ? 'bg-red-500'
                                           : pattern.severity === 'medium'
                                             ? 'bg-yellow-500'
-                                            : 'bg-blue-500'
+                                            : 'bg-[var(--accent)]'
                                       }`}
                                       style={{
                                         width:
@@ -1143,26 +1184,30 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
       {/* Entity Detail Modal */}
       {selectedEntity && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 rounded-xl max-w-lg w-full p-6 border border-gray-700 shadow-2xl">
+          <div className="bg-[var(--glass-bg)] rounded-[var(--radius-xl)] max-w-lg w-full p-6 border border-[var(--glass-border)] shadow-[var(--glass-shadow)]">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h3 className="text-xl font-bold text-white mb-1">{selectedEntity.name}</h3>
-                <span className="text-sm text-gray-400 capitalize">{selectedEntity.type}</span>
+                <h3 className="text-xl font-bold text-[var(--text-primary)] mb-1">
+                  {selectedEntity.name}
+                </h3>
+                <span className="text-sm text-[var(--text-muted)] capitalize">
+                  {selectedEntity.type}
+                </span>
               </div>
               <button
                 onClick={() => setSelectedEntity(null)}
-                className="text-gray-400 hover:text-white"
+                className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
               >
                 <XCircle className="w-6 h-6" />
               </button>
             </div>
 
             <div className="space-y-4">
-              <div className="bg-gray-700/50 p-4 rounded-lg">
-                <h4 className="text-sm font-medium text-gray-300 mb-2">Analysis</h4>
+              <div className="bg-[var(--glass-bg-highlight)]/50 p-4 rounded-[var(--radius-lg)]">
+                <h4 className="text-sm font-medium text-[var(--text-secondary)] mb-2">Analysis</h4>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <span className="text-gray-500 block">Sentiment</span>
+                    <span className="text-[var(--text-muted)] block">Sentiment</span>
                     <span
                       className={
                         selectedEntity.sentiment === 'negative' ? 'text-red-400' : 'text-green-400'
@@ -1172,8 +1217,8 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                     </span>
                   </div>
                   <div>
-                    <span className="text-gray-500 block">Confidence</span>
-                    <span className="text-white">
+                    <span className="text-[var(--text-muted)] block">Confidence</span>
+                    <span className="text-[var(--text-primary)]">
                       {(selectedEntity.confidence * 100).toFixed(0)}%
                     </span>
                   </div>
@@ -1183,7 +1228,7 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
               <div className="flex justify-end">
                 <button
                   onClick={() => setSelectedEntity(null)}
-                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+                  className="px-4 py-2 bg-[var(--glass-bg-highlight)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] rounded-[var(--radius-lg)] transition-colors"
                 >
                   Close
                 </button>

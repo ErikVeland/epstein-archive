@@ -18,7 +18,7 @@ const sizeClasses = {
 
 // Consistent color scale for all risk levels with better contrast
 const colors = {
-  0: 'text-gray-400',
+  0: 'text-[var(--text-muted)]',
   1: 'text-yellow-400',
   2: 'text-orange-400',
   3: 'text-red-400',
@@ -123,13 +123,15 @@ export const RedFlagIndex: React.FC<RedFlagIndexProps> = ({
       <div className="inline-flex items-center gap-2">
         {renderContent()}
         {showLabel && (
-          <span className={`${sizeClasses[size]} text-gray-400`}>{normalizedValue}/5</span>
+          <span className={`${sizeClasses[size]} text-[var(--text-muted)]`}>
+            {normalizedValue}/5
+          </span>
         )}
         {showDescription && (
           <span className={`${sizeClasses[size]} ${colorClass}`}>{description}</span>
         )}
       </div>
-      {showLegend && <div className="mt-1 text-xs text-gray-500">{riskCategory}</div>}
+      {showLegend && <div className="mt-1 text-xs text-[var(--text-muted)]">{riskCategory}</div>}
     </div>
   );
 };

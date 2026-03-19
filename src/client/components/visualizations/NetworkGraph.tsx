@@ -654,25 +654,25 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
 
   return (
     <div
-      className={`relative w-full h-full min-h-[420px] bg-slate-900/50 rounded-[var(--radius-lg)] border border-slate-700/50 overflow-hidden select-none ${spacePressed ? 'cursor-grab active:cursor-grabbing' : ''}`}
+      className={`relative w-full h-full min-h-[420px] bg-[var(--glass-bg-strong)]/50 rounded-[var(--radius-lg)] border border-[var(--glass-border)] overflow-hidden select-none ${spacePressed ? 'cursor-grab active:cursor-grabbing' : ''}`}
     >
       {/* Controls */}
       <div className="absolute top-4 right-4 z-20 flex flex-col gap-2">
         <button
           onClick={zoomIn}
-          className="p-2 bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-700 text-slate-300"
+          className="p-2 bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] border border-[var(--glass-border)] text-[var(--text-secondary)]"
         >
           <ZoomIn className="w-5 h-5" />
         </button>
         <button
           onClick={zoomOut}
-          className="p-2 bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-700 text-slate-300"
+          className="p-2 bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] border border-[var(--glass-border)] text-[var(--text-secondary)]"
         >
           <ZoomOut className="w-5 h-5" />
         </button>
         <button
           onClick={resetView}
-          className="p-2 bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-700 text-slate-300"
+          className="p-2 bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] border border-[var(--glass-border)] text-[var(--text-secondary)]"
         >
           <RefreshCw className="w-5 h-5" />
         </button>
@@ -681,14 +681,14 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
             setShowFilters(!showFilters);
             setHasInteractedWithFilter(true);
           }}
-          className={`p-2 rounded-lg border text-slate-300 relative ${showFilters ? 'bg-cyan-700 border-cyan-600' : 'bg-slate-800 hover:bg-slate-700 border-slate-700'}`}
+          className={`p-2 rounded-[var(--radius-lg)] border text-[var(--text-secondary)] relative ${showFilters ? 'bg-cyan-700 border-[var(--accent)]' : 'bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] border-[var(--glass-border)]'}`}
         >
           <Filter className="w-5 h-5" />
           {!hasInteractedWithFilter && !showFilters && (
-            <span className="absolute -top-1 -right-1 w-3 h-3 bg-cyan-500 rounded-full animate-ping" />
+            <span className="absolute -top-1 -right-1 w-3 h-3 bg-[var(--accent)] rounded-full animate-ping" />
           )}
           {!hasInteractedWithFilter && !showFilters && (
-            <span className="absolute -top-1 -right-1 w-3 h-3 bg-cyan-500 rounded-full" />
+            <span className="absolute -top-1 -right-1 w-3 h-3 bg-[var(--accent)] rounded-full" />
           )}
         </button>
       </div>
@@ -696,7 +696,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
       {/* Hover Tooltip */}
       {hoveredNode && !isDragging && (
         <div
-          className="absolute z-30 pointer-events-none bg-slate-900/95 text-white text-[10px] px-2 py-1 rounded border border-cyan-500/50 shadow-[0_0_15px_rgba(6,182,212,0.3)] whitespace-nowrap backdrop-blur-md"
+          className="absolute z-30 pointer-events-none bg-[var(--glass-bg-strong)]/95 text-[var(--text-primary)] text-[10px] px-2 py-1 rounded border border-[var(--accent)]/50 shadow-[0_0_15px_rgba(6,182,212,0.3)] whitespace-nowrap backdrop-blur-md"
           style={{
             left: `${(nodes.find((n) => n.label === hoveredNode)?.x || 0) * transform.k + transform.x}%`,
             top: `${(nodes.find((n) => n.label === hoveredNode)?.y || 0) * transform.k + transform.y - 2}%`,
@@ -704,8 +704,8 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
           }}
         >
           <div className="flex flex-col gap-0.5">
-            <span className="font-bold text-cyan-400">{hoveredNode}</span>
-            <span className="text-[8px] text-slate-400 uppercase tracking-tighter">
+            <span className="font-bold text-[var(--accent)]">{hoveredNode}</span>
+            <span className="text-[8px] text-[var(--text-muted)] uppercase tracking-tighter">
               {nodes.find((n) => n.label === hoveredNode)?.type || 'Entity'}
             </span>
           </div>
@@ -713,15 +713,15 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
       )}
       {/* Filter Panel */}
       {showFilters && (
-        <div className="absolute top-4 right-16 z-20 bg-slate-800/95 backdrop-blur-sm rounded-lg p-4 border border-slate-700/50 shadow-xl w-64">
-          <p className="text-xs text-slate-400 mb-3 font-bold uppercase tracking-wider flex items-center gap-2">
+        <div className="absolute top-4 right-16 z-20 bg-[var(--glass-bg)]/95 backdrop-blur-sm rounded-[var(--radius-lg)] p-4 border border-[var(--glass-border)] shadow-[var(--glass-shadow)] w-64">
+          <p className="text-xs text-[var(--text-muted)] mb-3 font-bold uppercase tracking-wider flex items-center gap-2">
             <Filter className="w-3 h-3" /> Node Filters
           </p>
 
           <div className="space-y-4">
             {/* Severity Filter */}
             <div>
-              <label className="flex items-center gap-2 text-xs text-slate-300 mb-2">
+              <label className="flex items-center gap-2 text-xs text-[var(--text-secondary)] mb-2">
                 <AlertTriangle className="w-3 h-3 text-amber-400" />
                 Min Severity: {minSeverity}
               </label>
@@ -731,9 +731,9 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
                 max={maxSeverityInData}
                 value={minSeverity}
                 onChange={(e) => setMinSeverity(parseInt(e.target.value))}
-                className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                className="w-full h-2 bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] appearance-none cursor-pointer accent-amber-500"
               />
-              <div className="flex justify-between text-[10px] text-slate-500 mt-1">
+              <div className="flex justify-between text-[10px] text-[var(--text-muted)] mt-1">
                 <span>All</span>
                 <span>{maxSeverityInData}</span>
               </div>
@@ -741,8 +741,8 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
 
             {/* Connections Filter */}
             <div>
-              <label className="flex items-center gap-2 text-xs text-slate-300 mb-2">
-                <Link2 className="w-3 h-3 text-cyan-400" />
+              <label className="flex items-center gap-2 text-xs text-[var(--text-secondary)] mb-2">
+                <Link2 className="w-3 h-3 text-[var(--accent)]" />
                 Min Connections: {minConnections}
               </label>
               <input
@@ -751,9 +751,9 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
                 max={Math.min(50, maxConnectionsInData)}
                 value={minConnections}
                 onChange={(e) => setMinConnections(parseInt(e.target.value))}
-                className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                className="w-full h-2 bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] appearance-none cursor-pointer accent-cyan-500"
               />
-              <div className="flex justify-between text-[10px] text-slate-500 mt-1">
+              <div className="flex justify-between text-[10px] text-[var(--text-muted)] mt-1">
                 <span>All</span>
                 <span>{Math.min(50, maxConnectionsInData)}+</span>
               </div>
@@ -761,8 +761,10 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
 
             {/* Relationship Type Filter */}
             {availableRelTypes.length > 0 && (
-              <div className="pt-2 border-t border-slate-700/50">
-                <label className="text-xs text-slate-300 mb-2 block font-medium">Rel Types:</label>
+              <div className="pt-2 border-t border-[var(--glass-border)]">
+                <label className="text-xs text-[var(--text-secondary)] mb-2 block font-medium">
+                  Rel Types:
+                </label>
                 <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto pr-1 custom-scrollbar">
                   {availableRelTypes.map((type) => (
                     <button
@@ -775,8 +777,8 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
                       }}
                       className={`px-1.5 py-0.5 rounded text-[10px] font-medium transition-colors ${
                         !excludedRelTypes.has(type)
-                          ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
-                          : 'bg-slate-700 text-slate-500 border border-slate-600'
+                          ? 'bg-[var(--accent)]/20 text-[var(--accent)] border border-[var(--accent)]/30'
+                          : 'bg-[var(--glass-bg-highlight)] text-[var(--text-muted)] border border-[var(--glass-border)]'
                       }`}
                     >
                       {type}
@@ -787,7 +789,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
             )}
 
             {/* Stats */}
-            <div className="pt-2 border-t border-slate-700/50 text-xs text-slate-400">
+            <div className="pt-2 border-t border-[var(--glass-border)] text-xs text-[var(--text-muted)]">
               Showing {filteredNodes.length} of {nodes.length} nodes
             </div>
           </div>
@@ -795,9 +797,11 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
       )}
 
       {/* Legend */}
-      <div className="absolute top-4 left-4 z-20 bg-slate-800/90 backdrop-blur-sm rounded-lg p-4 border border-slate-700/50 shadow-xl pointer-events-none sm:pointer-events-auto opacity-80 sm:opacity-100 hover:opacity-100 transition-opacity">
+      <div className="absolute top-4 left-4 z-20 bg-[var(--glass-bg)]/90 backdrop-blur-sm rounded-[var(--radius-lg)] p-4 border border-[var(--glass-border)] shadow-[var(--glass-shadow)] pointer-events-none sm:pointer-events-auto opacity-80 sm:opacity-100 hover:opacity-100 transition-opacity">
         <div className="mb-3 flex items-center justify-between gap-3">
-          <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Node Risk</p>
+          <p className="text-xs text-[var(--text-muted)] font-bold uppercase tracking-wider">
+            Node Risk
+          </p>
           {nodeRiskActions ? (
             <div className="pointer-events-auto flex items-center gap-1">{nodeRiskActions}</div>
           ) : null}
@@ -815,20 +819,22 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
                 className="w-3 h-3 rounded-full shadow-[0_0_8px]"
                 style={{ backgroundColor: color, boxShadow: `0 0 8px ${color}` }}
               />
-              <span className="text-xs text-slate-300">{label}</span>
+              <span className="text-xs text-[var(--text-secondary)]">{label}</span>
             </div>
           ))}
         </div>
-        <div className="mt-4 pt-3 border-t border-slate-700/50">
-          <div className="text-[10px] text-slate-500 uppercase tracking-wide mb-2">Edge Style</div>
+        <div className="mt-4 pt-3 border-t border-[var(--glass-border)]">
+          <div className="text-[10px] text-[var(--text-muted)] uppercase tracking-wide mb-2">
+            Edge Style
+          </div>
           <div className="space-y-1 mb-3">
-            <div className="flex items-center gap-2 text-xs text-slate-300">
+            <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
               <svg width="18" height="6" viewBox="0 0 18 6" aria-hidden="true">
                 <line x1="0" y1="3" x2="18" y2="3" stroke="#60a5fa" strokeWidth="1.5" />
               </svg>
               Direct
             </div>
-            <div className="flex items-center gap-2 text-xs text-slate-300">
+            <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
               <svg width="18" height="6" viewBox="0 0 18 6" aria-hidden="true">
                 <line
                   x1="0"
@@ -842,7 +848,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
               </svg>
               Inferred
             </div>
-            <div className="flex items-center gap-2 text-xs text-slate-300">
+            <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
               <svg width="18" height="6" viewBox="0 0 18 6" aria-hidden="true">
                 <line
                   x1="0"
@@ -857,16 +863,16 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
               Agentic
             </div>
           </div>
-          <div className="flex items-center gap-2 text-xs text-slate-400">
+          <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
             <Move className="w-3 h-3" />
             <span>Drag Background to Pan</span>
           </div>
-          <div className="flex items-center gap-2 text-xs text-slate-400 mt-1">
-            <span className="w-3 h-3 rounded-full border border-slate-500 block"></span>
+          <div className="flex items-center gap-2 text-xs text-[var(--text-muted)] mt-1">
+            <span className="w-3 h-3 rounded-full border border-[var(--glass-border)] block"></span>
             <span>Drag Nodes to Rearrange</span>
           </div>
-          <div className="flex items-center gap-2 text-xs text-cyan-400 mt-1">
-            <span className="text-[10px] bg-slate-700 px-1 rounded">Shift</span>
+          <div className="flex items-center gap-2 text-xs text-[var(--accent)] mt-1">
+            <span className="text-[10px] bg-[var(--glass-bg-highlight)] px-1 rounded">Shift</span>
             <span>+ Drag = Force Move Nearest</span>
           </div>
         </div>
@@ -1065,12 +1071,14 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
 
       {/* Selection Inspector */}
       {selectedNode && (
-        <div className="absolute left-4 right-4 bottom-4 z-20 bg-slate-900/90 backdrop-blur-sm border border-slate-700/60 rounded-[var(--radius-md)] p-3">
+        <div className="absolute left-4 right-4 bottom-4 z-20 bg-[var(--glass-bg-strong)]/90 backdrop-blur-sm border border-[var(--glass-border)] rounded-[var(--radius-md)] p-3">
           <div className="flex items-center justify-between gap-3">
             <div className="flex-grow">
-              <div className="text-sm font-bold text-white truncate">{selectedNode.label}</div>{' '}
+              <div className="text-sm font-bold text-[var(--text-primary)] truncate">
+                {selectedNode.label}
+              </div>{' '}
               {/* Changed from selectedNode.name to selectedNode.label */}
-              <div className="text-[10px] text-slate-400 uppercase tracking-wider">
+              <div className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider">
                 {selectedNode.type} • {selectedNode.connectionCount}{' '}
                 {/* Changed from selectedNode.role to selectedNode.type */}
                 connections
@@ -1080,7 +1088,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
               <button
                 onClick={() => handleExpandNode(selectedNode.id)}
                 disabled={isExpanding}
-                className="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-700 text-white rounded-md text-xs font-bold transition-all flex items-center gap-2 shadow-lg shadow-cyan-900/20"
+                className="px-3 py-1.5 bg-[var(--accent)] hover:bg-[var(--accent)] disabled:bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] rounded-md text-xs font-bold transition-all flex items-center gap-2 shadow-[var(--glass-shadow)] shadow-cyan-900/20"
               >
                 {isExpanding ? (
                   <RefreshCw className="w-3 h-3 animate-spin" />
@@ -1091,7 +1099,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
               </button>
               <button
                 onClick={() => setSelectedNodeId(null)}
-                className="p-1.5 hover:bg-slate-800 rounded-md text-slate-400 transition-colors"
+                className="p-1.5 hover:bg-[var(--glass-bg)] rounded-md text-[var(--text-muted)] transition-colors"
                 title="Close"
               >
                 ×

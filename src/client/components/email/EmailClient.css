@@ -5,7 +5,7 @@
   min-height: 0;
   min-width: 0;
   overflow: hidden;
-  background: radial-gradient(circle at 50% -20%, rgba(15, 23, 42, 0.4) 0%, transparent 100%);
+  background: var(--app-bg);
 }
 
 .mailbox-pane {
@@ -14,8 +14,8 @@
   flex-direction: column;
   min-height: 0;
   min-width: 0;
-  border-right: 1px solid rgba(255, 255, 255, 0.05);
-  background: rgba(15, 23, 42, 0.4);
+  border-right: 1px solid var(--glass-border);
+  background: var(--glass-bg-strong);
   backdrop-filter: blur(8px);
   z-index: 10;
 }
@@ -27,8 +27,8 @@
   min-height: 0;
   min-width: 0;
   overflow-x: hidden;
-  border-right: 1px solid rgba(255, 255, 255, 0.05);
-  background: rgba(15, 23, 42, 0.2);
+  border-right: 1px solid var(--glass-border);
+  background: var(--glass-bg);
   backdrop-filter: blur(4px);
   z-index: 5;
 }
@@ -53,12 +53,12 @@
 }
 
 .email-row.active {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--glass-bg-active);
   border-left-color: var(--accent);
 }
 
 .email-row:hover:not(.active) {
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--glass-bg-highlight);
 }
 
 /* Glass headers */
@@ -68,15 +68,15 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  background: rgba(15, 23, 42, 0.2);
+  border-bottom: 1px solid var(--glass-border);
+  background: var(--glass-bg);
   flex-shrink: 0;
 }
 
 .pane-subheader {
   padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-  background: rgba(15, 23, 42, 0.1);
+  border-bottom: 1px solid var(--glass-border);
+  background: var(--glass-bg-highlight);
   display: flex;
   flex-wrap: wrap;
   gap: 8px 12px;
@@ -96,18 +96,18 @@
 }
 
 .message-card {
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  background: rgba(15, 23, 42, 0.3);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg-strong);
   margin-bottom: var(--space-4);
   overflow: hidden;
   transition: all var(--duration-normal) var(--easing-liquid);
 }
 
 .message-card.expanded {
-  background: rgba(15, 23, 42, 0.5);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-  border-color: rgba(255, 255, 255, 0.1);
+  background: var(--glass-bg-active);
+  box-shadow: 0 10px 40px var(--glass-shadow);
+  border-color: var(--glass-border-highlight);
 }
 
 .message-header {
@@ -143,22 +143,13 @@
   align-items: stretch;
   justify-content: center;
   cursor: col-resize;
-  background: linear-gradient(
-    to right,
-    rgba(15, 23, 42, 0) 0%,
-    rgba(56, 189, 248, 0.18) 50%,
-    rgba(15, 23, 42, 0) 100%
-  );
-  transition: background 120ms ease;
+  background: linear-gradient(to right, transparent 0%, var(--accent) 50%, transparent 100%);
+  opacity: 0.2;
+  transition: opacity 120ms ease;
 }
 
 .pane-resizer:hover {
-  background: linear-gradient(
-    to right,
-    rgba(15, 23, 42, 0) 0%,
-    rgba(56, 189, 248, 0.34) 50%,
-    rgba(15, 23, 42, 0) 100%
-  );
+  opacity: 0.5;
 }
 
 /* Mobile adjustments */

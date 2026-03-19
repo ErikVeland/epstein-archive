@@ -135,11 +135,11 @@ export const CollapsibleSplitPane: React.FC<CollapsibleSplitPaneProps> = ({
     return (
       <div ref={rootRef} className={`flex h-full min-h-0 min-w-0 ${className}`}>
         <div className="shrink-0 flex items-stretch relative z-20" style={rightStyle}>
-          <div className="w-10 border-r border-white/5 bg-slate-950/60 flex flex-col items-center py-6 gap-6 shrink-0 relative z-30">
+          <div className="w-10 border-r border-[var(--glass-border)] bg-[var(--glass-bg)] flex flex-col items-center py-6 gap-6 shrink-0 relative z-30">
             <button
               type="button"
               onClick={() => setCollapsed(!collapsed)}
-              className="h-8 w-8 rounded-full flex items-center justify-center text-slate-400 hover:text-cyan-400 hover:bg-cyan-500/10 hover:border-cyan-500/20 border border-transparent transition-all outline-none"
+              className="h-8 w-8 rounded-full flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 hover:border-[var(--accent)]/20 border border-transparent transition-all outline-none"
               aria-label={collapsed ? expandAriaLabel : collapseAriaLabel}
               title={collapsed ? expandAriaLabel : collapseAriaLabel}
             >
@@ -155,16 +155,16 @@ export const CollapsibleSplitPane: React.FC<CollapsibleSplitPaneProps> = ({
                 type="button"
                 onPointerDown={startResize}
                 onKeyDown={handleDividerKeyDown}
-                className="h-12 w-8 flex items-center justify-center text-slate-600 hover:text-cyan-400/60 cursor-col-resize outline-none group"
+                className="h-12 w-8 flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--accent)]/60 cursor-col-resize outline-none group"
                 aria-label={dividerAriaLabel}
                 title={dividerAriaLabel}
               >
-                <div className="w-1 h-8 rounded-full bg-slate-800 group-hover:bg-cyan-500/30 transition-colors" />
+                <div className="w-1 h-8 rounded-full bg-[var(--glass-bg-strong)] group-hover:bg-[var(--accent)]/30 transition-colors" />
               </button>
             )}
           </div>
 
-          <div className="min-w-0 min-h-0 flex-1 relative z-20 overflow-visible border-l border-slate-700/60 bg-slate-950/50">
+          <div className="min-w-0 min-h-0 flex-1 relative z-20 overflow-visible border-l border-[var(--glass-border)] bg-transparent">
             {collapsed ? collapsedRight : right}
           </div>
         </div>
@@ -182,7 +182,7 @@ export const CollapsibleSplitPane: React.FC<CollapsibleSplitPaneProps> = ({
             type="button"
             onPointerDown={startResize}
             onKeyDown={handleDividerKeyDown}
-            className="absolute left-0 top-0 h-full w-2 cursor-col-resize z-20 bg-transparent hover:bg-cyan-500/10 transition-colors outline-none"
+            className="absolute left-0 top-0 h-full w-2 cursor-col-resize z-20 bg-transparent hover:bg-[var(--accent)]/10 transition-colors outline-none"
             aria-label={dividerAriaLabel}
             title={dividerAriaLabel}
           />
@@ -191,14 +191,14 @@ export const CollapsibleSplitPane: React.FC<CollapsibleSplitPaneProps> = ({
         <button
           type="button"
           onClick={() => setCollapsed(!collapsed)}
-          className="absolute left-2 top-4 h-8 w-8 rounded-full flex items-center justify-center text-slate-400 hover:text-cyan-400 hover:bg-cyan-500/10 hover:border-cyan-500/20 border border-transparent transition-all outline-none z-30"
+          className="absolute left-2 top-4 h-8 w-8 rounded-full flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 hover:border-[var(--accent)]/20 border border-transparent transition-all outline-none z-30"
           aria-label={collapsed ? expandAriaLabel : collapseAriaLabel}
           title={collapsed ? expandAriaLabel : collapseAriaLabel}
         >
           {collapsed ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
         </button>
 
-        <div className="min-w-0 min-h-0 h-full border-l border-slate-700/60 bg-slate-900/45">
+        <div className="min-w-0 min-h-0 h-full border-l border-[var(--glass-border)] bg-[var(--glass-bg)]">
           {collapsed ? collapsedRight : right}
         </div>
       </div>

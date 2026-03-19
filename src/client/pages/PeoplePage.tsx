@@ -144,7 +144,7 @@ export const PeoplePage: React.FC<PeoplePageProps> = ({
           <div className="surface-glass-card relative z-40 p-3 md:p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3 flex-shrink-0">
             <div className="flex items-center gap-2">
               <Icon name="Users" size="sm" color="info" className="flex-shrink-0" />
-              <p className="text-slate-300 text-sm">
+              <p className="text-[var(--text-primary)] text-sm">
                 {total.toLocaleString()} subjects • Page {page}/{totalPagesLocal || 1}
               </p>
             </div>
@@ -153,7 +153,7 @@ export const PeoplePage: React.FC<PeoplePageProps> = ({
               {isAdmin && (
                 <button
                   onClick={onAddSubject}
-                  className="control px-3 text-sm font-medium text-slate-100 hover:bg-slate-700/80 hidden md:flex items-center gap-2"
+                  className="control px-3 text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)] hidden md:flex items-center gap-2"
                 >
                   <Icon name="Plus" size="sm" />
                   <span className="hidden sm:inline">Add Subject</span>
@@ -188,14 +188,14 @@ export const PeoplePage: React.FC<PeoplePageProps> = ({
 
               <button
                 onClick={onSortOrderToggle}
-                className="control h-11 w-11 flex items-center justify-center text-slate-300 hover:text-white transition-colors shrink-0"
+                className="control h-11 w-11 flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors shrink-0"
                 title={`Sort ${sortOrder === 'asc' ? 'Descending' : 'Ascending'}`}
                 aria-label={`Sort ${sortOrder === 'asc' ? 'Descending' : 'Ascending'}`}
               >
                 {sortOrder === 'asc' ? '↑' : '↓'}
               </button>
             </div>
-            <div className="text-xs text-slate-400 uppercase tracking-[0.12em]">
+            <div className="text-xs text-[var(--text-muted)] uppercase tracking-[0.12em]">
               Sort: {sortBy.replace('_', ' ')} ({sortOrder})
             </div>
           </div>
@@ -210,8 +210,12 @@ export const PeoplePage: React.FC<PeoplePageProps> = ({
             ) : subjects.length === 0 ? (
               <div className="surface-glass-card text-center py-12 px-4">
                 <Icon name="Users" size="xl" color="gray" className="mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-slate-300 mb-2">No results found</h3>
-                <p className="text-slate-400">Try adjusting search or entity filters.</p>
+                <h3 className="text-lg font-medium text-[var(--text-primary)] mb-2">
+                  No results found
+                </h3>
+                <p className="text-[var(--text-secondary)]">
+                  Try adjusting search or entity filters.
+                </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-4">
@@ -231,23 +235,23 @@ export const PeoplePage: React.FC<PeoplePageProps> = ({
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="control px-4 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-700/80 flex items-center gap-2"
+                className="control px-4 text-[var(--text-primary)] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--glass-bg-highlight)] flex items-center gap-2"
               >
                 <Icon name="ChevronLeft" size="sm" />
                 <span>Previous</span>
               </button>
 
               <div className="chip px-4 h-11 flex items-center gap-2">
-                <span className="text-slate-400">Page</span>
-                <span className="text-white font-medium">{page}</span>
-                <span className="text-slate-400">of</span>
-                <span className="text-white font-medium">{totalPagesLocal}</span>
+                <span className="text-[var(--text-muted)]">Page</span>
+                <span className="text-[var(--text-primary)] font-medium">{page}</span>
+                <span className="text-[var(--text-muted)]">of</span>
+                <span className="text-[var(--text-primary)] font-medium">{totalPagesLocal}</span>
               </div>
 
               <button
                 onClick={() => setPage((p) => Math.min(totalPagesLocal, p + 1))}
                 disabled={page === totalPagesLocal}
-                className="control px-4 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-700/80 flex items-center gap-2"
+                className="control px-4 text-[var(--text-primary)] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--glass-bg-highlight)] flex items-center gap-2"
               >
                 <span>Next</span>
                 <Icon name="ChevronRight" size="sm" />

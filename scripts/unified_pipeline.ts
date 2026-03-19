@@ -3,16 +3,64 @@
  * Unified Evidence Pipeline Orchestrator — PG NATIVE VERSION
  */
 
-import { spawn } from 'child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
+import { spawnSync } from 'child_process';
+import { Client } from 'pg';
 import 'dotenv/config';
 import { AIEnrichmentService } from '../src/server/services/AIEnrichmentService.js';
 import { getIngestPool } from '../src/server/db/connection.js';
 
+/**
+ * Ensure the database is reachable, starting the Docker container if necessary.
+ * Blocks until Postgres accepts connections (up to ~90s) or throws.
+ */
+async function ensureDatabaseRunning(): Promise<void> {
+  const dbUrl = process.env.DATABASE_URL || '';
+
+  const canConnect = async (): Promise<boolean> => {
+    const client = new Client({ connectionString: dbUrl });
+    try {
+      await client.connect();
+      await client.query('SELECT 1');
+      return true;
+    } catch {
+      return false;
+    } finally {
+      await client.end().catch(() => {});
+    }
+  };
+
+  if (await canConnect()) return;
+
+  console.log('\n⚠️  Database unreachable — attempting to start Homebrew Postgres...');
+
+  // Try Homebrew postgresql@16 first (native, no Docker overhead)
+  const brewResult = spawnSync('brew', ['services', 'start', 'postgresql@16'], {
+    stdio: 'inherit',
+  });
+
+  if (brewResult.status !== 0) {
+    throw new Error(
+      'brew services start postgresql@16 failed. Run it manually or check Homebrew is installed.',
+    );
+  }
+
+  console.log('   Waiting for Postgres to accept connections...');
+  const deadline = Date.now() + 30_000;
+  while (Date.now() < deadline) {
+    if (await canConnect()) {
+      console.log('   ✅ Database is up.\n');
+      return;
+    }
+    await new Promise((r) => setTimeout(r, 1_000));
+  }
+
+  throw new Error('Postgres service started but did not accept connections within 30s.');
+}
+
 // Configuration
 const BATCH_SIZE = parseInt(process.env.BATCH_SIZE || '20', 10);
-const CONCURRENCY = parseInt(process.env.PIPELINE_CONCURRENCY || '8', 10);
 const CHECKPOINT_DIR = './pipeline_checkpoints';
 const LIVE_STATUS_FILE = './pipeline_checkpoints/live_status.json';
 
@@ -48,6 +96,7 @@ interface PipelineStats {
  * Run a subprocess and stream its output
  */
 function runScript(scriptPath: string, args: string[] = []): Promise<number> {
+  const { spawn } = require('child_process');
   return new Promise((resolve, reject) => {
     console.log(`\n📜 Running: npx tsx ${scriptPath} ${args.join(' ')}`);
     const child = spawn('npx', ['tsx', scriptPath, ...args], {
@@ -56,11 +105,11 @@ function runScript(scriptPath: string, args: string[] = []): Promise<number> {
       env: process.env,
     });
 
-    child.on('close', (code) => {
+    child.on('close', (code: number | null) => {
       resolve(code || 0);
     });
 
-    child.on('error', (err) => {
+    child.on('error', (err: Error) => {
       reject(err);
     });
   });
@@ -323,34 +372,15 @@ async function main() {
     writeLiveStatus({ crashed: true, lastError: String(reason), phase: 'Crashed' });
     process.exit(1);
   });
-  // SIGTERM = macOS memory pressure. Spawn a fresh instance (clean heap) and exit
-  // immediately — do not wait for the current doc; macOS won't give us enough time.
-  process.on('SIGTERM', () => {
-    if (shuttingDown) return;
-    shuttingDown = true;
-    writeLiveStatus({ running: false, phase: 'Respawning' });
-    console.log('\n↩ SIGTERM — respawning with fresh heap...');
-    try {
-      const child = spawn(process.argv[0], [...process.execArgv, ...process.argv.slice(1)], {
-        detached: true,
-        stdio: 'inherit',
-        env: process.env,
-        cwd: process.cwd(),
-      });
-      child.unref();
-      console.log(`↩ Continuing as PID ${child.pid}`);
-    } catch (err) {
-      console.error('Failed to respawn:', err);
-    }
-    process.exit(0);
-  });
-  // SIGINT (Ctrl+C) = intentional stop, no respawn.
+
+  // SIGTERM is ignored — the pipeline must not be interrupted by OS memory pressure events.
+  // Only SIGINT (Ctrl+C) stops the pipeline.
+  process.on('SIGTERM', () => {});
   process.on('SIGINT', () => {
     if (shuttingDown) return;
     shuttingDown = true;
     console.log('\n🛑 Stopped.');
     writeLiveStatus({ running: false, phase: 'Stopped' });
-    process.exit(0);
   });
 
   const args = process.argv.slice(2);
@@ -372,6 +402,8 @@ async function main() {
   console.log('   Mode: ' + mode + '  (runs continuously until killed)');
 
   writeLiveStatus({ running: true, crashed: false, phase: 'Starting' });
+
+  await ensureDatabaseRunning();
 
   let cycleCount = 0;
   while (!shuttingDown) {

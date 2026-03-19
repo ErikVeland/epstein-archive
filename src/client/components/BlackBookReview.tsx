@@ -98,7 +98,7 @@ export const BlackBookReview: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent)]"></div>
       </div>
     );
   }
@@ -107,8 +107,8 @@ export const BlackBookReview: React.FC = () => {
     return (
       <div className="text-center py-12">
         <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-        <h3 className="text-xl font-bold text-white mb-2">All Done!</h3>
-        <p className="text-slate-400">All Black Book entries have been reviewed.</p>
+        <h3 className="text-xl font-bold text-[var(--text-primary)] mb-2">All Done!</h3>
+        <p className="text-[var(--text-muted)]">All Black Book entries have been reviewed.</p>
       </div>
     );
   }
@@ -119,29 +119,29 @@ export const BlackBookReview: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Header & Progress */}
-      <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-6">
+      <div className="bg-[var(--glass-bg)]/50 border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-2xl font-bold text-white">Black Book Review</h2>
-            <p className="text-slate-400 text-sm mt-1">
+            <h2 className="text-2xl font-bold text-[var(--text-primary)]">Black Book Review</h2>
+            <p className="text-[var(--text-muted)] text-sm mt-1">
               Manually correct flagged entries with poor OCR quality
             </p>
           </div>
           <div className="text-right">
-            <div className="text-3xl font-bold text-cyan-400">{stats.remaining}</div>
-            <div className="text-sm text-slate-400">remaining</div>
+            <div className="text-3xl font-bold text-[var(--accent)]">{stats.remaining}</div>
+            <div className="text-sm text-[var(--text-muted)]">remaining</div>
           </div>
         </div>
 
         {/* Progress Bar */}
         <div className="space-y-2">
-          <div className="flex justify-between text-sm text-slate-400">
+          <div className="flex justify-between text-sm text-[var(--text-muted)]">
             <span>Progress</span>
             <span>
               {stats.reviewed} of {stats.total} ({progress}%)
             </span>
           </div>
-          <div className="w-full bg-slate-700 rounded-full h-2">
+          <div className="w-full bg-[var(--glass-bg-highlight)] rounded-full h-2">
             <div
               className="bg-gradient-to-r from-cyan-500 to-blue-500 h-2 rounded-full transition-all duration-300"
               style={{ width: `${progress}%` }}
@@ -151,43 +151,47 @@ export const BlackBookReview: React.FC = () => {
       </div>
 
       {/* Review Card */}
-      <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-6">
+      <div className="bg-[var(--glass-bg)]/50 border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-6">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center space-x-2">
             <AlertCircle className="w-5 h-5 text-amber-400" />
             <span className="text-sm font-medium text-amber-400">Needs Review</span>
           </div>
-          <div className="text-sm text-slate-500">
+          <div className="text-sm text-[var(--text-muted)]">
             Entry {currentIndex + 1} of {entries.length}
           </div>
         </div>
 
         {/* Original OCR Text */}
         <div className="mb-6">
-          <label className="block text-sm font-medium text-slate-300 mb-2">Original OCR Text</label>
-          <div className="bg-slate-900/50 border border-slate-600 rounded p-3 font-mono text-sm text-slate-400 whitespace-pre-wrap">
+          <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+            Original OCR Text
+          </label>
+          <div className="bg-[var(--glass-bg-strong)]/50 border border-[var(--glass-border)] rounded p-3 font-mono text-sm text-[var(--text-muted)] whitespace-pre-wrap">
             {current.entry_text}
           </div>
         </div>
 
         {/* Current Name */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-slate-300 mb-2">
+          <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
             Current Name (AI Cleaned)
           </label>
-          <div className="bg-slate-900/50 border border-slate-600 rounded p-3 text-slate-300">
+          <div className="bg-[var(--glass-bg-strong)]/50 border border-[var(--glass-border)] rounded p-3 text-[var(--text-secondary)]">
             {current.cleaned_name}
           </div>
         </div>
 
         {/* Editable Name */}
         <div className="mb-6">
-          <label className="block text-sm font-medium text-slate-300 mb-2">Corrected Name</label>
+          <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+            Corrected Name
+          </label>
           <input
             type="text"
             value={editedName}
             onChange={(e) => setEditedName(e.target.value)}
-            className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+            className="w-full px-4 py-3 bg-[var(--glass-bg-strong)]/50 border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
             placeholder="Enter corrected name..."
             disabled={saving}
           />
@@ -197,25 +201,31 @@ export const BlackBookReview: React.FC = () => {
         {(current.phone_numbers.length > 0 ||
           current.email_addresses.length > 0 ||
           current.addresses.length > 0) && (
-          <div className="mb-6 p-4 bg-slate-900/30 border border-slate-600 rounded-lg">
-            <h4 className="text-sm font-medium text-slate-300 mb-3">Contact Information</h4>
+          <div className="mb-6 p-4 bg-[var(--glass-bg-strong)]/30 border border-[var(--glass-border)] rounded-[var(--radius-lg)]">
+            <h4 className="text-sm font-medium text-[var(--text-secondary)] mb-3">
+              Contact Information
+            </h4>
             <div className="space-y-2 text-sm">
               {current.phone_numbers.length > 0 && (
                 <div>
-                  <span className="text-slate-500">Phones:</span>
-                  <span className="text-slate-300 ml-2">{current.phone_numbers.join(', ')}</span>
+                  <span className="text-[var(--text-muted)]">Phones:</span>
+                  <span className="text-[var(--text-secondary)] ml-2">
+                    {current.phone_numbers.join(', ')}
+                  </span>
                 </div>
               )}
               {current.email_addresses.length > 0 && (
                 <div>
-                  <span className="text-slate-500">Emails:</span>
-                  <span className="text-slate-300 ml-2">{current.email_addresses.join(', ')}</span>
+                  <span className="text-[var(--text-muted)]">Emails:</span>
+                  <span className="text-[var(--text-secondary)] ml-2">
+                    {current.email_addresses.join(', ')}
+                  </span>
                 </div>
               )}
               {current.addresses.length > 0 && (
                 <div>
-                  <span className="text-slate-500">Addresses:</span>
-                  <span className="text-slate-300 ml-2">
+                  <span className="text-[var(--text-muted)]">Addresses:</span>
+                  <span className="text-[var(--text-secondary)] ml-2">
                     {current.addresses.slice(0, 2).join('; ')}
                   </span>
                 </div>
@@ -229,7 +239,7 @@ export const BlackBookReview: React.FC = () => {
           <button
             onClick={() => handleAction('approve')}
             disabled={saving || !editedName.trim()}
-            className="flex-1 flex items-center justify-center space-x-2 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg font-medium hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            className="flex-1 flex items-center justify-center space-x-2 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-[var(--text-primary)] rounded-[var(--radius-lg)] font-medium hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
             <CheckCircle className="w-5 h-5" />
             <span>Approve & Save</span>
@@ -238,7 +248,7 @@ export const BlackBookReview: React.FC = () => {
           <button
             onClick={() => handleAction('skip')}
             disabled={saving}
-            className="flex items-center justify-center space-x-2 px-6 py-3 bg-slate-700 text-white rounded-lg font-medium hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            className="flex items-center justify-center space-x-2 px-6 py-3 bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] rounded-[var(--radius-lg)] font-medium hover:bg-[var(--glass-bg-highlight)] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
             <SkipForward className="w-5 h-5" />
             <span>Skip</span>
@@ -247,7 +257,7 @@ export const BlackBookReview: React.FC = () => {
           <button
             onClick={() => handleAction('delete')}
             disabled={saving}
-            className="flex items-center justify-center space-x-2 px-6 py-3 bg-gradient-to-r from-red-600 to-pink-600 text-white rounded-lg font-medium hover:from-red-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            className="flex items-center justify-center space-x-2 px-6 py-3 bg-gradient-to-r from-red-600 to-pink-600 text-[var(--text-primary)] rounded-[var(--radius-lg)] font-medium hover:from-red-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
             <XCircle className="w-5 h-5" />
             <span>Delete</span>
@@ -255,8 +265,8 @@ export const BlackBookReview: React.FC = () => {
         </div>
 
         {/* Keyboard Shortcuts Hint */}
-        <div className="mt-4 pt-4 border-t border-slate-700">
-          <p className="text-xs text-slate-500 text-center">
+        <div className="mt-4 pt-4 border-t border-[var(--glass-border)]">
+          <p className="text-xs text-[var(--text-muted)] text-center">
             Tip: Use Tab to focus name field, Enter to approve, or click buttons
           </p>
         </div>

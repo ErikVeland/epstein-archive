@@ -81,20 +81,20 @@ export function ContactListViewer({ evidence }: ContactListViewerProps) {
     <div className="p-6">
       {/* Header */}
       <div className="mb-6">
-        <h3 className="text-lg font-semibold text-gray-900">{evidence.title}</h3>
-        <p className="text-sm text-gray-600 mt-1">{contacts.length} contacts found</p>
+        <h3 className="text-lg font-semibold text-[var(--text-primary)]">{evidence.title}</h3>
+        <p className="text-sm text-[var(--text-primary)] mt-1">{contacts.length} contacts found</p>
       </div>
 
       {/* Search */}
       <div className="mb-6">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[var(--text-muted)]" />
           <input
             type="text"
             placeholder="Search contacts..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="w-full pl-10 pr-4 py-2 border border-[var(--glass-border)] rounded-[var(--radius-lg)] focus:ring-2 focus:ring-[var(--accent)]"
           />
         </div>
       </div>
@@ -104,30 +104,32 @@ export function ContactListViewer({ evidence }: ContactListViewerProps) {
         {filteredContacts.map((contact, index) => (
           <div
             key={index}
-            className="p-4 bg-white border border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-sm transition"
+            className="p-4 bg-white border border-[var(--glass-border)] rounded-[var(--radius-lg)] hover:border-[var(--accent)] hover:shadow-sm transition"
           >
             <div className="flex items-start">
-              <User className="h-5 w-5 text-gray-400 mr-3 mt-0.5 flex-shrink-0" />
+              <User className="h-5 w-5 text-[var(--text-muted)] mr-3 mt-0.5 flex-shrink-0" />
               <div className="flex-1 min-w-0">
-                <h4 className="text-sm font-semibold text-gray-900 truncate">{contact.name}</h4>
+                <h4 className="text-sm font-semibold text-[var(--text-primary)] truncate">
+                  {contact.name}
+                </h4>
 
                 <div className="mt-2 space-y-1">
                   {contact.phone && (
-                    <div className="flex items-center text-xs text-gray-600">
+                    <div className="flex items-center text-xs text-[var(--text-primary)]">
                       <Phone className="h-3 w-3 mr-1.5" />
                       {contact.phone}
                     </div>
                   )}
 
                   {contact.email && (
-                    <div className="flex items-center text-xs text-gray-600">
+                    <div className="flex items-center text-xs text-[var(--text-primary)]">
                       <Mail className="h-3 w-3 mr-1.5" />
                       {contact.email}
                     </div>
                   )}
 
                   {contact.address && (
-                    <div className="flex items-start text-xs text-gray-600">
+                    <div className="flex items-start text-xs text-[var(--text-primary)]">
                       <MapPin className="h-3 w-3 mr-1.5 mt-0.5 flex-shrink-0" />
                       <span className="line-clamp-2">{contact.address}</span>
                     </div>
@@ -141,7 +143,7 @@ export function ContactListViewer({ evidence }: ContactListViewerProps) {
 
       {filteredContacts.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-gray-500">No contacts found matching "{searchTerm}"</p>
+          <p className="text-[var(--text-muted)]">No contacts found matching "{searchTerm}"</p>
         </div>
       )}
     </div>

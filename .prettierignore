@@ -16,3 +16,6 @@ assets
 
 # Ignore docs archive:
 docs_archive
+
+# Ignore binary/large files:
+*.dump

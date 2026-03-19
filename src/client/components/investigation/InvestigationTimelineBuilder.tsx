@@ -71,7 +71,7 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
   });
 
   const eventTypes = [
-    { value: 'document', label: 'Document', icon: FileText, color: 'bg-blue-500' },
+    { value: 'document', label: 'Document', icon: FileText, color: 'bg-[var(--accent)]' },
     { value: 'meeting', label: 'Meeting', icon: Users, color: 'bg-green-500' },
     { value: 'location', label: 'Location', icon: MapPin, color: 'bg-purple-500' },
     { value: 'communication', label: 'Communication', icon: Link2, color: 'bg-orange-500' },
@@ -538,7 +538,7 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
 
   const getEventTypeColor = (type: string) => {
     const eventType = eventTypes.find((et) => et.value === type);
-    return eventType ? eventType.color : 'bg-gray-500';
+    return eventType ? eventType.color : 'bg-[var(--text-muted)]';
   };
 
   const getEventTypeBorderColor = (type: string) => {
@@ -573,20 +573,22 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
   };
 
   return (
-    <div className="bg-gray-900 text-gray-100 min-h-screen p-6">
+    <div className="bg-[var(--app-bg)] text-[var(--text-primary)] min-h-screen p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Investigation Timeline</h1>
-          <p className="text-gray-400">
+          <h1 className="text-3xl font-bold text-[var(--text-primary)] mb-2">
+            Investigation Timeline
+          </h1>
+          <p className="text-[var(--text-secondary)]">
             Build and visualize the chronological sequence of events and evidence
           </p>
-          <p className="text-xs text-gray-500 mt-2 flex items-center gap-2">
+          <p className="text-xs text-[var(--text-muted)] mt-2 flex items-center gap-2">
             {orderingMode === 'chronological'
               ? 'Chronological mode is enforced by source date. Drag handles are disabled.'
               : 'Narrative order is manual and local to this device; exports include this mode.'}
             <span
-              className="inline-flex items-center gap-1 text-cyan-300"
+              className="inline-flex items-center gap-1 text-[var(--accent)]"
               title="Chronological exports are deterministic by source date. Narrative exports preserve your local manual sequence."
             >
               <Info className="w-3.5 h-3.5" />
@@ -596,14 +598,14 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
         </div>
 
         {/* Controls */}
-        <div className="bg-gray-800 rounded-lg p-4 mb-6">
+        <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-xl)] p-4 mb-6 shadow-sm">
           <div className="flex flex-wrap items-center gap-4">
             <div className="flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-gray-400" />
+              <Calendar className="w-5 h-5 text-[var(--text-muted)]" />
               <select
                 value={timelineScale}
                 onChange={(e) => setTimelineScale(e.target.value as any)}
-                className="bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white"
+                className="bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-md)] px-3 py-2 text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--accent)] outline-none"
               >
                 <option value="day">Daily</option>
                 <option value="week">Weekly</option>
@@ -611,23 +613,23 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
                 <option value="year">Yearly</option>
               </select>
             </div>
-            <div className="flex items-center gap-2 bg-gray-700 rounded-lg p-1">
+            <div className="flex items-center gap-2 bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-1">
               <button
                 onClick={() => setOrderingModeAndPersist('chronological')}
-                className={`px-3 py-1.5 text-xs rounded ${
+                className={`px-3 py-1.5 text-xs rounded-[var(--radius-md)] ${
                   orderingMode === 'chronological'
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-300 hover:bg-gray-600'
+                    ? 'bg-[var(--accent)] text-[var(--app-bg)] font-medium'
+                    : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)]'
                 }`}
               >
                 Chronological
               </button>
               <button
                 onClick={() => setOrderingModeAndPersist('narrative')}
-                className={`px-3 py-1.5 text-xs rounded ${
+                className={`px-3 py-1.5 text-xs rounded-[var(--radius-md)] ${
                   orderingMode === 'narrative'
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-300 hover:bg-gray-600'
+                    ? 'bg-[var(--accent)] text-[var(--app-bg)] font-medium'
+                    : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)]'
                 }`}
               >
                 Narrative order
@@ -636,7 +638,7 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
 
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-md)] transition-colors text-[var(--text-primary)]"
             >
               <Eye className="w-4 h-4" />
               Filters
@@ -644,7 +646,7 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
 
             <button
               onClick={() => setIsAddingEvent(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-red-600/90 hover:bg-red-600 text-[var(--text-primary)] rounded-[var(--radius-md)] transition-colors shadow-sm"
             >
               <Plus className="w-4 h-4" />
               Add Event
@@ -653,11 +655,16 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
 
           {/* Filters */}
           {showFilters && (
-            <div className="mt-4 p-4 bg-gray-700 rounded-lg">
-              <h3 className="text-sm font-semibold text-gray-300 mb-3">Filter by Event Type</h3>
+            <div className="mt-4 p-4 bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-lg)]">
+              <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">
+                Filter by Event Type
+              </h3>
               <div className="flex flex-wrap gap-2">
                 {eventTypes.map((type) => (
-                  <label key={type.value} className="flex items-center gap-2 cursor-pointer">
+                  <label
+                    key={type.value}
+                    className="flex items-center gap-2 cursor-pointer bg-[var(--glass-bg)] border border-[var(--glass-border)] px-3 py-1.5 rounded-[var(--radius-md)] hover:border-[var(--accent)]/50 transition-colors"
+                  >
                     <input
                       type="checkbox"
                       checked={filterTypes.includes(type.value)}
@@ -668,9 +675,9 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
                           setFilterTypes(filterTypes.filter((t) => t !== type.value));
                         }
                       }}
-                      className="rounded"
+                      className="rounded accent-[var(--accent)]"
                     />
-                    <span className="text-sm text-gray-300">{type.label}</span>
+                    <span className="text-sm text-[var(--text-secondary)]">{type.label}</span>
                   </label>
                 ))}
               </div>
@@ -684,10 +691,10 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
             <div key={group.startDate} className="relative">
               {/* Date Header */}
               <div className="flex items-center mb-4">
-                <div className="bg-red-600 text-white px-4 py-2 rounded-lg font-semibold">
+                <div className="bg-[var(--glass-bg-strong)] text-[var(--text-primary)] border border-[var(--glass-border)] shadow-sm px-4 py-2 rounded-[var(--radius-md)] font-semibold">
                   {formatGroupDate(group.startDate)}
                 </div>
-                <div className="flex-1 h-px bg-gray-700 ml-4"></div>
+                <div className="flex-1 h-px bg-[var(--glass-border)] ml-4"></div>
               </div>
 
               {/* Events */}
@@ -700,7 +707,7 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
                     onDragOver={handleDragOver}
                     onDrop={(e) => handleDrop(e, String(event.id))}
                     onClick={() => onOpenSource?.(event)}
-                    className={`relative bg-gray-800 rounded-lg p-4 border-l-4 hover:bg-gray-750 transition-colors ${
+                    className={`relative bg-[var(--glass-bg)] rounded-[var(--radius-lg)] p-4 border-l-4 border-t border-r border-b border-r-[var(--glass-border)] border-t-[var(--glass-border)] border-b-[var(--glass-border)] hover:bg-[var(--glass-bg-highlight)] transition-colors shadow-sm ${
                       orderingMode === 'narrative' ? 'cursor-move' : 'cursor-pointer'
                     }`}
                     style={{ borderLeftColor: getEventTypeBorderColor(event.type) }}
@@ -709,32 +716,32 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
                           <div
-                            className={`w-8 h-8 rounded-full ${getEventTypeColor(event.type)} flex items-center justify-center`}
+                            className={`w-8 h-8 rounded-full ${getEventTypeColor(event.type)} flex items-center justify-center shadow-sm`}
                           >
                             {React.createElement(getEventTypeIcon(event.type), {
-                              className: 'w-4 h-4 text-white',
+                              className: 'w-4 h-4 text-[var(--text-primary)]',
                             })}
                           </div>
-                          <h3 className="text-lg font-semibold text-white truncate">
+                          <h3 className="text-lg font-semibold text-[var(--text-primary)] truncate">
                             {event.title}
                           </h3>
-                          <span className="text-xs bg-gray-700 text-gray-300 px-2 py-1 rounded">
+                          <span className="text-xs bg-[var(--app-bg)]/50 border border-[var(--glass-border)] text-[var(--text-secondary)] px-2 py-1 rounded-[var(--radius-sm)]">
                             {Math.round(event.confidence)}% confidence
                           </span>
                           {orderingMode === 'narrative' && (
-                            <span className="text-xs bg-cyan-900/40 text-cyan-200 px-2 py-1 rounded">
+                            <span className="text-xs bg-[var(--accent)]/10 border border-[var(--accent)]/30 text-[var(--accent)] px-2 py-1 rounded-[var(--radius-sm)]">
                               Narrative order
                             </span>
                           )}
                         </div>
 
                         {event.description && (
-                          <p className="text-gray-300 mb-3 ml-11 break-words">
+                          <p className="text-[var(--text-secondary)] mb-3 ml-11 break-words">
                             {event.description}
                           </p>
                         )}
 
-                        <div className="flex items-center gap-4 text-sm text-gray-400 ml-11">
+                        <div className="flex items-center gap-4 text-sm text-[var(--text-muted)] ml-11">
                           <div className="flex items-center gap-1">
                             <Clock className="w-4 h-4" />
                             {format(event.startDate, 'HH:mm')}
@@ -768,7 +775,7 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
                               ? 'Switch to Narrative order to move events'
                               : 'Move event up'
                           }
-                          className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                          className="p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)] rounded-[var(--radius-sm)] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                           aria-label="Move event up"
                         >
                           <ArrowUp className="w-4 h-4" />
@@ -784,7 +791,7 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
                               ? 'Switch to Narrative order to move events'
                               : 'Move event down'
                           }
-                          className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                          className="p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)] rounded-[var(--radius-sm)] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                           aria-label="Move event down"
                         >
                           <ArrowDown className="w-4 h-4" />
@@ -795,7 +802,7 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
                               e.stopPropagation();
                               onOpenSource(event);
                             }}
-                            className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors"
+                            className="p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)] rounded-[var(--radius-sm)] transition-colors"
                             aria-label="Open linked source"
                           >
                             <ExternalLink className="w-4 h-4" />
@@ -806,7 +813,7 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
                             e.stopPropagation();
                             handleEditEvent(event);
                           }}
-                          className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded transition-colors"
+                          className="p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)] rounded-[var(--radius-sm)] transition-colors"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
@@ -815,7 +822,7 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
                             e.stopPropagation();
                             handleDeleteEvent(event.id);
                           }}
-                          className="p-2 text-gray-400 hover:text-red-400 hover:bg-gray-700 rounded transition-colors"
+                          className="p-2 text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/20 rounded-[var(--radius-sm)] transition-colors"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -830,39 +837,41 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
 
         {/* Add/Edit Event Modal */}
         {(isAddingEvent || editingEvent) && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-              <h2 className="text-xl font-bold text-white mb-4">
+          <div className="fixed inset-0 bg-[var(--app-bg)]/80 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+              <h2 className="text-xl font-bold text-[var(--text-primary)] mb-4">
                 {editingEvent ? 'Edit Timeline Event' : 'Add Timeline Event'}
               </h2>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Title *</label>
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                    Title *
+                  </label>
                   <input
                     type="text"
                     value={newEvent.title || ''}
                     onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
-                    className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white"
+                    className="w-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-md)] px-3 py-2 text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--accent)] outline-none"
                     placeholder="Enter event title"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                     Description
                   </label>
                   <textarea
                     value={newEvent.description || ''}
                     onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
-                    className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white h-20"
+                    className="w-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-md)] px-3 py-2 text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--accent)] outline-none h-20"
                     placeholder="Enter event description"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                       Date & Time *
                     </label>
                     <input
@@ -878,12 +887,12 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
                           startDateString: new Date(e.target.value).toISOString(),
                         })
                       }
-                      className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white"
+                      className="w-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-md)] px-3 py-2 text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--accent)] outline-none"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                       Event Type
                     </label>
                     <select
@@ -891,7 +900,7 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
                       onChange={(e) =>
                         setNewEvent({ ...newEvent, type: e.target.value as TimelineEvent['type'] })
                       }
-                      className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white"
+                      className="w-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-md)] px-3 py-2 text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--accent)] outline-none"
                     >
                       {eventTypes.map((type) => (
                         <option key={type.value} value={type.value}>
@@ -903,7 +912,7 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                     Confidence Level
                   </label>
                   <div className="flex items-center gap-4">
@@ -915,21 +924,24 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
                       onChange={(e) =>
                         setNewEvent({ ...newEvent, confidence: parseInt(e.target.value) })
                       }
-                      className="flex-1"
+                      className="flex-1 accent-[var(--accent)]"
                     />
-                    <span className="text-white font-medium w-12 text-right">
+                    <span className="text-[var(--text-primary)] font-medium w-12 text-right">
                       {newEvent.confidence || 80}%
                     </span>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                     Linked Evidence
                   </label>
                   <div className="space-y-2 max-h-32 overflow-y-auto">
                     {evidence.map((ev) => (
-                      <label key={ev.id} className="flex items-center gap-2 cursor-pointer">
+                      <label
+                        key={ev.id}
+                        className="flex items-center gap-2 cursor-pointer bg-[var(--glass-bg)] border border-[var(--glass-border)] px-3 py-2 rounded-[var(--radius-sm)] hover:border-[var(--accent)]/50 transition-colors"
+                      >
                         <input
                           type="checkbox"
                           checked={newEvent.documents?.includes(ev.id) || false}
@@ -944,21 +956,26 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
                               });
                             }
                           }}
-                          className="rounded"
+                          className="rounded accent-[var(--accent)]"
                         />
-                        <span className="text-sm text-gray-300 truncate">{ev.title}</span>
+                        <span className="text-sm text-[var(--text-secondary)] truncate flex-1">
+                          {ev.title}
+                        </span>
                       </label>
                     ))}
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                     Linked Hypotheses
                   </label>
                   <div className="space-y-2 max-h-32 overflow-y-auto">
                     {hypotheses.map((hyp) => (
-                      <label key={hyp.id} className="flex items-center gap-2 cursor-pointer">
+                      <label
+                        key={hyp.id}
+                        className="flex items-center gap-2 cursor-pointer bg-[var(--glass-bg)] border border-[var(--glass-border)] px-3 py-2 rounded-[var(--radius-sm)] hover:border-[var(--accent)]/50 transition-colors"
+                      >
                         <input
                           type="checkbox"
                           checked={newEvent.hypothesisIds?.includes(hyp.id) || false}
@@ -976,16 +993,18 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
                               });
                             }
                           }}
-                          className="rounded"
+                          className="rounded accent-[var(--accent)]"
                         />
-                        <span className="text-sm text-gray-300 truncate">{hyp.title}</span>
+                        <span className="text-sm text-[var(--text-secondary)] truncate flex-1">
+                          {hyp.title}
+                        </span>
                       </label>
                     ))}
                   </div>
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 mt-6">
+              <div className="flex justify-end gap-3 mt-8">
                 <button
                   onClick={() => {
                     setIsAddingEvent(false);
@@ -1000,13 +1019,13 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
                       hypothesisIds: [],
                     });
                   }}
-                  className="px-4 py-2 text-gray-300 hover:text-white transition-colors"
+                  className="px-4 py-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors hover:bg-[var(--glass-bg)] rounded-[var(--radius-md)] border border-transparent hover:border-[var(--glass-border)]"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={editingEvent ? handleUpdateEvent : handleAddEvent}
-                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+                  className="px-4 py-2 bg-red-600/90 hover:bg-red-600 text-[var(--text-primary)] rounded-[var(--radius-md)] transition-colors shadow-sm"
                 >
                   {editingEvent ? 'Update Event' : 'Add Event'}
                 </button>

@@ -111,11 +111,13 @@ export function PDFViewer({ filePath, title }: PDFViewerProps) {
             />
           </svg>
         </div>
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">Unable to Load PDF</h3>
-        <p className="text-gray-600 mb-4">{error}</p>
+        <h3 className="text-xl font-semibold text-[var(--text-primary)] mb-2">
+          Unable to Load PDF
+        </h3>
+        <p className="text-[var(--text-primary)] mb-4">{error}</p>
         <button
           onClick={loadPDF}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="px-4 py-2 bg-[var(--accent)] text-[var(--text-primary)] rounded-[var(--radius-lg)] hover:bg-blue-700 transition-colors"
         >
           Retry
         </button>
@@ -126,49 +128,51 @@ export function PDFViewer({ filePath, title }: PDFViewerProps) {
   return (
     <div className="flex flex-col h-full">
       {/* Toolbar */}
-      <div className="flex items-center justify-between p-4 bg-gray-50 border-b border-gray-200">
+      <div className="flex items-center justify-between p-4 bg-[var(--app-bg)] border-b border-[var(--glass-border)]">
         <div className="flex items-center space-x-2">
-          <h2 className="text-lg font-semibold text-gray-900 truncate max-w-md">{title}</h2>
+          <h2 className="text-lg font-semibold text-[var(--text-primary)] truncate max-w-md">
+            {title}
+          </h2>
         </div>
 
         <div className="flex items-center space-x-2">
           <button
             onClick={downloadPDF}
-            className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-200 rounded-lg transition-colors"
+            className="p-2 text-[var(--text-primary)] hover:text-[var(--text-primary)] hover:bg-[var(--app-bg)] rounded-[var(--radius-lg)] transition-colors"
             title="Download PDF"
           >
             <Download className="h-5 w-5" />
           </button>
 
-          <div className="h-6 w-px bg-gray-300"></div>
+          <div className="h-6 w-px bg-[var(--app-bg)]"></div>
 
           <button
             onClick={zoomOut}
-            className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-200 rounded-lg transition-colors"
+            className="p-2 text-[var(--text-primary)] hover:text-[var(--text-primary)] hover:bg-[var(--app-bg)] rounded-[var(--radius-lg)] transition-colors"
             disabled={scale <= 0.5}
             title="Zoom Out"
           >
             <ZoomOut className="h-5 w-5" />
           </button>
 
-          <span className="text-sm text-gray-600 min-w-[40px] text-center">
+          <span className="text-sm text-[var(--text-primary)] min-w-[40px] text-center">
             {Math.round(scale * 100)}%
           </span>
 
           <button
             onClick={zoomIn}
-            className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-200 rounded-lg transition-colors"
+            className="p-2 text-[var(--text-primary)] hover:text-[var(--text-primary)] hover:bg-[var(--app-bg)] rounded-[var(--radius-lg)] transition-colors"
             disabled={scale >= 3}
             title="Zoom In"
           >
             <ZoomIn className="h-5 w-5" />
           </button>
 
-          <div className="h-6 w-px bg-gray-300"></div>
+          <div className="h-6 w-px bg-[var(--app-bg)]"></div>
 
           <button
             onClick={rotate}
-            className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-200 rounded-lg transition-colors"
+            className="p-2 text-[var(--text-primary)] hover:text-[var(--text-primary)] hover:bg-[var(--app-bg)] rounded-[var(--radius-lg)] transition-colors"
             title="Rotate"
           >
             <RotateCw className="h-5 w-5" />
@@ -179,24 +183,24 @@ export function PDFViewer({ filePath, title }: PDFViewerProps) {
       {/* Navigation and PDF Display */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Page navigation */}
-        <div className="flex items-center justify-between p-2 bg-gray-100 border-b border-gray-200">
+        <div className="flex items-center justify-between p-2 bg-[var(--app-bg)] border-b border-[var(--glass-border)]">
           <button
             onClick={goToPrevPage}
             disabled={pageNumber <= 1}
-            className="p-2 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-2 text-[var(--text-primary)] hover:text-[var(--text-primary)] disabled:opacity-50 disabled:cursor-not-allowed"
             title="Previous Page"
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
 
-          <span className="text-sm text-gray-600">
+          <span className="text-sm text-[var(--text-primary)]">
             Page {pageNumber} of {numPages || '--'}
           </span>
 
           <button
             onClick={goToNextPage}
             disabled={!numPages || pageNumber >= numPages}
-            className="p-2 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-2 text-[var(--text-primary)] hover:text-[var(--text-primary)] disabled:opacity-50 disabled:cursor-not-allowed"
             title="Next Page"
           >
             <ChevronRight className="h-5 w-5" />
@@ -204,11 +208,11 @@ export function PDFViewer({ filePath, title }: PDFViewerProps) {
         </div>
 
         {/* PDF Content */}
-        <div className="flex-1 overflow-auto bg-gray-200 flex items-center justify-center p-4">
+        <div className="flex-1 overflow-auto bg-[var(--app-bg)] flex items-center justify-center p-4">
           {loading ? (
             <div className="flex flex-col items-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
-              <p className="text-gray-600">Loading PDF...</p>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent)] mb-4"></div>
+              <p className="text-[var(--text-primary)]">Loading PDF...</p>
             </div>
           ) : (
             <div className="flex justify-center">
@@ -218,8 +222,8 @@ export function PDFViewer({ filePath, title }: PDFViewerProps) {
                 onLoadError={onDocumentLoadError}
                 loading={
                   <div className="flex flex-col items-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
-                    <p className="text-gray-600">Loading PDF...</p>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent)] mb-4"></div>
+                    <p className="text-[var(--text-primary)]">Loading PDF...</p>
                   </div>
                 }
                 error={
@@ -232,7 +236,7 @@ export function PDFViewer({ filePath, title }: PDFViewerProps) {
                   rotate={rotation}
                   renderTextLayer={true}
                   renderAnnotationLayer={true}
-                  className="shadow-lg"
+                  className="shadow-[var(--glass-shadow)]"
                 />
               </Document>
             </div>

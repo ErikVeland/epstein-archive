@@ -270,20 +270,20 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
   return (
     <div className="prose prose-invert max-w-none">
       <div className="mb-1 flex items-center justify-between">
-        <div className="text-sm text-gray-400 flex items-center gap-2">
+        <div className="text-sm text-[var(--text-muted)] flex items-center gap-2">
           <span className="inline-flex items-center gap-1.5">
             {doc.evidenceType === 'email' ? (
-              <Mail className="w-4 h-4 text-cyan-400" />
+              <Mail className="w-4 h-4 text-[var(--accent)]" />
             ) : doc.evidenceType === 'legal' ? (
-              <Scale className="w-4 h-4 text-cyan-400" />
+              <Scale className="w-4 h-4 text-[var(--accent)]" />
             ) : doc.evidenceType === 'deposition' ? (
-              <ScrollText className="w-4 h-4 text-cyan-400" />
+              <ScrollText className="w-4 h-4 text-[var(--accent)]" />
             ) : doc.evidenceType === 'financial' ? (
-              <Landmark className="w-4 h-4 text-cyan-400" />
+              <Landmark className="w-4 h-4 text-[var(--accent)]" />
             ) : doc.fileType?.match(/jpe?g|png|gif|bmp|webp/i) ? (
-              <FileImage className="w-4 h-4 text-cyan-400" />
+              <FileImage className="w-4 h-4 text-[var(--accent)]" />
             ) : doc.fileType?.match(/csv|xls/i) ? (
-              <FileSpreadsheet className="w-4 h-4 text-cyan-400" />
+              <FileSpreadsheet className="w-4 h-4 text-[var(--accent)]" />
             ) : null}
             {doc.evidenceType === 'email'
               ? 'Email Message'
@@ -317,7 +317,7 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
                 <label className="inline-flex items-center gap-1 text-emerald-200/80 cursor-pointer select-none">
                   <input
                     type="checkbox"
-                    className="h-3 w-3 rounded border-emerald-500/60 bg-slate-900/60 text-emerald-400 focus:ring-emerald-500/60"
+                    className="h-3 w-3 rounded border-emerald-500/60 bg-[var(--glass-bg-strong)]/60 text-emerald-400 focus:ring-emerald-500/60"
                     checked={showUnredactedHighlights}
                     onChange={(e) => setShowUnredactedHighlights(e.target.checked)}
                   />
@@ -329,8 +329,8 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
               onClick={() => setShowAnnotations(!showAnnotations)}
               className={`px-3 py-1 text-xs rounded transition-colors ${
                 showAnnotations
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  ? 'bg-[var(--accent)] text-[var(--text-primary)]'
+                  : 'bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)]'
               }`}
             >
               {showAnnotations ? 'Hide Annotations' : 'Show Annotations'}
@@ -413,43 +413,55 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
             return (
               <>
                 {/* Email client header */}
-                <div className="bg-slate-800 rounded-lg border border-slate-600 mb-4 overflow-hidden">
+                <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] border border-[var(--glass-border)] mb-4 overflow-hidden">
                   {/* Email toolbar */}
-                  <div className="flex items-center gap-2 px-4 py-2 bg-slate-700 border-b border-slate-600">
-                    <Mail className="w-4 h-4 text-cyan-400" />
-                    <span className="text-sm text-slate-300 font-medium">Email Message</span>
+                  <div className="flex items-center gap-2 px-4 py-2 bg-[var(--glass-bg-highlight)] border-b border-[var(--glass-border)]">
+                    <Mail className="w-4 h-4 text-[var(--accent)]" />
+                    <span className="text-sm text-[var(--text-secondary)] font-medium">
+                      Email Message
+                    </span>
                   </div>
 
                   {/* Headers */}
                   <div className="p-4 space-y-2">
                     {emailHeaders.subject && (
-                      <div className="text-lg font-semibold text-white mb-3">
+                      <div className="text-lg font-semibold text-[var(--text-primary)] mb-3">
                         {emailHeaders.subject}
                       </div>
                     )}
 
                     {emailHeaders.from && (
                       <div className="flex items-start gap-2">
-                        <span className="text-slate-500 text-sm w-14 shrink-0">From:</span>
-                        <span className="text-white text-sm">{emailHeaders.from}</span>
+                        <span className="text-[var(--text-muted)] text-sm w-14 shrink-0">
+                          From:
+                        </span>
+                        <span className="text-[var(--text-primary)] text-sm">
+                          {emailHeaders.from}
+                        </span>
                       </div>
                     )}
                     {emailHeaders.to && (
                       <div className="flex items-start gap-2">
-                        <span className="text-slate-500 text-sm w-14 shrink-0">To:</span>
-                        <span className="text-slate-300 text-sm">{emailHeaders.to}</span>
+                        <span className="text-[var(--text-muted)] text-sm w-14 shrink-0">To:</span>
+                        <span className="text-[var(--text-secondary)] text-sm">
+                          {emailHeaders.to}
+                        </span>
                       </div>
                     )}
                     {emailHeaders.cc && (
                       <div className="flex items-start gap-2">
-                        <span className="text-slate-500 text-sm w-14 shrink-0">Cc:</span>
-                        <span className="text-slate-400 text-sm">{emailHeaders.cc}</span>
+                        <span className="text-[var(--text-muted)] text-sm w-14 shrink-0">Cc:</span>
+                        <span className="text-[var(--text-muted)] text-sm">{emailHeaders.cc}</span>
                       </div>
                     )}
                     {emailHeaders.sentDate && (
                       <div className="flex items-start gap-2">
-                        <span className="text-slate-500 text-sm w-14 shrink-0">Date:</span>
-                        <span className="text-slate-400 text-sm">{emailHeaders.sentDate}</span>
+                        <span className="text-[var(--text-muted)] text-sm w-14 shrink-0">
+                          Date:
+                        </span>
+                        <span className="text-[var(--text-muted)] text-sm">
+                          {emailHeaders.sentDate}
+                        </span>
                       </div>
                     )}
                   </div>
@@ -457,8 +469,8 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
 
                 {/* Email Body - show separated from headers */}
                 {emailBody && emailBody !== doc.content && (
-                  <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
-                    <pre className="whitespace-pre-wrap text-sm text-slate-300 font-sans leading-relaxed break-words">
+                  <div className="bg-[var(--glass-bg)]/50 rounded-[var(--radius-lg)] p-4 border border-[var(--glass-border)]">
+                    <pre className="whitespace-pre-wrap text-sm text-[var(--text-secondary)] font-sans leading-relaxed break-words">
                       {showRaw ? emailBody : prettifyOCRText(emailBody)}
                     </pre>
                   </div>
@@ -497,7 +509,7 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
             return (
               <>
                 {/* Legal Document Header */}
-                <div className="bg-slate-800 rounded-lg border border-amber-700/50 mb-4 overflow-hidden">
+                <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] border border-amber-700/50 mb-4 overflow-hidden">
                   {/* Court banner */}
                   <div className="bg-gradient-to-r from-amber-900/50 to-slate-800 px-4 py-3 border-b border-amber-700/30">
                     <div className="flex items-start gap-3">
@@ -517,25 +529,29 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
 
                   {/* Parties */}
                   {(plaintiffMatch || defendantMatch) && (
-                    <div className="p-4 border-t border-slate-700">
+                    <div className="p-4 border-t border-[var(--glass-border)]">
                       <div className="flex flex-col md:flex-row gap-4 items-stretch">
                         {plaintiffMatch && (
-                          <div className="flex-1 bg-slate-900/50 p-4 rounded border border-slate-700">
+                          <div className="flex-1 bg-[var(--glass-bg-strong)]/50 p-4 rounded border border-[var(--glass-border)]">
                             <div className="text-xs text-amber-400 uppercase mb-2 font-semibold">
                               Plaintiff
                             </div>
-                            <div className="text-white font-medium">{plaintiffMatch[1].trim()}</div>
+                            <div className="text-[var(--text-primary)] font-medium">
+                              {plaintiffMatch[1].trim()}
+                            </div>
                           </div>
                         )}
                         <div className="flex items-center justify-center px-4">
-                          <span className="text-slate-500 text-xl font-light">vs.</span>
+                          <span className="text-[var(--text-muted)] text-xl font-light">vs.</span>
                         </div>
                         {defendantMatch && (
-                          <div className="flex-1 bg-slate-900/50 p-4 rounded border border-slate-700">
+                          <div className="flex-1 bg-[var(--glass-bg-strong)]/50 p-4 rounded border border-[var(--glass-border)]">
                             <div className="text-xs text-amber-400 uppercase mb-2 font-semibold">
                               Defendant
                             </div>
-                            <div className="text-white font-medium">{defendantMatch[1].trim()}</div>
+                            <div className="text-[var(--text-primary)] font-medium">
+                              {defendantMatch[1].trim()}
+                            </div>
                           </div>
                         )}
                       </div>
@@ -550,7 +566,7 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
                       </span>
                     )}
                     {filingDateMatch && (
-                      <span className="px-2 py-1 bg-slate-700 text-slate-300 text-xs rounded">
+                      <span className="px-2 py-1 bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] text-xs rounded">
                         Filed: {filingDateMatch[1]}
                       </span>
                     )}
@@ -558,8 +574,8 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
                 </div>
 
                 {/* Document Body */}
-                <div className="bg-slate-800/30 rounded-lg p-4 border border-slate-700">
-                  <pre className="whitespace-pre-wrap text-sm text-slate-300 font-serif leading-relaxed break-words">
+                <div className="bg-[var(--glass-bg)]/30 rounded-[var(--radius-lg)] p-4 border border-[var(--glass-border)]">
+                  <pre className="whitespace-pre-wrap text-sm text-[var(--text-secondary)] font-serif leading-relaxed break-words">
                     {showRaw ? content : prettifyOCRText(content)}
                   </pre>
                 </div>
@@ -609,7 +625,7 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
           return (
             <>
               {/* Deposition Header */}
-              <div className="bg-slate-800 rounded-lg border border-purple-700/50 mb-4 overflow-hidden">
+              <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] border border-purple-700/50 mb-4 overflow-hidden">
                 <div className="bg-gradient-to-r from-purple-900/50 to-slate-800 px-4 py-3 border-b border-purple-700/30">
                   <div className="flex items-center gap-2">
                     <ScrollText className="w-6 h-6 text-purple-300" />
@@ -629,7 +645,7 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
                 </div>
 
                 {dateMatch && (
-                  <div className="px-4 py-2 text-xs text-slate-400 inline-flex items-center gap-1">
+                  <div className="px-4 py-2 text-xs text-[var(--text-muted)] inline-flex items-center gap-1">
                     <Calendar className="w-3.5 h-3.5" />
                     {dateMatch[1]}
                   </div>
@@ -642,32 +658,32 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
                   {qaContent.map((block, idx) => (
                     <div
                       key={idx}
-                      className={`rounded-lg p-3 ${
+                      className={`rounded-[var(--radius-lg)] p-3 ${
                         block.type === 'q'
-                          ? 'bg-blue-900/20 border-l-4 border-blue-500'
+                          ? 'bg-blue-900/20 border-l-4 border-[var(--accent)]'
                           : block.type === 'a'
                             ? 'bg-green-900/20 border-l-4 border-green-500 ml-4'
-                            : 'bg-slate-800/50'
+                            : 'bg-[var(--glass-bg)]/50'
                       }`}
                     >
                       {block.type !== 'text' && (
                         <div
                           className={`text-xs font-semibold mb-1 ${
-                            block.type === 'q' ? 'text-blue-400' : 'text-green-400'
+                            block.type === 'q' ? 'text-[var(--accent)]' : 'text-green-400'
                           }`}
                         >
                           {block.type === 'q' ? 'QUESTION' : 'ANSWER'}
                         </div>
                       )}
-                      <div className="text-sm text-slate-300 whitespace-pre-wrap break-words">
+                      <div className="text-sm text-[var(--text-secondary)] whitespace-pre-wrap break-words">
                         {block.content.trim()}
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="bg-slate-800/30 rounded-lg p-4 border border-slate-700">
-                  <pre className="whitespace-pre-wrap text-sm text-slate-300 font-mono leading-relaxed break-words">
+                <div className="bg-[var(--glass-bg)]/30 rounded-[var(--radius-lg)] p-4 border border-[var(--glass-border)]">
+                  <pre className="whitespace-pre-wrap text-sm text-[var(--text-secondary)] font-mono leading-relaxed break-words">
                     {showRaw ? content : prettifyOCRText(content)}
                   </pre>
                 </div>
@@ -704,36 +720,40 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
           return (
             <>
               {/* Article Header */}
-              <div className="bg-slate-800 rounded-lg border border-cyan-700/50 mb-4 overflow-hidden">
+              <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] border border-cyan-700/50 mb-4 overflow-hidden">
                 {/* Source bar */}
                 <div className="bg-gradient-to-r from-cyan-900/50 to-slate-800 px-4 py-2 border-b border-cyan-700/30 flex items-center gap-3">
-                  <Newspaper className="w-5 h-5 text-cyan-300" />
+                  <Newspaper className="w-5 h-5 text-[var(--accent)]" />
                   {sourceMatch && (
-                    <span className="text-cyan-300 font-medium text-sm">{sourceMatch[1]}</span>
+                    <span className="text-[var(--accent)] font-medium text-sm">
+                      {sourceMatch[1]}
+                    </span>
                   )}
-                  {dateMatch && <span className="text-slate-400 text-xs">• {dateMatch[0]}</span>}
+                  {dateMatch && (
+                    <span className="text-[var(--text-muted)] text-xs">• {dateMatch[0]}</span>
+                  )}
                 </div>
 
                 {/* Headline */}
                 {headline && (
                   <div className="p-4">
-                    <h2 className="text-xl md:text-2xl font-bold text-white leading-tight mb-2">
+                    <h2 className="text-xl md:text-2xl font-bold text-[var(--text-primary)] leading-tight mb-2">
                       {headline}
                     </h2>
                     {bylineMatch && (
-                      <div className="text-cyan-400 text-sm">By {bylineMatch[1].trim()}</div>
+                      <div className="text-[var(--accent)] text-sm">By {bylineMatch[1].trim()}</div>
                     )}
                   </div>
                 )}
               </div>
 
               {/* Article Body */}
-              <div className="bg-slate-800/30 rounded-lg p-6 border border-slate-700">
+              <div className="bg-[var(--glass-bg)]/30 rounded-[var(--radius-lg)] p-6 border border-[var(--glass-border)]">
                 <div className="prose prose-invert prose-lg max-w-none break-words">
                   {body.split('\n\n').map((para: string, idx: number) => (
                     <p
                       key={idx}
-                      className="text-slate-300 leading-relaxed mb-4 first-letter:text-2xl first-letter:font-bold first-letter:text-cyan-400"
+                      className="text-[var(--text-secondary)] leading-relaxed mb-4 first-letter:text-2xl first-letter:font-bold first-letter:text-[var(--accent)]"
                     >
                       {para.trim()}
                     </p>
@@ -750,7 +770,7 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
           <img
             src={`/api/documents/${doc.id}/file`}
             alt={doc.title}
-            className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-lg"
+            className="max-w-full max-h-[70vh] object-contain rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)]"
             onError={(e) => {
               // Fallback to showing OCR text if image fails to load
               (e.target as HTMLImageElement).style.display = 'none';
@@ -758,7 +778,7 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
               if (parent) {
                 const pre = document.createElement('pre');
                 pre.className =
-                  'whitespace-pre-wrap text-sm text-gray-300 font-mono leading-relaxed break-words';
+                  'whitespace-pre-wrap text-sm text-[var(--text-secondary)] font-mono leading-relaxed break-words';
                 pre.textContent = doc.content || 'No content available';
                 parent.appendChild(pre);
               }
@@ -766,11 +786,11 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
           />
           {doc.content && doc.content.trim() && (
             <div className="mt-4 w-full">
-              <details className="bg-gray-800 rounded-lg p-4 border border-gray-700">
-                <summary className="cursor-pointer text-sm text-gray-400 hover:text-white">
+              <details className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] p-4 border border-[var(--glass-border)]">
+                <summary className="cursor-pointer text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)]">
                   OCR Extracted Text ({doc.content.split(/\s+/).length} words)
                 </summary>
-                <pre className="mt-4 whitespace-pre-wrap text-xs text-gray-400 font-mono leading-relaxed max-h-48 overflow-y-auto break-words">
+                <pre className="mt-4 whitespace-pre-wrap text-xs text-[var(--text-muted)] font-mono leading-relaxed max-h-48 overflow-y-auto break-words">
                   {showRaw ? doc.content : prettifyOCRText(doc.content)}
                 </pre>
               </details>
@@ -780,15 +800,16 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
       ) : doc.fileType?.match(/csv|xls/i) || doc.evidenceType === 'financial' ? (
         /* CSV/Financial Table Viewer */
         <div className="overflow-x-auto">
-          <div className="bg-gray-800 rounded-lg p-4 border border-gray-700 mb-4">
-            <div className="flex items-center gap-2 text-sm text-gray-400">
+          <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] p-4 border border-[var(--glass-border)] mb-4">
+            <div className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
               <Landmark className="w-4 h-4" />
               <span>Financial Data / Spreadsheet</span>
             </div>
           </div>
           {(() => {
             const lines = (doc.content || '').split('\n').filter((l: string) => l.trim());
-            if (lines.length === 0) return <p className="text-gray-400">No data available</p>;
+            if (lines.length === 0)
+              return <p className="text-[var(--text-muted)]">No data available</p>;
 
             // Try to parse as CSV
             const rows = lines.map((line: string) => line.split(/[,\t]/));
@@ -797,10 +818,13 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
             return (
               <table className="w-full text-sm text-left border-collapse">
                 {hasHeader && (
-                  <thead className="bg-gray-800 text-gray-300 uppercase text-xs">
+                  <thead className="bg-[var(--glass-bg)] text-[var(--text-secondary)] uppercase text-xs">
                     <tr>
                       {rows[0].map((cell: string, i: number) => (
-                        <th key={i} className="px-4 py-3 border border-gray-700 whitespace-nowrap">
+                        <th
+                          key={i}
+                          className="px-4 py-3 border border-[var(--glass-border)] whitespace-nowrap"
+                        >
                           {cell.trim()}
                         </th>
                       ))}
@@ -809,11 +833,16 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
                 )}
                 <tbody>
                   {rows.slice(hasHeader ? 1 : 0).map((row: string[], rowIdx: number) => (
-                    <tr key={rowIdx} className={rowIdx % 2 === 0 ? 'bg-gray-900' : 'bg-gray-800'}>
+                    <tr
+                      key={rowIdx}
+                      className={
+                        rowIdx % 2 === 0 ? 'bg-[var(--glass-bg-strong)]' : 'bg-[var(--glass-bg)]'
+                      }
+                    >
                       {row.map((cell, cellIdx) => (
                         <td
                           key={cellIdx}
-                          className="px-4 py-2 border border-gray-700 text-gray-300 whitespace-nowrap"
+                          className="px-4 py-2 border border-[var(--glass-border)] text-[var(--text-secondary)] whitespace-nowrap"
                         >
                           {cell.trim()}
                         </td>
@@ -836,15 +865,15 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
         <div className={`grid gap-6 ${doc.originalFileUrl ? 'lg:grid-cols-2' : 'grid-cols-1'}`}>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-medium text-gray-400">Extracted Text</h3>
+              <h3 className="text-sm font-medium text-[var(--text-muted)]">Extracted Text</h3>
               {doc.page_number && (
-                <span className="text-xs bg-gray-700 px-2 py-0.5 rounded text-gray-300">
+                <span className="text-xs bg-[var(--glass-bg-highlight)] px-2 py-0.5 rounded text-[var(--text-secondary)]">
                   Page {doc.page_number}
                 </span>
               )}
             </div>
             <pre
-              className="whitespace-pre-wrap text-sm text-gray-300 font-mono leading-relaxed break-words bg-gray-900/50 p-4 rounded-lg border border-gray-700/50 min-h-[600px] overflow-y-auto max-h-[80vh]"
+              className="whitespace-pre-wrap text-sm text-[var(--text-secondary)] font-mono leading-relaxed break-words bg-[var(--glass-bg-strong)]/50 p-4 rounded-[var(--radius-lg)] border border-[var(--glass-border)] min-h-[600px] overflow-y-auto max-h-[80vh]"
               dangerouslySetInnerHTML={{
                 __html: processedContent,
               }}
@@ -854,17 +883,17 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
           {doc.originalFileUrl && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium text-gray-400">Original Document</h3>
+                <h3 className="text-sm font-medium text-[var(--text-muted)]">Original Document</h3>
                 <a
                   href={doc.originalFileUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                  className="text-xs text-[var(--accent)] hover:text-[var(--accent)] flex items-center gap-1"
                 >
                   Open in New Tab ↗
                 </a>
               </div>
-              <div className="bg-white rounded-lg border border-gray-700 overflow-hidden h-full min-h-[600px] max-h-[80vh]">
+              <div className="bg-white rounded-[var(--radius-lg)] border border-[var(--glass-border)] overflow-hidden h-full min-h-[600px] max-h-[80vh]">
                 <iframe
                   src={`${doc.originalFileUrl}${doc.page_number ? `#page=${doc.page_number}` : ''}`}
                   className="w-full h-full border-none"
@@ -878,15 +907,19 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
 
       {/* Related Entities Section (Surfaced Feature) */}
       {entities.length > 0 && (
-        <div className="mt-8 pt-6 border-t border-slate-700">
-          <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-widest mb-4">
+        <div className="mt-8 pt-6 border-t border-[var(--glass-border)]">
+          <h3 className="text-sm font-semibold text-[var(--text-muted)] uppercase tracking-widest mb-4">
             Mentions & Related Entities
           </h3>
           <div className="flex flex-wrap gap-2">
             {(() => {
               // Optimization: Only regex match if we have entities
               if (!entities.length || entityRegexes.length === 0)
-                return <span className="text-gray-500 text-xs">No entities detected yet.</span>;
+                return (
+                  <span className="text-[var(--text-muted)] text-xs">
+                    No entities detected yet.
+                  </span>
+                );
 
               // Find unique entities present in content
               // We use the same regex used for highlighting/linking
@@ -912,13 +945,15 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
 
               if (found.length === 0)
                 return (
-                  <span className="text-gray-500 text-xs">No entities detected in this text.</span>
+                  <span className="text-[var(--text-muted)] text-xs">
+                    No entities detected in this text.
+                  </span>
                 );
 
               return found.map((e) => (
                 <span
                   key={e.id}
-                  className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-900/30 text-blue-200 border border-blue-500/30 cursor-pointer hover:bg-blue-800 transition-colors"
+                  className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-900/30 text-blue-200 border border-[var(--accent)]/30 cursor-pointer hover:bg-blue-800 transition-colors"
                   onClick={(evt) => {
                     evt.preventDefault();
                     const entityName = getEntityName(e);

@@ -54,42 +54,42 @@ export const ReleaseNotesPanel: React.FC<ReleaseNotesPanelProps> = ({
       onClick={onClose}
     >
       <div
-        className="surface-glass rounded-none md:rounded-[var(--radius-lg)] w-full max-w-md h-full md:h-auto md:max-h-[90vh] md:border border-l border-slate-700 flex flex-col overflow-hidden"
+        className="surface-glass rounded-none md:rounded-[var(--radius-lg)] w-full max-w-md h-full md:h-auto md:max-h-[90vh] md:border border-l border-[var(--glass-border)] flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-slate-700 bg-slate-900/80 sticky top-0 z-10">
+        <div className="flex items-center justify-between p-4 border-b border-[var(--glass-border)] bg-[var(--glass-bg-strong)]/80 sticky top-0 z-10">
           <h2
             id="release-notes-title"
-            className="text-xl font-bold text-white flex items-center gap-2"
+            className="text-xl font-bold text-[var(--text-primary)] flex items-center gap-2"
           >
-            <BookOpen className="h-5 w-5 text-cyan-400" />
+            <BookOpen className="h-5 w-5 text-[var(--accent)]" />
             What's New
           </h2>
           <CloseButton
             onClick={onClose}
             size="md"
             label="Close release notes"
-            className="text-white"
+            className="text-[var(--text-primary)]"
           />
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4 bg-slate-900">
+        <div className="flex-1 overflow-y-auto p-4 bg-[var(--glass-bg-strong)]">
           {isLoading ? (
             <div className="flex items-center justify-center h-full">
-              <div className="text-slate-400 animate-pulse">Loading release notes...</div>
+              <div className="text-[var(--text-muted)] animate-pulse">Loading release notes...</div>
             </div>
           ) : error ? (
             <div className="flex items-center justify-center h-full p-4">
-              <div className="text-red-400 text-center bg-red-900/20 p-4 rounded-lg border border-red-900/50">
+              <div className="text-red-400 text-center bg-red-900/20 p-4 rounded-[var(--radius-lg)] border border-red-900/50">
                 <p className="font-medium mb-2">Could not load release notes</p>
                 <p className="text-sm opacity-80">{error}</p>
               </div>
             </div>
           ) : allReleaseNotes.length === 0 ? (
             <div className="flex items-center justify-center h-full">
-              <div className="text-slate-500 text-center italic">
+              <div className="text-[var(--text-muted)] text-center italic">
                 <p>No release notes available</p>
               </div>
             </div>
@@ -98,11 +98,11 @@ export const ReleaseNotesPanel: React.FC<ReleaseNotesPanelProps> = ({
               {allReleaseNotes.map((release, index) => (
                 <div
                   key={index}
-                  className="relative pl-4 border-l-2 border-slate-800 last:border-l-0"
+                  className="relative pl-4 border-l-2 border-[var(--glass-border)] last:border-l-0"
                 >
                   {/* Timeline Dot */}
                   <div
-                    className={`absolute -left-[10px] top-0 h-5 w-5 flex items-center justify-center ${index === 0 ? 'text-cyan-400' : 'text-slate-500'}`}
+                    className={`absolute -left-[10px] top-0 h-5 w-5 flex items-center justify-center ${index === 0 ? 'text-[var(--accent)]' : 'text-[var(--text-muted)]'}`}
                   >
                     <Circle className="h-3.5 w-3.5 fill-current" />
                   </div>
@@ -110,21 +110,21 @@ export const ReleaseNotesPanel: React.FC<ReleaseNotesPanelProps> = ({
                   <div className="mb-4">
                     <div className="flex items-center gap-2 mb-1">
                       <span
-                        className={`text-sm font-mono font-bold ${index === 0 ? 'text-cyan-400' : 'text-slate-400'}`}
+                        className={`text-sm font-mono font-bold ${index === 0 ? 'text-[var(--accent)]' : 'text-[var(--text-muted)]'}`}
                       >
                         {release.version}
                       </span>
-                      <span className="text-xs text-slate-500 flex items-center gap-1 bg-slate-800/50 px-2 py-0.5 rounded-full border border-slate-700/50">
+                      <span className="text-xs text-[var(--text-muted)] flex items-center gap-1 bg-[var(--glass-bg)]/50 px-2 py-0.5 rounded-full border border-[var(--glass-border)]">
                         <Calendar className="h-3 w-3" />
                         {release.date}
                       </span>
                     </div>
-                    <h3 className="text-lg font-semibold text-white leading-tight">
+                    <h3 className="text-lg font-semibold text-[var(--text-primary)] leading-tight">
                       {release.title}
                     </h3>
                   </div>
 
-                  <div className="space-y-3 bg-slate-800/30 rounded-lg p-4 border border-slate-700/50">
+                  <div className="space-y-3 bg-[var(--glass-bg)]/30 rounded-[var(--radius-lg)] p-4 border border-[var(--glass-border)]">
                     {release.notes.map((note, noteIndex) => {
                       if (isInternalPathLeak(note)) {
                         return null;
@@ -136,7 +136,7 @@ export const ReleaseNotesPanel: React.FC<ReleaseNotesPanelProps> = ({
                         return (
                           <h4
                             key={noteIndex}
-                            className="text-base font-semibold text-cyan-300 mt-4 first:mt-0 mb-2"
+                            className="text-base font-semibold text-[var(--accent)] mt-4 first:mt-0 mb-2"
                           >
                             {headerText}
                           </h4>
@@ -146,10 +146,10 @@ export const ReleaseNotesPanel: React.FC<ReleaseNotesPanelProps> = ({
                       // Regular bullet point
                       return (
                         <div key={noteIndex} className="flex items-start gap-3">
-                          <span className="text-cyan-400/80 mt-1.5 text-[10px]">
+                          <span className="text-[var(--accent)]/80 mt-1.5 text-[10px]">
                             <Circle className="h-2.5 w-2.5 fill-current" />
                           </span>
-                          <div className="text-sm text-slate-300 leading-relaxed break-words [overflow-wrap:anywhere]">
+                          <div className="text-sm text-[var(--text-secondary)] leading-relaxed break-words [overflow-wrap:anywhere]">
                             {note.split(/(\*\*.*?\*\*)/).map((part, i) =>
                               part.startsWith('**') && part.endsWith('**') ? (
                                 <strong key={i} className="font-semibold text-cyan-100">
@@ -171,8 +171,8 @@ export const ReleaseNotesPanel: React.FC<ReleaseNotesPanelProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-slate-800 bg-slate-900/80 text-center sticky bottom-0 z-10">
-          <p className="text-xs text-slate-500">Epstein Archive Investigation Tool</p>
+        <div className="p-4 border-t border-[var(--glass-border)] bg-[var(--glass-bg-strong)]/80 text-center sticky bottom-0 z-10">
+          <p className="text-xs text-[var(--text-muted)]">Epstein Archive Investigation Tool</p>
         </div>
       </div>
     </div>

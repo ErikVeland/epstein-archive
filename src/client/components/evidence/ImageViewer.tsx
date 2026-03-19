@@ -34,19 +34,19 @@ export function ImageViewer({ evidence }: ImageViewerProps) {
         <div className="flex items-center space-x-2">
           <button
             onClick={zoomOut}
-            className="p-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+            className="p-2 text-[var(--text-primary)] bg-white border border-[var(--glass-border)] rounded-[var(--radius-lg)] hover:bg-[var(--app-bg)]"
             title="Zoom out"
           >
             <ZoomOut className="h-5 w-5" />
           </button>
 
-          <span className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-50 border border-gray-300 rounded-lg">
+          <span className="px-4 py-2 text-sm font-medium text-[var(--text-primary)] bg-[var(--app-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)]">
             {zoom}%
           </span>
 
           <button
             onClick={zoomIn}
-            className="p-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+            className="p-2 text-[var(--text-primary)] bg-white border border-[var(--glass-border)] rounded-[var(--radius-lg)] hover:bg-[var(--app-bg)]"
             title="Zoom in"
           >
             <ZoomIn className="h-5 w-5" />
@@ -54,14 +54,14 @@ export function ImageViewer({ evidence }: ImageViewerProps) {
 
           <button
             onClick={() => setFullscreen(!fullscreen)}
-            className="p-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+            className="p-2 text-[var(--text-primary)] bg-white border border-[var(--glass-border)] rounded-[var(--radius-lg)] hover:bg-[var(--app-bg)]"
             title="Fullscreen"
           >
             <Maximize2 className="h-5 w-5" />
           </button>
         </div>
 
-        <button className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+        <button className="flex items-center px-4 py-2 text-sm font-medium text-[var(--text-primary)] bg-white border border-[var(--glass-border)] rounded-[var(--radius-lg)] hover:bg-[var(--app-bg)]">
           <Download className="h-4 w-4 mr-2" />
           Download Image
         </button>
@@ -69,7 +69,7 @@ export function ImageViewer({ evidence }: ImageViewerProps) {
 
       {/* Image Container */}
       <div
-        className={`bg-gray-100 rounded-lg overflow-auto ${fullscreen ? 'fixed inset-0 z-50 p-8' : 'max-h-[600px]'}`}
+        className={`bg-[var(--app-bg)] rounded-[var(--radius-lg)] overflow-auto ${fullscreen ? 'fixed inset-0 z-50 p-8' : 'max-h-[600px]'}`}
       >
         <div className="flex items-center justify-center min-h-full p-4">
           <div style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'center' }}>
@@ -80,7 +80,7 @@ export function ImageViewer({ evidence }: ImageViewerProps) {
                   : `/data/${evidence.sourcePath.replace(/^.*\/data\//, '')}`
               }
               alt={evidence.originalFilename}
-              className="max-w-full h-auto shadow-lg"
+              className="max-w-full h-auto shadow-[var(--glass-shadow)]"
             />
           </div>
         </div>
@@ -89,21 +89,23 @@ export function ImageViewer({ evidence }: ImageViewerProps) {
       {/* Metadata & OCR Text */}
       <div className="mt-6 space-y-4">
         {evidence.metadata && (
-          <div className="p-4 bg-gray-50 rounded-lg">
-            <h4 className="text-sm font-semibold text-gray-900 mb-2">Image Info</h4>
+          <div className="p-4 bg-[var(--app-bg)] rounded-[var(--radius-lg)]">
+            <h4 className="text-sm font-semibold text-[var(--text-primary)] mb-2">Image Info</h4>
             <div className="grid grid-cols-3 gap-4 text-sm">
               {evidence.metadata.width && evidence.metadata.height && (
                 <div>
-                  <div className="text-gray-600">Dimensions</div>
-                  <div className="text-gray-900">
+                  <div className="text-[var(--text-primary)]">Dimensions</div>
+                  <div className="text-[var(--text-primary)]">
                     {evidence.metadata.width} × {evidence.metadata.height}
                   </div>
                 </div>
               )}
               {evidence.metadata.format && (
                 <div>
-                  <div className="text-gray-600">Format</div>
-                  <div className="text-gray-900 uppercase">{evidence.metadata.format}</div>
+                  <div className="text-[var(--text-primary)]">Format</div>
+                  <div className="text-[var(--text-primary)] uppercase">
+                    {evidence.metadata.format}
+                  </div>
                 </div>
               )}
             </div>
@@ -111,9 +113,9 @@ export function ImageViewer({ evidence }: ImageViewerProps) {
         )}
 
         {evidence.extractedText && evidence.extractedText.trim().length > 10 && (
-          <div className="p-4 bg-white border border-gray-200 rounded-lg">
-            <h4 className="text-sm font-semibold text-gray-900 mb-2">OCR Text</h4>
-            <div className="text-sm text-gray-700 whitespace-pre-wrap">
+          <div className="p-4 bg-white border border-[var(--glass-border)] rounded-[var(--radius-lg)]">
+            <h4 className="text-sm font-semibold text-[var(--text-primary)] mb-2">OCR Text</h4>
+            <div className="text-sm text-[var(--text-primary)] whitespace-pre-wrap">
               {evidence.extractedText}
             </div>
           </div>

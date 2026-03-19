@@ -102,7 +102,7 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({
 
     return (
       <div className="flex flex-col items-center justify-center w-full h-full text-center p-8">
-        <div className="text-slate-400 mb-4">
+        <div className="text-[var(--text-muted)] mb-4">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="h-16 w-16 mx-auto mb-4"
@@ -124,7 +124,7 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({
           <a
             href={filePath}
             download={fileName}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--accent)] hover:bg-blue-700 text-[var(--text-primary)] rounded-[var(--radius-lg)] transition-colors"
           >
             <Download className="w-4 h-4" />
             Download File
@@ -140,10 +140,10 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({
     >
       {/* Header */}
       <div
-        className={`flex items-center justify-between p-4 bg-slate-900 border-b border-slate-700 z-20 ${inline ? 'py-2 px-4' : ''}`}
+        className={`flex items-center justify-between p-4 app-header-glass z-20 ${inline ? 'py-2 px-4' : ''}`}
       >
         <div className="flex items-center gap-3">
-          <div className="bg-slate-800 p-2 rounded-lg">
+          <div className="bg-[var(--glass-bg)] p-2 rounded-[var(--radius-md)]">
             {isPdf ? (
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -162,7 +162,7 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({
             ) : isImage ? (
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-blue-500"
+                className="h-6 w-6 text-[var(--accent)]"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -177,7 +177,7 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({
             ) : (
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-gray-500"
+                className="h-6 w-6 text-[var(--text-muted)]"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -192,8 +192,12 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({
             )}
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-white truncate max-w-md">{fileName}</h2>
-            <p className="text-sm text-slate-400 capitalize">{fileType || 'document'}</p>
+            <h2 className="text-lg font-semibold text-[var(--text-primary)] truncate max-w-md">
+              {fileName}
+            </h2>
+            <p className="text-sm text-[var(--text-secondary)] capitalize">
+              {fileType || 'document'}
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -201,16 +205,18 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({
             <>
               <button
                 onClick={handleZoomOut}
-                className="p-2 text-slate-300 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
+                className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)] rounded-[var(--radius-md)] transition-colors"
                 disabled={zoom <= 0.5}
                 title="Zoom Out"
               >
                 <ZoomOut className="w-5 h-5" />
               </button>
-              <span className="text-slate-400 text-sm mx-1">{Math.round(zoom * 100)}%</span>
+              <span className="text-[var(--text-muted)] text-sm mx-1">
+                {Math.round(zoom * 100)}%
+              </span>
               <button
                 onClick={handleZoomIn}
-                className="p-2 text-slate-300 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
+                className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)] rounded-[var(--radius-md)] transition-colors"
                 disabled={zoom >= 3}
                 title="Zoom In"
               >
@@ -218,7 +224,7 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({
               </button>
               <button
                 onClick={handleRotate}
-                className="p-2 text-slate-300 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
+                className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)] rounded-[var(--radius-md)] transition-colors"
                 title="Rotate"
               >
                 <RotateCw className="w-5 h-5" />
@@ -229,7 +235,7 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({
             <>
               <button
                 onClick={handleDownload}
-                className="p-2 text-slate-300 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
+                className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)] rounded-[var(--radius-md)] transition-colors"
                 title="Download"
               >
                 <Download className="w-5 h-5" />
@@ -238,20 +244,20 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({
                 onClick={onClose}
                 size="sm"
                 label="Close media viewer"
-                className="bg-transparent hover:bg-slate-700 border-slate-700"
+                className="bg-transparent hover:bg-[var(--glass-bg-highlight)] border-[var(--glass-border)]"
               />
             </>
           )}
         </div>
       </div>
 
-      <div className="flex-1 relative overflow-hidden bg-slate-900/50">
+      <div className="flex-1 relative overflow-hidden bg-[var(--app-bg)]">
         {/* Loading Spinner Overlay */}
         {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-slate-900 z-10">
+          <div className="absolute inset-0 flex items-center justify-center bg-[var(--app-bg)] z-10">
             <div className="text-center">
-              <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4"></div>
-              <p className="text-slate-400">Loading media...</p>
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--accent)] mb-4"></div>
+              <p className="text-[var(--text-muted)]">Loading media...</p>
             </div>
           </div>
         )}
@@ -279,7 +285,7 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({
               {!inline && (
                 <button
                   onClick={onClose}
-                  className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
+                  className="px-4 py-2 bg-[var(--glass-bg-highlight)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] rounded-[var(--radius-lg)] transition-colors"
                 >
                   Close Viewer
                 </button>
@@ -298,7 +304,7 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({
 
       {/* Footer - only show if NOT inline */}
       {!inline && (
-        <div className="p-3 bg-slate-900 border-t border-slate-700 text-center text-sm text-slate-400">
+        <div className="p-3 bg-[var(--glass-bg-strong)] border-t border-[var(--glass-border)] text-center text-sm text-[var(--text-muted)]">
           {isPdf ? 'PDF Document Viewer' : isImage ? 'Image Viewer' : 'File Viewer'} • {fileName}
         </div>
       )}

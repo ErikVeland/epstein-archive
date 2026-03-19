@@ -30,7 +30,7 @@ export const EntityMediaGallery: React.FC<EntityMediaGalleryProps> = ({
         {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
           <div
             key={i}
-            className="aspect-square bg-slate-800/50 rounded-lg border border-slate-700/50"
+            className="aspect-square bg-[var(--glass-bg)] rounded-[var(--radius-lg)] border border-[var(--glass-border)]"
           />
         ))}
       </div>
@@ -39,7 +39,7 @@ export const EntityMediaGallery: React.FC<EntityMediaGalleryProps> = ({
 
   if (!media || media.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-slate-500 bg-slate-900/30 rounded-xl border border-slate-800 border-dashed">
+      <div className="flex flex-col items-center justify-center py-12 text-[var(--text-muted)] bg-[var(--glass-bg-strong)] rounded-[var(--radius-xl)] border border-[var(--glass-border)] border-dashed">
         <Icon name="Image" size="xl" className="mb-3 opacity-50" />
         <p className="text-sm">No media assets found for {entityName}</p>
       </div>
@@ -62,7 +62,7 @@ export const EntityMediaGallery: React.FC<EntityMediaGalleryProps> = ({
           <div
             key={item.id}
             onClick={() => setSelectedMedia(item)}
-            className="group relative aspect-square bg-slate-800 rounded-lg overflow-hidden border border-slate-700 hover:border-cyan-500/50 cursor-pointer transition-all hover:shadow-lg hover:shadow-cyan-500/10"
+            className="group relative aspect-square bg-[var(--glass-bg-strong)] rounded-[var(--radius-lg)] overflow-hidden border border-[var(--glass-border)] hover:border-[var(--accent)]/50 cursor-pointer transition-all hover:shadow-[var(--glass-shadow)] hover:shadow-[var(--accent)]/10"
           >
             <img
               src={getMediaUrl(item)}
@@ -72,20 +72,22 @@ export const EntityMediaGallery: React.FC<EntityMediaGalleryProps> = ({
             />
             {/* Overlay */}
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-              <ZoomIn className="text-white w-6 h-6 drop-shadow-md transform scale-75 group-hover:scale-100 transition-transform" />
+              <ZoomIn className="text-[var(--text-primary)] w-6 h-6 drop-shadow-[var(--glass-shadow)] transform scale-75 group-hover:scale-100 transition-transform" />
             </div>
 
             {/* Type Indicator if needed (e.g. video) */}
             {item.type === 'video' && (
               <div className="absolute top-2 right-2 w-6 h-6 bg-black/50 rounded-full flex items-center justify-center backdrop-blur-sm">
-                <Play className="w-3 h-3 text-white ml-0.5" />
+                <Play className="w-3 h-3 text-[var(--text-primary)] ml-0.5" />
               </div>
             )}
 
             {/* Caption gradient */}
             {item.title && (
               <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent pt-6 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                <p className="text-xs text-white truncate font-medium">{item.title}</p>
+                <p className="text-xs text-[var(--text-primary)] truncate font-medium">
+                  {item.title}
+                </p>
               </div>
             )}
           </div>
@@ -104,12 +106,12 @@ export const EntityMediaGallery: React.FC<EntityMediaGalleryProps> = ({
               onClick={() => setSelectedMedia(null)}
               size="md"
               label="Close media lightbox"
-              className="absolute -top-12 right-0 bg-transparent border-slate-700 text-slate-400 hover:text-white"
+              className="absolute -top-12 right-0 bg-transparent border-[var(--glass-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
             />
 
             {/* Main Image */}
             <div
-              className="relative rounded-lg overflow-hidden shadow-2xl border border-slate-700/50 bg-slate-900"
+              className="relative rounded-[var(--radius-lg)] overflow-hidden shadow-[var(--glass-shadow)] border border-[var(--glass-border)] bg-[var(--glass-bg-strong)]"
               onClick={(e) => e.stopPropagation()} // Prevent closing when clicking image
             >
               <img
@@ -121,11 +123,11 @@ export const EntityMediaGallery: React.FC<EntityMediaGalleryProps> = ({
 
             {/* Caption */}
             <div className="mt-4 text-center" onClick={(e) => e.stopPropagation()}>
-              <h3 className="text-lg font-medium text-white">
+              <h3 className="text-lg font-medium text-[var(--text-primary)]">
                 {selectedMedia.title || entityName}
               </h3>
               {selectedMedia.redFlagRating && selectedMedia.redFlagRating > 0 && (
-                <div className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded border border-red-500/30 bg-red-950/30 text-red-200 text-xs shadow-[0_0_10px_rgba(239,68,68,0.2)]">
+                <div className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded border border-[var(--accent-danger)]/30 bg-[var(--accent-danger)]/10 text-[var(--accent-danger)] text-xs shadow-[var(--glass-shadow-soft)]">
                   <span>Red Flag Rating: {selectedMedia.redFlagRating}</span>
                 </div>
               )}

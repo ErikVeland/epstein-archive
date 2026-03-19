@@ -954,9 +954,9 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
       case 'published':
         return 'bg-blue-100 text-blue-800';
       case 'archived':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-[var(--app-bg)] text-[var(--text-primary)]';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-[var(--app-bg)] text-[var(--text-primary)]';
     }
   };
 
@@ -971,7 +971,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
       case 'low':
         return 'bg-green-100 text-green-800';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-[var(--app-bg)] text-[var(--text-primary)]';
     }
   };
 
@@ -1068,13 +1068,13 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent)]"></div>
       </div>
     );
   }
 
   return (
-    <div className="investigation-workspace liquid-glass-workspace rounded-xl h-[calc(100vh-8rem)] flex flex-col phthalo-gradient-bottom">
+    <div className="investigation-workspace liquid-glass-workspace rounded-[var(--radius-xl)] h-[calc(100vh-8rem)] flex flex-col phthalo-gradient-bottom">
       {/* Investigation Onboarding Overlay */}
       {!hasSeenOnboarding && !selectedInvestigation && (
         <InvestigationOnboarding onComplete={markOnboardingAsSeen} onSkip={markOnboardingAsSeen} />
@@ -1083,11 +1083,13 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
       {/* Example Investigation Link - REMOVED per user request */}
 
       {/* Header */}
-      <div className="border-b border-slate-700 px-6 py-4 shrink-0">
+      <div className="border-b border-[var(--glass-border)] px-6 py-4 shrink-0">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <h2 className="text-xl font-semibold text-white">Investigation Workspace</h2>
-            <p className="text-sm text-slate-400 mt-1">
+            <h2 className="text-xl font-semibold text-[var(--text-primary)]">
+              Investigation Workspace
+            </h2>
+            <p className="text-sm text-[var(--text-muted)] mt-1">
               Collaborative investigation platform for journalists and researchers
             </p>
           </div>
@@ -1095,13 +1097,13 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
           <div className="flex items-center gap-3 shrink-0">
             {selectedInvestigation && (
               <>
-                <div className="hidden sm:flex items-center bg-slate-800 rounded-lg p-1 border border-slate-700">
+                <div className="hidden sm:flex items-center bg-[var(--glass-bg)] rounded-[var(--radius-lg)] p-1 border border-[var(--glass-border)]">
                   <button
                     onClick={() => setUseGlobalContext(false)}
                     className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
                       !useGlobalContext
-                        ? 'bg-blue-600 text-white shadow-sm'
-                        : 'text-slate-400 hover:text-white'
+                        ? 'bg-[var(--accent)] text-[var(--text-primary)] shadow-sm'
+                        : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                     }`}
                   >
                     Investigation Scope
@@ -1110,8 +1112,8 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                     onClick={() => setUseGlobalContext(true)}
                     className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
                       useGlobalContext
-                        ? 'bg-blue-600 text-white shadow-sm'
-                        : 'text-slate-400 hover:text-white'
+                        ? 'bg-[var(--accent)] text-[var(--text-primary)] shadow-sm'
+                        : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
                     }`}
                   >
                     Global Context
@@ -1119,16 +1121,16 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                 </div>
                 <button
                   onClick={() => setShowTasksPanel(true)}
-                  className="hidden md:inline-flex items-center px-3 py-2 rounded-md text-xs font-medium bg-slate-800 border border-slate-700 text-slate-100 hover:bg-slate-700 hover:border-slate-500 transition-colors"
+                  className="hidden md:inline-flex items-center px-3 py-2 rounded-md text-xs font-medium bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)] hover:border-[var(--glass-border)] transition-colors"
                 >
                   <Flag className="w-3.5 h-3.5 mr-1.5 text-amber-400" />
                   Tasks
                 </button>
                 <button
                   onClick={() => setShowMemoryPanel(true)}
-                  className="hidden md:inline-flex items-center px-3 py-2 rounded-md text-xs font-medium bg-slate-800 border border-slate-700 text-slate-100 hover:bg-slate-700 hover:border-slate-500 transition-colors"
+                  className="hidden md:inline-flex items-center px-3 py-2 rounded-md text-xs font-medium bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)] hover:border-[var(--glass-border)] transition-colors"
                 >
-                  <BookOpen className="w-3.5 h-3.5 mr-1.5 text-blue-400" />
+                  <BookOpen className="w-3.5 h-3.5 mr-1.5 text-[var(--accent)]" />
                   Memory
                 </button>
               </>
@@ -1137,7 +1139,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
             {!selectedInvestigation && (
               <button
                 onClick={() => setShowNewInvestigationModal(true)}
-                className="flex items-center justify-center sm:justify-start px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors shadow-lg shadow-blue-900/20 h-10 whitespace-nowrap"
+                className="flex items-center justify-center sm:justify-start px-3 sm:px-4 py-2 bg-[var(--accent)] text-[var(--text-primary)] rounded-md hover:bg-blue-700 transition-colors shadow-[var(--glass-shadow)] shadow-blue-900/20 h-10 whitespace-nowrap"
               >
                 <Plus className="w-5 h-5 sm:w-4 sm:h-4 sm:mr-2 shrink-0" />
                 <span className="hidden sm:inline">New Investigation</span>
@@ -1153,10 +1155,10 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
           <div className="max-w-6xl mx-auto">
             {/* Welcome / Hero Section */}
             <div className="mb-12 text-center">
-              <h1 className="text-4xl font-light text-white mb-4 tracking-tight">
+              <h1 className="text-4xl font-light text-[var(--text-primary)] mb-4 tracking-tight">
                 Investigation Dashboard
               </h1>
-              <p className="text-slate-400 max-w-2xl mx-auto text-lg">
+              <p className="text-[var(--text-muted)] max-w-2xl mx-auto text-lg">
                 Manage your investigations, organize evidence, and collaborate with your team.
                 Select an active investigation below or start a new one.
               </p>
@@ -1166,24 +1168,26 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
               <button
                 onClick={() => setShowNewInvestigationModal(true)}
-                className="group relative flex flex-col items-start p-6 bg-gradient-to-br from-blue-600/20 to-blue-900/20 border border-blue-500/30 rounded-xl hover:border-blue-500/60 hover:from-blue-600/30 hover:to-blue-900/30 transition-all duration-300 text-left"
+                className="group relative flex flex-col items-start p-6 bg-gradient-to-br from-blue-600/20 to-blue-900/20 border border-[var(--accent)]/30 rounded-[var(--radius-xl)] hover:border-[var(--accent)]/60 hover:from-blue-600/30 hover:to-blue-900/30 transition-all duration-300 text-left"
               >
-                <div className="bg-blue-600 rounded-lg p-3 mb-4 shadow-lg shadow-blue-900/30 group-hover:scale-110 transition-transform duration-300">
-                  <Plus className="w-8 h-8 text-white" />
+                <div className="bg-[var(--accent)] rounded-[var(--radius-lg)] p-3 mb-4 shadow-[var(--glass-shadow)] shadow-blue-900/30 group-hover:scale-110 transition-transform duration-300">
+                  <Plus className="w-8 h-8 text-[var(--text-primary)]" />
                 </div>
-                <h3 className="text-xl font-semibold text-white mb-2">New Investigation</h3>
+                <h3 className="text-xl font-semibold text-[var(--text-primary)] mb-2">
+                  New Investigation
+                </h3>
                 <p className="text-sm text-blue-200/70">
                   Start a fresh investigation. Define your hypothesis, set a scope, and begin
                   gathering evidence.
                 </p>
               </button>
 
-              <div className="md:col-span-1 lg:col-span-2 bg-slate-800/20 border border-slate-700/50 rounded-xl p-6 flex items-center justify-between">
+              <div className="md:col-span-1 lg:col-span-2 bg-[var(--glass-bg)]/20 border border-[var(--glass-border)] rounded-[var(--radius-xl)] p-6 flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-medium text-white mb-1">
+                  <h3 className="text-lg font-medium text-[var(--text-primary)] mb-1">
                     {investigations.length} Active Investigations
                   </h3>
-                  <p className="text-sm text-slate-400">
+                  <p className="text-sm text-[var(--text-muted)]">
                     {investigations.filter((i) => i.status === 'active').length} active,{' '}
                     {investigations.filter((i) => i.status === 'review').length} in review
                   </p>
@@ -1193,16 +1197,18 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
 
             {/* Recent Investigations List */}
             <div>
-              <h2 className="text-2xl font-light text-white mb-6 flex items-center gap-3">
-                <Target className="w-6 h-6 text-slate-400" />
+              <h2 className="text-2xl font-light text-[var(--text-primary)] mb-6 flex items-center gap-3">
+                <Target className="w-6 h-6 text-[var(--text-muted)]" />
                 Recent Investigations
               </h2>
 
               {investigations.length === 0 ? (
-                <div className="text-center py-20 border border-slate-800 rounded-xl bg-slate-900/50 border-dashed">
-                  <Microscope className="w-12 h-12 text-slate-600 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-slate-300">No investigations yet</h3>
-                  <p className="text-slate-500 mt-2 max-w-sm mx-auto">
+                <div className="text-center py-20 border border-[var(--glass-border)] rounded-[var(--radius-xl)] bg-[var(--glass-bg-strong)]/50 border-dashed">
+                  <Microscope className="w-12 h-12 text-[var(--text-primary)] mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-[var(--text-secondary)]">
+                    No investigations yet
+                  </h3>
+                  <p className="text-[var(--text-muted)] mt-2 max-w-sm mx-auto">
                     Your workspace is empty. Create your first investigation to start building your
                     case.
                   </p>
@@ -1212,7 +1218,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                   {investigations.map((investigation) => (
                     <div
                       key={investigation.id}
-                      className="group bg-slate-800/40 backdrop-blur-sm border border-slate-700 rounded-xl p-5 cursor-pointer hover:border-blue-500/50 hover:bg-slate-800/60 transition-all duration-300 hover:shadow-xl hover:shadow-blue-900/10 flex flex-col h-full"
+                      className="group bg-[var(--glass-bg)]/40 backdrop-blur-sm border border-[var(--glass-border)] rounded-[var(--radius-xl)] p-5 cursor-pointer hover:border-[var(--accent)]/50 hover:bg-[var(--glass-bg)]/60 transition-all duration-300 hover:shadow-[var(--glass-shadow)] hover:shadow-blue-900/10 flex flex-col h-full"
                       onClick={() => loadInvestigation(investigation.id)}
                     >
                       <div className="flex-1">
@@ -1234,22 +1240,22 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                                   }).then(() => loadInvestigations());
                                 }
                               }}
-                              className="text-slate-500 hover:text-red-400 transition-colors p-1"
+                              className="text-[var(--text-muted)] hover:text-red-400 transition-colors p-1"
                               title="Delete investigation"
                             >
                               <span className="sr-only">Delete</span>×
                             </button>
                           )}
                         </div>
-                        <h3 className="text-xl font-medium text-white group-hover:text-blue-400 transition-colors mb-2 line-clamp-2">
+                        <h3 className="text-xl font-medium text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors mb-2 line-clamp-2">
                           {investigation.title}
                         </h3>
-                        <p className="text-sm text-slate-400 line-clamp-3 mb-4">
+                        <p className="text-sm text-[var(--text-muted)] line-clamp-3 mb-4">
                           {investigation.description}
                         </p>
                       </div>
 
-                      <div className="mt-4 pt-4 border-t border-slate-700/50 flex items-center justify-between text-xs text-slate-500">
+                      <div className="mt-4 pt-4 border-t border-[var(--glass-border)] flex items-center justify-between text-xs text-[var(--text-muted)]">
                         <div className="flex items-center gap-2">
                           <User className="w-3.5 h-3.5" />
                           <span>{investigation.leadInvestigator}</span>
@@ -1272,15 +1278,15 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
       {selectedInvestigation && (
         <div className="flex flex-1 min-h-0 min-w-0 overflow-hidden flex-col md:flex-row">
           {/* Mobile Navigation */}
-          <div className="md:hidden shrink-0 w-full overflow-x-auto bg-slate-900/50 backdrop-blur-sm border-b border-slate-700/50">
+          <div className="md:hidden shrink-0 w-full overflow-x-auto bg-[var(--glass-bg-strong)]/50 backdrop-blur-sm border-b border-[var(--glass-border)]">
             <div className="p-2 flex items-center gap-2 overflow-hidden">
               <button
                 onClick={() => setSelectedInvestigation(null)}
-                className="p-2 text-slate-400 hover:text-white shrink-0 h-10 w-10 flex items-center justify-center rounded-lg hover:bg-slate-800"
+                className="p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] shrink-0 h-10 w-10 flex items-center justify-center rounded-[var(--radius-lg)] hover:bg-[var(--glass-bg)]"
               >
                 <ArrowRight className="w-5 h-5 rotate-180" />
               </button>
-              <div className="w-full overflow-x-auto border-b border-slate-700/50 bg-slate-900/95 no-scrollbar">
+              <div className="w-full overflow-x-auto border-b border-[var(--glass-border)] bg-[var(--glass-bg-strong)]/95 no-scrollbar">
                 <div className="flex px-4 py-3 gap-2 min-w-max">
                   {mobileTabs.map((option) => (
                     <button
@@ -1290,8 +1296,8 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                         px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all
                         ${
                           activeTab === option.id
-                            ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/30'
-                            : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white border border-slate-700'
+                            ? 'bg-[var(--accent)] text-[var(--text-primary)] shadow-[var(--glass-shadow)] shadow-blue-900/30'
+                            : 'bg-[var(--glass-bg)] text-[var(--text-muted)] hover:bg-[var(--glass-bg-highlight)] hover:text-[var(--text-primary)] border border-[var(--glass-border)]'
                         }
                       `}
                     >
@@ -1304,7 +1310,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
           </div>
 
           {/* Desktop Navigation Pane (reusable collapsible + resizable component) */}
-          <div className="hidden md:block shrink-0 h-full border-r border-slate-700/50 bg-slate-900/50 backdrop-blur-sm">
+          <div className="hidden md:block shrink-0 h-full border-r border-[var(--glass-border)] bg-[var(--glass-bg-strong)]/50 backdrop-blur-sm">
             <CollapsibleSplitPane
               mode="singleRight"
               left={null}
@@ -1313,7 +1319,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                   <div className="flex items-center justify-between mb-6">
                     <button
                       onClick={() => setSelectedInvestigation(null)}
-                      className="text-sm text-slate-400 hover:text-white flex items-center gap-2 transition-colors h-10 px-3 bg-slate-800/50 hover:bg-slate-700 rounded-lg border border-slate-700/50"
+                      className="text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] flex items-center gap-2 transition-colors h-10 px-3 bg-[var(--glass-bg)]/50 hover:bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] border border-[var(--glass-border)]"
                     >
                       <ArrowRight className="w-4 h-4 rotate-180" />
                       <span className="font-medium">Back to Dashboard</span>
@@ -1322,14 +1328,14 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
 
                   <div className="mb-6 px-2">
                     <h3
-                      className="font-medium text-white truncate"
+                      className="font-medium text-[var(--text-primary)] truncate"
                       title={selectedInvestigation.title}
                     >
                       {selectedInvestigation.title}
                     </h3>
                     <button
                       onClick={copyShareUrl}
-                      className="mt-2 flex items-center gap-1.5 text-xs text-slate-400 hover:text-blue-400 transition-colors"
+                      className="mt-2 flex items-center gap-1.5 text-xs text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors"
                     >
                       <Share2 className="w-3.5 h-3.5" />
                       {shareCopied ? 'Copied!' : 'Share'}
@@ -1342,12 +1348,12 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                         key={tab.id}
                         onClick={() => navigateToTab(tab.id)}
                         className={`
-                          flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all
+                          flex items-center px-3 py-3 text-sm font-medium rounded-[var(--radius-lg)] transition-all
                           whitespace-nowrap overflow-hidden w-full
                           ${
                             activeTab === tab.id
-                              ? 'bg-blue-900/40 text-blue-400 border border-blue-500/30 shadow-sm relative z-10'
-                              : 'text-slate-400 hover:bg-slate-700/50 hover:text-slate-200'
+                              ? 'bg-blue-900/40 text-[var(--accent)] border border-[var(--accent)]/30 shadow-sm relative z-10'
+                              : 'text-[var(--text-muted)] hover:bg-[var(--glass-bg-highlight)]/50 hover:text-[var(--text-primary)]'
                           }
                         `}
                         title={tab.label}
@@ -1363,21 +1369,21 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                 <div className="h-full py-4 flex flex-col items-center gap-3">
                   <button
                     onClick={() => setSelectedInvestigation(null)}
-                    className="control h-8 w-8 p-0 flex items-center justify-center text-slate-300 hover:text-white"
+                    className="control h-8 w-8 p-0 flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                     aria-label="Back to dashboard"
                     title="Back to dashboard"
                   >
                     <ArrowRight className="w-4 h-4 rotate-180" />
                   </button>
-                  <div className="h-px w-6 bg-slate-700/80" />
+                  <div className="h-px w-6 bg-[var(--glass-bg-highlight)]/80" />
                   {desktopTabs.map((tab) => (
                     <button
                       key={`collapsed-${tab.id}`}
                       onClick={() => navigateToTab(tab.id)}
                       className={`h-8 w-8 rounded-md flex items-center justify-center transition-colors ${
                         activeTab === tab.id
-                          ? 'bg-blue-900/40 text-blue-300'
-                          : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'
+                          ? 'bg-blue-900/40 text-[var(--accent)]'
+                          : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)]/50'
                       }`}
                       title={tab.label}
                       aria-label={tab.label}
@@ -1401,26 +1407,28 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
           </div>
 
           {/* Main Content */}
-          <div className="flex-1 min-w-0 p-6 overflow-y-auto overflow-x-hidden bg-slate-900">
+          <div className="flex-1 min-w-0 p-6 overflow-y-auto overflow-x-hidden bg-[var(--glass-bg-strong)]">
             {activeTab === 'board' && selectedInvestigation && (
               <InvestigationBoard investigationId={selectedInvestigation.id} />
             )}
             {activeTab === 'overview' && (
               <div className="max-w-4xl">
-                <h3 className="text-xl font-bold text-white mb-6">Investigation Overview</h3>
+                <h3 className="text-xl font-bold text-[var(--text-primary)] mb-6">
+                  Investigation Overview
+                </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                  <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-5">
-                    <h4 className="text-sm font-medium text-slate-400 mb-3 uppercase tracking-wider">
+                  <div className="bg-[var(--glass-bg)]/50 border border-[var(--glass-border)] rounded-[var(--radius-xl)] p-5">
+                    <h4 className="text-sm font-medium text-[var(--text-muted)] mb-3 uppercase tracking-wider">
                       Hypothesis
                     </h4>
-                    <p className="text-slate-200 leading-relaxed">
+                    <p className="text-[var(--text-primary)] leading-relaxed">
                       {selectedInvestigation.hypothesis}
                     </p>
                   </div>
 
-                  <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-5">
-                    <h4 className="text-sm font-medium text-slate-400 mb-3 uppercase tracking-wider">
+                  <div className="bg-[var(--glass-bg)]/50 border border-[var(--glass-border)] rounded-[var(--radius-xl)] p-5">
+                    <h4 className="text-sm font-medium text-[var(--text-muted)] mb-3 uppercase tracking-wider">
                       Status & Priority
                     </h4>
                     <div className="space-y-4">
@@ -1437,7 +1445,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                         </span>
                       </div>
                       {selectedInvestigation.dueDate && (
-                        <div className="flex items-center gap-2 text-slate-400">
+                        <div className="flex items-center gap-2 text-[var(--text-muted)]">
                           <Calendar className="w-4 h-4" />
                           <span className="text-sm">
                             Due: {selectedInvestigation.dueDate.toLocaleDateString()}
@@ -1462,22 +1470,22 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                 </div>
 
                 <div>
-                  <h4 className="text-sm font-medium text-slate-400 mb-3 uppercase tracking-wider">
+                  <h4 className="text-sm font-medium text-[var(--text-muted)] mb-3 uppercase tracking-wider">
                     Recent Activity
                   </h4>
-                  <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-5">
+                  <div className="bg-[var(--glass-bg)]/50 border border-[var(--glass-border)] rounded-[var(--radius-xl)] p-5">
                     <div className="flex items-start gap-4">
-                      <div className="w-8 h-8 rounded-full bg-blue-900/30 flex items-center justify-center border border-blue-500/30">
-                        <User className="w-4 h-4 text-blue-400" />
+                      <div className="w-8 h-8 rounded-full bg-blue-900/30 flex items-center justify-center border border-[var(--accent)]/30">
+                        <User className="w-4 h-4 text-[var(--accent)]" />
                       </div>
                       <div>
-                        <p className="text-slate-200 text-sm">
+                        <p className="text-[var(--text-primary)] text-sm">
                           Investigation created by{' '}
-                          <span className="text-white font-medium">
+                          <span className="text-[var(--text-primary)] font-medium">
                             {selectedInvestigation.leadInvestigator}
                           </span>
                         </p>
-                        <p className="text-xs text-slate-500 mt-1">
+                        <p className="text-xs text-[var(--text-muted)] mt-1">
                           {selectedInvestigation.createdAt.toLocaleDateString()} at{' '}
                           {selectedInvestigation.createdAt.toLocaleTimeString()}
                         </p>
@@ -1582,7 +1590,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
 
             {activeTab === 'export' && selectedInvestigation && (
               <div>
-                <h3 className="text-xl font-bold text-white mb-6">
+                <h3 className="text-xl font-bold text-[var(--text-primary)] mb-6">
                   Export & Publish Investigation
                 </h3>
 
@@ -1595,11 +1603,11 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                     annotations={annotations}
                   />
 
-                  <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
-                    <h4 className="text-lg font-semibold text-white mb-4">
+                  <div className="bg-[var(--glass-bg)]/50 border border-[var(--glass-border)] rounded-[var(--radius-xl)] p-6">
+                    <h4 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
                       Evidence Packet Export
                     </h4>
-                    <p className="text-slate-400 mb-4">
+                    <p className="text-[var(--text-muted)] mb-4">
                       Export this investigation as a comprehensive evidence packet containing
                       entities, documents, metadata, and Red Flag Index scores.
                     </p>
@@ -1622,8 +1630,10 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
               <div>
                 <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
                   <div>
-                    <h3 className="text-xl font-bold text-white">Investigation Analytics</h3>
-                    <p className="text-sm text-slate-400 mt-1">
+                    <h3 className="text-xl font-bold text-[var(--text-primary)]">
+                      Investigation Analytics
+                    </h3>
+                    <p className="text-sm text-[var(--text-muted)] mt-1">
                       Overview first, then trends and signal insights from real investigation data.
                     </p>
                   </div>
@@ -1631,7 +1641,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                     <select
                       value={analyticsRange}
                       onChange={(e) => setAnalyticsRange(e.target.value as '30d' | '90d' | 'all')}
-                      className="px-3 py-2 text-sm bg-slate-800 border border-slate-700 rounded-lg text-slate-100"
+                      className="px-3 py-2 text-sm bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)]"
                     >
                       <option value="30d">Last 30 days</option>
                       <option value="90d">Last 90 days</option>
@@ -1644,14 +1654,14 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                           e.target.value as 'all' | 'document' | 'entity' | 'media',
                         )
                       }
-                      className="px-3 py-2 text-sm bg-slate-800 border border-slate-700 rounded-lg text-slate-100"
+                      className="px-3 py-2 text-sm bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)]"
                     >
                       <option value="all">All sources</option>
                       <option value="document">Documents</option>
                       <option value="entity">Entities</option>
                       <option value="media">Media</option>
                     </select>
-                    <label className="inline-flex items-center gap-2 text-xs text-slate-300 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg">
+                    <label className="inline-flex items-center gap-2 text-xs text-[var(--text-secondary)] px-3 py-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)]">
                       <input
                         type="checkbox"
                         checked={analyticsIncludeAgentic}
@@ -1662,7 +1672,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                     {isAdmin && (
                       <button
                         onClick={() => setShowCreateRelationshipModal(true)}
-                        className="flex items-center gap-2 px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors text-sm"
+                        className="flex items-center gap-2 px-3 py-2 bg-purple-600 hover:bg-purple-700 text-[var(--text-primary)] rounded-[var(--radius-lg)] transition-colors text-sm"
                       >
                         <Network className="w-4 h-4" />
                         <span>Add Connection</span>
@@ -1672,7 +1682,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                 </div>
 
                 <div className="mb-6">
-                  <h4 className="text-sm font-semibold text-slate-300 uppercase tracking-wide mb-3">
+                  <h4 className="text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-wide mb-3">
                     Overview KPIs
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -1684,36 +1694,38 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                     ].map(([label, value]) => (
                       <div
                         key={String(label)}
-                        className="bg-slate-800 border border-slate-700 rounded-lg p-4"
+                        className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-4"
                       >
-                        <p className="text-xs uppercase tracking-wide text-slate-400">{label}</p>
+                        <p className="text-xs uppercase tracking-wide text-[var(--text-muted)]">
+                          {label}
+                        </p>
                         {analyticsLoading.overview ? (
-                          <div className="h-8 mt-2 bg-slate-700 rounded animate-pulse" />
+                          <div className="h-8 mt-2 bg-[var(--glass-bg-highlight)] rounded animate-pulse" />
                         ) : (
-                          <p className="text-2xl font-semibold text-white mt-2">
+                          <p className="text-2xl font-semibold text-[var(--text-primary)] mt-2">
                             {value as number}
                           </p>
                         )}
                       </div>
                     ))}
                   </div>
-                  <div className="mt-3 bg-slate-800 border border-slate-700 rounded-lg p-3">
-                    <p className="text-xs text-slate-400 mb-2">Top sources</p>
+                  <div className="mt-3 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-3">
+                    <p className="text-xs text-[var(--text-muted)] mb-2">Top sources</p>
                     {analyticsLoading.overview ? (
-                      <div className="h-6 bg-slate-700 rounded animate-pulse" />
+                      <div className="h-6 bg-[var(--glass-bg-highlight)] rounded animate-pulse" />
                     ) : analyticsData.topSources.length > 0 ? (
                       <div className="flex flex-wrap gap-2">
                         {analyticsData.topSources.map((item) => (
                           <span
                             key={`${item.type}-${item.count}`}
-                            className="px-2 py-1 bg-slate-700 text-slate-200 rounded text-xs"
+                            className="px-2 py-1 bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] rounded text-xs"
                           >
                             {item.type}: {item.count}
                           </span>
                         ))}
                       </div>
                     ) : (
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-[var(--text-muted)]">
                         Link evidence to this case to generate source analytics.
                       </p>
                     )}
@@ -1721,46 +1733,50 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                 </div>
 
                 <div className="mb-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  <div className="bg-slate-800 border border-slate-700 rounded-lg p-4">
-                    <h4 className="text-sm font-semibold text-slate-300 uppercase tracking-wide mb-3">
+                  <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-4">
+                    <h4 className="text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-wide mb-3">
                       Trends
                     </h4>
                     {analyticsLoading.trends ? (
                       <div className="space-y-2">
-                        <div className="h-4 bg-slate-700 rounded animate-pulse" />
-                        <div className="h-4 bg-slate-700 rounded animate-pulse" />
-                        <div className="h-4 bg-slate-700 rounded animate-pulse" />
+                        <div className="h-4 bg-[var(--glass-bg-highlight)] rounded animate-pulse" />
+                        <div className="h-4 bg-[var(--glass-bg-highlight)] rounded animate-pulse" />
+                        <div className="h-4 bg-[var(--glass-bg-highlight)] rounded animate-pulse" />
                       </div>
                     ) : analyticsData.evidenceTimeline.length > 0 ? (
                       <div className="space-y-2">
                         {analyticsData.evidenceTimeline.map((point) => (
                           <div key={point.day} className="flex items-center gap-3">
-                            <span className="w-24 text-xs text-slate-400">{point.day}</span>
-                            <div className="flex-1 h-2 bg-slate-700 rounded overflow-hidden">
+                            <span className="w-24 text-xs text-[var(--text-muted)]">
+                              {point.day}
+                            </span>
+                            <div className="flex-1 h-2 bg-[var(--glass-bg-highlight)] rounded overflow-hidden">
                               <div
-                                className="h-full bg-blue-500"
+                                className="h-full bg-[var(--accent)]"
                                 style={{ width: `${Math.min(100, point.count * 10)}%` }}
                               />
                             </div>
-                            <span className="text-xs text-slate-200">{point.count}</span>
+                            <span className="text-xs text-[var(--text-primary)]">
+                              {point.count}
+                            </span>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-[var(--text-muted)]">
                         No trend data yet. Add evidence and timeline entries.
                       </p>
                     )}
                   </div>
 
-                  <div className="bg-slate-800 border border-slate-700 rounded-lg p-4">
-                    <h4 className="text-sm font-semibold text-slate-300 uppercase tracking-wide mb-3">
+                  <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-4">
+                    <h4 className="text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-wide mb-3">
                       Activity by Source Type
                     </h4>
                     {analyticsLoading.trends ? (
                       <div className="space-y-2">
-                        <div className="h-4 bg-slate-700 rounded animate-pulse" />
-                        <div className="h-4 bg-slate-700 rounded animate-pulse" />
+                        <div className="h-4 bg-[var(--glass-bg-highlight)] rounded animate-pulse" />
+                        <div className="h-4 bg-[var(--glass-bg-highlight)] rounded animate-pulse" />
                       </div>
                     ) : analyticsData.sourceActivity.length > 0 ? (
                       <div className="space-y-2">
@@ -1769,12 +1785,14 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                             key={row.source}
                             className="flex items-center justify-between text-sm"
                           >
-                            <span className="text-slate-300 capitalize">{row.source}</span>
-                            <span className="text-white">{row.count}</span>
+                            <span className="text-[var(--text-secondary)] capitalize">
+                              {row.source}
+                            </span>
+                            <span className="text-[var(--text-primary)]">{row.count}</span>
                           </div>
                         ))}
-                        <div className="pt-2 border-t border-slate-700">
-                          <p className="text-xs text-slate-400 mb-1">Spikes / bursts</p>
+                        <div className="pt-2 border-t border-[var(--glass-border)]">
+                          <p className="text-xs text-[var(--text-muted)] mb-1">Spikes / bursts</p>
                           {analyticsData.spikes.length > 0 ? (
                             <div className="space-y-1">
                               {analyticsData.spikes.map((spike) => (
@@ -1784,12 +1802,14 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                               ))}
                             </div>
                           ) : (
-                            <p className="text-xs text-slate-500">No burst periods detected.</p>
+                            <p className="text-xs text-[var(--text-muted)]">
+                              No burst periods detected.
+                            </p>
                           )}
                         </div>
                       </div>
                     ) : (
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-[var(--text-muted)]">
                         Source activity appears after evidence is linked.
                       </p>
                     )}
@@ -1797,82 +1817,90 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                 </div>
 
                 <div className="mb-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  <div className="bg-slate-800 border border-slate-700 rounded-lg p-4">
-                    <h4 className="text-sm font-semibold text-slate-300 uppercase tracking-wide mb-3">
+                  <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-4">
+                    <h4 className="text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-wide mb-3">
                       Network / Signals
                     </h4>
                     {analyticsLoading.signals ? (
                       <div className="space-y-2">
-                        <div className="h-4 bg-slate-700 rounded animate-pulse" />
-                        <div className="h-4 bg-slate-700 rounded animate-pulse" />
-                        <div className="h-4 bg-slate-700 rounded animate-pulse" />
+                        <div className="h-4 bg-[var(--glass-bg-highlight)] rounded animate-pulse" />
+                        <div className="h-4 bg-[var(--glass-bg-highlight)] rounded animate-pulse" />
+                        <div className="h-4 bg-[var(--glass-bg-highlight)] rounded animate-pulse" />
                       </div>
                     ) : (
                       <div className="space-y-4">
                         <div>
-                          <p className="text-xs text-slate-400 mb-2">Highest-risk entities</p>
+                          <p className="text-xs text-[var(--text-muted)] mb-2">
+                            Highest-risk entities
+                          </p>
                           {analyticsData.highRiskEntities.length > 0 ? (
                             analyticsData.highRiskEntities.map((entity) => (
                               <div key={entity.id} className="flex justify-between text-sm">
-                                <span className="text-slate-200">{entity.name}</span>
+                                <span className="text-[var(--text-primary)]">{entity.name}</span>
                                 <span className="text-red-300">{entity.score}</span>
                               </div>
                             ))
                           ) : (
-                            <p className="text-xs text-slate-500">
+                            <p className="text-xs text-[var(--text-muted)]">
                               Add entity evidence to derive risk signals.
                             </p>
                           )}
                         </div>
                         <div>
-                          <p className="text-xs text-slate-400 mb-2">Strongest connections</p>
+                          <p className="text-xs text-[var(--text-muted)] mb-2">
+                            Strongest connections
+                          </p>
                           {analyticsData.strongestConnections.length > 0 ? (
                             analyticsData.strongestConnections.map((connection, idx) => (
                               <div
                                 key={`${connection.source}-${connection.target}-${idx}`}
-                                className="text-xs text-slate-300"
+                                className="text-xs text-[var(--text-secondary)]"
                               >
                                 {connection.source} {'->'} {connection.target} (
                                 {connection.confidence}%)
                               </div>
                             ))
                           ) : (
-                            <p className="text-xs text-slate-500">No connection edges available.</p>
+                            <p className="text-xs text-[var(--text-muted)]">
+                              No connection edges available.
+                            </p>
                           )}
                         </div>
                       </div>
                     )}
                   </div>
 
-                  <div className="bg-slate-800 border border-slate-700 rounded-lg p-4">
-                    <h4 className="text-sm font-semibold text-slate-300 uppercase tracking-wide mb-3">
+                  <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-4">
+                    <h4 className="text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-wide mb-3">
                       Most-cited Documents
                     </h4>
                     {analyticsLoading.signals ? (
                       <div className="space-y-2">
-                        <div className="h-4 bg-slate-700 rounded animate-pulse" />
-                        <div className="h-4 bg-slate-700 rounded animate-pulse" />
+                        <div className="h-4 bg-[var(--glass-bg-highlight)] rounded animate-pulse" />
+                        <div className="h-4 bg-[var(--glass-bg-highlight)] rounded animate-pulse" />
                       </div>
                     ) : analyticsData.citedDocuments.length > 0 ? (
                       <div className="space-y-2">
                         {analyticsData.citedDocuments.map((doc) => (
                           <div key={doc.id} className="flex items-center justify-between gap-3">
-                            <span className="text-sm text-slate-200 truncate">{doc.title}</span>
-                            <span className="text-xs px-2 py-1 bg-slate-700 rounded text-slate-100">
+                            <span className="text-sm text-[var(--text-primary)] truncate">
+                              {doc.title}
+                            </span>
+                            <span className="text-xs px-2 py-1 bg-[var(--glass-bg-highlight)] rounded text-[var(--text-primary)]">
                               {doc.mentions} cites
                             </span>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-[var(--text-muted)]">
                         Documents appear here once referenced by timeline events.
                       </p>
                     )}
                   </div>
                 </div>
 
-                <div className="liquid-glass-card rounded-xl overflow-hidden">
+                <div className="liquid-glass-card rounded-[var(--radius-xl)] overflow-hidden">
                   <NetworkVisualization
                     nodes={networkNodes}
                     edges={networkEdges}
@@ -1901,12 +1929,16 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
       {/* New Investigation Modal */}
       {showNewInvestigationModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-4">
-          <div className="liquid-glass-modal rounded-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <h3 className="text-xl font-bold text-white mb-6">Create New Investigation</h3>
+          <div className="liquid-glass-modal rounded-[var(--radius-xl)] p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <h3 className="text-xl font-bold text-[var(--text-primary)] mb-6">
+              Create New Investigation
+            </h3>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Title *</label>
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                  Title *
+                </label>
                 <input
                   type="text"
                   name="title"
@@ -1914,13 +1946,13 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                   onChange={(e) =>
                     setNewInvestigation({ ...newInvestigation, title: e.target.value })
                   }
-                  className="w-full px-3 h-10 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white placeholder-slate-500"
+                  className="w-full px-3 h-10 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] text-[var(--text-primary)] placeholder-slate-500"
                   placeholder="Enter investigation title"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                   Description *
                 </label>
                 <textarea
@@ -1929,20 +1961,22 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                   onChange={(e) =>
                     setNewInvestigation({ ...newInvestigation, description: e.target.value })
                   }
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white placeholder-slate-500"
+                  className="w-full px-3 py-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] text-[var(--text-primary)] placeholder-slate-500"
                   rows={3}
                   placeholder="Describe the investigation focus"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Hypothesis</label>
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                  Hypothesis
+                </label>
                 <textarea
                   value={newInvestigation.hypothesis}
                   onChange={(e) =>
                     setNewInvestigation({ ...newInvestigation, hypothesis: e.target.value })
                   }
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white placeholder-slate-500"
+                  className="w-full px-3 py-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] text-[var(--text-primary)] placeholder-slate-500"
                   rows={2}
                   placeholder="What do you aim to prove or disprove?"
                 />
@@ -1950,13 +1984,15 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">Priority</label>
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                    Priority
+                  </label>
                   <select
                     value={newInvestigation.priority}
                     onChange={(e) =>
                       setNewInvestigation({ ...newInvestigation, priority: e.target.value as any })
                     }
-                    className="w-full px-3 h-10 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+                    className="w-full px-3 h-10 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] text-[var(--text-primary)]"
                   >
                     <option value="low">Low</option>
                     <option value="medium">Medium</option>
@@ -1966,14 +2002,16 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">Due Date</label>
+                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                    Due Date
+                  </label>
                   <input
                     type="date"
                     value={newInvestigation.dueDate}
                     onChange={(e) =>
                       setNewInvestigation({ ...newInvestigation, dueDate: e.target.value })
                     }
-                    className="w-full px-3 h-10 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
+                    className="w-full px-3 h-10 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] text-[var(--text-primary)]"
                   />
                 </div>
               </div>
@@ -1982,14 +2020,14 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
             <div className="flex justify-end gap-3 mt-8">
               <button
                 onClick={() => setShowNewInvestigationModal(false)}
-                className="px-4 h-10 flex items-center justify-center text-sm font-medium text-slate-300 bg-slate-800 rounded-lg hover:bg-slate-700 transition-colors"
+                className="px-4 h-10 flex items-center justify-center text-sm font-medium text-[var(--text-secondary)] bg-[var(--glass-bg)] rounded-[var(--radius-lg)] hover:bg-[var(--glass-bg-highlight)] transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={createInvestigation}
                 disabled={!newInvestigation.title || !newInvestigation.description}
-                className="px-4 h-10 flex items-center justify-center text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg shadow-blue-900/20"
+                className="px-4 h-10 flex items-center justify-center text-sm font-medium text-[var(--text-primary)] bg-[var(--accent)] rounded-[var(--radius-lg)] hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-[var(--glass-shadow)] shadow-blue-900/20"
               >
                 Create Investigation
               </button>

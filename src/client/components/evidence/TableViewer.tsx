@@ -46,14 +46,17 @@ export function TableViewer({ evidence }: TableViewerProps) {
   const Row = ({ index, style }: { index: number; style: React.CSSProperties }) => {
     const row = rows[index];
     return (
-      <div style={style} className="flex border-b border-gray-200 hover:bg-gray-50">
-        <div className="w-16 flex-shrink-0 px-4 py-3 text-sm text-gray-500 border-r">
+      <div
+        style={style}
+        className="flex border-b border-[var(--glass-border)] hover:bg-[var(--app-bg)]"
+      >
+        <div className="w-16 flex-shrink-0 px-4 py-3 text-sm text-[var(--text-muted)] border-r">
           {index + 1}
         </div>
         {row.map((cell, cellIndex) => (
           <div
             key={cellIndex}
-            className="flex-1 px-4 py-3 text-sm text-gray-900 border-r last:border-r-0"
+            className="flex-1 px-4 py-3 text-sm text-[var(--text-primary)] border-r last:border-r-0"
             style={{ minWidth: '150px' }}
           >
             {cell}
@@ -68,15 +71,15 @@ export function TableViewer({ evidence }: TableViewerProps) {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">Data Table</h3>
-          <p className="text-sm text-gray-600 mt-1">
+          <h3 className="text-lg font-semibold text-[var(--text-primary)]">Data Table</h3>
+          <p className="text-sm text-[var(--text-primary)] mt-1">
             {rows.length.toLocaleString()} rows × {headers.length} columns
           </p>
         </div>
 
         <button
           onClick={downloadCSV}
-          className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+          className="flex items-center px-4 py-2 text-sm font-medium text-[var(--text-primary)] bg-white border border-[var(--glass-border)] rounded-[var(--radius-lg)] hover:bg-[var(--app-bg)]"
         >
           <Download className="h-4 w-4 mr-2" />
           Download CSV
@@ -84,8 +87,8 @@ export function TableViewer({ evidence }: TableViewerProps) {
       </div>
 
       {rows.length > 100 && (
-        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-start">
-          <Info className="h-5 w-5 text-blue-600 mr-2 flex-shrink-0 mt-0.5" />
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-[var(--radius-lg)] flex items-start">
+          <Info className="h-5 w-5 text-[var(--accent)] mr-2 flex-shrink-0 mt-0.5" />
           <p className="text-sm text-blue-800">
             Showing all {rows.length.toLocaleString()} rows using virtual scrolling for performance.
           </p>
@@ -93,16 +96,16 @@ export function TableViewer({ evidence }: TableViewerProps) {
       )}
 
       {/* Table */}
-      <div className="border border-gray-200 rounded-lg overflow-hidden">
+      <div className="border border-[var(--glass-border)] rounded-[var(--radius-lg)] overflow-hidden">
         {/* Column Headers */}
-        <div className="bg-gray-100 border-b border-gray-200 flex sticky top-0 z-10">
-          <div className="w-16 flex-shrink-0 px-4 py-3 text-sm font-semibold text-gray-700 border-r">
+        <div className="bg-[var(--app-bg)] border-b border-[var(--glass-border)] flex sticky top-0 z-10">
+          <div className="w-16 flex-shrink-0 px-4 py-3 text-sm font-semibold text-[var(--text-primary)] border-r">
             #
           </div>
           {headers.map((header, index) => (
             <div
               key={index}
-              className="flex-1 px-4 py-3 text-sm font-semibold text-gray-700 border-r last:border-r-0"
+              className="flex-1 px-4 py-3 text-sm font-semibold text-[var(--text-primary)] border-r last:border-r-0"
               style={{ minWidth: '150px' }}
             >
               {header}

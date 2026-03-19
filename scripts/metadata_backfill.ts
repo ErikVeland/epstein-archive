@@ -18,7 +18,7 @@ async function backfill() {
   while (hasMore) {
     const docsResult = await pool.query(
       `
-      SELECT id, content, file_path
+      SELECT id, content, file_path, evidence_type
       FROM documents
       WHERE signal_score IS NULL AND content IS NOT NULL
       LIMIT $1
@@ -51,7 +51,9 @@ async function backfill() {
 }
 
 async function processDocumentBackfill(pool: pg.Pool, doc: any) {
-  const content = doc.content;
+  const raw = doc.content;
+  const content =
+    doc.evidence_type === 'email' ? TextCleaner.cleanEmailText(raw) : TextCleaner.cleanOcrText(raw);
   const sentences = content
     .split(/(?<=[.!?])\s+/)
     .map((s: string) => s.trim())
@@ -65,7 +67,7 @@ async function processDocumentBackfill(pool: pg.Pool, doc: any) {
     await client.query('DELETE FROM redaction_spans WHERE document_id = $1', [doc.id]);
 
     for (let i = 0; i < sentences.length; i++) {
-      discoveryRepository.addSentence({
+      await discoveryRepository.addSentence({
         document_id: doc.id,
         sentence_index: i,
         sentence_text: sentences[i],

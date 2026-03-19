@@ -49,16 +49,18 @@ export function EmailViewer({ evidence }: EmailViewerProps) {
   return (
     <div className="p-6">
       {/* Email Header */}
-      <div className="border-b border-gray-200 pb-6 mb-6">
+      <div className="border-b border-[var(--glass-border)] pb-6 mb-6">
         <div className="flex items-start justify-between mb-4">
-          <h2 className="text-2xl font-bold text-gray-900">{metadata.subject || 'No Subject'}</h2>
+          <h2 className="text-2xl font-bold text-[var(--text-primary)]">
+            {metadata.subject || 'No Subject'}
+          </h2>
           {metadata.source_original_url && (
             <a
               href={metadata.source_original_url}
               download
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ml-4 shrink-0"
+              className="inline-flex items-center px-3 py-1.5 border border-[var(--glass-border)] shadow-sm text-sm font-medium rounded-[var(--radius-md)] text-[var(--text-secondary)] bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] hover:text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--accent)] ml-4 shrink-0 transition-colors"
               title="Download original email"
             >
               <Download className="h-4 w-4 mr-2" />
@@ -70,14 +72,14 @@ export function EmailViewer({ evidence }: EmailViewerProps) {
         <div className="space-y-3">
           {metadata.from && (
             <div className="flex items-start">
-              <User className="h-5 w-5 text-gray-400 mr-3 mt-0.5" />
+              <User className="h-5 w-5 text-[var(--text-muted)] mr-3 mt-0.5" />
               <div className="flex-1">
-                <div className="text-sm text-gray-600">From</div>
+                <div className="text-sm text-[var(--text-muted)]">From</div>
                 <div className="flex items-center justify-between">
-                  <div className="text-gray-900">{metadata.from}</div>
+                  <div className="text-[var(--text-primary)]">{metadata.from}</div>
                   <button
                     onClick={() => copyToClipboard(metadata.from!)}
-                    className="text-gray-400 hover:text-gray-600"
+                    className="text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
                     title="Copy email"
                   >
                     <Copy className="h-4 w-4" />
@@ -89,14 +91,14 @@ export function EmailViewer({ evidence }: EmailViewerProps) {
 
           {metadata.to && (
             <div className="flex items-start">
-              <Mail className="h-5 w-5 text-gray-400 mr-3 mt-0.5" />
+              <Mail className="h-5 w-5 text-[var(--text-muted)] mr-3 mt-0.5" />
               <div className="flex-1">
-                <div className="text-sm text-gray-600">To</div>
+                <div className="text-sm text-[var(--text-muted)]">To</div>
                 <div className="flex items-center justify-between">
-                  <div className="text-gray-900">{metadata.to}</div>
+                  <div className="text-[var(--text-primary)]">{metadata.to}</div>
                   <button
                     onClick={() => copyToClipboard(metadata.to!)}
-                    className="text-gray-400 hover:text-gray-600"
+                    className="text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
                     title="Copy email"
                   >
                     <Copy className="h-4 w-4" />
@@ -108,30 +110,30 @@ export function EmailViewer({ evidence }: EmailViewerProps) {
 
           {metadata.cc && (
             <div className="flex items-start">
-              <Mail className="h-5 w-5 text-gray-400 mr-3 mt-0.5" />
+              <Mail className="h-5 w-5 text-[var(--text-muted)] mr-3 mt-0.5" />
               <div className="flex-1">
-                <div className="text-sm text-gray-600">CC</div>
-                <div className="text-gray-900">{metadata.cc}</div>
+                <div className="text-sm text-[var(--text-muted)]">CC</div>
+                <div className="text-[var(--text-primary)]">{metadata.cc}</div>
               </div>
             </div>
           )}
 
           {metadata.sentDate && (
             <div className="flex items-start">
-              <Calendar className="h-5 w-5 text-gray-400 mr-3 mt-0.5" />
+              <Calendar className="h-5 w-5 text-[var(--text-muted)] mr-3 mt-0.5" />
               <div className="flex-1">
-                <div className="text-sm text-gray-600">Date</div>
-                <div className="text-gray-900">{metadata.sentDate}</div>
+                <div className="text-sm text-[var(--text-muted)]">Date</div>
+                <div className="text-[var(--text-primary)]">{metadata.sentDate}</div>
               </div>
             </div>
           )}
 
           {metadata.attachmentCount && metadata.attachmentCount > 0 && (
             <div className="flex items-start">
-              <Paperclip className="h-5 w-5 text-gray-400 mr-3 mt-0.5" />
+              <Paperclip className="h-5 w-5 text-[var(--text-muted)] mr-3 mt-0.5" />
               <div className="flex-1">
-                <div className="text-sm text-gray-600">Attachments</div>
-                <div className="text-gray-900">{metadata.attachmentCount} file(s)</div>
+                <div className="text-sm text-[var(--text-muted)]">Attachments</div>
+                <div className="text-[var(--text-primary)]">{metadata.attachmentCount} file(s)</div>
               </div>
             </div>
           )}
@@ -140,7 +142,7 @@ export function EmailViewer({ evidence }: EmailViewerProps) {
 
       {/* Email Body */}
       <div className="prose max-w-none">
-        <div className="whitespace-pre-wrap text-gray-800 font-sans leading-relaxed">
+        <div className="whitespace-pre-wrap text-[var(--text-primary)] font-sans leading-relaxed">
           {emailBody || extractedText}
         </div>
       </div>

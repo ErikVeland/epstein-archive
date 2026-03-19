@@ -1,0 +1,10 @@
+{
+  "id": "31b5dba7-fc5",
+  "prompt_count": 1,
+  "domain_hits": {},
+  "created_at": "2026-03-19T14:49:41.526215",
+  "miss_prompts": [
+    "Do a thorough UI review as if you were Steve Jobs. Is this a beautifully designed app that looks like it was designed by a human and not AI? Does the design system make sense? Is it good UX? No hardco"
+  ],
+  "last_active": "2026-03-19T14:49:41.526332"
+}

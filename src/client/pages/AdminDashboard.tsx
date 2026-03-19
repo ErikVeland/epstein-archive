@@ -289,11 +289,11 @@ export const AdminDashboard: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
+    <div className="min-h-screen app-backdrop text-[var(--text-primary)]">
       <div className="w-full max-w-7xl mx-auto px-4 py-8 space-y-8">
         {/* Header */}
         {error && (
-          <div className="mb-4 flex items-start gap-2 rounded-lg border border-red-800 bg-red-950 px-4 py-3 text-sm text-red-200">
+          <div className="mb-4 flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
             <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0" />
             <div className="flex-1">
               <p className="font-medium">An error occurred while loading admin data.</p>
@@ -310,17 +310,19 @@ export const AdminDashboard: React.FC = () => {
         )}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-slate-100 flex items-center gap-3">
-              <Shield className="w-8 h-8 text-blue-500" />
+            <h1 className="text-[2.5rem] leading-none font-display font-light tracking-tight text-[var(--accent)] flex items-center gap-4 mb-3">
+              <Shield className="w-8 h-8 text-[var(--accent)] opacity-80" strokeWidth={1} />
               Admin Dashboard
             </h1>
-            <p className="text-slate-400 mt-1">Manage users, permissions, and system access</p>
+            <p className="text-lg text-[var(--text-muted)] font-light tracking-wide">
+              Manage users, permissions, and system access
+            </p>
           </div>
 
           <div className="flex items-center gap-3">
             <button
               onClick={handleLogout}
-              className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors border border-slate-700"
+              className="flex items-center gap-2 px-4 py-2 bg-[var(--glass-bg-strong)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-lg transition-colors border border-[var(--glass-border)]"
             >
               <LogOut size={18} />
               <span>Log Out</span>
@@ -329,13 +331,13 @@ export const AdminDashboard: React.FC = () => {
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex space-x-1 bg-slate-900/50 p-1 rounded-xl border border-slate-800 w-fit">
+        <div className="flex space-x-1 bg-[var(--glass-bg)]/40 p-1.5 rounded-2xl shadow-[var(--glass-shadow-soft)] w-fit backdrop-blur-md">
           <button
             onClick={() => setActiveTab('users')}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               activeTab === 'users'
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                ? 'bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent)]/20'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)]'
             }`}
           >
             <Users size={18} />
@@ -345,8 +347,8 @@ export const AdminDashboard: React.FC = () => {
             onClick={() => setActiveTab('audit')}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               activeTab === 'audit'
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                ? 'bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent)]/20'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)]'
             }`}
           >
             <Activity size={18} />
@@ -356,8 +358,8 @@ export const AdminDashboard: React.FC = () => {
             onClick={() => setActiveTab('system')}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               activeTab === 'system'
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                ? 'bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent)]/20'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)]'
             }`}
           >
             <Server size={18} />
@@ -367,8 +369,8 @@ export const AdminDashboard: React.FC = () => {
             onClick={() => setActiveTab('review')}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               activeTab === 'review'
-                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                ? 'bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent)]/20'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)]'
             }`}
           >
             <ShieldCheck size={18} />
@@ -378,8 +380,8 @@ export const AdminDashboard: React.FC = () => {
             onClick={() => setActiveTab('ingestion')}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               activeTab === 'ingestion'
-                ? 'bg-orange-600 text-white shadow-lg shadow-orange-500/20'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                ? 'bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent)]/20'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)]'
             }`}
           >
             <RefreshCw size={18} />
@@ -389,8 +391,8 @@ export const AdminDashboard: React.FC = () => {
             onClick={() => setActiveTab('backups')}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               activeTab === 'backups'
-                ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/20'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                ? 'bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent)]/20'
+                : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)]'
             }`}
           >
             <Database size={18} />
@@ -402,29 +404,37 @@ export const AdminDashboard: React.FC = () => {
         {activeTab === 'users' && (
           <div className="space-y-6 animate-in fade-in duration-300">
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 p-6 rounded-xl">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-slate-400 text-sm font-medium">Total Users</h3>
-                  <Users className="text-blue-500 w-5 h-5" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="p-6 rounded-2xl bg-[var(--glass-bg)]/30 border border-[var(--glass-border)]/50 backdrop-blur-xl shadow-[var(--glass-shadow-soft)] hover:-translate-y-1 hover:shadow-[var(--glass-shadow)] transition-all duration-300 group">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-[10px] uppercase tracking-[0.2em] font-bold text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors">
+                    Total Users
+                  </h3>
+                  <Users className="text-[var(--accent)] w-5 h-5 opacity-70 group-hover:opacity-100 transition-opacity" />
                 </div>
-                <div className="text-3xl font-bold text-slate-100">{users.length}</div>
+                <div className="text-5xl font-light tracking-tighter text-[var(--text-primary)] font-mono">
+                  {users.length}
+                </div>
               </div>
-              <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 p-6 rounded-xl">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-slate-400 text-sm font-medium">Admins</h3>
-                  <Shield className="text-purple-500 w-5 h-5" />
+              <div className="p-6 rounded-2xl bg-[var(--glass-bg)]/30 border border-[var(--glass-border)]/50 backdrop-blur-xl shadow-[var(--glass-shadow-soft)] hover:-translate-y-1 hover:shadow-[var(--glass-shadow)] transition-all duration-300 group">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-[10px] uppercase tracking-[0.2em] font-bold text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors">
+                    Admins
+                  </h3>
+                  <Shield className="text-purple-400 w-5 h-5 opacity-70 group-hover:opacity-100 transition-opacity" />
                 </div>
-                <div className="text-3xl font-bold text-slate-100">
+                <div className="text-5xl font-light tracking-tighter text-[var(--text-primary)] font-mono">
                   {users.filter((u) => u.role === 'admin').length}
                 </div>
               </div>
-              <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 p-6 rounded-xl">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-slate-400 text-sm font-medium">Active (24h)</h3>
-                  <Check className="text-green-500 w-5 h-5" />
+              <div className="p-6 rounded-2xl bg-[var(--glass-bg)]/30 border border-[var(--glass-border)]/50 backdrop-blur-xl shadow-[var(--glass-shadow-soft)] hover:-translate-y-1 hover:shadow-[var(--glass-shadow)] transition-all duration-300 group">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-[10px] uppercase tracking-[0.2em] font-bold text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors">
+                    Active (24h)
+                  </h3>
+                  <Check className="text-green-400 w-5 h-5 opacity-70 group-hover:opacity-100 transition-opacity" />
                 </div>
-                <div className="text-3xl font-bold text-slate-100">
+                <div className="text-5xl font-light tracking-tighter text-[var(--text-primary)] font-mono">
                   {
                     users.filter((u) => {
                       if (!u.last_active) return false;
@@ -436,23 +446,23 @@ export const AdminDashboard: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl overflow-hidden">
-              <div className="p-4 border-b border-slate-800 flex items-center justify-between gap-4">
-                <h2 className="text-lg font-semibold text-slate-100">Users</h2>
+            <div className="glass-panel rounded-xl overflow-hidden">
+              <div className="p-4 border-b border-[var(--glass-border)] flex items-center justify-between gap-4">
+                <h2 className="text-lg font-semibold text-[var(--text-primary)]">Users</h2>
                 <div className="flex items-center gap-3 w-full max-w-xl justify-end">
                   <div className="relative max-w-md w-full">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                     <input
                       type="text"
                       placeholder="Search users..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-9 pr-4 py-2 text-sm text-slate-100 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition-all"
+                      className="w-full bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-lg pl-9 pr-4 py-2 text-sm text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--accent)] outline-none transition-all"
                     />
                   </div>
                   <button
                     onClick={openCreateModal}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors shadow-lg shadow-blue-500/20 whitespace-nowrap"
+                    className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] hover:brightness-110 text-white rounded-lg transition-colors shadow-lg shadow-[var(--accent)]/20 whitespace-nowrap"
                   >
                     <UserPlus size={18} />
                     <span>Add User</span>
@@ -463,7 +473,7 @@ export const AdminDashboard: React.FC = () => {
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-slate-950/50 text-slate-400 text-sm border-b border-slate-800">
+                    <tr className="bg-[var(--glass-bg-strong)] text-[var(--text-secondary)] text-sm border-b border-[var(--glass-border)]">
                       <th className="px-6 py-3 font-medium">User</th>
                       <th className="px-6 py-3 font-medium">Role</th>
                       <th className="px-6 py-3 font-medium">Email</th>
@@ -471,28 +481,33 @@ export const AdminDashboard: React.FC = () => {
                       <th className="px-6 py-3 font-medium text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800">
+                  <tbody className="divide-y divide-[var(--glass-border)]">
                     {loading ? (
                       <tr>
-                        <td colSpan={5} className="px-6 py-8 text-center text-slate-400">
+                        <td colSpan={5} className="px-6 py-8 text-center text-[var(--text-muted)]">
                           Loading users...
                         </td>
                       </tr>
                     ) : filteredUsers.length === 0 ? (
                       <tr>
-                        <td colSpan={5} className="px-6 py-8 text-center text-slate-400">
+                        <td colSpan={5} className="px-6 py-8 text-center text-[var(--text-muted)]">
                           No users found
                         </td>
                       </tr>
                     ) : (
                       filteredUsers.map((user) => (
-                        <tr key={user.id} className="hover:bg-slate-800/30 transition-colors group">
+                        <tr
+                          key={user.id}
+                          className="hover:bg-[var(--glass-bg-strong)] transition-colors group"
+                        >
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-3">
                               <div className="w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center font-medium text-sm">
                                 {user.username.charAt(0).toUpperCase()}
                               </div>
-                              <div className="font-medium text-slate-200">{user.username}</div>
+                              <div className="font-medium text-[var(--text-primary)]">
+                                {user.username}
+                              </div>
                             </div>
                           </td>
                           <td className="px-6 py-4">
@@ -502,15 +517,17 @@ export const AdminDashboard: React.FC = () => {
                                   ? 'bg-purple-500/10 text-purple-400 border-purple-500/20'
                                   : user.role === 'investigator'
                                     ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                                    : 'bg-slate-700/50 text-slate-300 border-slate-600/50'
+                                    : 'bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] border-[var(--glass-border)]'
                               }`}
                             >
                               {user.role === 'admin' && <Shield size={12} />}
                               {user.role}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-slate-400 text-sm">{user.email || '-'}</td>
-                          <td className="px-6 py-4 text-slate-400 text-sm">
+                          <td className="px-6 py-4 text-[var(--text-secondary)] text-sm">
+                            {user.email || '-'}
+                          </td>
+                          <td className="px-6 py-4 text-[var(--text-secondary)] text-sm">
                             {user.last_active
                               ? new Date(user.last_active).toLocaleString()
                               : 'Never'}
@@ -519,7 +536,7 @@ export const AdminDashboard: React.FC = () => {
                             <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                               <button
                                 onClick={() => openEditModal(user)}
-                                className="p-1.5 text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
+                                className="p-1.5 text-[var(--text-muted)] hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
                                 title="Edit User"
                               >
                                 <Edit2 size={16} />
@@ -527,7 +544,7 @@ export const AdminDashboard: React.FC = () => {
                               {user.id !== currentUser?.id && (
                                 <button
                                   onClick={() => handleDelete(user.id)}
-                                  className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                                  className="p-1.5 text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                                   title="Delete User"
                                 >
                                   <Trash2 size={16} />
@@ -547,15 +564,15 @@ export const AdminDashboard: React.FC = () => {
 
         {/* --- AUDIT TAB --- */}
         {activeTab === 'audit' && (
-          <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl overflow-hidden animate-in fade-in duration-300">
-            <div className="p-4 border-b border-slate-800 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-slate-100 flex items-center gap-2">
+          <div className="glass-panel rounded-xl overflow-hidden animate-in fade-in duration-300">
+            <div className="p-4 border-b border-[var(--glass-border)] flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-[var(--text-primary)] flex items-center gap-2">
                 <Activity className="text-blue-400 w-5 h-5" />
                 Audit Logs
               </h2>
               <button
                 onClick={fetchAuditLogs}
-                className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg"
+                className="p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)] rounded-lg transition-colors"
                 title="Refresh"
               >
                 <RefreshCw size={18} className={auditLoading ? 'animate-spin' : ''} />
@@ -564,7 +581,7 @@ export const AdminDashboard: React.FC = () => {
             <div className="overflow-x-auto max-h-[70vh]">
               <table className="w-full text-left border-collapse">
                 <thead className="sticky top-0 z-10">
-                  <tr className="bg-slate-950 text-slate-400 text-sm border-b border-slate-800">
+                  <tr className="bg-[var(--glass-bg-strong)] text-[var(--text-secondary)] text-sm border-b border-[var(--glass-border)]">
                     <th className="px-6 py-3 font-medium">Timestamp</th>
                     <th className="px-6 py-3 font-medium">User</th>
                     <th className="px-6 py-3 font-medium">Action</th>
@@ -572,40 +589,45 @@ export const AdminDashboard: React.FC = () => {
                     <th className="px-6 py-3 font-medium">Details</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800">
+                <tbody className="divide-y divide-[var(--glass-border)]">
                   {auditLoading && logs.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-6 py-8 text-center text-slate-400">
+                      <td colSpan={5} className="px-6 py-8 text-center text-[var(--text-muted)]">
                         Loading logs...
                       </td>
                     </tr>
                   ) : logs.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-6 py-8 text-center text-slate-400">
+                      <td colSpan={5} className="px-6 py-8 text-center text-[var(--text-muted)]">
                         No logs found
                       </td>
                     </tr>
                   ) : (
                     logs.map((log, idx) => (
-                      <tr key={log.id || idx} className="hover:bg-slate-800/30">
-                        <td className="px-6 py-4 text-xs font-mono text-slate-400 whitespace-nowrap">
+                      <tr
+                        key={log.id || idx}
+                        className="hover:bg-[var(--glass-bg-strong)] transition-colors"
+                      >
+                        <td className="px-6 py-4 text-xs font-mono text-[var(--text-muted)] whitespace-nowrap">
                           {new Date(log.timestamp).toLocaleString()}
                         </td>
-                        <td className="px-6 py-4 text-sm font-medium text-slate-300">
+                        <td className="px-6 py-4 text-sm font-medium text-[var(--text-primary)]">
                           {log.performed_by || log.user_id}
                         </td>
                         <td className="px-6 py-4">
-                          <span className="px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider bg-slate-800 text-slate-300 border border-slate-700">
+                          <span className="px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider bg-[var(--glass-bg-strong)] text-[var(--text-primary)] border border-[var(--glass-border)]">
                             {log.action}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-sm text-slate-400">
+                        <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">
                           {log.object_type}{' '}
                           {log.object_id && (
-                            <span className="text-slate-500">#{log.object_id.substring(0, 8)}</span>
+                            <span className="text-[var(--text-muted)]">
+                              #{log.object_id.substring(0, 8)}
+                            </span>
                           )}
                         </td>
-                        <td className="px-6 py-4 text-sm text-slate-500 font-mono text-xs max-w-md truncate">
+                        <td className="px-6 py-4 text-sm text-[var(--text-muted)] font-mono text-xs max-w-md truncate">
                           {JSON.stringify(log.payload)}
                         </td>
                       </tr>
@@ -620,60 +642,68 @@ export const AdminDashboard: React.FC = () => {
         {/* --- SYSTEM TAB --- */}
         {activeTab === 'system' && (
           <div className="space-y-6 animate-in fade-in duration-300">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-slate-900/50 p-6 rounded-xl border border-slate-800">
-                <div className="flex items-center gap-3 mb-2">
-                  <Activity className="text-green-500" />
-                  <h3 className="text-slate-400 text-sm font-medium">Status</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="p-6 rounded-2xl bg-[var(--glass-bg)]/30 border border-[var(--glass-border)]/50 backdrop-blur-xl shadow-[var(--glass-shadow-soft)] hover:-translate-y-1 hover:shadow-[var(--glass-shadow)] transition-all duration-300 group">
+                <div className="flex items-center gap-3 mb-4">
+                  <Activity className="text-green-400 opacity-70 group-hover:opacity-100 transition-opacity" />
+                  <h3 className="text-[10px] uppercase tracking-[0.2em] font-bold text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors">
+                    Status
+                  </h3>
                 </div>
-                <div className="text-2xl font-bold text-white uppercase">
+                <div className="text-4xl font-light tracking-tighter text-[var(--text-primary)] font-mono uppercase">
                   {health?.status || 'Unknown'}
                 </div>
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-[var(--text-muted)] mt-2 font-mono uppercase tracking-wider">
                   Uptime: {health ? (health.uptime / 3600).toFixed(1) : 0} hrs
                 </p>
               </div>
 
-              <div className="bg-slate-900/50 p-6 rounded-xl border border-slate-800">
-                <div className="flex items-center gap-3 mb-2">
-                  <Database className="text-blue-500" />
-                  <h3 className="text-slate-400 text-sm font-medium">Database</h3>
+              <div className="p-6 rounded-2xl bg-[var(--glass-bg)]/30 border border-[var(--glass-border)]/50 backdrop-blur-xl shadow-[var(--glass-shadow-soft)] hover:-translate-y-1 hover:shadow-[var(--glass-shadow)] transition-all duration-300 group">
+                <div className="flex items-center gap-3 mb-4">
+                  <Database className="text-blue-400 opacity-70 group-hover:opacity-100 transition-opacity" />
+                  <h3 className="text-[10px] uppercase tracking-[0.2em] font-bold text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors">
+                    Database
+                  </h3>
                 </div>
-                <div className="text-2xl font-bold text-white uppercase">
+                <div className="text-4xl font-light tracking-tighter text-[var(--text-primary)] font-mono uppercase">
                   {health?.database || 'Unknown'}
                 </div>
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-[var(--text-muted)] mt-2 font-mono uppercase tracking-wider">
                   Entities: {health?.data?.entities?.toLocaleString()}
                 </p>
               </div>
 
-              <div className="bg-slate-900/50 p-6 rounded-xl border border-slate-800">
-                <div className="flex items-center gap-3 mb-2">
-                  <FileText className="text-orange-500" />
-                  <h3 className="text-slate-400 text-sm font-medium">Documents</h3>
+              <div className="p-6 rounded-2xl bg-[var(--glass-bg)]/30 border border-[var(--glass-border)]/50 backdrop-blur-xl shadow-[var(--glass-shadow-soft)] hover:-translate-y-1 hover:shadow-[var(--glass-shadow)] transition-all duration-300 group">
+                <div className="flex items-center gap-3 mb-4">
+                  <FileText className="text-orange-400 opacity-70 group-hover:opacity-100 transition-opacity" />
+                  <h3 className="text-[10px] uppercase tracking-[0.2em] font-bold text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors">
+                    Documents
+                  </h3>
                 </div>
-                <div className="text-2xl font-bold text-white">
+                <div className="text-4xl font-light tracking-tighter text-[var(--text-primary)] font-mono">
                   {health?.data?.documents?.toLocaleString() || 0}
                 </div>
               </div>
 
-              <div className="bg-slate-900/50 p-6 rounded-xl border border-slate-800">
-                <div className="flex items-center gap-3 mb-2">
-                  <Cpu className="text-purple-500" />
-                  <h3 className="text-slate-400 text-sm font-medium">Environment</h3>
+              <div className="p-6 rounded-2xl bg-[var(--glass-bg)]/30 border border-[var(--glass-border)]/50 backdrop-blur-xl shadow-[var(--glass-shadow-soft)] hover:-translate-y-1 hover:shadow-[var(--glass-shadow)] transition-all duration-300 group">
+                <div className="flex items-center gap-3 mb-4">
+                  <Cpu className="text-purple-400 opacity-70 group-hover:opacity-100 transition-opacity" />
+                  <h3 className="text-[10px] uppercase tracking-[0.2em] font-bold text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors">
+                    Environment
+                  </h3>
                 </div>
-                <div className="text-sm font-mono text-white bg-slate-950 p-2 rounded">
+                <div className="text-sm font-mono tracking-wider text-[var(--text-primary)] bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] p-2 rounded-lg">
                   {health?.environment || 'unknown'}
                 </div>
               </div>
             </div>
 
             {/* Add more system controls here later */}
-            <div className="bg-amber-900/10 border border-amber-900/30 p-4 rounded-xl flex items-start gap-3">
+            <div className="bg-amber-500/10 border border-amber-500/30 p-4 rounded-xl flex items-start gap-3">
               <AlertTriangle className="text-amber-500 mt-0.5" />
               <div>
                 <h4 className="text-amber-400 font-medium">System Maintenance</h4>
-                <p className="text-amber-500/80 text-sm mt-1">
+                <p className="text-amber-400/80 text-sm mt-1">
                   Advanced system operations (re-indexing, cache clearing) are currently handled via
                   CLI scripts. Do not attempt to modify production database directly while server is
                   running.
@@ -685,9 +715,9 @@ export const AdminDashboard: React.FC = () => {
 
         {/* --- INGESTION TAB --- */}
         {activeTab === 'ingestion' && (
-          <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl overflow-hidden animate-in fade-in duration-300">
-            <div className="p-4 border-b border-slate-800 flex items-center justify-between font-bold">
-              <h2 className="text-lg font-semibold text-slate-100 flex items-center gap-2">
+          <div className="glass-panel rounded-xl overflow-hidden animate-in fade-in duration-300">
+            <div className="p-4 border-b border-[var(--glass-border)] flex items-center justify-between font-bold">
+              <h2 className="text-lg font-semibold text-[var(--text-primary)] flex items-center gap-2">
                 <RefreshCw className="text-orange-400 w-5 h-5" />
                 Ingestion History
               </h2>
@@ -695,7 +725,7 @@ export const AdminDashboard: React.FC = () => {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-950 text-slate-400 text-sm border-b border-slate-800">
+                  <tr className="bg-[var(--glass-bg-strong)] text-[var(--text-secondary)] text-sm border-b border-[var(--glass-border)]">
                     <th className="px-6 py-3 font-medium">Run ID</th>
                     <th className="px-6 py-3 font-medium">Status</th>
                     <th className="px-6 py-3 font-medium">Date</th>
@@ -703,10 +733,13 @@ export const AdminDashboard: React.FC = () => {
                     <th className="px-6 py-3 font-medium">Model / Agentic</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800">
+                <tbody className="divide-y divide-[var(--glass-border)]">
                   {ingestRuns.map((run) => (
-                    <tr key={run.id} className="hover:bg-slate-800/30">
-                      <td className="px-6 py-4 text-xs font-mono text-slate-300 truncate max-w-[120px]">
+                    <tr
+                      key={run.id}
+                      className="hover:bg-[var(--glass-bg-strong)] transition-colors"
+                    >
+                      <td className="px-6 py-4 text-xs font-mono text-[var(--text-primary)] truncate max-w-[120px]">
                         {run.id}
                       </td>
                       <td className="px-6 py-4">
@@ -722,15 +755,15 @@ export const AdminDashboard: React.FC = () => {
                           {run.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-xs text-slate-400">
+                      <td className="px-6 py-4 text-xs text-[var(--text-secondary)]">
                         {new Date(run.startedAt).toLocaleString()}
                       </td>
-                      <td className="px-6 py-4 text-[10px] font-mono text-slate-500">
+                      <td className="px-6 py-4 text-[10px] font-mono text-[var(--text-muted)]">
                         {run.gitCommit?.substring(0, 7) || 'N/A'}
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex flex-col gap-1">
-                          <span className="text-[10px] text-slate-300">
+                          <span className="text-[10px] text-[var(--text-secondary)]">
                             {run.agenticModelId || 'Legacy'}
                           </span>
                           {run.agenticEnabled && (
@@ -744,7 +777,10 @@ export const AdminDashboard: React.FC = () => {
                   ))}
                   {ingestRuns.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="px-6 py-12 text-center text-slate-500 italic">
+                      <td
+                        colSpan={5}
+                        className="px-6 py-12 text-center text-[var(--text-muted)] italic"
+                      >
                         No ingestion runs found in history.
                       </td>
                     </tr>
@@ -760,47 +796,53 @@ export const AdminDashboard: React.FC = () => {
           <div className="space-y-6 animate-in fade-in duration-300">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-bold text-white">Database Backups</h2>
-                <p className="text-slate-400 text-sm">
+                <h2 className="text-xl font-bold text-[var(--text-primary)]">Database Backups</h2>
+                <p className="text-[var(--text-secondary)] text-sm">
                   Compressed database snapshots (Last 7 days retained)
                 </p>
               </div>
               <button
                 onClick={triggerBackup}
-                className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors shadow-lg shadow-emerald-500/20"
+                className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] hover:brightness-110 text-white rounded-lg transition-colors shadow-lg shadow-[var(--accent)]/20"
               >
                 <RefreshCw size={18} />
                 Snapshot Now
               </button>
             </div>
 
-            <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-800 rounded-xl overflow-hidden">
+            <div className="glass-panel rounded-xl overflow-hidden">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-950 text-slate-400 text-sm border-b border-slate-800">
+                  <tr className="bg-[var(--glass-bg-strong)] text-[var(--text-secondary)] text-sm border-b border-[var(--glass-border)]">
                     <th className="px-6 py-3 font-medium">Filename</th>
                     <th className="px-6 py-3 font-medium text-right">Size</th>
                     <th className="px-6 py-3 font-medium text-right">Created</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800">
+                <tbody className="divide-y divide-[var(--glass-border)]">
                   {backups.map((backup) => (
-                    <tr key={backup.filename} className="hover:bg-slate-800/30">
-                      <td className="px-6 py-4 text-sm text-slate-300 flex items-center gap-2">
-                        <FileText size={14} className="text-slate-500" />
+                    <tr
+                      key={backup.filename}
+                      className="hover:bg-[var(--glass-bg-strong)] transition-colors"
+                    >
+                      <td className="px-6 py-4 text-sm text-[var(--text-primary)] flex items-center gap-2">
+                        <FileText size={14} className="text-[var(--text-muted)]" />
                         {backup.filename}
                       </td>
-                      <td className="px-6 py-4 text-xs font-mono text-slate-400 text-right">
+                      <td className="px-6 py-4 text-xs font-mono text-[var(--text-secondary)] text-right">
                         {(backup.size / 1024 / 1024).toFixed(2)} MB
                       </td>
-                      <td className="px-6 py-4 text-xs text-slate-500 text-right">
+                      <td className="px-6 py-4 text-xs text-[var(--text-muted)] text-right">
                         {new Date(backup.createdAt).toLocaleString()}
                       </td>
                     </tr>
                   ))}
                   {backups.length === 0 && (
                     <tr>
-                      <td colSpan={3} className="px-6 py-12 text-center text-slate-500 italic">
+                      <td
+                        colSpan={3}
+                        className="px-6 py-12 text-center text-[var(--text-muted)] italic"
+                      >
                         No snapshots available. Trigger a manual backup to start.
                       </td>
                     </tr>
@@ -822,9 +864,9 @@ export const AdminDashboard: React.FC = () => {
       {/* Create/Edit Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-xl shadow-2xl animate-in fade-in zoom-in duration-200">
-            <div className="flex items-center justify-between p-6 border-b border-slate-800">
-              <h3 className="text-xl font-semibold text-slate-100">
+          <div className="w-full max-w-md glass-panel shadow-2xl rounded-xl animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-between p-6 border-b border-[var(--glass-border)]">
+              <h3 className="text-xl font-semibold text-[var(--text-primary)]">
                 {editingUser ? 'Edit User' : 'Add New User'}
               </h3>
               <CloseButton onClick={closeModal} size="sm" label="Close user modal" />
@@ -832,40 +874,42 @@ export const AdminDashboard: React.FC = () => {
 
             <form onSubmit={editingUser ? handleUpdate : handleCreate} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-1">Username</label>
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                  Username
+                </label>
                 <input
                   type="text"
                   value={formData.username}
                   onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                   disabled={!!editingUser}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 focus:ring-2 focus:ring-blue-500/50 outline-none disabled:opacity-50"
+                  className="w-full bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-lg px-3 py-2 text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--accent)] outline-none disabled:opacity-50 transition-all"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-1">
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                   Email (Optional)
                 </label>
                 <input
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 focus:ring-2 focus:ring-blue-500/50 outline-none"
+                  className="w-full bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-lg px-3 py-2 text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--accent)] outline-none transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-1">
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
                   {editingUser ? 'New Password (leave blank to keep)' : 'Password'}
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                   <input
                     type="password"
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-9 pr-3 py-2 text-slate-100 focus:ring-2 focus:ring-blue-500/50 outline-none"
+                    className="w-full bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-lg pl-9 pr-3 py-2 text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--accent)] outline-none transition-all"
                     required={!editingUser}
                     minLength={6}
                   />
@@ -873,15 +917,23 @@ export const AdminDashboard: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-400 mb-1">Role</label>
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                  Role
+                </label>
                 <select
                   value={formData.role}
                   onChange={(e) => setFormData({ ...formData, role: e.target.value as any })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-100 focus:ring-2 focus:ring-blue-500/50 outline-none"
+                  className="w-full bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-lg px-3 py-2 text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--accent)] outline-none transition-all"
                 >
-                  <option value="viewer">Viewer (Read Only)</option>
-                  <option value="investigator">Investigator (Can Edit)</option>
-                  <option value="admin">Admin (Full Access)</option>
+                  <option value="viewer" className="bg-slate-900">
+                    Viewer (Read Only)
+                  </option>
+                  <option value="investigator" className="bg-slate-900">
+                    Investigator (Can Edit)
+                  </option>
+                  <option value="admin" className="bg-slate-900">
+                    Admin (Full Access)
+                  </option>
                 </select>
               </div>
 
@@ -889,13 +941,13 @@ export const AdminDashboard: React.FC = () => {
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="flex-1 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors font-medium"
+                  className="flex-1 px-4 py-2 bg-[var(--glass-bg-strong)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] rounded-lg transition-colors font-medium"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium shadow-lg shadow-blue-500/20"
+                  className="flex-1 px-4 py-2 bg-[var(--accent)] hover:brightness-110 text-white rounded-lg transition-colors font-medium shadow-lg shadow-[var(--accent)]/20"
                 >
                   {editingUser ? 'Save Changes' : 'Create User'}
                 </button>

@@ -265,13 +265,13 @@ export default function MultiSourceCorrelationEngine() {
       case 'verified':
         return 'text-green-400 bg-green-900';
       case 'high':
-        return 'text-blue-400 bg-blue-900';
+        return 'text-[var(--accent)] bg-blue-900';
       case 'medium':
         return 'text-yellow-400 bg-yellow-900';
       case 'low':
         return 'text-red-400 bg-red-900';
       default:
-        return 'text-gray-400 bg-gray-900';
+        return 'text-[var(--text-muted)] bg-[var(--glass-bg-strong)]';
     }
   };
 
@@ -282,11 +282,11 @@ export default function MultiSourceCorrelationEngine() {
       case 'high':
         return 'border-yellow-500 bg-yellow-900';
       case 'medium':
-        return 'border-blue-500 bg-blue-900';
+        return 'border-[var(--accent)] bg-blue-900';
       case 'low':
         return 'border-green-500 bg-green-900';
       default:
-        return 'border-gray-500 bg-gray-900';
+        return 'border-[var(--glass-border)] bg-[var(--glass-bg-strong)]';
     }
   };
 
@@ -340,43 +340,43 @@ export default function MultiSourceCorrelationEngine() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100 p-6">
+    <div className="min-h-screen bg-[var(--glass-bg-strong)] text-[var(--text-primary)] p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-red-400 mb-2">Multi-Source Correlation Engine</h1>
-          <p className="text-gray-400">
+          <p className="text-[var(--text-muted)]">
             Advanced cross-reference analysis connecting disparate data sources
           </p>
         </div>
 
         {/* Controls */}
-        <div className="bg-gray-800 rounded-lg p-6 mb-6">
+        <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] p-6 mb-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                 Search Correlations
               </label>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--text-muted)] w-4 h-4" />
                 <input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Search descriptions or entities..."
-                  className="w-full pl-10 pr-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                 Correlation Type
               </label>
               <select
                 value={filterType}
                 onChange={(e) => setFilterType(e.target.value)}
-                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:ring-2 focus:ring-red-500"
+                className="w-full px-4 py-2 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] focus:ring-2 focus:ring-red-500"
               >
                 <option value="all">All Types</option>
                 <option value="temporal">Temporal</option>
@@ -389,11 +389,13 @@ export default function MultiSourceCorrelationEngine() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Significance</label>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                Significance
+              </label>
               <select
                 value={filterSignificance}
                 onChange={(e) => setFilterSignificance(e.target.value)}
-                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:ring-2 focus:ring-red-500"
+                className="w-full px-4 py-2 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] focus:ring-2 focus:ring-red-500"
               >
                 <option value="all">All Levels</option>
                 <option value="critical">Critical</option>
@@ -407,7 +409,7 @@ export default function MultiSourceCorrelationEngine() {
               <button
                 onClick={runCorrelationAnalysis}
                 disabled={isAnalyzing}
-                className="w-full px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors flex items-center justify-center gap-2 whitespace-nowrap min-w-[160px]"
+                className="w-full px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-[var(--glass-bg-highlight)] disabled:cursor-not-allowed rounded-[var(--radius-lg)] transition-colors flex items-center justify-center gap-2 whitespace-nowrap min-w-[160px]"
               >
                 {isAnalyzing ? (
                   <>
@@ -426,11 +428,11 @@ export default function MultiSourceCorrelationEngine() {
 
           {isAnalyzing && (
             <div className="mb-4">
-              <div className="flex justify-between text-sm text-gray-400 mb-2">
+              <div className="flex justify-between text-sm text-[var(--text-muted)] mb-2">
                 <span>Analysis Progress</span>
                 <span>{analysisProgress}%</span>
               </div>
-              <div className="w-full bg-gray-700 rounded-full h-2">
+              <div className="w-full bg-[var(--glass-bg-highlight)] rounded-full h-2">
                 <div
                   className="bg-red-600 h-2 rounded-full transition-all duration-300"
                   style={{ width: `${analysisProgress}%` }}
@@ -440,13 +442,13 @@ export default function MultiSourceCorrelationEngine() {
           )}
 
           <div className="flex justify-between items-center">
-            <div className="text-sm text-gray-400">
+            <div className="text-sm text-[var(--text-muted)]">
               Found {filteredCorrelations.length} correlations from {dataSources.length} data
               sources
             </div>
             <button
               onClick={exportCorrelations}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+              className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] hover:bg-blue-700 rounded-[var(--radius-lg)] transition-colors"
             >
               <Download className="w-4 h-4" />
               Export Results
@@ -456,30 +458,34 @@ export default function MultiSourceCorrelationEngine() {
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-          <div className="bg-gray-800 rounded-lg p-4">
+          <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-400 text-sm whitespace-nowrap">Active Sources</p>
-                <p className="text-2xl font-bold text-blue-400">{dataSources.length}</p>
+                <p className="text-[var(--text-muted)] text-sm whitespace-nowrap">Active Sources</p>
+                <p className="text-2xl font-bold text-[var(--accent)]">{dataSources.length}</p>
               </div>
-              <Activity className="w-8 h-8 text-blue-400" />
+              <Activity className="w-8 h-8 text-[var(--accent)]" />
             </div>
           </div>
 
-          <div className="bg-gray-800 rounded-lg p-4">
+          <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-400 text-sm whitespace-nowrap">Total Correlations</p>
+                <p className="text-[var(--text-muted)] text-sm whitespace-nowrap">
+                  Total Correlations
+                </p>
                 <p className="text-2xl font-bold text-green-400">{filteredCorrelations.length}</p>
               </div>
               <Link className="w-8 h-8 text-green-400" />
             </div>
           </div>
 
-          <div className="bg-gray-800 rounded-lg p-4">
+          <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-400 text-sm whitespace-nowrap">Critical Findings</p>
+                <p className="text-[var(--text-muted)] text-sm whitespace-nowrap">
+                  Critical Findings
+                </p>
                 <p className="text-2xl font-bold text-yellow-400">
                   {filteredCorrelations.filter((c) => c.significance === 'critical').length}
                 </p>
@@ -488,10 +494,10 @@ export default function MultiSourceCorrelationEngine() {
             </div>
           </div>
 
-          <div className="bg-gray-800 rounded-lg p-4">
+          <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-400 text-sm whitespace-nowrap">Avg Confidence</p>
+                <p className="text-[var(--text-muted)] text-sm whitespace-nowrap">Avg Confidence</p>
                 <p className="text-2xl font-bold text-purple-400">
                   {filteredCorrelations.length > 0
                     ? Math.round(
@@ -511,14 +517,16 @@ export default function MultiSourceCorrelationEngine() {
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {/* Correlation Results */}
           <div className="md:col-span-1 xl:col-span-2">
-            <div className="bg-gray-800 rounded-lg p-6">
-              <h2 className="text-xl font-semibold text-gray-100 mb-4">Correlation Results</h2>
+            <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] p-6">
+              <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-4">
+                Correlation Results
+              </h2>
               <div className="space-y-4 max-h-96 overflow-y-auto">
                 {filteredCorrelations.map((correlation) => (
                   <div
                     key={correlation.id}
                     onClick={() => setSelectedCorrelation(correlation)}
-                    className={`p-4 rounded-lg cursor-pointer transition-colors border-l-4 ${
+                    className={`p-4 rounded-[var(--radius-lg)] cursor-pointer transition-colors border-l-4 ${
                       selectedCorrelation?.id === correlation.id
                         ? 'bg-red-900 border-red-500'
                         : `${getSignificanceColor(correlation.significance)} border-opacity-50`
@@ -536,7 +544,7 @@ export default function MultiSourceCorrelationEngine() {
                                   ? 'bg-yellow-900 text-yellow-200'
                                   : correlation.type === 'communication'
                                     ? 'bg-purple-900 text-purple-200'
-                                    : 'bg-gray-900 text-gray-200'
+                                    : 'bg-[var(--glass-bg-strong)] text-[var(--text-primary)]'
                           }`}
                         >
                           {correlation.type}
@@ -583,25 +591,25 @@ export default function MultiSourceCorrelationEngine() {
                             window.dispatchEvent(event);
                           }}
                           variant="icon"
-                          className="hover:bg-slate-600 p-1"
+                          className="hover:bg-[var(--glass-bg-highlight)] p-1"
                         />
                       </div>
                     </div>
 
-                    <p className="text-gray-100 mb-3">{correlation.description}</p>
+                    <p className="text-[var(--text-primary)] mb-3">{correlation.description}</p>
 
                     <div className="flex flex-wrap gap-2 mb-3">
                       {correlation.entities.map((entity, index) => (
                         <span
                           key={index}
-                          className="px-2 py-1 bg-gray-700 text-gray-300 rounded text-xs"
+                          className="px-2 py-1 bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] rounded text-xs"
                         >
                           {entity}
                         </span>
                       ))}
                     </div>
 
-                    <div className="flex items-center gap-4 text-xs text-gray-400">
+                    <div className="flex items-center gap-4 text-xs text-[var(--text-muted)]">
                       <span className="flex items-center gap-1">
                         <Calendar className="w-3 h-3" />
                         {correlation.timeRange.start} to {correlation.timeRange.end}
@@ -639,32 +647,39 @@ export default function MultiSourceCorrelationEngine() {
           {/* Side Panel */}
           <div className="space-y-6">
             {/* Data Sources */}
-            <div className="bg-gray-800 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-100 mb-4">Data Sources</h3>
+            <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] p-6">
+              <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
+                Data Sources
+              </h3>
               <div className="space-y-3 max-h-48 overflow-y-auto">
                 {dataSources.map((source) => (
-                  <div key={source.id} className="p-3 bg-gray-700 rounded-lg">
+                  <div
+                    key={source.id}
+                    className="p-3 bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)]"
+                  >
                     <div className="flex items-center gap-2 mb-2">
                       {getSourceIcon(source.type)}
-                      <span className="font-medium text-gray-100 text-sm">{source.name}</span>
+                      <span className="font-medium text-[var(--text-primary)] text-sm">
+                        {source.name}
+                      </span>
                     </div>
-                    <p className="text-xs text-gray-400 mb-2">{source.description}</p>
+                    <p className="text-xs text-[var(--text-muted)] mb-2">{source.description}</p>
                     <div className="flex justify-between items-center text-xs">
                       <span
                         className={`px-2 py-1 rounded ${getReliabilityColor(source.reliability)}`}
                       >
                         {source.reliability.toUpperCase()}
                       </span>
-                      <span className="text-gray-500">{source.recordCount} records</span>
+                      <span className="text-[var(--text-muted)]">{source.recordCount} records</span>
                     </div>
                     <div className="mt-2">
-                      <div className="flex justify-between text-xs text-gray-400 mb-1">
+                      <div className="flex justify-between text-xs text-[var(--text-muted)] mb-1">
                         <span>Coverage</span>
                         <span>{source.coverage}%</span>
                       </div>
-                      <div className="w-full bg-gray-600 rounded-full h-1">
+                      <div className="w-full bg-[var(--glass-bg-highlight)] rounded-full h-1">
                         <div
-                          className="bg-blue-600 h-1 rounded-full"
+                          className="bg-[var(--accent)] h-1 rounded-full"
                           style={{ width: `${source.coverage}%` }}
                         ></div>
                       </div>
@@ -675,28 +690,37 @@ export default function MultiSourceCorrelationEngine() {
             </div>
 
             {/* Correlation Rules */}
-            <div className="bg-gray-800 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-100 mb-4">Correlation Rules</h3>
+            <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] p-6">
+              <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
+                Correlation Rules
+              </h3>
               <div className="space-y-3 max-h-48 overflow-y-auto">
                 {correlationRules.map((rule) => (
-                  <div key={rule.id} className="p-3 bg-gray-700 rounded-lg">
+                  <div
+                    key={rule.id}
+                    className="p-3 bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)]"
+                  >
                     <div className="flex justify-between items-center mb-2">
-                      <span className="font-medium text-gray-100 text-sm">{rule.name}</span>
+                      <span className="font-medium text-[var(--text-primary)] text-sm">
+                        {rule.name}
+                      </span>
                       <span
                         className={`px-2 py-1 rounded text-xs ${
-                          rule.enabled ? 'bg-green-900 text-green-200' : 'bg-gray-900 text-gray-200'
+                          rule.enabled
+                            ? 'bg-green-900 text-green-200'
+                            : 'bg-[var(--glass-bg-strong)] text-[var(--text-primary)]'
                         }`}
                       >
                         {rule.enabled ? 'ACTIVE' : 'INACTIVE'}
                       </span>
                     </div>
-                    <p className="text-xs text-gray-400 mb-2">{rule.description}</p>
-                    <div className="flex justify-between items-center text-xs text-gray-500">
+                    <p className="text-xs text-[var(--text-muted)] mb-2">{rule.description}</p>
+                    <div className="flex justify-between items-center text-xs text-[var(--text-muted)]">
                       <span>Sensitivity: {rule.sensitivity}</span>
                       <span>Triggers: {rule.triggerCount}</span>
                     </div>
                     {rule.lastTriggered && (
-                      <div className="text-xs text-gray-500 mt-1">
+                      <div className="text-xs text-[var(--text-muted)] mt-1">
                         Last: {new Date(rule.lastTriggered).toLocaleDateString()}
                       </div>
                     )}
@@ -707,9 +731,11 @@ export default function MultiSourceCorrelationEngine() {
 
             {/* Correlation Details */}
             {selectedCorrelation && (
-              <div className="bg-gray-800 rounded-lg p-6">
+              <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-100">Correlation Details</h3>
+                  <h3 className="text-lg font-semibold text-[var(--text-primary)]">
+                    Correlation Details
+                  </h3>
                   <AddToInvestigationButton
                     item={{
                       id: selectedCorrelation.id,
@@ -737,44 +763,56 @@ export default function MultiSourceCorrelationEngine() {
                 </div>
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-sm font-medium text-gray-400">Type</label>
-                    <p className="text-gray-100 capitalize">{selectedCorrelation.type}</p>
+                    <label className="block text-sm font-medium text-[var(--text-muted)]">
+                      Type
+                    </label>
+                    <p className="text-[var(--text-primary)] capitalize">
+                      {selectedCorrelation.type}
+                    </p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-400">Confidence</label>
+                    <label className="block text-sm font-medium text-[var(--text-muted)]">
+                      Confidence
+                    </label>
                     <p
-                      className={`text-gray-100 text-lg font-semibold ${getConfidenceColor(selectedCorrelation.confidence)}`}
+                      className={`text-[var(--text-primary)] text-lg font-semibold ${getConfidenceColor(selectedCorrelation.confidence)}`}
                     >
                       {selectedCorrelation.confidence}%
                     </p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-400">Time Range</label>
-                    <p className="text-gray-100">
+                    <label className="block text-sm font-medium text-[var(--text-muted)]">
+                      Time Range
+                    </label>
+                    <p className="text-[var(--text-primary)]">
                       {selectedCorrelation.timeRange.start} to {selectedCorrelation.timeRange.end}
                     </p>
                   </div>
                   {selectedCorrelation.location && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-400">Location</label>
-                      <p className="text-gray-100">{selectedCorrelation.location}</p>
+                      <label className="block text-sm font-medium text-[var(--text-muted)]">
+                        Location
+                      </label>
+                      <p className="text-[var(--text-primary)]">{selectedCorrelation.location}</p>
                     </div>
                   )}
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">Evidence</label>
+                    <label className="block text-sm font-medium text-[var(--text-muted)] mb-2">
+                      Evidence
+                    </label>
                     <div className="space-y-1">
                       {selectedCorrelation.evidence.map((evidence, index) => (
                         <div key={index} className="flex items-start gap-2">
                           <CheckCircle className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
-                          <span className="text-sm text-gray-300">{evidence}</span>
+                          <span className="text-sm text-[var(--text-secondary)]">{evidence}</span>
                         </div>
                       ))}
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-2">
+                    <label className="block text-sm font-medium text-[var(--text-muted)] mb-2">
                       Data Sources
                     </label>
                     <div className="space-y-1">
@@ -783,7 +821,7 @@ export default function MultiSourceCorrelationEngine() {
                         return (
                           <div key={index} className="flex items-center gap-2">
                             {source && getSourceIcon(source.type)}
-                            <span className="text-sm text-gray-300">
+                            <span className="text-sm text-[var(--text-secondary)]">
                               {source?.name || sourceId}
                             </span>
                           </div>

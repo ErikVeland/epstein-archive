@@ -14,8 +14,10 @@ const TimelineWithFlights: React.FC<TimelineWithFlightsProps> = ({ className = '
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">Investigation Timeline</h2>
-          <p className="text-sm md:text-base text-slate-400">
+          <h2 className="text-2xl md:text-3xl font-bold text-[var(--text-primary)] mb-2">
+            Investigation Timeline
+          </h2>
+          <p className="text-sm md:text-base text-[var(--text-secondary)]">
             Chronological sequence of significant events extracted from evidence files.
           </p>
         </div>

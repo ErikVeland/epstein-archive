@@ -46,8 +46,8 @@ export const DocumentProvenance: React.FC<DocumentProvenanceProps> = ({
 
   if (loading) {
     return (
-      <div className="flex items-center gap-2 text-slate-400 text-sm p-2">
-        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-cyan-500" />
+      <div className="flex items-center gap-2 text-[var(--text-muted)] text-sm p-2">
+        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[var(--accent)]" />
         Loading provenance...
       </div>
     );
@@ -63,7 +63,7 @@ export const DocumentProvenance: React.FC<DocumentProvenanceProps> = ({
   }
 
   const getCredibilityColor = (score: number | null) => {
-    if (!score) return 'text-slate-500';
+    if (!score) return 'text-[var(--text-muted)]';
     if (score >= 0.9) return 'text-green-400';
     if (score >= 0.7) return 'text-yellow-400';
     return 'text-orange-400';
@@ -82,7 +82,7 @@ export const DocumentProvenance: React.FC<DocumentProvenanceProps> = ({
     return (
       <button
         onClick={() => setExpanded(true)}
-        className="flex items-center gap-2 text-xs text-slate-400 hover:text-cyan-400 transition-colors"
+        className="flex items-center gap-2 text-xs text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors"
       >
         <Icon name="Shield" size="xs" />
         <span>{lineage.document.sourceCollection || 'Source Info'}</span>
@@ -95,15 +95,18 @@ export const DocumentProvenance: React.FC<DocumentProvenanceProps> = ({
   }
 
   return (
-    <div className="bg-slate-800/50 rounded-lg border border-slate-700/50 overflow-hidden">
+    <div className="bg-[var(--glass-bg)]/50 rounded-[var(--radius-lg)] border border-[var(--glass-border)] overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-2 bg-slate-700/30 border-b border-slate-700/50">
-        <h4 className="text-sm font-medium text-slate-300 flex items-center gap-2">
-          <Icon name="Shield" size="sm" className="text-cyan-400" />
+      <div className="flex items-center justify-between px-4 py-2 bg-[var(--glass-bg-highlight)]/30 border-b border-[var(--glass-border)]">
+        <h4 className="text-sm font-medium text-[var(--text-secondary)] flex items-center gap-2">
+          <Icon name="Shield" size="sm" className="text-[var(--accent)]" />
           Document Provenance
         </h4>
         {compact && (
-          <button onClick={() => setExpanded(false)} className="text-slate-500 hover:text-white">
+          <button
+            onClick={() => setExpanded(false)}
+            className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+          >
             <Icon name="X" size="sm" />
           </button>
         )}
@@ -113,13 +116,13 @@ export const DocumentProvenance: React.FC<DocumentProvenanceProps> = ({
         {/* Source Info */}
         <div className="grid grid-cols-2 gap-3 text-xs">
           <div>
-            <span className="text-slate-500">Source Collection</span>
-            <p className="text-white font-medium">
+            <span className="text-[var(--text-muted)]">Source Collection</span>
+            <p className="text-[var(--text-primary)] font-medium">
               {lineage.document.sourceCollection || 'Not specified'}
             </p>
           </div>
           <div>
-            <span className="text-slate-500">Credibility</span>
+            <span className="text-[var(--text-muted)]">Credibility</span>
             <p className={`font-medium ${getCredibilityColor(lineage.document.credibilityScore)}`}>
               {lineage.document.credibilityScore
                 ? `${Math.round(lineage.document.credibilityScore * 100)}% (${getCredibilityLabel(lineage.document.credibilityScore)})`
@@ -130,15 +133,15 @@ export const DocumentProvenance: React.FC<DocumentProvenanceProps> = ({
 
         {/* OCR Info */}
         {lineage.document.ocrEngine && (
-          <div className="flex items-center gap-4 text-xs bg-slate-700/30 rounded px-3 py-2">
+          <div className="flex items-center gap-4 text-xs bg-[var(--glass-bg-highlight)]/30 rounded px-3 py-2">
             <div className="flex items-center gap-1.5">
               <Icon name="FileSearch" size="xs" className="text-purple-400" />
-              <span className="text-slate-400">OCR:</span>
-              <span className="text-white">{lineage.document.ocrEngine}</span>
+              <span className="text-[var(--text-muted)]">OCR:</span>
+              <span className="text-[var(--text-primary)]">{lineage.document.ocrEngine}</span>
             </div>
             {lineage.document.ocrQualityScore && (
               <div className="flex items-center gap-1.5">
-                <span className="text-slate-400">Quality:</span>
+                <span className="text-[var(--text-muted)]">Quality:</span>
                 <span
                   className={
                     lineage.document.ocrQualityScore >= 0.7 ? 'text-green-400' : 'text-yellow-400'
@@ -154,10 +157,10 @@ export const DocumentProvenance: React.FC<DocumentProvenanceProps> = ({
         {/* Original Document */}
         {lineage.originalDocument && (
           <div className="text-xs">
-            <span className="text-slate-500">Extracted from:</span>
+            <span className="text-[var(--text-muted)]">Extracted from:</span>
             <a
               href={`/documents/${lineage.originalDocument.id}`}
-              className="text-cyan-400 hover:underline ml-1"
+              className="text-[var(--accent)] hover:underline ml-1"
             >
               {lineage.originalDocument.fileName}
             </a>
@@ -167,17 +170,22 @@ export const DocumentProvenance: React.FC<DocumentProvenanceProps> = ({
         {/* Child Documents */}
         {lineage.childDocuments.length > 0 && (
           <div className="text-xs">
-            <span className="text-slate-500 mb-1 block">
+            <span className="text-[var(--text-muted)] mb-1 block">
               Contains {lineage.childDocuments.length} pages:
             </span>
             <div className="flex flex-wrap gap-1">
               {lineage.childDocuments.slice(0, 5).map((child) => (
-                <span key={child.id} className="px-1.5 py-0.5 bg-slate-700 rounded text-slate-300">
+                <span
+                  key={child.id}
+                  className="px-1.5 py-0.5 bg-[var(--glass-bg-highlight)] rounded text-[var(--text-secondary)]"
+                >
                   Page {child.page_number}
                 </span>
               ))}
               {lineage.childDocuments.length > 5 && (
-                <span className="text-slate-500">+{lineage.childDocuments.length - 5} more</span>
+                <span className="text-[var(--text-muted)]">
+                  +{lineage.childDocuments.length - 5} more
+                </span>
               )}
             </div>
           </div>
@@ -186,13 +194,13 @@ export const DocumentProvenance: React.FC<DocumentProvenanceProps> = ({
         {/* Audit Trail */}
         {lineage.auditTrail.length > 0 && (
           <div className="text-xs">
-            <span className="text-slate-500 mb-1 block">Processing History:</span>
+            <span className="text-[var(--text-muted)] mb-1 block">Processing History:</span>
             <div className="space-y-1 max-h-24 overflow-y-auto">
               {lineage.auditTrail.map((entry, i) => (
-                <div key={i} className="flex items-center gap-2 text-slate-400">
+                <div key={i} className="flex items-center gap-2 text-[var(--text-muted)]">
                   <Icon name="Clock" size="xs" />
                   <span>{new Date(entry.timestamp).toLocaleDateString()}</span>
-                  <span className="text-white">{entry.action}</span>
+                  <span className="text-[var(--text-primary)]">{entry.action}</span>
                 </div>
               ))}
             </div>

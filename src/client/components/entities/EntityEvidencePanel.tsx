@@ -130,14 +130,14 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
 
   const getRoleColor = (role: string) => {
     const colors: Record<string, string> = {
-      sender: 'bg-blue-100 text-blue-800',
-      recipient: 'bg-green-100 text-green-800',
-      mentioned: 'bg-yellow-100 text-yellow-800',
-      passenger: 'bg-purple-100 text-purple-800',
-      deponent: 'bg-red-100 text-red-800',
-      subject: 'bg-orange-100 text-orange-800',
+      sender: 'bg-[var(--accent-info)]/20 text-[var(--accent-info)]',
+      recipient: 'bg-[var(--accent-success)]/20 text-[var(--accent-success)]',
+      mentioned: 'bg-[var(--accent-warning)]/20 text-[var(--accent-warning)]',
+      passenger: 'bg-[var(--accent)]/20 text-[var(--accent)]',
+      deponent: 'bg-[var(--accent-danger)]/20 text-[var(--accent-danger)]',
+      subject: 'bg-[var(--accent-warning)]/20 text-[var(--accent-warning)]',
     };
-    return colors[role.toLowerCase()] || 'bg-gray-100 text-gray-800';
+    return colors[role.toLowerCase()] || 'bg-[var(--app-bg)] text-[var(--text-primary)]';
   };
 
   const filteredEvidence = evidence.filter((e) => {
@@ -170,17 +170,17 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="text-slate-500">Loading evidence...</div>
+        <div className="text-[var(--text-muted)]">Loading evidence...</div>
       </div>
     );
   }
 
   if (!stats || evidence.length === 0) {
     return (
-      <div className="bg-slate-900/50 rounded-lg p-8 text-center border border-slate-800">
-        <FileText className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-        <h3 className="text-lg font-medium text-slate-200 mb-2">No Evidence Found</h3>
-        <p className="text-slate-400">No evidence has been linked to {entityName} yet.</p>
+      <div className="bg-[var(--glass-bg-strong)]/50 rounded-[var(--radius-lg)] p-8 text-center border border-[var(--glass-border)]">
+        <FileText className="w-12 h-12 text-[var(--text-primary)] mx-auto mb-3" />
+        <h3 className="text-lg font-medium text-[var(--text-primary)] mb-2">No Evidence Found</h3>
+        <p className="text-[var(--text-muted)]">No evidence has been linked to {entityName} yet.</p>
       </div>
     );
   }
@@ -189,46 +189,52 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
     <div className="space-y-6">
       {/* Stats Overview */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
-          <div className="text-sm text-blue-300 mb-1">Total Evidence</div>
-          <div className="text-2xl font-bold text-blue-400">{stats.totalEvidence}</div>
+        <div className="bg-[var(--accent-info)]/10 border border-[var(--accent)]/30 rounded-[var(--radius-lg)] p-4">
+          <div className="text-sm text-[var(--accent)] mb-1">Total Evidence</div>
+          <div className="text-2xl font-bold text-[var(--accent)]">{stats.totalEvidence}</div>
         </div>
-        <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-4">
-          <div className="text-sm text-red-300 mb-1">High Risk Items</div>
-          <div className="text-2xl font-bold text-red-400">{stats.highRiskCount}</div>
+        <div className="bg-[var(--accent-danger)]/10 border border-[var(--accent-danger)]/30 rounded-[var(--radius-lg)] p-4">
+          <div className="text-sm text-[var(--accent-danger)] mb-1">High Risk Items</div>
+          <div className="text-2xl font-bold text-[var(--accent-danger)]">
+            {stats.highRiskCount}
+          </div>
         </div>
-        <div className="bg-purple-900/20 border border-purple-500/30 rounded-lg p-4">
-          <div className="text-sm text-purple-300 mb-1">Avg Confidence</div>
-          <div className="text-2xl font-bold text-purple-400">
+        <div className="bg-[var(--accent)]/10 border border-[var(--accent)]/30 rounded-[var(--radius-lg)] p-4">
+          <div className="text-sm text-[var(--accent)] mb-1">Avg Confidence</div>
+          <div className="text-2xl font-bold text-[var(--accent)]">
             {Math.round(stats.averageConfidence * 100)}%
           </div>
         </div>
-        <div className="bg-green-900/20 border border-green-500/30 rounded-lg p-4">
-          <div className="text-sm text-green-300 mb-1">Evidence Types</div>
-          <div className="text-2xl font-bold text-green-400">{stats.typeBreakdown.length}</div>
+        <div className="bg-[var(--accent-success)]/10 border border-[var(--accent-success)]/30 rounded-[var(--radius-lg)] p-4">
+          <div className="text-sm text-[var(--accent-success)] mb-1">Evidence Types</div>
+          <div className="text-2xl font-bold text-[var(--accent-success)]">
+            {stats.typeBreakdown.length}
+          </div>
         </div>
       </div>
 
       {/* Type Breakdown */}
-      <div className="bg-slate-800 border border-slate-700 rounded-lg p-5">
+      <div className="surface-glass-card p-5">
         <div className="flex items-center space-x-2 mb-4">
-          <BarChart3 className="w-5 h-5 text-slate-400" />
-          <h3 className="text-lg font-semibold text-slate-200">Evidence Type Distribution</h3>
+          <BarChart3 className="w-5 h-5 text-[var(--text-muted)]" />
+          <h3 className="text-lg font-semibold text-[var(--text-primary)]">
+            Evidence Type Distribution
+          </h3>
         </div>
         <div className="space-y-2">
           {stats.typeBreakdown.map((item: any) => (
             <div key={item.evidenceType} className="flex items-center justify-between">
-              <span className="text-sm text-slate-300">
+              <span className="text-sm text-[var(--text-secondary)]">
                 {getEvidenceTypeLabel(item.evidenceType)}
               </span>
               <div className="flex items-center space-x-3">
-                <div className="w-32 bg-slate-700 rounded-full h-2">
+                <div className="w-32 bg-[var(--glass-bg-highlight)] rounded-full h-2">
                   <div
-                    className="bg-blue-500 h-2 rounded-full"
+                    className="bg-[var(--accent)] h-2 rounded-full"
                     style={{ width: `${(item.count / stats.totalEvidence) * 100}%` }}
                   />
                 </div>
-                <span className="text-sm font-semibold text-slate-300 w-8 text-right">
+                <span className="text-sm font-semibold text-[var(--text-secondary)] w-8 text-right">
                   {item.count}
                 </span>
               </div>
@@ -239,10 +245,10 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
 
       {/* Role Breakdown */}
       {stats.roleBreakdown.length > 0 && (
-        <div className="bg-slate-800 border border-slate-700 rounded-lg p-5">
+        <div className="surface-glass-card p-5">
           <div className="flex items-center space-x-2 mb-4">
-            <User className="w-5 h-5 text-slate-400" />
-            <h3 className="text-lg font-semibold text-slate-200">Role Distribution</h3>
+            <User className="w-5 h-5 text-[var(--text-muted)]" />
+            <h3 className="text-lg font-semibold text-[var(--text-primary)]">Role Distribution</h3>
           </div>
           <div className="flex flex-wrap gap-2">
             {stats.roleBreakdown.map((item: any) => (
@@ -259,19 +265,21 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
 
       {/* Related Entities */}
       {stats.relatedEntities.length > 0 && (
-        <div className="bg-slate-800 border border-slate-700 rounded-lg p-5">
+        <div className="surface-glass-card p-5">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-2">
-              <Network className="w-5 h-5 text-slate-400" />
-              <h3 className="text-lg font-semibold text-slate-200">Frequently Co-appears With</h3>
+              <Network className="w-5 h-5 text-[var(--text-muted)]" />
+              <h3 className="text-lg font-semibold text-[var(--text-primary)]">
+                Frequently Co-appears With
+              </h3>
             </div>
-            <div className="flex bg-slate-900/50 rounded-lg p-0.5 border border-slate-700">
+            <div className="flex bg-[var(--glass-bg-strong)]/50 rounded-[var(--radius-lg)] p-0.5 border border-[var(--glass-border)]">
               <button
                 onClick={() => setViewMode('list')}
                 className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
                   viewMode === 'list'
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-400 hover:text-slate-300'
+                    ? 'bg-[var(--accent)] text-[var(--text-primary)] shadow-sm'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
                 }`}
               >
                 List
@@ -280,8 +288,8 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
                 onClick={() => setViewMode('graph')}
                 className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
                   viewMode === 'graph'
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-400 hover:text-slate-300'
+                    ? 'bg-[var(--accent)] text-[var(--text-primary)] shadow-sm'
+                    : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
                 }`}
               >
                 Graph
@@ -295,17 +303,19 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
                 <Link
                   key={entity.id}
                   to={`/entity/${entity.id}`}
-                  className="flex items-center justify-between p-3 bg-slate-900/50 rounded-lg hover:bg-slate-700 transition border border-slate-700/50"
+                  className="flex items-center justify-between p-3 bg-[var(--glass-bg-strong)]/50 rounded-[var(--radius-lg)] hover:bg-[var(--glass-bg-highlight)] transition border border-[var(--glass-border)]"
                 >
-                  <span className="text-sm font-medium text-slate-200">{entity.fullName}</span>
-                  <span className="text-xs font-semibold text-blue-400">
+                  <span className="text-sm font-medium text-[var(--text-primary)]">
+                    {entity.fullName}
+                  </span>
+                  <span className="text-xs font-semibold text-[var(--accent)]">
                     {entity.sharedEvidenceCount} shared
                   </span>
                 </Link>
               ))}
             </div>
           ) : (
-            <div className="h-[400px] bg-slate-900/50 rounded-lg border border-slate-700/50 overflow-hidden">
+            <div className="h-[400px] bg-[var(--glass-bg-strong)]/50 rounded-[var(--radius-lg)] border border-[var(--glass-border)] overflow-hidden">
               <NetworkVisualization
                 nodes={[
                   {
@@ -357,32 +367,34 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
 
       {/* Email / Communications Activity */}
       {communications.length > 0 && (
-        <div className="bg-slate-800 border border-slate-700 rounded-lg p-5">
+        <div className="surface-glass-card p-5">
           <div className="flex items-center space-x-2 mb-4">
-            <Mail className="w-5 h-5 text-slate-400" />
-            <h3 className="text-lg font-semibold text-slate-200">Email Communications</h3>
+            <Mail className="w-5 h-5 text-[var(--text-muted)]" />
+            <h3 className="text-lg font-semibold text-[var(--text-primary)]">
+              Email Communications
+            </h3>
           </div>
-          <p className="text-sm text-slate-400 mb-3">
+          <p className="text-sm text-[var(--text-muted)] mb-3">
             Recent email threads where{' '}
-            <span className="font-semibold text-slate-200">{entityName}</span> appears. Topics are
-            heuristic but stable labels to help you scan conspiracies at a glance.
+            <span className="font-semibold text-[var(--text-primary)]">{entityName}</span> appears.
+            Topics are heuristic but stable labels to help you scan conspiracies at a glance.
           </p>
-          <div className="space-y-3 max-h-72 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700">
+          <div className="space-y-3 max-h-72 overflow-y-auto scrollbar-thin scrollbar-thumb-[var(--glass-border-highlight)]">
             {communications.slice(0, 25).map((c) => (
               <div
                 key={`${c.threadId}-${c.documentId}`}
-                className="border border-slate-700 rounded-lg p-3 hover:bg-slate-700/50 transition"
+                className="border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-3 hover:bg-[var(--glass-bg-highlight)]/50 transition"
               >
                 <div className="flex items-start justify-between gap-3 mb-1">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <MessageCircle className="w-4 h-4 text-slate-500" />
-                      <span className="text-sm font-semibold text-slate-200 truncate max-w-xs">
+                      <MessageCircle className="w-4 h-4 text-[var(--text-muted)]" />
+                      <span className="text-sm font-semibold text-[var(--text-primary)] truncate max-w-xs">
                         {c.subject || 'No subject'}
                       </span>
                     </div>
-                    <div className="text-xs text-slate-400 flex flex-wrap gap-1">
-                      <span className="font-medium text-slate-300">{c.from}</span>
+                    <div className="text-xs text-[var(--text-muted)] flex flex-wrap gap-1">
+                      <span className="font-medium text-[var(--text-secondary)]">{c.from}</span>
                       <span>→</span>
                       <span className="truncate max-w-[10rem]">
                         {c.to && c.to.length > 0 ? c.to.join(', ') : 'Unknown recipients'}
@@ -391,19 +403,19 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
                   </div>
                   <div className="flex flex-col items-end gap-1 text-xs">
                     {c.date && (
-                      <div className="flex items-center gap-1 text-slate-500">
+                      <div className="flex items-center gap-1 text-[var(--text-muted)]">
                         <Clock3 className="w-3 h-3" />
                         <span>{c.date}</span>
                       </div>
                     )}
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-900/30 text-blue-300 border border-blue-500/30 capitalize text-[11px]">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-[var(--accent-info)]/20 text-[var(--accent)] border border-[var(--accent)]/30 capitalize text-[11px]">
                       <Tag className="w-3 h-3 mr-1" />
                       {c.topic.replace('_', ' ')}
                     </span>
                     <div className="flex items-center gap-1">
                       <Link
                         to={`/emails?search=${encodeURIComponent(c.subject)}`}
-                        className="text-slate-500 hover:text-white transition-colors"
+                        className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
                         title="View Thread"
                       >
                         <ExternalLink className="w-4 h-4" />
@@ -422,13 +434,13 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
                           },
                         }}
                         variant="icon"
-                        className="text-slate-500 hover:text-white"
+                        className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                       />
                     </div>
                   </div>
                 </div>
                 {c.snippet && (
-                  <p className="mt-1 text-xs text-slate-400 line-clamp-2">{c.snippet}</p>
+                  <p className="mt-1 text-xs text-[var(--text-muted)] line-clamp-2">{c.snippet}</p>
                 )}
               </div>
             ))}
@@ -438,29 +450,34 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
 
       {/* Relation Evidence (graph edges with quotes) */}
       {relationEdges.length > 0 && (
-        <div className="bg-slate-800 border border-slate-700 rounded-lg p-5">
+        <div className="surface-glass-card p-5">
           <div className="flex items-center space-x-2 mb-4">
-            <Network className="w-5 h-5 text-slate-400" />
-            <h3 className="text-lg font-semibold text-slate-200">Relation Evidence</h3>
+            <Network className="w-5 h-5 text-[var(--text-muted)]" />
+            <h3 className="text-lg font-semibold text-[var(--text-primary)]">Relation Evidence</h3>
           </div>
-          <div className="space-y-3 max-h-72 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700">
+          <div className="space-y-3 max-h-72 overflow-y-auto scrollbar-thin scrollbar-thumb-[var(--glass-border-highlight)]">
             {relationEdges.slice(0, 25).map((rel) => (
-              <div key={rel.id} className="border border-slate-700 rounded-lg p-3">
+              <div
+                key={rel.id}
+                className="border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-3"
+              >
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-semibold text-slate-200">
+                  <span className="text-sm font-semibold text-[var(--text-primary)]">
                     {rel.predicate || 'related_to'}
                   </span>
-                  <span className="text-xs text-slate-500">weight {rel.weight ?? 1}</span>
+                  <span className="text-xs text-[var(--text-muted)]">weight {rel.weight ?? 1}</span>
                 </div>
                 {rel.evidence && rel.evidence.length > 0 && (
                   <ul className="mt-1 space-y-1">
                     {rel.evidence.slice(0, 3).map((ev) => (
-                      <li key={ev.id} className="text-xs text-slate-400">
+                      <li key={ev.id} className="text-xs text-[var(--text-muted)]">
                         {ev.documentTitle && (
-                          <span className="font-medium text-slate-300">{ev.documentTitle}</span>
+                          <span className="font-medium text-[var(--text-secondary)]">
+                            {ev.documentTitle}
+                          </span>
                         )}
                         {ev.quoteText && (
-                          <span className="block text-slate-500 italic truncate">
+                          <span className="block text-[var(--text-muted)] italic truncate">
                             “{ev.quoteText}”
                           </span>
                         )}
@@ -475,11 +492,11 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
       )}
 
       {/* Filters & Search */}
-      <div className="bg-slate-800 border border-slate-700 rounded-lg p-5">
+      <div className="surface-glass-card p-5">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-3">
-            <h3 className="text-lg font-semibold text-slate-200">Evidence Items</h3>
-            <span className="text-sm text-slate-500">({filteredEvidence.length})</span>
+            <h3 className="text-lg font-semibold text-[var(--text-primary)]">Evidence Items</h3>
+            <span className="text-sm text-[var(--text-muted)]">({filteredEvidence.length})</span>
           </div>
         </div>
 
@@ -490,14 +507,14 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
               placeholder="Filter evidence..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full border border-slate-600 bg-slate-700 text-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500 placeholder-slate-400"
+              className="w-full border border-[var(--glass-border)] bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] rounded-[var(--radius-lg)] px-3 py-2 text-sm focus:ring-[var(--accent)] focus:border-[var(--accent)] placeholder-[var(--text-muted)]"
             />
           </div>
           <div className="flex gap-3">
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="border border-slate-600 bg-slate-700 text-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
+              className="border border-[var(--glass-border)] bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] rounded-[var(--radius-lg)] px-3 py-2 text-sm focus:ring-[var(--accent)] focus:border-[var(--accent)]"
             >
               <option value="all">All Types</option>
               {stats.typeBreakdown.map((item: any) => (
@@ -509,7 +526,7 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
             <select
               value={filterRole}
               onChange={(e) => setFilterRole(e.target.value)}
-              className="border border-slate-600 bg-slate-700 text-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
+              className="border border-[var(--glass-border)] bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] rounded-[var(--radius-lg)] px-3 py-2 text-sm focus:ring-[var(--accent)] focus:border-[var(--accent)]"
             >
               <option value="all">All Roles</option>
               {stats.roleBreakdown.map((item: any) => (
@@ -528,19 +545,23 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
             return (
               <div
                 key={item.id}
-                className="border border-slate-700 rounded-lg p-4 hover:bg-slate-700/50 transition bg-slate-800/50"
+                className="border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-4 hover:bg-[var(--glass-bg-highlight)]/50 transition bg-[var(--glass-bg)]/50"
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-1">
-                      <FileText className="w-4 h-4 text-slate-400" />
-                      <h4 className="font-semibold text-slate-200">{item.title || 'Untitled'}</h4>
+                      <FileText className="w-4 h-4 text-[var(--text-muted)]" />
+                      <h4 className="font-semibold text-[var(--text-primary)]">
+                        {item.title || 'Untitled'}
+                      </h4>
                     </div>
                     {item.description && (
-                      <p className="text-sm text-slate-400 line-clamp-2 mb-2">{item.description}</p>
+                      <p className="text-sm text-[var(--text-muted)] line-clamp-2 mb-2">
+                        {item.description}
+                      </p>
                     )}
                     {item.contextSnippet && (
-                      <p className="text-xs text-slate-400 italic bg-yellow-900/20 p-2 rounded border-l-2 border-yellow-600/50 text-yellow-200/90 break-words">
+                      <p className="text-xs text-[var(--text-muted)] italic bg-yellow-900/20 p-2 rounded border-l-2 border-yellow-600/50 text-yellow-200/90 break-words">
                         "{item.contextSnippet}"
                       </p>
                     )}
@@ -554,19 +575,19 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
                     {item.redFlagRating > 0 && (
                       <div className="flex items-center space-x-1">
                         <AlertTriangle className="w-4 h-4 text-red-500" />
-                        <span className="text-xs font-semibold text-red-400">
+                        <span className="text-xs font-semibold text-[var(--accent-danger)]">
                           {item.redFlagRating}
                         </span>
                       </div>
                     )}
                     {item.wasAgentic && (
-                      <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-purple-900/20 border border-purple-500/20 text-purple-400 text-[10px] uppercase font-bold">
+                      <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[var(--accent)]/10 border border-purple-500/20 text-[var(--accent)] text-[10px] uppercase font-bold">
                         <Fingerprint size={10} />
                         Agentic
                       </div>
                     )}
                     {item.confidence && (
-                      <span className="text-xs text-slate-500">
+                      <span className="text-xs text-[var(--text-muted)]">
                         {Math.round(item.confidence * 100)}% conf
                       </span>
                     )}
@@ -582,11 +603,11 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
                     confidence={item.confidence}
                     ingestRunId={item.ingestRunId}
                     wasAgentic={item.wasAgentic}
-                    className="bg-slate-950/30 p-3 rounded-lg border border-slate-700/50"
+                    className="bg-slate-950/30 p-3 rounded-[var(--radius-lg)] border border-[var(--glass-border)]"
                   />
                 </div>
 
-                <div className="flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-700/50 mt-3">
+                <div className="flex items-center justify-between text-xs text-[var(--text-muted)] pt-2 border-t border-[var(--glass-border)] mt-3">
                   <div className="flex items-center space-x-3">
                     <span className="flex items-center space-x-1">
                       <Tag className="w-3 h-3" />
@@ -600,13 +621,13 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
                   {documentId ? (
                     <Link
                       to={`/documents?id=${documentId}`}
-                      className="flex items-center space-x-1 text-blue-400 hover:text-blue-300"
+                      className="flex items-center space-x-1 text-[var(--accent)] hover:text-[var(--accent)]"
                     >
                       <span>View</span>
                       <ExternalLink className="w-3 h-3" />
                     </Link>
                   ) : (
-                    <span className="text-slate-600">No document link</span>
+                    <span className="text-[var(--text-primary)]">No document link</span>
                   )}
                 </div>
               </div>
@@ -619,7 +640,7 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
           <div className="mt-4 text-center">
             <button
               onClick={() => setItemsToShow((prev) => prev + ITEMS_INCREMENT)}
-              className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg text-sm font-medium transition-colors"
+              className="px-4 py-2 bg-[var(--glass-bg-highlight)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] rounded-[var(--radius-lg)] text-sm font-medium transition-colors"
             >
               Show More ({filteredEvidence.length - itemsToShow} remaining)
             </button>

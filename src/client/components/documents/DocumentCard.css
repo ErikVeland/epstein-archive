@@ -4,9 +4,9 @@
   flex-direction: column;
   gap: var(--space-3);
   padding: var(--space-4);
-  background: #15151a;
+  background: var(--glass-bg-strong);
   backdrop-filter: none;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
   transition: all var(--duration-normal) var(--easing-liquid);
   cursor: pointer;
@@ -14,8 +14,8 @@
 }
 
 .document-card:hover {
-  background: #1a1a20;
-  border-color: rgba(255, 255, 255, 0.12);
+  background: var(--glass-bg-highlight);
+  border-color: var(--glass-border-highlight);
   transform: none;
   box-shadow: none;
 }
@@ -27,7 +27,7 @@
 
 .document-card.active {
   background: rgba(59, 130, 246, 0.1);
-  border-color: rgba(59, 130, 246, 0.5);
+  border-color: var(--accent);
   box-shadow: 0 0 20px -5px rgba(59, 130, 246, 0.2);
 }
 
@@ -53,16 +53,16 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
   color: var(--text-muted);
   transition: all var(--duration-normal) var(--easing-liquid);
 }
 
 .document-card:hover .card-icon-wrapper {
-  background: rgba(59, 130, 246, 0.1);
-  border-color: rgba(59, 130, 246, 0.2);
+  background: var(--glass-bg-highlight);
+  border-color: var(--accent);
   color: var(--accent);
 }
 
@@ -77,11 +77,12 @@
 }
 
 .card-preview {
-  font-size: 13px;
+  font-size: var(--type-small);
   line-height: 1.6;
   color: var(--text-muted);
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   position: relative;
@@ -102,15 +103,15 @@
 }
 
 .forensic-chip {
-  height: 20px;
-  padding: 0 8px;
+  height: var(--space-5);
+  padding: 0 var(--space-2);
   display: flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 4px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: var(--type-xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -119,7 +120,7 @@
 }
 
 .document-card:hover .forensic-chip {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--glass-bg-highlight);
   color: var(--text-muted);
 }
 
@@ -151,9 +152,9 @@
   position: fixed;
   z-index: 1000;
   width: 420px;
-  background: #0e0e11;
+  background: var(--glass-bg-strong);
   backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-md);
   box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6);
   pointer-events: none;

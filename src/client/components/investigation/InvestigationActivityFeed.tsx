@@ -60,8 +60,9 @@ const getActionIcon = (actionType: string): string => {
 const getActionColor = (actionType: string): string => {
   if (actionType.includes('added') || actionType.includes('created')) return 'text-emerald-400';
   if (actionType.includes('removed') || actionType.includes('deleted')) return 'text-red-400';
-  if (actionType.includes('updated') || actionType.includes('changed')) return 'text-blue-400';
-  return 'text-slate-400';
+  if (actionType.includes('updated') || actionType.includes('changed'))
+    return 'text-[var(--accent)]';
+  return 'text-[var(--text-muted)]';
 };
 
 const formatTimeAgo = (dateString: string): string => {
@@ -128,7 +129,7 @@ export const InvestigationActivityFeed: React.FC<InvestigationActivityFeedProps>
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-cyan-400" />
+        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[var(--accent)]" />
       </div>
     );
   }
@@ -144,10 +145,12 @@ export const InvestigationActivityFeed: React.FC<InvestigationActivityFeedProps>
 
   if (activities.length === 0) {
     return (
-      <div className="text-center py-8 text-slate-400">
+      <div className="text-center py-8 text-[var(--text-muted)]">
         <Icon name="Activity" size="lg" className="mx-auto mb-2 opacity-50" />
         <p className="text-sm">No activity yet</p>
-        <p className="text-xs text-slate-500 mt-1">Actions will appear here as the team works</p>
+        <p className="text-xs text-[var(--text-muted)] mt-1">
+          Actions will appear here as the team works
+        </p>
       </div>
     );
   }
@@ -157,26 +160,26 @@ export const InvestigationActivityFeed: React.FC<InvestigationActivityFeedProps>
       {activities.map((activity) => (
         <div
           key={activity.id}
-          className={`flex items-start gap-3 ${compact ? 'py-1' : 'py-2 px-3 bg-slate-800/30 rounded-lg'}`}
+          className={`flex items-start gap-3 ${compact ? 'py-1' : 'py-2 px-3 bg-[var(--glass-bg)]/30 rounded-[var(--radius-lg)]'}`}
         >
           {/* Action icon */}
           <div
-            className={`flex-shrink-0 w-8 h-8 rounded-full bg-slate-700/50 flex items-center justify-center ${getActionColor(activity.actionType)}`}
+            className={`flex-shrink-0 w-8 h-8 rounded-full bg-[var(--glass-bg-highlight)]/50 flex items-center justify-center ${getActionColor(activity.actionType)}`}
           >
             <Icon name={getActionIcon(activity.actionType) as any} size="sm" />
           </div>
 
           {/* Content */}
           <div className="flex-1 min-w-0">
-            <div className={`${compact ? 'text-xs' : 'text-sm'} text-slate-200`}>
-              <span className="font-medium text-cyan-400">{activity.userName}</span>{' '}
-              <span className="text-slate-400">
+            <div className={`${compact ? 'text-xs' : 'text-sm'} text-[var(--text-primary)]`}>
+              <span className="font-medium text-[var(--accent)]">{activity.userName}</span>{' '}
+              <span className="text-[var(--text-muted)]">
                 {actionLabels[activity.actionType] || activity.actionType.replace(/_/g, ' ')}
               </span>
               {activity.targetTitle && (
                 <>
                   {' '}
-                  <span className="text-white font-medium">
+                  <span className="text-[var(--text-primary)] font-medium">
                     {activity.targetType && (
                       <Icon
                         name={(targetTypeIcons[activity.targetType] || 'File') as any}
@@ -192,7 +195,7 @@ export const InvestigationActivityFeed: React.FC<InvestigationActivityFeedProps>
 
             {/* Metadata details */}
             {!compact && activity.metadata && (
-              <div className="mt-1 text-xs text-slate-500">
+              <div className="mt-1 text-xs text-[var(--text-muted)]">
                 {activity.metadata.relevance && (
                   <span
                     className={`inline-block px-1.5 py-0.5 rounded mr-2 ${
@@ -210,7 +213,9 @@ export const InvestigationActivityFeed: React.FC<InvestigationActivityFeedProps>
             )}
 
             {/* Timestamp */}
-            <div className={`${compact ? 'text-[10px]' : 'text-xs'} text-slate-500 mt-0.5`}>
+            <div
+              className={`${compact ? 'text-[10px]' : 'text-xs'} text-[var(--text-muted)] mt-0.5`}
+            >
               {formatTimeAgo(activity.createdAt)}
             </div>
           </div>
@@ -219,7 +224,7 @@ export const InvestigationActivityFeed: React.FC<InvestigationActivityFeedProps>
 
       {/* Refresh indicator */}
       {refreshInterval > 0 && (
-        <div className="text-center text-xs text-slate-600 py-2">
+        <div className="text-center text-xs text-[var(--text-primary)] py-2">
           <Icon name="RefreshCw" size="xs" className="inline mr-1" />
           Auto-refreshes every {Math.floor(refreshInterval / 1000)}s
         </div>

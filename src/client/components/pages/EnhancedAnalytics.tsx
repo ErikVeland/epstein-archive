@@ -111,7 +111,7 @@ const StatCard: React.FC<{
   sublabel?: string;
 }> = ({ icon, value, label, color, sublabel }) => (
   <div
-    className={`glass-panel p-4 rounded-xl hover:bg-slate-800/60 transition-all duration-300 group relative overflow-hidden`}
+    className={`glass-panel p-4 rounded-[var(--radius-xl)] hover:bg-[var(--glass-bg)]/60 transition-all duration-300 group relative overflow-hidden`}
   >
     <div
       className={`absolute inset-0 bg-gradient-to-br from-${color}-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity`}
@@ -119,14 +119,16 @@ const StatCard: React.FC<{
     <div className="relative z-10">
       <div className="flex items-center gap-2 mb-2">
         {icon}
-        <span className="text-slate-400 text-xs font-medium uppercase tracking-wide">{label}</span>
+        <span className="text-[var(--text-muted)] text-xs font-medium uppercase tracking-wide">
+          {label}
+        </span>
       </div>
       <div
-        className={`text-3xl font-bold text-white font-mono group-hover:text-${color}-400 transition-colors`}
+        className={`data-emphasis text-[var(--text-primary)] group-hover:text-${color}-400 transition-colors`}
       >
         {typeof value === 'number' ? value.toLocaleString() : value}
       </div>
-      {sublabel && <div className="text-xs text-slate-500 mt-1">{sublabel}</div>}
+      {sublabel && <div className="text-xs text-[var(--text-muted)] mt-1">{sublabel}</div>}
     </div>
   </div>
 );
@@ -433,10 +435,10 @@ export const EnhancedAnalytics: React.FC<EnhancedAnalyticsProps> = ({
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
           <div
-            className="animate-spin rounded-full h-16 w-16 border-b-2 border-cyan-500 mx-auto mb-4"
+            className="animate-spin rounded-full h-16 w-16 border-b-2 border-[var(--accent)] mx-auto mb-4"
             style={{ boxShadow: '0 0 30px rgba(6, 182, 212, 0.5)' }}
           />
-          <p className="text-slate-400 animate-pulse">Loading analytics...</p>
+          <p className="text-[var(--text-muted)] animate-pulse">Loading analytics...</p>
         </div>
       </div>
     );
@@ -448,7 +450,7 @@ export const EnhancedAnalytics: React.FC<EnhancedAnalyticsProps> = ({
         <p className="text-red-400 mb-4">{error || 'No data available'}</p>
         <button
           onClick={fetchAnalytics}
-          className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors"
+          className="px-4 py-2 bg-[var(--glass-bg-highlight)] hover:bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] transition-colors"
         >
           Retry
         </button>
@@ -466,15 +468,15 @@ export const EnhancedAnalytics: React.FC<EnhancedAnalyticsProps> = ({
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       {/* Entity Network - Full Width - MOVED TO TOP */}
-      <div className="glass-card p-6 rounded-xl relative overflow-hidden max-h-[85vh] flex flex-col">
+      <div className="glass-card p-6 rounded-[var(--radius-xl)] relative overflow-hidden max-h-[85vh] flex flex-col">
         {/* Archive Reconciliation Header Indicator */}
         {data && (
           <div className="absolute top-0 right-1/2 translate-x-1/2 z-20">
             <div
               className={`px-4 py-1.5 rounded-b-xl text-[10px] font-bold tracking-widest uppercase border-x border-b flex items-center gap-2 backdrop-blur-md transition-all ${
                 unclassifiedCount > 0
-                  ? 'bg-amber-500/10 border-amber-500/30 text-amber-400'
-                  : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                  ? 'bg-[color-mix(in_srgb,var(--accent-warning)_10%,transparent)] border-[color-mix(in_srgb,var(--accent-warning)_30%,transparent)] text-[var(--accent-warning)]'
+                  : 'bg-[color-mix(in_srgb,var(--accent-success)_12%,transparent)] border-[color-mix(in_srgb,var(--accent-success)_30%,transparent)] text-[var(--accent-success)]'
               }`}
             >
               <Database className="h-3 w-3 shadow-[0_0_8px_rgba(251,191,36,0.3)]" />
@@ -482,27 +484,29 @@ export const EnhancedAnalytics: React.FC<EnhancedAnalyticsProps> = ({
               {unclassifiedCount > 0 && (
                 <div className="group relative">
                   <Info className="h-3 w-3 cursor-help text-amber-500/60 hover:text-amber-500 transition-colors" />
-                  <div className="absolute left-1/2 -translate-x-1/2 top-4 w-64 p-3 bg-slate-900 border border-slate-700 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 normal-case tracking-normal font-normal text-slate-300">
-                    <p className="mb-2 font-bold text-white">Reconciliation Report</p>
+                  <div className="absolute left-1/2 -translate-x-1/2 top-4 w-64 p-3 bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 normal-case tracking-normal font-normal text-[var(--text-secondary)]">
+                    <p className="mb-2 font-bold text-[var(--text-primary)]">
+                      Reconciliation Report
+                    </p>
                     <ul className="space-y-1 text-xs">
                       <li className="flex justify-between">
                         <span>Total Records:</span>
-                        <span className="text-white font-mono">
+                        <span className="text-[var(--text-primary)] font-mono">
                           {totalDocumentsCount.toLocaleString()}
                         </span>
                       </li>
                       <li className="flex justify-between">
                         <span>Investigative Files:</span>
-                        <span className="text-emerald-400 font-mono">
+                        <span className="text-[var(--accent-success)] font-mono">
                           {evidenceFilesCount.toLocaleString()}
                         </span>
                       </li>
-                      <li className="flex justify-between border-t border-slate-800 pt-1 mt-1 text-amber-400">
+                      <li className="flex justify-between border-t border-[var(--glass-border)] pt-1 mt-1 text-[var(--accent-warning)]">
                         <span>Unclassified:</span>
                         <span className="font-mono">{unclassifiedCount.toLocaleString()}</span>
                       </li>
                     </ul>
-                    <p className="mt-2 text-[9px] leading-tight text-slate-500">
+                    <p className="mt-2 text-[9px] leading-tight text-[var(--text-muted)]">
                       Unclassified records are being processed for OCR and entity extraction.
                     </p>
                   </div>
@@ -513,16 +517,16 @@ export const EnhancedAnalytics: React.FC<EnhancedAnalyticsProps> = ({
         )}
 
         <div className="flex flex-wrap items-center justify-between gap-4 mb-4 shrink-0">
-          <h3 className="text-xl font-bold text-white flex items-center gap-2">
-            <Users className="h-5 w-5 text-emerald-400" />
+          <h3 className="text-xl font-bold text-[var(--text-primary)] flex items-center gap-2">
+            <Users className="h-5 w-5 text-[var(--accent-success)]" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">
               Entity Connection Network
             </span>
           </h3>
 
           {/* Entity Count Slider */}
-          <div className="flex items-center gap-4 bg-slate-800/50 px-4 py-2 rounded-lg border border-slate-700/50">
-            <label className="text-xs text-slate-400 whitespace-nowrap">Entities:</label>
+          <div className="flex items-center gap-4 bg-[var(--glass-bg)]/50 px-4 py-2 rounded-[var(--radius-lg)] border border-[var(--glass-border)]">
+            <label className="text-xs text-[var(--text-muted)] whitespace-nowrap">Entities:</label>
             <input
               type="range"
               min="100"
@@ -530,18 +534,18 @@ export const EnhancedAnalytics: React.FC<EnhancedAnalyticsProps> = ({
               step="50"
               value={filters.limit}
               onChange={(e) => setFilters({ limit: Number(e.target.value) })}
-              className="w-32 h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+              className="w-32 h-2 bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] appearance-none cursor-pointer accent-emerald-500"
             />
-            <span className="text-sm font-medium text-emerald-400 min-w-[3rem] text-right">
+            <span className="text-sm font-medium text-[var(--accent-success)] min-w-[3rem] text-right">
               {filters.limit}
             </span>
           </div>
 
           {/* Timeline Slider */}
-          <div className="flex items-center gap-4 bg-slate-800/50 px-4 py-2 rounded-lg border border-slate-700/50">
-            <TrendingUp className="h-4 w-4 text-purple-400" />
+          <div className="flex items-center gap-4 bg-[var(--glass-bg)]/50 px-4 py-2 rounded-[var(--radius-lg)] border border-[var(--glass-border)]">
+            <TrendingUp className="h-4 w-4 text-[var(--accent-docs)]" />
             <div className="flex flex-col gap-1">
-              <div className="flex justify-between text-[10px] text-slate-500 font-mono">
+              <div className="flex justify-between text-[10px] text-[var(--text-muted)] font-mono">
                 <span>{filters.timeRange[0]?.split('-')[0] || '1990'}</span>
                 <span className="text-purple-400 font-bold">
                   {filters.timeRange[1]?.split('-')[0] || '2025'}
@@ -557,7 +561,7 @@ export const EnhancedAnalytics: React.FC<EnhancedAnalyticsProps> = ({
                   const year = e.target.value;
                   setFilters({ timeRange: ['1990-01-01', `${year}-12-31`] });
                 }}
-                className="w-48 h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                className="w-48 h-1.5 bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] appearance-none cursor-pointer accent-purple-500"
               />
             </div>
           </div>
@@ -569,10 +573,10 @@ export const EnhancedAnalytics: React.FC<EnhancedAnalyticsProps> = ({
               setPathSource(null);
               setPathTarget(null);
             }}
-            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all ${
+            className={`flex items-center gap-2 px-3 py-2 rounded-[var(--radius-lg)] border transition-all ${
               pathMode
-                ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300'
-                : 'bg-slate-800/50 border-slate-700/50 text-slate-400 hover:text-white'
+                ? 'bg-[var(--accent)]/20 border-[var(--accent)]/50 text-[var(--accent)]'
+                : 'bg-[var(--glass-bg)]/50 border-[var(--glass-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)]'
             }`}
             title="Find Shortest Path"
           >
@@ -583,7 +587,7 @@ export const EnhancedAnalytics: React.FC<EnhancedAnalyticsProps> = ({
           </button>
         </div>
 
-        <div className="text-xs text-slate-400 mb-4 flex items-start gap-2 bg-slate-900/50 p-3 rounded-lg border border-slate-700/50 shrink-0">
+        <div className="text-xs text-[var(--text-muted)] mb-4 flex items-start gap-2 bg-[var(--glass-bg-strong)]/50 p-3 rounded-[var(--radius-lg)] border border-[var(--glass-border)] shrink-0">
           <Info className="h-4 w-4 mt-0.5 flex-shrink-0 text-emerald-400" />
           <span>
             Interactive network showing entity relationships. Node size = connections. Colors
@@ -610,21 +614,21 @@ export const EnhancedAnalytics: React.FC<EnhancedAnalyticsProps> = ({
               <>
                 <button
                   onClick={handleReconcileJunk}
-                  className="p-1.5 hover:bg-slate-700/50 rounded-lg text-slate-400 hover:text-amber-400 transition-all group relative"
+                  className="p-1.5 hover:bg-[var(--glass-bg-highlight)]/50 rounded-[var(--radius-lg)] text-[var(--text-muted)] hover:text-amber-400 transition-all group relative"
                   title="Reconcile Junk Entities"
                 >
                   <Database className="h-4 w-4" />
-                  <span className="absolute bottom-full right-0 mb-2 p-2 bg-slate-900 text-[10px] rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50">
+                  <span className="absolute bottom-full right-0 mb-2 p-2 bg-[var(--glass-bg-strong)] text-[10px] rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50">
                     Reconcile Junk Entities
                   </span>
                 </button>
                 <button
                   onClick={handleResetJunk}
-                  className="p-1.5 hover:bg-slate-700/50 rounded-lg text-slate-400 hover:text-red-400 transition-all group relative"
+                  className="p-1.5 hover:bg-[var(--glass-bg-highlight)]/50 rounded-[var(--radius-lg)] text-[var(--text-muted)] hover:text-red-400 transition-all group relative"
                   title="Reset Junk Flags"
                 >
                   <RotateCcw className="h-4 w-4" />
-                  <span className="absolute bottom-full right-0 mb-2 p-2 bg-slate-900 text-[10px] rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50">
+                  <span className="absolute bottom-full right-0 mb-2 p-2 bg-[var(--glass-bg-strong)] text-[10px] rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50">
                     Reset Junk Flags
                   </span>
                 </button>
@@ -632,7 +636,7 @@ export const EnhancedAnalytics: React.FC<EnhancedAnalyticsProps> = ({
             }
           />
           {isGraphLoading && (
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-slate-900/80 px-4 py-2 rounded-full text-xs text-cyan-400 border border-cyan-500/30 backdrop-blur-md animate-pulse">
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-[var(--glass-bg-strong)]/80 px-4 py-2 rounded-full text-xs text-[var(--accent)] border border-[var(--accent)]/30 backdrop-blur-md animate-pulse">
               Fetching more details...
             </div>
           )}
@@ -670,7 +674,7 @@ export const EnhancedAnalytics: React.FC<EnhancedAnalyticsProps> = ({
 
             if (shownEntities < totalEntities && shownEntities > 0) {
               return (
-                <div className="absolute bottom-4 right-4 z-10 bg-amber-900/90 text-amber-100 px-3 py-1.5 rounded-full text-[10px] font-medium border border-amber-700/50 flex items-center gap-2 backdrop-blur-sm shadow-lg animate-in fade-in slide-in-from-bottom-2">
+                <div className="absolute bottom-4 right-4 z-10 bg-amber-900/90 text-amber-100 px-3 py-1.5 rounded-full text-[10px] font-medium border border-amber-700/50 flex items-center gap-2 backdrop-blur-sm shadow-[var(--glass-shadow)] animate-in fade-in slide-in-from-bottom-2">
                   <Shield className="h-3 w-3 text-amber-400" />
                   <span>
                     Showing {shownEntities.toLocaleString()} of {totalEntities.toLocaleString()}{' '}
@@ -684,7 +688,7 @@ export const EnhancedAnalytics: React.FC<EnhancedAnalyticsProps> = ({
 
         {/* Mobile: Simplified Entity List */}
         <div className="md:hidden space-y-2 overflow-y-auto flex-1">
-          <p className="text-xs text-slate-500 mb-3">
+          <p className="text-xs text-[var(--text-muted)] mb-3">
             View on larger screen for interactive network visualization.
           </p>
           <div className="space-y-2">
@@ -692,7 +696,7 @@ export const EnhancedAnalytics: React.FC<EnhancedAnalyticsProps> = ({
               <button
                 key={entity.id}
                 onClick={() => onEntitySelect?.(entity.id)}
-                className="w-full flex items-center gap-3 p-3 bg-slate-800/50 hover:bg-slate-700/50 rounded-lg border border-slate-700/50 transition-colors text-left"
+                className="w-full flex items-center gap-3 p-3 bg-[var(--glass-bg)]/50 hover:bg-[var(--glass-bg-highlight)]/50 rounded-[var(--radius-lg)] border border-[var(--glass-border)] transition-colors text-left"
               >
                 <div
                   className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
@@ -706,8 +710,10 @@ export const EnhancedAnalytics: React.FC<EnhancedAnalyticsProps> = ({
                   {i + 1}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-medium text-white truncate">{entity.name}</div>
-                  <div className="text-xs text-slate-400">
+                  <div className="font-medium text-[var(--text-primary)] truncate">
+                    {entity.name}
+                  </div>
+                  <div className="text-xs text-[var(--text-muted)]">
                     {entity.connectionCount} connections • {entity.mentions} mentions
                   </div>
                 </div>
@@ -716,7 +722,7 @@ export const EnhancedAnalytics: React.FC<EnhancedAnalyticsProps> = ({
             ))}
           </div>
           {topConnectedEntities?.length > 20 && (
-            <p className="text-xs text-slate-500 text-center pt-2">
+            <p className="text-xs text-[var(--text-muted)] text-center pt-2">
               +{topConnectedEntities.length - 20} more entities
             </p>
           )}
@@ -735,7 +741,7 @@ export const EnhancedAnalytics: React.FC<EnhancedAnalyticsProps> = ({
       {/* Hero Stats Row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard
-          icon={<FileText className="h-5 w-5 text-cyan-400" />}
+          icon={<FileText className="h-5 w-5 text-[var(--accent)]" />}
           value={data.totalCounts?.documents || redactionStats?.totalDocuments || 0}
           label="Total Documents"
           color="cyan"
@@ -748,13 +754,13 @@ export const EnhancedAnalytics: React.FC<EnhancedAnalyticsProps> = ({
           sublabel={`${(redactionStats?.redactedDocuments || 0).toLocaleString()} docs`}
         />
         <StatCard
-          icon={<Users className="h-5 w-5 text-purple-400" />}
+          icon={<Users className="h-5 w-5 text-[var(--accent-docs)]" />}
           value={topConnectedEntities?.length || 0}
           label="Connected Entities"
           color="purple"
         />
         <StatCard
-          icon={<Activity className="h-5 w-5 text-emerald-400" />}
+          icon={<Activity className="h-5 w-5 text-[var(--accent-success)]" />}
           value={topRelationships?.length || 0}
           label="Relationships"
           color="emerald"
@@ -764,18 +770,18 @@ export const EnhancedAnalytics: React.FC<EnhancedAnalyticsProps> = ({
       {/* Secondary Visualizations Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Document Types Sunburst */}
-        <div className="glass-card p-6 rounded-xl relative overflow-hidden group">
+        <div className="glass-card p-6 rounded-[var(--radius-xl)] relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <Database className="h-24 w-24 text-cyan-500" />
+            <Database className="h-24 w-24 text-[var(--accent)]" />
           </div>
 
-          <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2 relative z-10">
-            <FileText className="h-5 w-5 text-cyan-400" />
+          <h3 className="text-xl font-bold text-[var(--text-primary)] mb-2 flex items-center gap-2 relative z-10">
+            <FileText className="h-5 w-5 text-[var(--accent)]" />
             <span className="neon-text-cyan">Document Types</span>
           </h3>
 
-          <div className="text-xs text-slate-400 mb-4 flex items-start gap-2 bg-slate-900/50 p-3 rounded-lg border border-slate-700/50 relative z-10">
-            <Info className="h-4 w-4 mt-0.5 flex-shrink-0 text-cyan-400" />
+          <div className="text-xs text-[var(--text-muted)] mb-4 flex items-start gap-2 bg-[var(--glass-bg-strong)]/50 p-3 rounded-[var(--radius-lg)] border border-[var(--glass-border)] relative z-10">
+            <Info className="h-4 w-4 mt-0.5 flex-shrink-0 text-[var(--accent)]" />
             <span>
               Breakdown of evidence by category. Click segments to filter. Hover for redaction
               stats.
@@ -791,20 +797,20 @@ export const EnhancedAnalytics: React.FC<EnhancedAnalyticsProps> = ({
         </div>
 
         {/* Timeline */}
-        <div className="glass-card p-6 rounded-xl relative overflow-hidden group">
+        <div className="glass-card p-6 rounded-[var(--radius-xl)] relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
             <TrendingUp className="h-24 w-24 text-purple-500" />
           </div>
 
-          <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2 relative z-10">
-            <TrendingUp className="h-5 w-5 text-purple-400" />
+          <h3 className="text-xl font-bold text-[var(--text-primary)] mb-2 flex items-center gap-2 relative z-10">
+            <TrendingUp className="h-5 w-5 text-[var(--accent-docs)]" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
               Document Distribution & Gap Analysis
             </span>
           </h3>
 
-          <div className="text-xs text-slate-400 mb-4 flex items-start gap-2 bg-slate-900/50 p-3 rounded-lg border border-slate-700/50 relative z-10">
-            <Info className="h-4 w-4 mt-0.5 flex-shrink-0 text-purple-400" />
+          <div className="text-xs text-[var(--text-muted)] mb-4 flex items-start gap-2 bg-[var(--glass-bg-strong)]/50 p-3 rounded-[var(--radius-lg)] border border-[var(--glass-border)] relative z-10">
+            <Info className="h-4 w-4 mt-0.5 flex-shrink-0 text-[var(--accent-docs)]" />
             <span>
               Historical document distribution plotted by original creation date. The red zone
               highlights the 2001 period where significant data gaps have been identified.

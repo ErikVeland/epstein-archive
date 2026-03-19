@@ -472,25 +472,25 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full bg-slate-950 border border-slate-800 rounded-lg shadow-2xl overflow-hidden">
+    <div className="flex flex-col h-full bg-slate-950 border border-[var(--glass-border)] rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)] overflow-hidden">
       {/* Header */}
-      <div className="px-4 py-3 bg-slate-900 border-b border-slate-800">
+      <div className="px-4 py-3 bg-[var(--glass-bg-strong)] border-b border-[var(--glass-border)]">
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-3 overflow-hidden">
-            <div className="w-8 h-8 rounded bg-cyan-900/30 flex items-center justify-center text-cyan-400">
+            <div className="w-8 h-8 rounded bg-cyan-900/30 flex items-center justify-center text-[var(--accent)]">
               <Volume2 size={16} />
             </div>
             <div className="min-w-0">
-              <h3 className="text-sm font-medium text-slate-200 truncate" title={title}>
+              <h3 className="text-sm font-medium text-[var(--text-primary)] truncate" title={title}>
                 {title}
               </h3>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-[var(--text-muted)]">
                 {Array.isArray(chapters) && chapters.length > 0
                   ? `${chapters.length} chapters`
                   : 'Audio Recording'}
               </p>
               {title.includes('Sascha') && (
-                <p className="text-[10px] text-slate-500 mt-0.5">
+                <p className="text-[10px] text-[var(--text-muted)] mt-0.5">
                   Interview: Sascha Riley • Investigation: Lisa Noelle Volding
                 </p>
               )}
@@ -499,7 +499,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
           <div className="flex items-center gap-2 flex-wrap justify-start md:justify-end">
             <button
               onClick={handleShare}
-              className="p-2 hover:bg-slate-800 rounded-full text-slate-400 hover:text-white transition-colors"
+              className="p-2 hover:bg-[var(--glass-bg)] rounded-full text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
               title="Copy link"
             >
               {showCopied ? <Check size={16} className="text-green-400" /> : <Share2 size={16} />}
@@ -521,7 +521,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                     });
                 }, 50);
               }}
-              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs text-cyan-400 rounded-full transition-colors flex items-center gap-2 border border-slate-700"
+              className="px-3 py-1.5 bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] text-xs text-[var(--accent)] rounded-full transition-colors flex items-center gap-2 border border-[var(--glass-border)]"
               title="Read full transcript overlay"
             >
               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -537,7 +537,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
             {(transcript.length > 0 || chapters.length > 0) && (
               <button
                 onClick={toggleTranscript}
-                className="p-2 hover:bg-slate-800 rounded-full text-slate-400 hover:text-white transition-colors"
+                className="p-2 hover:bg-[var(--glass-bg)] rounded-full text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
                 title={showTranscript ? 'Hide transcript' : 'Show transcript'}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -555,7 +555,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                 onClick={onClose}
                 size="sm"
                 label="Close audio player"
-                className="bg-transparent hover:bg-slate-800 border-slate-700 text-slate-400 hover:text-white"
+                className="bg-transparent hover:bg-[var(--glass-bg)] border-[var(--glass-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
               />
             )}
           </div>
@@ -569,20 +569,22 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
             <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-6 ring-1 ring-red-500/30">
               <Shield className="h-8 w-8 text-red-500" />
             </div>
-            <h3 className="text-xl font-bold text-white mb-2">Graphic Content Warning</h3>
-            <p className="text-slate-400 max-w-md mb-8 leading-relaxed">{warningText}</p>
+            <h3 className="text-xl font-bold text-[var(--text-primary)] mb-2">
+              Graphic Content Warning
+            </h3>
+            <p className="text-[var(--text-muted)] max-w-md mb-8 leading-relaxed">{warningText}</p>
             <div className="flex gap-4">
               {onClose && (
                 <button
                   onClick={onClose}
-                  className="px-6 py-2 rounded-lg border border-slate-700 hover:bg-slate-800 text-slate-300 transition-colors font-medium"
+                  className="px-6 py-2 rounded-[var(--radius-lg)] border border-[var(--glass-border)] hover:bg-[var(--glass-bg)] text-[var(--text-secondary)] transition-colors font-medium"
                 >
                   Cancel
                 </button>
               )}
               <button
                 onClick={handleReveal}
-                className="px-6 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white font-medium shadow-lg shadow-red-900/20 transition-all hover:scale-105"
+                className="px-6 py-2 rounded-[var(--radius-lg)] bg-red-600 hover:bg-red-500 text-[var(--text-primary)] font-medium shadow-[var(--glass-shadow)] shadow-red-900/20 transition-all hover:scale-105"
               >
                 Reveal & Play
               </button>
@@ -593,7 +595,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
         {/* Main Content (Visuals + Controls) */}
         <div className="flex-1 flex flex-col p-4 md:p-6 overflow-y-auto">
           {/* Visualizer / Slideshow Area */}
-          <div className="flex-1 min-h-[100px] bg-slate-900/50 rounded-lg border border-slate-800/50 mb-6 flex items-center justify-center relative overflow-hidden group">
+          <div className="flex-1 min-h-[100px] bg-[var(--glass-bg-strong)]/50 rounded-[var(--radius-lg)] border border-[var(--glass-border)] mb-6 flex items-center justify-center relative overflow-hidden group">
             {albumImages && albumImages.length > 0 ? (
               // Slideshow Mode
               <div className="absolute inset-0 w-full h-full">
@@ -655,10 +657,10 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
             {/* Active Chapter Display */}
             {computedChapters.length > 0 && (
               <div className="absolute top-4 left-4 right-4 text-center z-20">
-                <span className="text-xs font-mono text-cyan-500 uppercase tracking-widest bg-black/50 px-2 py-1 rounded">
+                <span className="text-xs font-mono text-[var(--accent)] uppercase tracking-widest bg-black/50 px-2 py-1 rounded">
                   Current Chapter
                 </span>
-                <h4 className="text-lg text-white font-light drop-shadow-md mt-1">
+                <h4 className="text-lg text-[var(--text-primary)] font-light drop-shadow-[var(--glass-shadow)] mt-1">
                   {computedChapters
                     .slice()
                     .reverse()
@@ -678,13 +680,13 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
               max={duration || 100}
               value={currentTime}
               onChange={(e) => seek(parseFloat(e.target.value))}
-              className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-500 hover:bg-slate-700 transition-colors"
+              className="w-full h-2 bg-[var(--glass-bg)] rounded-[var(--radius-lg)] appearance-none cursor-pointer accent-cyan-500 hover:bg-[var(--glass-bg-highlight)] transition-colors"
             />
             {/* Chapter Markers */}
             {computedChapters.map((chapter, i) => (
               <div
                 key={i}
-                className="absolute top-0 w-0.5 h-2 bg-slate-500 hover:bg-white cursor-pointer z-10 transition-colors"
+                className="absolute top-0 w-0.5 h-2 bg-[var(--glass-bg-highlight)] hover:bg-white cursor-pointer z-10 transition-colors"
                 style={{ left: `${(chapter.startTime / duration) * 100}%` }}
                 title={chapter.title}
                 onClick={(e) => {
@@ -693,7 +695,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                 }}
               />
             ))}
-            <div className="flex justify-between text-xs text-slate-500 font-mono mt-1">
+            <div className="flex justify-between text-xs text-[var(--text-muted)] font-mono mt-1">
               <span>{formatTime(currentTime)}</span>
               <span>{formatTime(duration)}</span>
             </div>
@@ -703,14 +705,14 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
           <div className="flex items-center justify-center gap-6">
             <button
               onClick={() => seek(currentTime - 10)}
-              className="text-slate-400 hover:text-white transition-colors"
+              className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
             >
               <SkipBack size={24} />
             </button>
 
             <button
               onClick={togglePlay}
-              className="w-14 h-14 rounded-full bg-cyan-500 hover:bg-cyan-400 text-black flex items-center justify-center shadow-lg shadow-cyan-900/20 transition-all hover:scale-105"
+              className="w-14 h-14 rounded-full bg-[var(--accent)] hover:bg-[var(--accent)] text-black flex items-center justify-center shadow-[var(--glass-shadow)] shadow-cyan-900/20 transition-all hover:scale-105"
             >
               {isPlaying ? (
                 <Pause size={24} fill="currentColor" />
@@ -721,7 +723,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
             <button
               onClick={() => seek(currentTime + 10)}
-              className="text-slate-400 hover:text-white transition-colors"
+              className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
             >
               <SkipForward size={24} />
             </button>
@@ -734,7 +736,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                   setIsMuted(!isMuted);
                   if (audioRef.current) audioRef.current.muted = !isMuted;
                 }}
-                className="text-slate-400 hover:text-white"
+                className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
               >
                 {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
               </button>
@@ -748,11 +750,11 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                   setVolume(parseFloat(e.target.value));
                   if (audioRef.current) audioRef.current.volume = parseFloat(e.target.value);
                 }}
-                className="w-20 h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-slate-400"
+                className="w-20 h-1 bg-[var(--glass-bg)] rounded-[var(--radius-lg)] appearance-none cursor-pointer accent-slate-400"
               />
             </div>
 
-            <div className="flex items-center gap-2 bg-slate-900 rounded-lg p-1 border border-slate-800">
+            <div className="flex items-center gap-2 bg-[var(--glass-bg-strong)] rounded-[var(--radius-lg)] p-1 border border-[var(--glass-border)]">
               {[0.5, 1, 1.5, 2].map((rate) => (
                 <button
                   key={rate}
@@ -760,7 +762,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                     setPlaybackRate(rate);
                     if (audioRef.current) audioRef.current.playbackRate = rate;
                   }}
-                  className={`px-2 py-1 text-xs rounded ${playbackRate === rate ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-slate-200'}`}
+                  className={`px-2 py-1 text-xs rounded ${playbackRate === rate ? 'bg-[var(--glass-bg-highlight)] text-[var(--text-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}
                 >
                   {rate}x
                 </button>
@@ -772,19 +774,19 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
         {/* Sidebar (Transcript/Chapters) */}
         {(transcript.length > 0 || chapters.length > 0) && (
           <div
-            className={`fixed md:relative inset-0 md:inset-auto z-40 md:z-0 md:w-80 border-l border-slate-800 bg-slate-900 md:bg-slate-900/30 flex flex-col transition-transform duration-300 ${showTranscript ? 'translate-x-0' : 'translate-x-full md:hidden'} md:translate-x-0`}
+            className={`fixed md:relative inset-0 md:inset-auto z-40 md:z-0 md:w-80 border-l border-[var(--glass-border)] bg-[var(--glass-bg-strong)] md:bg-[var(--glass-bg-strong)]/30 flex flex-col transition-transform duration-300 ${showTranscript ? 'translate-x-0' : 'translate-x-full md:hidden'} md:translate-x-0`}
           >
-            <div className="flex border-b border-slate-800 shrink-0">
+            <div className="flex border-b border-[var(--glass-border)] shrink-0">
               <button
                 onClick={() => setShowChapters(false)}
-                className={`flex-1 py-3 text-xs font-medium uppercase tracking-wider ${!showChapters ? 'text-cyan-400 border-b-2 border-cyan-500 bg-slate-800/50' : 'text-slate-500 hover:text-slate-300'}`}
+                className={`flex-1 py-3 text-xs font-medium uppercase tracking-wider ${!showChapters ? 'text-[var(--accent)] border-b-2 border-[var(--accent)] bg-[var(--glass-bg)]/50' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}
               >
                 Transcript
               </button>
               {computedChapters.length > 0 && (
                 <button
                   onClick={() => setShowChapters(true)}
-                  className={`flex-1 py-3 text-xs font-medium uppercase tracking-wider ${showChapters ? 'text-cyan-400 border-b-2 border-cyan-500 bg-slate-800/50' : 'text-slate-500 hover:text-slate-300'}`}
+                  className={`flex-1 py-3 text-xs font-medium uppercase tracking-wider ${showChapters ? 'text-[var(--accent)] border-b-2 border-[var(--accent)] bg-[var(--glass-bg)]/50' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}
                 >
                   Chapters
                 </button>
@@ -793,7 +795,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                 onClick={() => setShowTranscript(false)}
                 size="sm"
                 label="Close transcript panel"
-                className="md:hidden mr-2 bg-transparent border-slate-700 text-slate-400 hover:text-white"
+                className="md:hidden mr-2 bg-transparent border-[var(--glass-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
               />
             </div>
 
@@ -812,7 +814,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
               {!showChapters ? (
                 <>
                   {transcript.length > 0 && (
-                    <div className="sticky top-0 z-10 bg-slate-900/95 px-3 py-2 border-b border-slate-800 flex items-center gap-2">
+                    <div className="sticky top-0 z-10 bg-[var(--glass-bg-strong)]/95 px-3 py-2 border-b border-[var(--glass-border)] flex items-center gap-2">
                       <input
                         ref={sidebarSearchInputRef}
                         type="text"
@@ -822,10 +824,10 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                           lastInteractionRef.current = Date.now();
                         }}
                         placeholder="Search in transcript…"
-                        className="flex-1 bg-slate-800 border border-slate-700 rounded text-slate-200 text-xs px-2 py-1 focus:outline-none focus:ring-1 focus:ring-cyan-500 placeholder-slate-500"
+                        className="flex-1 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded text-[var(--text-primary)] text-xs px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[var(--accent)] placeholder-slate-500"
                       />
                       {normalizedTranscriptQuery && (
-                        <div className="flex items-center gap-1 text-[10px] text-slate-400">
+                        <div className="flex items-center gap-1 text-[10px] text-[var(--text-muted)]">
                           <span>
                             {transcriptMatches.length
                               ? `${currentMatchIndex + 1}/${transcriptMatches.length}`
@@ -835,7 +837,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                             type="button"
                             onClick={goToPrevTranscriptMatch}
                             disabled={!transcriptMatches.length}
-                            className="px-1 py-0.5 rounded bg-slate-800 border border-slate-700 disabled:opacity-40"
+                            className="px-1 py-0.5 rounded bg-[var(--glass-bg)] border border-[var(--glass-border)] disabled:opacity-40"
                           >
                             ↑
                           </button>
@@ -843,7 +845,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                             type="button"
                             onClick={goToNextTranscriptMatch}
                             disabled={!transcriptMatches.length}
-                            className="px-1 py-0.5 rounded bg-slate-800 border border-slate-700 disabled:opacity-40"
+                            className="px-1 py-0.5 rounded bg-[var(--glass-bg)] border border-[var(--glass-border)] disabled:opacity-40"
                           >
                             ↓
                           </button>
@@ -862,25 +864,27 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                           <button
                             key={idx}
                             onClick={() => seek(seg.start)}
-                            className={`p-4 text-left border-b border-slate-800/50 transition-colors hover:bg-slate-800/50 ${
+                            className={`p-4 text-left border-b border-[var(--glass-border)] transition-colors hover:bg-[var(--glass-bg)]/50 ${
                               activeSegmentIndex === idx ? 'bg-cyan-900/20' : ''
                             } ${isCurrent ? 'ring-1 ring-amber-400 border-amber-400' : ''} ${
                               !isCurrent && isMatch ? 'border-amber-500/60' : ''
                             }`}
                           >
                             <div className="flex items-center gap-2 mb-1">
-                              <span className="text-xs font-mono text-slate-500">
+                              <span className="text-xs font-mono text-[var(--text-muted)]">
                                 {formatTime(seg.start)}
                               </span>
                               {seg.speaker && (
-                                <span className="text-xs font-bold text-slate-300">
+                                <span className="text-xs font-bold text-[var(--text-secondary)]">
                                   {seg.speaker}
                                 </span>
                               )}
                             </div>
                             <p
                               className={`text-sm leading-relaxed ${
-                                activeSegmentIndex === idx ? 'text-white' : 'text-slate-400'
+                                activeSegmentIndex === idx
+                                  ? 'text-[var(--text-primary)]'
+                                  : 'text-[var(--text-muted)]'
                               }`}
                             >
                               {renderHighlightedText(seg.text || '', normalizedTranscriptQuery)}
@@ -889,7 +893,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                         );
                       })
                     ) : (
-                      <div className="p-8 text-center text-slate-500 text-sm">
+                      <div className="p-8 text-center text-[var(--text-muted)] text-sm">
                         No transcript available.
                       </div>
                     )}
@@ -901,15 +905,18 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                     <button
                       key={i}
                       onClick={() => seek(chapter.startTime)}
-                      className={`p-4 text-left border-b border-slate-800/50 flex items-center gap-3 hover:bg-slate-800/50 group`}
+                      className={`p-4 text-left border-b border-[var(--glass-border)] flex items-center gap-3 hover:bg-[var(--glass-bg)]/50 group`}
                     >
-                      <div className="text-xs font-mono text-slate-500 w-12">
+                      <div className="text-xs font-mono text-[var(--text-muted)] w-12">
                         {formatTime(chapter.startTime)}
                       </div>
-                      <div className="flex-1 text-sm text-slate-300 group-hover:text-cyan-400 transition-colors">
+                      <div className="flex-1 text-sm text-[var(--text-secondary)] group-hover:text-[var(--accent)] transition-colors">
                         {chapter.title}
                       </div>
-                      <Play size={12} className="opacity-0 group-hover:opacity-100 text-cyan-500" />
+                      <Play
+                        size={12}
+                        className="opacity-0 group-hover:opacity-100 text-[var(--accent)]"
+                      />
                     </button>
                   ))}
                 </div>
@@ -921,12 +928,12 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
       {showFullTranscriptOverlay && (
         <div className="fixed inset-0 z-[1300] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-5xl h-[90vh] max-h-[90vh] bg-slate-950 border border-slate-800 rounded-lg shadow-2xl overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between p-3 bg-slate-900 border-b border-slate-800">
+          <div className="w-full max-w-5xl h-[90vh] max-h-[90vh] bg-slate-950 border border-[var(--glass-border)] rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)] overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between p-3 bg-[var(--glass-bg-strong)] border-b border-[var(--glass-border)]">
               <div className="flex items-center gap-2">
                 <button
                   onClick={togglePlay}
-                  className="px-3 py-1 rounded bg-cyan-600 hover:bg-cyan-500 text-white text-xs"
+                  className="px-3 py-1 rounded bg-[var(--accent)] hover:bg-[var(--accent)] text-[var(--text-primary)] text-xs"
                 >
                   {isPlaying ? 'Pause' : 'Play'}
                 </button>
@@ -935,7 +942,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                     setIsMuted(!isMuted);
                     if (audioRef.current) audioRef.current.muted = !isMuted;
                   }}
-                  className="px-3 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs"
+                  className="px-3 py-1 rounded bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] text-xs"
                 >
                   {isMuted ? 'Unmute' : 'Mute'}
                 </button>
@@ -944,11 +951,11 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                 onClick={() => setShowFullTranscriptOverlay(false)}
                 size="sm"
                 label="Close full transcript"
-                className="bg-transparent border-slate-700 text-slate-400 hover:text-white"
+                className="bg-transparent border-[var(--glass-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
               />
             </div>
             <div className="flex-1 flex flex-col">
-              <div className="px-4 py-2 bg-slate-900/80 border-b border-slate-800 flex items-center gap-2">
+              <div className="px-4 py-2 bg-[var(--glass-bg-strong)]/80 border-b border-[var(--glass-border)] flex items-center gap-2">
                 <input
                   ref={overlaySearchInputRef}
                   type="text"
@@ -958,10 +965,10 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                     lastInteractionRef.current = Date.now();
                   }}
                   placeholder="Search in transcript…"
-                  className="flex-1 bg-slate-800 border border-slate-700 rounded text-slate-200 text-xs px-2 py-1 focus:outline-none focus:ring-1 focus:ring-cyan-500 placeholder-slate-500"
+                  className="flex-1 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded text-[var(--text-primary)] text-xs px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[var(--accent)] placeholder-slate-500"
                 />
                 {normalizedTranscriptQuery && (
-                  <div className="flex items-center gap-1 text-[10px] text-slate-400">
+                  <div className="flex items-center gap-1 text-[10px] text-[var(--text-muted)]">
                     <span>
                       {transcriptMatches.length
                         ? `${currentMatchIndex + 1}/${transcriptMatches.length}`
@@ -971,7 +978,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                       type="button"
                       onClick={goToPrevTranscriptMatch}
                       disabled={!transcriptMatches.length}
-                      className="px-1 py-0.5 rounded bg-slate-800 border border-slate-700 disabled:opacity-40"
+                      className="px-1 py-0.5 rounded bg-[var(--glass-bg)] border border-[var(--glass-border)] disabled:opacity-40"
                     >
                       ↑
                     </button>
@@ -979,7 +986,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                       type="button"
                       onClick={goToNextTranscriptMatch}
                       disabled={!transcriptMatches.length}
-                      className="px-1 py-0.5 rounded bg-slate-800 border border-slate-700 disabled:opacity-40"
+                      className="px-1 py-0.5 rounded bg-[var(--glass-bg)] border border-[var(--glass-border)] disabled:opacity-40"
                     >
                       ↓
                     </button>
@@ -1006,21 +1013,23 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                     <button
                       key={i}
                       onClick={() => seek(seg.start)}
-                      className={`w-full text-left p-3 rounded border border-slate-800/50 hover:bg-slate-800/50 transition-colors ${
+                      className={`w-full text-left p-3 rounded border border-[var(--glass-border)] hover:bg-[var(--glass-bg)]/50 transition-colors ${
                         currentTime >= seg.start && currentTime < seg.end ? 'bg-cyan-900/20' : ''
                       } ${isCurrent ? 'ring-1 ring-amber-400 border-amber-400' : ''} ${
                         !isCurrent && isMatch ? 'border-amber-500/60' : ''
                       }`}
                     >
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-mono text-slate-500">
+                        <span className="text-xs font-mono text-[var(--text-muted)]">
                           {formatTime(seg.start)}
                         </span>
                         {seg.speaker && (
-                          <span className="text-xs font-bold text-slate-300">{seg.speaker}</span>
+                          <span className="text-xs font-bold text-[var(--text-secondary)]">
+                            {seg.speaker}
+                          </span>
                         )}
                       </div>
-                      <p className="text-sm text-slate-300">
+                      <p className="text-sm text-[var(--text-secondary)]">
                         {renderHighlightedText(seg.text || '', normalizedTranscriptQuery)}
                       </p>
                     </button>

@@ -29,22 +29,24 @@ export const DocumentHoverPreview: React.FC<DocumentHoverPreviewProps> = ({ doc,
       <div className="preview-glow" />
       <div className="preview-content">
         <div className="flex items-center gap-2 mb-4">
-          <FileText className="w-5 h-5 text-cyan-400" />
-          <span className="text-[10px] font-black uppercase tracking-widest text-cyan-500/80">
+          <FileText className="w-5 h-5 text-[var(--accent)]" />
+          <span className="text-[10px] font-black uppercase tracking-widest text-[var(--accent)]/80">
             Document Preview
           </span>
         </div>
 
-        <h3 className="text-xl font-bold text-white mb-3 leading-tight">{displayTitle}</h3>
+        <h3 className="text-xl font-bold text-[var(--text-primary)] mb-3 leading-tight">
+          {displayTitle}
+        </h3>
 
         <div className="flex flex-wrap gap-2 mb-6">
-          <span className="semantic-chip border-slate-700 bg-slate-800/50 text-slate-300">
+          <span className="semantic-chip border-[var(--glass-border)] bg-[var(--glass-bg)]/50 text-[var(--text-secondary)]">
             {doc.evidenceType || doc.fileType}
           </span>
-          <span className="semantic-chip border-slate-700 bg-slate-800/50 text-slate-300">
+          <span className="semantic-chip border-[var(--glass-border)] bg-[var(--glass-bg)]/50 text-[var(--text-secondary)]">
             {formatDate(doc.dateCreated)}
           </span>
-          <span className="semantic-chip border-slate-700 bg-slate-800/50 text-slate-300">
+          <span className="semantic-chip border-[var(--glass-border)] bg-[var(--glass-bg)]/50 text-[var(--text-secondary)]">
             {getSourceLabel(doc)}
           </span>
         </div>
@@ -53,14 +55,14 @@ export const DocumentHoverPreview: React.FC<DocumentHoverPreviewProps> = ({ doc,
 
         {doc.keyEntities && doc.keyEntities.length > 0 && (
           <div className="mt-6">
-            <div className="text-[10px] font-bold uppercase text-slate-500 mb-2 tracking-widest">
+            <div className="text-[10px] font-bold uppercase text-[var(--text-muted)] mb-2 tracking-widest">
               Key Detected Entities
             </div>
             <div className="flex flex-wrap gap-2">
               {doc.keyEntities.slice(0, 8).map((entity, i) => (
                 <span
                   key={i}
-                  className="px-2 py-1 bg-cyan-500/10 border border-cyan-500/20 rounded text-[11px] text-cyan-300"
+                  className="px-2 py-1 bg-[var(--accent)]/10 border border-[var(--accent)]/20 rounded text-[11px] text-[var(--accent)]"
                 >
                   {entity}
                 </span>

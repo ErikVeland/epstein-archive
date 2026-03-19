@@ -131,7 +131,7 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
       // Show success feedback
       const button = document.createElement('div');
       button.className =
-        'fixed bottom-4 right-4 px-4 py-2 bg-green-600 text-white rounded-lg shadow-lg z-50 animate-fade-in';
+        'fixed bottom-4 right-4 px-4 py-2 bg-green-600 text-[var(--text-primary)] rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)] z-50 animate-fade-in';
       button.textContent = 'Added to investigation!';
       document.body.appendChild(button);
 
@@ -148,7 +148,7 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
       // Show error feedback
       const button = document.createElement('div');
       button.className =
-        'fixed bottom-4 right-4 px-4 py-2 bg-red-600 text-white rounded-lg shadow-lg z-50 animate-fade-in';
+        'fixed bottom-4 right-4 px-4 py-2 bg-red-600 text-[var(--text-primary)] rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)] z-50 animate-fade-in';
       button.textContent = 'Failed to add to investigation';
       document.body.appendChild(button);
 
@@ -200,7 +200,7 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
             if (!hasInvestigations) setIsCreatingNew(true);
             setShowModal(true);
           }}
-          className={`flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm ${className}`}
+          className={`flex items-center gap-2 px-3 py-2 bg-[var(--accent)] hover:bg-blue-700 text-[var(--text-primary)] rounded-[var(--radius-lg)] transition-colors text-sm ${className}`}
           title="Add to Investigation"
         >
           <Icon name="Plus" size="sm" />
@@ -214,7 +214,7 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
             if (!hasInvestigations) setIsCreatingNew(true);
             setShowModal(true);
           }}
-          className={`p-2 text-blue-400 hover:text-blue-300 hover:bg-blue-900/30 rounded-lg transition-colors ${className}`}
+          className={`p-2 text-[var(--accent)] hover:text-[var(--accent)] hover:bg-blue-900/30 rounded-[var(--radius-lg)] transition-colors ${className}`}
           title="Add to Investigation"
         >
           <Icon name="Plus" size="sm" />
@@ -228,7 +228,7 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
               if (!hasInvestigations) setIsCreatingNew(true);
               setShowModal(true);
             }}
-            className={`flex items-center gap-2 px-3 py-2 text-blue-400 hover:text-blue-300 hover:bg-blue-900/30 rounded-lg transition-colors text-sm ${className}`}
+            className={`flex items-center gap-2 px-3 py-2 text-[var(--accent)] hover:text-[var(--accent)] hover:bg-blue-900/30 rounded-[var(--radius-lg)] transition-colors text-sm ${className}`}
           >
             <Icon name="Plus" size="sm" />
             <span>Add to Investigation</span>
@@ -240,7 +240,7 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
         <button
           onClick={handleQuickAdd}
           disabled={isLoading}
-          className={`flex items-center justify-center p-1.5 bg-blue-600/80 hover:bg-blue-700 text-white rounded transition-colors disabled:opacity-50 ${className}`}
+          className={`flex items-center justify-center p-1.5 bg-[var(--accent)]/80 hover:bg-blue-700 text-[var(--text-primary)] rounded transition-colors disabled:opacity-50 ${className}`}
           title="Add to Investigation"
         >
           {isLoading ? (
@@ -253,33 +253,36 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-slate-800 rounded-xl shadow-xl w-full max-w-md">
-            <div className="border-b border-slate-700 p-6">
+        <div className="fixed inset-0 app-backdrop flex items-center justify-center z-50">
+          <div className="glass-panel overflow-hidden w-full max-w-md">
+            <div className="border-b border-[var(--glass-border)] p-6 bg-[var(--glass-bg)]">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <Icon name={ItemIcon} size="sm" color="info" />
-                  <h3 className="text-xl font-bold text-white">Add to Investigation</h3>
+                  <h3 className="text-xl font-bold text-[var(--text-primary)]">
+                    Add to Investigation
+                  </h3>
                 </div>
                 <CloseButton
                   onClick={() => setShowModal(false)}
                   size="sm"
                   label="Close add to investigation"
-                  className="text-slate-400 hover:text-slate-200"
                 />
               </div>
             </div>
 
             <div className="p-6 space-y-4">
               {/* Item Preview */}
-              <div className="bg-slate-700/50 rounded-lg p-4">
+              <div className="surface-glass-card p-4">
                 <div className="flex items-center gap-3 mb-2">
                   <Icon name={ItemIcon} size="xs" color="gray" />
-                  <h4 className="font-semibold text-white">{item.title}</h4>
+                  <h4 className="font-semibold text-[var(--text-primary)]">{item.title}</h4>
                 </div>
-                <p className="text-sm text-slate-400 line-clamp-2">{item.description}</p>
+                <p className="text-sm text-[var(--text-secondary)] line-clamp-2">
+                  {item.description}
+                </p>
                 <div className="flex items-center gap-2 mt-2">
-                  <span className="text-xs px-2 py-1 bg-slate-600 rounded text-slate-300">
+                  <span className="text-xs px-2 py-1 bg-[var(--glass-bg-strong)] rounded text-[var(--text-secondary)]">
                     {item.type}
                   </span>
                 </div>
@@ -288,13 +291,13 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
               {/* Investigation Selection or Creation */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="block text-sm font-medium text-slate-300">
+                  <label className="block text-sm font-medium text-[var(--text-secondary)]">
                     {isCreatingNew ? 'New Investigation Details' : 'Select Investigation'}
                   </label>
                   <button
                     onClick={() => setIsCreatingNew(!isCreatingNew || !hasInvestigations)}
                     disabled={!hasInvestigations}
-                    className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                    className="text-xs text-[var(--accent)] hover:text-[var(--accent)] transition-colors"
                   >
                     {!hasInvestigations
                       ? 'No cases yet'
@@ -311,21 +314,21 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
                       placeholder="Investigation Title"
                       value={newTitle}
                       onChange={(e) => setNewTitle(e.target.value)}
-                      className="w-full px-4 h-10 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-slate-500"
+                      className="w-full px-4 h-10 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] placeholder-[var(--text-muted)]"
                       autoFocus
                     />
                     <textarea
                       placeholder="Description (optional)"
                       value={newDescription}
                       onChange={(e) => setNewDescription(e.target.value)}
-                      className="w-full px-4 py-2 h-20 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-slate-500 resize-none text-sm"
+                      className="w-full px-4 py-2 h-20 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] placeholder-[var(--text-muted)] resize-none text-sm"
                     />
                   </div>
                 ) : (
                   <select
                     value={selectedInvestigationId}
                     onChange={(e) => setSelectedInvestigationId(e.target.value)}
-                    className="w-full px-4 h-10 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 h-10 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
                   >
                     <option value="">Choose an investigation...</option>
                     {investigations.map((inv) => (
@@ -339,7 +342,7 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
 
               {/* Relevance Selection */}
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                   Evidence Relevance
                 </label>
                 <div className="grid grid-cols-3 gap-2">
@@ -347,10 +350,10 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
                     <button
                       key={rel}
                       onClick={() => setRelevance(rel)}
-                      className={`px-3 h-10 flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${
+                      className={`px-3 h-10 flex items-center justify-center rounded-[var(--radius-lg)] text-sm font-medium transition-colors ${
                         relevance === rel
                           ? getRelevanceColor(rel)
-                          : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                          : 'bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-strong)]'
                       }`}
                     >
                       {rel.charAt(0).toUpperCase() + rel.slice(1)}
@@ -360,10 +363,10 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
               </div>
             </div>
 
-            <div className="border-t border-slate-700 p-6 flex justify-end gap-3">
+            <div className="border-t border-[var(--glass-border)] p-6 flex justify-end gap-3 bg-[var(--glass-bg)]">
               <button
                 onClick={() => setShowModal(false)}
-                className="px-4 h-10 flex items-center justify-center text-slate-300 hover:text-white rounded-lg transition-colors"
+                className="px-4 h-10 flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-[var(--radius-lg)] transition-colors"
               >
                 Cancel
               </button>
@@ -374,7 +377,7 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
                   (isCreatingNew && !newTitle.trim()) ||
                   isLoading
                 }
-                className="px-4 h-10 flex items-center justify-center bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors flex items-center gap-2"
+                className="px-4 h-10 flex items-center justify-center bg-[var(--accent)] hover:bg-blue-700 disabled:bg-[var(--glass-bg-strong)] disabled:text-[var(--text-muted)] disabled:cursor-not-allowed text-[var(--text-primary)] rounded-[var(--radius-lg)] transition-colors flex items-center gap-2"
               >
                 {isLoading && (
                   <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />

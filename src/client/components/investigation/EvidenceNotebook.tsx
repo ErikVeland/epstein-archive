@@ -64,13 +64,13 @@ const applyInlineMarkdown = (value: string): string => {
   let output = value;
   output = output.replace(
     /`([^`]+)`/g,
-    '<code class="px-1 py-0.5 rounded bg-slate-800 text-cyan-200">$1</code>',
+    '<code class="px-1 py-0.5 rounded bg-[var(--glass-bg)] text-cyan-200">$1</code>',
   );
   output = output.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
   output = output.replace(/\*([^*]+)\*/g, '<em>$1</em>');
   output = output.replace(
     /\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g,
-    '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-cyan-300 underline">$1</a>',
+    '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-[var(--accent)] underline">$1</a>',
   );
   return output;
 };
@@ -82,7 +82,7 @@ const renderMarkdown = (markdown: string): string => {
   let content = source.replace(/```([\s\S]*?)```/g, (_match, code) => {
     const token = `__CODE_BLOCK_${codeBlocks.length}__`;
     codeBlocks.push(
-      `<pre class="bg-slate-950 border border-slate-700 rounded-md p-3 overflow-x-auto"><code>${code}</code></pre>`,
+      `<pre class="bg-slate-950 border border-[var(--glass-border)] rounded-md p-3 overflow-x-auto"><code>${code}</code></pre>`,
     );
     return token;
   });
@@ -116,14 +116,14 @@ const renderMarkdown = (markdown: string): string => {
       closeLists();
       const level = heading[1].length;
       out.push(
-        `<h${level} class="font-semibold text-slate-100 mt-3 mb-2">${applyInlineMarkdown(heading[2])}</h${level}>`,
+        `<h${level} class="font-semibold text-[var(--text-primary)] mt-3 mb-2">${applyInlineMarkdown(heading[2])}</h${level}>`,
       );
       continue;
     }
 
     if (/^(-{3,}|\*{3,})$/.test(line)) {
       closeLists();
-      out.push('<hr class="border-slate-700 my-3" />');
+      out.push('<hr class="border-[var(--glass-border)] my-3" />');
       continue;
     }
 
@@ -131,7 +131,7 @@ const renderMarkdown = (markdown: string): string => {
     if (quote) {
       closeLists();
       out.push(
-        `<blockquote class="border-l-4 border-slate-600 pl-3 italic text-slate-300 my-2">${applyInlineMarkdown(quote[1])}</blockquote>`,
+        `<blockquote class="border-l-4 border-[var(--glass-border)] pl-3 italic text-[var(--text-secondary)] my-2">${applyInlineMarkdown(quote[1])}</blockquote>`,
       );
       continue;
     }
@@ -145,7 +145,7 @@ const renderMarkdown = (markdown: string): string => {
       }
       const checked = checklist[1].toLowerCase() === 'x';
       out.push(
-        `<li class="text-slate-200"><input type="checkbox" disabled ${checked ? 'checked' : ''} class="mr-2" />${applyInlineMarkdown(checklist[2])}</li>`,
+        `<li class="text-[var(--text-primary)]"><input type="checkbox" disabled ${checked ? 'checked' : ''} class="mr-2" />${applyInlineMarkdown(checklist[2])}</li>`,
       );
       continue;
     }
@@ -157,7 +157,7 @@ const renderMarkdown = (markdown: string): string => {
         out.push('<ul class="list-disc pl-6 space-y-1">');
         inUl = true;
       }
-      out.push(`<li class="text-slate-200">${applyInlineMarkdown(unordered[1])}</li>`);
+      out.push(`<li class="text-[var(--text-primary)]">${applyInlineMarkdown(unordered[1])}</li>`);
       continue;
     }
 
@@ -168,12 +168,12 @@ const renderMarkdown = (markdown: string): string => {
         out.push('<ol class="list-decimal pl-6 space-y-1">');
         inOl = true;
       }
-      out.push(`<li class="text-slate-200">${applyInlineMarkdown(ordered[2])}</li>`);
+      out.push(`<li class="text-[var(--text-primary)]">${applyInlineMarkdown(ordered[2])}</li>`);
       continue;
     }
 
     closeLists();
-    out.push(`<p class="text-slate-200 leading-6">${applyInlineMarkdown(line)}</p>`);
+    out.push(`<p class="text-[var(--text-primary)] leading-6">${applyInlineMarkdown(line)}</p>`);
   }
 
   closeLists();
@@ -617,8 +617,8 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
   if (loading) {
     return (
       <div className="p-6">
-        <div className="animate-pulse h-6 w-48 bg-slate-700 rounded mb-3"></div>
-        <div className="animate-pulse h-3 w-96 bg-slate-800 rounded"></div>
+        <div className="animate-pulse h-6 w-48 bg-[var(--glass-bg-highlight)] rounded mb-3"></div>
+        <div className="animate-pulse h-3 w-96 bg-[var(--glass-bg)] rounded"></div>
       </div>
     );
   }
@@ -627,8 +627,8 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
     <div className="p-6 space-y-8">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-white">Evidence Notebook</h2>
-          <p className="text-sm text-slate-400 mt-1">
+          <h2 className="text-xl font-semibold text-[var(--text-primary)]">Evidence Notebook</h2>
+          <p className="text-sm text-[var(--text-muted)] mt-1">
             Write with Markdown and keep narrative in sync with evidence annotations.
           </p>
         </div>
@@ -637,31 +637,31 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
             href={`/api/investigations/${investigationId}/briefing`}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs px-3 py-1.5 rounded bg-blue-600 hover:bg-blue-700 text-white transition-colors"
+            className="text-xs px-3 py-1.5 rounded bg-[var(--accent)] hover:bg-blue-700 text-[var(--text-primary)] transition-colors"
           >
             Publish Briefing
           </a>
         </div>
       </div>
 
-      <section className="bg-slate-900 border border-slate-800 rounded-lg p-4">
+      <section className="bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-4">
         <div className="flex items-center justify-between gap-2 mb-3">
-          <h3 className="text-sm font-medium text-slate-300">Case Notes</h3>
+          <h3 className="text-sm font-medium text-[var(--text-secondary)]">Case Notes</h3>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setPreviewMode(false)}
-              className={`text-xs px-2 py-1 rounded ${!previewMode ? 'bg-slate-700 text-white' : 'text-slate-400'}`}
+              className={`text-xs px-2 py-1 rounded ${!previewMode ? 'bg-[var(--glass-bg-highlight)] text-[var(--text-primary)]' : 'text-[var(--text-muted)]'}`}
             >
               Edit
             </button>
             <button
               onClick={() => setPreviewMode(true)}
-              className={`text-xs px-2 py-1 rounded ${previewMode ? 'bg-slate-700 text-white' : 'text-slate-400'}`}
+              className={`text-xs px-2 py-1 rounded ${previewMode ? 'bg-[var(--glass-bg-highlight)] text-[var(--text-primary)]' : 'text-[var(--text-muted)]'}`}
             >
               Preview
             </button>
             <span
-              className="text-xs text-slate-500"
+              className="text-xs text-[var(--text-muted)]"
               aria-live="polite"
               data-testid="notebook-save-status"
             >
@@ -676,7 +676,7 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
               <button
                 onClick={retryPersist}
                 data-testid="notebook-retry-save"
-                className="text-xs px-2 py-1 rounded bg-amber-700 hover:bg-amber-600 text-white"
+                className="text-xs px-2 py-1 rounded bg-amber-700 hover:bg-amber-600 text-[var(--text-primary)]"
               >
                 Retry save
               </button>
@@ -693,49 +693,49 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
           <div className="flex flex-wrap items-center gap-2 mb-2">
             <button
               onClick={() => insertMarkdownToken('**', '**', 'bold text')}
-              className="p-1.5 rounded bg-slate-800 text-slate-200 hover:bg-slate-700"
+              className="p-1.5 rounded bg-[var(--glass-bg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)]"
               title="Bold"
             >
               <Bold size={14} />
             </button>
             <button
               onClick={() => insertMarkdownToken('*', '*', 'italic text')}
-              className="p-1.5 rounded bg-slate-800 text-slate-200 hover:bg-slate-700"
+              className="p-1.5 rounded bg-[var(--glass-bg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)]"
               title="Italic"
             >
               <Italic size={14} />
             </button>
             <button
               onClick={() => insertMarkdownToken('# ', '', 'Heading')}
-              className="p-1.5 rounded bg-slate-800 text-slate-200 hover:bg-slate-700"
+              className="p-1.5 rounded bg-[var(--glass-bg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)]"
               title="Heading"
             >
               H1
             </button>
             <button
               onClick={() => insertMarkdownToken('> ', '', 'Quote')}
-              className="p-1.5 rounded bg-slate-800 text-slate-200 hover:bg-slate-700"
+              className="p-1.5 rounded bg-[var(--glass-bg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)]"
               title="Quote"
             >
               <Quote size={14} />
             </button>
             <button
               onClick={() => insertMarkdownToken('- ', '', 'List item')}
-              className="p-1.5 rounded bg-slate-800 text-slate-200 hover:bg-slate-700"
+              className="p-1.5 rounded bg-[var(--glass-bg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)]"
               title="List"
             >
               <List size={14} />
             </button>
             <button
               onClick={() => insertMarkdownToken('- [ ] ', '', 'Task')}
-              className="p-1.5 rounded bg-slate-800 text-slate-200 hover:bg-slate-700"
+              className="p-1.5 rounded bg-[var(--glass-bg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)]"
               title="Checklist"
             >
               <ListChecks size={14} />
             </button>
             <button
               onClick={() => insertMarkdownToken('[', '](https://)', 'link text')}
-              className="p-1.5 rounded bg-slate-800 text-slate-200 hover:bg-slate-700"
+              className="p-1.5 rounded bg-[var(--glass-bg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)]"
               title="Link"
             >
               <Link2 size={14} />
@@ -775,25 +775,26 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
               }
             }}
             placeholder="Write your narrative, key claims, or open questions for this case."
-            className="w-full min-h-[220px] bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/60"
+            className="w-full min-h-[220px] bg-slate-950 border border-[var(--glass-border)] rounded-md px-3 py-2 text-sm text-[var(--text-primary)] placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/60"
           />
         ) : (
           <div
-            className="min-h-[220px] bg-slate-950 border border-slate-700 rounded-md px-4 py-3 prose prose-invert max-w-none"
+            className="min-h-[220px] bg-slate-950 border border-[var(--glass-border)] rounded-md px-4 py-3 prose prose-invert max-w-none"
             dangerouslySetInnerHTML={{
               __html:
-                markdownPreviewHtml || '<p class="text-slate-500">Nothing to preview yet.</p>',
+                markdownPreviewHtml ||
+                '<p class="text-[var(--text-muted)]">Nothing to preview yet.</p>',
             }}
           />
         )}
       </section>
 
-      <section className="bg-slate-900 border border-slate-800 rounded-lg p-4">
-        <h3 className="text-sm font-medium text-slate-300 mb-3">
+      <section className="bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-4">
+        <h3 className="text-sm font-medium text-[var(--text-secondary)] mb-3">
           Evidence annotations (auto-synced)
         </h3>
         {evidenceAnnotations.length === 0 ? (
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-[var(--text-muted)]">
             No evidence annotations yet. Add notes/highlights/tags in Evidence and they appear here
             automatically.
           </p>
@@ -802,10 +803,10 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
             {evidenceAnnotations.map((annotation) => (
               <div
                 key={annotation.id}
-                className="bg-slate-950 border border-slate-700 rounded-md px-3 py-2"
+                className="bg-slate-950 border border-[var(--glass-border)] rounded-md px-3 py-2"
               >
-                <div className="flex items-center gap-2 text-xs text-slate-400 mb-1">
-                  <span className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">
+                <div className="flex items-center gap-2 text-xs text-[var(--text-muted)] mb-1">
+                  <span className="px-1.5 py-0.5 rounded bg-[var(--glass-bg)] text-[var(--text-secondary)]">
                     Evidence #{annotation.evidenceId}
                   </span>
                   <span className="uppercase">{annotation.type}</span>
@@ -815,18 +816,20 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
                     ).toLocaleString()}
                   </span>
                 </div>
-                <p className="text-sm text-slate-200 whitespace-pre-wrap">{annotation.content}</p>
+                <p className="text-sm text-[var(--text-primary)] whitespace-pre-wrap">
+                  {annotation.content}
+                </p>
               </div>
             ))}
           </div>
         )}
       </section>
 
-      <p className="text-xs text-slate-500">Use arrows to reorder your outline.</p>
+      <p className="text-xs text-[var(--text-muted)]">Use arrows to reorder your outline.</p>
 
       <div className="space-y-6">
         <section>
-          <div className="flex items-center gap-2 text-slate-300 mb-3">
+          <div className="flex items-center gap-2 text-[var(--text-secondary)] mb-3">
             <Scissors size={16} />
             <span>Snippets</span>
           </div>
@@ -839,29 +842,32 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
                 ? `/documents?docId=${docId}&docTab=content&highlight=${encodeURIComponent(highlight.slice(0, 120))}`
                 : undefined;
               return (
-                <div key={e.id} className="bg-slate-900 border border-slate-800 rounded p-3">
+                <div
+                  key={e.id}
+                  className="bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded p-3"
+                >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-slate-200">
+                    <div className="flex items-center gap-2 text-[var(--text-primary)]">
                       <GripVertical size={14} />
                       <span>{e.title || 'Snippet'}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => move(e.id, -1)}
-                        className="text-xs px-2 py-1 bg-slate-800 text-slate-200 rounded"
+                        className="text-xs px-2 py-1 bg-[var(--glass-bg)] text-[var(--text-primary)] rounded"
                       >
                         ↑
                       </button>
                       <button
                         onClick={() => move(e.id, 1)}
-                        className="text-xs px-2 py-1 bg-slate-800 text-slate-200 rounded"
+                        className="text-xs px-2 py-1 bg-[var(--glass-bg)] text-[var(--text-primary)] rounded"
                       >
                         ↓
                       </button>
                       {viewUrl && (
                         <Link
                           to={viewUrl}
-                          className="text-xs px-2 py-1 bg-blue-700 text-white rounded"
+                          className="text-xs px-2 py-1 bg-blue-700 text-[var(--text-primary)] rounded"
                         >
                           View Source
                         </Link>
@@ -869,7 +875,7 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
                     </div>
                   </div>
                   {(e as any).description && (
-                    <div className="text-sm text-slate-300 mt-2 whitespace-pre-wrap">
+                    <div className="text-sm text-[var(--text-secondary)] mt-2 whitespace-pre-wrap">
                       {(e as any).description}
                     </div>
                   )}
@@ -880,7 +886,7 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
         </section>
 
         <section>
-          <div className="flex items-center gap-2 text-slate-300 mb-3">
+          <div className="flex items-center gap-2 text-[var(--text-secondary)] mb-3">
             <Mic size={16} />
             <span>Audio</span>
           </div>
@@ -892,29 +898,32 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
               const details = mediaId ? mediaCache[mediaId] : null;
               const segments: any[] = details?.metadata?.transcript || [];
               return (
-                <div key={e.id} className="bg-slate-900 border border-slate-800 rounded p-3">
+                <div
+                  key={e.id}
+                  className="bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded p-3"
+                >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-slate-200">
+                    <div className="flex items-center gap-2 text-[var(--text-primary)]">
                       <GripVertical size={14} />
                       <span>{e.title || 'Audio'}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => move(e.id, -1)}
-                        className="text-xs px-2 py-1 bg-slate-800 text-slate-200 rounded"
+                        className="text-xs px-2 py-1 bg-[var(--glass-bg)] text-[var(--text-primary)] rounded"
                       >
                         ↑
                       </button>
                       <button
                         onClick={() => move(e.id, 1)}
-                        className="text-xs px-2 py-1 bg-slate-800 text-slate-200 rounded"
+                        className="text-xs px-2 py-1 bg-[var(--glass-bg)] text-[var(--text-primary)] rounded"
                       >
                         ↓
                       </button>
                       {mediaId && (
                         <button
                           onClick={() => openAudio(mediaId, albumId)}
-                          className="text-xs px-2 py-1 bg-blue-700 text-white rounded"
+                          className="text-xs px-2 py-1 bg-blue-700 text-[var(--text-primary)] rounded"
                         >
                           Open
                         </button>
@@ -927,7 +936,7 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
                         <button
                           key={i}
                           onClick={() => openAudio(mediaId, albumId)}
-                          className="block text-left w-full text-xs text-slate-300 bg-slate-800/60 hover:bg-slate-700 px-2 py-1 rounded"
+                          className="block text-left w-full text-xs text-[var(--text-secondary)] bg-[var(--glass-bg)]/60 hover:bg-[var(--glass-bg-highlight)] px-2 py-1 rounded"
                           title={`${s.speaker || ''} ${s.start || 0}s`}
                         >
                           {s.text}
@@ -942,7 +951,7 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
         </section>
 
         <section>
-          <div className="flex items-center gap-2 text-slate-300 mb-3">
+          <div className="flex items-center gap-2 text-[var(--text-secondary)] mb-3">
             <Film size={16} />
             <span>Video</span>
           </div>
@@ -954,29 +963,32 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
               const details = mediaId ? mediaCache[mediaId] : null;
               const segments: any[] = details?.metadata?.transcript || [];
               return (
-                <div key={e.id} className="bg-slate-900 border border-slate-800 rounded p-3">
+                <div
+                  key={e.id}
+                  className="bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded p-3"
+                >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-slate-200">
+                    <div className="flex items-center gap-2 text-[var(--text-primary)]">
                       <GripVertical size={14} />
                       <span>{e.title || 'Video'}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => move(e.id, -1)}
-                        className="text-xs px-2 py-1 bg-slate-800 text-slate-200 rounded"
+                        className="text-xs px-2 py-1 bg-[var(--glass-bg)] text-[var(--text-primary)] rounded"
                       >
                         ↑
                       </button>
                       <button
                         onClick={() => move(e.id, 1)}
-                        className="text-xs px-2 py-1 bg-slate-800 text-slate-200 rounded"
+                        className="text-xs px-2 py-1 bg-[var(--glass-bg)] text-[var(--text-primary)] rounded"
                       >
                         ↓
                       </button>
                       {mediaId && (
                         <button
                           onClick={() => openVideo(mediaId, albumId)}
-                          className="text-xs px-2 py-1 bg-blue-700 text-white rounded"
+                          className="text-xs px-2 py-1 bg-blue-700 text-[var(--text-primary)] rounded"
                         >
                           Open
                         </button>
@@ -989,7 +1001,7 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
                         <button
                           key={i}
                           onClick={() => openVideo(mediaId, albumId)}
-                          className="block text-left w-full text-xs text-slate-300 bg-slate-800/60 hover:bg-slate-700 px-2 py-1 rounded"
+                          className="block text-left w-full text-xs text-[var(--text-secondary)] bg-[var(--glass-bg)]/60 hover:bg-[var(--glass-bg-highlight)] px-2 py-1 rounded"
                           title={`${s.speaker || ''} ${s.start || 0}s`}
                         >
                           {s.text}
@@ -1004,35 +1016,38 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
         </section>
 
         <section>
-          <div className="flex items-center gap-2 text-slate-300 mb-3">
+          <div className="flex items-center gap-2 text-[var(--text-secondary)] mb-3">
             <FileText size={16} />
             <span>Documents</span>
           </div>
           <div className="space-y-3">
             {grouped.doc.map((e) => (
-              <div key={e.id} className="bg-slate-900 border border-slate-800 rounded p-3">
+              <div
+                key={e.id}
+                className="bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded p-3"
+              >
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-slate-200">
+                  <div className="flex items-center gap-2 text-[var(--text-primary)]">
                     <GripVertical size={14} />
                     <span>{e.title || 'Document'}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => move(e.id, -1)}
-                      className="text-xs px-2 py-1 bg-slate-800 text-slate-200 rounded"
+                      className="text-xs px-2 py-1 bg-[var(--glass-bg)] text-[var(--text-primary)] rounded"
                     >
                       ↑
                     </button>
                     <button
                       onClick={() => move(e.id, 1)}
-                      className="text-xs px-2 py-1 bg-slate-800 text-slate-200 rounded"
+                      className="text-xs px-2 py-1 bg-[var(--glass-bg)] text-[var(--text-primary)] rounded"
                     >
                       ↓
                     </button>
                   </div>
                 </div>
                 {(e as any).description && (
-                  <div className="text-sm text-slate-300 mt-2 whitespace-pre-wrap">
+                  <div className="text-sm text-[var(--text-secondary)] mt-2 whitespace-pre-wrap">
                     {(e as any).description}
                   </div>
                 )}

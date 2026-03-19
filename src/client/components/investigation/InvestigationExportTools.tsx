@@ -225,10 +225,10 @@ export const InvestigationExportTools: React.FC<ExportToolsProps> = ({
     step === 4;
 
   return (
-    <div className="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 md:p-6 space-y-6">
+    <div className="w-full bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-xl)] p-4 md:p-6 space-y-6">
       <div>
-        <h3 className="text-xl font-semibold text-white">Export Workflow</h3>
-        <p className="text-sm text-slate-400 mt-1">
+        <h3 className="text-xl font-semibold text-[var(--text-primary)]">Export Workflow</h3>
+        <p className="text-sm text-[var(--text-muted)] mt-1">
           Step-based export flow: choose output, configure content, preview, then generate.
         </p>
       </div>
@@ -238,10 +238,10 @@ export const InvestigationExportTools: React.FC<ExportToolsProps> = ({
           <button
             key={idx}
             onClick={() => setStep(idx as 1 | 2 | 3 | 4)}
-            className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`px-3 py-2 rounded-[var(--radius-lg)] text-sm font-medium transition-colors ${
               step === idx
-                ? 'bg-blue-600 text-white'
-                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                ? 'bg-[var(--accent)] text-[var(--text-primary)]'
+                : 'bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)]'
             }`}
           >
             Step {idx}
@@ -251,7 +251,7 @@ export const InvestigationExportTools: React.FC<ExportToolsProps> = ({
 
       {step === 1 && (
         <div className="space-y-3">
-          <h4 className="text-white font-medium">1. Choose output type</h4>
+          <h4 className="text-[var(--text-primary)] font-medium">1. Choose output type</h4>
           {exportOptions.map((option) => (
             <button
               key={option.id}
@@ -259,14 +259,14 @@ export const InvestigationExportTools: React.FC<ExportToolsProps> = ({
               data-gated-reason={
                 option.available ? '' : option.unavailableReason || 'Not available yet'
               }
-              className={`w-full text-left p-4 rounded-lg border transition-colors ${
+              className={`w-full text-left p-4 rounded-[var(--radius-lg)] border transition-colors ${
                 selectedType === option.id
-                  ? 'border-blue-500 bg-blue-900/20'
-                  : 'border-slate-700 bg-slate-800 hover:bg-slate-700'
+                  ? 'border-[var(--accent)] bg-blue-900/20'
+                  : 'border-[var(--glass-border)] bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)]'
               }`}
             >
               <div className="flex items-center justify-between gap-2">
-                <p className="text-sm font-medium text-white">{option.title}</p>
+                <p className="text-sm font-medium text-[var(--text-primary)]">{option.title}</p>
                 {option.available ? (
                   <span className="text-xs px-2 py-1 rounded bg-emerald-900/40 text-emerald-200">
                     Available
@@ -277,7 +277,7 @@ export const InvestigationExportTools: React.FC<ExportToolsProps> = ({
                   </span>
                 )}
               </div>
-              <p className="text-xs text-slate-400 mt-1">{option.description}</p>
+              <p className="text-xs text-[var(--text-muted)] mt-1">{option.description}</p>
               {!option.available && option.unavailableReason && (
                 <p className="text-xs text-amber-300 mt-2">{option.unavailableReason}</p>
               )}
@@ -288,41 +288,44 @@ export const InvestigationExportTools: React.FC<ExportToolsProps> = ({
 
       {step === 2 && (
         <div className="space-y-3">
-          <h4 className="text-white font-medium">2. Configure content</h4>
+          <h4 className="text-[var(--text-primary)] font-medium">2. Configure content</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {sectionToggles.map(({ label, value, setter }) => (
               <label
                 key={String(label)}
-                className="flex items-center gap-2 p-3 bg-slate-800 rounded-lg border border-slate-700"
+                className="flex items-center gap-2 p-3 bg-[var(--glass-bg)] rounded-[var(--radius-lg)] border border-[var(--glass-border)]"
               >
                 <input type="checkbox" checked={value} onChange={(e) => setter(e.target.checked)} />
-                <span className="text-sm text-slate-200">{label}</span>
+                <span className="text-sm text-[var(--text-primary)]">{label}</span>
               </label>
             ))}
           </div>
-          <label className="flex items-center gap-2 p-3 bg-slate-800 rounded-lg border border-slate-700">
+          <label className="flex items-center gap-2 p-3 bg-[var(--glass-bg)] rounded-[var(--radius-lg)] border border-[var(--glass-border)]">
             <input
               type="checkbox"
               checked={redactSensitive}
               onChange={(e) => setRedactSensitive(e.target.checked)}
             />
-            <span className="text-sm text-slate-200">Apply redaction for sensitive content</span>
+            <span className="text-sm text-[var(--text-primary)]">
+              Apply redaction for sensitive content
+            </span>
           </label>
         </div>
       )}
 
       {step === 3 && (
         <div className="space-y-3">
-          <h4 className="text-white font-medium">3. Preview</h4>
-          <div className="bg-slate-800 border border-slate-700 rounded-lg p-4 space-y-2">
-            <p className="text-sm text-slate-200">
-              <span className="text-slate-400">Type:</span> {selectedOption.title}
+          <h4 className="text-[var(--text-primary)] font-medium">3. Preview</h4>
+          <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-4 space-y-2">
+            <p className="text-sm text-[var(--text-primary)]">
+              <span className="text-[var(--text-muted)]">Type:</span> {selectedOption.title}
             </p>
-            <p className="text-sm text-slate-200">
-              <span className="text-slate-400">Estimated size:</span> ~{estimatedSizeKb} KB
+            <p className="text-sm text-[var(--text-primary)]">
+              <span className="text-[var(--text-muted)]">Estimated size:</span> ~{estimatedSizeKb}{' '}
+              KB
             </p>
-            <p className="text-sm text-slate-200">
-              <span className="text-slate-400">Sections:</span>{' '}
+            <p className="text-sm text-[var(--text-primary)]">
+              <span className="text-[var(--text-muted)]">Sections:</span>{' '}
               {[
                 includeSummary && 'summary',
                 includeEvidence && 'evidence',
@@ -333,12 +336,12 @@ export const InvestigationExportTools: React.FC<ExportToolsProps> = ({
                 .filter(Boolean)
                 .join(', ') || 'none'}
             </p>
-            <p className="text-sm text-slate-200">
-              <span className="text-slate-400">Redaction:</span>{' '}
+            <p className="text-sm text-[var(--text-primary)]">
+              <span className="text-[var(--text-muted)]">Redaction:</span>{' '}
               {redactSensitive ? 'enabled' : 'off'}
             </p>
-            <p className="text-sm text-slate-200">
-              <span className="text-slate-400">Audit trail:</span>{' '}
+            <p className="text-sm text-[var(--text-primary)]">
+              <span className="text-[var(--text-muted)]">Audit trail:</span>{' '}
               {includeAuditTrail ? 'included' : 'excluded'}
             </p>
           </div>
@@ -347,25 +350,25 @@ export const InvestigationExportTools: React.FC<ExportToolsProps> = ({
 
       {step === 4 && (
         <div className="space-y-4">
-          <h4 className="text-white font-medium">4. Generate</h4>
+          <h4 className="text-[var(--text-primary)] font-medium">4. Generate</h4>
           <button
             onClick={runGeneration}
             disabled={isGenerating || !selectedOption.available}
-            className="inline-flex items-center gap-2 px-5 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white"
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-[var(--radius-lg)] bg-[var(--accent)] hover:bg-blue-700 disabled:bg-[var(--glass-bg-highlight)] disabled:cursor-not-allowed text-[var(--text-primary)]"
           >
             <Download className="w-4 h-4" />
             {isGenerating ? 'Generating...' : 'Generate artifact'}
           </button>
 
           {isGenerating && (
-            <div className="bg-slate-800 border border-slate-700 rounded-lg p-3">
-              <div className="flex justify-between text-xs text-slate-300 mb-2">
+            <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-3">
+              <div className="flex justify-between text-xs text-[var(--text-secondary)] mb-2">
                 <span>Generation progress</span>
                 <span>{progress}%</span>
               </div>
-              <div className="w-full h-2 rounded-full bg-slate-700 overflow-hidden">
+              <div className="w-full h-2 rounded-full bg-[var(--glass-bg-highlight)] overflow-hidden">
                 <div
-                  className="h-full bg-blue-500 transition-all"
+                  className="h-full bg-[var(--accent)] transition-all"
                   style={{ width: `${progress}%` }}
                 />
               </div>
@@ -373,7 +376,7 @@ export const InvestigationExportTools: React.FC<ExportToolsProps> = ({
           )}
 
           {generatedMeta && (
-            <div className="bg-emerald-900/20 border border-emerald-700 rounded-lg p-4 space-y-2">
+            <div className="bg-emerald-900/20 border border-emerald-700 rounded-[var(--radius-lg)] p-4 space-y-2">
               <div className="flex items-center gap-2 text-emerald-200 text-sm font-medium">
                 <CheckCircle2 className="w-4 h-4" />
                 Export generated
@@ -395,7 +398,7 @@ export const InvestigationExportTools: React.FC<ExportToolsProps> = ({
           )}
 
           {!selectedOption.available && (
-            <div className="bg-amber-900/20 border border-amber-700 rounded-lg p-3 text-xs text-amber-200 flex items-start gap-2">
+            <div className="bg-amber-900/20 border border-amber-700 rounded-[var(--radius-lg)] p-3 text-xs text-amber-200 flex items-start gap-2">
               <ShieldAlert className="w-4 h-4 mt-0.5" />
               <span>
                 {selectedOption.unavailableReason || 'Not available yet.'} Use an available export
@@ -404,7 +407,7 @@ export const InvestigationExportTools: React.FC<ExportToolsProps> = ({
             </div>
           )}
 
-          <div className="text-xs text-slate-500 flex items-center gap-2">
+          <div className="text-xs text-[var(--text-muted)] flex items-center gap-2">
             <Clock className="w-3 h-3" />
             Generated files are local downloads. No automatic publish endpoint is active in this
             module.
@@ -412,39 +415,41 @@ export const InvestigationExportTools: React.FC<ExportToolsProps> = ({
         </div>
       )}
 
-      <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-700">
+      <div className="flex items-center justify-between gap-2 pt-2 border-t border-[var(--glass-border)]">
         <button
           onClick={() => setStep((prev) => Math.max(1, prev - 1) as 1 | 2 | 3 | 4)}
           disabled={step === 1}
-          className="px-3 py-2 text-sm rounded bg-slate-800 text-slate-200 disabled:opacity-50"
+          className="px-3 py-2 text-sm rounded bg-[var(--glass-bg)] text-[var(--text-primary)] disabled:opacity-50"
         >
           Back
         </button>
         <button
           onClick={() => setStep((prev) => Math.min(4, prev + 1) as 1 | 2 | 3 | 4)}
           disabled={step === 4 || !canProceed}
-          className="px-3 py-2 text-sm rounded bg-blue-600 text-white disabled:opacity-50"
+          className="px-3 py-2 text-sm rounded bg-[var(--accent)] text-[var(--text-primary)] disabled:opacity-50"
         >
           Next
         </button>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-        <div className="bg-slate-800 border border-slate-700 rounded p-3">
-          <p className="text-slate-400">Evidence items</p>
-          <p className="text-white text-lg font-semibold">{evidence.length}</p>
+        <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded p-3">
+          <p className="text-[var(--text-muted)]">Evidence items</p>
+          <p className="text-[var(--text-primary)] text-lg font-semibold">{evidence.length}</p>
         </div>
-        <div className="bg-slate-800 border border-slate-700 rounded p-3">
-          <p className="text-slate-400">Timeline events</p>
-          <p className="text-white text-lg font-semibold">{timelineEvents.length}</p>
+        <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded p-3">
+          <p className="text-[var(--text-muted)]">Timeline events</p>
+          <p className="text-[var(--text-primary)] text-lg font-semibold">
+            {timelineEvents.length}
+          </p>
         </div>
-        <div className="bg-slate-800 border border-slate-700 rounded p-3">
-          <p className="text-slate-400">Hypotheses</p>
-          <p className="text-white text-lg font-semibold">{hypotheses.length}</p>
+        <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded p-3">
+          <p className="text-[var(--text-muted)]">Hypotheses</p>
+          <p className="text-[var(--text-primary)] text-lg font-semibold">{hypotheses.length}</p>
         </div>
-        <div className="bg-slate-800 border border-slate-700 rounded p-3">
-          <p className="text-slate-400">Annotations</p>
-          <p className="text-white text-lg font-semibold">{annotations.length}</p>
+        <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded p-3">
+          <p className="text-[var(--text-muted)]">Annotations</p>
+          <p className="text-[var(--text-primary)] text-lg font-semibold">{annotations.length}</p>
         </div>
       </div>
     </div>

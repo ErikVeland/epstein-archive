@@ -1,5 +1,23 @@
 # Release Notes
 
+## v16.7.0 - 2026-03-19 - UI Polish & Design System Cleanup
+
+### UI / UX
+
+- Reduced header height from ~72px to ~55px (tighter padding, smaller stat numbers)
+- Fixed nav labels truncating: "Investigate" → "Cases", "Black Book" → "Blackbook"
+- Removed broken tooltip on Subjects nav tab (was clipped by overflow-hidden container)
+- Eliminated toast storm on server-down: removed two background-API error toasts that stacked on load
+
+### Design System
+
+- Added missing CSS tokens: `--glass-border-highlight`, `--bg-elevated`, `--border-subtle`, `--type-xs`
+- Fixed `BaseCard` malformed Tailwind class (`hover:shadow-[var(--shadow-[...])]` → `hover:shadow-[var(--glass-shadow)]`)
+- Fixed `BaseCard` undefined token: `--accent-primary` → `--accent`
+- Replaced hardcoded `text-[10px]`/`text-[9px]` in `PersonCard` with `text-[var(--type-xs)]`
+- Replaced hardcoded px values in `DocumentCard.css` with design tokens
+- Replaced 4-level ternary toast class logic with clean CSS utility classes (`.toast-success`, `.toast-error`, etc.)
+
 ## 16.6.0 - 2026-03-17 - Humanistic Design Refactor
 
 ### Visual Design

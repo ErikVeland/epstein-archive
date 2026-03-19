@@ -61,23 +61,26 @@ const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({ isOpen,
   ];
 
   return createPortal(
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-[var(--app-bg)]/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
       <div
         ref={modalRef}
-        className="bg-slate-900 rounded-lg w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col border border-slate-700"
+        className="bg-[var(--glass-bg-strong)] rounded-[var(--radius-xl)] w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col border border-[var(--glass-border)]"
         role="dialog"
         aria-labelledby="keyboard-shortcuts-title"
         aria-modal="true"
       >
-        <div className="flex items-center justify-between p-4 border-b border-slate-700 bg-slate-800">
-          <h2 id="keyboard-shortcuts-title" className="text-lg font-semibold text-white">
+        <div className="flex items-center justify-between p-4 border-b border-[var(--glass-border)] bg-[var(--glass-bg)]">
+          <h2
+            id="keyboard-shortcuts-title"
+            className="text-lg font-semibold text-[var(--text-primary)]"
+          >
             Keyboard Shortcuts
           </h2>
           <CloseButton
             onClick={onClose}
             size="md"
             label="Close keyboard shortcuts"
-            className="border-slate-600 bg-slate-800"
+            className="border-[var(--glass-border)] bg-transparent hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
           />
         </div>
 
@@ -85,21 +88,23 @@ const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({ isOpen,
           <div className="space-y-8">
             {shortcuts.map((section, sectionIndex) => (
               <div key={sectionIndex}>
-                <h3 className="text-md font-semibold text-cyan-400 mb-4 border-b border-slate-700 pb-2">
+                <h3 className="text-md font-semibold text-[var(--accent)] mb-4 border-b border-[var(--glass-border)] pb-2">
                   {section.category}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {section.items.map((item, itemIndex) => (
                     <div
                       key={itemIndex}
-                      className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg border border-slate-700"
+                      className="flex items-center justify-between p-3 bg-[var(--glass-bg)] rounded-[var(--radius-lg)] border border-[var(--glass-border)]"
                     >
-                      <span className="text-slate-300 text-sm">{item.description}</span>
+                      <span className="text-[var(--text-secondary)] font-medium text-sm">
+                        {item.description}
+                      </span>
                       <div className="flex gap-1">
                         {item.keys.map((key, keyIndex) => (
                           <kbd
                             key={keyIndex}
-                            className="px-2 py-1 text-xs font-mono bg-slate-700 text-slate-200 rounded border border-slate-600 min-w-[24px] text-center"
+                            className="px-2 py-1 text-xs font-mono font-bold bg-[var(--glass-bg-strong)] text-[var(--text-primary)] rounded-[var(--radius-sm)] border border-[var(--glass-border)] min-w-[24px] text-center"
                           >
                             {key}
                           </kbd>
@@ -112,10 +117,10 @@ const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({ isOpen,
             ))}
           </div>
 
-          <div className="mt-8 pt-6 border-t border-slate-700">
-            <p className="text-slate-400 text-sm">
+          <div className="mt-8 pt-6 border-t border-[var(--glass-border)]">
+            <p className="text-[var(--text-muted)] text-sm">
               <strong>Note:</strong> Shortcuts use{' '}
-              <kbd className="px-1 py-0.5 text-xs font-mono bg-slate-700 text-slate-200 rounded border border-slate-600">
+              <kbd className="px-1 py-0.5 text-xs font-mono font-bold bg-[var(--glass-bg-strong)] text-[var(--text-primary)] rounded-[var(--radius-sm)] border border-[var(--glass-border)]">
                 {cmdKey}
               </kbd>{' '}
               key on your system.
@@ -123,10 +128,10 @@ const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({ isOpen,
           </div>
         </div>
 
-        <div className="p-4 border-t border-slate-700 bg-slate-800">
+        <div className="p-4 border-t border-[var(--glass-border)] bg-[var(--glass-bg)]">
           <button
             onClick={onClose}
-            className="w-full px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors"
+            className="w-full px-4 py-2 bg-[var(--glass-bg-strong)] hover:bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] text-[var(--text-primary)] rounded-[var(--radius-lg)] transition-colors"
           >
             Close
           </button>

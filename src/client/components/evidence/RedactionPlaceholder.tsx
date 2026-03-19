@@ -49,9 +49,9 @@ export function RedactionPlaceholder({ type, role, confidence, kind }: Redaction
     // const opacity = Math.max(0.6, confidence); // Minimum opacity 0.6
 
     // Base colors
-    let bg = 'bg-gray-200';
-    let text = 'text-gray-700';
-    let border = 'border-gray-300';
+    let bg = 'bg-[var(--app-bg)]';
+    let text = 'text-[var(--text-primary)]';
+    let border = 'border-[var(--glass-border)]';
 
     if (confidence > 0.8) {
       // High confidence styling
@@ -79,9 +79,9 @@ export function RedactionPlaceholder({ type, role, confidence, kind }: Redaction
       }
     } else if (confidence < 0.4) {
       // Low confidence styling
-      bg = 'bg-gray-100';
-      text = 'text-gray-500';
-      border = 'border-gray-200';
+      bg = 'bg-[var(--app-bg)]';
+      text = 'text-[var(--text-muted)]';
+      border = 'border-[var(--glass-border)]';
     }
 
     return `${bg} ${text} ${border}`;
@@ -103,14 +103,16 @@ export function RedactionPlaceholder({ type, role, confidence, kind }: Redaction
 
       {/* Tooltip */}
       {showTooltip && (
-        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded shadow-lg whitespace-nowrap z-50">
+        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-[var(--glass-bg-strong)] text-[var(--text-primary)] text-xs rounded shadow-[var(--glass-shadow)] whitespace-nowrap z-50">
           <div className="font-semibold">
             {type?.toUpperCase() || 'UNKNOWN'} {role ? `(${role})` : ''}
           </div>
-          <div className="text-gray-300 text-[10px]">
+          <div className="text-[var(--text-secondary)] text-[10px]">
             Confidence: {(confidence * 100).toFixed(0)}%
           </div>
-          <div className="text-gray-400 text-[10px] italic">Source: {kind.replace('_', ' ')}</div>
+          <div className="text-[var(--text-muted)] text-[10px] italic">
+            Source: {kind.replace('_', ' ')}
+          </div>
           <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
         </div>
       )}

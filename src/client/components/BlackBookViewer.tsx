@@ -166,7 +166,7 @@ export const BlackBookViewer: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent)]"></div>
       </div>
     );
   }
@@ -176,10 +176,12 @@ export const BlackBookViewer: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center space-x-3">
-          <Book className="w-8 h-8 text-cyan-400" />
+          <Book className="w-8 h-8 text-[var(--accent)]" />
           <div>
-            <h2 className="text-2xl font-bold text-white">Jeffrey Epstein's Black Book</h2>
-            <p className="text-slate-400 text-sm">
+            <h2 className="text-2xl font-bold text-[var(--text-primary)]">
+              Jeffrey Epstein's Black Book
+            </h2>
+            <p className="text-[var(--text-muted)] text-sm">
               {filteredEntries.length} of {entries.length} contacts
             </p>
           </div>
@@ -188,10 +190,10 @@ export const BlackBookViewer: React.FC = () => {
         {/* Pretty/Raw Toggle */}
         <button
           onClick={() => setShowRaw(!showRaw)}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-[var(--radius-lg)] transition-all ${
             showRaw
-              ? 'bg-slate-700 text-slate-300 border border-slate-600'
-              : 'bg-cyan-600 text-white border border-cyan-500'
+              ? 'bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] border border-[var(--glass-border)]'
+              : 'bg-[var(--accent)] text-[var(--text-primary)] border border-[var(--accent)]'
           }`}
           title={showRaw ? 'Showing raw OCR text' : 'Showing cleaned text'}
         >
@@ -202,13 +204,13 @@ export const BlackBookViewer: React.FC = () => {
 
       {/* Search Bar */}
       <div className="relative">
-        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
+        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[var(--text-muted)]" />
         <input
           type="text"
           placeholder="Search by name, phone, email, or address..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-12 pr-4 py-3 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+          className="w-full pl-12 pr-4 py-3 bg-[var(--glass-bg)]/50 border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
         />
       </div>
 
@@ -218,8 +220,8 @@ export const BlackBookViewer: React.FC = () => {
           onClick={() => setSelectedLetter('ALL')}
           className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
             selectedLetter === 'ALL'
-              ? 'bg-cyan-500 text-white'
-              : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700'
+              ? 'bg-[var(--accent)] text-[var(--text-primary)]'
+              : 'bg-[var(--glass-bg)]/50 text-[var(--text-muted)] hover:bg-[var(--glass-bg-highlight)]'
           }`}
         >
           ALL
@@ -230,8 +232,8 @@ export const BlackBookViewer: React.FC = () => {
             onClick={() => setSelectedLetter(letter)}
             className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
               selectedLetter === letter
-                ? 'bg-cyan-500 text-white'
-                : 'bg-slate-800/50 text-slate-400 hover:bg-slate-700'
+                ? 'bg-[var(--accent)] text-[var(--text-primary)]'
+                : 'bg-[var(--glass-bg)]/50 text-[var(--text-muted)] hover:bg-[var(--glass-bg-highlight)]'
             }`}
           >
             {letter}
@@ -241,45 +243,45 @@ export const BlackBookViewer: React.FC = () => {
 
       {/* Contact Filters */}
       <div className="flex flex-wrap gap-3 items-center">
-        <label className="flex items-center gap-2 text-slate-300">
+        <label className="flex items-center gap-2 text-[var(--text-secondary)]">
           <input
             type="checkbox"
             checked={hasPhone}
             onChange={(e) => setHasPhone(e.target.checked)}
           />
           <span>Has Phone</span>
-          <Phone className="w-4 h-4 text-slate-400" />
+          <Phone className="w-4 h-4 text-[var(--text-muted)]" />
         </label>
-        <label className="flex items-center gap-2 text-slate-300">
+        <label className="flex items-center gap-2 text-[var(--text-secondary)]">
           <input
             type="checkbox"
             checked={hasEmail}
             onChange={(e) => setHasEmail(e.target.checked)}
           />
           <span>Has Email</span>
-          <Mail className="w-4 h-4 text-slate-400" />
+          <Mail className="w-4 h-4 text-[var(--text-muted)]" />
         </label>
-        <label className="flex items-center gap-2 text-slate-300">
+        <label className="flex items-center gap-2 text-[var(--text-secondary)]">
           <input
             type="checkbox"
             checked={hasAddress}
             onChange={(e) => setHasAddress(e.target.checked)}
           />
           <span>Has Address</span>
-          <MapPin className="w-4 h-4 text-slate-400" />
+          <MapPin className="w-4 h-4 text-[var(--text-muted)]" />
         </label>
 
-        <div className="h-6 w-px bg-slate-700 mx-2 hidden sm:block" />
+        <div className="h-6 w-px bg-[var(--glass-bg-highlight)] mx-2 hidden sm:block" />
 
-        <div className="flex bg-slate-800/80 p-1 rounded-lg border border-slate-700/50">
+        <div className="flex bg-[var(--glass-bg)]/80 p-1 rounded-[var(--radius-lg)] border border-[var(--glass-border)]">
           {['ALL', 'Original', 'Contact', 'Credential'].map((cat) => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
               className={`px-3 py-1 rounded-md text-xs font-semibold transition-all ${
                 selectedCategory === cat
-                  ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
-                  : 'text-slate-500 hover:text-slate-300'
+                  ? 'bg-[var(--accent)]/20 text-[var(--accent)] border border-[var(--accent)]/30'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
               }`}
             >
               {cat}
@@ -297,12 +299,12 @@ export const BlackBookViewer: React.FC = () => {
           return (
             <div
               key={entry.id}
-              className="bg-slate-800/50 border border-slate-700 rounded-lg p-4 hover:border-cyan-500/50 transition-all"
+              className="bg-[var(--glass-bg)]/50 border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-4 hover:border-[var(--accent)]/50 transition-all"
             >
               {/* Name - clickable if known entity */}
               <div className="flex items-center space-x-3 mb-3">
                 {entry.thumbnail_path ? (
-                  <div className="w-10 h-10 rounded-full overflow-hidden border border-slate-600 shrink-0 bg-slate-900">
+                  <div className="w-10 h-10 rounded-full overflow-hidden border border-[var(--glass-border)] shrink-0 bg-[var(--glass-bg-strong)]">
                     <img
                       src={
                         entry.thumbnail_path.startsWith('/')
@@ -315,22 +317,24 @@ export const BlackBookViewer: React.FC = () => {
                     />
                   </div>
                 ) : (
-                  <div className="w-10 h-10 rounded-full border border-slate-700 bg-slate-800 flex items-center justify-center shrink-0">
-                    <User className="w-5 h-5 text-cyan-400" />
+                  <div className="w-10 h-10 rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg)] flex items-center justify-center shrink-0">
+                    <User className="w-5 h-5 text-[var(--accent)]" />
                   </div>
                 )}
                 <div className="min-w-0 flex-1">
                   {entry.person_name ? (
                     <button
                       onClick={() => handleEntityClick(entry.person_id || 0)}
-                      className="text-lg font-semibold text-cyan-400 hover:text-cyan-300 hover:underline flex items-center gap-1 transition-colors text-left truncate w-full"
+                      className="text-lg font-semibold text-[var(--accent)] hover:text-[var(--accent)] hover:underline flex items-center gap-1 transition-colors text-left truncate w-full"
                       title="Click to view entity profile"
                     >
                       <span className="truncate">{displayName}</span>
                       <ExternalLink className="w-3 h-3 opacity-60 shrink-0" />
                     </button>
                   ) : (
-                    <h3 className="text-lg font-semibold text-white truncate">{displayName}</h3>
+                    <h3 className="text-lg font-semibold text-[var(--text-primary)] truncate">
+                      {displayName}
+                    </h3>
                   )}
                 </div>
                 <div className="ml-auto">
@@ -348,7 +352,7 @@ export const BlackBookViewer: React.FC = () => {
                       },
                     }}
                     variant="icon"
-                    className="text-slate-500 hover:text-white"
+                    className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                   />
                 </div>
               </div>
@@ -358,10 +362,10 @@ export const BlackBookViewer: React.FC = () => {
                 {/* Phone Numbers */}
                 {entry.phone_numbers.length > 0 && (
                   <div className="flex items-start space-x-2">
-                    <Phone className="w-4 h-4 text-slate-400 mt-1 flex-shrink-0" />
+                    <Phone className="w-4 h-4 text-[var(--text-muted)] mt-1 flex-shrink-0" />
                     <div className="flex-1">
                       {entry.phone_numbers.map((phone, idx) => (
-                        <div key={idx} className="text-sm text-slate-300">
+                        <div key={idx} className="text-sm text-[var(--text-secondary)]">
                           {showRaw ? phone : formatPhoneNumber(phone)}
                         </div>
                       ))}
@@ -372,22 +376,22 @@ export const BlackBookViewer: React.FC = () => {
                 {/* Emails */}
                 {entry.email_addresses.length > 0 && (
                   <div className="flex items-start space-x-2">
-                    <Mail className="w-4 h-4 text-slate-400 mt-1 flex-shrink-0" />
+                    <Mail className="w-4 h-4 text-[var(--text-muted)] mt-1 flex-shrink-0" />
                     <div className="flex-1">
                       {entry.email_addresses.map((email, idx) => (
                         <div
                           key={idx}
-                          className="text-sm text-slate-300 break-all flex items-center justify-between gap-2 group/email"
+                          className="text-sm text-[var(--text-secondary)] break-all flex items-center justify-between gap-2 group/email"
                         >
                           <Link
                             to={`/emails?search=${encodeURIComponent(email)}`}
-                            className="hover:text-cyan-400 hover:underline"
+                            className="hover:text-[var(--accent)] hover:underline"
                           >
                             {email}
                           </Link>
                           <Link
                             to={`/emails?search=${encodeURIComponent(email)}`}
-                            className="opacity-0 group-hover/email:opacity-100 text-slate-500 hover:text-cyan-400"
+                            className="opacity-0 group-hover/email:opacity-100 text-[var(--text-muted)] hover:text-[var(--accent)]"
                           >
                             <ExternalLink className="w-3 h-3" />
                           </Link>
@@ -400,15 +404,15 @@ export const BlackBookViewer: React.FC = () => {
                 {/* Addresses */}
                 {entry.addresses.length > 0 && (
                   <div className="flex items-start space-x-2">
-                    <MapPin className="w-4 h-4 text-slate-400 mt-1 flex-shrink-0" />
+                    <MapPin className="w-4 h-4 text-[var(--text-muted)] mt-1 flex-shrink-0" />
                     <div className="flex-1">
                       {entry.addresses.slice(0, 2).map((address, idx) => (
-                        <div key={idx} className="text-sm text-slate-300">
+                        <div key={idx} className="text-sm text-[var(--text-secondary)]">
                           {address}
                         </div>
                       ))}
                       {entry.addresses.length > 2 && (
-                        <div className="text-xs text-slate-500 mt-1">
+                        <div className="text-xs text-[var(--text-muted)] mt-1">
                           +{entry.addresses.length - 2} more
                         </div>
                       )}
@@ -420,20 +424,20 @@ export const BlackBookViewer: React.FC = () => {
                 {entry.phone_numbers.length === 0 &&
                   entry.email_addresses.length === 0 &&
                   entry.addresses.length === 0 && (
-                    <div className="text-sm text-slate-500 italic">
+                    <div className="text-sm text-[var(--text-muted)] italic">
                       No contact information available
                     </div>
                   )}
 
                 {/* Metadata & Categories */}
-                <div className="pt-3 mt-auto flex items-center justify-between border-t border-slate-700/50">
+                <div className="pt-3 mt-auto flex items-center justify-between border-t border-[var(--glass-border)]">
                   <span
                     className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
                       entry.entry_category === 'credential'
                         ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
                         : entry.entry_category === 'contact'
-                          ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
-                          : 'bg-slate-700/50 text-slate-400 border border-slate-600/30'
+                          ? 'bg-[var(--accent)]/10 text-[var(--accent)] border border-[var(--accent)]/20'
+                          : 'bg-[var(--glass-bg-highlight)]/50 text-[var(--text-muted)] border border-[var(--glass-border)]'
                     }`}
                   >
                     {entry.entry_category}
@@ -442,7 +446,7 @@ export const BlackBookViewer: React.FC = () => {
                   {entry.document_id && (
                     <Link
                       to={`/documents/${entry.document_id}`}
-                      className="text-[10px] text-slate-500 hover:text-cyan-400 flex items-center gap-1 transition-colors"
+                      className="text-[10px] text-[var(--text-muted)] hover:text-[var(--accent)] flex items-center gap-1 transition-colors"
                     >
                       <FileText className="w-3 h-3" />
                       Source Document
@@ -458,17 +462,17 @@ export const BlackBookViewer: React.FC = () => {
       {/* Empty State */}
       {filteredEntries.length === 0 && (
         <div className="text-center py-12">
-          <Book className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-          <p className={`text-lg ${error ? 'text-red-400' : 'text-slate-400'}`}>
+          <Book className="w-16 h-16 text-[var(--text-primary)] mx-auto mb-4" />
+          <p className={`text-lg ${error ? 'text-red-400' : 'text-[var(--text-muted)]'}`}>
             {error ? 'Failed to load contacts' : 'No contacts found'}
           </p>
-          <p className="text-slate-500 text-sm mt-2">
+          <p className="text-[var(--text-muted)] text-sm mt-2">
             {error || 'Try adjusting your search or filter'}
           </p>
           {error && (
             <button
               onClick={fetchBlackBookEntries}
-              className="mt-4 px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700 transition-colors"
+              className="mt-4 px-4 py-2 rounded-[var(--radius-lg)] bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)] transition-colors"
             >
               Retry
             </button>

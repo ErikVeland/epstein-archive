@@ -382,7 +382,7 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
   };
 
   return (
-    <div className="min-h-screen text-white overflow-x-hidden">
+    <div className="min-h-screen text-[var(--text-primary)] overflow-x-hidden">
       <div className="w-full py-4 md:py-6">
         <DocumentBrowserHeader
           isHeaderCondensed={isHeaderCondensed}
@@ -439,7 +439,7 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
               totalHighlights={totalHighlights}
               onNext={nextHighlight}
               onPrev={prevHighlight}
-              className="bg-gray-800 border border-gray-700 rounded-[var(--radius-md)] px-3 py-2 shrink-0"
+              className="bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-md)] px-3 py-2 shrink-0"
             />
           </div>
         )}

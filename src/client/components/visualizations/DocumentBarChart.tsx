@@ -38,8 +38,10 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     const total = payload.reduce((sum: number, p: any) => sum + (p.value || 0), 0);
 
     return (
-      <div className="bg-slate-900/95 backdrop-blur-md p-4 rounded-xl shadow-2xl border border-slate-700/50 min-w-[200px]">
-        <p className="text-white font-bold text-sm mb-3 border-b border-slate-700 pb-2">{label}</p>
+      <div className="bg-[var(--glass-bg-strong)]/95 backdrop-blur-md p-4 rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] border border-[var(--glass-border)] min-w-[200px]">
+        <p className="text-[var(--text-primary)] font-bold text-sm mb-3 border-b border-[var(--glass-border)] pb-2">
+          {label}
+        </p>
         <div className="space-y-2">
           {payload.map(
             (entry: any, index: number) =>
@@ -50,18 +52,20 @@ const CustomTooltip = ({ active, payload, label }: any) => {
                       className="w-2 h-2 rounded-full"
                       style={{ backgroundColor: entry.color }}
                     />
-                    <span className="text-slate-300 text-xs capitalize">{entry.name}</span>
+                    <span className="text-[var(--text-secondary)] text-xs capitalize">
+                      {entry.name}
+                    </span>
                   </div>
-                  <span className="text-white font-mono text-xs font-bold">
+                  <span className="text-[var(--text-primary)] font-mono text-xs font-bold">
                     {entry.value.toLocaleString()}
                   </span>
                 </div>
               ),
           )}
         </div>
-        <div className="mt-3 pt-2 border-t border-slate-700 flex justify-between">
-          <span className="text-slate-400 text-xs">Total Documents</span>
-          <span className="text-cyan-400 font-mono text-sm font-bold">
+        <div className="mt-3 pt-2 border-t border-[var(--glass-border)] flex justify-between">
+          <span className="text-[var(--text-muted)] text-xs">Total Documents</span>
+          <span className="text-[var(--accent)] font-mono text-sm font-bold">
             {total.toLocaleString()}
           </span>
         </div>
@@ -133,7 +137,7 @@ export const DocumentBarChart: React.FC<DocumentBarChartProps> = ({ data, onPeri
 
   if (chartData.length === 0) {
     return (
-      <div className="flex items-center justify-center h-[300px] text-slate-500 italic">
+      <div className="flex items-center justify-center h-[300px] text-[var(--text-muted)] italic">
         No document distribution data available for the selected range.
       </div>
     );
@@ -183,7 +187,7 @@ export const DocumentBarChart: React.FC<DocumentBarChartProps> = ({ data, onPeri
           <Legend
             wrapperStyle={{ paddingTop: '20px' }}
             formatter={(value) => (
-              <span className="text-slate-400 text-[10px] uppercase tracking-wider font-semibold">
+              <span className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-semibold">
                 {value}
               </span>
             )}

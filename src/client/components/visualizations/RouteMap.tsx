@@ -66,9 +66,9 @@ export const RouteMap: React.FC<RouteMapProps> = ({ departure, arrival, classNam
   ) {
     return (
       <div
-        className={`flex items-center justify-center bg-slate-900 border border-slate-700 rounded-xl h-64 ${className}`}
+        className={`flex items-center justify-center bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-xl)] h-64 ${className}`}
       >
-        <p className="text-slate-400">Map data unavailable for this route</p>
+        <p className="text-[var(--text-muted)]">Map data unavailable for this route</p>
       </div>
     );
   }
@@ -81,7 +81,7 @@ export const RouteMap: React.FC<RouteMapProps> = ({ departure, arrival, classNam
 
   return (
     <div
-      className={`h-[400px] w-full rounded-xl overflow-hidden border border-slate-700/50 shadow-lg ${className}`}
+      className={`h-[400px] w-full rounded-[var(--radius-xl)] overflow-hidden border border-[var(--glass-border)] shadow-[var(--glass-shadow)] ${className}`}
     >
       <MapContainer
         center={center}

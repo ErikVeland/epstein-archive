@@ -60,7 +60,7 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
       <div className="card-header">
         <div className="card-type-box">
           <div className="card-icon-wrapper">{iconElement}</div>
-          <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 font-mono">
+          <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] font-mono">
             {document.sourceType || document.evidenceType || document.fileType}
           </span>
         </div>
@@ -92,8 +92,8 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
 
       {document.keyEntities && document.keyEntities.length > 0 && (
         <div className="flex items-center gap-1.5 overflow-hidden">
-          <User className="w-3 h-3 text-slate-500 shrink-0" />
-          <div className="text-[10px] text-slate-500 truncate font-medium">
+          <User className="w-3 h-3 text-[var(--text-muted)] shrink-0" />
+          <div className="text-[10px] text-[var(--text-muted)] truncate font-medium">
             {document.keyEntities.join(' · ')}
           </div>
         </div>
@@ -101,15 +101,15 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
 
       <div className="card-meta-row">
         <div className="forensic-chip">
-          <Calendar className="w-3 h-3 mr-1 text-slate-600" />
+          <Calendar className="w-3 h-3 mr-1 text-[var(--text-muted)]" />
           {formatDate(document.dateCreated)}
         </div>
         <div className="forensic-chip">
-          <Eye className="w-3 h-3 mr-1 text-slate-600" />
+          <Eye className="w-3 h-3 mr-1 text-[var(--text-muted)]" />
           {entitiesCount} Ent
         </div>
         <div className="forensic-chip">
-          <Database className="w-3 h-3 mr-1 text-slate-600" />
+          <Database className="w-3 h-3 mr-1 text-[var(--text-muted)]" />
           {getSourceLabel(document)}
         </div>
       </div>

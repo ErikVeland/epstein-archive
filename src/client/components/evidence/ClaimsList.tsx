@@ -63,13 +63,13 @@ export function ClaimsList({ claims }: ClaimsListProps) {
       case 'inferred':
         return (
           <span title="Inferred by System">
-            <HelpCircle className="w-4 h-4 text-blue-600" />
+            <HelpCircle className="w-4 h-4 text-[var(--accent)]" />
           </span>
         );
       default:
         return (
           <span title="Fact">
-            <BadgeCheck className="w-4 h-4 text-gray-400" />
+            <BadgeCheck className="w-4 h-4 text-[var(--text-muted)]" />
           </span>
         );
     }
@@ -82,8 +82,8 @@ export function ClaimsList({ claims }: ClaimsListProps) {
       alleged: 'bg-orange-100 text-orange-800',
       denied: 'bg-red-100 text-red-800',
       inferred: 'bg-blue-100 text-blue-800',
-      quoted: 'bg-gray-100 text-gray-800',
-      unknown: 'bg-gray-100 text-gray-600',
+      quoted: 'bg-[var(--app-bg)] text-[var(--text-primary)]',
+      unknown: 'bg-[var(--app-bg)] text-[var(--text-primary)]',
     };
     return (
       <span
@@ -97,13 +97,13 @@ export function ClaimsList({ claims }: ClaimsListProps) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow overflow-hidden">
-      <div className="px-4 py-3 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
-        <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider flex items-center gap-2">
-          <BadgeCheck className="w-5 h-5 text-blue-600" />
+    <div className="bg-white rounded-[var(--radius-lg)] shadow overflow-hidden">
+      <div className="px-4 py-3 border-b border-[var(--glass-border)] bg-[var(--app-bg)] flex justify-between items-center">
+        <h3 className="text-sm font-semibold text-[var(--text-primary)] uppercase tracking-wider flex items-center gap-2">
+          <BadgeCheck className="w-5 h-5 text-[var(--accent)]" />
           Extracted Facts & Claims
         </h3>
-        <span className="text-xs text-gray-500">{claims.length} items</span>
+        <span className="text-xs text-[var(--text-muted)]">{claims.length} items</span>
       </div>
       <ul className="divide-y divide-gray-200">
         {claims.map((claim) => {
@@ -116,7 +116,7 @@ export function ClaimsList({ claims }: ClaimsListProps) {
                   ? 'bg-red-50 opacity-60'
                   : status === 'verified'
                     ? 'bg-green-50'
-                    : 'hover:bg-gray-50'
+                    : 'hover:bg-[var(--app-bg)]'
               }`}
             >
               <div className="flex items-start justify-between">
@@ -124,7 +124,7 @@ export function ClaimsList({ claims }: ClaimsListProps) {
                   <div className="flex items-center gap-2">
                     <ModalityBadge modality={claim.modality} />
                     {getModalityIcon(claim.modality)}
-                    <span className="text-xs text-gray-400 font-mono">
+                    <span className="text-xs text-[var(--text-muted)] font-mono">
                       {(claim.confidence * 100).toFixed(0)}% Conf.
                     </span>
                     {status && (
@@ -137,9 +137,9 @@ export function ClaimsList({ claims }: ClaimsListProps) {
                       </span>
                     )}
                   </div>
-                  <p className="text-gray-900 text-sm mt-1">
+                  <p className="text-[var(--text-primary)] text-sm mt-1">
                     <span className="font-semibold text-blue-900">{claim.subject_name}</span>{' '}
-                    <span className="text-gray-600 px-1 italic">
+                    <span className="text-[var(--text-primary)] px-1 italic">
                       {claim.predicate.replace(/_/g, ' ')}
                     </span>{' '}
                     <span className="font-semibold text-blue-900">{claim.object_name}</span>
@@ -149,14 +149,14 @@ export function ClaimsList({ claims }: ClaimsListProps) {
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={() => handleFeedback(claim.id, 'verify')}
-                      className="p-1 text-gray-400 hover:text-green-600 transition-colors"
+                      className="p-1 text-[var(--text-muted)] hover:text-green-600 transition-colors"
                       title="Verify this fact"
                     >
                       <BadgeCheck className="w-5 h-5" />
                     </button>
                     <button
                       onClick={() => handleFeedback(claim.id, 'reject')}
-                      className="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                      className="p-1 text-[var(--text-muted)] hover:text-red-600 transition-colors"
                       title="Reject this fact"
                     >
                       <ShieldAlert className="w-5 h-5" />

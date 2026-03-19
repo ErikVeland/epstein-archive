@@ -81,77 +81,93 @@ export function ReviewDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen app-backdrop p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center justify-between mb-12">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <Shield className="h-6 w-6 text-blue-600" />
+            <h1 className="text-[2.5rem] leading-none font-display font-light tracking-tight text-[var(--accent)] flex items-center gap-4 mb-3">
+              <Shield className="h-8 w-8 text-[var(--accent)] opacity-80" strokeWidth={1} />
               Active Learning Review
             </h1>
-            <p className="text-gray-500 mt-1">
+            <p className="text-lg text-[var(--text-muted)] font-light tracking-wide">
               Verify high-signal extractions to train the system.
             </p>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="bg-white rounded-t-lg border-b border-gray-200 px-6 pt-4 flex space-x-6">
+        <div className="flex space-x-8 mb-6 px-2">
           <button
             onClick={() => setActiveTab('mentions')}
-            className={`pb-4 text-sm font-medium border-b-2 ${activeTab === 'mentions' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+            className={`pb-3 text-sm font-semibold tracking-wider uppercase transition-all duration-300 relative ${activeTab === 'mentions' ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}
           >
             Entity Mentions
+            {activeTab === 'mentions' && (
+              <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[var(--accent)] shadow-[0_0_10px_var(--accent)]" />
+            )}
           </button>
           <button
             onClick={() => setActiveTab('claims')}
-            className={`pb-4 text-sm font-medium border-b-2 ${activeTab === 'claims' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+            className={`pb-3 text-sm font-semibold tracking-wider uppercase transition-all duration-300 relative ${activeTab === 'claims' ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}
           >
             Claims & Facts
+            {activeTab === 'claims' && (
+              <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[var(--accent)] shadow-[0_0_10px_var(--accent)]" />
+            )}
           </button>
         </div>
 
-        <div className="bg-white rounded-b-lg shadow overflow-hidden">
+        <div className="bg-[var(--glass-bg)]/30 backdrop-blur-xl rounded-[var(--radius-xl)] shadow-[var(--glass-shadow-soft)] overflow-hidden">
           {loading ? (
-            <div className="p-12 text-center text-gray-500">Loading queue...</div>
+            <div className="p-12 text-center text-[var(--text-muted)]">Loading queue...</div>
           ) : (
-            <div className="divide-y divide-gray-200">
+            <div className="divide-y divide-[var(--glass-border)]">
               {activeTab === 'mentions' &&
                 mentions.map((item) => (
-                  <div key={item.id} className="p-6 flex items-start gap-4 hover:bg-gray-50">
+                  <div
+                    key={item.id}
+                    className="p-6 flex items-start gap-4 hover:bg-[var(--glass-bg-strong)] transition-all duration-300 group hover:translate-x-1 relative overflow-hidden"
+                  >
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-[var(--accent)] opacity-0 group-hover:opacity-100 transition-opacity" />
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="font-bold text-gray-900">{item.entity_name}</span>
+                      <div className="flex items-center gap-3 mb-3">
+                        <span className="font-bold text-lg text-[var(--text-primary)]">
+                          {item.entity_name}
+                        </span>
                         <span
-                          className={`text-xs px-2 py-0.5 rounded ${item.confidence_score > 0.8 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}
+                          className={`text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full ${item.confidence_score > 0.8 ? 'bg-green-500/10 text-green-400' : 'bg-amber-500/10 text-amber-400'}`}
                         >
                           Conf: {(item.confidence_score * 100).toFixed(0)}%
                         </span>
-                        <span className="text-xs text-gray-400">
+                        <span className="text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full bg-[var(--glass-bg)] text-[var(--text-secondary)] shadow-[0_2px_10px_rgba(0,0,0,0.1)]">
                           Signal: {(item.signal_score * 100).toFixed(0)}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-600 mb-2 font-mono bg-gray-50 p-2 rounded">
+                      <p className="text-sm text-[var(--text-primary)] mb-4 font-mono leading-relaxed bg-black/20 p-4 rounded-lg shadow-inner">
                         "...{item.mention_context}..."
                       </p>
-                      <div className="text-xs text-gray-400 flex items-center gap-1">
-                        Source: {item.file_name}
-                        <Link to={`/evidence/${item.document_id}`} className="hover:text-blue-500">
-                          <ExternalLink className="w-3 h-3" />
+                      <div className="text-xs text-[var(--text-muted)] flex items-center gap-1.5 font-medium tracking-wide">
+                        Source:{' '}
+                        <span className="text-[var(--text-secondary)]">{item.file_name}</span>
+                        <Link
+                          to={`/evidence/${item.document_id}`}
+                          className="ml-2 hover:text-[var(--accent)] transition-colors inline-block hover:-translate-y-0.5 transform"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
                         </Link>
                       </div>
                     </div>
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-3 opacity-50 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() => verifyItem(item.id, 'mentions')}
-                        className="p-2 bg-green-50 text-green-600 rounded hover:bg-green-100"
+                        className="p-2.5 bg-green-500/10 hover:bg-green-500 text-green-500 hover:text-white rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.1)] hover:shadow-[0_5px_15px_rgba(34,197,94,0.4)] transition-all transform hover:scale-110"
                         title="Verify"
                       >
                         <Check className="w-5 h-5" />
                       </button>
                       <button
                         onClick={() => rejectItem(item.id, 'mentions')}
-                        className="p-2 bg-red-50 text-red-600 rounded hover:bg-red-100"
+                        className="p-2.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.1)] hover:shadow-[0_5px_15px_rgba(239,68,68,0.4)] transition-all transform hover:scale-110"
                         title="Reject"
                       >
                         <X className="w-5 h-5" />
@@ -162,36 +178,49 @@ export function ReviewDashboard() {
 
               {activeTab === 'claims' &&
                 claims.map((item) => (
-                  <div key={item.id} className="p-6 flex items-start gap-4 hover:bg-gray-50">
+                  <div
+                    key={item.id}
+                    className="p-6 flex items-start gap-4 hover:bg-[var(--glass-bg-strong)] transition-all duration-300 group hover:translate-x-1 relative overflow-hidden"
+                  >
+                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-[var(--accent)] opacity-0 group-hover:opacity-100 transition-opacity" />
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="font-bold text-gray-900 uppercase text-xs tracking-wider">
+                      <div className="flex items-center gap-3 mb-3">
+                        <span className="font-bold text-lg text-[var(--accent)] font-mono uppercase tracking-[0.1em]">
                           {item.predicate}
                         </span>
                         <span
-                          className={`text-xs px-2 py-0.5 rounded ${item.confidence > 0.8 ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}
+                          className={`text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full ${item.confidence > 0.8 ? 'bg-green-500/10 text-green-400' : 'bg-amber-500/10 text-amber-400'}`}
                         >
                           Conf: {(item.confidence * 100).toFixed(0)}%
                         </span>
                       </div>
-                      <p className="text-sm text-gray-800 mb-1">
-                        <span className="font-medium">Subject (ID {item.subject_entity_id})</span>{' '}
-                        {item.predicate}{' '}
-                        <span className="font-medium bg-yellow-100 px-1">{item.object_text}</span>
+                      <p className="text-[1.1rem] text-[var(--text-primary)] mb-5 font-light tracking-wide leading-relaxed">
+                        <span className="font-medium text-[var(--text-secondary)] tracking-tight">
+                          Subject (ID {item.subject_entity_id})
+                        </span>{' '}
+                        <span className="opacity-70 mx-1">
+                          {item.predicate.toLowerCase().replace(/_/g, ' ')}
+                        </span>{' '}
+                        <span className="font-medium bg-[var(--accent)]/10 border border-[var(--accent)]/20 shadow-[var(--glass-shadow-soft)] text-[var(--accent)] px-2 py-0.5 rounded-md inline-block -translate-y-px">
+                          {item.object_text}
+                        </span>
                       </p>
-                      <div className="text-xs text-gray-400 mt-2">Source: {item.file_name}</div>
+                      <div className="text-xs text-[var(--text-muted)] flex items-center gap-1.5 font-medium tracking-wide">
+                        Source:{' '}
+                        <span className="text-[var(--text-secondary)]">{item.file_name}</span>
+                      </div>
                     </div>
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-3 opacity-50 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() => verifyItem(item.id, 'claims')}
-                        className="p-2 bg-green-50 text-green-600 rounded hover:bg-green-100"
+                        className="p-2.5 bg-green-500/10 hover:bg-green-500 text-green-500 hover:text-white rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.1)] hover:shadow-[0_5px_15px_rgba(34,197,94,0.4)] transition-all transform hover:scale-110"
                         title="Verify"
                       >
                         <Check className="w-5 h-5" />
                       </button>
                       <button
                         onClick={() => rejectItem(item.id, 'claims')}
-                        className="p-2 bg-red-50 text-red-600 rounded hover:bg-red-100"
+                        className="p-2.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.1)] hover:shadow-[0_5px_15px_rgba(239,68,68,0.4)] transition-all transform hover:scale-110"
                         title="Reject"
                       >
                         <X className="w-5 h-5" />
@@ -201,7 +230,17 @@ export function ReviewDashboard() {
                 ))}
 
               {(activeTab === 'mentions' ? mentions : claims).length === 0 && (
-                <div className="p-12 text-center text-gray-500">Queue empty! Good job.</div>
+                <div className="p-16 flex flex-col items-center justify-center text-center">
+                  <div className="w-16 h-16 rounded-full bg-[var(--glass-bg)] border border-[var(--glass-border)] flex items-center justify-center shadow-[var(--glass-shadow-soft)] mb-6 text-[var(--accent)]">
+                    <Check className="w-8 h-8 opacity-70" />
+                  </div>
+                  <h3 className="text-xl font-display text-[var(--text-primary)] mb-2">
+                    Queue is Empty
+                  </h3>
+                  <p className="text-[var(--text-muted)] max-w-sm">
+                    All pending items for this queue have been verified or rejected. Great work.
+                  </p>
+                </div>
               )}
             </div>
           )}

@@ -324,11 +324,13 @@ export const DocumentModal: React.FC<Props> = ({
     return createPortal(
       <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[1050] flex items-center justify-center p-4">
         <div className="surface-glass p-6 pointer-events-auto">
-          <div className="text-white font-semibold mb-2">Unable to load document</div>
-          <div className="text-slate-400 mb-4">
+          <div className="text-[var(--text-primary)] font-semibold mb-2">
+            Unable to load document
+          </div>
+          <div className="text-[var(--text-muted)] mb-4">
             Please try again or open in the Document Browser.
           </div>
-          <button onClick={onClose} className="control px-4 text-white">
+          <button onClick={onClose} className="control px-4 text-[var(--text-primary)]">
             Close
           </button>
         </div>
@@ -405,14 +407,14 @@ export const DocumentModal: React.FC<Props> = ({
     <div
       id="DocumentModal"
       ref={modalRef}
-      className="fixed inset-0 bg-slate-950/40 backdrop-blur-md z-[10000] flex items-center justify-center p-0 md:p-6 animate-in fade-in duration-300"
+      className="fixed inset-0 app-backdrop z-[10000] flex items-center justify-center p-0 md:p-6 animate-in fade-in duration-300"
       role="dialog"
       aria-modal="true"
       aria-labelledby="document-modal-title"
       onClick={onClose}
     >
       <div
-        className="glass-panel rounded-none md:rounded-3xl w-full h-full flex flex-col border-0 md:border md:border-white/10 pointer-events-auto overflow-hidden shadow-2xl"
+        className="glass-panel app-header-glass rounded-none md:rounded-[var(--radius-xl)] w-full h-full flex flex-col border-0 md:border md:border-[var(--glass-border)] pointer-events-auto overflow-hidden shadow-[var(--glass-shadow)]"
         style={{
           width: 'clamp(960px, 94vw, 1500px)',
           height: 'clamp(600px, 90vh, 1000px)',
@@ -434,9 +436,9 @@ export const DocumentModal: React.FC<Props> = ({
           tabs={viewerTabs}
           activeTab={activeTab}
           onTabChange={(key) => setActiveTab(key as ViewerTab)}
-          tabsClassName="px-4 md:px-8"
+          tabsClassName="px-4 md:px-8 border-b border-[var(--glass-border)]"
           bodyRef={contentRef}
-          bodyClassName="selection:bg-cyan-500/30"
+          bodyClassName="selection:bg-[var(--accent)]/30"
           bodyScrollable={false}
           bodyTestId="document-modal-scroll-region"
         >
@@ -472,61 +474,63 @@ export const DocumentModal: React.FC<Props> = ({
               </aside>
             }
             collapsedRight={
-              <div className="h-full flex flex-col items-center pt-14 pb-8 gap-8 bg-slate-950/40 overflow-visible">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActiveRailSection('metadata');
-                    setRightPaneCollapsed(false);
-                  }}
-                  className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 hover:bg-cyan-500/20 transition-all shadow-lg shadow-cyan-900/20"
-                  title="Core metadata"
-                >
-                  <Sparkles className="w-6 h-6" />
-                </button>
-                <div className="w-8 h-px bg-white/5" />
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActiveRailSection('entities');
-                    setRightPaneCollapsed(false);
-                  }}
-                  className="relative group w-10 h-10 rounded-xl inline-flex items-center justify-center text-slate-500 hover:text-cyan-300 hover:bg-cyan-500/10 transition-colors"
-                  aria-label="Live entities"
-                >
-                  <Users className="w-5 h-5" />
-                  <span className="pointer-events-none absolute right-12 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-[10px] text-slate-200 opacity-0 group-hover:opacity-100 transition-opacity z-50">
-                    Live Entities
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActiveRailSection('case');
-                    setRightPaneCollapsed(false);
-                  }}
-                  className="relative group w-10 h-10 rounded-xl inline-flex items-center justify-center text-slate-500 hover:text-cyan-300 hover:bg-cyan-500/10 transition-colors"
-                  aria-label="Case references"
-                >
-                  <Link2 className="w-5 h-5" />
-                  <span className="pointer-events-none absolute right-12 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-[10px] text-slate-200 opacity-0 group-hover:opacity-100 transition-opacity z-50">
-                    Case References
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActiveRailSection('timeline');
-                    setRightPaneCollapsed(false);
-                  }}
-                  className="relative group w-10 h-10 rounded-xl inline-flex items-center justify-center text-slate-500 hover:text-cyan-300 hover:bg-cyan-500/10 transition-colors"
-                  aria-label="Timeline hooks"
-                >
-                  <Calendar className="w-5 h-5" />
-                  <span className="pointer-events-none absolute right-12 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-[10px] text-slate-200 opacity-0 group-hover:opacity-100 transition-opacity z-50">
-                    Timeline Hooks
-                  </span>
-                </button>
+              <div className="h-full flex flex-col items-center pt-14 pb-8 bg-transparent overflow-visible">
+                <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-full py-6 px-2 flex flex-col items-center gap-6 shadow-[var(--glass-shadow)] backdrop-blur-md">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveRailSection('metadata');
+                      setRightPaneCollapsed(false);
+                    }}
+                    className="relative group w-12 h-12 rounded-full flex items-center justify-center text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-colors shadow-sm"
+                    title="Core metadata"
+                  >
+                    <Sparkles className="w-5 h-5" />
+                  </button>
+                  <div className="w-6 h-px bg-[var(--glass-border)]" />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveRailSection('entities');
+                      setRightPaneCollapsed(false);
+                    }}
+                    className="relative group w-10 h-10 rounded-full inline-flex items-center justify-center text-text-muted hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-colors"
+                    aria-label="Live entities"
+                  >
+                    <Users className="w-5 h-5" />
+                    <span className="pointer-events-none absolute right-14 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-[var(--radius-sm)] border border-[var(--glass-border)] bg-[var(--glass-bg-strong)] px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-text-strong opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-[var(--glass-shadow)]">
+                      Live Entities
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveRailSection('case');
+                      setRightPaneCollapsed(false);
+                    }}
+                    className="relative group w-10 h-10 rounded-full inline-flex items-center justify-center text-text-muted hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-colors"
+                    aria-label="Case references"
+                  >
+                    <Link2 className="w-5 h-5" />
+                    <span className="pointer-events-none absolute right-14 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-[var(--radius-sm)] border border-[var(--glass-border)] bg-[var(--glass-bg-strong)] px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-text-strong opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-[var(--glass-shadow)]">
+                      Case References
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveRailSection('timeline');
+                      setRightPaneCollapsed(false);
+                    }}
+                    className="relative group w-10 h-10 rounded-full inline-flex items-center justify-center text-text-muted hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-colors"
+                    aria-label="Timeline hooks"
+                  >
+                    <Calendar className="w-5 h-5" />
+                    <span className="pointer-events-none absolute right-14 top-1/2 -translate-y-1/2 whitespace-nowrap rounded-[var(--radius-sm)] border border-[var(--glass-border)] bg-[var(--glass-bg-strong)] px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-text-strong opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-[var(--glass-shadow)]">
+                      Timeline Hooks
+                    </span>
+                  </button>
+                </div>
               </div>
             }
             defaultRightWidth={rightPaneWidth}

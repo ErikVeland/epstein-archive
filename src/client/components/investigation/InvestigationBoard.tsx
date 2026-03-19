@@ -209,40 +209,40 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
         <div className="absolute top-4 right-4 z-10">
           <button
             onClick={() => window.open(`/api/investigations/${investigationId}/briefing`, '_blank')}
-            className="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg shadow-lg transition-colors"
+            className="flex items-center gap-2 px-3 py-1.5 bg-[var(--accent)] hover:bg-indigo-700 text-[var(--text-primary)] text-sm rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)] transition-colors"
           >
             <FileText className="w-4 h-4" />
             Export Briefing
           </button>
         </div>
 
-        <div className="w-1/3 border-r border-slate-800 flex flex-col min-w-[300px]">
-          <div className="p-4 border-b border-slate-800 bg-slate-900/50 flex items-center justify-between">
+        <div className="w-1/3 border-r border-[var(--glass-border)] flex flex-col min-w-[300px]">
+          <div className="p-4 border-b border-[var(--glass-border)] bg-[var(--glass-bg-strong)]/50 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Target className="w-5 h-5 text-purple-400" />
-              <h3 className="font-semibold text-white">Hypotheses</h3>
+              <h3 className="font-semibold text-[var(--text-primary)]">Hypotheses</h3>
             </div>
             <button
               onClick={() => setShowHypothesisModal(true)}
-              className="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-white"
+              className="p-1 hover:bg-[var(--glass-bg)] rounded text-[var(--text-muted)] hover:text-[var(--text-primary)]"
             >
               <Plus className="w-4 h-4" />
             </button>
           </div>
 
           {showHypothesisModal && (
-            <div className="p-4 bg-slate-800/50 border-b border-slate-700 animate-in slide-in-from-top-2">
+            <div className="p-4 bg-[var(--glass-bg)]/50 border-b border-[var(--glass-border)] animate-in slide-in-from-top-2">
               <input
                 type="text"
                 placeholder="Theory title..."
-                className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white mb-2 focus:ring-2 focus:ring-purple-500 outline-none"
+                className="w-full bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded px-3 py-2 text-sm text-[var(--text-primary)] mb-2 focus:ring-2 focus:ring-purple-500 outline-none"
                 value={newHypothesisTitle}
                 onChange={(e) => setNewHypothesisTitle(e.target.value)}
                 autoFocus
               />
               <textarea
                 placeholder="Description..."
-                className="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white mb-2 focus:ring-2 focus:ring-purple-500 outline-none resize-none"
+                className="w-full bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded px-3 py-2 text-sm text-[var(--text-primary)] mb-2 focus:ring-2 focus:ring-purple-500 outline-none resize-none"
                 rows={2}
                 value={newHypothesisDesc}
                 onChange={(e) => setNewHypothesisDesc(e.target.value)}
@@ -250,14 +250,14 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
               <div className="flex justify-end gap-2">
                 <button
                   onClick={() => setShowHypothesisModal(false)}
-                  className="text-xs text-slate-400 hover:text-white px-2 py-1"
+                  className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] px-2 py-1"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleCreateHypothesis}
                   disabled={!newHypothesisTitle.trim()}
-                  className="bg-purple-600 hover:bg-purple-500 text-white text-xs px-3 py-1 rounded disabled:opacity-50"
+                  className="bg-purple-600 hover:bg-purple-500 text-[var(--text-primary)] text-xs px-3 py-1 rounded disabled:opacity-50"
                 >
                   Add Theory
                 </button>
@@ -267,14 +267,14 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
 
           <div
             ref={hypothesesContainerRef}
-            className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-900/20"
+            className="flex-1 overflow-y-auto p-4 space-y-4 bg-[var(--glass-bg-strong)]/20"
           >
             {loadingShell && (
               <div className="space-y-3">
                 {Array.from({ length: 4 }).map((_, i) => (
                   <div
                     key={`hyp-skeleton-${i}`}
-                    className="h-28 rounded-lg bg-slate-800/70 border border-slate-700 animate-pulse"
+                    className="h-28 rounded-[var(--radius-lg)] bg-[var(--glass-bg)]/70 border border-[var(--glass-border)] animate-pulse"
                   />
                 ))}
               </div>
@@ -290,15 +290,15 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
                     key={h.id}
                     onDragOver={handleDragOver}
                     onDrop={(e) => handleDropOnHypothesis(e, String(h.id))}
-                    className="p-4 rounded-lg bg-slate-800 border border-slate-700 hover:border-purple-500/50 transition-colors group"
+                    className="p-4 rounded-[var(--radius-lg)] bg-[var(--glass-bg)] border border-[var(--glass-border)] hover:border-purple-500/50 transition-colors group"
                   >
-                    <h4 className="font-medium text-white mb-2">{h.title}</h4>
-                    <p className="text-sm text-slate-400 line-clamp-2">{h.description}</p>
-                    <div className="mt-3 text-xs text-slate-500 space-y-2">
+                    <h4 className="font-medium text-[var(--text-primary)] mb-2">{h.title}</h4>
+                    <p className="text-sm text-[var(--text-muted)] line-clamp-2">{h.description}</p>
+                    <div className="mt-3 text-xs text-[var(--text-muted)] space-y-2">
                       <div className="flex items-center justify-between">
                         <span>{(h as any).evidenceLinks?.length || 0} Evidence</span>
                         <span
-                          className={`px-2 py-0.5 rounded-full ${h.status === 'confirmed' ? 'bg-green-900/50 text-green-400' : 'bg-slate-700'}`}
+                          className={`px-2 py-0.5 rounded-full ${h.status === 'confirmed' ? 'bg-green-900/50 text-green-400' : 'bg-[var(--glass-bg-highlight)]'}`}
                         >
                           {h.status}
                         </span>
@@ -313,22 +313,22 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
             )}
 
             {!loadingShell && hypotheses.length === 0 && (
-              <div className="text-center p-8 text-slate-500 border-2 border-dashed border-slate-800 rounded-lg flex flex-col items-center gap-2">
-                <Target className="w-8 h-8 text-slate-600 mb-2" />
-                <p className="font-medium text-slate-400">No hypotheses yet</p>
+              <div className="text-center p-8 text-[var(--text-muted)] border-2 border-dashed border-[var(--glass-border)] rounded-[var(--radius-lg)] flex flex-col items-center gap-2">
+                <Target className="w-8 h-8 text-[var(--text-primary)] mb-2" />
+                <p className="font-medium text-[var(--text-muted)]">No hypotheses yet</p>
                 <p className="text-sm">Click the + button above to define a theory to test.</p>
               </div>
             )}
           </div>
         </div>
 
-        <div className="w-1/3 border-r border-slate-800 flex flex-col min-w-[300px] bg-slate-950">
-          <div className="p-4 border-b border-slate-800 bg-slate-900/50 flex items-center justify-between">
+        <div className="w-1/3 border-r border-[var(--glass-border)] flex flex-col min-w-[300px] bg-slate-950">
+          <div className="p-4 border-b border-[var(--glass-border)] bg-[var(--glass-bg-strong)]/50 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <FileText className="w-5 h-5 text-blue-400" />
-              <h3 className="font-semibold text-white">Evidence Pool</h3>
+              <FileText className="w-5 h-5 text-[var(--accent)]" />
+              <h3 className="font-semibold text-[var(--text-primary)]">Evidence Pool</h3>
             </div>
-            <div className="text-xs text-slate-400">
+            <div className="text-xs text-[var(--text-muted)]">
               {evidence.length}/{evidenceTotal} loaded
             </div>
           </div>
@@ -338,7 +338,7 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
                 {Array.from({ length: 6 }).map((_, i) => (
                   <div
                     key={`ev-skeleton-${i}`}
-                    className="h-20 rounded bg-slate-900 border border-slate-800 animate-pulse"
+                    className="h-20 rounded bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] animate-pulse"
                   />
                 ))}
               </div>
@@ -355,15 +355,17 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
                     draggable
                     onDragStart={(ev) => handleDragStart(ev, e)}
                     onClick={() => setViewingEvidence(e)}
-                    className="p-3 rounded bg-slate-900 border border-slate-800 hover:border-blue-500/50 cursor-grab active:cursor-grabbing flex items-start gap-3 group hover:bg-slate-800/50 transition-colors"
+                    className="p-3 rounded bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] hover:border-[var(--accent)]/50 cursor-grab active:cursor-grabbing flex items-start gap-3 group hover:bg-[var(--glass-bg)]/50 transition-colors"
                   >
-                    <GripVertical className="w-4 h-4 text-slate-600 mt-1" />
+                    <GripVertical className="w-4 h-4 text-[var(--text-primary)] mt-1" />
                     <div>
-                      <h4 className="text-sm font-medium text-slate-200 group-hover:text-blue-300 transition-colors">
+                      <h4 className="text-sm font-medium text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors">
                         {e.title}
                       </h4>
-                      <p className="text-xs text-slate-500 line-clamp-1 mt-1">{e.description}</p>
-                      <span className="inline-block mt-2 px-1.5 py-0.5 bg-slate-800 rounded text-[10px] text-slate-400 uppercase tracking-wider">
+                      <p className="text-xs text-[var(--text-muted)] line-clamp-1 mt-1">
+                        {e.description}
+                      </p>
+                      <span className="inline-block mt-2 px-1.5 py-0.5 bg-[var(--glass-bg)] rounded text-[10px] text-[var(--text-muted)] uppercase tracking-wider">
                         {e.type}
                       </span>
                     </div>
@@ -376,9 +378,9 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
             )}
 
             {!loadingShell && evidence.length === 0 && (
-              <div className="text-center p-8 text-slate-500 flex flex-col items-center gap-2">
-                <FileText className="w-8 h-8 text-slate-600 mb-2" />
-                <p className="font-medium text-slate-400">Evidence Pool is empty</p>
+              <div className="text-center p-8 text-[var(--text-muted)] flex flex-col items-center gap-2">
+                <FileText className="w-8 h-8 text-[var(--text-primary)] mb-2" />
+                <p className="font-medium text-[var(--text-muted)]">Evidence Pool is empty</p>
                 <p className="text-sm max-w-[200px]">
                   Browse documents or entities and click "Add to Investigation" to collect them
                   here.
@@ -390,7 +392,7 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
               <button
                 onClick={() => loadEvidencePage(evidenceOffset, false)}
                 disabled={isLoadingMoreEvidence}
-                className="w-full py-2 rounded-md border border-slate-700 text-sm text-slate-200 hover:bg-slate-800 disabled:opacity-60"
+                className="w-full py-2 rounded-md border border-[var(--glass-border)] text-sm text-[var(--text-primary)] hover:bg-[var(--glass-bg)] disabled:opacity-60"
               >
                 {isLoadingMoreEvidence ? 'Loading more evidence...' : 'Load more evidence'}
               </button>
@@ -399,18 +401,18 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
         </div>
 
         <div className="w-1/3 flex flex-col min-w-[300px]">
-          <div className="p-4 border-b border-slate-800 bg-slate-900/50 flex items-center justify-between">
+          <div className="p-4 border-b border-[var(--glass-border)] bg-[var(--glass-bg-strong)]/50 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <BookOpen className="w-5 h-5 text-amber-400" />
-              <h3 className="font-semibold text-white">Case Narrative</h3>
+              <h3 className="font-semibold text-[var(--text-primary)]">Case Narrative</h3>
             </div>
           </div>
           <div
-            className="flex-1 overflow-y-auto p-4 bg-slate-900/20"
+            className="flex-1 overflow-y-auto p-4 bg-[var(--glass-bg-strong)]/20"
             onDragOver={handleDragOver}
             onDrop={handleDropOnNotebook}
           >
-            <div className="min-h-[200px] p-4 border-2 border-dashed border-slate-800/50 rounded-lg flex flex-col items-center justify-center text-slate-500 hover:bg-slate-800/30 transition-colors">
+            <div className="min-h-[200px] p-4 border-2 border-dashed border-[var(--glass-border)] rounded-[var(--radius-lg)] flex flex-col items-center justify-center text-[var(--text-muted)] hover:bg-[var(--glass-bg)]/30 transition-colors">
               {notebook.length === 0 && (
                 <span className="mb-2">Drag evidence here to build your case</span>
               )}
@@ -421,17 +423,25 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
                   return (
                     <div
                       key={`${itemId}-${idx}`}
-                      className="p-3 bg-slate-800 rounded border border-slate-700 flex flex-col gap-2"
+                      className="p-3 bg-[var(--glass-bg)] rounded border border-[var(--glass-border)] flex flex-col gap-2"
                     >
                       <div className="flex items-start gap-2">
-                        <span className="text-slate-500 font-mono text-xs mt-0.5">{idx + 1}.</span>
+                        <span className="text-[var(--text-muted)] font-mono text-xs mt-0.5">
+                          {idx + 1}.
+                        </span>
                         {ev ? (
                           <div>
-                            <h4 className="text-sm font-medium text-slate-200">{ev.title}</h4>
-                            <p className="text-xs text-slate-400 line-clamp-2">{ev.description}</p>
+                            <h4 className="text-sm font-medium text-[var(--text-primary)]">
+                              {ev.title}
+                            </h4>
+                            <p className="text-xs text-[var(--text-muted)] line-clamp-2">
+                              {ev.description}
+                            </p>
                           </div>
                         ) : (
-                          <span className="text-sm text-slate-500">Loading item {itemId}...</span>
+                          <span className="text-sm text-[var(--text-muted)]">
+                            Loading item {itemId}...
+                          </span>
                         )}
                       </div>
                     </div>
@@ -440,7 +450,9 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
               </div>
             </div>
             {(loadingDetails || !hasLoadedDetails) && (
-              <p className="mt-3 text-xs text-slate-500">Hydrating full board details...</p>
+              <p className="mt-3 text-xs text-[var(--text-muted)]">
+                Hydrating full board details...
+              </p>
             )}
           </div>
         </div>

@@ -19,7 +19,7 @@ const StatsDashboard: React.FC<StatsDashboardProps> = ({ people }) => {
       title: 'Total People',
       value: stats.total.toLocaleString(),
       icon: Users,
-      iconColor: 'text-primary-400',
+      iconColor: 'text-[var(--accent)]',
       description: 'Individuals tracked in the archive',
       trend: 'Updated daily',
     },
@@ -27,8 +27,8 @@ const StatsDashboard: React.FC<StatsDashboardProps> = ({ people }) => {
       title: 'High Risk Targets',
       value: stats.highRisk.toLocaleString(),
       icon: AlertTriangle,
-      iconColor: 'text-danger-400',
-      valueColor: 'text-danger-400',
+      iconColor: 'text-[var(--accent-danger)]',
+      valueColor: 'text-[var(--accent-danger)]',
       description: 'Red Flag Index 4+',
       trend: `${Math.round((stats.highRisk / stats.total) * 100)}% of total`,
     },
@@ -36,7 +36,7 @@ const StatsDashboard: React.FC<StatsDashboardProps> = ({ people }) => {
       title: 'Total Mentions',
       value: stats.totalMentions.toLocaleString(),
       icon: FileText,
-      iconColor: 'text-emerald-400',
+      iconColor: 'text-[var(--accent-success)]',
       description: 'Cross-referenced citations',
       trend: 'Across 2,000+ docs',
     },
@@ -44,7 +44,7 @@ const StatsDashboard: React.FC<StatsDashboardProps> = ({ people }) => {
       title: 'Avg. Mentions',
       value: stats.avgMentions.toLocaleString(),
       icon: TrendingUp,
-      iconColor: 'text-amber-400',
+      iconColor: 'text-[var(--accent-warning)]',
       description: 'Per individual entity',
       trend: 'Relevance metric',
     },
@@ -53,29 +53,28 @@ const StatsDashboard: React.FC<StatsDashboardProps> = ({ people }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       {cards.map((card, index) => (
-        <div
-          key={index}
-          className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 hover:border-slate-600 transition-all duration-300 group"
-        >
+        <div key={index} className="surface-glass-card p-6 group">
           <div className="flex items-start justify-between mb-4">
             <div>
-              <p className="text-sm font-medium text-slate-400 group-hover:text-slate-300 transition-colors">
+              <p className="text-sm font-medium text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">
                 {card.title}
               </p>
-              <h3 className={`text-3xl font-bold mt-1 ${card.valueColor || 'text-white'}`}>
+              <h3
+                className={`data-emphasis mt-1 ${card.valueColor || 'text-[var(--text-primary)]'}`}
+              >
                 {card.value}
               </h3>
             </div>
             <div
-              className={`p-3 rounded-lg bg-slate-800/80 ${card.iconColor} bg-opacity-10 ring-1 ring-white/5`}
+              className={`p-3 rounded-[var(--radius-lg)] bg-[var(--glass-bg-strong)] ${card.iconColor} bg-opacity-10 ring-1 ring-[var(--glass-border)]`}
             >
               <card.icon className={`h-6 w-6 ${card.iconColor}`} />
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-4 border-t border-slate-700/50">
-            <p className="text-xs text-slate-500 font-medium">{card.description}</p>
-            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700/50 text-slate-400">
+          <div className="flex items-center justify-between pt-4 border-t border-[var(--glass-border)]">
+            <p className="text-xs text-[var(--text-muted)] font-medium">{card.description}</p>
+            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)]">
               {card.trend}
             </span>
           </div>

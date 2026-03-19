@@ -293,15 +293,15 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
     <div className={`relative ${mode === 'full' ? 'h-full flex' : ''}`}>
       <div className={`${mode === 'full' ? 'flex-1 pr-4' : 'w-full'}`}>
         <div className="mb-3 flex items-center justify-between">
-          <div className="text-xs text-slate-400">
+          <div className="text-xs text-[var(--text-muted)]">
             {annotations.length} annotation{annotations.length === 1 ? '' : 's'}
           </div>
-          {isLoading && <div className="text-xs text-slate-400">Loading…</div>}
+          {isLoading && <div className="text-xs text-[var(--text-muted)]">Loading…</div>}
         </div>
 
         <div
           ref={contentRef}
-          className="prose prose-invert max-w-none text-slate-300 leading-relaxed whitespace-pre-wrap select-text min-h-[300px]"
+          className="prose prose-invert max-w-none text-[var(--text-secondary)] leading-relaxed whitespace-pre-wrap select-text min-h-[300px]"
           onMouseUp={handleSelection}
         >
           {renderedContent}
@@ -314,21 +314,21 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
         )}
 
         {mode === 'inline' && (
-          <div className="mt-3 text-xs text-slate-400">
+          <div className="mt-3 text-xs text-[var(--text-muted)]">
             Select text to add a public annotation with highlight and optional note.
           </div>
         )}
 
         {pendingSelection && (
           <div
-            className="absolute z-50 w-[340px] bg-slate-900 border border-slate-600 rounded-lg shadow-xl p-3"
+            className="absolute z-50 w-[340px] bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)] p-3"
             style={{
               left: `${menuPosition.x}px`,
               top: `${menuPosition.y}px`,
               transform: 'translate(-50%, -100%)',
             }}
           >
-            <div className="text-xs text-slate-400 mb-2 truncate">
+            <div className="text-xs text-[var(--text-muted)] mb-2 truncate">
               "{pendingSelection.selectedText}"
             </div>
             <div className="grid grid-cols-3 gap-1 mb-2">
@@ -341,8 +341,8 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
                     type="button"
                     className={`px-2 py-1 rounded text-xs flex items-center gap-1 justify-center border ${
                       active
-                        ? 'border-cyan-400/60 bg-cyan-500/10 text-cyan-100'
-                        : 'border-slate-600 text-slate-300 hover:bg-slate-700/70'
+                        ? 'border-[var(--accent)]/60 bg-[var(--accent)]/10 text-cyan-100'
+                        : 'border-[var(--glass-border)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)]/70'
                     }`}
                     onClick={() => setDraftType(option.type)}
                   >
@@ -356,14 +356,14 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
               value={draftAuthor}
               onChange={(event) => setDraftAuthor(event.target.value)}
               placeholder="Display name (optional)"
-              className="w-full mb-2 px-2 py-1.5 rounded bg-slate-800 border border-slate-600 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+              className="w-full mb-2 px-2 py-1.5 rounded bg-[var(--glass-bg)] border border-[var(--glass-border)] text-xs text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
               maxLength={32}
             />
             <textarea
               value={draftNote}
               onChange={(event) => setDraftNote(event.target.value)}
               placeholder="Add note (optional)"
-              className="w-full mb-2 px-2 py-1.5 rounded bg-slate-800 border border-slate-600 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-cyan-500"
+              className="w-full mb-2 px-2 py-1.5 rounded bg-[var(--glass-bg)] border border-[var(--glass-border)] text-xs text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
               rows={3}
               maxLength={4000}
             />
@@ -371,7 +371,7 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
               <button
                 type="button"
                 onClick={clearSelectionDraft}
-                className="px-2 py-1 text-xs rounded border border-slate-600 text-slate-300 hover:bg-slate-700"
+                className="px-2 py-1 text-xs rounded border border-[var(--glass-border)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)]"
               >
                 Cancel
               </button>
@@ -379,7 +379,7 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
                 type="button"
                 onClick={createAnnotation}
                 disabled={isSaving}
-                className="px-2 py-1 text-xs rounded border border-cyan-500/60 bg-cyan-500/10 text-cyan-100 hover:bg-cyan-500/20 disabled:opacity-50"
+                className="px-2 py-1 text-xs rounded border border-[var(--accent)]/60 bg-[var(--accent)]/10 text-cyan-100 hover:bg-[var(--accent)]/20 disabled:opacity-50"
               >
                 {isSaving ? 'Saving…' : 'Save Annotation'}
               </button>
@@ -389,10 +389,10 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
       </div>
 
       {mode === 'full' && (
-        <aside className="w-80 bg-slate-800/70 border-l border-slate-600 p-4 overflow-y-auto">
+        <aside className="w-80 bg-[var(--glass-bg)]/70 border-l border-[var(--glass-border)] p-4 overflow-y-auto">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium text-white">Annotations</h3>
-            <span className="text-sm text-slate-400">{annotations.length} total</span>
+            <h3 className="text-lg font-medium text-[var(--text-primary)]">Annotations</h3>
+            <span className="text-sm text-[var(--text-muted)]">{annotations.length} total</span>
           </div>
 
           <div className="space-y-3">
@@ -404,22 +404,26 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
                 <button
                   key={annotation.id}
                   type="button"
-                  className={`w-full text-left rounded-lg p-3 border transition-colors ${
+                  className={`w-full text-left rounded-[var(--radius-lg)] p-3 border transition-colors ${
                     active
-                      ? 'bg-slate-700 border-cyan-400/60'
-                      : 'bg-slate-700/60 border-slate-600 hover:bg-slate-700'
+                      ? 'bg-[var(--glass-bg-highlight)] border-[var(--accent)]/60'
+                      : 'bg-[var(--glass-bg-highlight)]/60 border-[var(--glass-border)] hover:bg-[var(--glass-bg-highlight)]'
                   }`}
                   onClick={() => setActiveAnnotationId(annotation.id)}
                 >
                   <div className="flex items-center gap-2 mb-1">
-                    <Icon className="w-4 h-4 text-cyan-300" />
-                    <span className="text-sm font-medium text-white">{typeMeta.label}</span>
+                    <Icon className="w-4 h-4 text-[var(--accent)]" />
+                    <span className="text-sm font-medium text-[var(--text-primary)]">
+                      {typeMeta.label}
+                    </span>
                   </div>
-                  <div className="text-xs text-slate-300 mb-2">"{annotation.selectedText}"</div>
+                  <div className="text-xs text-[var(--text-secondary)] mb-2">
+                    "{annotation.selectedText}"
+                  </div>
                   {annotation.note ? (
-                    <div className="text-xs text-slate-200 mb-2">{annotation.note}</div>
+                    <div className="text-xs text-[var(--text-primary)] mb-2">{annotation.note}</div>
                   ) : null}
-                  <div className="flex justify-between text-[11px] text-slate-400">
+                  <div className="flex justify-between text-[11px] text-[var(--text-muted)]">
                     <span>{annotation.author || 'anonymous'}</span>
                     <span>{parseDateLabel(annotation.createdAt)}</span>
                   </div>
@@ -428,7 +432,7 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
             })}
 
             {annotations.length === 0 && !isLoading && (
-              <div className="text-center py-8 text-slate-400">
+              <div className="text-center py-8 text-[var(--text-muted)]">
                 <MessageSquare className="w-8 h-8 mx-auto mb-2 opacity-50" />
                 <p className="text-sm">No annotations yet</p>
                 <p className="text-xs mt-1">Select text in the document to annotate it.</p>
@@ -437,17 +441,19 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
           </div>
 
           {activeAnnotation && (
-            <div className="mt-4 p-3 rounded-lg border border-slate-600 bg-slate-900/60">
-              <div className="text-xs uppercase tracking-wider text-slate-400 mb-2">
+            <div className="mt-4 p-3 rounded-[var(--radius-lg)] border border-[var(--glass-border)] bg-[var(--glass-bg-strong)]/60">
+              <div className="text-xs uppercase tracking-wider text-[var(--text-muted)] mb-2">
                 Active annotation
               </div>
-              <div className="text-sm text-slate-100 mb-2">"{activeAnnotation.selectedText}"</div>
+              <div className="text-sm text-[var(--text-primary)] mb-2">
+                "{activeAnnotation.selectedText}"
+              </div>
               {activeAnnotation.note ? (
-                <div className="text-xs text-slate-300 whitespace-pre-wrap">
+                <div className="text-xs text-[var(--text-secondary)] whitespace-pre-wrap">
                   {activeAnnotation.note}
                 </div>
               ) : (
-                <div className="text-xs text-slate-500">No note text.</div>
+                <div className="text-xs text-[var(--text-muted)]">No note text.</div>
               )}
             </div>
           )}

@@ -214,17 +214,17 @@ export function SensitiveContent({
 
           {/* Icon and label */}
           <div className="relative z-30 flex flex-col items-center gap-3 transition-transform group-hover:scale-105">
-            <div className="w-16 h-16 rounded-full bg-slate-800/80 border-2 border-slate-600/50 flex items-center justify-center backdrop-blur-sm shadow-2xl group-hover:border-slate-500 transition-all">
+            <div className="w-16 h-16 rounded-full bg-[var(--glass-bg)]/80 border-2 border-[var(--glass-border)] flex items-center justify-center backdrop-blur-sm shadow-[var(--glass-shadow)] group-hover:border-[var(--glass-border)] transition-all">
               <EyeOff
                 size={28}
-                className="text-slate-300 group-hover:text-slate-200 transition-colors"
+                className="text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors"
               />
             </div>
             <div className="flex flex-col items-center gap-1">
-              <span className="text-white font-semibold text-sm tracking-wide uppercase">
+              <span className="text-[var(--text-primary)] font-semibold text-sm tracking-wide uppercase">
                 {label}
               </span>
-              <span className="text-slate-400 text-xs">Click to reveal</span>
+              <span className="text-[var(--text-muted)] text-xs">Click to reveal</span>
             </div>
           </div>
 

@@ -158,8 +158,10 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
 
   const statusColor = (status: TaskStatus) => {
     if (status === 'completed') return 'bg-emerald-500/10 text-emerald-300 border-emerald-500/40';
-    if (status === 'in_progress') return 'bg-blue-500/10 text-blue-300 border-blue-500/40';
-    if (status === 'pending') return 'bg-slate-500/10 text-slate-200 border-slate-500/40';
+    if (status === 'in_progress')
+      return 'bg-[var(--accent)]/10 text-[var(--accent)] border-[var(--accent)]/40';
+    if (status === 'pending')
+      return 'bg-[var(--glass-bg-highlight)]/10 text-[var(--text-primary)] border-[var(--glass-border)]';
     if (status === 'on_hold') return 'bg-amber-500/10 text-amber-300 border-amber-500/40';
     return 'bg-rose-500/10 text-rose-300 border-rose-500/40';
   };
@@ -167,20 +169,21 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
   const priorityColor = (priority: TaskPriority) => {
     if (priority === 'critical') return 'bg-rose-500/10 text-rose-300 border-rose-500/40';
     if (priority === 'high') return 'bg-amber-500/10 text-amber-300 border-amber-500/40';
-    if (priority === 'medium') return 'bg-blue-500/10 text-blue-300 border-blue-500/40';
-    return 'bg-slate-500/10 text-slate-200 border-slate-500/40';
+    if (priority === 'medium')
+      return 'bg-[var(--accent)]/10 text-[var(--accent)] border-[var(--accent)]/40';
+    return 'bg-[var(--glass-bg-highlight)]/10 text-[var(--text-primary)] border-[var(--glass-border)]';
   };
 
   return (
     <div className="fixed inset-0 z-40 flex items-stretch justify-end bg-slate-950/60 backdrop-blur-sm">
-      <div className="w-full max-w-md bg-slate-900 border-l border-slate-800 shadow-2xl flex flex-col">
-        <div className="px-4 sm:px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+      <div className="w-full max-w-md bg-[var(--glass-bg-strong)] border-l border-[var(--glass-border)] shadow-[var(--glass-shadow)] flex flex-col">
+        <div className="px-4 sm:px-6 py-4 border-b border-[var(--glass-border)] flex items-center justify-between">
           <div>
-            <h2 className="text-base sm:text-lg font-semibold text-white flex items-center gap-2">
+            <h2 className="text-base sm:text-lg font-semibold text-[var(--text-primary)] flex items-center gap-2">
               <Flag className="w-4 h-4 text-amber-400" />
               Investigation Tasks
             </h2>
-            <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
+            <p className="text-xs sm:text-sm text-[var(--text-muted)] mt-0.5">
               Track work items and progress for this investigation
             </p>
           </div>
@@ -188,19 +191,19 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
         </div>
 
         {summary && (
-          <div className="px-4 sm:px-6 py-3 border-b border-slate-800 flex gap-3 text-xs sm:text-sm">
+          <div className="px-4 sm:px-6 py-3 border-b border-[var(--glass-border)] flex gap-3 text-xs sm:text-sm">
             <div className="flex-1">
-              <div className="text-slate-400">Total</div>
-              <div className="text-white font-medium">
+              <div className="text-[var(--text-muted)]">Total</div>
+              <div className="text-[var(--text-primary)] font-medium">
                 {Object.values(summary.statusBreakdown).reduce((a, b) => a + b, 0)}
               </div>
             </div>
             <div className="flex-1">
-              <div className="text-slate-400">Overdue</div>
+              <div className="text-[var(--text-muted)]">Overdue</div>
               <div className="text-rose-300 font-medium">{summary.overdueTasks}</div>
             </div>
             <div className="flex-1">
-              <div className="text-slate-400">Avg Progress</div>
+              <div className="text-[var(--text-muted)]">Avg Progress</div>
               <div className="text-emerald-300 font-medium">
                 {Math.round(summary.averageProgress)}%
               </div>
@@ -208,11 +211,11 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
           </div>
         )}
 
-        <div className="px-4 sm:px-6 py-3 border-b border-slate-800 flex gap-2 text-xs sm:text-sm">
+        <div className="px-4 sm:px-6 py-3 border-b border-[var(--glass-border)] flex gap-2 text-xs sm:text-sm">
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as TaskStatus | 'all')}
-            className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-slate-200 text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="flex-1 bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] px-2 py-1.5 text-[var(--text-primary)] text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
           >
             <option value="all">All statuses</option>
             <option value="pending">Pending</option>
@@ -224,7 +227,7 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
           <select
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value as TaskPriority | 'all')}
-            className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-slate-200 text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="flex-1 bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] px-2 py-1.5 text-[var(--text-primary)] text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
           >
             <option value="all">All priorities</option>
             <option value="critical">Critical</option>
@@ -236,16 +239,18 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
 
         <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-3">
           {isLoading && (
-            <div className="flex items-center justify-center py-8 text-slate-400">
+            <div className="flex items-center justify-center py-8 text-[var(--text-muted)]">
               <Loader2 className="w-5 h-5 animate-spin mr-2" />
               Loading tasks
             </div>
           )}
 
           {!isLoading && filteredTasks.length === 0 && (
-            <div className="border border-dashed border-slate-700 rounded-lg p-4 text-center">
-              <p className="text-sm text-slate-400">No tasks yet for this investigation.</p>
-              <p className="text-xs text-slate-500 mt-1">
+            <div className="border border-dashed border-[var(--glass-border)] rounded-[var(--radius-lg)] p-4 text-center">
+              <p className="text-sm text-[var(--text-muted)]">
+                No tasks yet for this investigation.
+              </p>
+              <p className="text-xs text-[var(--text-muted)] mt-1">
                 Use the form below to create the first task.
               </p>
             </div>
@@ -254,24 +259,28 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
           {filteredTasks.map((task) => (
             <div
               key={task.id}
-              className="border border-slate-800 rounded-lg bg-slate-900/60 p-3 sm:p-4 flex flex-col gap-3"
+              className="border border-[var(--glass-border)] rounded-[var(--radius-lg)] bg-[var(--glass-bg-strong)]/60 p-3 sm:p-4 flex flex-col gap-3"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-start gap-2">
                   <button
                     onClick={() => handleToggleComplete(task)}
-                    className="mt-0.5 p-1 rounded-full border border-slate-700 hover:border-emerald-500/60 hover:bg-emerald-500/10 text-slate-400 hover:text-emerald-300 transition-colors"
+                    className="mt-0.5 p-1 rounded-full border border-[var(--glass-border)] hover:border-emerald-500/60 hover:bg-emerald-500/10 text-[var(--text-muted)] hover:text-emerald-300 transition-colors"
                   >
                     <CheckCircle2
                       className={`w-4 h-4 ${
-                        task.status === 'completed' ? 'text-emerald-400' : 'text-slate-500'
+                        task.status === 'completed'
+                          ? 'text-emerald-400'
+                          : 'text-[var(--text-muted)]'
                       }`}
                     />
                   </button>
                   <div>
-                    <h3 className="text-sm sm:text-base font-semibold text-white">{task.title}</h3>
+                    <h3 className="text-sm sm:text-base font-semibold text-[var(--text-primary)]">
+                      {task.title}
+                    </h3>
                     {task.description && (
-                      <p className="mt-1 text-xs sm:text-sm text-slate-300 line-clamp-3">
+                      <p className="mt-1 text-xs sm:text-sm text-[var(--text-secondary)] line-clamp-3">
                         {task.description}
                       </p>
                     )}
@@ -297,7 +306,7 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
                 </div>
               </div>
 
-              <div className="flex items-center justify-between gap-3 text-[11px] sm:text-xs text-slate-400">
+              <div className="flex items-center justify-between gap-3 text-[11px] sm:text-xs text-[var(--text-muted)]">
                 <div className="flex items-center gap-2">
                   {task.dueDate && (
                     <span className="inline-flex items-center gap-1">
@@ -308,7 +317,9 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
                   {task.assignedTo && (
                     <span className="inline-flex items-center gap-1">
                       Assigned to
-                      <span className="text-slate-200 font-medium">{task.assignedTo}</span>
+                      <span className="text-[var(--text-primary)] font-medium">
+                        {task.assignedTo}
+                      </span>
                     </span>
                   )}
                 </div>
@@ -318,7 +329,7 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
               </div>
 
               <div className="flex items-center gap-2">
-                <div className="flex-1 h-1.5 rounded-full bg-slate-800 overflow-hidden">
+                <div className="flex-1 h-1.5 rounded-full bg-[var(--glass-bg)] overflow-hidden">
                   <div
                     className="h-full bg-gradient-to-r from-blue-500 via-emerald-500 to-emerald-400"
                     style={{ width: `${Math.max(0, Math.min(100, task.progress ?? 0))}%` }}
@@ -340,11 +351,11 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
 
         <form
           onSubmit={handleCreateTask}
-          className="border-t border-slate-800 px-4 sm:px-6 py-4 space-y-3 bg-slate-900"
+          className="border-t border-[var(--glass-border)] px-4 sm:px-6 py-4 space-y-3 bg-[var(--glass-bg-strong)]"
         >
           <div className="flex items-center justify-between gap-2">
-            <h3 className="text-xs sm:text-sm font-medium text-slate-200 flex items-center gap-2">
-              <Plus className="w-3 h-3 text-blue-400" />
+            <h3 className="text-xs sm:text-sm font-medium text-[var(--text-primary)] flex items-center gap-2">
+              <Plus className="w-3 h-3 text-[var(--accent)]" />
               New task
             </h3>
           </div>
@@ -353,14 +364,14 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
             value={newTask.title}
             onChange={(e) => setNewTask((t) => ({ ...t, title: e.target.value }))}
             placeholder="Task title"
-            className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full px-3 py-2 rounded-[var(--radius-lg)] bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
           />
           <textarea
             value={newTask.description}
             onChange={(e) => setNewTask((t) => ({ ...t, description: e.target.value }))}
             placeholder="Optional description"
             rows={2}
-            className="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+            className="w-full px-3 py-2 rounded-[var(--radius-lg)] bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)] resize-none"
           />
           <div className="flex gap-2">
             <select
@@ -368,7 +379,7 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
               onChange={(e) =>
                 setNewTask((t) => ({ ...t, priority: e.target.value as TaskPriority }))
               }
-              className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs sm:text-sm text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="flex-1 bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] px-2 py-1.5 text-xs sm:text-sm text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
             >
               <option value="critical">Critical</option>
               <option value="high">High</option>
@@ -379,14 +390,14 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
               type="date"
               value={newTask.dueDate}
               onChange={(e) => setNewTask((t) => ({ ...t, dueDate: e.target.value }))}
-              className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs sm:text-sm text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="flex-1 bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] px-2 py-1.5 text-xs sm:text-sm text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
             />
           </div>
           <div className="flex justify-end">
             <button
               type="submit"
               disabled={!newTask.title.trim() || isCreating}
-              className="inline-flex items-center justify-center px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+              className="inline-flex items-center justify-center px-3 sm:px-4 py-1.5 sm:py-2 rounded-[var(--radius-lg)] text-xs sm:text-sm font-medium bg-[var(--accent)] text-[var(--text-primary)] hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
             >
               {isCreating && <Loader2 className="w-3 h-3 mr-2 animate-spin" />}
               Create task

@@ -347,13 +347,13 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
               onClick={onClose}
               size="sm"
               label="Close media viewer"
-              className="bg-black/40 hover:bg-black/60 text-white/80 hover:text-white border-white/20"
+              className="bg-[var(--app-bg)]/40 hover:bg-[var(--app-bg)]/60 text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--glass-border)]"
             />
-            <div className="text-white drop-shadow-md">
+            <div className="text-[var(--text-primary)] drop-shadow-[var(--glass-shadow)]">
               <h2 className="font-semibold text-lg leading-tight truncate max-w-md">
                 {currentImage.title}
               </h2>
-              <p className="text-xs text-white/70">
+              <p className="text-xs text-[var(--text-secondary)]">
                 {currentIndex + 1} / {images.length}
               </p>
             </div>
@@ -362,7 +362,7 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
           <div className="pointer-events-auto flex gap-2">
             <button
               onClick={handleShare}
-              className="p-2 rounded-full bg-black/40 hover:bg-black/60 text-white/80 hover:text-white transition-colors relative"
+              className="p-2 rounded-full bg-[var(--app-bg)]/40 hover:bg-[var(--app-bg)]/60 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors relative border border-transparent hover:border-[var(--glass-border)]"
               title="Copy Link"
             >
               {showCopied ? (
@@ -373,14 +373,14 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
             </button>
             <button
               onClick={() => setIsZoomed(!isZoomed)}
-              className="p-2 rounded-full bg-black/40 hover:bg-black/60 text-white/80 hover:text-white transition-colors"
+              className="p-2 rounded-full bg-[var(--app-bg)]/40 hover:bg-[var(--app-bg)]/60 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors border border-transparent hover:border-[var(--glass-border)]"
             >
               {isZoomed ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
             </button>
             {isAdmin && (
               <button
                 onClick={() => handleRotate('right')}
-                className="p-2 rounded-full bg-black/40 hover:bg-black/60 text-white/80 hover:text-white transition-colors"
+                className="p-2 rounded-full bg-[var(--app-bg)]/40 hover:bg-[var(--app-bg)]/60 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors border border-transparent hover:border-[var(--glass-border)]"
                 title="Rotate 90° CW"
               >
                 <RotateCw size={20} />
@@ -388,7 +388,7 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
             )}
             <button
               onClick={() => setShowSidebar(!showSidebar)}
-              className={`p-2 rounded-full hover:bg-black/60 transition-colors ${showSidebar ? 'bg-cyan-500/20 text-cyan-400' : 'bg-black/40 text-white/80'}`}
+              className={`p-2 rounded-full hover:bg-[var(--app-bg)]/60 transition-colors border border-transparent hover:border-[var(--glass-border)] ${showSidebar ? 'bg-[var(--accent)]/20 text-[var(--accent)]' : 'bg-[var(--app-bg)]/40 text-[var(--text-secondary)]'}`}
             >
               <Info size={20} />
             </button>
@@ -399,7 +399,7 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
         {currentIndex > 0 && (
           <button
             onClick={handlePrev}
-            className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/40 hover:bg-black/60 text-white/70 hover:text-white transition-colors z-20 group"
+            className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-[var(--app-bg)]/40 hover:bg-[var(--app-bg)]/60 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors z-20 group border border-transparent hover:border-[var(--glass-border)]"
           >
             <ChevronLeft size={32} className="group-hover:-translate-x-0.5 transition-transform" />
           </button>
@@ -407,7 +407,7 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
         {currentIndex < images.length - 1 && (
           <button
             onClick={handleNext}
-            className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/40 hover:bg-black/60 text-white/70 hover:text-white transition-colors z-20 group"
+            className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-[var(--app-bg)]/40 hover:bg-[var(--app-bg)]/60 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors z-20 group border border-transparent hover:border-[var(--glass-border)]"
           >
             <ChevronRight size={32} className="group-hover:translate-x-0.5 transition-transform" />
           </button>
@@ -423,7 +423,7 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
         >
           {imageLoading && (
             <div className="absolute inset-0 flex items-center justify-center z-10">
-              <div className="w-12 h-12 border-4 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin"></div>
+              <div className="w-12 h-12 border-4 border-[var(--accent)]/30 border-t-[var(--accent)] rounded-full animate-spin"></div>
             </div>
           )}
           <img
@@ -439,32 +439,34 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
 
       {/* Sidebar */}
       <div
-        className={`fixed right-0 top-0 bottom-0 w-full md:w-80 bg-slate-900 border-l border-slate-800 transition-transform duration-300 ease-in-out z-30 overflow-y-auto ${showSidebar ? 'translate-x-0' : 'translate-x-full'}`}
+        className={`fixed right-0 top-0 bottom-0 w-full md:w-80 bg-[var(--glass-bg-strong)] border-l border-[var(--glass-border)] transition-transform duration-300 ease-in-out z-30 overflow-y-auto ${showSidebar ? 'translate-x-0' : 'translate-x-full'}`}
       >
         <div className="p-6 space-y-8">
           {/* Header */}
           <div>
             {isEditing ? (
               <div className="mb-4 space-y-2">
-                <label className="text-xs text-slate-500 uppercase font-bold">Title</label>
+                <label className="text-xs text-[var(--text-muted)] uppercase font-bold">
+                  Title
+                </label>
                 <input
                   type="text"
                   value={editTitle}
                   onChange={(e) => setEditTitle(e.target.value)}
-                  className="w-full bg-slate-800 border-slate-700 text-white rounded px-3 py-2 focus:ring-2 focus:ring-cyan-500 outline-none"
+                  className="w-full bg-[var(--app-bg)] border border-[var(--glass-border)] text-[var(--text-primary)] rounded-[var(--radius-md)] px-3 py-2 focus:ring-2 focus:ring-[var(--accent)] outline-none"
                 />
               </div>
             ) : (
               <>
                 <div className="flex justify-between items-start gap-2">
-                  <h3 className="text-xl font-bold text-white mb-2 break-words">
+                  <h3 className="text-xl font-bold text-[var(--text-primary)] mb-2 break-words">
                     {currentImage.title}
                   </h3>
                   <div className="flex items-center gap-2">
                     {isAdmin && (
                       <button
                         onClick={() => setIsEditing(true)}
-                        className="text-slate-500 hover:text-cyan-400"
+                        className="text-[var(--text-muted)] hover:text-[var(--accent)]"
                       >
                         <Edit2 size={16} />
                       </button>
@@ -473,11 +475,14 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
                       onClick={() => setShowSidebar(false)}
                       size="sm"
                       label="Close media details"
-                      className="md:hidden bg-transparent border-slate-700 text-slate-500 hover:text-white"
+                      className="md:hidden bg-transparent border-[var(--glass-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                     />
                   </div>
                 </div>
-                <p className="text-sm text-slate-400 truncate" title={currentImage.filename}>
+                <p
+                  className="text-sm text-[var(--text-secondary)] truncate"
+                  title={currentImage.filename}
+                >
                   {currentImage.filename}
                 </p>
               </>
@@ -488,13 +493,13 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
             <div className="flex gap-2">
               <button
                 onClick={handleSave}
-                className="flex-1 bg-cyan-600 hover:bg-cyan-500 text-white py-2 rounded flex items-center justify-center gap-2 text-sm font-medium"
+                className="flex-1 bg-[var(--accent)] hover:bg-[var(--accent)]/90 text-[var(--app-bg)] py-2 rounded-[var(--radius-md)] flex items-center justify-center gap-2 text-sm font-medium transition-colors"
               >
                 <Save size={16} /> Save Changes
               </button>
               <button
                 onClick={() => setIsEditing(false)}
-                className="px-3 bg-slate-700 hover:bg-slate-600 text-white rounded"
+                className="px-3 bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] rounded-[var(--radius-md)] border border-[var(--glass-border)] transition-colors"
               >
                 <X size={16} />
               </button>
@@ -503,25 +508,25 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
 
           {/* Basic Info */}
           <div className="space-y-4">
-            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+            <h4 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">
               File Information
             </h4>
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-slate-800/50 p-3 rounded border border-slate-800">
-                <div className="flex items-center gap-2 text-slate-400 mb-1">
+              <div className="bg-[var(--glass-bg)] p-3 rounded-[var(--radius-lg)] border border-[var(--glass-border)]">
+                <div className="flex items-center gap-2 text-[var(--text-secondary)] mb-1">
                   <FileImage size={14} />
                   <span className="text-xs">Size</span>
                 </div>
-                <div className="text-white text-sm font-medium">
+                <div className="text-[var(--text-primary)] text-sm font-medium">
                   {formatFileSize(currentImage.fileSize)}
                 </div>
               </div>
-              <div className="bg-slate-800/50 p-3 rounded border border-slate-800">
-                <div className="flex items-center gap-2 text-slate-400 mb-1">
+              <div className="bg-[var(--glass-bg)] p-3 rounded-[var(--radius-lg)] border border-[var(--glass-border)]">
+                <div className="flex items-center gap-2 text-[var(--text-secondary)] mb-1">
                   <Tag size={14} />
                   <span className="text-xs">Type</span>
                 </div>
-                <div className="text-white text-sm font-medium uppercase">
+                <div className="text-[var(--text-primary)] text-sm font-medium uppercase">
                   {currentImage.format}
                 </div>
               </div>
@@ -531,7 +536,7 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
           {/* Description */}
           {(currentImage.description || isEditing) && (
             <div className="space-y-2">
-              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <h4 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">
                 Description
               </h4>
               {isEditing ? (
@@ -539,10 +544,10 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
                   value={editDesc}
                   onChange={(e) => setEditDesc(e.target.value)}
                   rows={6}
-                  className="w-full bg-slate-800 border-slate-700 text-slate-300 text-sm leading-relaxed p-3 rounded focus:ring-2 focus:ring-cyan-500 outline-none"
+                  className="w-full bg-[var(--app-bg)] border border-[var(--glass-border)] text-[var(--text-secondary)] text-sm leading-relaxed p-3 rounded-[var(--radius-md)] focus:ring-2 focus:ring-[var(--accent)] outline-none"
                 />
               ) : (
-                <p className="text-sm text-slate-300 leading-relaxed bg-slate-800/30 p-3 rounded border border-slate-800/50">
+                <p className="text-sm text-[var(--text-secondary)] leading-relaxed bg-[var(--glass-bg)] p-3 rounded-[var(--radius-md)] border border-[var(--glass-border)]">
                   {currentImage.description}
                 </p>
               )}
@@ -551,39 +556,45 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
 
           {/* EXIF Data */}
           <div className="space-y-4">
-            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+            <h4 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider flex items-center gap-2">
               <Camera size={14} /> Camera Details
             </h4>
             <div className="space-y-3 text-sm">
-              <div className="flex justify-between border-b border-slate-800 pb-2">
-                <span className="text-slate-400">Date Taken</span>
-                <span className="text-slate-200">{formatDate(currentImage.dateTaken)}</span>
+              <div className="flex justify-between border-b border-[var(--glass-border)] pb-2">
+                <span className="text-[var(--text-secondary)]">Date Taken</span>
+                <span className="text-[var(--text-primary)]">
+                  {formatDate(currentImage.dateTaken)}
+                </span>
               </div>
-              <div className="flex justify-between border-b border-slate-800 pb-2">
-                <span className="text-slate-400">Camera</span>
-                <span className="text-slate-200">
+              <div className="flex justify-between border-b border-[var(--glass-border)] pb-2">
+                <span className="text-[var(--text-secondary)]">Camera</span>
+                <span className="text-[var(--text-primary)]">
                   {currentImage.cameraMake} {currentImage.cameraModel || 'Unknown'}
                 </span>
               </div>
-              <div className="flex justify-between border-b border-slate-800 pb-2">
-                <span className="text-slate-400">Resolution</span>
-                <span className="text-slate-200">
+              <div className="flex justify-between border-b border-[var(--glass-border)] pb-2">
+                <span className="text-[var(--text-secondary)]">Resolution</span>
+                <span className="text-[var(--text-primary)]">
                   {currentImage.width} x {currentImage.height}
                 </span>
               </div>
               <div className="grid grid-cols-3 gap-2 pt-1">
-                <div className="text-center bg-slate-800 p-1.5 rounded">
-                  <div className="text-[10px] text-slate-500">ISO</div>
-                  <div className="text-xs text-white">{currentImage.iso || '-'}</div>
+                <div className="text-center bg-[var(--glass-bg)] border border-[var(--glass-border)] p-1.5 rounded-[var(--radius-md)]">
+                  <div className="text-[10px] text-[var(--text-muted)]">ISO</div>
+                  <div className="text-xs text-[var(--text-primary)]">
+                    {currentImage.iso || '-'}
+                  </div>
                 </div>
-                <div className="text-center bg-slate-800 p-1.5 rounded">
-                  <div className="text-[10px] text-slate-500">Aperture</div>
-                  <div className="text-xs text-white">{currentImage.aperture || '-'}</div>
+                <div className="text-center bg-[var(--glass-bg)] border border-[var(--glass-border)] p-1.5 rounded-[var(--radius-md)]">
+                  <div className="text-[10px] text-[var(--text-muted)]">Aperture</div>
+                  <div className="text-xs text-[var(--text-primary)]">
+                    {currentImage.aperture || '-'}
+                  </div>
                 </div>
-                <div className="text-center bg-slate-800 p-1.5 rounded w-full overflow-hidden">
-                  <div className="text-[10px] text-slate-500">Shutter</div>
+                <div className="text-center bg-[var(--glass-bg)] border border-[var(--glass-border)] p-1.5 rounded-[var(--radius-md)] w-full overflow-hidden">
+                  <div className="text-[10px] text-[var(--text-muted)]">Shutter</div>
                   <div
-                    className="text-xs text-white truncate"
+                    className="text-xs text-[var(--text-primary)] truncate"
                     title={currentImage.shutterSpeed?.toString()}
                   >
                     {(() => {
@@ -618,7 +629,7 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
 
           {/* Tags Section */}
           <div className="space-y-2">
-            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-2">
+            <h4 className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider flex items-center gap-2">
               <Tag size={14} /> Tags
             </h4>
             <TagSelector

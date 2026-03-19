@@ -53,8 +53,9 @@ const ladderTone = (ladder: string | null): string => {
   const value = (ladder || '').toLowerCase();
   if (value.includes('direct')) return 'text-emerald-300 border-emerald-500/60 bg-emerald-600/15';
   if (value.includes('infer')) return 'text-amber-300 border-amber-500/60 bg-amber-600/15';
-  if (value.includes('agentic')) return 'text-fuchsia-300 border-fuchsia-500/60 bg-fuchsia-600/15';
-  return 'text-slate-300 border-slate-600/60 bg-slate-700/30';
+  if (value.includes('agentic'))
+    return 'text-[var(--accent)] border-[var(--accent)]/60 bg-[var(--accent)]/15';
+  return 'text-[var(--text-secondary)] border-[var(--glass-border)] bg-[var(--glass-bg-strong)]';
 };
 
 const riskTone = (risk: number | null): string => {
@@ -127,26 +128,26 @@ const ThreadRow = React.memo(
       >
         <div className="flex items-start justify-between gap-3 relative z-10">
           <div className="min-w-0 flex-1">
-            <div className="text-[13px] font-bold text-slate-100 truncate tracking-tight">
+            <div className="text-[13px] font-bold text-[var(--text-primary)] truncate tracking-tight">
               {thread.subject}
             </div>
-            <div className="text-[11px] text-slate-400 truncate mt-0.5 font-medium">
+            <div className="text-[11px] text-[var(--text-muted)] truncate mt-0.5 font-medium">
               {thread.participants.slice(0, 3).join(' · ') || 'Unknown participants'}
             </div>
             {!compact && thread.snippet && (
-              <div className="text-[11px] text-slate-500 truncate mt-1 leading-normal">
+              <div className="text-[11px] text-[var(--text-secondary)] truncate mt-1 leading-normal">
                 {thread.snippet}
               </div>
             )}
           </div>
           <div className="text-right shrink-0">
-            <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+            <div className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
               {formatTime(thread.lastMessageAt)}
             </div>
             <div className="mt-1.5 flex items-center justify-end gap-1.5">
-              {thread.hasAttachments && <Paperclip className="w-3 h-3 text-amber-400/80" />}
+              {thread.hasAttachments && <Paperclip className="w-3 h-3 text-[var(--accent)]" />}
               <span
-                className={`px-1 rounded-[4px] border border-white/5 text-[9px] font-black ${riskTone(thread.risk)}`}
+                className={`px-1 rounded-[var(--radius-sm)] border border-[var(--glass-border)] text-[var(--text-primary)] bg-[var(--glass-bg-strong)] text-[9px] font-black ${riskTone(thread.risk)}`}
               >
                 R{thread.risk ?? '0'}
               </span>
@@ -178,14 +179,14 @@ const MailboxRow = React.memo(
       >
         <div className="flex items-center justify-between gap-3 relative z-10">
           <div className="min-w-0 flex-1">
-            <div className="text-[13px] font-bold text-slate-100 truncate tracking-tight">
+            <div className="text-[13px] font-bold text-[var(--text-primary)] truncate tracking-tight">
               {mailbox.displayName}
             </div>
-            <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">
+            <div className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-wider mt-0.5">
               {mailbox.totalThreads.toLocaleString()} THREADS
             </div>
           </div>
-          <div className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter shrink-0">
+          <div className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-tighter shrink-0">
             {formatTime(mailbox.lastActivityAt)}
           </div>
         </div>
@@ -762,16 +763,20 @@ export const EmailClient: React.FC = () => {
 
   return (
     <div className="email-workspace flex flex-col">
-      <div className="md:hidden px-4 py-3 border-b border-white/5 bg-slate-950/50 backdrop-blur-sm space-y-3">
+      <div className="md:hidden px-4 py-3 border-b border-[var(--glass-border)] bg-[var(--app-bg)]/50 backdrop-blur-sm space-y-3">
         <div className="flex items-center justify-between">
-          <div className="text-sm font-semibold text-slate-100">Mail</div>
-          <div className="text-xs text-slate-400">{threadsTotal.toLocaleString()} threads</div>
+          <div className="text-sm font-semibold text-[var(--text-primary)]">Mail</div>
+          <div className="text-xs text-[var(--text-muted)]">
+            {threadsTotal.toLocaleString()} threads
+          </div>
         </div>
-        <div className="inline-flex w-full rounded-full border border-slate-700 overflow-hidden bg-slate-900/70">
+        <div className="inline-flex w-full rounded-full border border-[var(--glass-border)] overflow-hidden bg-[var(--glass-bg-strong)]">
           <button
             onClick={() => setMobilePane('mailboxes')}
             className={`flex-1 h-9 text-xs font-semibold ${
-              mobilePane === 'mailboxes' ? 'bg-cyan-500/20 text-cyan-100' : 'text-slate-300'
+              mobilePane === 'mailboxes'
+                ? 'bg-[var(--accent)]/20 text-[var(--accent)]'
+                : 'text-[var(--text-secondary)]'
             }`}
           >
             Mailboxes
@@ -779,7 +784,9 @@ export const EmailClient: React.FC = () => {
           <button
             onClick={() => setMobilePane('threads')}
             className={`flex-1 h-9 text-xs font-semibold ${
-              mobilePane === 'threads' ? 'bg-cyan-500/20 text-cyan-100' : 'text-slate-300'
+              mobilePane === 'threads'
+                ? 'bg-[var(--accent)]/20 text-[var(--accent)]'
+                : 'text-[var(--text-secondary)]'
             }`}
           >
             Threads
@@ -788,7 +795,9 @@ export const EmailClient: React.FC = () => {
             onClick={() => selectedThreadId && setMobilePane('messages')}
             disabled={!selectedThreadId}
             className={`flex-1 h-9 text-xs font-semibold ${
-              mobilePane === 'messages' ? 'bg-cyan-500/20 text-cyan-100' : 'text-slate-300'
+              mobilePane === 'messages'
+                ? 'bg-[var(--accent)]/20 text-[var(--accent)]'
+                : 'text-[var(--text-secondary)]'
             } disabled:opacity-50`}
           >
             Message
@@ -796,12 +805,12 @@ export const EmailClient: React.FC = () => {
         </div>
         {mobilePane === 'threads' && (
           <div className="relative">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-[var(--text-muted)] absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               value={searchInput}
               onChange={(event) => setSearchInput(event.target.value)}
               placeholder="Search threads"
-              className="w-full h-10 rounded-full bg-slate-900 border border-slate-700 pl-9 pr-3 text-sm text-white placeholder:text-slate-500"
+              className="w-full h-10 rounded-full bg-[var(--glass-bg)] border border-[var(--glass-border)] pl-9 pr-3 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)]"
             />
           </div>
         )}
@@ -817,12 +826,12 @@ export const EmailClient: React.FC = () => {
         <aside
           className={`mailbox-pane ${mobilePane === 'mailboxes' ? 'flex absolute inset-0 z-50 w-full' : 'hidden md:flex'} md:col-[1]`}
         >
-          <div className="p-4 border-b border-white/5 space-y-4">
-            <div className="flex items-center justify-between text-xs text-slate-400 uppercase tracking-wide">
+          <div className="p-4 border-b border-[var(--glass-border)] space-y-4">
+            <div className="flex items-center justify-between text-xs text-[var(--text-muted)] uppercase tracking-wide">
               <span>Entity mailboxes</span>
               <button
                 onClick={() => setShowSuppressedJunk((prev) => !prev)}
-                className="text-[11px] text-cyan-300 hover:text-cyan-200"
+                className="text-[11px] text-[var(--accent)] hover:text-[var(--text-primary)]"
                 title={
                   showSuppressedJunk
                     ? 'Hide junk-tagged entities from the mailbox list'
@@ -832,17 +841,17 @@ export const EmailClient: React.FC = () => {
                 {showSuppressedJunk ? 'Hide junk' : 'Show junk'}
               </button>
             </div>
-            <div className="-mt-2 text-[11px] text-slate-500">
+            <div className="-mt-2 text-[11px] text-[var(--text-muted)]">
               All Inboxes + top-mentioned entities from email evidence
             </div>
             <div className="relative">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-[var(--text-muted)] absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 data-testid="email-search-input"
                 value={searchInput}
                 onChange={(event) => setSearchInput(event.target.value)}
                 placeholder="Search threads"
-                className="w-full h-10 rounded-full bg-slate-900 border border-slate-700 pl-9 pr-3 text-sm text-white placeholder:text-slate-500"
+                className="w-full h-10 rounded-full bg-[var(--glass-bg)] border border-[var(--glass-border)] pl-9 pr-3 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)]"
               />
             </div>
             <div className="flex items-center gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -852,8 +861,8 @@ export const EmailClient: React.FC = () => {
                   onClick={() => setActiveTab(option.id as any)}
                   className={`h-8 px-3 rounded-full text-xs border whitespace-nowrap ${
                     activeTab === option.id
-                      ? 'text-cyan-200 border-cyan-400 bg-cyan-500/10'
-                      : 'text-slate-300 border-slate-700 bg-slate-900/60'
+                      ? 'text-[var(--accent)] border-[var(--accent)] bg-[var(--accent)]/10'
+                      : 'text-[var(--text-secondary)] border-[var(--glass-border)] bg-[var(--glass-bg)]'
                   }`}
                 >
                   {option.label}
@@ -861,13 +870,13 @@ export const EmailClient: React.FC = () => {
               ))}
             </div>
             <div className="flex items-center justify-between gap-2">
-              <div className="inline-flex items-center rounded-full border border-slate-700 overflow-hidden">
+              <div className="inline-flex items-center rounded-full border border-[var(--glass-border)] overflow-hidden">
                 <button
                   onClick={() => setDensity('comfortable')}
                   className={`h-7 px-2.5 text-[11px] ${
                     density === 'comfortable'
-                      ? 'bg-cyan-500/20 text-cyan-200'
-                      : 'text-slate-300 bg-slate-900/70'
+                      ? 'bg-[var(--accent)]/20 text-[var(--accent)]'
+                      : 'text-[var(--text-secondary)] bg-[var(--glass-bg-strong)]'
                   }`}
                 >
                   Comfortable
@@ -876,14 +885,14 @@ export const EmailClient: React.FC = () => {
                   onClick={() => setDensity('compact')}
                   className={`h-7 px-2.5 text-[11px] ${
                     density === 'compact'
-                      ? 'bg-cyan-500/20 text-cyan-200'
-                      : 'text-slate-300 bg-slate-900/70'
+                      ? 'bg-[var(--accent)]/20 text-[var(--accent)]'
+                      : 'text-[var(--text-secondary)] bg-[var(--glass-bg-strong)]'
                   }`}
                 >
                   Compact
                 </button>
               </div>
-              <div className="text-[11px] text-slate-500">
+              <div className="text-[11px] text-[var(--text-muted)]">
                 {activeQuickFilterCount > 0
                   ? `${activeQuickFilterCount} active filter${activeQuickFilterCount > 1 ? 's' : ''}`
                   : 'No active filters'}
@@ -893,11 +902,11 @@ export const EmailClient: React.FC = () => {
 
           <div className="flex-1 min-h-0">
             {mailboxesLoading ? (
-              <div className="h-full flex items-start justify-start p-4 text-slate-400 text-sm text-left">
+              <div className="h-full flex items-start justify-start p-4 text-[var(--text-muted)] text-sm text-left">
                 <Loader2 className="w-4 h-4 animate-spin mr-2" /> Loading mailboxes
               </div>
             ) : mailboxesError ? (
-              <div className="p-4 text-sm text-red-300">{mailboxesError}</div>
+              <div className="p-4 text-sm text-rose-300">{mailboxesError}</div>
             ) : (
               <AutoSizer
                 renderProp={({ height, width }) =>
@@ -940,15 +949,15 @@ export const EmailClient: React.FC = () => {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setMobilePane('mailboxes')}
-                className="md:hidden p-1 -ml-1 text-slate-500 hover:text-slate-300"
+                className="md:hidden p-1 -ml-1 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
               >
                 <ArrowLeft className="w-4 h-4" />
               </button>
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">
                 Conversations
               </span>
             </div>
-            <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+            <div className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-wider">
               {threadsTotal.toLocaleString()} total
             </div>
           </div>
@@ -968,17 +977,17 @@ export const EmailClient: React.FC = () => {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setShowFilterPanel((prev) => !prev)}
-                className={`h-8 px-3 rounded-full border text-[11px] inline-flex items-center gap-1.5 transition-colors ${
+                className={`h-8 px-3 rounded-[var(--radius-full)] border text-[11px] inline-flex items-center gap-1.5 transition-colors ${
                   showFilterPanel
-                    ? 'border-cyan-400/60 text-cyan-200 bg-cyan-500/10'
-                    : 'border-slate-700 text-slate-300 bg-slate-900/70 hover:border-slate-600'
+                    ? 'border-[var(--accent)] text-[var(--text-primary)] bg-[var(--accent)]/10'
+                    : 'border-[var(--glass-border)] text-[var(--text-secondary)] bg-[var(--glass-bg)] hover:border-[var(--glass-border-highlight)] hover:text-[var(--text-primary)]'
                 }`}
                 title="Show or hide conversation filters"
               >
                 <SlidersHorizontal className="w-3.5 h-3.5" />
                 Filters
                 {activeQuickFilterCount > 0 && (
-                  <span className="h-5 min-w-5 px-1 rounded-full bg-cyan-400/20 text-cyan-100 text-[10px] font-bold inline-flex items-center justify-center">
+                  <span className="h-5 min-w-5 px-1 rounded-full bg-[var(--accent)]/20 text-[var(--accent)] text-[10px] font-bold inline-flex items-center justify-center">
                     {activeQuickFilterCount}
                   </span>
                 )}
@@ -988,7 +997,7 @@ export const EmailClient: React.FC = () => {
               </button>
               <button
                 onClick={clearQuickFilters}
-                className="h-8 px-3 rounded-full border border-slate-700 text-[11px] text-slate-300 bg-slate-900/70 inline-flex items-center gap-1 disabled:opacity-50"
+                className="h-8 px-3 rounded-full border border-[var(--glass-border)] text-[11px] text-[var(--text-secondary)] bg-[var(--glass-bg)] inline-flex items-center gap-1 disabled:opacity-50 hover:text-[var(--text-primary)]"
                 disabled={activeQuickFilterCount === 0}
               >
                 <X className="w-3 h-3" />
@@ -997,80 +1006,80 @@ export const EmailClient: React.FC = () => {
             </div>
           </div>
           {showFilterPanel && (
-            <div className="px-3 py-3 border-b border-slate-800/80 bg-gradient-to-b from-slate-950/80 to-slate-950/50">
-              <div className="rounded-2xl border border-slate-800/80 bg-slate-900/45 backdrop-blur-sm p-3 md:p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
-                <div className="text-[11px] font-medium text-slate-400 mb-3">
+            <div className="px-3 py-3 border-b border-[var(--glass-border)] bg-[var(--glass-bg)]">
+              <div className="rounded-[var(--radius-lg)] border border-[var(--glass-border)] bg-[var(--glass-bg-strong)] p-3 md:p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
+                <div className="text-[11px] font-medium text-[var(--text-muted)] mb-3">
                   Refine by sender, recipient, date, attachments, and risk.
                 </div>
                 <div className="grid grid-cols-1 xl:grid-cols-[1.15fr_1.15fr_0.95fr_0.95fr] gap-2 md:gap-3">
                   <label className="space-y-1">
-                    <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 px-1">
+                    <span className="block text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)] px-1">
                       From
                     </span>
                     <input
                       value={fromFilter}
                       onChange={(event) => setFromFilter(event.target.value)}
                       placeholder="sender@domain.com or name"
-                      className="h-9 w-full rounded-xl bg-slate-950/80 border border-slate-700 px-3 text-xs text-white placeholder:text-slate-500"
+                      className="h-9 w-full rounded-[var(--radius-xl)] bg-[var(--app-bg)] border border-[var(--glass-border)] px-3 text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)]"
                     />
                   </label>
                   <label className="space-y-1">
-                    <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 px-1">
+                    <span className="block text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)] px-1">
                       To
                     </span>
                     <input
                       value={toFilter}
                       onChange={(event) => setToFilter(event.target.value)}
                       placeholder="recipient@domain.com or name"
-                      className="h-9 w-full rounded-xl bg-slate-950/80 border border-slate-700 px-3 text-xs text-white placeholder:text-slate-500"
+                      className="h-9 w-full rounded-[var(--radius-xl)] bg-[var(--app-bg)] border border-[var(--glass-border)] px-3 text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)]"
                     />
                   </label>
                   <label className="space-y-1">
-                    <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 px-1">
+                    <span className="block text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)] px-1">
                       Date From
                     </span>
                     <input
                       value={dateFrom}
                       onChange={(event) => setDateFrom(event.target.value)}
                       type="date"
-                      className="h-9 w-full rounded-xl bg-slate-950/80 border border-slate-700 px-3 text-xs text-white"
+                      className="h-9 w-full rounded-[var(--radius-xl)] bg-[var(--app-bg)] border border-[var(--glass-border)] px-3 text-xs text-[var(--text-primary)]"
                     />
                   </label>
                   <label className="space-y-1">
-                    <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 px-1">
+                    <span className="block text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)] px-1">
                       Date To
                     </span>
                     <input
                       value={dateTo}
                       onChange={(event) => setDateTo(event.target.value)}
                       type="date"
-                      className="h-9 w-full rounded-xl bg-slate-950/80 border border-slate-700 px-3 text-xs text-white"
+                      className="h-9 w-full rounded-[var(--radius-xl)] bg-[var(--app-bg)] border border-[var(--glass-border)] px-3 text-xs text-[var(--text-primary)]"
                     />
                   </label>
                 </div>
 
-                <div className="mt-3 pt-3 border-t border-slate-800/80 flex flex-wrap items-center gap-2 md:gap-3">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 px-1">
+                <div className="mt-3 pt-3 border-t border-[var(--glass-border)] flex flex-wrap items-center gap-2 md:gap-3">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)] px-1">
                     Quick Toggles
                   </span>
                   <button
                     onClick={() => setHasAttachmentsOnly((prev) => !prev)}
                     className={`h-8 px-3 rounded-full border text-[11px] font-medium ${
                       hasAttachmentsOnly
-                        ? 'border-amber-400 text-amber-200 bg-amber-500/10'
-                        : 'border-slate-700 text-slate-300 bg-slate-900/70'
+                        ? 'border-[var(--accent)] text-[var(--text-primary)] bg-[var(--accent)]/10'
+                        : 'border-[var(--glass-border)] text-[var(--text-secondary)] bg-[var(--glass-bg)] hover:text-[var(--text-primary)]'
                     }`}
                   >
                     Has attachments
                   </button>
-                  <div className="inline-flex items-center gap-2 h-8 px-2 rounded-full border border-slate-700 bg-slate-900/70">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 pl-1">
+                  <div className="inline-flex items-center gap-2 h-8 px-2 rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg)]">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)] pl-1">
                       Min Risk
                     </span>
                     <select
                       value={minRisk}
                       onChange={(event) => setMinRisk(Number(event.target.value))}
-                      className="h-6 rounded-lg border border-slate-700 bg-slate-950 px-2 text-[11px] text-slate-200 min-w-[110px]"
+                      className="h-6 rounded-[var(--radius-lg)] border border-[var(--glass-border)] bg-[var(--glass-bg-strong)] px-2 text-[11px] text-[var(--text-primary)] min-w-[110px]"
                       aria-label="Minimum risk"
                     >
                       <option value={0}>Any</option>
@@ -1087,25 +1096,27 @@ export const EmailClient: React.FC = () => {
 
           <div className="flex-1 min-h-0">
             {threadsLoading ? (
-              <div className="h-full flex items-start justify-start p-4 text-slate-400 text-sm text-left">
+              <div className="h-full flex items-start justify-start p-4 text-[var(--text-muted)] text-sm text-left">
                 <Loader2 className="w-4 h-4 animate-spin mr-2" /> Loading conversations
               </div>
             ) : threadsError ? (
-              <div className="p-4 text-sm text-red-300">{threadsError}</div>
+              <div className="p-4 text-sm text-rose-300">{threadsError}</div>
             ) : threads.length === 0 ? (
-              <div className="p-6 text-sm text-slate-300 space-y-3">
-                <div className="font-semibold text-white">No conversations found</div>
+              <div className="p-6 text-sm text-[var(--text-secondary)] space-y-3">
+                <div className="font-semibold text-[var(--text-primary)]">
+                  No conversations found
+                </div>
                 <p>Why: this mailbox + filter combination returned no matching threads.</p>
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => setActiveTab('all')}
-                    className="h-8 px-3 rounded-full border border-slate-700 bg-slate-900 text-xs"
+                    className="h-8 px-3 rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                   >
                     Use All tab
                   </button>
                   <button
                     onClick={() => setSearchInput('')}
-                    className="h-8 px-3 rounded-full border border-slate-700 bg-slate-900 text-xs"
+                    className="h-8 px-3 rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                   >
                     Clear search
                   </button>
@@ -1135,20 +1146,22 @@ export const EmailClient: React.FC = () => {
             )}
           </div>
 
-          <div className="px-3 py-2 border-t border-slate-800/80">
+          <div className="px-3 py-2 border-t border-[var(--glass-border)]">
             {canLoadMore ? (
               <button
                 onClick={() => {
                   if (!threadsNextCursor || loadingMoreThreads) return;
                   void loadThreads(threadsNextCursor, true);
                 }}
-                className="w-full h-9 rounded-full border border-slate-700 text-sm text-slate-200 bg-slate-900/80 hover:bg-slate-800 disabled:opacity-60 inline-flex items-center justify-start px-4 text-left"
+                className="w-full h-9 rounded-full border border-[var(--glass-border)] text-sm text-[var(--text-secondary)] bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] hover:text-[var(--text-primary)] disabled:opacity-60 inline-flex items-center justify-start px-4 text-left"
                 disabled={loadingMoreThreads}
               >
                 {loadingMoreThreads ? 'Loading...' : 'Load more'}
               </button>
             ) : (
-              <div className="text-[11px] text-slate-500 text-left w-full pl-1">End of results</div>
+              <div className="text-[11px] text-[var(--text-muted)] text-left w-full pl-1">
+                End of results
+              </div>
             )}
           </div>
         </section>
@@ -1166,19 +1179,19 @@ export const EmailClient: React.FC = () => {
         >
           {selectedThreadId ? (
             threadLoading && !selectedThread ? (
-              <div className="h-full flex items-start justify-start p-4 text-slate-400 text-sm text-left">
+              <div className="h-full flex items-start justify-start p-4 text-[var(--text-muted)] text-sm text-left">
                 <Loader2 className="w-4 h-4 animate-spin mr-2" /> Opening thread
               </div>
             ) : threadError ? (
-              <div className="p-4 text-sm text-red-300">{threadError}</div>
+              <div className="p-4 text-sm text-rose-300">{threadError}</div>
             ) : selectedThread ? (
               <ViewerShell
                 header={
                   <div className="min-w-0">
-                    <div className="text-lg font-semibold text-white truncate">
+                    <div className="text-lg font-semibold text-[var(--text-primary)] truncate">
                       {selectedThread.subject}
                     </div>
-                    <div className="text-xs text-slate-400 mt-1">
+                    <div className="text-xs text-[var(--text-muted)] mt-1">
                       {selectedThread.messages.length.toLocaleString()} messages · mailbox{' '}
                       {selectedMailbox?.displayName || 'All'}
                     </div>
@@ -1195,7 +1208,7 @@ export const EmailClient: React.FC = () => {
                           updateUrlState({ threadId: null, messageId: null });
                         }
                       }}
-                      className="h-9 px-3 rounded-full border border-slate-700 bg-slate-900 text-sm text-slate-200"
+                      className="h-9 px-3 rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg)] text-sm text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)] hover:text-[var(--text-primary)] transition-colors"
                     >
                       <ArrowLeft className="w-4 h-4" />
                     </button>
@@ -1213,12 +1226,12 @@ export const EmailClient: React.FC = () => {
                         },
                       }}
                       variant="quick"
-                      className="h-9"
+                      className="h-9 border-[var(--glass-border)] bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                     />
                   </div>
                 }
-                headerClassName="px-4 py-3"
-                bodyClassName="bg-slate-900/10"
+                headerClassName="px-4 py-3 border-b border-[var(--glass-border)] bg-[var(--app-bg)]/50 backdrop-blur-sm"
+                bodyClassName="bg-[var(--app-bg)]"
               >
                 <div className="message-thread">
                   {selectedThread.messages.map((message) => {
@@ -1237,24 +1250,24 @@ export const EmailClient: React.FC = () => {
                           className="w-full text-left"
                         >
                           <div className="message-header">
-                            <div className="w-10 h-10 rounded-full bg-slate-800/50 flex items-center justify-center shrink-0 border border-white/5">
-                              <User className="w-5 h-5 text-slate-400" />
+                            <div className="w-10 h-10 rounded-full bg-[var(--glass-bg-strong)] flex items-center justify-center shrink-0 border border-[var(--glass-border)]">
+                              <User className="w-5 h-5 text-[var(--text-muted)]" />
                             </div>
                             <div className="min-w-0 flex-1">
                               <div className="flex items-center justify-between gap-3">
-                                <div className="text-sm font-bold text-slate-100 truncate">
+                                <div className="text-sm font-bold text-[var(--text-primary)] truncate">
                                   {message.from || 'Unknown Sender'}
                                 </div>
-                                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                                <div className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
                                   {formatTime(message.date)}
                                 </div>
                               </div>
-                              <div className="text-[11px] text-slate-500 truncate mt-0.5">
+                              <div className="text-[11px] text-[var(--text-muted)] truncate mt-0.5">
                                 To: {message.to.join(' · ') || 'Unknown recipient'}
                               </div>
                             </div>
                             <ChevronRight
-                              className={`w-4 h-4 text-slate-500 transition-transform duration-300 ${expanded ? 'rotate-90' : ''}`}
+                              className={`w-4 h-4 text-[var(--text-muted)] transition-transform duration-300 ${expanded ? 'rotate-90' : ''}`}
                             />
                           </div>
                         </button>
@@ -1263,18 +1276,18 @@ export const EmailClient: React.FC = () => {
                           <div className="message-body space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
                             <div className="flex flex-wrap items-center gap-3">
                               <div
-                                className={`px-2.5 py-1 rounded-md border text-[9px] font-black uppercase tracking-wider ${ladderTone(message.ladder)}`}
+                                className={`px-2.5 py-1 rounded-[var(--radius-sm)] border text-[9px] font-black uppercase tracking-wider ${ladderTone(message.ladder)}`}
                               >
                                 LADDER: {message.ladder || 'N/A'}
                               </div>
-                              <div className="px-2.5 py-1 rounded-md border border-white/5 bg-white/5 text-[9px] font-black text-slate-400 uppercase tracking-wider">
+                              <div className="px-2.5 py-1 rounded-[var(--radius-sm)] border border-[var(--glass-border)] bg-[var(--glass-bg)] text-[9px] font-black text-[var(--text-muted)] uppercase tracking-wider">
                                 CONFIDENCE:{' '}
                                 {typeof message.confidence === 'number'
                                   ? (message.confidence * 100).toFixed(0)
                                   : '0'}
                                 %
                               </div>
-                              <div className="px-2.5 py-1 rounded-md border border-white/5 bg-white/5 text-[9px] font-black text-slate-500 uppercase tracking-wider">
+                              <div className="px-2.5 py-1 rounded-[var(--radius-sm)] border border-[var(--glass-border)] bg-[var(--glass-bg)] text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-wider">
                                 ID: {message.ingestRunId || 'RAW_INGEST'}
                               </div>
                               {message.wasAgentic && (
@@ -1288,19 +1301,19 @@ export const EmailClient: React.FC = () => {
                             <div className="flex flex-wrap items-center gap-2">
                               <button
                                 onClick={() => void copyText(citation)}
-                                className="h-8 px-4 rounded-full border border-white/5 bg-white/5 text-[10px] font-bold text-slate-300 hover:bg-white/10 transition-colors uppercase tracking-wide"
+                                className="h-8 px-4 rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg)] text-[10px] font-bold text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)] hover:text-[var(--text-primary)] transition-colors uppercase tracking-wide"
                               >
                                 Copy Citation
                               </button>
                               <button
                                 onClick={() => handleToggleRaw(message.messageId)}
-                                className="h-8 px-4 rounded-full border border-white/5 bg-white/5 text-[10px] font-bold text-slate-300 hover:bg-white/10 transition-colors uppercase tracking-wide"
+                                className="h-8 px-4 rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg)] text-[10px] font-bold text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)] hover:text-[var(--text-primary)] transition-colors uppercase tracking-wide"
                               >
                                 {body?.showRaw ? 'Show Cleaned' : 'View MIME'}
                               </button>
                               <button
                                 onClick={() => handleToggleQuoted(message.messageId)}
-                                className="h-8 px-4 rounded-full border border-white/5 bg-white/5 text-[10px] font-bold text-slate-300 hover:bg-white/10 transition-colors uppercase tracking-wide"
+                                className="h-8 px-4 rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg)] text-[10px] font-bold text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)] hover:text-[var(--text-primary)] transition-colors uppercase tracking-wide"
                               >
                                 {body?.showQuoted ? 'Hide History' : 'Show History'}
                               </button>
@@ -1319,31 +1332,31 @@ export const EmailClient: React.FC = () => {
                                   },
                                 }}
                                 variant="quick"
-                                className="h-8"
+                                className="h-8 border-[var(--glass-border)] bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                               />
                             </div>
 
                             <div
                               data-testid="email-message-body"
-                              className="mime-content glass-surface p-6 rounded-2xl border-white/5"
+                              className="mime-content glass-surface p-6 rounded-[var(--radius-lg)] border-[var(--glass-border)]"
                             >
                               {body?.loading ? (
-                                <div className="py-12 flex flex-col items-start justify-start text-slate-500 gap-3 text-left">
-                                  <Loader2 className="w-6 h-6 animate-spin text-cyan-500/50" />
+                                <div className="py-12 flex flex-col items-start justify-start text-[var(--text-muted)] gap-3 text-left">
+                                  <Loader2 className="w-6 h-6 animate-spin text-[var(--accent)]" />
                                   <span className="text-[10px] font-black uppercase tracking-widest">
                                     Decompressing MIME Stream
                                   </span>
                                 </div>
                               ) : body?.error ? (
-                                <div className="p-4 text-xs text-rose-400 font-bold bg-rose-500/10 rounded-lg border border-rose-500/20">
+                                <div className="p-4 text-xs text-rose-400 font-bold bg-rose-500/10 rounded-[var(--radius-md)] border border-rose-500/20">
                                   {body.error}
                                 </div>
                               ) : body?.showRaw ? (
-                                <pre className="text-[11px] font-mono text-slate-400 whitespace-pre-wrap break-words">
+                                <pre className="text-[11px] font-mono text-[var(--text-secondary)] whitespace-pre-wrap break-words">
                                   {body.raw || 'No raw content available.'}
                                 </pre>
                               ) : (
-                                <div className="whitespace-pre-wrap selection:bg-cyan-500/30">
+                                <div className="whitespace-pre-wrap selection:bg-[var(--accent)]/30 text-[var(--text-primary)]">
                                   {body?.data?.cleanedText || 'No readable body available.'}
                                 </div>
                               )}
@@ -1355,7 +1368,7 @@ export const EmailClient: React.FC = () => {
                                   <button
                                     key={`${message.messageId}-${entity.entityId}`}
                                     onClick={() => setSelectedEntityId(String(entity.entityId))}
-                                    className="inline-flex items-center gap-1.5 h-8 px-3 rounded-full border border-cyan-500/20 bg-cyan-500/5 text-[10px] font-bold text-cyan-200 hover:bg-cyan-500/10 transition-colors"
+                                    className="inline-flex items-center gap-1.5 h-8 px-3 rounded-full border border-[var(--accent)]/30 bg-[var(--accent)]/10 text-[10px] font-bold text-[var(--accent)] hover:bg-[var(--accent)]/20 transition-colors"
                                     title={`Open entity ${entity.name}`}
                                   >
                                     <User className="w-3 h-3" />
@@ -1367,7 +1380,7 @@ export const EmailClient: React.FC = () => {
 
                             {(message.attachmentsMeta || []).length > 0 && (
                               <div className="space-y-2 px-1">
-                                <div className="text-[10px] font-black font-mono text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                                <div className="text-[10px] font-black font-mono text-[var(--text-muted)] uppercase tracking-widest flex items-center gap-2">
                                   <Paperclip className="w-3 h-3" />
                                   Forensic Attachments ({(message.attachmentsMeta || []).length})
                                 </div>
@@ -1381,13 +1394,13 @@ export const EmailClient: React.FC = () => {
                                     return (
                                       <div
                                         key={`${message.messageId}-attachment-${index}`}
-                                        className="flex items-center justify-between gap-3 p-2 rounded-xl border border-white/5 bg-white/5 hover:bg-white/10 transition-all cursor-default group"
+                                        className="flex items-center justify-between gap-3 p-2 rounded-[var(--radius-lg)] border border-[var(--glass-border)] bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] transition-all cursor-default group"
                                       >
                                         <div className="min-w-0 flex-1">
-                                          <div className="text-[11px] font-bold text-slate-300 truncate">
+                                          <div className="text-[11px] font-bold text-[var(--text-primary)] truncate">
                                             {attachment.filename || `Attachment ${index + 1}`}
                                           </div>
-                                          <div className="text-[9px] text-slate-500 font-mono mt-0.5">
+                                          <div className="text-[9px] text-[var(--text-muted)] font-mono mt-0.5">
                                             {attachment.mimeType || 'UNKNOWN_MIME'} ·{' '}
                                             {attachment.size
                                               ? `${(attachment.size / 1024).toFixed(1)}KB`
@@ -1399,12 +1412,12 @@ export const EmailClient: React.FC = () => {
                                             onClick={() =>
                                               navigate(`/documents/${linkedDocumentId}`)
                                             }
-                                            className="h-7 px-3 rounded-lg border border-cyan-500/20 bg-cyan-500/10 text-[10px] font-black text-cyan-400 hover:bg-cyan-500/20 transition-colors uppercase tracking-widest"
+                                            className="h-7 px-3 rounded-[var(--radius-md)] border border-[var(--accent)]/30 bg-[var(--accent)]/10 text-[10px] font-black text-[var(--accent)] hover:bg-[var(--accent)]/20 transition-colors uppercase tracking-widest"
                                           >
                                             Open
                                           </button>
                                         ) : (
-                                          <span className="text-[9px] text-slate-600 font-bold uppercase tracking-tighter px-2">
+                                          <span className="text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-tighter px-2">
                                             Not Ingested
                                           </span>
                                         )}
@@ -1422,16 +1435,18 @@ export const EmailClient: React.FC = () => {
                 </div>
               </ViewerShell>
             ) : (
-              <div className="h-full flex items-start justify-start p-4 text-slate-400 text-sm text-left">
+              <div className="h-full flex items-start justify-start p-4 text-[var(--text-muted)] text-sm text-left">
                 Thread not found.
               </div>
             )
           ) : (
-            <div className="h-full flex items-start justify-start px-6 py-6">
-              <div className="text-left text-slate-400 max-w-md">
-                <Mail className="w-14 h-14 mb-4 opacity-30" />
-                <div className="text-lg text-white mb-2">Investigation-grade Email Workspace</div>
-                <p className="text-sm text-slate-400">
+            <div className="h-full flex items-start justify-start px-6 py-6 border-l border-[var(--glass-border)]">
+              <div className="text-left text-[var(--text-muted)] max-w-md">
+                <Mail className="w-14 h-14 mb-4 opacity-30 text-[var(--text-muted)]" />
+                <div className="text-lg text-[var(--text-primary)] mb-2">
+                  Investigation-grade Email Workspace
+                </div>
+                <p className="text-sm text-[var(--text-secondary)]">
                   Select a thread to load message headers first, then lazy-load bodies. Use linked
                   entities and Add to Investigation for evidence chaining.
                 </p>

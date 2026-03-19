@@ -6,13 +6,13 @@ const StatsSkeleton: React.FC = () => {
       {[...Array(4)].map((_, i) => (
         <div
           key={i}
-          className="bg-slate-800/50 border border-slate-700 rounded-xl p-3 md:p-6 relative overflow-hidden"
+          className="bg-[var(--glass-bg)]/50 border border-[var(--glass-border)] rounded-[var(--radius-xl)] p-3 md:p-6 relative overflow-hidden"
         >
           {/* Shimmer effect */}
           <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
-          <div className="h-3 md:h-4 w-3 md:w-4 bg-slate-700 rounded mb-1 md:mb-2 animate-pulse"></div>
-          <div className="h-6 md:h-8 w-12 md:w-16 bg-slate-700 rounded mb-1 animate-pulse"></div>
-          <div className="h-2 md:h-3 w-16 md:w-24 bg-slate-700 rounded animate-pulse"></div>
+          <div className="h-3 md:h-4 w-3 md:w-4 bg-[var(--glass-bg-highlight)] rounded mb-1 md:mb-2 animate-pulse"></div>
+          <div className="h-6 md:h-8 w-12 md:w-16 bg-[var(--glass-bg-highlight)] rounded mb-1 animate-pulse"></div>
+          <div className="h-2 md:h-3 w-16 md:w-24 bg-[var(--glass-bg-highlight)] rounded animate-pulse"></div>
         </div>
       ))}
     </div>

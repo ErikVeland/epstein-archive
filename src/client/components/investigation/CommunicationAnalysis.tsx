@@ -508,20 +508,22 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg">
+    <div className="bg-white rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)]">
       {/* Header */}
-      <div className="border-b border-gray-200 px-6 py-4">
+      <div className="border-b border-[var(--glass-border)] px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">Communication Forensics</h2>
-            <p className="text-sm text-gray-600 mt-1">
+            <h2 className="text-xl font-semibold text-[var(--text-primary)]">
+              Communication Forensics
+            </h2>
+            <p className="text-sm text-[var(--text-primary)] mt-1">
               Analyze communication patterns, timing, and network effects
             </p>
-            <p className="text-xs text-gray-500 mt-2">
+            <p className="text-xs text-[var(--text-muted)] mt-2">
               Uses linked investigation entities and their communication records.
             </p>
             {lastRunAt && (
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-[var(--text-muted)] mt-1">
                 Last run: {new Date(lastRunAt).toLocaleString()}
               </p>
             )}
@@ -529,7 +531,7 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
           <button
             onClick={analyzeCommunications}
             disabled={isAnalyzing}
-            className="flex items-center px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="flex items-center px-4 py-2 bg-red-600 text-[var(--text-primary)] rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <Activity className="w-4 h-4 mr-2" />
             {isAnalyzing ? 'Analyzing...' : 'Start Communication Analysis'}
@@ -555,10 +557,10 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
 
       {/* Filters */}
       {!isAnalyzing && communicationPatterns.length > 0 && (
-        <div className="px-6 py-4 border-b border-gray-200">
+        <div className="px-6 py-4 border-b border-[var(--glass-border)]">
           <div className="flex items-center gap-4">
-            <Filter className="w-4 h-4 text-gray-500" />
-            <span className="text-sm font-medium text-gray-700">Filter by type:</span>
+            <Filter className="w-4 h-4 text-[var(--text-muted)]" />
+            <span className="text-sm font-medium text-[var(--text-primary)]">Filter by type:</span>
             <div className="flex gap-2">
               {['all', 'frequency', 'timing', 'content', 'network', 'anomaly'].map((type) => (
                 <button
@@ -567,7 +569,7 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
                   className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
                     filterType === type
                       ? 'bg-red-100 text-red-700'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      : 'bg-[var(--app-bg)] text-[var(--text-primary)] hover:bg-[var(--app-bg)]'
                   }`}
                 >
                   {type.charAt(0).toUpperCase() + type.slice(1)}
@@ -582,10 +584,10 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
       {!isAnalyzing && filteredPatterns.length > 0 && (
         <div className="p-6">
           <div className="mb-4">
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
+            <h3 className="text-lg font-medium text-[var(--text-primary)] mb-2">
               Detected Communication Patterns ({filteredPatterns.length})
             </h3>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-[var(--text-primary)]">
               Analysis identified {communicationPatterns.length} suspicious communication patterns
               {filterType !== 'all' && ` (${filteredPatterns.length} matching current filter)`}
             </p>
@@ -597,19 +599,23 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
               return (
                 <div
                   key={pattern.id}
-                  className={`border rounded-lg p-4 cursor-pointer transition-all hover:shadow-md ${
+                  className={`border rounded-[var(--radius-lg)] p-4 cursor-pointer transition-all hover:shadow-[var(--glass-shadow)] ${
                     selectedPattern?.id === pattern.id ? 'ring-2 ring-red-500' : ''
                   }`}
                   onClick={() => setSelectedPattern(pattern)}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex items-start flex-1">
-                      <div className={`p-2 rounded-lg ${getSeverityColor(pattern.severity)} mr-3`}>
+                      <div
+                        className={`p-2 rounded-[var(--radius-lg)] ${getSeverityColor(pattern.severity)} mr-3`}
+                      >
                         <Icon className="w-5 h-5" />
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-1">
-                          <h4 className="text-sm font-medium text-gray-900">{pattern.title}</h4>
+                          <h4 className="text-sm font-medium text-[var(--text-primary)]">
+                            {pattern.title}
+                          </h4>
                           <div className="flex items-center gap-2">
                             <span
                               className={`text-sm font-medium ${getConfidenceColor(pattern.confidence)}`}
@@ -623,8 +629,10 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
                             </span>
                           </div>
                         </div>
-                        <p className="text-sm text-gray-600 mb-2">{pattern.description}</p>
-                        <div className="flex items-center gap-4 text-xs text-gray-500">
+                        <p className="text-sm text-[var(--text-primary)] mb-2">
+                          {pattern.description}
+                        </p>
+                        <div className="flex items-center gap-4 text-xs text-[var(--text-muted)]">
                           <span>Type: {pattern.type}</span>
                           <span>Participants: {pattern.participants.length}</span>
                           <span>Evidence: {pattern.evidenceIds.length} items</span>
@@ -668,10 +676,12 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
       {/* Pattern Detail Modal */}
       {selectedPattern && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-96 overflow-auto">
+          <div className="bg-white rounded-[var(--radius-lg)] p-6 w-full max-w-2xl max-h-96 overflow-auto">
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h3 className="text-lg font-medium text-gray-900">{selectedPattern.title}</h3>
+                <h3 className="text-lg font-medium text-[var(--text-primary)]">
+                  {selectedPattern.title}
+                </h3>
                 <div className="flex items-center gap-2 mt-1">
                   <span
                     className={`px-2 py-1 text-xs font-medium rounded-full ${getSeverityColor(selectedPattern.severity)}`}
@@ -689,23 +699,25 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
                 onClick={() => setSelectedPattern(null)}
                 size="sm"
                 label="Close communication pattern details"
-                className="border-slate-200 bg-transparent text-gray-500 hover:bg-slate-100 hover:text-gray-700"
+                className="border-[var(--glass-border)] bg-transparent text-[var(--text-muted)] hover:bg-[var(--app-bg)] hover:text-[var(--text-primary)]"
               />
             </div>
 
             <div className="space-y-4">
               <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-1">Description</h4>
-                <p className="text-sm text-gray-600">{selectedPattern.description}</p>
+                <h4 className="text-sm font-medium text-[var(--text-primary)] mb-1">Description</h4>
+                <p className="text-sm text-[var(--text-primary)]">{selectedPattern.description}</p>
               </div>
 
               <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-1">Participants</h4>
+                <h4 className="text-sm font-medium text-[var(--text-primary)] mb-1">
+                  Participants
+                </h4>
                 <div className="flex flex-wrap gap-2">
                   {selectedPattern.participants.map((participant, index) => (
                     <span
                       key={index}
-                      className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded"
+                      className="px-2 py-1 bg-[var(--app-bg)] text-[var(--text-primary)] text-xs rounded"
                     >
                       {participant}
                     </span>
@@ -715,8 +727,10 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
 
               {selectedPattern.metadata.timeRange && (
                 <div>
-                  <h4 className="text-sm font-medium text-gray-700 mb-1">Time Range</h4>
-                  <p className="text-sm text-gray-600">
+                  <h4 className="text-sm font-medium text-[var(--text-primary)] mb-1">
+                    Time Range
+                  </h4>
+                  <p className="text-sm text-[var(--text-primary)]">
                     {selectedPattern.metadata.timeRange.start} to{' '}
                     {selectedPattern.metadata.timeRange.end}
                   </p>
@@ -726,7 +740,7 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
               {selectedPattern.metadata.communicationChannels &&
                 selectedPattern.metadata.communicationChannels.length > 0 && (
                   <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-1">
+                    <h4 className="text-sm font-medium text-[var(--text-primary)] mb-1">
                       Communication Channels
                     </h4>
                     <div className="flex flex-wrap gap-2">
@@ -747,12 +761,12 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
                 )}
 
               <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-2">
+                <h4 className="text-sm font-medium text-[var(--text-primary)] mb-2">
                   Investigation Recommendations
                 </h4>
                 <ul className="space-y-1">
                   {selectedPattern.recommendations.map((recommendation, index) => (
-                    <li key={index} className="text-sm text-gray-600 flex items-start">
+                    <li key={index} className="text-sm text-[var(--text-primary)] flex items-start">
                       <span className="w-1.5 h-1.5 rounded-full bg-red-600 mt-2 mr-2 flex-shrink-0"></span>
                       {recommendation}
                     </li>
@@ -760,7 +774,9 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
                 </ul>
               </div>
               <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Underlying sources</h4>
+                <h4 className="text-sm font-medium text-[var(--text-primary)] mb-2">
+                  Underlying sources
+                </h4>
                 <div className="flex flex-wrap gap-2">
                   {(selectedPattern.metadata.threadIds || []).slice(0, 8).map((threadId) => (
                     <button
@@ -768,7 +784,7 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
                       onClick={() =>
                         window.location.assign(`/emails?threadId=${encodeURIComponent(threadId)}`)
                       }
-                      className="px-2 py-1 bg-slate-100 text-slate-700 text-xs rounded hover:bg-slate-200"
+                      className="px-2 py-1 bg-[var(--app-bg)] text-[var(--text-primary)] text-xs rounded hover:bg-[var(--app-bg)]"
                     >
                       Thread {threadId}
                     </button>
@@ -779,7 +795,7 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
                       onClick={() =>
                         window.location.assign(`/emails?id=${encodeURIComponent(docId)}`)
                       }
-                      className="px-2 py-1 bg-slate-100 text-slate-700 text-xs rounded hover:bg-slate-200"
+                      className="px-2 py-1 bg-[var(--app-bg)] text-[var(--text-primary)] text-xs rounded hover:bg-[var(--app-bg)]"
                     >
                       Message {docId}
                     </button>
@@ -791,7 +807,7 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
             <div className="flex justify-end gap-3 mt-6">
               <button
                 onClick={() => setSelectedPattern(null)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                className="px-4 py-2 text-sm font-medium text-[var(--text-primary)] bg-[var(--app-bg)] rounded-md hover:bg-[var(--app-bg)] transition-colors"
               >
                 Close
               </button>
@@ -801,14 +817,14 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
                     setSelectedPattern(null);
                     onOpenCaseFolder();
                   }}
-                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors"
+                  className="px-4 py-2 text-sm font-medium text-[var(--text-primary)] bg-red-600 rounded-md hover:bg-red-700 transition-colors"
                 >
                   Review in Case Folder
                 </button>
               )}
               <button
                 onClick={() => addPatternEvidenceToCase(selectedPattern)}
-                className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 rounded-md hover:bg-emerald-700 transition-colors"
+                className="px-4 py-2 text-sm font-medium text-[var(--text-primary)] bg-emerald-600 rounded-md hover:bg-emerald-700 transition-colors"
               >
                 Add Signal to Case
               </button>
@@ -820,11 +836,11 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
       {/* Empty State */}
       {!isAnalyzing && communicationPatterns.length === 0 && (
         <div className="p-12 text-center">
-          <Activity className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-sm font-medium text-gray-900 mb-2">
+          <Activity className="w-12 h-12 text-[var(--text-muted)] mx-auto mb-4" />
+          <h3 className="text-sm font-medium text-[var(--text-primary)] mb-2">
             No communication patterns detected yet
           </h3>
-          <p className="text-sm text-gray-600 mb-4">
+          <p className="text-sm text-[var(--text-primary)] mb-4">
             {linkedEntityCount > 0
               ? 'Start communication analysis to identify timing spikes, network density patterns, and high-signal threads.'
               : 'Needs input: link at least one entity or email evidence item to this case before communication signals can be derived.'}
@@ -833,7 +849,7 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
             <button
               onClick={analyzeCommunications}
               disabled={linkedEntityCount === 0}
-              className="px-4 py-2 bg-red-600 text-white text-sm rounded-md hover:bg-red-700 transition-colors"
+              className="px-4 py-2 bg-red-600 text-[var(--text-primary)] text-sm rounded-md hover:bg-red-700 transition-colors"
             >
               Start Communication Analysis
             </button>
@@ -846,7 +862,7 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
             {onOpenCaseFolder && (
               <button
                 onClick={onOpenCaseFolder}
-                className="px-4 py-2 bg-gray-100 text-gray-800 text-sm rounded-md hover:bg-gray-200 transition-colors"
+                className="px-4 py-2 bg-[var(--app-bg)] text-[var(--text-primary)] text-sm rounded-md hover:bg-[var(--app-bg)] transition-colors"
               >
                 Open Case Folder
               </button>

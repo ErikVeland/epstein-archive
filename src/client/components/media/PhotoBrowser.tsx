@@ -66,7 +66,7 @@ const GridCell = React.memo(
     return (
       <div style={{ ...style, padding: '4px' }}>
         <button
-          className={`w-full h-full group relative bg-black border rounded-lg overflow-hidden transition-all shadow-lg hover:shadow-cyan-900/20 ${isSelected ? 'border-cyan-500 ring-2 ring-cyan-500/30' : 'border-slate-800 hover:border-cyan-500/50'}`}
+          className={`w-full h-full group relative bg-[var(--app-bg)] border rounded-[var(--radius-lg)] overflow-hidden transition-all shadow-[var(--glass-shadow)] hover:shadow-[var(--accent)]/20 ${isSelected ? 'border-[var(--accent)] ring-2 ring-[var(--accent)]/30' : 'border-[var(--glass-border)] hover:border-[var(--accent)]/50'}`}
           onClick={(e) => onImageClick(img, index, e)}
           onKeyDown={(e) => {
             if (isBatchMode && e.key === 'Enter') {
@@ -77,7 +77,7 @@ const GridCell = React.memo(
         >
           {/* Selection indicator */}
           {isBatchMode && (
-            <div className="absolute top-2 left-2 w-6 h-6 flex items-center justify-center rounded-full bg-cyan-500 text-white text-xs font-bold z-10">
+            <div className="absolute top-2 left-2 w-6 h-6 flex items-center justify-center rounded-full bg-[var(--accent)] text-[var(--text-primary)] text-xs font-bold z-10">
               {isSelected ? '✓' : index + 1}
             </div>
           )}
@@ -91,15 +91,18 @@ const GridCell = React.memo(
                 el.onerror = null;
                 el.src = `/api/media/images/${img.id}/file`;
               }}
-              className="w-full h-full object-contain bg-slate-900/50"
+              className="w-full h-full object-contain bg-[var(--glass-bg-strong)]/50"
             />
           </SensitiveContent>
           {/* Title overlay */}
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 to-transparent p-3 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200">
-            <div className="text-xs text-white font-medium truncate" title={img.title}>
+            <div
+              className="text-xs text-[var(--text-primary)] font-medium truncate"
+              title={img.title}
+            >
               {img.title}
             </div>
-            <div className="text-[10px] text-slate-400 flex justify-between mt-1">
+            <div className="text-[10px] text-[var(--text-muted)] flex justify-between mt-1">
               <span>{formatDate(img.dateTaken)}</span>
               <span>{formatFileSize(img.fileSize)}</span>
             </div>
@@ -127,7 +130,7 @@ const ListRow = React.memo(({ index, style, data }: ListChildComponentProps<Item
   return (
     <div style={style}>
       <button
-        className={`flex items-center gap-4 p-2 border-b border-slate-800/50 w-full text-left group transition-colors h-full ${isSelected ? 'bg-cyan-900/20 border-cyan-500/30' : 'hover:bg-slate-900'}`}
+        className={`flex items-center gap-4 p-2 border-b border-[var(--glass-border)] w-full text-left group transition-colors h-full ${isSelected ? 'bg-[var(--glass-bg-active)] border-[var(--accent)]' : 'hover:bg-[var(--glass-bg-highlight)]'}`}
         onClick={(e) => onImageClick(img, index, e)}
         onKeyDown={(e) => {
           if (isBatchMode && e.key === 'Enter') {
@@ -138,11 +141,11 @@ const ListRow = React.memo(({ index, style, data }: ListChildComponentProps<Item
       >
         {/* Selection indicator */}
         {isBatchMode && (
-          <div className="w-6 h-6 flex items-center justify-center rounded-full bg-cyan-500 text-white text-xs font-bold mr-2">
+          <div className="w-6 h-6 flex items-center justify-center rounded-full bg-[var(--accent)] text-[var(--text-primary)] text-xs font-bold mr-2">
             {isSelected ? '✓' : index + 1}
           </div>
         )}
-        <div className="w-12 h-12 bg-black border border-slate-800 rounded flex items-center justify-center shrink-0">
+        <div className="w-12 h-12 bg-[var(--app-bg)] border border-[var(--glass-border)] rounded-[var(--radius-sm)] flex items-center justify-center shrink-0">
           <SensitiveContent isSensitive={img.isSensitive} className="w-full h-full">
             <LazyImage
               key={img.id}
@@ -159,20 +162,20 @@ const ListRow = React.memo(({ index, style, data }: ListChildComponentProps<Item
         </div>
         <div className="flex-1 min-w-0">
           <div
-            className="text-sm text-slate-300 font-medium truncate group-hover:text-cyan-400 transition-colors"
+            className="text-sm text-[var(--text-secondary)] font-medium truncate group-hover:text-[var(--accent)] transition-colors"
             title={img.title}
           >
             {img.title}
           </div>
-          <div className="text-xs text-slate-500 truncate">
+          <div className="text-xs text-[var(--text-muted)] truncate">
             {img.title !== img.filename ? img.filename : ''}
           </div>
         </div>
 
-        <div className="w-32 text-xs text-slate-500 text-right shrink-0">
+        <div className="w-32 text-xs text-[var(--text-muted)] text-right shrink-0">
           {formatDate(img.dateTaken || img.dateAdded)}
         </div>
-        <div className="w-20 text-xs text-slate-500 text-right shrink-0 font-mono">
+        <div className="w-20 text-xs text-[var(--text-muted)] text-right shrink-0 font-mono">
           {formatFileSize(img.fileSize)}
         </div>
       </button>
@@ -857,14 +860,14 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
   };
 
   return (
-    <div className="flex flex-col h-full min-h-[500px] bg-slate-950 border border-slate-800 shadow-2xl overflow-hidden rounded-lg">
+    <div className="flex flex-col h-full min-h-[500px] bg-[var(--app-bg)] border border-[var(--glass-border)] shadow-[var(--glass-shadow)] overflow-hidden rounded-[var(--radius-lg)]">
       {/* Header with controls */}
-      <div className="bg-slate-900 border-b border-slate-800 flex flex-col md:flex-row md:items-center justify-between px-3 py-2 md:px-4 md:h-14 shrink-0 z-10 gap-2">
+      <div className="app-header-glass flex flex-col md:flex-row md:items-center justify-between px-3 py-2 md:px-4 md:h-14 shrink-0 z-10 gap-2">
         {/* Mobile Album Dropdown */}
         <div className="md:hidden">
           <button
             onClick={() => setShowAlbumDropdown(!showAlbumDropdown)}
-            className="w-full flex items-center justify-between px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-sm h-8"
+            className="w-full flex items-center justify-between px-3 py-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] text-sm h-8"
           >
             <span className="flex items-center gap-2">
               <Icon name="Folder" size="sm" />
@@ -875,7 +878,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
           {showAlbumDropdown && (
             <div className="absolute left-3 right-3 mt-1 dropdown-surface z-30 max-h-60 overflow-y-auto">
               <button
-                className={`w-full px-4 py-3 text-left text-sm flex items-center justify-between ${selectedAlbum === null ? 'bg-cyan-900/20 text-cyan-400' : 'text-slate-300 hover:bg-slate-700'}`}
+                className={`w-full px-4 py-3 text-left text-sm flex items-center justify-between ${selectedAlbum === null ? 'bg-cyan-900/20 text-[var(--accent)]' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)]'}`}
                 onClick={() => {
                   setSelectedAlbum(null);
                   setShowAlbumDropdown(false);
@@ -887,7 +890,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
               {albums.map((album) => (
                 <button
                   key={album.id}
-                  className={`w-full px-4 py-3 text-left text-sm flex items-center justify-between border-t border-slate-700/50 ${selectedAlbum === album.id ? 'bg-cyan-900/20 text-cyan-400' : 'text-slate-300 hover:bg-slate-700'}`}
+                  className={`w-full px-4 py-3 text-left text-sm flex items-center justify-between border-t border-[var(--glass-border)] ${selectedAlbum === album.id ? 'bg-cyan-900/20 text-[var(--accent)]' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)]'}`}
                   onClick={() => {
                     setSelectedAlbum(album.id);
                     setShowAlbumDropdown(false);
@@ -907,20 +910,20 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
             <Icon
               name="Search"
               size="sm"
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none"
             />
             <input
               type="text"
               placeholder="Search images..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-800 border border-slate-700 rounded-lg text-slate-200 pl-9 pr-3 py-2 md:py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-cyan-500 placeholder-slate-500 transition-all h-8"
+              className="w-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] pl-9 pr-3 py-2 md:py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--accent)] placeholder-slate-500 transition-all h-8"
             />
           </div>
           {/* Mobile share button */}
           <button
             onClick={handleShare}
-            className="md:hidden flex items-center justify-center w-10 bg-slate-800 border border-slate-700 rounded-lg text-slate-400 hover:text-white h-8"
+            className="md:hidden flex items-center justify-center w-10 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-muted)] hover:text-[var(--text-primary)] h-8"
           >
             {showCopied ? (
               <Icon name="Check" size="sm" className="text-green-500" />
@@ -934,7 +937,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
         <div className="hidden md:flex items-center gap-3">
           <button
             onClick={handleShare}
-            className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 rounded text-xs transition-colors h-8"
+            className="flex items-center gap-2 px-3 py-1.5 bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--glass-border)] rounded text-xs transition-colors h-8"
           >
             {showCopied ? (
               <Icon name="Check" size="sm" className="text-green-500" />
@@ -949,7 +952,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
             <select
               value={selectedTag || ''}
               onChange={(e) => setSelectedTag(e.target.value ? parseInt(e.target.value) : null)}
-              className="bg-slate-800 border border-slate-700 rounded text-slate-300 text-xs px-2 py-1 focus:outline-none focus:border-cyan-500 h-8 max-w-[100px]"
+              className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded text-[var(--text-secondary)] text-xs px-2 py-1 focus:outline-none focus:border-[var(--accent)] h-8 max-w-[100px]"
             >
               <option value="">All Tags</option>
               {availableTags.map((tag) => (
@@ -963,7 +966,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
               value={selectedPerson || ''}
               onChange={(e) => setSelectedPerson(e.target.value ? parseInt(e.target.value) : null)}
               onFocus={loadPeopleOptions}
-              className="bg-slate-800 border border-slate-700 rounded text-slate-300 text-xs px-2 py-1 focus:outline-none focus:border-cyan-500 h-8 max-w-[100px]"
+              className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded text-[var(--text-secondary)] text-xs px-2 py-1 focus:outline-none focus:border-[var(--accent)] h-8 max-w-[100px]"
             >
               <option value="">All People</option>
               {availablePeople.map((p) => (
@@ -975,21 +978,21 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
 
             <button
               onClick={() => setHasPeopleOnly(!hasPeopleOnly)}
-              className={`flex items-center gap-2 px-3 py-1.5 border rounded text-xs transition-colors h-8 ${hasPeopleOnly ? 'bg-cyan-900/50 border-cyan-500 text-cyan-400' : 'bg-slate-800 border-slate-700 text-slate-300 hover:text-white'}`}
+              className={`flex items-center gap-2 px-3 py-1.5 border rounded text-xs transition-colors h-8 ${hasPeopleOnly ? 'bg-cyan-900/50 border-[var(--accent)] text-[var(--accent)]' : 'bg-[var(--glass-bg)] border-[var(--glass-border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
               title="Show only images with people"
             >
               <Icon name="Users" size="sm" />
             </button>
           </div>
 
-          <div className="w-px h-6 bg-slate-700 mx-1"></div>
+          <div className="w-px h-6 bg-[var(--glass-bg-highlight)] mx-1"></div>
 
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-500 font-medium">Sort by:</span>
+            <span className="text-xs text-[var(--text-muted)] font-medium">Sort by:</span>
             <select
               value={sortField}
               onChange={(e) => setSortField(e.target.value as SortField)}
-              className="bg-slate-800 border border-slate-700 rounded text-slate-300 text-xs px-2 py-1 focus:outline-none focus:border-cyan-500 h-8"
+              className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded text-[var(--text-secondary)] text-xs px-2 py-1 focus:outline-none focus:border-[var(--accent)] h-8"
             >
               <option value="date_added">Date Added</option>
               <option value="date_taken">Date Taken</option>
@@ -1001,22 +1004,22 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
 
           <button
             onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-            className="w-8 h-8 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700 rounded transition-colors"
+            className="w-8 h-8 flex items-center justify-center bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-[var(--glass-border)] rounded transition-colors"
             title={sortOrder === 'asc' ? 'Ascending' : 'Descending'}
           >
             <Icon name={sortOrder === 'asc' ? 'ArrowUp' : 'ArrowDown'} size="sm" />
           </button>
 
-          <div className="flex bg-slate-800 p-0.5 rounded border border-slate-700 h-8">
+          <div className="flex bg-[var(--glass-bg)] p-0.5 rounded border border-[var(--glass-border)] h-8">
             <button
-              className={`w-8 h-full flex items-center justify-center rounded ${viewMode === 'grid' ? 'bg-slate-600 text-white' : 'text-slate-400 hover:text-white'}`}
+              className={`w-8 h-full flex items-center justify-center rounded ${viewMode === 'grid' ? 'bg-[var(--glass-bg-highlight)] text-[var(--text-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}
               onClick={() => setViewMode('grid')}
               title="Grid View"
             >
               <Icon name="Grid" size="sm" />
             </button>
             <button
-              className={`w-8 h-full flex items-center justify-center rounded ${viewMode === 'list' ? 'bg-slate-600 text-white' : 'text-slate-400 hover:text-white'}`}
+              className={`w-8 h-full flex items-center justify-center rounded ${viewMode === 'list' ? 'bg-[var(--glass-bg-highlight)] text-[var(--text-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}
               onClick={() => setViewMode('list')}
               title="List View"
             >
@@ -1028,7 +1031,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
           {isAdmin && (
             <button
               onClick={isBatchMode ? exitBatchMode : enterBatchMode}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded text-xs font-medium transition-colors ${isBatchMode ? 'bg-cyan-600 hover:bg-cyan-500 text-white' : 'bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700'} h-8`}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded text-xs font-medium transition-colors ${isBatchMode ? 'bg-[var(--accent)] hover:bg-[var(--accent)] text-[var(--text-primary)]' : 'bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--glass-border)]'} h-8`}
             >
               <Icon name="CheckSquare" size="sm" />
               {isBatchMode ? 'Exit Batch Mode' : 'Batch Edit'}
@@ -1039,29 +1042,29 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
 
       <div className="flex flex-1 overflow-hidden relative">
         {/* Albums sidebar - Hidden on mobile */}
-        <aside className="hidden md:flex w-60 bg-slate-900 border-r border-slate-800 flex-col shrink-0">
-          <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-3">
+        <aside className="hidden md:flex w-60 bg-[var(--glass-bg-strong)] border-r border-[var(--glass-border)] flex-col shrink-0">
+          <h3 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider px-4 py-3">
             Albums
           </h3>
           <div className="flex-1 overflow-y-auto">
             <button
-              className={`w-full px-4 py-2 text-left text-sm flex items-center justify-between transition-colors ${selectedAlbum === null ? 'bg-cyan-900/20 text-cyan-400 border-l-2 border-cyan-400' : 'text-slate-400 hover:bg-slate-800 hover:text-white border-l-2 border-transparent'}`}
+              className={`w-full px-4 py-2 text-left text-sm flex items-center justify-between transition-colors ${selectedAlbum === null ? 'bg-cyan-900/20 text-[var(--accent)] border-l-2 border-[var(--accent)]' : 'text-[var(--text-muted)] hover:bg-[var(--glass-bg)] hover:text-[var(--text-primary)] border-l-2 border-transparent'}`}
               onClick={() => setSelectedAlbum(null)}
             >
               <span className="truncate">All Photos</span>
-              <span className="text-xs opacity-70 bg-slate-800 px-1.5 py-0.5 rounded-full">
+              <span className="text-xs opacity-70 bg-[var(--glass-bg)] px-1.5 py-0.5 rounded-full">
                 {libraryTotalCount}
               </span>
             </button>
             {albums.map((album) => (
               <button
                 key={album.id}
-                className={`w-full px-4 py-2 text-left text-sm flex items-center justify-between transition-colors ${selectedAlbum === album.id ? 'bg-cyan-900/20 text-cyan-400 border-l-2 border-cyan-400' : 'text-slate-400 hover:bg-slate-800 hover:text-white border-l-2 border-transparent'}`}
+                className={`w-full px-4 py-2 text-left text-sm flex items-center justify-between transition-colors ${selectedAlbum === album.id ? 'bg-cyan-900/20 text-[var(--accent)] border-l-2 border-[var(--accent)]' : 'text-[var(--text-muted)] hover:bg-[var(--glass-bg)] hover:text-[var(--text-primary)] border-l-2 border-transparent'}`}
                 onClick={() => setSelectedAlbum(album.id)}
                 title={album.name}
               >
                 <span className="truncate">{album.name}</span>
-                <span className="text-xs opacity-70 bg-slate-800 px-1.5 py-0.5 rounded-full">
+                <span className="text-xs opacity-70 bg-[var(--glass-bg)] px-1.5 py-0.5 rounded-full">
                   {album.imageCount || 0}
                 </span>
               </button>
@@ -1070,17 +1073,17 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
         </aside>
 
         {/* Main Content */}
-        <div className="flex-1 bg-slate-950 flex flex-col overflow-hidden relative">
+        <div className="flex-1 bg-[var(--app-bg)] flex flex-col overflow-hidden relative">
           {loading && images.length === 0 ? (
-            <div className="absolute inset-0 flex items-center justify-center z-20 bg-slate-950/50 backdrop-blur-sm pointer-events-none">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-cyan-500"></div>
+            <div className="absolute inset-0 flex items-center justify-center z-20 bg-[var(--app-bg)]/50 backdrop-blur-sm pointer-events-none">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[var(--accent)]"></div>
             </div>
           ) : null}
 
           {/* Discreet loading indicator for updates */}
           {loading && images.length > 0 && (
             <div className="absolute top-4 right-4 z-20">
-              <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-cyan-400 drop-shadow-md"></div>
+              <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-[var(--accent)] drop-shadow-[var(--glass-shadow)]"></div>
             </div>
           )}
 
@@ -1106,28 +1109,36 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
 
           {/* Active Filters */}
           {(selectedTag || selectedPerson) && (
-            <div className="flex items-center gap-2 px-4 py-2 bg-slate-900 border-b border-slate-800">
-              <span className="text-xs text-slate-500 uppercase tracking-wider font-semibold">
+            <div className="flex items-center gap-2 px-4 py-2 bg-[var(--glass-bg-strong)] border-b border-[var(--glass-border)]">
+              <span className="text-xs text-[var(--text-muted)] uppercase tracking-wider font-semibold">
                 Filtered by:
               </span>
 
               {selectedTag && (
                 <button
                   onClick={() => setSelectedTag(null)}
-                  className="flex items-center gap-1.5 px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-full text-xs transition-colors group"
+                  className="flex items-center gap-1.5 px-2 py-0.5 bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] rounded-full text-xs transition-colors group"
                 >
                   <span>Tag: {selectedTag}</span>
-                  <Icon name="X" size="xs" className="text-slate-500 group-hover:text-white" />
+                  <Icon
+                    name="X"
+                    size="xs"
+                    className="text-[var(--text-muted)] group-hover:text-[var(--text-primary)]"
+                  />
                 </button>
               )}
 
               {selectedPerson && (
                 <button
                   onClick={() => setSelectedPerson(null)}
-                  className="flex items-center gap-1.5 px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-full text-xs transition-colors group"
+                  className="flex items-center gap-1.5 px-2 py-0.5 bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] rounded-full text-xs transition-colors group"
                 >
                   <span>Person: {selectedPerson}</span>
-                  <Icon name="X" size="xs" className="text-slate-500 group-hover:text-white" />
+                  <Icon
+                    name="X"
+                    size="xs"
+                    className="text-[var(--text-muted)] group-hover:text-[var(--text-primary)]"
+                  />
                 </button>
               )}
 
@@ -1136,7 +1147,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
                   setSelectedTag(null);
                   setSelectedPerson(null);
                 }}
-                className="text-xs text-slate-500 hover:text-slate-400 ml-auto"
+                className="text-xs text-[var(--text-muted)] hover:text-[var(--text-muted)] ml-auto"
               >
                 Clear all
               </button>
@@ -1148,7 +1159,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
             onClick={handleGridClick}
           >
             {!loading && images.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-slate-500">
+              <div className="flex flex-col items-center justify-center h-full text-[var(--text-muted)]">
                 <Icon name="Image" size="lg" className="mb-2 opacity-50" />
                 <p>No images found</p>
               </div>
@@ -1280,7 +1291,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
       </div>
 
       {/* Footer Status Bar */}
-      <div className="h-6 bg-slate-900 border-t border-slate-800 flex items-center justify-between px-3 text-[10px] text-slate-500 select-none shrink-0">
+      <div className="h-6 bg-[var(--glass-bg-strong)] border-t border-[var(--glass-border)] flex items-center justify-between px-3 text-[10px] text-[var(--text-muted)] select-none shrink-0">
         <div>{images.length} items</div>
         <div>{selectedAlbum ? albums.find((a) => a.id === selectedAlbum)?.name : 'All Photos'}</div>
       </div>

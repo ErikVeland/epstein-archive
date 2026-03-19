@@ -390,7 +390,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
               return (
                 <div
                   key={item.id}
-                  className={`bg-slate-900/50 border rounded-lg overflow-hidden transition-all group cursor-pointer flex flex-col min-h-[260px] ${isSelected ? 'border-cyan-500 ring-1 ring-cyan-500' : 'border-slate-800 hover:border-cyan-500/30'}`}
+                  className={`bg-[var(--glass-bg-strong)] border-[var(--glass-border)] rounded-[var(--radius-lg)] overflow-hidden transition-all group cursor-pointer flex flex-col min-h-[260px] ${isSelected ? 'border-[var(--accent)] ring-1 ring-[var(--accent)]' : 'hover:border-[var(--accent)]/30'}`}
                   onClick={(_e) => {
                     if (isBatchMode) {
                       toggleSelection(item.id);
@@ -419,12 +419,12 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                               .catch(() => {});
                           }
                         }}
-                        className="w-6 h-6 flex items-center justify-center rounded bg-amber-700 text-white text-[11px] font-bold border border-amber-500"
+                        className="w-6 h-6 flex items-center justify-center rounded bg-amber-700 text-[var(--text-primary)] text-[11px] font-bold border border-amber-500"
                       >
                         +
                       </button>
                       {pickerOpenId === item.id && (
-                        <div className="bg-slate-900 border border-slate-700 rounded p-2 shadow-xl">
+                        <div className="bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded p-2 shadow-[var(--glass-shadow)]">
                           <select
                             onChange={async (e) => {
                               const invId = parseInt(e.target.value);
@@ -448,7 +448,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                                 setAddingId(null);
                               }
                             }}
-                            className="text-xs bg-slate-800 text-white border border-slate-700 rounded px-2 py-1"
+                            className="text-xs bg-[var(--glass-bg)] text-[var(--text-primary)] border border-[var(--glass-border)] rounded px-2 py-1"
                           >
                             <option value="">Select investigation</option>
                             <option value={investigationId || ''}>
@@ -463,7 +463,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                         </div>
                       )}
                       {addingId === item.id && (
-                        <div className="text-[10px] text-white bg-black/60 px-2 py-0.5 rounded">
+                        <div className="text-[10px] text-[var(--text-primary)] bg-black/60 px-2 py-0.5 rounded">
                           …
                         </div>
                       )}
@@ -471,13 +471,13 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                     {isBatchMode && (
                       <div className="absolute top-2 left-2 z-20">
                         {isSelected ? (
-                          <CheckSquare className="text-cyan-500 fill-cyan-950" />
+                          <CheckSquare className="text-[var(--accent)] fill-cyan-950" />
                         ) : (
-                          <Square className="text-white/70" />
+                          <Square className="text-[var(--text-primary)]/70" />
                         )}
                       </div>
                     )}
-                    <div className="aspect-video bg-slate-900 relative flex items-center justify-center group-hover:bg-slate-800 transition-colors overflow-hidden">
+                    <div className="aspect-video bg-[var(--glass-bg-strong)] relative flex items-center justify-center group-hover:bg-[var(--glass-bg)] transition-colors overflow-hidden">
                       {displayImage ? (
                         <img
                           src={displayImage}
@@ -500,13 +500,13 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                           }}
                         />
                       ) : (
-                        <div className="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center border border-slate-700 group-hover:scale-110 transition-transform shadow-lg">
-                          <Music size={32} className="text-cyan-500" />
+                        <div className="w-16 h-16 rounded-full bg-[var(--glass-bg)] flex items-center justify-center border border-[var(--glass-border)] group-hover:scale-110 transition-transform shadow-[var(--glass-shadow)]">
+                          <Music size={32} className="text-[var(--accent)]" />
                         </div>
                       )}
 
                       {(item.metadata?.duration || 0) > 0 && (
-                        <div className="absolute bottom-2 right-2 px-2 py-1 bg-black/80 text-white text-xs rounded-full font-mono flex items-center gap-1">
+                        <div className="absolute bottom-2 right-2 px-2 py-1 bg-black/80 text-[var(--text-primary)] text-xs rounded-full font-mono flex items-center gap-1">
                           <Clock size={10} />
                           {Math.floor((item.metadata?.duration || 0) / 60)}:
                           {((item.metadata?.duration || 0) % 60).toString().padStart(2, '0')}
@@ -518,7 +518,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                   <div className="p-4 flex-1 flex flex-col">
                     <div className="flex items-start justify-between gap-2 mb-2">
                       <h3
-                        className="font-medium text-slate-200 group-hover:text-cyan-400 transition-colors line-clamp-2"
+                        className="font-medium text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors line-clamp-2"
                         title={item.title}
                       >
                         {item.title}
@@ -530,7 +530,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                         item.tags.map((t: any) => (
                           <span
                             key={t.id}
-                            className="text-[10px] bg-slate-800 text-cyan-400 px-1.5 py-0.5 rounded-full"
+                            className="text-[10px] bg-[var(--glass-bg)] text-[var(--accent)] px-1.5 py-0.5 rounded-full"
                           >
                             {t.name}
                           </span>
@@ -539,7 +539,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                         item.people.map((p: any) => (
                           <span
                             key={p.id}
-                            className="text-[10px] bg-slate-800 text-amber-400 px-1.5 py-0.5 rounded-full"
+                            className="text-[10px] bg-[var(--glass-bg)] text-amber-400 px-1.5 py-0.5 rounded-full"
                           >
                             {p.name}
                           </span>
@@ -547,12 +547,14 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                     </div>
 
                     <div className="mt-auto space-y-2">
-                      <div className="flex items-center gap-2 text-xs text-slate-500">
+                      <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
                         <Calendar size={12} />
                         <span>{formatDate(item.createdAt)}</span>
                       </div>
                       {item.description && (
-                        <p className="text-xs text-slate-400 line-clamp-6">{item.description}</p>
+                        <p className="text-xs text-[var(--text-secondary)] line-clamp-6">
+                          {item.description}
+                        </p>
                       )}
 
                       {/* When transcriptSearch is active, surface matching transcript
@@ -561,8 +563,8 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                       {transcriptSearch.trim() &&
                         Array.isArray(item.metadata?.transcript) &&
                         item.metadata.transcript.length > 0 && (
-                          <div className="mt-3 border-t border-slate-800 pt-2 space-y-1 min-h-[60px]">
-                            <p className="text-[10px] uppercase tracking-wide text-slate-500">
+                          <div className="mt-3 border-t border-[var(--glass-border)] pt-2 space-y-1 min-h-[60px]">
+                            <p className="text-[10px] uppercase tracking-wide text-[var(--text-muted)]">
                               Transcript matches
                             </p>
                             {item.metadata.transcript
@@ -598,7 +600,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                                   <button
                                     key={matchIdx}
                                     type="button"
-                                    className="w-full text-left text-[11px] text-slate-300 hover:text-cyan-300 hover:bg-slate-800/60 rounded px-2 py-1 flex items-start gap-2"
+                                    className="w-full text-left text-[11px] text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--glass-bg)]/60 rounded px-2 py-1 flex items-start gap-2"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       // Open this item at the segment start time.
@@ -612,7 +614,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                                       window.history.pushState({}, '', url.toString());
                                     }}
                                   >
-                                    <span className="font-mono text-[10px] text-slate-500 min-w-[40px]">
+                                    <span className="font-mono text-[10px] text-[var(--text-muted)] min-w-[40px]">
                                       {Math.floor((seg.start || 0) / 60)}:
                                       {Math.floor((seg.start || 0) % 60)
                                         .toString()
@@ -668,17 +670,19 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
   }, [selectedItem, selectedAlbum]);
 
   return (
-    <div className="flex flex-col h-full min-h-[500px] bg-slate-950 border border-slate-800 shadow-2xl overflow-hidden rounded-lg">
+    <div className="flex flex-col h-full min-h-[500px] bg-[var(--app-bg)] border border-[var(--glass-border)] shadow-[var(--glass-shadow)] overflow-hidden rounded-[var(--radius-lg)]">
       {/* Header */}
-      <div className="bg-slate-900 border-b border-slate-800 px-6 py-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between shrink-0 z-10">
+      <div className="app-header-glass px-6 py-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between shrink-0 z-10">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+            <div className="w-10 h-10 rounded-[var(--radius-lg)] bg-[var(--accent)]/10 border border-[var(--accent)]/20 flex items-center justify-center text-[var(--accent)]">
               <Music size={20} />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white tracking-tight">Audio Recordings</h2>
-              <p className="text-slate-400 text-xs font-medium">
+              <h2 className="text-xl font-bold text-[var(--text-primary)] tracking-tight">
+                Audio Recordings
+              </h2>
+              <p className="text-[var(--text-muted)] text-xs font-medium">
                 Forensic audio evidence and transcripts
               </p>
             </div>
@@ -700,7 +704,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                   }
                 </span>
               </div>
-              <div className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-blue-900/30 text-blue-300 border border-blue-500/30 text-[11px] font-bold uppercase tracking-wider">
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-blue-900/30 text-[var(--accent)] border border-[var(--accent)]/30 text-[11px] font-bold uppercase tracking-wider">
                 <Icon name="Check" size="xs" />
                 <span>
                   Medium{' '}
@@ -711,7 +715,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                   }
                 </span>
               </div>
-              <div className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-slate-800/60 text-slate-400 border border-slate-700/50 text-[11px] font-bold uppercase tracking-wider">
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-[var(--glass-bg)]/60 text-[var(--text-muted)] border border-[var(--glass-border)] text-[11px] font-bold uppercase tracking-wider">
                 <Icon name="Info" size="xs" />
                 <span>
                   Low{' '}
@@ -731,7 +735,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
             <Icon
               name="Search"
               size="sm"
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none"
             />
             <input
               type="text"
@@ -740,18 +744,18 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
               placeholder={
                 selectedAlbum ? 'Search transcripts in this album…' : 'Search transcripts…'
               }
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg text-slate-200 pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/50 placeholder-slate-600 transition-all border-hover:slate-700"
+              className="w-full bg-[var(--app-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/50 placeholder-[var(--text-muted)] transition-all border-hover-[var(--glass-border-highlight)]"
             />
           </div>
 
-          <div className="h-8 w-[1px] bg-slate-800 mx-1 hidden md:block"></div>
+          <div className="h-8 w-[1px] bg-[var(--glass-border)] mx-1 hidden md:block"></div>
 
           <button
             onClick={() => setIsBatchMode(!isBatchMode)}
-            className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all shadow-lg ${
+            className={`px-4 py-2 rounded-[var(--radius-lg)] text-xs font-bold uppercase tracking-wider transition-all shadow-[var(--glass-shadow)] ${
               isBatchMode
-                ? 'bg-cyan-600 text-white ring-2 ring-cyan-400/30'
-                : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 border border-slate-700'
+                ? 'bg-[var(--accent)] text-[var(--text-primary)] ring-2 ring-[var(--accent)]/30'
+                : 'bg-[var(--glass-bg)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)]'
             }`}
           >
             {isBatchMode ? 'Exit Batch' : 'Batch Edit'}
@@ -771,7 +775,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                 void 0;
               }
             }}
-            className="px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white border border-amber-500/50 shadow-lg shadow-amber-900/20 active:scale-95 transition-all flex items-center gap-2"
+            className="px-4 py-2 rounded-[var(--radius-lg)] text-xs font-bold uppercase tracking-wider bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-[var(--text-primary)] border border-amber-500/50 shadow-[var(--glass-shadow)] shadow-amber-900/20 active:scale-95 transition-all flex items-center gap-2"
           >
             <Icon name="ExternalLink" size="xs" />
             <span>Open Investigation</span>
@@ -781,29 +785,29 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
 
       <div className="flex flex-1 overflow-hidden relative">
         {/* Albums sidebar - Hidden on mobile */}
-        <aside className="hidden md:flex w-60 bg-slate-900 border-r border-slate-800 flex-col shrink-0">
-          <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-3">
+        <aside className="hidden md:flex w-60 bg-[var(--glass-bg-strong)] border-r border-[var(--glass-border)] flex-col shrink-0">
+          <h3 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider px-4 py-3">
             Albums
           </h3>
           <div className="flex-1 overflow-y-auto">
             <button
-              className={`w-full px-4 py-2 text-left text-sm flex items-center justify-between transition-colors ${selectedAlbum === null ? 'bg-cyan-900/20 text-cyan-400 border-l-2 border-cyan-400' : 'text-slate-400 hover:bg-slate-800 hover:text-white border-l-2 border-transparent'}`}
+              className={`w-full px-4 py-2 text-left text-sm flex items-center justify-between transition-colors ${selectedAlbum === null ? 'bg-cyan-900/20 text-[var(--accent)] border-l-2 border-[var(--accent)]' : 'text-[var(--text-muted)] hover:bg-[var(--glass-bg)] hover:text-[var(--text-primary)] border-l-2 border-transparent'}`}
               onClick={() => setSelectedAlbum(null)}
             >
               <span className="truncate">All Audio</span>
-              <span className="text-xs opacity-70 bg-slate-800 px-1.5 py-0.5 rounded-full">
+              <span className="text-xs opacity-70 bg-[var(--glass-bg)] px-1.5 py-0.5 rounded-full">
                 {libraryTotalCount}
               </span>
             </button>
             {albums.map((album) => (
               <button
                 key={album.id}
-                className={`w-full px-4 py-2 text-left text-sm flex items-center justify-between transition-colors ${selectedAlbum === album.id ? 'bg-cyan-900/20 text-cyan-400 border-l-2 border-cyan-400' : 'text-slate-400 hover:bg-slate-800 hover:text-white border-l-2 border-transparent'}`}
+                className={`w-full px-4 py-2 text-left text-sm flex items-center justify-between transition-colors ${selectedAlbum === album.id ? 'bg-cyan-900/20 text-[var(--accent)] border-l-2 border-[var(--accent)]' : 'text-[var(--text-muted)] hover:bg-[var(--glass-bg)] hover:text-[var(--text-primary)] border-l-2 border-transparent'}`}
                 onClick={() => setSelectedAlbum(album.id)}
                 title={album.name}
               >
                 <span className="truncate">{album.name}</span>
-                <span className="text-xs opacity-70 bg-slate-800 px-1.5 py-0.5 rounded-full">
+                <span className="text-xs opacity-70 bg-[var(--glass-bg)] px-1.5 py-0.5 rounded-full">
                   {album.itemCount || 0}
                 </span>
               </button>
@@ -812,10 +816,10 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
         </aside>
 
         {/* Main Content */}
-        <div className="flex-1 bg-slate-950 flex flex-col overflow-hidden">
+        <div className="flex-1 bg-[var(--app-bg)] flex flex-col overflow-hidden">
           {loading && page === 1 ? (
-            <div className="absolute inset-0 flex items-center justify-center z-20 bg-slate-950/50 backdrop-blur-sm">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-cyan-500"></div>
+            <div className="absolute inset-0 flex items-center justify-center z-20 bg-[var(--app-bg)]/50 backdrop-blur-sm">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[var(--accent)]"></div>
             </div>
           ) : null}
 
@@ -823,14 +827,14 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
           {showSensitiveWarning && <SensitiveWarningBanner mediaType="audio" />}
 
           {error && (
-            <div className="bg-red-900/20 border border-red-500/50 text-red-200 p-4 mx-6 mt-6 rounded-lg">
+            <div className="bg-red-900/20 border border-red-500/50 text-red-200 p-4 mx-6 mt-6 rounded-[var(--radius-lg)]">
               {error}
             </div>
           )}
 
           <div ref={containerRef} className="flex-1 overflow-hidden">
             {items.length === 0 && !loading ? (
-              <div className="flex flex-col items-center justify-center h-full text-slate-500">
+              <div className="flex flex-col items-center justify-center h-full text-[var(--text-muted)]">
                 <Icon name="Music" size="lg" className="mb-2 opacity-50" />
                 <p>No audio recordings found</p>
               </div>
@@ -872,7 +876,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                 </List>
                 {loading && (
                   <div className="py-4 flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-cyan-500"></div>
+                    <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-[var(--accent)]"></div>
                   </div>
                 )}
               </div>
@@ -882,7 +886,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
       </div>
 
       {/* Footer Status Bar */}
-      <div className="h-6 bg-slate-900 border-t border-slate-800 flex items-center justify-between px-3 text-[10px] text-slate-500 select-none shrink-0">
+      <div className="h-6 bg-[var(--glass-bg-strong)] border-t border-[var(--glass-border)] flex items-center justify-between px-3 text-[10px] text-[var(--text-muted)] select-none shrink-0">
         <div>{items.length} items</div>
         <div>{selectedAlbum ? currentAlbum?.name : 'All Audio'}</div>
       </div>
@@ -906,8 +910,8 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
       {/* Audio Player Modal */}
       {selectedItem &&
         createPortal(
-          <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 md:p-8 animate-in fade-in duration-200">
-            <div className="w-full max-w-5xl h-[90vh] max-h-[90vh] shadow-2xl ring-1 ring-white/10 rounded-lg overflow-hidden">
+          <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-[var(--app-backdrop)] p-4 md:p-8 animate-in fade-in duration-200">
+            <div className="w-full max-w-5xl h-[90vh] max-h-[90vh] shadow-[var(--glass-shadow)] ring-1 ring-[var(--glass-border-highlight)] rounded-[var(--radius-lg)] overflow-hidden">
               <AudioPlayer
                 key={selectedItem.id}
                 src={`/api/media/audio/${selectedItem.id}/stream`}

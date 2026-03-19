@@ -18,19 +18,23 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({ items, className = '' })
       <ol className="flex items-center gap-1">
         {items.map((item, index) => (
           <li key={index} className="flex items-center min-w-0">
-            {index > 0 && <ChevronRight className="w-4 h-4 text-slate-500 mx-1 shrink-0" />}
-            {index === 0 && <Home className="w-3.5 h-3.5 text-slate-400 mr-1.5 shrink-0" />}
+            {index > 0 && (
+              <ChevronRight className="w-4 h-4 text-[var(--text-muted)] mx-1 shrink-0" />
+            )}
+            {index === 0 && (
+              <Home className="w-3.5 h-3.5 text-[var(--text-muted)] mr-1.5 shrink-0" />
+            )}
             {index === items.length - 1 ? (
-              <span className="text-white font-medium truncate">{item.label}</span>
+              <span className="text-[var(--text-primary)] font-medium truncate">{item.label}</span>
             ) : item.onClick ? (
               <button
                 onClick={item.onClick}
-                className="text-slate-400 hover:text-cyan-400 transition-colors truncate"
+                className="text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors truncate"
               >
                 {item.label}
               </button>
             ) : (
-              <span className="text-slate-400 truncate">{item.label}</span>
+              <span className="text-[var(--text-muted)] truncate">{item.label}</span>
             )}
           </li>
         ))}

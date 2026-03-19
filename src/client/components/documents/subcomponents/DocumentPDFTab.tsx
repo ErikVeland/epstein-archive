@@ -27,21 +27,27 @@ export const DocumentPDFTab: React.FC<DocumentPDFTabProps> = ({
     return (
       <div className="space-y-5">
         <div className="surface-quiet p-5">
-          <h3 className="text-sm font-semibold text-slate-100 mb-3">Email Viewer</h3>
+          <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Email Viewer</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
             <div>
-              <div className="text-[10px] uppercase tracking-widest text-slate-500 mb-1">From</div>
-              <div className="text-slate-200 break-all">{metadata?.from || 'N/A'}</div>
+              <div className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] mb-1">
+                From
+              </div>
+              <div className="text-[var(--text-primary)] break-all">{metadata?.from || 'N/A'}</div>
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-widest text-slate-500 mb-1">To</div>
-              <div className="text-slate-200 break-all">{metadata?.to || 'N/A'}</div>
+              <div className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] mb-1">
+                To
+              </div>
+              <div className="text-[var(--text-primary)] break-all">{metadata?.to || 'N/A'}</div>
             </div>
             <div className="md:col-span-2">
-              <div className="text-[10px] uppercase tracking-widest text-slate-500 mb-1">
+              <div className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] mb-1">
                 Subject
               </div>
-              <div className="text-slate-100">{metadata?.subject || title || 'No subject'}</div>
+              <div className="text-[var(--text-primary)]">
+                {metadata?.subject || title || 'No subject'}
+              </div>
             </div>
           </div>
           <div className="mt-4">
@@ -62,7 +68,7 @@ export const DocumentPDFTab: React.FC<DocumentPDFTabProps> = ({
     <div className="space-y-5">
       <PDFVariantViewer documentId={documentId} className="h-[calc(100vh-360px)] min-h-[520px]" />
       <section className="surface-quiet p-5">
-        <h3 className="text-sm font-semibold text-slate-100 mb-3">Annotations</h3>
+        <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Annotations</h3>
         <DocumentAnnotationSystem
           documentId={String(docId || documentId)}
           content={content}

@@ -28,14 +28,14 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
     if (this.state.hasError) {
       const msg = this.state.error?.message || 'Unexpected error';
       return (
-        <div className="min-h-screen bg-gray-950 text-slate-200 flex items-center justify-center p-6">
-          <div className="max-w-lg w-full bg-slate-900 border border-slate-700 rounded-xl p-6 shadow-lg">
+        <div className="min-h-screen bg-gray-950 text-[var(--text-primary)] flex items-center justify-center p-6">
+          <div className="max-w-lg w-full bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-xl)] p-6 shadow-[var(--glass-shadow)]">
             <h1 className="text-xl font-bold text-red-400 mb-2">Something went wrong</h1>
-            <p className="text-slate-300 text-sm mb-4">{msg}</p>
+            <p className="text-[var(--text-secondary)] text-sm mb-4">{msg}</p>
             <div className="flex items-center gap-2">
               <button
                 onClick={() => window.location.reload()}
-                className="px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg"
+                className="px-3 py-2 bg-red-600 hover:bg-red-700 text-[var(--text-primary)] rounded-[var(--radius-lg)]"
               >
                 Reload
               </button>
@@ -48,7 +48,7 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
                   }
                   window.location.reload();
                 }}
-                className="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg"
+                className="px-3 py-2 bg-[var(--glass-bg-highlight)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] rounded-[var(--radius-lg)]"
               >
                 Clear cache & reload
               </button>

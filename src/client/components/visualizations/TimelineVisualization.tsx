@@ -165,13 +165,13 @@ const getTypeIcon = (type: string) => {
 const getTypeColor = (type: string) => {
   switch (type) {
     case 'flight':
-      return 'bg-blue-500';
+      return 'bg-[var(--accent)]';
     case 'arrest':
       return 'bg-red-500';
     case 'conviction':
       return 'bg-orange-500';
     case 'death':
-      return 'bg-gray-600';
+      return 'bg-[var(--glass-bg-highlight)]';
     case 'document':
       return 'bg-green-500';
     case 'testimony':
@@ -179,7 +179,7 @@ const getTypeColor = (type: string) => {
     case 'meeting':
       return 'bg-yellow-500';
     default:
-      return 'bg-gray-500';
+      return 'bg-[var(--glass-bg-highlight)]';
   }
 };
 
@@ -192,7 +192,7 @@ const getSignificanceColor = (significance: string) => {
     case 'low':
       return 'border-green-400 bg-green-900/20';
     default:
-      return 'border-gray-400 bg-gray-900/20';
+      return 'border-[var(--glass-border)] bg-[var(--glass-bg-strong)]/20';
   }
 };
 
@@ -207,24 +207,26 @@ export const TimelineVisualization: React.FC<TimelineVisualizationProps> = ({
     <div className="space-y-8">
       {/* Header Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-gradient-to-br from-red-900 to-red-700 p-6 rounded-xl">
-          <div className="text-3xl font-bold text-white">{timelineEvents.length}</div>
+        <div className="bg-gradient-to-br from-red-900/50 to-red-700/50 p-6 rounded-[var(--radius-xl)] border border-red-500/20">
+          <div className="text-3xl font-bold text-[var(--text-primary)]">
+            {timelineEvents.length}
+          </div>
           <div className="text-red-200">Key Events</div>
         </div>
-        <div className="bg-gradient-to-br from-blue-900 to-blue-700 p-6 rounded-xl">
-          <div className="text-3xl font-bold text-white">
+        <div className="bg-gradient-to-br from-blue-900/50 to-blue-700/50 p-6 rounded-[var(--radius-xl)] border border-[var(--accent)]/20">
+          <div className="text-3xl font-bold text-[var(--text-primary)]">
             {timelineEvents.filter((e) => e.significance === 'high').length}
           </div>
           <div className="text-blue-200">High Significance</div>
         </div>
-        <div className="bg-gradient-to-br from-purple-900 to-purple-700 p-6 rounded-xl">
-          <div className="text-3xl font-bold text-white">
+        <div className="bg-gradient-to-br from-purple-900/50 to-purple-700/50 p-6 rounded-[var(--radius-xl)] border border-purple-500/20">
+          <div className="text-3xl font-bold text-[var(--text-primary)]">
             {new Set(timelineEvents.flatMap((e) => e.people)).size}
           </div>
           <div className="text-purple-200">People Involved</div>
         </div>
-        <div className="bg-gradient-to-br from-green-900 to-green-700 p-6 rounded-xl">
-          <div className="text-3xl font-bold text-white">
+        <div className="bg-gradient-to-br from-green-900/50 to-green-700/50 p-6 rounded-[var(--radius-xl)] border border-green-500/20">
+          <div className="text-3xl font-bold text-[var(--text-primary)]">
             {Math.round(
               (Date.now() - new Date('1997-01-01').getTime()) / (1000 * 60 * 60 * 24 * 365),
             )}
@@ -234,11 +236,13 @@ export const TimelineVisualization: React.FC<TimelineVisualizationProps> = ({
       </div>
 
       {/* Timeline */}
-      <div className="bg-gray-800 p-6 rounded-xl">
-        <h3 className="text-2xl font-bold text-white mb-6">Chronological Timeline</h3>
+      <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] p-6 rounded-[var(--radius-xl)]">
+        <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-6">
+          Chronological Timeline
+        </h3>
         <div className="relative">
           {/* Timeline line */}
-          <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gray-600"></div>
+          <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-[var(--glass-border)]"></div>
 
           {/* Events */}
           <div className="space-y-8">
@@ -246,46 +250,52 @@ export const TimelineVisualization: React.FC<TimelineVisualizationProps> = ({
               <div key={event.id} className="relative flex items-start">
                 {/* Timeline dot */}
                 <div
-                  className={`absolute left-6 w-4 h-4 rounded-full ${getTypeColor(event.type)} border-2 border-gray-800 z-10`}
+                  className={`absolute left-6 w-4 h-4 rounded-full ${getTypeColor(event.type)} border-2 border-[var(--app-bg)] z-10`}
                 ></div>
 
                 {/* Event card */}
                 <div
-                  className={`ml-16 flex-1 rounded-lg border-2 p-6 ${getSignificanceColor(event.significance)}`}
+                  className={`ml-16 flex-1 rounded-[var(--radius-lg)] border p-6 ${getSignificanceColor(event.significance)} backdrop-blur-sm`}
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center space-x-3">
-                      <div className={`p-2 rounded-lg ${getTypeColor(event.type)} text-white`}>
+                      <div
+                        className={`p-2 rounded-[var(--radius-md)] ${getTypeColor(event.type)} text-[var(--text-primary)] shadow-sm`}
+                      >
                         {getTypeIcon(event.type)}
                       </div>
                       <div>
-                        <h4 className="text-lg font-bold text-white">{event.title}</h4>
-                        <p className="text-sm text-gray-300">{event.date}</p>
+                        <h4 className="text-lg font-bold text-[var(--text-primary)]">
+                          {event.title}
+                        </h4>
+                        <p className="text-sm text-[var(--text-secondary)]">{event.date}</p>
                       </div>
                     </div>
                     <span
                       className={`px-2 py-1 rounded text-xs font-medium ${
                         event.significance === 'high'
-                          ? 'bg-red-600 text-white'
+                          ? 'bg-red-500/20 text-red-300 border border-red-500/30'
                           : event.significance === 'medium'
-                            ? 'bg-yellow-600 text-white'
-                            : 'bg-green-600 text-white'
+                            ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30'
+                            : 'bg-green-500/20 text-green-300 border border-green-500/30'
                       }`}
                     >
                       {event.significance.toUpperCase()}
                     </span>
                   </div>
 
-                  <p className="text-gray-300 mb-4">{event.description}</p>
+                  <p className="text-[var(--text-secondary)] mb-4">{event.description}</p>
 
                   <div className="space-y-3">
                     <div>
-                      <h5 className="text-sm font-medium text-gray-400 mb-2">People Involved:</h5>
+                      <h5 className="text-sm font-medium text-[var(--text-muted)] mb-2">
+                        People Involved:
+                      </h5>
                       <div className="flex flex-wrap gap-2">
                         {event.people.map((person) => (
                           <span
                             key={person}
-                            className="px-3 py-1 bg-slate-700 text-slate-200 rounded-full text-sm"
+                            className="px-3 py-1 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] text-[var(--text-secondary)] rounded-full text-sm"
                           >
                             {person}
                           </span>
@@ -294,12 +304,14 @@ export const TimelineVisualization: React.FC<TimelineVisualizationProps> = ({
                     </div>
 
                     <div>
-                      <h5 className="text-sm font-medium text-gray-400 mb-2">Sources:</h5>
+                      <h5 className="text-sm font-medium text-[var(--text-muted)] mb-2">
+                        Sources:
+                      </h5>
                       <div className="flex flex-wrap gap-2">
                         {event.sources.map((source) => (
                           <span
                             key={source}
-                            className="px-2 py-1 bg-slate-600 text-slate-300 rounded text-xs font-mono"
+                            className="px-2 py-1 bg-[var(--app-bg)]/50 border border-[var(--glass-border)] text-[var(--text-secondary)] rounded text-xs font-mono"
                           >
                             {source}
                           </span>
@@ -315,33 +327,36 @@ export const TimelineVisualization: React.FC<TimelineVisualizationProps> = ({
       </div>
 
       {/* Event Type Legend */}
-      <div className="bg-gray-800 p-6 rounded-xl">
-        <h3 className="text-xl font-bold text-white mb-4">Event Types</h3>
+      <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] p-6 rounded-[var(--radius-xl)]">
+        <h3 className="text-xl font-bold text-[var(--text-primary)] mb-4">Event Types</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { type: 'flight', label: 'Flights', color: 'bg-blue-500' },
+            { type: 'flight', label: 'Flights', color: 'bg-[var(--accent)]' },
             { type: 'arrest', label: 'Arrests', color: 'bg-red-500' },
             { type: 'conviction', label: 'Convictions', color: 'bg-orange-500' },
-            { type: 'death', label: 'Deaths', color: 'bg-gray-600' },
+            { type: 'death', label: 'Deaths', color: 'bg-[var(--glass-bg-highlight)]' },
             { type: 'document', label: 'Documents', color: 'bg-green-500' },
             { type: 'testimony', label: 'Testimonies', color: 'bg-purple-500' },
             { type: 'meeting', label: 'Meetings', color: 'bg-yellow-500' },
           ].map((item) => (
             <div key={item.type} className="flex items-center space-x-2">
               <div className={`w-4 h-4 rounded ${item.color}`}></div>
-              <span className="text-gray-300">{item.label}</span>
+              <span className="text-[var(--text-secondary)]">{item.label}</span>
             </div>
           ))}
         </div>
       </div>
 
       {/* Key Insights */}
-      <div className="bg-gradient-to-r from-gray-800 to-gray-700 p-6 rounded-xl">
-        <h3 className="text-xl font-bold text-white mb-4">Key Timeline Insights</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] p-6 rounded-[var(--radius-xl)] relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-[var(--accent)]/10 blur-3xl rounded-full -mr-20 -mt-20 pointer-events-none"></div>
+        <h3 className="text-xl font-bold text-[var(--text-primary)] mb-4 relative z-10">
+          Key Timeline Insights
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
           <div className="space-y-3">
-            <h4 className="text-lg font-semibold text-blue-400">Flight Patterns</h4>
-            <ul className="space-y-2 text-gray-300">
+            <h4 className="text-lg font-semibold text-[var(--accent)]">Flight Patterns</h4>
+            <ul className="space-y-2 text-[var(--text-secondary)]">
               <li>• Trump: 1 documented flight (1997)</li>
               <li>• Clinton: 26 flights (2001-2003)</li>
               <li>• Multiple international destinations</li>
@@ -349,7 +364,7 @@ export const TimelineVisualization: React.FC<TimelineVisualizationProps> = ({
           </div>
           <div className="space-y-3">
             <h4 className="text-lg font-semibold text-red-400">Legal Timeline</h4>
-            <ul className="space-y-2 text-gray-300">
+            <ul className="space-y-2 text-[var(--text-secondary)]">
               <li>• First investigation: 2005</li>
               <li>• Initial conviction: 2008</li>
               <li>• Final arrest: 2019</li>

@@ -39,14 +39,14 @@ export const DataQualityDashboard: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-500" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent)]" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-4 text-red-300">
+      <div className="bg-[var(--accent-danger)]/10 border border-[var(--accent-danger)]/30 rounded-[var(--radius-lg)] p-4 text-[var(--accent-danger)]">
         <Icon name="AlertTriangle" size="sm" className="inline mr-2" />
         Error loading metrics: {error}
       </div>
@@ -57,20 +57,20 @@ export const DataQualityDashboard: React.FC = () => {
 
   const coverageColor =
     metrics.provenanceCoverage >= 90
-      ? 'text-green-400'
+      ? 'text-[var(--accent-success)]'
       : metrics.provenanceCoverage >= 70
-        ? 'text-yellow-400'
-        : 'text-red-400';
+        ? 'text-[var(--accent-warning)]'
+        : 'text-[var(--accent-danger)]';
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-white flex items-center gap-2">
+        <h2 className="text-xl font-semibold text-[var(--text-primary)] flex items-center gap-2">
           <Icon name="BarChart3" size="md" />
           Data Quality Dashboard
         </h2>
-        <span className="text-xs text-slate-500">
+        <span className="text-xs text-[var(--text-muted)]">
           Updated: {new Date(metrics.lastUpdated).toLocaleString()}
         </span>
       </div>
@@ -110,8 +110,8 @@ export const DataQualityDashboard: React.FC = () => {
       </div>
 
       {/* Source Collections */}
-      <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
-        <h3 className="text-sm font-medium text-slate-300 mb-3 flex items-center gap-2">
+      <div className="bg-[var(--glass-bg)]/50 rounded-[var(--radius-lg)] p-4 border border-[var(--glass-border)]">
+        <h3 className="text-sm font-medium text-[var(--text-secondary)] mb-3 flex items-center gap-2">
           <Icon name="Database" size="sm" />
           Source Collections
         </h3>
@@ -122,14 +122,14 @@ export const DataQualityDashboard: React.FC = () => {
               <div key={src.name} className="flex items-center gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between text-xs mb-1">
-                    <span className="text-slate-300 truncate">{src.name}</span>
-                    <span className="text-slate-500">
+                    <span className="text-[var(--text-secondary)] truncate">{src.name}</span>
+                    <span className="text-[var(--text-muted)]">
                       {src.count.toLocaleString()} ({percentage}%)
                     </span>
                   </div>
-                  <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-[var(--glass-bg-highlight)] rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full"
+                      className="h-full bg-gradient-to-r from-[var(--accent-info)] to-[var(--accent)] rounded-full"
                       style={{ width: `${percentage}%` }}
                     />
                   </div>
@@ -141,8 +141,8 @@ export const DataQualityDashboard: React.FC = () => {
       </div>
 
       {/* Evidence Types */}
-      <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700/50">
-        <h3 className="text-sm font-medium text-slate-300 mb-3 flex items-center gap-2">
+      <div className="bg-[var(--glass-bg)]/50 rounded-[var(--radius-lg)] p-4 border border-[var(--glass-border)]">
+        <h3 className="text-sm font-medium text-[var(--text-secondary)] mb-3 flex items-center gap-2">
           <Icon name="Tag" size="sm" />
           Evidence Type Distribution
         </h3>
@@ -150,10 +150,10 @@ export const DataQualityDashboard: React.FC = () => {
           {metrics.evidenceTypeDistribution.slice(0, 10).map((ev) => (
             <span
               key={ev.type}
-              className="px-2 py-1 bg-slate-700/50 rounded text-xs text-slate-300 flex items-center gap-1"
+              className="px-2 py-1 bg-[var(--glass-bg-highlight)]/50 rounded text-xs text-[var(--text-secondary)] flex items-center gap-1"
             >
               <span className="capitalize">{ev.type.replace(/_/g, ' ')}</span>
-              <span className="text-slate-500">({ev.count.toLocaleString()})</span>
+              <span className="text-[var(--text-muted)]">({ev.count.toLocaleString()})</span>
             </span>
           ))}
         </div>
@@ -163,9 +163,9 @@ export const DataQualityDashboard: React.FC = () => {
       <div
         className={`bg-gradient-to-r ${
           metrics.provenanceCoverage >= 90
-            ? 'from-green-900/30 to-green-800/10 border-green-500/30'
-            : 'from-yellow-900/30 to-yellow-800/10 border-yellow-500/30'
-        } rounded-lg p-4 border`}
+            ? 'from-[var(--accent-success)]/20 to-[var(--accent-success)]/5 border-[var(--accent-success)]/30'
+            : 'from-[var(--accent-warning)]/20 to-[var(--accent-warning)]/5 border-[var(--accent-warning)]/30'
+        } rounded-[var(--radius-lg)] p-4 border`}
       >
         <div className="flex items-center gap-3">
           <Icon
@@ -177,7 +177,7 @@ export const DataQualityDashboard: React.FC = () => {
             <p className={`font-medium ${coverageColor}`}>
               {metrics.provenanceCoverage >= 90 ? 'High Data Quality' : 'Data Quality Notice'}
             </p>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-[var(--text-muted)]">
               {metrics.provenanceCoverage}% of documents have verified source attribution
             </p>
           </div>
@@ -188,23 +188,23 @@ export const DataQualityDashboard: React.FC = () => {
       {metrics.dataIntegrity &&
         (metrics.dataIntegrity.orphanedEntityMentions > 0 ||
           metrics.dataIntegrity.potentialJunkEntities > 0) && (
-          <div className="bg-slate-800/50 rounded-lg p-4 border border-amber-500/30">
-            <h3 className="text-sm font-medium text-amber-300 mb-3 flex items-center gap-2">
+          <div className="bg-[var(--glass-bg)]/50 rounded-[var(--radius-lg)] p-4 border border-[var(--accent-warning)]/30">
+            <h3 className="text-sm font-medium text-[var(--accent-warning)] mb-3 flex items-center gap-2">
               <Icon name="AlertTriangle" size="sm" />
               Data Integrity Issues
             </h3>
             <div className="grid grid-cols-2 gap-4">
               <div className="text-center">
-                <p className="text-2xl font-bold text-amber-400">
+                <p className="text-2xl font-bold text-[var(--accent-warning)]">
                   {metrics.dataIntegrity.orphanedEntityMentions.toLocaleString()}
                 </p>
-                <p className="text-xs text-slate-400">Orphaned Entity Mentions</p>
+                <p className="text-xs text-[var(--text-muted)]">Orphaned Entity Mentions</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-amber-400">
+                <p className="text-2xl font-bold text-[var(--accent-warning)]">
                   {metrics.dataIntegrity.potentialJunkEntities.toLocaleString()}
                 </p>
-                <p className="text-xs text-slate-400">Potential Junk Entities</p>
+                <p className="text-xs text-[var(--text-muted)]">Potential Junk Entities</p>
               </div>
             </div>
           </div>
@@ -221,21 +221,26 @@ const MetricCard: React.FC<{
   color: 'cyan' | 'green' | 'yellow' | 'red' | 'purple' | 'blue';
 }> = ({ title, value, icon, color }) => {
   const colorClasses = {
-    cyan: 'from-cyan-500/20 to-cyan-600/10 border-cyan-500/30 text-cyan-400',
-    green: 'from-green-500/20 to-green-600/10 border-green-500/30 text-green-400',
-    yellow: 'from-yellow-500/20 to-yellow-600/10 border-yellow-500/30 text-yellow-400',
-    red: 'from-red-500/20 to-red-600/10 border-red-500/30 text-red-400',
-    purple: 'from-purple-500/20 to-purple-600/10 border-purple-500/30 text-purple-400',
-    blue: 'from-blue-500/20 to-blue-600/10 border-blue-500/30 text-blue-400',
+    cyan: 'from-[var(--accent-info)]/20 to-[var(--accent-info)]/5 border-[var(--accent)]/30 text-[var(--accent)]',
+    green:
+      'from-[var(--accent-success)]/20 to-[var(--accent-success)]/5 border-[var(--accent-success)]/30 text-[var(--accent-success)]',
+    yellow:
+      'from-[var(--accent-warning)]/20 to-[var(--accent-warning)]/5 border-[var(--accent-warning)]/30 text-[var(--accent-warning)]',
+    red: 'from-[var(--accent-danger)]/20 to-[var(--accent-danger)]/5 border-[var(--accent-danger)]/30 text-[var(--accent-danger)]',
+    purple:
+      'from-[var(--accent)]/20 to-[var(--accent)]/5 border-[var(--accent)]/30 text-[var(--accent)]',
+    blue: 'from-[var(--accent)]/20 to-[var(--accent)]/5 border-[var(--accent)]/30 text-[var(--accent)]',
   };
 
   return (
-    <div className={`bg-gradient-to-br ${colorClasses[color]} rounded-lg p-4 border`}>
+    <div
+      className={`bg-gradient-to-br ${colorClasses[color]} rounded-[var(--radius-lg)] p-4 border`}
+    >
       <div className="flex items-center gap-2 mb-2">
         <Icon name={icon as any} size="sm" className={colorClasses[color].split(' ').pop()} />
-        <span className="text-xs text-slate-400">{title}</span>
+        <span className="text-xs text-[var(--text-muted)]">{title}</span>
       </div>
-      <p className="text-2xl font-bold text-white">{value}</p>
+      <p className="text-2xl font-bold text-[var(--text-primary)]">{value}</p>
     </div>
   );
 };

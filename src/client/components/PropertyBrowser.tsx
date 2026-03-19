@@ -177,13 +177,15 @@ const PropertyBrowser: React.FC = () => {
           <div className="w-24 h-24 bg-emerald-500/10 rounded-full flex items-center justify-center mb-6">
             <Icon name="Building" size="xl" className="text-emerald-400" />
           </div>
-          <h2 className="text-2xl font-bold text-white mb-3">Property Data Coming Soon</h2>
-          <p className="text-slate-400 max-w-md mb-6">
+          <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-3">
+            Property Data Coming Soon
+          </h2>
+          <p className="text-[var(--text-muted)] max-w-md mb-6">
             The Palm Beach County property records integration is currently in development. This
             feature will allow you to explore property ownership records and identify connections to
             known associates.
           </p>
-          <div className="flex items-center gap-2 text-sm text-emerald-400 bg-emerald-500/10 px-4 py-2 rounded-lg">
+          <div className="flex items-center gap-2 text-sm text-emerald-400 bg-emerald-500/10 px-4 py-2 rounded-[var(--radius-lg)]">
             <Icon name="Clock" size="sm" />
             <span>Expected in a future update</span>
           </div>
@@ -195,12 +197,12 @@ const PropertyBrowser: React.FC = () => {
   const BrowseView = () => (
     <div className="property-browse">
       {/* Filters Bar */}
-      <div className="bg-slate-800/50 p-4 border-b border-slate-700/50 backdrop-blur-md sticky top-0 z-10">
+      <div className="bg-[var(--glass-bg)]/50 p-4 border-b border-[var(--glass-border)] backdrop-blur-md sticky top-0 z-10">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
             <Icon
               name="Search"
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
               size="sm"
             />
             <input
@@ -211,7 +213,7 @@ const PropertyBrowser: React.FC = () => {
                 setSearchTerm(e.target.value);
                 setPage(1);
               }}
-              className="w-full bg-slate-900/50 border border-slate-700 rounded-lg pl-10 pr-4 py-2 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50"
+              className="w-full bg-[var(--glass-bg-strong)]/50 border border-[var(--glass-border)] rounded-[var(--radius-lg)] pl-10 pr-4 py-2 text-[var(--text-primary)] placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/50"
             />
           </div>
           <div className="flex flex-wrap gap-4">
@@ -244,8 +246,8 @@ const PropertyBrowser: React.FC = () => {
               ]}
             />
 
-            <div className="flex items-center gap-2 bg-slate-900/50 border border-slate-700 rounded-lg px-4">
-              <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-slate-300 select-none">
+            <div className="flex items-center gap-2 bg-[var(--glass-bg-strong)]/50 border border-[var(--glass-border)] rounded-[var(--radius-lg)] px-4">
+              <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-[var(--text-secondary)] select-none">
                 <input
                   type="checkbox"
                   checked={showAssociatesOnly}
@@ -253,31 +255,31 @@ const PropertyBrowser: React.FC = () => {
                     setShowAssociatesOnly(e.target.checked);
                     setPage(1);
                   }}
-                  className="w-4 h-4 rounded border-slate-600 text-blue-500 focus:ring-blue-500/50 bg-slate-800"
+                  className="w-4 h-4 rounded border-[var(--glass-border)] text-[var(--accent)] focus:ring-[var(--accent)]/50 bg-[var(--glass-bg)]"
                 />
                 Known Associates Only
               </label>
             </div>
 
             {/* View Toggle */}
-            <div className="flex bg-slate-900/50 rounded-lg p-1 border border-slate-700">
+            <div className="flex bg-[var(--glass-bg-strong)]/50 rounded-[var(--radius-lg)] p-1 border border-[var(--glass-border)]">
               <button
                 onClick={() => setViewMode('browse')}
-                className={`p-2 rounded-md transition-all ${viewMode === 'browse' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
+                className={`p-2 rounded-md transition-all ${viewMode === 'browse' ? 'bg-[var(--accent)] text-[var(--text-primary)] shadow-[var(--glass-shadow)]' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}
                 title="Browse List"
               >
                 <Icon name="List" size="sm" />
               </button>
               <button
                 onClick={() => setViewMode('associates')}
-                className={`p-2 rounded-md transition-all ${viewMode === 'associates' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
+                className={`p-2 rounded-md transition-all ${viewMode === 'associates' ? 'bg-[var(--accent)] text-[var(--text-primary)] shadow-[var(--glass-shadow)]' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}
                 title="Known Associates"
               >
                 <Icon name="Users" size="sm" />
               </button>
               <button
                 onClick={() => setViewMode('analytics')}
-                className={`p-2 rounded-md transition-all ${viewMode === 'analytics' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
+                className={`p-2 rounded-md transition-all ${viewMode === 'analytics' ? 'bg-[var(--accent)] text-[var(--text-primary)] shadow-[var(--glass-shadow)]' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}
                 title="Analytics"
               >
                 <Icon name="BarChart3" size="sm" />

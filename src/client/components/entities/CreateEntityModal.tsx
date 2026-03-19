@@ -69,27 +69,27 @@ export const CreateEntityModal: React.FC<CreateEntityModalProps> = ({ onClose, o
   return createPortal(
     <div
       id="CreateEntityModal"
-      className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
+      className="fixed inset-0 bg-[var(--app-bg)]/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
       role="dialog"
       aria-modal="true"
     >
       <div
         ref={modalRef}
-        className="bg-slate-800 rounded-xl w-full max-w-2xl border border-slate-700 shadow-2xl flex flex-col max-h-[90vh]"
+        className="bg-[var(--glass-bg-strong)] rounded-[var(--radius-xl)] w-full max-w-2xl border border-[var(--glass-border)] shadow-[var(--glass-shadow)] flex flex-col max-h-[90vh]"
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-slate-700">
+        <div className="flex items-center justify-between p-6 border-b border-[var(--glass-border)]">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-500/10 rounded-lg">
-              <User className="w-6 h-6 text-blue-400" />
+            <div className="p-2 bg-[var(--accent)]/10 rounded-[var(--radius-lg)]">
+              <User className="w-6 h-6 text-[var(--accent)]" />
             </div>
-            <h2 className="text-xl font-bold text-white">Create New Subject</h2>
+            <h2 className="text-xl font-bold text-[var(--text-primary)]">Create New Subject</h2>
           </div>
           <CloseButton
             onClick={onClose}
             size="md"
             label="Close create entity modal"
-            className="bg-transparent hover:bg-white/10 border-slate-600"
+            className="bg-transparent hover:bg-[var(--glass-bg-highlight)] border-[var(--glass-border)]"
           />
         </div>
 
@@ -104,7 +104,7 @@ export const CreateEntityModal: React.FC<CreateEntityModalProps> = ({ onClose, o
                 value={formData.full_name}
                 onChange={handleChange}
                 required
-                className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500"
+                className="w-full bg-[var(--app-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] px-4 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
                 placeholder="e.g. John Doe"
               />
             </FormField>
@@ -117,7 +117,7 @@ export const CreateEntityModal: React.FC<CreateEntityModalProps> = ({ onClose, o
                 value={formData.primary_role}
                 onChange={handleChange}
                 required
-                className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500"
+                className="w-full bg-[var(--app-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] px-4 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
                 placeholder="e.g. Associate"
               />
             </FormField>
@@ -134,7 +134,7 @@ export const CreateEntityModal: React.FC<CreateEntityModalProps> = ({ onClose, o
               name="secondary_roles"
               value={formData.secondary_roles}
               onChange={handleChange}
-              className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500"
+              className="w-full bg-[var(--app-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] px-4 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
               placeholder="e.g. Pilot, Driver"
             />
           </FormField>
@@ -146,7 +146,7 @@ export const CreateEntityModal: React.FC<CreateEntityModalProps> = ({ onClose, o
               value={formData.description}
               onChange={handleChange}
               rows={3}
-              className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500"
+              className="w-full bg-[var(--app-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] px-4 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
               placeholder="Brief description of the subject..."
             />
           </FormField>
@@ -158,7 +158,7 @@ export const CreateEntityModal: React.FC<CreateEntityModalProps> = ({ onClose, o
                 name="likelihood_level"
                 value={formData.likelihood_level}
                 onChange={handleChange}
-                className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500"
+                className="w-full bg-[var(--app-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] px-4 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
               >
                 <option value="LOW">Low Risk</option>
                 <option value="MEDIUM">Medium Risk</option>
@@ -175,7 +175,7 @@ export const CreateEntityModal: React.FC<CreateEntityModalProps> = ({ onClose, o
                 max="5"
                 value={formData.red_flag_rating}
                 onChange={handleChange}
-                className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500"
+                className="w-full bg-[var(--app-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] px-4 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
               />
             </FormField>
           </div>
@@ -187,24 +187,24 @@ export const CreateEntityModal: React.FC<CreateEntityModalProps> = ({ onClose, o
               name="red_flag_description"
               value={formData.red_flag_description}
               onChange={handleChange}
-              className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-blue-500"
+              className="w-full bg-[var(--app-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] px-4 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
               placeholder="Why is this person flagged?"
             />
           </FormField>
 
           {/* Footer Actions */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-700 mt-6">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-[var(--glass-border)] mt-6">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-slate-300 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
+              className="px-4 py-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 bg-[var(--accent)] hover:bg-[var(--accent)]/90 text-[var(--text-primary)] rounded-[var(--radius-lg)] flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {loading ? (
                 <>

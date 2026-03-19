@@ -37,7 +37,7 @@ export const EntityConfidenceDisplay: React.FC<EntityConfidenceDisplayProps> = (
   }, [entityId]);
 
   if (loading) {
-    return <div className="animate-pulse bg-slate-700 rounded h-5 w-16" />;
+    return <div className="animate-pulse bg-[var(--glass-bg-highlight)] rounded h-5 w-16" />;
   }
 
   if (!confidence) {
@@ -47,13 +47,13 @@ export const EntityConfidenceDisplay: React.FC<EntityConfidenceDisplayProps> = (
   const getColor = (level: string) => {
     switch (level) {
       case 'High':
-        return 'text-green-400 bg-green-500/20 border-green-500/30';
+        return 'text-[var(--accent-success)] bg-[var(--accent-success)]/20 border-[var(--accent-success)]/30';
       case 'Medium':
-        return 'text-yellow-400 bg-yellow-500/20 border-yellow-500/30';
+        return 'text-[var(--accent-warning)] bg-[var(--accent-warning)]/20 border-[var(--accent-warning)]/30';
       case 'Low':
-        return 'text-orange-400 bg-orange-500/20 border-orange-500/30';
+        return 'text-[var(--accent-danger)] bg-[var(--accent-danger)]/20 border-[var(--accent-danger)]/30';
       default:
-        return 'text-slate-400 bg-slate-500/20 border-slate-500/30';
+        return 'text-[var(--text-muted)] bg-[var(--glass-bg-highlight)]/20 border-[var(--glass-border)]';
     }
   };
 
@@ -93,8 +93,10 @@ export const EntityConfidenceDisplay: React.FC<EntityConfidenceDisplayProps> = (
 
   // Expanded breakdown
   return (
-    <div className={`rounded-lg border ${getColor(confidence.confidenceLevel)} overflow-hidden`}>
-      <div className="flex items-center justify-between px-3 py-2 bg-slate-800/50">
+    <div
+      className={`rounded-[var(--radius-lg)] border ${getColor(confidence.confidenceLevel)} overflow-hidden`}
+    >
+      <div className="flex items-center justify-between px-3 py-2 bg-[var(--glass-bg)]/50">
         <div className="flex items-center gap-2">
           <Icon name={getIcon(confidence.confidenceLevel)} size="sm" />
           <span className="font-medium">{confidence.confidenceLevel} Confidence</span>
@@ -105,20 +107,20 @@ export const EntityConfidenceDisplay: React.FC<EntityConfidenceDisplayProps> = (
         </button>
       </div>
 
-      <div className="p-3 bg-slate-900/50 space-y-3">
-        <p className="text-xs text-slate-400">
+      <div className="p-3 bg-[var(--glass-bg-strong)]/50 space-y-3">
+        <p className="text-xs text-[var(--text-muted)]">
           Based on {confidence.totalMentions.toLocaleString()} references across verified sources
         </p>
 
         {/* Evidence breakdown */}
         {confidence.evidenceBreakdown.length > 0 && (
           <div className="space-y-1">
-            <span className="text-xs text-slate-500">Evidence Sources:</span>
+            <span className="text-xs text-[var(--text-muted)]">Evidence Sources:</span>
             <div className="flex flex-wrap gap-1">
               {confidence.evidenceBreakdown.map((ev) => (
                 <span
                   key={ev.evidence_type}
-                  className="text-xs px-2 py-0.5 bg-slate-700/50 rounded text-slate-300"
+                  className="text-xs px-2 py-0.5 bg-[var(--glass-bg-highlight)]/50 rounded text-[var(--text-secondary)]"
                 >
                   {ev.evidence_type?.replace(/_/g, ' ') || 'document'} ({ev.count})
                 </span>
@@ -128,7 +130,7 @@ export const EntityConfidenceDisplay: React.FC<EntityConfidenceDisplayProps> = (
         )}
 
         {/* Confidence explanation */}
-        <div className="text-xs text-slate-500 border-t border-slate-700/50 pt-2">
+        <div className="text-xs text-[var(--text-muted)] border-t border-[var(--glass-border)] pt-2">
           <Icon name="Info" size="xs" className="inline mr-1" />
           Confidence is weighted by source type: legal documents (100%), testimony (90%), flight
           logs (85%), financial (80%), emails (70%), photos (50%).

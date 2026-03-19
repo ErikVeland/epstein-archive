@@ -36,41 +36,43 @@ export const DocumentMetadataRail: React.FC<DocumentMetadataRailProps> = ({
   return (
     <div
       ref={rightPaneScrollRef}
-      className="h-full overflow-y-auto custom-scrollbar px-4 pt-6 space-y-6 pb-8"
+      className="h-full overflow-y-auto custom-scrollbar px-6 pt-8 space-y-6 pb-10"
     >
       <section
         data-rail-section="metadata"
-        className={`bg-slate-900/40 border rounded-2xl p-5 overflow-hidden shadow-xl shadow-black/20 ${
-          activeRailSection === 'metadata' ? 'border-cyan-500/35' : 'border-white/5'
+        className={`surface-glass-card p-6 border-l-[3px] transition-colors ${
+          activeRailSection === 'metadata'
+            ? 'border-l-[var(--accent)] bg-[var(--glass-bg-strong)]'
+            : 'border-l-transparent'
         }`}
       >
-        <h3 className="text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-5 font-black flex items-center gap-2.5">
-          <FileText className="w-3.5 h-3.5 text-cyan-500/80" />
+        <h3 className="text-[11px] uppercase tracking-[0.2em] text-text-muted mb-5 font-bold flex items-center gap-2.5">
+          <FileText className="w-4 h-4 text-[var(--accent)]" />
           Core Metadata
         </h3>
         <div className="space-y-5">
-          <div className="bg-slate-950/60 p-4 rounded-xl border border-white/5">
-            <span className="text-[9px] text-slate-500 block mb-1.5 uppercase font-black tracking-widest">
+          <div className="bg-[var(--glass-bg)] p-4 rounded-[var(--radius-md)] border border-[var(--glass-border)]">
+            <span className="text-[10px] text-text-dim block mb-1.5 uppercase font-bold tracking-widest">
               System Index ID
             </span>
-            <span className="font-mono text-sm text-cyan-200 break-all leading-tight">
+            <span className="font-mono text-sm text-[var(--accent)] break-all leading-tight">
               {String(doc.id || id)}
             </span>
           </div>
           <div className="grid grid-cols-1 gap-5 px-1">
-            <div className="flex flex-col gap-0.5">
-              <span className="text-[9px] text-slate-500 block uppercase font-black tracking-widest">
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] text-text-dim block uppercase font-bold tracking-widest">
                 Origin Collection
               </span>
-              <span className="text-xs text-slate-200 font-medium">
+              <span className="text-sm text-text-strong font-medium">
                 {doc.metadata?.source_collection || 'Classified / Internal'}
               </span>
             </div>
-            <div className="flex flex-col gap-0.5">
-              <span className="text-[9px] text-slate-500 block uppercase font-black tracking-widest">
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] text-text-dim block uppercase font-bold tracking-widest">
                 Thread Depth
               </span>
-              <span className="text-xs text-slate-200 font-medium font-mono">
+              <span className="text-sm text-text-strong font-medium font-mono">
                 {threadCount} Related Comms
               </span>
             </div>
@@ -80,8 +82,10 @@ export const DocumentMetadataRail: React.FC<DocumentMetadataRailProps> = ({
 
       <section
         data-rail-section="entities"
-        className={`bg-slate-900/40 border rounded-2xl p-5 shadow-lg shadow-black/10 ${
-          activeRailSection === 'entities' ? 'border-cyan-500/35' : 'border-white/5'
+        className={`surface-glass-card p-6 border-l-[3px] transition-colors ${
+          activeRailSection === 'entities'
+            ? 'border-l-[var(--accent)] bg-[var(--glass-bg-strong)]'
+            : 'border-l-transparent'
         }`}
       >
         <button
@@ -89,31 +93,31 @@ export const DocumentMetadataRail: React.FC<DocumentMetadataRailProps> = ({
           onClick={() => setExpandedEntities((prev) => !prev)}
           className="w-full flex items-center justify-between text-left group"
         >
-          <h3 className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-black">
+          <h3 className="text-[11px] uppercase tracking-[0.2em] text-text-muted font-bold">
             Live Entities ({entities.length})
           </h3>
           <ChevronDown
-            className={`w-4 h-4 text-slate-500 transition-all duration-300 ${expandedEntities ? 'rotate-180 text-cyan-400' : 'group-hover:text-slate-300'}`}
+            className={`w-4 h-4 text-text-muted transition-all duration-300 ${expandedEntities ? 'rotate-180 text-[var(--accent)]' : 'group-hover:text-text-strong'}`}
           />
         </button>
         {expandedEntities && (
-          <div className="mt-4 space-y-1.5">
+          <div className="mt-5 space-y-2">
             {entities.length === 0 && (
-              <p className="text-xs text-slate-600 italic">No entities flagged in this record.</p>
+              <p className="text-xs text-text-dim italic">No entities flagged in this record.</p>
             )}
             {entities.map((entity, index) => (
               <button
                 key={`${entity.id || entity.name}-${index}`}
-                className={`w-full text-left px-3 py-2 rounded-md text-xs transition-all border ${
+                className={`w-full text-left px-4 py-3 rounded-[var(--radius-sm)] text-sm transition-all border ${
                   selectedEntity?.name === entity.name
-                    ? 'bg-cyan-500/10 border-cyan-500/40 text-cyan-100'
-                    : 'bg-slate-800/40 border-transparent text-slate-400 hover:bg-slate-800/80 hover:border-slate-700'
+                    ? 'bg-[var(--accent)]/10 border-[var(--accent)]/30 text-[var(--accent)] shadow-sm'
+                    : 'bg-[var(--glass-bg)] border-transparent text-text-muted hover:bg-[var(--glass-bg-strong)] hover:border-[var(--glass-border)]'
                 }`}
                 onClick={() => setSelectedEntity(entity)}
               >
                 <div className="flex items-center justify-between">
                   <span className="font-medium truncate">{entity.name}</span>
-                  <span className="text-[8px] uppercase text-slate-600 font-black ml-1">
+                  <span className="text-[9px] uppercase text-text-dim font-bold tracking-wider ml-2">
                     {entity.entityType || 'ENT'}
                   </span>
                 </div>
@@ -123,22 +127,23 @@ export const DocumentMetadataRail: React.FC<DocumentMetadataRailProps> = ({
         )}
 
         {selectedEntity && (
-          <div className="mt-4 p-4 bg-slate-900/60 rounded-lg border border-cyan-500/20 shadow-inner">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] uppercase font-black text-cyan-400/80 tracking-widest">
+          <div className="mt-5 p-5 bg-[var(--glass-bg)] rounded-[var(--radius-md)] border border-[var(--accent)]/20 shadow-inner">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[11px] uppercase font-bold text-[var(--accent)]/80 tracking-widest">
                 Active Focus
               </span>
               <button
                 onClick={() => setSelectedEntity(null)}
-                className="text-slate-600 hover:text-slate-400"
+                className="text-text-muted hover:text-text-strong transition-colors"
+                aria-label="Clear active focus"
               >
-                <X className="w-3 h-3" />
+                <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="text-base text-slate-100 font-bold mb-1">{selectedEntity.name}</div>
+            <div className="text-lg text-text-strong font-display mb-3">{selectedEntity.name}</div>
             {Number.isFinite(Number(selectedEntity.id)) && (
               <button
-                className="control !h-9 !bg-cyan-600/20 !border-cyan-500/30 text-cyan-200 text-[10px] font-bold hover:!bg-cyan-500/30 w-full"
+                className="control !h-10 !bg-[var(--accent)]/10 !border-[var(--accent)]/20 text-[var(--accent)] text-[11px] font-bold tracking-widest hover:!bg-[var(--accent)]/20 w-full"
                 onClick={() => onOpenDossier(String(selectedEntity.id))}
               >
                 Deep Link
@@ -150,21 +155,23 @@ export const DocumentMetadataRail: React.FC<DocumentMetadataRailProps> = ({
 
       <section
         data-rail-section="case"
-        className={`bg-slate-900/40 border rounded-2xl p-5 shadow-lg shadow-black/10 ${
-          activeRailSection === 'case' ? 'border-cyan-500/35' : 'border-white/5'
+        className={`surface-glass-card p-6 border-l-[3px] transition-colors ${
+          activeRailSection === 'case'
+            ? 'border-l-[var(--accent)] bg-[var(--glass-bg-strong)]'
+            : 'border-l-transparent'
         }`}
       >
-        <h3 className="text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-4 font-black">
+        <h3 className="text-[11px] uppercase tracking-[0.2em] text-text-muted mb-4 font-bold flex items-center gap-2">
           Case Reference
         </h3>
         {caseLinks.length === 0 ? (
-          <p className="text-xs text-slate-500/80 italic font-light">No formal linkage.</p>
+          <p className="text-sm text-text-dim italic">No formal linkage.</p>
         ) : (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 mt-2">
             {caseLinks.map((entry, index) => (
               <span
                 key={`case-link-${index}`}
-                className="px-2.5 py-1.5 bg-slate-950/50 text-slate-200 text-[10px] font-bold rounded-lg border border-white/5"
+                className="px-3 py-1.5 bg-[var(--glass-bg)] text-text-strong text-[11px] font-bold uppercase tracking-wider rounded-[var(--radius-sm)] border border-[var(--glass-border)]"
               >
                 {entry}
               </span>
@@ -175,22 +182,24 @@ export const DocumentMetadataRail: React.FC<DocumentMetadataRailProps> = ({
 
       <section
         data-rail-section="timeline"
-        className={`bg-slate-900/40 border rounded-2xl p-5 shadow-lg shadow-black/10 ${
-          activeRailSection === 'timeline' ? 'border-cyan-500/35' : 'border-white/5'
+        className={`surface-glass-card p-6 border-l-[3px] transition-colors ${
+          activeRailSection === 'timeline'
+            ? 'border-l-[var(--accent)] bg-[var(--glass-bg-strong)]'
+            : 'border-l-transparent'
         }`}
       >
-        <h3 className="text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-4 font-black flex items-center gap-2">
-          <Calendar className="w-3.5 h-3.5" />
+        <h3 className="text-[11px] uppercase tracking-[0.2em] text-text-muted mb-4 font-bold flex items-center gap-2.5">
+          <Calendar className="w-4 h-4 text-text-muted" />
           Timeline Hook
         </h3>
         {timelineReferences.length === 0 ? (
-          <p className="text-xs text-slate-500/80 italic font-light">No chronological tag.</p>
+          <p className="text-sm text-text-dim italic">No chronological tag.</p>
         ) : (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 mt-2">
             {timelineReferences.map((entry, index) => (
               <span
                 key={`timeline-ref-${index}`}
-                className="px-2.5 py-1.5 bg-slate-950/50 text-slate-200 text-[10px] font-bold rounded-lg border border-white/5"
+                className="px-3 py-1.5 bg-[var(--glass-bg)] text-text-strong text-[11px] font-bold uppercase tracking-wider rounded-[var(--radius-sm)] border border-[var(--glass-border)]"
               >
                 {entry}
               </span>
@@ -199,7 +208,7 @@ export const DocumentMetadataRail: React.FC<DocumentMetadataRailProps> = ({
         )}
       </section>
 
-      <section className="pt-4 border-t border-slate-800/60">
+      <section className="pt-6 border-t border-[var(--glass-border)]">
         <AddToInvestigationButton
           item={{
             id: String(doc.id || id),
@@ -213,7 +222,7 @@ export const DocumentMetadataRail: React.FC<DocumentMetadataRailProps> = ({
             },
           }}
           variant="quick"
-          className="w-full !bg-cyan-600/10 !border-cyan-500/30 text-cyan-200 hover:!bg-cyan-600/20"
+          className="w-full !bg-[var(--accent-investigate)]/10 !border-[var(--accent-investigate)]/30 text-[var(--accent-investigate)] hover:!bg-[var(--accent-investigate)]/20 uppercase tracking-widest text-[11px] font-bold shadow-none"
         />
       </section>
     </div>

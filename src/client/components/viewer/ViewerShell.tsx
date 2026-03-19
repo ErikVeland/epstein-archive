@@ -35,7 +35,7 @@ export const ViewerShell: React.FC<ViewerShellProps> = ({
   return (
     <div className={`flex h-full min-h-0 flex-col overflow-hidden ${className}`}>
       <header
-        className={`shrink-0 flex items-center justify-between gap-6 border-b border-white/5 bg-slate-900/20 ${headerClassName}`}
+        className={`shrink-0 flex items-center justify-between gap-6 border-b border-white/5 bg-[var(--glass-bg-strong)]/20 ${headerClassName}`}
       >
         <div className="min-w-0 flex-1">{header}</div>
         {actions ? (
@@ -44,7 +44,9 @@ export const ViewerShell: React.FC<ViewerShellProps> = ({
       </header>
 
       {tabs && activeTab && onTabChange ? (
-        <div className={`shrink-0 border-b border-white/5 bg-slate-900/10 ${tabsClassName}`}>
+        <div
+          className={`shrink-0 border-b border-white/5 bg-[var(--glass-bg-strong)]/10 ${tabsClassName}`}
+        >
           <Tabs tabs={tabs} activeTab={activeTab} onChange={onTabChange} variant="viewer" />
         </div>
       ) : null}

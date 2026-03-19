@@ -7,30 +7,16 @@ interface LayoutProps {
 }
 
 export const Layout: React.FC<LayoutProps> = ({ children, maxWidth = 'xl', className = '' }) => {
-  const getMaxWidthClass = () => {
+  const getShellClass = () => {
     switch (maxWidth) {
-      case 'sm':
-        return 'max-w-screen-sm';
-      case 'md':
-        return 'max-w-screen-md';
-      case 'lg':
-        return 'max-w-screen-lg';
-      case 'xl':
-        return 'max-w-screen-xl';
-      case '2xl':
-        return 'max-w-screen-2xl';
       case 'full':
-        return 'max-w-full';
+        return 'content-shell edge-breakout';
       default:
-        return 'max-w-screen-xl';
+        return 'content-shell';
     }
   };
 
-  return (
-    <div className={`w-full mx-auto px-[var(--space-4)] ${getMaxWidthClass()} ${className}`}>
-      {children}
-    </div>
-  );
+  return <div className={`${getShellClass()} ${className}`}>{children}</div>;
 };
 
 interface SectionProps {

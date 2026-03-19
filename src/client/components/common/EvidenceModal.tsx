@@ -117,7 +117,10 @@ const highlightTerms = (text: string, terms: Array<string | undefined | null>) =
   const pattern = new RegExp(`(${needles.map((t) => escapeRegExp(t)).join('|')})`, 'ig');
   return text.split(pattern).map((segment, idx) =>
     needles.some((needle) => needle.toLowerCase() === segment.toLowerCase()) ? (
-      <mark key={`${segment}-${idx}`} className="bg-amber-400/35 text-amber-100 px-0.5 rounded">
+      <mark
+        key={`${segment}-${idx}`}
+        className="bg-[var(--accent-glow)] text-[var(--accent)] px-1 rounded-sm"
+      >
         {segment}
       </mark>
     ) : (
@@ -573,7 +576,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
       return (
         <article
           data-testid="entity-evidence-row"
-          className="bg-slate-950 border border-slate-800 rounded-[var(--radius-md)] p-4 hover:border-slate-600 transition-colors h-full flex flex-col justify-between cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-400/70"
+          className="surface-glass-card p-6 h-full flex flex-col justify-between cursor-pointer focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/50 group"
           role="button"
           tabIndex={0}
           onClick={() => openDocumentFromEvidence(doc.id)}
@@ -587,13 +590,13 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
           <div>
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <div className="flex items-center gap-2 text-xs text-slate-400 mb-1">
-                  <span className="semantic-chip text-[10px] px-2 h-6 border-slate-700/70 bg-slate-900/70 text-slate-300">
+                <div className="flex items-center gap-2 text-xs text-text-muted mb-2">
+                  <span className="semantic-chip text-[10px] px-2 h-6 border-[var(--glass-border)] bg-[var(--glass-bg)] text-text-default uppercase tracking-widest">
                     {doc.evidenceType || 'Document'}
                   </span>
-                  <span className="font-mono">#{doc.id}</span>
+                  <span className="font-mono opacity-60">#{doc.id}</span>
                 </div>
-                <h4 className="text-sm font-semibold text-slate-100 truncate">
+                <h4 className="text-base font-display text-text-strong truncate group-hover:text-[var(--accent)] transition-colors duration-300">
                   {doc.title || doc.fileName || `Document ${doc.id}`}
                 </h4>
               </div>
@@ -602,16 +605,16 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                   event.stopPropagation();
                   openDocumentFromEvidence(doc.id, { newTab: true });
                 }}
-                className="control h-8 px-3 text-xs text-slate-200 flex items-center gap-1"
+                className="control h-8 px-3 text-xs text-text-default flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
               >
                 Open <ExternalLink size={12} />
               </button>
             </div>
-            <p className="text-xs text-slate-300 leading-relaxed mt-2 line-clamp-2">
+            <p className="text-sm text-text-muted leading-relaxed mt-4 line-clamp-2">
               {highlightTerms(excerpt, [entity?.fullName, doc.keyword])}
             </p>
           </div>
-          <div className="mt-2 pt-2 border-t border-slate-800/70 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-500">
+          <div className="mt-4 pt-3 border-t border-[var(--glass-border)] flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px] text-text-dim uppercase tracking-wider font-medium">
             <span className="inline-flex items-center gap-1">
               <Clock size={10} />
               {doc.dateCreated ? new Date(doc.dateCreated).toLocaleDateString() : 'Date unknown'}
@@ -715,13 +718,13 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 20 }}
             data-testid="evidence-modal"
-            className="relative w-full max-w-6xl h-[85vh] surface-glass overflow-hidden flex flex-col"
+            className="relative w-full max-w-6xl h-[85vh] surface-glass overflow-hidden flex flex-col shadow-[var(--glass-shadow)]"
           >
-            <div className="flex bg-slate-950/70 p-4 md:p-6 border-b border-slate-800 items-start gap-4 md:gap-6 shrink-0">
+            <div className="app-header-glass flex p-6 md:p-10 items-start gap-6 md:gap-10 shrink-0 relative z-10">
               <div className="relative shrink-0">
-                <div className="w-20 h-20 md:w-24 md:h-24 rounded-[var(--radius-md)] bg-slate-800 border-2 border-slate-700 overflow-hidden shadow-inner">
+                <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-[var(--bg-dark)] ring-1 ring-[var(--glass-border)] overflow-hidden shadow-[var(--glass-shadow-soft)] relative">
                   {loading ? (
-                    <div className="w-full h-full animate-pulse bg-slate-800" />
+                    <div className="w-full h-full animate-pulse bg-white/5" />
                   ) : headerPhotoUrl && !brokenMediaIds[headerPhotoId] ? (
                     <img
                       src={headerPhotoUrl}
@@ -743,7 +746,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                       }}
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-slate-600">
+                    <div className="w-full h-full flex items-center justify-center text-[var(--text-primary)]">
                       <Search size={32} />
                     </div>
                   )}
@@ -752,54 +755,61 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
 
               <div className="flex-1 min-w-0">
                 {loading ? (
-                  <div className="space-y-3">
-                    <div className="h-8 w-64 bg-slate-800 rounded animate-pulse" />
-                    <div className="h-5 w-48 bg-slate-800 rounded animate-pulse" />
-                    <div className="flex gap-3 pt-1">
-                      <div className="h-4 w-20 bg-slate-800 rounded animate-pulse" />
-                      <div className="h-4 w-20 bg-slate-800 rounded animate-pulse" />
-                      <div className="h-4 w-20 bg-slate-800 rounded animate-pulse" />
+                  <div className="space-y-4">
+                    <div className="h-10 w-64 bg-white/5 rounded-md animate-pulse" />
+                    <div className="h-6 w-48 bg-white/5 rounded-md animate-pulse" />
+                    <div className="flex gap-4 pt-2">
+                      <div className="h-4 w-24 bg-white/5 rounded-md animate-pulse" />
+                      <div className="h-4 w-24 bg-white/5 rounded-md animate-pulse" />
+                      <div className="h-4 w-24 bg-white/5 rounded-md animate-pulse" />
                     </div>
                   </div>
                 ) : (
                   <>
-                    <div className="flex items-center gap-3 mb-1">
-                      <h2 className="text-3xl font-bold text-slate-100 truncate">
+                    <div className="flex items-center gap-4 mb-2">
+                      <h2 className="text-4xl md:text-5xl font-display font-medium text-text-strong tracking-tight truncate">
                         {entity?.fullName}
                       </h2>
                       <span className={`semantic-chip ${getRiskClass(entity?.redFlagRating || 0)}`}>
-                        <ShieldAlert size={12} />
+                        <ShieldAlert size={12} className="opacity-80" />
                         Risk {(entity?.redFlagRating || 0).toFixed(0)}/5
                       </span>
                     </div>
-                    <div className="text-slate-400 text-lg mb-4">
+                    <div className="text-[var(--accent)] text-lg md:text-xl font-light tracking-widest uppercase mb-6 flex items-center flex-wrap gap-3">
                       <span>{entity?.primaryRole}</span>
                       {(entity?.birthDate || entity?.deathDate) && (
-                        <span className="ml-3 text-sm text-slate-500">
-                          {entity?.birthDate ? `b. ${entity.birthDate}` : ''}
-                          {entity?.deathDate ? ` • d. ${entity.deathDate}` : ''}
-                        </span>
+                        <>
+                          <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]/30" />
+                          <span className="text-sm font-mono text-text-muted">
+                            {entity?.birthDate ? `b. ${entity.birthDate}` : ''}
+                            {entity?.deathDate ? ` • d. ${entity.deathDate}` : ''}
+                          </span>
+                        </>
                       )}
                     </div>
 
-                    <p className="text-sm text-slate-300 leading-relaxed mb-4 max-w-4xl">
-                      <span className="font-semibold text-slate-100">Forensic Summary:</span>{' '}
-                      {forensicSummary}
-                    </p>
+                    <div className="border-l border-[var(--glass-border)] pl-5 py-1 mb-6">
+                      <span className="font-sans font-semibold text-xs tracking-[0.2em] uppercase text-[var(--accent)] opacity-80 block mb-2">
+                        Forensic Profile
+                      </span>
+                      <p className="text-base text-text-muted leading-relaxed max-w-3xl">
+                        {forensicSummary}
+                      </p>
+                    </div>
 
-                    <div className="flex items-center gap-3 mb-4">
+                    <div className="flex items-center gap-4 mb-2">
                       <button
                         onClick={() => handleQuickAction('blackbook')}
                         data-testid="entity-modal-action-blackbook"
-                        className="text-xs text-purple-300 hover:text-purple-200 hover:underline flex items-center gap-1 transition-colors"
+                        className="control h-10 px-4 text-xs font-semibold uppercase tracking-wider text-[var(--accent-investigate)] hover:text-[var(--text-primary)] flex items-center gap-2"
                       >
-                        <BookOpen size={12} />
-                        Black Book
+                        <BookOpen size={14} />
+                        Black Book Entry
                       </button>
                       <button
                         onClick={() => handleQuickAction('timeline')}
                         data-testid="entity-modal-action-timeline"
-                        className="text-xs text-blue-300 hover:text-blue-200 hover:underline flex items-center gap-1 transition-colors"
+                        className="text-xs text-[var(--accent)] hover:text-blue-200 hover:underline flex items-center gap-1 transition-colors"
                       >
                         <Calendar size={12} />
                         Timeline
@@ -807,7 +817,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                       <button
                         onClick={() => handleQuickAction('search')}
                         data-testid="entity-modal-action-search"
-                        className="text-xs text-cyan-300 hover:text-cyan-200 hover:underline flex items-center gap-1 transition-colors"
+                        className="text-xs text-[var(--accent)] hover:text-cyan-200 hover:underline flex items-center gap-1 transition-colors"
                       >
                         <Search size={12} />
                         Search
@@ -816,7 +826,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                     {activeQuickAction && (
                       <p
                         data-testid="entity-modal-context"
-                        className="text-[11px] text-slate-500 mb-2"
+                        className="text-[11px] text-[var(--text-muted)] mb-2"
                       >
                         Context:{' '}
                         {activeQuickAction === 'blackbook'
@@ -842,12 +852,12 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                 onClick={onClose}
                 size="md"
                 label="Close entity profile"
-                className="text-slate-400 hover:text-white"
+                className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
               />
             </div>
 
             {/* CONTENT AREA */}
-            <div className="flex-1 min-h-0 relative bg-slate-900">
+            <div className="flex-1 min-h-0 relative bg-[var(--glass-bg-strong)]">
               {/* 1. OVERVIEW TAB */}
               {activeTab === 'overview' && (
                 <div
@@ -857,13 +867,13 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                   {loading && (
                     <div className="p-6 space-y-8">
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <Skeleton className="h-48 w-full rounded-xl bg-slate-900" />
-                        <Skeleton className="h-48 w-full rounded-xl bg-slate-900" />
+                        <Skeleton className="h-48 w-full rounded-[var(--radius-lg)] bg-[var(--glass-bg)]" />
+                        <Skeleton className="h-48 w-full rounded-[var(--radius-lg)] bg-[var(--glass-bg)]" />
                       </div>
                       <div className="space-y-4">
-                        <Skeleton className="h-6 w-48 bg-slate-900" />
-                        <Skeleton className="h-24 w-full rounded-lg bg-slate-900" />
-                        <Skeleton className="h-24 w-full rounded-lg bg-slate-900" />
+                        <Skeleton className="h-6 w-48 rounded-[var(--radius-sm)] bg-[var(--glass-bg)]" />
+                        <Skeleton className="h-24 w-full rounded-[var(--radius-md)] bg-[var(--glass-bg)]" />
+                        <Skeleton className="h-24 w-full rounded-[var(--radius-md)] bg-[var(--glass-bg)]" />
                       </div>
                     </div>
                   )}
@@ -871,13 +881,13 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                   {!loading && entity && forensicData && (
                     <div className="p-6 space-y-8">
                       {/* METRICS & SIGNAL PANEL */}
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div className="bg-slate-950/50 rounded-[var(--radius-lg)] p-5 border border-slate-800 flex flex-col justify-between">
-                          <div className="flex flex-wrap items-center gap-2 mb-4">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+                        <div className="surface-glass-card p-6 flex flex-col justify-between">
+                          <div className="flex flex-wrap items-center gap-3 mb-6">
                             <span
                               className={`semantic-chip ${getRiskClass(entity.redFlagRating || 0)}`}
                             >
-                              <ShieldAlert size={12} />
+                              <ShieldAlert size={12} className="opacity-80" />
                               Risk {(entity.redFlagRating || 0).toFixed(0)}/5
                             </span>
                             <span
@@ -888,10 +898,10 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                                     ? 'evidence-inferred'
                                     : forensicData.ladder.level === 'L3'
                                       ? 'evidence-agentic'
-                                      : 'text-slate-300 border-slate-700 bg-slate-800/60'
+                                      : 'text-text-muted border-[var(--glass-border)] bg-[var(--glass-bg)]'
                               }`}
                             >
-                              <Sparkles size={12} />
+                              <Sparkles size={12} className="opacity-80" />
                               {forensicData.ladder.level === 'L1'
                                 ? 'Direct Evidence'
                                 : forensicData.ladder.level === 'L2'
@@ -902,49 +912,61 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                             </span>
                           </div>
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                            <div className="p-3 bg-slate-900 rounded-[var(--radius-md)] border border-slate-800">
-                              <div className="text-xl font-bold text-cyan-300">
+                            <div className="p-4 bg-[var(--glass-bg)] rounded-[var(--radius-md)] border border-white/5 flex flex-col items-center justify-center text-center">
+                              <div className="text-2xl font-display text-[var(--accent)] mb-1">
                                 {entity.mentions}
                               </div>
-                              <div className="text-xs text-slate-500 mt-1">Mentions</div>
+                              <div className="text-[10px] font-semibold tracking-widest uppercase text-text-dim">
+                                Mentions
+                              </div>
                             </div>
-                            <div className="p-3 bg-slate-900 rounded-[var(--radius-md)] border border-slate-800">
-                              <div className="text-xl font-bold text-blue-300">
+                            <div className="p-4 bg-[var(--glass-bg)] rounded-[var(--radius-md)] border border-white/5 flex flex-col items-center justify-center text-center">
+                              <div className="text-2xl font-display text-[var(--accent-emails)] mb-1">
                                 {totalDocs > 0 ? totalDocs : entity.mentions}
                               </div>
-                              <div className="text-xs text-slate-500 mt-1">Documents</div>
+                              <div className="text-[10px] font-semibold tracking-widest uppercase text-text-dim">
+                                Documents
+                              </div>
                             </div>
-                            <div className="p-3 bg-slate-900 rounded-[var(--radius-md)] border border-slate-800">
-                              <div className="text-xl font-bold text-orange-300">
+                            <div className="p-4 bg-[var(--glass-bg)] rounded-[var(--radius-md)] border border-white/5 flex flex-col items-center justify-center text-center">
+                              <div className="text-2xl font-display text-[var(--accent)] mb-1">
                                 {entity.photos?.length || 0}
                               </div>
-                              <div className="text-xs text-slate-500 mt-1">Media</div>
+                              <div className="text-[10px] font-semibold tracking-widest uppercase text-text-dim">
+                                Media
+                              </div>
                             </div>
-                            <div className="p-3 bg-slate-900 rounded-[var(--radius-md)] border border-slate-800">
-                              <div className="text-xl font-bold text-emerald-300">
+                            <div className="p-4 bg-[var(--glass-bg)] rounded-[var(--radius-md)] border border-white/5 flex flex-col items-center justify-center text-center">
+                              <div className="text-2xl font-display text-[var(--accent-evidence)] mb-1">
                                 {entity.evidenceTypes?.length || 0}
                               </div>
-                              <div className="text-xs text-slate-500 mt-1">Source Types</div>
+                              <div className="text-[10px] font-semibold tracking-widest uppercase text-text-dim">
+                                Source Types
+                              </div>
                             </div>
                           </div>
-                          <div className="mt-6 pt-6 border-t border-slate-800/50">
-                            <h4 className="text-sm font-semibold text-slate-400 mb-3 flex items-center gap-2">
-                              <Activity size={14} /> KEY DRIVERS
+                          <div className="mt-8 pt-6 border-t border-[var(--glass-border)]">
+                            <h4 className="text-[11px] font-semibold tracking-[0.2em] text-text-muted uppercase mb-4 flex items-center gap-2">
+                              <Activity size={12} className="text-[var(--accent)]" /> Key Drivers
                             </h4>
                             <DriverChips chips={forensicData.drivers} />
                           </div>
                         </div>
 
-                        <div className="bg-slate-950/50 rounded-[var(--radius-lg)] p-5 border border-slate-800">
-                          <h4 className="text-sm font-semibold text-slate-300 mb-4 flex items-center justify-between">
-                            <span>FORENSIC SIGNALS</span>
-                            <span className="text-xs font-mono text-slate-500">EXO-METRICS v2</span>
+                        <div className="surface-glass-card p-6">
+                          <h4 className="text-[11px] font-semibold tracking-[0.2em] text-text-muted uppercase mb-5 flex items-center justify-between">
+                            <span>Forensic Signals</span>
+                            <span className="font-mono text-[9px] text-text-dim opacity-70">
+                              EXO-METRICS v2
+                            </span>
                           </h4>
                           <SignalPanel metrics={forensicData.signals} />
 
-                          <div className="mt-6 p-3 bg-slate-900/80 rounded-lg border border-slate-800/80">
-                            <div className="text-xs text-slate-400 leading-relaxed">
-                              <span className="text-indigo-400 font-medium">Analysis:</span>{' '}
+                          <div className="mt-6 p-4 surface-quiet rounded-[var(--radius-md)] border-l-2 border-l-[var(--accent)]">
+                            <div className="text-sm text-text-muted leading-relaxed">
+                              <span className="text-text-default font-medium uppercase text-xs tracking-wider block mb-1">
+                                Analysis
+                              </span>{' '}
                               {forensicData.ladder.description}
                             </div>
                           </div>
@@ -953,18 +975,18 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
 
                       {/* HIGH SIGNIFICANCE EVIDENCE */}
                       {entity.significantPassages && entity.significantPassages.length > 0 && (
-                        <div>
-                          <h3 className="text-slate-300 font-semibold flex items-center gap-2 font-mono uppercase tracking-widest text-xs mb-4">
-                            <AlertTriangle size={14} className="text-amber-500" /> High Significance
-                            Evidence
+                        <div className="mt-10">
+                          <h3 className="text-text-strong font-medium flex items-center gap-3 font-sans tracking-wide text-sm mb-6 pb-2 border-b border-[var(--glass-border)]">
+                            <AlertTriangle size={16} className="text-[var(--risk-critical)]" /> High
+                            Significance Evidence
                           </h3>
                           <div className="grid gap-4">
                             {entity.significantPassages.map((passage, idx) => (
                               <article
                                 key={idx}
-                                className={`bg-slate-950 border border-slate-800 rounded-[var(--radius-md)] p-4 hover:border-indigo-500/30 transition-colors ${
+                                className={`surface-glass-card p-6 hover:bg-[var(--glass-bg-strong)] transition-colors ${
                                   passage.documentId
-                                    ? 'cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-400/70'
+                                    ? 'cursor-pointer focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/50'
                                     : ''
                                 }`}
                                 role={passage.documentId ? 'button' : undefined}
@@ -985,16 +1007,16 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                                     : undefined
                                 }
                               >
-                                <div className="flex items-start gap-4">
-                                  <div className="mt-1 shrink-0 p-2 bg-slate-900 rounded-[var(--radius-sm)] text-slate-400 transition-colors">
-                                    <FileText size={16} />
+                                <div className="flex items-start gap-5">
+                                  <div className="mt-1 shrink-0 p-3 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-md)] text-text-muted transition-colors">
+                                    <FileText size={18} />
                                   </div>
                                   <div className="min-w-0 flex-1">
-                                    <div className="flex flex-wrap items-center gap-2 mb-2">
-                                      <span className="semantic-chip text-[10px] px-2 h-6 border-slate-700/70 bg-slate-900/70 text-slate-300">
+                                    <div className="flex flex-wrap items-center gap-3 mb-3">
+                                      <span className="semantic-chip text-[10px] px-2 h-6 border-[var(--glass-border)] bg-[var(--glass-bg)] text-text-default uppercase tracking-widest">
                                         {passage.source || 'Document'}
                                       </span>
-                                      <span className="text-xs font-mono text-slate-400">
+                                      <span className="text-xs font-mono text-text-dim">
                                         #{passage.documentId || 'n/a'}
                                       </span>
                                       {passage.documentId && (
@@ -1005,13 +1027,13 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                                               newTab: true,
                                             });
                                           }}
-                                          className="ml-auto text-xs text-indigo-300 hover:text-indigo-200 flex items-center gap-1"
+                                          className="ml-auto text-xs font-semibold tracking-wider uppercase text-[var(--accent)] hover:text-[var(--text-primary)] flex items-center gap-1 opacity-70 hover:opacity-100 transition-opacity"
                                         >
-                                          Open source <ExternalLink size={11} />
+                                          Open source <ExternalLink size={12} />
                                         </button>
                                       )}
                                     </div>
-                                    <p className="text-slate-300 text-sm leading-relaxed border-l-2 border-indigo-500/50 pl-4 mb-3">
+                                    <p className="text-text-muted text-sm leading-relaxed border-l-[3px] border-[var(--glass-border)] pl-4 mb-4">
                                       {highlightTerms(
                                         normalizeEvidenceSnippet(
                                           passage.passage ||
@@ -1026,13 +1048,13 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                                         [entity.fullName, passage.keyword],
                                       )}
                                     </p>
-                                    <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
-                                      <span className="inline-flex items-center gap-1">
-                                        <FileText size={10} />{' '}
+                                    <div className="flex flex-wrap items-center gap-4 text-[11px] font-medium tracking-wider uppercase text-text-dim">
+                                      <span className="inline-flex items-center gap-1.5">
+                                        <FileText size={12} />{' '}
                                         {passage.filename || 'Untitled source'}
                                       </span>
-                                      <span className="inline-flex items-center gap-1 text-amber-300">
-                                        <AlertTriangle size={10} />
+                                      <span className="inline-flex items-center gap-1.5 text-[var(--risk-medium)]">
+                                        <AlertTriangle size={12} />
                                         Why significant:{' '}
                                         {passage.keyword
                                           ? 'Matched high-risk phrase.'
@@ -1051,11 +1073,11 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                       {entity.blackBookEntries && entity.blackBookEntries.length > 0 && (
                         <div
                           ref={blackBookSectionRef}
-                          className="bg-purple-950/20 border border-purple-900/30 rounded-xl p-5 mb-8"
+                          className="surface-glass-card border-l-[3px] border-l-[var(--accent-investigate)] p-6 mb-10 mt-10"
                         >
-                          <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-purple-400 font-semibold flex items-center gap-2">
-                              <Icon name="Book" size="sm" />
+                          <div className="flex items-center justify-between mb-5">
+                            <h3 className="text-text-strong font-medium flex items-center gap-2 font-sans tracking-wide text-sm">
+                              <BookOpen size={16} className="text-[var(--accent-investigate)]" />
                               Black Book Entry
                             </h3>
                             <button
@@ -1064,7 +1086,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                                   `/blackbook?search=${encodeURIComponent(entity.fullName)}`,
                                 )
                               }
-                              className="text-xs text-purple-400 hover:text-purple-300 hover:underline flex items-center gap-1 transition-colors"
+                              className="text-[11px] font-bold tracking-widest uppercase text-text-muted hover:text-[var(--accent-investigate)] flex items-center gap-1.5 transition-colors"
                             >
                               View in Black Book <ExternalLink size={12} />
                             </button>
@@ -1078,16 +1100,17 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                                     {entry.phoneNumbers.map((phone: string, i: number) => (
                                       <span
                                         key={i}
-                                        className="px-2 py-1 bg-purple-900/40 text-purple-200 text-xs rounded border border-purple-800/50 flex items-center gap-1"
+                                        className="px-3 py-1.5 bg-[var(--glass-bg)] text-text-default text-xs font-mono rounded-[var(--radius-sm)] border border-[var(--glass-border)] flex items-center gap-2"
                                       >
-                                        <Icon name="Phone" size="xs" /> {phone}
+                                        <Icon name="Phone" size="xs" className="opacity-60" />{' '}
+                                        {phone}
                                       </span>
                                     ))}
                                   </div>
                                 )}
 
                                 {entry.notes && (
-                                  <p className="text-slate-400 text-sm italic border-l-2 border-purple-800/50 pl-3">
+                                  <p className="text-text-muted text-sm italic border-l-[3px] border-[var(--glass-border)] pl-4 py-1">
                                     {entry.notes}
                                   </p>
                                 )}
@@ -1099,8 +1122,10 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
 
                       {/* BIO */}
                       <div>
-                        <h3 className="text-slate-300 font-semibold mb-3">Biography</h3>
-                        <p className="text-slate-400 text-sm leading-relaxed max-w-4xl">
+                        <h3 className="text-[var(--text-secondary)] font-semibold mb-3">
+                          Biography
+                        </h3>
+                        <p className="text-[var(--text-muted)] text-sm leading-relaxed max-w-4xl">
                           {entity.bio || entity.description || 'No biographical data available.'}
                         </p>
                       </div>
@@ -1116,21 +1141,21 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                   data-testid="entity-modal-tab-evidence"
                 >
                   {/* FILTERS TOOLBAR */}
-                  <div className="p-4 bg-slate-950/30 border-b border-slate-800 flex flex-col md:flex-row gap-3 shrink-0">
-                    <div className="relative flex-1 max-w-md">
+                  <div className="p-5 md:p-6 border-b border-[var(--glass-border)] flex flex-col md:flex-row gap-4 shrink-0 bg-transparent">
+                    <div className="relative flex-1 max-w-lg header-search-pill">
                       <Search
-                        className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
-                        size={16}
+                        className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted transition-colors group-focus-within:text-[var(--accent)]"
+                        size={18}
                       />
                       <input
                         type="text"
                         placeholder="Search relevant documents..."
-                        className="w-full bg-slate-900 border border-slate-700 rounded-lg pl-10 pr-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500"
+                        className="w-full bg-transparent border-none pl-12 pr-6 py-3 text-sm text-text-strong font-medium placeholder:text-text-muted focus:outline-none focus:ring-0"
                         value={docFilters.search}
                         onChange={(e) => handleFilterChange({ search: e.target.value })}
                       />
                     </div>
-                    <div className="text-xs text-slate-400 md:ml-auto self-center">
+                    <div className="text-[11px] font-semibold tracking-widest uppercase text-text-muted md:ml-auto self-center bg-[var(--glass-bg)] px-4 py-2 rounded-full border border-[var(--glass-border)]">
                       <span data-testid="entity-evidence-count">
                         {isDocsLoading
                           ? 'Loading evidence...'
@@ -1139,29 +1164,29 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                     </div>
                   </div>
 
-                  <div className="flex-1 min-h-0 bg-slate-900 overflow-hidden">
+                  <div className="flex-1 min-h-0 bg-transparent overflow-hidden">
                     {isDocsLoading && documents.length === 0 ? (
-                      <div className="p-4 space-y-3">
+                      <div className="p-6 space-y-4">
                         {Array.from({ length: 6 }).map((_, i) => (
                           <div
                             key={i}
-                            className="h-24 bg-slate-950 border border-slate-800 rounded-[var(--radius-md)] p-3 flex gap-4 items-center animate-pulse"
+                            className="h-28 surface-glass-card rounded-[var(--radius-lg)] p-5 flex gap-5 items-center animate-pulse"
                           >
-                            <div className="w-12 h-12 rounded bg-slate-800" />
-                            <div className="flex-1 space-y-2">
-                              <div className="h-4 w-3/4 bg-slate-800 rounded" />
-                              <div className="h-3 w-1/2 bg-slate-800 rounded" />
+                            <div className="w-14 h-14 rounded bg-white/5" />
+                            <div className="flex-1 space-y-3">
+                              <div className="h-5 w-3/4 bg-white/5 rounded" />
+                              <div className="h-4 w-1/2 bg-white/5 rounded" />
                             </div>
                           </div>
                         ))}
                       </div>
                     ) : !isDocsLoading && documents.length === 0 ? (
-                      <div className="h-full min-h-[260px] flex flex-col items-center justify-center text-slate-400 text-center px-6">
-                        <FileText size={44} className="mb-3 opacity-30" />
-                        <h4 className="text-slate-200 font-semibold mb-1">
+                      <div className="h-full min-h-[260px] flex flex-col items-center justify-center text-text-dim text-center px-6">
+                        <FileText size={44} className="mb-4 opacity-30 text-[var(--accent)]" />
+                        <h4 className="text-text-strong font-display text-xl mb-2">
                           No Linked Evidence Found
                         </h4>
-                        <p className="text-sm text-slate-500 max-w-md">
+                        <p className="text-sm text-text-muted max-w-md">
                           We could not find evidence items for "{entity?.fullName}" using current
                           filters.
                         </p>
@@ -1182,7 +1207,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                               <div className="py-3 flex justify-center">
                                 <button
                                   type="button"
-                                  className="control h-9 px-4 text-xs text-slate-200"
+                                  className="control h-9 px-4 text-xs text-[var(--text-primary)]"
                                   disabled={isNextPageLoading}
                                   onClick={() => void loadNextPage(documents.length)}
                                   data-testid="entity-evidence-load-more"
@@ -1244,7 +1269,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                                           if (!doc) {
                                             return (
                                               <div style={style} className="p-4">
-                                                <div className="h-full bg-slate-950/20 border border-slate-800/50 rounded-lg animate-pulse" />
+                                                <div className="h-full bg-slate-950/20 border border-[var(--glass-border)] rounded-[var(--radius-lg)] animate-pulse" />
                                               </div>
                                             );
                                           }
@@ -1294,18 +1319,18 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                         return (
                           <article
                             key={i}
-                            className="bg-slate-950 border border-slate-800 rounded-[var(--radius-md)] overflow-hidden"
+                            className="surface-glass-card overflow-hidden group border border-[var(--glass-border)]"
                           >
-                            <div className="aspect-video bg-slate-900 overflow-hidden">
+                            <div className="aspect-video bg-[var(--bg-dark)] overflow-hidden relative border-b border-[var(--glass-border)]">
                               {brokenMediaIds[String(photo.id)] ? (
-                                <div className="w-full h-full flex items-center justify-center text-slate-500 bg-slate-900">
+                                <div className="w-full h-full flex items-center justify-center text-text-dim">
                                   <ImageIcon size={28} />
                                 </div>
                               ) : (
                                 <img
                                   src={photo.url}
                                   alt={title}
-                                  className="w-full h-full object-cover"
+                                  className="w-full h-full object-cover transition-transform duration-700 ease-in-out group-hover:scale-105"
                                   onError={(event) => {
                                     const id = String(photo.id || i);
                                     const fallbackUrl = photo.fullUrl || `/api/media/images/${id}`;
@@ -1320,48 +1345,52 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                                 />
                               )}
                             </div>
-                            <div className="p-3">
-                              <div className="flex items-start gap-2 mb-2">
-                                <h4 className="text-sm font-semibold text-slate-100 line-clamp-2 flex-1">
+                            <div className="p-5">
+                              <div className="flex items-start gap-3 mb-3">
+                                <h4 className="text-base font-display text-text-strong line-clamp-2 flex-1 group-hover:text-[var(--accent)] transition-colors">
                                   {title}
                                 </h4>
                                 {riskRating > 0 && (
-                                  <span className={`semantic-chip ${getRiskClass(riskRating)}`}>
-                                    <ShieldAlert size={12} />
+                                  <span
+                                    className={`semantic-chip ${getRiskClass(riskRating)} shrink-0`}
+                                  >
+                                    <ShieldAlert size={12} className="opacity-80" />
                                     {riskRating.toFixed(0)}/5
                                   </span>
                                 )}
                                 {hasDirectSignal && (
-                                  <span className="semantic-chip evidence-direct">
-                                    <Sparkles size={12} />
+                                  <span className="semantic-chip evidence-direct shrink-0">
+                                    <Sparkles size={12} className="opacity-80" />
                                     Direct
                                   </span>
                                 )}
                               </div>
 
-                              <div className="text-xs text-slate-400 flex flex-wrap items-center gap-3">
-                                <span className="inline-flex items-center gap-1">
+                              <div className="text-[11px] font-semibold tracking-wider uppercase text-text-dim flex flex-wrap items-center gap-4">
+                                <span className="inline-flex items-center gap-1.5">
                                   <Calendar size={12} />
                                   {date}
                                 </span>
-                                <span className="inline-flex items-center gap-1">
+                                <span className="inline-flex items-center gap-1.5">
                                   <ImageIcon size={12} />
                                   {sourceType}
                                 </span>
                               </div>
 
                               {taggedPeople.length > 0 && (
-                                <div className="mt-3 text-xs text-slate-300">
-                                  <span className="text-slate-500">Tagged people:</span>{' '}
+                                <div className="mt-4 text-[11px] font-mono text-text-muted">
+                                  <span className="text-text-dim uppercase tracking-widest font-sans font-semibold mr-2">
+                                    Tagged:
+                                  </span>{' '}
                                   {taggedPeople.slice(0, 3).join(', ')}
                                   {taggedPeople.length > 3 ? ` +${taggedPeople.length - 3}` : ''}
                                 </div>
                               )}
 
-                              <div className="mt-3 pt-3 border-t border-slate-800 flex items-center justify-end">
+                              <div className="mt-5 pt-4 border-t border-[var(--glass-border)] flex items-center justify-end">
                                 <button
                                   onClick={() => window.open(photo.url, '_blank')}
-                                  className="control h-9 px-3 text-xs text-slate-200 flex items-center gap-1"
+                                  className="control h-8 px-4 text-xs font-semibold tracking-wider uppercase text-text-default flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
                                   aria-label={`Open media item ${title}`}
                                   title="Open media in new tab"
                                 >
@@ -1374,7 +1403,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                       })}
                     </div>
                   ) : (
-                    <div className="text-center py-20 text-slate-500">
+                    <div className="text-center py-20 text-[var(--text-muted)]">
                       <Search size={48} className="mx-auto mb-4 opacity-20" />
                       <p>No media files found for this entity.</p>
                     </div>
@@ -1385,16 +1414,16 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
               {/* 4. NETWORK TAB */}
               {activeTab === 'network' && (
                 <div
-                  className="absolute inset-0 overflow-hidden bg-slate-900"
+                  className="absolute inset-0 overflow-hidden bg-[var(--glass-bg-strong)]"
                   data-testid="entity-modal-tab-network"
                 >
                   {networkLoading ? (
-                    <div className="h-full flex flex-col items-center justify-center text-slate-500">
+                    <div className="h-full flex flex-col items-center justify-center text-[var(--text-muted)]">
                       <Search size={32} className="mx-auto mb-4 opacity-20 animate-pulse" />
                       <p>Loading network graph...</p>
                     </div>
                   ) : relationships.length === 0 ? (
-                    <div className="h-full flex flex-col items-center justify-center text-slate-500">
+                    <div className="h-full flex flex-col items-center justify-center text-[var(--text-muted)]">
                       <Search size={32} className="mx-auto mb-4 opacity-20" />
                       <p>No connections found.</p>
                     </div>
@@ -1415,32 +1444,29 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
 
               {/* 5. INVESTIGATIONS TAB */}
               {activeTab === 'investigations' && (
-                <div className="h-full flex flex-col min-h-0">
-                  <div className="p-4 bg-slate-950/30 border-b border-slate-800 flex items-center justify-between shrink-0">
-                    <h3 className="text-sm font-semibold text-slate-300 flex items-center gap-2">
-                      <Briefcase size={16} className="text-indigo-400" />
+                <div className="h-full flex flex-col min-h-0 bg-transparent">
+                  <div className="p-6 border-b border-[var(--glass-border)] flex items-center justify-between shrink-0">
+                    <h3 className="text-sm font-semibold text-text-strong flex items-center gap-3 font-sans tracking-wide">
+                      <Briefcase size={16} className="text-[var(--accent-investigate)]" />
                       Linked Investigations
                     </h3>
-                    <div className="text-xs text-slate-400">
+                    <div className="text-[11px] font-semibold tracking-widest uppercase text-text-muted bg-[var(--glass-bg)] px-4 py-2 rounded-full border border-[var(--glass-border)]">
                       {isInvestigationsLoading
                         ? 'Loading cases...'
                         : `${investigations.length} open cases`}
                     </div>
                   </div>
 
-                  <div className="flex-1 min-h-0 overflow-y-auto p-6 space-y-4 bg-slate-900 custom-scrollbar">
+                  <div className="flex-1 min-h-0 overflow-y-auto p-6 space-y-5 custom-scrollbar">
                     {isInvestigationsLoading && (
-                      <div className="space-y-4">
+                      <div className="space-y-5">
                         {Array.from({ length: 3 }).map((_, i) => (
-                          <div
-                            key={i}
-                            className="bg-slate-950/50 border border-slate-800 rounded-xl p-5 space-y-3 animate-pulse"
-                          >
-                            <div className="h-5 w-1/3 bg-slate-800 rounded" />
-                            <div className="h-4 w-2/3 bg-slate-800 rounded" />
-                            <div className="flex gap-3">
-                              <div className="h-6 w-20 bg-slate-800 rounded-full" />
-                              <div className="h-6 w-20 bg-slate-800 rounded-full" />
+                          <div key={i} className="surface-glass-card p-6 space-y-4 animate-pulse">
+                            <div className="h-6 w-1/3 bg-white/5 rounded" />
+                            <div className="h-4 w-2/3 bg-white/5 rounded" />
+                            <div className="flex gap-4">
+                              <div className="h-6 w-24 bg-white/5 rounded-full" />
+                              <div className="h-6 w-24 bg-white/5 rounded-full" />
                             </div>
                           </div>
                         ))}
@@ -1450,12 +1476,15 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                     {!isInvestigationsLoading &&
                       investigationsInitialized &&
                       investigations.length === 0 && (
-                        <div className="h-full min-h-[300px] flex flex-col items-center justify-center text-slate-400 text-center px-6">
-                          <Briefcase size={48} className="mb-4 opacity-20" />
-                          <h4 className="text-slate-200 font-semibold mb-2">
+                        <div className="h-full min-h-[300px] flex flex-col items-center justify-center text-text-dim text-center px-6">
+                          <Briefcase
+                            size={48}
+                            className="mb-4 opacity-30 text-[var(--accent-investigate)]"
+                          />
+                          <h4 className="text-text-strong font-display text-xl mb-2">
                             No Active Investigations
                           </h4>
-                          <p className="text-sm text-slate-500 max-w-sm">
+                          <p className="text-sm text-text-muted max-w-sm">
                             This entity is not currently linked as primary evidence in any open
                             investigation workflows.
                           </p>
@@ -1466,44 +1495,44 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                       investigations.map((inv) => (
                         <div
                           key={inv.id}
-                          className="group bg-slate-950 border border-slate-800 rounded-xl p-5 hover:border-indigo-500/50 transition-all duration-200"
+                          className="group surface-glass-card p-6 border-l-[3px] border-l-[var(--accent-investigate)]"
                         >
-                          <div className="flex items-start justify-between gap-4 mb-3">
+                          <div className="flex items-start justify-between gap-5 mb-4">
                             <div className="min-w-0">
-                              <h4 className="text-lg font-bold text-slate-100 group-hover:text-indigo-300 transition-colors truncate">
+                              <h4 className="text-lg font-display text-text-strong group-hover:text-[var(--accent-investigate)] transition-colors truncate">
                                 {inv.title}
                               </h4>
-                              <p className="text-sm text-slate-400 mt-1 line-clamp-2">
+                              <p className="text-sm text-text-muted mt-2 line-clamp-2">
                                 {inv.description || 'No case description provided.'}
                               </p>
                             </div>
                             <button
                               onClick={() => navigateFromModal(`/investigations/${inv.uuid}`)}
-                              className="control flex h-10 px-4 items-center gap-2 text-sm font-medium whitespace-nowrap"
+                              className="control flex h-10 px-5 items-center gap-2 text-[11px] font-bold tracking-widest uppercase whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity"
                             >
                               Open Case
                               <ExternalLink size={14} />
                             </button>
                           </div>
 
-                          <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-slate-800/50">
+                          <div className="flex flex-wrap items-center gap-4 pt-4 border-t border-[var(--glass-border)]">
                             <span
                               className={cn(
-                                'text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider border',
+                                'text-[10px] font-bold px-3 py-1 rounded-[var(--radius-sm)] uppercase tracking-wider border',
                                 inv.status === 'open'
-                                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                                  : 'bg-slate-500/10 text-slate-400 border-slate-500/20',
+                                  ? 'bg-[var(--glass-bg)] text-[var(--accent-investigate)] border-[var(--accent-investigate)]/20'
+                                  : 'bg-[var(--glass-bg)] text-text-dim border-[var(--glass-border)]',
                               )}
                             >
                               {inv.status}
                             </span>
                             {inv._fallbackReason && (
-                              <span className="text-[10px] font-semibold px-2 py-0.5 rounded uppercase tracking-wider border border-indigo-500/20 text-indigo-300 bg-indigo-500/10">
+                              <span className="text-[10px] font-bold px-3 py-1 rounded-[var(--radius-sm)] uppercase tracking-wider border border-[var(--accent)]/20 text-[var(--accent)] bg-[var(--glass-bg)]">
                                 {inv._fallbackReason}
                               </span>
                             )}
-                            <span className="flex items-center gap-1.5 text-xs text-slate-500">
-                              <Clock size={12} />
+                            <span className="flex items-center gap-2 text-[10px] font-semibold tracking-widest uppercase text-text-dim">
+                              <Clock size={12} className="opacity-70" />
                               Updated {new Date(inv.updated_at).toLocaleDateString()}
                             </span>
                           </div>

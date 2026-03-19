@@ -65,16 +65,18 @@ export const DocumentBrowserHeader: React.FC<DocumentBrowserHeaderProps> = ({
     >
       <div className="flex items-center justify-between gap-3 mb-2">
         <div className="min-w-0">
-          <h1 className={`font-bold text-slate-100 ${isHeaderCondensed ? 'text-lg' : 'text-2xl'}`}>
+          <h1
+            className={`font-bold text-[var(--text-primary)] ${isHeaderCondensed ? 'text-lg' : 'text-2xl'}`}
+          >
             Document Browser
           </h1>
           {!isHeaderCondensed && (
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-[var(--text-secondary)]">
               High-signal evidence previews, risk context, and fast navigation at scale
             </p>
           )}
         </div>
-        <div className="text-xs text-slate-400 shrink-0">
+        <div className="text-xs text-[var(--text-muted)] shrink-0">
           {isFetching ? 'Updating results: ' : ''}
           Showing {filteredCount} of {totalDocuments.toLocaleString()}
         </div>
@@ -82,13 +84,13 @@ export const DocumentBrowserHeader: React.FC<DocumentBrowserHeaderProps> = ({
 
       <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_auto] gap-2 xl:items-center">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
           <input
             type="text"
             placeholder="Search by name, document ID, phrase, or source…"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            className="control w-full h-11 pl-10 pr-10 text-sm bg-slate-900 border-slate-700 focus:outline-none focus:border-blue-500"
+            className="control w-full h-11 pl-10 pr-10 text-sm bg-[var(--glass-bg-strong)] border-[var(--glass-border)] focus:outline-none focus:border-[var(--accent)]"
             autoComplete="off"
             autoCorrect="off"
             autoCapitalize="off"
@@ -98,7 +100,7 @@ export const DocumentBrowserHeader: React.FC<DocumentBrowserHeaderProps> = ({
           {searchInput && (
             <button
               onClick={() => setSearchInput('')}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 inline-flex h-7 w-7 items-center justify-center rounded-full hover:bg-slate-800 text-gray-400 hover:text-white transition-colors"
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 inline-flex h-7 w-7 items-center justify-center rounded-full hover:bg-[var(--glass-bg-highlight)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
               title="Clear search"
             >
               <X className="w-4 h-4" />
@@ -110,7 +112,7 @@ export const DocumentBrowserHeader: React.FC<DocumentBrowserHeaderProps> = ({
           <select
             value={selectedTranche}
             onChange={(e) => applyTrancheFilter(e.target.value)}
-            className="control h-11 px-3 text-sm leading-none bg-slate-900 border border-slate-700 rounded-[var(--radius-md)]"
+            className="control h-11 px-3 text-sm leading-none bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-md)]"
             aria-label="Filter by tranche"
             title="Filter documents by tranche/source collection"
           >
@@ -123,7 +125,7 @@ export const DocumentBrowserHeader: React.FC<DocumentBrowserHeaderProps> = ({
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as any)}
-            className="control h-11 px-3 text-sm leading-none bg-slate-900 border border-slate-700 rounded-[var(--radius-md)]"
+            className="control h-11 px-3 text-sm leading-none bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-md)]"
             aria-label="Sort field"
           >
             <option value="red_flag">Risk</option>
@@ -143,7 +145,7 @@ export const DocumentBrowserHeader: React.FC<DocumentBrowserHeaderProps> = ({
               setItemsPerPage(Number(e.target.value));
               setCurrentPage(1);
             }}
-            className="control h-11 px-3 text-sm leading-none bg-slate-900 border border-slate-700 rounded-[var(--radius-md)]"
+            className="control h-11 px-3 text-sm leading-none bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-md)]"
             aria-label="Results per page"
           >
             <option value={25}>25</option>

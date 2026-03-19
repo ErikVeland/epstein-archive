@@ -133,37 +133,39 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
   const assetType = inferAssetType();
 
   return (
-    <div className={`flex flex-col h-full bg-slate-900 overflow-hidden ${className}`}>
+    <div
+      className={`flex flex-col h-full bg-[var(--glass-bg-strong)] overflow-hidden ${className}`}
+    >
       {showToolbar && (
-        <div className="bg-slate-800 border-b border-slate-700 px-4 py-2 flex flex-wrap items-center justify-between gap-4 shrink-0">
+        <div className="bg-[var(--glass-bg)] border-b border-[var(--glass-border)] px-4 py-2 flex flex-wrap items-center justify-between gap-4 shrink-0">
           <div className="flex items-center gap-2">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)]" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Find in page..."
-                className="pl-9 pr-3 py-1.5 bg-slate-950/50 border border-slate-700 rounded-md text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 w-40"
+                className="pl-9 pr-3 py-1.5 bg-slate-950/50 border border-[var(--glass-border)] rounded-md text-xs text-[var(--text-primary)] placeholder-slate-500 focus:outline-none focus:border-[var(--accent)]/50 w-40"
               />
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1 border-r border-slate-700 pr-3 mr-1">
+            <div className="flex items-center gap-1 border-r border-[var(--glass-border)] pr-3 mr-1">
               <button
                 onClick={zoomOut}
-                className="p-1.5 text-slate-400 hover:text-white transition-colors"
+                className="p-1.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
                 title="Zoom Out"
               >
                 <ZoomOut className="w-4 h-4" />
               </button>
-              <span className="text-[10px] font-mono text-slate-500 w-10 text-center">
+              <span className="text-[10px] font-mono text-[var(--text-muted)] w-10 text-center">
                 {Math.round(scale * 100)}%
               </span>
               <button
                 onClick={zoomIn}
-                className="p-1.5 text-slate-400 hover:text-white transition-colors"
+                className="p-1.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
                 title="Zoom In"
               >
                 <ZoomIn className="w-4 h-4" />
@@ -171,7 +173,7 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
             </div>
             <button
               onClick={rotateClockwise}
-              className="p-1.5 text-slate-400 hover:text-white transition-colors"
+              className="p-1.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
               title="Rotate"
             >
               <RotateCw className="w-4 h-4" />
@@ -180,10 +182,13 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
         </div>
       )}
 
-      <div ref={viewerRef} className="flex-1 overflow-auto bg-slate-900 custom-scrollbar relative">
+      <div
+        ref={viewerRef}
+        className="flex-1 overflow-auto bg-[var(--glass-bg-strong)] custom-scrollbar relative"
+      >
         {isLoading ? (
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-500">
-            <div className="w-8 h-8 border-2 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin mb-4" />
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-[var(--text-muted)]">
+            <div className="w-8 h-8 border-2 border-[var(--accent)]/20 border-t-cyan-500 rounded-full animate-spin mb-4" />
             <p className="text-sm font-medium animate-pulse">Initializing Viewer...</p>
           </div>
         ) : error ? (
@@ -193,10 +198,10 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
             <p className="text-xs text-rose-300/60 max-w-xs">{error}</p>
           </div>
         ) : !currentUrl ? (
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-500 p-8 text-center">
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-[var(--text-muted)] p-8 text-center">
             <Info className="w-12 h-12 mb-4 opacity-20" />
-            <p className="font-bold mb-2 text-slate-300">No Asset Linked</p>
-            <p className="text-xs text-slate-500 max-w-xs">
+            <p className="font-bold mb-2 text-[var(--text-secondary)]">No Asset Linked</p>
+            <p className="text-xs text-[var(--text-muted)] max-w-xs">
               This record exists in the index but no PDF asset has been processed for the selected
               variant.
             </p>
@@ -206,14 +211,14 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
             <img
               src={currentUrl}
               alt={docMeta?.fileName || `Document ${documentId}`}
-              className="max-w-full max-h-[calc(100vh-380px)] object-contain rounded-lg shadow-2xl ring-1 ring-white/10"
+              className="max-w-full max-h-[calc(100vh-380px)] object-contain rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)] ring-1 ring-white/10"
             />
           </div>
         ) : assetType !== 'pdf' ? (
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-500 p-8 text-center">
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-[var(--text-muted)] p-8 text-center">
             <Info className="w-12 h-12 mb-4 opacity-20" />
-            <p className="font-bold mb-2 text-slate-300">Preview unavailable</p>
-            <p className="text-xs text-slate-500 max-w-xs">
+            <p className="font-bold mb-2 text-[var(--text-secondary)]">Preview unavailable</p>
+            <p className="text-xs text-[var(--text-muted)] max-w-xs">
               This asset is not a PDF. Open the original file from the document actions.
             </p>
           </div>
@@ -222,8 +227,8 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
             file={currentUrl}
             onLoadSuccess={onDocumentLoadSuccess}
             loading={
-              <div className="flex flex-col items-center justify-center py-20 text-slate-500">
-                <div className="w-6 h-6 border-2 border-cyan-500/10 border-t-cyan-500 rounded-full animate-spin mb-3" />
+              <div className="flex flex-col items-center justify-center py-20 text-[var(--text-muted)]">
+                <div className="w-6 h-6 border-2 border-[var(--accent)]/10 border-t-cyan-500 rounded-full animate-spin mb-3" />
                 <span className="text-xs font-medium">Loading document...</span>
               </div>
             }
@@ -243,9 +248,9 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
                 width={viewerWidth ? Math.floor((viewerWidth - 64) * scale) : undefined}
                 rotate={rotation}
                 loading={
-                  <div className="h-[800px] w-full bg-slate-800/20 animate-pulse rounded-lg" />
+                  <div className="h-[800px] w-full bg-[var(--glass-bg)]/20 animate-pulse rounded-[var(--radius-lg)]" />
                 }
-                className="shadow-2xl ring-1 ring-white/10"
+                className="shadow-[var(--glass-shadow)] ring-1 ring-white/10"
                 renderTextLayer={true}
                 renderAnnotationLayer={true}
               />
@@ -255,23 +260,23 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
       </div>
 
       {numPages > 0 && (
-        <div className="bg-slate-800/80 backdrop-blur-md border-t border-slate-700 px-6 py-3 flex items-center justify-between shrink-0">
+        <div className="bg-[var(--glass-bg)]/80 backdrop-blur-md border-t border-[var(--glass-border)] px-6 py-3 flex items-center justify-between shrink-0">
           <button
             onClick={goToPrevPage}
             disabled={pageNumber <= 1}
-            className="flex items-center gap-2 px-4 py-1.5 bg-slate-700 hover:bg-slate-600 disabled:opacity-30 disabled:hover:bg-slate-700 text-white rounded-lg transition-all text-xs font-bold uppercase tracking-wider"
+            className="flex items-center gap-2 px-4 py-1.5 bg-[var(--glass-bg-highlight)] hover:bg-[var(--glass-bg-highlight)] disabled:opacity-30 disabled:hover:bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] rounded-[var(--radius-lg)] transition-all text-xs font-bold uppercase tracking-wider"
           >
             <ChevronLeft className="w-4 h-4" />
             Previous
           </button>
 
           <div className="flex flex-col items-center">
-            <span className="text-xs font-bold text-slate-100">
-              {pageNumber} <span className="text-slate-500 mx-1">/</span> {numPages}
+            <span className="text-xs font-bold text-[var(--text-primary)]">
+              {pageNumber} <span className="text-[var(--text-muted)] mx-1">/</span> {numPages}
             </span>
-            <div className="w-32 h-1 bg-slate-700 rounded-full mt-2 overflow-hidden">
+            <div className="w-32 h-1 bg-[var(--glass-bg-highlight)] rounded-full mt-2 overflow-hidden">
               <div
-                className="h-full bg-cyan-500 transition-all duration-300"
+                className="h-full bg-[var(--accent)] transition-all duration-300"
                 style={{ width: `${(pageNumber / numPages) * 100}%` }}
               />
             </div>
@@ -280,7 +285,7 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
           <button
             onClick={goToNextPage}
             disabled={pageNumber >= numPages}
-            className="flex items-center gap-2 px-4 py-1.5 bg-slate-700 hover:bg-slate-600 disabled:opacity-30 disabled:hover:bg-slate-700 text-white rounded-lg transition-all text-xs font-bold uppercase tracking-wider"
+            className="flex items-center gap-2 px-4 py-1.5 bg-[var(--glass-bg-highlight)] hover:bg-[var(--glass-bg-highlight)] disabled:opacity-30 disabled:hover:bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] rounded-[var(--radius-lg)] transition-all text-xs font-bold uppercase tracking-wider"
           >
             Next
             <ChevronRight className="w-4 h-4" />

@@ -36,9 +36,11 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({
     <ScopedErrorBoundary>
       <div className="space-y-8">
         <DegradedBanner />
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-white mb-2">Enhanced Analytics</h2>
-          <p className="text-slate-400">
+        <div className="mb-12">
+          <h2 className="text-[2.5rem] leading-none font-display font-light tracking-tight text-[var(--accent)] mb-3">
+            Enhanced Analytics
+          </h2>
+          <p className="text-lg text-[var(--text-muted)] font-light tracking-wide">
             Interactive visualizations of the Epstein Investigation dataset
           </p>
         </div>
@@ -54,11 +56,9 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({
           }}
         />
 
-        <div className="glass-card p-6 rounded-xl">
-          <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400">
-              Classic Analytics
-            </span>
+        <div className="p-8 mt-12 mb-8 bg-[var(--glass-bg)]/30 backdrop-blur-xl rounded-[var(--radius-2xl)] shadow-[var(--glass-shadow-soft)] border border-[var(--glass-border)]/50">
+          <h3 className="text-2xl font-display font-light text-[var(--accent)] mb-8 flex items-center gap-3">
+            Classic Analytics
           </h3>
           <DataVisualization
             people={filteredPeople}

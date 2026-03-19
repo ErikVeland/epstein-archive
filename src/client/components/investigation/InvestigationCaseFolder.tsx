@@ -185,7 +185,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent)]" />
       </div>
     );
   }
@@ -201,9 +201,11 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
 
   if (!evidence || evidence.total === 0) {
     return (
-      <div className="text-center py-12 text-slate-400">
+      <div className="text-center py-12 text-[var(--text-muted)]">
         <Icon name="FolderOpen" size="xl" className="mx-auto mb-3 opacity-50" />
-        <h3 className="text-lg font-medium text-slate-300 mb-2">Case Folder is Empty</h3>
+        <h3 className="text-lg font-medium text-[var(--text-secondary)] mb-2">
+          Case Folder is Empty
+        </h3>
         <p className="text-sm">
           Add evidence from Subjects, Documents, Flights, Properties, or Emails
           <br />
@@ -222,15 +224,15 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
         {/* All Evidence */}
         <button
           onClick={() => setSelectedType(null)}
-          className={`p-4 rounded-lg border transition-all ${
+          className={`p-4 rounded-[var(--radius-lg)] border transition-all ${
             selectedType === null
-              ? 'bg-cyan-600/20 border-cyan-500/50 ring-2 ring-cyan-500/30'
-              : 'bg-slate-800/50 border-slate-700 hover:border-slate-600'
+              ? 'bg-[var(--accent)]/20 border-[var(--accent)]/50 ring-2 ring-[var(--accent)]/30'
+              : 'bg-[var(--glass-bg)]/50 border-[var(--glass-border)] hover:border-[var(--glass-border)]'
           }`}
         >
-          <Icon name="Folder" size="md" className="mx-auto mb-2 text-cyan-400" />
-          <div className="text-2xl font-bold text-white">{evidence.total}</div>
-          <div className="text-xs text-slate-400">All Evidence</div>
+          <Icon name="Folder" size="md" className="mx-auto mb-2 text-[var(--accent)]" />
+          <div className="text-2xl font-bold text-[var(--text-primary)]">{evidence.total}</div>
+          <div className="text-xs text-[var(--text-muted)]">All Evidence</div>
         </button>
 
         {/* Type Cards */}
@@ -241,10 +243,10 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
             <button
               key={type}
               onClick={() => setSelectedType(type === selectedType ? null : type)}
-              className={`p-4 rounded-lg border transition-all ${
+              className={`p-4 rounded-[var(--radius-lg)] border transition-all ${
                 selectedType === type
                   ? `bg-${config.color}-600/20 border-${config.color}-500/50 ring-2 ring-${config.color}-500/30`
-                  : 'bg-slate-800/50 border-slate-700 hover:border-slate-600'
+                  : 'bg-[var(--glass-bg)]/50 border-[var(--glass-border)] hover:border-[var(--glass-border)]'
               }`}
             >
               <Icon
@@ -252,42 +254,42 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
                 size="md"
                 className={`mx-auto mb-2 text-${config.color}-400`}
               />
-              <div className="text-2xl font-bold text-white">{count}</div>
-              <div className="text-xs text-slate-400">{config.label}</div>
+              <div className="text-2xl font-bold text-[var(--text-primary)]">{count}</div>
+              <div className="text-xs text-[var(--text-muted)]">{config.label}</div>
             </button>
           );
         })}
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap items-center gap-3 p-4 bg-slate-800/30 rounded-lg">
+      <div className="flex flex-wrap items-center gap-3 p-4 bg-[var(--glass-bg)]/30 rounded-[var(--radius-lg)]">
         {/* Search */}
         <div className="relative flex-1 min-w-[200px]">
           <Icon
             name="Search"
             size="sm"
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
           />
           <input
             type="text"
             placeholder="Search evidence..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-slate-900/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
+            className="w-full pl-10 pr-4 py-2 bg-[var(--glass-bg-strong)]/50 border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/50"
           />
         </div>
 
         {/* Relevance Filter */}
         <div className="flex items-center gap-2">
-          <span className="text-sm text-slate-400">Relevance:</span>
+          <span className="text-sm text-[var(--text-muted)]">Relevance:</span>
           {['high', 'medium', 'low'].map((rel) => (
             <button
               key={rel}
               onClick={() => setRelevanceFilter(rel === relevanceFilter ? null : rel)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+              className={`px-3 py-1.5 rounded-[var(--radius-lg)] text-xs font-medium border transition-colors ${
                 relevanceFilter === rel
                   ? relevanceColors[rel]
-                  : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'
+                  : 'bg-[var(--glass-bg)] border-[var(--glass-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)]'
               }`}
             >
               {rel.charAt(0).toUpperCase() + rel.slice(1)}
@@ -303,7 +305,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
               setRelevanceFilter(null);
               setSelectedType(null);
             }}
-            className="px-3 py-1.5 text-xs text-slate-400 hover:text-white"
+            className="px-3 py-1.5 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)]"
           >
             Clear Filters
           </button>
@@ -313,16 +315,16 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
       {/* Evidence List */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-white">
+          <h3 className="text-lg font-semibold text-[var(--text-primary)]">
             {selectedType ? typeConfig[selectedType]?.label || selectedType : 'All Evidence'}
-            <span className="ml-2 text-sm font-normal text-slate-400">
+            <span className="ml-2 text-sm font-normal text-[var(--text-muted)]">
               ({filteredEvidence.length} items)
             </span>
           </h3>
         </div>
 
         {filteredEvidence.length === 0 ? (
-          <div className="text-center py-8 text-slate-400">
+          <div className="text-center py-8 text-[var(--text-muted)]">
             <p>No evidence matches your filters</p>
           </div>
         ) : (
@@ -341,17 +343,17 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
               return (
                 <div
                   key={item.id}
-                  className={`p-4 bg-slate-800/50 border rounded-lg transition-colors ${
+                  className={`p-4 bg-[var(--glass-bg)]/50 border rounded-[var(--radius-lg)] transition-colors ${
                     isDeepLinkedItem(item)
-                      ? 'border-cyan-400 ring-2 ring-cyan-500/40'
-                      : 'border-slate-700 hover:border-slate-600'
+                      ? 'border-[var(--accent)] ring-2 ring-[var(--accent)]/40'
+                      : 'border-[var(--glass-border)] hover:border-[var(--glass-border)]'
                   }`}
                   data-evidence-row-id={resolveEvidenceKey(item)}
                 >
                   <div className="flex items-start gap-4">
                     {/* Type Icon */}
                     <div
-                      className={`flex-shrink-0 w-10 h-10 rounded-lg bg-${config.color}-900/30 flex items-center justify-center`}
+                      className={`flex-shrink-0 w-10 h-10 rounded-[var(--radius-lg)] bg-${config.color}-900/30 flex items-center justify-center`}
                     >
                       <Icon
                         name={config.icon as any}
@@ -363,9 +365,11 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
                     {/* Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-medium text-white truncate">{item.title}</h4>
+                        <h4 className="font-medium text-[var(--text-primary)] truncate">
+                          {item.title}
+                        </h4>
                         <span
-                          className={`px-2 py-0.5 text-xs rounded border ${relevanceColors[item.relevance] || 'bg-slate-700 text-slate-300'}`}
+                          className={`px-2 py-0.5 text-xs rounded border ${relevanceColors[item.relevance] || 'bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)]'}`}
                         >
                           {item.relevance}
                         </span>
@@ -378,27 +382,29 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
                       </div>
 
                       {item.description && (
-                        <p className="text-sm text-slate-400 line-clamp-2 mb-2">
+                        <p className="text-sm text-[var(--text-muted)] line-clamp-2 mb-2">
                           {item.description}
                         </p>
                       )}
 
                       {item.notes && (
-                        <p className="text-xs text-slate-500 italic mb-2">Note: {item.notes}</p>
+                        <p className="text-xs text-[var(--text-muted)] italic mb-2">
+                          Note: {item.notes}
+                        </p>
                       )}
 
-                      <div className="flex items-center gap-4 text-xs text-slate-500">
+                      <div className="flex items-center gap-4 text-xs text-[var(--text-muted)]">
                         <span>Added {new Date(item.addedAt).toLocaleDateString()}</span>
                         <span>by {item.addedBy}</span>
                         {provenance.ingestRunId && (
-                          <span className="px-1.5 py-0.5 rounded bg-slate-700 text-slate-300">
+                          <span className="px-1.5 py-0.5 rounded bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)]">
                             run {provenance.ingestRunId}
                           </span>
                         )}
-                        <span className="px-1.5 py-0.5 rounded bg-slate-700 text-slate-300">
+                        <span className="px-1.5 py-0.5 rounded bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)]">
                           ladder {provenance.ladder}
                         </span>
-                        <span className="px-1.5 py-0.5 rounded bg-slate-700 text-slate-300">
+                        <span className="px-1.5 py-0.5 rounded bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)]">
                           confidence{' '}
                           {provenance.confidence === null ? 'N/A' : provenance.confidence}
                         </span>
@@ -410,7 +416,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
                         {link && (
                           <Link
                             to={link}
-                            className="text-cyan-400 hover:text-cyan-300 flex items-center gap-1"
+                            className="text-[var(--accent)] hover:text-[var(--accent)] flex items-center gap-1"
                             onClick={(e) => e.stopPropagation()}
                           >
                             <Icon name="ExternalLink" size="xs" />
@@ -418,7 +424,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
                           </Link>
                         )}
                       </div>
-                      <div className="mt-2 text-[11px] text-slate-500">
+                      <div className="mt-2 text-[11px] text-[var(--text-muted)]">
                         Why in case: linked by investigator relevance "{item.relevance}" from{' '}
                         {item.sourcePath || 'unknown source'}
                         {provenance.pipelineVersion
@@ -438,7 +444,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
                             if (el) evidenceButtonRefs.current.set(key, el);
                             else evidenceButtonRefs.current.delete(key);
                           }}
-                          className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors"
+                          className="p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] transition-colors"
                           title="View Details"
                         >
                           <Icon name="Eye" size="sm" />
@@ -449,7 +455,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
                   {onEvidenceClick && (
                     <button
                       onClick={(e) => onEvidenceClick(item, e.currentTarget)}
-                      className="mt-3 text-xs text-cyan-300 hover:text-cyan-200"
+                      className="mt-3 text-xs text-[var(--accent)] hover:text-cyan-200"
                     >
                       Open evidence
                     </button>

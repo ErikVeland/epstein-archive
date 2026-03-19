@@ -324,28 +324,28 @@ export default function FinancialTransactionMapper({
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100 p-6">
+    <div className="min-h-screen bg-[var(--glass-bg-strong)] text-[var(--text-primary)] p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-red-400 mb-2">Financial Transaction Mapper</h1>
-          <p className="text-gray-400">
+          <p className="text-[var(--text-muted)]">
             Advanced forensic analysis of financial flows and suspicious patterns
           </p>
         </div>
 
         {/* Controls - Stacked Layout */}
-        <div className="bg-gray-800 rounded-lg p-6 mb-6">
+        <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] p-6 mb-6">
           {/* Search Row */}
           <div className="mb-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--text-muted)] w-4 h-4" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search entities, descriptions, or transaction details..."
-                className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-3 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] focus:ring-2 focus:ring-red-500 focus:border-transparent"
               />
             </div>
           </div>
@@ -354,11 +354,13 @@ export default function FinancialTransactionMapper({
           <div className="flex flex-col gap-3 mb-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-gray-400 mb-1">Risk Level</label>
+                <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">
+                  Risk Level
+                </label>
                 <select
                   value={filterRisk}
                   onChange={(e) => setFilterRisk(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:ring-2 focus:ring-red-500 text-sm"
+                  className="w-full px-3 py-2 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] focus:ring-2 focus:ring-red-500 text-sm"
                 >
                   <option value="all">All Risk Levels</option>
                   <option value="low">Low Risk</option>
@@ -369,11 +371,13 @@ export default function FinancialTransactionMapper({
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-400 mb-1">Amount Range</label>
+                <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">
+                  Amount Range
+                </label>
                 <select
                   value={filterAmount}
                   onChange={(e) => setFilterAmount(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:ring-2 focus:ring-red-500 text-sm"
+                  className="w-full px-3 py-2 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] focus:ring-2 focus:ring-red-500 text-sm"
                 >
                   <option value="all">All Amounts</option>
                   <option value="small">Under $100K</option>
@@ -385,22 +389,26 @@ export default function FinancialTransactionMapper({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-gray-400 mb-1">Start Date</label>
+                <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">
+                  Start Date
+                </label>
                 <input
                   type="date"
                   value={dateRange.start}
                   onChange={(e) => setDateRange((prev) => ({ ...prev, start: e.target.value }))}
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:ring-2 focus:ring-red-500 text-sm"
+                  className="w-full px-3 py-2 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] focus:ring-2 focus:ring-red-500 text-sm"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-400 mb-1">End Date</label>
+                <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">
+                  End Date
+                </label>
                 <input
                   type="date"
                   value={dateRange.end}
                   onChange={(e) => setDateRange((prev) => ({ ...prev, end: e.target.value }))}
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:ring-2 focus:ring-red-500 text-sm"
+                  className="w-full px-3 py-2 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] focus:ring-2 focus:ring-red-500 text-sm"
                 />
               </div>
             </div>
@@ -412,7 +420,7 @@ export default function FinancialTransactionMapper({
               <select
                 value={viewMode}
                 onChange={(e) => setViewMode(e.target.value as any)}
-                className="px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:ring-2 focus:ring-red-500 text-sm"
+                className="px-3 py-2 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] focus:ring-2 focus:ring-red-500 text-sm"
               >
                 <option value="flow">Flow Analysis</option>
                 <option value="network">Network View</option>
@@ -421,7 +429,7 @@ export default function FinancialTransactionMapper({
               </select>
 
               <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-[var(--text-muted)]">
                   {filteredTransactions.length} transactions
                 </span>
               </div>
@@ -429,7 +437,7 @@ export default function FinancialTransactionMapper({
 
             <button
               onClick={exportTransactionData}
-              className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg transition-colors text-sm"
+              className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-[var(--radius-lg)] transition-colors text-sm"
             >
               <Download className="w-4 h-4" />
               Export Data
@@ -439,20 +447,22 @@ export default function FinancialTransactionMapper({
 
         {/* Summary Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-gray-800 rounded-lg p-4">
+          <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-400 text-sm">Total Transactions</p>
-                <p className="text-2xl font-bold text-blue-400">{filteredTransactions.length}</p>
+                <p className="text-[var(--text-muted)] text-sm">Total Transactions</p>
+                <p className="text-2xl font-bold text-[var(--accent)]">
+                  {filteredTransactions.length}
+                </p>
               </div>
-              <TrendingUp className="w-8 h-8 text-blue-400" />
+              <TrendingUp className="w-8 h-8 text-[var(--accent)]" />
             </div>
           </div>
 
-          <div className="bg-gray-800 rounded-lg p-4">
+          <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-400 text-sm">Total Value</p>
+                <p className="text-[var(--text-muted)] text-sm">Total Value</p>
                 <p className="text-2xl font-bold text-green-400">
                   {formatCurrency(filteredTransactions.reduce((sum, tx) => sum + tx.amount, 0))}
                 </p>
@@ -461,10 +471,10 @@ export default function FinancialTransactionMapper({
             </div>
           </div>
 
-          <div className="bg-gray-800 rounded-lg p-4">
+          <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-400 text-sm">High Risk</p>
+                <p className="text-[var(--text-muted)] text-sm">High Risk</p>
                 <p className="text-2xl font-bold text-yellow-400">
                   {
                     filteredTransactions.filter(
@@ -477,10 +487,10 @@ export default function FinancialTransactionMapper({
             </div>
           </div>
 
-          <div className="bg-gray-800 rounded-lg p-4">
+          <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-400 text-sm">Patterns Detected</p>
+                <p className="text-[var(--text-muted)] text-sm">Patterns Detected</p>
                 <p className="text-2xl font-bold text-red-400">{detectedPatterns.length}</p>
               </div>
               <Filter className="w-8 h-8 text-red-400" />
@@ -492,33 +502,35 @@ export default function FinancialTransactionMapper({
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Transaction List */}
           <div className="lg:col-span-2">
-            <div className="bg-gray-800 rounded-lg p-6">
-              <h2 className="text-xl font-semibold text-gray-100 mb-4">Transactions</h2>
+            <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] p-6">
+              <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-4">
+                Transactions
+              </h2>
               <div className="space-y-4 max-h-96 overflow-y-auto">
                 {filteredTransactions.map((transaction) => (
                   <div
                     key={transaction.id}
                     onClick={() => setSelectedTransaction(transaction)}
-                    className={`p-4 rounded-lg cursor-pointer transition-colors ${
+                    className={`p-4 rounded-[var(--radius-lg)] cursor-pointer transition-colors ${
                       selectedTransaction?.id === transaction.id
                         ? 'bg-red-900 border border-red-500'
-                        : 'bg-gray-700 hover:bg-gray-600'
+                        : 'bg-[var(--glass-bg-highlight)] hover:bg-[var(--glass-bg-highlight)]'
                     }`}
                   >
                     <div className="flex flex-col gap-2">
                       <div className="flex justify-between items-start">
                         <div className="flex items-center gap-2 min-w-0 flex-1">
-                          <User className="w-4 h-4 text-gray-400 shrink-0" />
+                          <User className="w-4 h-4 text-[var(--text-muted)] shrink-0" />
                           <span
-                            className="font-medium text-gray-100 whitespace-nowrap overflow-hidden text-ellipsis max-w-[120px]"
+                            className="font-medium text-[var(--text-primary)] whitespace-nowrap overflow-hidden text-ellipsis max-w-[120px]"
                             title={transaction.fromEntity}
                           >
                             {transaction.fromEntity}
                           </span>
                           <TrendingDown className="w-4 h-4 text-red-400 shrink-0" />
-                          <User className="w-4 h-4 text-gray-400 shrink-0" />
+                          <User className="w-4 h-4 text-[var(--text-muted)] shrink-0" />
                           <span
-                            className="font-medium text-gray-100 whitespace-nowrap overflow-hidden text-ellipsis max-w-[120px]"
+                            className="font-medium text-[var(--text-primary)] whitespace-nowrap overflow-hidden text-ellipsis max-w-[120px]"
                             title={transaction.toEntity}
                           >
                             {transaction.toEntity}
@@ -535,7 +547,7 @@ export default function FinancialTransactionMapper({
                             <Shield className="w-5 h-5 text-yellow-400" />
                           )}
                           {transaction.riskLevel === 'medium' && (
-                            <ShieldCheck className="w-5 h-5 text-blue-400" />
+                            <ShieldCheck className="w-5 h-5 text-[var(--accent)]" />
                           )}
                           {transaction.riskLevel === 'low' && (
                             <Shield className="w-5 h-5 text-green-400" />
@@ -563,13 +575,13 @@ export default function FinancialTransactionMapper({
                                 window.dispatchEvent(event);
                               }}
                               variant="icon"
-                              className="hover:bg-slate-600 p-1"
+                              className="hover:bg-[var(--glass-bg-highlight)] p-1"
                             />
                           </div>
                         </div>
                       </div>
 
-                      <div className="flex justify-between items-center text-sm text-gray-400">
+                      <div className="flex justify-between items-center text-sm text-[var(--text-muted)]">
                         <span className="font-semibold">
                           {formatCurrency(transaction.amount, transaction.currency)}
                         </span>
@@ -580,7 +592,7 @@ export default function FinancialTransactionMapper({
                         <span className="capitalize">{transaction.type.replace('_', ' ')}</span>
                       </div>
 
-                      <p className="text-sm text-gray-300 whitespace-normal break-words">
+                      <p className="text-sm text-[var(--text-secondary)] whitespace-normal break-words">
                         {transaction.description}
                       </p>
                     </div>
@@ -609,14 +621,16 @@ export default function FinancialTransactionMapper({
           {/* Side Panel */}
           <div className="space-y-6">
             {/* Entity Flow Analysis */}
-            <div className="bg-gray-800 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-100 mb-4">Entity Flow Analysis</h3>
+            <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] p-6">
+              <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
+                Entity Flow Analysis
+              </h3>
               <div className="space-y-2 max-h-64 overflow-y-auto">
                 {flowAnalysis.slice(0, 5).map((flow, index) => (
-                  <div key={index} className="p-2 bg-gray-700 rounded">
+                  <div key={index} className="p-2 bg-[var(--glass-bg-highlight)] rounded">
                     <div className="flex justify-between items-center mb-1">
                       <span
-                        className="font-medium text-gray-100 text-xs truncate max-w-[120px]"
+                        className="font-medium text-[var(--text-primary)] text-xs truncate max-w-[120px]"
                         title={flow.entity}
                       >
                         {flow.entity}
@@ -633,7 +647,7 @@ export default function FinancialTransactionMapper({
                         {flow.riskScore}
                       </span>
                     </div>
-                    <div className="grid grid-cols-3 gap-1 text-xs text-gray-400">
+                    <div className="grid grid-cols-3 gap-1 text-xs text-[var(--text-muted)]">
                       <div
                         className="whitespace-nowrap overflow-hidden text-ellipsis"
                         title={`In: ${formatCurrency(flow.inflow)}`}
@@ -653,7 +667,7 @@ export default function FinancialTransactionMapper({
                         Net: {formatCurrency(Math.abs(flow.netFlow))}
                       </div>
                     </div>
-                    <div className="text-xs text-gray-500 mt-1 truncate">
+                    <div className="text-xs text-[var(--text-muted)] mt-1 truncate">
                       {flow.transactionCount} tx • {flow.connections.length} conn
                     </div>
                   </div>
@@ -663,13 +677,18 @@ export default function FinancialTransactionMapper({
 
             {/* Detected Patterns */}
             {detectedPatterns.length > 0 && (
-              <div className="bg-gray-800 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-gray-100 mb-4">Detected Patterns</h3>
+              <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] p-6">
+                <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
+                  Detected Patterns
+                </h3>
                 <div className="space-y-2">
                   {detectedPatterns.map((pattern, index) => (
-                    <div key={index} className="p-2 bg-gray-700 rounded border-l-2 border-red-500">
+                    <div
+                      key={index}
+                      className="p-2 bg-[var(--glass-bg-highlight)] rounded border-l-2 border-red-500"
+                    >
                       <div className="flex justify-between items-center mb-1">
-                        <span className="font-medium text-gray-100 capitalize text-xs">
+                        <span className="font-medium text-[var(--text-primary)] capitalize text-xs">
                           {pattern.type.replace('_', ' ')}
                         </span>
                         <span
@@ -685,12 +704,12 @@ export default function FinancialTransactionMapper({
                         </span>
                       </div>
                       <p
-                        className="text-xs text-gray-300 mb-1 line-clamp-2"
+                        className="text-xs text-[var(--text-secondary)] mb-1 line-clamp-2"
                         title={pattern.description}
                       >
                         {pattern.description}
                       </p>
-                      <div className="flex justify-between items-center text-xs text-gray-400">
+                      <div className="flex justify-between items-center text-xs text-[var(--text-muted)]">
                         <span>{pattern.confidence}% conf</span>
                         <span>{pattern.transactions.length} tx</span>
                       </div>
@@ -704,20 +723,22 @@ export default function FinancialTransactionMapper({
             {selectedTransaction && (
               <div
                 className={`
-                fixed inset-0 z-50 bg-gray-900/95 backdrop-blur-sm p-4 overflow-y-auto flex items-center justify-center md:static md:bg-transparent md:backdrop-blur-none md:p-0 md:block
+                fixed inset-0 z-50 bg-[var(--glass-bg-strong)]/95 backdrop-blur-sm p-4 overflow-y-auto flex items-center justify-center md:static md:bg-transparent md:backdrop-blur-none md:p-0 md:block
               `}
               >
-                <div className="bg-gray-800 rounded-lg p-6 w-full max-w-lg md:max-w-none shadow-2xl md:shadow-none border border-gray-700 md:border-0 relative">
+                <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] p-6 w-full max-w-lg md:max-w-none shadow-[var(--glass-shadow)] md:shadow-none border border-[var(--glass-border)] md:border-0 relative">
                   {/* Mobile Close Button */}
                   <button
                     onClick={() => setSelectedTransaction(null)}
-                    className="absolute top-4 right-4 p-2 bg-gray-700 rounded-full text-gray-400 hover:text-white md:hidden"
+                    className="absolute top-4 right-4 p-2 bg-[var(--glass-bg-highlight)] rounded-full text-[var(--text-muted)] hover:text-[var(--text-primary)] md:hidden"
                   >
                     <Icon name="X" className="w-5 h-5" />
                   </button>
 
                   <div className="flex items-center justify-between mb-4 pr-10 md:pr-0">
-                    <h3 className="text-lg font-semibold text-gray-100">Transaction Details</h3>
+                    <h3 className="text-lg font-semibold text-[var(--text-primary)]">
+                      Transaction Details
+                    </h3>
                     <AddToInvestigationButton
                       item={{
                         id: selectedTransaction.id,
@@ -745,54 +766,78 @@ export default function FinancialTransactionMapper({
                   </div>
                   <div className="space-y-2">
                     <div>
-                      <label className="block text-xs font-medium text-gray-400">From</label>
-                      <p className="text-gray-100 text-sm" title={selectedTransaction.fromEntity}>
+                      <label className="block text-xs font-medium text-[var(--text-muted)]">
+                        From
+                      </label>
+                      <p
+                        className="text-[var(--text-primary)] text-sm"
+                        title={selectedTransaction.fromEntity}
+                      >
                         {selectedTransaction.fromEntity}
                       </p>
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-400">To</label>
-                      <p className="text-gray-100 text-sm" title={selectedTransaction.toEntity}>
+                      <label className="block text-xs font-medium text-[var(--text-muted)]">
+                        To
+                      </label>
+                      <p
+                        className="text-[var(--text-primary)] text-sm"
+                        title={selectedTransaction.toEntity}
+                      >
                         {selectedTransaction.toEntity}
                       </p>
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-400">Amount</label>
-                      <p className="text-gray-100 font-semibold">
+                      <label className="block text-xs font-medium text-[var(--text-muted)]">
+                        Amount
+                      </label>
+                      <p className="text-[var(--text-primary)] font-semibold">
                         {formatCurrency(selectedTransaction.amount, selectedTransaction.currency)}
                       </p>
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-400">Date</label>
-                      <p className="text-gray-100 text-sm">{selectedTransaction.date}</p>
+                      <label className="block text-xs font-medium text-[var(--text-muted)]">
+                        Date
+                      </label>
+                      <p className="text-[var(--text-primary)] text-sm">
+                        {selectedTransaction.date}
+                      </p>
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-400">Type</label>
-                      <p className="text-gray-100 text-sm capitalize">
+                      <label className="block text-xs font-medium text-[var(--text-muted)]">
+                        Type
+                      </label>
+                      <p className="text-[var(--text-primary)] text-sm capitalize">
                         {selectedTransaction.type.replace('_', ' ')}
                       </p>
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-400">Method</label>
-                      <p className="text-gray-100 text-sm capitalize">
+                      <label className="block text-xs font-medium text-[var(--text-muted)]">
+                        Method
+                      </label>
+                      <p className="text-[var(--text-primary)] text-sm capitalize">
                         {selectedTransaction.method}
                       </p>
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-400">Description</label>
-                      <p className="text-gray-100 text-sm">{selectedTransaction.description}</p>
+                      <label className="block text-xs font-medium text-[var(--text-muted)]">
+                        Description
+                      </label>
+                      <p className="text-[var(--text-primary)] text-sm">
+                        {selectedTransaction.description}
+                      </p>
                     </div>
 
                     {selectedTransaction.sourceDocuments.length > 0 && (
                       <div>
-                        <label className="block text-xs font-medium text-gray-400 mb-1">
+                        <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">
                           Source Documents
                         </label>
                         <div className="space-y-1">
                           {selectedTransaction.sourceDocuments.map((doc, index) => (
                             <button
                               key={index}
-                              className="block w-full text-left px-2 py-1 bg-gray-700 hover:bg-gray-600 rounded text-xs text-blue-400 hover:text-blue-300 transition-colors truncate"
+                              className="block w-full text-left px-2 py-1 bg-[var(--glass-bg-highlight)] hover:bg-[var(--glass-bg-highlight)] rounded text-xs text-[var(--accent)] hover:text-[var(--accent)] transition-colors truncate"
                               onClick={() => {
                                 const normalized = String(doc).trim();
                                 if (!normalized) return;

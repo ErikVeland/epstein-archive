@@ -101,12 +101,12 @@ export const PeopleSelector: React.FC<PeopleSelectorProps> = ({
     if (rating >= 4) return 'text-red-400';
     if (rating >= 3) return 'text-orange-400';
     if (rating >= 2) return 'text-yellow-400';
-    return 'text-slate-400';
+    return 'text-[var(--text-muted)]';
   };
 
   return (
     <div className={`space-y-3 ${className}`}>
-      <div className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-wider">
+      <div className="flex items-center gap-2 text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">
         <Users className="w-4 h-4" />
         People in Photo
       </div>
@@ -116,11 +116,11 @@ export const PeopleSelector: React.FC<PeopleSelectorProps> = ({
         {selectedPeople.map((person) => (
           <div
             key={person.id}
-            className={`flex items-center justify-between p-2 bg-slate-800/50 rounded-lg border border-slate-700/50 ${onPersonClick ? 'cursor-pointer hover:bg-slate-800 transition-colors' : ''}`}
+            className={`flex items-center justify-between p-2 bg-[var(--glass-bg)]/50 rounded-[var(--radius-lg)] border border-[var(--glass-border)] ${onPersonClick ? 'cursor-pointer hover:bg-[var(--glass-bg)] transition-colors' : ''}`}
             onClick={() => onPersonClick && onPersonClick(person)}
           >
             <div>
-              <div className="text-sm text-white font-medium">{person.name}</div>
+              <div className="text-sm text-[var(--text-primary)] font-medium">{person.name}</div>
               <div className={`text-xs ${getRedFlagColor(person.redFlagRating)}`}>
                 {person.role}
                 {person.redFlagRating ? ` • 🚩 ${person.redFlagRating}` : ''}
@@ -132,7 +132,7 @@ export const PeopleSelector: React.FC<PeopleSelectorProps> = ({
                   e.stopPropagation();
                   handleRemovePerson(person);
                 }}
-                className="p-1 hover:bg-slate-700 rounded text-slate-400 hover:text-red-400 transition-colors"
+                className="p-1 hover:bg-[var(--glass-bg-highlight)] rounded text-[var(--text-muted)] hover:text-red-400 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -145,14 +145,14 @@ export const PeopleSelector: React.FC<PeopleSelectorProps> = ({
       {isAdmin && (
         <div className="relative" ref={dropdownRef}>
           <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
             <input
               type="text"
               placeholder="Search people to add..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onFocus={() => setShowDropdown(true)}
-              className="w-full pl-9 pr-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500"
+              className="w-full pl-9 pr-3 py-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] text-sm focus:outline-none focus:border-[var(--accent)]"
             />
           </div>
 
@@ -160,22 +160,22 @@ export const PeopleSelector: React.FC<PeopleSelectorProps> = ({
           {showDropdown && (searchResults.length > 0 || isSearching) && (
             <div className="absolute z-50 mt-1 w-full dropdown-surface overflow-hidden">
               {isSearching ? (
-                <div className="p-3 text-center text-sm text-slate-400">Searching...</div>
+                <div className="p-3 text-center text-sm text-[var(--text-muted)]">Searching...</div>
               ) : (
                 <div className="max-h-48 overflow-y-auto">
                   {searchResults.map((person) => (
                     <button
                       key={person.id}
                       onClick={() => handleAddPerson(person)}
-                      className="w-full flex items-center justify-between p-2 hover:bg-slate-700/50 text-left"
+                      className="w-full flex items-center justify-between p-2 hover:bg-[var(--glass-bg-highlight)]/50 text-left"
                     >
                       <div>
-                        <div className="text-sm text-white">{person.name}</div>
+                        <div className="text-sm text-[var(--text-primary)]">{person.name}</div>
                         <div className={`text-xs ${getRedFlagColor(person.redFlagRating)}`}>
                           {person.role}
                         </div>
                       </div>
-                      <Plus className="w-4 h-4 text-slate-400" />
+                      <Plus className="w-4 h-4 text-[var(--text-muted)]" />
                     </button>
                   ))}
                 </div>

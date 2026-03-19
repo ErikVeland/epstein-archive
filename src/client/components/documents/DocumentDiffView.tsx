@@ -41,8 +41,8 @@ export const DocumentDiffView: React.FC<DocumentDiffViewProps> = ({ cleanText, o
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium text-slate-200">Diff View</h3>
-        <label className="inline-flex items-center gap-2 text-xs text-slate-300">
+        <h3 className="text-sm font-medium text-[var(--text-primary)]">Diff View</h3>
+        <label className="inline-flex items-center gap-2 text-xs text-[var(--text-secondary)]">
           <input
             type="checkbox"
             checked={onlyChanged}
@@ -52,28 +52,30 @@ export const DocumentDiffView: React.FC<DocumentDiffViewProps> = ({ cleanText, o
         </label>
       </div>
 
-      <div className="grid grid-cols-2 text-xs text-slate-400 px-3">
+      <div className="grid grid-cols-2 text-xs text-[var(--text-muted)] px-3">
         <span>Clean Text</span>
         <span>Original OCR</span>
       </div>
 
       <div className="surface-quiet divide-y divide-slate-800/80">
         {visibleRows.length === 0 && (
-          <div className="p-4 text-sm text-slate-400">No textual differences detected.</div>
+          <div className="p-4 text-sm text-[var(--text-muted)]">
+            No textual differences detected.
+          </div>
         )}
         {visibleRows.map((row) => (
           <div key={row.line} className="grid grid-cols-2 gap-0 text-sm">
             <div
-              className={`p-3 border-r border-slate-800/80 ${row.changed ? 'bg-emerald-900/10' : ''}`}
+              className={`p-3 border-r border-[var(--glass-border)] ${row.changed ? 'bg-emerald-900/10' : ''}`}
             >
-              <div className="text-[10px] text-slate-500 mb-1">L{row.line}</div>
-              <pre className="whitespace-pre-wrap font-sans text-slate-200 leading-relaxed">
+              <div className="text-[10px] text-[var(--text-muted)] mb-1">L{row.line}</div>
+              <pre className="whitespace-pre-wrap font-sans text-[var(--text-primary)] leading-relaxed">
                 {row.clean || ' '}
               </pre>
             </div>
             <div className={`p-3 ${row.changed ? 'bg-rose-900/10' : ''}`}>
-              <div className="text-[10px] text-slate-500 mb-1">L{row.line}</div>
-              <pre className="whitespace-pre-wrap font-sans text-slate-300 leading-relaxed">
+              <div className="text-[10px] text-[var(--text-muted)] mb-1">L{row.line}</div>
+              <pre className="whitespace-pre-wrap font-sans text-[var(--text-secondary)] leading-relaxed">
                 {row.original || ' '}
               </pre>
             </div>

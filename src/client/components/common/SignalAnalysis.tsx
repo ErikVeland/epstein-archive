@@ -14,8 +14,8 @@ export const SignalAnalysis: React.FC<SignalAnalysisProps> = ({ description, rat
         value: 0,
         label: 'Exposure',
         icon: Eye,
-        color: 'text-cyan-400',
-        barColor: 'bg-cyan-500',
+        color: 'text-[var(--accent)]',
+        barColor: 'bg-[var(--accent)]',
       },
       network: {
         value: 0,
@@ -28,8 +28,8 @@ export const SignalAnalysis: React.FC<SignalAnalysisProps> = ({ description, rat
         value: 0,
         label: 'Evidence',
         icon: Shield,
-        color: 'text-blue-400',
-        barColor: 'bg-blue-500',
+        color: 'text-[var(--accent)]',
+        barColor: 'bg-[var(--accent)]',
       },
       risk: {
         value: rating * 20,
@@ -67,17 +67,17 @@ export const SignalAnalysis: React.FC<SignalAnalysisProps> = ({ description, rat
   const signals = parseSignals();
 
   return (
-    <div className="bg-slate-900/40 border border-slate-800 rounded-xl p-5 shadow-inner">
+    <div className="bg-[var(--glass-bg-strong)]/40 border border-[var(--glass-border)] rounded-[var(--radius-xl)] p-5 shadow-inner">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-bold text-slate-300 uppercase tracking-widest flex items-center gap-2">
-          <Activity className="w-4 h-4 text-cyan-500" />
+        <h3 className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-widest flex items-center gap-2">
+          <Activity className="w-4 h-4 text-[var(--accent)]" />
           Forensic Signal Analysis
         </h3>
         <div className="flex gap-1">
           {Array.from({ length: 5 }).map((_, i) => (
             <div
               key={i}
-              className={`w-1.5 h-3 rounded-full ${i < rating ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'bg-slate-800'}`}
+              className={`w-1.5 h-3 rounded-full ${i < rating ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'bg-[var(--glass-bg)]'}`}
             />
           ))}
         </div>
@@ -91,9 +91,9 @@ export const SignalAnalysis: React.FC<SignalAnalysisProps> = ({ description, rat
                 <signal.icon className="w-3 h-3" />
                 {signal.label}
               </div>
-              <span className="text-slate-500">{Math.round(signal.value)}%</span>
+              <span className="text-[var(--text-muted)]">{Math.round(signal.value)}%</span>
             </div>
-            <div className="h-1.5 w-full bg-slate-800/50 rounded-full overflow-hidden border border-slate-700/30">
+            <div className="h-1.5 w-full bg-[var(--glass-bg)]/50 rounded-full overflow-hidden border border-[var(--glass-border)]">
               <div
                 className={`h-full ${signal.barColor} transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(0,0,0,0.5)]`}
                 style={{ width: `${signal.value}%` }}
@@ -103,8 +103,8 @@ export const SignalAnalysis: React.FC<SignalAnalysisProps> = ({ description, rat
         ))}
       </div>
 
-      <div className="mt-4 pt-4 border-t border-slate-800/50">
-        <p className="text-[11px] text-slate-400 leading-relaxed italic opacity-80 group-hover:opacity-100 transition-opacity">
+      <div className="mt-4 pt-4 border-t border-[var(--glass-border)]">
+        <p className="text-[11px] text-[var(--text-muted)] leading-relaxed italic opacity-80 group-hover:opacity-100 transition-opacity">
           &ldquo;{description.replace('Signal Analysis: ', '')}&rdquo;
         </p>
       </div>

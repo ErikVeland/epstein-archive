@@ -27,16 +27,18 @@ const COLORS = {
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-slate-900/95 backdrop-blur-md p-4 rounded-xl shadow-2xl border border-slate-700/50">
-        <p className="text-white font-bold mb-2 text-sm">{label}</p>
+      <div className="bg-[var(--glass-bg-strong)]/95 backdrop-blur-md p-4 rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] border border-[var(--glass-border)]">
+        <p className="text-[var(--text-primary)] font-bold mb-2 text-sm">{label}</p>
         {payload.map((entry: any, index: number) => (
           <div key={index} className="flex items-center gap-3 text-sm">
             <div
               className="w-2 h-2 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.5)]"
               style={{ backgroundColor: entry.color || entry.fill }}
             />
-            <span className="text-slate-300 font-medium">{entry.name}:</span>
-            <span className="text-white font-mono font-bold">{entry.value.toLocaleString()}</span>
+            <span className="text-[var(--text-secondary)] font-medium">{entry.name}:</span>
+            <span className="text-[var(--text-primary)] font-mono font-bold">
+              {entry.value.toLocaleString()}
+            </span>
           </div>
         ))}
       </div>
@@ -222,19 +224,19 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.5)]"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent)] shadow-[0_0_15px_rgba(6,182,212,0.5)]"></div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="text-center py-12 text-red-400 glass-panel rounded-xl">
+      <div className="text-center py-12 text-red-400 glass-panel rounded-[var(--radius-xl)]">
         <AlertTriangle className="mx-auto h-12 w-12 mb-4 opacity-80" />
         <p className="text-lg mb-4">{error}</p>
         <button
           onClick={onRetry}
-          className="px-6 py-2 bg-slate-800 rounded-lg hover:bg-slate-700 border border-slate-600 transition-all hover:scale-105"
+          className="px-6 py-2 bg-[var(--glass-bg)] rounded-[var(--radius-lg)] hover:bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] transition-all hover:scale-105"
         >
           Retry Analysis
         </button>
@@ -247,19 +249,19 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({
       {/* Charts Row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Top Entities Bar Chart - Enhanced */}
-        <div className="glass-card p-6 rounded-xl shadow-lg relative overflow-hidden group">
+        <div className="glass-card p-6 rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <Activity className="h-24 w-24 text-cyan-500" />
+            <Activity className="h-24 w-24 text-[var(--accent)]" />
           </div>
 
-          <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2 flex-wrap relative z-10">
-            <Users className="h-5 w-5 text-cyan-400" />
+          <h3 className="text-xl font-bold text-[var(--text-primary)] mb-6 flex items-center gap-2 flex-wrap relative z-10">
+            <Users className="h-5 w-5 text-[var(--accent)]" />
             <span className="neon-text-cyan">Top Mentioned Individuals</span>
           </h3>
 
           {/* Microcopy for Top Entities Chart */}
-          <div className="text-xs text-slate-400 mb-6 flex items-start gap-2 bg-slate-900/50 p-3 rounded-lg border border-slate-700/50 backdrop-blur-sm relative z-10">
-            <Info className="h-4 w-4 mt-0.5 flex-shrink-0 text-cyan-400" />
+          <div className="text-xs text-[var(--text-muted)] mb-6 flex items-start gap-2 bg-[var(--glass-bg-strong)]/50 p-3 rounded-[var(--radius-lg)] border border-[var(--glass-border)] backdrop-blur-sm relative z-10">
+            <Info className="h-4 w-4 mt-0.5 flex-shrink-0 text-[var(--accent)]" />
             <span>
               Individuals with the highest frequency of appearances across all analyzed documents.
               Colors indicate risk level. Click to view details.
@@ -268,7 +270,7 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({
 
           <div className="h-[400px] relative z-10 overflow-y-auto pr-2 custom-scrollbar space-y-2">
             {topEntities.length === 0 ? (
-              <div className="h-full flex items-center justify-center text-slate-400 text-sm">
+              <div className="h-full flex items-center justify-center text-[var(--text-muted)] text-sm">
                 No non-junk person entities with mentions available.
               </div>
             ) : (
@@ -294,7 +296,7 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({
                       : risk >= 3
                         ? 'text-amber-300 border-amber-500/40 bg-amber-900/30'
                         : risk >= 2
-                          ? 'text-cyan-300 border-cyan-500/40 bg-cyan-900/30'
+                          ? 'text-[var(--accent)] border-[var(--accent)]/40 bg-cyan-900/30'
                           : 'text-emerald-300 border-emerald-500/40 bg-emerald-900/30';
 
                 return (
@@ -302,15 +304,17 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({
                     key={`${entry.name}-${index}`}
                     type="button"
                     onClick={() => onPersonSelect && onPersonSelect(entry.person)}
-                    className="w-full text-left rounded-lg border border-slate-700/60 bg-slate-900/45 hover:bg-slate-800/70 hover:border-cyan-500/40 transition-colors p-3"
+                    className="w-full text-left rounded-[var(--radius-lg)] border border-[var(--glass-border)] bg-[var(--glass-bg-strong)]/45 hover:bg-[var(--glass-bg)]/70 hover:border-[var(--accent)]/40 transition-colors p-3"
                   >
                     <div className="grid grid-cols-[40px_minmax(0,1fr)_120px] items-center gap-3">
                       <div className="w-10 h-10 rounded-md border border-amber-500/40 bg-gradient-to-b from-amber-900/50 to-slate-900/70 flex items-center justify-center font-bold text-amber-200">
                         {index + 1}
                       </div>
                       <div className="min-w-0">
-                        <div className="text-slate-100 font-semibold truncate">{entry.name}</div>
-                        <div className="mt-2 h-2.5 rounded bg-slate-800 overflow-hidden">
+                        <div className="text-[var(--text-primary)] font-semibold truncate">
+                          {entry.name}
+                        </div>
+                        <div className="mt-2 h-2.5 rounded bg-[var(--glass-bg)] overflow-hidden">
                           <div
                             className="h-full bg-gradient-to-r from-amber-400 via-cyan-400 to-blue-500"
                             style={{ width: `${barWidth}%` }}
@@ -318,7 +322,7 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-slate-100 font-mono text-sm">
+                        <div className="text-[var(--text-primary)] font-mono text-sm">
                           {entry.mentions.toLocaleString()}
                         </div>
                         <div
@@ -336,17 +340,17 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({
         </div>
 
         {/* Risk Distribution Pie Chart */}
-        <div className="glass-card p-6 rounded-xl shadow-lg relative overflow-hidden group">
+        <div className="glass-card p-6 rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
             <ShieldAlert className="h-24 w-24 text-orange-500" />
           </div>
 
-          <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2 relative z-10">
+          <h3 className="text-xl font-bold text-[var(--text-primary)] mb-6 flex items-center gap-2 relative z-10">
             <AlertTriangle className="h-5 w-5 text-orange-400" />
             <span>Risk Level Distribution</span>
           </h3>
           {/* Microcopy for Risk Distribution Chart */}
-          <div className="text-xs text-slate-400 mb-6 flex items-start gap-2 bg-slate-900/50 p-3 rounded-lg border border-slate-700/50 backdrop-blur-sm relative z-10">
+          <div className="text-xs text-[var(--text-muted)] mb-6 flex items-start gap-2 bg-[var(--glass-bg-strong)]/50 p-3 rounded-[var(--radius-lg)] border border-[var(--glass-border)] backdrop-blur-sm relative z-10">
             <Info className="h-4 w-4 mt-0.5 flex-shrink-0 text-orange-400" />
             <span>
               Breakdown of entities by Red Flag Index score (0-5), indicating the density of
@@ -375,10 +379,10 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({
             </ResponsiveContainer>
             {/* Center Text Overlay */}
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-4xl font-bold text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">
+              <span className="text-4xl font-bold text-[var(--text-primary)] drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">
                 {stats.totalPeople.toLocaleString()}
               </span>
-              <span className="text-xs text-slate-400 uppercase tracking-wider mt-1 font-semibold">
+              <span className="text-xs text-[var(--text-muted)] uppercase tracking-wider mt-1 font-semibold">
                 Entities
               </span>
             </div>
@@ -388,13 +392,15 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({
             {riskDistribution.map((item, index) => (
               <div
                 key={index}
-                className="flex items-center gap-2 px-3 py-1 bg-slate-900/40 rounded-full border border-slate-700/30"
+                className="flex items-center gap-2 px-3 py-1 bg-[var(--glass-bg-strong)]/40 rounded-full border border-[var(--glass-border)]"
               >
                 <div
                   className="w-3 h-3 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.5)]"
                   style={{ backgroundColor: item.color }}
                 />
-                <span className="text-xs text-slate-300 font-medium">{item.name}</span>
+                <span className="text-xs text-[var(--text-secondary)] font-medium">
+                  {item.name}
+                </span>
               </div>
             ))}
           </div>
@@ -402,9 +408,9 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({
       </div>
 
       {/* Interactive Tree Map */}
-      <div className="glass-card p-6 rounded-xl shadow-lg relative overflow-hidden">
+      <div className="glass-card p-6 rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] relative overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4 relative z-10">
-          <h3 className="text-xl font-bold text-white flex items-center gap-2">
+          <h3 className="text-xl font-bold text-[var(--text-primary)] flex items-center gap-2">
             <Activity className="h-5 w-5 text-purple-400" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
               Interactive Entity Map
@@ -416,7 +422,7 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({
         </div>
 
         {/* Microcopy for Tree Map */}
-        <div className="text-xs text-slate-400 mb-6 flex items-start gap-2 bg-slate-900/50 p-3 rounded-lg border border-slate-700/50 backdrop-blur-sm relative z-10">
+        <div className="text-xs text-[var(--text-muted)] mb-6 flex items-start gap-2 bg-[var(--glass-bg-strong)]/50 p-3 rounded-[var(--radius-lg)] border border-[var(--glass-border)] backdrop-blur-sm relative z-10">
           <Info className="h-4 w-4 mt-0.5 flex-shrink-0 text-purple-400" />
           <span>
             Visual representation of entity prominence. Box size correlates to mention frequency.
@@ -443,39 +449,39 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({
 
       {/* Summary Statistics Footer */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="glass-panel p-4 rounded-xl hover:bg-slate-800/60 transition-colors group">
-          <div className="text-3xl font-bold text-white font-mono group-hover:text-cyan-400 transition-colors">
+        <div className="glass-panel p-4 rounded-[var(--radius-xl)] hover:bg-[var(--glass-bg)]/60 transition-colors group">
+          <div className="text-3xl font-bold text-[var(--text-primary)] font-mono group-hover:text-[var(--accent)] transition-colors">
             {stats.totalPeople.toLocaleString()}
           </div>
-          <div className="text-slate-400 text-xs mt-1 font-medium uppercase tracking-wide flex items-center gap-1">
+          <div className="text-[var(--text-muted)] text-xs mt-1 font-medium uppercase tracking-wide flex items-center gap-1">
             Total Individuals
           </div>
         </div>
-        <div className="glass-panel p-4 rounded-xl hover:bg-slate-800/60 transition-colors group">
-          <div className="text-3xl font-bold text-white font-mono group-hover:text-blue-400 transition-colors">
+        <div className="glass-panel p-4 rounded-[var(--radius-xl)] hover:bg-[var(--glass-bg)]/60 transition-colors group">
+          <div className="text-3xl font-bold text-[var(--text-primary)] font-mono group-hover:text-[var(--accent)] transition-colors">
             {stats.totalPeople > 0 ? Math.round(stats.totalMentions / stats.totalPeople) : 0}
           </div>
-          <div className="text-slate-400 text-xs mt-1 font-medium uppercase tracking-wide">
+          <div className="text-[var(--text-muted)] text-xs mt-1 font-medium uppercase tracking-wide">
             Avg Mentions
           </div>
         </div>
-        <div className="glass-panel p-4 rounded-xl hover:bg-slate-800/60 transition-colors group">
-          <div className="text-3xl font-bold text-white font-mono group-hover:text-purple-400 transition-colors">
+        <div className="glass-panel p-4 rounded-[var(--radius-xl)] hover:bg-[var(--glass-bg)]/60 transition-colors group">
+          <div className="text-3xl font-bold text-[var(--text-primary)] font-mono group-hover:text-purple-400 transition-colors">
             {stats.uniqueRoles.toLocaleString()}
           </div>
-          <div className="text-slate-400 text-xs mt-1 font-medium uppercase tracking-wide">
+          <div className="text-[var(--text-muted)] text-xs mt-1 font-medium uppercase tracking-wide">
             Unique Roles
           </div>
         </div>
-        <div className="glass-panel p-4 rounded-xl hover:bg-slate-800/60 transition-colors group">
-          <div className="text-3xl font-bold text-white font-mono group-hover:text-pink-400 transition-colors">
+        <div className="glass-panel p-4 rounded-[var(--radius-xl)] hover:bg-[var(--glass-bg)]/60 transition-colors group">
+          <div className="text-3xl font-bold text-[var(--text-primary)] font-mono group-hover:text-pink-400 transition-colors">
             {(() => {
               const source = people.length > 0 ? people : analyticsData?.topConnectedEntities || [];
               if (source.length === 0) return '0';
               return Math.max(...source.map((p: any) => p?.mentions || 0)).toLocaleString();
             })()}
           </div>
-          <div className="text-slate-400 text-xs mt-1 font-medium uppercase tracking-wide">
+          <div className="text-[var(--text-muted)] text-xs mt-1 font-medium uppercase tracking-wide">
             Max Mentions
           </div>
         </div>

@@ -47,12 +47,9 @@ export const Card: React.FC<CardProps> = ({
     <div
       onClick={onClick}
       className={`
-        bg-gradient-to-br from-slate-800/70 to-slate-900/50 backdrop-blur-sm 
-        border border-slate-600 rounded-2xl p-6 
-        hover:from-slate-800/80 hover:to-slate-900/60 hover:border-slate-500 hover:shadow-lg hover:shadow-blue-500/5
-        active:scale-[0.99] active:bg-slate-800/90 
-        transition-all duration-300 cursor-pointer group animate-fade-in
-        ${onClick ? '' : ''}
+        surface-glass-card p-6
+        active:scale-[0.99]
+        transition-all duration-300 ${onClick ? 'cursor-pointer hover:bg-[var(--glass-bg-strong)] hover:border-[var(--glass-border-highlight)] hover:shadow-[var(--glass-shadow)]' : ''} group animate-fade-in
         ${className}
       `}
     >
@@ -68,14 +65,17 @@ export const Card: React.FC<CardProps> = ({
             <div className="min-w-0">
               {title && (
                 <h3
-                  className="text-lg font-bold text-white group-hover:text-[var(--accent)] transition-colors line-clamp-2 leading-tight break-all"
+                  className="text-lg font-bold text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors line-clamp-2 leading-tight break-all"
                   title={title}
                 >
                   {title}
                 </h3>
               )}
               {subtitle && (
-                <p className="text-sm text-slate-400 truncate mt-1.5 font-medium" title={subtitle}>
+                <p
+                  className="text-sm text-[var(--text-secondary)] truncate mt-1.5 font-medium"
+                  title={subtitle}
+                >
                   {subtitle}
                 </p>
               )}
@@ -100,16 +100,18 @@ export const Card: React.FC<CardProps> = ({
 
       {/* Metadata section */}
       {metadata.length > 0 && (
-        <div className="mt-5 pt-4 border-t border-slate-700/50">
-          <div className="flex flex-wrap gap-y-2 gap-x-4 text-xs text-slate-400">
+        <div className="mt-5 pt-4 border-t border-[var(--glass-border)]">
+          <div className="flex flex-wrap gap-y-2 gap-x-4 text-xs text-[var(--text-secondary)]">
             {metadata.map((item, index) => (
               <div
                 key={index}
-                className="flex items-center px-2 py-1 bg-slate-800/50 rounded-md border border-slate-700/30"
+                className="flex items-center px-2 py-1 bg-[var(--glass-bg-strong)] rounded-md border border-[var(--glass-border)]"
               >
-                {item.icon && <Icon name={item.icon} size="xs" className="mr-1.5 text-slate-500" />}
-                <span className="font-medium text-slate-500 mr-1">{item.label}:</span>
-                <span className="text-slate-300 font-semibold">{item.value}</span>
+                {item.icon && (
+                  <Icon name={item.icon} size="xs" className="mr-1.5 text-[var(--text-muted)]" />
+                )}
+                <span className="font-medium text-[var(--text-muted)] mr-1">{item.label}:</span>
+                <span className="text-[var(--text-secondary)] font-semibold">{item.value}</span>
               </div>
             ))}
           </div>
@@ -129,11 +131,11 @@ export const Card: React.FC<CardProps> = ({
                   button.onClick();
                 }}
                 className={`
-                  text-xs font-medium px-4 py-2 rounded-lg transition-all duration-200
+                  text-xs font-medium px-4 py-2 rounded-[var(--radius-lg)] transition-all duration-200
                   ${
                     button.variant === 'primary'
-                      ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-900/20'
-                      : 'text-slate-400 hover:text-white hover:bg-slate-700 border border-transparent hover:border-slate-600'
+                      ? 'bg-[var(--accent)] hover:brightness-110 text-[var(--text-primary)] shadow-[var(--glass-shadow)]'
+                      : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)] border border-transparent hover:border-[var(--glass-border)]'
                   }
                 `}
               >

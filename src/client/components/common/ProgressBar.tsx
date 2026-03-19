@@ -28,7 +28,7 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
   };
 
   const colorClasses = {
-    primary: 'bg-blue-500',
+    primary: 'bg-[var(--accent)]',
     secondary: 'bg-purple-500',
     success: 'bg-green-500',
     warning: 'bg-yellow-500',
@@ -39,14 +39,16 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
     <div className={`w-full ${className}`}>
       {label && (
         <div className="flex justify-between items-center mb-1">
-          <span className="text-sm font-medium text-gray-300">{label}</span>
+          <span className="text-sm font-medium text-[var(--text-primary)]">{label}</span>
           {showPercentage && (
-            <span className="text-sm font-medium text-gray-400">{Math.round(percentage)}%</span>
+            <span className="text-sm font-medium text-[var(--text-secondary)]">
+              {Math.round(percentage)}%
+            </span>
           )}
         </div>
       )}
       <div
-        className={`w-full ${sizeClasses[size]} bg-gray-700 rounded-full overflow-hidden`}
+        className={`w-full ${sizeClasses[size]} bg-[var(--glass-bg-strong)] rounded-full overflow-hidden`}
         role="progressbar"
         aria-valuenow={value}
         aria-valuemin={0}

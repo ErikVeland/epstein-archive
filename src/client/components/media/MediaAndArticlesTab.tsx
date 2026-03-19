@@ -158,13 +158,13 @@ export const MediaAndArticlesTab: React.FC = () => {
         }}
       />
       {/* Sub-tab Navigation */}
-      <div className="flex-none flex gap-2 border-b border-slate-800 bg-slate-900 px-4 pt-2 z-20 overflow-x-auto scrollbar-thin scrollbar-thumb-slate-700/60 scrollbar-track-transparent -mx-4 sm:mx-0">
+      <div className="flex-none flex gap-2 border-b border-[var(--glass-border)] bg-[var(--glass-bg-strong)] px-4 pt-2 z-20 overflow-x-auto scrollbar-thin scrollbar-thumb-slate-700/60 scrollbar-track-transparent -mx-4 sm:mx-0">
         <button
           onClick={() => navigateToTab('photos')}
           className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-all ${
             activeSubTab === 'photos'
-              ? 'border-blue-500 text-blue-500 bg-blue-500/5'
-              : 'border-transparent text-slate-500 hover:text-slate-300 hover:bg-slate-800/50'
+              ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent)]/5'
+              : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--glass-bg)]/50'
           }`}
         >
           <Image className="h-4 w-4" />
@@ -174,8 +174,8 @@ export const MediaAndArticlesTab: React.FC = () => {
           onClick={() => navigateToTab('audio')}
           className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-all ${
             activeSubTab === 'audio'
-              ? 'border-blue-500 text-blue-500 bg-blue-500/5'
-              : 'border-transparent text-slate-500 hover:text-slate-300 hover:bg-slate-800/50'
+              ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent)]/5'
+              : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--glass-bg)]/50'
           }`}
         >
           <Music className="h-4 w-4" />
@@ -185,8 +185,8 @@ export const MediaAndArticlesTab: React.FC = () => {
           onClick={() => navigateToTab('video')}
           className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-all ${
             activeSubTab === 'video'
-              ? 'border-blue-500 text-blue-500 bg-blue-500/5'
-              : 'border-transparent text-slate-500 hover:text-slate-300 hover:bg-slate-800/50'
+              ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent)]/5'
+              : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--glass-bg)]/50'
           }`}
         >
           <Film className="h-4 w-4" />
@@ -196,8 +196,8 @@ export const MediaAndArticlesTab: React.FC = () => {
           onClick={() => navigateToTab('articles')}
           className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-all ${
             activeSubTab === 'articles'
-              ? 'border-blue-500 text-blue-500 bg-blue-500/5'
-              : 'border-transparent text-slate-500 hover:text-slate-300 hover:bg-slate-800/50'
+              ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent)]/5'
+              : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--glass-bg)]/50'
           }`}
         >
           <Newspaper className="h-4 w-4" />
@@ -208,8 +208,8 @@ export const MediaAndArticlesTab: React.FC = () => {
             onClick={() => navigateToTab('faces')}
             className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-all ${
               activeSubTab === 'faces'
-                ? 'border-blue-500 text-blue-500 bg-blue-500/5'
-                : 'border-transparent text-slate-500 hover:text-slate-300 hover:bg-slate-800/50'
+                ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent)]/5'
+                : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--glass-bg)]/50'
             }`}
           >
             <User className="h-4 w-4" />
@@ -225,8 +225,8 @@ export const MediaAndArticlesTab: React.FC = () => {
             fallback={
               <div className="absolute inset-0 flex items-center justify-center bg-slate-950">
                 <div className="flex flex-col items-center gap-3">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-                  <p className="text-slate-500 text-xs font-mono tracking-widest uppercase">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent)]"></div>
+                  <p className="text-[var(--text-muted)] text-xs font-mono tracking-widest uppercase">
                     Decryption in progress...
                   </p>
                 </div>

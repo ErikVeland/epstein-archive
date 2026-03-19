@@ -21,7 +21,7 @@ const HelpText: React.FC<HelpTextProps> = ({
       <span>{children}</span>
       <Tooltip content={text} position={position} delay={delay}>
         <span
-          className="inline-flex items-center justify-center w-4 h-4 text-xs font-bold text-white bg-blue-500 rounded-full cursor-help"
+          className="inline-flex items-center justify-center w-4 h-4 text-xs font-bold text-[var(--text-primary)] bg-[var(--accent)] rounded-full cursor-help"
           aria-label={`Help: ${text}`}
         >
           ?

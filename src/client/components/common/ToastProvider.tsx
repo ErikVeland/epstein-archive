@@ -23,6 +23,14 @@ export default function ToastProvider({ children }: { children: ReactNode }) {
     if (toasts.length > 6) setToasts((prev) => prev.slice(-6));
   }, [toasts]);
 
+  const toastTypeClass: Record<string, string> = {
+    success: 'toast-success',
+    error: 'toast-error',
+    warning: 'toast-warning',
+    loading: 'toast-loading',
+    info: 'toast-info',
+  };
+
   return (
     <ToastCtx.Provider value={{ addToast }}>
       {children}
@@ -30,7 +38,7 @@ export default function ToastProvider({ children }: { children: ReactNode }) {
         {toasts.map((t) => (
           <div
             key={t.id}
-            className={`px-3 py-2 rounded-lg text-xs shadow-md border flex items-center justify-between ${t.type === 'success' ? 'bg-emerald-900/70 border-emerald-700 text-emerald-200' : t.type === 'error' ? 'bg-red-900/70 border-red-700 text-red-200' : t.type === 'warning' ? 'bg-yellow-900/70 border-yellow-700 text-yellow-200' : t.type === 'loading' ? 'bg-blue-900/70 border-blue-700 text-blue-200' : 'bg-slate-900/70 border-slate-700 text-slate-200'}`}
+            className={`px-3 py-2 rounded-[var(--radius-lg)] text-xs shadow-[var(--glass-shadow)] border flex items-center justify-between ${toastTypeClass[t.type ?? 'info'] ?? 'toast-info'}`}
           >
             <div className="flex items-center">
               {t.text}

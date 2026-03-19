@@ -264,20 +264,22 @@ export const PatternRecognitionAI: React.FC<PatternRecognitionAIProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg">
+    <div className="bg-white rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)]">
       {/* Header */}
-      <div className="border-b border-gray-200 px-6 py-4">
+      <div className="border-b border-[var(--glass-border)] px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">AI Pattern Recognition</h2>
-            <p className="text-sm text-gray-600 mt-1">
+            <h2 className="text-xl font-semibold text-[var(--text-primary)]">
+              AI Pattern Recognition
+            </h2>
+            <p className="text-sm text-[var(--text-primary)] mt-1">
               Advanced AI analysis to detect suspicious patterns and anomalies
             </p>
           </div>
           <button
             onClick={analyzePatterns}
             disabled={isAnalyzing}
-            className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="flex items-center px-4 py-2 bg-purple-600 text-[var(--text-primary)] rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <BarChart3 className="w-4 h-4 mr-2" />
             {isAnalyzing ? 'Analyzing...' : 'Start Pattern Analysis'}
@@ -307,10 +309,10 @@ export const PatternRecognitionAI: React.FC<PatternRecognitionAIProps> = ({
       {!isAnalyzing && detectedPatterns.length > 0 && (
         <div className="p-6">
           <div className="mb-4">
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
+            <h3 className="text-lg font-medium text-[var(--text-primary)] mb-2">
               Detected Patterns ({detectedPatterns.length})
             </h3>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-[var(--text-primary)]">
               AI has identified {detectedPatterns.length} suspicious patterns with varying
               confidence levels
             </p>
@@ -322,19 +324,23 @@ export const PatternRecognitionAI: React.FC<PatternRecognitionAIProps> = ({
               return (
                 <div
                   key={pattern.id}
-                  className={`border rounded-lg p-4 cursor-pointer transition-all hover:shadow-md ${
+                  className={`border rounded-[var(--radius-lg)] p-4 cursor-pointer transition-all hover:shadow-[var(--glass-shadow)] ${
                     selectedPattern?.id === pattern.id ? 'ring-2 ring-purple-500' : ''
                   }`}
                   onClick={() => setSelectedPattern(pattern)}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex items-start flex-1">
-                      <div className={`p-2 rounded-lg ${getSeverityColor(pattern.severity)} mr-3`}>
+                      <div
+                        className={`p-2 rounded-[var(--radius-lg)] ${getSeverityColor(pattern.severity)} mr-3`}
+                      >
                         <Icon className="w-5 h-5" />
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-1">
-                          <h4 className="text-sm font-medium text-gray-900">{pattern.title}</h4>
+                          <h4 className="text-sm font-medium text-[var(--text-primary)]">
+                            {pattern.title}
+                          </h4>
                           <div className="flex items-center gap-2">
                             <span
                               className={`text-sm font-medium ${getConfidenceColor(pattern.confidence)}`}
@@ -348,8 +354,10 @@ export const PatternRecognitionAI: React.FC<PatternRecognitionAIProps> = ({
                             </span>
                           </div>
                         </div>
-                        <p className="text-sm text-gray-600 mb-2">{pattern.description}</p>
-                        <div className="flex items-center gap-4 text-xs text-gray-500">
+                        <p className="text-sm text-[var(--text-primary)] mb-2">
+                          {pattern.description}
+                        </p>
+                        <div className="flex items-center gap-4 text-xs text-[var(--text-muted)]">
                           <span>Type: {pattern.type}</span>
                           <span>Entities: {pattern.entities.length}</span>
                           <span>Evidence: {pattern.evidenceIds.length} items</span>
@@ -367,10 +375,12 @@ export const PatternRecognitionAI: React.FC<PatternRecognitionAIProps> = ({
       {/* Pattern Detail Modal */}
       {selectedPattern && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-96 overflow-auto">
+          <div className="bg-white rounded-[var(--radius-lg)] p-6 w-full max-w-2xl max-h-96 overflow-auto">
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h3 className="text-lg font-medium text-gray-900">{selectedPattern.title}</h3>
+                <h3 className="text-lg font-medium text-[var(--text-primary)]">
+                  {selectedPattern.title}
+                </h3>
                 <div className="flex items-center gap-2 mt-1">
                   <span
                     className={`px-2 py-1 text-xs font-medium rounded-full ${getSeverityColor(selectedPattern.severity)}`}
@@ -388,23 +398,25 @@ export const PatternRecognitionAI: React.FC<PatternRecognitionAIProps> = ({
                 onClick={() => setSelectedPattern(null)}
                 size="sm"
                 label="Close pattern details"
-                className="border-slate-200 bg-transparent text-gray-500 hover:bg-slate-100 hover:text-gray-700"
+                className="border-[var(--glass-border)] bg-transparent text-[var(--text-muted)] hover:bg-[var(--app-bg)] hover:text-[var(--text-primary)]"
               />
             </div>
 
             <div className="space-y-4">
               <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-1">Description</h4>
-                <p className="text-sm text-gray-600">{selectedPattern.description}</p>
+                <h4 className="text-sm font-medium text-[var(--text-primary)] mb-1">Description</h4>
+                <p className="text-sm text-[var(--text-primary)]">{selectedPattern.description}</p>
               </div>
 
               <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-1">Involved Entities</h4>
+                <h4 className="text-sm font-medium text-[var(--text-primary)] mb-1">
+                  Involved Entities
+                </h4>
                 <div className="flex flex-wrap gap-2">
                   {selectedPattern.entities.map((entity, index) => (
                     <span
                       key={index}
-                      className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded"
+                      className="px-2 py-1 bg-[var(--app-bg)] text-[var(--text-primary)] text-xs rounded"
                     >
                       {entity}
                     </span>
@@ -414,8 +426,10 @@ export const PatternRecognitionAI: React.FC<PatternRecognitionAIProps> = ({
 
               {selectedPattern.metadata.timeRange && (
                 <div>
-                  <h4 className="text-sm font-medium text-gray-700 mb-1">Time Range</h4>
-                  <p className="text-sm text-gray-600">
+                  <h4 className="text-sm font-medium text-[var(--text-primary)] mb-1">
+                    Time Range
+                  </h4>
+                  <p className="text-sm text-[var(--text-primary)]">
                     {selectedPattern.metadata.timeRange.start} to{' '}
                     {selectedPattern.metadata.timeRange.end}
                   </p>
@@ -425,7 +439,9 @@ export const PatternRecognitionAI: React.FC<PatternRecognitionAIProps> = ({
               {selectedPattern.metadata.locations &&
                 selectedPattern.metadata.locations.length > 0 && (
                   <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-1">Locations</h4>
+                    <h4 className="text-sm font-medium text-[var(--text-primary)] mb-1">
+                      Locations
+                    </h4>
                     <div className="flex flex-wrap gap-2">
                       {selectedPattern.metadata.locations.map((location, index) => (
                         <span
@@ -440,12 +456,12 @@ export const PatternRecognitionAI: React.FC<PatternRecognitionAIProps> = ({
                 )}
 
               <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-2">
+                <h4 className="text-sm font-medium text-[var(--text-primary)] mb-2">
                   Investigation Recommendations
                 </h4>
                 <ul className="space-y-1">
                   {selectedPattern.recommendations.map((recommendation, index) => (
-                    <li key={index} className="text-sm text-gray-600 flex items-start">
+                    <li key={index} className="text-sm text-[var(--text-primary)] flex items-start">
                       <span className="w-1.5 h-1.5 rounded-full bg-purple-600 mt-2 mr-2 flex-shrink-0"></span>
                       {recommendation}
                     </li>
@@ -457,11 +473,11 @@ export const PatternRecognitionAI: React.FC<PatternRecognitionAIProps> = ({
             <div className="flex justify-end gap-3 mt-6">
               <button
                 onClick={() => setSelectedPattern(null)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                className="px-4 py-2 text-sm font-medium text-[var(--text-primary)] bg-[var(--app-bg)] rounded-md hover:bg-[var(--app-bg)] transition-colors"
               >
                 Close
               </button>
-              <button className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 transition-colors">
+              <button className="px-4 py-2 text-sm font-medium text-[var(--text-primary)] bg-purple-600 rounded-md hover:bg-purple-700 transition-colors">
                 Add to Investigation
               </button>
             </div>
@@ -472,15 +488,17 @@ export const PatternRecognitionAI: React.FC<PatternRecognitionAIProps> = ({
       {/* Empty State */}
       {!isAnalyzing && detectedPatterns.length === 0 && (
         <div className="p-12 text-center">
-          <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-sm font-medium text-gray-900 mb-2">No patterns detected yet</h3>
-          <p className="text-sm text-gray-600 mb-4">
+          <BarChart3 className="w-12 h-12 text-[var(--text-muted)] mx-auto mb-4" />
+          <h3 className="text-sm font-medium text-[var(--text-primary)] mb-2">
+            No patterns detected yet
+          </h3>
+          <p className="text-sm text-[var(--text-primary)] mb-4">
             Start pattern analysis to identify suspicious activities, behavioral patterns, and
             anomalies in your evidence.
           </p>
           <button
             onClick={analyzePatterns}
-            className="px-4 py-2 bg-purple-600 text-white text-sm rounded-md hover:bg-purple-700 transition-colors"
+            className="px-4 py-2 bg-purple-600 text-[var(--text-primary)] text-sm rounded-md hover:bg-purple-700 transition-colors"
           >
             Start Pattern Analysis
           </button>

@@ -84,12 +84,12 @@ const EntitySearch: React.FC<{
         onChange={(e) => setQuery(e.target.value)}
         onFocus={() => setOpen(true)}
         placeholder={placeholder}
-        className="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:border-cyan-500 focus:outline-none"
+        className="w-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder-slate-500 focus:border-[var(--accent)] focus:outline-none"
       />
       {open && (results.length > 0 || searching) && (
-        <div className="absolute z-50 mt-1 w-full bg-slate-900 border border-slate-700 rounded-lg shadow-xl overflow-hidden">
+        <div className="absolute z-50 mt-1 w-full bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)] overflow-hidden">
           {searching ? (
-            <div className="p-3 text-sm text-slate-400 text-center">Searching…</div>
+            <div className="p-3 text-sm text-[var(--text-muted)] text-center">Searching…</div>
           ) : (
             <div className="max-h-52 overflow-y-auto">
               {results.map((entity) => (
@@ -100,13 +100,21 @@ const EntitySearch: React.FC<{
                     setQuery('');
                     setOpen(false);
                   }}
-                  className="w-full flex items-center justify-between px-3 py-2 hover:bg-slate-700/60 text-left"
+                  className="w-full flex items-center justify-between px-3 py-2 hover:bg-[var(--glass-bg-highlight)]/60 text-left"
                 >
                   <div>
-                    <div className="text-sm text-white font-medium">{entity.name}</div>
-                    {entity.role && <div className="text-xs text-slate-400">{entity.role}</div>}
+                    <div className="text-sm text-[var(--text-primary)] font-medium">
+                      {entity.name}
+                    </div>
+                    {entity.role && (
+                      <div className="text-xs text-[var(--text-muted)]">{entity.role}</div>
+                    )}
                   </div>
-                  <Icon name="Link" size="xs" className="text-slate-500 flex-shrink-0 ml-2" />
+                  <Icon
+                    name="Link"
+                    size="xs"
+                    className="text-[var(--text-muted)] flex-shrink-0 ml-2"
+                  />
                 </button>
               ))}
             </div>
@@ -219,7 +227,7 @@ export const FaceGallery: React.FC = () => {
   if (loading && !clusters.length) {
     return (
       <div className="flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400" />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent)]" />
       </div>
     );
   }
@@ -231,7 +239,7 @@ export const FaceGallery: React.FC = () => {
       <div className="p-6">
         <button
           onClick={() => setSelectedClusterId(null)}
-          className="flex items-center text-slate-400 hover:text-white mb-6 transition-colors"
+          className="flex items-center text-[var(--text-muted)] hover:text-[var(--text-primary)] mb-6 transition-colors"
         >
           <Icon name="ChevronLeft" size="sm" className="mr-2" />
           Back to Gallery
@@ -239,14 +247,14 @@ export const FaceGallery: React.FC = () => {
 
         {detailLoading || !clusterDetail ? (
           <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400" />
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent)]" />
           </div>
         ) : (
           <div>
             {/* Header */}
-            <div className="flex items-start gap-6 mb-8 border-b border-slate-700 pb-6">
+            <div className="flex items-start gap-6 mb-8 border-b border-[var(--glass-border)] pb-6">
               {/* Avatar */}
-              <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-cyan-500/50 bg-slate-800 flex-shrink-0">
+              <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-[var(--accent)]/50 bg-[var(--glass-bg)] flex-shrink-0">
                 {cluster?.thumbnail_path ? (
                   <img
                     src={getImageUrl(cluster.thumbnail_path) ?? undefined}
@@ -254,7 +262,7 @@ export const FaceGallery: React.FC = () => {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-slate-500">
+                  <div className="w-full h-full flex items-center justify-center text-[var(--text-muted)]">
                     <Icon name="User" size="lg" />
                   </div>
                 )}
@@ -263,8 +271,10 @@ export const FaceGallery: React.FC = () => {
               {/* Identity panel */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-3 mb-1">
-                  <h1 className="text-2xl font-bold text-white truncate">{cluster?.name}</h1>
-                  <span className="text-slate-500 text-sm flex-shrink-0">
+                  <h1 className="text-2xl font-bold text-[var(--text-primary)] truncate">
+                    {cluster?.name}
+                  </h1>
+                  <span className="text-[var(--text-muted)] text-sm flex-shrink-0">
                     {cluster?.face_count} faces
                   </span>
                 </div>
@@ -272,16 +282,16 @@ export const FaceGallery: React.FC = () => {
                 {/* Entity link */}
                 {cluster?.entity_id ? (
                   <div className="flex items-center gap-2 mt-2">
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-cyan-500/10 border border-cyan-500/30 rounded-lg">
-                      <Icon name="Link" size="xs" className="text-cyan-400" />
-                      <span className="text-sm text-cyan-300 font-medium">
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-[var(--accent)]/10 border border-[var(--accent)]/30 rounded-[var(--radius-lg)]">
+                      <Icon name="Link" size="xs" className="text-[var(--accent)]" />
+                      <span className="text-sm text-[var(--accent)] font-medium">
                         {cluster.entity_name ?? cluster.name}
                       </span>
                     </div>
                     <button
                       onClick={handleUnlink}
                       disabled={saving}
-                      className="p-1.5 text-slate-500 hover:text-red-400 transition-colors"
+                      className="p-1.5 text-[var(--text-muted)] hover:text-red-400 transition-colors"
                       title="Remove entity link"
                     >
                       <Icon name="Unlink" size="xs" />
@@ -289,11 +299,11 @@ export const FaceGallery: React.FC = () => {
                   </div>
                 ) : (
                   <div className="mt-3 max-w-xs">
-                    <div className="text-xs text-slate-500 mb-1.5 uppercase tracking-wider font-medium">
+                    <div className="text-xs text-[var(--text-muted)] mb-1.5 uppercase tracking-wider font-medium">
                       Link to entity
                     </div>
                     <EntitySearch onSelect={handleLinkEntity} placeholder="Search for a person…" />
-                    <p className="text-xs text-slate-600 mt-1.5">
+                    <p className="text-xs text-[var(--text-primary)] mt-1.5">
                       Linking tags all {cluster?.face_count} photos to this person in the media
                       browser.
                     </p>
@@ -307,7 +317,7 @@ export const FaceGallery: React.FC = () => {
               {clusterDetail.faces.map((face) => (
                 <div
                   key={face.id}
-                  className="relative group aspect-square bg-slate-800 rounded-lg overflow-hidden border border-slate-700 hover:border-cyan-500/50 transition-all"
+                  className="relative group aspect-square bg-[var(--glass-bg)] rounded-[var(--radius-lg)] overflow-hidden border border-[var(--glass-border)] hover:border-[var(--accent)]/50 transition-all"
                 >
                   {face.crop_path ? (
                     <img
@@ -317,12 +327,12 @@ export const FaceGallery: React.FC = () => {
                       loading="lazy"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-slate-600">
+                    <div className="w-full h-full flex items-center justify-center text-[var(--text-primary)]">
                       <Icon name="User" size="md" />
                     </div>
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2">
-                    <span className="text-xs text-slate-300">
+                    <span className="text-xs text-[var(--text-secondary)]">
                       {(face.detection_confidence * 100).toFixed(0)}%
                     </span>
                   </div>
@@ -330,7 +340,7 @@ export const FaceGallery: React.FC = () => {
                     href={`/media?id=${face.media_item_id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="absolute top-2 right-2 p-1.5 bg-black/60 rounded-full text-white opacity-0 group-hover:opacity-100 hover:bg-cyan-600 transition-all"
+                    className="absolute top-2 right-2 p-1.5 bg-black/60 rounded-full text-[var(--text-primary)] opacity-0 group-hover:opacity-100 hover:bg-[var(--accent)] transition-all"
                     title="View original photo"
                   >
                     <Icon name="ExternalLink" size="xs" />
@@ -348,11 +358,11 @@ export const FaceGallery: React.FC = () => {
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-white flex items-center gap-3">
-          <Icon name="Users" size="md" className="text-cyan-400" />
+        <h1 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-3">
+          <Icon name="Users" size="md" className="text-[var(--accent)]" />
           Face Gallery
         </h1>
-        <div className="text-sm text-slate-400">{clusters.length} People Found</div>
+        <div className="text-sm text-[var(--text-muted)]">{clusters.length} People Found</div>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
@@ -360,9 +370,9 @@ export const FaceGallery: React.FC = () => {
           <button
             key={cluster.id}
             onClick={() => setSelectedClusterId(cluster.id)}
-            className="group flex flex-col bg-slate-900 border border-slate-800 rounded-xl overflow-hidden hover:border-cyan-500/50 hover:shadow-lg hover:shadow-cyan-500/10 transition-all duration-300 text-left"
+            className="group flex flex-col bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-xl)] overflow-hidden hover:border-[var(--accent)]/50 hover:shadow-[var(--glass-shadow)] hover:shadow-cyan-500/10 transition-all duration-300 text-left"
           >
-            <div className="aspect-square w-full bg-slate-800 relative overflow-hidden">
+            <div className="aspect-square w-full bg-[var(--glass-bg)] relative overflow-hidden">
               {cluster.thumbnail_path ? (
                 <img
                   src={getImageUrl(cluster.thumbnail_path) ?? undefined}
@@ -371,32 +381,34 @@ export const FaceGallery: React.FC = () => {
                   loading="lazy"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-slate-600 group-hover:text-slate-500">
+                <div className="w-full h-full flex items-center justify-center text-[var(--text-primary)] group-hover:text-[var(--text-muted)]">
                   <Icon name="User" size="xl" />
                 </div>
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60 group-hover:opacity-40 transition-opacity" />
-              <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm px-2 py-0.5 rounded text-xs font-mono text-cyan-300 border border-cyan-900/50">
+              <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm px-2 py-0.5 rounded text-xs font-mono text-[var(--accent)] border border-cyan-900/50">
                 {cluster.face_count}
               </div>
               {cluster.entity_id && (
                 <div
-                  className="absolute top-2 left-2 p-1 bg-cyan-500/80 rounded-full"
+                  className="absolute top-2 left-2 p-1 bg-[var(--accent)]/80 rounded-full"
                   title="Linked to entity"
                 >
-                  <Icon name="Link" size="xs" className="text-white" />
+                  <Icon name="Link" size="xs" className="text-[var(--text-primary)]" />
                 </div>
               )}
             </div>
 
             <div className="p-3">
-              <div className="font-medium text-slate-200 truncate group-hover:text-cyan-400 transition-colors">
+              <div className="font-medium text-[var(--text-primary)] truncate group-hover:text-[var(--accent)] transition-colors">
                 {cluster.entity_name ?? cluster.name}
               </div>
               {cluster.entity_id && cluster.entity_name && cluster.entity_name !== cluster.name && (
-                <div className="text-xs text-slate-500 truncate mt-0.5">{cluster.name}</div>
+                <div className="text-xs text-[var(--text-muted)] truncate mt-0.5">
+                  {cluster.name}
+                </div>
               )}
-              <div className="text-xs text-slate-600 mt-0.5">
+              <div className="text-xs text-[var(--text-primary)] mt-0.5">
                 {new Date(cluster.created_at).toLocaleDateString()}
               </div>
             </div>

@@ -7,6 +7,7 @@
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 8px;
+  --radius-xl: 12px;
 
   /* Spacing */
   --space-1: 4px;
@@ -23,6 +24,26 @@
   --font-display: 'DM Serif Display', Georgia, serif;
   --font-sans: 'IBM Plex Sans', 'Inter', system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --font-geometric: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* Typographic Scale */
+  --type-display-xxl: clamp(2.5rem, 4vw, 4rem);
+  --type-display-xl: clamp(2rem, 3vw, 3rem);
+  --type-h1: clamp(1.75rem, 2.5vw, 2.25rem);
+  --type-h2: clamp(1.375rem, 2vw, 1.75rem);
+  --type-h3: clamp(1.125rem, 1.5vw, 1.375rem);
+  --type-subtitle: 0.95rem;
+  --type-body: 0.95rem;
+  --type-small: 0.8rem;
+  --type-xs: 0.625rem;
+  --font-size-h2: var(--type-h2);
+  --tracking-tight: -0.01em;
+  --tracking-wide: 0.08em;
+  --weight-thin: 200;
+  --weight-light: 300;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-bold: 700;
 
   /* Liquid Motion */
   --easing-liquid: cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -37,20 +58,36 @@
   --glass-bg: rgba(15, 23, 42, 0.56);
   --glass-bg-strong: rgba(15, 23, 42, 0.74);
   --glass-border: rgba(148, 163, 184, 0.22);
+  --glass-border-highlight: rgba(148, 163, 184, 0.4);
   --glass-highlight: rgba(248, 250, 252, 0.2);
+  --glass-bg-highlight: rgba(248, 250, 252, 0.06);
   --glass-shadow: 0 10px 32px rgba(2, 6, 23, 0.45);
   --glass-shadow-soft: 0 5px 20px rgba(2, 6, 23, 0.25);
   --glass-blur: 18px;
+  --bg-elevated: #1a1a21;
+  --border-subtle: rgba(148, 163, 184, 0.12);
 
+  /* Text Aliases for component usage */
   --text-strong: #f8fafc;
   --text-default: #e2e8f0;
   --text-muted: #94a3b8;
   --text-dim: #64748b;
+  --text-primary: var(--text-default);
+  --text-secondary: var(--text-muted);
+  --app-backdrop:
+    radial-gradient(1200px 600px at 10% 0%, rgba(18, 23, 40, 0.55), transparent 60%),
+    radial-gradient(1200px 600px at 90% 10%, rgba(14, 18, 30, 0.5), transparent 62%), var(--bg-dark);
 
   --accent: #d4a84b;
   --accent-glow: rgba(212, 168, 75, 0.35);
   --accent-docs: #c0392b;
   --accent-emails: #5b7fa6;
+  --accent-info: #06b6d4;
+  --accent-success: #34d399;
+  --accent-warning: #f59e0b;
+  --accent-danger: #ef4444;
+  --chip-accent: rgba(56, 189, 248, 1);
+  --chip-accent-border: rgba(56, 189, 248, 0.25);
   --accent-investigate: #9b5ea3;
   --accent-evidence: #3d8b8b;
 
@@ -73,6 +110,13 @@ body {
   color: var(--text-default);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+}
+
+/* Backdrop surface for app-level depth */
+.app-backdrop {
+  background:
+    radial-gradient(1200px 600px at 10% 0%, rgba(18, 23, 40, 0.55), transparent 60%),
+    radial-gradient(1200px 600px at 90% 10%, rgba(14, 18, 30, 0.5), transparent 62%), var(--bg-dark);
 }
 
 /* Liquid Glass Utilities */
@@ -110,6 +154,8 @@ body {
 .glass-card:hover {
   background: #1a1a20;
   border-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(2, 6, 23, 0.45);
 }
 
 /* Scrollbar Overhaul: Invisible unless active */
@@ -150,6 +196,34 @@ body {
   display: none;
 }
 
+/* Toast notification variants */
+.toast-success {
+  background: rgba(52, 211, 153, 0.1);
+  border-color: rgba(52, 211, 153, 0.3);
+  color: #a7f3d0;
+}
+.toast-error {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+}
+.toast-warning {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.3);
+  color: #fcd34d;
+}
+.toast-loading {
+  background: rgba(6, 182, 212, 0.1);
+  border-color: rgba(6, 182, 212, 0.3);
+  color: #a5f3fc;
+}
+.toast-info {
+  background: var(--glass-bg);
+  border-color: var(--glass-border);
+  color: var(--text-primary);
+  backdrop-filter: blur(var(--glass-blur));
+}
+
 /* Maintain compatibility for existing classes during transition */
 .surface-glass {
   @apply glass-panel rounded-[var(--radius-lg)];
@@ -182,10 +256,13 @@ body {
 .control:hover {
   background: #1a1a20;
   border-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 28px rgba(2, 6, 23, 0.4);
 }
 
 .control:active {
   box-shadow: var(--glass-shadow-soft);
+  transform: translateY(0);
 }
 
 .control:focus-visible {
@@ -300,6 +377,25 @@ body {
   min-height: 0;
 }
 
+/* Navigation micro-interactions */
+.main-nav-pill button {
+  transition:
+    transform var(--duration-fast) var(--easing-swift),
+    box-shadow var(--duration-fast) var(--easing-swift),
+    background-color var(--duration-fast) var(--easing-swift),
+    color var(--duration-fast) var(--easing-swift);
+  will-change: transform, box-shadow;
+}
+.main-nav-pill button:hover {
+  transform: translateY(-1px);
+}
+.main-nav-pill button:active {
+  transform: translateY(0);
+}
+.main-nav-pill:hover {
+  backdrop-filter: blur(calc(var(--glass-blur) * 1.1));
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .surface-glass-card,
   .control,
@@ -311,6 +407,45 @@ body {
       color var(--duration-fast) var(--easing-swift);
   }
 }
+
+/* Typographic utilities */
+.type-display {
+  font-family: var(--font-display);
+  font-size: var(--type-display-xl);
+  font-weight: var(--weight-light);
+  letter-spacing: var(--tracking-tight);
+}
+.type-h2 {
+  font-family: var(--font-geometric);
+  font-size: var(--type-h2);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-tight);
+}
+.data-emphasis {
+  font-family: var(--font-mono);
+  font-size: clamp(2rem, 3vw, 2.75rem);
+  font-weight: var(--weight-thin);
+  letter-spacing: var(--tracking-tight);
+}
+
+/* Content shell for asymmetry and edge-to-edge sections */
+.content-shell {
+  width: 100%;
+  max-width: 1440px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-top: 1rem;
+  padding-bottom: 2rem;
+  padding-left: clamp(1rem, 4vw, 3rem);
+  padding-right: clamp(0.5rem, 2vw, 1.25rem);
+  position: relative;
+  z-index: 10;
+}
+.edge-breakout {
+  margin-left: calc(-1 * clamp(1rem, 4vw, 3rem));
+  margin-right: calc(-1 * clamp(0.5rem, 2vw, 1.25rem));
+}
+
 /* react-pdf styles */
 .react-pdf__Page__textContent {
   position: absolute;

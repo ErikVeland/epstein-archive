@@ -63,7 +63,7 @@ const Tooltip: React.FC<TooltipProps> = ({
 
   const getPositionClasses = () => {
     const baseClasses =
-      'absolute z-[100] px-3 py-2 text-sm font-medium text-white bg-gray-900 rounded-lg shadow-lg whitespace-normal min-w-[200px] max-w-[300px]';
+      'absolute z-[100] px-3 py-2 text-sm font-medium text-[var(--text-primary)] bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)] backdrop-blur-md whitespace-normal min-w-[200px] max-w-[300px]';
 
     switch (position) {
       case 'top':
@@ -84,7 +84,8 @@ const Tooltip: React.FC<TooltipProps> = ({
   };
 
   const getArrowClasses = () => {
-    const baseClasses = 'absolute w-2 h-2 bg-gray-900 rotate-45';
+    const baseClasses =
+      'absolute w-2 h-2 bg-[var(--glass-bg-strong)] border-t border-l border-[var(--glass-border)] rotate-45';
 
     switch (position) {
       case 'top':

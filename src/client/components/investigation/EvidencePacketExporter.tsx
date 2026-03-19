@@ -35,26 +35,30 @@ export const EvidencePacketExporter: React.FC<EvidencePacketExporterProps> = ({
   };
 
   return (
-    <div className="bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 rounded-xl p-5 shadow-lg">
-      <h3 className="text-base font-semibold text-white mb-3">Export Evidence Packet</h3>
+    <div className="bg-[var(--glass-bg)]/60 backdrop-blur-sm border border-[var(--glass-border)] rounded-[var(--radius-xl)] p-5 shadow-[var(--glass-shadow)]">
+      <h3 className="text-base font-semibold text-[var(--text-primary)] mb-3">
+        Export Evidence Packet
+      </h3>
 
-      <p className="text-sm text-slate-300 mb-5">
+      <p className="text-sm text-[var(--text-secondary)] mb-5">
         Export this investigation as a comprehensive evidence packet containing entities, documents,
         metadata, and Red Flag Index scores.
       </p>
 
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-slate-200 mb-2">Export Format</label>
+          <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
+            Export Format
+          </label>
           <div className="flex gap-3">
             <button
               onClick={() => setSelectedFormat('json')}
               className={`
-                flex-1 flex items-center justify-center p-3 rounded-lg border-2 transition-all duration-200
+                flex-1 flex items-center justify-center p-3 rounded-[var(--radius-lg)] border-2 transition-all duration-200
                 ${
                   selectedFormat === 'json'
-                    ? 'border-blue-500 bg-blue-500/20 text-blue-300'
-                    : 'border-slate-600 bg-slate-700/50 text-slate-300 hover:border-slate-500 hover:bg-slate-700'
+                    ? 'border-[var(--accent)] bg-[var(--accent)]/20 text-[var(--accent)]'
+                    : 'border-[var(--glass-border)] bg-[var(--glass-bg-highlight)]/50 text-[var(--text-secondary)] hover:border-[var(--glass-border)] hover:bg-[var(--glass-bg-highlight)]'
                 }
               `}
             >
@@ -65,11 +69,11 @@ export const EvidencePacketExporter: React.FC<EvidencePacketExporterProps> = ({
             <button
               onClick={() => setSelectedFormat('zip')}
               className={`
-                flex-1 flex items-center justify-center p-3 rounded-lg border-2 transition-all duration-200
+                flex-1 flex items-center justify-center p-3 rounded-[var(--radius-lg)] border-2 transition-all duration-200
                 ${
                   selectedFormat === 'zip'
-                    ? 'border-blue-500 bg-blue-500/20 text-blue-300'
-                    : 'border-slate-600 bg-slate-700/50 text-slate-300 hover:border-slate-500 hover:bg-slate-700'
+                    ? 'border-[var(--accent)] bg-[var(--accent)]/20 text-[var(--accent)]'
+                    : 'border-[var(--glass-border)] bg-[var(--glass-bg-highlight)]/50 text-[var(--text-secondary)] hover:border-[var(--glass-border)] hover:bg-[var(--glass-bg-highlight)]'
                 }
               `}
             >
@@ -79,14 +83,14 @@ export const EvidencePacketExporter: React.FC<EvidencePacketExporterProps> = ({
           </div>
         </div>
 
-        <div className="pt-4 border-t border-slate-700/50">
+        <div className="pt-4 border-t border-[var(--glass-border)]">
           <button
             onClick={handleExport}
             disabled={isExporting}
             className={`
               w-full flex items-center justify-center px-4 py-3 
-              bg-blue-600 text-white rounded-lg font-medium
-              hover:bg-blue-500 transition-colors shadow-lg shadow-blue-900/30
+              bg-[var(--accent)] text-[var(--text-primary)] rounded-[var(--radius-lg)] font-medium
+              hover:bg-[var(--accent)] transition-colors shadow-[var(--glass-shadow)] shadow-blue-900/30
               ${isExporting ? 'opacity-70 cursor-not-allowed' : ''}
             `}
           >

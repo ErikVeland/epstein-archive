@@ -18,7 +18,7 @@ async function main() {
   // Using the filter pagination supported by MediaService.getAllImages
   let hasMore = true;
   while (hasMore) {
-    const images = media.getAllImages({ limit: BATCH_SIZE, offset });
+    const images = await media.getAllImages({ limit: BATCH_SIZE, offset });
     hasMore = images.length > 0;
     if (!hasMore) break;
 
@@ -93,7 +93,7 @@ async function main() {
         }
 
         // Update DB record
-        media.updateImage(image.id, { thumbnailPath: canonicalThumb });
+        await media.updateImage(image.id, { thumbnailPath: canonicalThumb });
         generated += 1;
       } catch (err) {
         failed += 1;

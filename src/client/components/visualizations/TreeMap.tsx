@@ -101,21 +101,21 @@ export const TreeMap: React.FC<TreeMapProps> = ({ people, onPersonClick }) => {
       <div className="flex justify-end gap-2 mb-2">
         <button
           onClick={zoomIn}
-          className="p-2 bg-slate-800 rounded hover:bg-slate-700 text-slate-300"
+          className="p-2 bg-[var(--glass-bg)] rounded hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)]"
           title="Zoom In"
         >
           <ZoomIn size={16} />
         </button>
         <button
           onClick={zoomOut}
-          className="p-2 bg-slate-800 rounded hover:bg-slate-700 text-slate-300"
+          className="p-2 bg-[var(--glass-bg)] rounded hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)]"
           title="Zoom Out"
         >
           <ZoomOut size={16} />
         </button>
         <button
           onClick={resetZoom}
-          className="p-2 bg-slate-800 rounded hover:bg-slate-700 text-slate-300"
+          className="p-2 bg-[var(--glass-bg)] rounded hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)]"
           title="Reset"
         >
           <RotateCcw size={16} />
@@ -124,7 +124,7 @@ export const TreeMap: React.FC<TreeMapProps> = ({ people, onPersonClick }) => {
 
       <div
         ref={containerRef}
-        className={`relative w-full ${isMobile ? 'h-[800px]' : 'h-[600px]'} bg-slate-900/50 rounded-xl border border-slate-700 overflow-hidden cursor-move`}
+        className={`relative w-full ${isMobile ? 'h-[800px]' : 'h-[600px]'} bg-[var(--glass-bg-strong)]/50 rounded-[var(--radius-xl)] border border-[var(--glass-border)] overflow-hidden cursor-move`}
         onWheel={handleWheel}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
@@ -211,22 +211,26 @@ export const TreeMap: React.FC<TreeMapProps> = ({ people, onPersonClick }) => {
 
         {/* Hover tooltip - fixed position relative to viewport */}
         {hoveredNode && (
-          <div className="absolute top-4 right-4 bg-slate-900/95 backdrop-blur-sm border border-slate-700 rounded-lg p-4 shadow-xl max-w-xs z-10 pointer-events-none">
-            <h4 className="text-white font-bold text-sm mb-2">{hoveredNode.name}</h4>
+          <div className="absolute top-4 right-4 bg-[var(--glass-bg-strong)]/95 backdrop-blur-sm border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-4 shadow-[var(--glass-shadow)] max-w-xs z-10 pointer-events-none">
+            <h4 className="text-[var(--text-primary)] font-bold text-sm mb-2">
+              {hoveredNode.name}
+            </h4>
             <div className="space-y-1 text-xs">
               <div className="flex justify-between">
-                <span className="text-slate-400">Mentions:</span>
-                <span className="text-white font-mono">{hoveredNode.value.toLocaleString()}</span>
+                <span className="text-[var(--text-muted)]">Mentions:</span>
+                <span className="text-[var(--text-primary)] font-mono">
+                  {hoveredNode.value.toLocaleString()}
+                </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Percentage:</span>
-                <span className="text-white font-mono">
+                <span className="text-[var(--text-muted)]">Percentage:</span>
+                <span className="text-[var(--text-primary)] font-mono">
                   {((hoveredNode.value / total) * 100).toFixed(2)}%
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Red Flag Index:</span>
-                <span className="text-white">
+                <span className="text-[var(--text-muted)]">Red Flag Index:</span>
+                <span className="text-[var(--text-primary)]">
                   {hoveredNode.redFlagRating}/5 {'🚩'.repeat(hoveredNode.redFlagRating)}
                 </span>
               </div>

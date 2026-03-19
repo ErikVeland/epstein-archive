@@ -54,16 +54,19 @@ const LoadingPillDisplay: React.FC<LoadingPillDisplayProps> = ({ tasks }) => {
       onMouseLeave={() => setHovered(false)}
     >
       {/* Main compact pill */}
-      <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/90 border border-slate-700/60 shadow-lg backdrop-blur-sm cursor-pointer transition-all duration-200 hover:bg-slate-800/90">
+      <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--glass-bg)] border border-[var(--glass-border)] shadow-[var(--glass-shadow)] backdrop-blur-sm cursor-pointer transition-all duration-200 hover:bg-[var(--glass-bg-strong)]">
         <div
-          className="w-3 h-3 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"
+          className="w-3 h-3 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin"
           aria-hidden
         />
-        <span className="text-xs text-slate-300 truncate max-w-[120px]" aria-live="polite">
+        <span
+          className="text-xs text-[var(--text-secondary)] truncate max-w-[120px]"
+          aria-live="polite"
+        >
           {tasks.length === 1 ? mainTask.label : `${tasks.length} tasks`}
         </span>
         <div
-          className="w-12 h-1 bg-slate-700/70 rounded-full overflow-hidden"
+          className="w-12 h-1 bg-[var(--glass-bg-strong)] rounded-full overflow-hidden"
           role="progressbar"
           aria-valuenow={Math.round(totalProgress)}
           aria-valuemin={0}
@@ -71,7 +74,7 @@ const LoadingPillDisplay: React.FC<LoadingPillDisplayProps> = ({ tasks }) => {
           aria-label="Loading progress"
         >
           <div
-            className="h-full bg-cyan-400 rounded-full transition-all duration-300 ease-out"
+            className="h-full bg-[var(--accent)] rounded-full transition-all duration-300 ease-out"
             style={{ width: `${totalProgress}%` }}
           />
         </div>
@@ -79,15 +82,17 @@ const LoadingPillDisplay: React.FC<LoadingPillDisplayProps> = ({ tasks }) => {
 
       {/* Hover tooltip with all tasks */}
       {hovered && tasks.length > 0 && (
-        <div className="absolute top-full right-0 mt-2 min-w-[200px] bg-slate-900/95 border border-slate-700/60 rounded-lg shadow-xl backdrop-blur-sm p-3">
-          <div className="text-xs text-slate-400 mb-2 font-medium">Active Tasks</div>
+        <div className="absolute top-full right-0 mt-2 min-w-[200px] glass-panel p-3">
+          <div className="text-xs text-[var(--text-muted)] mb-2 font-medium">Active Tasks</div>
           <div className="space-y-2">
             {tasks.map((task) => (
               <div key={task.id} className="flex items-center gap-2">
-                <div className="w-2 h-2 border border-cyan-400 border-t-transparent rounded-full animate-spin" />
-                <span className="text-xs text-slate-300 flex-1 truncate">{task.label}</span>
+                <div className="w-2 h-2 border border-[var(--accent)] border-t-transparent rounded-full animate-spin" />
+                <span className="text-xs text-[var(--text-secondary)] flex-1 truncate">
+                  {task.label}
+                </span>
                 {task.progress !== undefined && (
-                  <span className="text-xs text-cyan-400 font-mono">
+                  <span className="text-xs text-[var(--accent)] font-mono">
                     {Math.round(task.progress)}%
                   </span>
                 )}
@@ -110,24 +115,27 @@ const LoadingPill: React.FC<LoadingPillProps> = ({ label, value }) => {
   const pct = typeof value === 'number' ? Math.min(100, Math.max(0, Math.round(value))) : undefined;
   return (
     <div className="fixed top-3 right-3 z-50">
-      <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/90 border border-slate-700/60 shadow-lg backdrop-blur-sm">
+      <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--glass-bg)] border border-[var(--glass-border)] shadow-[var(--glass-shadow)] backdrop-blur-sm">
         <div
-          className="w-3 h-3 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"
+          className="w-3 h-3 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin"
           aria-hidden
         />
-        <span className="text-xs text-slate-300 truncate max-w-[120px]" aria-live="polite">
+        <span
+          className="text-xs text-[var(--text-secondary)] truncate max-w-[120px]"
+          aria-live="polite"
+        >
           {label || 'Loading'}
         </span>
         {pct !== undefined && (
           <div
-            className="w-12 h-1 bg-slate-700/70 rounded-full overflow-hidden"
+            className="w-12 h-1 bg-[var(--glass-bg-strong)] rounded-full overflow-hidden"
             role="progressbar"
             aria-valuenow={pct}
             aria-valuemin={0}
             aria-valuemax={100}
           >
             <div
-              className="h-full bg-cyan-400 rounded-full transition-all duration-300 ease-out"
+              className="h-full bg-[var(--accent)] rounded-full transition-all duration-300 ease-out"
               style={{ width: `${pct}%` }}
             />
           </div>

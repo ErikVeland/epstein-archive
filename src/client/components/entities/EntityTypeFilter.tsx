@@ -65,8 +65,10 @@ const EntityTypeFilter: React.FC<EntityTypeFilterProps> = ({ value, onChange, cl
                 key={option.value}
                 role="option"
                 aria-selected={option.value === value}
-                className={`px-3 h-10 text-sm cursor-pointer flex items-center gap-2 rounded-[var(--radius-sm)] hover:bg-slate-700/55 ${
-                  option.value === value ? 'bg-slate-700/65 text-white' : 'text-slate-300'
+                className={`px-3 h-10 text-sm cursor-pointer flex items-center gap-2 rounded-[var(--radius-sm)] hover:bg-[var(--glass-bg-highlight)]/55 ${
+                  option.value === value
+                    ? 'bg-[var(--glass-bg-highlight)]/65 text-[var(--text-primary)]'
+                    : 'text-[var(--text-secondary)]'
                 }`}
                 onClick={() => {
                   onChange(option.value);

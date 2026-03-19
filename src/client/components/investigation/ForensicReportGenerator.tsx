@@ -480,51 +480,57 @@ It is concluded that the identified patterns are consistent with complex organis
       case 'unclassified':
         return 'text-green-400 bg-green-900';
       case 'confidential':
-        return 'text-blue-400 bg-blue-900';
+        return 'text-[var(--accent)] bg-blue-900';
       case 'restricted':
         return 'text-yellow-400 bg-yellow-900';
       case 'secret':
         return 'text-red-400 bg-red-900';
       default:
-        return 'text-gray-400 bg-gray-900';
+        return 'text-[var(--text-muted)] bg-[var(--glass-bg-strong)]';
     }
   };
 
   // getTargetAudienceColor reserved for future use; removed to avoid unused-variable warnings.
 
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100 p-6">
+    <div className="min-h-screen bg-[var(--glass-bg-strong)] text-[var(--text-primary)] p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-red-400 mb-2">Forensic Report Generator</h1>
-          <p className="text-gray-400">
+          <p className="text-[var(--text-muted)]">
             Automated generation of comprehensive forensic analysis reports
           </p>
         </div>
 
         {/* Configuration Panel */}
-        <div className="bg-gray-800 rounded-lg p-6 mb-6">
-          <h2 className="text-xl font-semibold text-gray-100 mb-4">Report Configuration</h2>
+        <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] p-6 mb-6">
+          <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-4">
+            Report Configuration
+          </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Report Title</label>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                Report Title
+              </label>
               <input
                 type="text"
                 value={reportTitle}
                 onChange={(e) => setReportTitle(e.target.value)}
                 placeholder="Enter report title..."
-                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className="w-full px-4 py-2 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] focus:ring-2 focus:ring-red-500 focus:border-transparent"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Template</label>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                Template
+              </label>
               <select
                 value={selectedTemplate}
                 onChange={(e) => setSelectedTemplate(e.target.value)}
-                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:ring-2 focus:ring-red-500"
+                className="w-full px-4 py-2 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] focus:ring-2 focus:ring-red-500"
               >
                 <option value="">Select a template...</option>
                 {templates.map((template) => (
@@ -536,13 +542,13 @@ It is concluded that the identified patterns are consistent with complex organis
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
                 Target Audience
               </label>
               <select
                 value={targetAudience}
                 onChange={(e) => setTargetAudience(e.target.value)}
-                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:ring-2 focus:ring-red-500"
+                className="w-full px-4 py-2 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] focus:ring-2 focus:ring-red-500"
               >
                 <option value="legal">Legal/Prosecution</option>
                 <option value="journalism">Journalism/Publication</option>
@@ -552,11 +558,13 @@ It is concluded that the identified patterns are consistent with complex organis
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Classification</label>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+                Classification
+              </label>
               <select
                 value={classification}
                 onChange={(e) => setClassification(e.target.value)}
-                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-100 focus:ring-2 focus:ring-red-500"
+                className="w-full px-4 py-2 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] focus:ring-2 focus:ring-red-500"
               >
                 <option value="unclassified">Unclassified</option>
                 <option value="confidential">Confidential</option>
@@ -569,7 +577,7 @@ It is concluded that the identified patterns are consistent with complex organis
               <button
                 onClick={generateReport}
                 disabled={!selectedTemplate || isGenerating}
-                className="w-full px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors flex items-center justify-center gap-2"
+                className="w-full px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-[var(--glass-bg-highlight)] disabled:cursor-not-allowed rounded-[var(--radius-lg)] transition-colors flex items-center justify-center gap-2"
               >
                 {isGenerating ? (
                   <>
@@ -588,11 +596,11 @@ It is concluded that the identified patterns are consistent with complex organis
 
           {isGenerating && (
             <div className="mb-4">
-              <div className="flex justify-between text-sm text-gray-400 mb-2">
+              <div className="flex justify-between text-sm text-[var(--text-muted)] mb-2">
                 <span>Generation Progress</span>
                 <span>{generationProgress}%</span>
               </div>
-              <div className="w-full bg-gray-700 rounded-full h-2">
+              <div className="w-full bg-[var(--glass-bg-highlight)] rounded-full h-2">
                 <div
                   className="bg-red-600 h-2 rounded-full transition-all duration-300"
                   style={{ width: `${generationProgress}%` }}
@@ -610,7 +618,7 @@ It is concluded that the identified patterns are consistent with complex organis
                 onChange={(e) => setIncludeEvidence(e.target.checked)}
                 className="rounded"
               />
-              <span className="text-gray-300">Include Evidence References</span>
+              <span className="text-[var(--text-secondary)]">Include Evidence References</span>
             </label>
             <label className="flex items-center gap-2">
               <input
@@ -619,15 +627,15 @@ It is concluded that the identified patterns are consistent with complex organis
                 onChange={(e) => setIncludeCharts(e.target.checked)}
                 className="rounded"
               />
-              <span className="text-gray-300">Include Charts/Visualizations</span>
+              <span className="text-[var(--text-secondary)]">Include Charts/Visualizations</span>
             </label>
           </div>
         </div>
 
         {/* Template Information */}
         {selectedTemplate && (
-          <div className="bg-gray-800 rounded-lg p-6 mb-6">
-            <h3 className="text-lg font-semibold text-gray-100 mb-4">
+          <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] p-6 mb-6">
+            <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
               Selected Template Information
             </h3>
             {(() => {
@@ -636,20 +644,20 @@ It is concluded that the identified patterns are consistent with complex organis
               return (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <p className="text-sm text-gray-400 mb-1">Name</p>
-                    <p className="text-gray-100 font-medium">{template.name}</p>
+                    <p className="text-sm text-[var(--text-muted)] mb-1">Name</p>
+                    <p className="text-[var(--text-primary)] font-medium">{template.name}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-400 mb-1">Description</p>
-                    <p className="text-gray-100">{template.description}</p>
+                    <p className="text-sm text-[var(--text-muted)] mb-1">Description</p>
+                    <p className="text-[var(--text-primary)]">{template.description}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-400 mb-1">Sections</p>
+                    <p className="text-sm text-[var(--text-muted)] mb-1">Sections</p>
                     <div className="flex flex-wrap gap-1">
                       {template.sections.map((section) => (
                         <span
                           key={section}
-                          className="px-2 py-1 bg-gray-700 text-gray-300 rounded text-xs capitalize"
+                          className="px-2 py-1 bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] rounded text-xs capitalize"
                         >
                           {section.replace('_', ' ')}
                         </span>
@@ -664,11 +672,13 @@ It is concluded that the identified patterns are consistent with complex organis
 
         {/* Generated Report */}
         {generatedReport && (
-          <div className="bg-gray-800 rounded-lg p-6 mb-6">
+          <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] p-6 mb-6">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h2 className="text-xl font-semibold text-gray-100">Generated Report</h2>
-                <p className="text-gray-400 text-sm">{generatedReport.title}</p>
+                <h2 className="text-xl font-semibold text-[var(--text-primary)]">
+                  Generated Report
+                </h2>
+                <p className="text-[var(--text-muted)] text-sm">{generatedReport.title}</p>
               </div>
               <div className="flex gap-2">
                 <span
@@ -676,7 +686,9 @@ It is concluded that the identified patterns are consistent with complex organis
                 >
                   {generatedReport.classification.toUpperCase()}
                 </span>
-                <span className={`px-3 py-1 rounded text-xs font-medium bg-gray-700 text-gray-300`}>
+                <span
+                  className={`px-3 py-1 rounded text-xs font-medium bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)]`}
+                >
                   {generatedReport.confidence}% Confidence
                 </span>
               </div>
@@ -684,37 +696,39 @@ It is concluded that the identified patterns are consistent with complex organis
 
             {/* Report Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-              <div className="bg-gray-700 rounded-lg p-3">
+              <div className="bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] p-3">
                 <div className="flex items-center gap-2 mb-1">
-                  <FileText className="w-4 h-4 text-blue-400" />
-                  <span className="text-sm text-gray-400">Pages</span>
+                  <FileText className="w-4 h-4 text-[var(--accent)]" />
+                  <span className="text-sm text-[var(--text-muted)]">Pages</span>
                 </div>
-                <p className="text-lg font-semibold text-gray-100">{generatedReport.totalPages}</p>
+                <p className="text-lg font-semibold text-[var(--text-primary)]">
+                  {generatedReport.totalPages}
+                </p>
               </div>
-              <div className="bg-gray-700 rounded-lg p-3">
+              <div className="bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] p-3">
                 <div className="flex items-center gap-2 mb-1">
                   <FileText className="w-4 h-4 text-green-400" />
-                  <span className="text-sm text-gray-400">Words</span>
+                  <span className="text-sm text-[var(--text-muted)]">Words</span>
                 </div>
-                <p className="text-lg font-semibold text-gray-100">
+                <p className="text-lg font-semibold text-[var(--text-primary)]">
                   {generatedReport.wordCount.toLocaleString()}
                 </p>
               </div>
-              <div className="bg-gray-700 rounded-lg p-3">
+              <div className="bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] p-3">
                 <div className="flex items-center gap-2 mb-1">
                   <CheckCircle className="w-4 h-4 text-yellow-400" />
-                  <span className="text-sm text-gray-400">Evidence</span>
+                  <span className="text-sm text-[var(--text-muted)]">Evidence</span>
                 </div>
-                <p className="text-lg font-semibold text-gray-100">
+                <p className="text-lg font-semibold text-[var(--text-primary)]">
                   {generatedReport.evidenceCount}
                 </p>
               </div>
-              <div className="bg-gray-700 rounded-lg p-3">
+              <div className="bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] p-3">
                 <div className="flex items-center gap-2 mb-1">
                   <Calendar className="w-4 h-4 text-purple-400" />
-                  <span className="text-sm text-gray-400">Generated</span>
+                  <span className="text-sm text-[var(--text-muted)]">Generated</span>
                 </div>
-                <p className="text-sm text-gray-100">
+                <p className="text-sm text-[var(--text-primary)]">
                   {new Date(generatedReport.generatedAt).toLocaleDateString()}
                 </p>
               </div>
@@ -724,35 +738,35 @@ It is concluded that the identified patterns are consistent with complex organis
             <div className="flex flex-wrap gap-3">
               <button
                 onClick={() => exportReport('pdf')}
-                className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-[var(--radius-lg)] transition-colors"
               >
                 <FileText className="w-4 h-4" />
                 Export PDF
               </button>
               <button
                 onClick={() => exportReport('docx')}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] hover:bg-blue-700 rounded-[var(--radius-lg)] transition-colors"
               >
                 <FileText className="w-4 h-4" />
                 Export DOCX
               </button>
               <button
                 onClick={() => exportReport('json')}
-                className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-[var(--radius-lg)] transition-colors"
               >
                 <FileJson className="w-4 h-4" />
                 Export JSON
               </button>
               <button
                 onClick={() => exportReport('txt')}
-                className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-[var(--radius-lg)] transition-colors"
               >
                 <FileText className="w-4 h-4" />
                 Export TXT
               </button>
               <button
                 onClick={() => window.print()}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg transition-colors"
+                className="flex items-center gap-2 px-4 py-2 bg-[var(--glass-bg-highlight)] hover:bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] transition-colors"
               >
                 <Printer className="w-4 h-4" />
                 Print
@@ -763,15 +777,20 @@ It is concluded that the identified patterns are consistent with complex organis
 
         {/* Report Sections Preview */}
         {generatedReport && (
-          <div className="bg-gray-800 rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-gray-100 mb-4">Report Sections</h3>
+          <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] p-6">
+            <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
+              Report Sections
+            </h3>
             <div className="space-y-4">
               {generatedReport.sections.map((section) => (
-                <div key={section.id} className="border border-gray-700 rounded-lg p-4">
+                <div
+                  key={section.id}
+                  className="border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-4"
+                >
                   <div className="flex justify-between items-start mb-3">
                     <div>
-                      <h4 className="font-semibold text-gray-100">{section.title}</h4>
-                      <p className="text-sm text-gray-400 capitalize">
+                      <h4 className="font-semibold text-[var(--text-primary)]">{section.title}</h4>
+                      <p className="text-sm text-[var(--text-muted)] capitalize">
                         {section.type.replace('_', ' ')}
                       </p>
                     </div>
@@ -790,11 +809,11 @@ It is concluded that the identified patterns are consistent with complex organis
                     </div>
                   </div>
 
-                  <p className="text-gray-300 text-sm mb-3 line-clamp-3">
+                  <p className="text-[var(--text-secondary)] text-sm mb-3 line-clamp-3">
                     {section.content.substring(0, 300)}...
                   </p>
 
-                  <div className="flex items-center gap-4 text-xs text-gray-400">
+                  <div className="flex items-center gap-4 text-xs text-[var(--text-muted)]">
                     {includeEvidence && <span>{section.evidence.length} evidence items</span>}
                     {includeCharts && <span>{section.sources.length} sources</span>}
                   </div>

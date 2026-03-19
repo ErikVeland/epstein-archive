@@ -93,15 +93,15 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
   };
 
   return (
-    <footer className="w-full bg-slate-950/60 backdrop-blur-xl border-t border-slate-800/50 py-12 mt-auto z-10 relative">
+    <footer className="w-full bg-[var(--glass-bg)] backdrop-blur-xl border-t border-[var(--glass-border)] py-12 mt-auto z-10 relative">
       <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 mb-12">
           {/* Column 1: Brand & Copyright */}
           <div className="space-y-6">
-            <h3 className="font-display text-xl font-normal text-white tracking-tight">
+            <h3 className="font-display text-xl font-normal text-[var(--text-primary)] tracking-tight">
               The Epstein Files
             </h3>
-            <p className="text-slate-400 text-sm leading-relaxed max-w-xs">
+            <p className="text-[var(--text-secondary)] text-sm leading-relaxed max-w-xs">
               A comprehensive, searchable forensic archive of documents, connections, and financial
               flows regarding the Jeffrey Epstein network.
             </p>
@@ -111,13 +111,13 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
               <div
                 className={`w-2 h-2 rounded-full ${statusConfig[systemStatus.status].color}`}
               ></div>
-              <p className="text-slate-500 text-xs font-mono">
+              <p className="text-[var(--text-secondary)] text-xs font-mono">
                 {statusConfig[systemStatus.status].text}
               </p>
 
               {/* Status Tooltip */}
               {systemStatus.status === 'error' && (
-                <div className="absolute bottom-full left-0 mb-2 px-3 py-2 bg-slate-950 border border-red-500/30 text-red-400 rounded shadow-xl text-xs w-64 opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none backdrop-blur-md">
+                <div className="absolute bottom-full left-0 mb-2 px-3 py-2 glass-panel text-red-400 rounded shadow-[var(--glass-shadow)] text-xs w-64 opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none backdrop-blur-md">
                   <div className="font-bold mb-1">System Error:</div>
                   <div className="font-mono mb-1">{systemStatus.message}</div>
                   {systemStatus.details && (
@@ -125,7 +125,7 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
                       {systemStatus.details}
                     </div>
                   )}
-                  <div className="absolute -bottom-1 left-4 w-2 h-2 bg-slate-950 border-r border-b border-red-500/30 transform rotate-45"></div>
+                  <div className="absolute -bottom-1 left-4 w-2 h-2 bg-[var(--bg-surface)] border-r border-b border-[var(--glass-border)] transform rotate-45"></div>
                 </div>
               )}
             </div>
@@ -133,14 +133,14 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
 
           {/* Column 2: Mission & Transparency */}
           <div className="space-y-6">
-            <h4 className="text-xs font-medium text-slate-500 border-l-2 border-slate-700 pl-3 mb-1 tracking-wide">
+            <h4 className="text-xs font-medium text-[var(--text-muted)] border-l-2 border-[var(--glass-border)] pl-3 mb-1 tracking-wide">
               Mission
             </h4>
-            <ul className="space-y-3 text-sm text-slate-400">
+            <ul className="space-y-3 text-sm text-[var(--text-secondary)]">
               <li>
                 <Link
                   to="/about"
-                  className="hover:text-cyan-400 transition-colors flex items-center gap-2 group w-fit"
+                  className="hover:text-[var(--accent)] transition-colors flex items-center gap-2 group w-fit"
                 >
                   <span className="group-hover:translate-x-1 transition-transform">
                     Transparency Vow
@@ -151,7 +151,7 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
               <li>
                 <Link
                   to="/about"
-                  className="hover:text-cyan-400 transition-colors flex items-center gap-2 group w-fit"
+                  className="hover:text-[var(--accent)] transition-colors flex items-center gap-2 group w-fit"
                 >
                   <span className="group-hover:translate-x-1 transition-transform">
                     Methodology & Ethics
@@ -161,7 +161,7 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
               <li>
                 <Link
                   to="/the-epstein-files"
-                  className="hover:text-cyan-400 transition-colors flex items-center gap-2 group w-fit"
+                  className="hover:text-[var(--accent)] transition-colors flex items-center gap-2 group w-fit"
                 >
                   <span className="group-hover:translate-x-1 transition-transform">
                     The Epstein Files
@@ -171,7 +171,7 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
               <li>
                 <Link
                   to="/epstein-documents"
-                  className="hover:text-cyan-400 transition-colors flex items-center gap-2 group w-fit"
+                  className="hover:text-[var(--accent)] transition-colors flex items-center gap-2 group w-fit"
                 >
                   <span className="group-hover:translate-x-1 transition-transform">
                     Epstein Documents
@@ -181,7 +181,7 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
               <li>
                 <Link
                   to="/epstein-media"
-                  className="hover:text-cyan-400 transition-colors flex items-center gap-2 group w-fit"
+                  className="hover:text-[var(--accent)] transition-colors flex items-center gap-2 group w-fit"
                 >
                   <span className="group-hover:translate-x-1 transition-transform">
                     Epstein Media
@@ -193,10 +193,10 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
 
           {/* Column 3: Support */}
           <div className="space-y-6">
-            <h4 className="text-xs font-medium text-slate-500 border-l-2 border-slate-700 pl-3 mb-1 tracking-wide">
+            <h4 className="text-xs font-medium text-[var(--text-muted)] border-l-2 border-[var(--glass-border)] pl-3 mb-1 tracking-wide">
               Support
             </h4>
-            <ul className="space-y-3 text-sm text-slate-400">
+            <ul className="space-y-3 text-sm text-[var(--text-secondary)]">
               <li>
                 <a
                   href="https://coff.ee/generik"
@@ -211,7 +211,7 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
                 </a>
               </li>
               <li>
-                <p className="text-xs text-slate-500 mt-2 italic border-l-2 border-slate-800 pl-3">
+                <p className="text-xs text-[var(--text-muted)] mt-2 italic border-l-2 border-[var(--glass-border)] pl-3">
                   "Independent open-source intelligence requires community support."
                 </p>
               </li>
@@ -220,18 +220,18 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
 
           {/* Column 4: Network */}
           <div className="space-y-6">
-            <h4 className="text-xs font-medium text-slate-500 border-l-2 border-slate-700 pl-3 mb-1 tracking-wide">
+            <h4 className="text-xs font-medium text-[var(--text-muted)] border-l-2 border-[var(--glass-border)] pl-3 mb-1 tracking-wide">
               Network
             </h4>
-            <ul className="space-y-3 text-sm text-slate-400">
+            <ul className="space-y-3 text-sm text-[var(--text-secondary)]">
               <li>
                 <a
                   href="https://github.com/ErikVeland/epstein-archive"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:text-blue-400 transition-colors flex items-center gap-2 group w-fit"
+                  className="hover:text-[var(--accent)] transition-colors flex items-center gap-2 group w-fit"
                 >
-                  <Github className="w-4 h-4 text-slate-500 group-hover:text-blue-400" />
+                  <Github className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent)]" />
                   <span className="group-hover:translate-x-1 transition-transform">
                     GitHub Repository
                   </span>
@@ -243,7 +243,7 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
                   href="https://about.glasscode.academy"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:text-blue-400 transition-colors flex items-center gap-2 group w-fit"
+                  className="hover:text-[var(--accent)] transition-colors flex items-center gap-2 group w-fit"
                 >
                   <span className="group-hover:translate-x-1 transition-transform">
                     Glass Academy
@@ -256,7 +256,7 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
                   href="https://generik.substack.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:text-blue-400 transition-colors flex items-center gap-2 group w-fit"
+                  className="hover:text-[var(--accent)] transition-colors flex items-center gap-2 group w-fit"
                 >
                   <span className="group-hover:translate-x-1 transition-transform">
                     The End Times (Substack)
@@ -269,24 +269,26 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-8 border-t border-slate-800/50 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-500">
+        <div className="pt-8 border-t border-[var(--glass-border)] flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-[var(--text-muted)]">
           <div className="flex flex-col md:flex-row items-center gap-4">
-            <span className="text-slate-600">&copy; 2025 Glass Academy. All rights reserved.</span>
-            <span className="hidden md:inline text-slate-700">|</span>
+            <span className="text-[var(--text-secondary)]">
+              &copy; 2025 Glass Academy. All rights reserved.
+            </span>
+            <span className="hidden md:inline text-[var(--text-muted)]">|</span>
             <button
               onClick={onVersionClick}
-              className="hover:text-cyan-400 transition-colors cursor-pointer flex items-center gap-2 px-3 py-1 bg-slate-900 rounded-full border border-slate-800 hover:border-cyan-500/30"
+              className="hover:text-[var(--accent)] transition-colors cursor-pointer flex items-center gap-2 px-3 py-1 bg-[var(--glass-bg)] rounded-full border border-[var(--glass-border)] hover:border-[var(--accent)]"
               title="View Release Notes"
             >
-              <span className="font-mono text-cyan-500/80">v{__APP_VERSION__}</span>
-              <span className="w-1 h-1 bg-slate-600 rounded-full"></span>
+              <span className="font-mono text-[var(--accent)]/80">v{__APP_VERSION__}</span>
+              <span className="w-1 h-1 bg-[var(--glass-border)] rounded-full"></span>
               <span>Updated: {__BUILD_DATE__}</span>
             </button>
           </div>
           <div className="flex items-center gap-6">
             <button
               onClick={toggleShowAllSensitive}
-              className={`flex items-center gap-2 text-xs transition-colors ${showAllSensitive ? 'text-cyan-400 hover:text-cyan-300' : 'text-slate-500 hover:text-slate-300'}`}
+              className={`flex items-center gap-2 text-xs transition-colors ${showAllSensitive ? 'text-amber-400 hover:text-amber-300' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}
               title={
                 showAllSensitive
                   ? 'Hide sensitive content by default'
@@ -300,13 +302,13 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
             </button>
             <a
               href="#"
-              className="hover:text-slate-300 transition-colors hover:underline decoration-slate-700 underline-offset-4"
+              className="hover:text-[var(--text-primary)] transition-colors hover:underline decoration-[var(--glass-border)] underline-offset-4"
             >
               Privacy Policy
             </a>
             <a
               href="#"
-              className="hover:text-slate-300 transition-colors hover:underline decoration-slate-700 underline-offset-4"
+              className="hover:text-[var(--text-primary)] transition-colors hover:underline decoration-[var(--glass-border)] underline-offset-4"
             >
               Terms of Service
             </a>

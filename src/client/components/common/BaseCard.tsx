@@ -16,8 +16,8 @@ export const BaseCard: React.FC<BaseCardProps> = ({ children, className = '', on
         rounded-[var(--radius-lg)] 
         p-[var(--space-4)] 
         transition-all duration-200
-        hover:border-[var(--accent-primary)]
-        hover:shadow-[var(--shadow-md)]
+        hover:border-[var(--accent)]
+        hover:shadow-[var(--glass-shadow)]
         cursor-pointer
         ${onClick ? 'hover:translate-y-[-2px]' : ''}
         ${className}

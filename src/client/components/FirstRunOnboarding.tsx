@@ -66,30 +66,32 @@ export const FirstRunOnboarding: React.FC<FirstRunOnboardingProps> = ({ onComple
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
-      <div className="glass-panel w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl shadow-cyan-900/20 border border-slate-700/50">
+      <div className="glass-panel w-full max-w-2xl rounded-[var(--radius-xl)] overflow-hidden shadow-[var(--glass-shadow)] shadow-cyan-900/20 border border-[var(--glass-border)]">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 pb-4 border-b border-slate-800/50">
-          <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-            <span className="w-2 h-8 bg-cyan-500 rounded-full"></span>
+        <div className="flex items-center justify-between p-6 pb-4 border-b border-[var(--glass-border)]">
+          <h2 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-2">
+            <span className="w-2 h-8 bg-[var(--accent)] rounded-full"></span>
             Getting Started
           </h2>
           <CloseButton
             onClick={handleSkip}
             size="md"
             label="Close onboarding"
-            className="bg-transparent hover:bg-slate-800 border-slate-700"
+            className="bg-transparent hover:bg-[var(--glass-bg)] border-[var(--glass-border)]"
           />
         </div>
 
         {/* Progress */}
-        <div className="px-6 py-4 bg-slate-900/30">
-          <div className="flex items-center justify-between text-xs font-medium text-slate-400 mb-2 uppercase tracking-wider">
+        <div className="px-6 py-4 bg-[var(--glass-bg-strong)]/30">
+          <div className="flex items-center justify-between text-xs font-medium text-[var(--text-muted)] mb-2 uppercase tracking-wider">
             <span>
               Step {step} of {totalSteps}
             </span>
-            <span className="text-cyan-400">{Math.round((step / totalSteps) * 100)}% complete</span>
+            <span className="text-[var(--accent)]">
+              {Math.round((step / totalSteps) * 100)}% complete
+            </span>
           </div>
-          <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+          <div className="w-full bg-[var(--glass-bg)] rounded-full h-1.5 overflow-hidden">
             <div
               className="bg-gradient-to-r from-cyan-500 to-blue-500 h-full rounded-full transition-all duration-500 ease-out shadow-[0_0_10px_rgba(6,182,212,0.5)]"
               style={{ width: `${(step / totalSteps) * 100}%` }}
@@ -100,23 +102,27 @@ export const FirstRunOnboarding: React.FC<FirstRunOnboardingProps> = ({ onComple
         {/* Content */}
         <div className="px-8 py-8 min-h-[300px] flex flex-col items-center justify-center text-center">
           <div className="mb-8 relative group">
-            <div className="absolute inset-0 bg-cyan-500/20 blur-xl rounded-full group-hover:bg-cyan-500/30 transition-all duration-500"></div>
-            <div className="relative bg-slate-800/80 p-6 rounded-2xl border border-slate-700 shadow-xl group-hover:scale-110 transition-transform duration-300">
+            <div className="absolute inset-0 bg-[var(--accent)]/20 blur-xl rounded-full group-hover:bg-[var(--accent)]/30 transition-all duration-500"></div>
+            <div className="relative bg-[var(--glass-bg)]/80 p-6 rounded-[var(--radius-xl)] border border-[var(--glass-border)] shadow-[var(--glass-shadow)] group-hover:scale-110 transition-transform duration-300">
               {React.cloneElement(icon as React.ReactElement, {
-                className: 'h-12 w-12 text-cyan-400',
+                className: 'h-12 w-12 text-[var(--accent)]',
               })}
             </div>
           </div>
 
-          <h3 className="text-2xl font-bold text-white mb-4 neon-text-cyan">{title}</h3>
-          <p className="text-lg text-slate-300 leading-relaxed max-w-lg">{description}</p>
+          <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-4 neon-text-cyan">
+            {title}
+          </h3>
+          <p className="text-lg text-[var(--text-secondary)] leading-relaxed max-w-lg">
+            {description}
+          </p>
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between p-6 bg-slate-900/50 border-t border-slate-800/50">
+        <div className="flex items-center justify-between p-6 bg-[var(--glass-bg-strong)]/50 border-t border-[var(--glass-border)]">
           <button
             onClick={handleSkip}
-            className="px-4 py-2 text-sm font-medium text-slate-500 hover:text-white transition-colors"
+            className="px-4 py-2 text-sm font-medium text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
           >
             Skip Tour
           </button>
@@ -124,14 +130,14 @@ export const FirstRunOnboarding: React.FC<FirstRunOnboardingProps> = ({ onComple
             {step > 1 && (
               <button
                 onClick={() => setStep(step - 1)}
-                className="px-4 py-2 text-sm font-medium text-slate-400 hover:text-white transition-colors"
+                className="px-4 py-2 text-sm font-medium text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
               >
                 Previous
               </button>
             )}
             <button
               onClick={handleNext}
-              className="px-6 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white rounded-lg font-medium shadow-lg shadow-cyan-900/20 flex items-center gap-2 transition-all hover:scale-105 active:scale-95"
+              className="px-6 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-[var(--text-primary)] rounded-[var(--radius-lg)] font-medium shadow-[var(--glass-shadow)] shadow-cyan-900/20 flex items-center gap-2 transition-all hover:scale-105 active:scale-95"
             >
               {step === totalSteps ? 'Get Started' : 'Next'}
               {step !== totalSteps && <ArrowRight className="h-4 w-4" />}

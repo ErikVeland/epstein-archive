@@ -303,14 +303,14 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
   return (
     <div className="space-y-6">
       {/* Search Header */}
-      <div className="bg-gradient-to-r from-gray-900 to-gray-800 p-6 rounded-xl border border-gray-700">
-        <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+      <div className="bg-gradient-to-r from-gray-900 to-gray-800 p-6 rounded-[var(--radius-xl)] border border-[var(--glass-border)]">
+        <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
           <Icon name="Search" size="lg" />
           Evidence Search
         </h2>
 
         {/* Microcopy for Evidence Search */}
-        <div className="text-sm text-gray-400 mb-4 flex items-start gap-2">
+        <div className="text-sm text-[var(--text-muted)] mb-4 flex items-start gap-2">
           <Icon name="Info" size="sm" className="mt-0.5 flex-shrink-0" />
           <span>
             Search across all documents, entities, and evidence to find connections and patterns
@@ -319,9 +319,9 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
 
         {/* Loading State */}
         {loading && (
-          <div className="mb-6 p-4 bg-slate-800/50 rounded-lg border border-slate-700">
+          <div className="mb-6 p-4 bg-[var(--glass-bg)]/50 rounded-[var(--radius-lg)] border border-[var(--glass-border)]">
             <div className="text-center">
-              <div className="text-blue-400 text-sm mb-3" role="status">
+              <div className="text-[var(--accent)] text-sm mb-3" role="status">
                 {loadingProgress}
               </div>
               <ProgressBar
@@ -332,7 +332,9 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
                 size="md"
                 label="Search progress"
               />
-              <div className="text-xs text-slate-500 mt-2">Searching subjects and documents...</div>
+              <div className="text-xs text-[var(--text-muted)] mt-2">
+                Searching subjects and documents...
+              </div>
             </div>
           </div>
         )}
@@ -356,13 +358,13 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
               placeholder="Search names, contexts, or evidence..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-10 h-10 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50 form-input"
+              className="w-full pl-10 pr-10 h-10 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent disabled:opacity-50 form-input"
               aria-label="Search for evidence by names, contexts, or keywords"
             />
             {searchTerm && (
               <button
                 onClick={() => setSearchTerm('')}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded-full hover:bg-gray-700 text-gray-400 hover:text-white transition-colors"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded-full hover:bg-[var(--glass-bg-highlight)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
                 title="Clear search"
               >
                 <Icon name="X" size="sm" />
@@ -382,7 +384,7 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
         <div className="md:hidden mb-4">
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="w-full flex items-center justify-between px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white"
+            className="w-full flex items-center justify-between px-4 py-3 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)]"
           >
             <span className="flex items-center gap-2">
               <Icon name="Filter" size="sm" />
@@ -413,7 +415,7 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
                   onChange={(e) => setSelectedRiskLevelWithUndo(e.target.value)}
                   disabled={loading}
                   aria-describedby="risk-level-description"
-                  className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 h-10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 form-select"
+                  className="w-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] px-3 h-10 text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] disabled:opacity-50 form-select"
                 >
                   {filterOptions.riskLevels.map((level) => (
                     <option key={level.value} value={level.value}>
@@ -444,7 +446,7 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
                 onChange={(e) => setSelectedEvidenceTypeWithUndo(e.target.value)}
                 disabled={loading}
                 aria-describedby="evidence-type-description"
-                className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 h-10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 form-select"
+                className="w-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] px-3 h-10 text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] disabled:opacity-50 form-select"
               >
                 <option value="ALL">All Types</option>
                 {allEvidenceTypes.map((type) => (
@@ -476,7 +478,7 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
                   onChange={(e) => setMinRedFlagRatingWithUndo(Number(e.target.value))}
                   disabled={loading}
                   aria-describedby="min-rating-description"
-                  className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 h-10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 form-select"
+                  className="w-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] px-3 h-10 text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] disabled:opacity-50 form-select"
                 >
                   {filterOptions.redFlagRatings.map((rating) => (
                     <option key={rating.value} value={rating.value}>
@@ -508,7 +510,7 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
                   onChange={(e) => setMaxRedFlagRatingWithUndo(Number(e.target.value))}
                   disabled={loading}
                   aria-describedby="max-rating-description"
-                  className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 h-10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 form-select"
+                  className="w-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] px-3 h-10 text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] disabled:opacity-50 form-select"
                 >
                   {filterOptions.redFlagRatings.map((rating) => (
                     <option key={rating.value} value={rating.value}>
@@ -540,7 +542,7 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
                   onChange={(e) => setSortByWithUndo(e.target.value as any)}
                   disabled={loading}
                   aria-describedby="sort-by-description"
-                  className="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 h-10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 form-select"
+                  className="w-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] px-3 h-10 text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] disabled:opacity-50 form-select"
                 >
                   {filterOptions.sortByOptions.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -572,7 +574,7 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
                   checked={showRedFlagOnly}
                   onChange={(e) => setShowRedFlagOnlyWithUndo(e.target.checked)}
                   disabled={loading}
-                  className="w-4 h-4 text-blue-600 bg-gray-800 border-gray-600 rounded focus:ring-blue-500 disabled:opacity-50 form-checkbox"
+                  className="w-4 h-4 text-[var(--accent)] bg-[var(--glass-bg)] border-[var(--glass-border)] rounded focus:ring-[var(--accent)] disabled:opacity-50 form-checkbox"
                   aria-label="Show only subjects with red flags"
                 />
                 <Icon name="Flag" size="sm" color="danger" aria-hidden="true" />
@@ -582,8 +584,10 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
         </div>
 
         <div className="flex justify-between items-center">
-          <div className="text-sm text-gray-400">{searchResults.length} results found</div>
-          <div className="text-xs text-gray-500">
+          <div className="text-sm text-[var(--text-muted)]">
+            {searchResults.length} results found
+          </div>
+          <div className="text-xs text-[var(--text-muted)]">
             Red Flag Range: {minRedFlagRating} - {maxRedFlagRating}
           </div>
         </div>
@@ -596,31 +600,31 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
             {[...Array(6)].map((_, i) => (
               <div
                 key={i}
-                className="bg-gray-800/50 border border-gray-700 rounded-xl p-5 relative overflow-hidden"
+                className="bg-[var(--glass-bg)]/50 border border-[var(--glass-border)] rounded-[var(--radius-xl)] p-5 relative overflow-hidden"
                 aria-label="Loading search result"
               >
                 <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center space-x-3">
-                    <div className="bg-gray-700 rounded-lg w-10 h-10 animate-pulse"></div>
+                    <div className="bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] w-10 h-10 animate-pulse"></div>
                     <div>
-                      <div className="h-4 w-32 bg-gray-700 rounded mb-2 animate-pulse"></div>
-                      <div className="h-3 w-24 bg-gray-700 rounded animate-pulse"></div>
+                      <div className="h-4 w-32 bg-[var(--glass-bg-highlight)] rounded mb-2 animate-pulse"></div>
+                      <div className="h-3 w-24 bg-[var(--glass-bg-highlight)] rounded animate-pulse"></div>
                     </div>
                   </div>
-                  <div className="h-6 w-16 bg-gray-700 rounded-full animate-pulse"></div>
+                  <div className="h-6 w-16 bg-[var(--glass-bg-highlight)] rounded-full animate-pulse"></div>
                 </div>
                 <div className="space-y-2 mb-4">
-                  <div className="h-3 w-full bg-gray-700 rounded animate-pulse"></div>
-                  <div className="h-3 w-5/6 bg-gray-700 rounded animate-pulse"></div>
-                  <div className="h-3 w-4/6 bg-gray-700 rounded animate-pulse"></div>
+                  <div className="h-3 w-full bg-[var(--glass-bg-highlight)] rounded animate-pulse"></div>
+                  <div className="h-3 w-5/6 bg-[var(--glass-bg-highlight)] rounded animate-pulse"></div>
+                  <div className="h-3 w-4/6 bg-[var(--glass-bg-highlight)] rounded animate-pulse"></div>
                 </div>
-                <div className="flex items-center justify-between pt-3 border-t border-gray-700/50">
+                <div className="flex items-center justify-between pt-3 border-t border-[var(--glass-border)]">
                   <div className="flex items-center space-x-2">
-                    <div className="h-3 w-16 bg-gray-700 rounded animate-pulse"></div>
-                    <div className="h-3 w-12 bg-gray-700 rounded animate-pulse"></div>
+                    <div className="h-3 w-16 bg-[var(--glass-bg-highlight)] rounded animate-pulse"></div>
+                    <div className="h-3 w-12 bg-[var(--glass-bg-highlight)] rounded animate-pulse"></div>
                   </div>
-                  <div className="h-3 w-20 bg-gray-700 rounded animate-pulse"></div>
+                  <div className="h-3 w-20 bg-[var(--glass-bg-highlight)] rounded animate-pulse"></div>
                 </div>
               </div>
             ))}
@@ -630,8 +634,10 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
             {searchResults.length === 0 && docSnippets.length === 0 && searchTerm.trim() && (
               <div className="text-center py-12">
                 <Icon name="Search" size="xl" color="gray" className="mx-auto mb-4" />
-                <p className="text-gray-400 text-lg">No results found for "{searchTerm}"</p>
-                <p className="text-gray-500 text-sm mt-2">
+                <p className="text-[var(--text-muted)] text-lg">
+                  No results found for "{searchTerm}"
+                </p>
+                <p className="text-[var(--text-muted)] text-sm mt-2">
                   Try adjusting your search terms or filters
                 </p>
               </div>
@@ -644,8 +650,10 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
               !showRedFlagOnly && (
                 <div className="text-center py-12">
                   <Icon name="Search" size="xl" color="gray" className="mx-auto mb-4" />
-                  <p className="text-gray-400 text-lg">Start searching to find evidence</p>
-                  <p className="text-gray-500 text-sm mt-2">
+                  <p className="text-[var(--text-muted)] text-lg">
+                    Start searching to find evidence
+                  </p>
+                  <p className="text-[var(--text-muted)] text-sm mt-2">
                     Search for names, keywords, or apply filters
                   </p>
                 </div>
@@ -654,14 +662,14 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
             {searchResults.map((result, index) => (
               <div
                 key={index}
-                className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden"
+                className="bg-[var(--glass-bg)] rounded-[var(--radius-xl)] border border-[var(--glass-border)] overflow-hidden"
               >
                 {/* Person Header - Mobile-optimized with stacked layout */}
-                <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-4 py-3 border-b border-gray-700">
+                <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-4 py-3 border-b border-[var(--glass-border)]">
                   {/* Entity Name - Always prominent at top */}
                   <button
                     onClick={() => handlePersonClick(result.person)}
-                    className="text-lg md:text-base font-bold text-white hover:text-blue-400 transition-colors mb-2 md:mb-0 block text-left w-full truncate"
+                    className="text-lg md:text-base font-bold text-[var(--text-primary)] hover:text-[var(--accent)] transition-colors mb-2 md:mb-0 block text-left w-full truncate"
                     title="Click to view full profile"
                   >
                     {result.person.name}
@@ -700,9 +708,9 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
 
                     {/* Stats and actions - stacked text on mobile */}
                     <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
-                      <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2 text-xs text-gray-400">
+                      <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2 text-xs text-[var(--text-muted)]">
                         <span>{result.person.mentions?.toLocaleString()} mentions</span>
-                        <span className="hidden md:inline text-gray-600">•</span>
+                        <span className="hidden md:inline text-[var(--text-primary)]">•</span>
                         <span>{result.person.files} files</span>
                       </div>
                       <AddToInvestigationButton
@@ -714,14 +722,14 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
                           sourceId: result.person.id?.toString() || '',
                         }}
                         variant="quick"
-                        className="hover:bg-slate-700 self-start md:self-auto"
+                        className="hover:bg-[var(--glass-bg-highlight)] self-start md:self-auto"
                       />
                     </div>
                   </div>
                 </div>
 
                 {/* Evidence Types */}
-                <div className="p-4 border-b border-gray-700">
+                <div className="p-4 border-b border-[var(--glass-border)]">
                   <div className="flex flex-wrap gap-2">
                     {result.person.evidenceTypes.map((type, i) => (
                       <span key={i} className="px-2 py-1 bg-blue-900 text-blue-200 rounded text-xs">
@@ -733,24 +741,29 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
 
                 {/* Matching Contexts */}
                 {result.matchingContexts.length > 0 && (
-                  <div className="p-4 border-b border-gray-700">
+                  <div className="p-4 border-b border-[var(--glass-border)]">
                     <h4
-                      className="text-sm font-medium text-gray-300 mb-3 flex items-center gap-2"
+                      className="text-sm font-medium text-[var(--text-secondary)] mb-3 flex items-center gap-2"
                       aria-level={3}
                     >
                       <Icon name="FileText" size="sm" />
                       Contexts ({result.matchingContexts.length})
                     </h4>
                     {/* Microcopy for Contexts */}
-                    <div className="text-xs text-gray-400 mb-3 flex items-start gap-1">
+                    <div className="text-xs text-[var(--text-muted)] mb-3 flex items-start gap-1">
                       <Icon name="Info" size="xs" className="mt-0.5 flex-shrink-0" />
                       <span>Relevant excerpts from documents mentioning this subject</span>
                     </div>
                     <div className="space-y-3">
                       {result.matchingContexts.map((context, i) => (
-                        <div key={i} className="bg-gray-900 p-3 rounded-lg">
-                          <div className="text-sm text-gray-300 mb-2">{context.context}</div>
-                          <div className="flex items-center gap-2 text-xs text-gray-500 overflow-hidden">
+                        <div
+                          key={i}
+                          className="bg-[var(--glass-bg-strong)] p-3 rounded-[var(--radius-lg)]"
+                        >
+                          <div className="text-sm text-[var(--text-secondary)] mb-2">
+                            {context.context}
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-[var(--text-muted)] overflow-hidden">
                             <Icon name="FileText" size="xs" className="shrink-0" />
                             <span className="truncate">{context.file}</span>
                             {context.date !== 'Unknown' && (
@@ -786,7 +799,7 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
                       {result.matchingPassages.map((passage, i) => (
                         <div
                           key={i}
-                          className="bg-red-900 bg-opacity-30 p-3 rounded-lg border border-red-700"
+                          className="bg-red-900 bg-opacity-30 p-3 rounded-[var(--radius-lg)] border border-red-700"
                         >
                           <div className="text-sm text-red-200 mb-2">{passage.passage}</div>
                           <div className="flex items-center gap-2 text-xs text-red-400">
@@ -806,35 +819,37 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
 
             {/* Matching Documents Section - Displayed independently of person results */}
             {docSnippets.length > 0 && (
-              <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
-                <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-4 py-3 border-b border-gray-700">
-                  <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              <div className="bg-[var(--glass-bg)] rounded-[var(--radius-xl)] border border-[var(--glass-border)] overflow-hidden">
+                <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-4 py-3 border-b border-[var(--glass-border)]">
+                  <h3 className="text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
                     <Icon name="FileText" size="sm" />
                     Matched Documents
-                    <span className="text-sm font-normal text-gray-400 ml-2">
+                    <span className="text-sm font-normal text-[var(--text-muted)] ml-2">
                       ({docSnippets.length})
                     </span>
                   </h3>
                 </div>
                 <div className="p-4 space-y-3">
-                  <div className="text-xs text-gray-400 mb-2 flex items-start gap-1">
+                  <div className="text-xs text-[var(--text-muted)] mb-2 flex items-start gap-1">
                     <Icon name="Info" size="xs" className="mt-0.5 flex-shrink-0" />
                     <span>Documents containing "{searchTerm}"</span>
                   </div>
                   {docSnippets.map((d) => (
                     <div
                       key={d.id}
-                      className="bg-gray-900 p-4 rounded-lg border border-gray-700 hover:border-gray-600 transition-colors"
+                      className="bg-[var(--glass-bg-strong)] p-4 rounded-[var(--radius-lg)] border border-[var(--glass-border)] hover:border-[var(--glass-border)] transition-colors"
                     >
                       <div className="flex justify-between items-start mb-2">
-                        <div className="font-medium text-blue-400 truncate pr-4">{d.title}</div>
+                        <div className="font-medium text-[var(--accent)] truncate pr-4">
+                          {d.title}
+                        </div>
                         <div
                           className={`text-xs px-2 py-0.5 rounded ${
                             d.redFlagRating >= 4
                               ? 'bg-red-900/50 text-red-200'
                               : d.redFlagRating >= 2
                                 ? 'bg-yellow-900/50 text-yellow-200'
-                                : 'bg-gray-700 text-gray-300'
+                                : 'bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)]'
                           }`}
                         >
                           Risk: {d.redFlagRating}
@@ -842,7 +857,7 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
                       </div>
                       {d.snippet && (
                         <div
-                          className="text-sm text-gray-300 font-mono bg-black/30 p-2 rounded mb-2 border-l-2 border-blue-500/30"
+                          className="text-sm text-[var(--text-secondary)] font-mono bg-black/30 p-2 rounded mb-2 border-l-2 border-[var(--accent)]/30"
                           dangerouslySetInnerHTML={{
                             __html: DOMPurify.sanitize(d.snippet, {
                               ALLOWED_TAGS: ['mark'],
@@ -851,7 +866,7 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
                           }}
                         />
                       )}
-                      <div className="flex items-center gap-4 text-xs text-gray-500">
+                      <div className="flex items-center gap-4 text-xs text-[var(--text-muted)]">
                         <span className="flex items-center gap-1">
                           <Icon name="File" size="xs" />
                           {(d.title || '').split('.').pop()?.toUpperCase() || 'FILE'}

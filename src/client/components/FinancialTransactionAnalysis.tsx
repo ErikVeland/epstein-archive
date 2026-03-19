@@ -226,20 +226,22 @@ export const FinancialTransactionAnalysis: React.FC<FinancialTransactionAnalysis
   });
 
   return (
-    <div className="bg-white rounded-lg shadow-lg">
+    <div className="bg-white rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)]">
       {/* Header */}
-      <div className="border-b border-gray-200 px-6 py-4">
+      <div className="border-b border-[var(--glass-border)] px-6 py-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">Financial Transaction Analysis</h2>
-            <p className="text-sm text-gray-600 mt-1">
+            <h2 className="text-xl font-semibold text-[var(--text-primary)]">
+              Financial Transaction Analysis
+            </h2>
+            <p className="text-sm text-[var(--text-primary)] mt-1">
               Analyze financial flows, timing patterns, and transaction anomalies
             </p>
           </div>
           <button
             onClick={analyzeTransactions}
             disabled={isAnalyzing}
-            className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="flex items-center px-4 py-2 bg-green-600 text-[var(--text-primary)] rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             <DollarSign className="w-4 h-4 mr-2" />
             {isAnalyzing ? 'Analyzing...' : 'Start Financial Analysis'}
@@ -267,11 +269,13 @@ export const FinancialTransactionAnalysis: React.FC<FinancialTransactionAnalysis
 
       {/* Filters and Sorting */}
       {!isAnalyzing && transactionPatterns.length > 0 && (
-        <div className="px-6 py-4 border-b border-gray-200">
+        <div className="px-6 py-4 border-b border-[var(--glass-border)]">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Filter className="w-4 h-4 text-gray-500" />
-              <span className="text-sm font-medium text-gray-700">Filter by type:</span>
+              <Filter className="w-4 h-4 text-[var(--text-muted)]" />
+              <span className="text-sm font-medium text-[var(--text-primary)]">
+                Filter by type:
+              </span>
               <div className="flex gap-2">
                 {['all', 'flow', 'timing', 'amount', 'geographic', 'entity', 'anomaly'].map(
                   (type) => (
@@ -281,7 +285,7 @@ export const FinancialTransactionAnalysis: React.FC<FinancialTransactionAnalysis
                       className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
                         filterType === type
                           ? 'bg-green-100 text-green-700'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          : 'bg-[var(--app-bg)] text-[var(--text-primary)] hover:bg-[var(--app-bg)]'
                       }`}
                     >
                       {type.charAt(0).toUpperCase() + type.slice(1)}
@@ -291,11 +295,11 @@ export const FinancialTransactionAnalysis: React.FC<FinancialTransactionAnalysis
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-gray-700">Sort by:</span>
+              <span className="text-sm font-medium text-[var(--text-primary)]">Sort by:</span>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as any)}
-                className="px-3 py-1 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500"
+                className="px-3 py-1 text-xs border border-[var(--glass-border)] rounded-md focus:outline-none focus:ring-1 focus:ring-green-500"
               >
                 <option value="confidence">Confidence</option>
                 <option value="severity">Severity</option>
@@ -308,10 +312,10 @@ export const FinancialTransactionAnalysis: React.FC<FinancialTransactionAnalysis
 
       {/* Summary Statistics */}
       {!isAnalyzing && transactionPatterns.length > 0 && (
-        <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+        <div className="px-6 py-4 bg-[var(--app-bg)] border-b border-[var(--glass-border)]">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div className="text-center">
-              <div className="text-2xl font-bold text-gray-900">
+              <div className="text-2xl font-bold text-[var(--text-primary)]">
                 {formatCurrency(
                   transactionPatterns.reduce(
                     (sum, pattern) => sum + (pattern.metadata.totalAmount || 0),
@@ -319,32 +323,32 @@ export const FinancialTransactionAnalysis: React.FC<FinancialTransactionAnalysis
                   ),
                 )}
               </div>
-              <div className="text-sm text-gray-600">Total Analyzed</div>
+              <div className="text-sm text-[var(--text-primary)]">Total Analyzed</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-gray-900">
+              <div className="text-2xl font-bold text-[var(--text-primary)]">
                 {transactionPatterns.reduce(
                   (sum, pattern) => sum + (pattern.metadata.transactionCount || 0),
                   0,
                 )}
               </div>
-              <div className="text-sm text-gray-600">Transactions</div>
+              <div className="text-sm text-[var(--text-primary)]">Transactions</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-gray-900">
+              <div className="text-2xl font-bold text-[var(--text-primary)]">
                 {transactionPatterns.filter((p) => p.severity === 'critical').length}
               </div>
-              <div className="text-sm text-gray-600">Critical Patterns</div>
+              <div className="text-sm text-[var(--text-primary)]">Critical Patterns</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-gray-900">
+              <div className="text-2xl font-bold text-[var(--text-primary)]">
                 {Math.round(
                   transactionPatterns.reduce((sum, pattern) => sum + pattern.confidence, 0) /
                     transactionPatterns.length,
                 )}
                 %
               </div>
-              <div className="text-sm text-gray-600">Avg Confidence</div>
+              <div className="text-sm text-[var(--text-primary)]">Avg Confidence</div>
             </div>
           </div>
         </div>
@@ -354,10 +358,10 @@ export const FinancialTransactionAnalysis: React.FC<FinancialTransactionAnalysis
       {!isAnalyzing && sortedPatterns.length > 0 && (
         <div className="p-6">
           <div className="mb-4">
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
+            <h3 className="text-lg font-medium text-[var(--text-primary)] mb-2">
               Detected Financial Patterns ({sortedPatterns.length})
             </h3>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-[var(--text-primary)]">
               Analysis identified {transactionPatterns.length} suspicious financial patterns
               {filterType !== 'all' && ` (${sortedPatterns.length} matching current filter)`}
             </p>
@@ -370,22 +374,26 @@ export const FinancialTransactionAnalysis: React.FC<FinancialTransactionAnalysis
               return (
                 <div
                   key={pattern.id}
-                  className={`border rounded-lg p-4 cursor-pointer transition-all hover:shadow-md ${
+                  className={`border rounded-[var(--radius-lg)] p-4 cursor-pointer transition-all hover:shadow-[var(--glass-shadow)] ${
                     selectedPattern?.id === pattern.id ? 'ring-2 ring-green-500' : ''
                   }`}
                   onClick={() => setSelectedPattern(pattern)}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex items-start flex-1">
-                      <div className={`p-2 rounded-lg ${getSeverityColor(pattern.severity)} mr-3`}>
+                      <div
+                        className={`p-2 rounded-[var(--radius-lg)] ${getSeverityColor(pattern.severity)} mr-3`}
+                      >
                         <Icon className="w-5 h-5" />
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-1">
-                          <h4 className="text-sm font-medium text-gray-900">{pattern.title}</h4>
+                          <h4 className="text-sm font-medium text-[var(--text-primary)]">
+                            {pattern.title}
+                          </h4>
                           <div className="flex items-center gap-2">
                             {pattern.metadata.totalAmount && (
-                              <span className="text-sm font-medium text-gray-900">
+                              <span className="text-sm font-medium text-[var(--text-primary)]">
                                 {formatCurrency(pattern.metadata.totalAmount)}
                               </span>
                             )}
@@ -401,8 +409,10 @@ export const FinancialTransactionAnalysis: React.FC<FinancialTransactionAnalysis
                             </span>
                           </div>
                         </div>
-                        <p className="text-sm text-gray-600 mb-2">{pattern.description}</p>
-                        <div className="flex items-center gap-4 text-xs text-gray-500">
+                        <p className="text-sm text-[var(--text-primary)] mb-2">
+                          {pattern.description}
+                        </p>
+                        <div className="flex items-center gap-4 text-xs text-[var(--text-muted)]">
                           <span>Type: {pattern.type}</span>
                           <span>Entities: {pattern.entities.length}</span>
                           <span>Evidence: {pattern.evidenceIds.length} items</span>
@@ -423,10 +433,12 @@ export const FinancialTransactionAnalysis: React.FC<FinancialTransactionAnalysis
       {/* Pattern Detail Modal */}
       {selectedPattern && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-96 overflow-auto">
+          <div className="bg-white rounded-[var(--radius-lg)] p-6 w-full max-w-2xl max-h-96 overflow-auto">
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h3 className="text-lg font-medium text-gray-900">{selectedPattern.title}</h3>
+                <h3 className="text-lg font-medium text-[var(--text-primary)]">
+                  {selectedPattern.title}
+                </h3>
                 <div className="flex items-center gap-2 mt-1">
                   <span
                     className={`px-2 py-1 text-xs font-medium rounded-full ${getSeverityColor(selectedPattern.severity)}`}
@@ -444,23 +456,25 @@ export const FinancialTransactionAnalysis: React.FC<FinancialTransactionAnalysis
                 onClick={() => setSelectedPattern(null)}
                 size="sm"
                 label="Close pattern details"
-                className="border-slate-200 bg-transparent text-gray-500 hover:bg-slate-100 hover:text-gray-700"
+                className="border-[var(--glass-border)] bg-transparent text-[var(--text-muted)] hover:bg-[var(--app-bg)] hover:text-[var(--text-primary)]"
               />
             </div>
 
             <div className="space-y-4">
               <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-1">Description</h4>
-                <p className="text-sm text-gray-600">{selectedPattern.description}</p>
+                <h4 className="text-sm font-medium text-[var(--text-primary)] mb-1">Description</h4>
+                <p className="text-sm text-[var(--text-primary)]">{selectedPattern.description}</p>
               </div>
 
               <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-1">Involved Entities</h4>
+                <h4 className="text-sm font-medium text-[var(--text-primary)] mb-1">
+                  Involved Entities
+                </h4>
                 <div className="flex flex-wrap gap-2">
                   {selectedPattern.entities.map((entity, index) => (
                     <span
                       key={index}
-                      className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded"
+                      className="px-2 py-1 bg-[var(--app-bg)] text-[var(--text-primary)] text-xs rounded"
                     >
                       {entity}
                     </span>
@@ -471,32 +485,40 @@ export const FinancialTransactionAnalysis: React.FC<FinancialTransactionAnalysis
               <div className="grid grid-cols-2 gap-4">
                 {selectedPattern.metadata.totalAmount && (
                   <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-1">Total Amount</h4>
-                    <p className="text-sm text-gray-900 font-medium">
+                    <h4 className="text-sm font-medium text-[var(--text-primary)] mb-1">
+                      Total Amount
+                    </h4>
+                    <p className="text-sm text-[var(--text-primary)] font-medium">
                       {formatCurrency(selectedPattern.metadata.totalAmount)}
                     </p>
                   </div>
                 )}
                 {selectedPattern.metadata.transactionCount && (
                   <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-1">Transaction Count</h4>
-                    <p className="text-sm text-gray-900 font-medium">
+                    <h4 className="text-sm font-medium text-[var(--text-primary)] mb-1">
+                      Transaction Count
+                    </h4>
+                    <p className="text-sm text-[var(--text-primary)] font-medium">
                       {selectedPattern.metadata.transactionCount}
                     </p>
                   </div>
                 )}
                 {selectedPattern.metadata.averageAmount && (
                   <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-1">Average Amount</h4>
-                    <p className="text-sm text-gray-900 font-medium">
+                    <h4 className="text-sm font-medium text-[var(--text-primary)] mb-1">
+                      Average Amount
+                    </h4>
+                    <p className="text-sm text-[var(--text-primary)] font-medium">
                       {formatCurrency(selectedPattern.metadata.averageAmount)}
                     </p>
                   </div>
                 )}
                 {selectedPattern.metadata.largestTransaction && (
                   <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-1">Largest Transaction</h4>
-                    <p className="text-sm text-gray-900 font-medium">
+                    <h4 className="text-sm font-medium text-[var(--text-primary)] mb-1">
+                      Largest Transaction
+                    </h4>
+                    <p className="text-sm text-[var(--text-primary)] font-medium">
                       {formatCurrency(selectedPattern.metadata.largestTransaction)}
                     </p>
                   </div>
@@ -505,8 +527,10 @@ export const FinancialTransactionAnalysis: React.FC<FinancialTransactionAnalysis
 
               {selectedPattern.metadata.timeRange && (
                 <div>
-                  <h4 className="text-sm font-medium text-gray-700 mb-1">Time Range</h4>
-                  <p className="text-sm text-gray-600">
+                  <h4 className="text-sm font-medium text-[var(--text-primary)] mb-1">
+                    Time Range
+                  </h4>
+                  <p className="text-sm text-[var(--text-primary)]">
                     {selectedPattern.metadata.timeRange.start} to{' '}
                     {selectedPattern.metadata.timeRange.end}
                   </p>
@@ -516,7 +540,9 @@ export const FinancialTransactionAnalysis: React.FC<FinancialTransactionAnalysis
               {selectedPattern.metadata.locations &&
                 selectedPattern.metadata.locations.length > 0 && (
                   <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-1">Locations</h4>
+                    <h4 className="text-sm font-medium text-[var(--text-primary)] mb-1">
+                      Locations
+                    </h4>
                     <div className="flex flex-wrap gap-2">
                       {selectedPattern.metadata.locations.map((location, index) => (
                         <span
@@ -531,12 +557,12 @@ export const FinancialTransactionAnalysis: React.FC<FinancialTransactionAnalysis
                 )}
 
               <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-2">
+                <h4 className="text-sm font-medium text-[var(--text-primary)] mb-2">
                   Investigation Recommendations
                 </h4>
                 <ul className="space-y-1">
                   {selectedPattern.recommendations.map((recommendation, index) => (
-                    <li key={index} className="text-sm text-gray-600 flex items-start">
+                    <li key={index} className="text-sm text-[var(--text-primary)] flex items-start">
                       <span className="w-1.5 h-1.5 rounded-full bg-green-600 mt-2 mr-2 flex-shrink-0"></span>
                       {recommendation}
                     </li>
@@ -548,11 +574,11 @@ export const FinancialTransactionAnalysis: React.FC<FinancialTransactionAnalysis
             <div className="flex justify-end gap-3 mt-6">
               <button
                 onClick={() => setSelectedPattern(null)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                className="px-4 py-2 text-sm font-medium text-[var(--text-primary)] bg-[var(--app-bg)] rounded-md hover:bg-[var(--app-bg)] transition-colors"
               >
                 Close
               </button>
-              <button className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors">
+              <button className="px-4 py-2 text-sm font-medium text-[var(--text-primary)] bg-green-600 rounded-md hover:bg-green-700 transition-colors">
                 Add to Investigation
               </button>
             </div>
@@ -563,11 +589,11 @@ export const FinancialTransactionAnalysis: React.FC<FinancialTransactionAnalysis
       {/* Empty State */}
       {!isAnalyzing && transactionPatterns.length === 0 && (
         <div className="p-12 text-center">
-          <DollarSign className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-sm font-medium text-gray-900 mb-2">
+          <DollarSign className="w-12 h-12 text-[var(--text-muted)] mx-auto mb-4" />
+          <h3 className="text-sm font-medium text-[var(--text-primary)] mb-2">
             No financial patterns detected yet
           </h3>
-          <p className="text-sm text-gray-600 mb-4">
+          <p className="text-sm text-[var(--text-primary)] mb-4">
             Start financial transaction analysis to identify suspicious patterns in money flows,
             timing, amounts, and geographic distribution.
           </p>
@@ -578,7 +604,7 @@ export const FinancialTransactionAnalysis: React.FC<FinancialTransactionAnalysis
           ) : null}
           <button
             onClick={analyzeTransactions}
-            className="px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 transition-colors"
+            className="px-4 py-2 bg-green-600 text-[var(--text-primary)] text-sm rounded-md hover:bg-green-700 transition-colors"
           >
             Start Financial Analysis
           </button>

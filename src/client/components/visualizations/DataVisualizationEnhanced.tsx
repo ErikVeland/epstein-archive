@@ -63,13 +63,15 @@ const AnimatedCounter: React.FC<{
 
   return (
     <div
-      className={`bg-gradient-to-br ${color} p-6 rounded-xl shadow-2xl transform hover:scale-105 transition-all duration-300 glow-cyan`}
+      className={`bg-gradient-to-br ${color} p-6 rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] transform hover:scale-105 transition-all duration-300 glow-cyan`}
     >
       <div className="flex items-center justify-between mb-4">
         {icon}
-        <div className="text-3xl font-bold text-white">{displayValue.toLocaleString()}</div>
+        <div className="text-3xl font-bold text-[var(--text-primary)]">
+          {displayValue.toLocaleString()}
+        </div>
       </div>
-      <div className="text-white opacity-90 text-sm font-medium">{label}</div>
+      <div className="text-[var(--text-primary)] opacity-90 text-sm font-medium">{label}</div>
     </div>
   );
 };
@@ -78,14 +80,16 @@ const AnimatedCounter: React.FC<{
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-gray-900/95 backdrop-blur-sm p-4 rounded-xl shadow-2xl border border-gray-600">
-        <p className="text-white font-bold text-lg mb-2">{label}</p>
+      <div className="bg-[var(--glass-bg-strong)]/95 backdrop-blur-sm p-4 rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] border border-[var(--glass-border)]">
+        <p className="text-[var(--text-primary)] font-bold text-lg mb-2">{label}</p>
         {payload.map((entry: any, index: number) => (
           <div key={index} className="flex items-center space-x-2 mb-1">
             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }}></div>
-            <span className="text-gray-300">
+            <span className="text-[var(--text-secondary)]">
               {entry.name}:{' '}
-              <span className="font-bold text-white">{entry.value.toLocaleString()}</span>
+              <span className="font-bold text-[var(--text-primary)]">
+                {entry.value.toLocaleString()}
+              </span>
             </span>
           </div>
         ))}
@@ -223,14 +227,14 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({ people }) 
           value={people.reduce((sum, p) => sum + p.mentions, 0)}
           label="Total Mentions"
           color="from-blue-600 to-purple-600"
-          icon={<span className="text-blue-300 text-2xl">📊</span>}
+          icon={<span className="text-[var(--accent)] text-2xl">📊</span>}
         />
       </div>
 
       {/* Enhanced Top Row - Likelihood Distribution with 3D Effect */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-gradient-to-br from-gray-800 to-gray-900 p-8 rounded-2xl shadow-2xl border border-gray-700">
-          <h3 className="text-2xl font-bold text-white mb-6 flex items-center space-x-3">
+        <div className="bg-gradient-to-br from-gray-800 to-gray-900 p-8 rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] border border-[var(--glass-border)]">
+          <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-6 flex items-center space-x-3">
             <div className="w-4 h-4 rounded-full bg-gradient-to-r from-red-500 to-orange-500"></div>
             <span>Risk Level Distribution</span>
           </h3>
@@ -261,7 +265,9 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({ people }) 
                 <Legend
                   verticalAlign="bottom"
                   height={36}
-                  formatter={(value) => <span className="text-white font-medium">{value}</span>}
+                  formatter={(value) => (
+                    <span className="text-[var(--text-primary)] font-medium">{value}</span>
+                  )}
                 />
               </PieChart>
             </ResponsiveContainer>
@@ -272,15 +278,15 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({ people }) 
             {likelihoodData.map((item, index) => (
               <div key={index} className="flex items-center space-x-3 text-sm">
                 <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></div>
-                <span className="text-gray-300">{item.description}</span>
+                <span className="text-[var(--text-secondary)]">{item.description}</span>
               </div>
             ))}
           </div>
         </div>
 
         {/* Status Distribution with Enhanced Styling */}
-        <div className="bg-gradient-to-br from-gray-800 to-gray-900 p-8 rounded-2xl shadow-2xl border border-gray-700">
-          <h3 className="text-2xl font-bold text-white mb-6 flex items-center space-x-3">
+        <div className="bg-gradient-to-br from-gray-800 to-gray-900 p-8 rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] border border-[var(--glass-border)]">
+          <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-6 flex items-center space-x-3">
             <div className="w-4 h-4 rounded-full bg-gradient-to-r from-blue-500 to-purple-500"></div>
             <span>Current Status Distribution</span>
           </h3>
@@ -319,8 +325,8 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({ people }) 
       </div>
 
       {/* Enhanced Top Mentions Chart with Horizontal Layout */}
-      <div className="bg-gradient-to-br from-gray-800 to-gray-900 p-8 rounded-2xl shadow-2xl border border-gray-700">
-        <h3 className="text-2xl font-bold text-white mb-6 flex items-center space-x-3">
+      <div className="bg-gradient-to-br from-gray-800 to-gray-900 p-8 rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] border border-[var(--glass-border)]">
+        <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-6 flex items-center space-x-3">
           <div className="w-4 h-4 rounded-full bg-gradient-to-r from-green-500 to-emerald-500"></div>
           <span>Top 15 Most Mentioned Individuals</span>
         </h3>
@@ -378,22 +384,22 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({ people }) 
         <div className="mt-6 flex justify-center space-x-6">
           <div className="flex items-center space-x-2">
             <div className="w-4 h-4 rounded bg-gradient-to-r from-red-500 to-red-600"></div>
-            <span className="text-gray-300 text-sm">High Risk</span>
+            <span className="text-[var(--text-secondary)] text-sm">High Risk</span>
           </div>
           <div className="flex items-center space-x-2">
             <div className="w-4 h-4 rounded bg-gradient-to-r from-yellow-500 to-orange-500"></div>
-            <span className="text-gray-300 text-sm">Medium Risk</span>
+            <span className="text-[var(--text-secondary)] text-sm">Medium Risk</span>
           </div>
           <div className="flex items-center space-x-2">
             <div className="w-4 h-4 rounded bg-gradient-to-r from-green-500 to-emerald-500"></div>
-            <span className="text-gray-300 text-sm">Low Risk</span>
+            <span className="text-[var(--text-secondary)] text-sm">Low Risk</span>
           </div>
         </div>
       </div>
 
       {/* Role Distribution with Enhanced Visualization */}
-      <div className="bg-gradient-to-br from-gray-800 to-gray-900 p-8 rounded-2xl shadow-2xl border border-gray-700">
-        <h3 className="text-2xl font-bold text-white mb-6 flex items-center space-x-3">
+      <div className="bg-gradient-to-br from-gray-800 to-gray-900 p-8 rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] border border-[var(--glass-border)]">
+        <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-6 flex items-center space-x-3">
           <div className="w-4 h-4 rounded-full bg-gradient-to-r from-purple-500 to-pink-500"></div>
           <span>Role Distribution Analysis</span>
         </h3>
@@ -432,8 +438,8 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({ people }) 
       </div>
 
       {/* Mention Intensity Distribution */}
-      <div className="bg-gradient-to-br from-gray-800 to-gray-900 p-8 rounded-2xl shadow-2xl border border-gray-700">
-        <h3 className="text-2xl font-bold text-white mb-6 flex items-center space-x-3">
+      <div className="bg-gradient-to-br from-gray-800 to-gray-900 p-8 rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] border border-[var(--glass-border)]">
+        <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-6 flex items-center space-x-3">
           <div className="w-4 h-4 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500"></div>
           <span>Mention Intensity Distribution</span>
         </h3>
@@ -466,8 +472,8 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({ people }) 
       </div>
 
       {/* Enhanced Treemap Visualization */}
-      <div className="bg-gradient-to-br from-gray-800 to-gray-900 p-8 rounded-2xl shadow-2xl border border-gray-700">
-        <h3 className="text-2xl font-bold text-white mb-6 flex items-center space-x-3">
+      <div className="bg-gradient-to-br from-gray-800 to-gray-900 p-8 rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] border border-[var(--glass-border)]">
+        <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-6 flex items-center space-x-3">
           <div className="w-4 h-4 rounded-full bg-gradient-to-r from-teal-500 to-emerald-500"></div>
           <span>Top 50 Individuals by Mentions (Interactive Treemap)</span>
         </h3>
@@ -562,53 +568,55 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({ people }) 
         <div className="mt-6 flex justify-center space-x-6">
           <div className="flex items-center space-x-2">
             <div className="w-4 h-4 rounded bg-gradient-to-r from-red-600 to-red-700"></div>
-            <span className="text-gray-300 text-sm">High Risk</span>
+            <span className="text-[var(--text-secondary)] text-sm">High Risk</span>
           </div>
           <div className="flex items-center space-x-2">
             <div className="w-4 h-4 rounded bg-gradient-to-r from-yellow-600 to-orange-600"></div>
-            <span className="text-gray-300 text-sm">Medium Risk</span>
+            <span className="text-[var(--text-secondary)] text-sm">Medium Risk</span>
           </div>
           <div className="flex items-center space-x-2">
             <div className="w-4 h-4 rounded bg-gradient-to-r from-green-600 to-emerald-600"></div>
-            <span className="text-gray-300 text-sm">Low Risk</span>
+            <span className="text-[var(--text-secondary)] text-sm">Low Risk</span>
           </div>
         </div>
       </div>
 
       {/* Summary Statistics with Enhanced Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-        <div className="bg-gradient-to-br from-purple-900 via-purple-800 to-purple-900 p-6 rounded-2xl shadow-2xl border border-purple-700">
+        <div className="bg-gradient-to-br from-purple-900 via-purple-800 to-purple-900 p-6 rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] border border-purple-700">
           <div className="flex items-center justify-between mb-4">
-            <div className="text-3xl font-bold text-white">{people.length.toLocaleString()}</div>
+            <div className="text-3xl font-bold text-[var(--text-primary)]">
+              {people.length.toLocaleString()}
+            </div>
             <div className="text-purple-300 text-2xl">👥</div>
           </div>
           <div className="text-purple-200 text-sm font-medium">Total Individuals</div>
           <div className="mt-2 text-xs text-purple-300 opacity-75">Across all evidence files</div>
         </div>
 
-        <div className="bg-gradient-to-br from-indigo-900 via-indigo-800 to-indigo-900 p-6 rounded-2xl shadow-2xl border border-indigo-700">
+        <div className="bg-gradient-to-br from-indigo-900 via-indigo-800 to-indigo-900 p-6 rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] border border-indigo-700">
           <div className="flex items-center justify-between mb-4">
-            <div className="text-3xl font-bold text-white">
+            <div className="text-3xl font-bold text-[var(--text-primary)]">
               {Math.round(people.reduce((sum, p) => sum + p.mentions, 0) / people.length)}
             </div>
-            <div className="text-indigo-300 text-2xl">📈</div>
+            <div className="text-[var(--accent)] text-2xl">📈</div>
           </div>
           <div className="text-indigo-200 text-sm font-medium">Avg Mentions</div>
-          <div className="mt-2 text-xs text-indigo-300 opacity-75">Per individual</div>
+          <div className="mt-2 text-xs text-[var(--accent)] opacity-75">Per individual</div>
         </div>
 
-        <div className="bg-gradient-to-br from-pink-900 via-pink-800 to-pink-900 p-6 rounded-2xl shadow-2xl border border-pink-700">
+        <div className="bg-gradient-to-br from-pink-900 via-pink-800 to-pink-900 p-6 rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] border border-pink-700">
           <div className="flex items-center justify-between mb-4">
-            <div className="text-3xl font-bold text-white">{roleData.length}</div>
+            <div className="text-3xl font-bold text-[var(--text-primary)]">{roleData.length}</div>
             <div className="text-pink-300 text-2xl">🎭</div>
           </div>
           <div className="text-pink-200 text-sm font-medium">Unique Roles</div>
           <div className="mt-2 text-xs text-pink-300 opacity-75">Across all individuals</div>
         </div>
 
-        <div className="bg-gradient-to-br from-teal-900 via-teal-800 to-teal-900 p-6 rounded-2xl shadow-2xl border border-teal-700">
+        <div className="bg-gradient-to-br from-teal-900 via-teal-800 to-teal-900 p-6 rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] border border-teal-700">
           <div className="flex items-center justify-between mb-4">
-            <div className="text-3xl font-bold text-white">
+            <div className="text-3xl font-bold text-[var(--text-primary)]">
               {Math.max(...people.map((p) => p.mentions)).toLocaleString()}
             </div>
             <div className="text-teal-300 text-2xl">🔥</div>

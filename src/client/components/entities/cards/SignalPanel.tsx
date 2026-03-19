@@ -14,10 +14,10 @@ export const SignalPanel: React.FC<SignalPanelProps> = ({ metrics }) => {
         position="top-end"
       >
         <div className="flex items-center gap-2 text-[10px] font-medium tracking-wide">
-          <span className="text-slate-500 w-16">Exposure</span>
-          <div className="flex-1 h-[3px] bg-slate-800/80 rounded-full overflow-hidden">
+          <span className="text-[var(--text-muted)] w-16">Exposure</span>
+          <div className="flex-1 h-[3px] bg-[var(--glass-bg)]/80 rounded-full overflow-hidden">
             <div
-              className="h-full bg-slate-400/70 transition-all duration-500 ease-out"
+              className="h-full bg-[var(--app-bg)]/70 transition-all duration-500 ease-out"
               style={{ width: `${Math.max(5, metrics.exposure)}%` }}
             />
           </div>
@@ -29,10 +29,10 @@ export const SignalPanel: React.FC<SignalPanelProps> = ({ metrics }) => {
         position="top-end"
       >
         <div className="flex items-center gap-2 text-[10px] font-medium tracking-wide">
-          <span className="text-slate-500 w-16">Network</span>
-          <div className="flex-1 h-[3px] bg-slate-800/80 rounded-full overflow-hidden">
+          <span className="text-[var(--text-muted)] w-16">Network</span>
+          <div className="flex-1 h-[3px] bg-[var(--glass-bg)]/80 rounded-full overflow-hidden">
             <div
-              className="h-full bg-slate-400/70 transition-all duration-500 ease-out"
+              className="h-full bg-[var(--app-bg)]/70 transition-all duration-500 ease-out"
               style={{ width: `${Math.max(5, metrics.connectivity)}%` }}
             />
           </div>
@@ -44,10 +44,10 @@ export const SignalPanel: React.FC<SignalPanelProps> = ({ metrics }) => {
         position="top-end"
       >
         <div className="flex items-center gap-2 text-[10px] font-medium tracking-wide">
-          <span className="text-slate-500 w-16">Source</span>
-          <div className="flex-1 h-[3px] bg-slate-800/80 rounded-full overflow-hidden">
+          <span className="text-[var(--text-muted)] w-16">Source</span>
+          <div className="flex-1 h-[3px] bg-[var(--glass-bg)]/80 rounded-full overflow-hidden">
             <div
-              className="h-full bg-slate-400/70 transition-all duration-500 ease-out"
+              className="h-full bg-[var(--app-bg)]/70 transition-all duration-500 ease-out"
               style={{ width: `${Math.max(5, metrics.corroboration)}%` }}
             />
           </div>

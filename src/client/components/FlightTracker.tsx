@@ -615,7 +615,7 @@ const FlightTracker: React.FC = () => {
             onClick={() => setSelectedFlight(null)}
             size="sm"
             label="Close flight details"
-            className="modal-close-btn border-slate-500/70 bg-slate-900/80 text-white"
+            className="modal-close-btn border-[var(--glass-border)] bg-[var(--glass-bg-strong)]/80 text-[var(--text-primary)]"
           />
 
           <div className="modal-header" style={{ paddingRight: '3rem' }}>
@@ -630,28 +630,30 @@ const FlightTracker: React.FC = () => {
             return (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                  <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-700/50">
+                  <div className="bg-[var(--glass-bg)]/50 p-4 rounded-[var(--radius-lg)] border border-[var(--glass-border)]">
                     <div className="flex items-center gap-2 mb-2">
-                      <Icon name="ArrowUpRight" className="text-blue-400" size="sm" />
-                      <span className="text-sm font-medium text-slate-400">Departure</span>
+                      <Icon name="ArrowUpRight" className="text-[var(--accent)]" size="sm" />
+                      <span className="text-sm font-medium text-[var(--text-muted)]">
+                        Departure
+                      </span>
                     </div>
-                    <div className="text-lg font-bold text-white mb-1">
+                    <div className="text-lg font-bold text-[var(--text-primary)] mb-1">
                       {selectedFlight.departure_airport}
                     </div>
-                    <div className="text-sm text-slate-500">
+                    <div className="text-sm text-[var(--text-muted)]">
                       {new Date(selectedFlight.date).toLocaleString()}
                     </div>
                   </div>
 
-                  <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-700/50">
+                  <div className="bg-[var(--glass-bg)]/50 p-4 rounded-[var(--radius-lg)] border border-[var(--glass-border)]">
                     <div className="flex items-center gap-2 mb-2">
                       <Icon name="ArrowDown" className="text-emerald-400" size="sm" />
-                      <span className="text-sm font-medium text-slate-400">Arrival</span>
+                      <span className="text-sm font-medium text-[var(--text-muted)]">Arrival</span>
                     </div>
-                    <div className="text-lg font-bold text-white mb-1">
+                    <div className="text-lg font-bold text-[var(--text-primary)] mb-1">
                       {selectedFlight.arrival_airport}
                     </div>
-                    <div className="text-sm text-slate-500">
+                    <div className="text-sm text-[var(--text-muted)]">
                       {new Date(selectedFlight.date).toLocaleString()}
                     </div>
                   </div>
@@ -660,7 +662,7 @@ const FlightTracker: React.FC = () => {
                 {/* Flight Route Map */}
                 {(departureCoords || arrivalCoords) && (
                   <div className="mb-6">
-                    <h4 className="text-sm font-medium text-slate-400 mb-3 flex items-center gap-2">
+                    <h4 className="text-sm font-medium text-[var(--text-muted)] mb-3 flex items-center gap-2">
                       <Icon name="Globe" size="sm" />
                       Flight Path Visualization
                     </h4>
@@ -680,9 +682,13 @@ const FlightTracker: React.FC = () => {
                         }}
                       />
                     ) : (
-                      <div className="bg-slate-800/50 p-8 rounded-lg border border-slate-700/50 text-center">
-                        <Icon name="MapPin" size="lg" className="text-slate-600 mb-2 mx-auto" />
-                        <p className="text-slate-400">
+                      <div className="bg-[var(--glass-bg)]/50 p-8 rounded-[var(--radius-lg)] border border-[var(--glass-border)] text-center">
+                        <Icon
+                          name="MapPin"
+                          size="lg"
+                          className="text-[var(--text-primary)] mb-2 mx-auto"
+                        />
+                        <p className="text-[var(--text-muted)]">
                           Complete route data unavailable for map visualization
                         </p>
                       </div>
@@ -842,21 +848,21 @@ const FlightTracker: React.FC = () => {
               ]}
             />
 
-            <div className="flex items-center gap-2 bg-slate-900/50 border border-slate-700 rounded-lg px-3 py-2">
-              <Icon name="Calendar" size="sm" className="text-slate-400" />
+            <div className="flex items-center gap-2 bg-[var(--glass-bg-strong)]/50 border border-[var(--glass-border)] rounded-[var(--radius-lg)] px-3 py-2">
+              <Icon name="Calendar" size="sm" className="text-[var(--text-muted)]" />
               <input
                 type="date"
                 value={dateRange.start}
                 onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-                className="bg-transparent border-none text-white text-sm focus:outline-none"
+                className="bg-transparent border-none text-[var(--text-primary)] text-sm focus:outline-none"
                 placeholder="Start Date"
               />
-              <span className="text-slate-500">-</span>
+              <span className="text-[var(--text-muted)]">-</span>
               <input
                 type="date"
                 value={dateRange.end}
                 onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-                className="bg-transparent border-none text-white text-sm focus:outline-none"
+                className="bg-transparent border-none text-[var(--text-primary)] text-sm focus:outline-none"
                 placeholder="End Date"
               />
             </div>

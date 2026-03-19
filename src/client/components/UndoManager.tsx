@@ -110,13 +110,13 @@ export const UndoProvider: React.FC<{ children: React.ReactNode }> = ({ children
     <UndoContext.Provider value={value}>
       {children}
       {state.notification?.visible && (
-        <div className="fixed bottom-4 right-4 bg-slate-800 border border-slate-700 rounded-lg p-4 shadow-lg z-50 max-w-md">
+        <div className="fixed bottom-4 right-4 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-4 shadow-[var(--glass-shadow)] z-50 max-w-md">
           <div className="flex items-center justify-between">
-            <p className="text-white text-sm">{state.notification.message}</p>
+            <p className="text-[var(--text-primary)] text-sm">{state.notification.message}</p>
             {state.notification.action && (
               <button
                 onClick={() => performUndo(state.notification!.action!.id)}
-                className="ml-4 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded transition-colors"
+                className="ml-4 px-3 py-1 bg-[var(--accent)] hover:bg-blue-700 text-[var(--text-primary)] text-sm rounded transition-colors"
               >
                 Undo
               </button>
@@ -125,7 +125,7 @@ export const UndoProvider: React.FC<{ children: React.ReactNode }> = ({ children
               onClick={hideNotification}
               size="sm"
               label="Close notification"
-              className="ml-2 bg-transparent border-slate-700 text-slate-400 hover:text-white"
+              className="ml-2 bg-transparent border-[var(--glass-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
             />
           </div>
         </div>

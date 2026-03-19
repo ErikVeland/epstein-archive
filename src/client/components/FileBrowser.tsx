@@ -34,12 +34,12 @@ const FileBrowser: React.FC = () => {
   const [loadError, setLoadError] = useState<string | null>(null);
 
   const categories = [
-    { id: 'all', name: 'All Files', icon: Folder, color: 'text-blue-400' },
+    { id: 'all', name: 'All Files', icon: Folder, color: 'text-[var(--accent)]' },
     { id: 'emails', name: 'Emails & Communications', icon: Mail, color: 'text-green-400' },
     { id: 'documents', name: 'Legal Documents', icon: FileText, color: 'text-red-400' },
     { id: 'images', name: 'Images & Photos', icon: Image, color: 'text-purple-400' },
     { id: 'flight_logs', name: 'Flight Records', icon: FileSpreadsheet, color: 'text-yellow-400' },
-    { id: 'testimonies', name: 'Testimonies', icon: User, color: 'text-cyan-400' },
+    { id: 'testimonies', name: 'Testimonies', icon: User, color: 'text-[var(--accent)]' },
     { id: 'financial', name: 'Financial Records', icon: FileSpreadsheet, color: 'text-orange-400' },
   ];
 
@@ -152,7 +152,7 @@ const FileBrowser: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-400"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent)]"></div>
       </div>
     );
   }
@@ -160,8 +160,10 @@ const FileBrowser: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Category Filter */}
-      <div className="bg-gray-800 p-4 rounded-xl">
-        <h3 className="text-lg font-semibold text-white mb-4">Browse by Category</h3>
+      <div className="bg-[var(--glass-bg)] p-4 rounded-[var(--radius-xl)]">
+        <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
+          Browse by Category
+        </h3>
         {loadError && (
           <div className="mb-4 text-sm text-rose-300 bg-rose-900/30 border border-rose-400/30 rounded px-3 py-2">
             {loadError}
@@ -174,10 +176,10 @@ const FileBrowser: React.FC = () => {
               <button
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
-                className={`flex flex-col items-center p-3 rounded-lg transition-all duration-200 ${
+                className={`flex flex-col items-center p-3 rounded-[var(--radius-lg)] transition-all duration-200 ${
                   selectedCategory === category.id
-                    ? 'bg-gradient-to-br from-cyan-600 to-blue-600 text-white shadow-lg'
-                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                    ? 'bg-gradient-to-br from-cyan-600 to-blue-600 text-[var(--text-primary)] shadow-[var(--glass-shadow)]'
+                    : 'bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)]'
                 }`}
               >
                 <Icon className="h-6 w-6 mb-2" />
@@ -189,13 +191,13 @@ const FileBrowser: React.FC = () => {
       </div>
 
       {/* Search */}
-      <div className="bg-gray-800 p-4 rounded-xl">
+      <div className="bg-[var(--glass-bg)] p-4 rounded-[var(--radius-xl)]">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[var(--text-muted)]" />
           <input
             type="text"
             placeholder="Search files by name or content..."
-            className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+            className="w-full pl-10 pr-4 py-3 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] placeholder-gray-400 focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -203,15 +205,15 @@ const FileBrowser: React.FC = () => {
       </div>
 
       {/* File List */}
-      <div className="bg-gray-800 rounded-xl overflow-hidden">
-        <div className="p-4 border-b border-gray-700">
+      <div className="bg-[var(--glass-bg)] rounded-[var(--radius-xl)] overflow-hidden">
+        <div className="p-4 border-b border-[var(--glass-border)]">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-white">
+            <h3 className="text-lg font-semibold text-[var(--text-primary)]">
               {selectedCategory === 'all'
                 ? 'All Files'
                 : categories.find((c) => c.id === selectedCategory)?.name}
             </h3>
-            <span className="text-gray-400 text-sm">
+            <span className="text-[var(--text-muted)] text-sm">
               {filteredFiles.length} {filteredFiles.length === 1 ? 'item' : 'items'}
             </span>
           </div>
@@ -224,17 +226,17 @@ const FileBrowser: React.FC = () => {
               <div
                 key={index}
                 onClick={() => handleFileClick(file)}
-                className="p-4 hover:bg-gray-700 cursor-pointer transition-colors duration-200"
+                className="p-4 hover:bg-[var(--glass-bg-highlight)] cursor-pointer transition-colors duration-200"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <Icon className="h-5 w-5 text-cyan-400" />
+                    <Icon className="h-5 w-5 text-[var(--accent)]" />
                     <div>
-                      <h4 className="text-white font-medium">{file.name}</h4>
-                      <p className="text-gray-400 text-sm">{file.path}</p>
+                      <h4 className="text-[var(--text-primary)] font-medium">{file.name}</h4>
+                      <p className="text-[var(--text-muted)] text-sm">{file.path}</p>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-4 text-sm text-gray-400">
+                  <div className="flex items-center space-x-4 text-sm text-[var(--text-muted)]">
                     {file.size && <span>{formatFileSize(file.size)}</span>}
                     {file.modified && <span>{file.modified}</span>}
                     <Eye className="h-4 w-4" />
@@ -247,9 +249,9 @@ const FileBrowser: React.FC = () => {
 
         {filteredFiles.length === 0 && (
           <div className="p-8 text-center">
-            <File className="h-12 w-12 text-gray-500 mx-auto mb-4" />
-            <h4 className="text-gray-300 font-medium mb-2">No files found</h4>
-            <p className="text-gray-500">Try adjusting your search or category filter</p>
+            <File className="h-12 w-12 text-[var(--text-muted)] mx-auto mb-4" />
+            <h4 className="text-[var(--text-secondary)] font-medium mb-2">No files found</h4>
+            <p className="text-[var(--text-muted)]">Try adjusting your search or category filter</p>
           </div>
         )}
       </div>
@@ -258,15 +260,17 @@ const FileBrowser: React.FC = () => {
       {selectedFile &&
         createPortal(
           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
-            <div className="bg-slate-800 rounded-xl max-w-4xl w-full max-h-[80vh] overflow-hidden border border-slate-700">
-              <div className="p-6 border-b border-slate-700">
+            <div className="bg-[var(--glass-bg)] rounded-[var(--radius-xl)] max-w-4xl w-full max-h-[80vh] overflow-hidden border border-[var(--glass-border)]">
+              <div className="p-6 border-b border-[var(--glass-border)]">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <File className="h-6 w-6 text-cyan-400" />
-                    <h3 className="text-xl font-semibold text-white">{selectedFile.name}</h3>
+                    <File className="h-6 w-6 text-[var(--accent)]" />
+                    <h3 className="text-xl font-semibold text-[var(--text-primary)]">
+                      {selectedFile.name}
+                    </h3>
                   </div>
                   <div className="flex items-center space-x-3">
-                    <button className="flex items-center space-x-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-700 rounded-lg text-white transition-colors">
+                    <button className="flex items-center space-x-2 px-4 py-2 bg-[var(--accent)] hover:bg-cyan-700 rounded-[var(--radius-lg)] text-[var(--text-primary)] transition-colors">
                       <Download className="h-4 w-4" />
                       <span>Download</span>
                     </button>
@@ -274,7 +278,7 @@ const FileBrowser: React.FC = () => {
                       onClick={() => setSelectedFile(null)}
                       size="sm"
                       label="Close file preview"
-                      className="border-slate-600 bg-slate-900/70 text-white"
+                      className="border-[var(--glass-border)] bg-[var(--glass-bg-strong)]/70 text-[var(--text-primary)]"
                     />
                   </div>
                 </div>
@@ -283,29 +287,33 @@ const FileBrowser: React.FC = () => {
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <span className="text-gray-400">Path:</span>
-                      <p className="text-white">{selectedFile.path}</p>
+                      <span className="text-[var(--text-muted)]">Path:</span>
+                      <p className="text-[var(--text-primary)]">{selectedFile.path}</p>
                     </div>
                     <div>
-                      <span className="text-gray-400">Category:</span>
-                      <p className="text-white capitalize">{selectedFile.category}</p>
+                      <span className="text-[var(--text-muted)]">Category:</span>
+                      <p className="text-[var(--text-primary)] capitalize">
+                        {selectedFile.category}
+                      </p>
                     </div>
                     {selectedFile.size && (
                       <div>
-                        <span className="text-gray-400">Size:</span>
-                        <p className="text-white">{formatFileSize(selectedFile.size)}</p>
+                        <span className="text-[var(--text-muted)]">Size:</span>
+                        <p className="text-[var(--text-primary)]">
+                          {formatFileSize(selectedFile.size)}
+                        </p>
                       </div>
                     )}
                     {selectedFile.modified && (
                       <div>
-                        <span className="text-gray-400">Modified:</span>
-                        <p className="text-white">{selectedFile.modified}</p>
+                        <span className="text-[var(--text-muted)]">Modified:</span>
+                        <p className="text-[var(--text-primary)]">{selectedFile.modified}</p>
                       </div>
                     )}
                   </div>
-                  <div className="border-t border-gray-700 pt-4">
-                    <h4 className="text-white font-medium mb-2">Content Preview</h4>
-                    <div className="bg-gray-900 p-4 rounded-lg text-gray-300 font-mono text-sm max-h-64 overflow-y-auto">
+                  <div className="border-t border-[var(--glass-border)] pt-4">
+                    <h4 className="text-[var(--text-primary)] font-medium mb-2">Content Preview</h4>
+                    <div className="bg-[var(--glass-bg-strong)] p-4 rounded-[var(--radius-lg)] text-[var(--text-secondary)] font-mono text-sm max-h-64 overflow-y-auto">
                       {selectedFile.content || 'File content would be displayed here...'}
                     </div>
                   </div>

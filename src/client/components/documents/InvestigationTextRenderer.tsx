@@ -41,7 +41,7 @@ const applySearchHighlight = (html: string, term?: string): string => {
   const regex = new RegExp(`(${tokens.join('|')})`, 'gi');
   return html.replace(
     regex,
-    '<mark class="search-match bg-cyan-400/20 text-cyan-50 px-0.5 rounded border-b-2 border-cyan-400/80 shadow-[0_0_15px_rgba(34,211,238,0.2)]">$1</mark>',
+    '<mark class="search-match bg-[var(--accent)]/20 text-cyan-50 px-0.5 rounded border-b-2 border-[var(--accent)]/80 shadow-[0_0_15px_rgba(34,211,238,0.2)]">$1</mark>',
   );
 };
 
@@ -299,7 +299,7 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
           if (!entity) return match;
           const id = String(entity.id ?? entity.entity_id ?? '');
           const safeName = escapeHtml(match);
-          return `<button type="button" class="entity-inline text-cyan-300 hover:text-cyan-100 underline decoration-cyan-500/40 underline-offset-2 transition-colors" data-entity-id="${id}" data-entity-name="${safeName}">${safeName}</button>`;
+          return `<button type="button" class="entity-inline text-[var(--accent)] hover:text-cyan-100 underline decoration-cyan-500/40 underline-offset-2 transition-colors" data-entity-id="${id}" data-entity-name="${safeName}">${safeName}</button>`;
         });
       }
 
@@ -429,15 +429,15 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       {lowLegibility && (
-        <div className="bg-amber-500/10 border border-amber-500/30 p-4 rounded-xl flex items-start gap-4">
-          <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center shrink-0">
+        <div className="bg-amber-500/10 border border-amber-500/30 p-4 rounded-[var(--radius-xl)] flex items-start gap-4">
+          <div className="w-10 h-10 rounded-[var(--radius-lg)] bg-amber-500/20 flex items-center justify-center shrink-0">
             <AlertCircle className="w-6 h-6 text-amber-500" />
           </div>
           <div className="flex-1">
             <h4 className="text-sm font-bold text-amber-200 uppercase tracking-widest mb-1">
               Low Legibility Warning
             </h4>
-            <div className="text-xs text-slate-300 leading-relaxed max-w-2xl">
+            <div className="text-xs text-[var(--text-secondary)] leading-relaxed max-w-2xl">
               OCR data quality is below forensic confidence threshold. Some entities or text may be
               missing. Recommendation: Switch to <strong>Raw</strong> view or open{' '}
               <strong>Original PDF</strong> for confirmation.
@@ -447,7 +447,7 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
       )}
 
       {excerpts.length > 0 && (
-        <section className="glass-surface border-violet-500/20 rounded-2xl overflow-hidden shadow-lg shadow-violet-950/20">
+        <section className="glass-surface border-violet-500/20 rounded-[var(--radius-xl)] overflow-hidden shadow-[var(--glass-shadow)] shadow-violet-950/20">
           <div className="bg-violet-500/10 px-6 py-3 border-b border-violet-500/20 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-violet-400" />
@@ -463,7 +463,7 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
                 className="group relative pl-6 border-l-2 border-violet-500/30 hover:border-violet-400 transition-colors"
               >
                 <div className="absolute -left-1 top-0 w-2 h-2 rounded-full bg-violet-500/40 scale-0 group-hover:scale-100 transition-transform" />
-                <blockquote className="italic text-base md:text-lg text-slate-200 leading-relaxed font-serif selection:bg-violet-500/30">
+                <blockquote className="italic text-base md:text-lg text-[var(--text-primary)] leading-relaxed font-serif selection:bg-violet-500/30">
                   "{excerpt.text}"
                 </blockquote>
                 <div className="mt-3 flex flex-wrap gap-1.5">
@@ -484,14 +484,14 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
 
       <div className="flex items-center justify-between gap-4 py-2 border-b border-white/5">
         <div className="flex items-center gap-4">
-          <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 flex items-center gap-3">
+          <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] flex items-center gap-3">
             {mode === 'clean' ? 'Refined Content' : 'Original OCR Stream'}
             <button
               onClick={onToggleReadingMode}
               className={`p-1 rounded-md transition-all ${
                 isReadingMode
-                  ? 'bg-cyan-500/20 text-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.2)]'
-                  : 'text-slate-600 hover:text-slate-400'
+                  ? 'bg-[var(--accent)]/20 text-[var(--accent)] shadow-[0_0_10px_rgba(34,211,238,0.2)]'
+                  : 'text-[var(--text-primary)] hover:text-[var(--text-muted)]'
               }`}
               title={isReadingMode ? 'Disable Reading Mode' : 'Enable Reading Mode'}
             >
@@ -506,13 +506,13 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
               <div className="flex gap-1 ml-1">
                 <button
                   onClick={() => navigateMatch('prev')}
-                  className="hover:text-white transition-colors"
+                  className="hover:text-[var(--text-primary)] transition-colors"
                 >
                   <ChevronLeft className="w-3 h-3" />
                 </button>
                 <button
                   onClick={() => navigateMatch('next')}
-                  className="hover:text-white transition-colors"
+                  className="hover:text-[var(--text-primary)] transition-colors"
                 >
                   <ChevronRight className="w-3 h-3" />
                 </button>
@@ -523,10 +523,10 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
 
         {mode === 'clean' && baselineTokens && (
           <div className="flex items-center gap-3">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+            <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
               Highlight Density
             </span>
-            <div className="flex p-0.5 bg-slate-900/60 rounded-lg border border-white/5">
+            <div className="flex p-0.5 bg-[var(--glass-bg-strong)]/60 rounded-[var(--radius-lg)] border border-white/5">
               {(['off', 'subtle', 'strong'] as const).map((d) => (
                 <button
                   key={d}
@@ -534,7 +534,7 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
                   className={`px-2 py-1 rounded text-[8px] font-black uppercase transition-all ${
                     highlightDensity === d
                       ? 'bg-emerald-500/20 text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.2)]'
-                      : 'text-slate-600 hover:text-slate-400'
+                      : 'text-[var(--text-primary)] hover:text-[var(--text-muted)]'
                   }`}
                 >
                   {d}
@@ -547,7 +547,7 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
               className={`px-2 py-1 rounded text-[8px] font-black uppercase tracking-widest border transition-all ${
                 showRecoveryHighlights
                   ? 'bg-emerald-500/15 border-emerald-500/50 text-emerald-300'
-                  : 'border-slate-700 text-slate-500 hover:text-slate-300'
+                  : 'border-[var(--glass-border)] text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
               }`}
             >
               {showRecoveryHighlights ? 'Recovery On' : 'Recovery Off'}
@@ -558,7 +558,7 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
 
       <div
         ref={containerRef}
-        className={`text-slate-200 selection:bg-cyan-500/30 transition-all duration-500 ${
+        className={`text-[var(--text-primary)] selection:bg-[var(--accent)]/30 transition-all duration-500 ${
           isReadingMode
             ? 'font-serif text-xl lg:text-2xl leading-[2] max-w-3xl mx-auto'
             : 'font-sans text-base lg:text-lg leading-[1.8] tracking-tight'
@@ -569,10 +569,10 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
             <div key={section.id} className="group relative">
               {section.id !== 'full' && (
                 <div className="flex items-center gap-4 mb-4">
-                  <h3 className="text-xs font-black uppercase tracking-[0.2em] text-cyan-500/70">
+                  <h3 className="text-xs font-black uppercase tracking-[0.2em] text-[var(--accent)]/70">
                     {section.title}
                   </h3>
-                  <div className="flex-1 h-px bg-cyan-500/10" />
+                  <div className="flex-1 h-px bg-[var(--accent)]/10" />
                 </div>
               )}
               <div className="space-y-1">
@@ -603,23 +603,23 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
 
       {hover && (
         <div
-          className="fixed z-[11000] pointer-events-none rounded-xl border border-white/10 bg-slate-900/95 backdrop-blur-md p-4 text-xs shadow-2xl animate-in zoom-in-95 duration-200"
+          className="fixed z-[11000] pointer-events-none rounded-[var(--radius-xl)] border border-white/10 bg-[var(--glass-bg-strong)]/95 backdrop-blur-md p-4 text-xs shadow-[var(--glass-shadow)] animate-in zoom-in-95 duration-200"
           style={{ left: hover.x, top: hover.y }}
         >
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[8px] font-black uppercase text-cyan-400 tracking-widest">
+            <span className="text-[8px] font-black uppercase text-[var(--accent)] tracking-widest">
               Entity Signature
             </span>
-            <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse" />
+            <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] animate-pulse" />
           </div>
-          <div className="font-bold text-sm text-slate-100 mb-1">
+          <div className="font-bold text-sm text-[var(--text-primary)] mb-1">
             {hover.entity.name || hover.entity.fullName}
           </div>
-          <div className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">
+          <div className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-semibold">
             {hover.entity.entityType || hover.entity.type || 'IDENTIFIED ENTITY'}
           </div>
           {hover.entity.role && (
-            <div className="mt-2 text-slate-400 italic">"{hover.entity.role}"</div>
+            <div className="mt-2 text-[var(--text-muted)] italic">"{hover.entity.role}"</div>
           )}
         </div>
       )}

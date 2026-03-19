@@ -39,7 +39,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({ article, onClick }) =>
 
   return (
     <div
-      className="group relative h-[400px] w-full overflow-hidden rounded-xl border border-slate-700 bg-slate-900 transition-all hover:scale-[1.01] hover:shadow-2xl hover:shadow-cyan-900/20 cursor-pointer"
+      className="group relative h-[400px] w-full overflow-hidden rounded-[var(--radius-xl)] border border-[var(--glass-border)] bg-[var(--glass-bg-strong)] transition-all hover:scale-[1.01] hover:shadow-[var(--glass-shadow)] hover:shadow-cyan-900/20 cursor-pointer"
       onClick={() => onClick(article)}
     >
       {/* Hero Image with Zoom Effect */}
@@ -60,23 +60,23 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({ article, onClick }) =>
       {/* Content Overlay */}
       <div className="absolute inset-0 flex flex-col justify-end p-6">
         {/* Publication & Date Badge */}
-        <div className="mb-3 flex items-center gap-2 text-xs font-medium text-cyan-300">
-          <span className="uppercase tracking-wider bg-cyan-950/50 px-2 py-1 rounded backdrop-blur-md border border-cyan-500/20">
+        <div className="mb-3 flex items-center gap-2 text-xs font-medium text-[var(--accent)]">
+          <span className="uppercase tracking-wider bg-cyan-950/50 px-2 py-1 rounded backdrop-blur-md border border-[var(--accent)]/20">
             {article.publication}
           </span>
-          <span className="flex items-center gap-1 text-slate-300">
+          <span className="flex items-center gap-1 text-[var(--text-secondary)]">
             <Calendar className="h-3 w-3" />
             {new Date(article.published_date).toLocaleDateString()}
           </span>
         </div>
 
         {/* Headline */}
-        <h3 className="mb-2 text-2xl font-bold leading-tight text-white drop-shadow-lg group-hover:text-cyan-400 transition-colors line-clamp-3">
+        <h3 className="mb-2 text-2xl font-bold leading-tight text-[var(--text-primary)] drop-shadow-[var(--glass-shadow)] group-hover:text-[var(--accent)] transition-colors line-clamp-3">
           {article.title}
         </h3>
 
         {/* Summary (Hidden on mobile, visible on hover/desktop) */}
-        <p className="mb-4 text-sm text-slate-300 line-clamp-2 opacity-0 transform translate-y-4 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0">
+        <p className="mb-4 text-sm text-[var(--text-secondary)] line-clamp-2 opacity-0 transform translate-y-4 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0">
           {article.summary}
         </p>
 
@@ -91,19 +91,21 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({ article, onClick }) =>
                 className="h-8 w-8 rounded-full border border-white/20"
               />
             ) : (
-              <div className="h-8 w-8 rounded-full bg-slate-700 border border-white/10 flex items-center justify-center text-xs font-bold text-white">
+              <div className="h-8 w-8 rounded-full bg-[var(--glass-bg-highlight)] border border-white/10 flex items-center justify-center text-xs font-bold text-[var(--text-primary)]">
                 <User className="h-4 w-4" />
               </div>
             )}
             <div className="flex flex-col">
-              <span className="text-sm font-medium text-white">{article.author}</span>
-              <span className="text-xs text-slate-400 flex items-center gap-1">
+              <span className="text-sm font-medium text-[var(--text-primary)]">
+                {article.author}
+              </span>
+              <span className="text-xs text-[var(--text-muted)] flex items-center gap-1">
                 <Clock className="h-3 w-3" /> {article.readingTime || '5 min read'}
               </span>
             </div>
           </div>
 
-          <div className="rounded-full bg-white/10 p-2 text-white backdrop-blur-sm transition-colors group-hover:bg-cyan-500 group-hover:text-white">
+          <div className="rounded-full bg-white/10 p-2 text-[var(--text-primary)] backdrop-blur-sm transition-colors group-hover:bg-[var(--accent)] group-hover:text-[var(--text-primary)]">
             <ArrowUpRight className="h-5 w-5" />
           </div>
         </div>
@@ -111,7 +113,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({ article, onClick }) =>
 
       {/* Red Flag Badge (Top Right) */}
       {article.redFlagRating > 0 && (
-        <div className="absolute top-4 right-4 bg-red-500/20 backdrop-blur-md border border-red-500/50 px-3 py-1 rounded-full text-xs font-bold text-red-200 flex items-center gap-1 shadow-lg z-10">
+        <div className="absolute top-4 right-4 bg-red-500/20 backdrop-blur-md border border-red-500/50 px-3 py-1 rounded-full text-xs font-bold text-red-200 flex items-center gap-1 shadow-[var(--glass-shadow)] z-10">
           <span>{'🚩'.repeat(article.redFlagRating)}</span>
         </div>
       )}

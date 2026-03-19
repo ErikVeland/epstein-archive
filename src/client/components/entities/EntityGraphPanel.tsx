@@ -100,14 +100,14 @@ export const EntityGraphPanel: React.FC<EntityGraphPanelProps> = ({ entityId }) 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <div className="text-sm text-slate-500">Loading entity graph...</div>
+        <div className="text-sm text-[var(--text-muted)]">Loading entity graph...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg p-4">
+      <div className="bg-[var(--accent-danger)]/10 border border-[var(--accent-danger)]/20 text-[var(--accent-danger)] text-sm rounded-[var(--radius-lg)] p-4">
         Failed to load graph: {error}
       </div>
     );
@@ -115,14 +115,14 @@ export const EntityGraphPanel: React.FC<EntityGraphPanelProps> = ({ entityId }) 
 
   if (!mapperEntities.length || !mapperRelationships.length) {
     return (
-      <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 text-sm text-slate-400">
+      <div className="bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-4 text-sm text-[var(--text-secondary)]">
         No graph data available yet for this entity.
       </div>
     );
   }
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-lg p-4">
+    <div className="bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-4">
       <EntityRelationshipMapper entities={mapperEntities} relationships={mapperRelationships} />
     </div>
   );

@@ -23,41 +23,43 @@ export const DocumentHeader: React.FC<DocumentHeaderProps> = ({
   onClose,
 }) => {
   return (
-    <div className="flex items-center gap-4 py-6 pl-8 pr-4 min-w-0">
-      <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0 shadow-lg shadow-cyan-900/20">
-        <FileText className="w-6 h-6 text-cyan-400" />
-      </div>
-      <div className="min-w-0">
-        <h2
-          id="document-modal-title"
-          className="text-2xl font-bold text-white tracking-tight truncate leading-tight"
-        >
-          {doc.title || doc.fileName}
-        </h2>
-        <div className="flex flex-wrap items-center gap-3 mt-1">
-          <span
-            className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-widest ${
-              doc.evidenceType === 'email'
-                ? 'bg-cyan-500/10 text-cyan-300 border border-cyan-500/20'
-                : 'bg-slate-500/10 text-slate-300 border border-slate-500/20'
-            }`}
+    <div className="flex flex-col lg:flex-row lg:items-center gap-5 py-6 px-8 min-w-0 border-b border-[var(--glass-border)] bg-transparent relative z-10 glass-panel">
+      <div className="flex items-start lg:items-center gap-5 w-full lg:w-auto min-w-0">
+        <div className="w-14 h-14 rounded-[var(--radius-lg)] bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] flex items-center justify-center shrink-0 shadow-[var(--glass-shadow)] backdrop-blur-md">
+          <FileText className="w-7 h-7 text-[var(--accent)] opacity-90 block" />
+        </div>
+        <div className="min-w-0 flex-1 pl-1">
+          <h2
+            id="document-modal-title"
+            className="text-2xl md:text-3xl font-display font-medium text-text-strong tracking-tight truncate leading-tight group"
           >
-            {doc.evidenceType || doc.fileType || 'Unclassified Record'}
-          </span>
-          <span className="text-[10px] uppercase font-bold text-slate-500 tracking-widest flex items-center gap-1.5">
-            <Calendar className="w-3 h-3" />
-            {formatDate(doc.dateModified || doc.updatedAt)}
-          </span>
+            {doc.title || doc.fileName}
+          </h2>
+          <div className="flex flex-wrap items-center gap-4 mt-2">
+            <span
+              className={`px-3 py-1 rounded-[var(--radius-sm)] text-[10px] font-bold uppercase tracking-widest border ${
+                doc.evidenceType === 'email'
+                  ? 'bg-[var(--glass-bg)] text-[var(--accent-emails)] border-[var(--accent-emails)]/20 shadow-sm shadow-[var(--accent-emails)]/10'
+                  : 'bg-[var(--glass-bg)] text-text-dim border-[var(--glass-border)]'
+              }`}
+            >
+              {doc.evidenceType || doc.fileType || 'Unclassified Record'}
+            </span>
+            <span className="text-[10px] uppercase font-bold text-text-muted tracking-widest flex items-center gap-2 font-mono">
+              <Calendar className="w-3.5 h-3.5 opacity-70" />
+              {formatDate(doc.dateModified || doc.updatedAt)}
+            </span>
+          </div>
         </div>
       </div>
 
-      <div className="ml-auto flex items-center gap-2">
-        <div className="relative group lg:w-72">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-cyan-400 transition-colors" />
+      <div className="ml-auto flex flex-wrap lg:flex-nowrap items-center gap-3 w-full lg:w-auto mt-4 lg:mt-0 lg:pl-6 border-t border-[var(--glass-border)] lg:border-t-0 lg:border-l pt-4 lg:pt-0">
+        <div className="relative group w-full lg:w-72">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted group-focus-within:text-[var(--accent)] transition-colors block leading-none" />
           <input
             type="text"
             placeholder="Find in record..."
-            className="control !h-12 w-full !pl-12 pr-4 !bg-slate-950/40 border-white/5 focus:!border-cyan-500/50 transition-all text-sm"
+            className="control !h-12 w-full !pl-12 !pr-4 !bg-[var(--glass-bg)] border-[var(--glass-border)] focus:!border-[var(--accent)] transition-all text-sm font-medium text-text-strong rounded-[var(--radius-md)] placeholder:text-text-muted/60 focus:bg-transparent shadow-inner focus:shadow-none"
             value={localSearchTerm}
             onChange={(e) => setLocalSearchTerm(e.target.value)}
             autoComplete="off"
@@ -67,28 +69,30 @@ export const DocumentHeader: React.FC<DocumentHeaderProps> = ({
             name="document_record_search"
           />
         </div>
-        <div className="h-8 w-px bg-white/5 mx-1 md:block hidden" />
+
         {canReturnToCase && (
           <button
             onClick={handleBackToCase}
-            className="control !h-12 px-5 flex items-center gap-2 text-slate-300 hover:text-white group"
+            className="control !h-12 px-5 flex items-center gap-2 text-text-muted hover:text-text-strong group whitespace-nowrap"
           >
-            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-            <span className="text-[10px] font-black uppercase tracking-widest">Case</span>
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform block" />
+            <span className="text-[10px] font-bold uppercase tracking-widest leading-none">
+              Case
+            </span>
           </button>
         )}
         <button
           onClick={downloadOriginalDocument}
-          className="control !h-12 w-12 flex items-center justify-center text-slate-400 hover:text-cyan-400"
+          className="control !h-12 w-12 flex items-center justify-center text-text-muted hover:text-[var(--accent)]"
           title="Download Original Document"
         >
-          <Download className="w-5 h-5" />
+          <Download className="w-5 h-5 block" />
         </button>
         <CloseButton
           onClick={onClose}
           size="md"
           label="Close"
-          className="!h-12 !w-12 text-slate-400 hover:text-rose-400 hover:border-rose-500/30"
+          className="!h-12 !w-12 text-text-muted hover:text-[var(--risk-critical)] hover:border-[var(--risk-critical)]/30"
         />
       </div>
     </div>

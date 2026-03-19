@@ -179,11 +179,13 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
   if (loading) {
     return (
       <div
-        className={`bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-8 ${className}`}
+        className={`bg-[var(--glass-bg)] backdrop-blur-sm border border-[var(--glass-border)] rounded-[var(--radius-xl)] p-8 ${className}`}
       >
         <div className="flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400 mr-3"></div>
-          <span className="text-white">Loading timeline data from evidence database...</span>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent)] mr-3"></div>
+          <span className="text-[var(--text-primary)]">
+            Loading timeline data from evidence database...
+          </span>
         </div>
       </div>
     );
@@ -192,7 +194,7 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
   return (
     <div className={`space-y-8 ${className}`}>
       {/* Filters and Sort - Sticky bar */}
-      <div className="sticky top-0 z-20 bg-slate-900/95 backdrop-blur-sm py-3 -mx-4 px-4 md:-mx-6 md:px-6 border-b border-slate-700/50">
+      <div className="sticky top-0 z-20 bg-[var(--glass-bg-strong)] backdrop-blur-sm py-3 -mx-4 px-4 md:-mx-6 md:px-6 border-b border-[var(--glass-border)]">
         <div className="flex flex-wrap items-center gap-2">
           {/* Significance Filters */}
           <div className="flex flex-wrap items-center gap-2">
@@ -237,7 +239,7 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
           {/* Sort Toggle - Far Right */}
           <button
             onClick={() => setSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'))}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 border border-slate-600 rounded-full hover:bg-slate-700 hover:border-slate-500 transition-all duration-200 text-xs text-slate-200 h-7 whitespace-nowrap"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-full hover:bg-[var(--glass-bg-highlight)] hover:border-[var(--glass-border)] transition-all duration-200 text-xs text-[var(--text-secondary)] h-7 whitespace-nowrap"
             title={sortOrder === 'desc' ? 'Showing newest first' : 'Showing oldest first'}
           >
             {sortOrder === 'desc' ? (
@@ -255,12 +257,12 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
         </div>
       </div>
 
-      <div className="relative border-l-2 border-slate-700 ml-4 md:ml-6 space-y-8">
+      <div className="relative border-l-2 border-[var(--glass-border)] ml-4 md:ml-6 space-y-8">
         {sortedEvents.map((event, index) => (
           <div key={index} className="relative pl-8 md:pl-12">
             {/* Timeline Dot */}
             <div
-              className={`absolute left-[-9px] top-0 w-4 h-4 rounded-full border-2 border-slate-900 ${
+              className={`absolute left-[-9px] top-0 w-4 h-4 rounded-full border-2 border-[var(--app-bg)] ${
                 event.significance === 'high'
                   ? 'bg-red-500'
                   : event.significance === 'medium'
@@ -271,7 +273,7 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
 
             {/* Event Card */}
             <div
-              className={`rounded-xl border p-5 cursor-pointer transition-all duration-300 ${
+              className={`rounded-[var(--radius-xl)] border p-5 cursor-pointer backdrop-blur-sm transition-all duration-300 ${
                 event.is_curated
                   ? 'border-amber-500/50 bg-amber-900/10 hover:bg-amber-900/20'
                   : getSignificanceColor(event.significance)
@@ -281,20 +283,20 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
               <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <span className="text-sm font-mono text-cyan-400 bg-cyan-900/20 px-2 py-0.5 rounded">
+                    <span className="text-sm font-mono text-[var(--accent)] bg-[var(--accent)]/10 px-2 py-0.5 rounded-[var(--radius-sm)] border border-[var(--accent)]/20">
                       {formatDate(event.date)}
                     </span>
                     <div
-                      className={`flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium uppercase tracking-wider ${
+                      className={`flex items-center gap-1 px-2 py-0.5 rounded-[var(--radius-sm)] text-xs font-medium uppercase tracking-wider ${
                         event.type === 'legal'
-                          ? 'bg-purple-900/30 text-purple-300'
+                          ? 'bg-purple-900/30 text-purple-300 border border-purple-500/20'
                           : event.type === 'flight'
-                            ? 'bg-blue-900/30 text-blue-300'
+                            ? 'bg-blue-900/30 text-[var(--accent)] border border-[var(--accent)]/20'
                             : event.type === 'financial'
-                              ? 'bg-emerald-900/30 text-emerald-300'
+                              ? 'bg-emerald-900/30 text-emerald-300 border border-emerald-500/20'
                               : event.type === 'incident'
-                                ? 'bg-amber-900/30 text-amber-300' // New styling
-                                : 'bg-slate-700 text-slate-300'
+                                ? 'bg-amber-900/30 text-amber-300 border border-amber-500/20'
+                                : 'bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] border border-[var(--glass-border)]'
                       }`}
                     >
                       {getTypeIcon(event.type)}
@@ -307,11 +309,11 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
                     )}
                   </div>
 
-                  <h3 className="text-xl font-bold text-white mb-2 group-hover:text-cyan-400 transition-colors">
+                  <h3 className="text-xl font-bold text-[var(--text-primary)] mb-2 group-hover:text-[var(--accent)] transition-colors">
                     {event.title}
                   </h3>
 
-                  <p className="text-slate-300 text-sm leading-relaxed mb-3 line-clamp-2">
+                  <p className="text-[var(--text-secondary)] text-sm leading-relaxed mb-3 line-clamp-2">
                     {event.description}
                   </p>
 
@@ -320,14 +322,14 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
                       {event.entities.slice(0, 4).map((entity, i) => (
                         <span
                           key={i}
-                          className="px-2 py-1 bg-slate-800 border border-slate-600 text-slate-300 rounded text-xs flex items-center gap-1"
+                          className="px-2 py-1 bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-secondary)] rounded-[var(--radius-sm)] text-xs flex items-center gap-1 shadow-sm"
                         >
                           <Users className="w-3 h-3" />
                           {typeof entity === 'string' ? entity : entity.name}
                         </span>
                       ))}
                       {event.entities.length > 4 && (
-                        <span className="px-2 py-1 bg-slate-800 border border-slate-600 text-slate-400 rounded text-xs">
+                        <span className="px-2 py-1 bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-muted)] rounded-[var(--radius-sm)] text-xs shadow-sm">
                           +{event.entities.length - 4} more
                         </span>
                       )}
@@ -336,13 +338,13 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
 
                   {event.support && (
                     <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                      <span className="px-2 py-1 bg-slate-800 border border-slate-600 text-slate-300 rounded">
+                      <span className="px-2 py-1 bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-secondary)] rounded-[var(--radius-sm)] shadow-sm">
                         Evidence: {event.support.evidence_count}
                       </span>
-                      <span className="px-2 py-1 bg-slate-800 border border-slate-600 text-slate-300 rounded">
+                      <span className="px-2 py-1 bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-secondary)] rounded-[var(--radius-sm)] shadow-sm">
                         Docs: {event.support.document_count}
                       </span>
-                      <span className="px-2 py-1 bg-slate-800 border border-slate-600 text-slate-300 rounded">
+                      <span className="px-2 py-1 bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-secondary)] rounded-[var(--radius-sm)] shadow-sm">
                         Media: {event.support.media_count}
                       </span>
                     </div>
@@ -350,10 +352,10 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
                 </div>
 
                 <div className="hidden md:block shrink-0">
-                  <div className="w-32 h-24 bg-slate-800 rounded-lg border border-slate-700 flex items-center justify-center overflow-hidden relative group">
-                    <FileText className="w-8 h-8 text-slate-600 group-hover:text-slate-400 transition-colors" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-2">
-                      <span className="text-xs text-white font-medium">
+                  <div className="w-32 h-24 bg-[var(--glass-bg)] rounded-[var(--radius-lg)] border border-[var(--glass-border)] flex items-center justify-center overflow-hidden relative group">
+                    <FileText className="w-8 h-8 text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[var(--app-bg)] to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-2">
+                      <span className="text-xs text-[var(--text-primary)] font-medium drop-shadow-[var(--glass-shadow)]">
                         {event.is_curated ? 'View Details' : 'View Source'}
                       </span>
                     </div>
@@ -368,36 +370,40 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
       {selectedEvent &&
         createPortal(
           <div
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
+            className="fixed inset-0 bg-[var(--app-bg)]/80 backdrop-blur-md flex items-center justify-center z-[9999] p-4"
             onClick={() => setSelectedEvent(null)}
           >
             <div
-              className="bg-slate-900 border border-slate-600 rounded-xl max-w-2xl w-full shadow-2xl overflow-hidden"
+              className="bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-xl)] max-w-2xl w-full shadow-[var(--glass-shadow)] overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="p-6 border-b border-slate-700 flex items-center justify-between bg-slate-800/50">
-                <h3 className="text-xl font-bold text-white pr-8">{selectedEvent.title}</h3>
+              <div className="p-6 border-b border-[var(--glass-border)] flex items-center justify-between bg-[var(--glass-bg)]/50">
+                <h3 className="text-xl font-bold text-[var(--text-primary)] pr-8">
+                  {selectedEvent.title}
+                </h3>
                 <CloseButton
                   onClick={() => setSelectedEvent(null)}
                   size="sm"
                   label="Close timeline event"
-                  className="bg-transparent hover:bg-slate-700 border-slate-700 text-slate-400 hover:text-white"
+                  className="bg-transparent hover:bg-[var(--glass-bg-highlight)] border-[var(--glass-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                 />
               </div>
 
               <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-slate-800 p-3 rounded-lg">
-                    <span className="text-slate-400 text-xs uppercase tracking-wider block mb-1">
+                  <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] p-3 rounded-[var(--radius-lg)] shadow-sm">
+                    <span className="text-[var(--text-muted)] text-xs uppercase tracking-wider block mb-1">
                       Date
                     </span>
-                    <span className="text-white font-mono">{formatDate(selectedEvent.date)}</span>
+                    <span className="text-[var(--text-primary)] font-mono">
+                      {formatDate(selectedEvent.date)}
+                    </span>
                   </div>
-                  <div className="bg-slate-800 p-3 rounded-lg">
-                    <span className="text-slate-400 text-xs uppercase tracking-wider block mb-1">
+                  <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] p-3 rounded-[var(--radius-lg)] shadow-sm">
+                    <span className="text-[var(--text-muted)] text-xs uppercase tracking-wider block mb-1">
                       Type
                     </span>
-                    <span className="text-white capitalize flex items-center gap-2">
+                    <span className="text-[var(--text-primary)] capitalize flex items-center gap-2">
                       {getTypeIcon(selectedEvent.type)}
                       {selectedEvent.type}
                     </span>
@@ -405,16 +411,16 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
                 </div>
 
                 <div>
-                  <span className="text-slate-400 text-xs uppercase tracking-wider block mb-2">
+                  <span className="text-[var(--text-muted)] text-xs uppercase tracking-wider block mb-2">
                     Description
                   </span>
-                  <p className="text-slate-200 leading-relaxed bg-slate-800/50 p-4 rounded-lg border border-slate-700/50">
+                  <p className="text-[var(--text-secondary)] leading-relaxed bg-[var(--glass-bg)]/50 p-4 rounded-[var(--radius-lg)] border border-[var(--glass-border)]">
                     {selectedEvent.description}
                   </p>
                 </div>
 
                 <div>
-                  <span className="text-slate-400 text-xs uppercase tracking-wider block mb-2">
+                  <span className="text-[var(--text-muted)] text-xs uppercase tracking-wider block mb-2">
                     {selectedEvent.is_curated ? 'Related Documentation' : 'Source Document'}
                   </span>
 
@@ -422,20 +428,20 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
                     <Link
                       to={`/documents?id=${selectedEvent.related_document.id}`}
                       onClick={() => setSelectedEvent(null)}
-                      className="flex items-center gap-3 bg-slate-800 p-3 rounded-lg border border-cyan-500/30 hover:bg-cyan-900/20 hover:border-cyan-400 transition-colors group"
+                      className="flex items-center gap-3 bg-[var(--glass-bg)] p-3 rounded-[var(--radius-lg)] border border-[var(--accent)]/30 hover:bg-[var(--accent)]/10 hover:border-[var(--accent)] transition-colors group"
                     >
-                      <FileText className="w-5 h-5 text-cyan-400" />
-                      <span className="text-cyan-300 font-mono text-sm truncate flex-1 group-hover:text-cyan-200">
+                      <FileText className="w-5 h-5 text-[var(--accent)]" />
+                      <span className="text-[var(--accent)] font-mono text-sm truncate flex-1 opacity-90 group-hover:opacity-100">
                         {selectedEvent.related_document.name}
                       </span>
-                      <span className="px-3 py-1 bg-cyan-900/30 text-cyan-300 text-xs rounded border border-cyan-500/30">
+                      <span className="px-3 py-1 bg-[var(--accent)]/10 text-[var(--accent)] text-xs rounded-[var(--radius-sm)] border border-[var(--accent)]/30">
                         View Document
                       </span>
                     </Link>
                   ) : selectedEvent.file ? (
-                    <div className="flex items-center gap-3 bg-slate-800 p-3 rounded-lg border border-slate-700">
-                      <FileText className="w-5 h-5 text-cyan-400" />
-                      <span className="text-cyan-300 font-mono text-sm truncate flex-1">
+                    <div className="flex items-center gap-3 bg-[var(--glass-bg)] p-3 rounded-[var(--radius-lg)] border border-[var(--glass-border)]">
+                      <FileText className="w-5 h-5 text-[var(--accent)]" />
+                      <span className="text-[var(--accent)] opacity-90 font-mono text-sm truncate flex-1">
                         {selectedEvent.file.split('/').pop()}
                       </span>
                       <a
@@ -446,13 +452,13 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
                         }
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="px-3 py-1 bg-cyan-900/30 text-cyan-300 text-xs rounded hover:bg-cyan-900/50 transition-colors border border-cyan-500/30 flex items-center gap-1"
+                        className="px-3 py-1 bg-[var(--accent)]/10 text-[var(--accent)] text-xs rounded-[var(--radius-sm)] hover:bg-[var(--accent)]/20 transition-colors border border-[var(--accent)]/30 flex items-center gap-1"
                       >
                         Open PDF
                       </a>
                     </div>
                   ) : (
-                    <div className="text-slate-400 italic text-sm">
+                    <div className="text-[var(--text-muted)] italic text-sm">
                       No direct document linked to this event.
                     </div>
                   )}
@@ -460,7 +466,7 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
 
                 {selectedEvent.support && selectedEvent.support.top_documents.length > 0 && (
                   <div>
-                    <span className="text-slate-400 text-xs uppercase tracking-wider block mb-2">
+                    <span className="text-[var(--text-muted)] text-xs uppercase tracking-wider block mb-2">
                       Supporting Documents
                     </span>
                     <div className="space-y-2">
@@ -469,10 +475,12 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
                           key={doc.id}
                           to={`/documents?id=${doc.id}`}
                           onClick={() => setSelectedEvent(null)}
-                          className="flex items-center gap-3 bg-slate-800 p-2.5 rounded-lg border border-slate-700 hover:border-cyan-500/40 hover:bg-slate-700/70 transition-colors"
+                          className="flex items-center gap-3 bg-[var(--glass-bg)] p-2.5 rounded-[var(--radius-md)] border border-[var(--glass-border)] hover:border-[var(--accent)]/40 hover:bg-[var(--glass-bg-highlight)] transition-colors"
                         >
-                          <FileText className="w-4 h-4 text-cyan-400" />
-                          <span className="text-slate-200 text-sm truncate flex-1">{doc.name}</span>
+                          <FileText className="w-4 h-4 text-[var(--accent)]" />
+                          <span className="text-[var(--text-secondary)] text-sm truncate flex-1">
+                            {doc.name}
+                          </span>
                         </Link>
                       ))}
                     </div>
@@ -481,7 +489,7 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
 
                 {selectedEvent.entities.length > 0 && (
                   <div>
-                    <span className="text-slate-400 text-xs uppercase tracking-wider block mb-2">
+                    <span className="text-[var(--text-muted)] text-xs uppercase tracking-wider block mb-2">
                       Related Entities
                     </span>
                     <div className="flex flex-wrap gap-2">
@@ -492,7 +500,7 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
                               key={i}
                               to={`/entity/${entity.id}`}
                               onClick={() => setSelectedEvent(null)}
-                              className="px-3 py-1.5 bg-slate-800 text-cyan-300 rounded-lg border border-cyan-500/30 text-sm hover:bg-cyan-900/30 hover:border-cyan-400 transition-colors cursor-pointer"
+                              className="px-3 py-1.5 bg-[var(--glass-bg)] text-[var(--accent)] rounded-[var(--radius-lg)] border border-[var(--accent)]/30 text-sm hover:bg-[var(--accent)]/10 hover:border-[var(--accent)] transition-colors cursor-pointer"
                             >
                               {entity.name}
                             </Link>
@@ -501,7 +509,7 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
                         return (
                           <span
                             key={i}
-                            className="px-3 py-1.5 bg-slate-800 text-slate-300 rounded-lg border border-slate-700 text-sm"
+                            className="px-3 py-1.5 bg-[var(--glass-bg)] text-[var(--text-secondary)] rounded-[var(--radius-lg)] border border-[var(--glass-border)] text-sm"
                           >
                             {typeof entity === 'string' ? entity : entity.name}
                           </span>
