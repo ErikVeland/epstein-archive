@@ -226,9 +226,18 @@ perform_rollback() {
     echo 'Stopping service...'
     pm2 stop epstein-archive || true
 
-    if [ \"$DEPLOY_DB\" = true ] && [ -f epstein-archive.db.bak ]; then
-      echo 'Restoring database backup...'
-      mv -f epstein-archive.db.bak epstein-archive.db
+    if [ -f .env ]; then
+      set -a
+      source .env
+      set +a
+    fi
+
+    if [ \"$DEPLOY_DB\" = true ] && [ -f .pre_migration.pg_dump ]; then
+      echo 'Restoring Postgres pre-migration backup...'
+      pg_restore --clean --if-exists -d \"\$DATABASE_URL\" .pre_migration.pg_dump || {
+        echo '⚠️ pg_restore --clean failed, trying full restore...'
+        pg_restore -d \"\$DATABASE_URL\" .pre_migration.pg_dump || echo '❌ pg_restore failed — manual intervention required'
+      }
     fi
 
     if [ \"$DB_ONLY\" = false ] && [ -f .rollback_commit ]; then
@@ -445,6 +454,12 @@ if [ "$DEPLOY_DB" = true ]; then
 
       echo 'Installing dependencies for migration phase...'
       pnpm install --frozen-lockfile
+
+      # CERT_STEP: pg_dump_pre_migration_backup
+      echo 'Creating Postgres pre-migration backup...'
+      rm -f .pre_migration.pg_dump
+      pg_dump -Fc \"\$DATABASE_URL\" > .pre_migration.pg_dump || (echo '❌ pg_dump failed — aborting migration' && exit 1)
+      echo \"✅ Pre-migration backup: \$(du -h .pre_migration.pg_dump | cut -f1)\"
 
       # CERT_STEP: pg_connectivity_pre_migration
       echo 'Running Postgres preflight (connectivity + extension checks)...'

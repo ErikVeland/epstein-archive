@@ -60,6 +60,7 @@ import {
   mapSubjectsListResponseDto,
 } from './server/mappers/entitiesDtoMapper.js';
 import { validate, subjectsQuerySchema } from './server/middleware/validate.js';
+import { purgeCache } from './server/middleware/cache.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -566,6 +567,13 @@ export class App {
       if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS') {
         return next();
       }
+      // Purge API response cache after any successful write operation so
+      // subsequent reads reflect the mutation.
+      res.on('finish', () => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          purgeCache();
+        }
+      });
       return authenticateRequest(req, res, (authErr?: any) => {
         if (authErr) return next(authErr);
         return requireRole('admin')(req, res, next);
