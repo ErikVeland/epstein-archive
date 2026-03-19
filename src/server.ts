@@ -4,6 +4,16 @@ import { logger } from './server/services/Logger.js';
 
 const PORT = parseInt(process.env.PORT || '3000', 10);
 
+// ── Safety nets: prevent silent crashes from unhandled async errors ──────────
+process.on('unhandledRejection', (reason) => {
+  logger.error({ err: reason }, 'Unhandled promise rejection');
+});
+
+process.on('uncaughtException', (err) => {
+  logger.fatal({ err }, 'Uncaught exception — shutting down');
+  process.exit(1);
+});
+
 async function bootstrap() {
   try {
     const app = new App();
