@@ -36,7 +36,7 @@ export class AIEnrichmentService {
   private static async autoDiscoverExoModel(): Promise<string> {
     // 1. If explicitly set via env var, use it (highest priority)
     if (process.env.EXO_MODEL) {
-      console.log(`🤖 Using EXO_MODEL from environment: ${process.env.EXO_MODEL}`);
+      logger.info(`🤖 Using EXO_MODEL from environment: ${process.env.EXO_MODEL}`);
       return process.env.EXO_MODEL;
     }
 
@@ -44,7 +44,7 @@ export class AIEnrichmentService {
     if (this.discoveredExoModel) return this.discoveredExoModel;
 
     try {
-      console.log('🔍 Attempting Exo model discovery via:', `${this.EXO_HOST}/v1/models`);
+      logger.info('🔍 Attempting Exo model discovery via:', `${this.EXO_HOST}/v1/models`);
       const response = await fetch(`${this.EXO_HOST}/v1/models`);
       if (!response.ok) throw new Error(`Exo discovery failed: ${response.status}`);
 
@@ -52,7 +52,7 @@ export class AIEnrichmentService {
       if (data.data && data.data.length > 0) {
         // Log available models for debugging
         const availableModels = data.data.map((m: any) => m.id).join(', ');
-        console.log(`📋 Available Exo models: ${availableModels}`);
+        logger.info(`📋 Available Exo models: ${availableModels}`);
 
         // 1. Try to find the specific active instance ID from the screenshot first
         const activeInstance = data.data.find((m: any) => m.id === '306A62B7');
@@ -71,15 +71,15 @@ export class AIEnrichmentService {
         const selected = activeInstance || gwen || anyInstruct || data.data[0];
 
         this.discoveredExoModel = selected.id;
-        console.log(`🤖 Auto-discovered Exo model: ${this.discoveredExoModel}`);
+        logger.info(`🤖 Auto-discovered Exo model: ${this.discoveredExoModel}`);
         return this.discoveredExoModel!;
       }
     } catch (err: any) {
-      console.warn('⚠️ Failed to discover Exo model:', err.message);
+      logger.warn('⚠️ Failed to discover Exo model:', err.message);
     }
 
     const fallback = '306A62B7'; // Confirmed active instance ID
-    console.warn(`⚠️ Using fallback Exo model: ${fallback}`);
+    logger.warn(`⚠️ Using fallback Exo model: ${fallback}`);
     return fallback;
   }
 
@@ -122,7 +122,7 @@ export class AIEnrichmentService {
         if (provider === 'exo_cluster') {
           // OpenAI-compatible API (Exo)
           const url = `${this.EXO_HOST}/v1/chat/completions`;
-          console.log(`[AIEnrichment] Calling Exo LLM: ${modelId} at ${url}`);
+          logger.info(`[AIEnrichment] Calling Exo LLM: ${modelId} at ${url}`);
 
           // Use a custom agent with keepAlive to potentially reduce connection overhead,
           const response = await fetch(url, {
@@ -177,7 +177,7 @@ export class AIEnrichmentService {
           e.cause?.code === 'ECONNRESET';
 
         if (attempt > retryCount) {
-          console.error(`❌ AI Enrichment failed after ${retryCount + 1} attempts:`, e);
+          logger.error(`❌ AI Enrichment failed after ${retryCount + 1} attempts:`, e);
           return '';
         }
 
@@ -186,7 +186,7 @@ export class AIEnrichmentService {
         const delay = Math.pow(2, attempt) * baseDelay + Math.random() * 500;
 
         if (isNetworkError) {
-          console.warn(
+          logger.warn(
             `⚠️ Network error (Exo/Ollama), retrying in ${Math.round(delay)}ms... (Attempt ${attempt}/${retryCount})`,
           );
         }

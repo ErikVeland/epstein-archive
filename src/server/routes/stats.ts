@@ -15,6 +15,7 @@ import { ingestRunsRepository } from '../db/ingestRunsRepository.js';
 import { BackupService } from '../services/BackupService.js';
 import { cacheMiddleware } from '../middleware/cache.js';
 import { authenticateRequest } from '../auth/middleware.js';
+import { logger } from '../services/Logger.js';
 
 const router = Router();
 
@@ -98,7 +99,7 @@ router.get('/health', async (_req, res) => {
     stats = await getEntityAndDocumentCounts();
   } catch (e) {
     dbStatus = 'error';
-    console.error('Health check DB error:', e);
+    logger.error({ err: e }, 'Health check DB error');
   }
 
   const healthCheck = {

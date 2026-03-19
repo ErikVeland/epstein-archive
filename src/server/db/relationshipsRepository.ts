@@ -1,5 +1,6 @@
 import { relationshipsQueries } from '@epstein/db';
 import { getApiPool } from './connection.js';
+import { logger } from '../services/Logger.js';
 import {
   IGetRelationshipsResult,
   IGetNeighborsCachedResult,
@@ -65,7 +66,7 @@ export const relationshipsRepository = {
    * Accelerates high-depth graph traverses.
    */
   rebuildAdjacencyCache: async () => {
-    console.log('⏳ [GRAPH] Rebuilding adjacency cache...');
+    logger.info('⏳ [GRAPH] Rebuilding adjacency cache...');
 
     // Use a real pg client transaction; the @epstein/db helper requires explicit pool/client.
     const client = await getApiPool().connect();
@@ -84,7 +85,7 @@ export const relationshipsRepository = {
       client.release();
     }
 
-    console.log('✅ [GRAPH] Adjacency cache rebuilt successfully.');
+    logger.info('✅ [GRAPH] Adjacency cache rebuilt successfully.');
   },
 
   getGraphSlice: async (

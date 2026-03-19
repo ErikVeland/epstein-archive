@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { getApiPool } from './connection.js';
+import { logger } from '../services/Logger.js';
 
 type HistoricalPlaceholderRule = {
   name: string;
@@ -74,7 +75,7 @@ export async function reconcileHistoricalMigrationLedger(): Promise<number> {
       names.add(rule.name);
       rows.push({ name: rule.name, run_on: runOn });
       inserted += 1;
-      console.warn(`[Migrator] Reconciled historical placeholder ledger entry: ${rule.name}`);
+      logger.warn(`[Migrator] Reconciled historical placeholder ledger entry: ${rule.name}`);
     }
 
     return inserted;
@@ -114,5 +115,5 @@ export async function runMigrations() {
     );
   }
 
-  console.log(`[Migrator] Postgres migration parity OK (${expected.length} applied).`);
+  logger.info(`[Migrator] Postgres migration parity OK (${expected.length} applied).`);
 }

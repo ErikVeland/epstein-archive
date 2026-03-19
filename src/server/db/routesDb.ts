@@ -1,5 +1,6 @@
 import { adminQueries, analyticsQueries, graphQueries } from '@epstein/db';
 import { getApiPool } from './connection.js';
+import { logger } from '../services/Logger.js';
 
 export async function getDatabaseMetadata() {
   const rows = await (adminQueries.getDbMeta as any).run(undefined, getApiPool());
@@ -822,7 +823,7 @@ export async function getEmailMailboxes(showSuppressedJunk: boolean) {
     rows = result.rows;
   } catch (error: any) {
     if (error?.code === '57014') {
-      console.warn(
+      logger.warn(
         `[emails] mailbox entity aggregation timed out at scan limit ${mailboxScanLimit}; returning totals only`,
       );
       rows = [];

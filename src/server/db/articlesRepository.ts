@@ -1,5 +1,6 @@
 import { articlesQueries } from '@epstein/db';
 import { getApiPool } from './connection.js';
+import { logger } from '../services/Logger.js';
 
 export interface Article {
   id: string;
@@ -87,7 +88,7 @@ export class ArticlesRepository {
         getApiPool(),
       );
     } catch (error) {
-      console.error('[ArticlesRepository] Error inserting article:', error);
+      logger.error({ err: error }, '[ArticlesRepository] Error inserting article');
       throw error;
     }
   }

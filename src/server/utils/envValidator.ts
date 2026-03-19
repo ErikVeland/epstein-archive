@@ -9,10 +9,10 @@ export const validateEnvironment = () => {
     // We log error but maybe not throw yet to avoid breaking dev if they haven't set it?
     // But the plan says "Harden", so we should be strict.
     // However, we want to allow the user to fix it.
-    console.error(`ERROR: Missing required environment variables: ${missing.join(', ')}`);
+    logger.error(`ERROR: Missing required environment variables: ${missing.join(', ')}`);
     throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
   } else {
-    console.log('Environment configuration valid.');
+    logger.info('Environment configuration valid.');
   }
 };
 

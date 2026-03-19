@@ -1,5 +1,6 @@
 import { searchQueries } from '@epstein/db';
 import { getApiPool } from './connection.js';
+import { logger } from '../services/Logger.js';
 
 const normalizeAliasValue = (value: string): string =>
   value
@@ -308,7 +309,7 @@ export const searchRepository = {
       );
       return rows;
     } catch (error) {
-      console.error('[searchRepository] searchSentences error:', error);
+      logger.error({ err: error }, '[searchRepository] searchSentences error');
       return [];
     }
   },

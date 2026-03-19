@@ -1,5 +1,6 @@
 import { mediaQueries } from '@epstein/db';
 import { getApiPool } from './connection.js';
+import { logger } from '../services/Logger.js';
 
 export const mediaRepository = {
   // Get all albums with counts for a specific media type
@@ -33,7 +34,7 @@ export const mediaRepository = {
               : item.metadataJson;
         }
       } catch (e) {
-        console.error('Error parsing metadata for media item', item.id, e);
+        logger.error('Error parsing metadata for media item', item.id, e);
       }
 
       return {
@@ -60,7 +61,7 @@ export const mediaRepository = {
               : item.metadataJson;
         }
       } catch (e) {
-        console.error('Error parsing metadata for media item', item.id, e);
+        logger.error('Error parsing metadata for media item', item.id, e);
       }
 
       return {
@@ -91,7 +92,7 @@ export const mediaRepository = {
           typeof item.metadataJson === 'string' ? JSON.parse(item.metadataJson) : item.metadataJson;
       }
     } catch (e) {
-      console.error('Error parsing metadata for media item', item.id, e);
+      logger.error('Error parsing metadata for media item', item.id, e);
     }
 
     return {
@@ -231,7 +232,7 @@ export const mediaRepository = {
                 : item.metadataJson;
           }
         } catch (e) {
-          console.error('Error parsing metadata for media item', item.id, e);
+          logger.error('Error parsing metadata for media item', item.id, e);
         }
 
         const people = item.people

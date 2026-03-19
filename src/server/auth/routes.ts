@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { getApiPool } from '../db/connection.js';
 import { authenticateRequest, optionalAuthenticate, requireRole } from './middleware.js';
+import { logger } from '../services/Logger.js';
 
 import rateLimit from 'express-rate-limit';
 
@@ -14,7 +15,7 @@ const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 if (process.env.NODE_ENV === 'production') {
   if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_SECRET) {
-    console.error('CRITICAL: JWT_SECRET and JWT_REFRESH_SECRET must be set in production.');
+    logger.fatal('CRITICAL: JWT_SECRET and JWT_REFRESH_SECRET must be set in production.');
     process.exit(1);
   }
 } else if (
@@ -22,7 +23,7 @@ if (process.env.NODE_ENV === 'production') {
   JWT_REFRESH_SECRET === 'dev-refresh-secret'
 ) {
   const mode = process.env.NODE_ENV || 'development';
-  console.warn(`⚠️ WARNING: Using fallback JWT secret(s) in ${mode} mode.`);
+  logger.warn(`Using fallback JWT secret(s) in ${mode} mode`);
 }
 
 // Rate limiter for login/refresh: 5 attempts per 15 mins
@@ -111,7 +112,7 @@ router.post('/login', authLimiter, async (req, res) => {
       user: userInfo,
     });
   } catch (error) {
-    console.error('Login error:', error);
+    logger.error({ err: error }, 'Login error');
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -228,7 +229,7 @@ router.post('/logout', async (req, res) => {
         [hashToken(refreshToken)],
       );
     } catch (error) {
-      console.error('Logout token revoke error:', error);
+      logger.error({ err: error }, 'Logout token revoke error');
     }
   }
   res.clearCookie('refreshToken', {
@@ -280,7 +281,7 @@ router.post(
 
       res.json({ success: true });
     } catch (e) {
-      console.error('Password change error', e);
+      logger.error({ err: e }, 'Password change error');
       res.status(500).json({ error: 'Internal server error' });
     }
   },

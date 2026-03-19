@@ -7,6 +7,7 @@ import { resetJunkFlags } from '../db/routesDb.js';
 import { analyticsRateLimiter } from '../middleware/rateLimit.js';
 import { cacheResponse } from '../utils/perfCache.js';
 import { authenticateRequest, requireRole } from '../auth/middleware.js';
+import { logger } from '../services/Logger.js';
 
 const router = Router();
 
@@ -43,7 +44,7 @@ function isLikelyJunkTopConnectedName(name: string): boolean {
 router.get('/enhanced', analyticsRateLimiter, cacheResponse(60), async (_req, res, next) => {
   try {
     const pool = getApiPool();
-    console.log('📊 [Analytics] Fetching from materialised views...');
+    logger.info('📊 [Analytics] Fetching from materialised views...');
     console.time('analytics-total');
 
     const timelineLivePromise = pool.query<{
@@ -159,7 +160,7 @@ router.get('/enhanced', analyticsRateLimiter, cacheResponse(60), async (_req, re
     });
     console.timeEnd('analytics-total');
   } catch (error) {
-    console.error('❌ Error fetching enhanced analytics:', error);
+    logger.error({ err: error }, '❌ Error fetching enhanced analytics');
     next(error);
   }
 });
@@ -183,7 +184,7 @@ router.post(
         timestamp: new Date().toISOString(),
       });
     } catch (error: any) {
-      console.error('❌ Error in junk reconciliation:', error);
+      logger.error({ err: error }, '❌ Error in junk reconciliation');
       next(error);
     }
   },
@@ -204,7 +205,7 @@ router.post(
         timestamp: new Date().toISOString(),
       });
     } catch (error) {
-      console.error('❌ Error resetting junk flags:', error);
+      logger.error({ err: error }, '❌ Error resetting junk flags');
       next(error);
     }
   },

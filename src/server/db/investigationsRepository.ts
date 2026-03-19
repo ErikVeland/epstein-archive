@@ -1,5 +1,6 @@
 import { investigationsQueries } from '@epstein/db';
 import { getApiPool } from './connection.js';
+import { logger } from '../services/Logger.js';
 
 export interface Investigation {
   id: number;
@@ -243,7 +244,7 @@ export const investigationsRepository = {
         metadata: { relevance, sourcePath },
       });
     } catch (e) {
-      console.warn('Failed to log activity:', e);
+      logger.warn({ detail: e }, 'Failed to log activity');
     }
 
     return resultId;

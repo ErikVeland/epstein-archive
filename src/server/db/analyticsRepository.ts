@@ -1,4 +1,5 @@
 import { getApiPool } from './runtime.js';
+import { logger } from '../services/Logger.js';
 
 export interface TopConnectedPerson {
   id: number;
@@ -116,7 +117,7 @@ export const analyticsRepository = {
       return result.rows;
     } catch (err) {
       await client.query('ROLLBACK').catch(() => {});
-      console.warn('[Analytics] getTopConnectedPeople failed:', (err as Error).message);
+      logger.warn('[Analytics] getTopConnectedPeople failed:', (err as Error).message);
       return [];
     } finally {
       client.release();

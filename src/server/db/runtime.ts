@@ -1,5 +1,6 @@
 import pg from 'pg';
 import { requestContext } from '../middleware/requestId.js';
+import { logger } from '../services/Logger.js';
 
 // ─── Pool singletons ─────────────────────────────────────────────────────────
 
@@ -31,7 +32,7 @@ function wrapPool(pool: pg.Pool, label: string): pg.Pool {
         const store = requestContext.getStore();
         const requestId = store?.requestId || 'no-req-id';
         const rowCount = (res as any).rowCount ?? (res as any).rows?.length ?? 0;
-        console.warn('[PG_QUERY]', {
+        logger.warn('[PG_QUERY]', {
           requestId,
           queryName,
           durationMs,
@@ -87,7 +88,7 @@ export function initPools(): void {
   apiPool = wrapPool(apiPool, 'apiPool');
   apiPool.on('connect', (client) => applyApiSessionSettings(client));
   apiPool.on('error', (err) => {
-    console.error('[PG API POOL] Unexpected error:', err.message);
+    logger.error({ err: err.message }, '[PG API POOL] Unexpected error');
   });
 
   // ── Maintenance pool
@@ -101,7 +102,7 @@ export function initPools(): void {
   maintenancePool = wrapPool(maintenancePool, 'maintenancePool');
   maintenancePool.on('connect', (client) => applyMaintenanceSessionSettings(client));
   maintenancePool.on('error', (err) => {
-    console.error('[PG MAINTENANCE POOL] Unexpected error:', err.message);
+    logger.error({ err: err.message }, '[PG MAINTENANCE POOL] Unexpected error');
   });
 
   // ── Ingest pool
@@ -123,7 +124,7 @@ export function initPools(): void {
     settings
       .reduce((p, sql) => p.then(() => client.query(sql)), Promise.resolve() as Promise<unknown>)
       .catch((err: { message: string }) => {
-        console.error('[PG INGEST POOL] Failed to apply session settings:', err.message);
+        logger.error({ err: err.message }, '[PG INGEST POOL] Failed to apply session settings');
       });
   });
 }
@@ -189,7 +190,7 @@ function applyApiSessionSettings(client: pg.PoolClient): void {
   settings
     .reduce((p, sql) => p.then(() => client.query(sql)), Promise.resolve() as Promise<unknown>)
     .catch((err: { message: string }) => {
-      console.error('[PG API POOL] Failed to apply session settings:', err.message);
+      logger.error({ err: err.message }, '[PG API POOL] Failed to apply session settings');
       // Destroy the connection so it cannot be used without timeout protection.
       // pg-pool will create a fresh connection with settings applied on next acquire.
       (client as unknown as { end: () => void }).end();
@@ -207,7 +208,7 @@ function applyMaintenanceSessionSettings(client: pg.PoolClient): void {
   settings
     .reduce((p, sql) => p.then(() => client.query(sql)), Promise.resolve() as Promise<unknown>)
     .catch((err) => {
-      console.error('[PG MAINTENANCE POOL] Failed to apply session settings:', err.message);
+      logger.error({ err: err.message }, '[PG MAINTENANCE POOL] Failed to apply session settings');
     });
 }
 

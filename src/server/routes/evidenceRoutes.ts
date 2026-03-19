@@ -17,6 +17,7 @@ import { logAudit } from '../utils/auditLogger.js';
 import { authenticateRequest } from '../auth/middleware.js';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
+import { logger } from '../services/Logger.js';
 
 const router = express.Router();
 
@@ -190,7 +191,7 @@ router.post(
         message: 'File uploaded successfully',
       });
     } catch (error) {
-      console.error('Upload error:', error);
+      logger.error({ err: error }, 'Upload error');
       // Cleanup temp file if it exists
       if (req.file?.path && fs.existsSync(req.file.path)) {
         fs.unlinkSync(req.file.path);
@@ -217,7 +218,7 @@ router.get('/search', validate(searchEvidenceSchema), async (req: Request, res: 
     const result = await searchRepository.search(query, limit);
     res.json(result);
   } catch (error) {
-    console.error('Evidence search error:', error);
+    logger.error({ err: error }, 'Evidence search error');
     res.status(500).json({ error: 'Search failed' });
   }
 });
@@ -322,7 +323,7 @@ router.get('/:id', validate(evidenceIdSchema), async (req: Request, res: Respons
 
     res.json(canonical);
   } catch (error) {
-    console.error('Evidence retrieval error:', error);
+    logger.error({ err: error }, 'Evidence retrieval error');
     res.status(500).json({ error: 'Retrieval failed' });
   }
 });
@@ -338,7 +339,7 @@ router.get('/:id/metrics', validate(evidenceIdSchema), async (req: Request, res:
     const metrics = forensicRepository.getMetrics(id);
     res.json(metrics || { metrics_json: '{}', authenticity_score: 0 });
   } catch (e) {
-    console.error('Metrics error:', e);
+    logger.error({ err: e }, 'Metrics error');
     res.status(500).json({ error: 'Failed to get metrics' });
   }
 });
@@ -354,7 +355,7 @@ router.get('/:id/custody', validate(evidenceIdSchema), async (req: Request, res:
     const chain = forensicRepository.getChainOfCustody(id);
     res.json(chain || []);
   } catch (e) {
-    console.error('Custody error:', e);
+    logger.error({ err: e }, 'Custody error');
     res.status(500).json({ error: 'Failed to get chain of custody' });
   }
 });
@@ -461,7 +462,7 @@ router.post(
         authenticityScore: documentSignalScore,
       });
     } catch (e) {
-      console.error('Analysis error:', e);
+      logger.error({ err: e }, 'Analysis error');
       res.status(500).json({ error: 'Analysis failed' });
     }
   },

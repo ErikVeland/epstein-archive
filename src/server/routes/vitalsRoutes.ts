@@ -13,6 +13,7 @@ import {
   recordWebVitals,
 } from '../db/routesDb.js';
 import { authenticateRequest, requireRole } from '../auth/middleware.js';
+import { logger } from '../services/Logger.js';
 
 const router = Router();
 
@@ -55,12 +56,12 @@ router.post('/', vitalsPostLimiter, async (req: Request, res: Response) => {
     }
 
     // Fire-and-forget: respond immediately, log DB errors without affecting the client
-    recordWebVitals(payload).catch((err) => console.error('Failed to record vitals:', err));
+    recordWebVitals(payload).catch((err) => logger.error('Failed to record vitals:', err));
 
     // Return 204 No Content (fastest response)
     res.status(204).send();
   } catch (error: any) {
-    console.error('Error collecting vitals:', error);
+    logger.error({ err: error }, 'Error collecting vitals');
     // Silent fail - don't affect client
     res.status(204).send();
   }

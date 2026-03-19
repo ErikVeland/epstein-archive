@@ -1,4 +1,5 @@
 import pg from 'pg';
+import { logger } from '../../services/Logger.js';
 
 const { Pool } = pg;
 
@@ -20,7 +21,7 @@ export function getPgPool(): pg.Pool {
   });
 
   pool.on('error', (err) => {
-    console.error('Unexpected error on idle Postgres client', err);
+    logger.error('Unexpected error on idle Postgres client', err);
     process.exit(-1);
   });
 
@@ -33,7 +34,7 @@ export async function query(text: string, params?: any[]) {
   const duration = Date.now() - start;
 
   if (process.env.NODE_ENV === 'development' || duration > 100) {
-    console.log(`[PG QUERY] ${duration}ms | SQL: ${text.substring(0, 100)}`);
+    logger.info(`[PG QUERY] ${duration}ms | SQL: ${text.substring(0, 100)}`);
   }
 
   return res;

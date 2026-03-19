@@ -1,4 +1,5 @@
 import { getApiPool } from './connection.js';
+import { logger } from '../services/Logger.js';
 
 type TimelineQueryFilters = {
   startDate?: string;
@@ -218,7 +219,7 @@ export const timelineRepository = {
                 );
               }
             } catch (err) {
-              console.warn('[Timeline] Failed to parse entities for event', e.id, err);
+              logger.warn('[Timeline] Failed to parse entities for event', e.id, err);
               entityData = [];
               resolvedEntityIds = [];
             }
@@ -237,7 +238,7 @@ export const timelineRepository = {
                 relatedDocument = { id: doc.id, name: doc.file_name, path: doc.file_path };
               }
             } catch (err) {
-              console.warn(
+              logger.warn(
                 '[Timeline] Failed to fetch related document',
                 e.related_document_id,
                 err,
@@ -334,7 +335,7 @@ export const timelineRepository = {
                 };
               }
             } catch (err) {
-              console.warn('[Timeline] Failed to compute support stats for event', e.id, err);
+              logger.warn('[Timeline] Failed to compute support stats for event', e.id, err);
             }
           }
 
@@ -358,7 +359,7 @@ export const timelineRepository = {
 
       return mappedEvents;
     } catch (error) {
-      console.error('Error getting timeline events:', error);
+      logger.error({ err: error }, 'Error getting timeline events');
       throw error;
     }
   },

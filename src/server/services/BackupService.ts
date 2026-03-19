@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import archiver from 'archiver';
 import { spawn } from 'child_process';
+import { logger } from './Logger.js';
 
 export interface BackupInfo {
   filename: string;
@@ -25,12 +26,12 @@ export class BackupService {
     const snapshotPath = path.join(this.BACKUP_DIR, `snapshot-${timestamp}.dump`);
     const zipPath = path.join(this.BACKUP_DIR, `backup-${timestamp}.zip`);
 
-    console.log(`[BackupService] Starting Postgres backup to ${snapshotPath}...`);
+    logger.info(`[BackupService] Starting Postgres backup to ${snapshotPath}...`);
 
     try {
       await this.runPgDump(snapshotPath);
 
-      console.log(`[BackupService] Snapshot created. Compressing to ${zipPath}...`);
+      logger.info(`[BackupService] Snapshot created. Compressing to ${zipPath}...`);
 
       await this.compressFile(snapshotPath, zipPath);
 
@@ -40,10 +41,10 @@ export class BackupService {
 
       this.rotateBackups();
 
-      console.log(`[BackupService] Backup completed: ${zipPath}`);
+      logger.info(`[BackupService] Backup completed: ${zipPath}`);
       return zipPath;
     } catch (error) {
-      console.error('[BackupService] Backup failed:', error);
+      logger.error({ err: error }, '[BackupService] Backup failed');
       if (fs.existsSync(snapshotPath)) fs.unlinkSync(snapshotPath);
       throw error;
     }
@@ -87,9 +88,9 @@ export class BackupService {
       for (const backup of toDelete) {
         try {
           fs.unlinkSync(path.join(this.BACKUP_DIR, backup.filename));
-          console.log(`[BackupService] Rotated old backup: ${backup.filename}`);
+          logger.info(`[BackupService] Rotated old backup: ${backup.filename}`);
         } catch (e) {
-          console.error(`[BackupService] Failed to rotate backup ${backup.filename}:`, e);
+          logger.error(`[BackupService] Failed to rotate backup ${backup.filename}:`, e);
         }
       }
     }

@@ -2,6 +2,7 @@ import { simpleParser, AddressObject } from 'mailparser';
 import { htmlToText } from 'html-to-text';
 import DOMPurify from 'isomorphic-dompurify';
 import { decode } from 'html-entities';
+import { logger } from './Logger.js';
 
 export interface CleanedEmailParts {
   body_clean_text: string;
@@ -81,7 +82,7 @@ export async function cleanMime(raw: string): Promise<CleanedEmailParts> {
       headers: Object.fromEntries(parsed.headers),
     };
   } catch (error: any) {
-    console.warn('MIME Parse Failure:', error);
+    logger.warn({ detail: error }, 'MIME Parse Failure');
 
     // Fallback: Try to extract at least some text if possible, or return raw as text
     return {

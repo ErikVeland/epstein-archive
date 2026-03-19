@@ -1,4 +1,5 @@
 import { getApiPool } from './connection.js';
+import { logger } from '../services/Logger.js';
 
 export const articleRepository = {
   // Insert an article into the database
@@ -31,7 +32,7 @@ export const articleRepository = {
         article.redFlagRating || 0,
       ]);
     } catch (error) {
-      console.error('Error inserting article:', error);
+      logger.error({ err: error }, 'Error inserting article');
     }
   },
 

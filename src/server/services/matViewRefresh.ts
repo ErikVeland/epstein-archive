@@ -1,4 +1,5 @@
 import { getApiPool, getMaintenancePool } from '../db/connection.js';
+import { logger } from './Logger.js';
 
 // ─── Dirty-flag based materialised view refresh ───────────────────────────────
 
@@ -44,7 +45,7 @@ export async function refreshIfDue(): Promise<void> {
   try {
     const apiPool = getApiPool();
     if (apiPool.waitingCount > 0) {
-      console.warn(
+      logger.warn(
         '[MatViewRefresh] Deferred — API pool has waiting connections:',
         apiPool.waitingCount,
       );
@@ -70,7 +71,7 @@ export async function refreshIfDue(): Promise<void> {
         await pool.query(`REFRESH MATERIALIZED VIEW ${view}`);
       } catch (fallbackErr: any) {
         status = 'error';
-        console.error(`[MatViewRefresh] Failed to refresh ${view}:`, fallbackErr.message);
+        logger.error(`[MatViewRefresh] Failed to refresh ${view}:`, fallbackErr.message);
       }
     }
 
@@ -93,7 +94,7 @@ export async function refreshIfDue(): Promise<void> {
     }
 
     if (status !== 'error') {
-      console.log(`[MatViewRefresh] ${view} refreshed in ${durationMs}ms (${status})`);
+      logger.info(`[MatViewRefresh] ${view} refreshed in ${durationMs}ms (${status})`);
     }
   }
 

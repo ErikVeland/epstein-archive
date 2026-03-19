@@ -2,6 +2,7 @@ import express from 'express';
 import { mapRateLimiter } from '../middleware/rateLimit.js';
 import { cacheResponse } from '../utils/perfCache.js';
 import { getMapEntities } from '../db/routesDb.js';
+import { logger } from '../services/Logger.js';
 
 const router = express.Router();
 
@@ -26,7 +27,7 @@ router.get('/entities', mapRateLimiter, cacheResponse(60), async (req, res) => {
 
     res.json(entities);
   } catch (error) {
-    console.error('Error fetching map entities:', error);
+    logger.error({ err: error }, 'Error fetching map entities');
     res.status(500).json({ error: 'Failed to fetch map data' });
   }
 });

@@ -1,4 +1,5 @@
 import { getApiPool } from '../db/connection.js';
+import { logger } from '../services/Logger.js';
 
 export interface AuditEvent {
   userId?: string;
@@ -23,7 +24,7 @@ export async function logAudit(event: AuditEvent) {
       ],
     );
   } catch (e) {
-    console.error('Failed to write audit log entry', e);
+    logger.error('Failed to write audit log entry', e);
     throw e;
   }
 }

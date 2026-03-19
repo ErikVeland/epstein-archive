@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { graphRateLimiter } from '../middleware/rateLimit.js';
+import { logger } from '../services/Logger.js';
 import {
   getEdgeEvidenceDocuments,
   getEdgeRelationship,
@@ -394,7 +395,7 @@ router.get('/global', graphRateLimiter, async (req, res, next) => {
       })),
     });
   } catch (error) {
-    console.error('❌ Error fetching global graph:', error);
+    logger.error({ err: error }, '❌ Error fetching global graph');
     next(error);
   }
 });
@@ -430,7 +431,7 @@ router.get('/edge-evidence', async (req, res, next) => {
       relationship: rel || null,
     });
   } catch (error) {
-    console.error('❌ Error fetching edge evidence:', error);
+    logger.error({ err: error }, '❌ Error fetching edge evidence');
     next(error);
   }
 });

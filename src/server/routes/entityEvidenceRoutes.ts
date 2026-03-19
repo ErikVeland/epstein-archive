@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { entityEvidenceRepository } from '../db/entityEvidenceRepository.js';
 import crypto from 'crypto';
+import { logger } from '../services/Logger.js';
 
 const router = Router();
 
@@ -16,7 +17,7 @@ router.get('/:entityId/evidence', async (req: Request, res: Response) => {
 
     res.json(result);
   } catch (error) {
-    console.error('Error fetching entity mention evidence:', error);
+    logger.error({ err: error }, 'Error fetching entity mention evidence');
     res.status(500).json({ error: 'Failed to fetch entity evidence' });
   }
 });
@@ -28,7 +29,7 @@ router.get('/:entityId/relations', async (req: Request, res: Response) => {
     const result = await entityEvidenceRepository.getRelationEvidenceForEntity(entityId);
     res.json(result);
   } catch (error) {
-    console.error('Error fetching entity relation evidence:', error);
+    logger.error({ err: error }, 'Error fetching entity relation evidence');
     res.status(500).json({ error: 'Failed to fetch relation evidence' });
   }
 });
@@ -50,7 +51,7 @@ const getEntityGraph = async (req: Request, res: Response) => {
     const graph = await relationshipsRepository.getGraphSlice(dbEntityId, depth);
     res.json(graph);
   } catch (error) {
-    console.error('Error fetching entity graph:', error);
+    logger.error({ err: error }, 'Error fetching entity graph');
     res.status(500).json({ error: 'Failed to fetch entity graph' });
   }
 };
@@ -83,7 +84,7 @@ router.get('/:entityId/documents', async (req: Request, res: Response) => {
       limit,
     });
   } catch (error) {
-    console.error('Error fetching entity documents:', error);
+    logger.error({ err: error }, 'Error fetching entity documents');
     res.status(500).json({ error: 'Failed to fetch entity documents' });
   }
 });
@@ -96,7 +97,7 @@ router.get('/:entityId/investigations', async (req: Request, res: Response) => {
     const result = await investigationsRepository.getInvestigationsByEntityId(Number(entityId));
     res.json(result);
   } catch (error) {
-    console.error('Error fetching entity investigations:', error);
+    logger.error({ err: error }, 'Error fetching entity investigations');
     res.status(500).json({ error: 'Failed to fetch entity investigations' });
   }
 });
@@ -125,7 +126,7 @@ router.get('/:entityId/media', async (req: Request, res: Response) => {
 
     res.json(result);
   } catch (error) {
-    console.error('Error fetching entity media:', error);
+    logger.error({ err: error }, 'Error fetching entity media');
     res.status(500).json({ error: 'Failed to fetch entity media' });
   }
 });

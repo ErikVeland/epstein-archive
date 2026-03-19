@@ -12,6 +12,7 @@
 
 import { Router, Request, Response } from 'express';
 import { performanceCache } from '../performanceCache';
+import { logger } from '../services/Logger.js';
 import {
   EmailCategoriesCounts,
   EmailMetadata,
@@ -48,7 +49,7 @@ router.get('/', async (req: Request, res: Response) => {
 
     res.json(result);
   } catch (error: any) {
-    console.error('Error fetching emails:', error);
+    logger.error({ err: error }, 'Error fetching emails');
     res.status(500).json({ error: 'Failed to fetch emails' });
   }
 });
@@ -81,7 +82,7 @@ router.get('/:id/body', async (req: Request, res: Response) => {
 
     res.json(result);
   } catch (error: any) {
-    console.error('Error fetching email body:', error);
+    logger.error({ err: error }, 'Error fetching email body');
     res.status(500).json({ error: 'Failed to fetch email body' });
   }
 });
@@ -106,7 +107,7 @@ router.get('/categories', async (_req: Request, res: Response) => {
 
     res.json(counts);
   } catch (error: any) {
-    console.error('Error fetching email categories:', error);
+    logger.error({ err: error }, 'Error fetching email categories');
     res.status(500).json({ error: 'Failed to fetch categories' });
   }
 });

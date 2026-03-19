@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { logger } from '../services/Logger.js';
 
 interface WindowEntry {
   count: number;
@@ -37,7 +38,7 @@ export function retryStormDetector(req: Request, res: Response, next: NextFuncti
   entry.lastSeen = now;
 
   if (entry.count >= BLOCK_THRESHOLD) {
-    console.error(
+    logger.error(
       `[STORM DETECTOR] Blocking IP ${ip} - ${entry.count} retries in ${WINDOW_MS / 1000}s window`,
     );
     res.set('Retry-After', '30');
@@ -45,7 +46,7 @@ export function retryStormDetector(req: Request, res: Response, next: NextFuncti
   }
 
   if (entry.count >= WARN_THRESHOLD) {
-    console.warn(
+    logger.warn(
       `[STORM DETECTOR] IP ${ip} is retrying aggressively: ${entry.count} retries in ${WINDOW_MS / 1000}s`,
     );
   }

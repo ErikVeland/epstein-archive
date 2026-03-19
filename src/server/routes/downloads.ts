@@ -1,6 +1,7 @@
 import express from 'express';
 import fs from 'fs';
 import { logAudit } from '../utils/auditLogger.js';
+import { logger } from '../services/Logger.js';
 
 const router = express.Router();
 
@@ -47,10 +48,10 @@ router.get('/release/:id', async (req, res) => {
     // If user asks for "house-oversight", we can't zips 20k files easily.
     // Return 404 or Not Implemented for now.
 
-    console.warn(`Download requested for unknown release: ${releaseId}`);
+    logger.warn(`Download requested for unknown release: ${releaseId}`);
     return res.status(404).json({ error: 'Download not available for this release' });
   } catch (err) {
-    console.error('Download error:', err);
+    logger.error({ err: err }, 'Download error');
     res.status(500).json({ error: 'Internal server error' });
   }
 });

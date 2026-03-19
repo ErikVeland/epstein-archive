@@ -1,5 +1,6 @@
 import { statsQueries } from '@epstein/db';
 import { getApiPool } from './connection.js';
+import { logger } from '../services/Logger.js';
 
 // Known metadata for DOJ datasets (manually curated for accuracy)
 const KNOWN_COLLECTION_METADATA: Record<
@@ -132,7 +133,7 @@ const getCollectionStatsHelper = async () => {
       })
       .sort((a: any, b: any) => a.sortOrder - b.sortOrder);
   } catch (e) {
-    console.error('Failed to fetch collection stats:', e);
+    logger.error({ err: e }, 'Failed to fetch collection stats');
     return [];
   }
 };
@@ -358,7 +359,7 @@ export const statsRepository = {
         throughput_docs_sec = recentProcessedCount / 300;
       }
     } catch (e) {
-      console.warn('Failed to calculate dynamic throughput:', e);
+      logger.warn({ detail: e }, 'Failed to calculate dynamic throughput');
     }
 
     const activeWorkersRows = await statsQueries.getActiveWorkersCount.run(undefined, getApiPool());
@@ -394,7 +395,7 @@ export const statsRepository = {
         last_enrichment_run: null, // jobs table usually missing in dev
       };
     } catch (e) {
-      console.error('Error fetching enrichment stats:', e);
+      logger.error({ err: e }, 'Error fetching enrichment stats');
       return {
         total_documents: 0,
         documents_with_metadata_json: 0,
@@ -418,7 +419,7 @@ export const statsRepository = {
       const rows = await statsQueries.getTimelineEvents.run({ limit: BigInt(100) }, getApiPool());
       return rows;
     } catch (e) {
-      console.warn('Failed to fetch timeline events:', e);
+      logger.warn({ detail: e }, 'Failed to fetch timeline events');
       return [];
     }
   },

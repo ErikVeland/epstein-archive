@@ -1,5 +1,6 @@
 import { getApiPool } from '../db/connection.js';
 import { relationshipsRepository } from '../db/relationshipsRepository.js';
+import { logger } from './Logger.js';
 
 export interface RelationshipNode {
   id: string;
@@ -178,7 +179,7 @@ export class VisualizationService {
         }
       });
     } catch (e) {
-      console.log('Flight data not available for geospatial visualization', e);
+      logger.info('Flight data not available for geospatial visualization', e);
     }
 
     return locations;

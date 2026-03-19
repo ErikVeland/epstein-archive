@@ -2,6 +2,7 @@ import { Person, SearchFilters, SortOption } from '../../types';
 import { entitiesRepository } from '../db/entitiesRepository.js';
 import { statsRepository } from '../db/statsRepository.js';
 import { searchRepository } from '../db/searchRepository.js';
+import { logger } from './Logger.js';
 
 export class DatabaseDataService {
   private static instance: DatabaseDataService;
@@ -46,7 +47,7 @@ export class DatabaseDataService {
 
       return { entities: subjectsAsPersons, total: result.total };
     } catch (error) {
-      console.error('Error fetching entities from database:', error);
+      logger.error({ err: error }, 'Error fetching entities from database');
       throw new Error(
         `Failed to fetch entities: ${error instanceof Error ? error.message : String(error)}`,
       );
@@ -61,7 +62,7 @@ export class DatabaseDataService {
       const subject = await entitiesRepository.getEntityById(id);
       return subject as Person | null;
     } catch (error) {
-      console.error(`Error fetching entity ${id} from database:`, error);
+      logger.error(`Error fetching entity ${id} from database:`, error);
       throw new Error(
         `Failed to fetch entity: ${error instanceof Error ? error.message : String(error)}`,
       );
@@ -86,7 +87,7 @@ export class DatabaseDataService {
       })) as unknown as { entities: Person[]; documents: any[] };
       return searchResults;
     } catch (error) {
-      console.error('Error searching entities:', error);
+      logger.error({ err: error }, 'Error searching entities');
       throw new Error(`Search failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
@@ -123,7 +124,7 @@ export class DatabaseDataService {
           : [],
       };
     } catch (error) {
-      console.error('Error fetching statistics:', error);
+      logger.error({ err: error }, 'Error fetching statistics');
       throw new Error(
         `Failed to fetch statistics: ${error instanceof Error ? error.message : String(error)}`,
       );
@@ -210,7 +211,7 @@ export class DatabaseDataService {
    */
   clearCache(): void {
     this.searchCache.clear();
-    console.log('Search cache cleared');
+    logger.info('Search cache cleared');
   }
 
   /**
@@ -241,7 +242,7 @@ export class DatabaseDataService {
       const stats = await statsRepository.getStatistics();
       return stats.totalEntities > 0;
     } catch (error) {
-      console.error('Database readiness check failed:', error);
+      logger.error({ err: error }, 'Database readiness check failed');
       return false;
     }
   }
@@ -268,7 +269,7 @@ export class DatabaseDataService {
         return JSON.stringify(subjects, null, 2);
       }
     } catch (error) {
-      console.error('Data export failed:', error);
+      logger.error({ err: error }, 'Data export failed');
       throw new Error(`Export failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   }

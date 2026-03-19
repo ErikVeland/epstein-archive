@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { getApiPool } from '../db/connection.js';
+import { logger } from '../services/Logger.js';
 
 export class AppError extends Error {
   constructor(
@@ -102,9 +103,10 @@ export const globalErrorHandler = (
   } catch {
     poolStats = null;
   }
-  console.error(
-    `[ERROR] [requestId=${requestId}] route=${req.method} ${req.path} (${duration}ms)`,
+  logger.error(
     {
+      err,
+      requestId,
       method: req.method,
       path: req.path,
       query: req.query,
@@ -112,30 +114,23 @@ export const globalErrorHandler = (
         req.body && typeof req.body === 'object' && !Array.isArray(req.body)
           ? Object.keys(req.body as Record<string, unknown>)
           : undefined,
-      message: err.message,
-      stack: err.stack,
       userAgent: req.get('User-Agent'),
       pgCode: (err as any).code,
-      pgMessage: (err as any).message,
       pgQueryName: (err as any)._pgQueryName,
-      pgSqlHash: (err as any)._pgSqlHash,
       pool: poolStats,
+      durationMs: duration,
     },
+    `[ERROR] route=${req.method} ${req.path}`,
   );
 
   if (err instanceof AppError) {
     if (err.isOperational) {
-      console.warn(`Operational error: ${err.message}`, {
-        statusCode: err.statusCode,
-        path: req.path,
-        code: err.code,
-      });
+      logger.warn(
+        { statusCode: err.statusCode, path: req.path, code: err.code },
+        `Operational error: ${err.message}`,
+      );
     } else {
-      console.error(`Programming error: ${err.message}`, {
-        stack: err.stack,
-        path: req.path,
-        code: err.code,
-      });
+      logger.error({ err, path: req.path, code: err.code }, `Programming error: ${err.message}`);
     }
 
     const body = buildErrorBody(req, err.statusCode, err);

@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { authenticateRequest } from '../auth/middleware.js';
 import { evidenceRepository } from '../db/evidenceRepository.js';
+import { logger } from '../services/Logger.js';
 
 const router = Router();
 
@@ -19,7 +20,7 @@ router.get('/evidence/:entityId', async (req: Request, res: Response) => {
 
     res.json(result);
   } catch (error) {
-    console.error('Error fetching entity evidence:', error);
+    logger.error({ err: error }, 'Error fetching entity evidence');
     res.status(500).json({ error: 'Failed to fetch entity evidence' });
   }
 });
@@ -45,7 +46,7 @@ router.post('/add-evidence', authenticateRequest, async (req: Request, res: Resp
     if (error.message === 'Evidence not found') {
       return res.status(404).json({ error: 'Evidence not found' });
     }
-    console.error('Error adding evidence to investigation:', error);
+    logger.error({ err: error }, 'Error adding evidence to investigation');
     res.status(500).json({ error: 'Failed to add evidence to investigation' });
   }
 });
@@ -67,7 +68,7 @@ router.post('/add-media', authenticateRequest, async (req: Request, res: Respons
     if (error.message === 'Media not found') {
       return res.status(404).json({ error: 'Media not found' });
     }
-    console.error('Error adding media to investigation:', error);
+    logger.error({ err: error }, 'Error adding media to investigation');
     res.status(500).json({ error: 'Failed to add media to investigation' });
   }
 });
@@ -94,7 +95,7 @@ router.post('/add-snippet', authenticateRequest, async (req: Request, res: Respo
     if (error.message === 'Document not found') {
       return res.status(404).json({ error: 'Document not found' });
     }
-    console.error('Error adding snippet to investigation:', error);
+    logger.error({ err: error }, 'Error adding snippet to investigation');
     res.status(500).json({ error: 'Failed to add snippet to investigation' });
   }
 });
@@ -109,7 +110,7 @@ router.get('/:investigationId/evidence-summary', async (req: Request, res: Respo
     const summary = await evidenceRepository.getInvestigationEvidenceSummary(investigationId);
     res.json(summary);
   } catch (error) {
-    console.error('Error fetching investigation evidence summary:', error);
+    logger.error({ err: error }, 'Error fetching investigation evidence summary');
     res.status(500).json({ error: 'Failed to fetch investigation evidence summary' });
   }
 });
@@ -130,7 +131,7 @@ router.delete(
 
       res.json({ success });
     } catch (error) {
-      console.error('Error removing evidence from investigation:', error);
+      logger.error({ err: error }, 'Error removing evidence from investigation');
       res.status(500).json({ error: 'Failed to remove evidence from investigation' });
     }
   },

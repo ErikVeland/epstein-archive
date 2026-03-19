@@ -1,5 +1,6 @@
 import { blackBookQueries } from '@epstein/db';
 import { getApiPool } from './connection.js';
+import { logger } from '../services/Logger.js';
 
 // Common OCR errors in the Black Book and their corrections
 // Format: [error, correction]
@@ -114,7 +115,7 @@ export const blackBookRepository = {
         }
       } catch (error: any) {
         // Face thumbnail enrichment is optional; never fail the Black Book response on this step.
-        console.warn('[BlackBook] Thumbnail enrichment skipped:', error?.message || error);
+        logger.warn('[BlackBook] Thumbnail enrichment skipped:', error?.message || error);
       }
     }
 
@@ -144,7 +145,7 @@ export const blackBookRepository = {
         reviewed: Number(res?.reviewed || 0),
       };
     } catch (error) {
-      console.error('Error fetching review stats:', error);
+      logger.error({ err: error }, 'Error fetching review stats');
       return { total: 0, remaining: 0, reviewed: 0 };
     }
   },
@@ -203,7 +204,7 @@ export const blackBookRepository = {
 
       return { success: true };
     } catch (error) {
-      console.error('Error updating review:', error);
+      logger.error({ err: error }, 'Error updating review');
       throw error;
     }
   },

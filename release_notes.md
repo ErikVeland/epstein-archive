@@ -1,16 +1,27 @@
 # Release Notes
 
-## v16.8.0 - 2026-03-19 - Build Verification & Deployment Refresh
+## v16.8.0 - 2026-03-19 - Error Fixes, Security Hardening & Deployment Refresh
+
+### Bug Fixes
+
+- Fixed malformed imports in `relationshipsRepository`, `emails-optimized`, and `graphRoutes` that caused ESLint parsing failures
+- Added `unhandledRejection` and `uncaughtException` safety nets to the server entry point
+
+### Security
+
+- Removed hardcoded `JWT_REFRESH_SECRET` from `ecosystem.config.cjs`; secrets must now live in the remote `.env` file
+- Tightened `.gitignore` to blanket-exclude all `.env.*` variants except `.env.example`
+
+### Deployment
+
+- Upgraded deploy rollback path from legacy SQLite to Postgres `pg_dump`/`pg_restore`
+- Added pre-migration `pg_dump` backup step to the deploy pipeline
+- Added `CORS_ORIGIN` to the production PM2 env block
 
 ### Verification
 
-- Confirmed zero TypeScript compiler errors across the full codebase
-- Confirmed clean Vite production build with no warnings or failures
-- All 3,248 client modules transform successfully
-
-### Maintenance
-
-- Minor version bump to mark verified clean state and production re-deployment
+- Confirmed zero TypeScript compiler errors and zero ESLint errors across the full codebase
+- Confirmed clean Vite production build (3,248 modules, no warnings)
 
 ## v16.7.0 - 2026-03-19 - UI Polish & Design System Cleanup
 

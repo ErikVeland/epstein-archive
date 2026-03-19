@@ -1,8 +1,9 @@
 import fs from 'fs';
 import { getApiPool } from '../db/connection.js';
+import { logger } from '../services/Logger.js';
 
 export async function validateStartup() {
-  console.log('[Startup] Validating environment and configuration...');
+  logger.info('[Startup] Validating environment and configuration...');
   const errors: string[] = [];
   const warnings: string[] = [];
 
@@ -115,17 +116,17 @@ export async function validateStartup() {
 
   // Report
   if (warnings.length > 0) {
-    console.warn('--- Startup Warnings ---');
-    warnings.forEach((w) => console.warn(`[WARN] ${w}`));
-    console.warn('------------------------');
+    logger.warn('--- Startup Warnings ---');
+    warnings.forEach((w) => logger.warn(`[WARN] ${w}`));
+    logger.warn('------------------------');
   }
 
   if (errors.length > 0) {
-    console.error('--- Startup Errors ---');
-    errors.forEach((e) => console.error(`[ERR] ${e}`));
-    console.error('----------------------');
+    logger.error('--- Startup Errors ---');
+    errors.forEach((e) => logger.error(`[ERR] ${e}`));
+    logger.error('----------------------');
     throw new Error('Startup validation failed. See errors above.');
   }
 
-  console.log('[Startup] Validation passed.');
+  logger.info('[Startup] Validation passed.');
 }

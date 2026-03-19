@@ -2,6 +2,7 @@ import express from 'express';
 import { articlesRepository } from '../db/articlesRepository.js';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
+import { logger } from '../services/Logger.js';
 
 const router = express.Router();
 
@@ -40,7 +41,7 @@ router.get('/', validate(getArticlesSchema), async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error fetching articles:', error);
+    logger.error({ err: error }, 'Error fetching articles');
     res.status(500).json({ error: 'Failed to fetch articles' });
   }
 });
@@ -54,7 +55,7 @@ router.get('/:id', validate(articleIdSchema), async (req, res) => {
     }
     res.json(article);
   } catch (error) {
-    console.error('Error fetching article:', error);
+    logger.error({ err: error }, 'Error fetching article');
     res.status(500).json({ error: 'Failed to fetch article' });
   }
 });

@@ -12,6 +12,7 @@ import sharp from 'sharp';
 import exifParser from 'exif-parser';
 import archiver from 'archiver';
 import { getApiPool } from '../db/runtime.js';
+import { logger } from './Logger.js';
 
 export class MediaService {
   private db: any;
@@ -711,7 +712,7 @@ export class MediaService {
     }
 
     if (!fs.existsSync(resolvedPath)) {
-      console.warn(`Source image for thumbnail not found: ${resolvedPath}`);
+      logger.warn(`Source image for thumbnail not found: ${resolvedPath}`);
       return imagePath;
     }
 
@@ -788,7 +789,7 @@ export class MediaService {
 
       return thumbnailPath;
     } catch (error) {
-      console.error('Error generating thumbnail:', error);
+      logger.error({ err: error }, 'Error generating thumbnail');
       return imagePath; // Fallback to original if thumb fails
     }
   }
@@ -804,7 +805,7 @@ export class MediaService {
       tags = result.tags || {};
       imageSize = result.imageSize || {};
     } catch (e) {
-      console.warn('Failed to parse EXIF data:', e);
+      logger.warn({ detail: e }, 'Failed to parse EXIF data');
     }
 
     const isFakePath =
@@ -840,7 +841,7 @@ export class MediaService {
           .composite([{ input: svg, gravity: 'center' }])
           .toFile(file.path);
       } catch (e) {
-        console.warn('Failed to overlay FAKE watermark on media upload:', e);
+        logger.warn({ detail: e }, 'Failed to overlay FAKE watermark on media upload');
       }
     }
     // Insert into DB
@@ -890,7 +891,7 @@ export class MediaService {
       try {
         await this.deleteImage(id);
       } catch (err) {
-        console.error(`Failed to delete image ${id} in bulk:`, err);
+        logger.error(`Failed to delete image ${id} in bulk:`, err);
       }
     }
   }
@@ -903,7 +904,7 @@ export class MediaService {
     const archive = archiver('zip', { zlib: { level: 9 } });
 
     archive.on('error', (err) => {
-      console.error(`Archive error for album ${albumId}:`, err);
+      logger.error(`Archive error for album ${albumId}:`, err);
       // Headers may already be sent; destroy the response stream to signal failure
       res.destroy(err);
     });

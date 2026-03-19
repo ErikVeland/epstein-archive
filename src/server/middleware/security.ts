@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { getApiPool } from '../db/connection.js';
 import { logAudit } from '../utils/auditLogger.js';
 import { requireRole as canonicalRequireRole } from '../auth/middleware.js';
+import { logger } from '../services/Logger.js';
 
 // Extend Express Request to include user info
 export interface AuthenticatedRequest extends Request {
@@ -54,7 +55,7 @@ export const enforceQuarantine = (resourceType: 'document' | 'media') => {
 
       next();
     } catch (err) {
-      console.error('Quarantine check failed:', err);
+      logger.error({ err: err }, 'Quarantine check failed');
       // Fail closed
       res.status(500).json({ error: 'Security check failed' });
     }
@@ -83,7 +84,7 @@ export const auditAccess = (
         if (id) {
           void logAudit(action, (req as any).user?.id || null, resourceType, id, {}).catch(
             (err) => {
-              console.error('Audit log write failed in auditAccess middleware:', err);
+              logger.error({ err: err }, 'Audit log write failed in auditAccess middleware');
             },
           );
         }
