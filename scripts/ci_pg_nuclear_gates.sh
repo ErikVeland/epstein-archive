@@ -86,6 +86,17 @@ if ! command -v pg_dump >/dev/null 2>&1; then
   log "pg_dump not installed locally; skipping DB-backed gates (pg_explain/schema hash/pg_dump snapshot)"
   exit 0
 fi
+
+# Check pg_dump version matches server version to avoid "server version mismatch" errors
+PGDUMP_MAJOR="$(pg_dump --version 2>/dev/null | grep -oE '[0-9]+' | head -1)"
+SERVER_MAJOR="$(psql "$DATABASE_URL" -Atc "SHOW server_version_num" 2>/dev/null | cut -c1-2)"
+if [[ -n "$PGDUMP_MAJOR" && -n "$SERVER_MAJOR" && "$PGDUMP_MAJOR" != "$SERVER_MAJOR" ]]; then
+  if is_ci; then
+    fail "❌ pg_dump version ($PGDUMP_MAJOR) does not match server version ($SERVER_MAJOR)"
+  fi
+  log "pg_dump version ($PGDUMP_MAJOR) does not match server version ($SERVER_MAJOR); skipping DB-backed gates"
+  exit 0
+fi
 if command -v sha256sum >/dev/null 2>&1; then
   HASH_CMD="sha256sum"
 elif command -v shasum >/dev/null 2>&1; then
