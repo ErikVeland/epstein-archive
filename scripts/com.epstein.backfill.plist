@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  com.epstein.backfill.plist — launchd user agent for the Epstein Archive backfill pipeline.
+
+  INSTALL (runs as your user, survives logout suppressed, restarted on crash):
+    cp scripts/com.epstein.backfill.plist ~/Library/LaunchAgents/
+    # Edit the plist to set the correct WorkingDirectory and PATH
+    launchctl load ~/Library/LaunchAgents/com.epstein.backfill.plist
+    launchctl start com.epstein.backfill
+
+  UNINSTALL:
+    launchctl stop com.epstein.backfill
+    launchctl unload ~/Library/LaunchAgents/com.epstein.backfill.plist
+    rm ~/Library/LaunchAgents/com.epstein.backfill.plist
+
+  WATCH LOGS:
+    tail -f /tmp/epstein-backfill.log
+    tail -f /tmp/epstein-backfill-error.log
+
+  To run a different pipeline script, change the ProgramArguments array below.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.epstein.backfill</string>
+
+  <!-- The command to run. Adjust the path to pnpm as needed (run: which pnpm) -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>-c</string>
+    <!-- caffeinate wraps the real command so sleep can't interrupt it -->
+    <string>exec caffeinate -s -i -- /opt/homebrew/bin/pnpm pipeline:backfill</string>
+  </array>
+
+  <!-- Absolute path to the project directory -->
+  <key>WorkingDirectory</key>
+  <string>/Volumes/Media/Epstein Files/epstein-archive</string>
+
+  <!-- Environment variables — add DATABASE_URL and others here -->
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+    <key>NODE_ENV</key>
+    <string>production</string>
+    <key>DATABASE_URL</key>
+    <string>postgresql://epstein:epstein@localhost:5435/epstein_archive</string>
+  </dict>
+
+  <!-- Restart automatically if the process exits for any reason -->
+  <key>KeepAlive</key>
+  <true/>
+
+  <!-- ProcessType=Interactive tells macOS this is user-facing work.
+       "Background" processes are killed first under memory pressure.
+       "Interactive" gets the highest jetsam protection of user agents. -->
+  <key>ProcessType</key>
+  <string>Interactive</string>
+
+  <!-- Do NOT throttle I/O for this process -->
+  <key>LowPriorityBackgroundIO</key>
+  <false/>
+
+  <!-- Do NOT throttle CPU via App Nap -->
+  <key>LowPriorityIO</key>
+  <false/>
+
+  <!-- Raise scheduler priority above default (0). Range: -20 (highest) to 20. -->
+  <key>Nice</key>
+  <integer>-10</integer>
+
+  <!-- Log output -->
+  <key>StandardOutPath</key>
+  <string>/tmp/epstein-backfill.log</string>
+  <key>StandardErrorPath</key>
+  <string>/tmp/epstein-backfill-error.log</string>
+
+  <!-- Wait 5 seconds before restarting on failure -->
+  <key>TimeOut</key>
+  <integer>0</integer>
+  <key>ThrottleInterval</key>
+  <integer>5</integer>
+</dict>
+</plist>

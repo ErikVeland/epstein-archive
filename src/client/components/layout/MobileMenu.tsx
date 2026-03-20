@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Icon from '../common/Icon';
 import { CloseButton } from '../common/CloseButton';
-// @ts-ignore
 import { useAuth } from '../../contexts/AuthContext';
 
 interface MobileMenuProps {
@@ -27,7 +26,13 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
   useEffect(() => {
     const shown =
       typeof window !== 'undefined' && localStorage.getItem('investigate_attract_shown') === 'true';
-    if (!shown) setAttract(true);
+    const firstRunCompleted = localStorage.getItem('firstRunOnboardingCompleted') === 'true';
+    const investigationOnboardingSeen =
+      localStorage.getItem('hasSeenInvestigationOnboarding') === 'true';
+    const boardOnboardingSeen = localStorage.getItem('board_onboarding_seen') === 'true';
+    const canAttract =
+      !shown && firstRunCompleted && investigationOnboardingSeen && boardOnboardingSeen;
+    setAttract(canAttract);
     const timer = setTimeout(() => setAttract(false), 8000);
     return () => clearTimeout(timer);
   }, []);
@@ -79,18 +84,16 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
         className={`absolute left-0 top-[60px] bottom-0 w-4/5 max-w-sm bg-[var(--bg-surface)] backdrop-blur-xl border-r border-[var(--glass-border)] shadow-[var(--glass-shadow)] transform transition-transform duration-300 ease-out z-10 flex flex-col ${open ? 'translate-x-0' : '-translate-x-full'}`}
         onClick={(e) => e.stopPropagation()} // Prevent clicks inside menu from closing it
         onTouchStart={(e) => {
-          const touch = e.touches[0];
-          const startX = touch.clientX;
+          const startX = e.touches[0].clientX;
           const handleTouchMove = (moveEvent: TouchEvent) => {
-            const currentX = moveEvent.touches[0].clientX;
-            const diff = startX - currentX;
-            if (diff > 50) {
-              // Swiped left
-              onClose();
-              window.removeEventListener('touchmove', handleTouchMove);
-            }
+            if (startX - moveEvent.touches[0].clientX > 50) onClose();
           };
-          window.addEventListener('touchmove', handleTouchMove, { once: true });
+          const cleanup = () => {
+            window.removeEventListener('touchmove', handleTouchMove);
+            window.removeEventListener('touchend', cleanup);
+          };
+          window.addEventListener('touchmove', handleTouchMove);
+          window.addEventListener('touchend', cleanup);
         }}
       >
         <div className="flex-none flex items-center justify-between p-4 border-b border-[var(--glass-border)] bg-[var(--glass-bg)]">
@@ -111,7 +114,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
           <div className="relative group">
             <input
               type="text"
-              placeholder="Search subjects, docs..."
+              placeholder="Search people, documents..."
               className="w-full bg-[var(--glass-bg)] text-[var(--text-primary)] placeholder-[var(--text-muted)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] pl-10 pr-4 py-3 focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] outline-none transition-all"
               value={searchTerm}
               onChange={(e) => onSearchTermChange(e.target.value)}
@@ -162,16 +165,14 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
             <div className="p-1.5 rounded-md bg-[var(--glass-bg)] group-hover:bg-[var(--accent)]/20 shadow-[var(--glass-shadow-soft)] transition-colors">
               <Icon name="Users" size="sm" className="w-4 h-4 text-[var(--accent)]" />
             </div>
-            <span className="font-medium text-[var(--text-primary)] transition-colors">
-              Subjects
-            </span>
+            <span className="font-medium text-[var(--text-primary)] transition-colors">People</span>
           </button>
           <button
             className="w-full flex items-center gap-3 px-3 py-3 rounded-[var(--radius-lg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] transition-all duration-300 group hover:translate-x-1"
             onClick={() => handleNavigation('/documents')}
           >
-            <div className="p-1.5 rounded-md bg-[var(--glass-bg)] group-hover:bg-emerald-500/20 shadow-[var(--glass-shadow-soft)] transition-colors">
-              <Icon name="FileText" size="sm" className="w-4 h-4 text-emerald-400" />
+            <div className="p-1.5 rounded-md bg-[var(--glass-bg)] group-hover:bg-[var(--nav-documents-hover-bg)] shadow-[var(--glass-shadow-soft)] transition-colors">
+              <Icon name="FileText" size="sm" className="w-4 h-4 text-[var(--nav-documents)]" />
             </div>
             <span className="font-medium text-[var(--text-primary)] transition-colors">
               Documents
@@ -181,8 +182,8 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
             className="w-full flex items-center gap-3 px-3 py-3 rounded-[var(--radius-lg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] transition-all duration-300 group hover:translate-x-1"
             onClick={() => handleNavigation('/emails')}
           >
-            <div className="p-1.5 rounded-md bg-[var(--glass-bg)] group-hover:bg-amber-500/20 shadow-[var(--glass-shadow-soft)] transition-colors">
-              <Icon name="Mail" size="sm" className="w-4 h-4 text-amber-400" />
+            <div className="p-1.5 rounded-md bg-[var(--glass-bg)] group-hover:bg-[var(--nav-emails-hover-bg)] shadow-[var(--glass-shadow-soft)] transition-colors">
+              <Icon name="Mail" size="sm" className="w-4 h-4 text-[var(--nav-emails)]" />
             </div>
             <span className="font-medium text-[var(--text-primary)] transition-colors">Emails</span>
           </button>
@@ -190,8 +191,8 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
             className="w-full flex items-center gap-3 px-3 py-3 rounded-[var(--radius-lg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] transition-all duration-300 group hover:translate-x-1"
             onClick={() => handleNavigation('/media')}
           >
-            <div className="p-1.5 rounded-md bg-[var(--glass-bg)] group-hover:bg-purple-500/20 shadow-[var(--glass-shadow-soft)] transition-colors">
-              <Icon name="Newspaper" size="sm" className="w-4 h-4 text-purple-400" />
+            <div className="p-1.5 rounded-md bg-[var(--glass-bg)] group-hover:bg-[var(--nav-media-hover-bg)] shadow-[var(--glass-shadow-soft)] transition-colors">
+              <Icon name="Newspaper" size="sm" className="w-4 h-4 text-[var(--nav-media)]" />
             </div>
             <span className="font-medium text-[var(--text-primary)] transition-colors">Media</span>
           </button>
@@ -202,7 +203,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
           </div>
 
           <button
-            className={`w-full flex items-center gap-3 px-3 py-3 rounded-[var(--radius-lg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] transition-all group ${attract ? 'ring-1 ring-pink-500/50 shadow-[0_0_15px_-3px_rgba(236,72,153,0.3)] bg-[var(--glass-bg)]/50' : ''}`}
+            className={`w-full flex items-center gap-3 px-3 py-3 rounded-[var(--radius-lg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] transition-all group ${attract ? 'ring-1 ring-[var(--nav-investigations-ring)] shadow-[var(--nav-investigations-glow)] bg-[var(--glass-bg)]/50' : ''}`}
             onClick={() => {
               try {
                 localStorage.setItem('investigate_attract_shown', 'true');
@@ -213,8 +214,8 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
               handleNavigation('/investigations');
             }}
           >
-            <div className="p-1.5 rounded-md bg-pink-900/20 group-hover:bg-pink-900/40 transition-colors border border-pink-500/10">
-              <Icon name="Target" size="sm" className="w-4 h-4 text-pink-500" />
+            <div className="p-1.5 rounded-md bg-[var(--nav-investigations-bg)] group-hover:bg-[var(--nav-investigations-bg-hover)] transition-colors border border-[var(--nav-investigations-border)]">
+              <Icon name="Target" size="sm" className="w-4 h-4 text-[var(--nav-investigations)]" />
             </div>
             <div className="flex flex-col items-start">
               <span className="font-medium text-[var(--text-primary)] group-hover:text-[var(--text-primary)]">
@@ -237,8 +238,8 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
             className="w-full flex items-center gap-3 px-3 py-3 rounded-[var(--radius-lg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] transition-colors group"
             onClick={() => handleNavigation('/timeline')}
           >
-            <div className="p-1.5 rounded-md bg-orange-900/20 group-hover:bg-orange-900/40 transition-colors border border-orange-500/10">
-              <Icon name="Clock" size="sm" className="w-4 h-4 text-orange-400" />
+            <div className="p-1.5 rounded-md bg-[var(--nav-timeline-bg)] group-hover:bg-[var(--nav-timeline-bg-hover)] transition-colors border border-[var(--nav-timeline-border)]">
+              <Icon name="Clock" size="sm" className="w-4 h-4 text-[var(--nav-timeline)]" />
             </div>
             <span className="font-medium text-[var(--text-primary)] group-hover:text-[var(--text-primary)]">
               Timeline
@@ -248,19 +249,19 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
             className="w-full flex items-center gap-3 px-3 py-3 rounded-[var(--radius-lg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] transition-colors group"
             onClick={() => handleNavigation('/flights')}
           >
-            <div className="p-1.5 rounded-md bg-sky-900/20 group-hover:bg-sky-900/40 transition-colors border border-sky-500/10">
-              <Icon name="Navigation" size="sm" className="w-4 h-4 text-sky-400" />
+            <div className="p-1.5 rounded-md bg-[var(--nav-flights-bg)] group-hover:bg-[var(--nav-flights-bg-hover)] transition-colors border border-[var(--nav-flights-border)]">
+              <Icon name="Navigation" size="sm" className="w-4 h-4 text-[var(--nav-flights)]" />
             </div>
             <span className="font-medium text-[var(--text-primary)] group-hover:text-[var(--text-primary)]">
-              Flight Logs
+              Flights
             </span>
           </button>
           <button
             className="w-full flex items-center gap-3 px-3 py-3 rounded-[var(--radius-lg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] transition-colors group"
             onClick={() => handleNavigation('/analytics')}
           >
-            <div className="p-1.5 rounded-md bg-teal-900/20 group-hover:bg-teal-900/40 transition-colors border border-teal-500/10">
-              <Icon name="BarChart3" size="sm" className="w-4 h-4 text-teal-400" />
+            <div className="p-1.5 rounded-md bg-[var(--nav-analytics-bg)] group-hover:bg-[var(--nav-analytics-bg-hover)] transition-colors border border-[var(--nav-analytics-border)]">
+              <Icon name="BarChart3" size="sm" className="w-4 h-4 text-[var(--nav-analytics)]" />
             </div>
             <span className="font-medium text-[var(--text-primary)] group-hover:text-[var(--text-primary)]">
               Analytics

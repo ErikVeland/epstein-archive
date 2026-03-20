@@ -30,6 +30,8 @@
     "db:push": "./deploy.sh --db-only",
     "ingest:intelligence": "tsx scripts/ingest_intelligence.ts",
     "pipeline:backfill": "BATCH_SIZE=3 tsx scripts/unified_pipeline.ts --mode backfill",
+    "pipeline:backfill:protected": "./scripts/run_protected.sh pipeline:backfill",
+    "media:thumbnails:backfill:protected": "./scripts/run_protected.sh media:thumbnails:backfill",
     "black-book:enrich": "tsx scripts/enrich_black_book.ts",
     "media:thumbnails:backfill": "tsx scripts/backfill_thumbnails.ts",
     "lint": "eslint . --ext .ts,.tsx",

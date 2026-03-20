@@ -95,6 +95,56 @@ const ReviewDashboard = lazy(() =>
 
 import releaseNotesRaw from '../../release_notes.md?raw';
 
+interface ParsedReleaseNote {
+  version: string;
+  date: string;
+  title: string;
+  notes: string[];
+}
+
+type SeoSchema = Record<string, unknown> | Array<Record<string, unknown>>;
+
+interface SeoConfig {
+  title: string;
+  description: string;
+  url: string;
+  canonical: string;
+  type: 'CollectionPage' | 'Dataset' | 'article' | 'website';
+  keywords: string[];
+  schema?: SeoSchema;
+}
+
+interface SearchEntityPayload {
+  id: number | string;
+  name?: string;
+  fullName?: string;
+  canonicalName?: string;
+  matchedAlias?: string | null;
+  primaryRole?: string;
+  role?: string;
+  mention_count?: number;
+  mentions?: number;
+  redFlagRating?: number;
+  document_count?: number;
+  files?: number;
+}
+
+interface SearchResponsePayload {
+  entities?: SearchEntityPayload[];
+}
+
+interface LikelihoodBucket {
+  level: 'HIGH' | 'MEDIUM' | 'LOW' | string;
+  count: number;
+}
+
+interface GlobalStatsPayload {
+  totalEntities: number;
+  totalMentions: number;
+  totalDocuments: number;
+  likelihoodDistribution?: LikelihoodBucket[];
+}
+
 // Helper to parse markdown release notes
 const parseReleaseNotes = (markdown: string) => {
   try {
@@ -122,7 +172,7 @@ const parseReleaseNotes = (markdown: string) => {
     }
 
     return sections
-      .map((section) => {
+      .map((section): ParsedReleaseNote | null => {
         const sectionLines = section.split('\n').map((l) => l.trim());
         if (sectionLines.length === 0) return null;
 
@@ -162,9 +212,9 @@ const parseReleaseNotes = (markdown: string) => {
 
         return { version, date, title, notes };
       })
-      .filter(Boolean)
-      .filter((r: any) => r.notes.length > 0 || r.title !== 'Maintenance Update')
-      .sort((a: any, b: any) => {
+      .filter((record): record is ParsedReleaseNote => record !== null)
+      .filter((record) => record.notes.length > 0 || record.title !== 'Maintenance Update')
+      .sort((a, b) => {
         // Sort by version (descending)
         const vA = a.version.replace('v', '').split('.').map(Number);
         const vB = b.version.replace('v', '').split('.').map(Number);
@@ -174,7 +224,7 @@ const parseReleaseNotes = (markdown: string) => {
           if (numA !== numB) return numB - numA;
         }
         return 0;
-      }) as any[];
+      });
   } catch (e) {
     console.error('Failed to parse release notes', e);
     return [];
@@ -240,6 +290,26 @@ function App() {
     | 'admin'
     | 'landing';
   const activeTab = getTabFromPath(location.pathname);
+  const tabLabels: Record<Tab, string> = {
+    people: 'People',
+    search: 'Search',
+    documents: 'Documents',
+    media: 'Media',
+    timeline: 'Timeline',
+    flights: 'Flights',
+    properties: 'Properties',
+    investigations: 'Investigations',
+    analytics: 'Analytics',
+    blackbook: 'Black Book',
+    about: 'About',
+    emails: 'Emails',
+    login: 'Login',
+    evidence: 'Evidence',
+    faq: 'FAQ',
+    review: 'Review',
+    admin: 'Admin',
+    landing: 'The Epstein Files',
+  };
   const landingVariant = (() => {
     if (location.pathname === '/epstein-documents') return 'documents';
     if (location.pathname === '/epstein-people') return 'people';
@@ -248,7 +318,7 @@ function App() {
     if (location.pathname === '/epstein-flights') return 'flights';
     return 'overview';
   })() as 'overview' | 'documents' | 'people' | 'media' | 'timeline' | 'flights';
-  const seoConfig = useMemo(() => {
+  const seoConfig = useMemo<SeoConfig>(() => {
     const origin = 'https://epstein.academy';
     const canonical = `${origin}${location.pathname}`;
     const commonKeywords = ['Epstein Files', 'Epstein documents', 'Jeffrey Epstein archive'];
@@ -411,6 +481,69 @@ function App() {
       };
     }
 
+    if (location.pathname.startsWith('/emails')) {
+      return {
+        title: 'Epstein Email Archive',
+        description:
+          'Search and analyze mailbox threads, participants, and linked evidence across the Epstein files email archive.',
+        url: canonical,
+        canonical,
+        type: 'CollectionPage',
+        keywords: [...commonKeywords, 'epstein emails', 'email threads', 'mailbox archive'],
+      };
+    }
+
+    if (location.pathname.startsWith('/analytics')) {
+      return {
+        title: 'Epstein Analytics',
+        description:
+          'Explore risk distributions, entity signals, and investigative trends across the Epstein files dataset.',
+        url: canonical,
+        canonical,
+        type: 'CollectionPage',
+        keywords: [...commonKeywords, 'epstein analytics', 'risk analysis', 'entity insights'],
+      };
+    }
+
+    if (location.pathname.startsWith('/blackbook')) {
+      return {
+        title: 'Epstein Black Book',
+        description:
+          'Browse contact entries, phone numbers, and linked entities from Epstein black book records.',
+        url: canonical,
+        canonical,
+        type: 'CollectionPage',
+        keywords: [...commonKeywords, 'black book', 'contact records', 'address book'],
+      };
+    }
+
+    if (location.pathname.startsWith('/properties')) {
+      return {
+        title: 'Epstein Property Records',
+        description:
+          'Review properties, ownership relationships, and location-linked evidence in the archive.',
+        url: canonical,
+        canonical,
+        type: 'CollectionPage',
+        keywords: [...commonKeywords, 'properties', 'ownership', 'locations'],
+      };
+    }
+
+    if (
+      location.pathname.startsWith('/investigations') ||
+      location.pathname.startsWith('/investigate')
+    ) {
+      return {
+        title: 'Epstein Investigations Workspace',
+        description:
+          'Create investigations, chain evidence, test hypotheses, and track investigative findings.',
+        url: canonical,
+        canonical,
+        type: 'CollectionPage',
+        keywords: [...commonKeywords, 'investigations', 'evidence chaining', 'case workspace'],
+      };
+    }
+
     return {
       title: 'Epstein Files Archive',
       description:
@@ -441,7 +574,9 @@ function App() {
   const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
   const [selectedDocumentSearchTerm, setSelectedDocumentSearchTerm] = useState<string>('');
   const [documentModalId, setDocumentModalId] = useState<string | null>(null);
-  const [documentModalInitial, setDocumentModalInitial] = useState<any>(null);
+  const [documentModalInitial, setDocumentModalInitial] = useState<Record<string, unknown> | null>(
+    null,
+  );
 
   const [investigateAttract, setInvestigateAttract] = useState<boolean>(false);
   const [investigatePopoverOpen, setInvestigatePopoverOpen] = useState<boolean>(false);
@@ -504,18 +639,18 @@ function App() {
       setSearchSuggestionsLoading(true);
       try {
         const response = await fetch(`/api/search?q=${encodeURIComponent(searchTerm)}&limit=10`);
-        const data = await response.json();
-        const entities = data.entities || [];
-        const normalized: SearchSuggestion[] = entities.map((e: any) => ({
-          id: e.id,
-          name: e.fullName || e.name,
-          fullName: e.fullName || e.name,
-          canonicalName: e.canonicalName || e.fullName || e.name,
-          matchedAlias: e.matchedAlias || null,
-          role: e.primaryRole || e.role || 'Unknown',
-          mentions: e.mention_count || e.mentions || 0,
-          redFlagRating: e.redFlagRating ?? 0,
-          files: e.document_count || e.files || 0,
+        const data = (await response.json()) as SearchResponsePayload;
+        const entities = Array.isArray(data.entities) ? data.entities : [];
+        const normalized: SearchSuggestion[] = entities.map((entity) => ({
+          id: entity.id,
+          name: entity.fullName || entity.name || 'Unknown',
+          fullName: entity.fullName || entity.name || 'Unknown',
+          canonicalName: entity.canonicalName || entity.fullName || entity.name || 'Unknown',
+          matchedAlias: entity.matchedAlias || null,
+          role: entity.primaryRole || entity.role || 'Unknown',
+          mentions: entity.mention_count || entity.mentions || 0,
+          redFlagRating: entity.redFlagRating ?? 0,
+          files: entity.document_count || entity.files || 0,
           contexts: [],
           evidenceTypes: [],
           significantPassages: [],
@@ -555,9 +690,31 @@ function App() {
         setDocumentModalId('');
         setDocumentModalInitial(null);
 
+        type EntityByIdResponse = {
+          id: number;
+          fullName?: string;
+          primaryRole?: string;
+          mentions?: number;
+          mention_count?: number;
+          redFlagRating?: number;
+          documentCount?: number;
+          document_count?: number;
+          evidenceTypes?: string[];
+          likelihoodLevel?: string;
+          bio?: string;
+          description?: string;
+          birthDate?: string;
+          deathDate?: string;
+          photos?: Person['photos'];
+          blackBookEntry?: Person['blackBookEntries'];
+          entityType?: string;
+          type?: string;
+          redFlagDescription?: string;
+        };
+
         fetch(`/api/entities/${entityId}`)
           .then((res) => res.json())
-          .then((data) => {
+          .then((data: EntityByIdResponse) => {
             if (data && data.id) {
               const person: Person = {
                 id: data.id,
@@ -577,7 +734,7 @@ function App() {
                 deathDate: data.deathDate,
                 photos: data.photos,
                 blackBookEntries: data.blackBookEntry,
-                entityType: data.entityType || (data as any).type,
+                entityType: data.entityType || data.type,
                 redFlagDescription: data.redFlagDescription,
               };
               setSelectedPerson(person);
@@ -595,12 +752,18 @@ function App() {
   // Handle global entity click events (e.g. from DocumentMetadataPanel or MediaViewerModal)
   useEffect(() => {
     const handleEntityClick = (event: CustomEvent) => {
-      const { id, name } = event.detail;
+      const { id, name } = event.detail as { id: number | string; name?: string };
       if (id) {
-        // We create a partial person object, EvidenceModal will self-enrich
-        const partialPerson: any = {
+        const partialPerson: Person = {
           id: Number(id),
           name: name || 'Unknown Entity',
+          fullName: name || 'Unknown Entity',
+          mentions: 0,
+          files: 0,
+          contexts: [],
+          evidenceTypes: [],
+          significantPassages: [],
+          fileReferences: [],
         };
         setSelectedPerson(partialPerson);
       }
@@ -841,7 +1004,7 @@ function App() {
   const headerTotalMentions = useCountUp(dataStats.totalMentions, 1200);
   const headerTotalFiles = useCountUp(dataStats.totalFiles, 1100);
 
-  const [analyticsData, setAnalyticsData] = useState<any>(null);
+  const [analyticsData, setAnalyticsData] = useState<GlobalStatsPayload | null>(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [analyticsError, setAnalyticsError] = useState<string | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
@@ -874,15 +1037,19 @@ function App() {
         });
         setLoadingProgress(`Loaded ${result.data.length} subjects...`);
         setLoadingProgressValue(60);
-        const normalized = (result.data || []).map((p: any) => ({
-          ...p,
-          redFlagRating: p.redFlagRating ?? 0,
-          name: p.name ?? p.fullName,
-          files: p.files ?? p.documentCount ?? 0,
+        const normalized = (result.data || []).map((person: Person) => ({
+          ...person,
+          redFlagRating: person.redFlagRating ?? 0,
+          name: person.name ?? person.fullName,
+          files: person.files ?? person.documentCount ?? 0,
           likelihoodScore:
-            p.likelihoodScore ??
-            p.likelihoodLevel ??
-            ((p.redFlagRating ?? 0) >= 4 ? 'HIGH' : (p.redFlagRating ?? 0) >= 2 ? 'MEDIUM' : 'LOW'),
+            person.likelihoodScore ??
+            person.likelihoodLevel ??
+            ((person.redFlagRating ?? 0) >= 4
+              ? 'HIGH'
+              : (person.redFlagRating ?? 0) >= 2
+                ? 'MEDIUM'
+                : 'LOW'),
         }));
         // Cache first page for next load
         try {
@@ -915,17 +1082,19 @@ function App() {
         setLoadingProgressValue(80);
         setLoadingProgress('Loading statistics...');
         setLoadingProgressValue(80);
-        const stats = await apiClient.getStats();
+        const stats = (await apiClient.getStats()) as GlobalStatsPayload;
         console.log('Global stats loaded:', stats);
         setLoadingProgress('Finalizing...');
         setLoadingProgressValue(90);
 
+        const likelihoodDistribution = Array.isArray(stats.likelihoodDistribution)
+          ? stats.likelihoodDistribution
+          : [];
         const highRisk =
-          stats.likelihoodDistribution?.find((d: any) => d.level === 'HIGH')?.count || 0;
+          likelihoodDistribution.find((bucket) => bucket.level === 'HIGH')?.count || 0;
         const mediumRisk =
-          stats.likelihoodDistribution?.find((d: any) => d.level === 'MEDIUM')?.count || 0;
-        const lowRisk =
-          stats.likelihoodDistribution?.find((d: any) => d.level === 'LOW')?.count || 0;
+          likelihoodDistribution.find((bucket) => bucket.level === 'MEDIUM')?.count || 0;
+        const lowRisk = likelihoodDistribution.find((bucket) => bucket.level === 'LOW')?.count || 0;
 
         const newStats = {
           totalPeople: stats.totalEntities,
@@ -956,21 +1125,35 @@ function App() {
   useEffect(() => {
     try {
       const shown = localStorage.getItem('investigate_attract_shown') === 'true';
-      if (!shown) setInvestigateAttract(true);
+      const hasSeenInvestigationOnboarding =
+        localStorage.getItem('hasSeenInvestigationOnboarding') === 'true';
+      const hasSeenBoardOnboarding = localStorage.getItem('board_onboarding_seen') === 'true';
+      const canShowAttract =
+        !shown && !shouldShowOnboarding && hasSeenInvestigationOnboarding && hasSeenBoardOnboarding;
+      setInvestigateAttract(canShowAttract);
       const t = setTimeout(() => setInvestigateAttract(false), 8000);
       return () => clearTimeout(t);
     } catch (e) {
       console.warn('localStorage not available:', e);
     }
-  }, []);
+  }, [shouldShowOnboarding]);
 
   useEffect(() => {
     try {
       const dismissed = localStorage.getItem('investigate_popover_dismissed') === 'true';
-      // Don't show if dismissed, not on people tab, onboarding is active, or on mobile (button hidden)
+      const hasSeenInvestigationOnboarding =
+        localStorage.getItem('hasSeenInvestigationOnboarding') === 'true';
+      const hasSeenBoardOnboarding = localStorage.getItem('board_onboarding_seen') === 'true';
       const isMobile = window.innerWidth < 768;
 
-      if (!dismissed && activeTab === 'people' && !shouldShowOnboarding && !isMobile) {
+      if (
+        !dismissed &&
+        activeTab === 'people' &&
+        !shouldShowOnboarding &&
+        hasSeenInvestigationOnboarding &&
+        hasSeenBoardOnboarding &&
+        !isMobile
+      ) {
         const timer = setTimeout(() => setInvestigatePopoverOpen(true), 1200);
         return () => clearTimeout(timer);
       }
@@ -1141,17 +1324,17 @@ function App() {
   const getNavSegmentClass = (isActive: boolean, extraClass: string = '') =>
     `${navSegmentBaseClass} ${
       isActive
-        ? `bg-[var(--glass-bg-highlight)] shadow-[var(--glass-shadow-soft)] ring-1 ring-[var(--glass-border-highlight)] text-[var(--text-strong)]`
+        ? `bg-[var(--glass-bg-highlight)] shadow-[var(--glass-shadow-soft)] text-[var(--text-strong)]`
         : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)]'
     } ${extraClass}`.trim();
-  const navItemClass = 'flex-1 min-w-0 h-full';
-  const navLabelClass = navLayoutMode === 'icons' ? 'hidden' : 'inline truncate';
+  const navItemClass = 'flex-none h-full';
+  const navLabelClass = navLayoutMode === 'icons' ? 'hidden' : 'inline';
   const navPillClass =
     navLayoutMode === 'normal'
-      ? 'flex w-full h-11 items-stretch rounded-full overflow-hidden bg-[var(--glass-bg)]/40 hover:bg-[var(--glass-bg)]/60 shadow-[var(--glass-shadow-soft)] transition-colors'
+      ? 'inline-flex h-11 items-stretch rounded-full overflow-hidden bg-[var(--glass-bg)]/40 hover:bg-[var(--glass-bg)]/60 shadow-[var(--glass-shadow-soft)] transition-colors'
       : navLayoutMode === 'compact'
-        ? 'flex w-full h-10 items-stretch rounded-full overflow-hidden bg-[var(--glass-bg)]/40 hover:bg-[var(--glass-bg)]/60 shadow-[var(--glass-shadow-soft)] transition-colors'
-        : 'flex w-full h-11 items-stretch rounded-full overflow-hidden bg-[var(--glass-bg)]/40 hover:bg-[var(--glass-bg)]/60 shadow-[var(--glass-shadow-soft)] transition-colors';
+        ? 'inline-flex h-10 items-stretch rounded-full overflow-hidden bg-[var(--glass-bg)]/40 hover:bg-[var(--glass-bg)]/60 shadow-[var(--glass-shadow-soft)] transition-colors'
+        : 'inline-flex h-11 items-stretch rounded-full overflow-hidden bg-[var(--glass-bg)]/40 hover:bg-[var(--glass-bg)]/60 shadow-[var(--glass-shadow-soft)] transition-colors';
 
   useEffect(() => {
     const track = navTrackRef.current;
@@ -1531,7 +1714,7 @@ function App() {
                   className="surface-glass-card rounded-lg p-2 hover:bg-[var(--glass-bg-strong)] transition-colors cursor-pointer"
                 >
                   <div className="text-xs text-[var(--text-secondary)] uppercase tracking-wider">
-                    Subjects
+                    People
                   </div>
                   <div className="text-lg font-bold text-[var(--accent)]">
                     {headerTotalPeople.toLocaleString()}
@@ -1576,7 +1759,7 @@ function App() {
                           className={getNavSegmentClass(activeTab === 'people')}
                         >
                           <Icon name="Users" size="sm" />
-                          <span className={navLabelClass}>Subjects</span>
+                          <span className={navLabelClass}>People</span>
                         </button>
                       </div>
                       <div className={navItemClass}>
@@ -1585,7 +1768,7 @@ function App() {
                           className={getNavSegmentClass(activeTab === 'documents')}
                         >
                           <Icon name="FileText" size="sm" />
-                          <span className={navLabelClass}>Docs</span>
+                          <span className={navLabelClass}>Documents</span>
                         </button>
                       </div>
                       <div className={`relative ${navItemClass}`}>
@@ -1613,7 +1796,7 @@ function App() {
                           data-investigation-nav-top
                         >
                           <Icon name="Target" size="sm" />
-                          <span className={navLabelClass}>Cases</span>
+                          <span className={navLabelClass}>Investigations</span>
                         </button>
                         {investigatePopoverOpen &&
                           activeTab !== 'investigations' &&
@@ -1703,7 +1886,7 @@ function App() {
                           className={getNavSegmentClass(activeTab === 'properties')}
                         >
                           <Icon name="Building" size="sm" />
-                          <span className={navLabelClass}>Property</span>
+                          <span className={navLabelClass}>Properties</span>
                         </button>
                       </div>
                       <div className={navItemClass}>
@@ -1736,7 +1919,7 @@ function App() {
                           className={getNavSegmentClass(activeTab === 'blackbook')}
                         >
                           <Icon name="BookOpen" size="sm" />
-                          <span className={navLabelClass}>Blackbook</span>
+                          <span className={navLabelClass}>Black Book</span>
                         </button>
                       </div>
                       <div className={navItemClass}>
@@ -1745,7 +1928,7 @@ function App() {
                           className={getNavSegmentClass(activeTab === 'analytics')}
                         >
                           <Icon name="BarChart3" size="sm" />
-                          <span className={navLabelClass}>Stats</span>
+                          <span className={navLabelClass}>Analytics</span>
                         </button>
                       </div>
                       <div className={navItemClass}>
@@ -1787,10 +1970,7 @@ function App() {
                     items={[
                       { label: 'Home', href: '/' },
                       {
-                        label:
-                          activeTab === 'landing'
-                            ? 'The Epstein Files'
-                            : activeTab.charAt(0).toUpperCase() + activeTab.slice(1),
+                        label: tabLabels[activeTab],
                       },
                     ]}
                   />
@@ -1814,7 +1994,16 @@ function App() {
                         entityType={entityType}
                         onEntityTypeChange={setEntityType}
                         sortBy={sortBy}
-                        onSortByChange={(val) => setSortBy(val as any)}
+                        onSortByChange={(val) => {
+                          if (
+                            val === 'name' ||
+                            val === 'mentions' ||
+                            val === 'red_flag' ||
+                            val === 'risk'
+                          ) {
+                            setSortBy(val);
+                          }
+                        }}
                         sortOrder={sortOrder}
                         onSortOrderToggle={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
                         searchTerm={searchTerm}

@@ -12,6 +12,17 @@ interface InvestigationBoardProps {
   investigationId: string;
 }
 
+interface HypothesisEvidenceLink {
+  id: string;
+  evidenceId: string;
+  evidence_title?: string;
+  relevance: string;
+}
+
+type HypothesisWithLinks = Hypothesis & {
+  evidenceLinks?: HypothesisEvidenceLink[];
+};
+
 const useVirtualWindow = (itemCount: number, rowHeight: number, overscan = 6) => {
   const [containerHeight, setContainerHeight] = useState(520);
   const [scrollTop, setScrollTop] = useState(0);
@@ -61,7 +72,9 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
 
   useEffect(() => {
     const seen = localStorage.getItem('board_onboarding_seen');
-    if (!seen) setShowOnboarding(true);
+    const investigationOnboardingSeen =
+      localStorage.getItem('hasSeenInvestigationOnboarding') === 'true';
+    if (!seen && investigationOnboardingSeen) setShowOnboarding(true);
   }, []);
 
   const handleOnboardingComplete = () => {
@@ -103,7 +116,12 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
     if (!newHypothesisTitle.trim()) return;
 
     try {
-      const created = await apiClient.post<any>(`/investigations/${investigationId}/hypotheses`, {
+      const created = await apiClient.post<{
+        id: string | number;
+        title: string;
+        description?: string;
+        status?: Hypothesis['status'];
+      }>(`/investigations/${investigationId}/hypotheses`, {
         title: newHypothesisTitle,
         description: newHypothesisDesc,
         status: 'draft',
@@ -157,12 +175,12 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
       );
 
       setHypotheses((prev: Hypothesis[]) =>
-        prev.map((h: any) => {
-          if (String(h.id) !== String(hypothesisId)) return h;
+        prev.map((hypothesis: HypothesisWithLinks) => {
+          if (String(hypothesis.id) !== String(hypothesisId)) return hypothesis;
           return {
-            ...h,
+            ...hypothesis,
             evidenceLinks: [
-              ...((h as any).evidenceLinks || []),
+              ...(hypothesis.evidenceLinks || []),
               {
                 id: `temp-${Date.now()}`,
                 evidenceId: draggedEvidence.id,
@@ -200,7 +218,8 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
     phase: 'mount' | 'update' | 'nested-update',
     actualDuration: number,
   ): void => {
-    PerformanceMonitor.logRender('InvestigationBoard', actualDuration, phase as any);
+    const normalizedPhase: 'mount' | 'update' = phase === 'mount' ? 'mount' : 'update';
+    PerformanceMonitor.logRender('InvestigationBoard', actualDuration, normalizedPhase);
   };
 
   return (
@@ -285,22 +304,26 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
                 {hypothesesVirtual.topSpacer > 0 && (
                   <div style={{ height: hypothesesVirtual.topSpacer }} />
                 )}
-                {displayedHypotheses.map((h: any) => (
+                {displayedHypotheses.map((hypothesis: HypothesisWithLinks) => (
                   <div
-                    key={h.id}
+                    key={hypothesis.id}
                     onDragOver={handleDragOver}
-                    onDrop={(e) => handleDropOnHypothesis(e, String(h.id))}
+                    onDrop={(e) => handleDropOnHypothesis(e, String(hypothesis.id))}
                     className="p-4 rounded-[var(--radius-lg)] bg-[var(--glass-bg)] border border-[var(--glass-border)] hover:border-purple-500/50 transition-colors group"
                   >
-                    <h4 className="font-medium text-[var(--text-primary)] mb-2">{h.title}</h4>
-                    <p className="text-sm text-[var(--text-muted)] line-clamp-2">{h.description}</p>
+                    <h4 className="font-medium text-[var(--text-primary)] mb-2">
+                      {hypothesis.title}
+                    </h4>
+                    <p className="text-sm text-[var(--text-muted)] line-clamp-2">
+                      {hypothesis.description}
+                    </p>
                     <div className="mt-3 text-xs text-[var(--text-muted)] space-y-2">
                       <div className="flex items-center justify-between">
-                        <span>{(h as any).evidenceLinks?.length || 0} Evidence</span>
+                        <span>{hypothesis.evidenceLinks?.length || 0} Evidence</span>
                         <span
-                          className={`px-2 py-0.5 rounded-full ${h.status === 'confirmed' ? 'bg-green-900/50 text-green-400' : 'bg-[var(--glass-bg-highlight)]'}`}
+                          className={`px-2 py-0.5 rounded-full ${hypothesis.status === 'confirmed' ? 'bg-green-900/50 text-green-400' : 'bg-[var(--glass-bg-highlight)]'}`}
                         >
-                          {h.status}
+                          {hypothesis.status}
                         </span>
                       </div>
                     </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ExternalLink, Github, Eye, EyeOff } from 'lucide-react';
+import { ExternalLink, Github, Eye, EyeOff, ArrowRight } from 'lucide-react';
 import { useSensitiveSettings } from '../../contexts/SensitiveSettingsContext';
 import { Link } from 'react-router-dom';
 import { apiClient } from '../../services/apiClient';
@@ -57,26 +57,29 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
         if (health.status === 'ok' && dbOk && hasMinimumData && probesHealthy) {
           setSystemStatus({ status: 'operational' });
         } else {
-          let errorDetail = 'Service reporting unhealthy status';
+          let errorDetail = 'Live services are responding with partial availability.';
           if (health.checks?.db?.ok === false) {
-            errorDetail = `Database Error: ${health.checks.db.error || 'Connection failed'}`;
+            errorDetail = 'The archive API is reachable, but database checks are failing.';
           } else if (!hasMinimumData) {
-            errorDetail = `Data Error: readiness(entities=${entities}, documents=${documents}), stats(entities=${statsEntities}, documents=${statsDocuments})`;
+            errorDetail = 'Core datasets are still loading or currently unavailable.';
           } else if (!probesHealthy) {
-            errorDetail = `Public Endpoint Error: ${probeFailures.join(', ')}`;
+            errorDetail = `Some live endpoints are unavailable: ${probeFailures.join(', ')}`;
           }
 
           setSystemStatus({
             status: 'error',
-            message: health.status.toUpperCase(),
+            message: 'DEGRADED',
             details: errorDetail,
           });
         }
       } catch (error) {
         setSystemStatus({
           status: 'error',
-          message: 'CONNECTION FAILURE',
-          details: error instanceof Error ? error.message : 'Unable to connect to API server',
+          message: 'OFFLINE',
+          details:
+            error instanceof Error
+              ? `Unable to reach live services: ${error.message}`
+              : 'Unable to reach live services at the moment.',
         });
       }
     };
@@ -87,9 +90,9 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
   }, []);
 
   const statusConfig = {
-    checking: { color: 'bg-yellow-500', text: 'Checking Status' },
-    operational: { color: 'bg-green-600', text: 'Operational' },
-    error: { color: 'bg-red-500', text: 'System Issue Detected' },
+    checking: { color: 'bg-[var(--status-checking)]', text: 'Checking Live Data' },
+    operational: { color: 'bg-[var(--status-operational)]', text: 'Live Data Available' },
+    error: { color: 'bg-[var(--status-error)]', text: 'Limited Live Data' },
   };
 
   return (
@@ -117,8 +120,8 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
 
               {/* Status Tooltip */}
               {systemStatus.status === 'error' && (
-                <div className="absolute bottom-full left-0 mb-2 px-3 py-2 glass-panel text-red-400 rounded shadow-[var(--glass-shadow)] text-xs w-64 opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none backdrop-blur-md">
-                  <div className="font-bold mb-1">System Error:</div>
+                <div className="absolute bottom-full left-0 mb-2 px-3 py-2 glass-panel text-[var(--accent-danger)] rounded shadow-[var(--glass-shadow)] text-xs w-64 opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none backdrop-blur-md">
+                  <div className="font-bold mb-1">Live Data Status</div>
                   <div className="font-mono mb-1">{systemStatus.message}</div>
                   {systemStatus.details && (
                     <div className="text-[10px] opacity-80 leading-tight border-t border-white/5 pt-1 mt-1">
@@ -145,7 +148,7 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
                   <span className="group-hover:translate-x-1 transition-transform">
                     Transparency Vow
                   </span>
-                  <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </Link>
               </li>
               <li>
@@ -202,7 +205,7 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
                   href="https://coff.ee/generik"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:text-pink-400 transition-colors flex items-center gap-2 group w-fit"
+                  className="hover:text-[var(--accent)] transition-colors flex items-center gap-2 group w-fit"
                 >
                   <span className="group-hover:translate-x-1 transition-transform">
                     Support the Investigation
@@ -277,7 +280,7 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
             <span className="hidden md:inline text-[var(--text-muted)]">|</span>
             <button
               onClick={onVersionClick}
-              className="hover:text-[var(--accent)] transition-colors cursor-pointer flex items-center gap-2 px-3 py-1 bg-[var(--glass-bg)] rounded-full border border-[var(--glass-border)] hover:border-[var(--accent)]"
+              className="hover:text-[var(--accent)] transition-colors cursor-pointer flex items-center gap-2 px-3 py-2 bg-[var(--glass-bg)] rounded-full border border-[var(--glass-border)] hover:border-[var(--accent)] min-h-[44px]"
               title="View Release Notes"
             >
               <span className="font-mono text-[var(--accent)]/80">v{__APP_VERSION__}</span>
@@ -288,14 +291,14 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
           <div className="flex items-center gap-6">
             <button
               onClick={toggleShowAllSensitive}
-              className={`flex items-center gap-2 text-xs transition-colors ${showAllSensitive ? 'text-amber-400 hover:text-amber-300' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}
+              className={`flex items-center gap-2 text-xs transition-colors min-h-[44px] px-1 ${showAllSensitive ? 'text-[var(--accent-warning)] hover:opacity-80' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}
               title={
                 showAllSensitive
                   ? 'Hide sensitive content by default'
                   : 'Show all sensitive content'
               }
             >
-              {showAllSensitive ? <Eye size={12} /> : <EyeOff size={12} />}
+              {showAllSensitive ? <Eye size={14} /> : <EyeOff size={14} />}
               <span className="hidden sm:inline">
                 {showAllSensitive ? 'Sensitive Content Visible' : 'Sensitive Content'}
               </span>

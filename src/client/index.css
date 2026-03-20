@@ -91,6 +91,39 @@
   --accent-investigate: #9b5ea3;
   --accent-evidence: #3d8b8b;
 
+  /* System Status Indicators */
+  --status-checking: var(--accent-warning);
+  --status-operational: var(--accent-success);
+  --status-error: var(--accent-danger);
+
+  /* Navigation Category Colors — Explore section */
+  --nav-documents: #34d399;
+  --nav-documents-hover-bg: color-mix(in srgb, #10b981 20%, transparent);
+  --nav-emails: #fbbf24;
+  --nav-emails-hover-bg: color-mix(in srgb, #f59e0b 20%, transparent);
+  --nav-media: #a78bfa;
+  --nav-media-hover-bg: color-mix(in srgb, #8b5cf6 20%, transparent);
+
+  /* Navigation Category Colors — Intelligence section */
+  --nav-investigations: #ec4899;
+  --nav-investigations-bg: color-mix(in srgb, #831843 20%, transparent);
+  --nav-investigations-bg-hover: color-mix(in srgb, #831843 40%, transparent);
+  --nav-investigations-border: color-mix(in srgb, #ec4899 10%, transparent);
+  --nav-investigations-ring: color-mix(in srgb, #ec4899 50%, transparent);
+  --nav-investigations-glow: 0 0 15px -3px color-mix(in srgb, #ec4899 30%, transparent);
+  --nav-timeline: #fb923c;
+  --nav-timeline-bg: color-mix(in srgb, #7c2d12 20%, transparent);
+  --nav-timeline-bg-hover: color-mix(in srgb, #7c2d12 40%, transparent);
+  --nav-timeline-border: color-mix(in srgb, #fb923c 10%, transparent);
+  --nav-flights: #38bdf8;
+  --nav-flights-bg: color-mix(in srgb, #0c4a6e 20%, transparent);
+  --nav-flights-bg-hover: color-mix(in srgb, #0c4a6e 40%, transparent);
+  --nav-flights-border: color-mix(in srgb, #38bdf8 10%, transparent);
+  --nav-analytics: #2dd4bf;
+  --nav-analytics-bg: color-mix(in srgb, #134e4a 20%, transparent);
+  --nav-analytics-bg-hover: color-mix(in srgb, #134e4a 40%, transparent);
+  --nav-analytics-border: color-mix(in srgb, #2dd4bf 10%, transparent);
+
   /* Semantic Risk Scale */
   --risk-critical: #c0392b;
   --risk-high: #c0392b;
@@ -113,49 +146,76 @@ body {
 }
 
 /* Backdrop surface for app-level depth */
+@keyframes backdrop-drift-a {
+  0%, 100% { background-position:  8% -5%,  92% 8%,  50% 88%; }
+  25%       { background-position: 20% 10%,  78% 2%,  58% 78%; }
+  50%       { background-position:  5% 18%,  95% 18%, 42% 92%; }
+  75%       { background-position: 16%  2%,  82% 12%, 54% 82%; }
+}
+
 .app-backdrop {
-  background:
-    radial-gradient(1200px 600px at 10% 0%, rgba(18, 23, 40, 0.55), transparent 60%),
-    radial-gradient(1200px 600px at 90% 10%, rgba(14, 18, 30, 0.5), transparent 62%), var(--bg-dark);
+  background-image:
+    radial-gradient(ellipse at center, rgba(15, 30, 85, 0.5),   transparent 55%),
+    radial-gradient(ellipse at center, rgba(45, 12, 75, 0.38),  transparent 55%),
+    radial-gradient(ellipse at center, rgba(212, 168, 75, 0.07), transparent 65%);
+  background-color: var(--bg-dark);
+  background-size: 1400px 700px, 1100px 600px, 800px 500px;
+  background-repeat: no-repeat;
+  background-position: 8% -5%, 92% 8%, 50% 88%;
+  background-attachment: fixed;
+  animation: backdrop-drift-a 48s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-backdrop {
+    animation: none;
+  }
 }
 
 /* Liquid Glass Utilities */
 
 .glass-panel {
-  background: #15151a;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
   position: relative;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--glass-shadow-soft);
 }
 
 .glass-surface {
-  background: #15151a;
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
   border-radius: var(--radius-lg);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow-soft);
 }
 
 .dropdown-surface {
-  background: rgba(15, 23, 42, 0.98);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(148, 163, 184, 0.3);
+  background: rgba(15, 23, 42, 0.94);
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+  border: 1px solid var(--glass-border-highlight);
   border-radius: var(--radius-md);
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
 }
 
 .glass-card {
-  background: #15151a;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
   transition: all var(--duration-normal) var(--easing-liquid);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--glass-shadow-soft);
 }
 
 .glass-card:hover {
-  background: #1a1a20;
-  border-color: rgba(255, 255, 255, 0.1);
+  background: var(--glass-bg-strong);
+  border-color: var(--glass-border-highlight);
   transform: translateY(-1px);
-  box-shadow: 0 8px 24px rgba(2, 6, 23, 0.45);
+  box-shadow: var(--glass-shadow);
 }
 
 /* Scrollbar Overhaul: Invisible unless active */
@@ -231,13 +291,13 @@ body {
 
 .surface-glass-header {
   @apply glass-panel rounded-[var(--radius-lg)];
-  background: #1a1a20;
+  background: var(--glass-bg-strong);
   box-shadow: var(--glass-shadow);
 }
 
 .surface-glass-strong {
   @apply glass-panel rounded-[var(--radius-lg)];
-  background: #1a1a20;
+  background: var(--glass-bg-strong);
   box-shadow: var(--glass-shadow);
 }
 
@@ -254,10 +314,10 @@ body {
   will-change: background-color, border-color;
 }
 .control:hover {
-  background: #1a1a20;
-  border-color: rgba(255, 255, 255, 0.1);
+  background: var(--glass-bg-strong);
+  border-color: var(--glass-border-highlight);
   transform: translateY(-1px);
-  box-shadow: 0 10px 28px rgba(2, 6, 23, 0.4);
+  box-shadow: var(--glass-shadow);
 }
 
 .control:active {
