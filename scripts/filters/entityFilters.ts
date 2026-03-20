@@ -334,6 +334,13 @@ const JUNK_PHRASES = new Set([
 ]);
 
 const JUNK_REGEX = [
+  /^Dear\s/i, // Email/letter salutations
+  /^Defendant\s/i, // Legal role prefix
+  /^Plaintiff\s/i, // Legal role prefix
+  /^Watch\s/i, // "Watch Video", "Watch Now" etc.
+  /^Jeffrey\s+Epstein'?s\s/i, // Possessive role descriptions
+  /philanthropy/i, // Organisation names extracted as people
+  /housekeeper$/i, // Role-only entity names
   /^\d+$/, // All numbers
   /^\W+$/, // All non-word characters
   /^.{0,3}$/, // Very short strings (Ag, Ed, Al are exceptions but usually better to strict filter in automated runs)

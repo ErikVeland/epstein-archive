@@ -51,6 +51,19 @@ const JUNK_PATTERNS = [
   '%Zorro Automobiles%',
   '%Search Personnel%',
   '%Hong Kong%',
+  // Salutation prefixes extracted from letter/email openings
+  'Dear %',
+  // Legal role prefixes extracted from court documents
+  'Defendant %',
+  'Plaintiff %',
+  // Possessive role descriptions (e.g. "Jeffrey Epstein's Housekeeper")
+  'Jeffrey Epstein%s %',
+  // Watch/video link text extracted from web content
+  'Watch %',
+  // Philanthropy phrases
+  '%Philanthropy%',
+  // Housekeeper/role-only entities
+  '%Housekeeper',
 ];
 
 async function main() {
