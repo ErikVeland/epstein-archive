@@ -15,14 +15,34 @@ temp.env
 *.log
 *.log.*
 
-# Database files
+# Database and backup files
 *.db
 !sample.db
 *.db-shm
 *.db-wal
 *.sqlite
+*.db.gz
+*.db.bak
+*.db.snapshot
+*.db.snapshot-shm
+*.db.snapshot-wal
+*.db.snapshot-journal
+*.db.corrupt
+*.sql.gz
+dump.sql
+/db/
+epstein_dump.dump
 
-# Temporary files
+# Pipeline and enrichment output
+pipeline_results/
+pipeline_checkpoints/
+enrichment_results/
+ingestion_log.txt
+
+# Migration SQL (auto-generated, not version-controlled)
+scripts/migrations/*.sql
+
+# Temporary and scratch files
 *.tmp
 *.temp
 *.bak
@@ -31,6 +51,36 @@ temp.env
 *.backup-*
 *.corrupted
 *.part*
+tmp/
+temp/
+
+# Compressed archives
+*.gz
+*.tar.gz
+*.zip
+
+# Large binaries
+eng.traineddata
+data/media/images/
+data/media/originals/
+data/media/audio/
+data/media/videos/
+data/thumbnails/
+data/faces_crops/
+data/models/
+thumbnails/
+originals/
+
+# Specific large data dirs
+data/ingest
+backups/
+database_backups/
+uploads/
+analysis/
+logs/
+consolidation_reports/
+validation_reports/
+config/
 
 # OS generated files
 .DS_Store
@@ -41,179 +91,45 @@ temp.env
 ehthumbs.db
 Thumbs.db
 
-# IDE files
+# IDE and tool-local state
 .vscode/
 .idea/
 .chuck/
+.claude/settings.local.json
+.playwright-mcp/
+
+# Claude Code local plugins (not project code)
+skiils/
 
 # Test results
 test-results/
 playwright-report/
-
-# Compressed files
-*.gz
-*.tar.gz
-*.zip
-
-# Large SQL dumps
-*.sql.gz
-dump.sql
-/db/
-scripts/migrations/*.sql
 
 # Node debug logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Original high-res images (for EXIF extraction only)
-data/media/originals/
-originals/
+# Python
+venv/
+.venv/
+__pycache__/
+*.pyc
 
-# Old/temporary directories
-data_old/
-backups/
-database_backups/
-logs/
-analysis/
-consolidation_reports/
-validation_reports/
-uploads/
-tmp/
-
-# Large binaries
-eng.traineddata
-data/media/images/
-data/thumbnails/
-data/faces_crops/
-data/models/
-thumbnails/
-data/media/audio/
-data/media/videos/
-config/
+# Build artifacts and generated reports
+bundle-analysis.html
+gallery.html
+lint_output*.json
 aggressive_consolidation_audit.json
 data_quality_report.json
 timeline-normalisation.rtf
 epstein-archive-deployment-*.tar.gz
+*.local-backup-*
 
-# Python venv
-venv/
-__pycache__/
-*.pyc
-
-# Additional database and backup files
-*.db
-*.db-shm
-*.db-wal
-*.sqlite
-*.sql.gz
-*.db.gz
-*.db.bak
-*.db.corrupt
-
-# Backup and archive files
-*.bak
-*.backup
-*.backup-*
-*.corrupted
-*.part*
-*.tar.gz
-*.zip
-*.gz
-
-# Log files
-*.log
-*.log.*
-
-# More temporary files
-tmp/
-temp/
-*.tmp
-*.temp
-
-# Production and backup databases
-*production*.db
-*production*.db-shm
-*production*.db-wal
-*backup*.db
-*backup*.db-shm
-*backup*.db-wal
-*local*.db
-*local*.db-shm
-*local*.db-wal
-*synced*.db
-*synced*.db-shm
-*synced*.db-wal
-*safe*.db
-*safe*.db-shm
-*safe*.db-wal
-*working*.db
-*working*.db-shm
-*working*.db-wal
-*final*.db
-*final*.db-shm
-*final*.db-wal
-*clean*.db
-*clean*.db-shm
-*clean*.db-wal
-
-# More archive files
+# CI/deploy specific
 dist.tar.gz
-*.tar.gz
-
-# Other specific files that should be ignored
-server.log
-api-server.log
-*.db.dev.bak
 prod_*.gz
 local_prod_*.gz
 test-promotion.db
-
-# Additional build artifacts and temporary files
-*.gz
-*.tar.gz
-*.zip
-*.sql.gz
-*.db
-*.db-shm
-*.db-wal
-*.sqlite
-bundle-analysis.html
-
-# Directories to ignore
-tmp/
-temp/
-backups/
-uploads/
-data/ingest
-*.local-backup-*
-ingestion_log.txt
-pipeline_results/
-
-# DB Snapshots
-*.snapshot
-
-lint_output_final_2.json
-
-lint_output_final_3.json
-
-lint_output_final_4.json
-
-lint_output_final_6.json
-
-lint_output_final_7.json
-
-lint_output_final_8.json
-
-lint_output_final.json
-
-lint_output.json
-
-pipeline_checkpoints/run_*.json
-pipeline_checkpoints/live_status.json
-
-epstein-archive.db.snapshot-journal
-CHANGELOG.md
-
-scripts/pipeline_checkpoints/live_status.json
-epstein_dump.dump
+server.log
+api-server.log

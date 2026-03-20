@@ -1,4 +1,0 @@
-
-> epstein-archive@14.3.0 type-check /Users/veland/Downloads/Epstein Files/epstein-archive
-> tsc --noEmit
-
