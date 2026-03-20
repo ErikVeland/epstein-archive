@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import crypto from 'crypto';
-import { authenticateRequest, requireRole } from '../auth/middleware.js';
+import { authenticateRequest, requireRole, AuthRequest } from '../auth/middleware.js';
 import { logAudit } from '../utils/auditLogger.js';
 import bcrypt from 'bcryptjs';
 import { createUser, getUserById, listUsers, updateUser } from '../db/routesDb.js';
@@ -8,6 +8,8 @@ import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
 
 const router = Router();
+
+const BCRYPT_COST = 12;
 
 // Schemas
 const createUserSchema = z.object({
@@ -41,7 +43,7 @@ router.get('/', authenticateRequest, requireRole('admin'), async (_req, res, nex
   }
 });
 
-router.get('/current', authenticateRequest, async (req: any, res, next) => {
+router.get('/current', authenticateRequest, async (req: AuthRequest, res, next) => {
   try {
     const userId = req.user?.id;
     if (!userId) return res.status(401).json({ error: 'Not authenticated' });
@@ -60,13 +62,13 @@ router.post(
   authenticateRequest,
   requireRole('admin'),
   validate(createUserSchema),
-  async (req: any, res, next) => {
+  async (req: AuthRequest, res, next) => {
     try {
       const { username, password, email, role } = req.body;
 
       const id = crypto.randomUUID();
       // Hash password
-      const passwordHash = bcrypt.hashSync(password, 12);
+      const passwordHash = await bcrypt.hash(password, BCRYPT_COST);
 
       await createUser({
         id,
@@ -93,54 +95,59 @@ router.post(
 );
 
 // Update user (Admin or Self)
-router.put('/:id', authenticateRequest, validate(updateUserSchema), async (req: any, res, next) => {
-  try {
-    const { id } = req.params;
-    const { username, email, role, password } = req.body;
-    const currentUser = req.user;
+router.put(
+  '/:id',
+  authenticateRequest,
+  validate(updateUserSchema),
+  async (req: AuthRequest, res, next) => {
+    try {
+      const { id } = req.params;
+      const { username, email, role, password } = req.body;
+      const currentUser = req.user;
 
-    if (currentUser.role !== 'admin' && currentUser.id !== id) {
-      return res.status(403).json({ error: 'Forbidden' });
-    }
+      if (currentUser.role !== 'admin' && currentUser.id !== id) {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
 
-    const fields: {
-      username?: string;
-      email?: string;
-      role?: string;
-      passwordHash?: string;
-    } = {};
-    if (username) {
-      fields.username = username;
-    }
-    if (email) {
-      fields.email = email;
-    }
-    if (role && currentUser.role === 'admin') {
-      fields.role = role;
-    }
-    if (password) {
-      fields.passwordHash = bcrypt.hashSync(password, 10);
-    }
+      const fields: {
+        username?: string;
+        email?: string;
+        role?: string;
+        passwordHash?: string;
+      } = {};
+      if (username) {
+        fields.username = username;
+      }
+      if (email) {
+        fields.email = email;
+      }
+      if (role && currentUser.role === 'admin') {
+        fields.role = role;
+      }
+      if (password) {
+        fields.passwordHash = await bcrypt.hash(password, BCRYPT_COST);
+      }
 
-    if (!fields.username && !fields.email && !fields.role && !fields.passwordHash) {
-      return res.status(400).json({ error: 'No fields to update' });
+      if (!fields.username && !fields.email && !fields.role && !fields.passwordHash) {
+        return res.status(400).json({ error: 'No fields to update' });
+      }
+
+      await updateUser(id, fields);
+
+      await logAudit(
+        'update_user',
+        currentUser.id,
+        'user',
+        id,
+        { username, role },
+        undefined,
+        req.requestId,
+      );
+      res.json({ success: true });
+    } catch (e) {
+      next(e);
     }
-
-    await updateUser(id, fields);
-
-    await logAudit(
-      'update_user',
-      currentUser.id,
-      'user',
-      id,
-      { username, role },
-      undefined,
-      req.requestId,
-    );
-    res.json({ success: true });
-  } catch (e) {
-    next(e);
-  }
-});
+  },
+);
 
 export default router;

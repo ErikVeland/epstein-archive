@@ -47,49 +47,48 @@ function normalizeGraphLabel(raw: string): string {
   return withoutHonorific;
 }
 
+// Generic document-noise fragments that bleed into entity names during OCR/extraction.
+// Checked via substring match (toLowerCase) against the candidate label.
+const JUNK_SUBSTRINGS = new Set([
+  'demolition',
+  'bracket',
+  'column',
+  'provided',
+  'direction',
+  'newsletter',
+  // OCR artefacts — mis-reads of specific proper nouns or corpus-specific extraction noise
+  'east if',
+  'magstea',
+  'jedge',
+  'girand',
+  'girara',
+  'margarlt',
+  'tunsi',
+  'dechiqu',
+  'kimberly meder',
+  'kimbery meder',
+  // Document-structure noise
+  'see attachment',
+  'attachment',
+  'building no',
+  'bluray disc',
+  'en espa',
+  'search ',
+  'click ',
+  'privacy ',
+]);
+
+const JUNK_PREFIXES = ['the ', 'mango '];
+
 function isLikelyJunkGraphLabel(label: string): boolean {
   const v = label.toLowerCase();
   if (!v) return true;
-  if (v.startsWith('the ')) return true;
+  if (JUNK_PREFIXES.some((p) => v.startsWith(p))) return true;
   if (/\d/.test(v)) return true;
   if (v.endsWith(' group') || v.endsWith(' inc') || v.endsWith(' llc') || v.endsWith(' corp')) {
     return true;
   }
-  if (
-    v.includes('demolition') ||
-    v.includes('bracket') ||
-    v.includes('column') ||
-    v.includes('provided') ||
-    v.includes('direction') ||
-    v.includes('newsletter')
-  ) {
-    return true;
-  }
-  if (
-    v.includes('east if') ||
-    v.includes('magstea') ||
-    v.includes('jedge') ||
-    v.includes('girand') ||
-    v.includes('girara') ||
-    v.includes('margarlt') ||
-    v.includes('tunsi') ||
-    v.includes('dechiqu') ||
-    v.includes('kimberly meder') ||
-    v.includes('kimbery meder')
-  ) {
-    return true;
-  }
-  return (
-    v.includes('see attachment') ||
-    v.includes('attachment') ||
-    v.includes('building no') ||
-    v.includes('bluray disc') ||
-    v.includes('en espa') ||
-    v.includes('search ') ||
-    v.includes('click ') ||
-    v.includes('privacy ') ||
-    v.startsWith('mango ')
-  );
+  return [...JUNK_SUBSTRINGS].some((fragment) => v.includes(fragment));
 }
 
 class MinPriorityQueue<T> {

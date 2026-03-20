@@ -51,6 +51,7 @@ interface CacheEntry<T> {
 
 const cache = new Map<string, CacheEntry<unknown>>();
 const DEFAULT_CACHE_TTL = 30000; // 30 seconds
+const MAX_CACHE_SIZE = 200;
 
 function getCachedData<T>(key: string): T | null {
   const entry = cache.get(key);
@@ -66,6 +67,11 @@ function getCachedData<T>(key: string): T | null {
 }
 
 function setCachedData<T>(key: string, data: T, ttl: number = DEFAULT_CACHE_TTL): void {
+  if (cache.size >= MAX_CACHE_SIZE) {
+    // Evict the oldest entry to keep the cache bounded
+    const oldestKey = cache.keys().next().value;
+    if (oldestKey !== undefined) cache.delete(oldestKey);
+  }
   cache.set(key, {
     data,
     timestamp: Date.now(),

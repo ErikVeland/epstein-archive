@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 
 // Extend Request locally to avoid global type conflicts for now
-// Extend Request locally to avoid global type conflicts for now
 export interface AuthRequest extends Request {
   user?: {
     id: string;
@@ -12,6 +11,13 @@ export interface AuthRequest extends Request {
 }
 
 import jwt from 'jsonwebtoken';
+
+interface JwtPayload {
+  id: string | number;
+  username?: string;
+  role?: string;
+  email?: string | null;
+}
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET && process.env.NODE_ENV === 'production') {
@@ -35,7 +41,7 @@ const verifyToken = (req: Request): AuthRequest['user'] | null => {
   if (!token) return null;
 
   try {
-    const decoded = jwt.verify(token, ACTUAL_SECRET) as any;
+    const decoded = jwt.verify(token, ACTUAL_SECRET) as JwtPayload;
     if (!decoded?.id) return null;
     return {
       id: String(decoded.id),

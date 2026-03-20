@@ -61,6 +61,8 @@ import {
 } from './server/mappers/entitiesDtoMapper.js';
 import { validate, subjectsQuerySchema } from './server/middleware/validate.js';
 import { purgeCache } from './server/middleware/cache.js';
+import { pgSaturationShed } from './server/middleware/pgShed.js';
+import { retryStormDetector } from './server/middleware/retryStorm.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -218,6 +220,12 @@ export class App {
         req.path === '/api/stats/health/deep',
     });
     this.app.use(limiter);
+
+    // 3b. DB pool saturation shedding — returns 503 when pool is near-exhausted
+    this.app.use(pgSaturationShed);
+
+    // 3c. Retry storm detection — blocks IPs that flood with declared retries
+    this.app.use(retryStormDetector);
 
     // 4. Parsing
     this.app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || '1mb' }));
