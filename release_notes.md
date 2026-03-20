@@ -1,5 +1,48 @@
 # Release Notes
 
+## v17.0.0 - 2026-03-20 - Design Overhaul, Data Quality & Platform Hardening
+
+This release completes a full cycle of platform improvements begun in v16.0. The archive looks and performs substantially differently from where it started — new visual identity, a cleaner people directory, faster search, improved sharing, and a significantly more robust backend.
+
+### What's New for Users
+
+**Redesigned visual identity**
+
+- New typography: IBM Plex Sans for UI text, DM Serif Display for editorial headings, IBM Plex Mono for code and identifiers.
+- Archival amber accent (`#d4a84b`) replaces the previous cyan throughout — tab indicators, search, focus states, card titles on hover.
+- Solid, opaque surfaces replace the glass-morphism aesthetic: darker, cleaner, faster to render.
+- Risk scale simplified to three visual bands (critical/high → deep red, medium → goldenrod, low → green) for faster at-a-glance reading.
+- Sharper border radii and tighter header height give the interface more density without feeling cramped.
+
+**Cleaner people directory**
+
+- Removed 1,658 phantom entities that were being extracted from document phrasing rather than real people — salutations ("Dear Donald Trump"), legal role prefixes ("Defendant Ghislaine…"), possessive role descriptions ("Jeffrey Epstein's Housekeeper"), and video link text ("Watch Jeffrey Epstein"). The people directory now surfaces actual individuals.
+- Ingest pipeline updated to block these patterns from re-entering the database on future document processing runs.
+
+**Improved sharing & discovery**
+
+- Media item and album deep links now generate correct Open Graph preview images and titles when shared on social platforms or messaging apps.
+- New high-intent landing pages for search engine discovery: `/epstein-documents`, `/epstein-people`, `/epstein-media`, `/epstein-timeline`, `/epstein-flights`, `/the-epstein-files`.
+
+**Session continuity**
+
+- Refreshing the page no longer logs you out. The app now silently restores your session from the refresh cookie without requiring a manual re-login.
+
+**Investigation workspace**
+
+- New investigations are now created under your own user account rather than a hardcoded placeholder account.
+
+### Under the Hood
+
+- All API responses standardised to camelCase — eliminates a long-running inconsistency between routes.
+- Evidence search loads associated people in a single batch query instead of one query per result.
+- Token refresh is now atomic (transaction + row lock), preventing concurrent tab refreshes from creating duplicate live tokens.
+- Removed unauthenticated static file handler for `/data`; all document access now routes through the audited path-traversal-protected handler.
+- Full structured logging via `pino` across all server code; zero `console.log` calls remaining in production paths.
+- Zero TypeScript errors, zero ESLint errors. Clean Vite build.
+
+---
+
 ## v16.9.0 - 2026-03-19 - Production Readiness Hardening
 
 ### Security
