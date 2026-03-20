@@ -147,21 +147,48 @@ body {
 
 /* Backdrop surface for app-level depth */
 @keyframes backdrop-drift-a {
-  0%, 100% { background-position:  8% -5%,  92% 8%,  50% 88%; }
-  25%       { background-position: 20% 10%,  78% 2%,  58% 78%; }
-  50%       { background-position:  5% 18%,  95% 18%, 42% 92%; }
-  75%       { background-position: 16%  2%,  82% 12%, 54% 82%; }
+  0%,
+  100% {
+    background-position:
+      8% -5%,
+      92% 8%,
+      50% 88%;
+  }
+  25% {
+    background-position:
+      20% 10%,
+      78% 2%,
+      58% 78%;
+  }
+  50% {
+    background-position:
+      5% 18%,
+      95% 18%,
+      42% 92%;
+  }
+  75% {
+    background-position:
+      16% 2%,
+      82% 12%,
+      54% 82%;
+  }
 }
 
 .app-backdrop {
   background-image:
-    radial-gradient(ellipse at center, rgba(15, 30, 85, 0.5),   transparent 55%),
-    radial-gradient(ellipse at center, rgba(45, 12, 75, 0.38),  transparent 55%),
+    radial-gradient(ellipse at center, rgba(15, 30, 85, 0.5), transparent 55%),
+    radial-gradient(ellipse at center, rgba(45, 12, 75, 0.38), transparent 55%),
     radial-gradient(ellipse at center, rgba(212, 168, 75, 0.07), transparent 65%);
   background-color: var(--bg-dark);
-  background-size: 1400px 700px, 1100px 600px, 800px 500px;
+  background-size:
+    1400px 700px,
+    1100px 600px,
+    800px 500px;
   background-repeat: no-repeat;
-  background-position: 8% -5%, 92% 8%, 50% 88%;
+  background-position:
+    8% -5%,
+    92% 8%,
+    50% 88%;
   background-attachment: fixed;
   animation: backdrop-drift-a 48s ease-in-out infinite;
 }
