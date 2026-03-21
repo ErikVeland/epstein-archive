@@ -2,12 +2,12 @@ import { Router } from 'express';
 import { graphRateLimiter } from '../middleware/rateLimit.js';
 import { logger } from '../services/Logger.js';
 import {
+  findShortestPath,
   getEdgeEvidenceDocuments,
   getEdgeRelationship,
   getGlobalGraphEdges,
   getGlobalGraphNodes,
   getGraphCommunities,
-  getGraphNeighbors,
   getGraphPathEdges,
   getGraphPathNodes,
 } from '../db/routesDb.js';
@@ -91,110 +91,6 @@ function isLikelyJunkGraphLabel(label: string): boolean {
   return [...JUNK_SUBSTRINGS].some((fragment) => v.includes(fragment));
 }
 
-class MinPriorityQueue<T> {
-  private heap: Array<{ value: T; priority: number }> = [];
-
-  push(value: T, priority: number): void {
-    this.heap.push({ value, priority });
-    this.bubbleUp(this.heap.length - 1);
-  }
-
-  pop(): { value: T; priority: number } | undefined {
-    if (this.heap.length === 0) return undefined;
-    const top = this.heap[0];
-    const last = this.heap.pop()!;
-    if (this.heap.length > 0) {
-      this.heap[0] = last;
-      this.bubbleDown(0);
-    }
-    return top;
-  }
-
-  get size(): number {
-    return this.heap.length;
-  }
-
-  private bubbleUp(index: number): void {
-    let i = index;
-    while (i > 0) {
-      const parent = Math.floor((i - 1) / 2);
-      if (this.heap[parent].priority <= this.heap[i].priority) break;
-      [this.heap[parent], this.heap[i]] = [this.heap[i], this.heap[parent]];
-      i = parent;
-    }
-  }
-
-  private bubbleDown(index: number): void {
-    let i = index;
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
-      const left = 2 * i + 1;
-      const right = 2 * i + 2;
-      let smallest = i;
-      if (left < this.heap.length && this.heap[left].priority < this.heap[smallest].priority) {
-        smallest = left;
-      }
-      if (right < this.heap.length && this.heap[right].priority < this.heap[smallest].priority) {
-        smallest = right;
-      }
-      if (smallest === i) break;
-      [this.heap[i], this.heap[smallest]] = [this.heap[smallest], this.heap[i]];
-      i = smallest;
-    }
-  }
-}
-
-async function computeShortestPathNodeIds(
-  sourceId: string,
-  targetId: string,
-  startDate?: string,
-  endDate?: string,
-): Promise<string[] | null> {
-  const distances = new Map<string, number>([[sourceId, 0]]);
-  const previous = new Map<string, string | null>();
-  const visited = new Set<string>();
-  const queue = new MinPriorityQueue<string>();
-  queue.push(sourceId, 0);
-
-  const maxNodes = 5000;
-  let explored = 0;
-
-  while (queue.size > 0 && explored < maxNodes) {
-    const item = queue.pop();
-    if (!item) break;
-    const { value: current, priority: distance } = item;
-    if (visited.has(current)) continue;
-
-    visited.add(current);
-    explored++;
-
-    if (current === targetId) {
-      const path: string[] = [];
-      let cursor: string | null = targetId;
-      while (cursor) {
-        path.unshift(cursor);
-        cursor = previous.get(cursor) || null;
-      }
-      return path;
-    }
-
-    const neighbors = await getGraphNeighbors(current, startDate, endDate);
-    for (const neighbor of neighbors) {
-      const nextId = String(neighbor.canonical_id);
-      const weight = Math.max(0.0001, Number(neighbor.weight || 0.1));
-      const nextDistance = distance + 1 / weight;
-
-      if (nextDistance < (distances.get(nextId) ?? Number.POSITIVE_INFINITY)) {
-        distances.set(nextId, nextDistance);
-        previous.set(nextId, current);
-        queue.push(nextId, nextDistance);
-      }
-    }
-  }
-
-  return null;
-}
-
 // Legacy root alias for older clients/tests expecting /api/graph to return the global graph payload.
 router.get('/', (req, res) => {
   const params = new URLSearchParams();
@@ -257,12 +153,7 @@ router.get('/global', graphRateLimiter, async (req, res, next) => {
       }
       const sourceId = String(req.query.sourceId);
       const targetId = String(req.query.targetId);
-      const pathNodeArray = await computeShortestPathNodeIds(
-        sourceId,
-        targetId,
-        startDate,
-        endDate,
-      );
+      const pathNodeArray = await findShortestPath(sourceId, targetId, startDate, endDate);
       if (!pathNodeArray || pathNodeArray.length === 0) {
         return res.json({ nodes: [], edges: [] });
       }

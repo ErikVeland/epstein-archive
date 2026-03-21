@@ -404,19 +404,67 @@ export async function getEmailDocumentContentById(id: string) {
   return rows[0];
 }
 
-export async function getGraphNeighbors(
-  sourceCanonicalId: string,
+/**
+ * Find shortest hop-count path between two entities using a single BFS recursive CTE.
+ * Replaces the prior JS Dijkstra loop that issued one DB query per visited node (up to 5000).
+ *
+ * Returns an ordered array of canonical_id strings forming the path, or null if unreachable
+ * within MAX_DEPTH hops.
+ */
+export async function findShortestPath(
+  sourceId: string,
+  targetId: string,
   startDate?: string,
   endDate?: string,
-) {
-  return (graphQueries.getGraphNeighbors as any).run(
-    {
-      sourceCanonicalId,
-      startDate: startDate || null,
-      endDate: endDate || null,
-    },
-    getApiPool(),
+): Promise<string[] | null> {
+  const MAX_DEPTH = 7;
+  const pool = getApiPool();
+
+  const { rows } = await pool.query<{ path: string[] }>(
+    `
+    WITH RECURSIVE
+    -- Materialise the date-filtered adjacency once so the BFS join is cheap.
+    adj(entity_id, neighbor_id) AS (
+      SELECT DISTINCT s.canonical_id, t.canonical_id
+      FROM entity_relationships er
+      JOIN entities s ON er.source_entity_id = s.id
+      JOIN entities t ON er.target_entity_id = t.id
+      WHERE s.canonical_id != t.canonical_id
+        AND ($3::timestamptz IS NULL OR er.first_seen_at <= $3::timestamptz)
+        AND ($4::timestamptz IS NULL OR er.last_seen_at  >= $4::timestamptz)
+    ),
+    bfs(current_id, path, depth) AS (
+      -- Seed: direct neighbours of the source node
+      SELECT a.neighbor_id,
+             ARRAY[$1::bigint, a.neighbor_id],
+             1
+      FROM adj a
+      WHERE a.entity_id = $1::bigint
+        AND a.neighbor_id != $1::bigint
+
+      UNION ALL
+
+      -- Expand one hop at a time; stop once the target is the frontier node
+      SELECT a.neighbor_id,
+             b.path || a.neighbor_id,
+             b.depth + 1
+      FROM bfs b
+      JOIN adj a ON a.entity_id = b.current_id
+      WHERE b.depth < $5
+        AND NOT (a.neighbor_id = ANY(b.path))  -- no cycles
+        AND b.current_id != $2::bigint          -- don't expand past the target
+    )
+    SELECT path::text[] AS path
+    FROM bfs
+    WHERE current_id = $2::bigint
+    ORDER BY depth ASC
+    LIMIT 1
+    `,
+    [sourceId, targetId, startDate ?? null, endDate ?? null, MAX_DEPTH],
   );
+
+  if (rows.length === 0) return null;
+  return rows[0].path;
 }
 
 export async function getGraphPathNodes(pathNodes: string[]) {
