@@ -48,12 +48,12 @@ Trigger server-side forensic analysis.
 
 #### Create Investigation
 
-`POST /api/investigation`
+`POST /api/investigations`
 Create a new investigation case.
 
 #### Add Evidence to Case
 
-`POST /api/investigation/add-evidence`
+`POST /api/investigations/add-evidence`
 Link an existing document to an investigation.
 
 ### 👥 Entities

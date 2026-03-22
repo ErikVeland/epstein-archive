@@ -113,7 +113,7 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
       setEvidence(evidenceData.evidence || []);
       setStats(evidenceData.stats || null);
       setRelationEdges(Array.isArray(relationsData.relations) ? relationsData.relations : []);
-      setCommunications(commsRes.data || []);
+      setCommunications((commsRes.data || []) as any[]);
     } catch (error) {
       console.error('Error loading entity evidence:', error);
     } finally {

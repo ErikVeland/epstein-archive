@@ -78,7 +78,6 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
       setImageLoading(true);
       setEditTitle(currentImage.title || '');
       setEditDesc(currentImage.description || '');
-      setEditDesc(currentImage.description || '');
       setIsEditing(false);
       // Skip rotation initialization if we just finished rotating
       if (justRotatedRef.current) {
@@ -156,17 +155,24 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
   useEffect(() => {
     if (!currentImage) return;
 
-    // Fetch tags
-    fetch(`/api/media/images/${currentImage.id}/tags`)
-      .then((res) => res.json())
-      .then(setImageTags)
-      .catch(() => setImageTags([]));
+    let cancelled = false;
 
-    // Fetch people
-    fetch(`/api/media/images/${currentImage.id}/people`)
-      .then((res) => res.json())
-      .then(setImagePeople)
-      .catch(() => setImagePeople([]));
+    Promise.all([
+      fetch(`/api/media/images/${currentImage.id}/tags`)
+        .then((res) => res.json())
+        .catch(() => []),
+      fetch(`/api/media/images/${currentImage.id}/people`)
+        .then((res) => res.json())
+        .catch(() => []),
+    ]).then(([tags, people]) => {
+      if (cancelled) return;
+      setImageTags(Array.isArray(tags) ? tags : []);
+      setImagePeople(Array.isArray(people) ? people : []);
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [currentImage]);
 
   const handleRotate = async (direction: 'left' | 'right') => {
@@ -331,6 +337,8 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
     });
   };
 
+  const imageSrc = `/api/media/images/${currentImage.id}/raw?v=${imageVersion}`;
+
   return createPortal(
     <div
       id="MediaViewerModal"
@@ -427,7 +435,7 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
             </div>
           )}
           <img
-            src={`/api/media/images/${currentImage.id}/raw?v=${imageVersion}&t=${Date.now()}`}
+            src={imageSrc}
             alt={currentImage.title}
             onLoad={() => setImageLoading(false)}
             className={`transition-all duration-300 ${isZoomed ? 'w-full h-full object-cover cursor-move' : 'max-w-full max-h-full object-contain'} ${imageLoading ? 'opacity-0' : 'opacity-100'}`}

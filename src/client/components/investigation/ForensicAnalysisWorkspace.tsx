@@ -550,7 +550,8 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
                             <span className="text-[var(--text-muted)]">
                               {toolStats.count.toLocaleString()} items
                             </span>
-                            <span
+                            <button
+                              type="button"
                               className={`px-2 py-1 rounded text-xs ${
                                 toolStats.confidenceDetails.finalScore === null
                                   ? 'bg-[var(--glass-bg-highlight)] text-[var(--text-primary)]'
@@ -560,24 +561,15 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
                                       ? 'bg-yellow-900 text-yellow-200'
                                       : 'bg-red-900 text-red-200'
                               }`}
-                              role="button"
-                              tabIndex={0}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setSelectedConfidenceTool(tool.id);
-                              }}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  setSelectedConfidenceTool(tool.id);
-                                }
                               }}
                             >
                               {toolStats.confidenceDetails.finalScore === null
                                 ? 'N/A'
                                 : `${toolStats.confidenceDetails.finalScore}% confidence`}
-                            </span>
+                            </button>
                           </div>
                           <div className="mt-2 flex items-center justify-between gap-2">
                             <span className="text-[11px] text-[var(--text-muted)]">
@@ -620,7 +612,8 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
                           <span className="text-[var(--text-muted)]">
                             {toolStats.count.toLocaleString()} items
                           </span>
-                          <span
+                          <button
+                            type="button"
                             className={`px-2 py-1 rounded text-xs ${
                               toolStats.confidenceDetails.finalScore === null
                                 ? 'bg-[var(--glass-bg-highlight)] text-[var(--text-primary)]'
@@ -630,20 +623,12 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
                                     ? 'bg-yellow-900 text-yellow-200'
                                     : 'bg-red-900 text-red-200'
                             }`}
-                            role="button"
-                            tabIndex={0}
                             onClick={() => setSelectedConfidenceTool(tool.id)}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault();
-                                setSelectedConfidenceTool(tool.id);
-                              }
-                            }}
                           >
                             {toolStats.confidenceDetails.finalScore === null
                               ? 'N/A'
                               : `${toolStats.confidenceDetails.finalScore}% confidence`}
-                          </span>
+                          </button>
                         </div>
                         <div className="mt-2 text-[11px] text-[var(--text-muted)]">
                           {resolveToolStatus(tool.id as keyof typeof stats)}

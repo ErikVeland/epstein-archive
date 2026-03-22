@@ -51,6 +51,12 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      - name: Seed Conflict Policy
+        run: pnpm check:seed-conflict-policy
+
+      - name: Design Token Guard
+        run: pnpm check:design-tokens
+
       - name: Run Unit Tests
         run: pnpm test:unit
         env:

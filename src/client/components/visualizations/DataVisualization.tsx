@@ -5,9 +5,23 @@ import { Person } from '../../types';
 import { TreeMap } from './TreeMap';
 import { filterPeopleOnly, isJunkEntity } from '../../utils/entityFilters';
 
+interface AnalyticsData {
+  totalEntities?: number;
+  totalMentions?: number;
+  averageRedFlagRating?: number;
+  totalUniqueRoles?: number;
+  roleDistribution?: Array<{ role?: string; count?: number }>;
+  activeInvestigations?: number;
+  likelihoodDistribution?: Array<{ level?: string; count?: number }>;
+  redFlagDistribution?: Array<{ rating?: number | string; count?: number }>;
+  riskByType?: Array<{ riskLevel?: number | string; count?: number }>;
+  topEntities?: Array<any>;
+  topConnectedEntities?: Array<any>;
+}
+
 interface DataVisualizationProps {
   people?: Person[];
-  analyticsData?: any;
+  analyticsData?: AnalyticsData;
   loading?: boolean;
   error?: string | null;
   onRetry?: () => void;
@@ -24,23 +38,36 @@ const COLORS = {
   background: '#1e293b',
 };
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean;
+  payload?: Array<{ color?: string; fill?: string; name?: string; value: number }>;
+  label?: string;
+}) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-[var(--glass-bg-strong)]/95 backdrop-blur-md p-4 rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] border border-[var(--glass-border)]">
         <p className="text-[var(--text-primary)] font-bold mb-2 text-sm">{label}</p>
-        {payload.map((entry: any, index: number) => (
-          <div key={index} className="flex items-center gap-3 text-sm">
-            <div
-              className="w-2 h-2 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.5)]"
-              style={{ backgroundColor: entry.color || entry.fill }}
-            />
-            <span className="text-[var(--text-secondary)] font-medium">{entry.name}:</span>
-            <span className="text-[var(--text-primary)] font-mono font-bold">
-              {entry.value.toLocaleString()}
-            </span>
-          </div>
-        ))}
+        {payload.map(
+          (
+            entry: { color?: string; fill?: string; name?: string; value: number },
+            index: number,
+          ) => (
+            <div key={index} className="flex items-center gap-3 text-sm">
+              <div
+                className="w-2 h-2 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.5)]"
+                style={{ backgroundColor: entry.color || entry.fill }}
+              />
+              <span className="text-[var(--text-secondary)] font-medium">{entry.name}:</span>
+              <span className="text-[var(--text-primary)] font-mono font-bold">
+                {entry.value.toLocaleString()}
+              </span>
+            </div>
+          ),
+        )}
       </div>
     );
   }
@@ -68,8 +95,7 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({
     if (analyticsData) {
       setStats({
         totalPeople: analyticsData.totalEntities || 0,
-        highRisk:
-          analyticsData.likelihoodDistribution?.find((d: any) => d.level === 'HIGH')?.count || 0,
+        highRisk: analyticsData.likelihoodDistribution?.find((d) => d.level === 'HIGH')?.count || 0,
         totalMentions: analyticsData.totalMentions || 0,
         avgRedFlag: analyticsData.averageRedFlagRating || 0,
         uniqueRoles: analyticsData.totalUniqueRoles || analyticsData.roleDistribution?.length || 0,
@@ -111,14 +137,14 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({
       analyticsData.redFlagDistribution.length > 0
     ) {
       const high = analyticsData.redFlagDistribution
-        .filter((d: any) => Number(d.rating) >= 4)
-        .reduce((acc: number, curr: any) => acc + Number(curr.count || 0), 0);
+        .filter((d) => Number(d.rating) >= 4)
+        .reduce((acc, curr) => acc + Number(curr.count || 0), 0);
       const medium = analyticsData.redFlagDistribution
-        .filter((d: any) => Number(d.rating) >= 2 && Number(d.rating) < 4)
-        .reduce((acc: number, curr: any) => acc + Number(curr.count || 0), 0);
+        .filter((d) => Number(d.rating) >= 2 && Number(d.rating) < 4)
+        .reduce((acc, curr) => acc + Number(curr.count || 0), 0);
       const low = analyticsData.redFlagDistribution
-        .filter((d: any) => Number(d.rating) < 2)
-        .reduce((acc: number, curr: any) => acc + Number(curr.count || 0), 0);
+        .filter((d) => Number(d.rating) < 2)
+        .reduce((acc, curr) => acc + Number(curr.count || 0), 0);
 
       return [
         { name: 'High Risk (4-5)', value: high, color: COLORS.HIGH },
@@ -133,7 +159,7 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({
       analyticsData.likelihoodDistribution.length > 0
     ) {
       const byLevel = new Map<string, number>(
-        analyticsData.likelihoodDistribution.map((d: any) => [
+        analyticsData.likelihoodDistribution.map((d) => [
           String(d.level || '').toUpperCase(),
           Number(d.count || 0),
         ]),
@@ -152,14 +178,14 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({
       analyticsData.riskByType.length > 0
     ) {
       const high = analyticsData.riskByType
-        .filter((d: any) => Number(d.riskLevel) >= 4)
-        .reduce((acc: number, curr: any) => acc + curr.count, 0);
+        .filter((d) => Number(d.riskLevel) >= 4)
+        .reduce((acc, curr) => acc + (curr.count || 0), 0);
       const medium = analyticsData.riskByType
-        .filter((d: any) => Number(d.riskLevel) >= 2 && Number(d.riskLevel) < 4)
-        .reduce((acc: number, curr: any) => acc + curr.count, 0);
+        .filter((d) => Number(d.riskLevel) >= 2 && Number(d.riskLevel) < 4)
+        .reduce((acc, curr) => acc + (curr.count || 0), 0);
       const low = analyticsData.riskByType
-        .filter((d: any) => Number(d.riskLevel) < 2)
-        .reduce((acc: number, curr: any) => acc + curr.count, 0);
+        .filter((d) => Number(d.riskLevel) < 2)
+        .reduce((acc, curr) => acc + (curr.count || 0), 0);
 
       return [
         { name: 'High Risk (4-5)', value: high, color: COLORS.HIGH },
@@ -432,7 +458,7 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({
 
         <div className="relative z-10">
           <TreeMap
-            people={topEntities.map((entry: any) => ({
+            people={topEntities.map((entry: Record<string, unknown>) => ({
               ...(entry.person || {}),
               name: entry.name,
               fullName: entry.name,

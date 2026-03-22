@@ -89,7 +89,7 @@ export function EvidenceDetail() {
         throw new Error('Evidence not found');
       }
       const data = await apiClient.getEvidence(id);
-      setEvidence(data);
+      setEvidence(data as Evidence);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load evidence');
     } finally {

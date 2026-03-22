@@ -37,9 +37,72 @@ import { AutoSizer } from 'react-virtualized-auto-sizer';
 import { CloseButton } from './CloseButton';
 
 // Type-safe wrappers for virtualized components to bypass React 18/TS mismatches
-const TypedAutoSizer = AutoSizer as any;
-const TypedInfiniteLoader = InfiniteLoader as any;
+const TypedAutoSizer = AutoSizer as unknown as React.ComponentType<{
+  children: (props: { width: number; height: number }) => React.ReactNode;
+}>;
+const TypedInfiniteLoader = InfiniteLoader as unknown as React.ComponentType<{
+  isItemLoaded: (index: number) => boolean;
+  itemCount: number;
+  loadMoreItems: (startIndex: number, stopIndex: number) => Promise<void> | void;
+  children: (props: {
+    onItemsRendered: (props: {
+      visibleStartIndex: number;
+      visibleStopIndex: number;
+      overscanStartIndex: number;
+      overscanStopIndex: number;
+    }) => void;
+    ref: React.Ref<HTMLElement> | ((instance: HTMLElement | null) => void);
+  }) => React.ReactNode;
+}>;
 import { Tabs, TabItem } from './Tabs';
+
+export interface EntityPhoto {
+  id?: number | string;
+  url?: string;
+  fullUrl?: string;
+  imageUrl?: string;
+  image_url?: string;
+  src?: string;
+  thumbnailUrl?: string;
+  thumbnail_url?: string;
+  thumbUrl?: string;
+  thumb_url?: string;
+}
+
+export interface EvidenceDocument {
+  id?: string | number;
+  title?: string;
+  fileName?: string;
+  content?: string;
+  contentPreview?: string;
+  evidenceType?: string;
+  redFlagRating?: number;
+  keyword?: string;
+  dateCreated?: string;
+  source_collection?: string;
+}
+
+export interface InvestigationEntity {
+  id?: string | number;
+  uuid?: string;
+  title?: string;
+  description?: string;
+  status?: string;
+  updated_at?: string;
+  _fallbackReason?: string;
+}
+
+export interface SignificantPassage {
+  documentId?: string | number;
+  source?: string;
+  passage?: string;
+  mention_context?: string;
+  contentSnippet?: string;
+  text?: string;
+  content?: string;
+  filename?: string;
+  keyword?: string;
+}
 
 const EVIDENCE_TABS: TabItem[] = [
   { key: 'overview', label: 'Overview' },
@@ -70,9 +133,9 @@ interface EntityDetails {
   mentions: number;
   likelihoodLevel: string;
   redFlagRating: number;
-  fileReferences: any[]; // Kept for types but unused in virtualized view
-  significantPassages: any[];
-  photos: any[];
+  fileReferences: Record<string, unknown>[]; // Kept for types but unused in virtualized view
+  significantPassages: SignificantPassage[];
+  photos: EntityPhoto[];
   evidenceTypes: string[];
   blackBookEntries?: BlackBookEntry[];
   birthDate?: string | null;
@@ -136,7 +199,10 @@ const formatMetaDate = (value?: string | null): string => {
   return parsed.toLocaleDateString();
 };
 
-const resolveEntityPhotoUrl = (photo: any, preferThumbnail = true): string | null => {
+const resolveEntityPhotoUrl = (
+  photo: EntityPhoto | undefined | null,
+  preferThumbnail = true,
+): string | null => {
   if (!photo) return null;
 
   const thumbCandidates = [
@@ -195,7 +261,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
   const [loading, setLoading] = useState(true);
 
   // Documents Pagination State
-  const [documents, setDocuments] = useState<any[]>([]);
+  const [documents, setDocuments] = useState<EvidenceDocument[]>([]);
   const [totalDocs, setTotalDocs] = useState(0);
   const [isDocsLoading, setIsDocsLoading] = useState(false);
   const [isNextPageLoading, setIsNextPageLoading] = useState(false);
@@ -204,12 +270,20 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
   const [docFilters, setDocFilters] = useState({ search: '', source: 'all', sort: 'relevance' });
 
   // Investigations State
-  const [investigations, setInvestigations] = useState<any[]>([]);
+  const [investigations, setInvestigations] = useState<InvestigationEntity[]>([]);
   const [isInvestigationsLoading, setIsInvestigationsLoading] = useState(false);
   const [investigationsInitialized, setInvestigationsInitialized] = useState(false);
 
   // Lazy load tabs - only fetch data when tab is activated
   const [tabsLoaded, setTabsLoaded] = useState<Set<string>>(new Set(['overview']));
+  const urlState = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    return {
+      tab: getTabFromUrl(),
+      quickAction: params.get('entityAction'),
+      entitySearch: params.get('entitySearch'),
+    };
+  }, [getTabFromUrl, location.search]);
 
   // Mark tab as loaded when activated
   const handleTabChange = useCallback(
@@ -270,23 +344,26 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
     );
   }, [entity?.fullName]);
 
-  const fetchEntityDetails = React.useCallback(async () => {
-    setLoading(true);
-    try {
-      const data = (await apiClient.get(`/entities/${entityId}`)) as EntityDetails;
-      setEntity(data);
-    } catch (_err) {
-      console.error('Failed to load entity details');
-    } finally {
-      setLoading(false);
-    }
-  }, [entityId]);
-
   useEffect(() => {
-    if (isOpen && entityId) {
-      fetchEntityDetails();
-    }
-  }, [isOpen, entityId, fetchEntityDetails]);
+    if (!(isOpen && entityId)) return;
+    let cancelled = false;
+
+    (async () => {
+      setLoading(true);
+      try {
+        const data = (await apiClient.get(`/entities/${entityId}`)) as EntityDetails;
+        if (!cancelled) setEntity(data);
+      } catch (_err) {
+        console.error('Failed to load entity details');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [entityId, isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -294,49 +371,49 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
   }, [activeTab, isOpen]);
 
   useEffect(() => {
-    const urlTab = getTabFromUrl();
-    if (urlTab !== activeTab) {
+    if (urlState.tab !== activeTab) {
       if (import.meta.env.DEV) {
         console.warn('[EvidenceModal] URL tab changed; syncing modal tab', {
-          urlTab,
+          urlTab: urlState.tab,
           activeTab,
         });
       }
-      setActiveTab(urlTab);
-      setTabsLoaded((prev) => new Set(prev).add(urlTab));
+      setActiveTab(urlState.tab);
+      setTabsLoaded((prev) => new Set(prev).add(urlState.tab));
     }
-  }, [activeTab, getTabFromUrl]);
+  }, [activeTab, urlState.tab]);
 
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const quickAction = params.get('entityAction');
-    if (!quickAction) return;
+    if (!urlState.quickAction) return;
 
-    if (quickAction === 'timeline') {
+    if (urlState.quickAction === 'timeline') {
       setActiveQuickAction('timeline');
       setActiveTab('network');
       setTabsLoaded((prev) => new Set(prev).add('network'));
       return;
     }
 
-    if (quickAction === 'search') {
+    if (urlState.quickAction === 'search') {
       setActiveQuickAction('search');
       setActiveTab('evidence');
       setTabsLoaded((prev) => new Set(prev).add('evidence'));
-      const query = params.get('entitySearch');
-      if (query) {
-        setDocFilters((prev) => ({ ...prev, search: query }));
+      if (urlState.entitySearch) {
+        setDocFilters((prev) =>
+          prev.search === urlState.entitySearch
+            ? prev
+            : { ...prev, search: urlState.entitySearch ?? '' },
+        );
       }
       return;
     }
 
-    if (quickAction === 'blackbook') {
+    if (urlState.quickAction === 'blackbook') {
       setActiveQuickAction('blackbook');
       if (entity?.fullName) {
         navigateFromModal(`/blackbook?search=${encodeURIComponent(entity.fullName)}`);
       }
     }
-  }, [entity?.fullName, location.search, navigateFromModal]);
+  }, [entity?.fullName, navigateFromModal, urlState.entitySearch, urlState.quickAction]);
 
   useEffect(() => {
     if (
@@ -574,18 +651,11 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
             : 'Directly linked through entity mention context.';
 
       return (
-        <article
+        <button
           data-testid="entity-evidence-row"
-          className="surface-glass-card p-6 h-full flex flex-col justify-between cursor-pointer focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/50 group"
-          role="button"
-          tabIndex={0}
+          type="button"
+          className="surface-glass-card p-6 h-full w-full flex flex-col justify-between bg-transparent text-left focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/50 group"
           onClick={() => openDocumentFromEvidence(doc.id)}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter' || event.key === ' ') {
-              event.preventDefault();
-              openDocumentFromEvidence(doc.id);
-            }
-          }}
         >
           <div>
             <div className="flex items-start justify-between gap-3">
@@ -628,7 +698,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
               {significanceReason}
             </span>
           </div>
-        </article>
+        </button>
       );
     },
     [entity?.fullName, openDocumentFromEvidence],
@@ -1533,7 +1603,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                             )}
                             <span className="flex items-center gap-2 text-[10px] font-semibold tracking-widest uppercase text-text-dim">
                               <Clock size={12} className="opacity-70" />
-                              Updated {new Date(inv.updated_at).toLocaleDateString()}
+                              Updated {formatMetaDate(inv.updated_at)}
                             </span>
                           </div>
                         </div>

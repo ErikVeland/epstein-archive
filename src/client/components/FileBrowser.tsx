@@ -223,10 +223,12 @@ const FileBrowser: React.FC = () => {
           {filteredFiles.map((file, index) => {
             const Icon = getFileIcon(file);
             return (
-              <div
+              <button
                 key={index}
+                type="button"
                 onClick={() => handleFileClick(file)}
-                className="p-4 hover:bg-[var(--glass-bg-highlight)] cursor-pointer transition-colors duration-200"
+                className="w-full p-4 text-left bg-transparent hover:bg-[var(--glass-bg-highlight)] transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-inset"
+                aria-label={`Preview file ${file.name}`}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
@@ -242,7 +244,7 @@ const FileBrowser: React.FC = () => {
                     <Eye className="h-4 w-4" />
                   </div>
                 </div>
-              </div>
+              </button>
             );
           })}
         </div>

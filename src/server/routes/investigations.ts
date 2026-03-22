@@ -39,7 +39,7 @@ const createInvestigationSchema = z.object({
   body: z.object({
     title: z.string().min(1, 'Title is required'),
     description: z.string().optional(),
-    ownerId: z.string().optional(),
+    // ownerId is intentionally excluded — always derived from the authenticated user
   }),
 });
 
@@ -63,7 +63,7 @@ const updateInvestigationSchema = z.object({
     title: z.string().optional(),
     description: z.string().optional(),
     status: z.string().optional(),
-    ownerId: z.string().optional(),
+    // ownerId intentionally excluded — ownership cannot be transferred via PATCH
   }),
 });
 
@@ -246,7 +246,7 @@ const notebookSchema = z.object({
   }),
 });
 
-// Get all investigations
+// Get all investigations — intentionally public (no auth): this is a public research archive.
 router.get('/', validate(getInvestigationsSchema), async (req, res, next) => {
   try {
     const { status, ownerId, page, limit } = req.query as any;
@@ -284,15 +284,13 @@ router.post(
   validate(createInvestigationSchema),
   async (req, res, next) => {
     try {
-      const { title, description, ownerId } = req.body;
-
-      // Default owner to current user if not specified
-      const finalOwnerId = ownerId || (req as any).user?.id;
+      const { title, description } = req.body;
+      const ownerId = (req as any).user?.id as string;
 
       const investigation = await investigationsRepository.createInvestigation({
         title,
         description,
-        ownerId: finalOwnerId,
+        ownerId,
       });
 
       res.status(201).json(investigation);
@@ -333,9 +331,19 @@ router.put(
   async (req, res, next) => {
     try {
       const { id } = req.params;
-      const updates = req.body;
+      const numericId = Number(id);
+      const user = (req as any).user;
 
-      const updated = await investigationsRepository.updateInvestigation(Number(id), updates);
+      // Authorization: Admin OR Owner (mirrors the DELETE guard)
+      const existing = await investigationsRepository.getInvestigationById(numericId);
+      if (!existing) {
+        return res.status(404).json({ error: 'Investigation not found' });
+      }
+      if (user.role !== 'admin' && existing.ownerId !== user.id) {
+        return res.status(403).json({ error: 'Unauthorized: Only admins or owners can edit' });
+      }
+
+      const updated = await investigationsRepository.updateInvestigation(numericId, req.body);
 
       if (!updated) {
         return res.status(404).json({ error: 'Investigation not found' });
@@ -936,18 +944,25 @@ router.get(
       let totalBytes = 0;
       for (const item of evidenceList) {
         if (item.file_path) {
-          const absolutePath = path.resolve(item.file_path);
-          if (
-            (absolutePath.startsWith(DATA_ROOT + path.sep) ||
-              absolutePath.startsWith(DATA_ROOT + '/')) &&
-            fs.existsSync(absolutePath)
-          ) {
-            const stat = fs.statSync(absolutePath);
-            if (totalBytes + stat.size > ZIP_SIZE_LIMIT_BYTES) break;
-            totalBytes += stat.size;
-            const fileName = path.basename(absolutePath);
-            archive.file(absolutePath, { name: `files/${fileName}` });
+          // Strip null bytes before resolving to prevent null-byte injection
+          const cleanedPath = String(item.file_path).replace(/\0/g, '');
+          const absolutePath = path.resolve(cleanedPath);
+          const isInDataRoot =
+            absolutePath.startsWith(DATA_ROOT + path.sep) ||
+            absolutePath.startsWith(DATA_ROOT + '/');
+          if (!isInDataRoot) continue;
+
+          let stat: import('fs').Stats;
+          try {
+            stat = await fs.promises.stat(absolutePath);
+          } catch {
+            continue; // file missing or unreadable — skip without blocking event loop
           }
+
+          if (totalBytes + stat.size > ZIP_SIZE_LIMIT_BYTES) break;
+          totalBytes += stat.size;
+          const fileName = path.basename(absolutePath);
+          archive.file(absolutePath, { name: `files/${fileName}` });
         }
       }
 

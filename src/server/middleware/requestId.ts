@@ -7,6 +7,8 @@ declare global {
   namespace Express {
     interface Request {
       requestId?: string;
+      requestStartedAt?: number;
+      _startTime?: number;
     }
   }
 }
@@ -19,6 +21,9 @@ export function requestIdMiddleware(req: Request, res: Response, next: NextFunct
   req.headers['x-request-id'] = reqId;
   res.setHeader('X-Request-Id', reqId);
   req.requestId = reqId;
+  const startedAt = Date.now();
+  req.requestStartedAt = startedAt;
+  req._startTime = startedAt;
   requestContext.run({ requestId: reqId }, () => {
     next();
   });

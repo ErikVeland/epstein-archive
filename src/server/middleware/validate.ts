@@ -46,6 +46,18 @@ export const searchSchema = z.object({
   limit: z.preprocess((val) => Number(val), z.number().int().min(1).max(100)).optional(),
 });
 
+const ENTITY_SORT_BY_VALUES = [
+  'red_flag',
+  'rfi',
+  'default',
+  'risk',
+  'mentions',
+  'document_count',
+  'document-count',
+  'recent',
+  'name',
+] as const;
+
 export const entitiesQuerySchema = z.object({
   query: z.object({
     page: z.coerce.number().int().min(1).default(1),
@@ -54,7 +66,7 @@ export const entitiesQuerySchema = z.object({
     role: z.string().optional(),
     likelihood: z.union([z.string(), z.array(z.string())]).optional(),
     type: z.string().optional(),
-    sortBy: z.string().optional(),
+    sortBy: z.enum(ENTITY_SORT_BY_VALUES).optional(),
     sortOrder: z.enum(['asc', 'desc']).optional(),
     includeJunk: z.preprocess((v) => v === 'true', z.boolean()).optional(),
   }),
@@ -68,7 +80,7 @@ export const subjectsQuerySchema = z.object({
     role: z.string().optional(),
     entityType: z.string().optional(),
     likelihoodScore: z.union([z.string(), z.array(z.string())]).optional(),
-    sortBy: z.string().optional(),
+    sortBy: z.enum(ENTITY_SORT_BY_VALUES).optional(),
     sortOrder: z.enum(['asc', 'desc', 'ASC', 'DESC']).optional(),
   }),
 });

@@ -63,6 +63,7 @@ import { validate, subjectsQuerySchema } from './server/middleware/validate.js';
 import { purgeCache } from './server/middleware/cache.js';
 import { pgSaturationShed } from './server/middleware/pgShed.js';
 import { retryStormDetector } from './server/middleware/retryStorm.js';
+import { queryCounter } from './server/queryCounter.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -95,12 +96,16 @@ export class App {
       process.exit(1);
     }
 
-    try {
-      await runMigrations();
-      logger.info('Database migrations completed');
-    } catch (error) {
-      logger.error({ err: error }, 'Failed to run migrations');
-      process.exit(1);
+    if (process.env.RUN_MIGRATIONS_ON_BOOT === '1') {
+      try {
+        await runMigrations();
+        logger.info('Database migrations completed');
+      } catch (error) {
+        logger.error({ err: error }, 'Failed to run migrations');
+        process.exit(1);
+      }
+    } else {
+      logger.info('Skipping database migrations on boot');
     }
   }
 
@@ -113,6 +118,35 @@ export class App {
 
     // 1. Core Security & Performance
     this.app.use(requestIdMiddleware);
+    this.app.use((req, res, next) => {
+      const requestId = req.requestId;
+      if (!requestId) {
+        next();
+        return;
+      }
+      queryCounter.clear(requestId);
+      res.on('finish', () => {
+        const endpoint = queryCounter.endpointForRequest(req.method, req.originalUrl || req.url);
+        if (!endpoint) {
+          queryCounter.clear(requestId);
+          return;
+        }
+        const budgetCheck = queryCounter.checkBudget(endpoint, requestId);
+        if (!budgetCheck.passed) {
+          logger.warn(
+            {
+              requestId,
+              endpoint,
+              queryCount: budgetCheck.count,
+              queryBudget: budgetCheck.budget,
+            },
+            '[QUERY_BUDGET_EXCEEDED]',
+          );
+        }
+        queryCounter.clear(requestId);
+      });
+      next();
+    });
 
     // 1b. Structured HTTP access logging
     this.app.use(
@@ -333,9 +367,7 @@ export class App {
     router.get('/health/ready', async (req, res) => {
       const startedAt = Date.now();
       const timeoutMs = Math.max(100, Number(process.env.READINESS_TIMEOUT_MS || 8000) || 8000);
-      const userAgent = String(req.headers['user-agent'] || '');
-      const browserRequest = /\bmozilla\/\d/i.test(userAgent);
-      const softMode = String(req.query.soft || '') === '1' || browserRequest;
+      const softMode = String(req.query.soft || '') === '1';
 
       const withTimeout = async <T>(promise: Promise<T>, label: string): Promise<T> => {
         const timeoutPromise = new Promise<never>((_, reject) =>
@@ -391,7 +423,7 @@ export class App {
             },
             pool: apiPoolMetrics,
             readiness: {
-              mode: softMode ? 'o1-plus-core-counts-soft' : 'o1-plus-core-counts',
+              mode: softMode ? 'strict-core-counts-soft' : 'strict-core-counts',
               timeoutMs,
             },
             degraded: saturated
@@ -410,7 +442,7 @@ export class App {
           checks: {
             db: { ok: false, error: error?.message || 'unknown' },
             readiness: {
-              mode: softMode ? 'o1-plus-core-counts-soft' : 'o1-plus-core-counts',
+              mode: softMode ? 'strict-core-counts-soft' : 'strict-core-counts',
               timeoutMs,
             },
           },
@@ -707,11 +739,9 @@ export class App {
     router.use('/evidence', evidenceRoutes);
     router.use('/advanced-analytics', advancedAnalyticsRoutes);
     router.use('/entities', entityEvidenceRoutes);
-    router.use('/entity-evidence', entityEvidenceRoutes);
     router.use('/tasks', investigativeTasksRoutes);
     router.use('/articles', articlesRoutes);
     router.use('/emails', emailRoutes);
-    router.use('/email', emailRoutes); // legacy singular alias
     router.use('/financial', financialRoutes);
     router.use('/forensic', forensicRoutes);
     router.use('/documents', documentsRoutes);
@@ -720,9 +750,7 @@ export class App {
     router.use('/properties', propertiesRoutes);
     router.use('/black-book', blackBookRoutes);
     router.use('/faces', faceRoutes);
-
-    // Legacy/Direct routes that might need adjustment
-    router.use('/investigation-evidence', investigationEvidenceRoutes);
+    router.use('/investigations', investigationEvidenceRoutes);
 
     this.app.use('/api', router);
 

@@ -161,6 +161,9 @@ export const documentsRepository = {
       filters.evidenceType && filters.evidenceType !== 'all' ? filters.evidenceType : null;
     const sortBy = filters.sortBy || 'red_flag';
 
+    // NOTE: content_refined is excluded from the ILIKE predicate — it can be hundreds of MB
+    // per row and has no index. Full-text search on document content goes through searchRepository
+    // (websearch_to_tsquery + GIN index). This query covers filename/path/collection filters.
     const docsSql = `
       SELECT
         id,
@@ -175,9 +178,10 @@ export const documentsRepository = {
         word_count as "wordCount",
         red_flag_rating as "redFlagRating",
         COALESCE(NULLIF(title, ''), file_name) as "title",
-        source_collection as "sourceCollection"
+        source_collection as "sourceCollection",
+        COUNT(*) OVER () as "totalCount"
       FROM documents
-      WHERE ($1::text IS NULL OR file_name ILIKE $1 OR content_refined ILIKE $1 OR source_collection ILIKE $1 OR file_path ILIKE $1)
+      WHERE ($1::text IS NULL OR file_name ILIKE $1 OR source_collection ILIKE $1 OR file_path ILIKE $1)
         AND (file_type = ANY($2::text[]) OR $2::text[] IS NULL)
         AND (evidence_type = $3::text OR $3::text IS NULL)
         AND (source_collection = ANY($4::text[]) OR $4::text[] IS NULL)
@@ -205,33 +209,10 @@ export const documentsRepository = {
       limit,
       offset,
     ]);
-    const docs = docsRes.rows as any[];
-
-    const countSql = `
-      SELECT COUNT(*) as total
-      FROM documents
-      WHERE ($1::text IS NULL OR file_name ILIKE $1 OR content_refined ILIKE $1 OR source_collection ILIKE $1 OR file_path ILIKE $1)
-        AND (file_type = ANY($2::text[]) OR $2::text[] IS NULL)
-        AND (evidence_type = $3::text OR $3::text IS NULL)
-        AND (source_collection = ANY($4::text[]) OR $4::text[] IS NULL)
-        AND (COALESCE(extracted_date, date_created) >= $5::timestamp OR $5::timestamp IS NULL)
-        AND (COALESCE(extracted_date, date_created) <= $6::timestamp OR $6::timestamp IS NULL)
-        AND (red_flag_rating >= $7::int OR $7::int IS NULL)
-        AND (red_flag_rating <= $8::int OR $8::int IS NULL)
-    `;
-    const countResultRes = await getApiPool().query(countSql, [
-      search ? `%${search}%` : null,
-      fileTypes,
-      evidenceType,
-      sources,
-      filters.startDate || null,
-      filters.endDate || null,
-      filters.minRedFlag ?? null,
-      filters.maxRedFlag ?? null,
-    ]);
-    const countResult = countResultRes.rows as Array<{ total?: string | number | null }>;
-
-    const total = Number(countResult[0]?.total || 0);
+    const docs = docsRes.rows as Array<Record<string, unknown>>;
+    const total = Number(
+      (docs[0] as { totalCount?: string | number } | undefined)?.totalCount ?? 0,
+    );
 
     // Batch-fetch top entities for all documents in a single query (eliminates N+1)
     const docIds = docs.map((d) => Number(d.id));

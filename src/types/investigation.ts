@@ -57,6 +57,7 @@ export interface AuthenticityScore {
 
 export interface Investigation {
   id: string;
+  uuid?: string;
   title: string;
   description: string;
   hypothesis: string;

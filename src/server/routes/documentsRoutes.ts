@@ -35,7 +35,7 @@ const documentsListQuerySchema = z.object({
       .optional(),
     minRedFlag: z.coerce.number().int().min(0).max(5).optional(),
     maxRedFlag: z.coerce.number().int().min(0).max(5).optional(),
-    sortBy: z.string().optional(),
+    sortBy: z.enum(['date', 'title', 'red_flag', 'size']).optional(),
     sortOrder: z.enum(['asc', 'desc']).optional(),
     collectionId: z.string().optional(),
   }),
@@ -76,6 +76,16 @@ const toSafePublicHandle = (rawAuthor: string | null | undefined): string => {
 
 const createFingerprint = (ip: string, userAgent: string): string => {
   return createHash('sha256').update(`${ip}|${userAgent}`).digest('hex');
+};
+
+const normalizeExistingRoot = (rootPath: string): string | null => {
+  const resolved = path.resolve(rootPath);
+  if (!fs.existsSync(resolved)) return null;
+  return fs.realpathSync(resolved);
+};
+
+const isWithinRoot = (candidate: string, root: string): boolean => {
+  return candidate === root || candidate.startsWith(`${root}${path.sep}`);
 };
 
 // GET /api/documents
@@ -235,7 +245,8 @@ router.get('/:id/redactions', validate(documentIdSchema), async (req, res, next)
   }
 });
 
-// GET /api/documents/:id/file
+// GET /api/documents/:id/file — intentionally public (no auth): corpus files are public research material.
+// Path traversal is prevented by withinAllowedRoots check below.
 router.get('/:id/file', validate(documentIdSchema), async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -281,26 +292,29 @@ router.get('/:id/file', validate(documentIdSchema), async (req, res, next) => {
     if (variant === 'original' && originalPath) selectedPath = originalPath;
     if (variant === 'cleaned' && cleanedPath) selectedPath = cleanedPath;
 
-    const dataRoot = path.resolve(process.cwd(), 'data');
-    const rawCorpusBasePath = process.env.RAW_CORPUS_BASE_PATH
-      ? path.resolve(process.env.RAW_CORPUS_BASE_PATH)
-      : null;
+    const allowedRoots = [
+      normalizeExistingRoot(path.resolve(process.cwd(), 'data')),
+      process.env.RAW_CORPUS_BASE_PATH
+        ? normalizeExistingRoot(process.env.RAW_CORPUS_BASE_PATH)
+        : null,
+    ].filter((root): root is string => Boolean(root));
 
     const absolutePath = selectedPath
       ? path.isAbsolute(selectedPath)
         ? selectedPath
         : path.resolve(process.cwd(), selectedPath.replace(/^\/+/, ''))
       : '';
+    const fileExists = Boolean(absolutePath) && fs.existsSync(absolutePath);
+    const canonicalFilePath = fileExists ? fs.realpathSync(absolutePath) : '';
     const withinAllowedRoots =
-      absolutePath &&
-      (absolutePath.startsWith(dataRoot) ||
-        (rawCorpusBasePath ? absolutePath.startsWith(rawCorpusBasePath) : false));
+      Boolean(canonicalFilePath) &&
+      allowedRoots.some((allowedRoot) => isWithinRoot(canonicalFilePath, allowedRoot));
 
     const isEmailRecord = String((doc as any).evidenceType || (doc as any).evidence_type || '')
       .toLowerCase()
       .includes('email');
 
-    if (!selectedPath || !withinAllowedRoots || !fs.existsSync(absolutePath)) {
+    if (!selectedPath || !withinAllowedRoots || !fileExists) {
       if (isEmailRecord) {
         const from = String(metadata.from || metadata.sender || 'unknown@archive.local');
         const to = String(metadata.to || metadata.recipients || 'undisclosed-recipients');
@@ -331,7 +345,7 @@ router.get('/:id/file', validate(documentIdSchema), async (req, res, next) => {
     }
 
     res.setHeader('Content-Disposition', 'inline');
-    return res.sendFile(absolutePath);
+    return res.sendFile(canonicalFilePath);
   } catch (error) {
     next(error);
   }

@@ -97,7 +97,12 @@ export const LocationMap: React.FC<LocationMapProps> = ({
       </div>
 
       {/* Mini map */}
-      <div className="relative h-32 cursor-pointer" onClick={() => setIsExpanded(true)}>
+      <button
+        type="button"
+        className="relative h-32 w-full bg-transparent text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-inset"
+        onClick={() => setIsExpanded(true)}
+        aria-label={`Expand map for ${title}`}
+      >
         <iframe
           src={osmEmbedUrl}
           className="w-full h-full border-0 pointer-events-none"
@@ -105,7 +110,7 @@ export const LocationMap: React.FC<LocationMapProps> = ({
           loading="lazy"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent pointer-events-none" />
-      </div>
+      </button>
 
       {/* Coordinates & Links */}
       <div className="p-3 space-y-2">

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Calendar, BookOpen, Circle } from 'lucide-react';
 import { useScrollLock } from '../hooks/useScrollLock';
+import { useModalFocusTrap } from '../hooks/useModalFocusTrap';
 import { CloseButton } from './common/CloseButton';
 
 interface ReleaseNote {
@@ -28,6 +29,7 @@ export const ReleaseNotesPanel: React.FC<ReleaseNotesPanelProps> = ({
   // Use the passed releaseNotes prop directly as the single source of truth
   const allReleaseNotes = releaseNotes;
   useScrollLock(isOpen);
+  const { modalRef } = useModalFocusTrap({ isActive: isOpen, onEscape: onClose });
 
   const isInternalPathLeak = (value: string): boolean => {
     const trimmed = value.trim();
@@ -46,15 +48,20 @@ export const ReleaseNotesPanel: React.FC<ReleaseNotesPanelProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div
-      className="fixed inset-0 bg-black/60 flex items-center justify-end z-50 p-0 md:p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="release-notes-title"
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-end z-50 p-0 md:p-4">
+      <button
+        type="button"
+        className="absolute inset-0"
+        aria-label="Close release notes"
+        onClick={onClose}
+      />
       <div
+        ref={modalRef}
         className="surface-glass rounded-none md:rounded-[var(--radius-lg)] w-full max-w-md h-full md:h-auto md:max-h-[90vh] md:border border-l border-[var(--glass-border)] flex flex-col overflow-hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="release-notes-title"
+        tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

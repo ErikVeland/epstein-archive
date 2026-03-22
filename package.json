@@ -36,6 +36,8 @@
     "media:thumbnails:backfill": "tsx scripts/backfill_thumbnails.ts",
     "lint": "eslint . --ext .ts,.tsx",
     "check:boundaries": "node scripts/check_client_server_boundary.mjs",
+    "check:seed-conflict-policy": "node --import tsx/esm scripts/check_seed_conflict_policy.ts",
+    "check:design-tokens": "node --import tsx/esm scripts/check_design_token_usage.ts",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

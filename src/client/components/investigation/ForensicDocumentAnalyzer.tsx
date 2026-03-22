@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { pdfjs } from 'react-pdf';
 import {
@@ -30,11 +30,12 @@ import {
 } from 'recharts';
 import { DocumentMetadataPanel } from '../documents/DocumentMetadataPanel';
 import { Tabs } from '../common/Tabs';
+import { useForensicDocumentData } from '../../hooks/useForensicDocumentData';
 
 // Set up PDF.js worker
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
-interface ForensicAnalysis {
+export interface ForensicAnalysis {
   id: string;
   documentId: string;
   authenticity: {
@@ -131,15 +132,17 @@ interface DetectedAnomaly {
   relatedEvidence?: string[];
 }
 
+export interface ForensicCaseContext {
+  caseId: string;
+  investigationFocus: string[];
+  keyEntities: string[];
+  timelineRange: { start: string; end: string };
+}
+
 interface ForensicDocumentAnalyzerProps {
   documentId: string;
   onAnalysisComplete?: (analysis: ForensicAnalysis) => void;
-  caseContext?: {
-    caseId: string;
-    investigationFocus: string[];
-    keyEntities: string[];
-    timelineRange: { start: string; end: string };
-  };
+  caseContext?: ForensicCaseContext;
 }
 
 export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> = ({
@@ -149,165 +152,74 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [analysis, setAnalysis] = useState<ForensicAnalysis | null>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [selectedEntity, setSelectedEntity] = useState<DetectedEntity | null>(null);
   const [activeTab, setActiveTab] = useState<
     'dashboard' | 'entities' | 'patterns' | 'anomalies' | 'metadata'
   >('dashboard');
-  const [metrics, setMetrics] = useState<any | null>(null);
-  const [summary, setSummary] = useState<any | null>(null);
-  const [topJs, setTopJs] = useState<any[]>([]);
-  const [topDensity, setTopDensity] = useState<any[]>([]);
-  const [topRisk, setTopRisk] = useState<any[]>([]);
-  const [compareAId, setCompareAId] = useState('');
-  const [compareBId, setCompareBId] = useState('');
-  const [compareA, setCompareA] = useState<any | null>(null);
-  const [compareB, setCompareB] = useState<any | null>(null);
   const [hoveredId, setHoveredId] = useState<string>('');
-  const [quickMetrics, setQuickMetrics] = useState<Record<string, any>>({});
-  const [activeId, setActiveId] = useState<string>(documentId);
-  useEffect(() => {
-    setActiveId(documentId);
-  }, [documentId]);
-  useEffect(() => {
-    try {
-      const params = new URLSearchParams(window.location.search);
-      const a = params.get('compareA');
-      const b = params.get('compareB');
-      if (a) setCompareAId(a);
-      if (b) setCompareBId(b);
-    } catch (err) {
-      console.error('Error parsing URL parameters:', err);
-    }
-  }, []);
   const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({
     factors: false,
     fileInfo: false,
     docProps: false,
     textAnalysis: false,
   });
-  const [docMeta, setDocMeta] = useState<{
-    source_collection?: string;
-    source_original_url?: string;
-    credibility_score?: number;
-    sensitivity_flags?: string[];
-    filePath?: string;
-    originalFilePath?: string;
-    cleanedPath?: string;
-  } | null>(null);
-
-  useEffect(() => {
-    // Resize observation no longer needed for PDF width here as it's handled in child or CSS
-  }, []);
-
-  useEffect(() => {
-    const fetchDoc = async () => {
-      try {
-        if (activeId) {
-          const res = await fetch(`/api/evidence/${activeId}`);
-          if (res.ok) {
-            const data = await res.json();
-            const meta = data.metadata || {};
-            setDocMeta({
-              source_collection: meta.source_collection || data.source_collection,
-              source_original_url: meta.source_original_url,
-              credibility_score: meta.credibility_score,
-              sensitivity_flags: Array.isArray(meta.sensitivity_flags)
-                ? meta.sensitivity_flags
-                : [],
-              filePath: data.filePath,
-              originalFilePath: data.original_file_path || data.originalFilePath,
-              cleanedPath: data.cleanedPath,
-            });
-          }
-        }
-      } catch (err) {
-        console.error('Error fetching document metadata:', err);
-      }
-    };
-    fetchDoc();
-  }, [activeId]);
-
-  useEffect(() => {
-    const fetchMetrics = async () => {
-      try {
-        if (activeId) {
-          const res = await fetch(`/api/forensic/metrics/${activeId}`);
-          if (res.ok) {
-            const data = await res.json();
-            setMetrics(data);
-          }
-        }
-      } catch (err) {
-        console.error('Error fetching metrics:', err);
-      }
-    };
-    const fetchSummary = async () => {
-      try {
-        const res = await fetch('/api/forensic/metrics-summary');
-        if (res.ok) setSummary(await res.json());
-      } catch (err) {
-        console.error('Error fetching summary:', err);
-      }
-    };
-    const fetchTop = async () => {
-      try {
-        const [jsRes, denRes, riskRes] = await Promise.all([
-          fetch('/api/forensic/metrics-list/top?by=js&limit=10'),
-          fetch('/api/forensic/metrics-list/top?by=density&limit=10'),
-          fetch('/api/forensic/metrics-list/top?by=risk&limit=10'),
-        ]);
-        if (jsRes.ok) {
-          const d = await jsRes.json();
-          setTopJs(d.data || []);
-        }
-        if (denRes.ok) {
-          const d = await denRes.json();
-          setTopDensity(d.data || []);
-        }
-        if (riskRes.ok) {
-          const d = await riskRes.json();
-          setTopRisk(d.data || []);
-        }
-      } catch (err) {
-        console.error('Error fetching top metrics:', err);
-      }
-    };
-    if (activeTab === 'dashboard' && activeId) {
-      fetchMetrics();
-      fetchSummary();
-      fetchTop();
-    }
-  }, [activeTab, activeId]);
-
-  const startForensicAnalysis = async () => {
-    if (!documentId) return;
-    setIsAnalyzing(true);
-    try {
-      if (documentId) {
-        const params = new URLSearchParams();
-        if (caseContext?.caseId) params.set('caseId', caseContext.caseId);
-        if (caseContext?.keyEntities?.length)
-          params.set('keyEntities', caseContext.keyEntities.join(','));
-        const query = params.toString() ? `?${params.toString()}` : '';
-        const resp = await fetch(`/api/forensic/analyze/${documentId}${query}`);
-        const data = await resp.json();
-        setAnalysis(data);
-        if (onAnalysisComplete) onAnalysisComplete(data);
-      }
-    } catch (e) {
-      console.error('Forensic analysis failed', e);
-    } finally {
-      setIsAnalyzing(false);
-    }
-  };
+  const {
+    analysis,
+    compareA,
+    compareAId,
+    compareB,
+    compareBId,
+    docMeta,
+    isAnalyzing,
+    loadComparison,
+    loadQuickMetric,
+    metrics,
+    quickMetrics,
+    setActiveId,
+    setCompareAId,
+    setCompareBId,
+    startForensicAnalysis,
+    summary,
+    topDensity,
+    topJs,
+    topRisk,
+  } = useForensicDocumentData({
+    documentId,
+    activeTab,
+    caseContext,
+    onAnalysisComplete,
+    locationSearch: location.search,
+  });
 
   const toggleSection = (section: string) => {
     setExpandedSections((prev) => ({
       ...prev,
       [section]: !prev[section],
     }));
+  };
+
+  const openForensicDocument = (id: string) => {
+    if (!location.pathname.startsWith('/investigations')) {
+      navigate(`/investigations?tab=forensic&docId=${id}`);
+      return;
+    }
+
+    setActiveId(id);
+    try {
+      const params = new URLSearchParams(window.location.search);
+      params.set('tab', 'forensic');
+      params.set('docId', id);
+      const query = params.toString();
+      const url = query ? `${window.location.pathname}?${query}` : window.location.pathname;
+      window.history.replaceState(null, '', url);
+    } catch {
+      // Ignore URL sync failures and keep the in-memory selection.
+    }
+  };
+
+  const previewMetric = async (id: string) => {
+    setHoveredId(id);
+    await loadQuickMetric(id);
   };
 
   const getEntityIcon = (type: DetectedEntity['type']) => {
@@ -739,38 +651,9 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                             <div
                               key={t.id}
                               className="flex justify-between items-center"
-                              onMouseEnter={async () => {
-                                setHoveredId(String(t.id));
-                                if (!quickMetrics[String(t.id)]) {
-                                  try {
-                                    const r = await fetch(`/api/forensic/metrics/${t.id}`);
-                                    if (r.ok) {
-                                      const m = await r.json();
-                                      setQuickMetrics((prev) => ({ ...prev, [String(t.id)]: m }));
-                                    }
-                                  } catch {
-                                    // Ignore fetch errors
-                                  }
-                                }
-                              }}
+                              onMouseEnter={() => void previewMetric(String(t.id))}
                               onMouseLeave={() => setHoveredId('')}
-                              onClick={() => {
-                                const idStr = String(t.id);
-                                if (!location.pathname.startsWith('/investigations')) {
-                                  navigate(`/investigations?tab=forensic&docId=${idStr}`);
-                                } else {
-                                  setActiveId(idStr);
-                                  try {
-                                    const params = new URLSearchParams(window.location.search);
-                                    params.set('tab', 'forensic');
-                                    params.set('docId', idStr);
-                                    const url = `${window.location.pathname}?${params.toString()}`;
-                                    window.history.replaceState(null, '', url);
-                                  } catch {
-                                    // Ignore fetch errors
-                                  }
-                                }
-                              }}
+                              onClick={() => openForensicDocument(String(t.id))}
                             >
                               <span className="truncate max-w-[50%]">{t.fileName}</span>
                               <span className="mr-2">{t.score}</span>
@@ -814,38 +697,9 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                             <div
                               key={t.id}
                               className="flex justify-between items-center"
-                              onMouseEnter={async () => {
-                                setHoveredId(String(t.id));
-                                if (!quickMetrics[String(t.id)]) {
-                                  try {
-                                    const r = await fetch(`/api/forensic/metrics/${t.id}`);
-                                    if (r.ok) {
-                                      const m = await r.json();
-                                      setQuickMetrics((prev) => ({ ...prev, [String(t.id)]: m }));
-                                    }
-                                  } catch {
-                                    // Ignore fetch errors
-                                  }
-                                }
-                              }}
+                              onMouseEnter={() => void previewMetric(String(t.id))}
                               onMouseLeave={() => setHoveredId('')}
-                              onClick={() => {
-                                const idStr = String(t.id);
-                                if (!location.pathname.startsWith('/investigations')) {
-                                  navigate(`/investigations?tab=forensic&docId=${idStr}`);
-                                } else {
-                                  setActiveId(idStr);
-                                  try {
-                                    const params = new URLSearchParams(window.location.search);
-                                    params.set('tab', 'forensic');
-                                    params.set('docId', idStr);
-                                    const url = `${window.location.pathname}?${params.toString()}`;
-                                    window.history.replaceState(null, '', url);
-                                  } catch {
-                                    // Ignore fetch errors
-                                  }
-                                }
-                              }}
+                              onClick={() => openForensicDocument(String(t.id))}
                             >
                               <span className="truncate max-w-[50%]">{t.fileName}</span>
                               <span className="mr-2">{t.score}</span>
@@ -889,38 +743,9 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                             <div
                               key={t.id}
                               className="flex justify-between items-center"
-                              onMouseEnter={async () => {
-                                setHoveredId(String(t.id));
-                                if (!quickMetrics[String(t.id)]) {
-                                  try {
-                                    const r = await fetch(`/api/forensic/metrics/${t.id}`);
-                                    if (r.ok) {
-                                      const m = await r.json();
-                                      setQuickMetrics((prev) => ({ ...prev, [String(t.id)]: m }));
-                                    }
-                                  } catch {
-                                    // Ignore fetch errors
-                                  }
-                                }
-                              }}
+                              onMouseEnter={() => void previewMetric(String(t.id))}
                               onMouseLeave={() => setHoveredId('')}
-                              onClick={() => {
-                                const idStr = String(t.id);
-                                if (!location.pathname.startsWith('/investigations')) {
-                                  navigate(`/investigations?tab=forensic&docId=${idStr}`);
-                                } else {
-                                  setActiveId(idStr);
-                                  try {
-                                    const params = new URLSearchParams(window.location.search);
-                                    params.set('tab', 'forensic');
-                                    params.set('docId', idStr);
-                                    const url = `${window.location.pathname}?${params.toString()}`;
-                                    window.history.replaceState(null, '', url);
-                                  } catch {
-                                    // Ignore fetch errors
-                                  }
-                                }
-                              }}
+                              onClick={() => openForensicDocument(String(t.id))}
                             >
                               <span className="truncate max-w-[50%]">{t.fileName}</span>
                               <span className="mr-2">{t.score}%</span>
@@ -939,7 +764,7 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                                 </button>
                               </div>
                               {hoveredId === String(t.id) && (
-                                <div className="ml-2 text=[10px] text-[var(--text-secondary)]">
+                                <div className="ml-2 text-[10px] text-[var(--text-secondary)]">
                                   <span>
                                     FKGL:{' '}
                                     {quickMetrics[String(t.id)]?.linguistic?.readabilityFKGL ?? '—'}
@@ -973,25 +798,7 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                             className="bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] p-2 rounded text-sm"
                           />
                           <button
-                            onClick={async () => {
-                              try {
-                                const [a, b] = await Promise.all([
-                                  fetch(`/api/forensic/metrics/${compareAId}`),
-                                  fetch(`/api/forensic/metrics/${compareBId}`),
-                                ]);
-                                if (a.ok) setCompareA(await a.json());
-                                if (b.ok) setCompareB(await b.json());
-                                const params = new URLSearchParams(window.location.search);
-                                if (compareAId) params.set('compareA', compareAId);
-                                else params.delete('compareA');
-                                if (compareBId) params.set('compareB', compareBId);
-                                else params.delete('compareB');
-                                const url = `${window.location.pathname}?${params.toString()}`;
-                                window.history.replaceState(null, '', url);
-                              } catch {
-                                // Ignore fetch errors
-                              }
-                            }}
+                            onClick={() => void loadComparison()}
                             className="px-3 py-2 bg-[var(--accent)] text-[var(--text-primary)] rounded text-sm"
                           >
                             Load

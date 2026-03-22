@@ -25,19 +25,27 @@ export class EvidenceChainService {
   async generateEvidenceChain(documentId: string): Promise<EvidenceChain> {
     try {
       // Get document metadata
-      const document = await apiClient.getDocument(documentId);
+      const document = (await apiClient.getDocument(documentId)) as Record<string, unknown>;
 
       // Trigger/Get Server-side Analysis
       // This moves the heavy lifting to the server
-      const analysis = await apiClient.analyzeDocument(documentId);
+      const analysis = (await apiClient.analyzeDocument(documentId)) as {
+        metrics?: {
+          readability?: boolean;
+          metadataAnalysis?: boolean;
+        };
+        authenticityScore?: number;
+      };
       const serverMetrics = analysis.metrics || {};
       const serverScore = (analysis.authenticityScore || 0) * 100;
 
       // Get Chain of Custody from Server
-      const custodyChain = await apiClient.getChainOfCustody(documentId);
+      const custodyChain = (await apiClient.getChainOfCustody(documentId)) as Array<
+        Record<string, unknown>
+      >;
 
       // Generate content hash (still useful client-side for verification)
-      const contentHash = await this.generateContentHash(document.content || '');
+      const contentHash = await this.generateContentHash((document.content as string) || '');
 
       // Build source provenance
       const sourceProvenance = this.buildSourceProvenance(document);
@@ -66,10 +74,10 @@ export class EvidenceChainService {
         sourceProvenance,
         transformations,
         authenticity,
-        custodyChain: custodyChain.map((e: any) => ({
+        custodyChain: custodyChain.map((e: Record<string, unknown>) => ({
           ...e,
-          date: new Date(e.date),
-        })),
+          date: new Date(e.date as string | number | Date),
+        })) as NonNullable<EvidenceChain['custodyChain']>,
         verificationStatus: authenticity.overall > 80 ? 'verified' : 'pending',
       };
     } catch (error) {
@@ -179,8 +187,11 @@ export class EvidenceChainService {
   async verifyEvidenceChain(evidenceChain: EvidenceChain): Promise<boolean> {
     try {
       // Verify content hash
-      const document = await apiClient.getDocument(evidenceChain.documentId);
-      const currentHash = await this.generateContentHash(document.content || '');
+      const document = (await apiClient.getDocument(evidenceChain.documentId)) as Record<
+        string,
+        unknown
+      >;
+      const currentHash = await this.generateContentHash((document.content as string) || '');
 
       if (currentHash !== evidenceChain.contentHash) {
         return false;

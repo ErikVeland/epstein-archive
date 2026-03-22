@@ -70,6 +70,9 @@ rm -f "$TMP_PGTYPED_DB"
 log "Guard: documents SQL hotfix parity"
 node --import tsx/esm scripts/check_documents_sql_parity.ts
 
+log "Guard: seed conflict policy"
+node --import tsx/esm scripts/check_seed_conflict_policy.ts
+
 log "Lint + typecheck"
 pnpm lint
 pnpm type-check

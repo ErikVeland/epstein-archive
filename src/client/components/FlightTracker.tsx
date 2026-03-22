@@ -263,7 +263,13 @@ const FlightTracker: React.FC = () => {
   const TimelineView = () => (
     <div className="flight-timeline">
       {flights.map((flight, _index) => (
-        <div key={flight.id} className="flight-card" onClick={() => setSelectedFlight(flight)}>
+        <button
+          key={flight.id}
+          type="button"
+          className="flight-card bg-transparent text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-inset"
+          onClick={() => setSelectedFlight(flight)}
+          aria-label={`Open flight details for ${flight.departure_airport} to ${flight.arrival_airport} on ${formatDate(flight.date)}`}
+        >
           <div className="flight-date">
             <span className="date-badge">{formatDate(flight.date)}</span>
           </div>
@@ -307,7 +313,7 @@ const FlightTracker: React.FC = () => {
             <span className="tail-number">{flight.aircraft_tail}</span>
             <span className="aircraft-type">{flight.aircraft_type}</span>
           </div>
-        </div>
+        </button>
       ))}
     </div>
   );
@@ -609,8 +615,20 @@ const FlightTracker: React.FC = () => {
     if (!selectedFlight) return null;
 
     return createPortal(
-      <div className="flight-modal-overlay" onClick={() => setSelectedFlight(null)}>
-        <div className="flight-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="flight-modal-overlay">
+        <button
+          type="button"
+          className="absolute inset-0"
+          aria-label="Close flight details"
+          onClick={() => setSelectedFlight(null)}
+        />
+        <div
+          className="flight-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="flight-details-title"
+          onClick={(e) => e.stopPropagation()}
+        >
           <CloseButton
             onClick={() => setSelectedFlight(null)}
             size="sm"
@@ -619,7 +637,7 @@ const FlightTracker: React.FC = () => {
           />
 
           <div className="modal-header" style={{ paddingRight: '3rem' }}>
-            <h2>Flight Details</h2>
+            <h2 id="flight-details-title">Flight Details</h2>
             <span className="flight-date">{formatDate(selectedFlight.date)}</span>
           </div>
 

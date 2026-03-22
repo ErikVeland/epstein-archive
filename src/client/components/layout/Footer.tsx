@@ -36,7 +36,7 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
         }
 
         const health = healthRes.value;
-        const stats = statsRes.value;
+        const stats = statsRes.value as { totalEntities?: number; totalDocuments?: number };
 
         const dbOk = health.checks?.db?.ok === true;
         const statsEntities = Number(stats?.totalEntities || 0);

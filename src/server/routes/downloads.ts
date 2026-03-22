@@ -1,9 +1,19 @@
 import express from 'express';
 import fs from 'fs';
+import rateLimit from 'express-rate-limit';
 import { logAudit } from '../utils/auditLogger.js';
 import { logger } from '../services/Logger.js';
 
 const router = express.Router();
+
+// Tighter limit for file downloads to prevent bandwidth abuse
+const downloadLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 5,
+  message: { error: 'Too many download requests, please wait before trying again' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // Map of release IDs (from AboutPage) to file paths
 // We can use the 'title' or a slug as the ID.
@@ -12,7 +22,7 @@ const FILE_MAP: Record<string, string> = {
   'flight-logs': './data/originals/EPSTEIN FLIGHT LOGS UNREDACTED.pdf',
 };
 
-router.get('/release/:id', async (req, res) => {
+router.get('/release/:id', downloadLimiter, async (req, res) => {
   const releaseId = req.params.id;
 
   try {

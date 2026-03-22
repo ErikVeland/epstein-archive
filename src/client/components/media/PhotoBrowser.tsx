@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useTransition, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import {
   FixedSizeGrid as Grid,
@@ -8,7 +8,7 @@ import {
   areEqual,
 } from 'react-window';
 import AutoSizer from '../common/AutoSizer';
-import { MediaImage, Album } from '../../types/media.types';
+import { MediaImage } from '../../types/media.types';
 import Icon from '../common/Icon';
 import MediaViewerModal from './MediaViewerModal';
 import BatchToolbar from '../common/BatchToolbar';
@@ -16,6 +16,7 @@ import LazyImage from '../common/LazyImage';
 import { SensitiveContent } from '../common/SensitiveContent';
 import { useAuth } from '../../contexts/AuthContext';
 import { Person } from '../../types';
+import { PhotoSortField as SortField, usePhotoBrowserData } from '../../hooks/usePhotoBrowserData';
 
 // Lazy load EvidenceModal to reduce initial bundle size
 const EvidenceModal = React.lazy(() =>
@@ -27,8 +28,6 @@ interface PhotoBrowserProps {
 }
 
 type ViewMode = 'grid' | 'list';
-type SortField = 'date_added' | 'date_taken' | 'filename' | 'file_size' | 'title';
-type SortOrder = 'asc' | 'desc';
 
 // --- Virtualized Renderers ---
 
@@ -184,22 +183,10 @@ const ListRow = React.memo(({ index, style, data }: ListChildComponentProps<Item
 }, areEqual);
 
 export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageClick }) => {
-  const [albums, setAlbums] = useState<Album[]>([]);
-  const [images, setImages] = useState<MediaImage[]>([]);
-  const [selectedAlbum, setSelectedAlbum] = useState<number | null>(null);
-  const [selectedTag, setSelectedTag] = useState<number | null>(null);
-  const [selectedPerson, setSelectedPerson] = useState<number | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
-  const [sortField, setSortField] = useState<SortField>('date_added');
-  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
-  const [searchQuery, setSearchQuery] = useState('');
   const { isAdmin } = useAuth();
-  const [loading, setLoading] = useState(true);
   const [viewerStartIndex, setViewerStartIndex] = useState<number | null>(null);
   const [showAlbumDropdown, setShowAlbumDropdown] = useState(false); // Mobile album dropdown
-  const [hasPeopleOnly, setHasPeopleOnly] = useState(false); // Default to false as requested
-  const [availableTags, setAvailableTags] = useState<any[]>([]);
-  const [availablePeople, setAvailablePeople] = useState<any[]>([]);
   const [previewPerson, setPreviewPerson] = useState<Person | null>(null);
 
   // Batch selection state
@@ -211,293 +198,40 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
   const [undoStack, setUndoStack] = useState<
     Array<{ action: string; imageIds: number[]; prevState: MediaImage[] }>
   >([]);
-
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-  const [_isPending, startTransition] = useTransition();
-  const imagesAbortRef = useRef<AbortController | null>(null);
-  const filtersAbortRef = useRef<AbortController | null>(null);
-  const [libraryTotalCount, setLibraryTotalCount] = useState<number>(0);
-  const sentinelRef = useRef<HTMLDivElement | null>(null);
-  const [autoLoading, setAutoLoading] = useState(false);
-  const prefetchRef = useRef<number | null>(null);
-
-  // Track if URL params have been initialized
-  const [initialized, setInitialized] = useState(false);
-
-  // Initialize from URL - runs first
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const albumId = params.get('albumId');
-    const tagId = params.get('tagId');
-    const personId = params.get('personId');
-    const hasPeople = params.get('hasPeople');
-
-    if (albumId) setSelectedAlbum(parseInt(albumId));
-    if (tagId) setSelectedTag(parseInt(tagId));
-    if (personId) setSelectedPerson(parseInt(personId));
-    if (hasPeople === 'true') setHasPeopleOnly(true);
-
-    // Mark as initialized after URL params are processed
-    setInitialized(true);
-  }, []);
-
-  // Load available tags
-  useEffect(() => {
-    const loadFilters = async () => {
-      try {
-        filtersAbortRef.current?.abort();
-        filtersAbortRef.current = new AbortController();
-        const tagsRes = await fetch('/api/media/tags', { signal: filtersAbortRef.current.signal });
-        if (tagsRes.ok) {
-          const tags = await tagsRes.json();
-          setAvailableTags(tags);
-        }
-      } catch {
-        void 0;
-      }
-    };
-    loadFilters();
-    return () => {
-      filtersAbortRef.current?.abort();
-    };
-  }, []);
-
-  useEffect(() => {
-    loadAlbums();
-  }, []);
-  useEffect(() => {
-    const loadLibraryTotal = async () => {
-      try {
-        const res = await fetch('/api/media/stats');
-        if (res.ok) {
-          const json = await res.json();
-          if (typeof json?.totalImages === 'number') {
-            setLibraryTotalCount(json.totalImages);
-            return;
-          }
-        }
-        const res2 = await fetch('/api/media/images?page=1&limit=1&slim=true');
-        const totalHeader = res2.headers.get('X-Total-Count');
-        if (totalHeader) setLibraryTotalCount(parseInt(totalHeader) || 0);
-      } catch {
-        // leave default 0
-      }
-    };
-    loadLibraryTotal();
-  }, []);
-
-  // Sync URL with filters
-  useEffect(() => {
-    if (!initialized) return;
-
-    const url = new URL(window.location.href);
-
-    if (selectedAlbum) url.searchParams.set('albumId', selectedAlbum.toString());
-    else url.searchParams.delete('albumId');
-
-    if (selectedTag) url.searchParams.set('tagId', selectedTag.toString());
-    else url.searchParams.delete('tagId');
-
-    if (selectedPerson) url.searchParams.set('personId', selectedPerson.toString());
-    else url.searchParams.delete('personId');
-
-    if (hasPeopleOnly) url.searchParams.set('hasPeople', 'true');
-    else url.searchParams.delete('hasPeople');
-
-    window.history.replaceState({}, '', url);
-  }, [initialized, selectedAlbum, selectedTag, selectedPerson, hasPeopleOnly]);
-
-  // Main data fetch efffect
-  useEffect(() => {
-    if (!initialized) return;
-
-    // Reset to page 1 for any filter change
-    setPage(1);
-    fetchImages(1, false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- fetchImages is stable and defined below
-  }, [
-    initialized,
+  const {
+    albums,
+    images,
     selectedAlbum,
     selectedTag,
     selectedPerson,
-    hasPeopleOnly,
     sortField,
     sortOrder,
     searchQuery,
-  ]);
-
-  const loadAlbums = async () => {
-    try {
-      const response = await fetch('/api/media/albums');
-      const data = await response.json();
-      if (Array.isArray(data)) {
-        setAlbums(data);
-      } else {
-        console.error('Expected array for albums, got:', data);
-        setAlbums([]);
-      }
-    } catch (error) {
-      console.error('Failed to load albums:', error);
-    }
-  };
-
-  const fetchImages = async (pageNum: number, append: boolean) => {
-    if (append && !hasMore) return;
-
-    // Use startTransition to make loading state non-blocking (allows tab switching)
-    startTransition(() => {
-      setLoading(true);
-    });
-    try {
-      imagesAbortRef.current?.abort();
-      imagesAbortRef.current = new AbortController();
-      const params = new URLSearchParams();
-      if (selectedAlbum) params.append('albumId', selectedAlbum.toString());
-      if (selectedTag) params.append('tagId', selectedTag.toString());
-      if (selectedPerson) params.append('personId', selectedPerson.toString());
-      if (hasPeopleOnly) params.append('hasPeople', 'true');
-      params.append('verificationStatus', 'verified');
-      params.append('minRedFlagRating', '2');
-      if (sortField) params.append('sortField', sortField);
-      if (sortOrder) params.append('sortOrder', sortOrder);
-      if (searchQuery) params.append('search', searchQuery);
-
-      // Pagination
-      const limit = 24;
-      params.append('page', pageNum.toString());
-      params.append('limit', limit.toString());
-
-      // Request slim response for faster grid view loading
-      params.append('slim', 'true');
-
-      // Removed cache busting to enable browser caching - thumbnails rarely change
-      const response = await fetch(`/api/media/images?${params}`, {
-        signal: imagesAbortRef.current.signal,
-      });
-      const data = await response.json();
-
-      // Backend now returns consistent camelCase in slim mode - minimal normalization needed
-      const normalized: MediaImage[] = Array.isArray(data)
-        ? data.map((img: any) => ({
-            ...img,
-            isSensitive: Boolean(img.isSensitive),
-            fileSize: img.fileSize || 0,
-          }))
-        : [];
-
-      if (append) {
-        startTransition(() => {
-          setImages((prev) => [...prev, ...normalized]);
-        });
-      } else {
-        startTransition(() => {
-          setImages(normalized);
-        });
-      }
-
-      // Determine if there are more items
-      const totalCountHeader = response.headers.get('X-Total-Count');
-      if (totalCountHeader) {
-        const total = parseInt(totalCountHeader);
-        const currentCount = (pageNum - 1) * limit + normalized.length;
-        setHasMore(currentCount < total);
-      } else {
-        setHasMore(normalized.length === limit);
-      }
-
-      // Check for photoId deep link (only on initial load)
-      if (pageNum === 1) {
-        const urlParams = new URLSearchParams(window.location.search);
-        const photoId = urlParams.get('photoId');
-        if (photoId) {
-          // If the photo is not in the first page, we might miss it.
-          // Ideally, we'd fetch that specific photo or jump to its page.
-          // For now, check if it's in the loaded batch.
-          const index = normalized.findIndex((img) => img.id.toString() === photoId);
-          if (index !== -1) {
-            setViewerStartIndex(index);
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Failed to load images:', error);
-      startTransition(() => {
-        setImages([]);
-      });
-    } finally {
-      // Use startTransition here too to keep UI responsive
-      startTransition(() => {
-        setLoading(false);
-      });
-    }
-  };
-
-  useEffect(() => {
-    const el = sentinelRef.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      (entries) => {
-        const entry = entries[0];
-        if (entry.isIntersecting && !loading && hasMore && !autoLoading) {
-          setAutoLoading(true);
-          const next = page + 1;
-          fetchImages(next, true).finally(() => setAutoLoading(false));
-          setPage(next);
-        }
-      },
-      { root: null, rootMargin: '200px', threshold: 0.1 },
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- fetchImages is stable and defined above
-  }, [
-    page,
     loading,
-    hasMore,
-    autoLoading,
-    initialized,
-    selectedAlbum,
-    selectedTag,
-    selectedPerson,
     hasPeopleOnly,
-    sortField,
-    sortOrder,
-    searchQuery,
-  ]);
+    availableTags,
+    availablePeople,
+    libraryTotalCount,
+    hasMore,
+    pendingViewerIndex,
+    setSelectedAlbum,
+    setSelectedTag,
+    setSelectedPerson,
+    setSortField,
+    setSortOrder,
+    setSearchQuery,
+    setHasPeopleOnly,
+    loadPeopleOptions,
+    loadMore,
+    updateImages,
+    consumePendingViewerIndex,
+  } = usePhotoBrowserData();
 
   useEffect(() => {
-    const id = setTimeout(() => {
-      if (!loading && hasMore) {
-        const next = page + 1;
-        if (prefetchRef.current !== next) {
-          prefetchRef.current = next;
-          fetchImages(next, true);
-        }
-      }
-    }, 2000);
-    return () => clearTimeout(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- fetchImages is stable and defined above
-  }, [page, loading, hasMore]);
-
-  // Lazy load people list when dropdown focused
-  const loadPeopleOptions = async () => {
-    try {
-      if (availablePeople.length > 0) return;
-      filtersAbortRef.current?.abort();
-      filtersAbortRef.current = new AbortController();
-      const res = await fetch('/api/entities?page=1&limit=100', {
-        signal: filtersAbortRef.current.signal,
-      });
-      if (res.ok) {
-        const json = await res.json();
-        const data = Array.isArray(json?.data) ? json.data : Array.isArray(json) ? json : [];
-        setAvailablePeople(data.map((p: any) => ({ id: p.id, name: p.fullName || p.name })));
-      }
-    } catch {
-      void 0;
-    }
-  };
+    if (pendingViewerIndex === null) return;
+    setViewerStartIndex(pendingViewerIndex);
+    consumePendingViewerIndex();
+  }, [consumePendingViewerIndex, pendingViewerIndex]);
 
   const toggleImageSelection = useCallback(
     (imageId: number, index: number, event: React.MouseEvent) => {
@@ -604,7 +338,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
         updatedImages[index] = prevImg;
       }
     }
-    setImages(updatedImages);
+    updateImages(() => updatedImages);
 
     // Remove from undo stack
     setUndoStack((prev) => prev.slice(0, -1));
@@ -662,7 +396,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
           }
         }
       }
-      setImages(updatedImages);
+      updateImages(() => updatedImages);
 
       // Show success message
       console.log(`Successfully rotated ${results.filter((r: any) => r.success).length} images`);
@@ -703,7 +437,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
           }
         }
       }
-      setImages(updatedImages);
+      updateImages(() => updatedImages);
 
       // Show success message
       console.log(`Successfully tagged ${results.filter((r: any) => r.success).length} images`);
@@ -814,7 +548,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
           }
         }
       }
-      setImages(updatedImages);
+      updateImages(() => updatedImages);
 
       // Show success message
       console.log(
@@ -1205,9 +939,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
                         onItemsRendered={({ visibleRowStopIndex }) => {
                           const visibleIndex = visibleRowStopIndex * columnCount;
                           if (visibleIndex >= images.length - 20 && hasMore && !loading) {
-                            const nextPage = page + 1;
-                            setPage(nextPage);
-                            fetchImages(nextPage, true);
+                            void loadMore();
                           }
                         }}
                       >
@@ -1236,9 +968,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
                         className="scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent p-6"
                         onItemsRendered={({ visibleStopIndex }) => {
                           if (visibleStopIndex >= images.length - 10 && hasMore && !loading) {
-                            const nextPage = page + 1;
-                            setPage(nextPage);
-                            fetchImages(nextPage, true);
+                            void loadMore();
                           }
                         }}
                       >
@@ -1307,7 +1037,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
             const index = newImages.findIndex((img) => img.id === updatedImage.id);
             if (index !== -1) {
               newImages[index] = updatedImage;
-              setImages(newImages);
+              updateImages(() => newImages);
             }
           }}
           onEntityClick={(person) => {
@@ -1333,7 +1063,6 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
           </div>
         </React.Suspense>
       )}
-      <div ref={sentinelRef} className="h-4 w-full"></div>
     </div>
   );
 });

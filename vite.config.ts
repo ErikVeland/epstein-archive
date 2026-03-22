@@ -45,23 +45,25 @@ export default defineConfig({
             return 'vendor';
           }
 
-          // Feature-based grouping for our own source code
-          if (id.includes('src/client/components/Investigation')) {
+          // Feature-based grouping for our own source code.
+          // Use lowercased id to match consistently on case-sensitive Linux filesystems.
+          const normalizedId = id.toLowerCase();
+          if (normalizedId.includes('src/client/components/investigation')) {
             return 'feature-investigation';
           }
           if (
-            id.includes('src/client/components/Media') ||
-            id.includes('src/client/components/Photo')
+            normalizedId.includes('src/client/components/media') ||
+            normalizedId.includes('src/client/components/photo')
           ) {
             return 'feature-media';
           }
-          if (id.includes('src/client/components/email')) {
+          if (normalizedId.includes('src/client/components/email')) {
             return 'feature-email';
           }
-          if (id.includes('src/client/components/Document')) {
+          if (normalizedId.includes('src/client/components/document')) {
             return 'feature-documents';
           }
-          if (id.includes('src/client/components/NetworkVisualization')) {
+          if (normalizedId.includes('src/client/components/networkvisualization')) {
             return 'feature-network';
           }
         },

@@ -1,6 +1,7 @@
 import pg from 'pg';
 import { requestContext } from '../middleware/requestId.js';
 import { logger } from '../services/Logger.js';
+import { queryCounter } from '../queryCounter.js';
 
 // ─── Pool singletons ─────────────────────────────────────────────────────────
 
@@ -25,11 +26,14 @@ function wrapPool(pool: pg.Pool, label: string): pg.Pool {
     try {
       const res = await originalQuery(sqlOrConfig as any, values as any);
       const durationMs = Date.now() - startedAt;
+      const store = requestContext.getStore();
+      if (store?.requestId) {
+        queryCounter.increment(store.requestId);
+      }
       const debugPg =
         process.env.DEBUG_PG && process.env.DEBUG_PG !== '0' && process.env.DEBUG_PG !== 'false';
       const shouldLog = debugPg || durationMs > SLOW_QUERY_LOG_THRESHOLD_MS;
       if (shouldLog) {
-        const store = requestContext.getStore();
         const requestId = store?.requestId || 'no-req-id';
         const rowCount = (res as any).rowCount ?? (res as any).rows?.length ?? 0;
         logger.warn(

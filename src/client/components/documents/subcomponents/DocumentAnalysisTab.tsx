@@ -223,12 +223,11 @@ export const DocumentAnalysisTab: React.FC<DocumentAnalysisTabProps> = ({
             ) : (
               <div className="grid grid-cols-1 gap-4">
                 {relatedDocs.map((relatedDoc) => (
-                  <div
+                  <button
                     key={relatedDoc.id}
-                    className="surface-quiet p-5 hover:border-[var(--accent)]/40 transition-all group border-l-4 border-l-slate-800 hover:border-l-cyan-500 cursor-pointer"
+                    type="button"
+                    className="surface-quiet p-5 hover:border-[var(--accent)]/40 transition-all group border-l-4 border-l-slate-800 hover:border-l-cyan-500 w-full text-left bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-inset"
                     onClick={() => onNavigateToDoc(String(relatedDoc.id))}
-                    role="button"
-                    tabIndex={0}
                   >
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                       <div className="min-w-0 flex-1">
@@ -246,7 +245,7 @@ export const DocumentAnalysisTab: React.FC<DocumentAnalysisTabProps> = ({
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </button>
                 ))}
               </div>
             )}

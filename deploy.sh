@@ -6,10 +6,11 @@
 set -euo pipefail
 
 # Configuration
-PRODUCTION_USER="deploy"
-PRODUCTION_HOST="194.195.248.217"
-PRODUCTION_PATH="/home/deploy/epstein-archive"
-SSH_KEY_PATH="$HOME/.ssh/id_glasscode"
+PRODUCTION_USER="${EPSTEIN_PROD_SSH_USER:-svc_epstein}"
+PRODUCTION_HOST="${EPSTEIN_PROD_HOST:-194.195.248.217}"
+PRODUCTION_PATH="${EPSTEIN_PROD_PATH:-/home/${PRODUCTION_USER}/epstein-archive}"
+SSH_KEY_PATH="${EPSTEIN_PROD_SSH_KEY_PATH:-$HOME/.ssh/id_epstein_prod_ed25519}"
+SSH_OPTS=(-i "$SSH_KEY_PATH" -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new)
 
 # Colors
 GREEN='\033[0;32m'
@@ -23,6 +24,8 @@ log_success() { echo -e "${GREEN}✅ $1${NC}"; }
 log_warning() { echo -e "${YELLOW}⚠️  $1${NC}"; }
 log_error() { echo -e "${RED}❌ $1${NC}"; }
 require_cmd() { command -v "$1" >/dev/null 2>&1 || { log_error "Required command not found: $1"; exit 1; }; }
+require_file() { [ -f "$1" ] || { log_error "Required file not found: $1"; exit 1; }; }
+remote_ssh() { ssh "${SSH_OPTS[@]}" "${PRODUCTION_USER}@${PRODUCTION_HOST}" "$@"; }
 
 verify_release_notes_version() {
   local current_version
@@ -219,7 +222,7 @@ perform_rollback() {
 
   log_warning "Initiating automatic rollback..."
 
-  ssh -i "$SSH_KEY_PATH" "${PRODUCTION_USER}@${PRODUCTION_HOST}" "
+  remote_ssh "
     set -e
     cd ${PRODUCTION_PATH}
 
@@ -253,7 +256,7 @@ perform_rollback() {
     fi
   "
 
-  ssh -i "$SSH_KEY_PATH" "${PRODUCTION_USER}@${PRODUCTION_HOST}" "$(remote_pm2_reload_cmd)"
+  remote_ssh "$(remote_pm2_reload_cmd)"
 
   log_success "Rollback completed."
 }
@@ -374,6 +377,9 @@ wait_for_ci_green() {
   exit 1
 }
 
+require_file "$SSH_KEY_PATH"
+log_step "Using production SSH key: $SSH_KEY_PATH"
+
 # ============================================
 # PRE-FLIGHT (all non-mutating checks first)
 # ============================================
@@ -418,7 +424,7 @@ fi
 
 if [ "$DRY_RUN" = false ]; then
   log_step "Running remote env sanity gate (non-mutating)..."
-  ssh -i "$SSH_KEY_PATH" "${PRODUCTION_USER}@${PRODUCTION_HOST}" "$(remote_env_sanity_cmd)"
+  remote_ssh "$(remote_env_sanity_cmd)"
 fi
 
 # ============================================
@@ -432,7 +438,7 @@ if [ "$DEPLOY_DB" = true ]; then
   else
     DEPLOY_MUTATION_STARTED=true
 
-    ssh -i "$SSH_KEY_PATH" "${PRODUCTION_USER}@${PRODUCTION_HOST}" "
+    remote_ssh "
       set -e
       cd ${PRODUCTION_PATH}
 
@@ -480,7 +486,7 @@ if [ "$DEPLOY_DB" = true ]; then
 
     if [ "$DB_ONLY" = true ]; then
       # CERT_STEP: app_restart_after_db_healthy
-      ssh -i "$SSH_KEY_PATH" "${PRODUCTION_USER}@${PRODUCTION_HOST}" "$(remote_pm2_reload_cmd)"
+      remote_ssh "$(remote_pm2_reload_cmd)"
     fi
 
     log_success "Postgres database deployment complete."
@@ -500,7 +506,7 @@ if [ "$DB_ONLY" = false ]; then
   else
     DEPLOY_MUTATION_STARTED=true
 
-    ssh -i "$SSH_KEY_PATH" "${PRODUCTION_USER}@${PRODUCTION_HOST}" "
+    remote_ssh "
       set -e
       cd ${PRODUCTION_PATH}
 
@@ -551,7 +557,7 @@ if [ "$DB_ONLY" = false ]; then
     "
 
     # CERT_STEP: app_restart_after_db_healthy
-    ssh -i "$SSH_KEY_PATH" "${PRODUCTION_USER}@${PRODUCTION_HOST}" "$(remote_pm2_reload_cmd)"
+    remote_ssh "$(remote_pm2_reload_cmd)"
     log_success "Code deployment complete."
   fi
 else
@@ -574,7 +580,7 @@ if [ "$DRY_RUN" = false ]; then
   while [ $READY_COUNT -lt $READY_MAX_RETRIES ]; do
     sleep 5
 
-    READY=$(ssh -i "$SSH_KEY_PATH" "${PRODUCTION_USER}@${PRODUCTION_HOST}" "curl -sS --max-time 6 -w ' HTTP_STATUS:%{http_code}' http://localhost:3012/api/health/ready" || echo "HTTP_STATUS:000")
+    READY=$(remote_ssh "curl -sS --max-time 6 -w ' HTTP_STATUS:%{http_code}' http://localhost:3012/api/health/ready" || echo "HTTP_STATUS:000")
     READY_STATUS="${READY##*HTTP_STATUS:}"
     READY_BODY="${READY% HTTP_STATUS:*}"
 
@@ -594,12 +600,12 @@ if [ "$DRY_RUN" = false ]; then
   fi
 
   log_step "Running DB meta Postgres gate..."
-  ssh -i "$SSH_KEY_PATH" "${PRODUCTION_USER}@${PRODUCTION_HOST}" \
+  remote_ssh \
     "curl -sf http://localhost:3012/api/_meta/db | jq -e '(.dialect == \"postgres\") and ((has(\"translationCount\") | not) or (.translationCount == 0))' >/dev/null || exit 1"
 
   # CERT_STEP: health_endpoint_smoke_test
   log_step "Running basic health smoke test..."
-  BASIC_HEALTH=$(ssh -i "$SSH_KEY_PATH" "${PRODUCTION_USER}@${PRODUCTION_HOST}" "curl -sS --max-time 3 -w ' HTTP_STATUS:%{http_code}' http://localhost:3012/api/health" || echo "HTTP_STATUS:000")
+  BASIC_HEALTH=$(remote_ssh "curl -sS --max-time 3 -w ' HTTP_STATUS:%{http_code}' http://localhost:3012/api/health" || echo "HTTP_STATUS:000")
   BASIC_HEALTH_STATUS="${BASIC_HEALTH##*HTTP_STATUS:}"
   BASIC_HEALTH_BODY="${BASIC_HEALTH% HTTP_STATUS:*}"
   if [ "$BASIC_HEALTH_STATUS" != "200" ] || ! echo "$BASIC_HEALTH_BODY" | grep -Eq '"status"[[:space:]]*:[[:space:]]*"ok"'; then
@@ -611,7 +617,7 @@ if [ "$DRY_RUN" = false ]; then
   log_step "Readiness is healthy. Running deep health check..."
 
   while [ $DEEP_COUNT -lt $DEEP_MAX_RETRIES ]; do
-    DEEP=$(ssh -i "$SSH_KEY_PATH" "${PRODUCTION_USER}@${PRODUCTION_HOST}" "curl -sS --max-time 180 -w ' HTTP_STATUS:%{http_code}' http://localhost:3012/api/stats/health/deep" || echo "HTTP_STATUS:000")
+    DEEP=$(remote_ssh "curl -sS --max-time 180 -w ' HTTP_STATUS:%{http_code}' http://localhost:3012/api/stats/health/deep" || echo "HTTP_STATUS:000")
     DEEP_STATUS="${DEEP##*HTTP_STATUS:}"
 
     if [ "$DEEP_STATUS" = "200" ]; then
@@ -626,7 +632,7 @@ if [ "$DRY_RUN" = false ]; then
 
   if [ "$DEEP_SUCCESS" = true ]; then
     log_step "Running post-deploy verification suite..."
-    ssh -i "$SSH_KEY_PATH" "${PRODUCTION_USER}@${PRODUCTION_HOST}" "
+    remote_ssh "
       set -e
       cd ${PRODUCTION_PATH}
       chmod +x ./scripts/post_deploy_verify.sh

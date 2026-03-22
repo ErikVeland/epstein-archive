@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useId } from 'react';
 
 interface TooltipProps {
   content: string;
@@ -19,6 +19,7 @@ const Tooltip: React.FC<TooltipProps> = ({
   const [delayTimeout, setDelayTimeout] = useState<NodeJS.Timeout | null>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLSpanElement>(null);
+  const tooltipId = useId();
 
   const showTooltip = () => {
     const timeout = setTimeout(() => {
@@ -113,11 +114,11 @@ const Tooltip: React.FC<TooltipProps> = ({
       onMouseLeave={hideTooltip}
       onFocus={showTooltip}
       onBlur={hideTooltip}
-      aria-describedby="tooltip-content"
+      aria-describedby={isVisible ? tooltipId : undefined}
     >
       {children}
       {isVisible && (
-        <div ref={tooltipRef} className={getPositionClasses()} role="tooltip" id="tooltip-content">
+        <div ref={tooltipRef} className={getPositionClasses()} role="tooltip" id={tooltipId}>
           <div className={getArrowClasses()}></div>
           <div>{content}</div>
         </div>

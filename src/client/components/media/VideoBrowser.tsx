@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { FixedSizeGrid as Grid, GridChildComponentProps, areEqual } from 'react-window';
 import { createPortal } from 'react-dom';
 import AutoSizer from '../common/AutoSizer';
@@ -8,6 +8,7 @@ import { SensitiveContent } from '../common/SensitiveContent';
 import BatchToolbar from '../common/BatchToolbar';
 import { SensitiveWarningBanner } from '../shared/SensitiveWarningBanner';
 import Icon from '../common/Icon';
+import { usePaginatedMediaCollection } from '../../hooks/usePaginatedMediaCollection';
 
 interface VideoItem {
   id: number;
@@ -75,6 +76,14 @@ const VIDEO_THUMB_PLACEHOLDER =
       </text>
     </svg>
   `);
+
+function getInitialAlbumIdFromUrl(): number | null {
+  if (typeof window === 'undefined') return null;
+  const value = new URLSearchParams(window.location.search).get('albumId');
+  if (!value) return null;
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) ? parsed : null;
+}
 
 const VideoCell = React.memo(({ columnIndex, rowIndex, style, data }: GridChildComponentProps) => {
   const {
@@ -170,70 +179,46 @@ const VideoCell = React.memo(({ columnIndex, rowIndex, style, data }: GridChildC
 }, areEqual);
 
 export const VideoBrowser: React.FC = () => {
-  const [items, setItems] = useState<VideoItem[]>([]);
-  const [albums, setAlbums] = useState<Album[]>([]);
-  const [selectedAlbum, setSelectedAlbum] = useState<number | null>(null);
+  const initialAlbumId = useMemo(() => getInitialAlbumIdFromUrl(), []);
   const [selectedItem, setSelectedItem] = useState<VideoItem | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
   const [showAlbumDropdown, setShowAlbumDropdown] = useState(false);
-  const [libraryTotalCount, setLibraryTotalCount] = useState(0);
   const [_pickerOpenId, _setPickerOpenId] = useState<number | null>(null);
   const [_investigationsList, _setInvestigationsList] = useState<any[]>([]);
   const [_addingId, _setAddingId] = useState<number | null>(null);
 
-  // Transcript search (within album or across all videos)
-  const [transcriptSearch, setTranscriptSearch] = useState('');
-
   // Batch Mode State
   const [isBatchMode, setIsBatchMode] = useState(false);
   const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
-
-  const abortControllerRef = useRef<AbortController | null>(null);
+  const {
+    items,
+    albums,
+    selectedAlbum,
+    searchQuery: transcriptSearch,
+    loading,
+    error,
+    hasMore,
+    libraryTotalCount,
+    setSelectedAlbum,
+    setSearchQuery: setTranscriptSearch,
+    loadMore,
+    refresh,
+  } = usePaginatedMediaCollection<VideoItem, Album>({
+    mediaEndpoint: '/media/video',
+    albumsEndpoint: '/media/video/albums',
+    initialAlbumId,
+    errorMessage: 'Failed to load video content',
+    buildQuery: (params, { searchQuery }) => {
+      if (searchQuery.trim()) params.append('transcriptQuery', searchQuery.trim());
+      params.append('sortBy', 'title');
+    },
+    transformItems: sortVideosInDisplayOrder,
+    syncAlbumToUrl: true,
+  });
 
   const currentAlbum = useMemo(
     () => albums.find((a) => a.id === selectedAlbum),
     [albums, selectedAlbum],
   );
-
-  // Load albums on mount
-  useEffect(() => {
-    loadAlbums();
-    return () => abortControllerRef.current?.abort();
-  }, []);
-
-  useEffect(() => {
-    const loadTotals = async () => {
-      try {
-        const res = await fetch('/api/media/video?page=1&limit=1');
-        if (res.ok) {
-          const json = await res.json();
-          if (typeof json?.total === 'number') setLibraryTotalCount(json.total);
-        }
-      } catch {
-        void 0;
-      }
-    };
-    loadTotals();
-  }, []);
-  // Load items when album selection or transcript search changes
-  useEffect(() => {
-    fetchVideos(1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- fetchVideos is stable and defined below
-  }, [selectedAlbum, transcriptSearch]);
-
-  const loadAlbums = async () => {
-    try {
-      const res = await fetch('/api/media/video/albums');
-      if (!res.ok) throw new Error('Failed to load albums');
-      const data = await res.json();
-      setAlbums(data);
-    } catch (err) {
-      console.error('Failed to load albums:', err);
-    }
-  };
 
   // Batch Handlers
   const toggleSelection = useCallback((id: number) => {
@@ -252,7 +237,7 @@ export const VideoBrowser: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ itemIds: Array.from(selectedItems), tagIds, action }),
       });
-      fetchVideos(1);
+      await refresh();
       setSelectedItems(new Set());
       setIsBatchMode(false);
     } catch (e) {
@@ -267,60 +252,13 @@ export const VideoBrowser: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ itemIds: Array.from(selectedItems), personIds, action: 'add' }),
       });
-      fetchVideos(1);
+      await refresh();
       setSelectedItems(new Set());
       setIsBatchMode(false);
     } catch (e) {
       console.error(e);
     }
   };
-
-  const fetchVideos = useCallback(
-    async (pageNum: number) => {
-      try {
-        setLoading(true);
-
-        // Abort previous request
-        if (abortControllerRef.current) {
-          abortControllerRef.current.abort();
-        }
-        abortControllerRef.current = new AbortController();
-
-        const params = new URLSearchParams({
-          page: pageNum.toString(),
-          limit: '24',
-        });
-        if (selectedAlbum) params.append('albumId', selectedAlbum.toString());
-        if (transcriptSearch.trim()) params.append('transcriptQuery', transcriptSearch.trim());
-        // Always sort by title as requested
-        params.append('sortBy', 'title');
-
-        const res = await fetch(`/api/media/video?${params}`, {
-          signal: abortControllerRef.current.signal,
-        });
-        if (!res.ok) throw new Error('Failed to load video files');
-
-        const data = await res.json();
-        const newItems = (data.mediaItems || []) as VideoItem[];
-
-        if (pageNum === 1) {
-          setItems(sortVideosInDisplayOrder(newItems));
-        } else {
-          setItems((prev) => sortVideosInDisplayOrder([...prev, ...newItems]));
-        }
-
-        setHasMore(newItems.length === 24);
-        setPage(pageNum);
-      } catch (err) {
-        if (err instanceof Error && err.name === 'AbortError') return;
-        console.error(err);
-        setError('Failed to load video content');
-      } finally {
-        setLoading(false);
-      }
-    },
-    [selectedAlbum, transcriptSearch],
-  );
 
   const formatDate = useCallback((dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('en-US', {
@@ -329,13 +267,6 @@ export const VideoBrowser: React.FC = () => {
       day: 'numeric',
     });
   }, []);
-
-  const loadMoreItems = useCallback(() => {
-    if (!loading && hasMore) {
-      fetchVideos(page + 1);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, hasMore, fetchVideos, page]);
 
   const showSensitiveWarning =
     currentAlbum &&
@@ -365,23 +296,6 @@ export const VideoBrowser: React.FC = () => {
     }),
     [items, selectedItems, isBatchMode, handleVideoClick, toggleSelection, formatDate],
   );
-
-  // Update URL when item or album is selected
-  useEffect(() => {
-    const url = new URL(window.location.href);
-
-    // For video items, we might not be tracking id in URL as strictly or we need to check how VideoBrowser handles item selection via URL.
-    // Assuming we want to track albumId primarily here based on user request "route when I select album".
-
-    if (selectedAlbum) {
-      url.searchParams.set('albumId', selectedAlbum.toString());
-    } else {
-      url.searchParams.delete('albumId');
-    }
-
-    // Preserve other params if needed, or push state.
-    window.history.pushState({}, '', url.toString());
-  }, [selectedAlbum]); // Intentionally not tracking selectedItem here unless requested, as Video modal usually manages its own state or overlay.
 
   return (
     <div className="flex flex-col h-full min-h-[500px] bg-[var(--app-bg)] border border-[var(--glass-border)] shadow-[var(--glass-shadow)] overflow-hidden rounded-[var(--radius-lg)]">
@@ -457,7 +371,7 @@ export const VideoBrowser: React.FC = () => {
               {items.length} loaded{libraryTotalCount ? ` / ${libraryTotalCount}` : ''}
             </span>
             <button
-              onClick={() => fetchVideos(1)}
+              onClick={() => void refresh()}
               className="px-2 py-1 rounded-[var(--radius-lg)] text-xs bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--glass-border)]"
               title="Reload"
             >
@@ -507,7 +421,7 @@ export const VideoBrowser: React.FC = () => {
 
         {/* Main Content */}
         <div className="flex-1 bg-[var(--app-bg)] flex flex-col overflow-hidden">
-          {loading && page === 1 ? (
+          {loading && items.length === 0 ? (
             <div className="absolute inset-0 flex items-center justify-center z-20 bg-[var(--app-bg)]/50 backdrop-blur-sm">
               <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[var(--accent)]"></div>
             </div>
@@ -557,7 +471,7 @@ export const VideoBrowser: React.FC = () => {
                         hasMore &&
                         !loading
                       ) {
-                        loadMoreItems();
+                        void loadMore();
                       }
                     }}
                   >

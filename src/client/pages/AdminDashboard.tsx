@@ -90,6 +90,7 @@ export const AdminDashboard: React.FC = () => {
 
   const { user: currentUser, logout } = useAuth();
   const navigate = useNavigate();
+  const errorMessage = (err: unknown) => (err instanceof Error ? err.message : 'Unexpected error');
 
   useEffect(() => {
     fetchUsers();
@@ -117,8 +118,8 @@ export const AdminDashboard: React.FC = () => {
       if (!res.ok) throw new Error('Failed to fetch users');
       const data = await res.json();
       setUsers(data);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(errorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -131,7 +132,7 @@ export const AdminDashboard: React.FC = () => {
       if (!res.ok) throw new Error('Failed to fetch audit logs');
       const data = await res.json();
       setLogs(data);
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
     } finally {
       setAuditLoading(false);
@@ -206,8 +207,8 @@ export const AdminDashboard: React.FC = () => {
 
       setUsers([...users, data]);
       closeModal();
-    } catch (err: any) {
-      alert(err.message);
+    } catch (err) {
+      alert(errorMessage(err));
     }
   };
 
@@ -235,8 +236,8 @@ export const AdminDashboard: React.FC = () => {
 
       setUsers(users.map((u) => (u.id === editingUser.id ? { ...u, ...updateData } : u)));
       closeModal();
-    } catch (err: any) {
-      alert(err.message);
+    } catch (err) {
+      alert(errorMessage(err));
     }
   };
 
@@ -250,8 +251,8 @@ export const AdminDashboard: React.FC = () => {
         throw new Error(data.error || 'Failed to delete user');
       }
       setUsers(users.filter((u) => u.id !== id));
-    } catch (err: any) {
-      alert(err.message);
+    } catch (err) {
+      alert(errorMessage(err));
     }
   };
 

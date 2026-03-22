@@ -83,10 +83,12 @@ export const EvidenceDrawer: React.FC<EvidenceDrawerProps> = ({
               Found {documents.length} Shared Documents
             </p>
             {documents.map((doc) => (
-              <div
+              <button
                 key={doc.id}
+                type="button"
                 onClick={() => onDocumentClick?.(doc.documentId)}
-                className="bg-[var(--glass-bg)]/40 hover:bg-[var(--glass-bg-highlight)]/60 border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-3 cursor-pointer transition-all group"
+                className="w-full bg-[var(--glass-bg)]/40 hover:bg-[var(--glass-bg-highlight)]/60 border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-3 text-left transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                aria-label={`Open shared document ${doc.title}`}
               >
                 <div className="flex items-start gap-3">
                   <div
@@ -140,7 +142,7 @@ export const EvidenceDrawer: React.FC<EvidenceDrawerProps> = ({
                     </div>
                   </div>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         )}

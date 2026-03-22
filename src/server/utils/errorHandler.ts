@@ -90,7 +90,8 @@ export const globalErrorHandler = (
   res: Response,
   _next: NextFunction,
 ): void => {
-  const duration = Date.now() - (req as any)._startTime || Date.now();
+  const startedAt = req.requestStartedAt || (req as any)._startTime || Date.now();
+  const duration = Date.now() - startedAt;
   const requestId = (req as any).requestId || 'no-req-id';
   let poolStats: { total: number; idle: number; waiting: number } | null = null;
   try {

@@ -18,7 +18,10 @@ export const EntityGraphPanel: React.FC<EntityGraphPanelProps> = ({ entityId }) 
       setLoading(true);
       setError(null);
       try {
-        const data = await apiClient.getEntityGraph(String(entityId), 2);
+        const data = (await apiClient.getEntityGraph(String(entityId), 2)) as {
+          nodes?: any[];
+          edges?: any[];
+        };
         setNodes(
           Array.isArray(data.nodes)
             ? data.nodes.map((n: any) => GraphService.normalizeNode(n))

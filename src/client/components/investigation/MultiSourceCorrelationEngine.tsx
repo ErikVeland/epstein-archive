@@ -523,9 +523,8 @@ export default function MultiSourceCorrelationEngine() {
               </h2>
               <div className="space-y-4 max-h-96 overflow-y-auto">
                 {filteredCorrelations.map((correlation) => (
-                  <div
+                  <article
                     key={correlation.id}
-                    onClick={() => setSelectedCorrelation(correlation)}
                     className={`p-4 rounded-[var(--radius-lg)] cursor-pointer transition-colors border-l-4 ${
                       selectedCorrelation?.id === correlation.id
                         ? 'bg-red-900 border-red-500'
@@ -568,7 +567,7 @@ export default function MultiSourceCorrelationEngine() {
                       >
                         {correlation.significance.toUpperCase()}
                       </span>
-                      <div onClick={(e) => e.stopPropagation()}>
+                      <div>
                         <AddToInvestigationButton
                           item={{
                             id: correlation.id,
@@ -596,49 +595,56 @@ export default function MultiSourceCorrelationEngine() {
                       </div>
                     </div>
 
-                    <p className="text-[var(--text-primary)] mb-3">{correlation.description}</p>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedCorrelation(correlation)}
+                      className="w-full bg-transparent text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-inset rounded-[var(--radius-md)]"
+                      aria-label={`Open ${correlation.type} correlation details`}
+                    >
+                      <p className="text-[var(--text-primary)] mb-3">{correlation.description}</p>
 
-                    <div className="flex flex-wrap gap-2 mb-3">
-                      {correlation.entities.map((entity, index) => (
-                        <span
-                          key={index}
-                          className="px-2 py-1 bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] rounded text-xs"
-                        >
-                          {entity}
-                        </span>
-                      ))}
-                    </div>
-
-                    <div className="flex items-center gap-4 text-xs text-[var(--text-muted)]">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-3 h-3" />
-                        {correlation.timeRange.start} to {correlation.timeRange.end}
-                      </span>
-                      {correlation.location && (
-                        <span className="flex items-center gap-1">
-                          <MapPin className="w-3 h-3" />
-                          {correlation.location}
-                        </span>
-                      )}
-                      <span>{correlation.sources.length} sources</span>
-                    </div>
-
-                    {correlation.anomalies.length > 0 && (
-                      <div className="mt-2">
-                        <p className="text-xs text-red-400 font-medium mb-1">Anomalies:</p>
-                        <div className="flex flex-wrap gap-1">
-                          {correlation.anomalies.map((anomaly, index) => (
-                            <span
-                              key={index}
-                              className="px-2 py-1 bg-red-900 text-red-200 rounded text-xs"
-                            >
-                              {anomaly}
-                            </span>
-                          ))}
-                        </div>
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        {correlation.entities.map((entity, index) => (
+                          <span
+                            key={index}
+                            className="px-2 py-1 bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] rounded text-xs"
+                          >
+                            {entity}
+                          </span>
+                        ))}
                       </div>
-                    )}
-                  </div>
+
+                      <div className="flex items-center gap-4 text-xs text-[var(--text-muted)]">
+                        <span className="flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />
+                          {correlation.timeRange.start} to {correlation.timeRange.end}
+                        </span>
+                        {correlation.location && (
+                          <span className="flex items-center gap-1">
+                            <MapPin className="w-3 h-3" />
+                            {correlation.location}
+                          </span>
+                        )}
+                        <span>{correlation.sources.length} sources</span>
+                      </div>
+
+                      {correlation.anomalies.length > 0 && (
+                        <div className="mt-2">
+                          <p className="text-xs text-red-400 font-medium mb-1">Anomalies:</p>
+                          <div className="flex flex-wrap gap-1">
+                            {correlation.anomalies.map((anomaly, index) => (
+                              <span
+                                key={index}
+                                className="px-2 py-1 bg-red-900 text-red-200 rounded text-xs"
+                              >
+                                {anomaly}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </button>
+                  </article>
                 ))}
               </div>
             </div>

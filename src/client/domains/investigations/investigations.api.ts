@@ -14,11 +14,11 @@ export interface InvestigationListApiResponse {
 
 export const investigationsApi = {
   list: async (): Promise<InvestigationListApiResponse> => {
-    return apiClient.getInvestigations();
+    return (await apiClient.getInvestigations()) as InvestigationListApiResponse;
   },
 
-  getById: async (id: string): Promise<any> => {
-    return apiClient.getInvestigation(id);
+  getById: async (id: string): Promise<Record<string, unknown>> => {
+    return (await apiClient.getInvestigation(id)) as Record<string, unknown>;
   },
 
   create: async (payload: {
@@ -26,8 +26,8 @@ export const investigationsApi = {
     description?: string;
     ownerId: string;
     scope?: string;
-  }): Promise<any> => {
-    return apiClient.createInvestigation(payload);
+  }): Promise<Record<string, unknown>> => {
+    return (await apiClient.createInvestigation(payload)) as Record<string, unknown>;
   },
 
   getBoard: async (id: string, params?: { evidenceLimit?: number; hypothesisLimit?: number }) => {

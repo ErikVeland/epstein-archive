@@ -57,7 +57,9 @@ export const ArticleViewerModal: React.FC<Props> = ({ article, highlight, onClos
         'h3',
         'h4',
       ],
-      ALLOWED_ATTR: ['href', 'target', 'rel', 'class'],
+      ALLOWED_ATTR: ['href', 'title', 'class'],
+      ALLOW_UNKNOWN_PROTOCOLS: false,
+      FORBID_TAGS: ['style', 'script'],
     },
   );
 

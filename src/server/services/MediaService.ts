@@ -795,7 +795,7 @@ export class MediaService {
   }
 
   async processUpload(file: any, albumId?: number): Promise<MediaImage> {
-    const buffer = fs.readFileSync(file.path);
+    const buffer = await fs.promises.readFile(file.path);
     let tags: any = {};
     let imageSize: any = {};
 

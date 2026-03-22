@@ -5,7 +5,8 @@ import express from 'express';
 export const apiCache = new NodeCache({
   stdTTL: 300, // 5 minutes
   checkperiod: 60, // Check for expired keys every 60s
-  useClones: false, // Don't clone objects (faster, but be careful with mutations)
+  useClones: true, // Clone on get/set — prevents the deepCamelKeys middleware from
+  // mutating the cached object in place, which would corrupt all subsequent cache hits
 });
 
 // Cache middleware helper

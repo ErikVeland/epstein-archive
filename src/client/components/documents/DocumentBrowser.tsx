@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import { AnimatePresence, motion } from 'framer-motion';
 import { Document, BrowseFilters, DocumentCollection } from '../../types/documents';
 import { useNavigation } from '../../services/NavigationContext';
-import { apiClient } from '../../services/apiClient';
 import { DocumentModal } from './DocumentModal';
 import { useHighlightNavigation } from '../../hooks/useHighlightNavigation';
 import { HighlightNavigationControls } from './HighlightNavigationControls';
@@ -12,47 +11,7 @@ import { DocumentBrowserHeader } from './DocumentBrowserHeader';
 import { DocumentBrowserFilters } from './DocumentBrowserFilters';
 import { DocumentList } from './DocumentList';
 import { DocumentHoverPreview } from './DocumentHoverPreview';
-
-const mapApiDocumentToDocument = (doc: any): Document => ({
-  id: String(doc.id?.toString() || doc.fileName || ''),
-  title: doc.title || doc.fileName,
-  filename: doc.fileName,
-  fileType: doc.fileType || 'unknown',
-  fileSize: doc.fileSize || 0,
-  dateCreated: doc.dateCreated,
-  dateModified: doc.dateModified,
-  content: doc.content || doc.previewText || doc.preview_text || doc.contentPreview || '',
-  previewText: doc.previewText || doc.preview_text || '',
-  previewKind: doc.previewKind || doc.preview_kind || 'fallback',
-  keyEntities: Array.isArray(doc.keyEntities)
-    ? doc.keyEntities
-    : Array.isArray(doc.key_entities)
-      ? doc.key_entities
-      : [],
-  entitiesCount: Number(doc.entitiesCount || doc.entities_count || 0),
-  sourceType: doc.sourceType || doc.source_type || '',
-  whyFlagged: doc.whyFlagged || doc.why_flagged || '',
-  metadata: {
-    source: doc.sourceCollection || doc.sourceType || 'Epstein Files',
-    confidentiality: 'Public',
-    categories: [],
-    ...doc.metadata,
-    emailHeaders: doc.metadata?.emailHeaders,
-  },
-  entities: Array.isArray(doc.entities) ? doc.entities : [],
-  passages: Array.isArray(doc.passages) ? doc.passages : [],
-  redFlagScore: doc.redFlagRating || 0,
-  redFlagRating: doc.redFlagRating || 1,
-  redFlagPeppers: '',
-  redFlagDescription: `Red Flag Index ${doc.redFlagRating || 1}`,
-  evidenceType: doc.evidenceType || doc.evidence_type || 'document',
-  parentId: doc.parentId || doc.parent_id || doc.original_file_id,
-  startOffset: Number(doc.startOffset || doc.start_offset || 0),
-  endOffset: Number(doc.endOffset || doc.end_offset || 0),
-  childDocuments: Array.isArray(doc.childDocuments) ? doc.childDocuments : [],
-  threadId: doc.threadId || doc.thread_id,
-  threadPosition: doc.threadPosition || doc.thread_position,
-});
+import { useDocumentBrowserData } from '../../hooks/useDocumentBrowserData';
 
 interface DocumentBrowserProps {
   searchTerm?: string;
@@ -86,9 +45,6 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
   const effectiveSearchTerm =
     externalSearchTerm !== undefined ? externalSearchTerm : contextSearchTerm;
 
-  const [documents, setDocuments] = useState<Document[]>([]);
-  const [filteredDocuments, setFilteredDocuments] = useState<Document[]>([]);
-  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState<'relevance' | 'date' | 'red_flag' | 'fileType' | 'size'>(
     'red_flag',
@@ -96,10 +52,8 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [collection, _setCollection] = useState<DocumentCollection | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [currentPage, setCurrentPage] = useState(1);
   const [hideLowCredibility, setHideLowCredibility] = useState(false);
   const [itemsPerPage, setItemsPerPage] = useState(50);
-  const [totalDocuments, setTotalDocuments] = useState(0);
   const [densityMode, setDensityMode] = useState<'compact' | 'comfortable'>(() => {
     if (typeof window === 'undefined') return 'compact';
     const saved = window.localStorage.getItem('document-browser-density');
@@ -109,11 +63,7 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
   const [selectedTranche, setSelectedTranche] = useState<string>('all');
   const [isHeaderCondensed, setIsHeaderCondensed] = useState(false);
   const [jumpToPage, setJumpToPage] = useState('');
-  const [availableCollections, setAvailableCollections] = useState<any[]>([]);
-
-  useEffect(() => {
-    setAvailableCollections([]);
-  }, []);
+  const availableCollections = useMemo<any[]>(() => [], []);
 
   const [filters, setFilters] = useState<BrowseFilters>({
     fileType: [],
@@ -147,20 +97,6 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
     setHoverRect(null);
   }, []);
 
-  const [hasMore, setHasMore] = useState(true);
-  const [isFetching, setIsFetching] = useState(false);
-  const [fetchBlockedUntil] = useState<number>(0);
-  const hasMoreRef = useRef(true);
-  const isFetchingRef = useRef(false);
-
-  useEffect(() => {
-    hasMoreRef.current = hasMore;
-  }, [hasMore]);
-
-  useEffect(() => {
-    isFetchingRef.current = isFetching;
-  }, [isFetching]);
-
   useEffect(() => {
     if (effectiveSearchTerm !== searchInput) {
       setSearchInput(effectiveSearchTerm || '');
@@ -190,138 +126,26 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  useEffect(() => {
-    const fetchDocuments = async () => {
-      if (isFetchingRef.current || (currentPage > 1 && !hasMoreRef.current)) return;
-      if (fetchBlockedUntil > Date.now()) return;
-
-      try {
-        isFetchingRef.current = true;
-        setIsFetching(true);
-
-        const effectiveStart = globalFilters.timeRange[0] ?? filters.dateRange?.start;
-        const effectiveEnd = globalFilters.timeRange[1] ?? filters.dateRange?.end;
-
-        const result = await apiClient.getDocuments(
-          {
-            search:
-              effectiveSearchTerm && effectiveSearchTerm.trim() ? effectiveSearchTerm : undefined,
-            sortBy: sortBy || undefined,
-            sortOrder,
-            evidenceType:
-              filters.categories && filters.categories.length > 0
-                ? filters.categories[0]
-                : undefined,
-            source: filters.source && filters.source.length > 0 ? filters.source : undefined,
-            startDate: effectiveStart ?? undefined,
-            endDate: effectiveEnd ?? undefined,
-            redFlagLevel: filters.redFlagLevel,
-            collectionId: filters.collectionId,
-          },
-          currentPage,
-          itemsPerPage,
-        );
-
-        const newDocs: Document[] = (result.data || []).map((doc: any) =>
-          mapApiDocumentToDocument(doc),
-        );
-        setDocuments(newDocs);
-
-        if (result.total !== undefined) {
-          setTotalDocuments(result.total);
-          const nextHasMore = newDocs.length === itemsPerPage;
-          hasMoreRef.current = nextHasMore;
-          setHasMore(nextHasMore);
-        }
-      } catch (error) {
-        console.error('DocumentBrowser: Error fetching documents:', error);
-        hasMoreRef.current = false;
-        setHasMore(false);
-        if (currentPage === 1) {
-          setDocuments([]);
-          setFilteredDocuments([]);
-        }
-      } finally {
-        isFetchingRef.current = false;
-        setIsFetching(false);
-      }
-    };
-
-    fetchDocuments();
-  }, [
+  const {
+    documents,
+    filteredDocuments,
+    selectedDocument,
+    setSelectedDocument,
+    handleDocumentSelect,
     currentPage,
-    itemsPerPage,
+    setCurrentPage,
+    totalDocuments,
+    isFetching,
+  } = useDocumentBrowserData({
     effectiveSearchTerm,
+    globalTimeRange: globalFilters.timeRange,
     sortBy,
     sortOrder,
-    filters.categories,
-    filters.source,
-    filters.collectionId,
-    filters.dateRange,
-    filters.fileType,
-    filters.redFlagLevel,
-    fetchBlockedUntil,
-    globalFilters.timeRange,
-  ]);
-
-  useEffect(() => {
-    setCurrentPage(1);
-    setHasMore(true);
-  }, [
+    filters,
     itemsPerPage,
-    effectiveSearchTerm,
-    sortBy,
-    sortOrder,
-    filters.categories,
-    filters.collectionId,
-    filters.source,
-    filters.dateRange,
-    filters.fileType,
-    filters.redFlagLevel,
-    globalFilters.timeRange,
-  ]);
-
-  useEffect(() => {
-    let results = documents;
-    if (hideLowCredibility) {
-      results = results.filter((d) => (d.metadata?.credibility_score ?? 1) >= 0.6);
-    }
-    setFilteredDocuments(results);
-  }, [documents, hideLowCredibility]);
-
-  const handleDocumentSelect = useCallback(async (document: Document) => {
-    setSelectedDocument(document);
-    try {
-      const fullDoc = await apiClient.getDocument(document.id);
-      if (fullDoc) {
-        setSelectedDocument((prev) => (prev?.id === document.id ? { ...prev, ...fullDoc } : prev));
-      }
-    } catch (error) {
-      console.error('Error fetching full document content:', error);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (selectedDocumentId) {
-      if (selectedDocument?.id === selectedDocumentId) return;
-      if (documents.length > 0) {
-        const doc = documents.find((d) => d.id === selectedDocumentId);
-        if (doc) {
-          handleDocumentSelect(doc);
-          return;
-        }
-      }
-      apiClient
-        .getDocument(selectedDocumentId)
-        .then((docData) => {
-          if (docData) {
-            const newDoc: Document = mapApiDocumentToDocument(docData);
-            handleDocumentSelect(newDoc);
-          }
-        })
-        .catch((err) => console.error('Error fetching selected document:', err));
-    }
-  }, [selectedDocumentId, documents, selectedDocument, handleDocumentSelect]);
+    hideLowCredibility,
+    selectedDocumentId,
+  });
 
   const fileTypeOptions = useMemo(() => {
     if (!collection) return [];

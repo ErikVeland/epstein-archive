@@ -1,4 +1,5 @@
 import React from 'react';
+import { semanticTokens, spacingTokens } from '../../styles/designSystem';
 
 interface FormFieldProps {
   label: React.ReactNode;
@@ -20,19 +21,28 @@ const FormField: React.FC<FormFieldProps> = ({
   className = '',
 }) => {
   return (
-    <div className={`mb-4 ${className}`}>
-      <label htmlFor={id} className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+    <div className={`${spacingTokens.fieldGap} ${className}`}>
+      <label
+        htmlFor={id}
+        className={`block text-sm font-medium ${semanticTokens.fieldLabel} ${spacingTokens.labelGap}`}
+      >
         {label}
-        {required && <span className="text-red-500 ml-1">*</span>}
+        {required && <span className={`${semanticTokens.required} ml-1`}>*</span>}
       </label>
       {children}
       {helpText && (
-        <p className="mt-1 text-xs text-[var(--text-muted)]" id={`${id}-description`}>
+        <p
+          className={`${spacingTokens.helperGap} text-xs ${semanticTokens.helperText}`}
+          id={`${id}-description`}
+        >
           {helpText}
         </p>
       )}
       {error && (
-        <p className="mt-1 text-xs text-red-400" id={`${id}-error`}>
+        <p
+          className={`${spacingTokens.helperGap} text-xs ${semanticTokens.errorText}`}
+          id={`${id}-error`}
+        >
           {error}
         </p>
       )}

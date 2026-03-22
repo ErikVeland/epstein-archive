@@ -89,18 +89,11 @@ const SubjectCardV2: React.FC<SubjectCardV2Props> = React.memo(
     }, [subject.id, subject.stats?.verifiedMedia, topPhotoId]);
     return (
       <div style={style}>
-        <div
+        <button
           data-testid="subject-card"
+          type="button"
           onClick={handleCardClick}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              handleCardClick();
-            }
-          }}
-          className="group relative surface-glass-card p-4 cursor-pointer transition-all duration-300 hover:border-[var(--glass-border-highlight)] flex flex-col h-full w-full"
+          className="group relative surface-glass-card p-4 bg-transparent text-left transition-all duration-300 hover:border-[var(--glass-border-highlight)] flex flex-col h-full w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-inset"
           style={{
             boxShadow: `inset 0 1px 0 color-mix(in srgb, var(--text-strong) 5%, transparent), 0 12px 26px color-mix(in srgb, var(--bg-dark) 36%, transparent), 0 0 0 1px color-mix(in srgb, ${riskTone.cssVar} 22%, transparent)`,
           }}
@@ -188,7 +181,7 @@ const SubjectCardV2: React.FC<SubjectCardV2Props> = React.memo(
               </button>
             </Tooltip>
           </div>
-        </div>
+        </button>
       </div>
     );
   },

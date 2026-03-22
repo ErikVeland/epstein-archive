@@ -8,6 +8,7 @@ import { NavigationProvider } from './services/ContentNavigationService.tsx';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import { AuthProvider } from './contexts/AuthContext';
 import ToastProvider from './components/common/ToastProvider';
+import { cssVariables } from '../designTokens';
 
 import { SensitiveSettingsProvider } from './contexts/SensitiveSettingsContext';
 import { FilterProvider } from './contexts/FilterContext';
@@ -25,6 +26,17 @@ window.onunhandledrejection = function (event) {
     console.error('Stack trace:', event.reason.stack);
   }
 };
+
+const injectDesignTokens = () => {
+  const styleId = 'design-token-runtime';
+  if (document.getElementById(styleId)) return;
+  const styleTag = document.createElement('style');
+  styleTag.id = styleId;
+  styleTag.textContent = cssVariables;
+  document.head.appendChild(styleTag);
+};
+
+injectDesignTokens();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

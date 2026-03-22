@@ -14,12 +14,17 @@ import { searchRepository } from '../db/searchRepository.js';
 import { forensicRepository } from '../db/forensicRepository.js';
 import { getEvidenceTypes, insertUploadedDocument } from '../db/routesDb.js';
 import { logAudit } from '../utils/auditLogger.js';
-import { authenticateRequest } from '../auth/middleware.js';
+import { authenticateRequest, AuthRequest } from '../auth/middleware.js';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
 import { logger } from '../services/Logger.js';
 
+interface RequestWithId extends Request {
+  requestId?: string;
+}
+
 const router = express.Router();
+const fsPromises = fs.promises;
 
 // Schemas
 const searchEvidenceSchema = z.object({
@@ -68,24 +73,24 @@ const upload = multer({
 const hasPrefix = (bytes: Buffer, prefix: number[]) =>
   prefix.every((value, index) => bytes[index] === value);
 
-const readBytes = (filePath: string, size: number) => {
-  const fd = fs.openSync(filePath, 'r');
+const readBytes = async (filePath: string, size: number) => {
+  const fd = await fsPromises.open(filePath, 'r');
   try {
     const buffer = Buffer.alloc(size);
-    const read = fs.readSync(fd, buffer, 0, size, 0);
-    return buffer.subarray(0, read);
+    const { bytesRead } = await fd.read(buffer, 0, size, 0);
+    return buffer.subarray(0, bytesRead);
   } finally {
-    fs.closeSync(fd);
+    await fd.close();
   }
 };
 
-const validateUploadedFileSignature = (
+const validateUploadedFileSignature = async (
   tempPath: string,
   originalName: string,
   mimetype: string,
-): { ok: true } | { ok: false; reason: string } => {
+): Promise<{ ok: true } | { ok: false; reason: string }> => {
   const ext = path.extname(originalName).toLowerCase();
-  const bytes = readBytes(tempPath, 16);
+  const bytes = await readBytes(tempPath, 16);
 
   if (mimetype === 'application/pdf' || ext === '.pdf') {
     return hasPrefix(bytes, [0x25, 0x50, 0x44, 0x46])
@@ -116,7 +121,7 @@ const validateUploadedFileSignature = (
       : { ok: false, reason: 'Invalid DOC signature' };
   }
   if (mimetype === 'text/plain' || ext === '.txt') {
-    const textProbe = readBytes(tempPath, 1024);
+    const textProbe = await readBytes(tempPath, 1024);
     const hasNullByte = textProbe.some((byte) => byte === 0x00);
     return hasNullByte ? { ok: false, reason: 'Text file appears binary' } : { ok: true };
   }
@@ -142,23 +147,21 @@ router.post(
       const { originalname, mimetype, size, path: tempPath } = req.file;
       const { title, description } = req.body;
 
-      const signatureCheck = validateUploadedFileSignature(tempPath, originalname, mimetype);
+      const signatureCheck = await validateUploadedFileSignature(tempPath, originalname, mimetype);
       if (!signatureCheck.ok) {
-        fs.unlinkSync(tempPath);
+        await fsPromises.unlink(tempPath);
         return res.status(400).json({ error: signatureCheck.reason });
       }
 
       // Move to permanent storage (data/documents)
       const targetDir = path.join(process.cwd(), 'data', 'documents', 'uploads');
-      if (!fs.existsSync(targetDir)) {
-        fs.mkdirSync(targetDir, { recursive: true });
-      }
+      await fsPromises.mkdir(targetDir, { recursive: true });
 
       const fileExt = path.extname(originalname);
       const fileName = `${Date.now()}-${Math.round(Math.random() * 1000)}${fileExt}`;
       const targetPath = path.join(targetDir, fileName);
 
-      fs.renameSync(tempPath, targetPath);
+      await fsPromises.rename(tempPath, targetPath);
 
       const documentId = await insertUploadedDocument({
         fileName,
@@ -168,21 +171,21 @@ router.post(
         title: title || originalname,
         metadataJson: JSON.stringify({
           originalName: originalname,
-          uploadedBy: (req as any).user?.id || 'anonymous',
+          uploadedBy: (req as AuthRequest).user?.id || 'anonymous',
           description,
         }),
       });
 
       await logAudit(
         'upload_document',
-        (req as any).user?.id,
+        (req as AuthRequest).user?.id,
         'document',
         String(documentId),
         {
           fileName,
         },
         undefined,
-        (req as any).requestId,
+        (req as RequestWithId).requestId,
       );
 
       res.status(201).json({
@@ -193,8 +196,8 @@ router.post(
     } catch (error) {
       logger.error({ err: error }, 'Upload error');
       // Cleanup temp file if it exists
-      if (req.file?.path && fs.existsSync(req.file.path)) {
-        fs.unlinkSync(req.file.path);
+      if (req.file?.path) {
+        await fsPromises.unlink(req.file.path).catch(() => undefined);
       }
       res.status(500).json({ error: 'Upload failed' });
     }
@@ -207,11 +210,12 @@ router.post(
  */
 router.get('/search', validate(searchEvidenceSchema), async (req: Request, res: Response) => {
   try {
-    const { query, limit } = req.query as any;
+    type SearchQuery = z.infer<typeof searchEvidenceSchema>['query'];
+    const { query, limit } = req.query as unknown as SearchQuery;
 
     if (!query) {
       // Return recent documents if no query
-      const result = documentsRepository.getDocuments(1, limit, {});
+      const result = await documentsRepository.getDocuments(1, limit, {});
       return res.json(result);
     }
 
@@ -248,15 +252,15 @@ router.get('/:id', validate(evidenceIdSchema), async (req: Request, res: Respons
 
     // Check quarantine status manually if not using middleware on this specific route handler structure
     // (Though we will apply middleware to the route definition below)
-    if (evidence.is_quarantined && (req as any).user?.role !== 'admin') {
+    if (evidence.is_quarantined && (req as AuthRequest).user?.role !== 'admin') {
       await logAudit(
         'view',
-        (req as any).user?.id,
+        (req as AuthRequest).user?.id,
         'document',
         id,
         { reason: 'quarantined' },
         undefined,
-        (req as any).requestId,
+        (req as RequestWithId).requestId,
       );
       return res
         .status(403)
@@ -266,12 +270,12 @@ router.get('/:id', validate(evidenceIdSchema), async (req: Request, res: Respons
     // Log successful access
     await logAudit(
       'view',
-      (req as any).user?.id,
+      (req as AuthRequest).user?.id,
       'document',
       id,
       {},
       undefined,
-      (req as any).requestId,
+      (req as RequestWithId).requestId,
     );
 
     const canonical = {
@@ -376,7 +380,7 @@ router.post(
   async (req: Request, res: Response) => {
     try {
       const { id } = req.params as { id: string };
-      const doc = (await documentsRepository.getDocumentById(id)) as any;
+      const doc = await documentsRepository.getDocumentById(id);
       if (!doc) return res.status(404).json({ error: 'Document not found' });
 
       const metadata =
@@ -449,7 +453,7 @@ router.post(
       await forensicRepository.saveMetrics(id as string, metrics, documentSignalScore);
       await forensicRepository.addCustodyEvent({
         evidenceId: id as string,
-        actor: (req as any).user?.username || (req as any).user?.id || 'System',
+        actor: (req as AuthRequest).user?.username || (req as AuthRequest).user?.id || 'System',
         action: 'Document Signal Analysis',
         notes: `OCR quality: ${ocrQualityScore.toFixed(2)}, provenance: ${provenanceScore.toFixed(2)}. Signal score (heuristic only): ${documentSignalScore.toFixed(2)}`,
       });

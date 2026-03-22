@@ -31,7 +31,7 @@ export const EntityConfidenceDisplay: React.FC<EntityConfidenceDisplayProps> = (
 
     apiClient
       .getEntityConfidence(entityId)
-      .then(setConfidence)
+      .then((data) => setConfidence(data as EntityConfidence))
       .catch(() => setConfidence(null))
       .finally(() => setLoading(false));
   }, [entityId]);

@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { getApiPool } from '../db/connection.js';
-import { authenticateRequest, optionalAuthenticate, requireRole } from './middleware.js';
+import { authenticateRequest, optionalAuthenticate } from './middleware.js';
 import { logger } from '../services/Logger.js';
 
 import rateLimit from 'express-rate-limit';
@@ -251,40 +251,38 @@ router.get('/me', optionalAuthenticate, (req: any, res) => {
 });
 
 // POST /api/auth/change-password
-router.post(
-  '/change-password',
-  authenticateRequest,
-  requireRole('admin'),
-  async (req: any, res) => {
-    const { currentPassword, newPassword } = req.body;
+router.post('/change-password', authenticateRequest, async (req: any, res) => {
+  const { currentPassword, newPassword } = req.body;
 
-    if (!newPassword || newPassword.length < 8) {
-      return res.status(400).json({ error: 'New password must be at least 8 characters' });
+  if (!currentPassword || typeof currentPassword !== 'string' || !currentPassword.trim()) {
+    return res.status(400).json({ error: 'Current password is required' });
+  }
+  if (!newPassword || typeof newPassword !== 'string' || newPassword.length < 8) {
+    return res.status(400).json({ error: 'New password must be at least 8 characters' });
+  }
+
+  try {
+    const pool = getApiPool();
+    const { rows } = await pool.query('SELECT id, password_hash FROM users WHERE id = $1', [
+      req.user.id,
+    ]);
+    const user = rows[0];
+
+    const currentPasswordValid = user?.password_hash
+      ? await bcrypt.compare(currentPassword, user.password_hash)
+      : false;
+    if (!user || !currentPasswordValid) {
+      return res.status(401).json({ error: 'Incorrect current password' });
     }
 
-    try {
-      const pool = getApiPool();
-      const { rows } = await pool.query('SELECT id, password_hash FROM users WHERE id = $1', [
-        req.user.id,
-      ]);
-      const user = rows[0];
+    const newHash = await bcrypt.hash(newPassword, 12);
+    await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [newHash, req.user.id]);
 
-      const currentPasswordValid = user?.password_hash
-        ? await bcrypt.compare(currentPassword, user.password_hash)
-        : false;
-      if (!user || !currentPasswordValid) {
-        return res.status(401).json({ error: 'Incorrect current password' });
-      }
-
-      const newHash = await bcrypt.hash(newPassword, 12);
-      await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [newHash, req.user.id]);
-
-      res.json({ success: true });
-    } catch (e) {
-      logger.error({ err: e }, 'Password change error');
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  },
-);
+    res.json({ success: true });
+  } catch (e) {
+    logger.error({ err: e }, 'Password change error');
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 export default router;

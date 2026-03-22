@@ -1264,7 +1264,9 @@ function App() {
       setAnalyticsError(null);
       console.log('Fetching analytics data with filters:', filters);
       // Get statistics from apiClient with filters
-      const stats = await apiClient.getStats(filters);
+      const stats = (await apiClient.getStats(
+        filters as unknown as { timeRange?: string[]; limit?: number },
+      )) as GlobalStatsPayload;
       console.log('Analytics stats:', stats);
 
       setAnalyticsData(stats);

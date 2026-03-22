@@ -1,6 +1,7 @@
 import React from 'react';
 import Icon, { IconName } from './Icon';
 import { RedFlagIndex } from '../visualizations/RedFlagIndex';
+import { spacingTokens } from '../../styles/designSystem';
 
 interface CardProps {
   children?: React.ReactNode;
@@ -47,7 +48,7 @@ export const Card: React.FC<CardProps> = ({
     <div
       onClick={onClick}
       className={`
-        surface-glass-card p-6
+        surface-glass-card ${spacingTokens.cardPadding}
         active:scale-[0.99]
         transition-all duration-300 ${onClick ? 'cursor-pointer hover:bg-[var(--glass-bg-strong)] hover:border-[var(--glass-border-highlight)] hover:shadow-[var(--glass-shadow)]' : ''} group animate-fade-in
         ${className}
@@ -96,7 +97,7 @@ export const Card: React.FC<CardProps> = ({
       )}
 
       {/* Main content */}
-      <div className="space-y-5">{children}</div>
+      <div className={spacingTokens.cardSectionGap}>{children}</div>
 
       {/* Metadata section */}
       {metadata.length > 0 && (

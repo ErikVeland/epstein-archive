@@ -72,10 +72,10 @@ export const useInvestigationBoard = (investigationId: string) => {
       setEvidenceOffset(0);
 
       try {
-        const snapshot = await investigationsApi.getBoard(investigationId, {
+        const snapshot = (await investigationsApi.getBoard(investigationId, {
           evidenceLimit: 80,
           hypothesisLimit: 24,
-        });
+        })) as Record<string, unknown>;
         if (!mounted) return;
 
         const previewEvidence = ensureArray<any>(snapshot?.evidencePreview).map(

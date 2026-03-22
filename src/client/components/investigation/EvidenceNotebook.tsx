@@ -373,8 +373,12 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
       setLoading(true);
       try {
         const [evidenceSummary, notebook] = await Promise.all([
-          apiClient.getInvestigationEvidenceSummary(String(investigationId)),
-          apiClient.getInvestigationNotebook(String(investigationId)),
+          apiClient.getInvestigationEvidenceSummary(String(investigationId)) as Promise<
+            Record<string, unknown>
+          >,
+          apiClient.getInvestigationNotebook(String(investigationId)) as Promise<
+            Record<string, unknown>
+          >,
         ]);
 
         if (!mounted) return;

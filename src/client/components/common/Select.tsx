@@ -1,5 +1,6 @@
 import React from 'react';
 import { ChevronDown } from 'lucide-react';
+import { semanticTokens } from '../../styles/designSystem';
 
 interface SelectOption {
   value: string | number;
@@ -35,7 +36,7 @@ export const Select: React.FC<SelectProps> = ({
             text-[var(--text-primary)] text-sm rounded-[var(--radius-md)] pl-3 pr-10 py-2.5 
             focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/50 focus:border-[var(--accent)]
             hover:bg-[var(--glass-bg-strong)] hover:border-[var(--glass-border-highlight)] transition-all cursor-pointer
-            ${error ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : ''}
+            ${error ? semanticTokens.errorBorder : ''}
             ${className}
           `}
           {...props}
@@ -54,7 +55,7 @@ export const Select: React.FC<SelectProps> = ({
           <ChevronDown size={16} strokeWidth={2.5} />
         </div>
       </div>
-      {error && <span className="text-xs text-red-400 ml-1">{error}</span>}
+      {error && <span className={`text-xs ${semanticTokens.errorText} ml-1`}>{error}</span>}
     </div>
   );
 };

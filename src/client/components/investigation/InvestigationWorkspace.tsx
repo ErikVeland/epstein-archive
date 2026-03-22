@@ -61,10 +61,12 @@ import { InvestigationActivityFeed } from './InvestigationActivityFeed';
 import { InvestigationCaseFolder } from './InvestigationCaseFolder';
 import { DocumentModal } from '../documents/DocumentModal';
 import { EvidenceModal } from '../common/EvidenceModal';
+import { apiClient } from '../../services/apiClient';
 import type {
   InvestigationCaseEvidenceItemDto,
   InvestigationEvidenceByTypeResponseDto,
 } from '@shared/dto/investigations';
+import type { EntityListItemDto } from '@shared/dto/entities';
 import {
   investigationActions,
   investigationsApi,
@@ -73,6 +75,37 @@ import {
   useEvidenceNavigation,
   useInvestigationList,
 } from '../../domains/investigations';
+import type { Hypothesis } from '../../types/investigation';
+
+/** Shape of a raw timeline event row returned by the timeline-events API. */
+interface RawTimelineEvent {
+  id: number | string;
+  title: string;
+  start_date: string;
+  description?: string;
+  type: string;
+  confidence?: number;
+  entities_json?: string;
+  documents_json?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+/** Minimal shape of a graph-node returned by /api/entities/:id/graph */
+interface RawGraphNode {
+  id: number | string;
+  label: string;
+  type?: string;
+}
+
+/** Minimal shape of a graph-edge returned by /api/entities/:id/graph */
+interface RawGraphEdge {
+  source_id: number | string;
+  target_id: number | string;
+  relationship_type?: string;
+  proximity_score?: number;
+  confidence?: number;
+}
 
 interface InvestigationWorkspaceProps {
   investigationId?: string;
@@ -114,7 +147,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   });
   const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>([]);
   const [evidenceItems, setEvidenceItems] = useState<EvidenceItem[]>([]);
-  const [hypotheses, setHypotheses] = useState<any[]>([]);
+  const [hypotheses, setHypotheses] = useState<Hypothesis[]>([]);
   const [annotations, _setAnnotations] = useState<Annotation[]>([]);
   const [_evidenceLoading, setEvidenceLoading] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -284,7 +317,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
         // Fetch timeline events
         try {
           const timelineData = await investigationsApi.getTimelineEvents(String(id));
-          const events = (timelineData || []).map((e: any) => ({
+          const events = ((timelineData as RawTimelineEvent[]) || []).map((e) => ({
             id: String(e.id),
             title: e.title,
             startDate: new Date(e.start_date),
@@ -293,14 +326,14 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
             confidence: Number(e.confidence || 80),
             entities: (() => {
               try {
-                return JSON.parse(e.entities_json || '[]');
+                return JSON.parse(e.entities_json || '[]') as string[];
               } catch {
                 return [];
               }
             })(),
             documents: (() => {
               try {
-                return JSON.parse(e.documents_json || '[]');
+                return JSON.parse(e.documents_json || '[]') as string[];
               } catch {
                 return [];
               }
@@ -328,11 +361,26 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
     [loadInvestigationFromDomain, navigate, onInvestigationSelect],
   );
 
+  const loadEvidenceItems = useCallback(async (targetInvestigationId: string) => {
+    try {
+      setEvidenceLoading(true);
+      const page = await investigationsApi.getEvidencePage(String(targetInvestigationId), {
+        limit: 250,
+        offset: 0,
+      });
+      setEvidenceItems((page.data || []).map(normalizeEvidenceListItem));
+    } catch (error) {
+      console.error('Error fetching evidence:', error);
+    } finally {
+      setEvidenceLoading(false);
+    }
+  }, []);
+
   // Copy shareable URL to clipboard
   const copyShareUrl = () => {
     if (selectedInvestigation) {
       // Use uuid if available (format: maxwell-epstein-network-001), otherwise use id
-      const shareId = (selectedInvestigation as any).uuid || selectedInvestigation.id;
+      const shareId = selectedInvestigation.uuid || selectedInvestigation.id;
       const shareUrl = `${window.location.origin}/investigations/${shareId}`;
       navigator.clipboard.writeText(shareUrl).then(() => {
         setShareCopied(true);
@@ -342,6 +390,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   };
   // Handle special URL parameters (focus on entity)
   useEffect(() => {
+    let cancelled = false;
     try {
       const params = new URLSearchParams(location.search);
       const focusId = params.get('focus');
@@ -354,10 +403,10 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
         }
 
         // Fetch validity of the ID and get details
-        fetch(`/api/entities/${focusId}`)
-          .then((res) => res.json())
+        apiClient
+          .get<EntityListItemDto>(`/entities/${focusId}`)
           .then((entity) => {
-            if (entity && !entity.error) {
+            if (!cancelled && entity) {
               const node: NetworkNode = {
                 id: String(entity.id),
                 type:
@@ -367,7 +416,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                       ? 'location'
                       : 'person',
                 label: entity.fullName,
-                description: entity.primaryRole || entity.title || 'Person of Interest',
+                description: entity.primaryRole || 'Person of Interest',
                 importance: entity.redFlagRating || 0,
                 metadata: {
                   mentions: entity.mentions || 0,
@@ -379,7 +428,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                         : (entity.redFlagRating || 0) >= 2
                           ? 'medium'
                           : 'low',
-                  category: entity.primaryRole || entity.title || 'Person of Interest',
+                  category: entity.primaryRole || 'Person of Interest',
                   documents: [],
                   connections: [],
                 },
@@ -397,6 +446,9 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
     } catch (error) {
       console.error('Error parsing URL parameters:', error);
     }
+    return () => {
+      cancelled = true;
+    };
   }, [
     location.search,
     investigations.length,
@@ -431,14 +483,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
 
         // If we are currently viewing this investigation, refresh evidence + case folder
         if (selectedInvestigation?.id === String(targetInvestigationId)) {
-          const evidencePage = await investigationsApi.getEvidencePage(
-            String(targetInvestigationId),
-            {
-              limit: 250,
-              offset: 0,
-            },
-          );
-          setEvidenceItems((evidencePage.data || []).map(normalizeEvidenceListItem));
+          await loadEvidenceItems(String(targetInvestigationId));
           await reloadCaseFolder();
         }
         addToast({ text: 'Item added to investigation successfully.', type: 'success' });
@@ -448,11 +493,11 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
       }
     };
 
-    window.addEventListener('add-to-investigation' as any, handleAddToInvestigation as any);
+    window.addEventListener('add-to-investigation', handleAddToInvestigation as EventListener);
     return () => {
-      window.removeEventListener('add-to-investigation' as any, handleAddToInvestigation as any);
+      window.removeEventListener('add-to-investigation', handleAddToInvestigation as EventListener);
     };
-  }, [addToast, reloadCaseFolder, selectedInvestigation]);
+  }, [addToast, loadEvidenceItems, reloadCaseFolder, selectedInvestigation]);
 
   // Investigation onboarding hook
   const { hasSeenOnboarding, markOnboardingAsSeen } = useInvestigationOnboarding();
@@ -462,23 +507,9 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   }, [loadInvestigations]);
 
   useEffect(() => {
-    const fetchEvidence = async () => {
-      if (!selectedInvestigation) return;
-      try {
-        setEvidenceLoading(true);
-        const page = await investigationsApi.getEvidencePage(String(selectedInvestigation.id), {
-          limit: 250,
-          offset: 0,
-        });
-        setEvidenceItems((page.data || []).map(normalizeEvidenceListItem));
-      } catch (error) {
-        console.error('Error fetching evidence:', error);
-      } finally {
-        setEvidenceLoading(false);
-      }
-    };
-    fetchEvidence();
-  }, [selectedInvestigation]);
+    if (!selectedInvestigation) return;
+    void loadEvidenceItems(String(selectedInvestigation.id));
+  }, [loadEvidenceItems, selectedInvestigation]);
 
   const closeCaseFolderDocumentModal = useCallback(() => {
     setCaseFolderDocumentId(null);
@@ -609,14 +640,14 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
       try {
         const { PerformanceMonitor } = await import('../../utils/performanceMonitor');
         PerformanceMonitor.mark('investigation-network-fetch-start');
-        let entities: any[] = [];
+        let entities: EntityListItemDto[] = [];
 
         if (useGlobalContext) {
           // Fetch top global entities
           const entitiesResp = await fetch(
             '/api/entities?limit=100&sortBy=red_flag_rating&sortOrder=desc',
           );
-          const entitiesData = await entitiesResp.json();
+          const entitiesData = (await entitiesResp.json()) as { data?: EntityListItemDto[] };
           entities = entitiesData.data || [];
         } else {
           // Fetch entities scoped to investigation evidence
@@ -629,15 +660,17 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
             // Fetch details for each entity
             const cappedEvidence = entityEvidence.slice(0, 100);
             const entityPromises = cappedEvidence.map((e) =>
-              fetch(`/api/entities/${e.sourceId}`).then((r) => (r.ok ? r.json() : null)),
+              fetch(`/api/entities/${e.sourceId}`).then((r) =>
+                r.ok ? (r.json() as Promise<EntityListItemDto>) : null,
+              ),
             );
             const results = await Promise.all(entityPromises);
-            entities = results.filter((e) => e !== null);
+            entities = results.filter((e): e is EntityListItemDto => e !== null);
           }
         }
 
         // Transform entities to network nodes
-        const nodes: NetworkNode[] = entities.map((e: any) => ({
+        const nodes: NetworkNode[] = entities.map((e) => ({
           id: String(e.id),
           type: e.entityType?.toLowerCase() || 'person',
           label: e.fullName,
@@ -690,10 +723,13 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
         try {
           const graphResp = await fetch(`/api/entities/${epsteinId}/graph?depth=2`);
           if (graphResp.ok) {
-            const graphData = await graphResp.json();
+            const graphData = (await graphResp.json()) as {
+              nodes: RawGraphNode[];
+              edges: RawGraphEdge[];
+            };
 
             // Merge nodes
-            graphData.nodes.forEach((gn: any) => {
+            graphData.nodes.forEach((gn) => {
               if (!nodes.find((n) => n.id === String(gn.id))) {
                 nodes.push({
                   id: String(gn.id),
@@ -706,7 +742,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
             });
 
             // Merge edges
-            graphData.edges.forEach((ge: any, _idx: number) => {
+            graphData.edges.forEach((ge) => {
               const edgeId = `graph-edge-${ge.source_id}-${ge.target_id}`;
               if (!edges.find((e) => e.id === edgeId)) {
                 edges.push({
@@ -714,7 +750,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                   source: String(ge.source_id),
                   target: String(ge.target_id),
                   type: ge.relationship_type || 'connection',
-                  strength: Math.min(10, Math.round(ge.proximity_score * 10) || 5),
+                  strength: Math.min(10, Math.round((ge.proximity_score ?? 0) * 10) || 5),
                   metadata: {
                     confidence: ge.confidence || 0.8,
                     context: ge.relationship_type,
@@ -779,7 +815,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
         const rangeDays = analyticsRange === '30d' ? 30 : analyticsRange === '90d' ? 90 : null;
         const rangeStart = rangeDays ? Date.now() - rangeDays * 24 * 60 * 60 * 1000 : null;
 
-        const filteredEvidence = allEvidence.filter((item: any) => {
+        const filteredEvidence = allEvidence.filter((item) => {
           const addedAt = item?.addedAt ? new Date(item.addedAt).getTime() : null;
           const inRange = rangeStart ? !!addedAt && addedAt >= rangeStart : true;
           const sourcePass =
@@ -796,14 +832,14 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
         });
 
         const documentLinked = filteredEvidence.filter(
-          (item: any) => item?.targetType === 'document',
+          (item) => item?.targetType === 'document',
         ).length;
         const entityLinked = filteredEvidence.filter(
-          (item: any) => item?.targetType === 'entity',
+          (item) => item?.targetType === 'entity',
         ).length;
 
         const topSourcesMap = new Map<string, number>();
-        filteredEvidence.forEach((item: any) => {
+        filteredEvidence.forEach((item) => {
           const t = String(item?.type || item?.targetType || 'unknown').toLowerCase();
           topSourcesMap.set(t, (topSourcesMap.get(t) || 0) + 1);
         });
@@ -813,7 +849,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
           .slice(0, 5);
 
         const evidenceTimelineMap = new Map<string, number>();
-        filteredEvidence.forEach((item: any) => {
+        filteredEvidence.forEach((item) => {
           const raw = item?.addedAt || item?.extractedAt;
           if (!raw) return;
           const day = new Date(raw).toISOString().slice(0, 10);
@@ -926,7 +962,8 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
       if (onInvestigationSelect) {
         onInvestigationSelect(created.investigation);
       }
-      const shareId = (created.raw as any)?.uuid || (created.raw as any)?.id;
+      const shareId =
+        (created.raw['uuid'] as string | undefined) || (created.raw['id'] as string | undefined);
       if (shareId) {
         navigate(`/investigations/${shareId}`, { replace: true });
       }
@@ -986,17 +1023,17 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
         `/api/investigations/${selectedInvestigation.id}/timeline-events`,
       );
       if (timelineResp.ok) {
-        const timelineData = await timelineResp.json();
-        const events = timelineData.map((e: any) => ({
+        const timelineData = (await timelineResp.json()) as RawTimelineEvent[];
+        const events = timelineData.map((e) => ({
           id: String(e.id),
           title: e.title,
           startDate: new Date(e.start_date),
           description: e.description || '',
           type: e.type,
           confidence: e.confidence || 80,
-          documents: JSON.parse(e.documents_json || '[]'),
+          documents: JSON.parse(e.documents_json || '[]') as string[],
           hypothesisIds: [], // Add if schema supports
-          entities: JSON.parse(e.entities_json || '[]'),
+          entities: JSON.parse(e.entities_json || '[]') as string[],
           evidence: [],
           importance: 'medium' as const,
           tags: [],
@@ -1040,17 +1077,17 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
         `/api/investigations/${selectedInvestigation.id}/timeline-events`,
       );
       if (timelineResp.ok) {
-        const timelineData = await timelineResp.json();
-        const events = timelineData.map((e: any) => ({
+        const timelineData = (await timelineResp.json()) as RawTimelineEvent[];
+        const events = timelineData.map((e) => ({
           id: String(e.id),
           title: e.title,
           startDate: new Date(e.start_date),
           description: e.description || '',
           type: e.type,
           confidence: e.confidence || 80,
-          documents: JSON.parse(e.documents_json || '[]'),
+          documents: JSON.parse(e.documents_json || '[]') as string[],
           hypothesisIds: [],
-          entities: JSON.parse(e.entities_json || '[]'),
+          entities: JSON.parse(e.entities_json || '[]') as string[],
           evidence: [],
           importance: 'medium' as const,
           tags: [],
@@ -1990,7 +2027,10 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                   <select
                     value={newInvestigation.priority}
                     onChange={(e) =>
-                      setNewInvestigation({ ...newInvestigation, priority: e.target.value as any })
+                      setNewInvestigation({
+                        ...newInvestigation,
+                        priority: e.target.value as Investigation['priority'],
+                      })
                     }
                     className="w-full px-3 h-10 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] text-[var(--text-primary)]"
                   >

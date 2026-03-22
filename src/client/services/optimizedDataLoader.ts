@@ -170,14 +170,18 @@ export class OptimizedDataService {
    */
   private async updateStatsCache(): Promise<void> {
     try {
-      const stats = await apiClient.getStats();
+      const stats = (await apiClient.getStats()) as {
+        totalEntities: number;
+        likelihoodDistribution?: Array<{ level: string; count: number }>;
+        totalMentions: number;
+        totalDocuments: number;
+      };
 
       this.statsCache = {
         totalPeople: stats.totalEntities,
-        highRisk: stats.likelihoodDistribution?.find((d: any) => d.level === 'HIGH')?.count || 0,
-        mediumRisk:
-          stats.likelihoodDistribution?.find((d: any) => d.level === 'MEDIUM')?.count || 0,
-        lowRisk: stats.likelihoodDistribution?.find((d: any) => d.level === 'LOW')?.count || 0,
+        highRisk: stats.likelihoodDistribution?.find((d) => d.level === 'HIGH')?.count || 0,
+        mediumRisk: stats.likelihoodDistribution?.find((d) => d.level === 'MEDIUM')?.count || 0,
+        lowRisk: stats.likelihoodDistribution?.find((d) => d.level === 'LOW')?.count || 0,
         totalMentions: stats.totalMentions,
         totalFiles: stats.totalDocuments,
       };
@@ -227,7 +231,7 @@ export class OptimizedDataService {
   }> {
     try {
       const healthCheck = await apiClient.healthCheck();
-      const stats = await apiClient.getStats();
+      const stats = (await apiClient.getStats()) as { totalEntities: number };
 
       return {
         isReady: healthCheck.status === 'healthy',

@@ -17,20 +17,14 @@ import {
   User,
   X,
 } from 'lucide-react';
-import {
-  apiClient,
-  EmailMailboxDTO,
-  EmailMessageBodyDTO,
-  EmailThreadDTO,
-  EmailThreadDetailsDTO,
-} from '../../services/apiClient';
+import { EmailMailboxDTO, EmailThreadDTO } from '../../services/apiClient';
 import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
 import { EvidenceModal } from '../common/EvidenceModal';
 import { ViewerShell } from '../viewer/ViewerShell';
 import { riskToneFromRating } from '../../utils/riskSemantics';
 import { useFilters } from '../../contexts/useFilters';
+import { useEmailWorkspaceData } from '../../hooks/useEmailWorkspaceData';
 
-const THREAD_PAGE_SIZE = 50;
 type EmailDensity = 'comfortable' | 'compact';
 
 const tabOptions: Array<{ id: 'all' | 'primary' | 'updates' | 'promotions'; label: string }> = [
@@ -39,15 +33,6 @@ const tabOptions: Array<{ id: 'all' | 'primary' | 'updates' | 'promotions'; labe
   { id: 'updates', label: 'Updates' },
   { id: 'promotions', label: 'Promotions' },
 ];
-
-type BodyState = {
-  loading: boolean;
-  error: string | null;
-  data: EmailMessageBodyDTO | null;
-  showRaw: boolean;
-  raw: string | null;
-  showQuoted: boolean;
-};
 
 const ladderTone = (ladder: string | null): string => {
   const value = (ladder || '').toLowerCase();
@@ -84,21 +69,6 @@ const copyText = async (value: string): Promise<void> => {
   } catch {
     // Ignore clipboard failures.
   }
-};
-
-const formatUiError = (error: unknown, fallback: string): string => {
-  if (error instanceof Error && error.message) return error.message;
-  if (typeof error === 'string' && error.trim()) return error;
-  if (error && typeof error === 'object') {
-    const maybe = (error as any).message || (error as any).error || (error as any).detail;
-    if (typeof maybe === 'string' && maybe.trim()) return maybe;
-    try {
-      return JSON.stringify(error);
-    } catch {
-      return fallback;
-    }
-  }
-  return fallback;
 };
 
 const ThreadRow = React.memo(
@@ -201,9 +171,6 @@ export const EmailClient: React.FC = () => {
   const deepLinkedMessageId = searchParams.get('messageId') || searchParams.get('id');
   const { filters: globalFilters } = useFilters();
 
-  const [mailboxes, setMailboxes] = useState<EmailMailboxDTO[]>([]);
-  const [mailboxesLoading, setMailboxesLoading] = useState(true);
-  const [mailboxesError, setMailboxesError] = useState<string | null>(null);
   const [showSuppressedJunk, setShowSuppressedJunk] = useState(false);
 
   const [selectedMailboxId, setSelectedMailboxId] = useState(
@@ -230,26 +197,6 @@ export const EmailClient: React.FC = () => {
     searchParams.get('density') === 'compact' ? 'compact' : 'comfortable',
   );
 
-  const [threads, setThreads] = useState<EmailThreadDTO[]>([]);
-  const [threadsLoading, setThreadsLoading] = useState(true);
-  const [threadsError, setThreadsError] = useState<string | null>(null);
-  const [threadsHasMore, setThreadsHasMore] = useState(false);
-  const [threadsNextCursor, setThreadsNextCursor] = useState<string | null>(null);
-  const [threadsTotal, setThreadsTotal] = useState(0);
-  const [loadingMoreThreads, setLoadingMoreThreads] = useState(false);
-
-  const [selectedThreadId, setSelectedThreadId] = useState<string | null>(
-    searchParams.get('threadId') || null,
-  );
-  const [threadDetails, setThreadDetails] = useState<Record<string, EmailThreadDetailsDTO>>({});
-  const [threadLoading, setThreadLoading] = useState(false);
-  const [threadError, setThreadError] = useState<string | null>(null);
-
-  const [expandedMessages, setExpandedMessages] = useState<Record<string, boolean>>({});
-  const [bodyState, setBodyState] = useState<Record<string, BodyState>>({});
-  const autoOpenedThreadRef = useRef<string | null>(null);
-  const limiterRef = useRef({ active: 0, queue: [] as Array<() => void> });
-
   const [selectedEntityId, setSelectedEntityId] = useState<string | null>(null);
   const [mobilePane, setMobilePane] = useState<'mailboxes' | 'threads' | 'messages'>('threads');
   const [showFilterPanel, setShowFilterPanel] = useState(false);
@@ -262,10 +209,6 @@ export const EmailClient: React.FC = () => {
     const saved = window.localStorage.getItem('email-pane-thread-width');
     return saved ? Number(saved) : 440;
   });
-
-  const selectedThread = selectedThreadId ? threadDetails[selectedThreadId] || null : null;
-  const selectedMailbox =
-    mailboxes.find((mailbox) => mailbox.mailboxId === selectedMailboxId) || mailboxes[0] || null;
 
   const updateUrlState = useCallback(
     (updates: Record<string, string | null>) => {
@@ -303,295 +246,56 @@ export const EmailClient: React.FC = () => {
     }
   }, [globalTimeStart, globalTimeEnd, searchParams]);
 
-  const withBodyLimiter = useCallback(async (task: () => Promise<void>) => {
-    await new Promise<void>((resolve, reject) => {
-      const run = () => {
-        limiterRef.current.active += 1;
-        task()
-          .then(resolve)
-          .catch(reject)
-          .finally(() => {
-            limiterRef.current.active -= 1;
-            const next = limiterRef.current.queue.shift();
-            if (next) next();
-          });
-      };
+  const {
+    mailboxes,
+    mailboxesLoading,
+    mailboxesError,
+    threads,
+    threadsLoading,
+    threadsError,
+    threadsHasMore,
+    threadsNextCursor,
+    threadsTotal,
+    loadingMoreThreads,
+    selectedThreadId,
+    setSelectedThreadId,
+    selectedThread,
+    threadLoading,
+    threadError,
+    expandedMessages,
+    bodyState,
+    loadThreads,
+    loadMessageBody: _loadMessageBody,
+    handleOpenThread: baseHandleOpenThread,
+    handleToggleMessage,
+    handleToggleRaw,
+    handleToggleQuoted,
+  } = useEmailWorkspaceData({
+    searchParams,
+    deepLinkedMessageId,
+    selectedMailboxId,
+    activeTab,
+    debouncedSearch,
+    fromFilter,
+    toFilter,
+    dateFrom,
+    dateTo,
+    hasAttachmentsOnly,
+    minRisk,
+    showSuppressedJunk,
+    updateUrlState,
+  });
 
-      if (limiterRef.current.active < 3) run();
-      else limiterRef.current.queue.push(run);
-    });
-  }, []);
-
-  const loadMailboxes = useCallback(async () => {
-    setMailboxesLoading(true);
-    setMailboxesError(null);
-    try {
-      const { PerformanceMonitor } = await import('../../utils/performanceMonitor');
-      PerformanceMonitor.mark('email-mailboxes-load-start');
-      const response = await apiClient.getEmailMailboxes({ showSuppressedJunk });
-      setMailboxes(response.data);
-      if (!response.data.some((mailbox) => mailbox.mailboxId === selectedMailboxId)) {
-        setSelectedMailboxId('all');
-      }
-      PerformanceMonitor.mark('email-mailboxes-load-end');
-      PerformanceMonitor.measure(
-        'email-mailboxes-load',
-        'email-mailboxes-load-start',
-        'email-mailboxes-load-end',
-      );
-    } catch (error) {
-      console.error(error);
-      setMailboxesError(formatUiError(error, 'Failed to load mailboxes'));
-    } finally {
-      setMailboxesLoading(false);
-    }
-  }, [selectedMailboxId, showSuppressedJunk]);
-
-  const loadThreads = useCallback(
-    async (cursor: string | null, append: boolean) => {
-      if (!append) {
-        setThreadsLoading(true);
-        setThreadsError(null);
-      } else {
-        setLoadingMoreThreads(true);
-      }
-
-      try {
-        const { PerformanceMonitor } = await import('../../utils/performanceMonitor');
-        PerformanceMonitor.mark('email-thread-list-load-start');
-        const response = await apiClient.getEmailThreads({
-          mailboxId: selectedMailboxId,
-          q: debouncedSearch,
-          tab: activeTab,
-          from: fromFilter.trim() || undefined,
-          to: toFilter.trim() || undefined,
-          dateFrom: dateFrom || undefined,
-          dateTo: dateTo || undefined,
-          hasAttachments: hasAttachmentsOnly || undefined,
-          minRisk: minRisk > 0 ? minRisk : undefined,
-          cursor,
-          limit: THREAD_PAGE_SIZE,
-          showSuppressedJunk,
-        });
-
-        setThreads((prev) => (append ? [...prev, ...response.data] : response.data));
-        setThreadsHasMore(response.meta.hasMore);
-        setThreadsNextCursor(response.meta.nextCursor);
-        setThreadsTotal(response.meta.total);
-
-        if (
-          !append &&
-          selectedThreadId &&
-          !response.data.find((thread) => thread.threadId === selectedThreadId)
-        ) {
-          setSelectedThreadId(null);
-        }
-
-        PerformanceMonitor.mark('email-thread-list-load-end');
-        PerformanceMonitor.measure(
-          'email-thread-list-load',
-          'email-thread-list-load-start',
-          'email-thread-list-load-end',
-        );
-      } catch (error) {
-        console.error(error);
-        setThreadsError(formatUiError(error, 'Failed to load threads'));
-        if (!append) {
-          setThreads([]);
-          setThreadsHasMore(false);
-          setThreadsNextCursor(null);
-          setThreadsTotal(0);
-        }
-      } finally {
-        setThreadsLoading(false);
-        setLoadingMoreThreads(false);
-      }
-    },
-    [
-      activeTab,
-      dateFrom,
-      dateTo,
-      debouncedSearch,
-      fromFilter,
-      hasAttachmentsOnly,
-      minRisk,
-      selectedMailboxId,
-      selectedThreadId,
-      showSuppressedJunk,
-      toFilter,
-    ],
-  );
-
-  const loadThread = useCallback(
-    async (threadId: string) => {
-      if (threadDetails[threadId]) return;
-      setThreadLoading(true);
-      setThreadError(null);
-      try {
-        const { PerformanceMonitor } = await import('../../utils/performanceMonitor');
-        PerformanceMonitor.mark('email-thread-open-start');
-        const detail = await apiClient.getEmailThread(threadId);
-        setThreadDetails((prev) => ({ ...prev, [threadId]: detail }));
-        PerformanceMonitor.mark('email-thread-open-end');
-        PerformanceMonitor.measure(
-          'email-thread-open',
-          'email-thread-open-start',
-          'email-thread-open-end',
-        );
-      } catch (error) {
-        console.error(error);
-        setThreadError(formatUiError(error, 'Failed to load thread'));
-      } finally {
-        setThreadLoading(false);
-      }
-    },
-    [threadDetails],
-  );
-
-  const loadMessageBody = useCallback(
-    async (messageId: string, showQuoted: boolean = false) => {
-      const state = bodyState[messageId];
-      if (state?.loading) return;
-      if (state?.data && state.showQuoted === showQuoted) return;
-
-      setBodyState((prev) => ({
-        ...prev,
-        [messageId]: {
-          loading: true,
-          error: null,
-          data: prev[messageId]?.data || null,
-          showRaw: prev[messageId]?.showRaw || false,
-          raw: prev[messageId]?.raw || null,
-          showQuoted,
-        },
-      }));
-
-      await withBodyLimiter(async () => {
-        try {
-          const { PerformanceMonitor } = await import('../../utils/performanceMonitor');
-          PerformanceMonitor.mark('email-message-body-load-start');
-          const body = await apiClient.getEmailMessageBody(messageId, { showQuoted });
-          setBodyState((prev) => ({
-            ...prev,
-            [messageId]: {
-              loading: false,
-              error: null,
-              data: body,
-              showRaw: prev[messageId]?.showRaw || false,
-              raw: prev[messageId]?.raw || null,
-              showQuoted,
-            },
-          }));
-          PerformanceMonitor.mark('email-message-body-load-end');
-          PerformanceMonitor.measure(
-            'email-message-body-load',
-            'email-message-body-load-start',
-            'email-message-body-load-end',
-          );
-        } catch (error) {
-          setBodyState((prev) => ({
-            ...prev,
-            [messageId]: {
-              loading: false,
-              error: error instanceof Error ? error.message : 'Failed to load message body',
-              data: prev[messageId]?.data || null,
-              showRaw: prev[messageId]?.showRaw || false,
-              raw: prev[messageId]?.raw || null,
-              showQuoted,
-            },
-          }));
-        }
-      });
-    },
-    [bodyState, withBodyLimiter],
-  );
+  const selectedMailbox =
+    mailboxes.find((mailbox) => mailbox.mailboxId === selectedMailboxId) || mailboxes[0] || null;
 
   const handleOpenThread = useCallback(
     (threadId: string) => {
-      autoOpenedThreadRef.current = null;
-      setSelectedThreadId(threadId);
-      setExpandedMessages({});
-      updateUrlState({ threadId, messageId: null });
+      baseHandleOpenThread(threadId);
       setMobilePane('messages');
-      void loadThread(threadId);
     },
-    [loadThread, updateUrlState],
+    [baseHandleOpenThread],
   );
-
-  const handleToggleMessage = useCallback(
-    (messageId: string, expanded: boolean) => {
-      setExpandedMessages((prev) => ({ ...prev, [messageId]: expanded }));
-      updateUrlState({ messageId: expanded ? messageId : null });
-      if (expanded) {
-        void loadMessageBody(messageId, bodyState[messageId]?.showQuoted || false);
-      }
-    },
-    [bodyState, loadMessageBody, updateUrlState],
-  );
-
-  const handleToggleRaw = useCallback(
-    async (messageId: string) => {
-      const state = bodyState[messageId];
-      if (!state) return;
-
-      if (!state.raw) {
-        try {
-          const raw = await apiClient.getEmailRawMessage(messageId);
-          setBodyState((prev) => ({
-            ...prev,
-            [messageId]: {
-              ...(prev[messageId] || state),
-              showRaw: !(prev[messageId]?.showRaw || false),
-              raw: raw.raw,
-            },
-          }));
-        } catch (error) {
-          setBodyState((prev) => ({
-            ...prev,
-            [messageId]: {
-              ...(prev[messageId] || state),
-              error: error instanceof Error ? error.message : 'Failed to load raw MIME',
-            },
-          }));
-        }
-        return;
-      }
-
-      setBodyState((prev) => ({
-        ...prev,
-        [messageId]: {
-          ...(prev[messageId] || state),
-          showRaw: !(prev[messageId]?.showRaw || false),
-        },
-      }));
-    },
-    [bodyState],
-  );
-
-  const handleToggleQuoted = useCallback(
-    (messageId: string) => {
-      const showQuoted = !(bodyState[messageId]?.showQuoted || false);
-      void loadMessageBody(messageId, showQuoted);
-    },
-    [bodyState, loadMessageBody],
-  );
-
-  useEffect(() => {
-    if (!selectedThreadId || !selectedThread) return;
-    if (searchParams.get('messageId')) return;
-    if (autoOpenedThreadRef.current === selectedThreadId) return;
-
-    const lastMessage = selectedThread.messages[selectedThread.messages.length - 1];
-    if (!lastMessage?.messageId) return;
-
-    autoOpenedThreadRef.current = selectedThreadId;
-    setExpandedMessages((prev) => ({ ...prev, [lastMessage.messageId]: true }));
-    updateUrlState({ messageId: lastMessage.messageId });
-    void loadMessageBody(
-      lastMessage.messageId,
-      bodyState[lastMessage.messageId]?.showQuoted || false,
-    );
-  }, [bodyState, loadMessageBody, searchParams, selectedThread, selectedThreadId, updateUrlState]);
 
   // j/k Navigation
   useEffect(() => {
@@ -613,72 +317,10 @@ export const EmailClient: React.FC = () => {
   }, [threads, selectedThreadId, handleOpenThread]);
 
   useEffect(() => {
-    void loadMailboxes();
-  }, [loadMailboxes]);
-
-  useEffect(() => {
     updateUrlState({
-      mailboxId: selectedMailboxId,
-      tab: activeTab,
-      q: debouncedSearch || null,
-      from: fromFilter.trim() || null,
-      to: toFilter.trim() || null,
-      dateFrom: dateFrom || null,
-      dateTo: dateTo || null,
-      hasAttachments: hasAttachmentsOnly ? '1' : null,
-      minRisk: minRisk > 0 ? String(minRisk) : null,
       density: density === 'compact' ? 'compact' : null,
     });
-    void loadThreads(null, false);
-  }, [
-    activeTab,
-    dateFrom,
-    dateTo,
-    debouncedSearch,
-    density,
-    fromFilter,
-    hasAttachmentsOnly,
-    loadThreads,
-    minRisk,
-    selectedMailboxId,
-    toFilter,
-    updateUrlState,
-  ]);
-
-  useEffect(() => {
-    if (!selectedThreadId) return;
-    void loadThread(selectedThreadId);
-  }, [selectedThreadId, loadThread]);
-
-  useEffect(() => {
-    if (!deepLinkedMessageId || selectedThreadId) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        const resolved = await apiClient.getEmailThreadForMessage(deepLinkedMessageId);
-        if (cancelled) return;
-        setSelectedThreadId(resolved.threadId);
-        setExpandedMessages((prev) => ({ ...prev, [deepLinkedMessageId]: true }));
-        updateUrlState({ threadId: resolved.threadId, messageId: deepLinkedMessageId });
-      } catch {
-        // Ignore deep-link misses.
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [deepLinkedMessageId, selectedThreadId, updateUrlState]);
-
-  useEffect(() => {
-    const deepLinkedMessageId = searchParams.get('messageId');
-    if (!deepLinkedMessageId || !selectedThread) return;
-    const hasMessage = selectedThread.messages.some(
-      (message) => message.messageId === deepLinkedMessageId,
-    );
-    if (!hasMessage) return;
-    setExpandedMessages((prev) => ({ ...prev, [deepLinkedMessageId]: true }));
-    void loadMessageBody(deepLinkedMessageId, bodyState[deepLinkedMessageId]?.showQuoted || false);
-  }, [searchParams, selectedThread, loadMessageBody, bodyState]);
+  }, [density, updateUrlState]);
 
   const tabsWithData = useMemo(() => {
     if (threadsTotal === 0) return [{ id: 'all', label: 'All' }];

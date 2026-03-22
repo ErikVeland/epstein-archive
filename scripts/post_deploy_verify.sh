@@ -146,6 +146,9 @@ for i in 1 2 3 4 5; do
 done
 log_success "Stats burst resilience OK"
 
+echo "Checking public Glasscode services..."
+./scripts/check_public_sites.sh
+
 echo "---"
 echo -e "${GREEN}ALL CHECKS PASSED. DEPLOYMENT v$EXPECTED_VERSION VERIFIED.${NC}"
 exit 0

@@ -73,8 +73,9 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
       className={`mobile-nav md:hidden fixed inset-0 z-[60] transition-opacity duration-300 ${open ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
     >
       {/* Backdrop overlay - closes menu when clicked */}
-      <div
-        aria-label="Close menu overlay"
+      <button
+        type="button"
+        aria-label="Close menu"
         className="absolute inset-0 top-[60px] app-backdrop transition-all duration-300"
         onClick={onClose}
       />

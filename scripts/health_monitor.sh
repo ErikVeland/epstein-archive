@@ -1,14 +1,18 @@
 #!/bin/bash
 # health_monitor.sh
 # Checks if the Epstein Archive API is responsive and restarts it via PM2 if not.
+# Also verifies public Glasscode sites without restarting unrelated services.
+
+set -euo pipefail
 
 # Configuration
+SCRIPT_DIR="$(cd -- "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+APP_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 URL="http://127.0.0.1:3012/api/health"
 READY_URL="http://127.0.0.1:3012/api/health/ready"
-LOG_FILE="/home/deploy/epstein-archive/logs/health_monitor.log"
+LOG_FILE="${HEALTH_MONITOR_LOG_FILE:-$APP_ROOT/logs/health_monitor.log}"
 LOCK_FILE="/tmp/health_monitor.lock"
-PM2_NAME="epstein-archive"
-MAX_ATTEMPTS=2
+PM2_NAME="${PM2_NAME:-epstein-archive}"
 TIMEOUT=10
 
 # Lockfile protection
@@ -33,7 +37,7 @@ log_msg() {
 check_health() {
     local target_url=$1
     local name=$2
-    
+
     RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" --max-time "$TIMEOUT" "$target_url")
     if [ "$RESPONSE" != "200" ]; then
         log_msg "CRITICAL: $name check failed with status $RESPONSE for $target_url"
@@ -73,7 +77,13 @@ if [ $HEALTH_OK -ne 0 ]; then
     fi
 else
     # Always log if VERBOSE is set or if it's the top of the hour
-    if [ ! -z "$VERBOSE" ] || [ $(( ( $(date +%s) / 60 ) % 60 )) -eq 0 ]; then
+    if [ -n "${VERBOSE:-}" ] || [ $(( ( $(date +%s) / 60 ) % 60 )) -eq 0 ]; then
         log_msg "PASS: Health checks passed."
     fi
+fi
+
+if "$SCRIPT_DIR/check_public_sites.sh" >> "$LOG_FILE" 2>&1; then
+    log_msg "PASS: Public Glasscode site checks passed."
+else
+    log_msg "CRITICAL: Public Glasscode site checks failed. Review immediately."
 fi

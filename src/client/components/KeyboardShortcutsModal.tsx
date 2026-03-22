@@ -10,7 +10,7 @@ interface KeyboardShortcutsModalProps {
 }
 
 const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({ isOpen, onClose }) => {
-  const { modalRef } = useModalFocusTrap(isOpen);
+  const { modalRef } = useModalFocusTrap({ isActive: isOpen, onEscape: onClose });
   useScrollLock(isOpen);
 
   if (!isOpen) return null;
@@ -62,12 +62,20 @@ const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({ isOpen,
 
   return createPortal(
     <div className="fixed inset-0 bg-[var(--app-bg)]/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+      <button
+        type="button"
+        className="absolute inset-0"
+        aria-label="Close keyboard shortcuts"
+        onClick={onClose}
+      />
       <div
         ref={modalRef}
         className="bg-[var(--glass-bg-strong)] rounded-[var(--radius-xl)] w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col border border-[var(--glass-border)]"
         role="dialog"
         aria-labelledby="keyboard-shortcuts-title"
         aria-modal="true"
+        tabIndex={-1}
+        onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-4 border-b border-[var(--glass-border)] bg-[var(--glass-bg)]">
           <h2

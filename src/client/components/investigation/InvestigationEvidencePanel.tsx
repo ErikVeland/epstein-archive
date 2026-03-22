@@ -86,7 +86,13 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
   const loadEvidenceSummary = async () => {
     setLoading(true);
     try {
-      const data = await apiClient.getInvestigationEvidenceSummary(String(investigationId));
+      const data = (await apiClient.getInvestigationEvidenceSummary(String(investigationId))) as {
+        evidence?: Evidence[];
+        entityCoverage?: Entity[];
+        typeBreakdown?: Record<string, number>;
+        entityByEvidence?: Record<string, EntityRef[]>;
+        evidenceByEntity?: Record<string, string[]>;
+      };
       setEvidence(data.evidence || []);
       setEntityCoverage(data.entityCoverage || []);
       setTypeBreakdown(data.typeBreakdown || {});
@@ -211,65 +217,71 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
   };
 
   const renderEvidenceRow = (item: Evidence) => (
-    <div
+    <article
       key={item.id}
-      className="border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-4 hover:bg-[var(--glass-bg-highlight)] transition cursor-pointer bg-[var(--glass-bg)]"
-      onClick={() => setSelectedEvidence(item)}
+      className="border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-4 hover:bg-[var(--glass-bg-highlight)] transition bg-[var(--glass-bg)]"
     >
-      <div className="flex items-start justify-between mb-2">
-        <div className="flex-1">
-          <div className="flex items-center space-x-2 mb-1">
-            <FileText className="w-4 h-4 text-[var(--text-muted)]" />
-            <h4 className="font-semibold text-[var(--text-primary)] truncate">
-              {item.title || 'Untitled'}
-            </h4>
+      <button
+        type="button"
+        className="w-full bg-transparent text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-inset rounded-[var(--radius-lg)]"
+        onClick={() => setSelectedEvidence(item)}
+        aria-label={`Open evidence ${item.title || 'Untitled'}`}
+      >
+        <div className="flex items-start justify-between mb-2">
+          <div className="flex-1">
+            <div className="flex items-center space-x-2 mb-1">
+              <FileText className="w-4 h-4 text-[var(--text-muted)]" />
+              <h4 className="font-semibold text-[var(--text-primary)] truncate">
+                {item.title || 'Untitled'}
+              </h4>
+            </div>
+            <p className="text-sm text-[var(--text-secondary)] line-clamp-2">{item.description}</p>
+            {(entityByEvidence[String(item.id)] || []).length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-2">
+                {(entityByEvidence[String(item.id)] || []).slice(0, 4).map((ref) => (
+                  <button
+                    key={ref.entityId}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setPivotEntityId(ref.entityId);
+                      setPivotEntityName(ref.fullName);
+                    }}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-[var(--glass-bg-highlight)] hover:bg-cyan-900/40 border border-[var(--glass-border)] hover:border-cyan-700/50 text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors"
+                    title={`Filter by ${ref.fullName}`}
+                  >
+                    <Icon
+                      name={
+                        ((ENTITY_CATEGORY_ICONS as any)[ref.entityCategory]?.icon || 'User') as any
+                      }
+                      size="xs"
+                      className="w-2.5 h-2.5 flex-shrink-0"
+                    />
+                    <span className="max-w-[120px] truncate">{ref.fullName}</span>
+                  </button>
+                ))}
+                {(entityByEvidence[String(item.id)] || []).length > 4 && (
+                  <span className="text-xs text-[var(--text-muted)] self-center">
+                    +{(entityByEvidence[String(item.id)] || []).length - 4}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
-          <p className="text-sm text-[var(--text-secondary)] line-clamp-2">{item.description}</p>
-          {(entityByEvidence[String(item.id)] || []).length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-2">
-              {(entityByEvidence[String(item.id)] || []).slice(0, 4).map((ref) => (
-                <button
-                  key={ref.entityId}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setPivotEntityId(ref.entityId);
-                    setPivotEntityName(ref.fullName);
-                  }}
-                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-[var(--glass-bg-highlight)] hover:bg-cyan-900/40 border border-[var(--glass-border)] hover:border-cyan-700/50 text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors"
-                  title={`Filter by ${ref.fullName}`}
-                >
-                  <Icon
-                    name={
-                      ((ENTITY_CATEGORY_ICONS as any)[ref.entityCategory]?.icon || 'User') as any
-                    }
-                    size="xs"
-                    className="w-2.5 h-2.5 flex-shrink-0"
-                  />
-                  <span className="max-w-[120px] truncate">{ref.fullName}</span>
-                </button>
-              ))}
-              {(entityByEvidence[String(item.id)] || []).length > 4 && (
-                <span className="text-xs text-[var(--text-muted)] self-center">
-                  +{(entityByEvidence[String(item.id)] || []).length - 4}
-                </span>
-              )}
-            </div>
-          )}
+          <div className="flex flex-col items-end space-y-1 ml-4">
+            {item.relevance && (
+              <span className={`text-xs px-2 py-1 rounded ${getRelevanceBadge(item.relevance)}`}>
+                {item.relevance}
+              </span>
+            )}
+            {item.redFlagRating > 0 && (
+              <div className="flex items-center space-x-1">
+                <AlertTriangle className="w-4 h-4 text-red-500" />
+                <span className="text-xs font-semibold text-red-400">{item.redFlagRating}</span>
+              </div>
+            )}
+          </div>
         </div>
-        <div className="flex flex-col items-end space-y-1 ml-4">
-          {item.relevance && (
-            <span className={`text-xs px-2 py-1 rounded ${getRelevanceBadge(item.relevance)}`}>
-              {item.relevance}
-            </span>
-          )}
-          {item.redFlagRating > 0 && (
-            <div className="flex items-center space-x-1">
-              <AlertTriangle className="w-4 h-4 text-red-500" />
-              <span className="text-xs font-semibold text-red-400">{item.redFlagRating}</span>
-            </div>
-          )}
-        </div>
-      </div>
+      </button>
       <div className="flex items-center justify-between text-xs text-[var(--text-muted)]">
         <div className="flex items-center space-x-3">
           <span className="flex items-center space-x-1">
@@ -333,7 +345,7 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
           </button>
         </div>
       </div>
-    </div>
+    </article>
   );
 
   if (loading) {

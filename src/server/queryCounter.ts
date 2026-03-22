@@ -49,6 +49,12 @@ export class QueryCounter {
     return db;
   }
 
+  increment(requestId: string): void {
+    if (!this.enabled) return;
+    const current = this.counts.get(requestId) || 0;
+    this.counts.set(requestId, current + 1);
+  }
+
   /**
    * Get query count for request
    */
@@ -72,6 +78,31 @@ export class QueryCounter {
     const passed = count <= budget.maxQueries;
 
     return { passed, count, budget: budget.maxQueries };
+  }
+
+  endpointForRequest(method: string, path: string): string | null {
+    const normalizedPath = path
+      .replace(/\?.*$/, '')
+      .replace(/\/\d+(?=\/|$)/g, '/:id')
+      .replace(/\/[0-9a-f]{8,}(?=\/|$)/gi, '/:id');
+
+    if (method === 'GET' && normalizedPath === '/api/entities/top')
+      return 'GET /api/entities (top)';
+    if (method === 'GET' && normalizedPath === '/api/entities') return 'GET /api/entities (list)';
+    if (method === 'GET' && normalizedPath === '/api/entities/:id') return 'GET /api/entities/:id';
+    if (method === 'GET' && normalizedPath === '/api/entities/:id/documents')
+      return 'GET /api/entities/:id/documents';
+    if (method === 'GET' && normalizedPath === '/api/entities/:id/relationships')
+      return 'GET /api/entities/:id/relationships';
+    if (method === 'GET' && normalizedPath === '/api/emails') return 'GET /api/emails';
+    if (
+      method === 'GET' &&
+      normalizedPath.endsWith('/body') &&
+      normalizedPath.includes('/api/emails/')
+    )
+      return 'GET /api/emails/:id/body';
+
+    return null;
   }
 
   /**

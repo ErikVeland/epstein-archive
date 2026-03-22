@@ -115,7 +115,10 @@ function stringifyApiErrorMessage(value: unknown): string | null {
   if (typeof value === 'string' && value.trim()) return value;
   if (value instanceof Error && value.message) return value.message;
   if (value && typeof value === 'object') {
-    const maybeMessage = (value as any).message || (value as any).error || (value as any).detail;
+    const maybeMessage =
+      (value as Record<string, unknown>).message ||
+      (value as Record<string, unknown>).error ||
+      (value as Record<string, unknown>).detail;
     if (typeof maybeMessage === 'string' && maybeMessage.trim()) return maybeMessage;
     try {
       return JSON.stringify(value);
@@ -315,7 +318,8 @@ class ApiClient {
           await new Promise((r) => setTimeout(r, delay));
           return this.executeFetchWithRetries(url, { ...options, _retryCount: retryCount + 1 });
         } else if (response.status >= 500 && response.status < 600) {
-          const isIdempotent = method === 'GET' || !!(options?.headers as any)?.['Idempotency-Key'];
+          const isIdempotent =
+            method === 'GET' || !!(options?.headers as Record<string, string>)?.['Idempotency-Key'];
           const maxRetries = method === 'GET' ? 2 : isIdempotent ? 1 : 0;
 
           if (retryCount < maxRetries) {
@@ -333,8 +337,8 @@ class ApiClient {
 
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
         const msg =
-          stringifyApiErrorMessage((errorData as any)?.error) ||
-          stringifyApiErrorMessage((errorData as any)?.message) ||
+          stringifyApiErrorMessage((errorData as Record<string, unknown>)?.error) ||
+          stringifyApiErrorMessage((errorData as Record<string, unknown>)?.message) ||
           `HTTP ${response.status}: ${response.statusText}`;
         throw new Error(msg);
       }
@@ -357,13 +361,13 @@ class ApiClient {
 
       if (shouldCache) setCachedData(url, data, cacheTtl);
       return data as T;
-    } catch (error: any) {
-      if (error.name === 'AbortError') throw error;
-      if (error instanceof ContractError || (error as any).isContractError) {
+    } catch (error: unknown) {
+      if ((error as Error).name === 'AbortError') throw error;
+      if (error instanceof ContractError || (error as Record<string, unknown>).isContractError) {
         throw error;
       }
 
-      if (!error.status) {
+      if (!(error as Record<string, unknown>).status) {
         if (method === 'GET' && retryCount < 1) {
           await new Promise((r) => setTimeout(r, 500));
           return this.executeFetchWithRetries(url, { ...options, _retryCount: retryCount + 1 });
@@ -382,35 +386,23 @@ class ApiClient {
     }
   }
 
-  private isNotFoundError(error: unknown): error is Error {
-    return error instanceof Error && /HTTP 404\b/.test(error.message);
-  }
-
   private isServiceUnavailableError(error: unknown): error is Error {
     return error instanceof Error && /HTTP 503\b/.test(error.message);
   }
 
-  private async fetchWithLegacyFallback<T>(
-    canonicalUrl: string,
-    legacyUrl: string,
-    options?: RequestInit & { useCache?: boolean; cacheTtl?: number },
-  ): Promise<T> {
-    try {
-      return await this.fetchWithErrorHandling<T>(canonicalUrl, options as any);
-    } catch (error) {
-      if (this.isNotFoundError(error)) {
-        return this.fetchWithErrorHandling<T>(legacyUrl, options as any);
-      }
-      throw error;
-    }
+  private isNotFoundError(error: unknown): error is Error {
+    return error instanceof Error && /HTTP 404\b/.test(error.message);
   }
 
-  async get<T>(endpoint: string, options?: { useCache?: boolean; cacheTtl?: number }): Promise<T> {
+  async get<T>(
+    endpoint: string,
+    options?: { useCache?: boolean; cacheTtl?: number; signal?: AbortSignal },
+  ): Promise<T> {
     const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
     return this.fetchWithErrorHandling<T>(url, options);
   }
 
-  async post<T>(endpoint: string, body?: any): Promise<T> {
+  async post<T>(endpoint: string, body?: unknown): Promise<T> {
     const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
     return this.fetchWithErrorHandling<T>(url, {
       method: 'POST',
@@ -419,7 +411,7 @@ class ApiClient {
     });
   }
 
-  async put<T>(endpoint: string, body?: any): Promise<T> {
+  async put<T>(endpoint: string, body?: unknown): Promise<T> {
     const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
     return this.fetchWithErrorHandling<T>(url, {
       method: 'PUT',
@@ -442,7 +434,7 @@ class ApiClient {
   }
 
   async getSubjects(
-    filters: Record<string, any> = {},
+    filters: Record<string, unknown> = {},
     page = 1,
     limit = 24,
   ): Promise<SubjectsListResponseDto> {
@@ -451,15 +443,24 @@ class ApiClient {
       limit: limit.toString(),
     });
 
-    if (filters.search) queryParams.append('search', filters.search);
-    if (filters.role) queryParams.append('role', filters.role);
-    if (filters.entityType) queryParams.append('entityType', filters.entityType);
-    if (filters.sortBy) queryParams.append('sortBy', filters.sortBy);
-    if (filters.likelihood) {
-      if (Array.isArray(filters.likelihood)) {
-        filters.likelihood.forEach((l: string) => queryParams.append('likelihoodScore', l));
+    if ((filters as Record<string, unknown>).search)
+      queryParams.append('search', (filters as Record<string, unknown>).search as string);
+    if ((filters as Record<string, unknown>).role)
+      queryParams.append('role', (filters as Record<string, unknown>).role as string);
+    if ((filters as Record<string, unknown>).entityType)
+      queryParams.append('entityType', (filters as Record<string, unknown>).entityType as string);
+    if ((filters as Record<string, unknown>).sortBy)
+      queryParams.append('sortBy', (filters as Record<string, unknown>).sortBy as string);
+    if ((filters as Record<string, unknown>).likelihood) {
+      if (Array.isArray((filters as Record<string, unknown>).likelihood)) {
+        ((filters as Record<string, unknown>).likelihood as string[]).forEach((l: string) =>
+          queryParams.append('likelihoodScore', l),
+        );
       } else {
-        queryParams.append('likelihoodScore', filters.likelihood);
+        queryParams.append(
+          'likelihoodScore',
+          (filters as Record<string, unknown>).likelihood as string,
+        );
       }
     }
     queryParams.append('v', String(Date.now()));
@@ -484,24 +485,31 @@ class ApiClient {
   ): Promise<PaginatedResponse> {
     const params = new URLSearchParams();
 
-    if (filters.searchTerm) params.append('search', filters.searchTerm);
+    if ((filters as Record<string, unknown>).searchTerm as string)
+      params.append('search', (filters as Record<string, unknown>).searchTerm as string);
     if (filters.evidenceTypes && filters.evidenceTypes.length > 0)
       params.append('role', filters.evidenceTypes[0]);
     // Support both 'likelihood' and 'likelihoodScore' filter property names
-    const likelihoodValue = (filters as any).likelihood || filters.likelihoodScore;
+    const likelihoodValue =
+      (filters as Record<string, unknown>).likelihood ||
+      (filters as Record<string, unknown>).likelihoodScore;
     if (likelihoodValue && Array.isArray(likelihoodValue) && likelihoodValue.length > 0) {
       params.append('likelihood', likelihoodValue[0]);
     } else if (likelihoodValue && typeof likelihoodValue === 'string') {
       params.append('likelihood', likelihoodValue);
     }
-    if (filters.sortBy) params.append('sortBy', filters.sortBy);
+    if ((filters as Record<string, unknown>).sortBy)
+      params.append('sortBy', (filters as Record<string, unknown>).sortBy as string);
     if (filters.sortOrder) params.append('sortOrder', filters.sortOrder);
     if (filters.minRedFlagIndex !== undefined)
       params.append('minRedFlagIndex', filters.minRedFlagIndex.toString());
     if (filters.maxRedFlagIndex !== undefined)
       params.append('maxRedFlagIndex', filters.maxRedFlagIndex.toString());
-    if (filters.entityType && filters.entityType !== 'all')
-      params.append('type', filters.entityType);
+    if (
+      (filters as Record<string, unknown>).entityType &&
+      (filters as Record<string, unknown>).entityType !== 'all'
+    )
+      params.append('type', (filters as Record<string, unknown>).entityType as string);
     if (page > 1) params.append('page', page.toString());
     if (limit !== 24) params.append('limit', limit.toString());
 
@@ -514,31 +522,44 @@ class ApiClient {
         '/api/entities',
       );
       const data = Array.isArray(resp.data) ? resp.data : [];
-      const normalized = data.map((e: any) => ({
-        ...e,
-        name: e.name ?? e.fullName,
-        fullName: e.fullName ?? e.name,
-        redFlagRating: e.redFlagRating ?? 0,
-        files: e.files ?? e.documentCount ?? 0,
-        blackBookEntry: e.blackBookEntry || null,
+      const normalized = data.map((e: unknown) => ({
+        ...(e as object),
+        name: (e as Record<string, unknown>).name ?? (e as Record<string, unknown>).fullName,
+        fullName: (e as Record<string, unknown>).fullName ?? (e as Record<string, unknown>).name,
+        redFlagRating: (e as Record<string, unknown>).redFlagRating ?? 0,
+        files:
+          (e as Record<string, unknown>).files ?? (e as Record<string, unknown>).documentCount ?? 0,
+        blackBookEntry: (e as Record<string, unknown>).blackBookEntry || null,
       }));
-      return { ...(resp as any), data: normalized } as PaginatedResponse;
+      return { ...(resp as unknown as object), data: normalized } as unknown as PaginatedResponse;
     } catch (primaryError) {
       console.warn('Primary /api/entities failed, falling back to /api/subjects:', primaryError);
 
       const subjects = await this.getSubjects({
-        searchTerm: filters.searchTerm,
+        searchTerm: (filters as Record<string, unknown>).searchTerm as string,
         role:
           filters.evidenceTypes && filters.evidenceTypes.length > 0 ? filters.evidenceTypes[0] : '',
-        sortBy: (filters.sortBy as any) || 'red_flag',
+        sortBy: ((filters as Record<string, unknown>).sortBy as string) || 'red_flag',
         sortOrder: filters.sortOrder || 'desc',
         minRedFlagIndex: filters.minRedFlagIndex,
         maxRedFlagIndex: filters.maxRedFlagIndex,
-        entityType: filters.entityType,
-        likelihood: (filters as any).likelihood || filters.likelihoodScore,
-      } as any);
+        entityType: (filters as Record<string, unknown>).entityType,
+        likelihood:
+          (filters as Record<string, unknown>).likelihood ||
+          (filters as Record<string, unknown>).likelihoodScore,
+      } as unknown as Record<string, unknown>);
 
-      const fallbackData = (subjects.subjects || []).map((s: any) => {
+      type SubjectFallback = {
+        id: string;
+        name?: string;
+        shortBio?: string;
+        role?: string;
+        redFlagRating?: number;
+        forensics?: { redFlagObjective?: number; redFlagSubjective?: number; riskLevel?: string };
+        stats?: { mentions?: number; documents?: number };
+      };
+
+      const fallbackData = (subjects.subjects || []).map((s: SubjectFallback) => {
         const redFlag =
           s?.forensics?.redFlagObjective ??
           s?.forensics?.redFlagSubjective ??
@@ -567,7 +588,7 @@ class ApiClient {
           redFlagDescription: `Red Flag Index ${Number(redFlag || 0)}`,
           connectionsToEpstein: '',
           blackBookEntry: null,
-        };
+        } as Person;
       });
 
       return {
@@ -582,14 +603,14 @@ class ApiClient {
 
   async getEntity(id: string): Promise<Person> {
     const url = `${API_BASE_URL}/entities/${id}`;
-    const e = await this.fetchWithErrorHandling<any>(url);
+    const e = await this.fetchWithErrorHandling<Record<string, unknown>>(url);
     return {
-      ...e,
-      name: e.name ?? e.fullName,
-      fullName: e.fullName ?? e.name,
-      redFlagRating: e.redFlagRating ?? 0,
-      blackBookEntry: e.blackBookEntry || null,
-    } as Person;
+      ...(e as object),
+      name: (e as Record<string, unknown>).name ?? (e as Record<string, unknown>).fullName,
+      fullName: (e as Record<string, unknown>).fullName ?? (e as Record<string, unknown>).name,
+      redFlagRating: (e as Record<string, unknown>).redFlagRating ?? 0,
+      blackBookEntry: (e as Record<string, unknown>).blackBookEntry || null,
+    } as unknown as Person;
   }
 
   async getEntityCommunications(
@@ -602,7 +623,7 @@ class ApiClient {
       end?: string;
       limit?: number;
     },
-  ): Promise<{ data: any[]; total: number }> {
+  ): Promise<{ data: unknown[]; total: number }> {
     const params = new URLSearchParams();
     if (options?.topic) params.append('topic', options.topic);
     if (options?.from) params.append('from', options.from);
@@ -612,16 +633,15 @@ class ApiClient {
     if (options?.limit != null) params.append('limit', String(options.limit));
 
     const query = params.toString();
-    const canonicalUrl = `${API_BASE_URL}/entities/${id}/analytics/communications${query ? `?${query}` : ''}`;
-    const legacyUrl = `${API_BASE_URL}/entities/${id}/communications${query ? `?${query}` : ''}`;
-    return this.fetchWithLegacyFallback<{ data: any[]; total: number }>(canonicalUrl, legacyUrl, {
+    const url = `${API_BASE_URL}/entities/${id}/analytics/communications${query ? `?${query}` : ''}`;
+    return this.fetchWithErrorHandling<{ data: unknown[]; total: number }>(url, {
       useCache: true,
     });
   }
 
-  async getDocumentThread(id: string): Promise<{ threadId: string; messages: any[] }> {
+  async getDocumentThread(id: string): Promise<{ threadId: string; messages: unknown[] }> {
     const url = `${API_BASE_URL}/documents/${id}/thread`;
-    return this.fetchWithErrorHandling<{ threadId: string; messages: any[] }>(url, {
+    return this.fetchWithErrorHandling<{ threadId: string; messages: unknown[] }>(url, {
       useCache: true,
     });
   }
@@ -737,32 +757,35 @@ class ApiClient {
     limit: number = 20,
   ): Promise<{
     entities: Person[];
-    documents: any[];
-    investigations?: any[];
-    articles?: any[];
-    media?: any[];
+    documents: unknown[];
+    investigations?: unknown[];
+    articles?: unknown[];
+    media?: unknown[];
   }> {
     const params = new URLSearchParams();
     params.append('q', query);
     if (limit !== 20) params.append('limit', limit.toString());
 
     const url = `${API_BASE_URL}/search?${params.toString()}`;
-    const r = await this.fetchWithErrorHandling<any>(url);
-    const ents = Array.isArray(r.entities)
-      ? r.entities.map((e: any) => ({
-          ...e,
-          name: e.name ?? e.fullName,
-          fullName: e.fullName ?? e.name,
-          redFlagRating: e.redFlagRating ?? 0,
-          blackBookEntry: e.blackBookEntry || null,
-        }))
+    const r = await this.fetchWithErrorHandling<unknown>(url);
+    const ents = Array.isArray((r as Record<string, unknown>).entities)
+      ? ((r as Record<string, unknown>).entities as unknown[]).map((e: unknown) => {
+          const _e = e as Record<string, unknown>;
+          return {
+            ...(_e as object),
+            name: _e.name ?? _e.fullName,
+            fullName: _e.fullName ?? _e.name,
+            redFlagRating: _e.redFlagRating ?? 0,
+            blackBookEntry: _e.blackBookEntry || null,
+          };
+        })
       : [];
     return {
-      entities: ents as Person[],
-      documents: r.documents || [],
-      investigations: r.investigations || [],
-      articles: r.articles || [],
-      media: r.media || [],
+      entities: ents as unknown as Person[] as Person[],
+      documents: ((r as Record<string, unknown>).documents || []) as unknown[],
+      investigations: ((r as Record<string, unknown>).investigations || []) as unknown[],
+      articles: ((r as Record<string, unknown>).articles || []) as unknown[],
+      media: ((r as Record<string, unknown>).media || []) as unknown[],
     };
   }
 
@@ -771,70 +794,77 @@ class ApiClient {
     return result.entities || [];
   }
 
-  async createEntity(data: any): Promise<any> {
-    return this.fetchWithErrorHandling<any>(`${API_BASE_URL}/entities`, {
+  async createEntity(data: unknown): Promise<unknown> {
+    return this.fetchWithErrorHandling<unknown>(`${API_BASE_URL}/entities`, {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
-  async createRelationship(data: any): Promise<any> {
-    return this.fetchWithErrorHandling<any>(`${API_BASE_URL}/relationships`, {
+  async createRelationship(data: unknown): Promise<unknown> {
+    return this.fetchWithErrorHandling<unknown>(`${API_BASE_URL}/relationships`, {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
-  async getStats(filters: Record<string, any> = {}): Promise<any> {
+  async getStats(filters: Record<string, unknown> = {}): Promise<unknown> {
     const params = new URLSearchParams();
-    if (filters.timeRange && filters.timeRange[0]) params.append('startDate', filters.timeRange[0]);
-    if (filters.timeRange && filters.timeRange[1]) params.append('endDate', filters.timeRange[1]);
-    if (filters.limit) params.append('limit', filters.limit.toString());
+    if (
+      (filters as Record<string, string[]>).timeRange &&
+      (filters as Record<string, string[]>).timeRange[0]
+    )
+      params.append('startDate', (filters as Record<string, string[]>).timeRange[0]);
+    if (
+      (filters as Record<string, string[]>).timeRange &&
+      (filters as Record<string, string[]>).timeRange[1]
+    )
+      params.append('endDate', (filters as Record<string, string[]>).timeRange[1]);
+    if ((filters as Record<string, number>).limit)
+      params.append('limit', (filters as Record<string, number>).limit.toString());
 
     const url = `${API_BASE_URL}/stats${params.toString() ? `?${params.toString()}` : ''}`;
-    return this.fetchWithErrorHandling<any>(url);
+    return this.fetchWithErrorHandling<unknown>(url);
   }
 
   async getDocumentPages(id: string): Promise<{ pages: string[]; total: number }> {
     try {
       const response = await fetch(`${API_BASE_URL}/documents/${id}/pages`);
       if (!response.ok) throw new Error('Failed to fetch document pages');
-      return await response.json();
+      return (await response.json()) as { pages: string[]; total: number };
     } catch (error) {
       console.error('Error fetching document pages:', error);
       return { pages: [], total: 0 };
     }
   }
 
-  async getEntityGraph(entityId: string, depth: number = 2): Promise<any> {
-    const canonicalUrl = `${API_BASE_URL}/entities/${entityId}/analytics/graph?depth=${depth}`;
-    const legacyUrl = `${API_BASE_URL}/entities/${entityId}/graph?depth=${depth}`;
-    return this.fetchWithLegacyFallback<any>(canonicalUrl, legacyUrl);
+  async getEntityGraph(entityId: string, depth: number = 2): Promise<unknown> {
+    const url = `${API_BASE_URL}/entities/${entityId}/analytics/graph?depth=${depth}`;
+    return this.fetchWithErrorHandling<unknown>(url);
   }
 
-  async getEntityDocuments(entityId: string): Promise<any[]> {
+  async getEntityDocuments(entityId: string): Promise<unknown[]> {
     const url = `${API_BASE_URL}/entities/${entityId}/documents`;
-    const response = await this.fetchWithErrorHandling<any>(url);
+    const response = await this.fetchWithErrorHandling<unknown>(url);
 
     // Handle both array (dev/legacy) and paginated object (prod) formats
     if (Array.isArray(response)) {
       return response;
-    } else if (response && Array.isArray(response.data)) {
-      return response.data;
+    } else if (response && Array.isArray((response as Record<string, unknown>).data)) {
+      return (response as Record<string, unknown>).data as unknown[];
     }
 
     return [];
   }
 
-  async analyzeDocument(documentId: string): Promise<any> {
-    const canonicalUrl = `${API_BASE_URL}/documents/${documentId}/analytics/analyze`;
-    const legacyUrl = `${API_BASE_URL}/evidence/${documentId}/analyze`;
-    return this.fetchWithLegacyFallback<any>(canonicalUrl, legacyUrl, { method: 'POST' });
+  async analyzeDocument(documentId: string): Promise<unknown> {
+    const url = `${API_BASE_URL}/documents/${documentId}/analytics/analyze`;
+    return this.fetchWithErrorHandling<unknown>(url, { method: 'POST' });
   }
 
-  async getEvidence(evidenceId: string): Promise<any> {
-    return this.fetchWithErrorHandling<any>(
-      `${API_BASE_URL}/evidence/${encodeURIComponent(evidenceId)}`,
+  async getEvidence(evidenceId: string): Promise<unknown> {
+    return this.fetchWithErrorHandling<unknown>(
+      `${API_BASE_URL}/evidence/${encodeURIComponent(evidenceId as string)}`,
       {
         useCache: true,
         cacheTtl: 30000,
@@ -842,62 +872,46 @@ class ApiClient {
     );
   }
 
-  async getEvidenceMetrics(documentId: string): Promise<any> {
-    const canonicalUrl = `${API_BASE_URL}/documents/${documentId}/analytics/metrics`;
-    const legacyUrl = `${API_BASE_URL}/evidence/${documentId}/metrics`;
-    return this.fetchWithLegacyFallback<any>(canonicalUrl, legacyUrl);
+  async getEvidenceMetrics(documentId: string): Promise<unknown> {
+    const url = `${API_BASE_URL}/documents/${documentId}/analytics/metrics`;
+    return this.fetchWithErrorHandling<unknown>(url);
   }
 
-  async getChainOfCustody(documentId: string): Promise<any> {
-    const canonicalUrl = `${API_BASE_URL}/documents/${documentId}/analytics/custody`;
-    const legacyUrl = `${API_BASE_URL}/evidence/${documentId}/custody`;
-    return this.fetchWithLegacyFallback<any>(canonicalUrl, legacyUrl);
+  async getChainOfCustody(documentId: string): Promise<unknown> {
+    const url = `${API_BASE_URL}/documents/${documentId}/analytics/custody`;
+    return this.fetchWithErrorHandling<unknown>(url);
   }
 
   async removeEvidenceFromInvestigation(
     investigationEvidenceId: string,
   ): Promise<{ success: boolean }> {
     return this.fetchWithErrorHandling(
-      `${API_BASE_URL}/investigation/remove-evidence/${investigationEvidenceId}`,
+      `${API_BASE_URL}/investigations/remove-evidence/${investigationEvidenceId}`,
       { method: 'DELETE' },
     );
   }
 
-  async getInvestigationEvidenceSummary(investigationId: string): Promise<any> {
-    const canonicalUrl = `${API_BASE_URL}/investigations/${investigationId}/analytics/evidence-summary`;
-    const legacyPluralUrl = `${API_BASE_URL}/investigations/${investigationId}/evidence-summary`;
-    const legacySingularUrl = `${API_BASE_URL}/investigation/${investigationId}/evidence-summary`;
-
-    try {
-      return await this.fetchWithErrorHandling<any>(canonicalUrl, { useCache: false });
-    } catch (error) {
-      if (!this.isNotFoundError(error)) throw error;
-    }
-
-    try {
-      return await this.fetchWithErrorHandling<any>(legacyPluralUrl, { useCache: false });
-    } catch (error) {
-      if (!this.isNotFoundError(error)) throw error;
-    }
-
-    return this.fetchWithErrorHandling<any>(legacySingularUrl, { useCache: false });
+  async getInvestigationEvidenceSummary(investigationId: string): Promise<unknown> {
+    const url = `${API_BASE_URL}/investigations/${investigationId}/analytics/evidence-summary`;
+    return this.fetchWithErrorHandling<unknown>(url, { useCache: false });
   }
 
-  async getEntityConfidence(entityId: string | number): Promise<any> {
-    const canonicalUrl = `${API_BASE_URL}/entities/${entityId}/analytics/confidence`;
-    const legacyUrl = `${API_BASE_URL}/entities/${entityId}/confidence`;
-    return this.fetchWithLegacyFallback<any>(canonicalUrl, legacyUrl, { useCache: true });
+  async getEntityConfidence(entityId: string | number): Promise<unknown> {
+    const url = `${API_BASE_URL}/entities/${entityId}/analytics/confidence`;
+    return this.fetchWithErrorHandling<unknown>(url, { useCache: true });
   }
 
-  async getDocument(id: string): Promise<any> {
+  async getDocument(id: string): Promise<unknown> {
     const url = `${API_BASE_URL}/documents/${id}`;
-    const d = await this.fetchWithErrorHandling<any>(url);
+    const d = await this.fetchWithErrorHandling<Record<string, unknown>>(url);
     return {
-      ...d,
-      fileName: d.fileName ?? d.file_name,
-      fileType: d.fileType ?? d.file_type,
-      contentPreview: d.contentPreview ?? d.content_preview,
-      redFlagRating: d.redFlagRating ?? 0,
+      ...(d as object),
+      fileName: (d as Record<string, unknown>).fileName ?? (d as Record<string, unknown>).file_name,
+      fileType: (d as Record<string, unknown>).fileType ?? (d as Record<string, unknown>).file_type,
+      contentPreview:
+        (d as Record<string, unknown>).contentPreview ??
+        (d as Record<string, unknown>).content_preview,
+      redFlagRating: (d as Record<string, unknown>).redFlagRating ?? 0,
       title: d.title ?? d.fileName,
     };
   }
@@ -917,11 +931,23 @@ class ApiClient {
       updatedAt: string;
     }>
   > {
-    const response = await this.fetchWithErrorHandling<{ annotations?: any[] }>(
+    const response = await this.fetchWithErrorHandling<{ annotations?: unknown[] }>(
       `${API_BASE_URL}/documents/${documentId}/annotations`,
       { useCache: false },
     );
-    return Array.isArray(response.annotations) ? response.annotations : [];
+    return (Array.isArray(response.annotations) ? response.annotations : []) as Array<{
+      id: string;
+      documentId: string;
+      type: 'highlight' | 'note' | 'evidence' | 'question' | 'contradiction' | 'tag';
+      selectedText: string;
+      note: string;
+      position: { start: number; end: number };
+      contextBefore?: string | null;
+      contextAfter?: string | null;
+      author?: string;
+      createdAt: string;
+      updatedAt: string;
+    }>;
   }
 
   async createPublicDocumentAnnotation(
@@ -949,7 +975,7 @@ class ApiClient {
     createdAt: string;
     updatedAt: string;
   }> {
-    const response = await this.fetchWithErrorHandling<{ annotation: any }>(
+    const response = await this.fetchWithErrorHandling<{ annotation: unknown }>(
       `${API_BASE_URL}/documents/${documentId}/annotations`,
       {
         method: 'POST',
@@ -966,17 +992,29 @@ class ApiClient {
         useCache: false,
       },
     );
-    return response.annotation;
+    return response.annotation as {
+      id: string;
+      documentId: string;
+      type: 'highlight' | 'note' | 'evidence' | 'question' | 'contradiction' | 'tag';
+      selectedText: string;
+      note: string;
+      position: { start: number; end: number };
+      contextBefore?: string | null;
+      contextAfter?: string | null;
+      author?: string;
+      createdAt: string;
+      updatedAt: string;
+    };
   }
 
-  async getRelatedDocuments(id: string, limit: number = 10): Promise<any[]> {
+  async getRelatedDocuments(id: string, limit: number = 10): Promise<unknown[]> {
     const url = `${API_BASE_URL}/documents/${id}/related?limit=${limit}`;
-    return this.fetchWithErrorHandling<any[]>(url);
+    return this.fetchWithErrorHandling<unknown[]>(url);
   }
 
-  async getCollections(): Promise<any[]> {
+  async getCollections(): Promise<unknown[]> {
     try {
-      return await this.get<any[]>('/documents/collections');
+      return await this.get<unknown[]>('/documents/collections');
     } catch (error) {
       if (this.isNotFoundError(error) || this.isServiceUnavailableError(error)) {
         return [];
@@ -985,9 +1023,9 @@ class ApiClient {
     }
   }
 
-  async getCollectionDocuments(collectionId: string): Promise<any[]> {
+  async getCollectionDocuments(collectionId: string): Promise<unknown[]> {
     try {
-      return await this.get<any[]>(`/documents/collections/${collectionId}/documents`);
+      return await this.get<unknown[]>(`/documents/collections/${collectionId}/documents`);
     } catch (error) {
       if (this.isNotFoundError(error) || this.isServiceUnavailableError(error)) {
         return [];
@@ -1005,22 +1043,22 @@ class ApiClient {
 
   async getInvestigations(
     params: { status?: string; ownerId?: string; page?: number; limit?: number } = {},
-  ): Promise<any> {
+  ): Promise<unknown> {
     const usp = new URLSearchParams();
     if (params.status) usp.append('status', params.status);
     if (params.ownerId) usp.append('ownerId', params.ownerId);
     if (params.page) usp.append('page', String(params.page));
     if (params.limit) usp.append('limit', String(params.limit));
-    return this.fetchWithErrorHandling<any>(
+    return this.fetchWithErrorHandling<unknown>(
       `${API_BASE_URL}/investigations${usp.toString() ? `?${usp.toString()}` : ''}`,
     );
   }
 
   async getInvestigativeTasksByInvestigation(
     investigationId: string,
-  ): Promise<{ data: any[]; total: number }> {
+  ): Promise<{ data: unknown[]; total: number }> {
     const url = `${API_BASE_URL}/investigative-tasks/investigation/${investigationId}`;
-    const tasks = await this.fetchWithErrorHandling<any[]>(url, { useCache: false });
+    const tasks = await this.fetchWithErrorHandling<unknown[]>(url, { useCache: false });
     return { data: tasks, total: tasks.length };
   }
 
@@ -1044,28 +1082,31 @@ class ApiClient {
     dueDate?: string;
     evidenceIds?: number[];
     relatedEntities?: number[];
-  }): Promise<any> {
-    return this.fetchWithErrorHandling<any>(`${API_BASE_URL}/investigative-tasks`, {
+  }): Promise<unknown> {
+    return this.fetchWithErrorHandling<unknown>(`${API_BASE_URL}/investigative-tasks`, {
       method: 'POST',
       body: JSON.stringify(body),
       useCache: false,
     });
   }
 
-  async updateInvestigativeTask(id: number, updates: any): Promise<any> {
-    return this.fetchWithErrorHandling<any>(`${API_BASE_URL}/investigative-tasks/${id}`, {
+  async updateInvestigativeTask(id: number, updates: unknown): Promise<unknown> {
+    return this.fetchWithErrorHandling<unknown>(`${API_BASE_URL}/investigative-tasks/${id}`, {
       method: 'PUT',
       body: JSON.stringify(updates),
       useCache: false,
     });
   }
 
-  async updateInvestigativeTaskProgress(id: number, progress: number): Promise<any> {
-    return this.fetchWithErrorHandling<any>(`${API_BASE_URL}/investigative-tasks/${id}/progress`, {
-      method: 'PATCH',
-      body: JSON.stringify({ progress }),
-      useCache: false,
-    });
+  async updateInvestigativeTaskProgress(id: number, progress: number): Promise<unknown> {
+    return this.fetchWithErrorHandling<unknown>(
+      `${API_BASE_URL}/investigative-tasks/${id}/progress`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ progress }),
+        useCache: false,
+      },
+    );
   }
 
   async getInvestigationMemoryEntries(params: {
@@ -1093,7 +1134,7 @@ class ApiClient {
     content: string;
     importanceScore?: number;
     contextTags?: string[];
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
   }): Promise<import('../types/memory').MemoryEntry> {
     const payload: import('../types/memory').CreateMemoryEntryInput = {
       memoryType: 'episodic',
@@ -1144,25 +1185,25 @@ class ApiClient {
     ownerId: string;
     scope?: string;
     collaboratorIds?: string[];
-  }): Promise<any> {
-    return this.fetchWithErrorHandling<any>(`${API_BASE_URL}/investigations`, {
+  }): Promise<unknown> {
+    return this.fetchWithErrorHandling<unknown>(`${API_BASE_URL}/investigations`, {
       method: 'POST',
       body: JSON.stringify(body),
     });
   }
 
-  async getInvestigation(id: string): Promise<any> {
-    return this.fetchWithErrorHandling<any>(`${API_BASE_URL}/investigations/${id}`);
+  async getInvestigation(id: string): Promise<unknown> {
+    return this.fetchWithErrorHandling<unknown>(`${API_BASE_URL}/investigations/${id}`);
   }
 
   async getInvestigationBoard(
     id: string,
     params: { evidenceLimit?: number; hypothesisLimit?: number } = {},
-  ): Promise<any> {
+  ): Promise<unknown> {
     const usp = new URLSearchParams();
     if (params.evidenceLimit) usp.append('evidenceLimit', String(params.evidenceLimit));
     if (params.hypothesisLimit) usp.append('hypothesisLimit', String(params.hypothesisLimit));
-    return this.fetchWithErrorHandling<any>(
+    return this.fetchWithErrorHandling<unknown>(
       `${API_BASE_URL}/investigations/${id}/board${usp.toString() ? `?${usp.toString()}` : ''}`,
       { useCache: false },
     );
@@ -1187,17 +1228,17 @@ class ApiClient {
     );
   }
 
-  async getInvestigationNotebook(id: string): Promise<any> {
-    return this.fetchWithErrorHandling<any>(`${API_BASE_URL}/investigations/${id}/notebook`, {
+  async getInvestigationNotebook(id: string): Promise<unknown> {
+    return this.fetchWithErrorHandling<unknown>(`${API_BASE_URL}/investigations/${id}/notebook`, {
       useCache: false,
     });
   }
 
   async updateInvestigationNotebook(
     id: string,
-    payload: { order?: number[]; annotations?: any[] },
-  ): Promise<any> {
-    return this.fetchWithErrorHandling<any>(`${API_BASE_URL}/investigations/${id}/notebook`, {
+    payload: { order?: number[]; annotations?: unknown[] },
+  ): Promise<unknown> {
+    return this.fetchWithErrorHandling<unknown>(`${API_BASE_URL}/investigations/${id}/notebook`, {
       method: 'PUT',
       body: JSON.stringify(payload),
       useCache: false,
@@ -1223,8 +1264,10 @@ class ApiClient {
     const params = new URLSearchParams();
     params.append('page', page.toString());
     params.append('limit', limit.toString());
-    if (filters.search) params.append('search', filters.search);
-    if (filters.sortBy) params.append('sortBy', filters.sortBy);
+    if ((filters as Record<string, unknown>).search)
+      params.append('search', (filters as Record<string, unknown>).search as string);
+    if ((filters as Record<string, unknown>).sortBy)
+      params.append('sortBy', (filters as Record<string, unknown>).sortBy as string);
     if (filters.sortOrder) params.append('sortOrder', filters.sortOrder);
     if (filters.evidenceType) params.append('evidenceType', filters.evidenceType);
     if (filters.source && filters.source.length > 0)
@@ -1273,18 +1316,20 @@ class ApiClient {
     };
     durationMs: number;
   }> {
-    const url = `${API_BASE_URL}/health/ready?soft=1`;
-    return this.fetchWithErrorHandling<any>(url, { useCache: false });
+    const url = `${API_BASE_URL}/health/ready`;
+    return this.fetchWithErrorHandling<Awaited<ReturnType<typeof this.readinessCheck>>>(url, {
+      useCache: false,
+    });
   }
 
   /**
    * @deprecated Performance risk: This method fetches the entire entity database (131k+ records).
    * Use document-specific entity mentions or paginated getEntities instead.
    */
-  async getAllEntities(limit: number = 0): Promise<any[]> {
+  async getAllEntities(limit: number = 0): Promise<unknown[]> {
     const url = `${API_BASE_URL}/entities/all${limit > 0 ? `?limit=${limit}` : ''}`;
     try {
-      const response = await this.fetchWithErrorHandling<any[]>(url);
+      const response = await this.fetchWithErrorHandling<unknown[]>(url);
       return response;
     } catch (error) {
       console.error('Error fetching all entities:', error);

@@ -377,10 +377,12 @@ const GlobalSearch: React.FC = () => {
           {/* Investigations Section */}
           {investigationResults.length > 0 &&
             investigationResults.map((inv, index) => (
-              <div
+              <button
                 key={`inv-${index}`}
-                className="p-6 hover:bg-cyan-900/10 cursor-pointer transition-colors border-l-4 border-purple-500"
+                type="button"
+                className="w-full p-6 text-left bg-transparent hover:bg-cyan-900/10 transition-colors border-l-4 border-purple-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-inset"
                 onClick={() => (window.location.href = `/investigations/${inv.uuid}`)}
+                aria-label={`Open investigation ${inv.title}`}
               >
                 <div className="flex items-center space-x-3 mb-2">
                   <span className="px-2 py-1 rounded-full text-xs font-medium bg-purple-600 text-[var(--text-primary)]">
@@ -399,15 +401,16 @@ const GlobalSearch: React.FC = () => {
                     dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(inv.snippet) }}
                   />
                 )}
-              </div>
+              </button>
             ))}
 
           {/* Articles Section */}
           {articleResults.length > 0 &&
             articleResults.map((art, index) => (
-              <div
+              <button
                 key={`art-${index}`}
-                className="p-6 hover:bg-orange-900/10 cursor-pointer transition-colors border-l-4 border-orange-500"
+                type="button"
+                className="w-full p-6 text-left bg-transparent hover:bg-orange-900/10 transition-colors border-l-4 border-orange-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-inset"
                 onClick={() =>
                   setSelectedResult({
                     ...art,
@@ -416,6 +419,7 @@ const GlobalSearch: React.FC = () => {
                     highlights: [art.snippet],
                   })
                 }
+                aria-label={`Open article result ${art.title}`}
               >
                 <div className="flex items-center space-x-3 mb-2">
                   <span className="px-2 py-1 rounded-full text-xs font-medium bg-orange-600 text-[var(--text-primary)]">
@@ -437,15 +441,16 @@ const GlobalSearch: React.FC = () => {
                     dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(art.snippet) }}
                   />
                 )}
-              </div>
+              </button>
             ))}
 
           {/* Media Section */}
           {mediaResults.length > 0 &&
             mediaResults.map((med, index) => (
-              <div
+              <button
                 key={`med-${index}`}
-                className="p-6 hover:bg-blue-900/10 cursor-pointer transition-colors border-l-4 border-[var(--accent)]"
+                type="button"
+                className="w-full p-6 text-left bg-transparent hover:bg-blue-900/10 transition-colors border-l-4 border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-inset"
                 onClick={() =>
                   setSelectedResult({
                     ...med,
@@ -454,6 +459,7 @@ const GlobalSearch: React.FC = () => {
                     highlights: [med.snippet],
                   })
                 }
+                aria-label={`Open media result ${med.title || med.filename}`}
               >
                 <div className="flex items-center space-x-3 mb-2">
                   <span className="px-2 py-1 rounded-full text-xs font-medium bg-[var(--accent)] text-[var(--text-primary)]">
@@ -470,18 +476,22 @@ const GlobalSearch: React.FC = () => {
                     dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(med.snippet) }}
                   />
                 )}
-              </div>
+              </button>
             ))}
 
           {/* Existing Document Results */}
           {filteredResults.map((result, index) => (
-            <div
+            <article
               key={`doc-${index}`}
-              className="p-6 hover:bg-[var(--glass-bg)]/30 cursor-pointer transition-colors border-l-4 border-emerald-500"
-              onClick={() => setSelectedResult(result)}
+              className="p-6 hover:bg-[var(--glass-bg)]/30 transition-colors border-l-4 border-emerald-500"
             >
               <div className="flex items-start justify-between">
-                <div className="flex-1">
+                <button
+                  type="button"
+                  className="flex-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-inset rounded-[var(--radius-lg)]"
+                  onClick={() => setSelectedResult(result)}
+                  aria-label={`Open evidence result ${result.filename}`}
+                >
                   <div className="flex items-center space-x-3 mb-2">
                     <span
                       className={`px-2 py-1 rounded-full text-xs font-medium text-[var(--text-primary)] ${getCategoryColor(result.category)}`}
@@ -525,7 +535,7 @@ const GlobalSearch: React.FC = () => {
                       ))}
                     </div>
                   )}
-                </div>
+                </button>
 
                 <div className="ml-4 flex items-center space-x-2">
                   <button
@@ -548,7 +558,7 @@ const GlobalSearch: React.FC = () => {
                   </button>
                 </div>
               </div>
-            </div>
+            </article>
           ))}
         </div>
 
