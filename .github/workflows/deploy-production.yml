@@ -17,7 +17,7 @@ jobs:
       url: https://epstein.academy
     services:
       postgres:
-        image: postgres:15
+        image: postgres:16
         env:
           POSTGRES_PASSWORD: password
           POSTGRES_DB: epstein_test
