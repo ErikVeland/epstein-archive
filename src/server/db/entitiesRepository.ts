@@ -532,7 +532,6 @@ export const entitiesRepository = {
 
     // Hard exclusion: never surface junk/OCR/role-fragment entities on the front page.
     // This is a WHERE-level filter so junk can't bubble up regardless of sort order.
-    // Use simple ILIKE patterns to avoid regex escaping issues in parameterized queries.
     whereParts.push(`NOT (
       e.full_name ILIKE 'dear %'
       OR e.full_name ILIKE 'dearest %'
@@ -543,14 +542,13 @@ export const entitiesRepository = {
       OR e.full_name ILIKE 'plaintiff %'
       OR e.full_name ILIKE 'plaintiffs %'
       OR e.full_name ILIKE 'philanthropy %'
-      OR e.full_name ILIKE '%''s lawyer'
-      OR e.full_name ILIKE '%''s assistant'
-      OR e.full_name ILIKE '%''s pilot'
-      OR e.full_name ILIKE '%''s masseuse'
-      OR e.full_name ILIKE '%''s housekeeper'
-      OR e.full_name ILIKE '%''s aide'
-      OR e.full_name ILIKE '%''s counsel'
-      OR e.full_name ILIKE '%''s staff'
+      OR LOWER(e.full_name) ~* '[a-z]s lawyer$'
+      OR LOWER(e.full_name) ~* '[a-z]s assistant$'
+      OR LOWER(e.full_name) ~* '[a-z]s pilot$'
+      OR LOWER(e.full_name) ~* '[a-z]s masseuse$'
+      OR LOWER(e.full_name) ~* '[a-z]s housekeeper$'
+      OR LOWER(e.full_name) ~* '[a-z]s aide$'
+      OR LOWER(e.full_name) ~* '[a-z]s counsel$'
     )`);
 
     const whereSql = whereParts.length ? `WHERE ${whereParts.join(' AND ')}` : '';
