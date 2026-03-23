@@ -1086,12 +1086,32 @@ export const entitiesRepository = {
     }));
   },
 
-  getEntityDocumentCount: async (entityId: string): Promise<number> => {
+  getEntityDocumentCount: async (
+    entityId: string,
+    filters?: { search?: string; source?: string },
+  ): Promise<number> => {
     const id = Number(entityId);
     const pool = getApiPool();
+    const params: Array<unknown> = [id];
+    const whereParts: string[] = ['em.entity_id = $1::bigint'];
+
+    if (filters?.search?.trim()) {
+      params.push(`%${filters.search.trim()}%`);
+      whereParts.push(
+        `(d.file_name ILIKE $${params.length} OR d.title ILIKE $${params.length} OR d.content_preview ILIKE $${params.length})`,
+      );
+    }
+    if (filters?.source && filters.source !== 'all') {
+      params.push(filters.source);
+      whereParts.push(`LOWER(COALESCE(d.evidence_type, '')) = LOWER($${params.length})`);
+    }
+
     const result = await pool.query(
-      'SELECT COUNT(*)::int AS total FROM entity_mentions WHERE entity_id = $1::bigint',
-      [id],
+      `SELECT COUNT(DISTINCT em.document_id)::int AS total
+       FROM entity_mentions em
+       JOIN documents d ON d.id = em.document_id
+       WHERE ${whereParts.join(' AND ')}`,
+      params,
     );
     return Number(result.rows[0]?.total || 0);
   },
@@ -1100,28 +1120,79 @@ export const entitiesRepository = {
     entityId: string,
     page: number = 1,
     limit: number = 50,
-  ): Promise<Array<{ id: string; title: unknown; dateCreated: unknown }>> => {
+    filters?: { search?: string; source?: string; sort?: string },
+  ): Promise<Array<Record<string, unknown>>> => {
     const id = Number(entityId);
     const safeLimit = Math.max(1, Math.min(200, limit));
     const safePage = Math.max(1, page);
     const offset = (safePage - 1) * safeLimit;
     const pool = getApiPool();
+
+    const params: Array<unknown> = [id];
+    const whereParts: string[] = ['em.entity_id = $1::bigint'];
+
+    if (filters?.search?.trim()) {
+      params.push(`%${filters.search.trim()}%`);
+      whereParts.push(
+        `(d.file_name ILIKE $${params.length} OR d.title ILIKE $${params.length} OR d.content_preview ILIKE $${params.length})`,
+      );
+    }
+    if (filters?.source && filters.source !== 'all') {
+      params.push(filters.source);
+      whereParts.push(`LOWER(COALESCE(d.evidence_type, '')) = LOWER($${params.length})`);
+    }
+
+    const ALLOWED_SORTS: Record<string, string> = {
+      date: 'd.date_created DESC NULLS LAST',
+      date_asc: 'd.date_created ASC NULLS LAST',
+      red_flag: 'd.red_flag_rating DESC NULLS LAST, d.date_created DESC NULLS LAST',
+      title: 'd.file_name ASC NULLS LAST',
+    };
+    const orderBy = ALLOWED_SORTS[filters?.sort ?? ''] ?? ALLOWED_SORTS['date'];
+
+    params.push(safeLimit, offset);
+    const limitIdx = params.length - 1;
+    const offsetIdx = params.length;
+
     const result = await pool.query(
-      `SELECT 
-         em.document_id,
-         d.file_name as "documentTitle",
-         d.date_created as "documentDate"
+      `SELECT DISTINCT ON (em.document_id)
+         em.document_id                          AS id,
+         COALESCE(d.title, d.file_name)          AS title,
+         d.file_name                             AS file_name,
+         d.file_path                             AS file_path,
+         d.file_type                             AS file_type,
+         d.evidence_type                         AS evidence_type,
+         d.date_created                          AS date_created,
+         d.red_flag_rating                       AS red_flag_rating,
+         d.word_count                            AS word_count,
+         d.content_preview                       AS content_preview,
+         LEFT(d.content, 500)                    AS content,
+         d.content_refined                       AS content_refined,
+         d.metadata_json                         AS metadata_json
        FROM entity_mentions em
-       JOIN documents d ON em.document_id = d.id
-       WHERE em.entity_id = $1::bigint
-       ORDER BY d.date_created DESC
-       LIMIT $2::int OFFSET $3::int`,
-      [id, safeLimit, offset],
+       JOIN documents d ON d.id = em.document_id
+       WHERE ${whereParts.join(' AND ')}
+       ORDER BY em.document_id, ${orderBy}
+       LIMIT $${limitIdx}::int OFFSET $${offsetIdx}::int`,
+      params,
     );
-    return result.rows.map((m) => ({
-      id: String(m.document_id),
-      title: m.documentTitle,
-      dateCreated: m.documentDate,
+
+    return result.rows.map((row) => ({
+      id: String(row.id),
+      title: row.title ?? row.file_name ?? null,
+      fileName: row.file_name ?? null,
+      file_path: row.file_path ?? null,
+      file_type: row.file_type ?? null,
+      evidence_type: row.evidence_type ?? null,
+      dateCreated: row.date_created ?? null,
+      date_created: row.date_created ?? null,
+      red_flag_rating: Number(row.red_flag_rating ?? 0),
+      word_count: Number(row.word_count ?? 0),
+      content_preview: row.content_preview ?? null,
+      content: row.content ?? null,
+      content_refined: row.content_refined ?? null,
+      metadata_json: row.metadata_json ?? null,
+      source_collection: row.file_path ?? null,
     }));
   },
 };

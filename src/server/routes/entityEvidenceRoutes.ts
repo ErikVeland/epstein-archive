@@ -67,15 +67,18 @@ router.get('/:entityId/documents', async (req: Request, res: Response) => {
   try {
     const { entityId } = req.params as { entityId: string };
     const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 50;
+    const limit = Math.min(200, parseInt(req.query.limit as string) || 50);
+    const search = (req.query.search as string) || '';
+    const source = (req.query.source as string) || 'all';
+    const sort = (req.query.sort as string) || 'date';
 
     const { entitiesRepository } = await import('../db/entitiesRepository.js');
 
-    // If no pagination requested and using legacy style, we could still support old way
-    // But better to always return standardized format if we are refactoring.
-
-    const docs = await entitiesRepository.getEntityDocumentsPaginated(entityId, page, limit);
-    const total = await entitiesRepository.getEntityDocumentCount(entityId);
+    const filters = { search, source, sort };
+    const [docs, total] = await Promise.all([
+      entitiesRepository.getEntityDocumentsPaginated(entityId, page, limit, filters),
+      entitiesRepository.getEntityDocumentCount(entityId, filters),
+    ]);
 
     res.json({
       data: docs,
