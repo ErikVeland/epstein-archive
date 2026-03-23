@@ -23,51 +23,76 @@ function normalizeList(raw: unknown): string[] {
     .filter(Boolean);
 }
 
+function readString(value: unknown, fallback: string = ''): string {
+  return typeof value === 'string' ? value : fallback;
+}
+
+function readOptionalString(value: unknown): string | undefined {
+  return typeof value === 'string' ? value : undefined;
+}
+
+function readCount(value: unknown): number {
+  const n = Number(value ?? 0);
+  return Number.isFinite(n) ? n : 0;
+}
+
 // Helper to map DB row to EmailDTO
 function mapRowToEmailDTO(row: Record<string, unknown>): EmailDTO {
   let metadata: Record<string, unknown> = {};
   try {
+    const parsed =
+      typeof row.metadataJson === 'string' ? JSON.parse(row.metadataJson) : row.metadataJson;
     metadata =
-      typeof row.metadataJson === 'string' ? JSON.parse(row.metadataJson) : row.metadataJson || {};
+      typeof parsed === 'object' && parsed !== null ? (parsed as Record<string, unknown>) : {};
   } catch {
     metadata = {};
   }
 
-  const subject = metadata.subject || metadata.Subject || row.file_name || 'No Subject';
-  const from = metadata.from || metadata.From || metadata.sender || 'Unknown Sender';
-  const threadId = metadata.thread_id || metadata.emailThread || String(row.id);
+  const subject =
+    readString(metadata.subject) ||
+    readString(metadata.Subject) ||
+    readString(row.file_name) ||
+    'No Subject';
+  const from =
+    readString(metadata.from) ||
+    readString(metadata.From) ||
+    readString(metadata.sender) ||
+    'Unknown Sender';
+  const threadId =
+    readString(metadata.thread_id) || readString(metadata.emailThread) || String(row.id);
+  const dateValue =
+    readString(row.date_created) ||
+    readString(row.dateCreated) ||
+    readString(metadata.sent) ||
+    readString(metadata.date) ||
+    new Date().toISOString();
+  const content = readString(row.content);
 
   return {
     email_id: String(row.id),
     thread_id: threadId,
-    message_id: metadata.message_id || '',
-    date:
-      row.date_created ||
-      row.dateCreated ||
-      metadata.sent ||
-      metadata.date ||
-      new Date().toISOString(),
-    date_sort:
-      new Date(row.date_created || row.dateCreated || metadata.sent || metadata.date).getTime() ||
-      0,
+    message_id: readString(metadata.message_id),
+    date: dateValue,
+    date_sort: new Date(dateValue).getTime() || 0,
     from: String(from),
     to: normalizeList(metadata.to || metadata.To || metadata.recipients),
     cc: normalizeList(metadata.cc || metadata.Cc),
     bcc: normalizeList(metadata.bcc || metadata.Bcc),
     subject: String(subject),
-    snippet: row.content
-      ? row.content.length > 200
-        ? row.content.slice(0, 200) + '...'
-        : row.content
-      : '',
-    body_clean_text: metadata.body_clean_text || row.content || '',
-    body_clean_html: metadata.body_clean_html || '',
-    body_raw: row.content || '',
-    mime_parse_status: metadata.mime_parse_status || 'partial',
-    mime_parse_reason: metadata.mime_parse_reason,
-    attachments_count: metadata.attachments_count || 0,
+    snippet: content ? (content.length > 200 ? content.slice(0, 200) + '...' : content) : '',
+    body_clean_text: readString(metadata.body_clean_text) || content,
+    body_clean_html: readString(metadata.body_clean_html),
+    body_raw: content,
+    mime_parse_status:
+      readString(metadata.mime_parse_status) === 'success' ||
+      readString(metadata.mime_parse_status) === 'failed' ||
+      readString(metadata.mime_parse_status) === 'partial'
+        ? (readString(metadata.mime_parse_status) as 'success' | 'failed' | 'partial')
+        : 'partial',
+    mime_parse_reason: readOptionalString(metadata.mime_parse_reason),
+    attachments_count: readCount(metadata.attachments_count),
     entity_links: [],
-    ingest_run_id: metadata.ingest_run_id || 'legacy',
+    ingest_run_id: readString(metadata.ingest_run_id) || 'legacy',
   };
 }
 

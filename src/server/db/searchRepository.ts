@@ -148,8 +148,8 @@ export const searchRepository = {
     );
 
     const entityIds = entityRows
-      .map((row) => Number(row.id))
-      .filter((id) => Number.isFinite(id) && id > 0);
+      .map((row: { id: string | number }) => Number(row.id))
+      .filter((id: number) => Number.isFinite(id) && id > 0);
     const entityStatsById = new Map<
       number,
       { mentions: number; files: number; riskLevel: string | null; redFlagRating: number | null }
@@ -190,8 +190,8 @@ export const searchRepository = {
     }
 
     const documentIds = docRows
-      .map((row) => Number(row.id))
-      .filter((id) => Number.isFinite(id) && id > 0);
+      .map((row: { id: string | number }) => Number(row.id))
+      .filter((id: number) => Number.isFinite(id) && id > 0);
     const documentMetaById = new Map<
       number,
       { fileType: string | null; dateCreated: string | null }
@@ -218,18 +218,18 @@ export const searchRepository = {
     }
 
     return {
-      entities: entityRows.map((row) => {
-        const aliases = parseEntityAliases(row.aliases);
+      entities: entityRows.map((row: Record<string, unknown>) => {
+        const aliases = parseEntityAliases(typeof row.aliases === 'string' ? row.aliases : null);
         const stats = entityStatsById.get(Number(row.id));
         return {
           id: String(row.id),
-          fullName: row.fullName,
-          canonicalName: row.fullName,
-          name: row.fullName,
-          primaryRole: row.primaryRole,
-          title: row.primaryRole,
+          fullName: String(row.fullName || ''),
+          canonicalName: String(row.fullName || ''),
+          name: String(row.fullName || ''),
+          primaryRole: String(row.primaryRole || ''),
+          title: String(row.primaryRole || ''),
           aliases,
-          matchedAlias: resolveMatchedAlias(searchTerm, row.fullName || '', aliases),
+          matchedAlias: resolveMatchedAlias(searchTerm, String(row.fullName || ''), aliases),
           entityType: 'Person',
           secondaryRoles: [],
           likelihoodLevel: stats?.riskLevel ?? null,
@@ -248,7 +248,7 @@ export const searchRepository = {
           files: stats?.files ?? 0,
         };
       }),
-      documents: docRows.map((row) => {
+      documents: docRows.map((row: Record<string, unknown>) => {
         const meta = documentMetaById.get(Number(row.id));
         return {
           id: String(row.id),
@@ -265,7 +265,7 @@ export const searchRepository = {
           snippet: row.snippet,
         };
       }),
-      investigations: investigationRows.map((row) => ({
+      investigations: investigationRows.map((row: Record<string, unknown>) => ({
         id: String(row.id),
         uuid: row.uuid,
         title: row.title,
@@ -274,7 +274,7 @@ export const searchRepository = {
         snippet: row.snippet,
         rank: row.rank,
       })),
-      articles: articleRows.map((row) => ({
+      articles: articleRows.map((row: Record<string, unknown>) => ({
         id: String(row.id),
         title: row.title,
         source: row.source,
@@ -283,7 +283,7 @@ export const searchRepository = {
         snippet: row.snippet,
         rank: row.rank,
       })),
-      media: mediaRows.map((row) => ({
+      media: mediaRows.map((row: Record<string, unknown>) => ({
         id: String(row.id),
         filename: row.filename,
         title: row.title,

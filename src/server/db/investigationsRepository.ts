@@ -174,17 +174,21 @@ export const investigationsRepository = {
   },
 
   addEvidence: async (investigationId: number, data: Record<string, unknown>, userId = 'user') => {
-    const evidenceData = data.evidence || data;
-    const relevance = data.relevance || evidenceData.relevance || 'high';
+    const evidenceData =
+      typeof data.evidence === 'object' && data.evidence !== null
+        ? (data.evidence as Record<string, unknown>)
+        : data;
+    const relevance = String(data.relevance ?? evidenceData.relevance ?? 'high');
 
-    const title = evidenceData.title || evidenceData.file_name || 'Untitled Evidence';
-    const description = evidenceData.description || '';
-    const sourcePath =
-      evidenceData.source_path ||
-      evidenceData.source ||
-      evidenceData.path ||
-      `manual:${Date.now()}`;
-    const type = evidenceData.type || 'document';
+    const title = String(evidenceData.title ?? evidenceData.file_name ?? 'Untitled Evidence');
+    const description = String(evidenceData.description ?? '');
+    const sourcePath = String(
+      evidenceData.source_path ??
+        evidenceData.source ??
+        evidenceData.path ??
+        `manual:${Date.now()}`,
+    );
+    const type = String(evidenceData.type ?? 'document');
 
     const client = await getApiPool().connect();
     let resultId: number;
@@ -206,7 +210,7 @@ export const investigationsRepository = {
             evidenceType: type,
             sourcePath,
             originalFilename: title,
-            redFlagRating: evidenceData.red_flag_rating || 0,
+            redFlagRating: Number(evidenceData.red_flag_rating ?? 0),
           },
           client,
         );
@@ -744,7 +748,7 @@ export const investigationsRepository = {
 
     const byType: Record<string, Array<Record<string, unknown>>> = {};
     for (const e of enrichedEvidence) {
-      const type = e.type || 'other';
+      const type = String((e as Record<string, unknown>).type || 'other');
       if (!byType[type]) byType[type] = [];
       byType[type].push(e);
     }

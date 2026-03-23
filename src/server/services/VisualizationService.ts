@@ -66,20 +66,18 @@ export class VisualizationService {
       }));
 
       // Process edges
-      edges = graphData.edges.map(
-        (edge: {
-          source_id: number;
-          target_id: number;
-          relationship_type: string;
-          proximity_score?: number;
-        }) => ({
-          id: `${edge.source_id}-${edge.target_id}`,
-          source: edge.source_id.toString(),
-          target: edge.target_id.toString(),
-          type: edge.relationship_type,
-          strength: edge.proximity_score ?? 0.5,
-        }),
-      );
+      edges = graphData.edges.flatMap((edge) => {
+        if (!('source_id' in edge)) return [];
+        return [
+          {
+            id: `${edge.source_id}-${edge.target_id}`,
+            source: edge.source_id.toString(),
+            target: edge.target_id.toString(),
+            type: edge.relationship_type,
+            strength: edge.proximity_score ?? 0.5,
+          },
+        ];
+      });
     } else {
       // Get top connected entities for a broader view
       const topEntitiesRes = await pool.query(

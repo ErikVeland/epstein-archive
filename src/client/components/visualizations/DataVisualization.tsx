@@ -4,7 +4,7 @@ import { Tooltip, PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { Person } from '../../types';
 import { TreeMap } from './TreeMap';
 import { filterPeopleOnly, isJunkEntity } from '../../utils/entityFilters';
-import { useAnalytics } from '../../contexts/AnalyticsContext';
+import { useAnalytics } from '../../contexts/AnalyticsContextState';
 import ScopedErrorBoundary from '../common/ScopedErrorBoundary';
 
 interface EntityRecord {

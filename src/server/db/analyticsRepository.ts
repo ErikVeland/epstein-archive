@@ -11,6 +11,50 @@ export interface TopConnectedPerson {
   mentions: number;
 }
 
+export interface TimelineAnalyticsRow {
+  period: string;
+  total: string | number;
+  emails: string | number;
+  photos: string | number;
+  documents: string | number;
+  financial: string | number;
+}
+
+export interface RiskDistributionRow {
+  riskLevel: number;
+  count: number;
+}
+
+export interface TopEntitySummaryRow {
+  id: number | string;
+  canonicalId?: number | string | null;
+  fullName?: string | null;
+  name?: string | null;
+}
+
+export interface AnalyticsTotalsRow {
+  totalDocuments: string | number;
+  totalEntities: string | number;
+}
+
+export interface EntityRelationshipCorrelationRow {
+  target_id: number | string;
+  relationship_type: string | null;
+  proximity_score: number | string | null;
+  confidence: number | string | null;
+}
+
+export interface FinancialTransactionRow {
+  from_entity: string | number | null;
+  to_entity: string | number | null;
+  risk_level: string | null;
+}
+
+export interface CommunicationCorrelationRow {
+  from: string | number | null;
+  to: Array<string | number> | null;
+}
+
 /**
  * Compute the top-connected people by relationship count.
  *
@@ -20,6 +64,40 @@ export interface TopConnectedPerson {
  * the connection pool.  Returns an empty array on timeout or error.
  */
 export const analyticsRepository = {
+  getTimelineAnalytics: async (): Promise<TimelineAnalyticsRow[]> => {
+    const result = await getApiPool().query<TimelineAnalyticsRow>(`
+      SELECT * FROM (
+        SELECT
+          CASE
+            WHEN COALESCE(extracted_date, date_created) IS NULL THEN 'Unknown'
+            WHEN COALESCE(extracted_date, date_created) > '2026-12-31'::date THEN 'Unknown'
+            ELSE to_char(COALESCE(extracted_date, date_created), 'YYYY-MM')
+          END AS period,
+          COUNT(*)::bigint AS total,
+          SUM(CASE WHEN file_type LIKE '%email%' OR file_type = 'message/rfc822' THEN 1 ELSE 0 END)::bigint AS emails,
+          SUM(CASE WHEN file_type LIKE '%image%' THEN 1 ELSE 0 END)::bigint AS photos,
+          SUM(CASE WHEN file_type LIKE '%pdf%' OR file_type = 'application/pdf' THEN 1 ELSE 0 END)::bigint AS documents,
+          0::bigint AS financial
+        FROM documents
+        GROUP BY 1
+      ) t
+      ORDER BY (CASE WHEN period = 'Unknown' THEN '9999-99' ELSE period END) ASC
+    `);
+    return result.rows;
+  },
+
+  getRiskDistribution: async (): Promise<RiskDistributionRow[]> => {
+    const result = await getApiPool().query<RiskDistributionRow>(`
+      SELECT red_flag_rating AS "riskLevel", COUNT(*)::integer AS count
+      FROM entities
+      WHERE red_flag_rating IS NOT NULL
+        AND COALESCE(junk_tier, 'clean') = 'clean'
+      GROUP BY red_flag_rating
+      ORDER BY red_flag_rating
+    `);
+    return result.rows;
+  },
+
   getTopConnectedPeople: async (): Promise<TopConnectedPerson[]> => {
     const client = await getApiPool().connect();
     try {
@@ -121,6 +199,81 @@ export const analyticsRepository = {
       return [];
     } finally {
       client.release();
+    }
+  },
+
+  getTopEntityByMentions: async (): Promise<TopEntitySummaryRow | null> => {
+    const result = await getApiPool().query<TopEntitySummaryRow>(`
+      SELECT e.id, e.canonical_id AS "canonicalId", e.full_name AS "fullName", e.name
+      FROM entities e
+      ORDER BY (SELECT COUNT(*) FROM entity_mentions em WHERE em.entity_id = e.id) DESC
+      LIMIT 1
+    `);
+    return result.rows[0] ?? null;
+  },
+
+  getAnalyticsTotals: async (): Promise<AnalyticsTotalsRow | null> => {
+    const result = await getApiPool().query<AnalyticsTotalsRow>(`
+      SELECT
+        (SELECT COUNT(*) FROM documents) AS "totalDocuments",
+        (SELECT COUNT(*) FROM entities) AS "totalEntities"
+    `);
+    return result.rows[0] ?? null;
+  },
+
+  getEntityRelationshipCorrelations: async (
+    entityId: string | number,
+  ): Promise<EntityRelationshipCorrelationRow[]> => {
+    const result = await getApiPool().query<EntityRelationshipCorrelationRow>(
+      `
+        SELECT
+          target_entity_id AS "target_id",
+          relationship_type,
+          proximity_score,
+          1 AS "confidence"
+        FROM entity_relationships
+        WHERE source_entity_id = $1 OR target_entity_id = $1
+        ORDER BY proximity_score DESC
+        LIMIT 20
+      `,
+      [entityId],
+    );
+    return result.rows;
+  },
+
+  getHighRiskFinancialTransactions: async (): Promise<FinancialTransactionRow[]> => {
+    try {
+      const result = await getApiPool().query<FinancialTransactionRow>(`
+        SELECT from_entity, to_entity, risk_level
+        FROM financial_transactions
+        WHERE risk_level IN ('high', 'critical')
+        LIMIT 500
+      `);
+      return result.rows;
+    } catch (err) {
+      logger.warn({ err }, '[Analytics] getHighRiskFinancialTransactions failed');
+      return [];
+    }
+  },
+
+  getFlightCommunications: async (
+    entityId: string | number,
+  ): Promise<CommunicationCorrelationRow[]> => {
+    try {
+      const result = await getApiPool().query<CommunicationCorrelationRow>(
+        `
+          SELECT "from", "to"
+          FROM communications
+          WHERE (sender_id = $1 OR receiver_ids @> ARRAY[$1]::integer[])
+            AND content ILIKE '%flight%'
+          LIMIT 200
+        `,
+        [entityId],
+      );
+      return result.rows;
+    } catch (err) {
+      logger.warn({ err }, '[Analytics] getFlightCommunications failed');
+      return [];
     }
   },
 };

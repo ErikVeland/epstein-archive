@@ -13,6 +13,18 @@ import { cssVariables } from '../designTokens';
 import { SensitiveSettingsProvider } from './contexts/SensitiveSettingsContext';
 import { FilterProvider } from './contexts/FilterContext';
 import { DegradedModeProvider } from './contexts/DegradedModeContext';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000, // 5 minutes cache
+      retry: 1,
+    },
+  },
+});
 
 // Global error handlers for production debugging
 window.onerror = function (message, source, lineno, colno, error) {
@@ -49,7 +61,10 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                 <NavigationProvider>
                   <DegradedModeProvider>
                     <FilterProvider>
-                      <App />
+                      <QueryClientProvider client={queryClient}>
+                        <App />
+                        {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
+                      </QueryClientProvider>
                     </FilterProvider>
                   </DegradedModeProvider>
                 </NavigationProvider>

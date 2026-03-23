@@ -86,7 +86,7 @@ class PerformanceCacheV2 {
     const inFlight = this.inFlight.get(fullKey);
     if (inFlight) {
       // Await existing computation (stampede prevention)
-      return inFlight.promise;
+      return inFlight.promise as Promise<T>;
     }
 
     // Start new computation
@@ -94,7 +94,7 @@ class PerformanceCacheV2 {
     const startTime = Date.now();
 
     const promise = computeFn();
-    this.inFlight.set(fullKey, { promise, timestamp: startTime });
+    this.inFlight.set(fullKey, { promise: promise as Promise<unknown>, timestamp: startTime });
 
     try {
       const result = await promise;

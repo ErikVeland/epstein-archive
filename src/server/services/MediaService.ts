@@ -830,7 +830,12 @@ export class MediaService {
     let imageSize: { width?: number; height?: number } = {};
 
     try {
-      const parser = exifParser.create(buffer);
+      const parser = exifParser.create(buffer) as {
+        parse: () => {
+          tags?: Record<string, unknown>;
+          imageSize?: { width?: number; height?: number };
+        };
+      };
       const result = parser.parse();
       tags = result.tags || {};
       imageSize = result.imageSize || {};

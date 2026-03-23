@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { statsRepository } from '../db/statsRepository.js';
-import { getApiPool } from '../db/connection.js';
 import { getMigrationMetrics } from '../db/runtime.js';
 import { config } from '../../config/index.js';
 import {
@@ -113,8 +112,7 @@ router.get('/health', async (_req, res) => {
   let stats = { entities: 0, documents: 0 };
 
   try {
-    const pool = getApiPool();
-    await pool.query('SELECT 1');
+    await pingDatabase();
     dbStatus = 'connected';
     stats = await getEntityAndDocumentCounts();
   } catch (e) {

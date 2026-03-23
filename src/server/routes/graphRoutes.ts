@@ -185,7 +185,7 @@ router.get('/global', graphRateLimiter, async (req, res, next) => {
       // Enhance labels (optional)
 
       return res.json({
-        nodes: (clusters as GraphClusterRaw[]).map((c) => ({
+        nodes: (clusters as unknown as GraphClusterRaw[]).map((c) => ({
           id: c.id,
           label: `${String(c.label || '')} (${String(c.size || '')})`,
           type: 'cluster',
@@ -211,7 +211,7 @@ router.get('/global', graphRateLimiter, async (req, res, next) => {
       const edges = await getGraphPathEdges(pathNodeArray, startDate, endDate);
 
       return res.json({
-        nodes: (nodes as GraphNodeRaw[]).map((n) => ({
+        nodes: (nodes as unknown as GraphNodeRaw[]).map((n) => ({
           id: String(n.id),
           label: n.label,
           type: n.type,
@@ -219,7 +219,7 @@ router.get('/global', graphRateLimiter, async (req, res, next) => {
           val: (n as unknown as Record<string, unknown>).val,
           community: (n as unknown as Record<string, unknown>).community,
         })),
-        edges: (edges as GraphEdgeRaw[]).map((e) => ({
+        edges: (edges as unknown as GraphEdgeRaw[]).map((e) => ({
           source: String(e.source),
           target: String(e.target),
           type: e.type,
@@ -236,7 +236,7 @@ router.get('/global', graphRateLimiter, async (req, res, next) => {
     const remapToCanonicalId = new Map<string, string>();
     const groupedByLabel = new Map<string, MergedGraphNode>();
 
-    for (const n of rawNodes as GraphNodeRaw[]) {
+    for (const n of rawNodes as unknown as GraphNodeRaw[]) {
       const id = String(n.id);
       const normalizedLabel = normalizeGraphLabel(String(n.label || ''));
       if (!normalizedLabel || isLikelyJunkGraphLabel(normalizedLabel)) continue;
@@ -278,7 +278,7 @@ router.get('/global', graphRateLimiter, async (req, res, next) => {
     }
 
     const nodesArr = Array.from(groupedByLabel.values());
-    const canonicalIds = (rawNodes as GraphNodeRaw[]).map((n) => String(n.id));
+    const canonicalIds = (rawNodes as unknown as GraphNodeRaw[]).map((n) => String(n.id));
 
     // Quick exit if no nodes
     if (canonicalIds.length === 0) {
@@ -288,7 +288,7 @@ router.get('/global', graphRateLimiter, async (req, res, next) => {
     // 2. Fetch Relationships between these nodes — injection-safe ANY($N::bigint[]) binding
     const rawEdges = await getGlobalGraphEdges({ canonicalIds, startDate, endDate });
     const edgeMap = new Map<string, NormalizedEdge>();
-    for (const e of rawEdges as GraphEdgeRaw[]) {
+    for (const e of rawEdges as unknown as GraphEdgeRaw[]) {
       const sourceRemapped = remapToCanonicalId.get(String(e.source)) || String(e.source);
       const targetRemapped = remapToCanonicalId.get(String(e.target)) || String(e.target);
       if (sourceRemapped === targetRemapped) continue;

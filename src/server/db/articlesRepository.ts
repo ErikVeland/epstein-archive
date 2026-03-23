@@ -63,7 +63,7 @@ export class ArticlesRepository {
     ]);
 
     return {
-      articles: articles.map((a) => ({
+      articles: articles.map((a: Article & { id: string | number }) => ({
         ...a,
         id: String(a.id),
       })),

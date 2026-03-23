@@ -46,34 +46,9 @@ router.get('/enhanced', analyticsRateLimiter, cacheResponse(60), async (_req, re
     const pool = getApiPool();
     logger.info('📊 [Analytics] Fetching from materialised views...');
     console.time('analytics-total');
-
-    const timelineLivePromise = pool.query<{
-      period: string;
-      total: string | number;
-      emails: string | number;
-      photos: string | number;
-      documents: string | number;
-      financial: string | number;
-    }>(`
-      SELECT * FROM (
-        SELECT
-          CASE
-            WHEN COALESCE(extracted_date, date_created) IS NULL THEN 'Unknown'
-            WHEN COALESCE(extracted_date, date_created) > '2026-12-31'::date THEN 'Unknown'
-            ELSE to_char(COALESCE(extracted_date, date_created), 'YYYY-MM')
-          END AS period,
-          COUNT(*)::bigint AS total,
-          SUM(CASE WHEN file_type LIKE '%email%' OR file_type = 'message/rfc822' THEN 1 ELSE 0 END)::bigint AS emails,
-          SUM(CASE WHEN file_type LIKE '%image%' THEN 1 ELSE 0 END)::bigint AS photos,
-          SUM(CASE WHEN file_type LIKE '%pdf%' OR file_type = 'application/pdf' THEN 1 ELSE 0 END)::bigint AS documents,
-          0::bigint AS financial
-        FROM documents
-        GROUP BY 1
-      ) t
-      ORDER BY (CASE WHEN period = 'Unknown' THEN '9999-99' ELSE period END) ASC
-    `);
-
+    const timelineLivePromise = analyticsRepository.getTimelineAnalytics();
     const topConnectedLivePromise = analyticsRepository.getTopConnectedPeople();
+    const riskDistributionPromise = analyticsRepository.getRiskDistribution();
 
     const [
       docsByTypeRows,
@@ -87,21 +62,14 @@ router.get('/enhanced', analyticsRateLimiter, cacheResponse(60), async (_req, re
       riskByTypeRows,
     ] = await Promise.all([
       analyticsQueries.getDocsByType.run(undefined, pool),
-      timelineLivePromise.then((r) => r.rows),
+      timelineLivePromise,
       topConnectedLivePromise,
       analyticsQueries.getEntityTypeDistribution.run(undefined, pool),
       analyticsQueries.getRedactionStats.run(undefined, pool),
       analyticsQueries.getTopRelationships.run(undefined, pool),
       analyticsQueries.getTotalCounts.run(undefined, pool),
       analyticsQueries.getReconciliationCounts.run(undefined, pool),
-      pool.query<{ riskLevel: number; count: number }>(`
-        SELECT red_flag_rating AS "riskLevel", COUNT(*)::integer AS count
-        FROM entities
-        WHERE red_flag_rating IS NOT NULL
-          AND COALESCE(junk_tier, 'clean') = 'clean'
-        GROUP BY red_flag_rating
-        ORDER BY red_flag_rating
-      `),
+      riskDistributionPromise,
     ]);
 
     const topConnectedMap = new Map<string, any>();
@@ -145,7 +113,7 @@ router.get('/enhanced', analyticsRateLimiter, cacheResponse(60), async (_req, re
       timelineData: timelineLiveRows,
       topConnectedEntities: topConnectedRows,
       entityTypeDistribution: entityDistRows,
-      riskByType: riskByTypeRows.rows,
+      riskByType: riskByTypeRows,
       redactionStats: redactionStatsRows[0] ?? null,
       topRelationships: filteredTopRelationshipsRows,
       totalCounts: {
@@ -216,24 +184,10 @@ router.post(
 // Analytics specific correlation heuristics
 router.get('/correlations', authenticateRequest, async (_req, res, next) => {
   try {
-    const pool = getApiPool();
-
-    // 1. Get Top Entity by Mentions
-    const topEntityRes = await pool.query(`
-      SELECT e.id, e.canonical_id, e.full_name as "fullName", e.name
-      FROM entities e
-      ORDER BY (SELECT COUNT(*) FROM entity_mentions em WHERE em.entity_id = e.id) DESC
-      LIMIT 1
-    `);
-    const topEntity = topEntityRes.rows[0];
-
-    // 2. Build Data Sources Summary
-    const statsRes = await pool.query(`
-      SELECT 
-        (SELECT COUNT(*) FROM documents) as "totalDocuments",
-        (SELECT COUNT(*) FROM entities) as "totalEntities"
-    `);
-    const stats = statsRes.rows[0];
+    const [topEntity, stats] = await Promise.all([
+      analyticsRepository.getTopEntityByMentions(),
+      analyticsRepository.getAnalyticsTotals(),
+    ]);
 
     const dataSources = [
       {
@@ -261,25 +215,14 @@ router.get('/correlations', authenticateRequest, async (_req, res, next) => {
     const correlations: Array<Record<string, unknown>> = [];
 
     if (topEntity) {
-      const topEntityId = topEntity.canonical_id || topEntity.id;
+      const topEntityId = topEntity.canonicalId || topEntity.id;
       const topEntityName = topEntity.fullName || topEntity.name || String(topEntityId);
 
       // 3. Relationships Correlations
-      const relRes = await pool.query(
-        `
-        SELECT 
-          target_entity_id as "target_id",
-          relationship_type,
-          proximity_score,
-          1 as "confidence"
-        FROM entity_relationships
-        WHERE source_entity_id = $1 OR target_entity_id = $1
-        ORDER BY proximity_score DESC LIMIT 20
-      `,
-        [topEntityId],
-      );
+      const relationshipRows =
+        await analyticsRepository.getEntityRelationshipCorrelations(topEntityId);
 
-      relRes.rows.forEach((r, idx) => {
+      relationshipRows.forEach((r, idx) => {
         correlations.push({
           id: `rel-${idx}`,
           type: 'entity',
@@ -300,23 +243,12 @@ router.get('/correlations', authenticateRequest, async (_req, res, next) => {
       });
 
       // 4. Financial Correlations
-      const txRes = await pool
-        .query(
-          `
-        SELECT from_entity, to_entity, risk_level
-        FROM financial_transactions
-        WHERE risk_level IN ('high', 'critical')
-        LIMIT 500
-      `,
-        )
-        .catch(() => ({ rows: [] })); // Catch if table doesn't exist
-
-      const highRiskTxs = txRes.rows;
+      const highRiskTxs = await analyticsRepository.getHighRiskFinancialTransactions();
       if (highRiskTxs.length > 0) {
         const counterparties = Array.from(
           new Set(
             highRiskTxs
-              .flatMap((t: Record<string, unknown>) => [t.from_entity, t.to_entity])
+              .flatMap((t) => [t.from_entity, t.to_entity])
               .filter(Boolean)
               .map(String),
           ),
@@ -337,28 +269,12 @@ router.get('/correlations', authenticateRequest, async (_req, res, next) => {
       }
 
       // 5. Communications Correlations
-      const commRes = await pool
-        .query(
-          `
-        SELECT "from", "to"
-        FROM communications
-        WHERE (sender_id = $1 OR receiver_ids @> ARRAY[$1]::integer[])
-          AND content ILIKE '%flight%'
-        LIMIT 200
-      `,
-          [topEntityId],
-        )
-        .catch(() => ({ rows: [] }));
-
-      const commEvents = commRes.rows;
+      const commEvents = await analyticsRepository.getFlightCommunications(topEntityId);
       if (commEvents.length > 0) {
         const peers = Array.from(
           new Set(
             commEvents
-              .flatMap((e: Record<string, unknown>) => [
-                e.from,
-                ...(Array.isArray(e.to) ? e.to : []),
-              ])
+              .flatMap((e) => [e.from, ...(Array.isArray(e.to) ? e.to : [])])
               .filter(Boolean)
               .map(String),
           ),

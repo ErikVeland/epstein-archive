@@ -17,7 +17,7 @@ import { EvidenceDrawer } from '../visualizations/EvidenceDrawer';
 import { filterPeopleOnly } from '../../utils/entityFilters';
 import { InteractiveEntityMap } from '../visualizations/InteractiveEntityMap';
 import { useFilters } from '../../contexts/useFilters';
-import { useAnalytics } from '../../contexts/AnalyticsContext';
+import { useAnalytics } from '../../contexts/AnalyticsContextState';
 import { apiClient } from '../../services/apiClient';
 import type { Evidence } from '../visualizations/EvidenceDrawer';
 import type { Person } from '../../../types';

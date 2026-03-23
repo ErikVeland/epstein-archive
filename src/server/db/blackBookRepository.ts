@@ -116,7 +116,7 @@ export const blackBookRepository = {
       } catch (error) {
         // Face thumbnail enrichment is optional; never fail the Black Book response on this step.
         const message = error instanceof Error ? error.message : String(error);
-        logger.warn('[BlackBook] Thumbnail enrichment skipped:', message);
+        logger.warn({ message }, '[BlackBook] Thumbnail enrichment skipped');
       }
     }
 
@@ -126,7 +126,8 @@ export const blackBookRepository = {
         id: Number(e.id),
         personId: e.personId ? Number(e.personId) : null,
         documentId: e.documentId ? Number(e.documentId) : null,
-        thumbnailPath: e.displayName ? thumbnailsByName.get(e.displayName) : undefined,
+        thumbnailPath:
+          typeof e.displayName === 'string' ? thumbnailsByName.get(e.displayName) : undefined,
       })),
     );
   },

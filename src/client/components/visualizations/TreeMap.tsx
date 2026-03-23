@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 import { filterPeopleOnly } from '../../utils/entityFilters';
 import type { Person } from '../../types';
-import { useAnalytics } from '../../contexts/AnalyticsContext';
+import { useAnalytics } from '../../contexts/AnalyticsContextState';
 
 export interface PersonLike {
   name?: string;

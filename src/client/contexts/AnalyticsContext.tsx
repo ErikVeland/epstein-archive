@@ -1,25 +1,6 @@
-import React, { createContext, useContext } from 'react';
-import type { Person } from '../types';
-import type { AnalyticsData as GlobalAnalyticsData } from '../components/visualizations/DataVisualization';
-
-export interface AnalyticsContextValue {
-  filteredPeople: Person[];
-  analyticsData?: GlobalAnalyticsData;
-  loading: boolean;
-  error: string | null;
-  onRetry: () => void;
-  onPersonSelect: (person: Person) => void;
-}
-
-const AnalyticsContext = createContext<AnalyticsContextValue | undefined>(undefined);
-
-export const useAnalytics = () => {
-  const context = useContext(AnalyticsContext);
-  if (context === undefined) {
-    throw new Error('useAnalytics must be used within an AnalyticsProvider');
-  }
-  return context;
-};
+import React from 'react';
+import { AnalyticsContext } from './AnalyticsContextState';
+import type { AnalyticsContextValue } from './AnalyticsContextState';
 
 export const AnalyticsProvider: React.FC<{
   value: AnalyticsContextValue;

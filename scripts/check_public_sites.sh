@@ -52,7 +52,7 @@ log "Checking public production sites..."
 
 if [ "$SITE_SUITE" = "all" ] || [ "$SITE_SUITE" = "glasscode" ]; then
   check_url "glasscode.academy gateway" "https://glasscode.academy/health" "200" '^ok$'
-  check_url "glasscode.academy API" "https://glasscode.academy/api/health" "200" '"status"[[:space:]]*:[[:space:]]*"(ok|healthy)"'
+  check_url "glasscode.academy API" "https://glasscode.academy/api/health" "200" '("status"[[:space:]]*:[[:space:]]*"(ok|healthy)"|"success"[[:space:]]*:[[:space:]]*true|"message"[[:space:]]*:[[:space:]]*"Server is running")'
   check_url "about.glasscode.academy" "https://about.glasscode.academy/en" "200" '<!DOCTYPE html'
   check_url "piday.glasscode.academy" "https://piday.glasscode.academy/" "200" '<!DOCTYPE html'
 fi

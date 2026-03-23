@@ -46,6 +46,43 @@ export default {
         ...tokenizedPaletteFamilies,
         primary: tokenizeScale('primary', colors.sky),
         danger: tokenizeScale('danger', colors.red),
+        bg: {
+          elevated: 'var(--bg-elevated, #1e293b)',
+          surface: 'var(--bg-surface, #0f172a)',
+          subtle: 'var(--bg-subtle, #1e293b)',
+        },
+        border: {
+          subtle: 'var(--border-subtle, #334155)',
+          strong: 'var(--border-strong, #475569)',
+        },
+        accent: {
+          primary: 'var(--accent-primary, #2f96ee)',
+          secondary: 'var(--accent-secondary, #5fb8ff)',
+          success: 'var(--accent-success, #2dcf96)',
+          warning: 'var(--accent-warning, #f4b549)',
+          danger: 'var(--accent-danger, #ff6b6b)',
+        },
+        accentSoft: {
+          primary: 'var(--accent-soft-primary, #3b82f620)',
+          secondary: 'var(--accent-soft-secondary, #8b5cf620)',
+          danger: 'var(--accent-soft-danger, #ef444420)',
+        },
+        text: {
+          primary: 'var(--text-primary, #ffffff)',
+          secondary: 'var(--text-secondary, #e2e8f0)',
+          tertiary: 'var(--text-tertiary, #cbd5e1)',
+          disabled: 'var(--text-disabled, #94a3b8)',
+        },
+        semantic: {
+          risk: {
+            critical: 'var(--risk-critical, #fb4b5f)',
+            high: 'var(--risk-high, #ff4d4d)',
+            medium: 'var(--risk-medium, #fbbf24)',
+            low: 'var(--risk-low, #14b8a6)',
+            minimal: 'var(--risk-minimal, #22c55e)',
+            unknown: 'var(--risk-unknown, #94a3b8)',
+          },
+        },
       },
       spacing: {
         1: 'var(--space-1, 0.25rem)',
@@ -70,9 +107,27 @@ export default {
         xl: 'var(--shadow-xl, 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 10px 10px -5px rgb(0 0 0 / 0.04))',
       },
       fontFamily: {
-        display: ['DM Serif Display', 'Georgia', 'serif'],
-        sans: ['IBM Plex Sans', 'Inter', 'system-ui', 'sans-serif'],
-        mono: ['IBM Plex Mono', 'JetBrains Mono', 'monospace'],
+        sans: ['var(--font-sans, "Inter")', 'sans-serif'],
+        mono: ['var(--font-mono, "JetBrains Mono")', 'monospace'],
+      },
+      zIndex: {
+        dropdown: '1000',
+        sticky: '1020',
+        fixed: '1030',
+        modalBackdrop: '1040',
+        modal: '1050',
+        popover: '1060',
+        tooltip: '1070',
+      },
+      transitionTimingFunction: {
+        liquid: 'var(--easing-liquid, cubic-bezier(0.2, 0.8, 0.2, 1))',
+        swift: 'var(--easing-swift, cubic-bezier(0.4, 0, 0.2, 1))',
+        gentle: 'var(--easing-gentle, cubic-bezier(0, 0, 0.2, 1))',
+      },
+      transitionDuration: {
+        fast: 'var(--duration-fast, 150ms)',
+        normal: 'var(--duration-normal, 300ms)',
+        slow: 'var(--duration-slow, 500ms)',
       },
       keyframes: {
         fadeIn: {

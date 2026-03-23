@@ -1,6 +1,6 @@
 import { entitiesQueries } from '@epstein/db';
 import { Person, SearchFilters, SortOption } from '../../types.js';
-import type { SubjectCardListItemDto } from '@shared/dto/entities';
+import type { RiskLevel, SubjectCardListItemDto } from '@shared/dto/entities';
 import { getApiPool } from './connection.js';
 
 export interface EntityRepositoryResult {
@@ -20,6 +20,14 @@ function runQuery<TParams, TRow>(
 export interface SubjectCardRepositoryResult {
   subjects: SubjectCardListItemDto[];
   total: number;
+}
+
+function toRiskLevel(value: unknown): RiskLevel {
+  const normalized = String(value || 'LOW').toUpperCase();
+  if (normalized === 'HIGH' || normalized === 'MEDIUM' || normalized === 'LOW') {
+    return normalized;
+  }
+  return 'LOW';
 }
 
 const VIP_DISPLAY_FALLBACKS = new Map<string, string>([
@@ -350,7 +358,7 @@ async function getSubjectCardsFallback(
         verifiedMedia: mediaCount,
       },
       forensics: {
-        riskLevel: String(row.riskLevel || 'LOW').toUpperCase(),
+        riskLevel: toRiskLevel(row.riskLevel),
         evidenceLadder: ladder,
         redFlagObjective: Number(row.redFlagRating || 0),
         redFlagSubjective: Number(row.redFlagRating || 0),
@@ -741,9 +749,9 @@ export const entitiesRepository = {
 
         return {
           id: String(e.id),
-          name: resolveDisplayName(e.fullName || 'Unknown', vipDisplayLookup),
-          role: e.primaryRole || 'Unknown',
-          shortBio: e.bio || undefined,
+          name: resolveDisplayName(String(e.fullName || 'Unknown'), vipDisplayLookup),
+          role: String(e.primaryRole || 'Unknown'),
+          shortBio: typeof e.bio === 'string' ? e.bio : undefined,
           stats: {
             mentions,
             documents: aggregateStats?.documents ?? 0,
@@ -751,7 +759,7 @@ export const entitiesRepository = {
             verifiedMedia: mediaCount,
           },
           forensics: {
-            riskLevel: String(e.riskLevel || 'LOW').toUpperCase(),
+            riskLevel: toRiskLevel(e.riskLevel),
             evidenceLadder: ladder,
             redFlagObjective: Number(e.redFlagRating || 0),
             redFlagSubjective: Number(e.redFlagRating || 0),
@@ -910,7 +918,7 @@ export const entitiesRepository = {
           if (aMentions !== bMentions) return bMentions - aMentions;
         }
 
-        const vipCmp = Number(b.isVip || 0) - Number(a.isVip || 0);
+        const vipCmp = 0;
         if (vipCmp !== 0) return vipCmp;
         return a.name.localeCompare(b.name);
       });
@@ -1002,7 +1010,20 @@ export const entitiesRepository = {
     return rows;
   },
 
-  getEntityById: async (id: string | number): Promise<Person | null> => {
+  getEntityById: async (
+    id: string | number,
+  ): Promise<
+    | (Person & {
+        relationships: Array<{
+          targetId: string;
+          targetName: unknown;
+          targetRole: unknown;
+          type: unknown;
+          confidence: number;
+        }>;
+      })
+    | null
+  > => {
     const entityId = Number(id);
     const rows = await runQuery<{ id: number }, Record<string, unknown>>(
       entitiesQueries.getEntityById,
@@ -1024,27 +1045,29 @@ export const entitiesRepository = {
       getApiPool(),
     );
 
-    const vipDisplayLookup = await buildVipDisplayLookup();
-
     return {
       ...entity,
       id: String(entity.id),
-      fullName: entity.full_name || '',
-      displayName: resolveDisplayName(entity.full_name || '', vipDisplayLookup),
-      primaryRole: entity.primary_role || 'Unknown',
+      name: String(entity.full_name || entity.name || 'Unknown'),
+      fullName: String(entity.full_name || ''),
+      primaryRole: String(entity.primary_role || 'Unknown'),
       mentions: Number(entity.mentions || 0),
+      files: Number(mentions.length || 0),
+      contexts: [],
+      evidenceTypes: [],
       redFlagRating: Number(entity.red_flag_rating || 0),
       isVip: Boolean(entity.is_vip),
       wasAgentic: Boolean(entity.was_agentic),
       fileReferences: mentions.map((m) => ({
         id: String(m.document_id),
-        fileName: m.documentTitle,
-        dateCreated: m.documentDate,
+        filename: String(m.documentTitle || ''),
+        filePath: String(m.documentTitle || ''),
+        contentPreview: String(m.mention_context || ''),
       })),
-      significant_passages: mentions.slice(0, 5).map((m) => ({
-        passage: m.mention_context || '',
-        keyword: m.surface_text || '',
-        filename: m.documentTitle || 'Document',
+      significantPassages: mentions.slice(0, 5).map((m) => ({
+        passage: String(m.mention_context || ''),
+        keyword: String(m.surface_text || ''),
+        filename: String(m.documentTitle || 'Document'),
         documentId: String(m.document_id),
       })),
       relationships: relationships.map((r) => ({

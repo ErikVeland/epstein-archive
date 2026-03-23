@@ -251,11 +251,11 @@ router.get('/mailboxes', validate(mailboxesSchema), async (req, res, next) => {
           totalMessages: row.totalMessages,
           lastActivityAt: row.lastActivityAt,
           riskSummary:
-            row.topRisk >= 4
+            Number(row.topRisk) >= 4
               ? 'high'
-              : row.topRisk >= 2
+              : Number(row.topRisk) >= 2
                 ? 'medium'
-                : row.topRisk > 0
+                : Number(row.topRisk) > 0
                   ? 'low'
                   : 'minimal',
           isJunkSuppressed: !showSuppressedJunk,

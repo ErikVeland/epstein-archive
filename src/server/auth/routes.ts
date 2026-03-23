@@ -251,8 +251,7 @@ router.get('/me', optionalAuthenticate, (req: AuthenticatedRequest, res) => {
   if (!req.user) {
     return res.json({ user: null });
   }
-  const { password_hash: _hash, ...userInfo } = req.user;
-  res.json({ user: userInfo });
+  res.json({ user: req.user });
 });
 
 // POST /api/auth/change-password
@@ -267,10 +266,16 @@ router.post('/change-password', authenticateRequest, async (req: AuthenticatedRe
   }
 
   try {
+    if (!req.user) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const authenticatedUser = req.user;
     const pool = getApiPool();
-    const { rows } = await pool.query('SELECT id, password_hash FROM users WHERE id = $1', [
-      req.user.id,
-    ]);
+    const { rows } = await pool.query<{ id: number | string; password_hash: string | null }>(
+      'SELECT id, password_hash FROM users WHERE id = $1',
+      [authenticatedUser.id],
+    );
     const user = rows[0];
 
     const currentPasswordValid = user?.password_hash
@@ -281,7 +286,10 @@ router.post('/change-password', authenticateRequest, async (req: AuthenticatedRe
     }
 
     const newHash = await bcrypt.hash(newPassword, 12);
-    await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [newHash, req.user.id]);
+    await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [
+      newHash,
+      authenticatedUser.id,
+    ]);
 
     res.json({ success: true });
   } catch (e) {

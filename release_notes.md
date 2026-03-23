@@ -1,5 +1,34 @@
 # Release Notes
 
+## v17.1.0 - 2026-03-23 - Stability, Investigations & Production Confidence
+
+This release packages the user-facing work that landed after v17.0.0 into a single minor update. It focuses on making the archive more reliable in daily use while keeping the new design system and platform hardening intact.
+
+### What's New for Users
+
+**More resilient analytics and visual exploration**
+
+- Analytics views now share a typed interaction context, which makes cross-panel selection and filtering more consistent across treemap, network, and enhanced analytics experiences.
+- Visualization surfaces now fail more gracefully: route maps, timelines, entity graphs, and related interactive views show contained fallback states instead of breaking the page when a malformed record appears.
+
+**Stronger investigation and evidence workflows**
+
+- Investigation exports and related integrity checks were tightened so exported evidence and timeline data stay aligned with the typed app model.
+- Document and evidence browsing benefited from a broader strict-typing pass, reducing edge-case UI failures when records contain sparse or uneven metadata.
+
+**Better production reliability**
+
+- Production quality gates now cover database migration readiness, stricter SQL/query parity checks, and broader client token-compliance scanning before deploys proceed.
+- Post-deploy verification was refined so the Epstein deployment path validates the correct public properties while still supporting full cross-site health checks for the wider site network.
+
+### Under the Hood
+
+- End-to-end strict typing was extended across both client and server codepaths, including route handlers, repositories, DTO mappers, visualizations, and shared context plumbing.
+- CI and production workflows now run Postgres migrations before the unified quality gate, reducing false negatives and making local and remote verification paths match more closely.
+- Public-site verification scripts now support targeted suites as well as full-network checks, making it safer to verify deploy health across all managed sites.
+
+---
+
 ## v17.0.0 - 2026-03-20 - Design Overhaul, Data Quality & Platform Hardening
 
 This release completes a full cycle of platform improvements begun in v16.0. The archive looks and performs substantially differently from where it started — new visual identity, a cleaner people directory, faster search, improved sharing, and a significantly more robust backend.
