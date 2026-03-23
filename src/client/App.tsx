@@ -1333,10 +1333,10 @@ function App() {
   const navLabelClass = navLayoutMode === 'icons' ? 'hidden' : 'inline';
   const navPillClass =
     navLayoutMode === 'normal'
-      ? 'inline-flex h-11 items-stretch rounded-full overflow-hidden bg-[var(--glass-bg)]/40 hover:bg-[var(--glass-bg)]/60 shadow-[var(--glass-shadow-soft)] transition-colors'
+      ? 'flex h-11 min-w-full items-stretch rounded-full overflow-hidden bg-[var(--glass-bg)]/40 hover:bg-[var(--glass-bg)]/60 shadow-[var(--glass-shadow-soft)] transition-colors'
       : navLayoutMode === 'compact'
-        ? 'inline-flex h-10 items-stretch rounded-full overflow-hidden bg-[var(--glass-bg)]/40 hover:bg-[var(--glass-bg)]/60 shadow-[var(--glass-shadow-soft)] transition-colors'
-        : 'inline-flex h-11 items-stretch rounded-full overflow-hidden bg-[var(--glass-bg)]/40 hover:bg-[var(--glass-bg)]/60 shadow-[var(--glass-shadow-soft)] transition-colors';
+        ? 'flex h-10 min-w-full items-stretch rounded-full overflow-hidden bg-[var(--glass-bg)]/40 hover:bg-[var(--glass-bg)]/60 shadow-[var(--glass-shadow-soft)] transition-colors'
+        : 'flex h-11 min-w-full items-stretch rounded-full overflow-hidden bg-[var(--glass-bg)]/40 hover:bg-[var(--glass-bg)]/60 shadow-[var(--glass-shadow-soft)] transition-colors';
 
   useEffect(() => {
     const track = navTrackRef.current;

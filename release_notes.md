@@ -1,5 +1,26 @@
 # Release Notes
 
+## v17.1.1 - 2026-03-23 - Dossier UX & Navigation Polish
+
+This patch tightens a few high-visibility UI and data issues that showed up immediately after the 17.1.0 rollout.
+
+### What's New for Users
+
+**Cleaner dossier browsing**
+
+- Entity dossier navigation now stays aligned with the page content width instead of shrinking around its labels.
+- The entity profile modal now loads evidence and linked media more reliably, including fallback handling when the primary evidence feed is sparse or inconsistent.
+
+**More legible relationship views**
+
+- Network views now render larger nodes with persistent labels, which makes the relationship canvas easier to scan without constant hovering or zooming.
+
+**Softer interface treatment**
+
+- Several hard white card borders in the dossier and network UI were replaced with a softer glass outline that matches the search field treatment more closely.
+
+---
+
 ## v17.1.0 - 2026-03-23 - Stability, Investigations & Production Confidence
 
 This release packages the user-facing work that landed after v17.0.0 into a single minor update. It focuses on making the archive more reliable in daily use while keeping the new design system and platform hardening intact.

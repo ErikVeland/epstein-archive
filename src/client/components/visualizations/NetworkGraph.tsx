@@ -64,8 +64,8 @@ const getRiskColor = (riskLevel: number): string => {
 };
 
 const getNodeSize = (connectionCount: number, maxConnections: number): number => {
-  const minSize = 2;
-  const maxSize = 8;
+  const minSize = 8;
+  const maxSize = 22;
   const ratio = connectionCount / Math.max(maxConnections, 1);
   return minSize + (maxSize - minSize) * Math.sqrt(ratio);
 };
@@ -245,7 +245,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
         y: n.y || 0,
         vx: 0,
         vy: 0,
-        radius: getNodeSize(n.connectionCount || 0, 100) / 4, // Scale radius for 100x100 space
+        radius: getNodeSize(n.connectionCount || 0, 100) / 4,
         connectionCount: n.connectionCount || 0,
       } as GraphNode;
     });
@@ -301,55 +301,10 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
   }, [filteredNodes, relationships, extraRelationships, excludedRelTypes]);
 
   // High-performance Label Collision Management (Grid-based approximation of Quadtree)
-  const visibleLabels = useMemo(() => {
-    const importantLabels = new Set<string | number>();
-    if (selectedNodeId !== null) importantLabels.add(selectedNodeId);
-    if (hoveredNode) {
-      const hovered = filteredNodes.find((n) => n.label === hoveredNode);
-      if (hovered) importantLabels.add(hovered.id);
-    }
-
-    if (!lod.showLabels) return importantLabels;
-
-    const visible = new Set<string | number>();
-    const collisionGrid = new Set<string>();
-
-    // Cell size determines label density. Adjust based on zoom for semantic density.
-    // 100x100 viewBox. cellSize 10 means 100 cells.
-    const cellSize = lod.labelDensity === 'high' ? 3 / transform.k : 6 / transform.k;
-
-    // Sort by importance: Selected > Hovered > Ego > Risk > Degree
-    const sortedNodes = [...filteredNodes].sort((a, b) => {
-      if (String(a.id) === String(selectedNodeId)) return -1;
-      if (String(b.id) === String(selectedNodeId)) return 1;
-      if (a.label === hoveredNode) return -1;
-      if (b.label === hoveredNode) return 1;
-      if (a.isEgo !== b.isEgo) return a.isEgo ? -1 : 1;
-      if (a.risk !== b.risk) return (b.risk || 0) - (a.risk || 0);
-      return (b.connectionCount || 0) - (a.connectionCount || 0);
-    });
-
-    for (const node of sortedNodes) {
-      if (String(node.id) === String(selectedNodeId) || node.label === hoveredNode) {
-        visible.add(node.id);
-        continue;
-      }
-
-      // Semantic suppression at low density - High Risk always wins
-      if (lod.labelDensity === 'low' && !node.isEgo && (node.risk || 0) < 3.5) continue;
-
-      const gridX = Math.floor(node.x / cellSize);
-      const gridY = Math.floor(node.y / cellSize);
-      const key = `${gridX},${gridY}`;
-
-      if (!collisionGrid.has(key)) {
-        collisionGrid.add(key);
-        visible.add(node.id);
-      }
-    }
-    importantLabels.forEach((id) => visible.add(id));
-    return visible;
-  }, [filteredNodes, lod, transform.k, selectedNodeId, hoveredNode]);
+  const visibleLabels = useMemo(
+    () => new Set(filteredNodes.map((node) => node.id)),
+    [filteredNodes],
+  );
 
   const labelFontSize = useMemo(() => {
     if (transform.k < 0.8) return 1.05;
@@ -673,25 +628,25 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
 
   return (
     <div
-      className={`relative w-full h-full min-h-[420px] bg-[var(--glass-bg-strong)]/50 rounded-[var(--radius-lg)] border border-[var(--glass-border)] overflow-hidden select-none ${spacePressed ? 'cursor-grab active:cursor-grabbing' : ''}`}
+      className={`relative w-full h-full min-h-[420px] bg-[var(--glass-bg-strong)]/50 rounded-[var(--radius-lg)] soft-glass-outline overflow-hidden select-none ${spacePressed ? 'cursor-grab active:cursor-grabbing' : ''}`}
     >
       {/* Controls */}
       <div className="absolute top-4 right-4 z-20 flex flex-col gap-2">
         <button
           onClick={zoomIn}
-          className="p-2 bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] border border-[var(--glass-border)] text-[var(--text-secondary)]"
+          className="p-2 bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] soft-glass-outline text-[var(--text-secondary)]"
         >
           <ZoomIn className="w-5 h-5" />
         </button>
         <button
           onClick={zoomOut}
-          className="p-2 bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] border border-[var(--glass-border)] text-[var(--text-secondary)]"
+          className="p-2 bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] soft-glass-outline text-[var(--text-secondary)]"
         >
           <ZoomOut className="w-5 h-5" />
         </button>
         <button
           onClick={resetView}
-          className="p-2 bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] border border-[var(--glass-border)] text-[var(--text-secondary)]"
+          className="p-2 bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] soft-glass-outline text-[var(--text-secondary)]"
         >
           <RefreshCw className="w-5 h-5" />
         </button>
@@ -700,7 +655,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
             setShowFilters(!showFilters);
             setHasInteractedWithFilter(true);
           }}
-          className={`p-2 rounded-[var(--radius-lg)] border text-[var(--text-secondary)] relative ${showFilters ? 'bg-cyan-700 border-[var(--accent)]' : 'bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] border-[var(--glass-border)]'}`}
+          className={`p-2 rounded-[var(--radius-lg)] text-[var(--text-secondary)] relative ${showFilters ? 'bg-cyan-700 border border-[var(--accent)]' : 'bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] soft-glass-outline'}`}
         >
           <Filter className="w-5 h-5" />
           {!hasInteractedWithFilter && !showFilters && (
@@ -732,7 +687,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
       )}
       {/* Filter Panel */}
       {showFilters && (
-        <div className="absolute top-4 right-16 z-20 bg-[var(--glass-bg)]/95 backdrop-blur-sm rounded-[var(--radius-lg)] p-4 border border-[var(--glass-border)] shadow-[var(--glass-shadow)] w-64">
+        <div className="absolute top-4 right-16 z-20 bg-[var(--glass-bg)]/95 backdrop-blur-sm rounded-[var(--radius-lg)] p-4 soft-glass-outline w-64">
           <p className="text-xs text-[var(--text-muted)] mb-3 font-bold uppercase tracking-wider flex items-center gap-2">
             <Filter className="w-3 h-3" /> Node Filters
           </p>
@@ -816,7 +771,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
       )}
 
       {/* Legend */}
-      <div className="absolute top-4 left-4 z-20 bg-[var(--glass-bg)]/90 backdrop-blur-sm rounded-[var(--radius-lg)] p-4 border border-[var(--glass-border)] shadow-[var(--glass-shadow)] pointer-events-none sm:pointer-events-auto opacity-80 sm:opacity-100 hover:opacity-100 transition-opacity">
+      <div className="absolute top-4 left-4 z-20 bg-[var(--glass-bg)]/90 backdrop-blur-sm rounded-[var(--radius-lg)] p-4 soft-glass-outline pointer-events-none sm:pointer-events-auto opacity-80 sm:opacity-100 hover:opacity-100 transition-opacity">
         <div className="mb-3 flex items-center justify-between gap-3">
           <p className="text-xs text-[var(--text-muted)] font-bold uppercase tracking-wider">
             Node Risk
@@ -1075,14 +1030,19 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
                   {/* Label */}
                   {visibleLabels.has(node.id) && (
                     <text
-                      dy={size + 2}
+                      dy={size / 2 + 2.8}
                       textAnchor="middle"
                       fill="#e2e8f0"
-                      fontSize={labelFontSize}
+                      fontSize={Math.max(labelFontSize, size / 2.8)}
                       className="pointer-events-none select-none transition-all duration-300"
                       style={{
                         textShadow: '0 1px 3px rgba(0,0,0,0.9)',
                         opacity: hoveredNode && hoveredNode !== node.label ? 0.4 : 1.0,
+                        paintOrder: 'stroke',
+                        stroke: 'rgba(15, 23, 42, 0.92)',
+                        strokeWidth: 0.55,
+                        strokeLinecap: 'round',
+                        strokeLinejoin: 'round',
                       }}
                     >
                       {transform.k < 1 ? node.label.slice(0, 24) : node.label.slice(0, 48)}
@@ -1097,7 +1057,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
 
       {/* Selection Inspector */}
       {selectedNode && (
-        <div className="absolute left-4 right-4 bottom-4 z-20 bg-[var(--glass-bg-strong)]/90 backdrop-blur-sm border border-[var(--glass-border)] rounded-[var(--radius-md)] p-3">
+        <div className="absolute left-4 right-4 bottom-4 z-20 bg-[var(--glass-bg-strong)]/90 backdrop-blur-sm soft-glass-outline rounded-[var(--radius-md)] p-3">
           <div className="flex items-center justify-between gap-3">
             <div className="flex-grow">
               <div className="text-sm font-bold text-[var(--text-primary)] truncate">

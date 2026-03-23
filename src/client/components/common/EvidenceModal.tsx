@@ -84,6 +84,10 @@ export interface EntityPhoto {
   redFlagRating?: number;
   directEvidence?: boolean;
   verified?: boolean;
+  filePath?: string;
+  thumbnailPath?: string;
+  dateTaken?: string;
+  metadata?: Record<string, unknown>;
 }
 
 export interface EvidenceDocument {
@@ -163,6 +167,87 @@ interface EntityDetails {
   birthDate?: string | null;
   deathDate?: string | null;
 }
+
+interface EntityEvidenceFallbackResponse {
+  evidence?: Array<Record<string, unknown>>;
+  stats?: {
+    totalEvidence?: number;
+  };
+}
+
+const toStringArray = (value: unknown): string[] => {
+  if (Array.isArray(value)) {
+    return value.map((item) => String(item)).filter(Boolean);
+  }
+  if (typeof value === 'string' && value.trim().length > 0) {
+    return value
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+  return [];
+};
+
+const normalizeEvidenceDocument = (raw: Record<string, unknown>): EvidenceDocument => ({
+  id: (raw.id ?? raw.document_id ?? raw.documentId) as string | number | undefined,
+  title: (raw.title ?? raw.fileName ?? raw.file_name) as string | undefined,
+  fileName: (raw.fileName ?? raw.file_name ?? raw.title) as string | undefined,
+  content: (raw.content ??
+    raw.context_snippet ??
+    raw.contentSnippet ??
+    raw.mention_context ??
+    raw.description) as string | undefined,
+  contentPreview: (raw.contentPreview ??
+    raw.content_preview ??
+    raw.context_snippet ??
+    raw.mention_context ??
+    raw.description) as string | undefined,
+  evidenceType: (raw.evidenceType ?? raw.evidence_type) as string | undefined,
+  redFlagRating: Number(raw.redFlagRating ?? raw.red_flag_rating ?? 0),
+  keyword: (raw.keyword ?? raw.flag_type) as string | undefined,
+  dateCreated: (raw.dateCreated ?? raw.date_created ?? raw.created_at) as string | undefined,
+  source_collection: (raw.source_collection ?? raw.source_path ?? raw.file_path) as
+    | string
+    | undefined,
+});
+
+const normalizeEntityMediaItem = (raw: Record<string, unknown>, index: number): EntityPhoto => {
+  const metadata =
+    raw.metadata && typeof raw.metadata === 'object'
+      ? (raw.metadata as Record<string, unknown>)
+      : {};
+  const id = raw.id ?? index;
+  const filePath = (raw.filePath ?? raw.file_path) as string | undefined;
+  const thumbnailPath = (raw.thumbnailPath ?? raw.thumbnail_path) as string | undefined;
+  const fallbackUrl =
+    typeof id === 'string' || typeof id === 'number' ? `/api/media/images/${id}` : undefined;
+
+  return {
+    id: id as string | number,
+    url: (raw.url ?? thumbnailPath ?? filePath ?? fallbackUrl) as string | undefined,
+    fullUrl: (raw.fullUrl ?? filePath ?? fallbackUrl) as string | undefined,
+    thumbnailUrl: (raw.thumbnailUrl ?? thumbnailPath ?? fallbackUrl) as string | undefined,
+    title: (raw.title ?? metadata.title ?? metadata.caption) as string | undefined,
+    caption: (raw.caption ?? raw.description ?? metadata.caption) as string | undefined,
+    filename: (raw.filename ?? raw.fileName ?? filePath) as string | undefined,
+    sourceType: (raw.sourceType ?? raw.fileType ?? raw.file_type) as string | undefined,
+    type: (raw.type ?? raw.fileType ?? raw.file_type) as string | undefined,
+    date: (raw.date ?? raw.dateTaken ?? raw.date_taken ?? metadata.date) as string | undefined,
+    dateTaken: (raw.dateTaken ?? raw.date_taken) as string | undefined,
+    createdAt: (raw.createdAt ?? raw.created_at) as string | undefined,
+    timestamp: (raw.timestamp ?? raw.createdAt ?? raw.created_at) as string | undefined,
+    taggedPeople: toStringArray(raw.people ?? raw.relatedEntities ?? metadata.people),
+    people: toStringArray(raw.people ?? raw.relatedEntities ?? metadata.people),
+    entities: toStringArray(raw.relatedEntities ?? metadata.entities),
+    riskRating: Number(raw.riskRating ?? raw.redFlagRating ?? raw.red_flag_rating ?? 0),
+    redFlagRating: Number(raw.redFlagRating ?? raw.red_flag_rating ?? 0),
+    directEvidence: Boolean(raw.directEvidence ?? metadata.directEvidence),
+    verified: Boolean(raw.verified ?? raw.verificationStatus === 'verified'),
+    filePath,
+    thumbnailPath,
+    metadata,
+  };
+};
 
 const getRiskClass = (rating: number) => {
   if (rating >= 5) return 'risk-critical';
@@ -295,6 +380,9 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
   const [investigations, setInvestigations] = useState<InvestigationEntity[]>([]);
   const [isInvestigationsLoading, setIsInvestigationsLoading] = useState(false);
   const [investigationsInitialized, setInvestigationsInitialized] = useState(false);
+  const [mediaItems, setMediaItems] = useState<EntityPhoto[]>([]);
+  const [isMediaLoading, setIsMediaLoading] = useState(false);
+  const [mediaInitialized, setMediaInitialized] = useState(false);
 
   // Lazy load tabs - only fetch data when tab is activated
   const [tabsLoaded, setTabsLoaded] = useState<Set<string>>(new Set(['overview']));
@@ -389,6 +477,22 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
 
   useEffect(() => {
     if (!isOpen) return;
+    setDocuments([]);
+    setTotalDocs(0);
+    setHasNextPage(true);
+    setDocsInitialized(false);
+    setIsDocsLoading(false);
+    setInvestigations([]);
+    setInvestigationsInitialized(false);
+    setMediaItems([]);
+    setMediaInitialized(false);
+    setRelationships([]);
+    setBrokenMediaIds({});
+    setTabsLoaded(new Set(['overview']));
+  }, [entityId, isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
     setTabsLoaded((prev) => (prev.has(activeTab) ? prev : new Set(prev).add(activeTab)));
   }, [activeTab, isOpen]);
 
@@ -477,8 +581,30 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
           total?: number;
         };
 
-        const newDocs = response.data || [];
-        const total = response.total || 0;
+        let newDocs = Array.isArray(response.data) ? response.data : [];
+        let total = response.total || 0;
+
+        if (page === 1 && newDocs.length === 0) {
+          const fallback = (await apiClient.get(
+            `/entities/${entityId}/evidence`,
+          )) as EntityEvidenceFallbackResponse;
+          const fallbackDocs = Array.isArray(fallback?.evidence)
+            ? fallback.evidence.map((item) => normalizeEvidenceDocument(item))
+            : [];
+
+          const filteredFallbackDocs = fallbackDocs.filter((doc) => {
+            const search = docFilters.search.trim().toLowerCase();
+            if (!search) return true;
+            return [doc.title, doc.fileName, doc.contentPreview, doc.content, doc.evidenceType]
+              .filter(Boolean)
+              .some((value) => String(value).toLowerCase().includes(search));
+          });
+
+          newDocs = filteredFallbackDocs;
+          total =
+            filteredFallbackDocs.length ||
+            Number(fallback?.stats?.totalEvidence || fallbackDocs.length || 0);
+        }
 
         setDocuments((prev) => [...prev, ...newDocs]);
         setTotalDocs(total);
@@ -621,6 +747,54 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
       mounted = false;
     };
   }, [activeTab, entityId, isHighProfileEntity, isOpen, tabsLoaded]);
+
+  useEffect(() => {
+    if (!(isOpen && entityId && activeTab === 'media' && tabsLoaded.has('media'))) return;
+    if (mediaInitialized || isMediaLoading) return;
+
+    let mounted = true;
+    const loadMedia = async () => {
+      setIsMediaLoading(true);
+      try {
+        const response = await fetch(`/api/entities/${entityId}/media`, {
+          credentials: 'include',
+          headers: { Accept: 'application/json' },
+        });
+
+        if (!mounted) return;
+
+        if (response.status === 204) {
+          setMediaItems([]);
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch entity media: ${response.status}`);
+        }
+
+        const payload = (await response.json()) as unknown;
+        const normalized = Array.isArray(payload)
+          ? payload.map((item, index) =>
+              normalizeEntityMediaItem(item as Record<string, unknown>, index),
+            )
+          : [];
+        setMediaItems(normalized);
+      } catch (error) {
+        console.error('Error loading entity media', error);
+        setMediaItems([]);
+      } finally {
+        if (mounted) {
+          setMediaInitialized(true);
+          setIsMediaLoading(false);
+        }
+      }
+    };
+
+    void loadMedia();
+    return () => {
+      mounted = false;
+    };
+  }, [activeTab, entityId, isMediaLoading, isOpen, mediaInitialized, tabsLoaded]);
 
   // Forensic Calculations
   const forensicData = useMemo(() => {
@@ -1260,7 +1434,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                   data-testid="entity-modal-tab-evidence"
                 >
                   {/* FILTERS TOOLBAR */}
-                  <div className="p-5 md:p-6 border-b border-[var(--glass-border)] flex flex-col md:flex-row gap-4 shrink-0 bg-transparent">
+                  <div className="p-5 md:p-6 border-b border-[color:color-mix(in_srgb,var(--glass-border)_60%,transparent)] flex flex-col md:flex-row gap-4 shrink-0 bg-transparent">
                     <div className="relative flex-1 max-w-lg header-search-pill">
                       <Search
                         className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted transition-colors group-focus-within:text-[var(--accent)]"
@@ -1274,7 +1448,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                         onChange={(e) => handleFilterChange({ search: e.target.value })}
                       />
                     </div>
-                    <div className="text-[11px] font-semibold tracking-widest uppercase text-text-muted md:ml-auto self-center bg-[var(--glass-bg)] px-4 py-2 rounded-full border border-[var(--glass-border)]">
+                    <div className="text-[11px] font-semibold tracking-widest uppercase text-text-muted md:ml-auto self-center bg-[var(--glass-bg)] px-4 py-2 rounded-full soft-glass-outline">
                       <span data-testid="entity-evidence-count">
                         {isDocsLoading
                           ? 'Loading evidence...'
@@ -1392,7 +1566,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                                           if (!doc) {
                                             return (
                                               <div style={style} className="p-4">
-                                                <div className="h-full bg-slate-950/20 border border-[var(--glass-border)] rounded-[var(--radius-lg)] animate-pulse" />
+                                                <div className="h-full bg-slate-950/20 soft-glass-outline rounded-[var(--radius-lg)] animate-pulse" />
                                               </div>
                                             );
                                           }
@@ -1420,110 +1594,127 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
               {/* 3. MEDIA TAB */}
               {activeTab === 'media' && entity && (
                 <div className="absolute inset-0 overflow-y-auto custom-scrollbar p-6">
-                  {entity.photos && entity.photos.length > 0 ? (
+                  {isMediaLoading ? (
+                    <div className="h-full flex flex-col items-center justify-center text-[var(--text-muted)]">
+                      <Search size={48} className="mx-auto mb-4 opacity-20 animate-pulse" />
+                      <p>Loading linked media…</p>
+                    </div>
+                  ) : (mediaItems.length > 0 ? mediaItems : entity.photos || []).length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-                      {entity.photos.map((photo, i) => {
-                        const title =
-                          photo.title || photo.caption || photo.filename || `Media item ${i + 1}`;
-                        const sourceType = photo.sourceType || photo.type || 'Media';
-                        const date = formatMetaDate(
-                          photo.date || photo.createdAt || photo.timestamp,
-                        );
-                        const taggedPeople = Array.isArray(photo.taggedPeople)
-                          ? photo.taggedPeople
-                          : Array.isArray(photo.people)
-                            ? photo.people
-                            : Array.isArray(photo.entities)
-                              ? photo.entities
-                              : [];
-                        const riskRating = Number(photo.riskRating || photo.redFlagRating || 0);
-                        const hasDirectSignal = Boolean(photo.directEvidence || photo.verified);
+                      {(mediaItems.length > 0 ? mediaItems : entity.photos || []).map(
+                        (photo, i) => {
+                          const title =
+                            photo.title || photo.caption || photo.filename || `Media item ${i + 1}`;
+                          const sourceType = photo.sourceType || photo.type || 'Media';
+                          const date = formatMetaDate(
+                            photo.date || photo.createdAt || photo.timestamp,
+                          );
+                          const taggedPeople = Array.isArray(photo.taggedPeople)
+                            ? photo.taggedPeople
+                            : Array.isArray(photo.people)
+                              ? photo.people
+                              : Array.isArray(photo.entities)
+                                ? photo.entities
+                                : [];
+                          const riskRating = Number(photo.riskRating || photo.redFlagRating || 0);
+                          const hasDirectSignal = Boolean(photo.directEvidence || photo.verified);
 
-                        return (
-                          <article
-                            key={i}
-                            className="surface-glass-card overflow-hidden group border border-[var(--glass-border)]"
-                          >
-                            <div className="aspect-video bg-[var(--bg-dark)] overflow-hidden relative border-b border-[var(--glass-border)]">
-                              {brokenMediaIds[String(photo.id)] ? (
-                                <div className="w-full h-full flex items-center justify-center text-text-dim">
-                                  <ImageIcon size={28} />
+                          return (
+                            <article
+                              key={i}
+                              className="surface-glass-card overflow-hidden group soft-glass-outline"
+                            >
+                              <div className="aspect-video bg-[var(--bg-dark)] overflow-hidden relative border-b border-[color:color-mix(in_srgb,var(--glass-border)_60%,transparent)]">
+                                {brokenMediaIds[String(photo.id)] ? (
+                                  <div className="w-full h-full flex items-center justify-center text-text-dim">
+                                    <ImageIcon size={28} />
+                                  </div>
+                                ) : (
+                                  <img
+                                    src={photo.url || photo.thumbnailUrl || photo.fullUrl}
+                                    alt={title}
+                                    className="w-full h-full object-cover transition-transform duration-700 ease-in-out group-hover:scale-105"
+                                    onError={(event) => {
+                                      const id = String(photo.id || i);
+                                      const fallbackUrl =
+                                        photo.fullUrl ||
+                                        photo.filePath ||
+                                        `/api/media/images/${id}`;
+                                      const img = event.currentTarget;
+                                      if (img.dataset.fallbackApplied !== '1') {
+                                        img.dataset.fallbackApplied = '1';
+                                        img.src = fallbackUrl;
+                                        return;
+                                      }
+                                      setBrokenMediaIds((prev) => ({ ...prev, [id]: true }));
+                                    }}
+                                  />
+                                )}
+                              </div>
+                              <div className="p-5">
+                                <div className="flex items-start gap-3 mb-3">
+                                  <h4 className="text-base font-display text-text-strong line-clamp-2 flex-1 group-hover:text-[var(--accent)] transition-colors">
+                                    {title}
+                                  </h4>
+                                  {riskRating > 0 && (
+                                    <span
+                                      className={`semantic-chip ${getRiskClass(riskRating)} shrink-0`}
+                                    >
+                                      <ShieldAlert size={12} className="opacity-80" />
+                                      {riskRating.toFixed(0)}/5
+                                    </span>
+                                  )}
+                                  {hasDirectSignal && (
+                                    <span className="semantic-chip evidence-direct shrink-0">
+                                      <Sparkles size={12} className="opacity-80" />
+                                      Direct
+                                    </span>
+                                  )}
                                 </div>
-                              ) : (
-                                <img
-                                  src={photo.url}
-                                  alt={title}
-                                  className="w-full h-full object-cover transition-transform duration-700 ease-in-out group-hover:scale-105"
-                                  onError={(event) => {
-                                    const id = String(photo.id || i);
-                                    const fallbackUrl = photo.fullUrl || `/api/media/images/${id}`;
-                                    const img = event.currentTarget;
-                                    if (img.dataset.fallbackApplied !== '1') {
-                                      img.dataset.fallbackApplied = '1';
-                                      img.src = fallbackUrl;
-                                      return;
+
+                                <div className="text-[11px] font-semibold tracking-wider uppercase text-text-dim flex flex-wrap items-center gap-4">
+                                  <span className="inline-flex items-center gap-1.5">
+                                    <Calendar size={12} />
+                                    {date}
+                                  </span>
+                                  <span className="inline-flex items-center gap-1.5">
+                                    <ImageIcon size={12} />
+                                    {sourceType}
+                                  </span>
+                                </div>
+
+                                {taggedPeople.length > 0 && (
+                                  <div className="mt-4 text-[11px] font-mono text-text-muted">
+                                    <span className="text-text-dim uppercase tracking-widest font-sans font-semibold mr-2">
+                                      Tagged:
+                                    </span>{' '}
+                                    {taggedPeople.slice(0, 3).join(', ')}
+                                    {taggedPeople.length > 3 ? ` +${taggedPeople.length - 3}` : ''}
+                                  </div>
+                                )}
+
+                                <div className="mt-5 pt-4 border-t border-[var(--glass-border)] flex items-center justify-end">
+                                  <button
+                                    onClick={() =>
+                                      window.open(
+                                        photo.fullUrl ||
+                                          photo.url ||
+                                          `/api/media/images/${photo.id}`,
+                                        '_blank',
+                                      )
                                     }
-                                    setBrokenMediaIds((prev) => ({ ...prev, [id]: true }));
-                                  }}
-                                />
-                              )}
-                            </div>
-                            <div className="p-5">
-                              <div className="flex items-start gap-3 mb-3">
-                                <h4 className="text-base font-display text-text-strong line-clamp-2 flex-1 group-hover:text-[var(--accent)] transition-colors">
-                                  {title}
-                                </h4>
-                                {riskRating > 0 && (
-                                  <span
-                                    className={`semantic-chip ${getRiskClass(riskRating)} shrink-0`}
+                                    className="control h-8 px-4 text-xs font-semibold tracking-wider uppercase text-text-default flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    aria-label={`Open media item ${title}`}
+                                    title="Open media in new tab"
                                   >
-                                    <ShieldAlert size={12} className="opacity-80" />
-                                    {riskRating.toFixed(0)}/5
-                                  </span>
-                                )}
-                                {hasDirectSignal && (
-                                  <span className="semantic-chip evidence-direct shrink-0">
-                                    <Sparkles size={12} className="opacity-80" />
-                                    Direct
-                                  </span>
-                                )}
-                              </div>
-
-                              <div className="text-[11px] font-semibold tracking-wider uppercase text-text-dim flex flex-wrap items-center gap-4">
-                                <span className="inline-flex items-center gap-1.5">
-                                  <Calendar size={12} />
-                                  {date}
-                                </span>
-                                <span className="inline-flex items-center gap-1.5">
-                                  <ImageIcon size={12} />
-                                  {sourceType}
-                                </span>
-                              </div>
-
-                              {taggedPeople.length > 0 && (
-                                <div className="mt-4 text-[11px] font-mono text-text-muted">
-                                  <span className="text-text-dim uppercase tracking-widest font-sans font-semibold mr-2">
-                                    Tagged:
-                                  </span>{' '}
-                                  {taggedPeople.slice(0, 3).join(', ')}
-                                  {taggedPeople.length > 3 ? ` +${taggedPeople.length - 3}` : ''}
+                                    View <ExternalLink size={12} />
+                                  </button>
                                 </div>
-                              )}
-
-                              <div className="mt-5 pt-4 border-t border-[var(--glass-border)] flex items-center justify-end">
-                                <button
-                                  onClick={() => window.open(photo.url, '_blank')}
-                                  className="control h-8 px-4 text-xs font-semibold tracking-wider uppercase text-text-default flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                                  aria-label={`Open media item ${title}`}
-                                  title="Open media in new tab"
-                                >
-                                  View <ExternalLink size={12} />
-                                </button>
                               </div>
-                            </div>
-                          </article>
-                        );
-                      })}
+                            </article>
+                          );
+                        },
+                      )}
                     </div>
                   ) : (
                     <div className="text-center py-20 text-[var(--text-muted)]">
@@ -1568,12 +1759,12 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
               {/* 5. INVESTIGATIONS TAB */}
               {activeTab === 'investigations' && (
                 <div className="h-full flex flex-col min-h-0 bg-transparent">
-                  <div className="p-6 border-b border-[var(--glass-border)] flex items-center justify-between shrink-0">
+                  <div className="p-6 border-b border-[color:color-mix(in_srgb,var(--glass-border)_60%,transparent)] flex items-center justify-between shrink-0">
                     <h3 className="text-sm font-semibold text-text-strong flex items-center gap-3 font-sans tracking-wide">
                       <Briefcase size={16} className="text-[var(--accent-investigate)]" />
                       Linked Investigations
                     </h3>
-                    <div className="text-[11px] font-semibold tracking-widest uppercase text-text-muted bg-[var(--glass-bg)] px-4 py-2 rounded-full border border-[var(--glass-border)]">
+                    <div className="text-[11px] font-semibold tracking-widest uppercase text-text-muted bg-[var(--glass-bg)] px-4 py-2 rounded-full soft-glass-outline">
                       {isInvestigationsLoading
                         ? 'Loading cases...'
                         : `${investigations.length} open cases`}
