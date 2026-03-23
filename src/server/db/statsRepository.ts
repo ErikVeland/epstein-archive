@@ -2,6 +2,21 @@ import { statsQueries } from '@epstein/db';
 import { getApiPool } from './connection.js';
 import { logger } from '../services/Logger.js';
 
+interface CollectionCountRow {
+  sourceCollection: string | null;
+  count: string | number | null;
+}
+
+interface RedFlagDistributionRow {
+  rating: string | number | null;
+  count: string | number | null;
+}
+
+interface TopRoleRow {
+  role: string | null;
+  count: string | number | null;
+}
+
 // Known metadata for DOJ datasets (manually curated for accuracy)
 const KNOWN_COLLECTION_METADATA: Record<
   string,
@@ -95,10 +110,13 @@ const KNOWN_COLLECTION_METADATA: Record<
 // Helper function to avoid circular reference
 const getCollectionStatsHelper = async () => {
   try {
-    const rows = await statsQueries.getCollectionCounts.run(undefined, getApiPool());
+    const rows = (await statsQueries.getCollectionCounts.run(
+      undefined,
+      getApiPool(),
+    )) as CollectionCountRow[];
 
     return rows
-      .map((row: any) => {
+      .map((row: CollectionCountRow) => {
         const title = row.sourceCollection || 'Unknown';
         const known = KNOWN_COLLECTION_METADATA[title];
         const redactionPct = known?.redactionPct ?? 0;
@@ -131,7 +149,7 @@ const getCollectionStatsHelper = async () => {
           sortOrder,
         };
       })
-      .sort((a: any, b: any) => a.sortOrder - b.sortOrder);
+      .sort((a: { sortOrder: number }, b: { sortOrder: number }) => a.sortOrder - b.sortOrder);
   } catch (e) {
     logger.error({ err: e }, 'Failed to fetch collection stats');
     return [];
@@ -252,7 +270,7 @@ export const statsRepository = {
 
     const activeInvestigations = Number(activeInvestigationsRows[0]?.count || 0);
 
-    const redFlagDistribution = redFlagDistributionRows.map((r: any) => ({
+    const redFlagDistribution = (redFlagDistributionRows as RedFlagDistributionRow[]).map((r) => ({
       rating: Number(r.rating || 0),
       count: Number(r.count || 0),
     }));
@@ -261,32 +279,40 @@ export const statsRepository = {
       {
         level: 'HIGH',
         count: redFlagDistribution
-          .filter((r: any) => r.rating >= 4)
-          .reduce((a: any, b: any) => a + b.count, 0),
+          .filter((r: { rating: number }) => r.rating >= 4)
+          .reduce((a: number, b: { count: number }) => a + b.count, 0),
       },
       {
         level: 'MEDIUM',
         count: redFlagDistribution
-          .filter((r: any) => r.rating >= 2 && r.rating < 4)
-          .reduce((a: any, b: any) => a + b.count, 0),
+          .filter((r: { rating: number }) => r.rating >= 2 && r.rating < 4)
+          .reduce((a: number, b: { count: number }) => a + b.count, 0),
       },
       {
         level: 'LOW',
         count: redFlagDistribution
-          .filter((r: any) => r.rating < 2)
-          .reduce((a: any, b: any) => a + b.count, 0),
+          .filter((r: { rating: number }) => r.rating < 2)
+          .reduce((a: number, b: { count: number }) => a + b.count, 0),
       },
     ];
 
-    const topEntities = topEntitiesRows.map((r: any) => ({
-      id: String(r.id || ''),
-      name: r.name,
-      role: r.primaryRole || '',
-      mentions: Number(r.mentions || 0),
-      riskLevel: Number(r.redFlagRating || 0),
-      red_flag_rating: Number(r.redFlagRating || 0),
-      type: 'Person',
-    }));
+    const topEntities = topEntitiesRows.map(
+      (r: {
+        id: unknown;
+        name: string;
+        mentions: unknown;
+        redFlagRating: unknown;
+        primaryRole: string | null;
+      }) => ({
+        id: String(r.id || ''),
+        name: r.name,
+        role: r.primaryRole || '',
+        mentions: Number(r.mentions || 0),
+        riskLevel: Number(r.redFlagRating || 0),
+        red_flag_rating: Number(r.redFlagRating || 0),
+        type: 'Person',
+      }),
+    );
 
     return {
       totalEntities: Number(globalStatsRows?.totalEntities || 0),
@@ -300,11 +326,11 @@ export const statsRepository = {
       documentsWithMetadata: Number(globalStatsRows?.documentsWithMetadata || 0),
       documentsFixed: Number(globalStatsRows?.documentsFixed || 0),
       activeInvestigations,
-      topRoles: topRoles.map((r: any) => ({ ...r, count: Number(r.count || 0) })),
+      topRoles: (topRoles as TopRoleRow[]).map((r) => ({ ...r, count: Number(r.count || 0) })),
       topEntities,
       likelihoodDistribution,
       redFlagDistribution,
-      collectionCounts: collectionCountsRows.map((r: any) => ({
+      collectionCounts: (collectionCountsRows as CollectionCountRow[]).map((r) => ({
         source_collection: r.sourceCollection,
         count: Number(r.count || 0),
       })),

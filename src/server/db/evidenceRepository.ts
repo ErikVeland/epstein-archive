@@ -1,45 +1,56 @@
 import { evidenceQueries } from '@epstein/db';
 import { getApiPool } from './connection.js';
 
+// Helper to call pgtyped query objects whose method signatures aren't fully
+// reflected in the generated types (e.g. optional/extended queries).
+function runQuery<TParams, TRow>(
+  query: unknown,
+  params: TParams,
+  pool: ReturnType<typeof getApiPool>,
+): Promise<TRow[]> {
+  return (query as { run(p: TParams, c: typeof pool): Promise<TRow[]> }).run(params, pool);
+}
+
 export const evidenceRepository = {
   // Get evidence summary for a specific entity
   getEntityEvidence: async (entityId: string) => {
     // Get entity details
-    const [entity] = await (evidenceQueries.getEntitySummary as any).run(
-      { entityId },
-      getApiPool(),
-    );
+    const [entity] = await evidenceQueries.getEntitySummary.run({ entityId }, getApiPool());
 
     if (!entity) {
       return null;
     }
 
     // Get evidence linked to this entity
-    const evidenceRecords = await (evidenceQueries.getEntityEvidence as any).run(
-      { entityId, limit: 100, offset: 0 },
-      getApiPool(),
-    );
+    const evidenceRecords = await runQuery<
+      { entityId: string; limit: number; offset: number },
+      { redFlagRating?: number; confidence?: number }
+    >(evidenceQueries.getEntityEvidence, { entityId, limit: 100, offset: 0 }, getApiPool());
 
     // Get evidence type breakdown
-    const typeBreakdown = await (evidenceQueries.getEvidenceTypeBreakdownByEntity as any).run(
+    const typeBreakdown = await runQuery<{ entityId: string }, unknown>(
+      evidenceQueries.getEvidenceTypeBreakdownByEntity,
       { entityId },
       getApiPool(),
     );
 
     // Get role breakdown
-    const roleBreakdown = await (evidenceQueries.getRoleBreakdownByEntity as any).run(
+    const roleBreakdown = await runQuery<{ entityId: string }, unknown>(
+      evidenceQueries.getRoleBreakdownByEntity,
       { entityId },
       getApiPool(),
     );
 
     // Get red flag distribution
-    const redFlagDistribution = await (evidenceQueries.getRedFlagDistributionByEntity as any).run(
+    const redFlagDistribution = await runQuery<{ entityId: string }, unknown>(
+      evidenceQueries.getRedFlagDistributionByEntity,
       { entityId },
       getApiPool(),
     );
 
     // Get related entities (entities that appear in same evidence)
-    const relatedEntities = await (evidenceQueries.getRelatedEntitiesByEntity as any).run(
+    const relatedEntities = await runQuery<{ entityId: string; limit: number }, unknown>(
+      evidenceQueries.getRelatedEntitiesByEntity,
       { entityId, limit: 20 },
       getApiPool(),
     );
@@ -53,10 +64,14 @@ export const evidenceRepository = {
         roleBreakdown,
         redFlagDistribution,
         relatedEntities,
-        highRiskCount: evidenceRecords.filter((e: any) => (e.redFlagRating || 0) >= 4).length,
+        highRiskCount: evidenceRecords.filter(
+          (e) => ((e.redFlagRating as number | undefined) || 0) >= 4,
+        ).length,
         averageConfidence:
-          evidenceRecords.reduce((sum: number, e: any) => sum + (e.confidence || 0), 0) /
-            evidenceRecords.length || 0,
+          evidenceRecords.reduce(
+            (sum: number, e) => sum + ((e.confidence as number | undefined) || 0),
+            0,
+          ) / evidenceRecords.length || 0,
       },
     };
   },
@@ -67,7 +82,15 @@ export const evidenceRepository = {
     notes: string,
     relevance: string,
   ) => {
-    const [doc] = await (evidenceQueries.getDocumentDetailsForEvidence as any).run(
+    interface DocRow {
+      id: number;
+      file_path?: string;
+      file_name?: string;
+      evidence_type?: string;
+      red_flag_rating?: number;
+    }
+    const [doc] = await runQuery<{ id: string }, DocRow>(
+      evidenceQueries.getDocumentDetailsForEvidence,
       { id: documentId },
       getApiPool(),
     );
@@ -80,7 +103,21 @@ export const evidenceRepository = {
     try {
       await client.query('BEGIN');
 
-      const [evidenceIdRow] = await (evidenceQueries.createEvidenceFull as any).run(
+      const [evidenceIdRow] = await runQuery<
+        {
+          evidenceType: string;
+          sourcePath: string;
+          originalFilename: string;
+          title: string;
+          description: string;
+          extractedText: string;
+          redFlagRating: number;
+          evidenceTags: string;
+          metadata: string;
+        },
+        { id: number }
+      >(
+        evidenceQueries.createEvidenceFull,
         {
           evidenceType: doc.evidence_type || 'investigative_report',
           sourcePath,
@@ -92,23 +129,28 @@ export const evidenceRepository = {
           evidenceTags: '[]',
           metadata: JSON.stringify({ document_id: doc.id }),
         },
-        client,
+        client as unknown as ReturnType<typeof getApiPool>,
       );
       const evidenceId = String(evidenceIdRow.id);
 
-      const [link] = await (evidenceQueries.addEvidenceToInvestigation as any).run(
+      const [link] = await runQuery<
+        { investigationId: string; evidenceId: string; notes: string; relevance: string },
+        { id: number }
+      >(
+        evidenceQueries.addEvidenceToInvestigation,
         {
           investigationId,
           evidenceId,
           notes: notes || '',
           relevance: relevance || 'medium',
         },
-        client,
+        client as unknown as ReturnType<typeof getApiPool>,
       );
 
       await client.query('COMMIT');
 
-      const [evidence] = await (evidenceQueries.getEvidenceByIdDetailed as any).run(
+      const [evidence] = await runQuery<{ id: string }, unknown>(
+        evidenceQueries.getEvidenceByIdDetailed,
         { id: evidenceId },
         getApiPool(),
       );
@@ -132,7 +174,8 @@ export const evidenceRepository = {
     relevance: string,
   ) => {
     // Get evidence details
-    const [evidence] = await (evidenceQueries.getEvidenceByIdDetailed as any).run(
+    const [evidence] = await runQuery<{ id: string }, unknown>(
+      evidenceQueries.getEvidenceByIdDetailed,
       { id: evidenceId },
       getApiPool(),
     );
@@ -142,13 +185,18 @@ export const evidenceRepository = {
     }
 
     // Get entities linked to this evidence
-    const entities = await (evidenceQueries.getEvidenceEntities as any).run(
+    const entities = await runQuery<{ evidenceId: string }, unknown>(
+      evidenceQueries.getEvidenceEntities,
       { evidenceId },
       getApiPool(),
     );
 
     // Insert into investigation_evidence table
-    const [result] = await (evidenceQueries.addEvidenceToInvestigation as any).run(
+    const [result] = await runQuery<
+      { investigationId: string; evidenceId: string; notes: string; relevance: string },
+      { id: number }
+    >(
+      evidenceQueries.addEvidenceToInvestigation,
       {
         investigationId,
         evidenceId,
@@ -170,7 +218,17 @@ export const evidenceRepository = {
     notes: string,
     relevance: string,
   ) => {
-    const [media] = await (evidenceQueries.getMediaItemForEvidence as any).run(
+    interface MediaItemRow {
+      id: number;
+      filePath: string;
+      fileType?: string;
+      title?: string;
+      description?: string;
+      redFlagRating?: number;
+      metadataJson?: string | Record<string, unknown>;
+    }
+    const [media] = await runQuery<{ id: string }, MediaItemRow>(
+      evidenceQueries.getMediaItemForEvidence,
       { id: mediaItemId },
       getApiPool(),
     );
@@ -178,7 +236,8 @@ export const evidenceRepository = {
       throw new Error('Media not found');
     }
     const sourcePath = media.filePath;
-    const [existing] = await (evidenceQueries.getEvidenceBySourcePath as any).run(
+    const [existing] = await runQuery<{ sourcePath: string }, { id: number }>(
+      evidenceQueries.getEvidenceBySourcePath,
       { sourcePath },
       getApiPool(),
     );
@@ -187,34 +246,49 @@ export const evidenceRepository = {
     if (existing) {
       evidenceId = String(existing.id);
     } else {
-      let metadata: any = {};
+      let metadata: Record<string, unknown> = {};
       try {
         metadata =
           typeof media.metadataJson === 'string'
-            ? JSON.parse(media.metadataJson)
-            : media.metadataJson || {};
+            ? (JSON.parse(media.metadataJson) as Record<string, unknown>)
+            : (media.metadataJson as Record<string, unknown>) || {};
       } catch {
         metadata = {};
       }
       const transcriptText =
-        metadata.external_transcript_text ||
+        (metadata.external_transcript_text as string | undefined) ||
         (Array.isArray(metadata.transcript)
-          ? metadata.transcript.map((s: any) => s.text).join('\n')
+          ? (metadata.transcript as Array<{ text: string }>).map((s) => s.text).join('\n')
           : null);
       const evidenceType =
         media.fileType === 'audio' ? 'audio' : media.fileType === 'video' ? 'video' : 'media_scan';
 
-      const tags = await (evidenceQueries.getMediaItemTags as any).run(
+      const tags = await runQuery<{ mediaItemId: string }, { name: string }>(
+        evidenceQueries.getMediaItemTags,
         { mediaItemId },
         getApiPool(),
       );
-      const evidenceTags = JSON.stringify(tags.map((t: any) => t.name));
+      const evidenceTags = JSON.stringify(tags.map((t) => t.name));
 
       const client = await getApiPool().connect();
       try {
         await client.query('BEGIN');
 
-        const [ins] = await (evidenceQueries.createEvidenceFull as any).run(
+        const [ins] = await runQuery<
+          {
+            evidenceType: string;
+            sourcePath: string;
+            originalFilename: string;
+            title: string;
+            description: string;
+            extractedText: string;
+            redFlagRating: number;
+            evidenceTags: string;
+            metadata: string;
+          },
+          { id: number }
+        >(
+          evidenceQueries.createEvidenceFull,
           {
             evidenceType,
             sourcePath,
@@ -231,17 +305,22 @@ export const evidenceRepository = {
               chapters: metadata.chapters,
             }),
           },
-          client,
+          client as unknown as ReturnType<typeof getApiPool>,
         );
         evidenceId = String(ins.id);
 
-        const people = await (evidenceQueries.getMediaItemPeople as any).run(
+        interface MediaPersonRow {
+          entity_id: number;
+          role?: string;
+        }
+        const people = await runQuery<{ mediaItemId: string }, MediaPersonRow>(
+          evidenceQueries.getMediaItemPeople,
           { mediaItemId },
           getApiPool(),
         );
         if (people.length > 0) {
           // Batch insert all entity links in one query instead of N+1 individual inserts
-          const values = people.map((_: any, i: number) => {
+          const values = people.map((_: MediaPersonRow, i: number) => {
             const base = i * 5;
             return `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5})`;
           });
@@ -266,7 +345,11 @@ export const evidenceRepository = {
       client.release();
     }
 
-    const [res] = await (evidenceQueries.addEvidenceToInvestigation as any).run(
+    const [res] = await runQuery<
+      { investigationId: string; evidenceId: string; notes: string; relevance: string },
+      { id: number }
+    >(
+      evidenceQueries.addEvidenceToInvestigation,
       {
         investigationId,
         evidenceId,
@@ -276,7 +359,8 @@ export const evidenceRepository = {
       getApiPool(),
     );
 
-    const [evidence] = await (evidenceQueries.getEvidenceByIdDetailed as any).run(
+    const [evidence] = await runQuery<{ id: string }, unknown>(
+      evidenceQueries.getEvidenceByIdDetailed,
       { id: evidenceId },
       getApiPool(),
     );
@@ -289,13 +373,14 @@ export const evidenceRepository = {
   // Get evidence summary for an investigation
   getInvestigationEvidenceSummary: async (investigationId: string) => {
     // Get all evidence for this investigation
-    const evidence = await (evidenceQueries.getInvestigationEvidenceSummary as any).run(
-      { investigationId },
-      getApiPool(),
-    );
+    const evidence = await runQuery<
+      { investigationId: string },
+      { evidenceType?: string; relevance?: string }
+    >(evidenceQueries.getInvestigationEvidenceSummary, { investigationId }, getApiPool());
 
     // Get entity coverage
-    const entityCoverage = await (evidenceQueries.getInvestigationEntityCoverage as any).run(
+    const entityCoverage = await runQuery<{ investigationId: string; limit: number }, unknown>(
+      evidenceQueries.getInvestigationEntityCoverage,
       { investigationId, limit: 50 },
       getApiPool(),
     );
@@ -338,12 +423,14 @@ export const evidenceRepository = {
       entityCoverage,
       entityByEvidence,
       evidenceByEntity,
-      typeBreakdown: evidence.reduce((acc: any, e: any) => {
-        acc[e.evidenceType!] = (acc[e.evidenceType!] || 0) + 1;
+      typeBreakdown: evidence.reduce((acc: Record<string, number>, e) => {
+        const key = e.evidenceType ?? 'unknown';
+        acc[key] = (acc[key] || 0) + 1;
         return acc;
       }, {}),
-      relevanceBreakdown: evidence.reduce((acc: any, e: any) => {
-        acc[e.relevance || 'medium'] = (acc[e.relevance || 'medium'] || 0) + 1;
+      relevanceBreakdown: evidence.reduce((acc: Record<string, number>, e) => {
+        const key = e.relevance || 'medium';
+        acc[key] = (acc[key] || 0) + 1;
         return acc;
       }, {}),
     };
@@ -351,7 +438,8 @@ export const evidenceRepository = {
 
   // Remove evidence from an investigation
   removeEvidenceFromInvestigation: async (investigationEvidenceId: string) => {
-    const result = await (evidenceQueries.removeEvidenceFromInvestigation as any).run(
+    const result = await runQuery<{ id: string }, unknown>(
+      evidenceQueries.removeEvidenceFromInvestigation,
       { id: investigationEvidenceId },
       getApiPool(),
     );
@@ -384,7 +472,25 @@ export const evidenceRepository = {
     const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10)));
     const offset = (pageNum - 1) * limitNum;
 
-    const results = await (evidenceQueries.searchEvidenceFull as any).run(
+    interface SearchEvidenceRow {
+      id: number;
+      evidenceTags?: string;
+      [key: string]: unknown;
+    }
+    const results = await runQuery<
+      {
+        query: string;
+        type: string | null;
+        entityId: string | null;
+        dateFrom: string | null;
+        dateTo: string | null;
+        redFlagMin: number | null;
+        limit: number;
+        offset: number;
+      },
+      SearchEvidenceRow
+    >(
+      evidenceQueries.searchEvidenceFull,
       {
         query: q || '',
         type: type || null,
@@ -398,7 +504,18 @@ export const evidenceRepository = {
       getApiPool(),
     );
 
-    const [{ total }] = await (evidenceQueries.countSearchEvidenceFull as any).run(
+    const [{ total }] = await runQuery<
+      {
+        query: string;
+        type: string | null;
+        entityId: string | null;
+        dateFrom: string | null;
+        dateTo: string | null;
+        redFlagMin: number | null;
+      },
+      { total: number | string }
+    >(
+      evidenceQueries.countSearchEvidenceFull,
       {
         query: q || '',
         type: type || null,
@@ -411,7 +528,7 @@ export const evidenceRepository = {
     );
 
     // Enrich with entities — single batch query instead of N+1
-    const resultIds: number[] = results.map((r: any) => Number(r.id));
+    const resultIds: number[] = results.map((r) => Number(r.id));
     const entityRows = resultIds.length
       ? await getApiPool()
           .query<{
@@ -436,7 +553,7 @@ export const evidenceRepository = {
       if (!entityMap.has(key)) entityMap.set(key, []);
       entityMap.get(key)!.push(row);
     }
-    const finalResults = results.map((result: any) => ({
+    const finalResults = results.map((result) => ({
       ...result,
       entities: (entityMap.get(Number(result.id)) ?? []).map((e) => ({
         id: e.id,
@@ -444,7 +561,7 @@ export const evidenceRepository = {
         category: e.category,
         role: e.role,
       })),
-      tags: result.evidenceTags ? JSON.parse(result.evidenceTags) : [],
+      tags: result.evidenceTags ? (JSON.parse(result.evidenceTags) as unknown[]) : [],
     }));
 
     const totalNum = Number(total || 0);
@@ -463,23 +580,25 @@ export const evidenceRepository = {
 
   // Get single evidence record with full details
   getEvidenceById: async (id: string) => {
-    const [evidence] = await (evidenceQueries.getEvidenceByIdDetailed as any).run(
-      { id },
-      getApiPool(),
-    );
+    const [evidence] = await runQuery<
+      { id: string },
+      { evidenceTags?: string; [key: string]: unknown }
+    >(evidenceQueries.getEvidenceByIdDetailed, { id }, getApiPool());
 
     if (!evidence) {
       return null;
     }
 
     // Get linked entities
-    const entities = await (evidenceQueries.getEvidenceEntities as any).run(
+    const entities = await runQuery<{ evidenceId: string }, unknown>(
+      evidenceQueries.getEvidenceEntities,
       { evidenceId: id },
       getApiPool(),
     );
 
     // Get timeline events if any
-    const events = await (evidenceQueries.getEvidenceTimelineEvents as any).run(
+    const events = await runQuery<{ evidenceId: string }, unknown>(
+      evidenceQueries.getEvidenceTimelineEvents,
       { evidenceId: id },
       getApiPool(),
     );
@@ -488,13 +607,17 @@ export const evidenceRepository = {
       ...evidence,
       entities,
       events,
-      tags: evidence.evidenceTags ? JSON.parse(evidence.evidenceTags) : [],
+      tags: evidence.evidenceTags ? (JSON.parse(evidence.evidenceTags) as unknown[]) : [],
     };
   },
 
   // List all evidence types with counts
   getEvidenceTypes: async () => {
-    const types = await (evidenceQueries.getEvidenceTypeCounts as any).run(undefined, getApiPool());
+    const types = await runQuery<undefined, { type?: string; [key: string]: unknown }>(
+      evidenceQueries.getEvidenceTypeCounts,
+      undefined,
+      getApiPool(),
+    );
 
     // Add descriptions
     const typeDescriptions: Record<string, string> = {
@@ -510,9 +633,9 @@ export const evidenceRepository = {
       evidence_list: 'Catalogued evidence inventories',
     };
 
-    const enrichedTypes = types.map((t: any) => ({
+    const enrichedTypes = types.map((t) => ({
       ...t,
-      description: typeDescriptions[t.type || ''] || '',
+      description: typeDescriptions[String(t.type || '')] || '',
     }));
 
     return enrichedTypes;
@@ -529,7 +652,11 @@ export const evidenceRepository = {
     const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10)));
     const offset = (pageNum - 1) * limitNum;
 
-    const results = await (evidenceQueries.getEntityEvidenceDetailed as any).run(
+    const results = await runQuery<
+      { entityId: string; type: string | null; limit: number; offset: number },
+      unknown
+    >(
+      evidenceQueries.getEntityEvidenceDetailed,
       {
         entityId,
         type: type || null,
@@ -539,7 +666,11 @@ export const evidenceRepository = {
       getApiPool(),
     );
 
-    const [{ total }] = await (evidenceQueries.countEntityEvidenceDetailed as any).run(
+    const [{ total }] = await runQuery<
+      { entityId: string; type: string | null },
+      { total: number | string }
+    >(
+      evidenceQueries.countEntityEvidenceDetailed,
       {
         entityId,
         type: type || null,

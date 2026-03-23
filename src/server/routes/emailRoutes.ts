@@ -80,7 +80,7 @@ const normalizeList = (raw: unknown): string[] => {
 };
 
 const normalizeThreadId = (metadataJson: string | null, id: number): string => {
-  const metadata = safeJsonParse<Record<string, any>>(metadataJson, {});
+  const metadata = safeJsonParse<Record<string, unknown>>(metadataJson, {});
   return String(
     metadata.thread_id ||
       metadata.threadId ||
@@ -88,6 +88,30 @@ const normalizeThreadId = (metadataJson: string | null, id: number): string => {
       metadata.message_id ||
       id,
   );
+};
+
+const readString = (value: unknown): string | undefined =>
+  typeof value === 'string' && value.length > 0 ? value : undefined;
+
+const readNumber = (value: unknown, fallback: number): number =>
+  typeof value === 'number'
+    ? value
+    : typeof value === 'string' && value.trim().length > 0 && Number.isFinite(Number(value))
+      ? Number(value)
+      : fallback;
+
+const readOptionalNumber = (value: unknown): number | undefined =>
+  typeof value === 'number'
+    ? value
+    : typeof value === 'string' && value.trim().length > 0 && Number.isFinite(Number(value))
+      ? Number(value)
+      : undefined;
+
+const readOptionalBoolean = (value: unknown): boolean | undefined => {
+  if (typeof value === 'boolean') return value;
+  if (value === 'true') return true;
+  if (value === 'false') return false;
+  return undefined;
 };
 
 const parseCursor = (value: string | undefined): ParsedCursor | null => {
@@ -197,9 +221,9 @@ const parseEntityIds = (raw: string | null): number[] => {
 // GET /api/emails/mailboxes
 router.get('/mailboxes', validate(mailboxesSchema), async (req, res, next) => {
   try {
-    const showSuppressedJunk = (req.query as any).showSuppressedJunk === true;
+    const showSuppressedJunk = (req.query as Record<string, unknown>).showSuppressedJunk === true;
     const cacheKey = `emails:mailboxes:${showSuppressedJunk ? 'all' : 'filtered'}`;
-    const cached = performanceCache.get<any>(cacheKey);
+    const cached = performanceCache.get<unknown>(cacheKey);
     if (cached) {
       return res.json(cached);
     }
@@ -250,20 +274,19 @@ router.get('/mailboxes', validate(mailboxesSchema), async (req, res, next) => {
 // GET /api/emails/threads
 router.get('/threads', validate(threadsSchema), async (req, res, next) => {
   try {
-    const {
-      mailboxId,
-      q: query,
-      from: fromFilter,
-      to: toFilter,
-      dateFrom,
-      dateTo,
-      hasAttachments,
-      minRisk,
-      tab,
-      limit,
-      cursor,
-      showSuppressedJunk,
-    } = req.query as any;
+    const queryParams = req.query as Record<string, unknown>;
+    const mailboxId = readString(queryParams.mailboxId) || 'all';
+    const query = readString(queryParams.q);
+    const fromFilter = readString(queryParams.from);
+    const toFilter = readString(queryParams.to);
+    const dateFrom = readString(queryParams.dateFrom);
+    const dateTo = readString(queryParams.dateTo);
+    const hasAttachments = readOptionalBoolean(queryParams.hasAttachments);
+    const minRisk = readOptionalNumber(queryParams.minRisk);
+    const tab = readString(queryParams.tab);
+    const limit = readNumber(queryParams.limit, DEFAULT_LIMIT);
+    const cursor = readString(queryParams.cursor);
+    const showSuppressedJunk = readOptionalBoolean(queryParams.showSuppressedJunk);
 
     res.setHeader('X-Limit-Applied', String(limit));
     const parsedCursor = parseCursor(cursor);
@@ -295,29 +318,29 @@ router.get('/threads', validate(threadsSchema), async (req, res, next) => {
 
     const payload = {
       data: pageRows.map((row) => ({
-        threadId: threadRowField(row as Record<string, any>, 'threadId') || '',
-        subject: row.subject || 'No Subject',
+        threadId: String(threadRowField(row as Record<string, any>, 'threadId') || ''),
+        subject: String(row.subject || 'No Subject'),
         participants: normalizeList(
           threadRowField(row as Record<string, any>, 'participantsRaw') || '',
         ),
         participantCount: threadRowField(row as Record<string, any>, 'participantCount') || 0,
         lastMessageAt: threadRowField(row as Record<string, any>, 'lastMessageAt') || '',
-        snippet: row.snippet || '',
+        snippet: String(row.snippet || ''),
         messageCount: threadRowField(row as Record<string, any>, 'messageCount') || 0,
         hasAttachments:
           Number(threadRowField(row as Record<string, any>, 'hasAttachments') || 0) === 1,
         linkedEntityIds: parseEntityIds(
           threadRowField(row as Record<string, any>, 'linkedEntityIdsRaw') || '',
         ),
-        risk: row.risk ?? row.risk?.toString?.() ?? null,
-        ladder: row.ladder || null,
-        confidence: row.confidence ?? null,
+        risk: row.risk == null ? null : typeof row.risk === 'number' ? row.risk : Number(row.risk),
+        ladder: readString(row.ladder) || null,
+        confidence: readOptionalNumber(row.confidence) ?? null,
       })),
       meta: {
         total: countRow.total || 0,
         limit,
         hasMore,
-        nextCursor,
+        nextCursor: nextCursor || '',
       },
     };
 
@@ -375,7 +398,7 @@ router.get('/threads/:threadId', validate(threadIdParamSchema), async (req, res,
       flags: {
         hasAttachments: row.hasAttachments === 1,
       },
-      attachmentsMeta: safeJsonParse<any[]>(row.attachmentsMetaRaw, []),
+      attachmentsMeta: safeJsonParse<unknown[]>(row.attachmentsMetaRaw, []),
       linkedEntities: entitiesByMessage.get(row.messageId) || [],
       ingestRunId: row.ingestRunId,
       pipelineVersion: row.pipelineVersion,
@@ -401,9 +424,9 @@ router.get('/threads/:threadId', validate(threadIdParamSchema), async (req, res,
 router.get('/messages/:messageId/body', validate(messageBodySchema), async (req, res, next) => {
   try {
     const { messageId } = req.params;
-    const showQuoted = (req.query as any).showQuoted === true;
+    const showQuoted = (req.query as Record<string, unknown>).showQuoted === true;
     const cacheKey = `emails:message:${messageId}:body:${showQuoted ? 'quoted' : 'collapsed'}`;
-    const cached = performanceCache.get<any>(cacheKey);
+    const cached = performanceCache.get<unknown>(cacheKey);
     if (cached) {
       return res.json(cached);
     }
@@ -426,7 +449,7 @@ router.get('/messages/:messageId/body', validate(messageBodySchema), async (req,
       return res.status(404).json({ error: 'Message not found' });
     }
 
-    const metadata = safeJsonParse<Record<string, any>>(row.metadata_json, {});
+    const metadata = safeJsonParse<Record<string, unknown>>(row.metadata_json, {});
     const source = String(row.content || metadata.body_raw || metadata.raw || '').trim();
     const cleaned = source ? await cleanMime(source) : null;
 
@@ -510,7 +533,7 @@ router.get('/messages/:messageId/raw', validate(messageIdParamSchema), async (re
       return res.status(404).json({ error: 'Message not found' });
     }
 
-    const metadata = safeJsonParse<Record<string, any>>(row.metadata_json, {});
+    const metadata = safeJsonParse<Record<string, unknown>>(row.metadata_json, {});
     const raw = String(metadata.body_raw || metadata.raw || row.content || '');
 
     res.json(
@@ -530,10 +553,14 @@ router.get('/messages/:messageId/raw', validate(messageIdParamSchema), async (re
 // GET /api/emails/search
 router.get('/search', validate(emailSearchSchema), async (req, res, next) => {
   try {
-    const { q, scope, mailboxId, limit } = req.query as any;
+    const queryParams = req.query as Record<string, unknown>;
+    const q = readString(queryParams.q) || '';
+    const scope = queryParams.scope === 'mailbox' ? 'mailbox' : 'global';
+    const mailboxId = readString(queryParams.mailboxId);
+    const limit = readNumber(queryParams.limit, 20);
 
     let mailboxEntityId: number | null = null;
-    if (scope === 'mailbox' && mailboxId.startsWith('entity:')) {
+    if (scope === 'mailbox' && mailboxId?.startsWith('entity:')) {
       const entityId = Number(mailboxId.replace('entity:', ''));
       if (Number.isFinite(entityId) && entityId > 0) {
         mailboxEntityId = entityId;

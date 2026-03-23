@@ -31,7 +31,7 @@ interface MediaViewerModalProps {
 
   onClose: () => void;
   onImageUpdate?: (updatedImage: MediaImage) => void;
-  onEntityClick?: (person: any) => void;
+  onEntityClick?: (person: { id: string | number; name?: string; [key: string]: unknown }) => void;
 }
 
 const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
@@ -660,7 +660,12 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
             isAdmin={isAdmin}
             onPersonClick={(person) => {
               if (onEntityClick) {
-                onEntityClick(person);
+                onEntityClick({
+                  id: person.id,
+                  name: person.name,
+                  role: person.role,
+                  redFlagRating: person.redFlagRating,
+                });
               } else {
                 onClose();
                 navigate(`/media?personId=${person.id}`);

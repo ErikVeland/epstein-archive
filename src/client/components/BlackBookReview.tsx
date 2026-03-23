@@ -14,6 +14,24 @@ interface ReviewEntry {
   needs_review: boolean;
 }
 
+const parseStringList = (value: unknown): string[] => {
+  if (Array.isArray(value)) {
+    return value.map((entry) => String(entry || '').trim()).filter(Boolean);
+  }
+  if (typeof value === 'string') {
+    if (!value.trim()) return [];
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed)
+        ? parsed.map((entry) => String(entry || '').trim()).filter(Boolean)
+        : [value];
+    } catch {
+      return [value];
+    }
+  }
+  return [];
+};
+
 export const BlackBookReview: React.FC = () => {
   const [entries, setEntries] = useState<ReviewEntry[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -40,15 +58,25 @@ export const BlackBookReview: React.FC = () => {
       const data = await response.json();
 
       // Parse JSON fields
-      const parsed = data.entries.map((entry: any) => ({
-        ...entry,
-        phone_numbers: entry.phone_numbers ? JSON.parse(entry.phone_numbers) : [],
-        addresses: entry.addresses ? JSON.parse(entry.addresses) : [],
-        email_addresses: entry.email_addresses ? JSON.parse(entry.email_addresses) : [],
-      }));
+      const parsed = (Array.isArray(data.entries) ? data.entries : []).map(
+        (entry: Record<string, unknown>) => ({
+          ...entry,
+          phone_numbers: parseStringList(entry.phone_numbers),
+          addresses: parseStringList(entry.addresses),
+          email_addresses: parseStringList(entry.email_addresses),
+        }),
+      );
 
-      setEntries(parsed);
-      setStats(data.stats);
+      setEntries(parsed as ReviewEntry[]);
+      setStats(
+        typeof data.stats === 'object' && data.stats !== null
+          ? {
+              total: Number((data.stats as Record<string, unknown>).total || 0),
+              reviewed: Number((data.stats as Record<string, unknown>).reviewed || 0),
+              remaining: Number((data.stats as Record<string, unknown>).remaining || 0),
+            }
+          : { total: 0, reviewed: 0, remaining: 0 },
+      );
     } catch (error) {
       console.error('Error fetching review entries:', error);
     } finally {

@@ -56,7 +56,7 @@ const updateProgressSchema = z.object({
 // Get all tasks with optional filters
 router.get('/', validate(getTasksSchema), async (req, res, next) => {
   try {
-    const filters = req.query as any;
+    const filters = req.query as Record<string, string | undefined>;
 
     const result = await taskService.getTasks(filters);
     res.json(result);
@@ -68,7 +68,7 @@ router.get('/', validate(getTasksSchema), async (req, res, next) => {
 // Get a specific task by ID
 router.get('/:id', validate(taskIdParamSchema), async (req, res, next) => {
   try {
-    const taskId = (req.params as any).id;
+    const taskId = Number(req.params.id as string);
 
     const task = await taskService.getTaskById(taskId);
 
@@ -93,7 +93,7 @@ router.post('/', authenticateRequest, validate(createTaskSchema), async (req, re
       priority: data.priority,
       assignedTo: data.assignedTo,
       dueDate: data.dueDate,
-      createdById: (req as any).user?.id || 'system',
+      createdById: (req as { user?: { id?: string } }).user?.id || 'system',
       evidenceIds: data.evidenceIds,
       relatedEntities: data.relatedEntities,
     });
@@ -107,7 +107,7 @@ router.post('/', authenticateRequest, validate(createTaskSchema), async (req, re
 // Update a task
 router.put('/:id', authenticateRequest, validate(taskIdParamSchema), async (req, res, next) => {
   try {
-    const taskId = (req.params as any).id;
+    const taskId = Number(req.params.id as string);
     const updates = req.body;
 
     const updatedTask = await taskService.updateTask(taskId, updates);
@@ -130,7 +130,7 @@ router.delete(
   validate(taskIdParamSchema),
   async (req, res, next) => {
     try {
-      const taskId = (req.params as any).id;
+      const taskId = Number(req.params.id as string);
 
       const success = await taskService.deleteTask(taskId);
 
@@ -151,7 +151,7 @@ router.get(
   validate(investigationIdParamSchema),
   async (req, res, next) => {
     try {
-      const id = (req.params as any).investigationId;
+      const id = Number(req.params.investigationId as string);
 
       const tasks = await taskService.getTasksByInvestigation(id);
       res.json(tasks);
@@ -167,7 +167,7 @@ router.get(
   validate(investigationIdParamSchema),
   async (req, res, next) => {
     try {
-      const id = (req.params as any).investigationId;
+      const id = Number(req.params.investigationId as string);
 
       const summary = await taskService.getTaskSummary(id);
       res.json(summary);
@@ -184,7 +184,7 @@ router.patch(
   validate(updateProgressSchema),
   async (req, res, next) => {
     try {
-      const taskId = (req.params as any).id;
+      const taskId = Number(req.params.id as string);
       const { progress } = req.body;
 
       const updatedTask = await taskService.updateTaskProgress(taskId, progress);
@@ -204,7 +204,8 @@ router.patch(
 // Get urgent tasks for the current user
 router.get('/urgent/:userId?', async (req, res, next) => {
   try {
-    const userId = (req.params as any).userId || (req as any).user?.id;
+    const userId =
+      (req.params.userId as string | undefined) || (req as { user?: { id?: string } }).user?.id;
     const tasks = await taskService.getUrgentTasks(userId);
     res.json(tasks);
   } catch (error) {

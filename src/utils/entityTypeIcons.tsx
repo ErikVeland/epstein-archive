@@ -5,6 +5,7 @@
  */
 
 import Icon from '../client/components/common/Icon';
+import type { IconName } from '../client/components/common/Icon';
 
 // Define the entity types
 export type EntityType =
@@ -66,5 +67,5 @@ export function getEntityTypeIcon(
   role?: string,
 ) {
   const iconName = getEntityTypeIconName(entityType, role);
-  return <Icon name={iconName as any} size={size} />;
+  return <Icon name={iconName as IconName} size={size} />;
 }

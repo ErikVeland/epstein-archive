@@ -1,1 +1,1 @@
-declare const process: any;
+declare const process: { env: Record<string, string | undefined> };

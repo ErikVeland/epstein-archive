@@ -60,7 +60,7 @@ router.post('/', vitalsPostLimiter, async (req: Request, res: Response) => {
 
     // Return 204 No Content (fastest response)
     res.status(204).send();
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error({ err: error }, 'Error collecting vitals');
     // Silent fail - don't affect client
     res.status(204).send();
@@ -83,7 +83,7 @@ router.get(
       const aggregates = getWebVitalsAggregates(days);
 
       res.json({ aggregates });
-    } catch (_error: any) {
+    } catch (_error: unknown) {
       // Fallback if PERCENTILE_CONT not supported
       try {
         const days = parseInt(req.query.days as string) || 7;
@@ -91,8 +91,10 @@ router.get(
         const aggregates = getWebVitalsAggregatesAverage(days);
 
         res.json({ aggregates, note: 'Using averages (PERCENTILE_CONT not supported)' });
-      } catch (fallbackError: any) {
-        res.status(500).json({ error: fallbackError.message });
+      } catch (fallbackError: unknown) {
+        res.status(500).json({
+          error: fallbackError instanceof Error ? fallbackError.message : String(fallbackError),
+        });
       }
     }
   },

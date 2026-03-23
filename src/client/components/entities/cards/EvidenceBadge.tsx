@@ -1,6 +1,7 @@
 import React from 'react';
 import { EvidenceLadderLevel } from '../../../utils/forensics';
 import Icon from '../../common/Icon';
+import type { IconName } from '../../common/Icon';
 import { riskToneFromRating } from '../../../utils/riskSemantics';
 
 interface EvidenceBadgeProps {
@@ -54,16 +55,19 @@ export const EvidenceBadge: React.FC<EvidenceBadgeProps> = ({
   }
 
   const ladderConfig = {
-    L1: { color: 'evidence-direct', icon: 'AlertOctagon', label: 'Direct Evidence' },
+    L1: { color: 'evidence-direct', icon: 'AlertCircle', label: 'Direct Evidence' },
     L2: { color: 'evidence-inferred', icon: 'AlertTriangle', label: 'Inferred Evidence' },
     L3: { color: 'evidence-agentic', icon: 'HelpCircle', label: 'Agentic Evidence' },
-    NONE: { color: 'text-[var(--text-muted)]', icon: 'Minus', label: 'No Signal' },
-  } as const;
+    NONE: { color: 'text-[var(--text-muted)]', icon: 'ArrowDown', label: 'No Signal' },
+  } as const satisfies Record<
+    EvidenceLadderLevel,
+    { color: string; icon: IconName; label: string }
+  >;
   const cfg = ladderConfig[level] || ladderConfig.NONE;
 
   return (
     <div className={`semantic-chip ${cfg.color}`} title={`Evidence Level: ${cfg.label}`}>
-      <Icon name={cfg.icon as any} size="xs" className="w-3 h-3" />
+      <Icon name={cfg.icon} size="xs" className="w-3 h-3" />
       <span className="text-[10px] uppercase tracking-wide">{cfg.label}</span>
     </div>
   );

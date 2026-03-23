@@ -2,15 +2,42 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Sparkles, AlertCircle, ChevronRight, ChevronLeft, FileText } from 'lucide-react';
 import { prettifyOCRText } from '../../utils/prettifyOCR';
 
+interface DocumentEntity {
+  id?: string | number;
+  entity_id?: string | number;
+  name?: string;
+  fullName?: string;
+  entityType?: string;
+  type?: string;
+  role?: string;
+}
+
+interface DocumentRecord {
+  content?: string;
+  contentRefined?: string;
+  entities?: DocumentEntity[];
+  mentionedEntities?: DocumentEntity[];
+  metadata?: {
+    ocr_confidence?: number;
+    high_significance_evidence?: unknown[];
+    key_excerpts?: unknown[];
+    [key: string]: unknown;
+  };
+  unredaction_metrics?: {
+    baselineVocab?: string;
+    [key: string]: unknown;
+  };
+}
+
 interface InvestigationTextRendererProps {
-  document: any;
+  document: DocumentRecord;
   mode: 'clean' | 'ocr';
   searchTerm?: string;
   showRecoveryHighlights: boolean;
   isReadingMode: boolean;
   onToggleReadingMode: () => void;
   onToggleRecoveryHighlights: (next: boolean) => void;
-  onEntitySelect?: (entity: any) => void;
+  onEntitySelect?: (entity: DocumentEntity) => void;
 }
 
 interface ParsedSection {
@@ -79,14 +106,14 @@ const parseSections = (text: string): ParsedSection[] => {
   return sections;
 };
 
-const getEntityList = (document: any): any[] => {
+const getEntityList = (document: DocumentRecord): DocumentEntity[] => {
   const fromDocument = Array.isArray(document?.entities) ? document.entities : [];
   const fromMentioned = Array.isArray(document?.mentionedEntities)
     ? document.mentionedEntities
     : [];
   const combined = [...fromDocument, ...fromMentioned];
 
-  const byName = new Map<string, any>();
+  const byName = new Map<string, DocumentEntity>();
   for (const entity of combined) {
     const name = String(entity?.fullName || entity?.name || '').trim();
     if (!name) continue;
@@ -118,7 +145,7 @@ const inferReasonTags = (value: string): string[] => {
 };
 
 const deriveSignificanceExcerpts = (
-  document: any,
+  document: DocumentRecord,
   cleanText: string,
   entityNames: string[],
 ): SignificanceExcerpt[] => {
@@ -127,15 +154,16 @@ const deriveSignificanceExcerpts = (
 
   const normalized = Array.isArray(metadataExcerpts)
     ? metadataExcerpts
-        .map((item: any) => {
+        .map((item: unknown) => {
           if (typeof item === 'string') {
             const text = item.trim();
             return text ? { text, reasons: inferReasonTags(text) } : null;
           }
-          const text = String(item?.excerpt || item?.text || item?.passage || '').trim();
+          const obj = item as Record<string, unknown>;
+          const text = String(obj?.excerpt || obj?.text || obj?.passage || '').trim();
           if (!text) return null;
-          const reasons = Array.isArray(item?.reasons)
-            ? item.reasons.map((r: unknown) => String(r)).filter(Boolean)
+          const reasons = Array.isArray(obj?.reasons)
+            ? (obj.reasons as unknown[]).map((r: unknown) => String(r)).filter(Boolean)
             : inferReasonTags(text);
           return { text, reasons };
         })
@@ -188,7 +216,7 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
 }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
-  const [hover, setHover] = useState<{ x: number; y: number; entity: any } | null>(null);
+  const [hover, setHover] = useState<{ x: number; y: number; entity: DocumentEntity } | null>(null);
   const [highlightDensity, setHighlightDensity] = useState<'off' | 'subtle' | 'strong'>('subtle');
   const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
   const [matchCount, setMatchCount] = useState(0);
@@ -264,7 +292,7 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
   }, [entityList]);
 
   const entityByName = useMemo(() => {
-    const map = new Map<string, any>();
+    const map = new Map<string, DocumentEntity>();
     entityList.forEach((entity) => {
       map.set(String(entity.name).toLowerCase(), entity);
     });

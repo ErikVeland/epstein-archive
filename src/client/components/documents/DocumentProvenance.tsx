@@ -14,7 +14,12 @@ interface DocumentLineage {
   };
   originalDocument: { id: number; fileName: string } | null;
   childDocuments: { id: number; file_name: string; page_number: number }[];
-  auditTrail: { timestamp: string; user: string; action: string; details: any }[];
+  auditTrail: {
+    timestamp: string;
+    user: string;
+    action: string;
+    details: Record<string, unknown>;
+  }[];
 }
 
 interface DocumentProvenanceProps {

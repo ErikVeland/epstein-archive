@@ -84,7 +84,7 @@ const MemoryDashboard: React.FC = () => {
               onChange={(e) =>
                 setSearchFilters({
                   ...searchFilters,
-                  memoryType: (e.target.value as any) || undefined,
+                  memoryType: (e.target.value as MemorySearchFilters['memoryType']) || undefined,
                 })
               }
               className="w-full rounded-md bg-[var(--glass-bg)] border-[var(--glass-border)] shadow-sm focus:border-[var(--accent)] focus:ring-[var(--accent)] sm:text-sm"
@@ -106,7 +106,7 @@ const MemoryDashboard: React.FC = () => {
               onChange={(e) =>
                 setSearchFilters({
                   ...searchFilters,
-                  status: (e.target.value as any) || undefined,
+                  status: (e.target.value as MemorySearchFilters['status']) || undefined,
                 })
               }
               className="w-full rounded-md bg-[var(--glass-bg)] border-[var(--glass-border)] shadow-sm focus:border-[var(--accent)] focus:ring-[var(--accent)] sm:text-sm"
@@ -167,7 +167,11 @@ const MemoryDashboard: React.FC = () => {
               </label>
               <select
                 value={newMemoryType}
-                onChange={(e) => setNewMemoryType(e.target.value as any)}
+                onChange={(e) =>
+                  setNewMemoryType(
+                    e.target.value as 'declarative' | 'episodic' | 'working' | 'procedural',
+                  )
+                }
                 className="w-full rounded-md bg-[var(--glass-bg)] border-[var(--glass-border)] shadow-sm focus:border-[var(--accent)] focus:ring-[var(--accent)] sm:text-sm"
               >
                 <option value="declarative">Declarative</option>

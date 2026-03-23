@@ -6,10 +6,13 @@ export interface PersonAdapter {
   name: string;
   files?: number;
   mentions: number;
-  contexts?: any[];
+  contexts?: unknown[];
   evidenceTypes?: string[];
   wasAgentic?: boolean;
-  [key: string]: any;
+  connections?: string | number;
+  photos?: unknown[];
+  blackBookEntries?: unknown[];
+  [key: string]: unknown;
 }
 
 export type EvidenceLadderLevel = 'L1' | 'L2' | 'L3' | 'NONE';
@@ -37,6 +40,11 @@ export interface EvidenceLadderResult {
   description: string;
 }
 
+const asArray = (value: unknown): unknown[] => (Array.isArray(value) ? value : []);
+
+const asString = (value: unknown): string =>
+  typeof value === 'string' ? value : typeof value === 'number' ? String(value) : '';
+
 /**
  * Calculates the Evidence Ladder Level based on direct evidence presence.
  * L1: Direct Evidence (Black Book, Flight Logs, Photos)
@@ -45,8 +53,8 @@ export interface EvidenceLadderResult {
  */
 export const calculateEvidenceLadder = (person: Person | PersonAdapter): EvidenceLadderResult => {
   const evidenceTypes = (person.evidenceTypes || []).map((t) => t.toLowerCase());
-  const hasPhotos = person.photos && person.photos.length > 0;
-  const inBlackBook = person.blackBookEntries && person.blackBookEntries.length > 0;
+  const hasPhotos = asArray(person.photos).length > 0;
+  const inBlackBook = asArray(person.blackBookEntries).length > 0;
 
   // L1: HARD EVIDENCE
   if (
@@ -62,7 +70,10 @@ export const calculateEvidenceLadder = (person: Person | PersonAdapter): Evidenc
   }
 
   // L2: STRONG INFERENCE / CORROBORATION
-  if (person.mentions > 50 || (person.connections && parseInt(person.connections) > 5)) {
+  if (
+    person.mentions > 50 ||
+    (person.connections && parseInt(asString(person.connections), 10) > 5)
+  ) {
     return {
       level: 'L2',
       description:
@@ -90,9 +101,10 @@ export const calculateSignalMetrics = (person: Person | PersonAdapter): SignalMe
   if (person.connections) {
     // sometimes it's a number string, sometimes a summary string.
     // heuristic: try parse int, else count commas if valuable
-    const parsed = parseInt(person.connections);
+    const connectionText = asString(person.connections);
+    const parsed = parseInt(connectionText, 10);
     if (!isNaN(parsed)) connectionCount = parsed;
-    else connectionCount = (person.connections.match(/,/g) || []).length;
+    else connectionCount = (connectionText.match(/,/g) || []).length;
   }
   // Cap at 20 connections for max strength visual
   const connectivity = Math.min(100, (connectionCount / 20) * 100);
@@ -118,7 +130,7 @@ export const generateDriverChips = (person: Person | PersonAdapter): DriverChip[
   const chips: DriverChip[] = [];
   const evidenceTypes = (person.evidenceTypes || []).map((t) => t.toLowerCase());
 
-  if (person.blackBookEntries && person.blackBookEntries.length > 0) {
+  if (asArray(person.blackBookEntries).length > 0) {
     chips.push({ label: 'Black Book Entry', type: 'critical' });
   }
 
@@ -126,15 +138,16 @@ export const generateDriverChips = (person: Person | PersonAdapter): DriverChip[
     chips.push({ label: 'Flight Logs', type: 'critical' });
   }
 
-  if (person.photos && person.photos.length > 0) {
-    chips.push({ label: `${person.photos.length} Verified Photos`, type: 'verified' });
+  const photos = asArray(person.photos);
+  if (photos.length > 0) {
+    chips.push({ label: `${photos.length} Verified Photos`, type: 'verified' });
   }
 
   if (person.mentions > 100) {
     chips.push({ label: 'High Exposure', type: 'context' });
   }
 
-  if (person.connections && parseInt(person.connections) > 10) {
+  if (person.connections && parseInt(asString(person.connections), 10) > 10) {
     chips.push({ label: 'Network Hub', type: 'context' });
   }
 

@@ -46,11 +46,19 @@ check_url() {
   log "✅ $name OK ($status)"
 }
 
+SITE_SUITE="${SITE_SUITE:-all}"
+
 log "Checking public production sites..."
 
-check_url "glasscode.academy gateway" "https://glasscode.academy/health" "200" '^ok$'
-check_url "glasscode.academy API" "https://glasscode.academy/api/health" "200" '"status"[[:space:]]*:[[:space:]]*"(ok|healthy)"'
-check_url "about.glasscode.academy" "https://about.glasscode.academy/en" "200" '<!DOCTYPE html'
-check_url "piday.glasscode.academy" "https://piday.glasscode.academy/" "200" '<!DOCTYPE html'
+if [ "$SITE_SUITE" = "all" ] || [ "$SITE_SUITE" = "glasscode" ]; then
+  check_url "glasscode.academy gateway" "https://glasscode.academy/health" "200" '^ok$'
+  check_url "glasscode.academy API" "https://glasscode.academy/api/health" "200" '"status"[[:space:]]*:[[:space:]]*"(ok|healthy)"'
+  check_url "about.glasscode.academy" "https://about.glasscode.academy/en" "200" '<!DOCTYPE html'
+  check_url "piday.glasscode.academy" "https://piday.glasscode.academy/" "200" '<!DOCTYPE html'
+fi
+
+if [ "$SITE_SUITE" = "all" ] || [ "$SITE_SUITE" = "epstein" ]; then
+  check_url "epstein.academy API" "https://epstein.academy/api/health" "200" '"status"[[:space:]]*:[[:space:]]*"ok"'
+fi
 
 log "✅ Public production sites verified."

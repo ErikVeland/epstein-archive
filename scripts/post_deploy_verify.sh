@@ -147,7 +147,7 @@ done
 log_success "Stats burst resilience OK"
 
 echo "Checking public Glasscode services..."
-./scripts/check_public_sites.sh
+SITE_SUITE=epstein ./scripts/check_public_sites.sh
 
 echo "---"
 echo -e "${GREEN}ALL CHECKS PASSED. DEPLOYMENT v$EXPECTED_VERSION VERIFIED.${NC}"

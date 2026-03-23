@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import Icon from '../common/Icon';
+import Icon, { type IconName } from '../common/Icon';
 // import { Link } from 'react-router-dom';
 
 interface ActivityItem {
@@ -11,7 +11,7 @@ interface ActivityItem {
   targetType: string | null;
   targetId: string | null;
   targetTitle: string | null;
-  metadata: any;
+  metadata: Record<string, unknown> | null;
   createdAt: string;
 }
 
@@ -79,6 +79,11 @@ const formatTimeAgo = (dateString: string): string => {
   if (diffHour < 24) return `${diffHour}h ago`;
   if (diffDay < 7) return `${diffDay}d ago`;
   return date.toLocaleDateString();
+};
+
+const readRelevance = (value: unknown): 'high' | 'medium' | 'low' | null => {
+  if (value === 'high' || value === 'medium' || value === 'low') return value;
+  return null;
 };
 
 export const InvestigationActivityFeed: React.FC<InvestigationActivityFeedProps> = ({
@@ -157,70 +162,73 @@ export const InvestigationActivityFeed: React.FC<InvestigationActivityFeedProps>
 
   return (
     <div className={`activity-feed ${compact ? 'space-y-2' : 'space-y-3'}`}>
-      {activities.map((activity) => (
-        <div
-          key={activity.id}
-          className={`flex items-start gap-3 ${compact ? 'py-1' : 'py-2 px-3 bg-[var(--glass-bg)]/30 rounded-[var(--radius-lg)]'}`}
-        >
-          {/* Action icon */}
+      {activities.map((activity) => {
+        const relevance = readRelevance(activity.metadata?.relevance);
+        return (
           <div
-            className={`flex-shrink-0 w-8 h-8 rounded-full bg-[var(--glass-bg-highlight)]/50 flex items-center justify-center ${getActionColor(activity.actionType)}`}
+            key={activity.id}
+            className={`flex items-start gap-3 ${compact ? 'py-1' : 'py-2 px-3 bg-[var(--glass-bg)]/30 rounded-[var(--radius-lg)]'}`}
           >
-            <Icon name={getActionIcon(activity.actionType) as any} size="sm" />
-          </div>
-
-          {/* Content */}
-          <div className="flex-1 min-w-0">
-            <div className={`${compact ? 'text-xs' : 'text-sm'} text-[var(--text-primary)]`}>
-              <span className="font-medium text-[var(--accent)]">{activity.userName}</span>{' '}
-              <span className="text-[var(--text-muted)]">
-                {actionLabels[activity.actionType] || activity.actionType.replace(/_/g, ' ')}
-              </span>
-              {activity.targetTitle && (
-                <>
-                  {' '}
-                  <span className="text-[var(--text-primary)] font-medium">
-                    {activity.targetType && (
-                      <Icon
-                        name={(targetTypeIcons[activity.targetType] || 'File') as any}
-                        size="xs"
-                        className="inline mr-1 opacity-60"
-                      />
-                    )}
-                    {activity.targetTitle}
-                  </span>
-                </>
-              )}
+            {/* Action icon */}
+            <div
+              className={`flex-shrink-0 w-8 h-8 rounded-full bg-[var(--glass-bg-highlight)]/50 flex items-center justify-center ${getActionColor(activity.actionType)}`}
+            >
+              <Icon name={getActionIcon(activity.actionType) as IconName} size="sm" />
             </div>
 
-            {/* Metadata details */}
-            {!compact && activity.metadata && (
-              <div className="mt-1 text-xs text-[var(--text-muted)]">
-                {activity.metadata.relevance && (
-                  <span
-                    className={`inline-block px-1.5 py-0.5 rounded mr-2 ${
-                      activity.metadata.relevance === 'high'
-                        ? 'bg-red-900/30 text-red-300'
-                        : activity.metadata.relevance === 'medium'
-                          ? 'bg-yellow-900/30 text-yellow-300'
-                          : 'bg-green-900/30 text-green-300'
-                    }`}
-                  >
-                    {activity.metadata.relevance} relevance
-                  </span>
+            {/* Content */}
+            <div className="flex-1 min-w-0">
+              <div className={`${compact ? 'text-xs' : 'text-sm'} text-[var(--text-primary)]`}>
+                <span className="font-medium text-[var(--accent)]">{activity.userName}</span>{' '}
+                <span className="text-[var(--text-muted)]">
+                  {actionLabels[activity.actionType] || activity.actionType.replace(/_/g, ' ')}
+                </span>
+                {activity.targetTitle && (
+                  <>
+                    {' '}
+                    <span className="text-[var(--text-primary)] font-medium">
+                      {activity.targetType && (
+                        <Icon
+                          name={(targetTypeIcons[activity.targetType] || 'File') as IconName}
+                          size="xs"
+                          className="inline mr-1 opacity-60"
+                        />
+                      )}
+                      {activity.targetTitle}
+                    </span>
+                  </>
                 )}
               </div>
-            )}
 
-            {/* Timestamp */}
-            <div
-              className={`${compact ? 'text-[10px]' : 'text-xs'} text-[var(--text-muted)] mt-0.5`}
-            >
-              {formatTimeAgo(activity.createdAt)}
+              {/* Metadata details */}
+              {!compact && activity.metadata && (
+                <div className="mt-1 text-xs text-[var(--text-muted)]">
+                  {relevance && (
+                    <span
+                      className={`inline-block px-1.5 py-0.5 rounded mr-2 ${
+                        relevance === 'high'
+                          ? 'bg-red-900/30 text-red-300'
+                          : relevance === 'medium'
+                            ? 'bg-yellow-900/30 text-yellow-300'
+                            : 'bg-green-900/30 text-green-300'
+                      }`}
+                    >
+                      {relevance} relevance
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {/* Timestamp */}
+              <div
+                className={`${compact ? 'text-[10px]' : 'text-xs'} text-[var(--text-muted)] mt-0.5`}
+              >
+                {formatTimeAgo(activity.createdAt)}
+              </div>
             </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
 
       {/* Refresh indicator */}
       {refreshInterval > 0 && (

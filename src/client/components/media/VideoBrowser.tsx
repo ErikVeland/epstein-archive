@@ -22,9 +22,10 @@ interface VideoItem {
   metadata: {
     duration?: number;
     thumbnailPath?: string;
-    transcript?: any[];
-    chapters?: any[];
-    [key: string]: any;
+    transcript?: Record<string, unknown>[];
+    chapters?: Record<string, unknown>[];
+    documentId?: string | number;
+    [key: string]: unknown;
   };
   createdAt: string;
   entityName?: string;
@@ -85,6 +86,16 @@ function getInitialAlbumIdFromUrl(): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+interface VideoCellData {
+  items: VideoItem[];
+  selectedItems: Set<number>;
+  isBatchMode: boolean;
+  onVideoClick: (video: VideoItem, index: number) => void;
+  toggleSelection: (id: number) => void;
+  columnCount: number;
+  formatDate: (dateStr: string) => string;
+}
+
 const VideoCell = React.memo(({ columnIndex, rowIndex, style, data }: GridChildComponentProps) => {
   const {
     items,
@@ -94,7 +105,7 @@ const VideoCell = React.memo(({ columnIndex, rowIndex, style, data }: GridChildC
     toggleSelection: _toggleSelection,
     columnCount,
     formatDate,
-  } = data as any;
+  } = data as VideoCellData;
   const index = rowIndex * columnCount + columnIndex;
 
   if (index >= items.length) return null;
@@ -183,7 +194,7 @@ export const VideoBrowser: React.FC = () => {
   const [selectedItem, setSelectedItem] = useState<VideoItem | null>(null);
   const [showAlbumDropdown, setShowAlbumDropdown] = useState(false);
   const [_pickerOpenId, _setPickerOpenId] = useState<number | null>(null);
-  const [_investigationsList, _setInvestigationsList] = useState<any[]>([]);
+  const [_investigationsList, _setInvestigationsList] = useState<string[]>([]);
   const [_addingId, _setAddingId] = useState<number | null>(null);
 
   // Batch Mode State
@@ -525,13 +536,25 @@ export const VideoBrowser: React.FC = () => {
               <VideoPlayer
                 src={`/api/media/video/${selectedItem.id}/stream`}
                 title={selectedItem.title}
-                transcript={selectedItem.metadata.transcript}
-                chapters={selectedItem.metadata.chapters}
+                transcript={
+                  selectedItem.metadata.transcript as unknown as
+                    | import('./AudioPlayer').TranscriptSegment[]
+                    | undefined
+                }
+                chapters={
+                  selectedItem.metadata.chapters as unknown as
+                    | import('./AudioPlayer').Chapter[]
+                    | undefined
+                }
                 onClose={() => setSelectedItem(null)}
                 autoPlay
                 isSensitive={selectedItem.isSensitive}
                 warningText={selectedItem.description}
-                documentId={selectedItem.metadata.documentId || (selectedItem as any).documentId}
+                documentId={
+                  selectedItem.metadata.documentId !== undefined
+                    ? Number(selectedItem.metadata.documentId)
+                    : undefined
+                }
               />
             </div>
           </div>,

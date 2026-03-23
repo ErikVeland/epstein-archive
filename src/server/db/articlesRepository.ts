@@ -18,6 +18,19 @@ export interface Article {
   readingTime?: string;
 }
 
+interface InsertArticleInput {
+  title: string;
+  link: string;
+  description?: string;
+  content?: string;
+  pubDate?: string | null;
+  author?: string;
+  source?: string;
+  imageUrl?: string | null;
+  guid?: string;
+  redFlagRating?: number;
+}
+
 export class ArticlesRepository {
   /**
    * Get paginated articles with optional filters
@@ -28,7 +41,7 @@ export class ArticlesRepository {
     search?: string,
     publication?: string,
     sort: 'date' | 'redFlag' = 'redFlag',
-  ): Promise<{ articles: any[]; total: number }> {
+  ): Promise<{ articles: Article[]; total: number }> {
     const [articles, countResult] = await Promise.all([
       articlesQueries.getArticles.run(
         {
@@ -50,7 +63,7 @@ export class ArticlesRepository {
     ]);
 
     return {
-      articles: articles.map((a: any) => ({
+      articles: articles.map((a) => ({
         ...a,
         id: String(a.id),
       })),
@@ -58,7 +71,7 @@ export class ArticlesRepository {
     };
   }
 
-  async getArticleById(id: number | string): Promise<any | undefined> {
+  async getArticleById(id: number | string): Promise<Article | undefined> {
     const rows = await articlesQueries.getArticleById.run({ id: BigInt(id) }, getApiPool());
     if (!rows[0]) return undefined;
     return {
@@ -70,7 +83,7 @@ export class ArticlesRepository {
   /**
    * Insert or update an article (Consolidated from legacy articleRepository)
    */
-  async insertArticle(article: any): Promise<void> {
+  async insertArticle(article: InsertArticleInput): Promise<void> {
     try {
       await articlesQueries.insertArticle.run(
         {

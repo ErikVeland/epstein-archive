@@ -35,12 +35,17 @@ const isFiveFlagBaselineEntity = (name?: string): boolean => {
   );
 };
 
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+}
+
 export class OptimizedDataService {
   private static instance: OptimizedDataService;
   private isInitialized: boolean = false;
-  private statsCache: any | null = null;
+  private statsCache: Record<string, unknown> | null = null;
   private readonly BASE_PAGE_SIZE = 24; // Base page size for grid layout
-  private cache = new Map<string, any>();
+  private cache = new Map<string, CacheEntry<unknown>>();
   private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
   private prefetchCache = new Map<string, Promise<PaginatedResponse>>(); // For prefetching next pages
 
@@ -74,7 +79,7 @@ export class OptimizedDataService {
     console.log('OptimizedDataService initialized with API backend');
   }
 
-  private getCacheKey(type: string, params: any): string {
+  private getCacheKey(type: string, params: unknown): string {
     return `${type}:${JSON.stringify(params)}`;
   }
 
@@ -88,7 +93,7 @@ export class OptimizedDataService {
       return null;
     }
 
-    return cached.data;
+    return cached.data as T;
   }
 
   private setCachedData<T>(key: string, data: T): void {
@@ -152,7 +157,7 @@ export class OptimizedDataService {
           if (result.data) {
             const term = (filters.searchTerm || '').toLowerCase();
             result.data = result.data
-              .map((person: any) => {
+              .map((person) => {
                 const baseRating = person.redFlagRating ?? 0;
                 const mentions = person.mentions || 0;
                 const displayName = person.fullName || person.name || '';
@@ -187,7 +192,7 @@ export class OptimizedDataService {
             // QUALITY FILTER: The backend now handles aggressive junk filtering for the default view.
             // We keep a lightweight version here for safety or fallback.
             if (isDefaultView) {
-              result.data = result.data.filter((p: any) => {
+              result.data = result.data.filter((p) => {
                 // Relaxed check: Keep if any relevance signal is present
                 return (
                   (p.redFlagRating || 0) >= 1 ||
@@ -315,7 +320,7 @@ export class OptimizedDataService {
     }
   }
 
-  async getStatistics(): Promise<any> {
+  async getStatistics(): Promise<Record<string, unknown>> {
     await this.initialize();
 
     if (this.statsCache) {
@@ -328,7 +333,7 @@ export class OptimizedDataService {
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
-        const stats = await apiClient.getStats();
+        const stats = (await apiClient.getStats()) as Record<string, unknown>;
         this.statsCache = stats;
 
         // Clear stats cache after 5 minutes (TTL)
@@ -353,6 +358,7 @@ export class OptimizedDataService {
         await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
+    throw new Error('Unexpected: getStatistics exhausted retries without returning');
   }
 
   async getAllPeople(): Promise<Person[]> {

@@ -25,7 +25,7 @@ export interface AnomalyDetectionResult {
   description: string;
   confidence: number;
   severity: 'low' | 'medium' | 'high' | 'critical';
-  details: Record<string, any>;
+  details: Record<string, unknown>;
 }
 
 export interface RiskAssessment {
@@ -65,7 +65,7 @@ export class AdvancedAnalyticsService {
       WHERE e1.full_name != e2.full_name
     `;
 
-    const params: any[] = [];
+    const params: string[] = [];
     if (searchTerm) {
       query += ` AND (e1.full_name ILIKE $1 OR e2.full_name ILIKE $1 OR d.content ILIKE $1)`;
       params.push(`%${searchTerm}%`);
@@ -99,7 +99,7 @@ export class AdvancedAnalyticsService {
       LEFT JOIN entities e ON em.entity_id = e.id
     `;
 
-    const params: any[] = [];
+    const params: (number | string)[] = [];
     if (entityId) {
       query += ` WHERE em.entity_id = $1`;
       params.push(entityId);
@@ -216,7 +216,7 @@ export class AdvancedAnalyticsService {
       LEFT JOIN entity_relationships er ON e.id = er.source_entity_id
     `;
 
-    const params: any[] = [];
+    const params: number[] = [];
     if (entityId) {
       query += ` WHERE e.id = $1`;
       params.push(entityId);
@@ -299,7 +299,7 @@ export class AdvancedAnalyticsService {
     }));
   }
 
-  async getPredictiveInsights(): Promise<any[]> {
+  async getPredictiveInsights(): Promise<Record<string, unknown>[]> {
     const pool = getApiPool();
 
     // Find entities that are highly connected to high-risk entities but have low risk scores themselves
@@ -333,7 +333,7 @@ export class AdvancedAnalyticsService {
     }));
   }
 
-  async getCrossReferenceValidation(searchTerm: string): Promise<any[]> {
+  async getCrossReferenceValidation(searchTerm: string): Promise<Record<string, unknown>[]> {
     const pool = getApiPool();
 
     // Find mentions of the search term across different document types and validate consistency
@@ -379,7 +379,7 @@ export class AdvancedAnalyticsService {
     return Math.max(0, Math.min(1, score));
   }
 
-  async getInvestigativeTaskSummary(): Promise<any> {
+  async getInvestigativeTaskSummary(): Promise<Record<string, unknown>> {
     const pool = getApiPool();
 
     // Get overall statistics for investigation planning

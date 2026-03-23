@@ -91,7 +91,7 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
       const response = await fetch('/api/entities?limit=100');
       const data = await response.json();
       const entities = Array.isArray(data.data) ? data.data : Array.isArray(data) ? data : [];
-      const formattedPeople: Person[] = entities.map((e: any) => ({
+      const formattedPeople: Person[] = entities.map((e: Record<string, unknown>) => ({
         id: e.id,
         name: e.fullName || e.name,
         role: e.primaryRole || e.role || 'Unknown',

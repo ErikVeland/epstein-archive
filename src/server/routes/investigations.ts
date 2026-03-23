@@ -1,4 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
+import type { AuthRequest } from '../auth/middleware.js';
 import { investigationsRepository } from '../db/investigationsRepository.js';
 import { authenticateRequest } from '../auth/middleware.js';
 import {
@@ -249,12 +250,12 @@ const notebookSchema = z.object({
 // Get all investigations — intentionally public (no auth): this is a public research archive.
 router.get('/', validate(getInvestigationsSchema), async (req, res, next) => {
   try {
-    const { status, ownerId, page, limit } = req.query as any;
+    const { status, ownerId, page, limit } = req.query;
     const filters = {
-      status: status || undefined,
-      ownerId: ownerId || undefined,
-      page: page,
-      limit: Math.min(HARD_CAP_INVESTIGATIONS_LIMIT, limit),
+      status: status ? String(status) : undefined,
+      ownerId: ownerId ? String(ownerId) : undefined,
+      page: Number(page),
+      limit: Math.min(HARD_CAP_INVESTIGATIONS_LIMIT, Number(limit)),
     };
     res.setHeader('X-Limit-Applied', String(filters.limit));
 
@@ -268,7 +269,7 @@ router.get('/', validate(getInvestigationsSchema), async (req, res, next) => {
 // Find investigation by exact title
 router.get('/by-title', validate(getByTitleSchema), async (req, res, next) => {
   try {
-    const { title } = req.query as any;
+    const { title } = req.query;
     const match = await investigationsRepository.getInvestigationByTitle(String(title));
     if (!match) return res.status(404).json({ error: 'Investigation not found' });
     res.json(match);
@@ -285,7 +286,7 @@ router.post(
   async (req, res, next) => {
     try {
       const { title, description } = req.body;
-      const ownerId = (req as any).user?.id as string;
+      const ownerId = (req as AuthRequest).user?.id as string;
 
       const investigation = await investigationsRepository.createInvestigation({
         title,
@@ -332,12 +333,15 @@ router.put(
     try {
       const { id } = req.params;
       const numericId = Number(id);
-      const user = (req as any).user;
+      const user = (req as AuthRequest).user;
 
       // Authorization: Admin OR Owner (mirrors the DELETE guard)
       const existing = await investigationsRepository.getInvestigationById(numericId);
       if (!existing) {
         return res.status(404).json({ error: 'Investigation not found' });
+      }
+      if (!user) {
+        return res.status(401).json({ error: 'Unauthorized' });
       }
       if (user.role !== 'admin' && existing.ownerId !== user.id) {
         return res.status(403).json({ error: 'Unauthorized: Only admins or owners can edit' });
@@ -364,13 +368,16 @@ router.delete(
   async (req, res, next) => {
     try {
       const { id } = req.params;
-      const user = (req as any).user;
+      const user = (req as AuthRequest).user;
       const numericId = Number(id);
 
       // Check if investigation exists and get owner
       const investigation = await investigationsRepository.getInvestigationById(numericId);
       if (!investigation) {
         return res.status(404).json({ error: 'Investigation not found' });
+      }
+      if (!user) {
+        return res.status(401).json({ error: 'Unauthorized' });
       }
 
       // Authorization: Admin OR Owner
@@ -455,10 +462,10 @@ router.delete(
 router.get('/:id/evidence', validate(evidenceParamsSchema), async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { limit, offset } = req.query as any;
+    const { limit, offset } = req.query;
     const evidence = await investigationsRepository.getEvidence(Number(id), {
-      limit,
-      offset,
+      limit: limit !== undefined ? Number(limit) : undefined,
+      offset: offset !== undefined ? Number(offset) : undefined,
     });
     if (Array.isArray(evidence)) {
       return res.json(evidence.map(mapInvestigationEvidenceListItemDto));
@@ -534,7 +541,8 @@ router.post(
           startOffset,
           endOffset,
           metadata,
-          createdBy: (req as any).user?.username || (req as any).user?.id || 'system',
+          createdBy:
+            (req as AuthRequest).user?.username || (req as AuthRequest).user?.id || 'system',
         },
       );
       res.status(201).json(created);
@@ -737,14 +745,16 @@ router.delete(
 router.get('/:id/activity', validate(activityQuerySchema), async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { limit } = req.query as any;
-    const activity = await investigationsRepository.getActivity(Number(id), limit);
+    const { limit } = req.query;
+    const activity = await investigationsRepository.getActivity(Number(id), Number(limit));
 
     // Parse metadata JSON for each activity
-    const parsed = activity.map((a: any) => ({
-      ...a,
-      metadata: a.metadata_json ? JSON.parse(a.metadata_json) : null,
-    }));
+    const parsed = activity.map(
+      (a: { metadata_json?: string | null } & Record<string, unknown>) => {
+        const metaJson = typeof a.metadata_json === 'string' ? a.metadata_json : null;
+        return { ...a, metadata: metaJson ? JSON.parse(metaJson) : null };
+      },
+    );
 
     res.json(parsed);
   } catch (error) {
@@ -770,10 +780,10 @@ router.get(
   async (req, res, next) => {
     try {
       const { id } = req.params;
-      const { evidenceLimit, hypothesisLimit } = req.query as any;
+      const { evidenceLimit, hypothesisLimit } = req.query;
       const snapshot = await investigationsRepository.getBoardSnapshot(Number(id), {
-        evidenceLimit,
-        hypothesisLimit,
+        evidenceLimit: evidenceLimit !== undefined ? Number(evidenceLimit) : undefined,
+        hypothesisLimit: hypothesisLimit !== undefined ? Number(hypothesisLimit) : undefined,
       });
       res.json(snapshot);
     } catch (error) {
@@ -828,26 +838,35 @@ router.get(
       );
       const notebook = await investigationsRepository.getNotebook(Number(id));
       let md = `# Investigation Briefing\\n\\nTotal Evidence: ${summary.totalEvidence}\\n\\n`;
-      const byType: Record<string, any[]> = {};
-      for (const e of summary.evidence) {
-        const t = e.evidence_type || 'unknown';
+      const byType: Record<string, Record<string, unknown>[]> = {};
+      for (const e of summary.evidence as Record<string, unknown>[]) {
+        const t = String(e.evidence_type || 'unknown');
         byType[t] = byType[t] || [];
         byType[t].push(e);
       }
       for (const [type, list] of Object.entries(byType)) {
         md += `## ${type.toUpperCase()}\\n`;
         for (const e of list) {
-          const title = e.title || 'Untitled';
-          const desc = e.description || '';
+          const title = String(e.title || 'Untitled');
+          const desc = String(e.description || '');
           md += `- ${title}\\n`;
           if (desc) md += `  - ${desc}\\n`;
         }
         md += `\\n`;
       }
 
-      const annotations = Array.isArray(notebook?.annotations) ? notebook.annotations : [];
-      const caseNotes = annotations.find((a: any) => a?.id === 'case-notes')?.content || '';
-      const evidenceAnnotations = annotations.filter((a: any) => a?.source === 'evidence');
+      const annotations = Array.isArray(notebook?.annotations)
+        ? (notebook.annotations as Record<string, unknown>[])
+        : [];
+      const caseNotes =
+        (
+          annotations.find((a) => (a as Record<string, unknown>)?.id === 'case-notes') as
+            | Record<string, unknown>
+            | undefined
+        )?.content || '';
+      const evidenceAnnotations = annotations.filter(
+        (a) => (a as Record<string, unknown>)?.source === 'evidence',
+      );
 
       md += `## Notebook\\n\\n`;
       if (typeof caseNotes === 'string' && caseNotes.trim().length > 0) {
@@ -861,7 +880,7 @@ router.get(
         md += `_No synced evidence annotations yet._\\n`;
       } else {
         const groupedByEvidenceId = evidenceAnnotations.reduce(
-          (acc: Record<string, any[]>, ann: any) => {
+          (acc: Record<string, Record<string, unknown>[]>, ann: Record<string, unknown>) => {
             const evidenceId = String(ann?.evidenceId || 'unknown');
             if (!acc[evidenceId]) acc[evidenceId] = [];
             acc[evidenceId].push(ann);
@@ -879,8 +898,10 @@ router.get(
         for (const evidenceId of sortedEvidenceIds) {
           md += `- Evidence #${evidenceId}\\n`;
           for (const ann of groupedByEvidenceId[evidenceId]) {
-            const typeLabel = String(ann?.type || 'note').toUpperCase();
-            const content = String(ann?.content || '').trim();
+            const typeLabel = String(
+              (ann as Record<string, unknown>)?.type || 'note',
+            ).toUpperCase();
+            const content = String((ann as Record<string, unknown>)?.content || '').trim();
             if (content) {
               md += `  - [${typeLabel}] ${content}\\n`;
             } else {
@@ -938,7 +959,9 @@ router.get(
       archive.append(JSON.stringify(investigation, null, 2), { name: 'investigation.json' });
 
       // Add evidence metadata and files
-      const evidenceList = Array.isArray(evidence) ? evidence : (evidence as any).data || [];
+      const evidenceList = Array.isArray(evidence)
+        ? evidence
+        : (evidence as { data?: unknown[] }).data || [];
       archive.append(JSON.stringify(evidenceList, null, 2), { name: 'evidence.json' });
 
       let totalBytes = 0;

@@ -1,6 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import { AnyZodObject, z } from 'zod';
 
+interface ParsedQuery {
+  [key: string]: string | string[] | ParsedQuery | ParsedQuery[] | undefined;
+}
+
 export const validate = (schema: AnyZodObject, target?: 'body' | 'query' | 'params') => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -11,7 +15,11 @@ export const validate = (schema: AnyZodObject, target?: 'body' | 'query' | 'para
           body: req.body,
           query: req.query,
           params: req.params,
-        })) as any;
+        })) as {
+          body?: Record<string, unknown>;
+          query?: ParsedQuery;
+          params?: Record<string, string>;
+        };
         if (parsed.body) req.body = parsed.body;
         if (parsed.query) req.query = parsed.query;
         if (parsed.params) req.params = parsed.params;

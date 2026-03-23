@@ -89,7 +89,7 @@ const buildPreview = (doc: {
   contentRefined?: string | null;
   cleanedText?: string | null;
   contentPreview?: string | null;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }) => {
   const curatedTitle =
     typeof doc.title === 'string' && doc.title.trim() && doc.title !== doc.fileName
@@ -196,6 +196,18 @@ export const documentsRepository = {
         COALESCE(extracted_date, date_created) DESC
       LIMIT $10::int OFFSET $11::int
     `;
+    const countSql = `
+      SELECT COUNT(*) as total
+      FROM documents
+      WHERE ($1::text IS NULL OR file_name ILIKE $1 OR source_collection ILIKE $1 OR file_path ILIKE $1)
+        AND (file_type = ANY($2::text[]) OR $2::text[] IS NULL)
+        AND (evidence_type = $3::text OR $3::text IS NULL)
+        AND (source_collection = ANY($4::text[]) OR $4::text[] IS NULL)
+        AND (COALESCE(extracted_date, date_created) >= $5::timestamp OR $5::timestamp IS NULL)
+        AND (COALESCE(extracted_date, date_created) <= $6::timestamp OR $6::timestamp IS NULL)
+        AND (red_flag_rating >= $7::int OR $7::int IS NULL)
+        AND (red_flag_rating <= $8::int OR $8::int IS NULL)
+    `;
     const docsRes = await getApiPool().query(docsSql, [
       search ? `%${search}%` : null,
       fileTypes,
@@ -210,9 +222,20 @@ export const documentsRepository = {
       offset,
     ]);
     const docs = docsRes.rows as Array<Record<string, unknown>>;
-    const total = Number(
-      (docs[0] as { totalCount?: string | number } | undefined)?.totalCount ?? 0,
-    );
+    let total = Number((docs[0] as { totalCount?: string | number } | undefined)?.totalCount ?? 0);
+    if (docs.length === 0) {
+      const countRes = await getApiPool().query(countSql, [
+        search ? `%${search}%` : null,
+        fileTypes,
+        evidenceType,
+        sources,
+        filters.startDate || null,
+        filters.endDate || null,
+        filters.minRedFlag ?? null,
+        filters.maxRedFlag ?? null,
+      ]);
+      total = Number(countRes.rows[0]?.total ?? 0);
+    }
 
     // Batch-fetch top entities for all documents in a single query (eliminates N+1)
     const docIds = docs.map((d) => Number(d.id));
@@ -240,13 +263,23 @@ export const documentsRepository = {
     }
 
     const transformedDocs = docs.map((doc) => {
+      const title = typeof doc.title === 'string' ? doc.title : undefined;
+      const fileName = typeof doc.fileName === 'string' ? doc.fileName : undefined;
+      const contentRefined =
+        typeof doc.contentRefined === 'string' ? doc.contentRefined : undefined;
+      const evidenceType = typeof doc.evidenceType === 'string' ? doc.evidenceType : undefined;
+      const fileType = typeof doc.fileType === 'string' ? doc.fileType : undefined;
       const metadata =
-        typeof doc.metadata === 'string' ? JSON.parse(doc.metadata) : doc.metadata || {};
+        typeof doc.metadata === 'string'
+          ? (JSON.parse(doc.metadata) as Record<string, unknown>)
+          : typeof doc.metadata === 'object' && doc.metadata !== null
+            ? (doc.metadata as Record<string, unknown>)
+            : {};
       const preview = buildPreview({
-        title: doc.title,
-        fileName: doc.fileName,
-        contentRefined: doc.contentRefined,
-        contentPreview: (doc as any).contentPreview || '',
+        title,
+        fileName,
+        contentRefined,
+        contentPreview: ((doc as Record<string, unknown>).contentPreview as string | null) || '',
         metadata,
       });
 
@@ -254,7 +287,7 @@ export const documentsRepository = {
       const entityCount = entities.reduce((acc, e) => acc + e.mentions, 0);
       const keyEntities = entities.slice(0, 3).map((e) => e.name);
 
-      const sourceType = normalizeSourceType(doc.evidenceType, doc.fileType);
+      const sourceType = normalizeSourceType(evidenceType, fileType);
       const whyFlagged =
         entityCount >= 8
           ? `High significance from dense entity mentions (${entityCount}).`
@@ -264,13 +297,13 @@ export const documentsRepository = {
 
       return {
         id: String(doc.id),
-        fileName: doc.fileName,
+        fileName,
         title: preview.title,
-        fileType: doc.fileType,
+        fileType,
         fileSize: Number(doc.fileSize || 0),
         dateCreated: doc.dateCreated,
         extractedDate: doc.extractedDate,
-        evidenceType: doc.evidenceType || 'document',
+        evidenceType: evidenceType || 'document',
         metadata,
         redFlagRating: Number(doc.redFlagRating || 0),
         wordCount: Number(doc.wordCount || 0),
@@ -292,14 +325,21 @@ export const documentsRepository = {
     };
   },
 
-  getDocumentById: async (id: string): Promise<any | null> => {
+  getDocumentById: async (id: string): Promise<Record<string, unknown> | null> => {
     const docId = Number(id);
-    const rows = await (documentsQueries.getDocumentById as any).run({ id: docId }, getApiPool());
+    const rows = await (
+      documentsQueries.getDocumentById as {
+        run: (
+          params: { id: number },
+          pool: ReturnType<typeof getApiPool>,
+        ) => Promise<Record<string, unknown>[]>;
+      }
+    ).run({ id: docId }, getApiPool());
     const document = rows[0];
 
     if (!document) return null;
 
-    let metadata: any = {};
+    let metadata: Record<string, unknown> = {};
     if (document.metadataJson && typeof document.metadataJson === 'string') {
       try {
         metadata = JSON.parse(document.metadataJson);
@@ -307,7 +347,7 @@ export const documentsRepository = {
         metadata = {};
       }
     } else if (document.metadataJson) {
-      metadata = document.metadataJson;
+      metadata = document.metadataJson as Record<string, unknown>;
     }
 
     let entityRowsRes;
@@ -334,9 +374,9 @@ export const documentsRepository = {
         `,
         [docId],
       );
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Face table migrations may not exist in some deployments; degrade gracefully.
-      if (error?.code !== '42P01') throw error;
+      if ((error as NodeJS.ErrnoException)?.code !== '42P01') throw error;
       entityRowsRes = await getApiPool().query(
         `
         SELECT
@@ -354,10 +394,17 @@ export const documentsRepository = {
         [docId],
       );
     }
-    const entityRows = entityRowsRes.rows;
+    interface EntityRow {
+      entityId: string | number;
+      name: string;
+      entityType: string;
+      mentions: string | number;
+      thumbnailPath: string | null;
+    }
+    const entityRows: EntityRow[] = entityRowsRes.rows;
 
     // Batch all mention-context fetches into a single query to avoid N+1
-    const entityIds = entityRows.map((r: any) => Number(r.entityId));
+    const entityIds = entityRows.map((r) => Number(r.entityId));
     const contextsByEntityId = new Map<number, string[]>();
     if (entityIds.length > 0) {
       const batchContextSql = `
@@ -379,7 +426,7 @@ export const documentsRepository = {
       }
     }
 
-    const entities = entityRows.map((row: any) => {
+    const entities = entityRows.map((row) => {
       const eid = Number(row.entityId);
       const significance =
         Number(row.mentions) >= 20
@@ -397,25 +444,34 @@ export const documentsRepository = {
         thumbnail_path: row.thumbnailPath,
         contexts: contextStrings.map((ctx) => ({
           context: ctx,
-          source: (document as any).source_collection || 'Document',
+          source: (document['source_collection'] as string | null) || 'Document',
         })),
       };
     });
 
-    const redactionSpans = await (documentsQueries.getRedactionSpans as any).run(
-      { documentId: docId },
-      getApiPool(),
-    );
-    const claims = await (documentsQueries.getClaimTriples as any).run(
-      { documentId: docId },
-      getApiPool(),
-    );
-    const sentences = await (documentsQueries.getDocumentSentences as any).run(
-      { documentId: docId },
-      getApiPool(),
-    );
+    type PgtypedQuery<P, R> = {
+      run: (params: P, pool: ReturnType<typeof getApiPool>) => Promise<R[]>;
+    };
+    const redactionSpans = await (
+      documentsQueries.getRedactionSpans as PgtypedQuery<
+        { documentId: number },
+        Record<string, unknown>
+      >
+    ).run({ documentId: docId }, getApiPool());
+    const claims = await (
+      documentsQueries.getClaimTriples as PgtypedQuery<
+        { documentId: number },
+        Record<string, unknown>
+      >
+    ).run({ documentId: docId }, getApiPool());
+    const sentences = await (
+      documentsQueries.getDocumentSentences as PgtypedQuery<
+        { documentId: number },
+        Record<string, unknown>
+      >
+    ).run({ documentId: docId }, getApiPool());
 
-    let derivedContent = (document.content || '').trim();
+    let derivedContent = (typeof document.content === 'string' ? document.content : '').trim();
     if (!derivedContent) {
       // Some production schemas use document_pages.content instead of extracted_text.
       // Prefer extracted_text when available, then gracefully fall back.
@@ -431,8 +487,9 @@ export const documentsRepository = {
           [docId],
         );
         derivedContent = (pageTextRes.rows[0]?.combined_text || '').trim();
-      } catch (error: any) {
-        if (!['42703', '42P01'].includes(String(error?.code || ''))) throw error;
+      } catch (error: unknown) {
+        if (!['42703', '42P01'].includes(String((error as NodeJS.ErrnoException)?.code || '')))
+          throw error;
       }
 
       if (!derivedContent) {
@@ -448,8 +505,9 @@ export const documentsRepository = {
             [docId],
           );
           derivedContent = (legacyPageTextRes.rows[0]?.combined_text || '').trim();
-        } catch (error: any) {
-          if (!['42703', '42P01'].includes(String(error?.code || ''))) throw error;
+        } catch (error: unknown) {
+          if (!['42703', '42P01'].includes(String((error as NodeJS.ErrnoException)?.code || '')))
+            throw error;
         }
       }
 
@@ -493,20 +551,20 @@ export const documentsRepository = {
       entities,
       mentionedEntities: entities,
       original_file_path: document.originalFilePath || document.filePath,
-      redaction_spans: redactionSpans.map((s: any) => ({
+      redaction_spans: redactionSpans.map((s) => ({
         ...s,
-        id: Number(s.id),
-        document_id: Number(s.document_id),
+        id: Number((s as Record<string, unknown>).id),
+        document_id: Number((s as Record<string, unknown>).document_id),
       })),
-      claims: claims.map((c: any) => ({
+      claims: claims.map((c) => ({
         ...c,
-        id: Number(c.id),
-        document_id: Number(c.document_id),
+        id: Number((c as Record<string, unknown>).id),
+        document_id: Number((c as Record<string, unknown>).document_id),
       })),
-      sentences: sentences.map((s: any) => ({
+      sentences: sentences.map((s) => ({
         ...s,
-        id: Number(s.id),
-        document_id: Number(s.document_id),
+        id: Number((s as Record<string, unknown>).id),
+        document_id: Number((s as Record<string, unknown>).document_id),
       })),
       unredaction_metrics: {
         attempted: Boolean(document.unredactionAttempted),
@@ -521,12 +579,28 @@ export const documentsRepository = {
 
   getRelatedDocuments: async (documentId: string, limit: number = 10) => {
     const docId = Number(documentId);
-    const related = await (documentsQueries.getRelatedDocuments as any).run(
-      { documentId: docId, limit: limit },
-      getApiPool(),
-    );
+    type PgtypedQuery<P, R> = {
+      run: (params: P, pool: ReturnType<typeof getApiPool>) => Promise<R[]>;
+    };
+    interface RelatedDocRow {
+      id: string | number;
+      title?: string | null;
+      fileName?: string | null;
+      fileType?: string | null;
+      evidenceType?: string | null;
+      redFlagRating?: string | number | null;
+      dateCreated?: string | null;
+      sharedEntityCount?: string | number | null;
+      sharedEntitiesList?: string | null;
+    }
+    const related = await (
+      documentsQueries.getRelatedDocuments as PgtypedQuery<
+        { documentId: number; limit: number },
+        RelatedDocRow
+      >
+    ).run({ documentId: docId, limit: limit }, getApiPool());
 
-    return related.map((doc: any) => ({
+    return related.map((doc) => ({
       id: String(doc.id),
       title: doc.title,
       fileName: doc.fileName,
@@ -538,10 +612,10 @@ export const documentsRepository = {
       reasons: (doc.sharedEntitiesList || '')
         .split(',')
         .slice(0, 3)
-        .map((name: string) => `Shared entity: ${name.trim()}`),
+        .map((name) => `Shared entity: ${name.trim()}`),
       sharedEntities: (doc.sharedEntitiesList || '')
         .split(',')
-        .map((s: string) => s.trim())
+        .map((s) => s.trim())
         .slice(0, 5),
     }));
   },

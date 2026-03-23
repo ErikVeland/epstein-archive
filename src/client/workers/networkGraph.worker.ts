@@ -9,7 +9,7 @@ interface GraphNode {
   vy: number;
   radius: number;
   // Allow other props to pass through
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface WorkerMessage {

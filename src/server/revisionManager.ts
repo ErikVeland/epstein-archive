@@ -26,7 +26,7 @@ export class DatasetRevisionManager {
   private cacheExpiry: number = 0;
   private readonly CACHE_TTL = 5000; // 5s cache to avoid DB hits
 
-  constructor(_db?: any) {}
+  constructor(_db?: unknown) {}
 
   /**
    * Get canonical revision token
@@ -137,7 +137,7 @@ export class DatasetRevisionManager {
 // Singleton instance (will be initialized with DB in server startup)
 let revisionManager: DatasetRevisionManager | null = null;
 
-export function initRevisionManager(db: any): void {
+export function initRevisionManager(db: unknown): void {
   revisionManager = new DatasetRevisionManager(db);
 }
 

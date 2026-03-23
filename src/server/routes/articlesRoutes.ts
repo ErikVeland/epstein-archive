@@ -26,7 +26,8 @@ const articleIdSchema = z.object({
 // GET /api/articles
 router.get('/', validate(getArticlesSchema), async (req, res) => {
   try {
-    const { page, limit, search, publication, sort } = req.query as any;
+    type ArticlesQuery = z.infer<typeof getArticlesSchema>['query'];
+    const { page, limit, search, publication, sort } = req.query as unknown as ArticlesQuery;
     const offset = (page - 1) * limit;
 
     const result = await articlesRepository.getArticles(limit, offset, search, publication, sort);

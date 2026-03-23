@@ -39,6 +39,11 @@ interface HypothesisTestingFrameworkProps {
   onHypothesesUpdate: (hypotheses: Hypothesis[]) => void;
 }
 
+const parseDate = (value: unknown): Date =>
+  typeof value === 'string' || typeof value === 'number' || value instanceof Date
+    ? new Date(value)
+    : new Date();
+
 export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProps> = ({
   investigationId,
   initialHypothesis = '',
@@ -68,15 +73,15 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
         if (response.ok) {
           const data = await response.json();
           if (data && data.length > 0) {
-            const loadedHypotheses: Hypothesis[] = data.map((h: any) => ({
+            const loadedHypotheses: Hypothesis[] = data.map((h: Record<string, unknown>) => ({
               id: `hyp-${h.id}`,
               investigationId,
               title: h.title,
               description: h.description || '',
               status: (h.status || 'proposed') as Hypothesis['status'],
               confidence: h.confidence || 50,
-              createdAt: new Date(h.created_at || Date.now()),
-              updatedAt: new Date(h.updated_at || Date.now()),
+              createdAt: parseDate(h.created_at),
+              updatedAt: parseDate(h.updated_at),
               createdBy: 'System',
               evidenceLinks: [],
               revisions: [],
@@ -510,7 +515,10 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
                                 onChange={(e) =>
                                   setLinkData({
                                     ...linkData,
-                                    relevance: e.target.value as any,
+                                    relevance: e.target.value as
+                                      | 'supporting'
+                                      | 'contradicting'
+                                      | 'neutral',
                                   })
                                 }
                                 className="w-full px-2 py-1 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded text-[var(--text-primary)] text-sm"

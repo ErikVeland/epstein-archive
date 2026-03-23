@@ -36,7 +36,11 @@ interface ItemData {
   selectedImages: Set<number>;
   isBatchMode: boolean;
   onImageClick: (image: MediaImage, index: number, event: React.MouseEvent) => void;
-  onToggleSelection: (imageId: number, index: number, event: React.MouseEvent) => void;
+  onToggleSelection: (
+    imageId: number,
+    index: number,
+    event: React.MouseEvent | React.KeyboardEvent,
+  ) => void;
   columnCount?: number;
   formatDate: (d: string | undefined | null) => string;
   formatFileSize: (b: number | string | undefined) => string;
@@ -69,7 +73,7 @@ const GridCell = React.memo(
           onClick={(e) => onImageClick(img, index, e)}
           onKeyDown={(e) => {
             if (isBatchMode && e.key === 'Enter') {
-              onToggleSelection(img.id, index, e as any);
+              onToggleSelection(img.id, index, e);
             }
           }}
           tabIndex={isBatchMode ? 0 : -1}
@@ -133,7 +137,7 @@ const ListRow = React.memo(({ index, style, data }: ListChildComponentProps<Item
         onClick={(e) => onImageClick(img, index, e)}
         onKeyDown={(e) => {
           if (isBatchMode && e.key === 'Enter') {
-            onToggleSelection(img.id, index, e as any);
+            onToggleSelection(img.id, index, e);
           }
         }}
         tabIndex={isBatchMode ? 0 : -1}
@@ -187,7 +191,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
   const { isAdmin } = useAuth();
   const [viewerStartIndex, setViewerStartIndex] = useState<number | null>(null);
   const [showAlbumDropdown, setShowAlbumDropdown] = useState(false); // Mobile album dropdown
-  const [previewPerson, setPreviewPerson] = useState<Person | null>(null);
+  const [previewPerson, setPreviewPerson] = useState<Pick<Person, 'id' | 'name'> | null>(null);
 
   // Batch selection state
   const [selectedImages, setSelectedImages] = useState<Set<number>>(new Set());
@@ -234,7 +238,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
   }, [consumePendingViewerIndex, pendingViewerIndex]);
 
   const toggleImageSelection = useCallback(
-    (imageId: number, index: number, event: React.MouseEvent) => {
+    (imageId: number, index: number, event: React.MouseEvent | React.KeyboardEvent) => {
       let newSelectedImages = new Set(selectedImages);
 
       if (event.shiftKey && lastSelectedIndex !== null) {
@@ -399,7 +403,9 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
       updateImages(() => updatedImages);
 
       // Show success message
-      console.log(`Successfully rotated ${results.filter((r: any) => r.success).length} images`);
+      console.log(
+        `Successfully rotated ${(results as Array<{ success: boolean }>).filter((r) => r.success).length} images`,
+      );
     } catch (error) {
       console.error('Error batch rotating images:', error);
       alert('Failed to rotate images');
@@ -440,7 +446,9 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
       updateImages(() => updatedImages);
 
       // Show success message
-      console.log(`Successfully tagged ${results.filter((r: any) => r.success).length} images`);
+      console.log(
+        `Successfully tagged ${(results as Array<{ success: boolean }>).filter((r) => r.success).length} images`,
+      );
     } catch (error) {
       console.error('Error batch rating images:', error);
       alert('Failed to rate images');
@@ -474,7 +482,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
 
       // Show success message
       console.log(
-        `Successfully ${action}ed tags to ${results.filter((r: any) => r.success).length} images`,
+        `Successfully ${action}ed tags to ${(results as Array<{ success: boolean }>).filter((r) => r.success).length} images`,
       );
     } catch (error) {
       console.error(`Error batch ${action}ing tags:`, error);
@@ -509,7 +517,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
 
       // Show success message
       console.log(
-        `Successfully tagged people for ${results.filter((r: any) => r.success).length} images`,
+        `Successfully tagged people for ${(results as Array<{ success: boolean }>).filter((r) => r.success).length} images`,
       );
     } catch (error) {
       console.error(`Error batch ${action}ing people:`, error);
@@ -552,7 +560,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
 
       // Show success message
       console.log(
-        `Successfully updated metadata for ${results.filter((r: any) => r.success).length} images`,
+        `Successfully updated metadata for ${(results as Array<{ success: boolean }>).filter((r) => r.success).length} images`,
       );
     } catch (error) {
       console.error('Error batch updating metadata:', error);
@@ -999,7 +1007,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
                       onAssignRating={handleBatchRate}
                       onEditMetadata={(field, value) => {
                         // Create updates object based on field
-                        const updates: any = {};
+                        const updates: { title?: string; description?: string } = {};
                         if (field === 'title') {
                           updates.title = value;
                         } else if (field === 'description') {
@@ -1043,12 +1051,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
           onEntityClick={(person) => {
             // Open EvidenceModal for the clicked person
             // Construct a partial person object from the minimal data we have
-            const partialPerson: any = {
-              id: person.id,
-              name: person.name,
-              // Add other known fields if available to prevent flash of content
-            };
-            setPreviewPerson(partialPerson);
+            setPreviewPerson({ id: person.id, name: person.name || '' });
           }}
         />
       )}

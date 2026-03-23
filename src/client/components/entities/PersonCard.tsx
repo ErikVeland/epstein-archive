@@ -16,12 +16,12 @@ import { DriverChips } from './cards/DriverChips';
 interface PersonCardProps {
   person: Person;
   onClick: () => void;
-  onDocumentClick?: (document: any, searchTerm?: string) => void;
+  onDocumentClick?: (document: Record<string, unknown>, searchTerm?: string) => void;
   searchTerm?: string;
 }
 
 const PersonCard: React.FC<PersonCardProps> = ({ person, onClick, searchTerm }) => {
-  const rating = Number((person as any).redFlagRating ?? 0);
+  const rating = Number(person.redFlagRating ?? 0);
 
   // Forensic Calculations
   const evidenceLevel = calculateEvidenceLadder(person);
@@ -31,8 +31,8 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onClick, searchTerm }) 
   const photos = React.useMemo(() => person.photos || [], [person.photos]);
 
   // Identity
-  const entityType = (person as any).entityType;
-  const role = person.title || person.role || (person as any).primaryRole || 'Unknown';
+  const entityType = person.entityType;
+  const role = person.title || person.role || person.primaryRole || 'Unknown';
   const avatarPhoto = photos.length > 0 ? photos[0] : null;
 
   // Highlight helper
@@ -81,7 +81,7 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onClick, searchTerm }) 
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-[var(--text-muted)] bg-[var(--glass-bg)]">
-                {getEntityTypeIcon(entityType, 'md', role)}
+                {getEntityTypeIcon(entityType ?? '', 'md', role)}
               </div>
             )}
             {rating >= 4 && (
@@ -97,7 +97,7 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onClick, searchTerm }) 
               <EvidenceBadge
                 level={evidenceLevel.level}
                 ratingObjective={rating}
-                ratingSubjective={Number((person as any).redFlagScore ?? 0)}
+                ratingSubjective={Number(person.redFlagScore ?? 0)}
               />
             </div>
 

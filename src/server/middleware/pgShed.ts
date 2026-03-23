@@ -30,14 +30,16 @@ export function pgSaturationShed(req: Request, res: Response, next: NextFunction
 
   const occupied = pool.totalCount - pool.idleCount;
   const configuredMax =
-    Number((pool as any).options?.max) || Number(process.env.API_POOL_MAX || 18) || 18;
+    Number((pool as unknown as { options?: { max?: number } }).options?.max) ||
+    Number(process.env.API_POOL_MAX || 18) ||
+    18;
   const ratio = configuredMax > 0 ? occupied / configuredMax : 0;
 
   // Shed only when queueing is sustained or near-exhaustion; brief single waiters are transient.
   if (pool.waitingCount >= WAITING_THRESHOLD || ratio >= SATURATION_RATIO) {
     const retryAfter = pool.waitingCount > 5 ? '10' : '5';
     logger.warn(
-      `[PG SHED] requestId=${(req as any).requestId || 'no-req-id'} ${req.method} ${req.originalUrl} ` +
+      `[PG SHED] requestId=${req.requestId || 'no-req-id'} ${req.method} ${req.originalUrl} ` +
         `occupied=${occupied}, waiting=${pool.waitingCount}, ratio=${ratio.toFixed(2)}, max=${configuredMax}`,
     );
     res.set('Retry-After', retryAfter);

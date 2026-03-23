@@ -5,6 +5,7 @@ import {
   buildTimelineExportJson,
   prependMarkdownMetadata,
 } from '../utils/investigationExportIntegrity';
+import type { EvidenceItem, TimelineEvent } from '../types/investigation';
 
 console.log('Running export integrity tests...');
 
@@ -29,7 +30,7 @@ const evidence = [
     authenticityScore: 51,
     metadata_json: JSON.stringify({ ingest_run_id: 'run-1' }),
   },
-] as any;
+] as unknown as EvidenceItem[];
 
 const generatedAt = '2026-02-16T12:00:00.000Z';
 const meta = await buildExportIntegrityMeta({
@@ -81,7 +82,7 @@ const timelineJson = buildTimelineExportJson(
       documents: ['2'],
       entities: [],
     },
-  ] as any,
+  ] as unknown as TimelineEvent[],
   meta,
 );
 const parsed = JSON.parse(timelineJson);

@@ -11,15 +11,16 @@ import path from 'path';
 import sharp from 'sharp';
 import exifParser from 'exif-parser';
 import archiver from 'archiver';
+import type { Pool, QueryResultRow } from 'pg';
 import { getApiPool } from '../db/runtime.js';
 import { logger } from './Logger.js';
 
 export class MediaService {
-  private db: any;
+  private db: Pool;
 
-  constructor(db: any) {
+  constructor(db: Pool | null) {
     // Preserve passed db for compatibility, but default to shared API pool.
-    this.db = db || getApiPool();
+    this.db = (db || getApiPool()) as Pool;
     if (process.env.NODE_ENV === 'production' && this.isLegacyPrepareClient()) {
       throw new Error(
         '[MediaService] Legacy prepare()-based DB client is not allowed in production. Use Postgres pool-backed runtime.',
@@ -28,21 +29,74 @@ export class MediaService {
   }
 
   private isLegacyPrepareClient(): boolean {
-    return typeof this.db?.prepare === 'function';
+    return typeof (this.db as Pool & { prepare?: unknown })?.prepare === 'function';
   }
 
-  private async pgRows<T = any>(sql: string, params: any[] = []): Promise<T[]> {
-    const { rows } = await this.db.query(sql, params);
-    return rows as T[];
+  private async pgRows<T extends QueryResultRow = Record<string, unknown>>(
+    sql: string,
+    params: unknown[] = [],
+  ): Promise<T[]> {
+    const { rows } = await this.db.query<T>(sql, params);
+    return rows;
   }
 
-  private async pgRow<T = any>(sql: string, params: any[] = []): Promise<T | undefined> {
+  private async pgRow<T extends QueryResultRow = Record<string, unknown>>(
+    sql: string,
+    params: unknown[] = [],
+  ): Promise<T | undefined> {
     const rows = await this.pgRows<T>(sql, params);
     return rows[0];
   }
 
-  private async pgExec(sql: string, params: any[] = []): Promise<void> {
+  private async pgExec(sql: string, params: unknown[] = []): Promise<void> {
     await this.db.query(sql, params);
+  }
+
+  private mapRowToMediaImage(row: Record<string, unknown>): MediaImage {
+    const mediaPath = String(row['file_path'] ?? row['filePath'] ?? row['path'] ?? '');
+    const filename = String(row['filename'] ?? row['file_name'] ?? path.basename(mediaPath));
+    const thumbnailValue = row['thumbnail_path'] ?? row['thumbnailPath'];
+
+    return {
+      ...row,
+      id: Number(row['id']),
+      filename,
+      file_name: filename,
+      originalFilename: String(row['original_filename'] ?? row['originalFilename'] ?? filename),
+      path: mediaPath,
+      file_path: mediaPath,
+      thumbnailPath: thumbnailValue == null ? undefined : String(thumbnailValue),
+      thumbnail_path: thumbnailValue == null ? undefined : String(thumbnailValue),
+      title: row['title'] == null ? undefined : String(row['title']),
+      description: row['description'] == null ? undefined : String(row['description']),
+      albumId:
+        row['album_id'] == null && row['albumId'] == null
+          ? undefined
+          : Number(row['album_id'] ?? row['albumId']),
+      albumName: row['albumName'] == null ? undefined : String(row['albumName']),
+      width: row['width'] == null ? undefined : Number(row['width']),
+      height: row['height'] == null ? undefined : Number(row['height']),
+      fileSize: Number(row['file_size'] ?? row['fileSize'] ?? 0),
+      format: String(row['file_type'] ?? row['fileType'] ?? ''),
+      dateTaken: row['date_taken']
+        ? new Date(String(row['date_taken'])).toISOString()
+        : row['dateTaken']
+          ? new Date(String(row['dateTaken'])).toISOString()
+          : undefined,
+      dateAdded: row['created_at']
+        ? new Date(String(row['created_at'])).toISOString()
+        : row['createdAt']
+          ? new Date(String(row['createdAt'])).toISOString()
+          : '',
+      dateModified: row['date_modified']
+        ? new Date(String(row['date_modified'])).toISOString()
+        : row['dateModified']
+          ? new Date(String(row['dateModified'])).toISOString()
+          : '',
+      tags: [],
+      isSensitive: Boolean(row['is_sensitive'] ?? row['isSensitive']),
+      rating: row['rating'] == null ? undefined : Number(row['rating']),
+    };
   }
 
   // ============ TAG OPERATIONS ============
@@ -58,7 +112,7 @@ export class MediaService {
   // ============ ALBUM OPERATIONS ============
 
   async getAllAlbums(): Promise<Album[]> {
-    const results = await this.pgRows<any>(`
+    const results = await this.pgRows<Record<string, unknown>>(`
       SELECT
         a.id, a.name, a.description, a.cover_image_id as "coverImageId",
         a.created_at as "dateCreated", a.date_modified as "dateModified",
@@ -71,11 +125,11 @@ export class MediaService {
       HAVING COUNT(i.id) > 0
       ORDER BY a.name
     `);
-    return results.map((row) => ({ ...row, imageCount: Number(row.imageCount) }));
+    return results.map((row) => ({ ...row, imageCount: Number(row['imageCount']) })) as Album[];
   }
 
   async getAlbumById(id: number): Promise<Album | undefined> {
-    const row = await this.pgRow<any>(
+    const row = await this.pgRow<Record<string, unknown>>(
       `
       SELECT
         a.id, a.name, a.description, a.cover_image_id as "coverImageId",
@@ -91,7 +145,7 @@ export class MediaService {
       [id],
     );
     if (!row) return undefined;
-    return { ...row, imageCount: Number(row.imageCount) };
+    return { ...row, imageCount: Number(row['imageCount']) } as Album;
   }
 
   async createAlbum(name: string, description?: string): Promise<Album> {
@@ -106,7 +160,7 @@ export class MediaService {
 
   async updateAlbum(id: number, updates: Partial<Album>): Promise<void> {
     const fields: string[] = [];
-    const values: any[] = [];
+    const values: unknown[] = [];
 
     if (updates.name !== undefined) {
       fields.push('name');
@@ -185,8 +239,8 @@ export class MediaService {
     `;
 
     const conditions: string[] = [];
-    const params: any[] = [];
-    const bind = (value: any) => {
+    const params: unknown[] = [];
+    const bind = (value: unknown) => {
       params.push(value);
       return `$${params.length}`;
     };
@@ -242,28 +296,16 @@ export class MediaService {
       if (filter?.offset) query += ` OFFSET ${bind(Number(filter.offset))}`;
     }
 
-    const rows = await this.pgRows<any>(query, params);
-    return rows.map((row) => ({
-      ...row,
-      id: Number(row.id),
-      path: row.file_path ?? row.path,
-      filePath: row.file_path ?? row.filePath,
-      thumbnailPath: row.thumbnail_path ?? row.thumbnailPath,
-      isSensitive: Boolean(row.is_sensitive ?? row.isSensitive),
-      fileSize: Number((row.file_size ?? row.fileSize) || 0),
-      dateAdded: row.created_at ? new Date(row.created_at).toISOString() : '',
-      dateModified: row.date_modified ? new Date(row.date_modified).toISOString() : '',
-      dateTaken: row.date_taken ? new Date(row.date_taken).toISOString() : undefined,
-      tags: [],
-    })) as MediaImage[];
+    const rows = await this.pgRows<Record<string, unknown>>(query, params);
+    return rows.map((row) => this.mapRowToMediaImage(row));
   }
 
   async getImageCount(filter?: ImageFilter): Promise<number> {
     let query =
       "SELECT COUNT(DISTINCT i.id) as count FROM media_items i WHERE i.file_type LIKE 'image/%'";
     const conditions: string[] = [];
-    const params: any[] = [];
-    const bind = (value: any) => {
+    const params: unknown[] = [];
+    const bind = (value: unknown) => {
       params.push(value);
       return `$${params.length}`;
     };
@@ -301,7 +343,7 @@ export class MediaService {
   }
 
   async getImageById(id: number): Promise<MediaImage | undefined> {
-    const item = await this.pgRow<any>(
+    const item = await this.pgRow<Record<string, unknown>>(
       `
         SELECT
           id,
@@ -330,19 +372,7 @@ export class MediaService {
     );
     if (!item) return undefined;
 
-    return {
-      ...item,
-      id: Number(item.id),
-      path: item.filePath,
-      isSensitive: Boolean(item.isSensitive),
-      redFlagRating: Number(item.redFlagRating || 0),
-      width: Number(item.width || 0),
-      height: Number(item.height || 0),
-      fileSize: Number(item.fileSize || 0),
-      dateAdded: item.createdAt ? new Date(item.createdAt).toISOString() : '',
-      dateModified: '',
-      dateTaken: item.dateTaken ? new Date(item.dateTaken).toISOString() : undefined,
-    } as any;
+    return this.mapRowToMediaImage(item);
   }
 
   async createImage(
@@ -391,7 +421,7 @@ export class MediaService {
 
   async updateImage(id: number, updates: Partial<MediaImage>): Promise<void> {
     const fields: string[] = [];
-    const values: any[] = [];
+    const values: unknown[] = [];
 
     const fieldMap: Record<string, string> = {
       title: 'title',
@@ -794,10 +824,10 @@ export class MediaService {
     }
   }
 
-  async processUpload(file: any, albumId?: number): Promise<MediaImage> {
+  async processUpload(file: Express.Multer.File, albumId?: number): Promise<MediaImage> {
     const buffer = await fs.promises.readFile(file.path);
-    let tags: any = {};
-    let imageSize: any = {};
+    let tags: Record<string, unknown> = {};
+    let imageSize: { width?: number; height?: number } = {};
 
     try {
       const parser = exifParser.create(buffer);
@@ -869,16 +899,18 @@ export class MediaService {
       path.extname(file.originalname).slice(1).toLowerCase(),
       imageSize.width || 0,
       imageSize.height || 0,
-      tags.DateTimeOriginal ? new Date(tags.DateTimeOriginal * 1000).toISOString() : null,
+      tags['DateTimeOriginal']
+        ? new Date(Number(tags['DateTimeOriginal']) * 1000).toISOString()
+        : null,
       albumId || null,
-      tags.Make || null,
-      tags.Model || null,
-      tags.FocalLength?.toString() || null,
-      tags.FNumber?.toString() || null,
-      tags.ExposureTime?.toString() || null,
-      tags.ISO || null,
-      tags.GPSLatitude || null,
-      tags.GPSLongitude || null,
+      tags['Make'] || null,
+      tags['Model'] || null,
+      tags['FocalLength'] != null ? String(tags['FocalLength']) : null,
+      tags['FNumber'] != null ? String(tags['FNumber']) : null,
+      tags['ExposureTime'] != null ? String(tags['ExposureTime']) : null,
+      tags['ISO'] || null,
+      tags['GPSLatitude'] || null,
+      tags['GPSLongitude'] || null,
     ]);
 
     if (!info) throw new Error('Failed to create media item after upload');
@@ -896,7 +928,7 @@ export class MediaService {
     }
   }
 
-  async createAlbumArchive(albumId: number, res: any): Promise<void> {
+  async createAlbumArchive(albumId: number, res: import('express').Response): Promise<void> {
     const album = await this.getAlbumById(albumId);
     if (!album) throw new Error('Album not found');
 

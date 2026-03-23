@@ -21,7 +21,7 @@ const normalizeTargetType = (value: unknown): 'document' | 'entity' | 'media' | 
 };
 
 export const mapInvestigationEvidenceListItemDto = (
-  row: any,
+  row: Record<string, unknown>,
 ): InvestigationEvidenceListItemDto => ({
   id: Number(row.id || 0),
   type: String(row.type || 'document'),
@@ -39,7 +39,7 @@ export const mapInvestigationEvidenceListItemDto = (
 });
 
 export const mapInvestigationEvidenceListResponseDto = (
-  result: any,
+  result: Record<string, unknown> | Array<Record<string, unknown>>,
 ): InvestigationEvidenceListResponseDto => ({
   data: Array.isArray(result?.data)
     ? result.data.map(mapInvestigationEvidenceListItemDto)
@@ -52,7 +52,7 @@ export const mapInvestigationEvidenceListResponseDto = (
 });
 
 export const mapInvestigationCaseEvidenceItemDto = (
-  row: any,
+  row: Record<string, unknown>,
 ): InvestigationCaseEvidenceItemDto => ({
   id: Number(row.id || 0),
   type: String(row.type || 'other'),
@@ -104,7 +104,7 @@ export const mapInvestigationCaseEvidenceItemDto = (
 });
 
 export const mapInvestigationEvidenceByTypeResponseDto = (
-  payload: any,
+  payload: Record<string, unknown>,
 ): InvestigationEvidenceByTypeResponseDto => {
   const allItems = Array.isArray(payload?.all)
     ? payload.all.map(mapInvestigationCaseEvidenceItemDto)
@@ -113,7 +113,7 @@ export const mapInvestigationEvidenceByTypeResponseDto = (
   const byType: Record<string, InvestigationCaseEvidenceItemDto[]> = {};
   for (const [type, items] of Object.entries(payload?.byType || {})) {
     byType[type] = Array.isArray(items)
-      ? (items as any[]).map(mapInvestigationCaseEvidenceItemDto)
+      ? (items as Array<Record<string, unknown>>).map(mapInvestigationCaseEvidenceItemDto)
       : [];
   }
 

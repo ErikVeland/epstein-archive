@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Response, Request, NextFunction } from 'express';
 import { mediaRepository } from '../db/mediaRepository.js';
 import { cacheResponse } from '../utils/perfCache.js';
 import crypto from 'crypto';
@@ -56,7 +56,7 @@ router.get(
 
       const items = await mediaRepository.getPhotosForEntities(rawIds);
 
-      const formatted = items.map((m: any) => {
+      const formatted = items.map((m: { id: unknown; filePath: unknown; entityId: unknown }) => {
         const key = `${m.id}-${m.filePath}`;
         const etag = crypto.createHash('md5').update(key).digest('hex');
         return {
@@ -102,11 +102,10 @@ router.get('/tags', cacheResponse(120), async (_req, res, next) => {
 
 router.get('/images', validate(mediaImagesQuerySchema), async (req, res, next) => {
   try {
-    const query = req.query as any;
+    const query = req.query as Record<string, string | undefined>;
     const page = Number(query.page || 1);
     const limit = Number(query.limit || 24);
     const sortField = String(query.sortField || 'date_added').toLowerCase();
-    const sortOrder = String(query.sortOrder || 'desc').toLowerCase() === 'asc' ? 'asc' : 'desc';
     const slim = Boolean(query.slim);
 
     const sortBy: 'title' | 'date' | 'rating' =
@@ -115,14 +114,13 @@ router.get('/images', validate(mediaImagesQuerySchema), async (req, res, next) =
     const { mediaItems, total } = await mediaRepository.getMediaItemsPaginated(page, limit, {
       albumId: query.albumId ? Number(query.albumId) : undefined,
       sortBy,
-      sortOrder,
       fileType: 'image',
       transcriptQuery: query.search,
-    } as any);
+    });
 
     res.setHeader('X-Total-Count', String(total));
     res.json(
-      mediaItems.map((item: any) =>
+      mediaItems.map((item: Record<string, unknown>) =>
         slim
           ? {
               id: item.id,
@@ -159,7 +157,7 @@ router.get('/images/:id', validate(mediaIdParamSchema), async (req, res, next) =
   }
 });
 
-const sendImageFile = async (id: number, res: any, preferThumbnail: boolean) => {
+const sendImageFile = async (id: number, res: Response, preferThumbnail: boolean) => {
   const item = await mediaRepository.getMediaItemById(id);
   if (!item) return res.status(404).json({ error: 'Image not found' });
 
@@ -308,19 +306,19 @@ const avListQuerySchema = z.object({
 });
 
 const makeAvListHandler =
-  (fileType: 'audio' | 'video') => async (req: any, res: any, next: any) => {
+  (fileType: 'audio' | 'video') => async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { page, limit, albumId, sortBy, transcriptQuery } = req.query as any;
+      const query = req.query as Record<string, string | undefined>;
+      const { page, limit, albumId, sortBy, transcriptQuery } = query;
       const result = await mediaRepository.getMediaItemsPaginated(
         Number(page || 1),
         Number(limit || 24),
         {
           fileType,
           albumId: albumId ? Number(albumId) : undefined,
-          sortBy: sortBy ?? 'title',
-          sortOrder: 'asc',
+          sortBy: (sortBy as 'title' | 'date' | 'rating') ?? 'title',
           transcriptQuery: transcriptQuery || undefined,
-        } as any,
+        },
       );
       res.json(result);
     } catch (error) {

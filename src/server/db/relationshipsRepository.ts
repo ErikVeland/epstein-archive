@@ -7,6 +7,44 @@ import {
   IGetTopEntitiesByRelationshipCountResult,
 } from '@epstein/db/src/queries/__generated__/relationships.js';
 
+function normalizeType(rawType: string): string {
+  if (!rawType) return 'person';
+  const lower = rawType.toLowerCase().trim();
+
+  if (lower === 'location' || lower === 'place' || lower === 'city' || lower === 'country')
+    return 'location';
+  if (lower === 'organization' || lower === 'company' || lower === 'corporation')
+    return 'organization';
+  if (lower === 'financial' || lower === 'bank' || lower === 'account') return 'financial';
+  if (lower === 'person' || lower === 'individual') return 'person';
+
+  if (
+    lower.includes('org') ||
+    lower.includes('company') ||
+    lower.includes('llc') ||
+    lower.includes('corp')
+  )
+    return 'organization';
+  if (
+    lower.includes('island') ||
+    lower.includes('residence') ||
+    lower.includes('house') ||
+    lower.includes('apt') ||
+    lower.includes('hong') ||
+    lower.includes('york') ||
+    lower.includes('beach')
+  )
+    return 'location';
+  if (lower.includes('bank') || lower.includes('fund') || lower.includes('trust'))
+    return 'financial';
+  if (lower.includes('doc') || lower.includes('log') || lower.includes('file')) return 'document';
+  if (lower.includes('comm') || lower.includes('email') || lower.includes('phone'))
+    return 'communication';
+  if (lower.includes('cluster')) return 'cluster';
+
+  return 'person';
+}
+
 export const relationshipsRepository = {
   getRelationships: async (
     entityId: number | string,
@@ -73,7 +111,10 @@ export const relationshipsRepository = {
     try {
       await client.query('BEGIN');
       await client.query('DELETE FROM entity_adjacency');
-      await relationshipsQueries.rebuildAdjacencyCache.run(undefined, client as any);
+      await relationshipsQueries.rebuildAdjacencyCache.run(
+        undefined,
+        client as unknown as Parameters<typeof relationshipsQueries.rebuildAdjacencyCache.run>[1],
+      );
       await client.query(
         'UPDATE graph_cache_state SET last_rebuild = CURRENT_TIMESTAMP, is_dirty = 0 WHERE id = 1',
       );
@@ -111,7 +152,15 @@ export const relationshipsRepository = {
     const queue: { id: number; d: number; bridge_score?: number }[] = [
       { id: Number(startId), d: 0, bridge_score: 0 },
     ];
-    const edges: any[] = [];
+    const edges: Array<{
+      source_id: number;
+      target_id: number;
+      relationship_type: string;
+      relationship_types: string[];
+      proximity_score: number | null;
+      risk_score: number;
+      confidence: number;
+    }> = [];
 
     // Only process if queue is not empty
     let iterations = 0;
@@ -152,7 +201,9 @@ export const relationshipsRepository = {
         if (!visited.has(targetId) && d + 1 <= safeDepth) {
           queue.push({ id: targetId, d: d + 1, bridge_score: r.bridgeScore || 0 });
           // Priority: lower depth first, then higher bridge score
-          queue.sort((a: any, b: any) => a.d - b.d || b.bridge_score - a.bridge_score);
+          queue.sort(
+            (a, b) => a.d - b.d || Number(b.bridge_score || 0) - Number(a.bridge_score || 0),
+          );
         }
       }
     }
@@ -196,15 +247,64 @@ export const relationshipsRepository = {
     const photoByCanonicalId = new Map<number, number>(
       photosRes.rows.map((row) => [Number(row.cid), Number(row.photo_id)]),
     );
-    const nodes = detailsRes.rows.map((entity) => ({
-      id: Number(entity.id),
-      label: entity.fullName,
-      type: entity.primaryRole || 'person',
-      risk: entity.redFlagRating || 0,
-      top_photo_id: photoByCanonicalId.get(Number(entity.id)) ?? null,
-    }));
 
-    return { nodes, edges };
+    const nodesRaw = detailsRes.rows.map((entity) => {
+      const type = normalizeType(entity.primaryRole || '');
+      return {
+        id: String(entity.id),
+        label: String(entity.fullName || 'Unknown'),
+        type,
+        risk: Number(entity.redFlagRating || 0),
+        image: photoByCanonicalId.has(Number(entity.id))
+          ? `/api/media/images/${photoByCanonicalId.get(Number(entity.id))}/thumbnail`
+          : undefined,
+        isEgo: Number(entity.id) === Number(entityId),
+        connectionCount: 0, // Requires additional join or compute if needed strictly
+      };
+    });
+
+    // Deduplicate logic
+    const uniqueMap = new Map<string, (typeof nodesRaw)[0]>();
+    const egoIdStr = String(entityId);
+
+    nodesRaw.forEach((node) => {
+      const key = node.label.trim().toLowerCase();
+      if (!uniqueMap.has(key)) {
+        uniqueMap.set(key, node);
+      } else {
+        const existing = uniqueMap.get(key)!;
+        if (node.id === egoIdStr) {
+          uniqueMap.set(key, node);
+        } else if (existing.id !== egoIdStr && node.risk > existing.risk) {
+          uniqueMap.set(key, node);
+        }
+      }
+    });
+
+    const nodes = Array.from(uniqueMap.values());
+    const validIds = new Set(nodes.map((n) => n.id));
+
+    // Calculate weight and Remap edges
+    const finalEdges = edges
+      .map((e) => {
+        const p = Math.min(100, Math.max(0, e.proximity_score || 0));
+        const c = Math.min(1.0, Math.max(0, e.confidence || 1));
+        const d = Math.min(20, Math.max(0, 0)); // docCount defaults
+        const score = Math.min(100, Math.round(p * 0.4 + c * 30 + d * 5));
+
+        return {
+          id: `${e.source_id}-${e.target_id}`,
+          source: String(e.source_id),
+          target: String(e.target_id),
+          type: String(e.relationship_type || 'related_to'),
+          weight: score,
+          confidence: c,
+          docCount: 0,
+        };
+      })
+      .filter((e) => validIds.has(e.source) && validIds.has(e.target) && e.source !== e.target);
+
+    return { nodes, edges: finalEdges };
   },
 
   getStats: async () => {
@@ -240,7 +340,7 @@ export const relationshipsRepository = {
     const canonicalId = startNodeRows[0].cid;
 
     const entityRows = await relationshipsQueries.getEntityDetailsAggregated.run(
-      { canonicalId: BigInt(canonicalId!) },
+      { canonicalId: String(canonicalId!) },
       getApiPool(),
     );
     const entity = entityRows[0];

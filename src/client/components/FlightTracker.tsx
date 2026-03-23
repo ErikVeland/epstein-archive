@@ -9,6 +9,9 @@ import { RouteMap } from './visualizations/RouteMap';
 import { Select } from './common/Select';
 
 import './FlightTracker.css';
+import { FixedSizeList as List } from 'react-window';
+import AutoSizer from './common/AutoSizer';
+import ScopedErrorBoundary from './common/ScopedErrorBoundary';
 
 interface Flight {
   id: number;
@@ -261,60 +264,86 @@ const FlightTracker: React.FC = () => {
 
   // Timeline view
   const TimelineView = () => (
-    <div className="flight-timeline">
-      {flights.map((flight, _index) => (
-        <button
-          key={flight.id}
-          type="button"
-          className="flight-card bg-transparent text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-inset"
-          onClick={() => setSelectedFlight(flight)}
-          aria-label={`Open flight details for ${flight.departure_airport} to ${flight.arrival_airport} on ${formatDate(flight.date)}`}
-        >
-          <div className="flight-date">
-            <span className="date-badge">{formatDate(flight.date)}</span>
-          </div>
+    <div
+      className="flight-timeline-container"
+      style={{ flex: 1, minHeight: '600px', height: '100%', width: '100%' }}
+    >
+      {flights.length === 0 ? (
+        <div className="no-flights text-[var(--text-muted)] p-8 text-center bg-[var(--glass-bg)]/50 rounded-[var(--radius-lg)]">
+          No flights found
+        </div>
+      ) : (
+        <AutoSizer>
+          {({ height, width }: { height: number; width: number }) => (
+            <List
+              height={height ?? 600}
+              itemCount={flights.length}
+              itemSize={window.innerWidth <= 1024 ? 240 : 130}
+              width={width ?? '100%'}
+              className="flight-timeline-list"
+            >
+              {({ index, style }) => {
+                const flight = flights[index];
+                return (
+                  <div style={{ ...style, paddingBottom: '1rem', paddingRight: '0.5rem' }}>
+                    <button
+                      type="button"
+                      className="flight-card bg-transparent text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-inset w-full m-0 h-full"
+                      onClick={() => setSelectedFlight(flight)}
+                      aria-label={`Open flight details for ${flight.departure_airport} to ${flight.arrival_airport} on ${formatDate(flight.date)}`}
+                    >
+                      <div className="flight-date">
+                        <span className="date-badge">{formatDate(flight.date)}</span>
+                      </div>
 
-          <div className="flight-route">
-            <div className="airport departure">
-              <span className="airport-code">{flight.departure_airport}</span>
-              <span className="airport-city">{flight.departure_city}</span>
-            </div>
+                      <div className="flight-route">
+                        <div className="airport departure">
+                          <span className="airport-code">{flight.departure_airport}</span>
+                          <span className="airport-city">{flight.departure_city}</span>
+                        </div>
 
-            <div className="flight-line">
-              <div className="plane-icon">✈</div>
-              <div className="dashed-line" />
-            </div>
+                        <div className="flight-line">
+                          <div className="plane-icon">✈</div>
+                          <div className="dashed-line" />
+                        </div>
 
-            <div className="airport arrival">
-              <span className="airport-code">{flight.arrival_airport}</span>
-              <span className="airport-city">{flight.arrival_city}</span>
-            </div>
-          </div>
+                        <div className="airport arrival">
+                          <span className="airport-code">{flight.arrival_airport}</span>
+                          <span className="airport-city">{flight.arrival_city}</span>
+                        </div>
+                      </div>
 
-          <div className="flight-passengers">
-            <span className="passenger-count">
-              <Icon name="Users" size="sm" /> {flight.passengers?.length || 0} passengers
-            </span>
-            <div className="passenger-names">
-              {flight.passengers?.slice(0, 3).map((p, i) => (
-                <span key={i} className={`passenger-tag ${p.role}`}>
-                  {p.passenger_name}
-                </span>
-              ))}
-              {(flight.passengers?.length || 0) > 3 && (
-                <span className="more-passengers">
-                  +{(flight.passengers?.length || 0) - 3} more
-                </span>
-              )}
-            </div>
-          </div>
+                      <div className="flight-passengers">
+                        <span className="passenger-count">
+                          <Icon name="Users" size="sm" /> {flight.passengers?.length || 0}{' '}
+                          passengers
+                        </span>
+                        <div className="passenger-names">
+                          {flight.passengers?.slice(0, 3).map((p, i) => (
+                            <span key={i} className={`passenger-tag ${p.role}`}>
+                              {p.passenger_name}
+                            </span>
+                          ))}
+                          {(flight.passengers?.length || 0) > 3 && (
+                            <span className="more-passengers">
+                              +{(flight.passengers?.length || 0) - 3} more
+                            </span>
+                          )}
+                        </div>
+                      </div>
 
-          <div className="flight-aircraft">
-            <span className="tail-number">{flight.aircraft_tail}</span>
-            <span className="aircraft-type">{flight.aircraft_type}</span>
-          </div>
-        </button>
-      ))}
+                      <div className="flight-aircraft flex flex-col items-end">
+                        <span className="tail-number">{flight.aircraft_tail}</span>
+                        <span className="aircraft-type">{flight.aircraft_type}</span>
+                      </div>
+                    </button>
+                  </div>
+                );
+              }}
+            </List>
+          )}
+        </AutoSizer>
+      )}
     </div>
   );
 
@@ -889,10 +918,21 @@ const FlightTracker: React.FC = () => {
       </div>
 
       <div className="tracker-content">
-        {viewMode === 'timeline' && <TimelineView />}
-        {viewMode === 'map' && <MapView />}
-        {viewMode === 'stats' && <StatsView />}
-        {viewMode === 'network' && <NetworkView />}
+        <ScopedErrorBoundary
+          fallback={
+            <div className="bg-[var(--accent-danger)]/10 border border-[var(--accent-danger)]/20 text-[var(--accent-danger)] text-sm rounded-[var(--radius-lg)] p-8 text-center mt-4">
+              <p className="font-bold mb-2">Visualization Error</p>
+              <p>
+                A rendering error occurred in this view. The data might be malformed or incomplete.
+              </p>
+            </div>
+          }
+        >
+          {viewMode === 'timeline' && <TimelineView />}
+          {viewMode === 'map' && <MapView />}
+          {viewMode === 'stats' && <StatsView />}
+          {viewMode === 'network' && <NetworkView />}
+        </ScopedErrorBoundary>
       </div>
 
       <FlightModal />

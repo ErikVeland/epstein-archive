@@ -17,11 +17,71 @@ import { EvidenceDrawer } from '../visualizations/EvidenceDrawer';
 import { filterPeopleOnly } from '../../utils/entityFilters';
 import { InteractiveEntityMap } from '../visualizations/InteractiveEntityMap';
 import { useFilters } from '../../contexts/useFilters';
+import { useAnalytics } from '../../contexts/AnalyticsContext';
 import { apiClient } from '../../services/apiClient';
+import type { Evidence } from '../visualizations/EvidenceDrawer';
+import type { Person } from '../../../types';
 
-interface EnhancedAnalyticsProps {
-  onEntitySelect?: (entityId: number) => void;
-  onTypeFilter?: (type: string) => void;
+/** Raw node shape returned by /graph/global and /graph/global?mode=path */
+interface GraphApiNode {
+  id: string | number;
+  label: string;
+  risk?: number;
+  image?: string;
+  type?: string;
+  [key: string]: unknown;
+}
+
+/** Raw edge shape returned by /graph/global */
+interface GraphApiEdge {
+  source: string | number;
+  target: string | number;
+  type?: string;
+  weight?: number;
+}
+
+/** Mapped node passed to NetworkGraph — must satisfy EntityNode */
+interface MappedGraphNode {
+  id: string | number;
+  name: string;
+  label?: string;
+  riskLevel?: number;
+  risk?: number;
+  photoUrl?: string;
+  image?: string;
+  type?: string;
+  connectionCount: number;
+  mentions?: number;
+  val?: number;
+}
+
+/** Mapped edge passed to NetworkGraph — must satisfy Relationship */
+interface MappedGraphEdge {
+  source: string;
+  target: string;
+  sourceId: string | number;
+  targetId: string | number;
+  type?: string;
+  strength?: number;
+  weight?: number;
+}
+
+/** Relationship metadata returned by /graph/edge-evidence */
+interface EdgeRelationshipDetails {
+  relationship_type?: string;
+  [key: string]: unknown;
+}
+
+/** Raw payload returned by /graph/edge-evidence */
+interface EdgeEvidenceApiResponse {
+  documents: Evidence[];
+  relationship: EdgeRelationshipDetails;
+}
+
+/** Raw payload returned by /graph/global */
+interface GlobalGraphApiResponse {
+  nodes: GraphApiNode[];
+  edges: GraphApiEdge[];
 }
 
 interface AnalyticsData {
@@ -70,17 +130,24 @@ interface AnalyticsData {
   };
 }
 
-function normalizeAnalyticsPayload(raw: any): AnalyticsData {
-  const totalCounts = raw?.totalCounts ?? {};
-  const reconciliation = raw?.reconciliation ?? {};
-  const redactionStats = raw?.redactionStats ?? {};
+function normalizeAnalyticsPayload(raw: unknown): AnalyticsData {
+  const r = raw as Record<string, unknown>;
+  const totalCounts = (r?.totalCounts ?? {}) as Record<string, unknown>;
+  const reconciliation = (r?.reconciliation ?? {}) as Record<string, unknown>;
+  const redactionStats = (r?.redactionStats ?? {}) as Record<string, unknown>;
 
   return {
-    documentsByType: Array.isArray(raw?.documentsByType) ? raw.documentsByType : [],
-    timelineData: Array.isArray(raw?.timelineData) ? raw.timelineData : [],
-    topConnectedEntities: Array.isArray(raw?.topConnectedEntities) ? raw.topConnectedEntities : [],
-    entityTypeDistribution: Array.isArray(raw?.entityTypeDistribution)
-      ? raw.entityTypeDistribution
+    documentsByType: Array.isArray(r?.documentsByType)
+      ? (r.documentsByType as AnalyticsData['documentsByType'])
+      : [],
+    timelineData: Array.isArray(r?.timelineData)
+      ? (r.timelineData as AnalyticsData['timelineData'])
+      : [],
+    topConnectedEntities: Array.isArray(r?.topConnectedEntities)
+      ? (r.topConnectedEntities as AnalyticsData['topConnectedEntities'])
+      : [],
+    entityTypeDistribution: Array.isArray(r?.entityTypeDistribution)
+      ? (r.entityTypeDistribution as AnalyticsData['entityTypeDistribution'])
       : [],
     redactionStats: {
       totalDocuments: Number(redactionStats.totalDocuments || 0),
@@ -88,7 +155,9 @@ function normalizeAnalyticsPayload(raw: any): AnalyticsData {
       redactionPercentage: Number(redactionStats.redactionPercentage || 0),
       totalRedactions: Number(redactionStats.totalRedactions || 0),
     },
-    topRelationships: Array.isArray(raw?.topRelationships) ? raw.topRelationships : [],
+    topRelationships: Array.isArray(r?.topRelationships)
+      ? (r.topRelationships as AnalyticsData['topRelationships'])
+      : [],
     totalCounts: {
       entities: Number(totalCounts.entities || 0),
       documents: Number(totalCounts.documents || 0),
@@ -133,33 +202,45 @@ const StatCard: React.FC<{
   </div>
 );
 
-export const EnhancedAnalytics: React.FC<EnhancedAnalyticsProps> = ({
-  onEntitySelect,
-  onTypeFilter,
-}) => {
+export const EnhancedAnalytics: React.FC = () => {
   const { filters, setFilters } = useFilters();
+  const { onPersonSelect, filteredPeople } = useAnalytics();
+
+  const onEntitySelect = (entityId: number) => {
+    const person = filteredPeople.find((p) => Number(p.id) === entityId);
+    if (person && onPersonSelect) {
+      onPersonSelect(person);
+    }
+  };
+
+  const onTypeFilter = (type: string) => {
+    console.log('Filter by type:', type);
+  };
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // LOD Graph State
-  const [graphData, setGraphData] = useState<{ nodes: any[]; edges: any[] } | null>(null);
+  const [graphData, setGraphData] = useState<{
+    nodes: MappedGraphNode[];
+    edges: MappedGraphEdge[];
+  } | null>(null);
   const [graphMode, setGraphMode] = useState<'default' | 'cluster'>('default');
   const [isGraphLoading, setIsGraphLoading] = useState(false);
 
   // Evidence Drawer State
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [selectedEdge, setSelectedEdge] = useState<any>(null);
-  const [edgeEvidence, setEdgeEvidence] = useState<any[]>([]);
+  const [selectedEdge, setSelectedEdge] = useState<MappedGraphEdge | null>(null);
+  const [edgeEvidence, setEdgeEvidence] = useState<Evidence[]>([]);
   const [isEvidenceLoading, setIsEvidenceLoading] = useState(false);
-  const [edgeDetails, setEdgeDetails] = useState<any>(null); // For relationship metadata
+  const [edgeDetails, setEdgeDetails] = useState<EdgeRelationshipDetails | null>(null);
 
   // Path Finding State
   const [pathMode, setPathMode] = useState(false);
-  const [pathSource, setPathSource] = useState<any>(null);
-  const [pathTarget, setPathTarget] = useState<any>(null);
+  const [pathSource, setPathSource] = useState<MappedGraphNode | null>(null);
+  const [pathTarget, setPathTarget] = useState<MappedGraphNode | null>(null);
 
-  const handlePathNodeClick = (entity: any) => {
+  const handlePathNodeClick = (entity: MappedGraphNode) => {
     if (!pathSource) {
       setPathSource(entity);
     } else if (!pathTarget && String(entity.id) !== String(pathSource.id)) {
@@ -178,7 +259,7 @@ export const EnhancedAnalytics: React.FC<EnhancedAnalyticsProps> = ({
       const [startDate, endDate] = filters.timeRange;
       const endpoint = `/graph/global?mode=path&sourceId=${sourceId}&targetId=${targetId}&startDate=${startDate || ''}&endDate=${endDate || ''}`;
 
-      const pathData = await apiClient.get<any>(endpoint, { useCache: false });
+      const pathData = await apiClient.get<GlobalGraphApiResponse>(endpoint, { useCache: false });
       if (!pathData || !Array.isArray(pathData.nodes) || !Array.isArray(pathData.edges)) {
         throw new Error('Path fetch failed');
       }
@@ -190,15 +271,18 @@ export const EnhancedAnalytics: React.FC<EnhancedAnalyticsProps> = ({
         return;
       }
 
-      const mappedNodes = pathData.nodes.map((n: any) => ({
+      const mappedNodes: MappedGraphNode[] = pathData.nodes.map((n) => ({
         ...n,
         name: n.label,
         riskLevel: n.risk,
+        connectionCount: 0,
         val: 20, // Highlight size
       }));
-      const mappedEdges = pathData.edges.map((e: any) => ({
-        source: e.source,
-        target: e.target,
+      const mappedEdges: MappedGraphEdge[] = pathData.edges.map((e) => ({
+        source: String(e.source),
+        target: String(e.target),
+        sourceId: e.source,
+        targetId: e.target,
         type: 'path',
         strength: e.weight,
       }));
@@ -219,8 +303,11 @@ export const EnhancedAnalytics: React.FC<EnhancedAnalyticsProps> = ({
   useEffect(() => {
     if (data?.topConnectedEntities) {
       setGraphData({
-        nodes: data.topConnectedEntities,
-        edges: data.topRelationships,
+        nodes: data.topConnectedEntities.map((e) => ({ ...e, connectionCount: e.connectionCount })),
+        edges: data.topRelationships.map((r) => ({
+          ...r,
+          strength: r.weight,
+        })),
       });
       setFilters({ limit: data.topConnectedEntities.length });
     }
@@ -268,24 +355,29 @@ export const EnhancedAnalytics: React.FC<EnhancedAnalyticsProps> = ({
               ? `/graph/global?mode=cluster&startDate=${startDate || ''}&endDate=${endDate || ''}`
               : `/graph/global?limit=${targetLimit}&startDate=${startDate || ''}&endDate=${endDate || ''}`;
 
-          const newData = await apiClient.get<any>(endpoint, { useCache: false });
+          const newData = await apiClient.get<GlobalGraphApiResponse>(endpoint, {
+            useCache: false,
+          });
           if (!newData || !Array.isArray(newData.nodes) || !Array.isArray(newData.edges)) {
             throw new Error('Invalid graph payload');
           }
 
           // Map to Legacy Interface expectations
-          const mappedNodes = newData.nodes.map((n: any) => ({
+          const mappedNodes: MappedGraphNode[] = newData.nodes.map((n) => ({
             ...n,
             name: n.label,
             riskLevel: n.risk,
             photoUrl: n.image,
+            connectionCount: 0,
           }));
 
-          const mappedEdges = newData.edges.map((e: any) => ({
-            source: e.source,
-            target: e.target,
-            type: e.type,
-            strength: e.weight,
+          const mappedEdges: MappedGraphEdge[] = newData.edges.map((e) => ({
+            source: String(e.source),
+            target: String(e.target),
+            sourceId: e.source,
+            targetId: e.target,
+            type: e.type || 'association',
+            strength: e.weight ?? 0.5,
           }));
 
           setGraphData({ nodes: mappedNodes, edges: mappedEdges });
@@ -299,9 +391,9 @@ export const EnhancedAnalytics: React.FC<EnhancedAnalyticsProps> = ({
     [graphMode, filters.limit, isGraphLoading, filters.timeRange, setFilters],
   );
 
-  const evidenceCache = React.useRef<Map<string, any[]>>(new Map());
+  const evidenceCache = React.useRef<Map<string, Evidence[]>>(new Map());
 
-  const handleEdgeClick = async (edge: any) => {
+  const handleEdgeClick = async (edge: MappedGraphEdge) => {
     setSelectedEdge(edge);
     setIsDrawerOpen(true);
 
@@ -321,7 +413,7 @@ export const EnhancedAnalytics: React.FC<EnhancedAnalyticsProps> = ({
 
     try {
       const endpoint = `/graph/edge-evidence?sourceId=${edge.sourceId}&targetId=${edge.targetId}`;
-      const data = await apiClient.get<any>(endpoint, { useCache: true });
+      const data = await apiClient.get<EdgeEvidenceApiResponse>(endpoint, { useCache: true });
       if (!data || !Array.isArray(data.documents)) throw new Error('Failed to fetch evidence');
 
       // Cache the documents result
@@ -350,21 +442,21 @@ export const EnhancedAnalytics: React.FC<EnhancedAnalyticsProps> = ({
   const fetchAnalytics = async () => {
     try {
       setLoading(true);
-      const result = await apiClient.get<any>('/analytics/enhanced', { useCache: false });
+      const result = await apiClient.get<unknown>('/analytics/enhanced', { useCache: false });
       const normalized = normalizeAnalyticsPayload(result);
 
       // Filter out junk entities from Network Graph
       if (normalized.topConnectedEntities) {
         normalized.topConnectedEntities = filterPeopleOnly(
-          normalized.topConnectedEntities as any,
-        ) as any;
+          normalized.topConnectedEntities as unknown as Person[],
+        ) as unknown as AnalyticsData['topConnectedEntities'];
       }
 
       // Filter relationships to only include valid entities
       if (normalized.topRelationships && normalized.topConnectedEntities) {
-        const validIds = new Set(normalized.topConnectedEntities.map((e: any) => e.id));
+        const validIds = new Set(normalized.topConnectedEntities.map((e) => e.id));
         normalized.topRelationships = normalized.topRelationships.filter(
-          (r: any) => validIds.has(r.sourceId) && validIds.has(r.targetId),
+          (r) => validIds.has(r.sourceId) && validIds.has(r.targetId),
         );
       }
 
@@ -459,6 +551,22 @@ export const EnhancedAnalytics: React.FC<EnhancedAnalyticsProps> = ({
   }
 
   const { redactionStats, topConnectedEntities, topRelationships } = data;
+  const networkEntities: MappedGraphNode[] =
+    graphData?.nodes ||
+    topConnectedEntities.map((entity) => ({
+      ...entity,
+      connectionCount: Number(entity.connectionCount || 0),
+    }));
+  const networkRelationships: MappedGraphEdge[] =
+    graphData?.edges ||
+    topRelationships.map((relationship) => ({
+      ...relationship,
+      sourceId: relationship.sourceId,
+      targetId: relationship.targetId,
+      source: relationship.source,
+      target: relationship.target,
+      strength: relationship.weight,
+    }));
   const totalDocumentsCount = Number(data.totalCounts?.documents || 0);
   const evidenceFilesCount = Number(data.totalCounts?.evidenceFiles || 0);
   const unclassifiedCount = Number(data.reconciliation?.unclassifiedCount || 0);
@@ -598,11 +706,11 @@ export const EnhancedAnalytics: React.FC<EnhancedAnalyticsProps> = ({
         {/* Desktop: Full Network Graph */}
         <div className="hidden md:block flex-1 min-h-0 relative">
           <NetworkGraph
-            entities={graphData?.nodes || topConnectedEntities}
-            relationships={graphData?.edges || topRelationships}
+            entities={networkEntities}
+            relationships={networkRelationships}
             onEntityClick={(entity) => {
               if (pathMode) {
-                handlePathNodeClick(entity);
+                handlePathNodeClick(entity as unknown as MappedGraphNode);
               } else {
                 onEntitySelect?.(Number(entity.id));
               }

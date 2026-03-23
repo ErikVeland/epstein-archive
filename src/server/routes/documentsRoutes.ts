@@ -91,23 +91,25 @@ const isWithinRoot = (candidate: string, root: string): boolean => {
 // GET /api/documents
 router.get('/', validate(documentsListQuerySchema), async (req, res, next) => {
   try {
-    const query = req.query as any;
+    const query = req.query;
     const page = Number(query.page || 1);
     const limit = Number(query.limit || 50);
+    const sortOrder =
+      query.sortOrder === 'asc' || query.sortOrder === 'desc' ? query.sortOrder : undefined;
     const result = await documentsRepository.getDocuments(page, limit, {
-      search: query.search,
-      fileType: query.fileType,
-      evidenceType: query.evidenceType,
-      source: query.source,
-      startDate: query.startDate,
-      endDate: query.endDate,
+      search: query.search as string | undefined,
+      fileType: query.fileType as string | undefined,
+      evidenceType: query.evidenceType as string | undefined,
+      source: query.source as string | undefined,
+      startDate: query.startDate as string | undefined,
+      endDate: query.endDate as string | undefined,
       hasFailedRedactions:
         typeof query.hasFailedRedactions === 'boolean' ? query.hasFailedRedactions : undefined,
-      minRedFlag: query.minRedFlag,
-      maxRedFlag: query.maxRedFlag,
-      sortBy: query.sortBy,
-      sortOrder: query.sortOrder,
-      collectionId: query.collectionId,
+      minRedFlag: query.minRedFlag !== undefined ? Number(query.minRedFlag) : undefined,
+      maxRedFlag: query.maxRedFlag !== undefined ? Number(query.maxRedFlag) : undefined,
+      sortBy: query.sortBy as string | undefined,
+      sortOrder,
+      collectionId: query.collectionId as string | undefined,
     });
     res.json(mapDocumentsListResponseDto(result));
   } catch (error) {
@@ -231,10 +233,13 @@ router.get('/:id/redactions', validate(documentIdSchema), async (req, res, next)
     const doc = await documentsRepository.getDocumentById(id);
     if (!doc) return res.status(404).json({ error: 'Document not found' });
 
+    const redactionSpans = Array.isArray(doc.redaction_spans)
+      ? (doc.redaction_spans as Array<Record<string, unknown>>)
+      : [];
     res.json({
-      hasFailedRedactions: Boolean(doc.redaction_spans?.length > 0),
-      count: doc.redaction_spans?.length || 0,
-      redactions: (doc.redaction_spans || []).map((s: any) => ({
+      hasFailedRedactions: redactionSpans.length > 0,
+      count: redactionSpans.length,
+      redactions: redactionSpans.map((s: Record<string, unknown>) => ({
         page: s.page_index || 1,
         text: s.original_text || '',
         bbox: s.bbox || [0, 0, 0, 0],
@@ -250,13 +255,14 @@ router.get('/:id/redactions', validate(documentIdSchema), async (req, res, next)
 router.get('/:id/file', validate(documentIdSchema), async (req, res, next) => {
   try {
     const { id } = req.params;
-    const variant = String((req.query as any).variant || 'dirty').toLowerCase();
+    const variant = String(req.query.variant || 'dirty').toLowerCase();
     const doc = await documentsRepository.getDocumentById(id);
     if (!doc) return res.status(404).json({ error: 'Document not found' });
 
-    const metadata = ((doc as any).metadata || {}) as Record<string, any>;
+    const docAny = doc as unknown as Record<string, unknown>;
+    const metadata = (docAny.metadata || {}) as Record<string, unknown>;
     const isHttpUrl = (value: string): boolean => /^https?:\/\//i.test(value);
-    const firstNonUrl = (values: Array<unknown>): string => {
+    const firstNonUrl = (values: unknown[]): string => {
       for (const candidate of values) {
         const normalized = String(candidate || '').trim();
         if (!normalized) continue;
@@ -268,22 +274,22 @@ router.get('/:id/file', validate(documentIdSchema), async (req, res, next) => {
 
     const dirtyPath = firstNonUrl([
       doc.filePath,
-      (doc as any).file_path,
+      docAny.file_path,
       metadata.filePath,
       metadata.file_path,
       metadata.originalPath,
       metadata.original_path,
     ]);
     const originalPath = firstNonUrl([
-      (doc as any).originalFilePath,
-      (doc as any).original_file_path,
+      docAny.originalFilePath,
+      docAny.original_file_path,
       metadata.originalFilePath,
       metadata.original_file_path,
       metadata.source_path,
     ]);
     const cleanedPath = firstNonUrl([
-      (doc as any).cleanedPath,
-      (doc as any).cleaned_path,
+      docAny.cleanedPath,
+      docAny.cleaned_path,
       metadata.cleanedPath,
       metadata.cleaned_path,
     ]);
@@ -310,7 +316,7 @@ router.get('/:id/file', validate(documentIdSchema), async (req, res, next) => {
       Boolean(canonicalFilePath) &&
       allowedRoots.some((allowedRoot) => isWithinRoot(canonicalFilePath, allowedRoot));
 
-    const isEmailRecord = String((doc as any).evidenceType || (doc as any).evidence_type || '')
+    const isEmailRecord = String(docAny.evidenceType || docAny.evidence_type || '')
       .toLowerCase()
       .includes('email');
 
@@ -320,7 +326,7 @@ router.get('/:id/file', validate(documentIdSchema), async (req, res, next) => {
         const to = String(metadata.to || metadata.recipients || 'undisclosed-recipients');
         const subject = String(metadata.subject || doc.title || doc.fileName || 'Untitled Email');
         const date = String(metadata.date || doc.dateCreated || new Date().toUTCString());
-        const body = String((doc as any).contentRefined || (doc as any).content || '').trim();
+        const body = String(docAny.contentRefined || docAny.content || '').trim();
         const eml = [
           `From: ${from}`,
           `To: ${to}`,

@@ -70,7 +70,7 @@ export const propertiesRepository = {
 
     const offset = (page - 1) * limit;
     const conditions: string[] = [];
-    const params: any[] = [];
+    const params: unknown[] = [];
     let i = 1;
 
     if (ownerSearch) {

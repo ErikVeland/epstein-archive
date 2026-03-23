@@ -51,6 +51,7 @@ interface GraphNode extends ServiceGraphNode {
   vy: number;
   radius: number;
   connectionCount: number;
+  photoUrl?: string;
 }
 
 // Risk-based colors with better visibility
@@ -208,11 +209,29 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
 
   // Initialize nodes with Clustered Spiral Layout via GraphService
   useEffect(() => {
-    // 1. Normalize & Dedup
-    const rawNodes = [...entities, ...extraNodes].map((e) => GraphService.normalizeNode(e));
-    // Prioritize Ego, then Risk, then Connections.
-    // The deduplicateNodes function already handles some priority, but we should sort before slicing.
-    const uniqueNodes = GraphService.deduplicateNodes(rawNodes)
+    // Backend API already handles dedup and normalization. We just need to ensure
+    // properties needed by the visualization are present.
+    const preNormalizedNodes = [...entities, ...extraNodes].map((e) => {
+      const node = e as unknown as {
+        risk?: number;
+        label?: string;
+        primaryRole?: string;
+        image?: string;
+        isEgo?: boolean;
+      };
+      return {
+        id: String(e.id),
+        label: String(e.name || node.label || 'Unknown'),
+        type: e.type || node.primaryRole || 'person',
+        risk: e.riskLevel || node.risk || e.risk || 0,
+        connectionCount: e.connectionCount || 0,
+        photoUrl: e.photoUrl || node.image,
+        isEgo: node.isEgo || false,
+      };
+    }) as unknown as GraphNode[];
+
+    // Sort logic
+    const uniqueNodes = preNormalizedNodes
       .sort((a, b) => b.risk - a.risk || (b.connectionCount || 0) - (a.connectionCount || 0))
       .slice(0, maxNodes);
 
@@ -370,7 +389,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
     });
 
     eligible.forEach(async (node) => {
-      const url = (node as any).photoUrl || (node as any).image || `/api/entities/${node.id}/media`;
+      const url = node.photoUrl || node.image || `/api/entities/${node.id}/media`;
       setAvatarUrls((prev) => ({ ...prev, [node.id]: 'pending' }));
 
       const release = await avatarSemaphore.acquire();
@@ -612,21 +631,21 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
 
       if (data.nodes && data.edges) {
         // Adapt backend nodes to internal format
-        const newNodes: EntityNode[] = data.nodes.map((n: any) => ({
-          id: n.id,
-          name: n.label,
-          type: n.type || 'person',
-          connectionCount: (n.relationships || []).length,
+        const newNodes: EntityNode[] = data.nodes.map((n: Record<string, unknown>) => ({
+          id: n.id as string | number,
+          name: n.label as string,
+          type: (n.type as string | undefined) || 'person',
+          connectionCount: ((n.relationships as unknown[]) || []).length,
         }));
 
         // Adapt backend edges to internal format
-        const newRels: Relationship[] = data.edges.map((e: any) => ({
-          sourceId: e.source_id,
-          targetId: e.target_id,
+        const newRels: Relationship[] = data.edges.map((e: Record<string, unknown>) => ({
+          sourceId: e.source_id as string | number,
+          targetId: e.target_id as string | number,
           source: '', // Names not strictly needed since we use IDs now
           target: '',
-          type: e.relationship_type,
-          weight: e.proximity_score || 1,
+          type: e.relationship_type as string | undefined,
+          weight: (e.proximity_score as number | undefined) || 1,
         }));
 
         setExtraNodes((prev) => {
@@ -971,9 +990,11 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
                     onEdgeClick?.({
                       sourceId: Number(link.source.id),
                       targetId: Number(link.target.id),
+                      source: String(link.source.id),
+                      target: String(link.target.id),
                       type: link.type,
                       weight: link.weight,
-                    } as any);
+                    });
                   }}
                 />
               );
@@ -1007,9 +1028,14 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
                     if (totalDragDistance < 5) {
                       setSelectedNodeId(node.id);
                       if (onEntityClick) {
-                        // Map back to legacy EntityNode if needed or update onEntityClick signature
-                        // For now casting to any to avoid complex mapping logic in render loop
-                        onEntityClick(node as any);
+                        onEntityClick({
+                          id: node.id,
+                          name: node.label,
+                          type: node.type,
+                          risk: node.risk,
+                          connectionCount: node.connectionCount,
+                          photoUrl: node.photoUrl || node.image,
+                        });
                       }
                     }
                   }}

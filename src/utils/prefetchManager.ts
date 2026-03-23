@@ -22,10 +22,15 @@ interface PrefetchMetrics {
 }
 
 interface CachedEntity {
-  data: any;
+  data: Record<string, unknown>;
   timestamp: number;
   accessed: number; // Last access time for LRU
   prefetched: boolean; // Was this prefetched or fetched normally?
+}
+
+interface ConnectionInfo {
+  saveData?: boolean;
+  effectiveType?: string;
 }
 
 class PrefetchManagerV2 {
@@ -54,7 +59,7 @@ class PrefetchManagerV2 {
   constructor() {
     // Disable on slow connection or Save-Data
     if (typeof navigator !== 'undefined') {
-      const connection = (navigator as any).connection;
+      const connection = (navigator as Navigator & { connection?: ConnectionInfo }).connection;
       if (connection) {
         if (
           connection.saveData ||
@@ -210,7 +215,7 @@ class PrefetchManagerV2 {
         }
       } catch (error) {
         // Silently fail (prefetch is best-effort)
-        if ((error as any).name !== 'AbortError') {
+        if (!(error instanceof DOMException && error.name === 'AbortError')) {
           console.warn(`[PrefetchManager] Failed to prefetch ${request.entityId}:`, error);
         }
       } finally {
@@ -227,7 +232,7 @@ class PrefetchManagerV2 {
   /**
    * Get cached data if available (marks as accessed for LRU)
    */
-  getCached(entityId: string): any | null {
+  getCached(entityId: string): Record<string, unknown> | null {
     const cached = this.cache.get(entityId);
     if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
       cached.accessed = Date.now(); // Update LRU
@@ -294,5 +299,5 @@ export const prefetchManager = new PrefetchManagerV2();
 
 // Expose for debugging
 if (typeof window !== 'undefined') {
-  (window as any).prefetchManager = prefetchManager;
+  (window as Window & { prefetchManager?: PrefetchManagerV2 }).prefetchManager = prefetchManager;
 }

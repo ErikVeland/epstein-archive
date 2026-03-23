@@ -90,19 +90,22 @@ export default function FinancialTransactionMapper({
 
         if (data && data.length > 0) {
           // Map API response to Transaction interface
-          const mappedTransactions: Transaction[] = data.map((tx: any) => ({
+          const mappedTransactions: Transaction[] = data.map((tx: Record<string, unknown>) => ({
             id: `tx-${tx.id}`,
-            fromEntity: tx.from_entity,
-            toEntity: tx.to_entity,
-            amount: tx.amount,
-            currency: tx.currency || 'USD',
-            date: tx.transaction_date || '',
-            type: tx.transaction_type || 'transfer',
-            method: tx.method || 'wire',
-            riskLevel: tx.risk_level || 'medium',
-            description: tx.description || '',
-            suspiciousIndicators: tx.suspiciousIndicators || [],
-            sourceDocuments: tx.sourceDocumentIds || [],
+            fromEntity: (tx.from_entity as string) || '',
+            toEntity: (tx.to_entity as string) || '',
+            amount: (tx.amount as number) || 0,
+            currency: (tx.currency as string) || 'USD',
+            date: (tx.transaction_date as string) || '',
+            type: ((tx.transaction_type as Transaction['type'] | undefined) ||
+              'transfer') as Transaction['type'],
+            method: ((tx.method as Transaction['method'] | undefined) ||
+              'wire') as Transaction['method'],
+            riskLevel: ((tx.risk_level as Transaction['riskLevel'] | undefined) ||
+              'medium') as Transaction['riskLevel'],
+            description: (tx.description as string) || '',
+            suspiciousIndicators: (tx.suspiciousIndicators as string[]) || [],
+            sourceDocuments: (tx.sourceDocumentIds as string[]) || [],
           }));
 
           setTransactions(mappedTransactions);
@@ -419,7 +422,9 @@ export default function FinancialTransactionMapper({
             <div className="flex items-center gap-3">
               <select
                 value={viewMode}
-                onChange={(e) => setViewMode(e.target.value as any)}
+                onChange={(e) =>
+                  setViewMode(e.target.value as 'flow' | 'network' | 'timeline' | 'patterns')
+                }
                 className="px-3 py-2 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] focus:ring-2 focus:ring-red-500 text-sm"
               >
                 <option value="flow">Flow Analysis</option>

@@ -30,7 +30,7 @@ export interface Document {
   parentId?: string;
   startOffset?: number;
   endOffset?: number;
-  childDocuments?: any[];
+  childDocuments?: Array<Record<string, unknown>>;
   collectionId?: string;
 }
 

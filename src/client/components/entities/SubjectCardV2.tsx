@@ -10,6 +10,7 @@ import { EvidenceBadge } from './cards/EvidenceBadge';
 import { DriverChips } from './cards/DriverChips';
 import Tooltip from '../common/Tooltip';
 import { riskToneFromRating } from '../../utils/riskSemantics';
+import { type EvidenceLadderLevel } from '../../utils/forensics';
 
 interface SubjectCardV2Props {
   subject: SubjectCardDTO;
@@ -71,7 +72,7 @@ const SubjectCardV2: React.FC<SubjectCardV2Props> = React.memo(
           const res = await fetch(`/api/entities/${subject.id}/media`, { credentials: 'include' });
           const data = await res.json();
           const firstImage = Array.isArray(data)
-            ? data.find((m: any) => {
+            ? data.find((m: Record<string, unknown>) => {
                 const t = String(m.file_type || m.type || '').toLowerCase();
                 return t.startsWith('image');
               })
@@ -123,7 +124,7 @@ const SubjectCardV2: React.FC<SubjectCardV2Props> = React.memo(
                   {subject.name}
                 </h3>
                 <EvidenceBadge
-                  level={forensics.evidenceLadder as any}
+                  level={forensics.evidenceLadder as EvidenceLadderLevel}
                   ratingObjective={forensics.redFlagObjective}
                   ratingSubjective={forensics.redFlagSubjective}
                 />

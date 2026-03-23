@@ -42,8 +42,8 @@ interface UsePaginatedMediaCollectionOptions<TItem> {
     state: { selectedAlbum: number | null; searchQuery: string },
   ) => void;
   transformItems?: (items: TItem[]) => TItem[];
-  extractItems?: (payload: any) => TItem[];
-  extractTotal?: (payload: any) => number | null;
+  extractItems?: (payload: Record<string, unknown>) => TItem[];
+  extractTotal?: (payload: Record<string, unknown>) => number | null;
   syncAlbumToUrl?: boolean;
 }
 
@@ -155,12 +155,13 @@ export function usePaginatedMediaCollection<TItem, TAlbum extends CollectionAlbu
     errorMessage,
     buildQuery,
     transformItems,
-    extractItems = (payload) => (Array.isArray(payload?.mediaItems) ? payload.mediaItems : []),
-    extractTotal = (payload) =>
+    extractItems = (payload: Record<string, unknown>) =>
+      Array.isArray(payload?.mediaItems) ? (payload.mediaItems as TItem[]) : [],
+    extractTotal = (payload: Record<string, unknown>) =>
       typeof payload?.total === 'number'
         ? payload.total
         : Array.isArray(payload?.mediaItems)
-          ? payload.mediaItems.length
+          ? (payload.mediaItems as unknown[]).length
           : null,
     syncAlbumToUrl = false,
   } = options;
@@ -222,7 +223,9 @@ export function usePaginatedMediaCollection<TItem, TAlbum extends CollectionAlbu
           return;
         }
 
-        const payload = await apiClient.get<any>(endpoint, { cacheTtl: CACHE_TTL });
+        const payload = await apiClient.get<Record<string, unknown>>(endpoint, {
+          cacheTtl: CACHE_TTL,
+        });
         if (requestKeyRef.current !== requestKey) return;
 
         const rawItems = extractItems(payload);
@@ -269,7 +272,9 @@ export function usePaginatedMediaCollection<TItem, TAlbum extends CollectionAlbu
       try {
         const [albumsPayload, totalPayload] = await Promise.all([
           apiClient.get<TAlbum[]>(albumsEndpoint, { cacheTtl: 60_000 }),
-          apiClient.get<any>(`${mediaEndpoint}?page=1&limit=1`, { cacheTtl: 60_000 }),
+          apiClient.get<Record<string, unknown>>(`${mediaEndpoint}?page=1&limit=1`, {
+            cacheTtl: 60_000,
+          }),
         ]);
 
         if (disposed) return;

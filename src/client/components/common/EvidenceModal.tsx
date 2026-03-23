@@ -26,6 +26,7 @@ import {
   calculateEvidenceLadder,
   calculateSignalMetrics,
   generateDriverChips,
+  type PersonAdapter,
 } from '../../utils/forensics';
 import { Skeleton } from './Skeleton';
 import { NetworkGraph } from '../visualizations/NetworkGraph';
@@ -67,6 +68,22 @@ export interface EntityPhoto {
   thumbnail_url?: string;
   thumbUrl?: string;
   thumb_url?: string;
+  // Media metadata fields
+  title?: string;
+  caption?: string;
+  filename?: string;
+  sourceType?: string;
+  type?: string;
+  date?: string;
+  createdAt?: string;
+  timestamp?: string;
+  taggedPeople?: string[];
+  people?: string[];
+  entities?: string[];
+  riskRating?: number;
+  redFlagRating?: number;
+  directEvidence?: boolean;
+  verified?: boolean;
 }
 
 export interface EvidenceDocument {
@@ -111,6 +128,11 @@ const EVIDENCE_TABS: TabItem[] = [
   { key: 'media', label: 'Media' },
   { key: 'network', label: 'Network' },
 ];
+
+type EvidenceModalTab = 'overview' | 'evidence' | 'media' | 'network' | 'investigations';
+
+const isEvidenceModalTab = (value: string): value is EvidenceModalTab =>
+  ['overview', 'evidence', 'media', 'network', 'investigations'].includes(value);
 
 interface EvidenceModalProps {
   entityId: string;
@@ -287,7 +309,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
 
   // Mark tab as loaded when activated
   const handleTabChange = useCallback(
-    (tab: 'overview' | 'evidence' | 'media' | 'network' | 'investigations') => {
+    (tab: EvidenceModalTab) => {
       const params = new URLSearchParams(location.search);
       params.set('entityTab', tab);
       navigate(`${location.pathname}?${params.toString()}`, { replace: true });
@@ -450,7 +472,10 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
         qs.set('sort', docFilters.sort);
 
         const endpoint = `/entities/${entityId}/documents?${qs.toString()}`;
-        const response = (await apiClient.get(endpoint)) as any;
+        const response = (await apiClient.get(endpoint)) as {
+          data?: EvidenceDocument[];
+          total?: number;
+        };
 
         const newDocs = response.data || [];
         const total = response.total || 0;
@@ -503,9 +528,18 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
           };
           let rels = resp.relationships || [];
           if (!rels.length) {
-            const graphResp = (await apiClient.get(`/entities/${entityId}/graph?depth=2`)) as any;
+            const graphResp = (await apiClient.get(`/entities/${entityId}/graph?depth=2`)) as {
+              edges?: Array<{
+                source_id?: string | number;
+                target_id?: string | number;
+                relationship_type?: string;
+                proximity_score?: number;
+                weight?: number;
+                confidence?: number;
+              }>;
+            };
             const graphEdges = Array.isArray(graphResp?.edges) ? graphResp.edges : [];
-            rels = graphEdges.slice(0, 80).map((edge: any) => ({
+            rels = graphEdges.slice(0, 80).map((edge) => ({
               entity_id:
                 String(edge.source_id) === String(entityId)
                   ? String(edge.target_id)
@@ -521,7 +555,8 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
             top.map(async (r) => {
               try {
                 const e = await apiClient.get(`/entities/${r.entity_id}`);
-                return { ...r, name: (e as any).fullName || (e as any).name || r.entity_id };
+                const entityData = e as { fullName?: string; name?: string };
+                return { ...r, name: entityData.fullName || entityData.name || r.entity_id };
               } catch {
                 return { ...r, name: r.entity_id };
               }
@@ -546,20 +581,26 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
     const loadInvestigations = async () => {
       setIsInvestigationsLoading(true);
       try {
-        const response = (await apiClient.get(`/entities/${entityId}/investigations`)) as any;
+        const response = (await apiClient.get(
+          `/entities/${entityId}/investigations`,
+        )) as InvestigationEntity[];
         if (!mounted) return;
         const primary = Array.isArray(response) ? response : [];
         if (primary.length > 0 || !isHighProfileEntity) {
           setInvestigations(primary);
         } else {
-          const fallbackResp = (await apiClient.get('/investigations?status=open&limit=6')) as any;
-          const fallbackItems = Array.isArray(fallbackResp?.data)
-            ? fallbackResp.data
+          const fallbackResp = (await apiClient.get('/investigations?status=open&limit=6')) as
+            | { data?: InvestigationEntity[] }
+            | InvestigationEntity[];
+          const fallbackItems: InvestigationEntity[] = Array.isArray(
+            (fallbackResp as { data?: InvestigationEntity[] })?.data,
+          )
+            ? (fallbackResp as { data: InvestigationEntity[] }).data
             : Array.isArray(fallbackResp)
-              ? fallbackResp
+              ? (fallbackResp as InvestigationEntity[])
               : [];
           setInvestigations(
-            fallbackItems.map((item: any) => ({
+            fallbackItems.map((item) => ({
               ...item,
               _fallbackReason: 'Suggested open case',
             })),
@@ -584,13 +625,13 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
   // Forensic Calculations
   const forensicData = useMemo(() => {
     if (!entity) return null;
-    const personAdapter = {
+    const personAdapter: PersonAdapter = {
       ...entity,
       name: entity.fullName, // Required by PersonAdapter
       files: 0,
       contexts: [],
       evidenceTypes: entity.evidenceTypes || [],
-    } as any;
+    };
 
     return {
       ladder: calculateEvidenceLadder(personAdapter),
@@ -638,7 +679,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
   }, [entity, relationships]);
 
   const renderEvidenceCard = useCallback(
-    (doc: any) => {
+    (doc: EvidenceDocument) => {
       const excerpt = normalizeEvidenceSnippet(
         doc.contentPreview || doc.content || doc.title || '',
         doc.title || doc.fileName || `Document ${doc.id}`,
@@ -757,7 +798,11 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
       if (typeof window !== 'undefined' && actualDuration > 16) {
         import('../../utils/performanceMonitor.js')
           .then(({ PerformanceMonitor }) => {
-            PerformanceMonitor.logRender(`EvidenceModal-${id}`, actualDuration, phase as any);
+            PerformanceMonitor.logRender(
+              `EvidenceModal-${id}`,
+              actualDuration,
+              phase === 'nested-update' ? 'update' : phase,
+            );
           })
           .catch(() => {});
       }
@@ -913,7 +958,11 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                 <Tabs
                   tabs={EVIDENCE_TABS}
                   activeTab={activeTab}
-                  onChange={(key) => handleTabChange(key as any)}
+                  onChange={(key) => {
+                    if (isEvidenceModalTab(key)) {
+                      handleTabChange(key);
+                    }
+                  }}
                   className="!bg-transparent !border-none !px-0"
                 />
               </div>
@@ -1317,13 +1366,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                                     itemCount={totalDocs}
                                     loadMoreItems={loadNextPage}
                                   >
-                                    {({
-                                      onItemsRendered,
-                                      ref,
-                                    }: {
-                                      onItemsRendered: any;
-                                      ref: any;
-                                    }) => (
+                                    {({ onItemsRendered, ref }) => (
                                       <List
                                         className="custom-scrollbar"
                                         data-testid="entity-evidence-virtual-list"
@@ -1332,9 +1375,19 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                                         itemSize={180}
                                         width={width}
                                         onItemsRendered={onItemsRendered}
-                                        ref={ref}
+                                        ref={
+                                          ref as unknown as React.Ref<
+                                            import('react-window').FixedSizeList
+                                          >
+                                        }
                                       >
-                                        {({ index, style }: any) => {
+                                        {({
+                                          index,
+                                          style,
+                                        }: {
+                                          index: number;
+                                          style: React.CSSProperties;
+                                        }) => {
                                           const doc = documents[index];
                                           if (!doc) {
                                             return (
@@ -1369,7 +1422,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                 <div className="absolute inset-0 overflow-y-auto custom-scrollbar p-6">
                   {entity.photos && entity.photos.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-                      {entity.photos.map((photo: any, i) => {
+                      {entity.photos.map((photo, i) => {
                         const title =
                           photo.title || photo.caption || photo.filename || `Media item ${i + 1}`;
                         const sourceType = photo.sourceType || photo.type || 'Media';

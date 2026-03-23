@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Users,
@@ -39,7 +39,7 @@ interface AuditLogEntry {
   action: string;
   object_type: string;
   object_id: string | null;
-  payload: any;
+  payload: Record<string, unknown>;
   timestamp: string;
 }
 
@@ -55,6 +55,26 @@ interface SystemHealth {
   environment: string;
 }
 
+interface IngestRun {
+  id: string;
+  status: 'success' | 'running' | 'failed' | string;
+  startedAt: string;
+  gitCommit?: string | null;
+  agenticModelId?: string | null;
+  agenticEnabled?: boolean;
+}
+
+interface BackupSnapshot {
+  filename: string;
+  size: number;
+  createdAt: string;
+}
+
+type UserRole = User['role'];
+
+const isUserRole = (value: string): value is UserRole =>
+  value === 'admin' || value === 'investigator' || value === 'viewer';
+
 export const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<
     'users' | 'audit' | 'review' | 'system' | 'ingestion' | 'backups'
@@ -62,8 +82,8 @@ export const AdminDashboard: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [logs, setLogs] = useState<AuditLogEntry[]>([]);
   const [health, setHealth] = useState<SystemHealth | null>(null);
-  const [ingestRuns, setIngestRuns] = useState<any[]>([]);
-  const [backups, setBackups] = useState<any[]>([]);
+  const [ingestRuns, setIngestRuns] = useState<IngestRun[]>([]);
+  const [backups, setBackups] = useState<BackupSnapshot[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [auditLoading, setAuditLoading] = useState(false);
@@ -93,12 +113,6 @@ export const AdminDashboard: React.FC = () => {
   const errorMessage = (err: unknown) => (err instanceof Error ? err.message : 'Unexpected error');
 
   useEffect(() => {
-    fetchUsers();
-    // Pre-fetch health
-    fetchHealth();
-  }, []);
-
-  useEffect(() => {
     if (activeTab === 'audit') {
       fetchAuditLogs();
     }
@@ -111,7 +125,7 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch('/api/users');
@@ -123,7 +137,7 @@ export const AdminDashboard: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const fetchAuditLogs = async () => {
     try {
@@ -139,7 +153,7 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
-  const fetchHealth = async () => {
+  const fetchHealth = useCallback(async () => {
     try {
       const res = await fetch('/api/health');
       if (res.ok) {
@@ -149,14 +163,28 @@ export const AdminDashboard: React.FC = () => {
     } catch (e) {
       console.error(e);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchUsers();
+    fetchHealth();
+  }, [fetchUsers, fetchHealth]);
 
   const fetchIngestRuns = async () => {
     try {
       const res = await fetch('/api/stats/ingest-runs');
       if (res.ok) {
-        const data = await res.json();
-        setIngestRuns(data);
+        const data = (await res.json()) as Array<Record<string, unknown>>;
+        setIngestRuns(
+          data.map((run) => ({
+            id: String(run.id || ''),
+            status: String(run.status || 'failed'),
+            startedAt: String(run.startedAt || run.started_at || new Date().toISOString()),
+            gitCommit: run.gitCommit ? String(run.gitCommit) : null,
+            agenticModelId: run.agenticModelId ? String(run.agenticModelId) : null,
+            agenticEnabled: Boolean(run.agenticEnabled),
+          })),
+        );
       }
     } catch (e) {
       console.error(e);
@@ -167,8 +195,14 @@ export const AdminDashboard: React.FC = () => {
     try {
       const res = await fetch('/api/stats/backups');
       if (res.ok) {
-        const data = await res.json();
-        setBackups(data);
+        const data = (await res.json()) as Array<Record<string, unknown>>;
+        setBackups(
+          data.map((backup) => ({
+            filename: String(backup.filename || ''),
+            size: Number(backup.size || 0),
+            createdAt: String(backup.createdAt || backup.created_at || new Date().toISOString()),
+          })),
+        );
       }
     } catch (e) {
       console.error(e);
@@ -217,7 +251,7 @@ export const AdminDashboard: React.FC = () => {
     if (!editingUser) return;
 
     try {
-      const updateData: any = {
+      const updateData: { role: UserRole; email: string; password?: string } = {
         role: formData.role,
         email: formData.email,
       };
@@ -923,7 +957,12 @@ export const AdminDashboard: React.FC = () => {
                 </label>
                 <select
                   value={formData.role}
-                  onChange={(e) => setFormData({ ...formData, role: e.target.value as any })}
+                  onChange={(e) => {
+                    const roleValue = e.target.value;
+                    if (isUserRole(roleValue)) {
+                      setFormData({ ...formData, role: roleValue });
+                    }
+                  }}
                   className="w-full bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-lg px-3 py-2 text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--accent)] outline-none transition-all"
                 >
                   <option value="viewer" className="bg-slate-900">

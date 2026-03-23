@@ -9,8 +9,8 @@ interface ReviewItem {
   status: 'pending' | 'reviewed' | 'rejected';
   priority: 'high' | 'medium' | 'low';
   payloadJson: {
-    before: any;
-    after: any;
+    before: Record<string, unknown>;
+    after: Record<string, unknown>;
   };
   notes?: string;
   createdAt: string;

@@ -2,13 +2,25 @@ import { adminQueries, analyticsQueries, graphQueries } from '@epstein/db';
 import { getApiPool } from './connection.js';
 import { logger } from '../services/Logger.js';
 
+function runQuery<TParams, TResult>(query: unknown, params: TParams): Promise<TResult[]> {
+  return (
+    query as { run: (p: TParams, c: ReturnType<typeof getApiPool>) => Promise<TResult[]> }
+  ).run(params, getApiPool());
+}
+
 export async function getDatabaseMetadata() {
-  const rows = await (adminQueries.getDbMeta as any).run(undefined, getApiPool());
+  const rows = await runQuery<undefined, Record<string, unknown>>(
+    adminQueries.getDbMeta,
+    undefined,
+  );
   return rows;
 }
 
 export async function getEntityAndDocumentCounts() {
-  const rows = await (analyticsQueries.getTotalCounts as any).run(undefined, getApiPool());
+  const rows = await runQuery<
+    undefined,
+    { entities?: string | number; documents?: string | number }
+  >(analyticsQueries.getTotalCounts, undefined);
   const counts = rows[0];
   return {
     entities: Number(counts?.entities || 0),
@@ -60,8 +72,12 @@ export async function getCriticalTableCounts(tables: string[]) {
     try {
       const { rows } = await getApiPool().query(`SELECT COUNT(*) as count FROM ${table}`);
       results[table] = { ok: true, count: Number(rows[0].count) };
-    } catch (e: any) {
-      results[table] = { ok: false, count: 0, error: e.message };
+    } catch (e) {
+      results[table] = {
+        ok: false,
+        count: 0,
+        error: e instanceof Error ? e.message : String(e),
+      };
     }
   }
   return results;
@@ -121,17 +137,25 @@ export async function getEvidenceTypes() {
 }
 
 export async function resetJunkFlags() {
-  const rows = await (adminQueries.resetJunkFlags as any).run(undefined, getApiPool());
+  const rows = await runQuery<undefined, Record<string, unknown>>(
+    adminQueries.resetJunkFlags,
+    undefined,
+  );
   return rows.length; // Or return total count if we change resetJunkFlags to return count
 }
 
 export async function listUsers() {
-  const rows = await (adminQueries.listUsers as any).run(undefined, getApiPool());
+  const rows = await runQuery<undefined, Record<string, unknown>>(
+    adminQueries.listUsers,
+    undefined,
+  );
   return rows;
 }
 
 export async function getUserById(id: string) {
-  const rows = await (adminQueries.getUserById as any).run({ id }, getApiPool());
+  const rows = await runQuery<{ id: string }, Record<string, unknown>>(adminQueries.getUserById, {
+    id,
+  });
   return rows[0];
 }
 
@@ -142,7 +166,7 @@ export async function createUser(params: {
   role: string;
   passwordHash: string;
 }) {
-  await (adminQueries.createUser as any).run(params, getApiPool());
+  await runQuery<typeof params, Record<string, unknown>>(adminQueries.createUser, params);
 }
 
 export async function updateUser(
@@ -155,7 +179,7 @@ export async function updateUser(
   },
 ) {
   const updates: string[] = [];
-  const params: any[] = [];
+  const params: unknown[] = [];
 
   if (fields.username) {
     updates.push(`username = $${params.length + 1}`);
@@ -188,7 +212,10 @@ export async function updateUser(
 // DEPRECATED: Review Queue logic moved to reviewQueueRepository.ts
 
 export async function getMapEntities(minRisk: number, limit: number) {
-  return (graphQueries.getMapEntities as any).run({ minRisk, limit }, getApiPool());
+  return runQuery<{ minRisk: number; limit: number }, Record<string, unknown>>(
+    graphQueries.getMapEntities,
+    { minRisk, limit },
+  );
 }
 
 export interface WebVitalsPayload {
@@ -201,25 +228,32 @@ export interface WebVitalsPayload {
 }
 
 export async function recordWebVitals(payload: WebVitalsPayload) {
-  await (analyticsQueries.recordWebVitals as any).run(payload, getApiPool());
+  await runQuery<WebVitalsPayload, Record<string, unknown>>(
+    analyticsQueries.recordWebVitals,
+    payload,
+  );
 }
 
 export async function getWebVitalsAggregates(days: number) {
-  return (analyticsQueries.getWebVitalsAggregates as any).run(
-    { days: days.toString() },
-    getApiPool(),
+  return runQuery<{ days: string }, Record<string, unknown>>(
+    analyticsQueries.getWebVitalsAggregates,
+    {
+      days: days.toString(),
+    },
   );
 }
 
 export async function getWebVitalsAggregatesAverage(days: number) {
-  return (analyticsQueries.getWebVitalsAggregatesAverage as any).run(
-    { days: days.toString() },
-    getApiPool(),
+  return runQuery<{ days: string }, Record<string, unknown>>(
+    analyticsQueries.getWebVitalsAggregatesAverage,
+    {
+      days: days.toString(),
+    },
   );
 }
 
 export async function getGraphCommunities() {
-  return (graphQueries.getGraphCommunities as any).run(undefined, getApiPool());
+  return runQuery<undefined, Record<string, unknown>>(graphQueries.getGraphCommunities, undefined);
 }
 
 export async function getEmailThreadMessageHeaders(threadId: string) {
@@ -468,18 +502,23 @@ export async function findShortestPath(
 }
 
 export async function getGraphPathNodes(pathNodes: string[]) {
-  return (graphQueries.getGraphPathNodes as any).run({ pathNodes }, getApiPool());
+  return runQuery<{ pathNodes: string[] }, Record<string, unknown>>(
+    graphQueries.getGraphPathNodes,
+    {
+      pathNodes,
+    },
+  );
 }
 
 export async function getGraphPathEdges(pathNodes: string[], startDate?: string, endDate?: string) {
-  return (graphQueries.getGraphPathEdges as any).run(
-    {
-      pathNodes,
-      startDate: startDate || null,
-      endDate: endDate || null,
-    },
-    getApiPool(),
-  );
+  return runQuery<
+    { pathNodes: string[]; startDate: string | null; endDate: string | null },
+    Record<string, unknown>
+  >(graphQueries.getGraphPathEdges, {
+    pathNodes,
+    startDate: startDate || null,
+    endDate: endDate || null,
+  });
 }
 
 export async function getGlobalGraphNodes(params: {
@@ -488,15 +527,15 @@ export async function getGlobalGraphNodes(params: {
   startDate?: string;
   endDate?: string;
 }) {
-  return (graphQueries.getGlobalGraphNodes as any).run(
-    {
-      minRisk: params.minRisk,
-      limit: params.limit,
-      startDate: params.startDate || null,
-      endDate: params.endDate || null,
-    },
-    getApiPool(),
-  );
+  return runQuery<
+    { minRisk: number; limit: number; startDate: string | null; endDate: string | null },
+    Record<string, unknown>
+  >(graphQueries.getGlobalGraphNodes, {
+    minRisk: params.minRisk,
+    limit: params.limit,
+    startDate: params.startDate || null,
+    endDate: params.endDate || null,
+  });
 }
 
 export async function getGlobalGraphEdges(params: {
@@ -504,24 +543,27 @@ export async function getGlobalGraphEdges(params: {
   startDate?: string;
   endDate?: string;
 }) {
-  return (graphQueries.getGlobalGraphEdges as any).run(
-    {
-      canonicalIds: params.canonicalIds,
-      startDate: params.startDate || null,
-      endDate: params.endDate || null,
-    },
-    getApiPool(),
-  );
+  return runQuery<
+    { canonicalIds: string[]; startDate: string | null; endDate: string | null },
+    Record<string, unknown>
+  >(graphQueries.getGlobalGraphEdges, {
+    canonicalIds: params.canonicalIds,
+    startDate: params.startDate || null,
+    endDate: params.endDate || null,
+  });
 }
 
 export async function getEdgeEvidenceDocuments(sourceId: string, targetId: string) {
-  return (graphQueries.getEdgeEvidenceDocuments as any).run({ sourceId, targetId }, getApiPool());
+  return runQuery<{ sourceId: string; targetId: string }, Record<string, unknown>>(
+    graphQueries.getEdgeEvidenceDocuments,
+    { sourceId, targetId },
+  );
 }
 
 export async function getEdgeRelationship(sourceId: string, targetId: string) {
-  const rows = await (graphQueries.getEdgeRelationship as any).run(
+  const rows = await runQuery<{ sourceId: string; targetId: string }, Record<string, unknown>>(
+    graphQueries.getEdgeRelationship,
     { sourceId, targetId },
-    getApiPool(),
   );
   return rows[0];
 }
@@ -557,7 +599,7 @@ export async function getEmailMetadataPage(params: {
   const offset = (page - 1) * limit;
 
   const whereParts = ["evidence_type = 'email'"];
-  const queryParams: any[] = [];
+  const queryParams: unknown[] = [];
   if (category && category !== 'all') {
     whereParts.push(`metadata_json ->> 'category' = $${queryParams.length + 1}`);
     queryParams.push(category);
@@ -816,7 +858,7 @@ export async function getEmailMailboxes(showSuppressedJunk: boolean) {
   );
   const totals = totalsRows[0];
 
-  let rows: any[] = [];
+  let rows: Array<Record<string, unknown>> = [];
   try {
     const result = await getApiPool().query(
       `
@@ -869,8 +911,12 @@ export async function getEmailMailboxes(showSuppressedJunk: boolean) {
       [mailboxScanLimit],
     );
     rows = result.rows;
-  } catch (error: any) {
-    if (error?.code === '57014') {
+  } catch (error) {
+    const code =
+      typeof error === 'object' && error !== null && 'code' in error
+        ? String((error as { code?: unknown }).code || '')
+        : '';
+    if (code === '57014') {
       logger.warn(
         `[emails] mailbox entity aggregation timed out at scan limit ${mailboxScanLimit}; returning totals only`,
       );
@@ -925,7 +971,7 @@ export async function getEmailThreads(params: {
     showSuppressedJunk = false,
   } = params;
 
-  const queryParams: any[] = [];
+  const queryParams: unknown[] = [];
   let where = getJunkFilterClause(showSuppressedJunk);
   const threadedWhere = '';
 
@@ -998,7 +1044,7 @@ export async function getEmailThreads(params: {
   const { rows: countRows } = await getApiPool().query(countSql, queryParams);
   const total = Number(countRows[0]?.total || 0);
 
-  const cursorParams: any[] = [];
+  const cursorParams: unknown[] = [];
   let cursorClause = '';
   if (parsedCursor) {
     cursorClause = `${threadedWhere.length > 0 ? ' AND ' : ' WHERE '} (lastMessageAt < $${queryParams.length + 1} OR (lastMessageAt = $${queryParams.length + 1} AND threadId > $${queryParams.length + 2})) `;

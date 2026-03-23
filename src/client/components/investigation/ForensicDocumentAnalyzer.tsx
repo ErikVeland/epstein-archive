@@ -82,10 +82,10 @@ interface DocumentMetadata {
     sentiment: 'positive' | 'negative' | 'neutral';
     writingStyle: 'formal' | 'informal' | 'technical' | 'legal';
   };
-  technical?: any;
-  structure?: any;
-  linguistics?: any;
-  network?: any;
+  technical?: Record<string, unknown>;
+  structure?: Record<string, unknown>;
+  linguistics?: Record<string, unknown>;
+  network?: Record<string, unknown>;
   tags?: string[];
 }
 
@@ -405,7 +405,11 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                     { key: 'metadata', label: 'Metadata', icon: <FileText className="w-4 h-4" /> },
                   ]}
                   activeTab={activeTab}
-                  onChange={(key) => setActiveTab(key as any)}
+                  onChange={(key) =>
+                    setActiveTab(
+                      key as 'dashboard' | 'entities' | 'patterns' | 'anomalies' | 'metadata',
+                    )
+                  }
                   className="!bg-[var(--glass-bg)] !border-[var(--glass-border)] !px-6"
                 />
 
@@ -647,7 +651,7 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                           Top JS-heavy PDFs
                         </h4>
                         <div className="text-xs text-[var(--text-secondary)] space-y-1">
-                          {topJs.slice(0, 5).map((t: any) => (
+                          {topJs.slice(0, 5).map((t) => (
                             <div
                               key={t.id}
                               className="flex justify-between items-center"
@@ -693,7 +697,7 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                           High Entity Density
                         </h4>
                         <div className="text-xs text-[var(--text-secondary)] space-y-1">
-                          {topDensity.slice(0, 5).map((t: any) => (
+                          {topDensity.slice(0, 5).map((t) => (
                             <div
                               key={t.id}
                               className="flex justify-between items-center"
@@ -739,7 +743,7 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                           Highest Risk Score
                         </h4>
                         <div className="text-xs text-[var(--text-secondary)] space-y-1">
-                          {topRisk.slice(0, 5).map((t: any) => (
+                          {topRisk.slice(0, 5).map((t) => (
                             <div
                               key={t.id}
                               className="flex justify-between items-center"

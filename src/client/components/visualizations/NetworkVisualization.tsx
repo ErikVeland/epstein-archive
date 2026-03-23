@@ -963,7 +963,7 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
                         <div key={type} className="flex items-center gap-2">
                           <div
                             className="w-2 h-2 rounded-full"
-                            style={{ backgroundColor: getNodeColor(type as any) }}
+                            style={{ backgroundColor: getNodeColor(type) }}
                           />
                           <span className="text-xs text-[var(--text-secondary)] capitalize">
                             {type}
@@ -1171,7 +1171,7 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
                     <Checkbox
                       key={type}
                       label={type.charAt(0).toUpperCase() + type.slice(1) + 's'}
-                      color={getNodeColor(type as any)}
+                      color={getNodeColor(type)}
                       checked={selectedNodeTypes.has(type)}
                       onChange={(checked) => {
                         const next = new Set(selectedNodeTypes);

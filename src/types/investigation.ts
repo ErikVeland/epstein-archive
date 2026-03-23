@@ -186,7 +186,7 @@ export interface EvidenceAnalysis {
   type: 'sentiment' | 'topic' | 'entity' | 'relationship' | 'timeline' | 'pattern';
   method: string;
   confidence: number;
-  results: any;
+  results: Record<string, unknown>;
   performedBy: string;
   performedAt: Date;
 }

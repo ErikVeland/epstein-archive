@@ -18,7 +18,7 @@ export interface CleanedEmailParts {
   attachments_count: number;
   mime_parse_status: 'success' | 'failed' | 'partial';
   mime_parse_reason?: string;
-  headers: Record<string, any>;
+  headers: Record<string, unknown>;
 }
 
 export async function cleanMime(raw: string): Promise<CleanedEmailParts> {
@@ -81,7 +81,7 @@ export async function cleanMime(raw: string): Promise<CleanedEmailParts> {
       mime_parse_status: 'success',
       headers: Object.fromEntries(parsed.headers),
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.warn({ detail: error }, 'MIME Parse Failure');
 
     // Fallback: Try to extract at least some text if possible, or return raw as text
@@ -98,7 +98,7 @@ export async function cleanMime(raw: string): Promise<CleanedEmailParts> {
       references: [],
       attachments_count: 0,
       mime_parse_status: 'failed',
-      mime_parse_reason: error.message || String(error),
+      mime_parse_reason: (error as Error).message || String(error),
       headers: {},
     };
   }

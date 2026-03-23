@@ -1,13 +1,13 @@
-export function withSafeStatsContract(input: any) {
-  const source = input || {};
+export function withSafeStatsContract(input: unknown) {
+  const source = (input as Record<string, unknown>) || {};
   const existing = Array.isArray(source.likelihoodDistribution)
     ? source.likelihoodDistribution
     : [];
   const byLevel = new Map<string, { count?: number }>(
-    existing.map((entry: any) => [
-      String(entry?.level || ''),
-      { count: Number(entry?.count || 0) },
-    ]),
+    existing.map((entry: unknown) => {
+      const e = entry as Record<string, unknown> | null | undefined;
+      return [String(e?.level || ''), { count: Number(e?.count || 0) }];
+    }),
   );
   const safeLikelihoodDistribution = ['HIGH', 'MEDIUM', 'LOW'].map((level) => ({
     level,

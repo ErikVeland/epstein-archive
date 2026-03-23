@@ -379,7 +379,16 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
               },
             ]}
             activeTab={activeTab}
-            onChange={(key) => setActiveTab(key as any)}
+            onChange={(key) => {
+              if (
+                key === 'notes' ||
+                key === 'highlights' ||
+                key === 'tags' ||
+                key === 'classification'
+              ) {
+                setActiveTab(key);
+              }
+            }}
             className="!bg-transparent !border-none !px-0"
           />
         </div>

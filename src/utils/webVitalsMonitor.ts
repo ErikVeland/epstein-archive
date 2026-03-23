@@ -25,6 +25,9 @@ interface PerformanceThresholds {
   longTask: number; // > 50ms
 }
 
+type LayoutShiftEntry = PerformanceEntry & { hadRecentInput?: boolean; value?: number };
+type EventTimingEntry = PerformanceEntry & { processingStart?: number; processingEnd?: number };
+
 class WebVitalsMonitor {
   private metrics: WebVitalsMetrics = {
     cls: 0,
@@ -81,8 +84,9 @@ class WebVitalsMonitor {
     try {
       const observer = new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) {
-          if ((entry as any).hadRecentInput) continue;
-          this.metrics.cls += (entry as any).value;
+          const layoutShift = entry as LayoutShiftEntry;
+          if (layoutShift.hadRecentInput) continue;
+          this.metrics.cls += Number(layoutShift.value || 0);
         }
       });
 
@@ -115,7 +119,8 @@ class WebVitalsMonitor {
       // Try INP first (newer metric)
       const observer = new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) {
-          const duration = (entry as any).processingEnd - (entry as any).processingStart;
+          const timing = entry as EventTimingEntry;
+          const duration = Number(timing.processingEnd || 0) - Number(timing.processingStart || 0);
           if (duration > this.metrics.inp) {
             this.metrics.inp = duration;
           }
@@ -128,7 +133,8 @@ class WebVitalsMonitor {
       try {
         const observer = new PerformanceObserver((list) => {
           for (const entry of list.getEntries()) {
-            this.metrics.fid = (entry as any).processingStart - entry.startTime;
+            const timing = entry as EventTimingEntry;
+            this.metrics.fid = Number(timing.processingStart || 0) - entry.startTime;
           }
         });
 
@@ -241,5 +247,5 @@ export const webVitalsMonitor = new WebVitalsMonitor();
 
 // Expose for debugging
 if (typeof window !== 'undefined') {
-  (window as any).webVitalsMonitor = webVitalsMonitor;
+  (window as Window & { webVitalsMonitor?: WebVitalsMonitor }).webVitalsMonitor = webVitalsMonitor;
 }

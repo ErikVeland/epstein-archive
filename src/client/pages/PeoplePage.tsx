@@ -10,8 +10,17 @@ import PersonCardSkeleton from '../components/entities/PersonCardSkeleton';
 import { Person, SubjectCardDTO } from '../types';
 import { apiClient } from '../services/apiClient';
 
+interface DataStats {
+  totalPeople: number;
+  totalFiles: number;
+  highRisk: number;
+  mediumRisk: number;
+  lowRisk: number;
+  totalMentions: number;
+}
+
 interface PeoplePageProps {
-  dataStats: any;
+  dataStats: DataStats;
   selectedRiskLevel: 'HIGH' | 'MEDIUM' | 'LOW' | null;
   onRiskLevelClick: (level: 'HIGH' | 'MEDIUM' | 'LOW') => void;
   onResetFilters: () => void;
@@ -116,7 +125,11 @@ export const PeoplePage: React.FC<PeoplePageProps> = ({
       if (typeof window !== 'undefined' && actualDuration > 16) {
         import('../utils/performanceMonitor.js')
           .then(({ PerformanceMonitor }) => {
-            PerformanceMonitor.logRender(`PeoplePage-${id}`, actualDuration, phase as any);
+            PerformanceMonitor.logRender(
+              `PeoplePage-${id}`,
+              actualDuration,
+              phase === 'nested-update' ? 'update' : phase,
+            );
           })
           .catch(() => {});
       }
@@ -168,7 +181,7 @@ export const PeoplePage: React.FC<PeoplePageProps> = ({
 
               <SortFilter
                 value={sortBy}
-                onChange={(val) => onSortByChange(val as any)}
+                onChange={(val) => onSortByChange(val)}
                 options={[
                   { value: 'red_flag', label: 'Red Flag', icon: <Icon name="Flag" size="sm" /> },
                   {

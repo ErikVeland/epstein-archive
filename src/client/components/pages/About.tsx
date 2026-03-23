@@ -13,24 +13,41 @@ import {
 
 import { optimizedDataService } from '../../services/OptimizedDataService';
 
+interface AboutStats {
+  total: number;
+  released: number;
+}
+
+interface PipelineDataset {
+  name: string;
+  target: number;
+  ingested: number;
+  downloaded: number;
+}
+
+interface PipelineStatus {
+  datasets?: PipelineDataset[];
+  eta_minutes?: number;
+}
+
 export const About: React.FC = () => {
-  const [stats, setStats] = React.useState<any | null>(null);
-  const [pipelineStatus, setPipelineStatus] = React.useState<any | null>(null);
+  const [stats, setStats] = React.useState<AboutStats | null>(null);
+  const [pipelineStatus, setPipelineStatus] = React.useState<PipelineStatus | null>(null);
 
   React.useEffect(() => {
     const fetchStats = async () => {
       try {
-        const data = await optimizedDataService.getStatistics();
+        const data = (await optimizedDataService.getStatistics()) as Record<string, unknown> | null;
         if (data) {
           setStats({
             total: 5200000,
-            released: data.totalDocuments || data.documents || 0,
+            released: Number(data.totalDocuments || data.documents || 0),
           });
           if (data.collectionCounts) {
             // setIngestionStats(data.collectionCounts); // unused
           }
-          if (data.pipeline_status) {
-            setPipelineStatus(data.pipeline_status);
+          if (data.pipeline_status && typeof data.pipeline_status === 'object') {
+            setPipelineStatus(data.pipeline_status as PipelineStatus);
           }
         }
       } catch (e) {
@@ -94,7 +111,7 @@ export const About: React.FC = () => {
           DOJ Disclosure Ingestion Status
         </h2>
         <div className="space-y-8">
-          {(pipelineStatus?.datasets || []).map((dataset: any) => {
+          {(pipelineStatus?.datasets || []).map((dataset: PipelineDataset) => {
             const currentIngested = dataset.ingested;
             const currentDownloaded = dataset.downloaded;
             const target = dataset.target;

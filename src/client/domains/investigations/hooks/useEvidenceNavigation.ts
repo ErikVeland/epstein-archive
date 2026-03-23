@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import type { Location } from 'react-router-dom';
 import { investigationActions } from '../investigations.actions';
-import type { InvestigationEvidenceByTypeResponseDto } from '@shared/dto/investigations';
+import type {
+  InvestigationCaseEvidenceItemDto,
+  InvestigationEvidenceByTypeResponseDto,
+} from '@shared/dto/investigations';
 
 interface UseEvidenceNavigationArgs {
   selectedInvestigationId: string | null;
@@ -9,7 +12,10 @@ interface UseEvidenceNavigationArgs {
   activeTab: string;
   navigateToTab: (tab: string) => void;
   loadCaseFolder: () => Promise<InvestigationEvidenceByTypeResponseDto | null>;
-  openEvidence: (item: any, triggerEl?: HTMLElement | null) => Promise<boolean>;
+  openEvidence: (
+    item: InvestigationCaseEvidenceItemDto,
+    triggerEl?: HTMLElement | null,
+  ) => Promise<boolean>;
   addToast: (payload: { text: string; type: 'success' | 'error' | 'warning' | 'info' }) => void;
 }
 

@@ -33,9 +33,23 @@ const BAR_COLORS = {
   sensitive: '#ef4444', // Red
 };
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+interface BarTooltipEntry {
+  color?: string;
+  name?: string;
+  value: number;
+}
+
+const CustomTooltip = ({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean;
+  payload?: BarTooltipEntry[];
+  label?: string;
+}) => {
   if (active && payload && payload.length) {
-    const total = payload.reduce((sum: number, p: any) => sum + (p.value || 0), 0);
+    const total = payload.reduce((sum: number, p: BarTooltipEntry) => sum + (p.value || 0), 0);
 
     return (
       <div className="bg-[var(--glass-bg-strong)]/95 backdrop-blur-md p-4 rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] border border-[var(--glass-border)] min-w-[200px]">
@@ -44,7 +58,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
         </p>
         <div className="space-y-2">
           {payload.map(
-            (entry: any, index: number) =>
+            (entry: BarTooltipEntry, index: number) =>
               entry.value > 0 && (
                 <div key={index} className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-2">
@@ -69,7 +83,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
             {total.toLocaleString()}
           </span>
         </div>
-        {label.includes('2001') && (
+        {label?.includes('2001') && (
           <div className="mt-2 p-2 bg-red-500/10 border border-red-500/20 rounded text-[10px] text-red-400 leading-tight">
             Critical period: Possible data suppression/gaps identified around 9/11.
           </div>

@@ -58,7 +58,7 @@ export class VisualizationService {
       const graphData = await relationshipsRepository.getGraphSlice(entityId, 3);
 
       // Process nodes
-      nodes = graphData.nodes.map((node: any) => ({
+      nodes = graphData.nodes.map((node) => ({
         id: node.id.toString(),
         label: node.label,
         type: node.type,
@@ -66,13 +66,20 @@ export class VisualizationService {
       }));
 
       // Process edges
-      edges = graphData.edges.map((edge: any) => ({
-        id: `${edge.source_id}-${edge.target_id}`,
-        source: edge.source_id.toString(),
-        target: edge.target_id.toString(),
-        type: edge.relationship_type,
-        strength: edge.proximity_score || 0.5,
-      }));
+      edges = graphData.edges.map(
+        (edge: {
+          source_id: number;
+          target_id: number;
+          relationship_type: string;
+          proximity_score?: number;
+        }) => ({
+          id: `${edge.source_id}-${edge.target_id}`,
+          source: edge.source_id.toString(),
+          target: edge.target_id.toString(),
+          type: edge.relationship_type,
+          strength: edge.proximity_score ?? 0.5,
+        }),
+      );
     } else {
       // Get top connected entities for a broader view
       const topEntitiesRes = await pool.query(
@@ -95,16 +102,23 @@ export class VisualizationService {
       const topEntities = topEntitiesRes.rows;
 
       // Add top entities as nodes
-      nodes = topEntities.map((entity: any) => ({
-        id: entity.id.toString(),
-        label: entity.full_name,
-        type: entity.primary_role || 'Person',
-        redFlagRating: entity.red_flag_rating,
-        group: entity.primary_role || 'Person',
-      }));
+      nodes = topEntities.map(
+        (entity: {
+          id: number;
+          full_name: string;
+          primary_role: string;
+          red_flag_rating: number;
+        }) => ({
+          id: entity.id.toString(),
+          label: entity.full_name,
+          type: entity.primary_role || 'Person',
+          redFlagRating: entity.red_flag_rating,
+          group: entity.primary_role || 'Person',
+        }),
+      );
 
       // Get relationships between these top entities
-      const entityIds = topEntities.map((e: any) => e.id);
+      const entityIds = topEntities.map((e: { id: number }) => e.id);
       if (entityIds.length > 0) {
         const placeholders = entityIds.map((_, idx) => `$${idx + 1}`).join(',');
         const relationshipsRes = await pool.query(
@@ -120,13 +134,20 @@ export class VisualizationService {
           entityIds, // Simplifying: in Postgres we could use = ANY($1) for better performance
         );
 
-        edges = relationshipsRes.rows.map((rel: any) => ({
-          id: `${rel.source_id}-${rel.target_id}`,
-          source: rel.source_id.toString(),
-          target: rel.target_id.toString(),
-          type: rel.relationship_type,
-          strength: parseFloat(rel.strength || '0.5'),
-        }));
+        edges = relationshipsRes.rows.map(
+          (rel: {
+            source_id: number;
+            target_id: number;
+            relationship_type: string;
+            strength: string | number;
+          }) => ({
+            id: `${rel.source_id}-${rel.target_id}`,
+            source: rel.source_id.toString(),
+            target: rel.target_id.toString(),
+            type: rel.relationship_type,
+            strength: parseFloat(String(rel.strength ?? '0.5')),
+          }),
+        );
       }
     }
 
@@ -155,29 +176,38 @@ export class VisualizationService {
 
       const flightLocations = res.rows;
 
-      flightLocations.forEach((flight: any) => {
-        if (flight.departure_lat && flight.departure_lon) {
-          locations.push({
-            id: `dep-${flight.departure_airport}`,
-            name: flight.departure_airport,
-            latitude: parseFloat(flight.departure_lat),
-            longitude: parseFloat(flight.departure_lon),
-            type: 'departure',
-            connections: [flight.arrival_airport],
-          });
-        }
+      flightLocations.forEach(
+        (flight: {
+          departure_airport: string;
+          arrival_airport: string;
+          departure_lat: string;
+          departure_lon: string;
+          arrival_lat: string;
+          arrival_lon: string;
+        }) => {
+          if (flight.departure_lat && flight.departure_lon) {
+            locations.push({
+              id: `dep-${flight.departure_airport}`,
+              name: flight.departure_airport,
+              latitude: parseFloat(flight.departure_lat),
+              longitude: parseFloat(flight.departure_lon),
+              type: 'departure',
+              connections: [flight.arrival_airport],
+            });
+          }
 
-        if (flight.arrival_lat && flight.arrival_lon) {
-          locations.push({
-            id: `arr-${flight.arrival_airport}`,
-            name: flight.arrival_airport,
-            latitude: parseFloat(flight.arrival_lat),
-            longitude: parseFloat(flight.arrival_lon),
-            type: 'arrival',
-            connections: [flight.departure_airport],
-          });
-        }
-      });
+          if (flight.arrival_lat && flight.arrival_lon) {
+            locations.push({
+              id: `arr-${flight.arrival_airport}`,
+              name: flight.arrival_airport,
+              latitude: parseFloat(flight.arrival_lat),
+              longitude: parseFloat(flight.arrival_lon),
+              type: 'arrival',
+              connections: [flight.departure_airport],
+            });
+          }
+        },
+      );
     } catch (e) {
       logger.info({ err: e }, 'Flight data not available for geospatial visualization');
     }
@@ -200,7 +230,7 @@ export class VisualizationService {
       LEFT JOIN entities e ON em.entity_id = e.id
     `;
 
-    const params: any[] = [];
+    const params: string[] = [];
 
     if (searchTerm) {
       query += ` WHERE d.file_name ILIKE $1 OR d.content ILIKE $1`;
@@ -209,13 +239,21 @@ export class VisualizationService {
 
     query += ` GROUP BY d.id ORDER BY d.date_created ASC LIMIT 100`;
 
-    const res = await pool.query(query, params);
+    interface TimelineRow {
+      id: number;
+      title: string;
+      date: string | null;
+      entities: string | null;
+      type: string | null;
+    }
+
+    const res = await pool.query<TimelineRow>(query, params);
     const results = res.rows;
 
-    const events = results.map((row: any) => ({
+    const events = results.map((row) => ({
       id: row.id.toString(),
       title: row.title,
-      date: row.date,
+      date: row.date || '',
       entities: row.entities ? row.entities.split(',') : [],
       documents: [row.title],
       type: row.type || 'document',
@@ -224,7 +262,17 @@ export class VisualizationService {
     return { events };
   }
 
-  async getNetworkAnalysis(): Promise<any> {
+  async getNetworkAnalysis(): Promise<{
+    networkMetrics: {
+      totalEntities: number;
+      totalRelationships: number;
+      density: number;
+      averageConnectionsPerEntity: number;
+    };
+    centralFigures: Record<string, unknown>[];
+    relationshipTypes: Record<string, unknown>[];
+    informationFlow: Record<string, unknown>[];
+  }> {
     const pool = getApiPool();
 
     // Calculate network metrics
@@ -285,7 +333,11 @@ export class VisualizationService {
     };
   }
 
-  async getInteractiveMapData(): Promise<any> {
+  async getInteractiveMapData(): Promise<{
+    nodes: (RelationshipNode & { x: number; y: number })[];
+    edges: RelationshipEdge[];
+    layout: string;
+  }> {
     // This would provide data for an interactive relationship map
     // For now, return a structure that could be used for visualization
 
@@ -309,7 +361,16 @@ export class VisualizationService {
     };
   }
 
-  async getConnectionInference(entityId: number): Promise<any[]> {
+  async getConnectionInference(entityId: number): Promise<
+    {
+      entity: string;
+      primaryRole: string | null;
+      redFlagRating: number | null;
+      confidence: number;
+      sharedConnectionCount: number;
+      reason: string;
+    }[]
+  > {
     const pool = getApiPool();
 
     const query = `
@@ -347,16 +408,33 @@ export class VisualizationService {
       LIMIT 10
     `;
 
-    const res = await pool.query(query, [entityId, entityId, entityId, entityId, entityId]);
+    interface ConnectionRow {
+      id: number;
+      full_name: string;
+      primary_role: string | null;
+      red_flag_rating: number | null;
+      shared_count: string | number;
+    }
+
+    const res = await pool.query<ConnectionRow>(query, [
+      entityId,
+      entityId,
+      entityId,
+      entityId,
+      entityId,
+    ]);
     const inferredConnections = res.rows;
 
-    return inferredConnections.map((conn: any) => ({
-      entity: conn.full_name,
-      primaryRole: conn.primary_role,
-      redFlagRating: conn.red_flag_rating,
-      confidence: conn.shared_count > 0 ? Math.min(1.0, parseInt(conn.shared_count, 10) * 0.2) : 0,
-      sharedConnectionCount: parseInt(conn.shared_count, 10),
-      reason: `Connected through ${conn.shared_count} shared connections`,
-    }));
+    return inferredConnections.map((conn) => {
+      const sharedCount = Number(conn.shared_count || 0);
+      return {
+        entity: conn.full_name,
+        primaryRole: conn.primary_role,
+        redFlagRating: conn.red_flag_rating,
+        confidence: sharedCount > 0 ? Math.min(1.0, sharedCount * 0.2) : 0,
+        sharedConnectionCount: sharedCount,
+        reason: `Connected through ${sharedCount} shared connections`,
+      };
+    });
   }
 }

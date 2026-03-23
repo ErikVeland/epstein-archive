@@ -2,6 +2,7 @@ import React, { useEffect, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css'; // Don't forget to import CSS in your main app entry or here
+import ScopedErrorBoundary from '../common/ScopedErrorBoundary';
 
 // Fix for default marker icon issues with webpack/cra
 // See: https://github.com/PaulLeCam/react-leaflet/issues/453
@@ -83,50 +84,58 @@ export const RouteMap: React.FC<RouteMapProps> = ({ departure, arrival, classNam
     <div
       className={`h-[400px] w-full rounded-[var(--radius-xl)] overflow-hidden border border-[var(--glass-border)] shadow-[var(--glass-shadow)] ${className}`}
     >
-      <MapContainer
-        center={center}
-        zoom={4}
-        scrollWheelZoom={false}
-        className="h-full w-full z-0"
-        style={{ height: '100%', width: '100%', minHeight: '300px' }}
+      <ScopedErrorBoundary
+        fallback={
+          <div className="h-full w-full flex items-center justify-center bg-[var(--glass-bg-strong)] p-4 text-center">
+            <p className="text-[var(--accent-danger)] text-sm">Failed to render the route map.</p>
+          </div>
+        }
       >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
+        <MapContainer
+          center={center}
+          zoom={4}
+          scrollWheelZoom={false}
+          className="h-full w-full z-0"
+          style={{ height: '100%', width: '100%', minHeight: '300px' }}
+        >
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
 
-        {/* Departure Marker */}
-        <Marker position={[departure.lat, departure.lng]}>
-          <Popup>
-            <strong>Departure:</strong>
-            <br />
-            {departure.name} {departure.code && `(${departure.code})`}
-          </Popup>
-        </Marker>
+          {/* Departure Marker */}
+          <Marker position={[departure.lat, departure.lng]}>
+            <Popup>
+              <strong>Departure:</strong>
+              <br />
+              {departure.name} {departure.code && `(${departure.code})`}
+            </Popup>
+          </Marker>
 
-        {/* Arrival Marker */}
-        <Marker position={[arrival.lat, arrival.lng]}>
-          <Popup>
-            <strong>Arrival:</strong>
-            <br />
-            {arrival.name} {arrival.code && `(${arrival.code})`}
-          </Popup>
-        </Marker>
+          {/* Arrival Marker */}
+          <Marker position={[arrival.lat, arrival.lng]}>
+            <Popup>
+              <strong>Arrival:</strong>
+              <br />
+              {arrival.name} {arrival.code && `(${arrival.code})`}
+            </Popup>
+          </Marker>
 
-        {/* Flight Path Line */}
-        <Polyline
-          positions={[
-            [departure.lat, departure.lng],
-            [arrival.lat, arrival.lng],
-          ]}
-          color="#3b82f6" // Blue-500
-          weight={4}
-          opacity={0.7}
-          dashArray="10, 10" // Dashed line for effect
-        />
+          {/* Flight Path Line */}
+          <Polyline
+            positions={[
+              [departure.lat, departure.lng],
+              [arrival.lat, arrival.lng],
+            ]}
+            color="#3b82f6" // Blue-500
+            weight={4}
+            opacity={0.7}
+            dashArray="10, 10" // Dashed line for effect
+          />
 
-        <BoundsController bounds={bounds} />
-      </MapContainer>
+          <BoundsController bounds={bounds} />
+        </MapContainer>
+      </ScopedErrorBoundary>
     </div>
   );
 };

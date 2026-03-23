@@ -25,7 +25,7 @@ export const cacheMiddleware = (ttl?: number) => {
 
     // Store original res.json to intercept response
     const originalJson = res.json.bind(res);
-    res.json = function (body: any) {
+    res.json = function (body: unknown) {
       // Cache the response
       apiCache.set(cacheKey, body, ttl || 300);
       res.set('X-Cache', 'MISS');

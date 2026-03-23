@@ -3,12 +3,18 @@ import * as fs from 'fs';
 let content = fs.readFileSync('src/client/services/apiClient.ts', 'utf8');
 
 // (value as any).message -> (value as Record<string, unknown>).message
-content = content.replace(/\(value as any\)\.([a-zA-Z0-9_]+)/g, '(value as Record<string, unknown>).$1');
+content = content.replace(
+  /\(value as any\)\.([a-zA-Z0-9_]+)/g,
+  '(value as Record<string, unknown>).$1',
+);
 
 // error: any -> error: unknown
 content = content.replace(/catch\s*\(\s*error\s*:\s*any\s*\)/g, 'catch (error: unknown)');
 // (error as any).isContractError
-content = content.replace(/\(error\s*as\s*any\)\.([a-zA-Z0-9_]+)/g, '(error as Record<string, unknown>).$1');
+content = content.replace(
+  /\(error\s*as\s*any\)\.([a-zA-Z0-9_]+)/g,
+  '(error as Record<string, unknown>).$1',
+);
 
 // body?: any -> body?: unknown
 content = content.replace(/body\?: any/g, 'body?: unknown');

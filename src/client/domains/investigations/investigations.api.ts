@@ -4,8 +4,24 @@ import type {
   InvestigationEvidenceListResponseDto,
 } from '@shared/dto/investigations';
 
+export interface InvestigationSummaryDto {
+  id: string;
+  title: string;
+  description?: string;
+  status?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  ownerId?: string;
+  scope?: string;
+}
+
+export interface InvestigationNotebookDto {
+  order: number[];
+  annotations?: unknown[];
+}
+
 export interface InvestigationListApiResponse {
-  data: any[];
+  data: InvestigationSummaryDto[];
   total: number;
   page: number;
   pageSize: number;
@@ -45,30 +61,30 @@ export const investigationsApi = {
     return apiClient.get(`/investigations/${id}/evidence-by-type`, { useCache: false });
   },
 
-  getHypotheses: async (id: string): Promise<any[]> => {
+  getHypotheses: async (id: string): Promise<unknown[]> => {
     return apiClient.get(`/investigations/${id}/hypotheses`, { useCache: false });
   },
 
-  getNotebook: async (id: string): Promise<any> => {
-    return apiClient.getInvestigationNotebook(id);
+  getNotebook: async (id: string): Promise<InvestigationNotebookDto> => {
+    return apiClient.getInvestigationNotebook(id) as Promise<InvestigationNotebookDto>;
   },
 
   updateNotebook: async (
     id: string,
-    payload: { order?: number[]; annotations?: any[] },
-  ): Promise<any> => {
+    payload: { order?: number[]; annotations?: unknown[] },
+  ): Promise<unknown> => {
     return apiClient.updateInvestigationNotebook(id, payload);
   },
 
-  getTimelineEvents: async (id: string): Promise<any[]> => {
+  getTimelineEvents: async (id: string): Promise<unknown[]> => {
     return apiClient.get(`/investigations/${id}/timeline-events`, { useCache: false });
   },
 
-  addEvidence: async (id: string, payload: any): Promise<any> => {
+  addEvidence: async (id: string, payload: Record<string, unknown>): Promise<unknown> => {
     return apiClient.post(`/investigations/${id}/evidence`, payload);
   },
 
-  removeEvidenceLink: async (investigationEvidenceId: number | string): Promise<any> => {
+  removeEvidenceLink: async (investigationEvidenceId: number | string): Promise<unknown> => {
     return apiClient.delete(`/investigation/remove-evidence/${investigationEvidenceId}`);
   },
 };

@@ -8,12 +8,23 @@ export interface IngestRun {
   gitCommit: string | null;
   schemaVersion: string | null;
   pipelineVersion: string | null;
-  extractorVersions: any;
-  ocrVersions: any;
+  extractorVersions: Record<string, unknown> | null;
+  ocrVersions: Record<string, unknown> | null;
   agenticEnabled: boolean;
   agenticModelId: string | null;
   agenticPromptVersion: string | null;
-  agenticParams: any;
+  agenticParams: Record<string, unknown> | null;
+  notes: string | null;
+}
+
+interface IngestRunListRow {
+  id: string | number;
+  startedAt: string;
+  finishedAt: string | null;
+  status: IngestRun['status'];
+  gitCommit: string | null;
+  pipelineVersion: string | null;
+  agenticEnabled: boolean | null;
   notes: string | null;
 }
 
@@ -42,8 +53,13 @@ export class IngestRunsRepository {
       [limit],
     );
 
-    return res.rows.map((row: any) => ({
-      ...row,
+    return (res.rows as IngestRunListRow[]).map((row) => ({
+      id: String(row.id),
+      startedAt: row.startedAt,
+      finishedAt: row.finishedAt,
+      status: row.status,
+      gitCommit: row.gitCommit,
+      pipelineVersion: row.pipelineVersion,
       agenticEnabled: Boolean(row.agenticEnabled),
       extractorVersions: null,
       ocrVersions: null,
@@ -51,6 +67,7 @@ export class IngestRunsRepository {
       schemaVersion: null,
       agenticModelId: null,
       agenticPromptVersion: null,
+      notes: row.notes,
     }));
   }
 

@@ -3,6 +3,7 @@ import fs from 'fs';
 import rateLimit from 'express-rate-limit';
 import { logAudit } from '../utils/auditLogger.js';
 import { logger } from '../services/Logger.js';
+import type { AuthRequest } from '../auth/middleware.js';
 
 const router = express.Router();
 
@@ -35,7 +36,7 @@ router.get('/release/:id', downloadLimiter, async (req, res) => {
         // But for now, we assume these static static files are safe (Black Book, Flight Logs).
         // If we move to DB-backed releases, we should check.
         // Let's log it at least.
-        const userId = (req as any).user?.id || 'anonymous';
+        const userId = (req as AuthRequest).user?.id || 'anonymous';
 
         // Log the download event
         await logAudit(
@@ -48,7 +49,7 @@ router.get('/release/:id', downloadLimiter, async (req, res) => {
             static_release: true,
           },
           undefined,
-          (req as any).requestId,
+          req.requestId,
         );
         return res.download(filePath);
       }

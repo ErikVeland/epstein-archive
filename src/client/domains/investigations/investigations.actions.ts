@@ -16,8 +16,8 @@ export const investigationActions = {
     description?: string;
     ownerId: string;
     scope?: string;
-    evidence?: any;
-  }): Promise<{ investigation: any; added: boolean; shareId: string }> {
+    evidence?: Record<string, unknown>;
+  }): Promise<{ investigation: Record<string, unknown>; added: boolean; shareId: string }> {
     const investigation = await investigationsApi.create({
       title: args.title,
       description: args.description,
@@ -38,7 +38,7 @@ export const investigationActions = {
     };
   },
 
-  async addEvidence(investigationId: string, payload: any): Promise<any> {
+  async addEvidence(investigationId: string, payload: Record<string, unknown>): Promise<unknown> {
     return investigationsApi.addEvidence(investigationId, payload);
   },
 

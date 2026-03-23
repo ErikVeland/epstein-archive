@@ -33,14 +33,19 @@ const authLimiter = rateLimit({
   message: { error: 'Too many authentication attempts, please try again after 15 minutes' },
 });
 
+type TokenUser = { id: number | string; username?: string; role?: string };
+type AuthenticatedRequest = express.Request & {
+  user?: { id: number; username: string; role: string };
+};
+
 // Helper to generate tokens
-const generateAccessToken = (user: any) => {
+const generateAccessToken = (user: TokenUser) => {
   return jwt.sign({ id: user.id, username: user.username, role: user.role }, JWT_ACCESS_SECRET, {
     expiresIn: '15m',
   });
 };
 
-const generateRefreshToken = (user: any) => {
+const generateRefreshToken = (user: TokenUser) => {
   return jwt.sign({ id: user.id }, JWT_REFRESH_SECRET, {
     expiresIn: '7d',
   });
@@ -126,7 +131,7 @@ router.post('/refresh', authLimiter, async (req, res) => {
   }
 
   try {
-    const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET) as any;
+    const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET) as { id: number };
     const pool = getApiPool();
     const refreshTokenHash = hashToken(refreshToken);
 
@@ -242,7 +247,7 @@ router.post('/logout', async (req, res) => {
 });
 
 // GET /api/auth/me
-router.get('/me', optionalAuthenticate, (req: any, res) => {
+router.get('/me', optionalAuthenticate, (req: AuthenticatedRequest, res) => {
   if (!req.user) {
     return res.json({ user: null });
   }
@@ -251,7 +256,7 @@ router.get('/me', optionalAuthenticate, (req: any, res) => {
 });
 
 // POST /api/auth/change-password
-router.post('/change-password', authenticateRequest, async (req: any, res) => {
+router.post('/change-password', authenticateRequest, async (req: AuthenticatedRequest, res) => {
   const { currentPassword, newPassword } = req.body;
 
   if (!currentPassword || typeof currentPassword !== 'string' || !currentPassword.trim()) {

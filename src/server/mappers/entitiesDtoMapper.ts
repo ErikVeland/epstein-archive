@@ -6,126 +6,157 @@ import {
   RiskLevel,
 } from '@shared/dto/entities';
 
-export const mapSubjectCardDto = (subject: any): SubjectCardListItemDto => ({
-  id: String(subject.id),
-  name: String(subject.name || subject.displayName || ''),
-  role: String(subject.role || 'Unknown'),
-  shortBio: subject.short_bio
-    ? String(subject.short_bio)
-    : subject.shortBio
-      ? String(subject.shortBio)
-      : subject.bio
-        ? String(subject.bio)
-        : undefined,
-  stats: {
-    mentions: Number(subject?.stats?.mentions ?? subject?.mentions ?? 0),
-    documents: Number(subject?.stats?.documents ?? subject?.documents ?? 0),
-    distinctSources: Number(
-      subject?.stats?.distinctSources ??
-        subject?.stats?.distinct_sources ??
-        subject?.distinct_sources ??
-        subject?.distinctSources ??
-        0,
-    ),
-    verifiedMedia: Number(
-      subject?.stats?.verifiedMedia ??
-        subject?.stats?.verified_media ??
-        subject?.verified_media ??
-        subject?.mediaCount ??
-        0,
-    ),
-  },
-  forensics: {
-    riskLevel: String(
-      subject?.forensics?.riskLevel ||
-        subject?.forensics?.risk_level ||
-        subject?.riskLevel ||
-        'LOW',
-    ).toUpperCase() as RiskLevel,
-    evidenceLadder: (subject?.forensics?.evidenceLadder ||
-      subject?.forensics?.evidence_ladder ||
-      subject?.ladder ||
-      'NONE') as 'L1' | 'L2' | 'L3' | 'NONE',
-    redFlagObjective:
-      typeof subject?.forensics?.redFlagObjective === 'number'
-        ? subject.forensics.redFlagObjective
-        : typeof subject?.forensics?.red_flag_objective === 'number'
-          ? subject.forensics.red_flag_objective
-          : typeof subject?.redFlagRating === 'number'
-            ? subject.redFlagRating
+type UnknownRecord = Record<string, unknown>;
+
+const asRecord = (value: unknown): UnknownRecord =>
+  typeof value === 'object' && value !== null ? (value as UnknownRecord) : {};
+
+const asStringArray = (value: unknown): string[] =>
+  Array.isArray(value) ? value.map((item) => String(item)) : [];
+
+const asUnknownRecordArray = (value: unknown): UnknownRecord[] =>
+  Array.isArray(value)
+    ? value.filter((item): item is UnknownRecord => typeof item === 'object' && item !== null)
+    : [];
+
+export const mapSubjectCardDto = (subject: UnknownRecord): SubjectCardListItemDto => ({
+  ...(() => {
+    const stats = asRecord(subject.stats);
+    const forensics = asRecord(subject.forensics);
+    const signalStrength = asRecord(forensics.signalStrength);
+    const signalStrengthLegacy = asRecord(forensics.signal_strength);
+    const signals = asRecord(subject.signals);
+    const topPreview = asRecord(subject.topPreview ?? subject.top_preview);
+
+    return {
+      id: String(subject.id),
+      name: String(subject.name || subject.displayName || ''),
+      role: String(subject.role || 'Unknown'),
+      shortBio: subject.short_bio
+        ? String(subject.short_bio)
+        : subject.shortBio
+          ? String(subject.shortBio)
+          : subject.bio
+            ? String(subject.bio)
             : undefined,
-    redFlagSubjective:
-      typeof subject?.forensics?.redFlagSubjective === 'number'
-        ? subject.forensics.redFlagSubjective
-        : typeof subject?.forensics?.red_flag_subjective === 'number'
-          ? subject.forensics.red_flag_subjective
-          : typeof subject?.redFlagRating === 'number'
-            ? subject.redFlagRating
-            : undefined,
-    signalStrength: {
-      exposure: Number(
-        subject?.forensics?.signalStrength?.exposure ??
-          subject?.forensics?.signal_strength?.exposure ??
-          subject?.signals?.exposure ??
-          0,
-      ),
-      connectivity: Number(
-        subject?.forensics?.signalStrength?.connectivity ??
-          subject?.forensics?.signal_strength?.connectivity ??
-          subject?.signals?.connectivity ??
-          0,
-      ),
-      corroboration: Number(
-        subject?.forensics?.signalStrength?.corroboration ??
-          subject?.forensics?.signal_strength?.corroboration ??
-          subject?.signals?.corroboration ??
-          0,
-      ),
-    },
-    driverLabels: Array.isArray(subject?.forensics?.driverLabels)
-      ? subject.forensics.driverLabels.map((value: unknown) => String(value))
-      : Array.isArray(subject?.forensics?.driver_labels)
-        ? subject.forensics.driver_labels.map((value: unknown) => String(value))
-        : Array.isArray(subject?.drivers)
-          ? subject.drivers.map((value: unknown) => String(value))
-          : [],
-  },
-  topPreview: subject?.topPreview ?? subject?.top_preview,
-  ...(subject?.topPhotoId ? { topPhotoId: String(subject.topPhotoId) } : {}),
+      stats: {
+        mentions: Number(stats.mentions ?? subject.mentions ?? 0),
+        documents: Number(stats.documents ?? subject.documents ?? 0),
+        distinctSources: Number(
+          stats.distinctSources ??
+            stats.distinct_sources ??
+            subject.distinct_sources ??
+            subject.distinctSources ??
+            0,
+        ),
+        verifiedMedia: Number(
+          stats.verifiedMedia ??
+            stats.verified_media ??
+            subject.verified_media ??
+            subject.mediaCount ??
+            0,
+        ),
+      },
+      forensics: {
+        riskLevel: String(
+          forensics.riskLevel || forensics.risk_level || subject.riskLevel || 'LOW',
+        ).toUpperCase() as RiskLevel,
+        evidenceLadder: (forensics.evidenceLadder ||
+          forensics.evidence_ladder ||
+          subject.ladder ||
+          'NONE') as 'L1' | 'L2' | 'L3' | 'NONE',
+        redFlagObjective:
+          typeof forensics.redFlagObjective === 'number'
+            ? forensics.redFlagObjective
+            : typeof forensics.red_flag_objective === 'number'
+              ? forensics.red_flag_objective
+              : typeof subject.redFlagRating === 'number'
+                ? subject.redFlagRating
+                : undefined,
+        redFlagSubjective:
+          typeof forensics.redFlagSubjective === 'number'
+            ? forensics.redFlagSubjective
+            : typeof forensics.red_flag_subjective === 'number'
+              ? forensics.red_flag_subjective
+              : typeof subject.redFlagRating === 'number'
+                ? subject.redFlagRating
+                : undefined,
+        signalStrength: {
+          exposure: Number(
+            signalStrength.exposure ?? signalStrengthLegacy.exposure ?? signals.exposure ?? 0,
+          ),
+          connectivity: Number(
+            signalStrength.connectivity ??
+              signalStrengthLegacy.connectivity ??
+              signals.connectivity ??
+              0,
+          ),
+          corroboration: Number(
+            signalStrength.corroboration ??
+              signalStrengthLegacy.corroboration ??
+              signals.corroboration ??
+              0,
+          ),
+        },
+        driverLabels: Array.isArray(forensics.driverLabels)
+          ? asStringArray(forensics.driverLabels)
+          : Array.isArray(forensics.driver_labels)
+            ? asStringArray(forensics.driver_labels)
+            : Array.isArray(subject.drivers)
+              ? asStringArray(subject.drivers)
+              : [],
+      },
+      topPreview:
+        Object.keys(topPreview).length > 0
+          ? {
+              id: String(topPreview.id ?? ''),
+              type:
+                (String(
+                  topPreview.type ?? 'document',
+                ) as SubjectCardListItemDto['topPreview'] extends infer T
+                  ? T extends { type: infer U }
+                    ? U
+                    : never
+                  : never) || 'document',
+              title: String(topPreview.title ?? ''),
+              citation: String(topPreview.citation ?? ''),
+              confidence: Number(topPreview.confidence ?? 0),
+              ...(typeof topPreview.year === 'number' ? { year: topPreview.year } : {}),
+            }
+          : undefined,
+      ...(subject.topPhotoId ? { topPhotoId: String(subject.topPhotoId) } : {}),
+    };
+  })(),
 });
 
-export const mapSubjectsListResponseDto = (result: any): SubjectsListResponseDto => ({
-  subjects: Array.isArray(result?.subjects) ? result.subjects.map(mapSubjectCardDto) : [],
+export const mapSubjectsListResponseDto = (result: UnknownRecord): SubjectsListResponseDto => ({
+  subjects: Array.isArray(result?.subjects)
+    ? (result.subjects as UnknownRecord[]).map(mapSubjectCardDto)
+    : [],
   total: Number(result?.total || 0),
 });
 
 export const mapEntityListItemDto = (
-  entity: any,
-  photosByEntity: Record<string, any[]> = {},
+  entity: UnknownRecord,
+  photosByEntity: Record<string, UnknownRecord[]> = {},
 ): EntityListItemDto => ({
-  id: entity.id,
-  name: entity.full_name || entity.fullName || entity.name || 'Unknown',
-  fullName: entity.full_name || entity.fullName || entity.name || 'Unknown',
-  bio: entity.bio || '',
-  entityType: entity.entity_type || entity.entityType || 'Person',
-  primaryRole: entity.primary_role || entity.primaryRole || 'Person of Interest',
-  secondaryRoles: Array.isArray(entity.secondary_roles || entity.secondaryRoles)
-    ? entity.secondary_roles || entity.secondaryRoles
-    : [],
+  id: typeof entity.id === 'number' || typeof entity.id === 'string' ? entity.id : '',
+  name: String(entity.full_name || entity.fullName || entity.name || 'Unknown'),
+  fullName: String(entity.full_name || entity.fullName || entity.name || 'Unknown'),
+  bio: String(entity.bio || ''),
+  entityType: String(entity.entity_type || entity.entityType || 'Person'),
+  primaryRole: String(entity.primary_role || entity.primaryRole || 'Person of Interest'),
+  secondaryRoles: asStringArray(entity.secondary_roles || entity.secondaryRoles),
   mentions: Number(entity.mentions || 0),
   files: Number(entity.document_count || entity.files || entity.documentCount || 0),
-  contexts: Array.isArray(entity.contexts) ? entity.contexts : [],
-  evidenceTypes: Array.isArray(entity.evidence_types || entity.evidenceTypes)
-    ? entity.evidence_types || entity.evidenceTypes
-    : [],
+  contexts: asUnknownRecordArray(entity.contexts),
+  evidenceTypes: asStringArray(entity.evidence_types || entity.evidenceTypes),
   photos:
     photosByEntity[String(entity.id)] ||
     ((entity?.topPhotoId || entity?.top_photo_id
       ? [{ id: Number(entity?.topPhotoId || entity?.top_photo_id) }]
-      : []) as any[]),
-  significantPassages: Array.isArray(entity.significant_passages)
-    ? entity.significant_passages
-    : [],
+      : []) as UnknownRecord[]),
+  significantPassages: asUnknownRecordArray(entity.significant_passages),
   likelihoodScore: String(
     entity.likelihood_score || entity.risk_level || entity.riskLevel || 'LOW',
   ).toUpperCase() as RiskLevel,
@@ -137,19 +168,20 @@ export const mapEntityListItemDto = (
       : typeof entity.redFlagRating === 'number' && entity.redFlagRating > 0
         ? '🚩'.repeat(entity.redFlagRating)
         : '🏳️',
-  redFlagDescription:
+  redFlagDescription: String(
     entity.red_flag_description ||
-    entity.redFlagDescription ||
-    `Red Flag Index ${entity.red_flag_rating || entity.redFlagRating || 0}`,
-  connectionsToEpstein: entity.connections_summary || entity.connectionsSummary || '',
+      entity.redFlagDescription ||
+      `Red Flag Index ${entity.red_flag_rating || entity.redFlagRating || 0}`,
+  ),
+  connectionsToEpstein: String(entity.connections_summary || entity.connectionsSummary || ''),
 });
 
 export const mapEntityListResponseDto = (input: {
-  entities: any[];
+  entities: UnknownRecord[];
   total: number;
   page: number;
   pageSize: number;
-  photosByEntity: Record<string, any[]>;
+  photosByEntity: Record<string, UnknownRecord[]>;
 }): EntityListResponseDto => ({
   data: input.entities.map((entity) => mapEntityListItemDto(entity, input.photosByEntity)),
   total: Number(input.total || 0),
@@ -158,7 +190,7 @@ export const mapEntityListResponseDto = (input: {
   totalPages: Math.ceil(Number(input.total || 0) / Math.max(1, Number(input.pageSize || 1))),
 });
 
-export const mapEntityDetailDto = (entity: any) => {
+export const mapEntityDetailDto = (entity: UnknownRecord) => {
   const name = entity.full_name || entity.fullName || entity.name || 'Unknown';
   const redFlagRating = Number(entity.red_flag_rating ?? entity.redFlagRating ?? 0);
   const secondaryRolesRaw = entity.secondary_roles || entity.secondaryRoles;

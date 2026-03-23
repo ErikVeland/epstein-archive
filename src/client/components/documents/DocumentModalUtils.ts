@@ -30,8 +30,13 @@ const toSentenceBullets = (text: string, max = 5): string[] => {
   return sentenceBullets;
 };
 
-export const deriveSummary = (doc: any): { bullets: string[]; sourceLabel: string } => {
-  const metadata = doc?.metadata || {};
+export const deriveSummary = (
+  doc: Record<string, unknown> | null | undefined,
+): { bullets: string[]; sourceLabel: string } => {
+  const metadata =
+    typeof doc?.metadata === 'object' && doc.metadata !== null && !Array.isArray(doc.metadata)
+      ? (doc.metadata as Record<string, unknown>)
+      : {};
   const aiSummary =
     (typeof metadata.ai_summary === 'string' && metadata.ai_summary.trim()) ||
     (typeof metadata.summary === 'string' && metadata.summary.trim()) ||

@@ -9,12 +9,28 @@ interface PublicationStats {
   avgRedFlag: number;
 }
 
+type ArticleApiItem = Record<string, unknown>;
+
+type ArticleContent = Article & {
+  content: string;
+};
+
+const asString = (value: unknown, fallback = ''): string =>
+  typeof value === 'string' ? value : fallback;
+
+const asNumber = (value: unknown, fallback = 0): number =>
+  typeof value === 'number'
+    ? value
+    : typeof value === 'string' && value.trim().length > 0 && Number.isFinite(Number(value))
+      ? Number(value)
+      : fallback;
+
 export const ArticlesTab: React.FC = () => {
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPublication, setSelectedPublication] = useState<string | null>(null);
-  const [viewerArticle, setViewerArticle] = useState<any | null>(null);
+  const [viewerArticle, setViewerArticle] = useState<ArticleContent | null>(null);
   const [showPublicationDropdown, setShowPublicationDropdown] = useState(false);
   const [sortOrder, setSortOrder] = useState<'date' | 'redFlag'>('redFlag');
 
@@ -46,18 +62,25 @@ export const ArticlesTab: React.FC = () => {
 
         if (Array.isArray(data)) {
           // Normalize API response
-          const normalized = data.map((item: any) => ({
-            id: item.id,
-            title: item.title,
-            url: item.link || item.url,
-            author: item.author || 'Unknown',
-            publication: item.source || item.publication || 'Unknown',
-            published_date: item.pub_date || item.published_date || '',
-            summary: item.description || item.summary || '',
-            tags: item.tags || '',
-            redFlagRating: item.redFlagRating ?? 0,
-            imageUrl: item.image_url || item.imageUrl || null,
-            reading_time: item.reading_time || item.readingTime || null,
+          const normalized: ArticleContent[] = data.map((item: ArticleApiItem) => ({
+            id: asNumber(item.id),
+            title: asString(item.title),
+            url: asString(item.link ?? item.url),
+            author: asString(item.author, 'Unknown'),
+            publication: asString(item.source ?? item.publication, 'Unknown'),
+            published_date: asString(item.pub_date ?? item.published_date),
+            summary: asString(item.description ?? item.summary),
+            content: asString(item.content ?? item.description ?? item.summary),
+            tags: asString(item.tags),
+            redFlagRating: asNumber(item.redFlagRating, 0),
+            imageUrl:
+              item.image_url == null && item.imageUrl == null
+                ? null
+                : asString(item.image_url ?? item.imageUrl),
+            reading_time:
+              item.reading_time == null && item.readingTime == null
+                ? undefined
+                : asString(item.reading_time ?? item.readingTime),
           }));
 
           setArticles((prev) => (isReset ? normalized : [...prev, ...normalized]));

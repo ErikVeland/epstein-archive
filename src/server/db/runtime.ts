@@ -16,15 +16,18 @@ const SLOW_QUERY_LOG_THRESHOLD_MS = Math.max(
 
 function wrapPool(pool: pg.Pool, label: string): pg.Pool {
   const originalQuery = pool.query.bind(pool);
-  pool.query = (async (sqlOrConfig: string | pg.QueryConfig, values?: any[]) => {
+  pool.query = (async (sqlOrConfig: string | pg.QueryConfig, values?: unknown[]) => {
     const startedAt = Date.now();
     const waitingBefore = pool.waitingCount;
     let queryName = label;
     if (typeof sqlOrConfig === 'object' && 'name' in sqlOrConfig) {
-      queryName = (sqlOrConfig as any).name || label;
+      queryName = (sqlOrConfig as pg.QueryConfig).name || label;
     }
     try {
-      const res = await originalQuery(sqlOrConfig as any, values as any);
+      const res = await originalQuery(
+        sqlOrConfig as Parameters<typeof originalQuery>[0],
+        values as Parameters<typeof originalQuery>[1],
+      );
       const durationMs = Date.now() - startedAt;
       const store = requestContext.getStore();
       if (store?.requestId) {
@@ -35,7 +38,8 @@ function wrapPool(pool: pg.Pool, label: string): pg.Pool {
       const shouldLog = debugPg || durationMs > SLOW_QUERY_LOG_THRESHOLD_MS;
       if (shouldLog) {
         const requestId = store?.requestId || 'no-req-id';
-        const rowCount = (res as any).rowCount ?? (res as any).rows?.length ?? 0;
+        const pgRes = res as { rowCount?: number | null; rows?: unknown[] };
+        const rowCount = pgRes.rowCount ?? pgRes.rows?.length ?? 0;
         logger.warn(
           {
             requestId,
@@ -53,11 +57,11 @@ function wrapPool(pool: pg.Pool, label: string): pg.Pool {
         );
       }
       return res;
-    } catch (err: any) {
-      (err as any)._pgQueryName = queryName;
+    } catch (err: unknown) {
+      (err as Record<string, unknown>)._pgQueryName = queryName;
       throw err;
     }
-  }) as any;
+  }) as typeof pool.query;
   return pool;
 }
 

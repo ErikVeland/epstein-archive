@@ -204,12 +204,17 @@ const mapEvidenceAnnotations = (
 
 export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) => {
   const navigate = useNavigate();
-  const [summary, setSummary] = useState<any | null>(null);
+  const [summary, setSummary] = useState<{ evidence?: EvidenceRecord[] } | null>(null);
   const [order, setOrder] = useState<number[]>([]);
   const [annotations, setAnnotations] = useState<NotebookAnnotation[]>([]);
   const [notesDraft, setNotesDraft] = useState('');
   const [previewMode, setPreviewMode] = useState(false);
-  const [mediaCache, setMediaCache] = useState<Record<number, any>>({});
+  const [mediaCache, setMediaCache] = useState<
+    Record<
+      number,
+      { metadata?: { transcript?: Array<{ text?: string; speaker?: string; start?: number }> } }
+    >
+  >({});
   const [loading, setLoading] = useState<boolean>(true);
   const [isSaving, setIsSaving] = useState(false);
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error' | 'offline'>(
@@ -373,9 +378,9 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
       setLoading(true);
       try {
         const [evidenceSummary, notebook] = await Promise.all([
-          apiClient.getInvestigationEvidenceSummary(String(investigationId)) as Promise<
-            Record<string, unknown>
-          >,
+          apiClient.getInvestigationEvidenceSummary(String(investigationId)) as Promise<{
+            evidence?: EvidenceRecord[];
+          }>,
           apiClient.getInvestigationNotebook(String(investigationId)) as Promise<
             Record<string, unknown>
           >,
@@ -388,10 +393,8 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
         const loadedOrder = Array.isArray(notebook?.order)
           ? notebook.order.filter((v: unknown) => Number.isFinite(Number(v))).map(Number)
           : [];
-        const fallbackOrder = (evidenceSummary as any)?.evidence
-          ? (evidenceSummary as any).evidence
-              .map((e: any) => Number(e.id))
-              .filter((v: number) => Number.isFinite(v))
+        const fallbackOrder = evidenceSummary?.evidence
+          ? evidenceSummary.evidence.map((e) => Number(e.id)).filter((v) => Number.isFinite(v))
           : [];
 
         setOrder(loadedOrder.length > 0 ? loadedOrder : fallbackOrder);
@@ -399,8 +402,8 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
         const loadedAnnotations = Array.isArray(notebook?.annotations)
           ? (notebook.annotations as NotebookAnnotation[])
           : [];
-        const evidenceItems = Array.isArray((evidenceSummary as any)?.evidence)
-          ? ((evidenceSummary as any).evidence as EvidenceRecord[])
+        const evidenceItems = Array.isArray(evidenceSummary?.evidence)
+          ? evidenceSummary.evidence
           : [];
         const persistedEvidenceAnnotations = await loadEvidenceAnnotationsFromApi(evidenceItems);
 
@@ -485,7 +488,7 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
 
   const grouped = useMemo(() => {
     const result: Record<string, EvidenceRecord[]> = { snippet: [], audio: [], video: [], doc: [] };
-    const list: EvidenceRecord[] = (summary?.evidence || []) as EvidenceRecord[];
+    const list: EvidenceRecord[] = summary?.evidence || [];
 
     const orderedLookup = new Map(order.map((id, index) => [id, index]));
     const orderedList = [...list].sort((a, b) => {
@@ -841,7 +844,7 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
             {grouped.snippet.map((e) => {
               const meta = parseMeta(e.metadataJson);
               const docId = meta.document_id;
-              const highlight = (e as any).description || '';
+              const highlight = e.description || '';
               const viewUrl = docId
                 ? `/documents?docId=${docId}&docTab=content&highlight=${encodeURIComponent(highlight.slice(0, 120))}`
                 : undefined;
@@ -878,9 +881,9 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
                       )}
                     </div>
                   </div>
-                  {(e as any).description && (
+                  {e.description && (
                     <div className="text-sm text-[var(--text-secondary)] mt-2 whitespace-pre-wrap">
-                      {(e as any).description}
+                      {e.description}
                     </div>
                   )}
                 </div>
@@ -900,7 +903,7 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
               const mediaId = meta.media_item_id;
               const albumId = meta.album_id;
               const details = mediaId ? mediaCache[mediaId] : null;
-              const segments: any[] = details?.metadata?.transcript || [];
+              const segments = details?.metadata?.transcript || [];
               return (
                 <div
                   key={e.id}
@@ -965,7 +968,7 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
               const mediaId = meta.media_item_id;
               const albumId = meta.album_id;
               const details = mediaId ? mediaCache[mediaId] : null;
-              const segments: any[] = details?.metadata?.transcript || [];
+              const segments = details?.metadata?.transcript || [];
               return (
                 <div
                   key={e.id}
@@ -1050,9 +1053,9 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
                     </button>
                   </div>
                 </div>
-                {(e as any).description && (
+                {e.description && (
                   <div className="text-sm text-[var(--text-secondary)] mt-2 whitespace-pre-wrap">
-                    {(e as any).description}
+                    {e.description}
                   </div>
                 )}
               </div>

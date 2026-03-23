@@ -9,8 +9,10 @@ export const reviewQueueRepository = {
   async getPendingItems(limit: number = 50) {
     const mentions = await reviewQueueRepository.getMentionsQueue(limit);
     const claims = await reviewQueueRepository.getClaimsQueue(limit);
+    type MentionItem = (typeof mentions)[number];
+    type ClaimItem = (typeof claims)[number];
     return [
-      ...mentions.map((m: any) => ({
+      ...mentions.map((m: MentionItem) => ({
         id: m.id,
         type: 'mention',
         subject_id: m.entity_id,
@@ -24,7 +26,7 @@ export const reviewQueueRepository = {
         notes: null,
         created_at: new Date().toISOString(),
       })),
-      ...claims.map((c: any) => ({
+      ...claims.map((c: ClaimItem) => ({
         id: c.id,
         type: 'claim',
         subject_id: c.subject_entity_id,

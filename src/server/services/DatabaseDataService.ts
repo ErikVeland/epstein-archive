@@ -4,6 +4,12 @@ import { statsRepository } from '../db/statsRepository.js';
 import { searchRepository } from '../db/searchRepository.js';
 import { logger } from './Logger.js';
 
+type ExportablePerson = Person & {
+  currentStatus?: string;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
 export class DatabaseDataService {
   private static instance: DatabaseDataService;
   private searchCache: Map<string, { results: Person[]; timestamp: number }> = new Map();
@@ -75,7 +81,7 @@ export class DatabaseDataService {
   async searchEntities(
     query: string,
     limit: number = 50,
-  ): Promise<{ entities: Person[]; documents: any[] }> {
+  ): Promise<{ entities: Person[]; documents: Record<string, unknown>[] }> {
     try {
       if (!query || query.trim().length === 0) {
         return { entities: [], documents: [] };
@@ -84,7 +90,7 @@ export class DatabaseDataService {
       const searchResults = (await searchRepository.search(query.trim(), limit, {
         mode: 'web',
         evidenceType: 'ALL',
-      })) as unknown as { entities: Person[]; documents: any[] };
+      })) as unknown as { entities: Person[]; documents: Record<string, unknown>[] };
       return searchResults;
     } catch (error) {
       logger.error({ err: error }, 'Error searching entities');
@@ -106,18 +112,18 @@ export class DatabaseDataService {
     try {
       const rawStats = await statsRepository.getStatistics();
       return {
-        totalEntities: Number((rawStats as any).totalEntities || 0),
-        totalDocuments: Number((rawStats as any).totalDocuments || 0),
-        totalMentions: Number((rawStats as any).totalMentions || 0),
-        averageRedFlagRating: Number((rawStats as any).averageRedFlagRating || 0),
-        topRoles: Array.isArray((rawStats as any).topRoles)
-          ? (rawStats as any).topRoles.map((r: any) => ({
-              role: String(r.role || ''),
+        totalEntities: Number(rawStats.totalEntities || 0),
+        totalDocuments: Number(rawStats.totalDocuments || 0),
+        totalMentions: Number(rawStats.totalMentions || 0),
+        averageRedFlagRating: Number(rawStats.averageRedFlagRating || 0),
+        topRoles: Array.isArray(rawStats.topRoles)
+          ? rawStats.topRoles.map((r) => ({
+              role: String((r as Record<string, unknown>)['role'] || ''),
               count: Number(r.count || 0),
             }))
           : [],
-        likelihoodDistribution: Array.isArray((rawStats as any).likelihoodDistribution)
-          ? (rawStats as any).likelihoodDistribution.map((entry: any) => ({
+        likelihoodDistribution: Array.isArray(rawStats.likelihoodDistribution)
+          ? rawStats.likelihoodDistribution.map((entry) => ({
               level: String(entry.level || ''),
               count: Number(entry.count || 0),
             }))
@@ -138,7 +144,7 @@ export class DatabaseDataService {
     levels: ('HIGH' | 'MEDIUM' | 'LOW')[],
     page: number = 1,
     limit: number = 24,
-  ): Promise<{ entities: any[]; total: number }> {
+  ): Promise<{ entities: Person[]; total: number }> {
     const filters: SearchFilters = {
       likelihood: 'all',
       role: 'all',
@@ -156,7 +162,7 @@ export class DatabaseDataService {
   async getTopRedFlagEntities(
     page: number = 1,
     limit: number = 24,
-  ): Promise<{ entities: any[]; total: number }> {
+  ): Promise<{ entities: Person[]; total: number }> {
     const filters: SearchFilters = {
       likelihood: 'all',
       role: 'all',
@@ -174,7 +180,7 @@ export class DatabaseDataService {
     roles: string[],
     page: number = 1,
     limit: number = 24,
-  ): Promise<{ entities: any[]; total: number }> {
+  ): Promise<{ entities: Person[]; total: number }> {
     const filters: SearchFilters = {
       likelihood: 'all',
       role: 'all',
@@ -192,7 +198,7 @@ export class DatabaseDataService {
   async getRecentEntities(
     page: number = 1,
     limit: number = 24,
-  ): Promise<{ entities: any[]; total: number }> {
+  ): Promise<{ entities: Person[]; total: number }> {
     return this.getEntities(page, limit, undefined, 'recent');
   }
 
@@ -264,7 +270,7 @@ export class DatabaseDataService {
       const { subjects } = await entitiesRepository.getSubjectCards(1, 100000, filters, 'name');
 
       if (format === 'csv') {
-        return this.convertToCSV(subjects as any[]);
+        return this.convertToCSV(subjects as unknown as ExportablePerson[]);
       } else {
         return JSON.stringify(subjects, null, 2);
       }
@@ -277,7 +283,7 @@ export class DatabaseDataService {
   /**
    * Convert entities to CSV format
    */
-  private convertToCSV(entities: any[]): string {
+  private convertToCSV(entities: ExportablePerson[]): string {
     const headers = [
       'ID',
       'Full Name',

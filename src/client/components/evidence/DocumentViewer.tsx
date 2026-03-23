@@ -15,7 +15,10 @@ interface DocumentViewerProps {
     title: string;
     extractedText: string;
     contentRefined?: string;
-    metadata: any;
+    metadata: Record<string, unknown> & {
+      source_original_url?: string;
+      key_excerpts?: string[];
+    };
     original_file_path?: string;
     redaction_spans?: Array<{
       span_start: number;
@@ -68,14 +71,18 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
   }, [evidence.redaction_spans]);
 
   // Get entities from the evidence prop instead of fetching all global entities
+  const evidenceExtended = evidence as typeof evidence & {
+    entities?: Array<{ id: string; name: string }>;
+    mentionedEntities?: Array<{ id: string; name: string }>;
+  };
   const entitiesList = React.useMemo(() => {
     return (
-      evidence.allEntities ||
-      (evidence as any).entities ||
-      (evidence as any).mentionedEntities ||
+      evidenceExtended.allEntities ||
+      evidenceExtended.entities ||
+      evidenceExtended.mentionedEntities ||
       []
     );
-  }, [evidence]);
+  }, [evidenceExtended]);
 
   useEffect(() => {
     if (!searchTerm) {
@@ -118,7 +125,13 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
     target.classList.add('ring-2', 'ring-amber-400', 'ring-offset-2', 'ring-offset-slate-900');
   };
 
-  const docEvidence = evidence as any;
+  interface Sentence {
+    id: string | number;
+    sentence_text: string;
+    is_boilerplate?: boolean;
+    signal_score: number;
+  }
+  const docEvidence = evidence as typeof evidence & { sentences?: Sentence[] };
   const hasSentences = docEvidence.sentences && docEvidence.sentences.length > 0;
 
   const highlightText = (text: string, search: string) => {
@@ -154,7 +167,7 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
     if (hasSentences && !showRaw) {
       return (
         <div className="space-y-1">
-          {docEvidence.sentences.map((sent: any) => {
+          {docEvidence.sentences!.map((sent) => {
             if (hideBoilerplate && sent.is_boilerplate) return null;
 
             return (
@@ -306,7 +319,7 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
         className="flex-1 overflow-y-auto p-6 md:p-12 transition-all duration-500 custom-scrollbar bg-slate-950/10"
       >
         <div className="max-w-4xl mx-auto">
-          {evidence.metadata?.key_excerpts?.length > 0 && !showRaw && (
+          {(evidence.metadata?.key_excerpts?.length ?? 0) > 0 && !showRaw && (
             <div className="mb-12 border-l-4 border-violet-500/40 pl-6 py-2 bg-violet-500/5 rounded-r-2xl pr-6">
               <div className="flex items-center gap-2 mb-4">
                 <Bookmark className="w-4 h-4 text-violet-400" />
@@ -314,7 +327,7 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
                   Forensic Highlights
                 </span>
               </div>
-              {evidence.metadata.key_excerpts.map((excerpt: string, i: number) => (
+              {evidence.metadata?.key_excerpts?.map((excerpt: string, i: number) => (
                 <p
                   key={i}
                   className="text-sm text-[var(--text-secondary)] italic leading-relaxed mb-4 last:mb-0"

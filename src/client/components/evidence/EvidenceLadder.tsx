@@ -5,7 +5,7 @@ export interface EvidenceLadderProps {
   level: 1 | 2 | 3; // 1: Primary, 2: Derived, 3: Agentic
   confidence: number;
   ingestRunId?: string;
-  evidencePack?: any;
+  evidencePack?: Record<string, unknown>;
   wasAgentic?: boolean;
   className?: string;
 }
@@ -121,14 +121,14 @@ export const EvidenceLadder: React.FC<EvidenceLadderProps> = ({
             Structural Context
           </div>
           <div className="flex flex-wrap gap-2">
-            {evidencePack.proximity && (
+            {Number(evidencePack.proximity || 0) > 0 && (
               <span className="px-2 py-1 rounded bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] text-[10px] text-[var(--text-secondary)] font-mono">
-                PROX: {evidencePack.proximity} chars
+                PROX: {Number(evidencePack.proximity || 0)} chars
               </span>
             )}
-            {evidencePack.document_count && (
+            {Number(evidencePack.document_count || 0) > 0 && (
               <span className="px-2 py-1 rounded bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] text-[10px] text-[var(--text-secondary)] font-mono">
-                DOCS: {evidencePack.document_count}
+                DOCS: {Number(evidencePack.document_count || 0)}
               </span>
             )}
           </div>

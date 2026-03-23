@@ -31,9 +31,23 @@ const AREA_COLORS = {
   financial: { fill: '#ef4444', stroke: '#ef4444' }, // Red
 };
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+interface AreaTooltipEntry {
+  color?: string;
+  name?: string;
+  value: number;
+}
+
+const CustomTooltip = ({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean;
+  payload?: AreaTooltipEntry[];
+  label?: string;
+}) => {
   if (active && payload && payload.length) {
-    const total = payload.reduce((sum: number, p: any) => sum + (p.value || 0), 0);
+    const total = payload.reduce((sum: number, p: AreaTooltipEntry) => sum + (p.value || 0), 0);
 
     return (
       <div className="bg-[var(--glass-bg-strong)] backdrop-blur-md p-4 rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] border border-[var(--glass-border)] min-w-[180px]">
@@ -42,7 +56,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
         </p>
         <div className="space-y-2">
           {payload.map(
-            (entry: any, index: number) =>
+            (entry: AreaTooltipEntry, index: number) =>
               entry.value > 0 && (
                 <div key={index} className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-2">

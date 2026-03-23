@@ -22,9 +22,19 @@ interface InvestigationsContextType {
   ) => Promise<Investigation | null>;
   addToInvestigation: (
     investigationId: string,
-    item: any,
+    item: InvestigationItem,
     relevance: 'high' | 'medium' | 'low',
   ) => Promise<void>;
+}
+
+interface InvestigationItem {
+  id?: string | number;
+  type?: string;
+  title?: string;
+  description?: string;
+  sourceId?: string | number;
+  source?: string;
+  metadata?: Record<string, unknown>;
 }
 
 const InvestigationsContext = createContext<InvestigationsContextType | undefined>(undefined);
@@ -46,11 +56,11 @@ export const InvestigationsProvider: React.FC<InvestigationsProviderProps> = ({ 
     try {
       const resp = await fetch('/api/investigations');
       const data = await resp.json();
-      const mapped: Investigation[] = (data.data || []).map((inv: any) => ({
+      const mapped: Investigation[] = (data.data || []).map((inv: Record<string, unknown>) => ({
         id: String(inv.id),
-        title: inv.title,
-        description: inv.description || '',
-        hypothesis: inv.scope || '',
+        title: String(inv.title || ''),
+        description: String(inv.description || ''),
+        hypothesis: String(inv.scope || ''),
         status:
           inv.status === 'open'
             ? 'active'
@@ -58,25 +68,25 @@ export const InvestigationsProvider: React.FC<InvestigationsProviderProps> = ({ 
               ? 'review'
               : inv.status === 'closed'
                 ? 'published'
-                : 'archived',
-        createdAt: new Date(inv.created_at),
-        updatedAt: new Date(inv.updated_at),
-        team: inv.team || [
+                : ('archived' as Investigation['status']),
+        createdAt: new Date(String(inv.created_at || '')),
+        updatedAt: new Date(String(inv.updated_at || '')),
+        team: (inv.team as Investigation['team']) || [
           {
-            id: inv.owner_id,
-            name: inv.owner_name || 'Investigation Owner',
-            email: inv.owner_email || '',
-            role: 'lead',
+            id: String(inv.owner_id || ''),
+            name: String(inv.owner_name || 'Investigation Owner'),
+            email: String(inv.owner_email || ''),
+            role: 'lead' as const,
             permissions: ['read', 'write', 'admin'],
-            joinedAt: new Date(inv.created_at),
-            organization: inv.owner_organization || '',
+            joinedAt: new Date(String(inv.created_at || '')),
+            organization: String(inv.owner_organization || ''),
             expertise: [],
           },
         ],
-        leadInvestigator: inv.owner_id,
+        leadInvestigator: String(inv.owner_id || ''),
         permissions: [],
         tags: [],
-        priority: 'medium',
+        priority: 'medium' as const,
       }));
       setInvestigations(mapped);
     } catch (err) {
@@ -169,11 +179,15 @@ export const InvestigationsProvider: React.FC<InvestigationsProviderProps> = ({ 
   );
 
   const addToInvestigation = useCallback(
-    async (investigationId: string, item: any, relevance: 'high' | 'medium' | 'low') => {
+    async (
+      investigationId: string,
+      item: InvestigationItem,
+      relevance: 'high' | 'medium' | 'low',
+    ) => {
       setError(null);
       try {
         // Map the item to evidence format based on type
-        const evidencePayload: any = {
+        const evidencePayload: Record<string, unknown> = {
           relevance,
           notes: item.description || '',
         };

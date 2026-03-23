@@ -1,12 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
 
 // Simple deterministic object stringifier
-function stableStringify(obj: any): string {
+function stableStringify(obj: unknown): string {
   if (obj === null) return 'null';
   if (typeof obj !== 'object') return String(obj);
   if (Array.isArray(obj)) return '[' + obj.map(stableStringify).join(',') + ']';
-  const keys = Object.keys(obj).sort();
-  return '{' + keys.map((k) => `${k}:${stableStringify(obj[k])}`).join(',') + '}';
+  const rec = obj as Record<string, unknown>;
+  const keys = Object.keys(rec).sort();
+  return '{' + keys.map((k) => `${k}:${stableStringify(rec[k])}`).join(',') + '}';
 }
 
 class LRUCache {

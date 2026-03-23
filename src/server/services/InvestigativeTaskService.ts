@@ -52,6 +52,25 @@ export interface TaskFilter {
   limit?: number;
 }
 
+interface TaskRow {
+  id: number;
+  uuid: string;
+  investigation_id: number;
+  title: string;
+  description: string | null;
+  status: InvestigationTask['status'];
+  priority: InvestigationTask['priority'];
+  assigned_to: string | null;
+  due_date: string | null;
+  created_by_id: string;
+  created_at: string;
+  updated_at: string;
+  completed_at: string | null;
+  evidence_ids: string | null;
+  related_entities: string | null;
+  progress: number | null;
+}
+
 export class InvestigativeTaskService {
   async getTasks(filters: TaskFilter = {}): Promise<{
     data: InvestigationTask[];
@@ -65,7 +84,7 @@ export class InvestigativeTaskService {
     const offset = (page - 1) * limit;
 
     const where: string[] = [];
-    const params: any[] = [];
+    const params: (string | number)[] = [];
     let paramCounter = 1;
 
     if (investigationId) {
@@ -134,8 +153,11 @@ export class InvestigativeTaskService {
     const pool = getApiPool();
     // Generate UUID using crypto.randomUUID() if available, otherwise use a simple implementation
     let uuidValue: string;
-    if (typeof crypto !== 'undefined' && (crypto as any).randomUUID) {
-      uuidValue = (crypto as any).randomUUID();
+    if (
+      typeof crypto !== 'undefined' &&
+      typeof (crypto as { randomUUID?: () => string }).randomUUID === 'function'
+    ) {
+      uuidValue = (crypto as { randomUUID: () => string }).randomUUID();
     } else {
       // Simple UUID generation for environments without crypto
       uuidValue = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
@@ -182,7 +204,7 @@ export class InvestigativeTaskService {
   ): Promise<InvestigationTask | null> {
     const pool = getApiPool();
     const fields: string[] = [];
-    const params: any[] = [];
+    const params: (string | number | null)[] = [];
     let paramCounter = 1;
 
     if (updates.title !== undefined) {
@@ -267,7 +289,13 @@ export class InvestigativeTaskService {
     return tasks.map((task) => this.mapTask(task));
   }
 
-  async getTaskSummary(investigationId: number): Promise<any> {
+  async getTaskSummary(investigationId: number): Promise<{
+    statusBreakdown: Record<string, number>;
+    priorityBreakdown: Record<string, number>;
+    overdueTasks: number;
+    averageProgress: number;
+    assignmentBreakdown: { assignedTo: string; count: number }[];
+  }> {
     const pool = getApiPool();
 
     // Get task counts by status
@@ -329,26 +357,45 @@ export class InvestigativeTaskService {
       [investigationId],
     );
 
+    interface StatusCountRow {
+      status: string;
+      count: string;
+    }
+    interface PriorityCountRow {
+      priority: string;
+      count: string;
+    }
+    interface OverdueRow {
+      count: string;
+    }
+    interface AvgProgressRow {
+      avgProgress: string | null;
+    }
+    interface AssignmentRow {
+      assigned_to: string;
+      count: string;
+    }
+
     return {
-      statusBreakdown: statusCounts.reduce(
-        (acc: any, curr: any) => {
+      statusBreakdown: (statusCounts as StatusCountRow[]).reduce(
+        (acc, curr) => {
           acc[curr.status] = parseInt(curr.count, 10);
           return acc;
         },
         {} as Record<string, number>,
       ),
-      priorityBreakdown: priorityCounts.reduce(
-        (acc: any, curr: any) => {
+      priorityBreakdown: (priorityCounts as PriorityCountRow[]).reduce(
+        (acc, curr) => {
           acc[curr.priority] = parseInt(curr.count, 10);
           return acc;
         },
         {} as Record<string, number>,
       ),
-      overdueTasks: parseInt(overdueTasks.count, 10),
-      averageProgress: avgProgress.avgProgress
-        ? Math.round(parseFloat(avgProgress.avgProgress))
+      overdueTasks: parseInt((overdueTasks as OverdueRow).count, 10),
+      averageProgress: (avgProgress as AvgProgressRow).avgProgress
+        ? Math.round(parseFloat((avgProgress as AvgProgressRow).avgProgress!))
         : 0,
-      assignmentBreakdown: assignmentCounts.map((row: any) => ({
+      assignmentBreakdown: (assignmentCounts as AssignmentRow[]).map((row) => ({
         assignedTo: row.assigned_to,
         count: parseInt(row.count, 10),
       })),
@@ -393,7 +440,7 @@ export class InvestigativeTaskService {
         )
     `;
 
-    const params: any[] = [];
+    const params: string[] = [];
     if (userId) {
       query += ` AND assigned_to = $1`;
       params.push(userId);
@@ -405,21 +452,21 @@ export class InvestigativeTaskService {
     return tasks.map((task) => this.mapTask(task));
   }
 
-  private mapTask(row: any): InvestigationTask {
+  private mapTask(row: TaskRow): InvestigationTask {
     return {
       id: row.id,
       uuid: row.uuid,
       investigationId: row.investigation_id,
       title: row.title,
-      description: row.description,
+      description: row.description ?? undefined,
       status: row.status,
       priority: row.priority,
-      assignedTo: row.assigned_to,
-      dueDate: row.due_date,
+      assignedTo: row.assigned_to ?? undefined,
+      dueDate: row.due_date ?? undefined,
       createdById: row.created_by_id,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
-      completedAt: row.completed_at,
+      completedAt: row.completed_at ?? undefined,
       evidenceIds: row.evidence_ids ? JSON.parse(row.evidence_ids) : [],
       relatedEntities: row.related_entities ? JSON.parse(row.related_entities) : [],
       progress: row.progress || 0,

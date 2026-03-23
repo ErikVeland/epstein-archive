@@ -36,6 +36,9 @@ interface TimelineGroup {
   events: TimelineEvent[];
 }
 
+const isTimelineScale = (value: string): value is 'day' | 'week' | 'month' | 'year' =>
+  value === 'day' || value === 'week' || value === 'month' || value === 'year';
+
 export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
   investigation,
   events,
@@ -604,7 +607,9 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
               <Calendar className="w-5 h-5 text-[var(--text-muted)]" />
               <select
                 value={timelineScale}
-                onChange={(e) => setTimelineScale(e.target.value as any)}
+                onChange={(e) => {
+                  if (isTimelineScale(e.target.value)) setTimelineScale(e.target.value);
+                }}
                 className="bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-md)] px-3 py-2 text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--accent)] outline-none"
               >
                 <option value="day">Daily</option>

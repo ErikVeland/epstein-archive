@@ -73,6 +73,21 @@ const upload = multer({
 const hasPrefix = (bytes: Buffer, prefix: number[]) =>
   prefix.every((value, index) => bytes[index] === value);
 
+const readString = (value: unknown): string | null =>
+  typeof value === 'string' && value.length > 0 ? value : null;
+
+const readRecord = (value: unknown): Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+
+const readNumber = (value: unknown, fallback = 0): number =>
+  typeof value === 'number'
+    ? value
+    : typeof value === 'string' && value.trim().length > 0 && Number.isFinite(Number(value))
+      ? Number(value)
+      : fallback;
+
 const readBytes = async (filePath: string, size: number) => {
   const fd = await fsPromises.open(filePath, 'r');
   try {
@@ -178,7 +193,7 @@ router.post(
 
       await logAudit(
         'upload_document',
-        (req as AuthRequest).user?.id,
+        (req as AuthRequest).user?.id ?? null,
         'document',
         String(documentId),
         {
@@ -255,7 +270,7 @@ router.get('/:id', validate(evidenceIdSchema), async (req: Request, res: Respons
     if (evidence.is_quarantined && (req as AuthRequest).user?.role !== 'admin') {
       await logAudit(
         'view',
-        (req as AuthRequest).user?.id,
+        (req as AuthRequest).user?.id ?? null,
         'document',
         id,
         { reason: 'quarantined' },
@@ -270,7 +285,7 @@ router.get('/:id', validate(evidenceIdSchema), async (req: Request, res: Respons
     // Log successful access
     await logAudit(
       'view',
-      (req as AuthRequest).user?.id,
+      (req as AuthRequest).user?.id ?? null,
       'document',
       id,
       {},
@@ -278,6 +293,7 @@ router.get('/:id', validate(evidenceIdSchema), async (req: Request, res: Respons
       (req as RequestWithId).requestId,
     );
 
+    const metadata = readRecord(evidence.metadata);
     const canonical = {
       ...evidence,
       id: String(evidence.id ?? id),
@@ -307,18 +323,22 @@ router.get('/:id', validate(evidenceIdSchema), async (req: Request, res: Respons
       sourceCollection:
         evidence.sourceCollection ??
         evidence.source_collection ??
-        evidence.metadata?.source_collection ??
+        readString(metadata.source_collection) ??
         null,
       fileUrl: `/api/documents/${id}/file?variant=clean`,
       originalFileUrl: `/api/documents/${id}/file?variant=dirty`,
       entities: Array.isArray(evidence.entities)
-        ? evidence.entities.map((entity: any) => ({
+        ? evidence.entities.map((entity: Record<string, unknown>) => ({
             id: entity.id,
             name: String(entity.name || ''),
             mentions: Number(entity.mentions || 0),
             contexts: Array.isArray(entity.contexts)
               ? entity.contexts
-                  .map((ctx: any) => (typeof ctx === 'string' ? ctx : String(ctx?.context || '')))
+                  .map((ctx: unknown) =>
+                    typeof ctx === 'string'
+                      ? ctx
+                      : String((ctx as Record<string, unknown>)?.context || ''),
+                  )
                   .filter((ctx: string) => ctx.length > 0)
               : [],
           }))
@@ -383,12 +403,11 @@ router.post(
       const doc = await documentsRepository.getDocumentById(id);
       if (!doc) return res.status(404).json({ error: 'Document not found' });
 
-      const metadata =
-        typeof doc.metadata === 'object' && doc.metadata !== null ? doc.metadata : {};
-      const content = (doc.content || doc.contentRefined || '').toLowerCase();
+      const metadata = readRecord(doc.metadata);
+      const content = String(doc.content || doc.contentRefined || '').toLowerCase();
 
       // OCR quality proxy: word density vs. character noise
-      const wordCount = doc.wordCount || doc.word_count || 0;
+      const wordCount = readNumber(doc.wordCount ?? doc.word_count, 0);
       const ocrQualityScore =
         wordCount > 0
           ? Math.min(1.0, Math.max(0.0, (wordCount - 10) / Math.max(wordCount, 200)))
@@ -441,7 +460,7 @@ router.post(
           hasFilePath,
           provenanceScore,
           source: doc.sourceCollection || doc.source_collection || 'Unknown',
-          author: metadata.author || metadata.uploadedBy || 'Unknown',
+          author: readString(metadata.author) || readString(metadata.uploadedBy) || 'Unknown',
         },
         keywordPresence: {
           note: 'Keyword presence is informational only — it does not indicate document suspicion.',

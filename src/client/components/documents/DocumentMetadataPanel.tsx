@@ -3,8 +3,8 @@ import { Database, Shield, AlertTriangle, Globe, Bot, Flag, Sparkles } from 'luc
 import { format } from 'date-fns';
 
 interface DocumentMetadataPanelProps {
-  document: any;
-  analysis?: any;
+  document: Record<string, any>;
+  analysis?: Record<string, unknown>;
   className?: string;
 }
 
@@ -14,8 +14,16 @@ export const DocumentMetadataPanel: React.FC<DocumentMetadataPanelProps> = ({
 }) => {
   if (!document) return null;
 
-  const metadata = document.metadata || {};
-  const linguistics = metadata.linguistics || {};
+  const metadata =
+    typeof document.metadata === 'object' &&
+    document.metadata !== null &&
+    !Array.isArray(document.metadata)
+      ? (document.metadata as Record<string, any>)
+      : {};
+  const linguistics =
+    typeof metadata.linguistics === 'object' && metadata.linguistics !== null
+      ? (metadata.linguistics as Record<string, any>)
+      : {};
 
   const formatDate = (dateString: string) => {
     if (!dateString) return 'Unknown';
@@ -33,7 +41,7 @@ export const DocumentMetadataPanel: React.FC<DocumentMetadataPanelProps> = ({
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
-  const riskRating = document.redFlagRating ?? 0;
+  const riskRating = Number(document.redFlagRating ?? document.red_flag_rating ?? 0);
   const riskClass =
     riskRating >= 4
       ? 'risk-critical'

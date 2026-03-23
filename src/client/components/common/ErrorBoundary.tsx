@@ -1,4 +1,4 @@
-import { Component, ReactNode } from 'react';
+import React, { Component, ReactNode } from 'react';
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -16,7 +16,7 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, info: any) {
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
     try {
       console.error('ErrorBoundary caught:', error, info);
     } catch {

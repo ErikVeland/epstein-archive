@@ -16,7 +16,7 @@ export const PipelineService = {
   /**
    * Start a new pipeline run.
    */
-  async startRun(version: string, config: any = {}): Promise<PipelineRun> {
+  async startRun(version: string, config: Record<string, unknown> = {}): Promise<PipelineRun> {
     const pool = getApiPool();
     const runUuid = randomUUID();
     const gitCommit = await this.getCurrentGitCommit();

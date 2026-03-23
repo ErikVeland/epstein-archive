@@ -290,20 +290,29 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     if (!containerRef.current) return;
 
     // Standard Request Method
+    type VendorFullscreenElement = HTMLElement & {
+      webkitRequestFullscreen?: () => Promise<void>;
+      mozRequestFullScreen?: () => Promise<void>;
+      msRequestFullscreen?: () => Promise<void>;
+    };
+    type VendorFullscreenDocument = Document & {
+      webkitExitFullscreen?: () => Promise<void>;
+    };
+    const el = containerRef.current as VendorFullscreenElement;
     const req =
-      (containerRef.current as any).requestFullscreen ||
-      (containerRef.current as any).webkitRequestFullscreen ||
-      (containerRef.current as any).mozRequestFullScreen ||
-      (containerRef.current as any).msRequestFullscreen;
+      el.requestFullscreen.bind(el) ||
+      el.webkitRequestFullscreen ||
+      el.mozRequestFullScreen ||
+      el.msRequestFullscreen;
 
     if (!document.fullscreenElement && req) {
-      req.call(containerRef.current).catch((err: any) => {
+      req.call(containerRef.current).catch((err: Error) => {
         console.error(`Error attempting to enable fullscreen mode: ${err.message}`);
       });
     } else if (document.exitFullscreen) {
       document.exitFullscreen();
-    } else if ((document as any).webkitExitFullscreen) {
-      (document as any).webkitExitFullscreen();
+    } else if ((document as VendorFullscreenDocument).webkitExitFullscreen) {
+      (document as VendorFullscreenDocument).webkitExitFullscreen?.();
     }
   };
 

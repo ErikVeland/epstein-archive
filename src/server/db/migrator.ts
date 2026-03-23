@@ -79,8 +79,8 @@ export async function reconcileHistoricalMigrationLedger(): Promise<number> {
     }
 
     return inserted;
-  } catch (error: any) {
-    const message = String(error?.message || error || '');
+  } catch (error: unknown) {
+    const message = String((error as Error)?.message || error || '');
     if (/relation .*pgmigrations.* does not exist/i.test(message)) {
       return 0;
     }
@@ -95,9 +95,9 @@ async function getAppliedMigrationNames(): Promise<Set<string>> {
       'SELECT name FROM pgmigrations ORDER BY run_on ASC',
     );
     return new Set(rows.map((row) => row.name));
-  } catch (error: any) {
+  } catch (error: unknown) {
     throw new Error(
-      `[Migrator] Failed to read pgmigrations. Run Postgres migrations before boot. ${error?.message || error}`,
+      `[Migrator] Failed to read pgmigrations. Run Postgres migrations before boot. ${(error as Error)?.message || error}`,
     );
   }
 }

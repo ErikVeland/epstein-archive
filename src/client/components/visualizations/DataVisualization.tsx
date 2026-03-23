@@ -4,8 +4,22 @@ import { Tooltip, PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { Person } from '../../types';
 import { TreeMap } from './TreeMap';
 import { filterPeopleOnly, isJunkEntity } from '../../utils/entityFilters';
+import { useAnalytics } from '../../contexts/AnalyticsContext';
+import ScopedErrorBoundary from '../common/ScopedErrorBoundary';
 
-interface AnalyticsData {
+interface EntityRecord {
+  name?: string;
+  fullName?: string;
+  mentions?: number;
+  redFlagRating?: number;
+  entityType?: string;
+  type?: string;
+  junkTier?: string;
+  junkFlag?: number;
+  [key: string]: unknown;
+}
+
+export interface AnalyticsData {
   totalEntities?: number;
   totalMentions?: number;
   averageRedFlagRating?: number;
@@ -15,17 +29,8 @@ interface AnalyticsData {
   likelihoodDistribution?: Array<{ level?: string; count?: number }>;
   redFlagDistribution?: Array<{ rating?: number | string; count?: number }>;
   riskByType?: Array<{ riskLevel?: number | string; count?: number }>;
-  topEntities?: Array<any>;
-  topConnectedEntities?: Array<any>;
-}
-
-interface DataVisualizationProps {
-  people?: Person[];
-  analyticsData?: AnalyticsData;
-  loading?: boolean;
-  error?: string | null;
-  onRetry?: () => void;
-  onPersonSelect?: (person: Person) => void;
+  topEntities?: Array<EntityRecord>;
+  topConnectedEntities?: Array<EntityRecord>;
 }
 
 const COLORS = {
@@ -74,14 +79,16 @@ const CustomTooltip = ({
   return null;
 };
 
-export const DataVisualization: React.FC<DataVisualizationProps> = ({
-  people = [],
-  analyticsData,
-  loading,
-  error,
-  onRetry,
-  onPersonSelect,
-}) => {
+export const DataVisualization: React.FC = () => {
+  const {
+    filteredPeople: people = [],
+    analyticsData,
+    loading,
+    error,
+    onRetry,
+    onPersonSelect,
+  } = useAnalytics();
+
   const [stats, setStats] = useState({
     totalPeople: 0,
     highRisk: 0,
@@ -222,8 +229,8 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({
       analyticsData?.topConnectedEntities || analyticsData?.topEntities || filteredPersons;
     if (!source || !Array.isArray(source)) return [];
 
-    return source
-      .map((p: any) => ({
+    return (source as EntityRecord[])
+      .map((p) => ({
         name: (p.name || p.fullName || '').trim(),
         mentions: Number(p.mentions || 0),
         redFlagRating: Number(p.redFlagRating || 0),
@@ -300,7 +307,7 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({
                 No non-junk person entities with mentions available.
               </div>
             ) : (
-              topEntities.map((entry: any, index: number) => {
+              topEntities.map((entry, index: number) => {
                 const maxMentions = Math.max(1, topEntities[0]?.mentions || 1);
                 const barWidth = Math.max(4, Math.round((entry.mentions / maxMentions) * 100));
                 const risk = entry.redFlagRating;
@@ -329,7 +336,9 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({
                   <button
                     key={`${entry.name}-${index}`}
                     type="button"
-                    onClick={() => onPersonSelect && onPersonSelect(entry.person)}
+                    onClick={() =>
+                      onPersonSelect && onPersonSelect(entry.person as unknown as Person)
+                    }
                     className="w-full text-left rounded-[var(--radius-lg)] border border-[var(--glass-border)] bg-[var(--glass-bg-strong)]/45 hover:bg-[var(--glass-bg)]/70 hover:border-[var(--accent)]/40 transition-colors p-3"
                   >
                     <div className="grid grid-cols-[40px_minmax(0,1fr)_120px] items-center gap-3">
@@ -457,19 +466,32 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({
         </div>
 
         <div className="relative z-10">
-          <TreeMap
-            people={topEntities.map((entry: Record<string, unknown>) => ({
-              ...(entry.person || {}),
-              name: entry.name,
-              fullName: entry.name,
-              mentions: entry.mentions,
-              redFlagRating: entry.redFlagRating,
-              entityType: entry.entityType,
-              junkTier: entry.junkTier,
-              junkFlag: entry.junkFlag,
-            }))}
-            onPersonClick={onPersonSelect}
-          />
+          <ScopedErrorBoundary
+            fallback={
+              <div className="flex h-64 items-center justify-center rounded-[var(--radius-xl)] bg-[var(--accent-danger)]/10 border border-[var(--accent-danger)]/20 p-8 text-center text-[var(--accent-danger)]">
+                <div>
+                  <AlertTriangle className="mx-auto mb-2 h-8 w-8" />
+                  <p className="font-bold">TreeMap Rendering Failed</p>
+                  <p className="text-sm opacity-80">The entity data could not be visualized.</p>
+                </div>
+              </div>
+            }
+          >
+            <TreeMap
+              people={topEntities.map((entry: Record<string, unknown>) => ({
+                ...(entry.person && typeof entry.person === 'object'
+                  ? (entry.person as Record<string, unknown>)
+                  : {}),
+                name: String(entry.name || ''),
+                fullName: String(entry.name || ''),
+                mentions: Number(entry.mentions || 0),
+                redFlagRating: Number(entry.redFlagRating || 0),
+                entityType: String(entry.entityType || ''),
+                junkTier: Number(entry.junkTier ?? 0),
+                junkFlag: Boolean(entry.junkFlag),
+              }))}
+            />
+          </ScopedErrorBoundary>
         </div>
       </div>
 
@@ -504,7 +526,9 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({
             {(() => {
               const source = people.length > 0 ? people : analyticsData?.topConnectedEntities || [];
               if (source.length === 0) return '0';
-              return Math.max(...source.map((p: any) => p?.mentions || 0)).toLocaleString();
+              return Math.max(
+                ...(source as EntityRecord[]).map((p) => Number(p?.mentions || 0)),
+              ).toLocaleString();
             })()}
           </div>
           <div className="text-[var(--text-muted)] text-xs mt-1 font-medium uppercase tracking-wide">

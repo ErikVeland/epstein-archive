@@ -3,7 +3,7 @@ import { logger } from '../services/Logger.js';
 
 export const articleRepository = {
   // Insert an article into the database
-  insertArticle: async (article: any) => {
+  insertArticle: async (article: Record<string, unknown>) => {
     const pool = getApiPool();
     const sql = `
       INSERT INTO articles (

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import Icon from '../common/Icon';
+import Icon, { type IconName } from '../common/Icon';
 import { Link } from 'react-router-dom';
 import type {
   InvestigationCaseEvidenceItemDto as EvidenceItem,
@@ -35,6 +35,15 @@ const relevanceColors: Record<string, string> = {
   medium: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30',
   low: 'bg-green-500/20 text-green-300 border-green-500/30',
 };
+
+const readString = (value: unknown): string | null =>
+  typeof value === 'string' && value.trim() ? value : null;
+
+const readDisplayValue = (value: unknown): string | number | null =>
+  typeof value === 'string' || typeof value === 'number' ? value : null;
+
+const readConfidence = (value: unknown): string | number | null =>
+  typeof value === 'string' || typeof value === 'number' ? value : null;
 
 export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = ({
   investigationId,
@@ -117,30 +126,50 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
   };
 
   const getProvenance = (item: EvidenceItem) => {
-    let metadata: any = {};
+    let metadata: Record<string, unknown> = {};
     try {
-      metadata = item.metadataJson ? JSON.parse(item.metadataJson) : {};
+      metadata = item.metadataJson
+        ? (JSON.parse(item.metadataJson) as Record<string, unknown>)
+        : {};
     } catch (_error) {
       metadata = {};
     }
     // Old pipeline records may have snake_case keys inside the JSON blob
-    const ingestRunId = item.ingestRunId || metadata.ingestRunId || metadata.ingest_run_id || null;
+    const ingestRunId =
+      readString(item.ingestRunId) ||
+      readString(metadata.ingestRunId) ||
+      readString(metadata.ingest_run_id) ||
+      null;
     const ladder =
-      item.evidenceLadder || metadata.evidenceLadder || metadata.evidence_ladder || 'N/A';
+      readDisplayValue(item.evidenceLadder) ||
+      readDisplayValue(metadata.evidenceLadder) ||
+      readDisplayValue(metadata.evidence_ladder) ||
+      'N/A';
     const pipelineVersion =
-      item.pipelineVersion || metadata.pipelineVersion || metadata.pipeline_version || null;
+      readString(item.pipelineVersion) ||
+      readString(metadata.pipelineVersion) ||
+      readString(metadata.pipeline_version) ||
+      null;
     const evidencePack =
-      item.evidencePack || metadata.evidencePack || metadata.evidence_pack || null;
-    const confidence = metadata.confidence_score ?? metadata.confidence ?? null;
+      (typeof item.evidencePack === 'object' && item.evidencePack !== null
+        ? (item.evidencePack as Record<string, unknown>)
+        : null) ||
+      (typeof metadata.evidencePack === 'object' && metadata.evidencePack !== null
+        ? (metadata.evidencePack as Record<string, unknown>)
+        : null) ||
+      (typeof metadata.evidence_pack === 'object' && metadata.evidence_pack !== null
+        ? (metadata.evidence_pack as Record<string, unknown>)
+        : null);
+    const confidence = readConfidence(metadata.confidence_score ?? metadata.confidence ?? null);
     const wasAgentic = Boolean(
       item.wasAgentic ?? metadata.wasAgentic ?? metadata.was_agentic ?? false,
     );
     return {
-      ingestRunId,
-      ladder,
-      pipelineVersion,
-      evidencePack,
-      confidence,
+      ingestRunId: ingestRunId ? String(ingestRunId) : null,
+      ladder: String(ladder),
+      pipelineVersion: pipelineVersion ? String(pipelineVersion) : null,
+      evidencePack: evidencePack ? String(evidencePack) : null,
+      confidence: confidence === null ? null : Number(confidence),
       wasAgentic,
     };
   };
@@ -250,7 +279,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
               }`}
             >
               <Icon
-                name={config.icon as any}
+                name={config.icon as IconName}
                 size="md"
                 className={`mx-auto mb-2 text-${config.color}-400`}
               />
@@ -356,7 +385,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
                       className={`flex-shrink-0 w-10 h-10 rounded-[var(--radius-lg)] bg-${config.color}-900/30 flex items-center justify-center`}
                     >
                       <Icon
-                        name={config.icon as any}
+                        name={config.icon as IconName}
                         size="md"
                         className={`text-${config.color}-400`}
                       />

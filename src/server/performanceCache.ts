@@ -30,7 +30,7 @@ interface InFlightRequest<T> {
 class PerformanceCacheV2 {
   private cache: NodeCache;
   private cacheVersion: string;
-  private inFlight = new Map<string, InFlightRequest<any>>();
+  private inFlight = new Map<string, InFlightRequest<unknown>>();
   private metrics: CacheMetrics = {
     hits: 0,
     misses: 0,
@@ -220,7 +220,7 @@ class PerformanceCacheV2 {
   /**
    * Cache top entities (homepage)
    */
-  async cacheTopEntities(computeFn: () => Promise<any[]>, ttl = 60): Promise<any[]> {
+  async cacheTopEntities<T>(computeFn: () => Promise<T[]>, ttl = 60): Promise<T[]> {
     return this.getOrCompute('top_entities', computeFn, ttl);
   }
 
@@ -229,9 +229,9 @@ class PerformanceCacheV2 {
    */
   async cacheEntityOverview(
     entityId: string,
-    computeFn: () => Promise<any>,
+    computeFn: () => Promise<Record<string, unknown>>,
     ttl = 60,
-  ): Promise<any> {
+  ): Promise<Record<string, unknown>> {
     return this.getOrCompute(`entity:${entityId}:overview`, computeFn, ttl);
   }
 
@@ -240,9 +240,9 @@ class PerformanceCacheV2 {
    */
   async cacheEntityDocuments(
     entityId: string,
-    computeFn: () => Promise<any[]>,
+    computeFn: () => Promise<Array<Record<string, unknown>>>,
     ttl = 60,
-  ): Promise<any[]> {
+  ): Promise<Array<Record<string, unknown>>> {
     return this.getOrCompute(`entity:${entityId}:documents:page1`, computeFn, ttl);
   }
 

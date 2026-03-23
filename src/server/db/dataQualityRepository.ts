@@ -40,7 +40,7 @@ export interface AuditLogEntry {
   action: string;
   objectType: string;
   objectId?: string;
-  payload?: Record<string, any>;
+  payload?: Record<string, unknown>;
 }
 
 export const dataQualityRepository = {
@@ -117,7 +117,11 @@ export const dataQualityRepository = {
       FROM entities
     `,
     );
-    const entityQuality = entityRows[0] as any;
+    const entityQuality = entityRows[0] as {
+      total: string;
+      withRoles: string | null;
+      withRedFlagDescription: string | null;
+    };
 
     // Orphaned entities (no mentions)
     const { rows: orphanedRows } = await pool.query(
@@ -156,23 +160,23 @@ export const dataQualityRepository = {
       documentsWithoutProvenance: totalC - provC,
       provenanceCoverage,
 
-      ocrQualityDistribution: ocrQuality.map((r: any) => ({
+      ocrQualityDistribution: ocrQuality.map((r: { band: string; count: string }) => ({
         band: r.band,
         count: parseInt(r.count, 10),
       })),
-      sourceCollections: sourceCollections.map((r: any) => ({
+      sourceCollections: sourceCollections.map((r: { name: string; count: string }) => ({
         name: r.name,
         count: parseInt(r.count, 10),
       })),
-      evidenceTypeDistribution: evidenceTypes.map((r: any) => ({
+      evidenceTypeDistribution: evidenceTypes.map((r: { type: string; count: string }) => ({
         type: r.type,
         count: parseInt(r.count, 10),
       })),
 
       entityQuality: {
         total: parseInt(entityQuality.total, 10),
-        withRoles: parseInt(entityQuality.withRoles || 0, 10),
-        withRedFlagDescription: parseInt(entityQuality.withRedFlagDescription || 0, 10),
+        withRoles: parseInt(entityQuality.withRoles || '0', 10),
+        withRedFlagDescription: parseInt(entityQuality.withRedFlagDescription || '0', 10),
         orphaned: parseInt(orphanedEntities.c, 10),
       },
 
@@ -219,7 +223,7 @@ export const dataQualityRepository = {
     const pool = getApiPool();
 
     const conditions: string[] = [];
-    const params: any[] = [];
+    const params: (string | number)[] = [];
     let paramCounter = 1;
 
     if (filters.objectType) {
@@ -250,25 +254,37 @@ export const dataQualityRepository = {
       params,
     );
 
-    return rows.map((row: any) => ({
-      id: row.id,
-      timestamp: row.timestamp,
-      userId: row.userId,
-      action: row.action,
-      objectType: row.objectType,
-      objectId: row.objectId,
-      payload: row.payloadJson
-        ? typeof row.payloadJson === 'string'
-          ? JSON.parse(row.payloadJson)
-          : row.payloadJson
-        : undefined,
-    }));
+    return rows.map(
+      (row: {
+        id: number;
+        timestamp: string;
+        userId: string;
+        action: string;
+        objectType: string;
+        objectId: string;
+        payloadJson: string | Record<string, unknown> | null;
+      }) => ({
+        id: row.id,
+        timestamp: row.timestamp,
+        userId: row.userId,
+        action: row.action,
+        objectType: row.objectType,
+        objectId: row.objectId,
+        payload: row.payloadJson
+          ? typeof row.payloadJson === 'string'
+            ? JSON.parse(row.payloadJson)
+            : row.payloadJson
+          : undefined,
+      }),
+    );
   },
 
   /**
    * Get document provenance/lineage information
    */
-  getDocumentLineage: async (documentId: string | number): Promise<any> => {
+  getDocumentLineage: async (
+    documentId: string | number,
+  ): Promise<Record<string, unknown> | null> => {
     const pool = getApiPool();
 
     // Get document with provenance info
@@ -335,23 +351,32 @@ export const dataQualityRepository = {
         ocrQualityScore: doc.ocr_quality_score,
         processedAt: doc.ocr_processed_at,
       },
-      auditTrail: auditEntries.map((e: any) => ({
-        timestamp: e.timestamp,
-        user: e.user_id,
-        action: e.action,
-        details: e.payload_json
-          ? typeof e.payload_json === 'string'
-            ? JSON.parse(e.payload_json)
-            : e.payload_json
-          : null,
-      })),
+      auditTrail: auditEntries.map(
+        (e: {
+          timestamp: string;
+          user_id: string;
+          action: string;
+          payload_json: string | Record<string, unknown> | null;
+        }) => ({
+          timestamp: e.timestamp,
+          user: e.user_id,
+          action: e.action,
+          details: e.payload_json
+            ? typeof e.payload_json === 'string'
+              ? JSON.parse(e.payload_json)
+              : e.payload_json
+            : null,
+        }),
+      ),
     };
   },
 
   /**
    * Get entity confidence scoring based on evidence quality
    */
-  getEntityConfidence: async (entityId: string | number): Promise<any> => {
+  getEntityConfidence: async (
+    entityId: string | number,
+  ): Promise<Record<string, unknown> | null> => {
     const pool = getApiPool();
 
     const { rows: entityRows } = await pool.query('SELECT * FROM entities WHERE id = $1', [
@@ -386,7 +411,7 @@ export const dataQualityRepository = {
 
     // Calculate confidence score (0-100)
     const totalMentions = mentionsByType.reduce(
-      (sum: number, m: any) => sum + parseInt(m.count, 10),
+      (sum: number, m: { evidence_type: string; count: string }) => sum + parseInt(m.count, 10),
       0,
     );
     const typeWeights: Record<string, number> = {
@@ -418,7 +443,7 @@ export const dataQualityRepository = {
       entityId,
       entityName: entity.full_name,
       confidenceScore: confidence,
-      evidenceBreakdown: mentionsByType.map((m: any) => ({
+      evidenceBreakdown: mentionsByType.map((m: { evidence_type: string; count: string }) => ({
         evidence_type: m.evidence_type,
         count: parseInt(m.count, 10),
       })),

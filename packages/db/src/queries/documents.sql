@@ -12,9 +12,10 @@ SELECT
   word_count as "wordCount",
   red_flag_rating as "redFlagRating",
   COALESCE(NULLIF(title, ''), file_name) as "title",
-  source_collection as "sourceCollection"
+  source_collection as "sourceCollection",
+  COUNT(*) OVER () as "totalCount"
 FROM documents
-WHERE (:search::text IS NULL OR file_name ILIKE :search OR content_refined ILIKE :search OR source_collection ILIKE :search OR file_path ILIKE :search)
+WHERE (:search::text IS NULL OR file_name ILIKE :search OR source_collection ILIKE :search OR file_path ILIKE :search)
   AND (file_type = ANY(:fileTypes) OR :fileTypes IS NULL)
   AND (evidence_type = :evidenceType OR :evidenceType IS NULL)
   AND (source_collection = ANY(:sources) OR :sources IS NULL)
@@ -32,7 +33,7 @@ LIMIT :limit! OFFSET :offset!;
 /* @name countDocuments */
 SELECT COUNT(*) as total 
 FROM documents
-WHERE (:search::text IS NULL OR file_name ILIKE :search OR content_refined ILIKE :search OR source_collection ILIKE :search OR file_path ILIKE :search)
+WHERE (:search::text IS NULL OR file_name ILIKE :search OR source_collection ILIKE :search OR file_path ILIKE :search)
   AND (file_type = ANY(:fileTypes) OR :fileTypes IS NULL)
   AND (evidence_type = :evidenceType OR :evidenceType IS NULL)
   AND (source_collection = ANY(:sources) OR :sources IS NULL)

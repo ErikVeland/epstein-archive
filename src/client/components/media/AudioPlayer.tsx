@@ -167,7 +167,11 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
         audioRef.current.play().catch((e) => console.warn('Autoplay failed:', e));
       }
       if (!audioContextRef.current) {
-        const Ctor = (window as any).AudioContext || (window as any).webkitAudioContext;
+        const audioWindow = window as Window & {
+          AudioContext?: typeof AudioContext;
+          webkitAudioContext?: typeof AudioContext;
+        };
+        const Ctor = audioWindow.AudioContext || audioWindow.webkitAudioContext;
         if (Ctor) {
           const ctx = new Ctor();
           audioContextRef.current = ctx;

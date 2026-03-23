@@ -10,7 +10,7 @@ interface AddToInvestigationItem {
   description: string;
   type: 'document' | 'entity' | 'evidence' | 'flight' | 'property' | 'email' | 'media' | 'timeline';
   sourceId: string;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 }
 
 interface AddToInvestigationButtonProps {

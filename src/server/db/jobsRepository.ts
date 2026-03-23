@@ -42,7 +42,7 @@ export const jobsRepository = {
   listJobs: async (status?: string, targetType?: string) => {
     const pool = getApiPool();
     const where: string[] = [];
-    const params: any[] = [];
+    const params: unknown[] = [];
     let i = 1;
 
     if (status) {

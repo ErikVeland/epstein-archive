@@ -50,13 +50,35 @@ interface SearchFilters {
   min_word_count: number;
 }
 
+type UnknownRecord = Record<string, unknown>;
+
+const asRecord = (value: unknown): UnknownRecord =>
+  typeof value === 'object' && value !== null && !Array.isArray(value)
+    ? (value as UnknownRecord)
+    : {};
+
+const asRecordArray = (value: unknown): UnknownRecord[] =>
+  Array.isArray(value) ? value.map(asRecord) : [];
+
+const asString = (value: unknown, fallback = ''): string =>
+  typeof value === 'string' ? value : fallback;
+
+const asNumber = (value: unknown, fallback = 0): number =>
+  typeof value === 'number'
+    ? value
+    : typeof value === 'string' && value.trim().length > 0 && Number.isFinite(Number(value))
+      ? Number(value)
+      : fallback;
+
 const GlobalSearch: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [entityResults, setEntityResults] = useState<Person[]>([]);
-  const [investigationResults, setInvestigationResults] = useState<any[]>([]);
-  const [articleResults, setArticleResults] = useState<any[]>([]);
-  const [mediaResults, setMediaResults] = useState<any[]>([]);
+  const [investigationResults, setInvestigationResults] = useState<Array<Record<string, unknown>>>(
+    [],
+  );
+  const [articleResults, setArticleResults] = useState<Array<Record<string, unknown>>>([]);
+  const [mediaResults, setMediaResults] = useState<Array<Record<string, unknown>>>([]);
   const [filteredResults, setFilteredResults] = useState<SearchResult[]>([]);
   const [selectedResult, setSelectedResult] = useState<SearchResult | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -67,10 +89,13 @@ const GlobalSearch: React.FC = () => {
     date_range: { start: '', end: '' },
     min_word_count: 0,
   });
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<Record<string, unknown> | null>(null);
 
   useEffect(() => {
-    apiClient.getStats().then(setStats).catch(console.error);
+    apiClient
+      .getStats()
+      .then((value) => setStats(asRecord(value)))
+      .catch(console.error);
   }, []);
 
   const categories = [
@@ -107,38 +132,38 @@ const GlobalSearch: React.FC = () => {
     setLoading(true);
 
     try {
-      const data = await apiClient.search(searchTerm, 100);
+      const data = asRecord(await apiClient.search(searchTerm, 100));
 
       if (data.entities) {
-        setEntityResults(data.entities);
+        setEntityResults(data.entities as Person[]);
       }
 
       if (data.investigations) {
-        setInvestigationResults(data.investigations);
+        setInvestigationResults(asRecordArray(data.investigations));
       }
 
       if (data.articles) {
-        setArticleResults(data.articles);
+        setArticleResults(asRecordArray(data.articles));
       }
 
       if (data.media) {
-        setMediaResults(data.media);
+        setMediaResults(asRecordArray(data.media));
       }
 
       if (data.documents) {
-        const searchResults: SearchResult[] = data.documents.map((doc: any) => ({
-          id: doc.id,
-          file: doc.filePath,
-          filename: doc.fileName,
-          category: doc.evidenceType || 'general_documents',
+        const searchResults: SearchResult[] = asRecordArray(data.documents).map((doc) => ({
+          id: asString(doc.id),
+          file: asString(doc.filePath),
+          filename: asString(doc.fileName),
+          category: asString(doc.evidenceType, 'general_documents'),
           entities: [],
           dates: [],
-          wordCount: doc.wordCount || 0,
-          score: doc.score || 0,
-          highlights: doc.snippet ? [doc.snippet] : [],
-          snippet: doc.snippet,
-          filePath: doc.filePath,
-          evidenceType: doc.evidenceType,
+          wordCount: asNumber(doc.wordCount, 0),
+          score: asNumber(doc.score, 0),
+          highlights: doc.snippet ? [asString(doc.snippet)] : [],
+          snippet: asString(doc.snippet) || undefined,
+          filePath: asString(doc.filePath) || undefined,
+          evidenceType: asString(doc.evidenceType) || undefined,
         }));
         setResults(searchResults);
         setFilteredResults(searchResults);
@@ -381,8 +406,8 @@ const GlobalSearch: React.FC = () => {
                 key={`inv-${index}`}
                 type="button"
                 className="w-full p-6 text-left bg-transparent hover:bg-cyan-900/10 transition-colors border-l-4 border-purple-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-inset"
-                onClick={() => (window.location.href = `/investigations/${inv.uuid}`)}
-                aria-label={`Open investigation ${inv.title}`}
+                onClick={() => (window.location.href = `/investigations/${asString(inv.uuid)}`)}
+                aria-label={`Open investigation ${asString(inv.title)}`}
               >
                 <div className="flex items-center space-x-3 mb-2">
                   <span className="px-2 py-1 rounded-full text-xs font-medium bg-purple-600 text-[var(--text-primary)]">
@@ -391,14 +416,16 @@ const GlobalSearch: React.FC = () => {
                   <span
                     className={`px-2 py-1 rounded-full text-xs font-medium bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] uppercase`}
                   >
-                    {inv.status}
+                    {asString(inv.status)}
                   </span>
                 </div>
-                <h4 className="text-[var(--text-primary)] font-medium text-lg mb-2">{inv.title}</h4>
-                {inv.snippet && (
+                <h4 className="text-[var(--text-primary)] font-medium text-lg mb-2">
+                  {asString(inv.title)}
+                </h4>
+                {Boolean(inv.snippet) && (
                   <div
                     className="text-[var(--text-muted)] text-sm italic"
-                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(inv.snippet) }}
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(asString(inv.snippet)) }}
                   />
                 )}
               </button>
@@ -413,32 +440,42 @@ const GlobalSearch: React.FC = () => {
                 className="w-full p-6 text-left bg-transparent hover:bg-orange-900/10 transition-colors border-l-4 border-orange-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-inset"
                 onClick={() =>
                   setSelectedResult({
-                    ...art,
-                    filename: art.title,
+                    id: asString(art.id, `article-${index}`),
+                    filename: asString(art.title),
                     category: 'article',
-                    highlights: [art.snippet],
+                    highlights: art.snippet ? [asString(art.snippet)] : [],
+                    title: asString(art.title) || undefined,
+                    snippet: asString(art.snippet) || undefined,
+                    source: asString(art.source) || undefined,
+                    author: asString(art.author) || undefined,
+                    pubDate: asString(art.pubDate) || undefined,
+                    score: asNumber(art.score, 0),
+                    entities: [],
+                    dates: [],
                   })
                 }
-                aria-label={`Open article result ${art.title}`}
+                aria-label={`Open article result ${asString(art.title)}`}
               >
                 <div className="flex items-center space-x-3 mb-2">
                   <span className="px-2 py-1 rounded-full text-xs font-medium bg-orange-600 text-[var(--text-primary)]">
                     Article
                   </span>
                   <span className="text-[var(--text-muted)] text-sm">
-                    {art.source} by {art.author}
+                    {asString(art.source)} by {asString(art.author)}
                   </span>
-                  {art.pubDate && (
+                  {Boolean(art.pubDate) && (
                     <span className="text-[var(--text-muted)] text-xs">
-                      {new Date(art.pubDate).toLocaleDateString()}
+                      {new Date(asString(art.pubDate)).toLocaleDateString()}
                     </span>
                   )}
                 </div>
-                <h4 className="text-[var(--text-primary)] font-medium text-lg mb-2">{art.title}</h4>
-                {art.snippet && (
+                <h4 className="text-[var(--text-primary)] font-medium text-lg mb-2">
+                  {asString(art.title)}
+                </h4>
+                {Boolean(art.snippet) && (
                   <div
                     className="text-[var(--text-muted)] text-sm"
-                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(art.snippet) }}
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(asString(art.snippet)) }}
                   />
                 )}
               </button>
@@ -453,27 +490,36 @@ const GlobalSearch: React.FC = () => {
                 className="w-full p-6 text-left bg-transparent hover:bg-blue-900/10 transition-colors border-l-4 border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-inset"
                 onClick={() =>
                   setSelectedResult({
-                    ...med,
-                    filename: med.title || med.filename,
+                    id: asString(med.id, `media-${index}`),
+                    filename: asString(med.title) || asString(med.filename),
                     category: 'media',
-                    highlights: [med.snippet],
+                    highlights: med.snippet ? [asString(med.snippet)] : [],
+                    title: asString(med.title) || undefined,
+                    snippet: asString(med.snippet) || undefined,
+                    fileType: asString(med.fileType) || undefined,
+                    filePath: asString(med.filePath) || undefined,
+                    score: asNumber(med.score, 0),
+                    entities: [],
+                    dates: [],
                   })
                 }
-                aria-label={`Open media result ${med.title || med.filename}`}
+                aria-label={`Open media result ${asString(med.title) || asString(med.filename)}`}
               >
                 <div className="flex items-center space-x-3 mb-2">
                   <span className="px-2 py-1 rounded-full text-xs font-medium bg-[var(--accent)] text-[var(--text-primary)]">
                     Media
                   </span>
-                  <span className="text-[var(--text-muted)] text-sm font-mono">{med.fileType}</span>
+                  <span className="text-[var(--text-muted)] text-sm font-mono">
+                    {asString(med.fileType)}
+                  </span>
                 </div>
                 <h4 className="text-[var(--text-primary)] font-medium text-lg mb-2">
-                  {med.title || med.filename}
+                  {asString(med.title) || asString(med.filename)}
                 </h4>
-                {med.snippet && (
+                {Boolean(med.snippet) && (
                   <div
                     className="text-[var(--text-muted)] text-sm"
-                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(med.snippet) }}
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(asString(med.snippet)) }}
                   />
                 )}
               </button>

@@ -5,21 +5,30 @@ const router = Router();
 
 router.get('/', async (req, res, next) => {
   try {
-    const page = Math.max(1, Number((req.query as any).page || 1));
-    const limit = Math.min(500, Math.max(1, Number((req.query as any).limit || 50)));
+    const q = req.query as Record<string, string | undefined>;
+    const page = Math.max(1, Number(q.page || 1));
+    const limit = Math.min(500, Math.max(1, Number(q.limit || 50)));
+
+    const rawSortBy = String(q.sortBy || '').trim();
+    const sortByParam: 'value' | 'owner' | 'year' | undefined =
+      rawSortBy === 'value' || rawSortBy === 'owner' || rawSortBy === 'year'
+        ? rawSortBy
+        : undefined;
+
+    const rawSortOrder = String(q.sortOrder || '').trim();
+    const sortOrderParam: 'asc' | 'desc' | undefined =
+      rawSortOrder === 'asc' || rawSortOrder === 'desc' ? rawSortOrder : undefined;
 
     const payload = await propertiesRepository.getProperties({
       page,
       limit,
-      ownerSearch: String((req.query as any).search || '').trim() || undefined,
-      minValue:
-        (req.query as any).minValue !== undefined ? Number((req.query as any).minValue) : undefined,
-      maxValue:
-        (req.query as any).maxValue !== undefined ? Number((req.query as any).maxValue) : undefined,
-      propertyUse: String((req.query as any).type || '').trim() || undefined,
-      knownAssociatesOnly: String((req.query as any).associatesOnly || '').toLowerCase() === 'true',
-      sortBy: (String((req.query as any).sortBy || '').trim() as any) || undefined,
-      sortOrder: (String((req.query as any).sortOrder || '').trim() as any) || undefined,
+      ownerSearch: String(q.search || '').trim() || undefined,
+      minValue: q.minValue !== undefined ? Number(q.minValue) : undefined,
+      maxValue: q.maxValue !== undefined ? Number(q.maxValue) : undefined,
+      propertyUse: String(q.type || '').trim() || undefined,
+      knownAssociatesOnly: String(q.associatesOnly || '').toLowerCase() === 'true',
+      sortBy: sortByParam,
+      sortOrder: sortOrderParam,
     });
 
     res.json(payload);
@@ -48,7 +57,10 @@ router.get('/value-distribution', async (_req, res, next) => {
 
 router.get('/top-owners', async (req, res, next) => {
   try {
-    const limit = Math.min(100, Math.max(1, Number((req.query as any).limit || 20)));
+    const limit = Math.min(
+      100,
+      Math.max(1, Number((req.query as Record<string, string | undefined>).limit || 20)),
+    );
     const rows = await propertiesRepository.getTopOwners(limit);
     res.json(rows);
   } catch (error) {

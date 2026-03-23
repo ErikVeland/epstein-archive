@@ -95,7 +95,7 @@ interface MemoryContextType {
     importanceScore?: number;
     sourceId?: number;
     sourceType?: string;
-    provenance?: any;
+    provenance?: Record<string, unknown>;
   }) => Promise<void>;
   updateMemoryEntry: (
     id: number,
@@ -104,7 +104,7 @@ interface MemoryContextType {
       contextTags?: string[];
       importanceScore?: number;
       status?: 'active' | 'archived' | 'deprecated';
-      provenance?: any;
+      provenance?: Record<string, unknown>;
     },
   ) => Promise<void>;
   deleteMemoryEntry: (id: number) => Promise<void>;
@@ -163,7 +163,7 @@ export const MemoryProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     importanceScore?: number;
     sourceId?: number;
     sourceType?: string;
-    provenance?: any;
+    provenance?: Record<string, unknown>;
   }) => {
     dispatch({ type: 'SET_LOADING', payload: true });
     dispatch({ type: 'SET_ERROR', payload: null });
@@ -195,7 +195,7 @@ export const MemoryProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       contextTags?: string[];
       importanceScore?: number;
       status?: 'active' | 'archived' | 'deprecated';
-      provenance?: any;
+      provenance?: Record<string, unknown>;
     },
   ) => {
     dispatch({ type: 'SET_LOADING', payload: true });

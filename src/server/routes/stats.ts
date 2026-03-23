@@ -19,16 +19,36 @@ import { logger } from '../services/Logger.js';
 
 const router = Router();
 
-function withSafeStatsContract(input: any) {
-  const source = input || {};
+interface StatsInput {
+  likelihoodDistribution?: unknown[];
+  totalEntities?: unknown;
+  totalDocuments?: unknown;
+  totalRelationships?: unknown;
+  totalMentions?: unknown;
+  averageRedFlagRating?: unknown;
+  totalUniqueRoles?: unknown;
+  entitiesWithDocuments?: unknown;
+  documentsWithMetadata?: unknown;
+  documentsFixed?: unknown;
+  activeInvestigations?: unknown;
+  topRoles?: unknown;
+  topEntities?: unknown;
+  redFlagDistribution?: unknown;
+  collectionCounts?: unknown;
+  collectionStats?: unknown;
+  pipeline_status?: unknown;
+}
+
+function withSafeStatsContract(input: StatsInput | null | undefined) {
+  const source = input || ({} as StatsInput);
   const existing = Array.isArray(source.likelihoodDistribution)
     ? source.likelihoodDistribution
     : [];
   const byLevel = new Map<string, { count?: number }>(
-    existing.map((entry: any) => [
-      String(entry?.level || ''),
-      { count: Number(entry?.count || 0) },
-    ]),
+    existing.map((entry: unknown) => {
+      const e = entry as Record<string, unknown> | null | undefined;
+      return [String(e?.level || ''), { count: Number(e?.count || 0) }];
+    }),
   );
 
   const safeLikelihoodDistribution = ['HIGH', 'MEDIUM', 'LOW'].map((level) => ({
@@ -153,8 +173,9 @@ router.get('/health/ready', async (req, res) => {
         data: { ok: dataOk, ...dataCounts },
       },
     });
-  } catch (e: any) {
-    const isTimeout = e.message === 'timeout';
+  } catch (e: unknown) {
+    const isTimeout = e instanceof Error && e.message === 'timeout';
+    const errMessage = e instanceof Error ? e.message : 'Unknown error';
     if (!soft) {
       return res.status(503).json({
         status: 'degraded',
@@ -166,7 +187,7 @@ router.get('/health/ready', async (req, res) => {
       timestamp: new Date().toISOString(),
       durationMs: Date.now() - start,
       checks: {
-        db: { ok: false, error: isTimeout ? 'DB ping timeout' : e.message },
+        db: { ok: false, error: isTimeout ? 'DB ping timeout' : errMessage },
       },
     });
   }
@@ -191,10 +212,10 @@ router.get('/health/deep', async (_req, res) => {
         message: 'Database connected',
         duration: Date.now() - dbStart,
       };
-    } catch (e: any) {
+    } catch (e: unknown) {
       checks.database_connection = {
         status: 'fail',
-        message: `DB connection failed: ${e.message}`,
+        message: `DB connection failed: ${e instanceof Error ? e.message : String(e)}`,
       };
       overallStatus = 'critical';
     }
@@ -248,8 +269,11 @@ router.get('/health/deep', async (_req, res) => {
       } else {
         checks.query_execution = { status: 'warn', message: 'No entities with mentions found' };
       }
-    } catch (e: any) {
-      checks.query_execution = { status: 'fail', message: `Query failed: ${e.message}` };
+    } catch (e: unknown) {
+      checks.query_execution = {
+        status: 'fail',
+        message: `Query failed: ${e instanceof Error ? e.message : String(e)}`,
+      };
       overallStatus = 'critical';
     }
 
@@ -285,10 +309,10 @@ router.get('/health/deep', async (_req, res) => {
           message: 'Could not determine Postgres database size',
         };
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       checks.database_size = {
         status: 'warn',
-        message: `Could not check Postgres DB size: ${e.message}`,
+        message: `Could not check Postgres DB size: ${e instanceof Error ? e.message : String(e)}`,
       };
     }
 
@@ -309,11 +333,17 @@ router.get('/health/deep', async (_req, res) => {
       } else {
         checks.backup_status = { status: 'warn', message: 'No backups found' };
       }
-    } catch (e: any) {
-      checks.backup_status = { status: 'warn', message: `Backup check failed: ${e.message}` };
+    } catch (e: unknown) {
+      checks.backup_status = {
+        status: 'warn',
+        message: `Backup check failed: ${e instanceof Error ? e.message : String(e)}`,
+      };
     }
-  } catch (e: any) {
-    checks.fatal_error = { status: 'fail', message: `Health check crashed: ${e.message}` };
+  } catch (e: unknown) {
+    checks.fatal_error = {
+      status: 'fail',
+      message: `Health check crashed: ${e instanceof Error ? e.message : String(e)}`,
+    };
     overallStatus = 'critical';
   }
 

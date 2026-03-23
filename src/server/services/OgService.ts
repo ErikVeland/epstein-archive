@@ -5,6 +5,20 @@ import { logger } from './Logger.js';
 
 const OG_SCREENSHOT_CACHE_DIR = path.join(process.cwd(), 'data', 'og-route-cache');
 
+interface BrowserPage {
+  goto(url: string, options: { waitUntil: 'networkidle'; timeout: number }): Promise<void>;
+  screenshot(options: { path: string; type: 'png' }): Promise<void>;
+}
+
+interface BrowserInstance {
+  newPage(options: { viewport: { width: number; height: number } }): Promise<BrowserPage>;
+  close(): Promise<void>;
+}
+
+interface ChromiumLike {
+  launch(options: { headless: boolean }): Promise<BrowserInstance>;
+}
+
 export class OgService {
   static ogRouteCacheKey(routePath: string, searchParams: URLSearchParams): string {
     const params = new URLSearchParams(searchParams);
@@ -29,10 +43,10 @@ export class OgService {
 
       if (fs.existsSync(absPath)) return absPath;
 
-      let chromium: any;
+      let chromium: ChromiumLike | undefined;
       try {
         const pw = await import('@playwright/test');
-        chromium = (pw as any).chromium;
+        chromium = (pw as Record<string, unknown>).chromium as ChromiumLike | undefined;
       } catch {
         return null;
       }

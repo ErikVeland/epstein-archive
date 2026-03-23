@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { FileText, Calendar, Users, ArrowUp, ArrowDown } from 'lucide-react';
 import { CloseButton } from '../common/CloseButton';
 import { useFilters } from '../../contexts/useFilters';
+import ScopedErrorBoundary from '../common/ScopedErrorBoundary';
 
 interface EntityLink {
   id: number;
@@ -103,18 +104,25 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
         console.log(`Loaded ${data.length} timeline events from API`);
 
         const timelineEvents: TimelineEvent[] = data
-          .map((event: any) => ({
-            date: new Date(event.date),
-            title: event.title || 'Untitled Event',
-            description: event.description || `Document: ${event.title || 'Untitled'}`,
-            type: (event.type?.toLowerCase() as any) || 'document',
-            file: event.file_path || '',
-            original_file_path: event.original_file_path || '',
-            entities: event.entities || (event.primary_entity ? [event.primary_entity] : []),
-            significance: event.significance_score || 'medium',
-            is_curated: event.is_curated || false,
-            related_document: event.related_document || null,
-            support: event.support || {
+          .map((event: Record<string, unknown>) => ({
+            date: new Date(event.date as string),
+            title: (event.title as string | undefined) || 'Untitled Event',
+            description:
+              (event.description as string | undefined) ||
+              `Document: ${(event.title as string | undefined) || 'Untitled'}`,
+            type:
+              ((event.type as string | undefined)?.toLowerCase() as TimelineEvent['type']) ||
+              'document',
+            file: (event.file_path as string | undefined) || '',
+            original_file_path: (event.original_file_path as string | undefined) || '',
+            entities:
+              (event.entities as (string | EntityLink)[] | undefined) ||
+              (event.primary_entity ? [event.primary_entity as string] : []),
+            significance:
+              (event.significance_score as 'high' | 'medium' | 'low' | undefined) || 'medium',
+            is_curated: (event.is_curated as boolean | undefined) || false,
+            related_document: (event.related_document as TimelineEvent['related_document']) || null,
+            support: (event.support as TimelineEvent['support']) || {
               evidence_count: 0,
               document_count: 0,
               media_count: 0,
@@ -258,113 +266,122 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
       </div>
 
       <div className="relative border-l-2 border-[var(--glass-border)] ml-4 md:ml-6 space-y-8">
-        {sortedEvents.map((event, index) => (
-          <div key={index} className="relative pl-8 md:pl-12">
-            {/* Timeline Dot */}
-            <div
-              className={`absolute left-[-9px] top-0 w-4 h-4 rounded-full border-2 border-[var(--app-bg)] ${
-                event.significance === 'high'
-                  ? 'bg-red-500'
-                  : event.significance === 'medium'
-                    ? 'bg-yellow-500'
-                    : 'bg-green-500'
-              }`}
-            ></div>
+        <ScopedErrorBoundary
+          fallback={
+            <div className="bg-[var(--accent-danger)]/10 border border-[var(--accent-danger)]/20 text-[var(--accent-danger)] text-sm rounded-[var(--radius-lg)] p-8 text-center ml-8 md:ml-12">
+              <p className="font-bold mb-2">Timeline Event Error</p>
+              <p>One or more events failed to render. The dataset may contain invalid entries.</p>
+            </div>
+          }
+        >
+          {sortedEvents.map((event, index) => (
+            <div key={index} className="relative pl-8 md:pl-12">
+              {/* Timeline Dot */}
+              <div
+                className={`absolute left-[-9px] top-0 w-4 h-4 rounded-full border-2 border-[var(--app-bg)] ${
+                  event.significance === 'high'
+                    ? 'bg-red-500'
+                    : event.significance === 'medium'
+                      ? 'bg-yellow-500'
+                      : 'bg-green-500'
+                }`}
+              ></div>
 
-            {/* Event Card */}
-            <div
-              className={`rounded-[var(--radius-xl)] border p-5 cursor-pointer backdrop-blur-sm transition-all duration-300 ${
-                event.is_curated
-                  ? 'border-amber-500/50 bg-amber-900/10 hover:bg-amber-900/20'
-                  : getSignificanceColor(event.significance)
-              }`}
-              onClick={() => setSelectedEvent(event)}
-            >
-              <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="text-sm font-mono text-[var(--accent)] bg-[var(--accent)]/10 px-2 py-0.5 rounded-[var(--radius-sm)] border border-[var(--accent)]/20">
-                      {formatDate(event.date)}
-                    </span>
-                    <div
-                      className={`flex items-center gap-1 px-2 py-0.5 rounded-[var(--radius-sm)] text-xs font-medium uppercase tracking-wider ${
-                        event.type === 'legal'
-                          ? 'bg-purple-900/30 text-purple-300 border border-purple-500/20'
-                          : event.type === 'flight'
-                            ? 'bg-blue-900/30 text-[var(--accent)] border border-[var(--accent)]/20'
-                            : event.type === 'financial'
-                              ? 'bg-emerald-900/30 text-emerald-300 border border-emerald-500/20'
-                              : event.type === 'incident'
-                                ? 'bg-amber-900/30 text-amber-300 border border-amber-500/20'
-                                : 'bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] border border-[var(--glass-border)]'
-                      }`}
-                    >
-                      {getTypeIcon(event.type)}
-                      <span>{event.type}</span>
-                    </div>
-                    {event.is_curated && (
-                      <span className="text-xs font-bold text-amber-400 border border-amber-500/30 px-1.5 py-0.5 rounded bg-amber-900/20">
-                        KEY EVENT
+              {/* Event Card */}
+              <div
+                className={`rounded-[var(--radius-xl)] border p-5 cursor-pointer backdrop-blur-sm transition-all duration-300 ${
+                  event.is_curated
+                    ? 'border-amber-500/50 bg-amber-900/10 hover:bg-amber-900/20'
+                    : getSignificanceColor(event.significance)
+                }`}
+                onClick={() => setSelectedEvent(event)}
+              >
+                <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="text-sm font-mono text-[var(--accent)] bg-[var(--accent)]/10 px-2 py-0.5 rounded-[var(--radius-sm)] border border-[var(--accent)]/20">
+                        {formatDate(event.date)}
                       </span>
-                    )}
-                  </div>
-
-                  <h3 className="text-xl font-bold text-[var(--text-primary)] mb-2 group-hover:text-[var(--accent)] transition-colors">
-                    {event.title}
-                  </h3>
-
-                  <p className="text-[var(--text-secondary)] text-sm leading-relaxed mb-3 line-clamp-2">
-                    {event.description}
-                  </p>
-
-                  {event.entities.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-3">
-                      {event.entities.slice(0, 4).map((entity, i) => (
-                        <span
-                          key={i}
-                          className="px-2 py-1 bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-secondary)] rounded-[var(--radius-sm)] text-xs flex items-center gap-1 shadow-sm"
-                        >
-                          <Users className="w-3 h-3" />
-                          {typeof entity === 'string' ? entity : entity.name}
-                        </span>
-                      ))}
-                      {event.entities.length > 4 && (
-                        <span className="px-2 py-1 bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-muted)] rounded-[var(--radius-sm)] text-xs shadow-sm">
-                          +{event.entities.length - 4} more
+                      <div
+                        className={`flex items-center gap-1 px-2 py-0.5 rounded-[var(--radius-sm)] text-xs font-medium uppercase tracking-wider ${
+                          event.type === 'legal'
+                            ? 'bg-purple-900/30 text-purple-300 border border-purple-500/20'
+                            : event.type === 'flight'
+                              ? 'bg-blue-900/30 text-[var(--accent)] border border-[var(--accent)]/20'
+                              : event.type === 'financial'
+                                ? 'bg-emerald-900/30 text-emerald-300 border border-emerald-500/20'
+                                : event.type === 'incident'
+                                  ? 'bg-amber-900/30 text-amber-300 border border-amber-500/20'
+                                  : 'bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] border border-[var(--glass-border)]'
+                        }`}
+                      >
+                        {getTypeIcon(event.type)}
+                        <span>{event.type}</span>
+                      </div>
+                      {event.is_curated && (
+                        <span className="text-xs font-bold text-amber-400 border border-amber-500/30 px-1.5 py-0.5 rounded bg-amber-900/20">
+                          KEY EVENT
                         </span>
                       )}
                     </div>
-                  )}
 
-                  {event.support && (
-                    <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                      <span className="px-2 py-1 bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-secondary)] rounded-[var(--radius-sm)] shadow-sm">
-                        Evidence: {event.support.evidence_count}
-                      </span>
-                      <span className="px-2 py-1 bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-secondary)] rounded-[var(--radius-sm)] shadow-sm">
-                        Docs: {event.support.document_count}
-                      </span>
-                      <span className="px-2 py-1 bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-secondary)] rounded-[var(--radius-sm)] shadow-sm">
-                        Media: {event.support.media_count}
-                      </span>
-                    </div>
-                  )}
-                </div>
+                    <h3 className="text-xl font-bold text-[var(--text-primary)] mb-2 group-hover:text-[var(--accent)] transition-colors">
+                      {event.title}
+                    </h3>
 
-                <div className="hidden md:block shrink-0">
-                  <div className="w-32 h-24 bg-[var(--glass-bg)] rounded-[var(--radius-lg)] border border-[var(--glass-border)] flex items-center justify-center overflow-hidden relative group">
-                    <FileText className="w-8 h-8 text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[var(--app-bg)] to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-2">
-                      <span className="text-xs text-[var(--text-primary)] font-medium drop-shadow-[var(--glass-shadow)]">
-                        {event.is_curated ? 'View Details' : 'View Source'}
-                      </span>
+                    <p className="text-[var(--text-secondary)] text-sm leading-relaxed mb-3 line-clamp-2">
+                      {event.description}
+                    </p>
+
+                    {event.entities.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-3">
+                        {event.entities.slice(0, 4).map((entity, i) => (
+                          <span
+                            key={i}
+                            className="px-2 py-1 bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-secondary)] rounded-[var(--radius-sm)] text-xs flex items-center gap-1 shadow-sm"
+                          >
+                            <Users className="w-3 h-3" />
+                            {typeof entity === 'string' ? entity : entity.name}
+                          </span>
+                        ))}
+                        {event.entities.length > 4 && (
+                          <span className="px-2 py-1 bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-muted)] rounded-[var(--radius-sm)] text-xs shadow-sm">
+                            +{event.entities.length - 4} more
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    {event.support && (
+                      <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                        <span className="px-2 py-1 bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-secondary)] rounded-[var(--radius-sm)] shadow-sm">
+                          Evidence: {event.support.evidence_count}
+                        </span>
+                        <span className="px-2 py-1 bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-secondary)] rounded-[var(--radius-sm)] shadow-sm">
+                          Docs: {event.support.document_count}
+                        </span>
+                        <span className="px-2 py-1 bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-secondary)] rounded-[var(--radius-sm)] shadow-sm">
+                          Media: {event.support.media_count}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="hidden md:block shrink-0">
+                    <div className="w-32 h-24 bg-[var(--glass-bg)] rounded-[var(--radius-lg)] border border-[var(--glass-border)] flex items-center justify-center overflow-hidden relative group">
+                      <FileText className="w-8 h-8 text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[var(--app-bg)] to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-2">
+                        <span className="text-xs text-[var(--text-primary)] font-medium drop-shadow-[var(--glass-shadow)]">
+                          {event.is_curated ? 'View Details' : 'View Source'}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </ScopedErrorBoundary>
       </div>
 
       {selectedEvent &&

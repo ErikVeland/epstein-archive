@@ -84,8 +84,8 @@ export interface Person {
   // DB & Internal Fields
   connectionsSummary?: string;
   mediaCount?: number;
-  timelineEvents?: any[];
-  networkConnections?: any[];
+  timelineEvents?: Array<Record<string, unknown>>;
+  networkConnections?: Array<Record<string, unknown>>;
   connectionsToEpstein?: string;
   wasAgentic?: boolean;
   ingestRunId?: string;

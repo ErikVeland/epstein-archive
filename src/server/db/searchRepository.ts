@@ -148,8 +148,8 @@ export const searchRepository = {
     );
 
     const entityIds = entityRows
-      .map((row: any) => Number(row.id))
-      .filter((id: any) => Number.isFinite(id) && id > 0);
+      .map((row) => Number(row.id))
+      .filter((id) => Number.isFinite(id) && id > 0);
     const entityStatsById = new Map<
       number,
       { mentions: number; files: number; riskLevel: string | null; redFlagRating: number | null }
@@ -190,8 +190,8 @@ export const searchRepository = {
     }
 
     const documentIds = docRows
-      .map((row: any) => Number(row.id))
-      .filter((id: any) => Number.isFinite(id) && id > 0);
+      .map((row) => Number(row.id))
+      .filter((id) => Number.isFinite(id) && id > 0);
     const documentMetaById = new Map<
       number,
       { fileType: string | null; dateCreated: string | null }
@@ -218,7 +218,7 @@ export const searchRepository = {
     }
 
     return {
-      entities: entityRows.map((row: any) => {
+      entities: entityRows.map((row) => {
         const aliases = parseEntityAliases(row.aliases);
         const stats = entityStatsById.get(Number(row.id));
         return {
@@ -248,7 +248,7 @@ export const searchRepository = {
           files: stats?.files ?? 0,
         };
       }),
-      documents: docRows.map((row: any) => {
+      documents: docRows.map((row) => {
         const meta = documentMetaById.get(Number(row.id));
         return {
           id: String(row.id),
@@ -265,7 +265,7 @@ export const searchRepository = {
           snippet: row.snippet,
         };
       }),
-      investigations: investigationRows.map((row: any) => ({
+      investigations: investigationRows.map((row) => ({
         id: String(row.id),
         uuid: row.uuid,
         title: row.title,
@@ -274,7 +274,7 @@ export const searchRepository = {
         snippet: row.snippet,
         rank: row.rank,
       })),
-      articles: articleRows.map((row: any) => ({
+      articles: articleRows.map((row) => ({
         id: String(row.id),
         title: row.title,
         source: row.source,
@@ -283,7 +283,7 @@ export const searchRepository = {
         snippet: row.snippet,
         rank: row.rank,
       })),
-      media: mediaRows.map((row: any) => ({
+      media: mediaRows.map((row) => ({
         id: String(row.id),
         filename: row.filename,
         title: row.title,

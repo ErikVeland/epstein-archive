@@ -2,6 +2,8 @@ import { mediaQueries } from '@epstein/db';
 import { getApiPool } from './connection.js';
 import { logger } from '../services/Logger.js';
 
+type MediaRow = Record<string, unknown>;
+
 export const mediaRepository = {
   // Get all albums with counts for a specific media type
   getAlbumsByMediaType: async (fileType: 'audio' | 'video') => {
@@ -13,7 +15,7 @@ export const mediaRepository = {
     }
 
     const result = await mediaQueries.getAlbumsByMediaType.run({ likePattern }, getApiPool());
-    return result.map((row: any) => ({
+    return result.map((row: MediaRow) => ({
       ...row,
       itemCount: Number(row.itemCount || 0),
       sensitiveCount: Number(row.sensitiveCount || 0),
@@ -24,23 +26,23 @@ export const mediaRepository = {
   getMediaItems: async (entityId: string) => {
     const mediaItems = await mediaQueries.getMediaItemsByEntity.run({ entityId }, getApiPool());
 
-    return mediaItems.map((item: any) => {
-      let metadata = {};
+    return mediaItems.map((item: MediaRow) => {
+      let metadata: Record<string, unknown> = {};
       try {
         if (item.metadataJson) {
           metadata =
             typeof item.metadataJson === 'string'
               ? JSON.parse(item.metadataJson)
-              : item.metadataJson;
+              : (item.metadataJson as Record<string, unknown>);
         }
       } catch (e) {
-        logger.error('Error parsing metadata for media item', item.id, e);
+        logger.error({ err: e, mediaId: item.id }, 'Error parsing metadata for media item');
       }
 
       return {
         ...item,
         id: Number(item.id),
-        fileSize: Number((item as any).fileSize || 0),
+        fileSize: 0,
         redFlagRating: Number(item.redFlagRating || 0),
         metadata,
       };
@@ -51,30 +53,33 @@ export const mediaRepository = {
   getAllMediaItems: async () => {
     const mediaItems = await mediaQueries.getAllMediaItems.run(undefined, getApiPool());
 
-    return mediaItems.map((item: any) => {
-      let metadata = {};
+    return mediaItems.map((item: MediaRow) => {
+      let metadata: Record<string, unknown> = {};
       try {
         if (item.metadataJson) {
           metadata =
             typeof item.metadataJson === 'string'
               ? JSON.parse(item.metadataJson)
-              : item.metadataJson;
+              : (item.metadataJson as Record<string, unknown>);
         }
       } catch (e) {
-        logger.error('Error parsing metadata for media item', item.id, e);
+        logger.error({ err: e, mediaId: item.id }, 'Error parsing metadata for media item');
       }
+
+      const relatedEntities =
+        typeof item.relatedEntities === 'string'
+          ? item.relatedEntities.split(',')
+          : typeof item.entityName === 'string' && item.entityName.length > 0
+            ? [item.entityName]
+            : [];
 
       return {
         ...item,
         id: Number(item.id),
-        fileSize: Number((item as any).fileSize || 0),
+        fileSize: 0,
         redFlagRating: Number(item.redFlagRating || 0),
         metadata,
-        relatedEntities: item.relatedEntities
-          ? item.relatedEntities.split(',')
-          : item.entityName
-            ? [item.entityName]
-            : [],
+        relatedEntities,
       };
     });
   },
@@ -85,14 +90,16 @@ export const mediaRepository = {
     const item = rows[0];
     if (!item) return undefined;
 
-    let metadata = {};
+    let metadata: Record<string, unknown> = {};
     try {
       if (item.metadataJson) {
         metadata =
-          typeof item.metadataJson === 'string' ? JSON.parse(item.metadataJson) : item.metadataJson;
+          typeof item.metadataJson === 'string'
+            ? JSON.parse(item.metadataJson)
+            : (item.metadataJson as Record<string, unknown>);
       }
     } catch (e) {
-      logger.error('Error parsing metadata for media item', item.id, e);
+      logger.error({ err: e, mediaId: item.id }, 'Error parsing metadata for media item');
     }
 
     return {
@@ -100,7 +107,7 @@ export const mediaRepository = {
       id: Number(item.id),
       isSensitive: Boolean(item.isSensitive),
       redFlagRating: Number(item.redFlagRating || 0),
-      fileSize: Number((item as any).fileSize || 0),
+      fileSize: 0,
       metadata,
     };
   },
@@ -170,7 +177,7 @@ export const mediaRepository = {
       `,
       queryParams,
     );
-    const total = Number((countRes.rows[0] as any)?.total || 0);
+    const total = Number((countRes.rows[0] as { total?: unknown })?.total || 0);
 
     let orderBySql = 'm.red_flag_rating DESC, m.created_at DESC';
     if (filters?.sortBy === 'title') {
@@ -219,20 +226,41 @@ export const mediaRepository = {
       `,
       listParams,
     );
-    const mediaItems = listRes.rows as any[];
+    interface MediaListRow {
+      id: string | number;
+      entityId: string | null;
+      documentId: string | null;
+      filePath: string;
+      thumbnailPath: string | null;
+      fileType: string | null;
+      fileSize: string | number | null;
+      width: number | null;
+      height: number | null;
+      title: string | null;
+      description: string | null;
+      albumId: number | null;
+      isSensitive: boolean | null;
+      verificationStatus: string | null;
+      redFlagRating: number | null;
+      metadataJson: unknown;
+      dateTaken: Date | null;
+      createdAt: Date | null;
+      people: string | null;
+    }
+    const mediaItems = listRes.rows as MediaListRow[];
 
     return {
       mediaItems: mediaItems.map((item) => {
-        let metadata = {};
+        let metadata: Record<string, unknown> = {};
         try {
           if (item.metadataJson) {
             metadata =
               typeof item.metadataJson === 'string'
                 ? JSON.parse(item.metadataJson)
-                : item.metadataJson;
+                : (item.metadataJson as Record<string, unknown>);
           }
         } catch (e) {
-          logger.error('Error parsing metadata for media item', item.id, e);
+          logger.error({ err: e, mediaId: item.id }, 'Error parsing metadata for media item');
         }
 
         const people = item.people
@@ -292,16 +320,29 @@ export const mediaRepository = {
   },
 
   getMediaByDocument: async (documentId: number) => {
-    const mediaItems = await (mediaQueries.getMediaByDocument as any).run(
-      { documentId: BigInt(documentId) },
-      getApiPool(),
+    const pool = getApiPool();
+    const res = await pool.query<{
+      id: string;
+      filePath: string;
+      fileType: string | null;
+      title: string | null;
+      isVerified: boolean | null;
+    }>(
+      `SELECT
+         id,
+         file_path AS "filePath",
+         file_type AS "fileType",
+         title,
+         is_verified AS "isVerified"
+       FROM media_items
+       WHERE document_id = $1
+       ORDER BY created_at DESC`,
+      [documentId],
     );
-    return mediaItems.map((item: any) => {
-      return {
-        ...item,
-        id: Number(item.id),
-        is_verified: item.isVerified,
-      };
-    });
+    return res.rows.map((item) => ({
+      ...item,
+      id: Number(item.id),
+      is_verified: item.isVerified,
+    }));
   },
 };

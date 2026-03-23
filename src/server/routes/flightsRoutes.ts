@@ -5,12 +5,13 @@ const router = Router();
 
 router.get('/', async (req, res, next) => {
   try {
-    const page = Math.max(1, Number((req.query as any).page || 1));
-    const limit = Math.min(500, Math.max(1, Number((req.query as any).limit || 50)));
-    const startDate = String((req.query as any).startDate || '').trim() || undefined;
-    const endDate = String((req.query as any).endDate || '').trim() || undefined;
-    const passenger = String((req.query as any).passenger || '').trim() || undefined;
-    const airport = String((req.query as any).airport || '').trim() || undefined;
+    const q = req.query as Record<string, string | undefined>;
+    const page = Math.max(1, Number(q.page || 1));
+    const limit = Math.min(500, Math.max(1, Number(q.limit || 50)));
+    const startDate = String(q.startDate || '').trim() || undefined;
+    const endDate = String(q.endDate || '').trim() || undefined;
+    const passenger = String(q.passenger || '').trim() || undefined;
+    const airport = String(q.airport || '').trim() || undefined;
 
     const payload = await flightsRepository.getFlights({
       page,
@@ -56,10 +57,11 @@ router.get('/passengers', async (_req, res, next) => {
 
 router.get('/co-occurrences', async (req, res, next) => {
   try {
-    const minFlights = Math.max(1, Number((req.query as any).minFlights || 2));
-    const limit = Math.min(200, Math.max(1, Number((req.query as any).limit || 100)));
+    const query = req.query as Record<string, string | string[] | undefined>;
+    const minFlights = Math.max(1, Number(query.minFlights || 2));
+    const limit = Math.min(200, Math.max(1, Number(query.limit || 100)));
     const rows = await flightsRepository.getPassengerCoOccurrences(minFlights);
-    const shaped = rows.slice(0, limit).map((r: any) => ({
+    const shaped = rows.slice(0, limit).map((r: Record<string, unknown>) => ({
       passenger1: String(r.passenger1 || ''),
       passenger2: String(r.passenger2 || ''),
       flights_together: Number(r.flightsTogether || 0),

@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import EntityRelationshipMapper, { Entity, Relationship } from './EntityRelationshipMapper';
-import { GraphService, type GraphNode, type GraphEdge } from '../../services/GraphService';
+import { type GraphNode, type GraphEdge } from '../../services/GraphService';
 import { apiClient } from '../../services/apiClient';
+import ScopedErrorBoundary from '../common/ScopedErrorBoundary';
 
 interface EntityGraphPanelProps {
   entityId: string | number;
@@ -19,29 +20,11 @@ export const EntityGraphPanel: React.FC<EntityGraphPanelProps> = ({ entityId }) 
       setError(null);
       try {
         const data = (await apiClient.getEntityGraph(String(entityId), 2)) as {
-          nodes?: any[];
-          edges?: any[];
+          nodes?: GraphNode[];
+          edges?: GraphEdge[];
         };
-        setNodes(
-          Array.isArray(data.nodes)
-            ? data.nodes.map((n: any) => GraphService.normalizeNode(n))
-            : [],
-        );
-        setEdges(
-          Array.isArray(data.edges)
-            ? data.edges.map((e: any) => ({
-                id: String(
-                  e.id || `${String(e.source || e.source_id)}-${String(e.target || e.target_id)}`,
-                ),
-                source: String(e.source || e.source_id),
-                target: String(e.target || e.target_id),
-                type: String(e.type || e.relationship_type || 'related_to'),
-                weight: Number(e.weight || e.proximity_score || 1),
-                confidence: Number(e.confidence || 1),
-                docCount: Number(e.docCount || 0),
-              }))
-            : [],
-        );
+        setNodes(data.nodes || []);
+        setEdges(data.edges || []);
       } catch (e) {
         console.error('Failed to load entity graph:', e);
         setError(e instanceof Error ? e.message : 'Failed to load graph');
@@ -54,51 +37,29 @@ export const EntityGraphPanel: React.FC<EntityGraphPanelProps> = ({ entityId }) 
   }, [entityId]);
 
   const mapperEntities: Entity[] = useMemo(() => {
-    // 1. Dedup (Merge by Label)
-    const uniqueNodes = GraphService.deduplicateNodes(nodes, String(entityId));
-
-    // 3. Map to Mapper Entity Interface
-    return uniqueNodes.map((n) => ({
-      id: n.id,
+    return nodes.map((n) => ({
+      id: String(n.id),
       label: n.label,
       type: n.type,
       properties: { riskScore: n.risk },
       confidence: 1.0,
       sources: [],
-      isEgo: n.id === String(entityId),
-      // Pass style hints if needed
+      isEgo: String(n.id) === String(entityId) || !!n.isEgo,
     }));
   }, [nodes, entityId]);
 
   const mapperRelationships: Relationship[] = useMemo(() => {
-    // 1. Remap Edges to Deduped IDs
-    // We need to pass the *processed* nodes to ensuring mapping alignment
-    // But GraphService.remapEdges expects the generic GraphNode
-    // Let's reconstruct the GraphNode context or pass mapperEntities if compatible.
-    // Actually, GraphService.remapEdges takes `GraphNode[]`.
-    // mapperEntities is `Entity[]` which is compatiable-ish but let's be safe.
-
-    const contextNodes: GraphNode[] = mapperEntities.map((e) => ({
-      id: e.id,
-      label: e.label,
-      type: e.type,
-      risk: e.properties.riskScore,
-    }));
-
-    const remapped = GraphService.remapEdges(edges, contextNodes);
-
-    // 2. Map to Mapper Relationship Interface
-    return remapped.map((e, _idx) => ({
+    return edges.map((e) => ({
       id: e.id,
       from: e.source,
       to: e.target,
       type: e.type,
-      strength: GraphService.calculateEdgeWeight(e.weight, e.confidence, e.docCount),
+      strength: e.weight,
       confidence: e.confidence,
       evidence: [],
       properties: { docCount: e.docCount },
     }));
-  }, [edges, mapperEntities]);
+  }, [edges]);
 
   if (loading) {
     return (
@@ -126,7 +87,15 @@ export const EntityGraphPanel: React.FC<EntityGraphPanelProps> = ({ entityId }) 
 
   return (
     <div className="bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-4">
-      <EntityRelationshipMapper entities={mapperEntities} relationships={mapperRelationships} />
+      <ScopedErrorBoundary
+        fallback={
+          <div className="bg-[var(--accent-danger)]/10 border border-[var(--accent-danger)]/20 text-[var(--accent-danger)] text-sm rounded-[var(--radius-lg)] p-4">
+            A rendering error occurred in the entity graph. The data might be malformed.
+          </div>
+        }
+      >
+        <EntityRelationshipMapper entities={mapperEntities} relationships={mapperRelationships} />
+      </ScopedErrorBoundary>
     </div>
   );
 };

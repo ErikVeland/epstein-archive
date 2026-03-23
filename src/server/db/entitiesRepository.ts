@@ -4,8 +4,17 @@ import type { SubjectCardListItemDto } from '@shared/dto/entities';
 import { getApiPool } from './connection.js';
 
 export interface EntityRepositoryResult {
-  entities: any[];
+  entities: Record<string, unknown>[];
   total: number;
+}
+
+// Helper for pgtyped query objects whose run signatures aren't fully reflected
+function runQuery<TParams, TRow>(
+  query: unknown,
+  params: TParams,
+  pool: ReturnType<typeof getApiPool>,
+): Promise<TRow[]> {
+  return (query as { run(p: TParams, c: typeof pool): Promise<TRow[]> }).run(params, pool);
 }
 
 export interface SubjectCardRepositoryResult {
@@ -100,7 +109,10 @@ async function buildVipDisplayLookup(): Promise<Map<string, string>> {
     return vipLookupCache.value;
   }
 
-  const raw = await (entitiesQueries.getVipEntities as any).run(undefined, getApiPool());
+  const raw = await runQuery<
+    undefined,
+    { full_name?: string; mentions?: number; aliases?: string }
+  >(entitiesQueries.getVipEntities, undefined, getApiPool());
   const bestByAlias = new Map<string, { canonicalName: string; score: number }>();
 
   for (const row of raw) {
@@ -255,8 +267,34 @@ async function getSubjectCardsFallback(
   const pgSort = sortKey === 'name' || sortKey === 'recent' ? sortKey : null;
 
   const pool = getApiPool();
+  interface SubjectCardRow {
+    id: number;
+    fullName?: string;
+    primaryRole?: string;
+    bio?: string;
+    mentions?: number;
+    riskLevel?: string;
+    redFlagRating?: number;
+    connections?: string | number;
+    mediaCount?: number;
+    blackBookCount?: number;
+    topPhotoId?: number | string;
+  }
   const [rows, countRows, maxConnResult, vipDisplayLookup] = await Promise.all([
-    (entitiesQueries.getSubjectCards as any).run(
+    runQuery<
+      {
+        searchTerm: string | null;
+        riskLevels: string[] | null;
+        minRedFlag: number | null;
+        maxRedFlag: number | null;
+        role: string | null;
+        sortBy: string | null;
+        limit: number;
+        offset: number;
+      },
+      SubjectCardRow
+    >(
+      entitiesQueries.getSubjectCards,
       {
         searchTerm,
         riskLevels,
@@ -269,19 +307,20 @@ async function getSubjectCardsFallback(
       },
       pool,
     ),
-    (entitiesQueries.countSubjectCards as any).run(
+    runQuery<{ searchTerm: string | null; riskLevels: string[] | null }, { total?: number }>(
+      entitiesQueries.countSubjectCards,
       {
         searchTerm,
         riskLevels,
       },
       pool,
     ),
-    (entitiesQueries.getMaxConnectivity as any).run(undefined, pool),
+    runQuery<undefined, { maxConn?: number }>(entitiesQueries.getMaxConnectivity, undefined, pool),
     buildVipDisplayLookup(),
   ]);
 
   const maxConnectivityCount = Math.max(1, Number(maxConnResult?.[0]?.maxConn || 1));
-  const subjects: SubjectCardListItemDto[] = (rows as any[]).map((row) => {
+  const subjects: SubjectCardListItemDto[] = rows.map((row) => {
     const mentions = Number(row.mentions || 0);
     const mediaCount = Number(row.mediaCount || 0);
     const blackBookCount = Number(row.blackBookCount || 0);
@@ -323,7 +362,7 @@ async function getSubjectCardsFallback(
         driverLabels: drivers,
       },
       topPreview: undefined,
-      ...(row.topPhotoId ? ({ topPhotoId: String(row.topPhotoId) } as any) : {}),
+      ...(row.topPhotoId ? { topPhotoId: String(row.topPhotoId) } : {}),
     };
   });
 
@@ -519,11 +558,15 @@ export const entitiesRepository = {
           `,
           params,
         ),
-        (entitiesQueries.getMaxConnectivity as any).run(undefined, pool),
+        runQuery<undefined, { maxConn?: number }>(
+          entitiesQueries.getMaxConnectivity,
+          undefined,
+          pool,
+        ),
         buildVipDisplayLookup(),
       ]);
 
-      const rawEntities = rawEntitiesResult.rows as any[];
+      const rawEntities = rawEntitiesResult.rows as Array<Record<string, unknown>>;
       const total = Number(countResult.rows[0]?.total || 0);
       const maxConnectivityCount = Number(maxConnResult[0]?.maxConn || 1);
 
@@ -600,7 +643,7 @@ export const entitiesRepository = {
           supplementalParams,
         );
 
-        const byId = new Map<string, any>();
+        const byId = new Map<string, Record<string, unknown>>();
         for (const row of [...rawEntities, ...supplementalResult.rows]) {
           byId.set(String(row.id), row);
         }
@@ -676,10 +719,8 @@ export const entitiesRepository = {
         const entityId = Number(e.id || 0);
         const aggregateStats = aggregateStatsByEntity.get(entityId);
         const mentions = Number(e.mentions || 0);
-        const mediaCount = Number(
-          aggregateStats?.verifiedMedia ?? Number((e as any).mediaCount || 0),
-        );
-        const blackBookCount = Number((e as any).blackBookCount || 0);
+        const mediaCount = Number(aggregateStats?.verifiedMedia ?? Number(e.mediaCount || 0));
+        const blackBookCount = Number(e.blackBookCount || 0);
 
         let ladder: 'L1' | 'L2' | 'L3' | 'NONE' = 'L3';
         if (blackBookCount > 0 || mediaCount > 0) ladder = 'L1';
@@ -710,7 +751,7 @@ export const entitiesRepository = {
             verifiedMedia: mediaCount,
           },
           forensics: {
-            riskLevel: String((e.riskLevel as any) || 'LOW').toUpperCase(),
+            riskLevel: String(e.riskLevel || 'LOW').toUpperCase(),
             evidenceLadder: ladder,
             redFlagObjective: Number(e.redFlagRating || 0),
             redFlagSubjective: Number(e.redFlagRating || 0),
@@ -722,7 +763,7 @@ export const entitiesRepository = {
             driverLabels: drivers.slice(0, 4),
           },
           topPreview: undefined,
-          ...((e as any).topPhotoId ? ({ topPhotoId: String((e as any).topPhotoId) } as any) : {}),
+          ...(e.topPhotoId ? { topPhotoId: String(e.topPhotoId) } : {}),
         };
       });
 
@@ -817,7 +858,7 @@ export const entitiesRepository = {
             },
             driverLabels: mergedDrivers,
           },
-          topPhotoId: (base as any).topPhotoId || (other as any).topPhotoId,
+          topPhotoId: base.topPhotoId || other.topPhotoId,
         };
 
         mergedByNormalizedName.set(norm, merged);
@@ -869,7 +910,7 @@ export const entitiesRepository = {
           if (aMentions !== bMentions) return bMentions - aMentions;
         }
 
-        const vipCmp = Number((b as any).isVip || 0) - Number((a as any).isVip || 0);
+        const vipCmp = Number(b.isVip || 0) - Number(a.isVip || 0);
         if (vipCmp !== 0) return vipCmp;
         return a.name.localeCompare(b.name);
       });
@@ -878,9 +919,13 @@ export const entitiesRepository = {
         subjects: normalizedSubjects,
         total,
       };
-    } catch (error: any) {
-      const message = String(error?.message || '');
-      const isStatementTimeout = error?.code === '57014' || /statement timeout/i.test(message);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const code =
+        typeof error === 'object' && error !== null && 'code' in error
+          ? String((error as { code?: unknown }).code || '')
+          : '';
+      const isStatementTimeout = code === '57014' || /statement timeout/i.test(message);
       if (!isStatementTimeout) throw error;
       return getSubjectCardsFallback(page, limit, filters, sortBy);
     }
@@ -917,18 +962,31 @@ export const entitiesRepository = {
         riskLevel: String(subject.forensics.riskLevel || 'LOW').toUpperCase(),
         redFlagRating: redFlag,
         bio: subject.shortBio || '',
-        topPhotoId: (subject as any).topPhotoId || undefined,
+        topPhotoId: subject.topPhotoId || undefined,
       };
     });
 
     return {
-      entities: normalizedEntities as any,
+      entities: normalizedEntities,
       total: Number(result.total || 0),
     };
   },
 
-  getAllEntities: async (limit: number = 0): Promise<any[]> => {
-    const rows = await (entitiesQueries.getSubjectCards as any).run(
+  getAllEntities: async (limit: number = 0): Promise<Array<Record<string, unknown>>> => {
+    const rows = await runQuery<
+      {
+        searchTerm: null;
+        riskLevels: null;
+        minRedFlag: null;
+        maxRedFlag: null;
+        role: null;
+        sortBy: 'name';
+        limit: number;
+        offset: number;
+      },
+      Record<string, unknown>
+    >(
+      entitiesQueries.getSubjectCards,
       {
         searchTerm: null,
         riskLevels: null,
@@ -946,16 +1004,22 @@ export const entitiesRepository = {
 
   getEntityById: async (id: string | number): Promise<Person | null> => {
     const entityId = Number(id);
-    const rows = await (entitiesQueries.getEntityById as any).run({ id: entityId }, getApiPool());
+    const rows = await runQuery<{ id: number }, Record<string, unknown>>(
+      entitiesQueries.getEntityById,
+      { id: entityId },
+      getApiPool(),
+    );
     const entity = rows[0];
 
     if (!entity) return null;
 
-    const mentions = await (entitiesQueries.getEntityMentions as any).run(
+    const mentions = await runQuery<{ entityId: number; limit: number }, Record<string, unknown>>(
+      entitiesQueries.getEntityMentions,
       { entityId, limit: 100 },
       getApiPool(),
     );
-    const relationships = await (entitiesQueries.getEntityRelationships as any).run(
+    const relationships = await runQuery<{ entityId: number }, Record<string, unknown>>(
+      entitiesQueries.getEntityRelationships,
       { entityId },
       getApiPool(),
     );
@@ -972,39 +1036,48 @@ export const entitiesRepository = {
       redFlagRating: Number(entity.red_flag_rating || 0),
       isVip: Boolean(entity.is_vip),
       wasAgentic: Boolean(entity.was_agentic),
-      fileReferences: mentions.map((m: any) => ({
+      fileReferences: mentions.map((m) => ({
         id: String(m.document_id),
         fileName: m.documentTitle,
         dateCreated: m.documentDate,
       })),
-      significant_passages: mentions.slice(0, 5).map((m: any) => ({
+      significant_passages: mentions.slice(0, 5).map((m) => ({
         passage: m.mention_context || '',
         keyword: m.surface_text || '',
         filename: m.documentTitle || 'Document',
         documentId: String(m.document_id),
       })),
-      relationships: relationships.map((r: any) => ({
+      relationships: relationships.map((r) => ({
         targetId: String(r.target_entity_id),
         targetName: r.targetName,
         targetRole: r.targetRole,
         type: r.relationship_type,
         confidence: Number(r.confidence || 0),
       })),
-    } as any;
+    };
   },
 
-  getEntitySummarySource: async (entityId: number | string, topN: number = 10): Promise<any> => {
+  getEntitySummarySource: async (
+    entityId: number | string,
+    topN: number = 10,
+  ): Promise<Record<string, unknown> | null> => {
     const id = Number(entityId);
-    const rows = await (entitiesQueries.getEntityById as any).run({ id: id }, getApiPool());
+    const rows = await runQuery<{ id: number }, Record<string, unknown>>(
+      entitiesQueries.getEntityById,
+      { id: id },
+      getApiPool(),
+    );
     const entity = rows[0];
 
     if (!entity) return null;
 
-    const relationships = await (entitiesQueries.getEntityRelationships as any).run(
+    const relationships = await runQuery<{ entityId: number }, Record<string, unknown>>(
+      entitiesQueries.getEntityRelationships,
       { entityId: id },
       getApiPool(),
     );
-    const mentions = await (entitiesQueries.getEntityMentions as any).run(
+    const mentions = await runQuery<{ entityId: number; limit: number }, Record<string, unknown>>(
+      entitiesQueries.getEntityMentions,
       { entityId: id, limit: topN },
       getApiPool(),
     );
@@ -1014,13 +1087,13 @@ export const entitiesRepository = {
         ...entity,
         id: String(entity.id),
       },
-      relationships: relationships.slice(0, topN).map((r: any) => ({
+      relationships: relationships.slice(0, topN).map((r) => ({
         targetId: String(r.target_entity_id),
         targetName: r.targetName,
         type: r.relationship_type,
         confidence: Number(r.confidence || 0),
       })),
-      documents: mentions.map((m: any) => ({
+      documents: mentions.map((m) => ({
         id: String(m.document_id),
         title: m.documentTitle,
         date: m.documentDate,
@@ -1028,13 +1101,16 @@ export const entitiesRepository = {
     };
   },
 
-  getEntityDocuments: async (entityId: string): Promise<any[]> => {
+  getEntityDocuments: async (
+    entityId: string,
+  ): Promise<Array<{ id: string; title: unknown; dateCreated: unknown }>> => {
     const id = Number(entityId);
-    const mentions = await (entitiesQueries.getEntityMentions as any).run(
+    const mentions = await runQuery<{ entityId: number; limit: number }, Record<string, unknown>>(
+      entitiesQueries.getEntityMentions,
       { entityId: id, limit: 1000 },
       getApiPool(),
     );
-    return mentions.map((m: any) => ({
+    return mentions.map((m) => ({
       id: String(m.document_id),
       title: m.documentTitle,
       dateCreated: m.documentDate,
@@ -1055,7 +1131,7 @@ export const entitiesRepository = {
     entityId: string,
     page: number = 1,
     limit: number = 50,
-  ): Promise<any[]> => {
+  ): Promise<Array<{ id: string; title: unknown; dateCreated: unknown }>> => {
     const id = Number(entityId);
     const safeLimit = Math.max(1, Math.min(200, limit));
     const safePage = Math.max(1, page);
@@ -1073,7 +1149,7 @@ export const entitiesRepository = {
        LIMIT $2::int OFFSET $3::int`,
       [id, safeLimit, offset],
     );
-    return result.rows.map((m: any) => ({
+    return result.rows.map((m) => ({
       id: String(m.document_id),
       title: m.documentTitle,
       dateCreated: m.documentDate,

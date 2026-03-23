@@ -101,29 +101,35 @@ export class EvidenceChainService {
   /**
    * Build source provenance information
    */
-  private buildSourceProvenance(document: any): EvidenceChain['sourceProvenance'] {
+  private buildSourceProvenance(
+    document: Record<string, unknown>,
+  ): EvidenceChain['sourceProvenance'] {
     return {
-      originalPath: document.file_path || document.fileName || 'unknown',
-      importDate: new Date(document.created_at || Date.now()),
-      importSource: document.source || 'archive',
+      originalPath: String(document.file_path || document.fileName || 'unknown'),
+      importDate: new Date((document.created_at as string | number | undefined) ?? Date.now()),
+      importSource: String(document.source || 'archive'),
       importMethod: this.determineImportMethod(document),
       sourceReliability: this.assessSourceReliability(document),
-      sourceDescription: document.description || 'Document from Epstein Archive',
-      chainOfCustodyDocuments: document.custody_documents || [],
+      sourceDescription: String(document.description || 'Document from Epstein Archive'),
+      chainOfCustodyDocuments: (document.custody_documents as string[]) || [],
     };
   }
 
   /**
    * Determine import method based on document metadata
    */
-  private determineImportMethod(document: any): 'manual' | 'api' | 'scrape' | 'leak' {
-    if (document.source?.includes('leak') || document.source?.includes('whistleblower')) {
+  private determineImportMethod(
+    document: Record<string, unknown>,
+  ): 'manual' | 'api' | 'scrape' | 'leak' {
+    const source = String(document.source || '');
+    const metadata = document.metadata as Record<string, unknown> | undefined;
+    if (source.includes('leak') || source.includes('whistleblower')) {
       return 'leak';
     }
-    if (document.source?.includes('scrape') || document.source?.includes('crawl')) {
+    if (source.includes('scrape') || source.includes('crawl')) {
       return 'scrape';
     }
-    if (document.source?.includes('api') || document.metadata?.api_source) {
+    if (source.includes('api') || metadata?.api_source) {
       return 'api';
     }
     return 'manual';
@@ -132,8 +138,10 @@ export class EvidenceChainService {
   /**
    * Assess source reliability
    */
-  private assessSourceReliability(document: any): 'high' | 'medium' | 'low' | 'unknown' {
-    const source = (document.source || '').toLowerCase();
+  private assessSourceReliability(
+    document: Record<string, unknown>,
+  ): 'high' | 'medium' | 'low' | 'unknown' {
+    const source = String(document.source || '').toLowerCase();
 
     if (source.includes('court') || source.includes('government') || source.includes('official')) {
       return 'high';
@@ -147,7 +155,7 @@ export class EvidenceChainService {
     return 'unknown';
   }
 
-  private scoreSourceReliability(document: any): number {
+  private scoreSourceReliability(document: Record<string, unknown>): number {
     const reliability = this.assessSourceReliability(document);
     switch (reliability) {
       case 'high':

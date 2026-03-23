@@ -1,0 +1,71 @@
+name: Production Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: epstein-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://epstein.academy
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: epstein_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run database migrations
+        run: pnpm db:migrate:pg
+        env:
+          DATABASE_URL: postgres://postgres:password@localhost:5432/epstein_test
+
+      - name: Run Unified Quality Gate
+        run: ./scripts/quality_gate.sh
+        env:
+          DATABASE_URL: postgres://postgres:password@localhost:5432/epstein_test
+
+      - name: Configure SSH key
+        shell: bash
+        env:
+          PROD_SSH_PRIVATE_KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          install -m 700 -d "$HOME/.ssh"
+          printf '%s\n' "$PROD_SSH_PRIVATE_KEY" > "$HOME/.ssh/id_epstein_prod_ed25519"
+          chmod 600 "$HOME/.ssh/id_epstein_prod_ed25519"
+          ssh-keyscan -H "${{ secrets.PROD_HOST || '194.195.248.217' }}" >> "$HOME/.ssh/known_hosts"
+
+      - name: Deploy to production
+        env:
+          EPSTEIN_PROD_HOST: ${{ secrets.PROD_HOST || '194.195.248.217' }}
+          EPSTEIN_PROD_SSH_USER: ${{ secrets.PROD_USER || 'svc_epstein' }}
+        run: ./deploy.sh

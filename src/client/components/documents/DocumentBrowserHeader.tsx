@@ -17,7 +17,7 @@ interface DocumentBrowserHeaderProps {
   selectedTranche: string;
   applyTrancheFilter: (value: string) => void;
   sortBy: string;
-  setSortBy: (value: any) => void;
+  setSortBy: (value: 'relevance' | 'date' | 'red_flag' | 'fileType' | 'size') => void;
   sortOrder: 'asc' | 'desc';
   setSortOrder: (value: 'asc' | 'desc') => void;
   itemsPerPage: number;
@@ -124,7 +124,9 @@ export const DocumentBrowserHeader: React.FC<DocumentBrowserHeaderProps> = ({
           </select>
           <select
             value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
+            onChange={(e) =>
+              setSortBy(e.target.value as 'relevance' | 'date' | 'red_flag' | 'fileType' | 'size')
+            }
             className="control h-11 px-3 text-sm leading-none bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-md)]"
             aria-label="Sort field"
           >

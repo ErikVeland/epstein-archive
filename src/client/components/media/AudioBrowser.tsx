@@ -24,7 +24,7 @@ interface AudioItem {
     duration?: number;
     transcript?: TranscriptSegment[];
     chapters?: Chapter[];
-    [key: string]: any;
+    [key: string]: unknown;
   };
   createdAt: string;
   entityName?: string;
@@ -39,6 +39,23 @@ interface Album {
   description?: string;
   itemCount: number;
   sensitiveCount?: number;
+}
+
+interface InvestigationEvidenceItem {
+  relevance?: string;
+  [key: string]: unknown;
+}
+
+interface InvestigationSummary {
+  totalEvidence: number;
+  evidence?: InvestigationEvidenceItem[];
+  [key: string]: unknown;
+}
+
+interface InvestigationListItem {
+  id: number;
+  title: string;
+  [key: string]: unknown;
 }
 
 interface AudioBrowserProps {
@@ -69,9 +86,11 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
   const [selectedItem, setSelectedItem] = useState<AudioItem | null>(null);
   // const [showAlbumDropdown, setShowAlbumDropdown] = useState(false);
   const [investigationId, setInvestigationId] = useState<number | null>(null);
-  const [investigationSummary, setInvestigationSummary] = useState<any | null>(null);
+  const [investigationSummary, setInvestigationSummary] = useState<InvestigationSummary | null>(
+    null,
+  );
   const [pickerOpenId, setPickerOpenId] = useState<number | null>(null);
-  const [investigationsList, setInvestigationsList] = useState<any[]>([]);
+  const [investigationsList, setInvestigationsList] = useState<InvestigationListItem[]>([]);
   const [addingId, setAddingId] = useState<number | null>(null);
 
   // Transcript search (within album or across all audio)
@@ -170,7 +189,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
           const inv = await resp.json();
           setInvestigationId(inv.id);
           const summary = await apiClient.getInvestigationEvidenceSummary(String(inv.id));
-          setInvestigationSummary(summary);
+          setInvestigationSummary(summary as InvestigationSummary);
         }
       } catch {
         void 0;
@@ -291,7 +310,10 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
               const isSascha =
                 item.title.includes('Sascha') ||
                 (item.albumName && item.albumName.includes('Sascha'));
-              const thumb = item.metadata?.thumbnailPath || null;
+              const thumb =
+                typeof item.metadata?.thumbnailPath === 'string'
+                  ? item.metadata.thumbnailPath
+                  : null;
               const displayImage = thumb
                 ? `/api/static?path=${encodeURIComponent(thumb)}`
                 : isSascha
@@ -365,7 +387,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                             <option value={investigationId || ''}>
                               {investigationId ? 'Sascha Barros Testimony' : 'Default'}
                             </option>
-                            {investigationsList.map((inv: any) => (
+                            {investigationsList.map((inv) => (
                               <option key={inv.id} value={inv.id}>
                                 {inv.title}
                               </option>
@@ -438,7 +460,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
 
                     <div className="flex flex-wrap gap-1 mb-2">
                       {item.tags &&
-                        item.tags.map((t: any) => (
+                        item.tags.map((t) => (
                           <span
                             key={t.id}
                             className="text-[10px] bg-[var(--glass-bg)] text-[var(--accent)] px-1.5 py-0.5 rounded-full"
@@ -447,7 +469,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                           </span>
                         ))}
                       {item.people &&
-                        item.people.map((p: any) => (
+                        item.people.map((p) => (
                           <span
                             key={p.id}
                             className="text-[10px] bg-[var(--glass-bg)] text-amber-400 px-1.5 py-0.5 rounded-full"
@@ -615,7 +637,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                 <span>
                   High{' '}
                   {
-                    (investigationSummary.evidence || []).filter((e: any) => e.relevance === 'high')
+                    (investigationSummary.evidence || []).filter((e) => e.relevance === 'high')
                       .length
                   }
                 </span>
@@ -625,9 +647,8 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                 <span>
                   Medium{' '}
                   {
-                    (investigationSummary.evidence || []).filter(
-                      (e: any) => e.relevance === 'medium',
-                    ).length
+                    (investigationSummary.evidence || []).filter((e) => e.relevance === 'medium')
+                      .length
                   }
                 </span>
               </div>
@@ -636,7 +657,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                 <span>
                   Low{' '}
                   {
-                    (investigationSummary.evidence || []).filter((e: any) => e.relevance === 'low')
+                    (investigationSummary.evidence || []).filter((e) => e.relevance === 'low')
                       .length
                   }
                 </span>
@@ -763,18 +784,19 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                   width="100%"
                   overscanCount={2}
                   className="scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent"
-                  innerElementType={React.forwardRef<HTMLDivElement, any>(
-                    ({ style, ...rest }, ref) => (
-                      <div
-                        ref={ref}
-                        style={{
-                          ...style,
-                          height: `${parseFloat(style.height) + 48}px`, // +24px top, +24px bottom
-                        }}
-                        {...rest}
-                      />
-                    ),
-                  )}
+                  innerElementType={React.forwardRef<
+                    HTMLDivElement,
+                    React.HTMLAttributes<HTMLDivElement>
+                  >(({ style, ...rest }, ref) => (
+                    <div
+                      ref={ref}
+                      style={{
+                        ...style,
+                        height: `${parseFloat(String(style?.height ?? '0')) + 48}px`, // +24px top, +24px bottom
+                      }}
+                      {...rest}
+                    />
+                  ))}
                   onScroll={({ scrollOffset, scrollUpdateWasRequested }) => {
                     if (scrollUpdateWasRequested) return;
                     const containerHeight = containerRef.current?.clientHeight || 600;

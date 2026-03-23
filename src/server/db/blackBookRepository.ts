@@ -80,7 +80,7 @@ export const blackBookRepository = {
       getApiPool(),
     );
 
-    const filteredEntries = entries.filter((e: any) => {
+    const filteredEntries = entries.filter((e: Record<string, unknown>) => {
       const emails = parseArrayValue(e.emailAddresses);
       const addresses = parseArrayValue(e.addresses);
 
@@ -113,14 +113,15 @@ export const blackBookRepository = {
         for (const row of thumbRes.rows) {
           thumbnailsByName.set(row.name, row.crop_path);
         }
-      } catch (error: any) {
+      } catch (error) {
         // Face thumbnail enrichment is optional; never fail the Black Book response on this step.
-        logger.warn('[BlackBook] Thumbnail enrichment skipped:', error?.message || error);
+        const message = error instanceof Error ? error.message : String(error);
+        logger.warn('[BlackBook] Thumbnail enrichment skipped:', message);
       }
     }
 
     return correctEntries(
-      filteredEntries.map((e: any) => ({
+      filteredEntries.map((e: Record<string, unknown>) => ({
         ...e,
         id: Number(e.id),
         personId: e.personId ? Number(e.personId) : null,

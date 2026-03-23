@@ -10,13 +10,12 @@ import {
   Scale,
   ScrollText,
 } from 'lucide-react';
-import { Document } from '../../types/documents';
 import { DocumentAnnotationSystem } from './DocumentAnnotationSystem';
 import { prettifyOCRText } from '../../utils/prettifyOCR';
 import DOMPurify from 'isomorphic-dompurify';
 
 interface DocumentContentRendererProps {
-  document: Document | any; // Accept any for flexibility with legacy types
+  document: Record<string, any>;
   searchTerm?: string;
   showRaw?: boolean;
 }
@@ -26,13 +25,13 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
   searchTerm,
   showRaw = false,
 }) => {
-  const getEntityName = (entity: any): string =>
+  const getEntityName = (entity: Record<string, unknown>): string =>
     String(entity?.fullName || entity?.name || '').trim();
 
   const [showAnnotations, setShowAnnotations] = useState(false);
   // Optimize entity lookup map
-  const [entityMap, setEntityMap] = useState<Map<string, any>>(new Map());
-  const [entities, setEntities] = useState<any[]>([]);
+  const [entityMap, setEntityMap] = useState<Map<string, Record<string, unknown>>>(new Map());
+  const [entities, setEntities] = useState<Array<Record<string, unknown>>>([]);
   const [entityRegexes, setEntityRegexes] = useState<RegExp[]>([]);
   const [showUnredactedHighlights, setShowUnredactedHighlights] = useState(true);
 
@@ -952,7 +951,7 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
 
               return found.map((e) => (
                 <span
-                  key={e.id}
+                  key={String(e.id)}
                   className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-900/30 text-blue-200 border border-[var(--accent)]/30 cursor-pointer hover:bg-blue-800 transition-colors"
                   onClick={(evt) => {
                     evt.preventDefault();
@@ -964,8 +963,10 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
                   }}
                 >
                   {getEntityName(e)}
-                  {e.entityType && (
-                    <span className="ml-1.5 opacity-50 text-[10px] uppercase">{e.entityType}</span>
+                  {Boolean(e.entityType) && (
+                    <span className="ml-1.5 opacity-50 text-[10px] uppercase">
+                      {String(e.entityType)}
+                    </span>
                   )}
                 </span>
               ));

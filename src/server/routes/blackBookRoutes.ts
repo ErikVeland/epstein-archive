@@ -17,17 +17,19 @@ function parseJsonArray(value: unknown): string[] {
 
 router.get('/', async (req, res, next) => {
   try {
-    const letter = String((req.query as any).letter || 'ALL').trim();
-    const search = String((req.query as any).search || '').trim() || undefined;
-    const hasPhone = String((req.query as any).hasPhone || '').toLowerCase() === 'true';
-    const hasEmail = String((req.query as any).hasEmail || '').toLowerCase() === 'true';
-    const hasAddress = String((req.query as any).hasAddress || '').toLowerCase() === 'true';
-    const category = String((req.query as any).category || '').trim() as
-      | 'original'
-      | 'contact'
-      | 'credential'
-      | '';
-    const limit = Math.min(10000, Math.max(1, Number((req.query as any).limit || 1000)));
+    const q = req.query as Record<string, string | undefined>;
+    const letter = String(q.letter || 'ALL').trim();
+    const search = String(q.search || '').trim() || undefined;
+    const hasPhone = String(q.hasPhone || '').toLowerCase() === 'true';
+    const hasEmail = String(q.hasEmail || '').toLowerCase() === 'true';
+    const hasAddress = String(q.hasAddress || '').toLowerCase() === 'true';
+    const rawCategory = String(q.category || '').trim();
+    const category = (
+      rawCategory === 'original' || rawCategory === 'contact' || rawCategory === 'credential'
+        ? rawCategory
+        : ''
+    ) as 'original' | 'contact' | 'credential' | '';
+    const limit = Math.min(10000, Math.max(1, Number(q.limit || 1000)));
 
     const rows = await blackBookRepository.getBlackBookEntries({
       letter,
@@ -39,20 +41,37 @@ router.get('/', async (req, res, next) => {
       limit,
     });
 
-    const data = rows.map((entry: any) => ({
-      id: Number(entry.id),
-      person_id: entry.personId ? Number(entry.personId) : null,
-      entry_text: String(entry.entryText || ''),
-      phone_numbers: parseJsonArray(entry.phoneNumbers),
-      addresses: parseJsonArray(entry.addresses),
-      email_addresses: parseJsonArray(entry.emailAddresses),
-      notes: String(entry.notes || ''),
-      page_number: entry.pageNumber ?? null,
-      document_id: entry.documentId ? Number(entry.documentId) : null,
-      entry_category: entry.entryCategory || 'original',
-      person_name: entry.displayName || null,
-      thumbnail_path: entry.thumbnailPath || null,
-    }));
+    type BlackBookEntry = {
+      id: number;
+      personId: number | null;
+      entryText: string | null;
+      phoneNumbers: unknown;
+      addresses: unknown;
+      emailAddresses: unknown;
+      notes: string | null;
+      pageNumber: number | null;
+      documentId: number | null;
+      entryCategory: string | null;
+      displayName: string | null;
+      thumbnailPath: string | null | undefined;
+    };
+    const data = rows.map((entry) => {
+      const blackBookEntry = entry as Partial<BlackBookEntry>;
+      return {
+        id: Number(blackBookEntry.id || 0),
+        person_id: blackBookEntry.personId ? Number(blackBookEntry.personId) : null,
+        entry_text: String(blackBookEntry.entryText || ''),
+        phone_numbers: parseJsonArray(blackBookEntry.phoneNumbers),
+        addresses: parseJsonArray(blackBookEntry.addresses),
+        email_addresses: parseJsonArray(blackBookEntry.emailAddresses),
+        notes: String(blackBookEntry.notes || ''),
+        page_number: blackBookEntry.pageNumber ?? null,
+        document_id: blackBookEntry.documentId ? Number(blackBookEntry.documentId) : null,
+        entry_category: blackBookEntry.entryCategory || 'original',
+        person_name: blackBookEntry.displayName || null,
+        thumbnail_path: blackBookEntry.thumbnailPath || null,
+      };
+    });
 
     res.json({
       data,
@@ -82,8 +101,9 @@ router.post('/review/:id', authenticateRequest, async (req, res, next) => {
   try {
     const id = Number(req.params.id);
     if (!Number.isFinite(id)) return res.status(400).json({ error: 'Invalid entry id' });
-    const correctedName = String((req.body as any)?.correctedName || '').trim();
-    const action = String((req.body as any)?.action || '').trim() as 'approve' | 'skip' | 'delete';
+    const body = req.body as Record<string, unknown>;
+    const correctedName = String(body?.correctedName || '').trim();
+    const action = String(body?.action || '').trim() as 'approve' | 'skip' | 'delete';
     if (!['approve', 'skip', 'delete'].includes(action)) {
       return res.status(400).json({ error: 'Invalid action' });
     }

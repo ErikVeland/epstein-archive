@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import DOMPurify from 'isomorphic-dompurify';
 import { useLocation } from 'react-router-dom';
 import { optimizedDataService } from '../services/OptimizedDataService';
+import type { SearchFilters } from '../services/optimizedDataLoader';
 import { Person } from '../types';
 import { useNavigation } from '../services/NavigationContext';
 import { RedFlagIndex } from './visualizations/RedFlagIndex';
@@ -63,7 +64,7 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
       setLoadingProgress('Preparing search filters...');
       setLoadingProgressValue(30);
       // Build filters object
-      const filters: any = {
+      const filters: SearchFilters = {
         searchTerm: searchTerm || undefined,
         minRedFlagIndex: minRedFlagRating,
         maxRedFlagIndex: maxRedFlagRating,
@@ -71,7 +72,7 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
 
       // Add likelihood filter if not ALL
       if (selectedRiskLevel !== 'ALL') {
-        filters.likelihoodScore = [selectedRiskLevel];
+        filters.likelihoodScore = [selectedRiskLevel as 'HIGH' | 'MEDIUM' | 'LOW'];
       }
 
       // Add evidence type filter if not ALL
@@ -84,7 +85,7 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
         filters.sortBy = 'red_flag';
         filters.sortOrder = 'desc';
       } else if (sortBy === 'redflag_asc') {
-        filters.sortBy = 'spice';
+        filters.sortBy = 'red_flag';
         filters.sortOrder = 'asc';
       } else if (sortBy === 'mentions') {
         filters.sortBy = 'mentions';
@@ -211,7 +212,7 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
     });
   };
 
-  const setSortByWithUndo = (value: any) => {
+  const setSortByWithUndo = (value: typeof sortBy) => {
     const previousValue = sortBy;
     setSortBy(value);
 
@@ -237,7 +238,7 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
         const r = await fetch(`/api/search?q=${encodeURIComponent(q)}&limit=8&snippets=true`);
         const json = await r.json();
         const docs = Array.isArray(json.documents)
-          ? json.documents.map((d: any) => ({
+          ? json.documents.map((d: Record<string, unknown>) => ({
               id: d.id,
               title: d.title,
               redFlagRating: d.redFlagRating || 0,
@@ -539,7 +540,7 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
                 <select
                   id="sort-by"
                   value={sortBy}
-                  onChange={(e) => setSortByWithUndo(e.target.value as any)}
+                  onChange={(e) => setSortByWithUndo(e.target.value as typeof sortBy)}
                   disabled={loading}
                   aria-describedby="sort-by-description"
                   className="w-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] px-3 h-10 text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] disabled:opacity-50 form-select"

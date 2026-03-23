@@ -43,24 +43,14 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
-      - name: Type Check
-        run: pnpm type-check
-
-      - name: Lint
-        run: pnpm lint
-
-      - name: Seed Conflict Policy
-        run: pnpm check:seed-conflict-policy
-
-      - name: Design Token Guard
-        run: pnpm check:design-tokens
-
-      - name: Run Unit Tests
-        run: pnpm test:unit
+      - name: Run database migrations
+        run: pnpm db:migrate:pg
         env:
           DATABASE_URL: postgres://postgres:password@localhost:5432/epstein_test
 
-      - name: Build
-        run: pnpm build
+      - name: Run Unified Quality Gate
+        run: ./scripts/quality_gate.sh
+        env:
+          DATABASE_URL: postgres://postgres:password@localhost:5432/epstein_test

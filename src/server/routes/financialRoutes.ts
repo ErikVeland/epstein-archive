@@ -20,7 +20,8 @@ router.get(
   validate(transactionsSchema),
   async (req, res, next) => {
     try {
-      const { limit } = req.query as any;
+      type TransQuery = z.infer<typeof transactionsSchema>['query'];
+      const { limit } = req.query as unknown as TransQuery;
       const transactions = await financialRepository.getTransactions(limit);
       res.json(transactions);
     } catch (error) {

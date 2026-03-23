@@ -57,7 +57,7 @@ export const PeopleSelector: React.FC<PeopleSelectorProps> = ({
       try {
         const res = await fetch(`/api/entities?search=${encodeURIComponent(searchTerm)}&limit=10`);
         const data = await res.json();
-        const people = (data.data || data).map((e: any) => ({
+        const people = (data.data || data).map((e: Record<string, unknown>) => ({
           id: e.id,
           name: e.fullName || e.name,
           role: e.primaryRole || e.role || 'Unknown',

@@ -5,12 +5,12 @@ import { DOJ_TRANCHE_OPTIONS } from './documentTrancheOptions';
 
 interface DocumentBrowserFiltersProps {
   localFilters: BrowseFilters;
-  handleFilterChange: (key: keyof BrowseFilters, value: any) => void;
+  handleFilterChange: (key: keyof BrowseFilters, value: BrowseFilters[keyof BrowseFilters]) => void;
   handleRedFlagLevelChange: (min: number, max: number) => void;
   selectedTranche: string;
   fileTypeOptions: Array<{ value: string; label: string }>;
   sourceOptions: Array<{ value: string; label: string }>;
-  availableCollections: any[];
+  availableCollections: Array<{ id: string; name: string }>;
   hideLowCredibility: boolean;
   setHideLowCredibility: (value: boolean) => void;
   handleFileTypeToggle: (fileType: string) => void;

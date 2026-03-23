@@ -104,6 +104,9 @@ router.put(
       const { id } = req.params;
       const { username, email, role, password } = req.body;
       const currentUser = req.user;
+      if (!currentUser) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
 
       if (currentUser.role !== 'admin' && currentUser.id !== id) {
         return res.status(403).json({ error: 'Forbidden' });

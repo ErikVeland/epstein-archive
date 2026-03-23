@@ -68,8 +68,14 @@ export const PatternRecognitionAI: React.FC<PatternRecognitionAIProps> = ({
           const relRes = await fetch(
             `/api/relationships?entityId=${primary.id}&includeBreakdown=true&minConfidence=0.3`,
           );
-          const relJson = await relRes.json().catch(() => ({}));
-          const rels: any[] = Array.isArray(relJson?.relationships) ? relJson.relationships : [];
+          const relJson = (await relRes.json().catch(() => ({}))) as {
+            relationships?: Array<{
+              proximity_score?: number;
+              target_name?: string;
+              target_id?: string;
+            }>;
+          };
+          const rels = Array.isArray(relJson?.relationships) ? relJson.relationships : [];
 
           if (rels.length > 0) {
             const highProximity = rels.filter((r) => (r.proximity_score || 0) >= 0.6);
@@ -114,16 +120,26 @@ export const PatternRecognitionAI: React.FC<PatternRecognitionAIProps> = ({
       setAnalysisProgress(65);
 
       // 3) Temporal and financial patterns from real transactions
-      const totalAmount = transactions.reduce(
-        (sum: number, t: any) => sum + (Number(t.amount) || 0),
+      interface Transaction {
+        amount?: number | string;
+        risk_level?: string;
+        date?: string;
+        id?: string;
+        tx_id?: string;
+        from_entity?: string;
+        to_entity?: string;
+      }
+      const typedTransactions = transactions as Transaction[];
+      const totalAmount = typedTransactions.reduce(
+        (sum: number, t: Transaction) => sum + (Number(t.amount) || 0),
         0,
       );
-      const highRiskTx = transactions.filter((t: any) =>
+      const highRiskTx = typedTransactions.filter((t: Transaction) =>
         ['high', 'critical'].includes(String(t.risk_level || '').toLowerCase()),
       );
 
       const byMonth = new Map<string, number>();
-      for (const tx of transactions) {
+      for (const tx of typedTransactions) {
         const d = tx.date ? new Date(tx.date) : null;
         if (!d || Number.isNaN(d.getTime())) continue;
         const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
@@ -160,12 +176,14 @@ export const PatternRecognitionAI: React.FC<PatternRecognitionAIProps> = ({
                 : highRiskTx.length > 0
                   ? 'medium'
                   : 'low',
-          evidenceIds: highRiskTx.slice(0, 50).map((t: any) => String(t.id || t.tx_id || '')),
+          evidenceIds: highRiskTx
+            .slice(0, 50)
+            .map((t: Transaction) => String(t.id || t.tx_id || '')),
           timelineEventIds: [],
           entities: Array.from(
             new Set(
               highRiskTx
-                .map((t: any) => [t.from_entity, t.to_entity])
+                .map((t: Transaction) => [t.from_entity, t.to_entity])
                 .flat()
                 .filter(Boolean)
                 .map(String),

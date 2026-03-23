@@ -7,9 +7,11 @@ import { PerformanceMonitor } from '../../../../utils/performanceMonitor';
 const PAGE_SIZE = 120;
 const ensureArray = <T>(value: unknown): T[] => (Array.isArray(value) ? (value as T[]) : []);
 
+type RequestIdleCallbackFn = (cb: () => void, opts?: { timeout: number }) => number;
+
 const invokeIdle = (cb: () => void) => {
   if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-    (window as any).requestIdleCallback(cb, { timeout: 300 });
+    (window.requestIdleCallback as RequestIdleCallbackFn)(cb, { timeout: 300 });
     return;
   }
   setTimeout(cb, 0);
@@ -27,17 +29,17 @@ export const useInvestigationBoard = (investigationId: string) => {
   const [evidenceOffset, setEvidenceOffset] = useState(0);
 
   const normalizeBoardEvidence = useCallback(
-    (row: any): EvidenceItem => ({
+    (row: Record<string, unknown>): EvidenceItem => ({
       id: String(row.id),
-      title: row.title || 'Untitled evidence',
-      description: row.description || '',
-      type: (row.type || 'document') as EvidenceItem['type'],
+      title: String(row.title || 'Untitled evidence'),
+      description: String(row.description || ''),
+      type: ((row.type as string) || 'document') as EvidenceItem['type'],
       sourceId: String(row.source_id || row.sourceId || row.id || ''),
-      source: row.sourcePath || row.source || '',
-      relevance: (row.relevance || 'medium') as EvidenceItem['relevance'],
+      source: String(row.sourcePath || row.source || ''),
+      relevance: ((row.relevance as string) || 'medium') as EvidenceItem['relevance'],
       credibility: 'verified',
-      extractedAt: new Date(row.extractedAt || Date.now()),
-      extractedBy: row.extractedBy || 'system',
+      extractedAt: new Date((row.extractedAt as string) || Date.now()),
+      extractedBy: String(row.extractedBy || 'system'),
     }),
     [],
   );
@@ -78,15 +80,17 @@ export const useInvestigationBoard = (investigationId: string) => {
         })) as Record<string, unknown>;
         if (!mounted) return;
 
-        const previewEvidence = ensureArray<any>(snapshot?.evidencePreview).map(
+        const previewEvidence = ensureArray<Record<string, unknown>>(snapshot?.evidencePreview).map(
           normalizeBoardEvidence,
         );
-        const previewHypotheses = ensureArray<any>(snapshot?.hypothesesPreview).map((h: any) => ({
+        const previewHypotheses = ensureArray<Record<string, unknown>>(
+          snapshot?.hypothesesPreview,
+        ).map((h) => ({
           id: String(h.id),
           investigationId,
-          title: h.title || 'Untitled hypothesis',
-          description: h.description || '',
-          status: h.status || 'proposed',
+          title: String(h.title || 'Untitled hypothesis'),
+          description: String(h.description || ''),
+          status: String(h.status || 'proposed'),
           evidence: [],
           confidence: Number(h.confidence || 0),
           createdBy: 'system',
@@ -122,16 +126,16 @@ export const useInvestigationBoard = (investigationId: string) => {
 
           if (!mounted) return;
 
-          const fullHypotheses = ensureArray<any>(hypRes).map((h: any) => ({
+          const fullHypotheses = ensureArray<Record<string, unknown>>(hypRes).map((h) => ({
             ...h,
             id: String(h.id),
             investigationId,
             evidence: ensureArray(h.evidence),
             relatedHypotheses: ensureArray(h.relatedHypotheses),
-            createdAt: new Date(h.created_at || Date.now()),
-            createdBy: h.created_by || 'system',
+            createdAt: new Date((h.created_at as string | number) || Date.now()),
+            createdBy: String(h.created_by || 'system'),
             confidence: Number(h.confidence || 0),
-            status: h.status || 'proposed',
+            status: String(h.status || 'proposed'),
           }));
 
           setHypotheses(fullHypotheses as Hypothesis[]);

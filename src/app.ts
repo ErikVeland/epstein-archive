@@ -21,6 +21,7 @@ import {
 import { validateStartup } from './server/utils/startupValidation.js';
 import { runMigrations } from './server/db/migrator.js';
 import { getEntityAndDocumentCounts } from './server/db/routesDb.js';
+import type { SearchFilters, SortOption } from './types.js';
 
 // Route imports
 import authRoutes from './server/auth/routes.js';
@@ -154,7 +155,7 @@ export class App {
         logger,
         autoLogging: {
           ignore: (req) => {
-            const url = (req as any).originalUrl || req.url || '';
+            const url = (req as Request & { originalUrl?: string }).originalUrl || req.url || '';
             return url === '/api/health' || url === '/api/ready' || url.startsWith('/api/health/');
           },
         },
@@ -390,8 +391,8 @@ export class App {
           const countsStart = Date.now();
           counts = await withTimeout(getEntityAndDocumentCounts(), 'core counts');
           countsLatencyMs = Date.now() - countsStart;
-        } catch (countErr: any) {
-          countsError = countErr?.message || 'core counts unavailable';
+        } catch (countErr) {
+          countsError = countErr instanceof Error ? countErr.message : 'core counts unavailable';
         }
 
         const hasMinimumData = counts ? counts.entities > 0 && counts.documents > 0 : true;
@@ -435,12 +436,12 @@ export class App {
           },
           durationMs: Date.now() - startedAt,
         });
-      } catch (error: any) {
+      } catch (error) {
         return res.status(softMode ? 200 : 503).json({
           status: 'down',
           timestamp: new Date().toISOString(),
           checks: {
-            db: { ok: false, error: error?.message || 'unknown' },
+            db: { ok: false, error: error instanceof Error ? error.message : 'unknown' },
             readiness: {
               mode: softMode ? 'strict-core-counts-soft' : 'strict-core-counts',
               timeoutMs,
@@ -482,7 +483,8 @@ export class App {
     // Example input path: "DataSet 6/EFTA00008744.pdf"
     router.get('/resolve/epstein-file', async (req, res, next) => {
       try {
-        const rawPath = String((req.query as any).path || '').trim();
+        const query = req.query as Record<string, unknown>;
+        const rawPath = String(query.path || '').trim();
         if (!rawPath) {
           return res.status(400).json({ error: 'Missing path parameter' });
         }
@@ -614,14 +616,14 @@ export class App {
           purgeCache();
         }
       });
-      return authenticateRequest(req, res, (authErr?: any) => {
+      return authenticateRequest(req, res, (authErr?: unknown) => {
         if (authErr) return next(authErr);
         return requireRole('admin')(req, res, next);
       });
     });
     router.get('/subjects', validate(subjectsQuerySchema), async (req, res, next) => {
       try {
-        const query = req.query as any;
+        const query = req.query as Record<string, unknown>;
         const page = Number(query.page || 1);
         const limit = Number(query.limit || 24);
         const likelihoodRaw = query.likelihoodScore;
@@ -631,27 +633,25 @@ export class App {
             ? [likelihoodRaw]
             : undefined;
 
-        const result = await entitiesRepository.getSubjectCards(
-          page,
-          limit,
-          {
-            searchTerm: query.search,
-            role: query.role,
-            entityType: query.entityType,
-            likelihoodScore,
-            sortOrder: String(query.sortOrder || 'desc').toLowerCase() === 'asc' ? 'asc' : 'desc',
-          } as any,
-          (query.sortBy as any) || 'risk',
-        );
+        const filters: SearchFilters = {
+          searchTerm: typeof query.search === 'string' ? query.search : undefined,
+          role: typeof query.role === 'string' ? query.role : undefined,
+          entityType: typeof query.entityType === 'string' ? query.entityType : undefined,
+          likelihoodScore,
+          sortOrder: String(query.sortOrder || 'desc').toLowerCase() === 'asc' ? 'asc' : 'desc',
+        };
+        const sortBy: SortOption =
+          typeof query.sortBy === 'string' ? (query.sortBy as SortOption) : 'risk';
+        const result = await entitiesRepository.getSubjectCards(page, limit, filters, sortBy);
 
-        res.json(mapSubjectsListResponseDto(result));
+        res.json(mapSubjectsListResponseDto(result as unknown as Record<string, unknown>));
       } catch (error) {
         next(error);
       }
     });
     router.get('/entities', async (req, res, next) => {
       try {
-        const query = req.query as any;
+        const query = req.query as Record<string, unknown>;
         const page = Math.max(1, Number(query.page || 1));
         const limit = Math.min(500, Math.max(1, Number(query.limit || 24)));
         const sortByRaw = String(query.sortBy || 'risk').toLowerCase();
@@ -665,20 +665,21 @@ export class App {
             ? [likelihoodRaw]
             : undefined;
 
+        const filters: SearchFilters = {
+          searchTerm: typeof query.search === 'string' ? query.search : undefined,
+          role: typeof query.role === 'string' ? query.role : undefined,
+          likelihoodScore,
+          minRedFlagIndex:
+            query.minRedFlagIndex !== undefined ? Number(query.minRedFlagIndex) : undefined,
+          maxRedFlagIndex:
+            query.maxRedFlagIndex !== undefined ? Number(query.maxRedFlagIndex) : undefined,
+          entityType: typeof query.type === 'string' ? query.type : undefined,
+        };
         const result = await entitiesRepository.getEntities(
           page,
           limit,
-          {
-            searchTerm: query.search,
-            role: query.role,
-            likelihoodScore,
-            minRedFlagIndex:
-              query.minRedFlagIndex !== undefined ? Number(query.minRedFlagIndex) : undefined,
-            maxRedFlagIndex:
-              query.maxRedFlagIndex !== undefined ? Number(query.maxRedFlagIndex) : undefined,
-            entityType: query.type,
-          } as any,
-          sortBy as any,
+          filters,
+          sortBy as SortOption,
         );
 
         res.json(
@@ -696,7 +697,8 @@ export class App {
     });
     router.get('/entities/all', async (req, res, next) => {
       try {
-        const requestedLimit = Number((req.query as any).limit || 1000);
+        const query = req.query as Record<string, unknown>;
+        const requestedLimit = Number(query.limit || 1000);
         const limit = Math.min(5000, Math.max(1, requestedLimit));
         const entities = await entitiesRepository.getAllEntities(limit);
         res.json(entities);
@@ -706,12 +708,13 @@ export class App {
     });
     router.get('/entities/search', async (req, res, next) => {
       try {
-        const q = String((req.query as any).q || '').trim();
-        const limit = Math.min(100, Math.max(1, Number((req.query as any).limit || 20)));
+        const query = req.query as Record<string, unknown>;
+        const q = String(query.q || '').trim();
+        const limit = Math.min(100, Math.max(1, Number(query.limit || 20)));
         const result = await entitiesRepository.getEntities(
           1,
           limit,
-          q ? ({ searchTerm: q } as any) : undefined,
+          q ? ({ searchTerm: q } as SearchFilters) : undefined,
           'relevance',
         );
         res.json({ results: result.entities });
@@ -723,7 +726,7 @@ export class App {
       try {
         const entity = await entitiesRepository.getEntityById(req.params.id);
         if (!entity) return res.status(404).json({ error: 'Entity not found' });
-        return res.json(mapEntityDetailDto(entity));
+        return res.json(mapEntityDetailDto(entity as unknown as Record<string, unknown>));
       } catch (error) {
         next(error);
       }

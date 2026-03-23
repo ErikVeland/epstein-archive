@@ -24,8 +24,8 @@ function normalizeList(raw: unknown): string[] {
 }
 
 // Helper to map DB row to EmailDTO
-function mapRowToEmailDTO(row: any): EmailDTO {
-  let metadata: any = {};
+function mapRowToEmailDTO(row: Record<string, unknown>): EmailDTO {
+  let metadata: Record<string, unknown> = {};
   try {
     metadata =
       typeof row.metadataJson === 'string' ? JSON.parse(row.metadataJson) : row.metadataJson || {};
@@ -161,7 +161,10 @@ export const communicationsRepository = {
     }));
   },
 
-  async getCommunicationsForEntity(entityId: string, _filters: any): Promise<EmailDTO[]> {
+  async getCommunicationsForEntity(
+    entityId: string,
+    _filters: EmailSearchFilters,
+  ): Promise<EmailDTO[]> {
     const rows = await communicationsQueries.getCommunicationsForEntity.run(
       { entityId },
       getApiPool(),
@@ -171,7 +174,7 @@ export const communicationsRepository = {
         ...row,
         metadataJson: row.metadata_json,
         dateCreated: row.date_created,
-      }),
+      } as unknown as Record<string, unknown>),
     );
   },
 };

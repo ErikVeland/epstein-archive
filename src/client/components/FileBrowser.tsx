@@ -62,7 +62,7 @@ const FileBrowser: React.FC = () => {
       const payload = await response.json();
       const rows = Array.isArray(payload?.documents) ? payload.documents : [];
 
-      const mapped: FileItem[] = rows.map((doc: any) => {
+      const mapped: FileItem[] = rows.map((doc: Record<string, unknown>) => {
         const rawType = String(
           doc.evidenceType || doc.evidence_type || doc.fileType || '',
         ).toLowerCase();

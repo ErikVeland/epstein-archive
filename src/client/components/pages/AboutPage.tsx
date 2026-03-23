@@ -26,6 +26,47 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+interface PipelineDataset {
+  name: string;
+  target: number;
+  ingested: number;
+  downloaded: number;
+}
+
+interface SourceStat {
+  title: string;
+  count: number;
+  documentCount?: number;
+  link?: string | null;
+  search?: string | null;
+  impact?: string;
+  impactColor?: string;
+  redactionColor?: string;
+  redactionStatus?: string;
+}
+
+interface PipelineStatus {
+  datasets?: PipelineDataset[];
+  eta_minutes?: number;
+  throughput_docs_sec?: number;
+  active_workers?: number;
+}
+
+const asRecord = (value: unknown): Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+
+const asString = (value: unknown, fallback = ''): string =>
+  typeof value === 'string' ? value : fallback;
+
+const asNumber = (value: unknown, fallback = 0): number =>
+  typeof value === 'number'
+    ? value
+    : typeof value === 'string' && value.trim().length > 0 && Number.isFinite(Number(value))
+      ? Number(value)
+      : fallback;
+
 const faqs = [
   {
     question: 'What is the Epstein Archive?',
@@ -86,8 +127,8 @@ export const AboutPage: React.FC = () => {
     documentsFixed: 0,
   });
 
-  const [documentSources, setDocumentSources] = useState<any[]>([]);
-  const [pipelineStatus, setPipelineStatus] = useState<any | null>(null);
+  const [documentSources, setDocumentSources] = useState<SourceStat[]>([]);
+  const [pipelineStatus, setPipelineStatus] = useState<PipelineStatus | null>(null);
   const [activeFaq, setActiveFaq] = useState(0);
 
   const pipelineOverview = useMemo(() => {
@@ -95,7 +136,7 @@ export const AboutPage: React.FC = () => {
     if (datasets.length === 0) return null;
 
     const totals = datasets.reduce(
-      (acc: { target: number; ingested: number; downloaded: number }, d: any) => {
+      (acc: { target: number; ingested: number; downloaded: number }, d: PipelineDataset) => {
         acc.target += Number(d.target || 0);
         acc.ingested += Number(d.ingested || 0);
         acc.downloaded += Number(d.downloaded || 0);
@@ -123,13 +164,13 @@ export const AboutPage: React.FC = () => {
   }, [pipelineOverview]);
 
   useEffect(() => {
-    const fetchJson = async (url: string) => {
+    const fetchJson = async (url: string): Promise<Record<string, unknown>> => {
       const response = await fetch(url);
       const contentType = response.headers.get('content-type') || '';
       if (!response.ok || !contentType.includes('application/json')) {
         throw new Error(`Failed to fetch ${url}: ${response.status} ${response.statusText}`);
       }
-      return response.json();
+      return asRecord(await response.json());
     };
 
     const fetchData = async () => {
@@ -155,32 +196,45 @@ export const AboutPage: React.FC = () => {
 
         if (statsRes.collectionStats) {
           // Merge with static metadata for links/searches if needed
-          const enhancedStats = statsRes.collectionStats.map((src: any) => {
+          const enhancedStats: SourceStat[] = (
+            Array.isArray(statsRes.collectionStats) ? statsRes.collectionStats : []
+          ).map((src) => {
+            const source = asRecord(src);
             // Manual overrides for known collections to add links/search
-            let link = null;
-            let search = src.title;
+            let link: string | null = null;
+            let search: string | null = asString(source.title);
 
-            if (src.title.includes('Black Book')) {
+            if (asString(source.title).includes('Black Book')) {
               link = '/blackbook';
               search = null;
-            } else if (src.title.includes('Flight Logs')) {
+            } else if (asString(source.title).includes('Flight Logs')) {
               search = 'Flight Log';
             } else if (
-              src.title.includes('Video') ||
-              src.title.includes('Media') ||
-              src.title.includes('Testimony')
+              asString(source.title).includes('Video') ||
+              asString(source.title).includes('Media') ||
+              asString(source.title).includes('Testimony')
             ) {
               link = '/media';
               search = null;
             }
 
-            return { ...src, link, search };
+            return {
+              title: asString(source.title),
+              count: asNumber(source.count, 0),
+              documentCount: asNumber(source.documentCount ?? source.count, 0),
+              impact: asString(source.impact, 'Reference'),
+              impactColor: asString(source.impactColor, 'slate'),
+              redactionColor: asString(source.redactionColor, 'green'),
+              redactionStatus: asString(source.redactionStatus, 'Minimal redactions'),
+              link,
+              search,
+            };
           });
           setDocumentSources(enhancedStats);
         }
 
-        if (statsRes.pipeline_status) {
-          setPipelineStatus(statsRes.pipeline_status);
+        if (statsRes.pipeline_status && typeof statsRes.pipeline_status === 'object') {
+          setPipelineStatus(statsRes.pipeline_status as PipelineStatus);
         }
       } catch (e) {
         console.error('Failed to fetch about page stats', e);
@@ -318,7 +372,7 @@ export const AboutPage: React.FC = () => {
                     {source.title}
                   </h4>
                   <span
-                    className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded text-xs font-bold border ${getImpactColor(source.impactColor)}`}
+                    className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded text-xs font-bold border ${getImpactColor(source.impactColor ?? 'slate')}`}
                   >
                     {source.impact}
                   </span>
@@ -331,9 +385,9 @@ export const AboutPage: React.FC = () => {
                 <div className="flex items-center justify-between pt-3 border-t border-[var(--glass-border)]">
                   <div className="flex items-center gap-2 text-xs">
                     <span
-                      className={`h-1.5 w-1.5 rounded-full ${getStatusColor(source.redactionColor).bg}`}
+                      className={`h-1.5 w-1.5 rounded-full ${getStatusColor(source.redactionColor ?? 'green').bg}`}
                     ></span>
-                    <span className={getStatusColor(source.redactionColor).text}>
+                    <span className={getStatusColor(source.redactionColor ?? 'green').text}>
                       {source.redactionStatus}
                     </span>
                   </div>
@@ -388,16 +442,16 @@ export const AboutPage: React.FC = () => {
                     <td className="py-3 px-4 whitespace-nowrap">
                       <span className="flex items-center gap-2">
                         <span
-                          className={`h-1.5 w-1.5 rounded-full ${getStatusColor(source.redactionColor).bg}`}
+                          className={`h-1.5 w-1.5 rounded-full ${getStatusColor(source.redactionColor ?? 'green').bg}`}
                         ></span>
-                        <span className={getStatusColor(source.redactionColor).text}>
+                        <span className={getStatusColor(source.redactionColor ?? 'green').text}>
                           {source.redactionStatus}
                         </span>
                       </span>
                     </td>
                     <td className="py-3 px-4 whitespace-nowrap">
                       <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${getImpactColor(source.impactColor)}`}
+                        className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${getImpactColor(source.impactColor ?? 'slate')}`}
                       >
                         {source.impact}
                       </span>
@@ -594,7 +648,7 @@ export const AboutPage: React.FC = () => {
               </span>
             </h3>
             <div className="space-y-8">
-              {(pipelineStatus?.datasets || []).map((dataset: any) => {
+              {(pipelineStatus?.datasets || []).map((dataset: PipelineDataset) => {
                 const currentIngested = dataset.ingested;
                 const currentDownloaded = dataset.downloaded;
                 const target = dataset.target;
@@ -664,9 +718,9 @@ export const AboutPage: React.FC = () => {
                       {[1, 2, 3].map((node) => (
                         <div
                           key={node}
-                          className={`h-2 w-2 rounded-full ${node <= pipelineStatus.active_workers ? 'bg-[var(--accent-success)] shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-[var(--glass-bg-highlight)]'}`}
+                          className={`h-2 w-2 rounded-full ${node <= (pipelineStatus.active_workers ?? 0) ? 'bg-[var(--accent-success)] shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-[var(--glass-bg-highlight)]'}`}
                           title={
-                            node <= pipelineStatus.active_workers
+                            node <= (pipelineStatus.active_workers ?? 0)
                               ? `Node ${node} Active`
                               : `Node ${node} Idle`
                           }

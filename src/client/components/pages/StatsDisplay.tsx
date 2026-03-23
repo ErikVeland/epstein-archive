@@ -1,4 +1,5 @@
 import Icon from '../common/Icon';
+import type { IconName } from '../common/Icon';
 import { useCountUp } from '../../hooks/useCountUp';
 import { riskToneFromRating } from '../../utils/riskSemantics';
 
@@ -79,7 +80,7 @@ function RiskStat({
   onClick,
 }: {
   label: string;
-  icon: string;
+  icon: IconName;
   rating: number;
   value: number;
   active?: boolean;
@@ -98,7 +99,7 @@ function RiskStat({
           {label}
         </span>
         <span className={`chip h-6 px-2 flex items-center ${tone.className}`}>
-          <Icon name={icon as any} size="xs" />
+          <Icon name={icon} size="xs" />
         </span>
       </div>
       <div className="data-emphasis text-[var(--text-primary)] tabular-nums">
@@ -111,7 +112,7 @@ function RiskStat({
   );
 }
 
-function MetricStat({ label, icon, value }: { label: string; icon: string; value: number }) {
+function MetricStat({ label, icon, value }: { label: string; icon: IconName; value: number }) {
   return (
     <div className="surface-glass p-3 text-left">
       <div className="flex items-center justify-between mb-2">
@@ -119,7 +120,7 @@ function MetricStat({ label, icon, value }: { label: string; icon: string; value
           {label}
         </span>
         <span className="chip h-6 px-2 flex items-center text-cyan-200 border-cyan-300/25">
-          <Icon name={icon as any} size="xs" />
+          <Icon name={icon} size="xs" />
         </span>
       </div>
       <div className="data-emphasis text-[var(--text-primary)] tabular-nums">

@@ -232,5 +232,6 @@ export const PerformanceMonitor = new PerformanceMonitorClass();
 
 // Expose to window for debugging
 if (typeof window !== 'undefined') {
-  (window as any).PerformanceMonitor = PerformanceMonitor;
+  (window as Window & { PerformanceMonitor?: PerformanceMonitorClass }).PerformanceMonitor =
+    PerformanceMonitor;
 }

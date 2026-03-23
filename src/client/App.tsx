@@ -2015,7 +2015,7 @@ function App() {
 
                     {activeTab === 'analytics' && (
                       <AnalyticsPage
-                        analyticsData={analyticsData}
+                        analyticsData={analyticsData ?? undefined}
                         loading={analyticsLoading}
                         error={analyticsError}
                         onRetry={fetchAnalyticsData}
@@ -2165,7 +2165,10 @@ function App() {
                 <DocumentModal
                   id={documentModalId}
                   searchTerm={selectedDocumentSearchTerm}
-                  initialDoc={documentModalInitial}
+                  initialDoc={
+                    (documentModalInitial as unknown as { [key: string]: unknown } | undefined) ??
+                    undefined
+                  }
                   onClose={() => {
                     setDocumentModalId('');
                     setDocumentModalInitial(null);

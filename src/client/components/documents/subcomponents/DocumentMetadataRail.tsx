@@ -2,15 +2,34 @@ import React from 'react';
 import { Calendar, ChevronDown, FileText, X } from 'lucide-react';
 import { AddToInvestigationButton } from '../../common/AddToInvestigationButton';
 
+interface DocRecord {
+  id?: string | number;
+  title?: string;
+  fileName?: string;
+  description?: string;
+  contentPreview?: string;
+  ingestRunId?: string | null;
+  ingest_run_id?: string | null;
+  metadata?: Record<string, unknown>;
+}
+
+interface EntityRecord {
+  id?: string | number;
+  name?: string;
+  fullName?: string;
+  entityType?: string;
+  [key: string]: unknown;
+}
+
 interface DocumentMetadataRailProps {
-  doc: any;
+  doc: DocRecord;
   id: string;
   activeRailSection: 'metadata' | 'entities' | 'case' | 'timeline';
   expandedEntities: boolean;
   setExpandedEntities: (value: boolean | ((prev: boolean) => boolean)) => void;
-  entities: any[];
-  selectedEntity: any;
-  setSelectedEntity: (value: any) => void;
+  entities: EntityRecord[];
+  selectedEntity: EntityRecord | null;
+  setSelectedEntity: (value: EntityRecord | null) => void;
   caseLinks: string[];
   timelineReferences: string[];
   rightPaneScrollRef: React.RefObject<HTMLDivElement>;
@@ -65,7 +84,7 @@ export const DocumentMetadataRail: React.FC<DocumentMetadataRailProps> = ({
                 Origin Collection
               </span>
               <span className="text-sm text-text-strong font-medium">
-                {doc.metadata?.source_collection || 'Classified / Internal'}
+                {(doc.metadata?.source_collection as string | undefined) || 'Classified / Internal'}
               </span>
             </div>
             <div className="flex flex-col gap-1">

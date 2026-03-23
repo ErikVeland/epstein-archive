@@ -16,7 +16,9 @@ const LEGACY_RESTORE_FILES = [
 const CONFLICT_SUFFIX = 'ON CONFLICT (id) DO NOTHING;';
 
 function parseColumnList(insertLine) {
-  const match = insertLine.match(/INSERT INTO\s+[^\s(]+\s*\(([^)]+)\)\s*OVERRIDING SYSTEM VALUE VALUES/i);
+  const match = insertLine.match(
+    /INSERT INTO\s+[^\s(]+\s*\(([^)]+)\)\s*OVERRIDING SYSTEM VALUE VALUES/i,
+  );
   if (!match) return [];
   return match[1]
     .split(',')

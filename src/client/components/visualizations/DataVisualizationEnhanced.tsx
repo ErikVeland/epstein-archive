@@ -14,11 +14,23 @@ import {
   Area,
   ResponsiveContainer,
   Treemap,
+  type TooltipProps,
 } from 'recharts';
 import { Person } from '../../types';
 
 interface DataVisualizationProps {
   people: Person[];
+}
+
+interface TreemapContentProps {
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+  index?: number;
+  name?: string;
+  size?: number;
+  level?: string;
 }
 
 const COLORS = {
@@ -76,19 +88,23 @@ const AnimatedCounter: React.FC<{
   );
 };
 
-// Custom tooltip with enhanced styling - moved outside component to avoid recreation
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip: React.FC<TooltipProps<number, string>> = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-[var(--glass-bg-strong)]/95 backdrop-blur-sm p-4 rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] border border-[var(--glass-border)]">
-        <p className="text-[var(--text-primary)] font-bold text-lg mb-2">{label}</p>
-        {payload.map((entry: any, index: number) => (
+        <p className="text-[var(--text-primary)] font-bold text-lg mb-2">{String(label ?? '')}</p>
+        {payload.map((entry, index) => (
           <div key={index} className="flex items-center space-x-2 mb-1">
-            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }}></div>
+            <div
+              className="w-3 h-3 rounded-full"
+              style={{ backgroundColor: typeof entry.color === 'string' ? entry.color : undefined }}
+            ></div>
             <span className="text-[var(--text-secondary)]">
-              {entry.name}:{' '}
+              {String(entry.name || 'value')}:{' '}
               <span className="font-bold text-[var(--text-primary)]">
-                {entry.value.toLocaleString()}
+                {typeof entry.value === 'number'
+                  ? entry.value.toLocaleString()
+                  : String(entry.value ?? '')}
               </span>
             </span>
           </div>
@@ -97,6 +113,73 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     );
   }
   return null;
+};
+
+const TreemapCellContent: React.FC<TreemapContentProps> = ({
+  x = 0,
+  y = 0,
+  width = 0,
+  height = 0,
+  index = 0,
+  name = '',
+  size = 0,
+  level = 'LOW',
+}) => {
+  const fontSize = Math.min(width / 8, height / 4, 14);
+  const textColor =
+    level === 'HIGH' ? 'text-red-100' : level === 'MEDIUM' ? 'text-yellow-100' : 'text-green-100';
+
+  return (
+    <g>
+      <defs>
+        <linearGradient id={`gradient-${index}`} x1="0" y1="0" x2="1" y2="1">
+          <stop
+            offset="0%"
+            stopColor={level === 'HIGH' ? '#dc2626' : level === 'MEDIUM' ? '#d97706' : '#059669'}
+          />
+          <stop
+            offset="100%"
+            stopColor={level === 'HIGH' ? '#ef4444' : level === 'MEDIUM' ? '#f59e0b' : '#10b981'}
+          />
+        </linearGradient>
+      </defs>
+      <rect
+        x={x}
+        y={y}
+        width={width}
+        height={height}
+        fill={`url(#gradient-${index})`}
+        stroke="#1f2937"
+        strokeWidth={2}
+        rx={8}
+        className="hover:opacity-80 transition-opacity cursor-pointer"
+      />
+      {width > 60 && height > 40 && (
+        <>
+          <text
+            x={x + width / 2}
+            y={y + height / 2 - fontSize / 2}
+            textAnchor="middle"
+            className={`${textColor} font-bold`}
+            fontSize={fontSize}
+            fill="currentColor"
+          >
+            {name.length > 12 ? `${name.substring(0, 12)}...` : name}
+          </text>
+          <text
+            x={x + width / 2}
+            y={y + height / 2 + fontSize / 2}
+            textAnchor="middle"
+            className={`${textColor}`}
+            fontSize={fontSize * 0.8}
+            fill="currentColor"
+          >
+            {size.toLocaleString()}
+          </text>
+        </>
+      )}
+    </g>
+  );
 };
 
 export const DataVisualization: React.FC<DataVisualizationProps> = ({ people }) => {
@@ -261,7 +344,7 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({ people }) 
                     />
                   ))}
                 </Pie>
-                <Tooltip content={CustomTooltip} />
+                <Tooltip content={<CustomTooltip />} />
                 <Legend
                   verticalAlign="bottom"
                   height={36}
@@ -304,7 +387,7 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({ people }) 
                   interval={0}
                 />
                 <YAxis stroke="#9ca3af" fontSize={12} />
-                <Tooltip content={CustomTooltip} />
+                <Tooltip content={<CustomTooltip />} />
                 <Bar
                   dataKey="count"
                   fill="url(#statusGradient)"
@@ -347,7 +430,7 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({ people }) 
                 fontSize={11}
                 tick={{ fill: '#9ca3af' }}
               />
-              <Tooltip content={CustomTooltip} />
+              <Tooltip content={<CustomTooltip />} />
               <Bar dataKey="mentions" radius={[0, 8, 8, 0]} animationDuration={2500}>
                 {topMentions.map((entry, index) => (
                   <Cell
@@ -417,7 +500,7 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({ people }) 
                 interval={0}
               />
               <YAxis stroke="#9ca3af" fontSize={12} />
-              <Tooltip content={CustomTooltip} />
+              <Tooltip content={<CustomTooltip />} />
               <Area
                 type="monotone"
                 dataKey="count"
@@ -452,7 +535,7 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({ people }) 
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
               <XAxis dataKey="range" stroke="#9ca3af" fontSize={12} />
               <YAxis stroke="#9ca3af" fontSize={12} />
-              <Tooltip content={CustomTooltip} />
+              <Tooltip content={<CustomTooltip />} />
               <Bar
                 dataKey="count"
                 fill="url(#intensityGradient)"
@@ -485,81 +568,7 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({ people }) 
               aspectRatio={4 / 3}
               stroke="#1f2937"
               animationDuration={2000}
-              content={
-                (({ x, y, width, height, index, name, size, level }: any) => {
-                  const fontSize = Math.min(width / 8, height / 4, 14);
-                  const textColor =
-                    level === 'HIGH'
-                      ? 'text-red-100'
-                      : level === 'MEDIUM'
-                        ? 'text-yellow-100'
-                        : 'text-green-100';
-
-                  return (
-                    <g>
-                      <defs>
-                        <linearGradient id={`gradient-${index}`} x1="0" y1="0" x2="1" y2="1">
-                          <stop
-                            offset="0%"
-                            stopColor={
-                              level === 'HIGH'
-                                ? '#dc2626'
-                                : level === 'MEDIUM'
-                                  ? '#d97706'
-                                  : '#059669'
-                            }
-                          />
-                          <stop
-                            offset="100%"
-                            stopColor={
-                              level === 'HIGH'
-                                ? '#ef4444'
-                                : level === 'MEDIUM'
-                                  ? '#f59e0b'
-                                  : '#10b981'
-                            }
-                          />
-                        </linearGradient>
-                      </defs>
-                      <rect
-                        x={x}
-                        y={y}
-                        width={width}
-                        height={height}
-                        fill={`url(#gradient-${index})`}
-                        stroke="#1f2937"
-                        strokeWidth={2}
-                        rx={8}
-                        className="hover:opacity-80 transition-opacity cursor-pointer"
-                      />
-                      {width > 60 && height > 40 && (
-                        <>
-                          <text
-                            x={x + width / 2}
-                            y={y + height / 2 - fontSize / 2}
-                            textAnchor="middle"
-                            className={`${textColor} font-bold`}
-                            fontSize={fontSize}
-                            fill="currentColor"
-                          >
-                            {name.length > 12 ? name.substring(0, 12) + '...' : name}
-                          </text>
-                          <text
-                            x={x + width / 2}
-                            y={y + height / 2 + fontSize / 2}
-                            textAnchor="middle"
-                            className={`${textColor}`}
-                            fontSize={fontSize * 0.8}
-                            fill="currentColor"
-                          >
-                            {size.toLocaleString()}
-                          </text>
-                        </>
-                      )}
-                    </g>
-                  );
-                }) as any
-              }
+              content={<TreemapCellContent />}
             />
           </ResponsiveContainer>
         </div>

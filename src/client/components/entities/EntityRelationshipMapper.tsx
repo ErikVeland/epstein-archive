@@ -8,7 +8,7 @@ export interface Entity {
   id: string;
   type: EntityType;
   label: string;
-  properties: Record<string, any>;
+  properties: Record<string, unknown>;
   confidence: number;
   sources: string[];
   x?: number;
@@ -28,7 +28,7 @@ export interface Relationship {
   strength: number;
   confidence: number;
   evidence: string[];
-  properties: Record<string, any>;
+  properties: Record<string, unknown>;
 }
 
 interface EntityRelationshipMapperProps {
@@ -150,7 +150,7 @@ export const EntityRelationshipMapper: React.FC<EntityRelationshipMapperProps> =
             return false;
           }
 
-          const otherNode = (quad as any).data;
+          const otherNode = (quad as { data?: Entity }).data;
           if (otherNode && otherNode !== node) {
             const dx = node.x! - otherNode.x!;
             const dy = node.y! - otherNode.y!;
@@ -249,24 +249,31 @@ export const EntityRelationshipMapper: React.FC<EntityRelationshipMapperProps> =
       // Update DOM directly for performance
       const svg = d3Selection.select(svgRef.current);
 
-      svg.selectAll('.node-group').attr('transform', (d: any) => `translate(${d.x},${d.y})`);
+      svg.selectAll('.node-group').attr('transform', (d: unknown) => {
+        const node = d as Entity;
+        return `translate(${node.x},${node.y})`;
+      });
 
       svg
         .selectAll('.link')
-        .attr('x1', (d: any) => {
-          const source = nodes.find((n) => n.id === d.from);
+        .attr('x1', (d: unknown) => {
+          const link = d as Relationship;
+          const source = nodes.find((n) => n.id === link.from);
           return source ? source.x : 0;
         })
-        .attr('y1', (d: any) => {
-          const source = nodes.find((n) => n.id === d.from);
+        .attr('y1', (d: unknown) => {
+          const link = d as Relationship;
+          const source = nodes.find((n) => n.id === link.from);
           return source ? source.y : 0;
         })
-        .attr('x2', (d: any) => {
-          const target = nodes.find((n) => n.id === d.to);
+        .attr('x2', (d: unknown) => {
+          const link = d as Relationship;
+          const target = nodes.find((n) => n.id === link.to);
           return target ? target.x : 0;
         })
-        .attr('y2', (d: any) => {
-          const target = nodes.find((n) => n.id === d.to);
+        .attr('y2', (d: unknown) => {
+          const link = d as Relationship;
+          const target = nodes.find((n) => n.id === link.to);
           return target ? target.y : 0;
         });
 
@@ -325,9 +332,9 @@ export const EntityRelationshipMapper: React.FC<EntityRelationshipMapperProps> =
       .append('g')
       .attr('class', 'node-group')
       .attr('cursor', 'pointer')
-      .on('click', (event: any, d: Entity) => {
+      .on('click', (event: MouseEvent, d: unknown) => {
         event.stopPropagation();
-        handleNodeClick(d);
+        handleNodeClick(d as Entity);
       });
 
     // Node Circles

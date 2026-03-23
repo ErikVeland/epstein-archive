@@ -587,8 +587,8 @@ export class DocumentProcessor {
     });
 
     // Add keywords from passages (safely handle undefined)
-    const passages = (document as any).passages || [];
-    passages.forEach((passage: any) => {
+    const passages: Passage[] = document.passages || [];
+    passages.forEach((passage) => {
       if (passage && passage.keywords && Array.isArray(passage.keywords)) {
         terms.push(...passage.keywords);
       }
@@ -670,7 +670,7 @@ export class DocumentProcessor {
   }
 
   // Performance optimization methods
-  private getCacheKey(type: string, params: any): string {
+  private getCacheKey(type: string, params: Record<string, unknown>): string {
     return `${type}:${JSON.stringify(params)}`;
   }
 
@@ -1226,11 +1226,11 @@ export class DocumentProcessor {
   }
 
   getEntityNetwork(entityName: string): {
-    entity: Entity;
+    entity: Entity | null;
     connections: Array<{ entity: Entity; strength: number; sharedDocuments: string[] }>;
   } {
     const entity = this.entities.get(entityName);
-    if (!entity) return { entity: null as any, connections: [] };
+    if (!entity) return { entity: null, connections: [] };
 
     const connections = new Map<
       string,

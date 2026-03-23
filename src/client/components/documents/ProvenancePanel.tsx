@@ -1,7 +1,23 @@
 import React from 'react';
 
+interface ProvenanceDocument {
+  ingest_run_id?: string;
+  ingestRunId?: string;
+  rulesetVersion?: string;
+  ruleset_version?: string;
+  modelId?: string;
+  model_id?: string;
+  recoveryModel?: string;
+  recovery_model?: string;
+  processedAt?: string;
+  updatedAt?: string;
+  dateModified?: string;
+  confidenceBreakdown?: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
+}
+
 interface ProvenancePanelProps {
-  document: any;
+  document: ProvenanceDocument;
 }
 
 const formatTimestamp = (value: string | null | undefined): string => {
@@ -11,7 +27,7 @@ const formatTimestamp = (value: string | null | undefined): string => {
   return parsed.toISOString();
 };
 
-const readFirstString = (candidates: Array<any>): string => {
+const readFirstString = (candidates: Array<unknown>): string => {
   for (const candidate of candidates) {
     if (typeof candidate === 'string' && candidate.trim().length > 0) {
       return candidate.trim();
@@ -20,7 +36,7 @@ const readFirstString = (candidates: Array<any>): string => {
   return 'N/A';
 };
 
-const readConfidence = (document: any) => {
+const readConfidence = (document: ProvenanceDocument) => {
   const metadata = document?.metadata || {};
   const breakdown =
     document?.confidenceBreakdown ||
@@ -42,12 +58,13 @@ const readConfidence = (document: any) => {
     return `${Math.round(value)}%`;
   };
 
+  const b = breakdown as Record<string, unknown>;
   return {
-    coverage: asPct(breakdown.coverage),
-    signal: asPct(breakdown.signalQuality ?? breakdown.signal),
-    corroboration: asPct(breakdown.corroboration),
-    model: asPct(breakdown.modelCertainty ?? breakdown.model),
-    final: asPct(breakdown.final ?? breakdown.score),
+    coverage: asPct(b.coverage),
+    signal: asPct(b.signalQuality ?? b.signal),
+    corroboration: asPct(b.corroboration),
+    model: asPct(b.modelCertainty ?? b.model),
+    final: asPct(b.final ?? b.score),
   };
 };
 

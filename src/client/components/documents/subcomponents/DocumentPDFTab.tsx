@@ -9,7 +9,7 @@ interface DocumentPDFTabProps {
   searchTerm: string;
   openOriginalDocument: () => void;
   isEmail: boolean;
-  metadata: any;
+  metadata: Record<string, any> | null | undefined;
   title: string;
 }
 

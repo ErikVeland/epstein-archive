@@ -38,11 +38,11 @@ export const FilterContext = createContext<FilterContextType | undefined>(undefi
 
 // Helper to serialize state to URL-safe string
 export const serializeFilters = (state: FilterState): string => {
-  const diff: any = {};
+  const diff: Partial<FilterState> = {};
   Object.keys(state).forEach((key) => {
     const k = key as keyof FilterState;
     if (JSON.stringify(state[k]) !== JSON.stringify(defaultState[k])) {
-      diff[k] = state[k];
+      Object.assign(diff, { [k]: state[k] });
     }
   });
   if (Object.keys(diff).length === 0) return '';

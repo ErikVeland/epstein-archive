@@ -42,8 +42,8 @@ router.post('/add-evidence', authenticateRequest, async (req: Request, res: Resp
       relevance,
     );
     res.json({ success: true, ...result });
-  } catch (error: any) {
-    if (error.message === 'Evidence not found') {
+  } catch (error: unknown) {
+    if (error instanceof Error && error.message === 'Evidence not found') {
       return res.status(404).json({ error: 'Evidence not found' });
     }
     logger.error({ err: error }, 'Error adding evidence to investigation');
@@ -64,8 +64,8 @@ router.post('/add-media', authenticateRequest, async (req: Request, res: Respons
       relevance,
     );
     res.json({ success: true, ...result });
-  } catch (error: any) {
-    if (error.message === 'Media not found') {
+  } catch (error: unknown) {
+    if (error instanceof Error && error.message === 'Media not found') {
       return res.status(404).json({ error: 'Media not found' });
     }
     logger.error({ err: error }, 'Error adding media to investigation');
@@ -91,8 +91,8 @@ router.post('/add-snippet', authenticateRequest, async (req: Request, res: Respo
       relevance,
     );
     res.json({ success: true, ...result });
-  } catch (error: any) {
-    if (error.message === 'Document not found') {
+  } catch (error: unknown) {
+    if (error instanceof Error && error.message === 'Document not found') {
       return res.status(404).json({ error: 'Document not found' });
     }
     logger.error({ err: error }, 'Error adding snippet to investigation');

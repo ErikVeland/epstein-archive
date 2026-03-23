@@ -29,7 +29,22 @@ const formatLabel = (type: string): string => {
   return type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
 };
 
-const CustomTooltip = ({ active, payload }: any) => {
+interface SunburstTooltipPayload {
+  payload: {
+    type: string;
+    count: number;
+    redacted?: number;
+    avgRisk?: number;
+  };
+}
+
+const CustomTooltip = ({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: SunburstTooltipPayload[];
+}) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     const redactedPercent =
@@ -47,11 +62,11 @@ const CustomTooltip = ({ active, payload }: any) => {
               {data.count.toLocaleString()}
             </span>
           </div>
-          {data.redacted > 0 && (
+          {(data.redacted ?? 0) > 0 && (
             <div className="flex justify-between gap-4">
               <span className="text-[var(--text-muted)]">Redacted:</span>
               <span className="text-orange-400 font-mono">
-                {data.redacted.toLocaleString()} ({redactedPercent}%)
+                {(data.redacted ?? 0).toLocaleString()} ({redactedPercent}%)
               </span>
             </div>
           )}
@@ -72,7 +87,23 @@ const CustomTooltip = ({ active, payload }: any) => {
   return null;
 };
 
-const CustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, type }: any) => {
+const CustomLabel = ({
+  cx,
+  cy,
+  midAngle,
+  innerRadius,
+  outerRadius,
+  percent,
+  type,
+}: {
+  cx: number;
+  cy: number;
+  midAngle: number;
+  innerRadius: number;
+  outerRadius: number;
+  percent: number;
+  type: string;
+}) => {
   if (percent < 0.05) return null; // Don't show labels for tiny slices
 
   const RADIAN = Math.PI / 180;

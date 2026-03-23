@@ -44,7 +44,7 @@ export class PDFExtractEngine implements OCREngine {
         metadata: {
           pages: pageCount,
           info: infoData.info,
-          version: (infoData as any).version || '1.0', // version is not directly available in new API
+          version: (infoData as unknown as Record<string, unknown>).version || '1.0', // version is not directly available in new API
         },
       };
     } catch (error) {

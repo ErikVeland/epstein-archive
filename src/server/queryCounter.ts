@@ -32,14 +32,13 @@ export class QueryCounter {
   /**
    * Wrap database to count queries
    */
-  wrapDatabase(db: any, requestId: string): any {
+  wrapDatabase(db: Record<string, unknown>, requestId: string): Record<string, unknown> {
     if (!this.enabled) return db;
 
     this.counts.set(requestId, 0);
 
-    const originalPrepare = db.prepare.bind(db);
+    const originalPrepare = db.prepare as (sql: string) => unknown;
 
-    // @ts-ignore - Monkey patch for counting
     db.prepare = (sql: string) => {
       const current = this.counts.get(requestId) || 0;
       this.counts.set(requestId, current + 1);

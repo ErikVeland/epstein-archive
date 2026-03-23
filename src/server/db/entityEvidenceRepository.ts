@@ -1,6 +1,44 @@
 import { entityEvidenceQueries } from '@epstein/db';
 import { getApiPool } from './connection.js';
 
+interface MentionEvidenceRow {
+  evidence_id?: string | number | null;
+  document_id?: string | number | null;
+  evidence_type?: string | null;
+  title?: string | null;
+  file_path?: string | null;
+  red_flag_rating?: number | null;
+  date_created?: string | null;
+  score?: number | null;
+  mention_context?: string | null;
+  flag_type?: string | null;
+  severity?: string | null;
+}
+
+interface RelatedEntityRow {
+  shared_evidence_count?: string | number | null;
+  [key: string]: unknown;
+}
+
+interface RelationEvidenceRow {
+  relation_id: string;
+  subject_entity_id: string | number;
+  object_entity_id: string | number;
+  predicate: string;
+  direction: string;
+  weight: number;
+  first_seen_at: string;
+  last_seen_at: string;
+  relation_evidence_id?: string | number | null;
+  document_id?: string | number | null;
+  span_id?: string | number | null;
+  quote_text?: string | null;
+  confidence?: number | null;
+  mention_ids?: unknown;
+  document_title?: string | null;
+  document_path?: string | null;
+}
+
 export const entityEvidenceRepository = {
   async getEntityMentionEvidence(entityId: string) {
     const eid = BigInt(entityId);
@@ -23,7 +61,7 @@ export const entityEvidenceRepository = {
     );
 
     // Normalize evidence shape to match EntityEvidencePanel expectations
-    const evidence = evidenceRows.map((row: any) => ({
+    const evidence = (evidenceRows as MentionEvidenceRow[]).map((row) => ({
       id: row.evidence_id,
       document_id: row.document_id,
       evidence_type: row.evidence_type || 'document_context',
@@ -76,15 +114,14 @@ export const entityEvidenceRepository = {
       { entityId: eid, limit: BigInt(20) },
       getApiPool(),
     );
-    const relatedEntities = relatedEntitiesRaw.map((r: any) => ({
+    const relatedEntities = (relatedEntitiesRaw as RelatedEntityRow[]).map((r) => ({
       ...r,
       shared_evidence_count: Number(r.shared_evidence_count),
     }));
 
-    const highRiskCount = evidence.filter((e: any) => (e.red_flag_rating || 0) >= 4).length;
+    const highRiskCount = evidence.filter((e) => (e.red_flag_rating || 0) >= 4).length;
     const averageConfidence =
-      evidence.reduce((sum: number, e: any) => sum + (e.confidence || 0), 0) /
-      (evidence.length || 1);
+      evidence.reduce((sum: number, e) => sum + (e.confidence || 0), 0) / (evidence.length || 1);
 
     return {
       entity: {
@@ -110,9 +147,29 @@ export const entityEvidenceRepository = {
       getApiPool(),
     );
 
-    const byRelation = new Map<string, any>();
+    interface RelationGroup {
+      id: string;
+      subject_entity_id: string;
+      object_entity_id: string;
+      predicate: string;
+      direction: string;
+      weight: number;
+      first_seen_at: string;
+      last_seen_at: string;
+      evidence: Array<{
+        id: unknown;
+        document_id: string;
+        span_id: unknown;
+        quote_text: unknown;
+        confidence: unknown;
+        mention_ids: unknown;
+        document_title: unknown;
+        document_path: unknown;
+      }>;
+    }
+    const byRelation = new Map<string, RelationGroup>();
 
-    for (const row of rows) {
+    for (const row of rows as RelationEvidenceRow[]) {
       let rel = byRelation.get(row.relation_id);
       if (!rel) {
         rel = {
@@ -124,7 +181,7 @@ export const entityEvidenceRepository = {
           weight: row.weight,
           first_seen_at: row.first_seen_at,
           last_seen_at: row.last_seen_at,
-          evidence: [] as any[],
+          evidence: [],
         };
         byRelation.set(row.relation_id, rel);
       }

@@ -7,8 +7,33 @@ import { formatDate } from '../DocumentModalUtils';
 
 type TextSubview = 'clean' | 'ocr' | 'diff';
 
+interface DocEntity {
+  id?: string | number;
+  name?: string;
+  fullName?: string;
+  entityType?: string;
+  type?: string;
+  role?: string;
+  primaryRole?: string;
+  mentions?: number;
+  entities?: DocEntity[];
+  mentionedEntities?: DocEntity[];
+  metadata?: Record<string, unknown>;
+  unredaction_metrics?: Record<string, unknown>;
+  content?: string;
+  contentRefined?: string;
+}
+
+interface RelatedDoc {
+  id: string | number;
+  title?: string;
+  fileName?: string;
+  evidenceType?: string;
+  dateCreated?: string;
+}
+
 interface DocumentAnalysisTabProps {
-  doc: any;
+  doc: DocEntity;
   id: string;
   textSubview: TextSubview;
   setTextSubview: (mode: TextSubview) => void;
@@ -18,11 +43,11 @@ interface DocumentAnalysisTabProps {
   setShowRecoveryHighlights: (value: boolean) => void;
   isReadingMode: boolean;
   setIsReadingMode: (value: boolean) => void;
-  setSelectedEntity: (value: any) => void;
+  setSelectedEntity: (value: DocEntity | null) => void;
   setEntityModalId: (value: string) => void;
-  entities: any[];
-  groupedEntities: Array<[string, any[]]>;
-  relatedDocs: any[];
+  entities: DocEntity[];
+  groupedEntities: Array<[string, DocEntity[]]>;
+  relatedDocs: RelatedDoc[];
   isLoadingRelated: boolean;
   onNavigateToDoc: (newId: string) => void;
   cleanText: string;
@@ -176,7 +201,7 @@ export const DocumentAnalysisTab: React.FC<DocumentAnalysisTabProps> = ({
                               </span>
                             </div>
                           </div>
-                          {entity.mentions > 0 && (
+                          {(entity.mentions ?? 0) > 0 && (
                             <div className="mt-3 pt-3 border-t border-white/5 flex items-center justify-between">
                               <span className="text-[9px] text-[var(--text-muted)] uppercase font-bold">
                                 {entity.mentions} Mentions

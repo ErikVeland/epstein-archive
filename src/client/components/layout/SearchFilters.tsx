@@ -8,7 +8,7 @@ interface SearchFiltersProps {
 }
 
 const SearchFilters: React.FC<SearchFiltersProps> = ({ filters, setFilters }) => {
-  const handleFilterChange = (key: keyof ISearchFilters, value: any) => {
+  const handleFilterChange = (key: keyof ISearchFilters, value: ISearchFilters[typeof key]) => {
     setFilters({ ...filters, [key]: value });
   };
 

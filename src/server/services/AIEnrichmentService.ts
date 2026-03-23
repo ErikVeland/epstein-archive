@@ -11,7 +11,7 @@
 
 import { logger } from './Logger.js';
 
-declare const process: any;
+declare const process: NodeJS.Process;
 
 export interface EnrichmentOutput {
   refinedText: string;
@@ -50,24 +50,31 @@ export class AIEnrichmentService {
       const response = await fetch(`${this.EXO_HOST}/v1/models`);
       if (!response.ok) throw new Error(`Exo discovery failed: ${response.status}`);
 
-      const data = (await response.json()) as any;
+      interface ExoModel {
+        id: string;
+      }
+      interface ExoModelsResponse {
+        data?: ExoModel[];
+      }
+
+      const data = (await response.json()) as ExoModelsResponse;
       if (data.data && data.data.length > 0) {
         // Log available models for debugging
-        const availableModels = data.data.map((m: any) => m.id).join(', ');
+        const availableModels = data.data.map((m) => m.id).join(', ');
         logger.info(`📋 Available Exo models: ${availableModels}`);
 
         // 1. Try to find the specific active instance ID from the screenshot first
-        const activeInstance = data.data.find((m: any) => m.id === '306A62B7');
+        const activeInstance = data.data.find((m) => m.id === '306A62B7');
 
         // 2. Try to find a Qwen/Gwen model (Speed focus)
         const gwen = data.data.find(
-          (m: any) =>
+          (m) =>
             (m.id.toLowerCase().includes('qwen') || m.id.toLowerCase().includes('gwen')) &&
             (m.id.includes('0.6B') || m.id.toLowerCase().includes('instruct')),
         );
 
         // 3. Fallback to any Instruct model
-        const anyInstruct = data.data.find((m: any) => m.id.toLowerCase().includes('instruct'));
+        const anyInstruct = data.data.find((m) => m.id.toLowerCase().includes('instruct'));
 
         // 4. Fallback to first available
         const selected = activeInstance || gwen || anyInstruct || data.data[0];
@@ -76,7 +83,7 @@ export class AIEnrichmentService {
         logger.info(`🤖 Auto-discovered Exo model: ${this.discoveredExoModel}`);
         return this.discoveredExoModel!;
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       logger.warn({ err }, '⚠️ Failed to discover Exo model');
     }
 
@@ -146,7 +153,10 @@ export class AIEnrichmentService {
             throw new Error(`Exo cluster returned ${response.status}`);
           }
 
-          const data = (await response.json()) as any;
+          interface ExoCompletionResponse {
+            choices?: { message?: { content?: string; reasoning_content?: string } }[];
+          }
+          const data = (await response.json()) as ExoCompletionResponse;
           const msg = data.choices?.[0]?.message;
           // Qwen3 thinking models put output in reasoning_content when thinking
           // is not fully disabled — prefer content, fall back to reasoning_content.
@@ -168,15 +178,19 @@ export class AIEnrichmentService {
             throw new Error(`Ollama returned ${response.status}`);
           }
 
-          const data = (await response.json()) as any;
+          interface OllamaGenerateResponse {
+            response?: string;
+          }
+          const data = (await response.json()) as OllamaGenerateResponse;
           return data.response?.trim() || '';
         }
-      } catch (e: any) {
+      } catch (e: unknown) {
         attempt++;
+        const err = e as { message?: string; code?: string; cause?: { code?: string } };
         const isNetworkError =
-          e.message.includes('fetch failed') ||
-          e.code === 'ECONNRESET' ||
-          e.cause?.code === 'ECONNRESET';
+          err.message?.includes('fetch failed') ||
+          err.code === 'ECONNRESET' ||
+          err.cause?.code === 'ECONNRESET';
 
         if (attempt > retryCount) {
           logger.error({ err: e }, `❌ AI Enrichment failed after ${retryCount + 1} attempts`);

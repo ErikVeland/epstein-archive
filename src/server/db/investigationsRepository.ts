@@ -173,7 +173,7 @@ export const investigationsRepository = {
     };
   },
 
-  addEvidence: async (investigationId: number, data: any, userId = 'user') => {
+  addEvidence: async (investigationId: number, data: Record<string, unknown>, userId = 'user') => {
     const evidenceData = data.evidence || data;
     const relevance = data.relevance || evidenceData.relevance || 'high';
 
@@ -267,7 +267,7 @@ export const investigationsRepository = {
     }));
   },
 
-  addTimelineEvent: async (investigationId: number, data: any) => {
+  addTimelineEvent: async (investigationId: number, data: Record<string, unknown>) => {
     const result = await (investigationsQueries.createTimelineEvent as RunQuery).run(
       {
         investigationId,
@@ -282,7 +282,7 @@ export const investigationsRepository = {
     return Number(result[0]?.id);
   },
 
-  updateTimelineEvent: async (eventId: number, data: any) => {
+  updateTimelineEvent: async (eventId: number, data: Record<string, unknown>) => {
     await (investigationsQueries.updateTimelineEvent as RunQuery).run(
       {
         id: eventId,
@@ -317,7 +317,7 @@ export const investigationsRepository = {
     }));
   },
 
-  addChainOfCustody: async (data: any) => {
+  addChainOfCustody: async (data: Record<string, unknown>) => {
     const result = await (investigationsQueries.addChainOfCustody as RunQuery).run(
       {
         evidenceId: data.evidenceId,
@@ -397,7 +397,7 @@ export const investigationsRepository = {
 
   saveNotebook: async (
     investigationId: number,
-    payload: { order?: number[]; annotations?: any[] },
+    payload: { order?: number[]; annotations?: Array<Record<string, unknown>> },
   ) => {
     await (investigationsQueries.saveNotebook as RunQuery).run(
       {
@@ -594,7 +594,7 @@ export const investigationsRepository = {
     );
 
     const enriched = await Promise.all(
-      hypotheses.map(async (hyp: any) => {
+      hypotheses.map(async (hyp) => {
         const evidenceLinks = await (investigationsQueries.getHypothesisEvidence as RunQuery).run(
           { hypothesisId: Number(hyp.id) },
           getApiPool(),
@@ -603,7 +603,7 @@ export const investigationsRepository = {
           ...hyp,
           id: Number(hyp.id),
           investigation_id: Number(hyp.investigation_id),
-          evidenceLinks: evidenceLinks.map((e: any) => ({
+          evidenceLinks: evidenceLinks.map((e) => ({
             ...e,
             id: Number(e.id),
             hypothesis_id: Number(e.hypothesis_id),
@@ -679,7 +679,7 @@ export const investigationsRepository = {
     targetType?: string;
     targetId?: string;
     targetTitle?: string;
-    metadata?: any;
+    metadata?: Record<string, unknown>;
   }) => {
     const result = await (investigationsQueries.logActivity as RunQuery).run(
       {
@@ -716,7 +716,7 @@ export const investigationsRepository = {
       getApiPool(),
     );
 
-    const enrichedEvidence = evidence.map((row: any) => {
+    const enrichedEvidence = evidence.map((row) => {
       const metadata = (() => {
         try {
           return row.metadata_json
@@ -742,7 +742,7 @@ export const investigationsRepository = {
       };
     });
 
-    const byType: Record<string, any[]> = {};
+    const byType: Record<string, Array<Record<string, unknown>>> = {};
     for (const e of enrichedEvidence) {
       const type = e.type || 'other';
       if (!byType[type]) byType[type] = [];

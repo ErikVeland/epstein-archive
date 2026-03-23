@@ -1,5 +1,5 @@
 import express from 'express';
-import { authenticateRequest } from '../auth/middleware.js';
+import { authenticateRequest, AuthRequest } from '../auth/middleware.js';
 import { z } from 'zod';
 import { reviewQueueRepository } from '../db/reviewQueueRepository.js';
 
@@ -35,7 +35,7 @@ router.post('/mentions/:id/verify', authenticateRequest, async (req, res, next) 
   try {
     const { id } = req.params;
     const body = VerifySchema.parse(req.body);
-    const verifiedBy = body.verified_by || (req as any).user?.username || 'reviewer';
+    const verifiedBy = body.verified_by || (req as AuthRequest).user?.username || 'reviewer';
     await reviewQueueRepository.verifyMention(Number(id), verifiedBy);
 
     res.json({ success: true });
@@ -49,7 +49,7 @@ router.post('/mentions/:id/reject', authenticateRequest, async (req, res, next) 
   try {
     const { id } = req.params;
     const body = RejectSchema.parse(req.body);
-    const verifiedBy = body.verified_by || (req as any).user?.username || 'reviewer';
+    const verifiedBy = body.verified_by || (req as AuthRequest).user?.username || 'reviewer';
     await reviewQueueRepository.rejectMention(Number(id), body.rejection_reason, verifiedBy);
 
     res.json({ success: true });
@@ -76,7 +76,7 @@ router.post('/claims/:id/verify', authenticateRequest, async (req, res, next) =>
   try {
     const { id } = req.params;
     const body = VerifySchema.parse(req.body);
-    const verifiedBy = body.verified_by || (req as any).user?.username || 'reviewer';
+    const verifiedBy = body.verified_by || (req as AuthRequest).user?.username || 'reviewer';
     await reviewQueueRepository.verifyClaim(Number(id), verifiedBy);
 
     res.json({ success: true });
@@ -90,7 +90,7 @@ router.post('/claims/:id/reject', authenticateRequest, async (req, res, next) =>
   try {
     const { id } = req.params;
     const body = RejectSchema.parse(req.body);
-    const verifiedBy = body.verified_by || (req as any).user?.username || 'reviewer';
+    const verifiedBy = body.verified_by || (req as AuthRequest).user?.username || 'reviewer';
     await reviewQueueRepository.rejectClaim(Number(id), body.rejection_reason, verifiedBy);
 
     res.json({ success: true });

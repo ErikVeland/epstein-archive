@@ -4,6 +4,8 @@ import { extractCleanName, formatPhoneNumber } from '../utils/prettifyOCR';
 import { Link } from 'react-router-dom';
 import { AddToInvestigationButton } from './common/AddToInvestigationButton';
 import { useNavigate } from 'react-router-dom';
+import { FixedSizeList as List } from 'react-window';
+import AutoSizer from './common/AutoSizer';
 
 interface BlackBookEntry {
   id: number;
@@ -18,6 +20,24 @@ interface BlackBookEntry {
   person_name?: string;
   thumbnail_path?: string;
 }
+
+const parseStringList = (value: unknown): string[] => {
+  if (Array.isArray(value)) {
+    return value.map((entry) => String(entry || '').trim()).filter(Boolean);
+  }
+  if (typeof value === 'string') {
+    if (!value.trim()) return [];
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed)
+        ? parsed.map((entry) => String(entry || '').trim()).filter(Boolean)
+        : [value];
+    } catch {
+      return [value];
+    }
+  }
+  return [];
+};
 
 export const BlackBookViewer: React.FC = () => {
   const [entries, setEntries] = useState<BlackBookEntry[]>([]);
@@ -59,47 +79,10 @@ export const BlackBookViewer: React.FC = () => {
       const data = result.data || [];
 
       // Parse JSON fields safely
-      const parsedEntries = data.map((entry: any): BlackBookEntry => {
-        let phone_numbers = [];
-        let addresses = [];
-        let email_addresses = [];
+      const parsedEntries = data.map((entry: Record<string, unknown>): BlackBookEntry => {
         const rawPhones = entry.phone_numbers ?? entry.phoneNumbers;
         const rawAddresses = entry.addresses;
         const rawEmails = entry.email_addresses ?? entry.emailAddresses;
-
-        try {
-          phone_numbers = Array.isArray(rawPhones)
-            ? rawPhones
-            : rawPhones
-              ? JSON.parse(rawPhones)
-              : [];
-        } catch (_e) {
-          console.warn('Failed to parse phone_numbers for entry', entry.id, rawPhones);
-          // Fallback: if it looks like a string, wrap it
-          if (typeof rawPhones === 'string' && !rawPhones.startsWith('[')) {
-            phone_numbers = [rawPhones];
-          }
-        }
-
-        try {
-          addresses = Array.isArray(rawAddresses)
-            ? rawAddresses
-            : rawAddresses
-              ? JSON.parse(rawAddresses)
-              : [];
-        } catch (_e) {
-          console.warn('Failed to parse addresses for entry', entry.id);
-        }
-
-        try {
-          email_addresses = Array.isArray(rawEmails)
-            ? rawEmails
-            : rawEmails
-              ? JSON.parse(rawEmails)
-              : [];
-        } catch (_e) {
-          console.warn('Failed to parse email_addresses for entry', entry.id);
-        }
 
         return {
           id: Number(entry.id),
@@ -110,9 +93,9 @@ export const BlackBookViewer: React.FC = () => {
                 ? Number(entry.personId)
                 : null,
           entry_text: String(entry.entry_text ?? entry.entryText ?? ''),
-          phone_numbers,
-          addresses,
-          email_addresses,
+          phone_numbers: parseStringList(rawPhones),
+          addresses: parseStringList(rawAddresses),
+          email_addresses: parseStringList(rawEmails),
           notes: String(entry.notes ?? ''),
           entry_category: String(entry.entry_category ?? entry.entryCategory ?? 'original') as
             | 'original'
@@ -124,8 +107,18 @@ export const BlackBookViewer: React.FC = () => {
               : entry.documentId != null
                 ? Number(entry.documentId)
                 : undefined,
-          person_name: (entry.person_name ?? entry.displayName ?? undefined) || undefined,
-          thumbnail_path: entry.thumbnail_path || entry.thumbnailPath,
+          person_name:
+            typeof entry.person_name === 'string'
+              ? entry.person_name
+              : typeof entry.displayName === 'string'
+                ? entry.displayName
+                : undefined,
+          thumbnail_path:
+            typeof entry.thumbnail_path === 'string'
+              ? entry.thumbnail_path
+              : typeof entry.thumbnailPath === 'string'
+                ? entry.thumbnailPath
+                : undefined,
         };
       });
 
@@ -290,173 +283,215 @@ export const BlackBookViewer: React.FC = () => {
         </div>
       </div>
 
-      {/* Entries Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredEntries.map((entry) => {
-          const rawName = entry.person_name || extractName(entry.entry_text);
-          const displayName = showRaw ? rawName : extractCleanName(entry.entry_text) || rawName;
+      {/* Entries Grid - Virtualized */}
+      <div className="w-full h-[600px] bg-[var(--glass-bg)]/10 rounded-[var(--radius-lg)]">
+        {filteredEntries.length > 0 && (
+          <AutoSizer>
+            {({ height, width }: { height: number; width: number }) => {
+              const safeHeight = height ?? 600;
+              const safeWidth = width ?? 0;
+              const columns = safeWidth >= 1024 ? 3 : safeWidth >= 768 ? 2 : 1;
+              const rowCount = Math.ceil(filteredEntries.length / columns);
 
-          return (
-            <div
-              key={entry.id}
-              className="bg-[var(--glass-bg)]/50 border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-4 hover:border-[var(--accent)]/50 transition-all"
-            >
-              {/* Name - clickable if known entity */}
-              <div className="flex items-center space-x-3 mb-3">
-                {entry.thumbnail_path ? (
-                  <div className="w-10 h-10 rounded-full overflow-hidden border border-[var(--glass-border)] shrink-0 bg-[var(--glass-bg-strong)]">
-                    <img
-                      src={
-                        entry.thumbnail_path.startsWith('/')
-                          ? entry.thumbnail_path
-                          : `/${entry.thumbnail_path}`
-                      }
-                      alt={displayName}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                    />
-                  </div>
-                ) : (
-                  <div className="w-10 h-10 rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg)] flex items-center justify-center shrink-0">
-                    <User className="w-5 h-5 text-[var(--accent)]" />
-                  </div>
-                )}
-                <div className="min-w-0 flex-1">
-                  {entry.person_name ? (
-                    <button
-                      onClick={() => handleEntityClick(entry.person_id || 0)}
-                      className="text-lg font-semibold text-[var(--accent)] hover:text-[var(--accent)] hover:underline flex items-center gap-1 transition-colors text-left truncate w-full"
-                      title="Click to view entity profile"
-                    >
-                      <span className="truncate">{displayName}</span>
-                      <ExternalLink className="w-3 h-3 opacity-60 shrink-0" />
-                    </button>
-                  ) : (
-                    <h3 className="text-lg font-semibold text-[var(--text-primary)] truncate">
-                      {displayName}
-                    </h3>
-                  )}
-                </div>
-                <div className="ml-auto">
-                  <AddToInvestigationButton
-                    item={{
-                      id: `blackbook-${entry.id}`,
-                      title: `Black Book: ${displayName}`,
-                      description: `Contact entry for ${displayName}`,
-                      type: 'entity',
-                      sourceId: String(entry.id),
-                      metadata: {
-                        entryText: entry.entry_text,
-                        phones: entry.phone_numbers,
-                        emails: entry.email_addresses,
-                      },
-                    }}
-                    variant="icon"
-                    className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                  />
-                </div>
-              </div>
+              return (
+                <List
+                  height={safeHeight}
+                  itemCount={rowCount}
+                  itemSize={220}
+                  width={safeWidth || '100%'}
+                  className="blackbook-virtualized-list"
+                >
+                  {({ index, style }) => {
+                    const rowItems = filteredEntries.slice(index * columns, (index + 1) * columns);
 
-              {/* Contact Info */}
-              <div className="space-y-2">
-                {/* Phone Numbers */}
-                {entry.phone_numbers.length > 0 && (
-                  <div className="flex items-start space-x-2">
-                    <Phone className="w-4 h-4 text-[var(--text-muted)] mt-1 flex-shrink-0" />
-                    <div className="flex-1">
-                      {entry.phone_numbers.map((phone, idx) => (
-                        <div key={idx} className="text-sm text-[var(--text-secondary)]">
-                          {showRaw ? phone : formatPhoneNumber(phone)}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                    return (
+                      <div
+                        style={{ ...style, display: 'flex', gap: '1rem', paddingBottom: '1rem' }}
+                      >
+                        {rowItems.map((entry) => {
+                          const rawName = entry.person_name || extractName(entry.entry_text);
+                          const displayName = showRaw
+                            ? rawName
+                            : extractCleanName(entry.entry_text) || rawName;
 
-                {/* Emails */}
-                {entry.email_addresses.length > 0 && (
-                  <div className="flex items-start space-x-2">
-                    <Mail className="w-4 h-4 text-[var(--text-muted)] mt-1 flex-shrink-0" />
-                    <div className="flex-1">
-                      {entry.email_addresses.map((email, idx) => (
-                        <div
-                          key={idx}
-                          className="text-sm text-[var(--text-secondary)] break-all flex items-center justify-between gap-2 group/email"
-                        >
-                          <Link
-                            to={`/emails?search=${encodeURIComponent(email)}`}
-                            className="hover:text-[var(--accent)] hover:underline"
-                          >
-                            {email}
-                          </Link>
-                          <Link
-                            to={`/emails?search=${encodeURIComponent(email)}`}
-                            className="opacity-0 group-hover/email:opacity-100 text-[var(--text-muted)] hover:text-[var(--accent)]"
-                          >
-                            <ExternalLink className="w-3 h-3" />
-                          </Link>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                          return (
+                            <div
+                              key={entry.id}
+                              style={{
+                                width: `calc(${100 / columns}% - ${((columns - 1) * 16) / columns}px)`,
+                              }}
+                              className="bg-[var(--glass-bg)]/50 border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-4 flex flex-col hover:border-[var(--accent)]/50 transition-all h-full"
+                            >
+                              {/* Name - clickable if known entity */}
+                              <div className="flex items-center space-x-3 mb-3">
+                                {entry.thumbnail_path ? (
+                                  <div className="w-10 h-10 rounded-full overflow-hidden border border-[var(--glass-border)] shrink-0 bg-[var(--glass-bg-strong)]">
+                                    <img
+                                      src={
+                                        entry.thumbnail_path.startsWith('/')
+                                          ? entry.thumbnail_path
+                                          : `/${entry.thumbnail_path}`
+                                      }
+                                      alt={displayName}
+                                      className="w-full h-full object-cover"
+                                      loading="lazy"
+                                    />
+                                  </div>
+                                ) : (
+                                  <div className="w-10 h-10 rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg)] flex items-center justify-center shrink-0">
+                                    <User className="w-5 h-5 text-[var(--accent)]" />
+                                  </div>
+                                )}
+                                <div className="min-w-0 flex-1">
+                                  {entry.person_name ? (
+                                    <button
+                                      onClick={() => handleEntityClick(entry.person_id || 0)}
+                                      className="text-lg font-semibold text-[var(--accent)] hover:text-[var(--accent)] hover:underline flex items-center gap-1 transition-colors text-left truncate w-full"
+                                      title="Click to view entity profile"
+                                    >
+                                      <span className="truncate">{displayName}</span>
+                                      <ExternalLink className="w-3 h-3 opacity-60 shrink-0" />
+                                    </button>
+                                  ) : (
+                                    <h3 className="text-lg font-semibold text-[var(--text-primary)] truncate">
+                                      {displayName}
+                                    </h3>
+                                  )}
+                                </div>
+                                <div className="ml-auto">
+                                  <AddToInvestigationButton
+                                    item={{
+                                      id: `blackbook-${entry.id}`,
+                                      title: `Black Book: ${displayName}`,
+                                      description: `Contact entry for ${displayName}`,
+                                      type: 'entity',
+                                      sourceId: String(entry.id),
+                                      metadata: {
+                                        entryText: entry.entry_text,
+                                        phones: entry.phone_numbers,
+                                        emails: entry.email_addresses,
+                                      },
+                                    }}
+                                    variant="icon"
+                                    className="text-[var(--text-muted)] hover:text-[var(--text-primary)] relative z-10"
+                                  />
+                                </div>
+                              </div>
 
-                {/* Addresses */}
-                {entry.addresses.length > 0 && (
-                  <div className="flex items-start space-x-2">
-                    <MapPin className="w-4 h-4 text-[var(--text-muted)] mt-1 flex-shrink-0" />
-                    <div className="flex-1">
-                      {entry.addresses.slice(0, 2).map((address, idx) => (
-                        <div key={idx} className="text-sm text-[var(--text-secondary)]">
-                          {address}
-                        </div>
-                      ))}
-                      {entry.addresses.length > 2 && (
-                        <div className="text-xs text-[var(--text-muted)] mt-1">
-                          +{entry.addresses.length - 2} more
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
+                              {/* Contact Info */}
+                              <div className="space-y-2 flex-grow overflow-y-auto pr-2 custom-scrollbar">
+                                {/* Phone Numbers */}
+                                {entry.phone_numbers.length > 0 && (
+                                  <div className="flex items-start space-x-2">
+                                    <Phone className="w-4 h-4 text-[var(--text-muted)] mt-1 flex-shrink-0" />
+                                    <div className="flex-1">
+                                      {entry.phone_numbers.map((phone, idx) => (
+                                        <div
+                                          key={idx}
+                                          className="text-sm text-[var(--text-secondary)]"
+                                        >
+                                          {showRaw ? phone : formatPhoneNumber(phone)}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
 
-                {/* No contact info */}
-                {entry.phone_numbers.length === 0 &&
-                  entry.email_addresses.length === 0 &&
-                  entry.addresses.length === 0 && (
-                    <div className="text-sm text-[var(--text-muted)] italic">
-                      No contact information available
-                    </div>
-                  )}
+                                {/* Emails */}
+                                {entry.email_addresses.length > 0 && (
+                                  <div className="flex items-start space-x-2">
+                                    <Mail className="w-4 h-4 text-[var(--text-muted)] mt-1 flex-shrink-0" />
+                                    <div className="flex-1">
+                                      {entry.email_addresses.map((email, idx) => (
+                                        <div
+                                          key={idx}
+                                          className="text-sm text-[var(--text-secondary)] break-all flex items-center justify-between gap-2 group/email"
+                                        >
+                                          <Link
+                                            to={`/emails?search=${encodeURIComponent(email)}`}
+                                            className="hover:text-[var(--accent)] hover:underline relative z-10"
+                                          >
+                                            {email}
+                                          </Link>
+                                          <Link
+                                            to={`/emails?search=${encodeURIComponent(email)}`}
+                                            className="opacity-0 group-hover/email:opacity-100 text-[var(--text-muted)] hover:text-[var(--accent)] relative z-10"
+                                          >
+                                            <ExternalLink className="w-3 h-3" />
+                                          </Link>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
 
-                {/* Metadata & Categories */}
-                <div className="pt-3 mt-auto flex items-center justify-between border-t border-[var(--glass-border)]">
-                  <span
-                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
-                      entry.entry_category === 'credential'
-                        ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
-                        : entry.entry_category === 'contact'
-                          ? 'bg-[var(--accent)]/10 text-[var(--accent)] border border-[var(--accent)]/20'
-                          : 'bg-[var(--glass-bg-highlight)]/50 text-[var(--text-muted)] border border-[var(--glass-border)]'
-                    }`}
-                  >
-                    {entry.entry_category}
-                  </span>
+                                {/* Addresses */}
+                                {entry.addresses.length > 0 && (
+                                  <div className="flex items-start space-x-2">
+                                    <MapPin className="w-4 h-4 text-[var(--text-muted)] mt-1 flex-shrink-0" />
+                                    <div className="flex-1">
+                                      {entry.addresses.slice(0, 2).map((address, idx) => (
+                                        <div
+                                          key={idx}
+                                          className="text-sm text-[var(--text-secondary)]"
+                                        >
+                                          {address}
+                                        </div>
+                                      ))}
+                                      {entry.addresses.length > 2 && (
+                                        <div className="text-xs text-[var(--text-muted)] mt-1">
+                                          +{entry.addresses.length - 2} more
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
 
-                  {entry.document_id && (
-                    <Link
-                      to={`/documents/${entry.document_id}`}
-                      className="text-[10px] text-[var(--text-muted)] hover:text-[var(--accent)] flex items-center gap-1 transition-colors"
-                    >
-                      <FileText className="w-3 h-3" />
-                      Source Document
-                    </Link>
-                  )}
-                </div>
-              </div>
-            </div>
-          );
-        })}
+                                {/* No contact info */}
+                                {entry.phone_numbers.length === 0 &&
+                                  entry.email_addresses.length === 0 &&
+                                  entry.addresses.length === 0 && (
+                                    <div className="text-sm text-[var(--text-muted)] italic">
+                                      No contact information available
+                                    </div>
+                                  )}
+                              </div>
+
+                              {/* Metadata & Categories */}
+                              <div className="pt-3 mt-3 flex items-center justify-between border-t border-[var(--glass-border)] shrink-0">
+                                <span
+                                  className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                                    entry.entry_category === 'credential'
+                                      ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                                      : entry.entry_category === 'contact'
+                                        ? 'bg-[var(--accent)]/10 text-[var(--accent)] border border-[var(--accent)]/20'
+                                        : 'bg-[var(--glass-bg-highlight)]/50 text-[var(--text-muted)] border border-[var(--glass-border)]'
+                                  }`}
+                                >
+                                  {entry.entry_category}
+                                </span>
+
+                                {entry.document_id && (
+                                  <Link
+                                    to={`/documents/${entry.document_id}`}
+                                    className="text-[10px] text-[var(--text-muted)] hover:text-[var(--accent)] flex items-center gap-1 transition-colors relative z-10"
+                                  >
+                                    <FileText className="w-3 h-3" />
+                                    Source Document
+                                  </Link>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  }}
+                </List>
+              );
+            }}
+          </AutoSizer>
+        )}
       </div>
 
       {/* Empty State */}

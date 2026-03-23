@@ -177,7 +177,7 @@ export const EmailClient: React.FC = () => {
     searchParams.get('mailboxId') || 'all',
   );
   const [activeTab, setActiveTab] = useState<'all' | 'primary' | 'updates' | 'promotions'>(
-    ((searchParams.get('tab') as any) || 'all') as 'all' | 'primary' | 'updates' | 'promotions',
+    (searchParams.get('tab') || 'all') as 'all' | 'primary' | 'updates' | 'promotions',
   );
   const [searchInput, setSearchInput] = useState(searchParams.get('q') || '');
   const [debouncedSearch, setDebouncedSearch] = useState(searchParams.get('q') || '');
@@ -500,7 +500,7 @@ export const EmailClient: React.FC = () => {
               {tabsWithData.map((option) => (
                 <button
                   key={option.id}
-                  onClick={() => setActiveTab(option.id as any)}
+                  onClick={() => setActiveTab(option.id as Parameters<typeof setActiveTab>[0])}
                   className={`h-8 px-3 rounded-full text-xs border whitespace-nowrap ${
                     activeTab === option.id
                       ? 'text-[var(--accent)] border-[var(--accent)] bg-[var(--accent)]/10'
@@ -1028,10 +1028,7 @@ export const EmailClient: React.FC = () => {
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                   {(message.attachmentsMeta || []).map((attachment, index) => {
-                                    const linkedDocumentId =
-                                      attachment.linkedDocumentId ||
-                                      (attachment as any).documentId ||
-                                      (attachment as any).docId;
+                                    const linkedDocumentId = attachment.linkedDocumentId;
                                     const canOpen = Boolean(linkedDocumentId);
                                     return (
                                       <div

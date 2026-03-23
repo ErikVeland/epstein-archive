@@ -67,7 +67,7 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
 
   // Generate network data for the Entity Mapper
   const networkData = useMemo(() => {
-    const people: any[] = [];
+    const people: never[] = [];
     const documents = (evidence || []).map((ev) => ({
       id: ev.id,
       title: ev.title || ev.id,
@@ -143,7 +143,8 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
       let rulesetVersion: string | null = null;
       let modelId: string | null = null;
       for (const item of evidence) {
-        const meta = ((item as any).metadata || (item as any).metadata_json || {}) as
+        const itemAsUnknown = item as unknown as Record<string, unknown>;
+        const meta = (itemAsUnknown.metadata || itemAsUnknown.metadata_json || {}) as
           | Record<string, unknown>
           | string;
         const parsed =
@@ -156,10 +157,19 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
                 }
               })()
             : meta;
+        const parsedMeta = parsed as Record<string, unknown>;
         if (!ingestRunId)
-          ingestRunId = (parsed as any).ingest_run_id || (parsed as any).ingestRunId || null;
-        if (!rulesetVersion) rulesetVersion = (parsed as any).rulesetVersion || 'forensic-rules-v1';
-        if (!modelId) modelId = (parsed as any).modelId || (parsed as any).agentic_model_id || null;
+          ingestRunId =
+            (parsedMeta.ingest_run_id as string | null) ||
+            (parsedMeta.ingestRunId as string | null) ||
+            null;
+        if (!rulesetVersion)
+          rulesetVersion = (parsedMeta.rulesetVersion as string | null) || 'forensic-rules-v1';
+        if (!modelId)
+          modelId =
+            (parsedMeta.modelId as string | null) ||
+            (parsedMeta.agentic_model_id as string | null) ||
+            null;
       }
       return { ingestRunId, rulesetVersion, modelId };
     })();
@@ -395,7 +405,7 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
   const runTool = async (
     toolId: 'documents' | 'entities' | 'financial' | 'correlation' | 'reports',
   ) => {
-    if ((stats as any)[toolId].count === 0) {
+    if (stats[toolId].count === 0) {
       addToast({ text: getRequiredInput(toolId), type: 'warning' });
       return;
     }
@@ -523,7 +533,16 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
                 return (
                   <div key={tool.id} className="relative group">
                     <button
-                      onClick={() => setActiveTool(tool.id as any)}
+                      onClick={() =>
+                        setActiveTool(
+                          tool.id as
+                            | 'documents'
+                            | 'entities'
+                            | 'financial'
+                            | 'correlation'
+                            | 'reports',
+                        )
+                      }
                       className={`w-full p-3 rounded-[var(--radius-lg)] text-left transition-colors ${
                         activeTool === tool.id
                           ? 'bg-red-900 border border-red-600'
@@ -579,7 +598,14 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  runTool(tool.id as any);
+                                  runTool(
+                                    tool.id as
+                                      | 'documents'
+                                      | 'entities'
+                                      | 'financial'
+                                      | 'correlation'
+                                      | 'reports',
+                                  );
                                 }}
                                 className="px-2 py-1 text-[11px] rounded bg-[var(--glass-bg-highlight)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-primary)]"
                               >
@@ -588,7 +614,14 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setActiveTool(tool.id as any);
+                                  setActiveTool(
+                                    tool.id as
+                                      | 'documents'
+                                      | 'entities'
+                                      | 'financial'
+                                      | 'correlation'
+                                      | 'reports',
+                                  );
                                 }}
                                 className="px-2 py-1 text-[11px] rounded border border-[var(--glass-border)] text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)]"
                               >
@@ -749,9 +782,9 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
               />
             </div>
             {(() => {
-              const details = (stats as any)[selectedConfidenceTool]?.confidenceDetails as
-                | ConfidenceResult
-                | undefined;
+              const details = (stats as Record<string, { confidenceDetails?: ConfidenceResult }>)[
+                selectedConfidenceTool
+              ]?.confidenceDetails;
               if (!details) return null;
               return (
                 <div className="p-4 space-y-4 text-sm">

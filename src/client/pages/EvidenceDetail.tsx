@@ -45,7 +45,7 @@ interface Evidence {
   modifiedAt: string;
   redFlagRating: number;
   tags: string[];
-  metadata: any;
+  metadata: Record<string, unknown>;
   entities: Array<{
     id: number;
     name: string;
@@ -58,9 +58,12 @@ interface Evidence {
   fileSize: number;
   signalScore?: number;
   ocrQualityScore?: number;
-  claims?: any[];
-  sentences?: any[];
-  unredaction_metrics?: any;
+  claims?: Record<string, unknown>[];
+  sentences?: Record<string, unknown>[];
+  unredaction_metrics?: {
+    succeeded?: boolean;
+    unredactedTextGain?: number;
+  };
 }
 
 export function EvidenceDetail() {
@@ -352,7 +355,9 @@ export function EvidenceDetail() {
           <div className="lg:col-span-1 space-y-6">
             {/* Claims & Facts */}
             {evidence.claims && evidence.claims.length > 0 && (
-              <ClaimsList claims={evidence.claims} />
+              <ClaimsList
+                claims={evidence.claims as unknown as Parameters<typeof ClaimsList>[0]['claims']}
+              />
             )}
 
             {/* Linked Entities */}

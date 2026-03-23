@@ -63,7 +63,7 @@ const EntitySearch: React.FC<{
         const res = await fetch(`/api/entities?search=${encodeURIComponent(query)}&limit=10`);
         const data = await res.json();
         setResults(
-          (data.data || data).map((e: any) => ({
+          (data.data || data).map((e: Record<string, unknown>) => ({
             id: e.id,
             name: e.fullName || e.name,
             role: e.primaryRole || e.role || '',

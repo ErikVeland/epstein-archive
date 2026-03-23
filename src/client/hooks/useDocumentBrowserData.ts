@@ -2,46 +2,79 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BrowseFilters, Document } from '../types/documents';
 import { apiClient } from '../services/apiClient';
 
-const mapApiDocumentToDocument = (doc: any): Document => ({
-  id: String(doc.id?.toString() || doc.fileName || ''),
-  title: doc.title || doc.fileName,
-  filename: doc.fileName,
-  fileType: doc.fileType || 'unknown',
-  fileSize: doc.fileSize || 0,
-  dateCreated: doc.dateCreated,
-  dateModified: doc.dateModified,
-  content: doc.content || doc.previewText || doc.preview_text || doc.contentPreview || '',
-  previewText: doc.previewText || doc.preview_text || '',
-  previewKind: doc.previewKind || doc.preview_kind || 'fallback',
-  keyEntities: Array.isArray(doc.keyEntities)
-    ? doc.keyEntities
-    : Array.isArray(doc.key_entities)
-      ? doc.key_entities
+const str = (v: unknown, fallback = ''): string =>
+  typeof v === 'string' ? v : v != null ? String(v) : fallback;
+
+const mapApiDocumentToDocument = (doc: Record<string, unknown>): Document => {
+  const meta =
+    doc.metadata && typeof doc.metadata === 'object'
+      ? (doc.metadata as Record<string, unknown>)
+      : {};
+  const redFlag = Number(doc.redFlagRating || 0);
+  return {
+    id: String(doc.id != null ? doc.id : (doc.fileName ?? '')),
+    title: str(doc.title || doc.fileName),
+    filename: str(doc.fileName),
+    fileType: str(doc.fileType, 'unknown'),
+    fileSize: Number(doc.fileSize || 0),
+    dateCreated: doc.dateCreated as string | undefined,
+    dateModified: doc.dateModified as string | undefined,
+    content: str(doc.content || doc.previewText || doc.preview_text || doc.contentPreview),
+    previewText: str(doc.previewText || doc.preview_text),
+    previewKind: str(doc.previewKind || doc.preview_kind, 'fallback') as Document['previewKind'],
+    keyEntities: Array.isArray(doc.keyEntities)
+      ? (doc.keyEntities as Document['keyEntities'])
+      : Array.isArray(doc.key_entities)
+        ? (doc.key_entities as Document['keyEntities'])
+        : [],
+    entitiesCount: Number(doc.entitiesCount || doc.entities_count || 0),
+    sourceType: str(doc.sourceType || doc.source_type),
+    whyFlagged: str(doc.whyFlagged || doc.why_flagged),
+    metadata: {
+      source: str(doc.sourceCollection || doc.sourceType, 'Epstein Files'),
+      confidentiality: 'public',
+      categories: [],
+      tags: [],
+      ...meta,
+      emailHeaders: meta.emailHeaders as Record<string, string> | undefined,
+    },
+    entities: Array.isArray(doc.entities) ? (doc.entities as Document['entities']) : [],
+    passages: Array.isArray(doc.passages) ? (doc.passages as Document['passages']) : [],
+    redFlagScore: redFlag,
+    redFlagRating: redFlag || 1,
+    redFlagPeppers: '',
+    redFlagDescription: `Red Flag Index ${redFlag || 1}`,
+    evidenceType: str(
+      doc.evidenceType || doc.evidence_type,
+      'document',
+    ) as Document['evidenceType'],
+    parentId:
+      doc.parentId != null
+        ? String(doc.parentId)
+        : doc.parent_id != null
+          ? String(doc.parent_id)
+          : doc.original_file_id != null
+            ? String(doc.original_file_id)
+            : undefined,
+    startOffset: Number(doc.startOffset || doc.start_offset || 0),
+    endOffset: Number(doc.endOffset || doc.end_offset || 0),
+    childDocuments: Array.isArray(doc.childDocuments)
+      ? (doc.childDocuments as Document['childDocuments'])
       : [],
-  entitiesCount: Number(doc.entitiesCount || doc.entities_count || 0),
-  sourceType: doc.sourceType || doc.source_type || '',
-  whyFlagged: doc.whyFlagged || doc.why_flagged || '',
-  metadata: {
-    source: doc.sourceCollection || doc.sourceType || 'Epstein Files',
-    confidentiality: 'Public',
-    categories: [],
-    ...doc.metadata,
-    emailHeaders: doc.metadata?.emailHeaders,
-  },
-  entities: Array.isArray(doc.entities) ? doc.entities : [],
-  passages: Array.isArray(doc.passages) ? doc.passages : [],
-  redFlagScore: doc.redFlagRating || 0,
-  redFlagRating: doc.redFlagRating || 1,
-  redFlagPeppers: '',
-  redFlagDescription: `Red Flag Index ${doc.redFlagRating || 1}`,
-  evidenceType: doc.evidenceType || doc.evidence_type || 'document',
-  parentId: doc.parentId || doc.parent_id || doc.original_file_id,
-  startOffset: Number(doc.startOffset || doc.start_offset || 0),
-  endOffset: Number(doc.endOffset || doc.end_offset || 0),
-  childDocuments: Array.isArray(doc.childDocuments) ? doc.childDocuments : [],
-  threadId: doc.threadId || doc.thread_id,
-  threadPosition: doc.threadPosition || doc.thread_position,
-});
+    threadId:
+      doc.threadId != null
+        ? String(doc.threadId)
+        : doc.thread_id != null
+          ? String(doc.thread_id)
+          : undefined,
+    threadPosition:
+      doc.threadPosition != null
+        ? Number(doc.threadPosition)
+        : doc.thread_position != null
+          ? Number(doc.thread_position)
+          : undefined,
+  };
+};
 
 interface UseDocumentBrowserDataOptions {
   effectiveSearchTerm: string;
@@ -138,8 +171,8 @@ export function useDocumentBrowserData({
 
         if (requestKeyRef.current !== requestKey) return;
 
-        const newDocs: Document[] = (result.data || []).map((doc: any) =>
-          mapApiDocumentToDocument(doc),
+        const newDocs: Document[] = (result.data || []).map((doc) =>
+          mapApiDocumentToDocument(doc as unknown as Record<string, unknown>),
         );
         setDocuments(newDocs);
         setTotalDocuments(result.total ?? 0);
@@ -190,7 +223,9 @@ export function useDocumentBrowserData({
     try {
       const fullDoc = await apiClient.getDocument(document.id);
       if (fullDoc) {
-        setSelectedDocument((prev) => (prev?.id === document.id ? { ...prev, ...fullDoc } : prev));
+        setSelectedDocument((prev) =>
+          prev?.id === document.id ? { ...prev, ...(fullDoc as Record<string, unknown>) } : prev,
+        );
       }
     } catch (error) {
       console.error('Error fetching full document content:', error);
@@ -211,7 +246,7 @@ export function useDocumentBrowserData({
       .getDocument(selectedDocumentId)
       .then((docData) => {
         if (!docData) return;
-        void handleDocumentSelect(mapApiDocumentToDocument(docData));
+        void handleDocumentSelect(mapApiDocumentToDocument(docData as Record<string, unknown>));
       })
       .catch((err) => console.error('Error fetching selected document:', err));
   }, [documents, handleDocumentSelect, selectedDocument, selectedDocumentId]);

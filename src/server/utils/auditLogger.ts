@@ -57,7 +57,7 @@ export const logAudit = async (
   userId: string | null,
   objectType: string,
   objectId: string | null,
-  payload?: any,
+  payload?: Record<string, unknown>,
   ip?: string,
   requestId?: string,
 ) => {

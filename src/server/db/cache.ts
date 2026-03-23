@@ -11,8 +11,8 @@ interface CacheEntry<T> {
 }
 
 class QueryCache {
-  private cache: Map<string, CacheEntry<any>> = new Map();
-  private inFlight: Map<string, Promise<any>> = new Map();
+  private cache: Map<string, CacheEntry<unknown>> = new Map();
+  private inFlight: Map<string, Promise<unknown>> = new Map();
   private defaultTTL: number; // milliseconds
 
   constructor(defaultTTLSeconds: number = 60) {

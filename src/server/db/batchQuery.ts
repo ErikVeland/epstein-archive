@@ -36,7 +36,7 @@ export async function batchFetch<T extends pg.QueryResultRow>(
 export async function batchFetchWithParams<T extends pg.QueryResultRow>(
   sql: string,
   ids: (string | number)[],
-  extraParams: any[] = [],
+  extraParams: unknown[] = [],
   chunkSize = 500,
 ): Promise<T[]> {
   if (ids.length === 0) return [];

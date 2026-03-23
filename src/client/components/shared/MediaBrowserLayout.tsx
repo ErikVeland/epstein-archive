@@ -1,5 +1,6 @@
 import React from 'react';
 import Icon from '../common/Icon';
+import type { IconName } from '../common/Icon';
 
 interface MediaBrowserLayoutProps {
   /** Page title (e.g., "Audio Recordings", "Video Recordings") */
@@ -124,12 +125,12 @@ export function MediaEmptyState({
   icon,
   message,
 }: {
-  icon: string;
+  icon: IconName;
   message: string;
 }): React.ReactElement {
   return (
     <div className="flex flex-col items-center justify-center h-full text-[var(--text-muted)]">
-      <Icon name={icon as any} size="lg" className="mb-2 opacity-50" />
+      <Icon name={icon} size="lg" className="mb-2 opacity-50" />
       <p>{message}</p>
     </div>
   );

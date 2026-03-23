@@ -63,7 +63,7 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
   const [selectedTranche, setSelectedTranche] = useState<string>('all');
   const [isHeaderCondensed, setIsHeaderCondensed] = useState(false);
   const [jumpToPage, setJumpToPage] = useState('');
-  const availableCollections = useMemo<any[]>(() => [], []);
+  const availableCollections = useMemo<Array<{ id: string; name: string }>>(() => [], []);
 
   const [filters, setFilters] = useState<BrowseFilters>({
     fileType: [],
@@ -163,12 +163,15 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
     }));
   }, [documents]);
 
-  const handleFilterChange = useCallback((key: keyof BrowseFilters, value: any) => {
-    setFilters((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
-  }, []);
+  const handleFilterChange = useCallback(
+    (key: keyof BrowseFilters, value: BrowseFilters[keyof BrowseFilters]) => {
+      setFilters((prev) => ({
+        ...prev,
+        [key]: value,
+      }));
+    },
+    [],
+  );
 
   const applyTrancheFilter = useCallback(
     (trancheValue: string) => {
@@ -291,7 +294,11 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
           <DocumentModal
             id={String(selectedDocument.id)}
             searchTerm={effectiveSearchTerm}
-            initialDoc={selectedDocument}
+            initialDoc={
+              selectedDocument as unknown as Parameters<
+                typeof import('./DocumentModal').DocumentModal
+              >[0]['initialDoc']
+            }
             onClose={() => {
               setSelectedDocument(null);
               onDocumentClose?.();

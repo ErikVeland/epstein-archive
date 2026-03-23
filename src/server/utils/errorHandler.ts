@@ -8,7 +8,7 @@ export class AppError extends Error {
     public statusCode: number,
     public code: string = 'INTERNAL_ERROR',
     public isOperational: boolean = true,
-    public details?: Record<string, any>,
+    public details?: Record<string, unknown>,
   ) {
     super(message);
     this.name = this.constructor.name;
@@ -17,7 +17,7 @@ export class AppError extends Error {
 }
 
 export class ValidationError extends AppError {
-  constructor(message: string, details?: Record<string, any>) {
+  constructor(message: string, details?: Record<string, unknown>) {
     super(message, 400, 'VALIDATION_ERROR', true, details);
   }
 }
@@ -41,7 +41,7 @@ export class ForbiddenError extends AppError {
 }
 
 export class ConflictError extends AppError {
-  constructor(message: string, details?: Record<string, any>) {
+  constructor(message: string, details?: Record<string, unknown>) {
     super(message, 409, 'CONFLICT', true, details);
   }
 }
@@ -63,7 +63,7 @@ function pgErrorCode(message: string): string {
 }
 
 function buildErrorBody(req: Request, statusCode: number, err: Error): ApiErrorBody {
-  const requestId = (req as any).requestId || 'no-req-id';
+  const requestId = (req as Request & { requestId?: string }).requestId || 'no-req-id';
 
   if (err instanceof AppError) {
     return {
@@ -90,9 +90,10 @@ export const globalErrorHandler = (
   res: Response,
   _next: NextFunction,
 ): void => {
-  const startedAt = req.requestStartedAt || (req as any)._startTime || Date.now();
+  const extReq = req as Request & { requestId?: string; _startTime?: number };
+  const startedAt = req.requestStartedAt || extReq._startTime || Date.now();
   const duration = Date.now() - startedAt;
-  const requestId = (req as any).requestId || 'no-req-id';
+  const requestId = extReq.requestId || 'no-req-id';
   let poolStats: { total: number; idle: number; waiting: number } | null = null;
   try {
     const pool = getApiPool();
@@ -116,8 +117,8 @@ export const globalErrorHandler = (
           ? Object.keys(req.body as Record<string, unknown>)
           : undefined,
       userAgent: req.get('User-Agent'),
-      pgCode: (err as any).code,
-      pgQueryName: (err as any)._pgQueryName,
+      pgCode: (err as NodeJS.ErrnoException).code,
+      pgQueryName: (err as unknown as Record<string, unknown>)._pgQueryName,
       pool: poolStats,
       durationMs: duration,
     },
@@ -144,7 +145,7 @@ export const globalErrorHandler = (
 };
 
 export const catchAsync = (
-  fn: (req: Request, res: Response, next: NextFunction) => Promise<any>,
+  fn: (req: Request, res: Response, next: NextFunction) => Promise<unknown>,
 ) => {
   return (req: Request, res: Response, next: NextFunction) => {
     fn(req, res, next).catch(next);

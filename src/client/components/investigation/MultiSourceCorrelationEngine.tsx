@@ -66,161 +66,18 @@ export default function MultiSourceCorrelationEngine() {
   const recomputeCorrelations = async () => {
     try {
       setIsAnalyzing(true);
-      setAnalysisProgress(5);
+      setAnalysisProgress(30);
 
-      // Get a representative entity (top by mentions)
-      const entsResp = await fetch('/api/entities?limit=1&sortBy=mentions');
-      const entsJson = await entsResp.json();
-      const topEntity = Array.isArray(entsJson?.entities) ? entsJson.entities[0] : undefined;
+      const resp = await fetch('/api/analytics/correlations');
+      if (!resp.ok) throw new Error('Failed to fetch correlations');
+      const data = await resp.json();
 
-      // Build data sources summary from DB stats
-      const statsResp = await fetch('/api/stats');
-      const stats = await statsResp.json().catch(() => ({}));
-      const ds: DataSource[] = [
-        {
-          id: 'documents',
-          type: 'document',
-          name: 'Documents',
-          description: 'Indexed evidence documents',
-          lastUpdated: new Date().toISOString().slice(0, 10),
-          reliability: 'verified',
-          recordCount: stats?.totalDocuments || 0,
-          coverage: 100,
-        },
-        {
-          id: 'entities',
-          type: 'legal',
-          name: 'Entities',
-          description: 'People and organisations with mentions',
-          lastUpdated: new Date().toISOString().slice(0, 10),
-          reliability: 'high',
-          recordCount: stats?.totalEntities || 0,
-          coverage: 100,
-        },
-      ];
-      setDataSources(ds);
+      setAnalysisProgress(80);
 
-      const nextCorrelations: CorrelationResult[] = [];
+      setDataSources(data.dataSources || []);
+      setCorrelations(data.correlations || []);
+      setCorrelationRules(data.rules || []);
 
-      if (topEntity?.id) {
-        // Relationship-based correlations
-        const relResp = await fetch(
-          `/api/relationships?entityId=${topEntity.id}&includeBreakdown=true&minConfidence=0`,
-        );
-        const relJson = await relResp.json();
-        const rels = Array.isArray(relJson?.relationships) ? relJson.relationships : [];
-        rels.forEach((r: any, idx: number) => {
-          nextCorrelations.push({
-            id: `rel-${idx}`,
-            type: 'entity',
-            confidence: Math.round((r.confidence || 0) * 100) || 75,
-            description: `Relationship ${r.relationship_type} with entity ${r.target_id}`,
-            sources: ['entities', 'documents'],
-            entities: [
-              String(topEntity.fullName || topEntity.name || topEntity.id),
-              String(r.target_id),
-            ],
-            timeRange: { start: 'Unknown', end: 'Unknown' },
-            significance:
-              (r.proximity_score || 0) > 0.7
-                ? 'high'
-                : (r.proximity_score || 0) > 0.4
-                  ? 'medium'
-                  : 'low',
-            evidence: [],
-            anomalies: [],
-          });
-        });
-
-        setAnalysisProgress(40);
-
-        // Financial correlations (if API available)
-        try {
-          const txResp = await fetch('/api/financial/transactions');
-          const txJson = await txResp.json().catch(() => []);
-          const txs: any[] = Array.isArray(txJson) ? txJson : [];
-
-          if (txs.length > 0) {
-            const highRisk = txs.filter((t) =>
-              ['high', 'critical'].includes(String(t.risk_level || '').toLowerCase()),
-            );
-
-            if (highRisk.length > 0) {
-              // _totalAmount currently unused but kept for future detailed reporting
-              const counterparties = Array.from(
-                new Set(
-                  highRisk
-                    .flatMap((t) => [t.from_entity, t.to_entity])
-                    .filter(Boolean)
-                    .map(String),
-                ),
-              );
-
-              nextCorrelations.push({
-                id: 'financial-high-risk',
-                type: 'financial',
-                confidence: 80,
-                description: `High-risk financial transfers involving ${counterparties.length} counterparties and ${highRisk.length} flagged transactions for ${
-                  topEntity.fullName || topEntity.name || topEntity.id
-                }`,
-                sources: ['financial'],
-                entities: [
-                  String(topEntity.fullName || topEntity.name || topEntity.id),
-                  ...counterparties,
-                ],
-                timeRange: { start: 'Unknown', end: 'Unknown' },
-                significance:
-                  highRisk.length > 50 ? 'critical' : highRisk.length > 10 ? 'high' : 'medium',
-                evidence: [],
-                anomalies: [],
-              });
-            }
-          }
-        } catch {
-          // ignore financial correlation errors
-        }
-
-        setAnalysisProgress(70);
-
-        // Communication correlations (if API available)
-        try {
-          const commResp = await fetch(
-            `/api/entities/${topEntity.id}/communications?limit=200&topic=flight_logistics`,
-          );
-          const commJson = await commResp.json().catch(() => ({ data: [] }));
-          const events: any[] = Array.isArray(commJson?.data) ? commJson.data : [];
-
-          if (events.length > 0) {
-            const peers = Array.from(
-              new Set(
-                events
-                  .flatMap((e) => [e.from, ...(Array.isArray(e.to) ? e.to : [])])
-                  .filter(Boolean)
-                  .map(String),
-              ),
-            );
-
-            nextCorrelations.push({
-              id: 'communication-flight',
-              type: 'communication',
-              confidence: 75,
-              description:
-                'Cluster of communications referencing flight or logistics activity around a key entity.',
-              sources: ['communication'],
-              entities: [String(topEntity.fullName || topEntity.name || topEntity.id), ...peers],
-              timeRange: { start: 'Unknown', end: 'Unknown' },
-              significance: events.length > 30 ? 'high' : 'medium',
-              evidence: [],
-              anomalies: [],
-            });
-          }
-        } catch {
-          // ignore communication correlation errors
-        }
-      }
-
-      setCorrelations(nextCorrelations);
-      setCorrelationRules([]);
       setAnalysisProgress(100);
     } catch {
       setDataSources([]);

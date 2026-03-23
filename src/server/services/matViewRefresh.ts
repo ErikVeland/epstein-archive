@@ -64,12 +64,12 @@ export async function refreshIfDue(): Promise<void> {
 
     try {
       await pool.query(`REFRESH MATERIALIZED VIEW CONCURRENTLY ${view}`);
-    } catch (_concErr: any) {
+    } catch (_concErr: unknown) {
       // CONCURRENTLY requires a unique index — fall back to blocking refresh
       status = 'ok-nonconc';
       try {
         await pool.query(`REFRESH MATERIALIZED VIEW ${view}`);
-      } catch (fallbackErr: any) {
+      } catch (fallbackErr: unknown) {
         status = 'error';
         logger.error({ err: fallbackErr }, `[MatViewRefresh] Failed to refresh ${view}`);
       }

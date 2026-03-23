@@ -1,6 +1,29 @@
 import { flightsQueries } from '@epstein/db';
 import { getApiPool } from './connection.js';
 
+interface FlightRow {
+  id: string | number;
+  date: string;
+  departureAirport?: string | null;
+  departureCity?: string | null;
+  departureCountry?: string | null;
+  arrivalAirport?: string | null;
+  arrivalCity?: string | null;
+  arrivalCountry?: string | null;
+  aircraftTail?: string | null;
+  aircraftType?: string | null;
+  pilot?: string | null;
+  notes?: string | null;
+}
+
+interface PassengerRow {
+  id: string | number;
+  flightId: string | number;
+  entityId?: string | number | null;
+  passengerName: string;
+  role: string;
+}
+
 export interface Flight {
   id: number;
   date: string;
@@ -126,7 +149,7 @@ export const flightsRepository = {
 
     if (flights.length === 0) return { flights: [], total: 0 };
 
-    const flightIds = flights.map((f: any) => Number(f.id));
+    const flightIds = (flights as FlightRow[]).map((f) => Number(f.id));
     const passengersResult = await pool.query(
       `
       SELECT
@@ -142,7 +165,8 @@ export const flightsRepository = {
     );
     const passengers = passengersResult.rows;
 
-    const flightsWithPassengers = flights.map((f: any) => ({
+    const typedPassengers = passengers as PassengerRow[];
+    const flightsWithPassengers = (flights as FlightRow[]).map((f) => ({
       ...f,
       id: Number(f.id),
       departure_airport: f.departureAirport || '',
@@ -153,9 +177,9 @@ export const flightsRepository = {
       arrival_country: f.arrivalCountry || '',
       aircraft_tail: f.aircraftTail || '',
       aircraft_type: f.aircraftType || '',
-      passengers: passengers
+      passengers: typedPassengers
         .filter((p) => Number(p.flightId) === Number(f.id))
-        .map((p: any) => ({
+        .map((p) => ({
           ...p,
           id: Number(p.id),
           flight_id: Number(p.flightId),
@@ -224,20 +248,25 @@ export const flightsRepository = {
     return {
       totalFlights: Number(basicStats?.totalFlights || 0),
       uniquePassengers: Number(basicStats?.uniquePassengers || 0),
-      topPassengers: topPassengers.map((p: any) => ({ name: p.name, count: Number(p.count || 0) })),
-      topRoutes: topRoutes.map((r: any) => ({
-        route: r.route || 'Unknown',
+      topPassengers: (topPassengers as Array<{ name?: unknown; count?: unknown }>).map((p) => ({
+        name: String(p.name || ''),
+        count: Number(p.count || 0),
+      })),
+      topRoutes: (topRoutes as Array<{ route?: unknown; count?: unknown }>).map((r) => ({
+        route: String(r.route || 'Unknown'),
         count: Number(r.count || 0),
       })),
-      flightsByYear: flightsByYear.map((y: any) => ({
-        year: y.year || 'Unknown',
+      flightsByYear: (flightsByYear as Array<{ year?: unknown; count?: unknown }>).map((y) => ({
+        year: String(y.year || 'Unknown'),
         count: Number(y.count || 0),
       })),
-      airports: airportStats.map((a: any) => ({
-        code: a.airport || 'Unknown',
-        city: a.city || 'Unknown',
-        count: Number(a.count || 0),
-      })),
+      airports: (airportStats as Array<{ airport?: unknown; city?: unknown; count?: unknown }>).map(
+        (a) => ({
+          code: String(a.airport || 'Unknown'),
+          city: String(a.city || 'Unknown'),
+          count: Number(a.count || 0),
+        }),
+      ),
     };
   },
 

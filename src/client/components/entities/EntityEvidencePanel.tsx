@@ -49,6 +49,25 @@ interface EntityEvidencePanelProps {
   entityName: string;
 }
 
+interface EvidenceTypeBreakdownItem {
+  evidenceType: string;
+  count: number;
+}
+
+interface RoleBreakdownItem {
+  role: string;
+  count: number;
+}
+
+interface EntityEvidenceStats {
+  totalEvidence: number;
+  highRiskCount: number;
+  averageConfidence: number;
+  typeBreakdown: EvidenceTypeBreakdownItem[];
+  roleBreakdown: RoleBreakdownItem[];
+  relatedEntities: RelatedEntity[];
+}
+
 interface RelationEvidenceEdge {
   id: string;
   subject_entity_id: number;
@@ -71,7 +90,7 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
   const accessToNavigate = useNavigate();
   /* State for filtering and pagination */
   const [evidence, setEvidence] = useState<Evidence[]>([]);
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<EntityEvidenceStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [filterType, setFilterType] = useState<string>('all');
   const [filterRole, setFilterRole] = useState<string>('all');
@@ -113,7 +132,19 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
       setEvidence(evidenceData.evidence || []);
       setStats(evidenceData.stats || null);
       setRelationEdges(Array.isArray(relationsData.relations) ? relationsData.relations : []);
-      setCommunications((commsRes.data || []) as any[]);
+      setCommunications(
+        (commsRes.data || []) as {
+          documentId: string;
+          threadId: string;
+          subject: string;
+          date: string | null;
+          from: string;
+          to: string[];
+          cc: string[];
+          topic: string;
+          snippet: string;
+        }[],
+      );
     } catch (error) {
       console.error('Error loading entity evidence:', error);
     } finally {
@@ -222,7 +253,7 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
           </h3>
         </div>
         <div className="space-y-2">
-          {stats.typeBreakdown.map((item: any) => (
+          {stats.typeBreakdown.map((item) => (
             <div key={item.evidenceType} className="flex items-center justify-between">
               <span className="text-sm text-[var(--text-secondary)]">
                 {getEvidenceTypeLabel(item.evidenceType)}
@@ -251,7 +282,7 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
             <h3 className="text-lg font-semibold text-[var(--text-primary)]">Role Distribution</h3>
           </div>
           <div className="flex flex-wrap gap-2">
-            {stats.roleBreakdown.map((item: any) => (
+            {stats.roleBreakdown.map((item) => (
               <span
                 key={item.role}
                 className={`px-3 py-1 text-sm rounded-full ${getRoleColor(item.role)}`}
@@ -328,7 +359,7 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
                   ...stats.relatedEntities.slice(0, 15).map((e: RelatedEntity) => ({
                     id: String(e.id),
                     label: e.fullName,
-                    type: 'person',
+                    type: 'person' as const,
                     importance: Math.min(
                       5,
                       Math.max(1, Math.ceil(Math.log(e.sharedEvidenceCount) * 1.5)),
@@ -517,7 +548,7 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
               className="border border-[var(--glass-border)] bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] rounded-[var(--radius-lg)] px-3 py-2 text-sm focus:ring-[var(--accent)] focus:border-[var(--accent)]"
             >
               <option value="all">All Types</option>
-              {stats.typeBreakdown.map((item: any) => (
+              {stats.typeBreakdown.map((item) => (
                 <option key={item.evidenceType} value={item.evidenceType}>
                   {getEvidenceTypeLabel(item.evidenceType)}
                 </option>
@@ -529,7 +560,7 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
               className="border border-[var(--glass-border)] bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] rounded-[var(--radius-lg)] px-3 py-2 text-sm focus:ring-[var(--accent)] focus:border-[var(--accent)]"
             >
               <option value="all">All Roles</option>
-              {stats.roleBreakdown.map((item: any) => (
+              {stats.roleBreakdown.map((item) => (
                 <option key={item.role} value={item.role}>
                   {item.role}
                 </option>

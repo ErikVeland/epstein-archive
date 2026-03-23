@@ -114,5 +114,7 @@ export const productionVitalsCollector = new ProductionVitalsCollector();
 
 // Expose for debugging
 if (typeof window !== 'undefined') {
-  (window as any).productionVitalsCollector = productionVitalsCollector;
+  (
+    window as Window & { productionVitalsCollector?: ProductionVitalsCollector }
+  ).productionVitalsCollector = productionVitalsCollector;
 }

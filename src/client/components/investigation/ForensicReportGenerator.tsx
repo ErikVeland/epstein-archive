@@ -1,6 +1,32 @@
 import { useState, useEffect } from 'react';
 import { FileText, Printer, Calendar, CheckCircle, FileJson } from 'lucide-react';
 
+interface ReportEntity {
+  name?: string;
+  redFlagRating?: number;
+  id?: string | number;
+  type?: string;
+  title?: string;
+  source_id?: string | number;
+}
+
+interface ReportTransaction {
+  amount?: number | string;
+  risk_level?: string;
+  to_entity?: string;
+}
+
+interface ReportStats {
+  totalEntities?: number;
+  totalDocuments?: number;
+}
+
+interface ReportTimelineItem {
+  date?: string;
+  start_date?: string;
+  [key: string]: unknown;
+}
+
 interface ReportSection {
   id: string;
   title: string;
@@ -59,10 +85,10 @@ export default function ForensicReportGenerator({
   const [classification, setClassification] = useState<string>('confidential');
   const [targetAudience, setTargetAudience] = useState<string>('legal');
   const [realData, setRealData] = useState<{
-    stats: any;
-    entities: any[];
-    transactions: any[];
-    timeline: any[];
+    stats: ReportStats | null;
+    entities: ReportEntity[];
+    transactions: ReportTransaction[];
+    timeline: ReportTimelineItem[];
   }>({ stats: null, entities: [], transactions: [], timeline: [] });
 
   // Fetch real data
@@ -89,29 +115,29 @@ export default function ForensicReportGenerator({
           ]);
         }
 
-        const stats = await statsRes.json();
-        const transactions = await transactionsRes.json();
-        let timeline = timelineRes.ok ? await timelineRes.json() : [];
-        let entities = [];
+        const stats = (await statsRes.json()) as ReportStats;
+        const transactions = (await transactionsRes.json()) as ReportTransaction[];
+        let timeline: ReportTimelineItem[] = timelineRes.ok ? await timelineRes.json() : [];
+        let entities: ReportEntity[] = [];
 
         if (investigationId) {
-          const evidence = await entitiesRes.json();
+          const evidence = (await entitiesRes.json()) as ReportEntity[];
           // Filter for entities in evidence
           // This is a simplification; ideally we fetch full entity details for each evidence item
           entities = evidence
-            .filter((e: any) => e.type === 'entity')
-            .map((e: any) => ({
+            .filter((e) => e.type === 'entity')
+            .map((e) => ({
               name: e.title,
               redFlagRating: 0, // Need to fetch this if important
               id: e.source_id,
             }));
           // Timeline format might differ slightly between endpoints, normalize it
-          timeline = timeline.map((e: any) => ({
+          timeline = (timeline as ReportTimelineItem[]).map((e) => ({
             ...e,
             date: e.start_date || e.date,
           }));
         } else {
-          const entitiesData = await entitiesRes.json();
+          const entitiesData = (await entitiesRes.json()) as { data?: ReportEntity[] };
           entities = entitiesData.data || [];
         }
 
@@ -202,19 +228,19 @@ export default function ForensicReportGenerator({
 
     // Dynamic Metrics
     const totalTransactionAmount = transactions.reduce(
-      (sum: number, t: any) => sum + (Number(t.amount) || 0),
+      (sum: number, t) => sum + (Number(t.amount) || 0),
       0,
     );
     const suspiciousTransactions = transactions.filter(
-      (t: any) => t.risk_level === 'high' || t.risk_level === 'critical',
+      (t) => t.risk_level === 'high' || t.risk_level === 'critical',
     );
     const topEntitiesList = entities
       .slice(0, 5)
-      .map((e: any) => e.name)
+      .map((e) => e.name)
       .join(', ');
     const entityCount = stats?.totalEntities || entities.length;
     const documentCount = stats?.totalDocuments || 0;
-    const highRiskEntities = entities.filter((e: any) => e.redFlagRating >= 4).length;
+    const highRiskEntities = entities.filter((e) => (e.redFlagRating ?? 0) >= 4).length;
 
     const currencyFormatter = new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -284,7 +310,7 @@ ${
   suspiciousTransactions.length > 0
     ? `Notable high-risk transactions include transfers involving ${suspiciousTransactions
         .slice(0, 3)
-        .map((t: any) => t.to_entity || 'unknown')
+        .map((t) => t.to_entity || 'unknown')
         .join(', ')}.`
     : ''
 }

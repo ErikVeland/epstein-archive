@@ -1,8 +1,18 @@
 import { getApiPool } from './connection.js';
 
+const asStringArray = (value: unknown): string[] =>
+  Array.isArray(value) ? value.map((item) => String(item)) : [];
+
+const asRecordArray = (value: unknown): Record<string, unknown>[] =>
+  Array.isArray(value)
+    ? value.filter(
+        (item): item is Record<string, unknown> => typeof item === 'object' && item !== null,
+      )
+    : [];
+
 export const bulkOperationsRepository = {
   // Bulk insert entities with pg client for performance
-  bulkInsertEntities: async (entities: any[]) => {
+  bulkInsertEntities: async (entities: Record<string, unknown>[]) => {
     const pool = getApiPool();
     const client = await pool.connect();
 
@@ -20,7 +30,7 @@ export const bulkOperationsRepository = {
           [
             entityData.fullName,
             entityData.primaryRole,
-            entityData.secondaryRoles ? entityData.secondaryRoles.join(', ') : null,
+            entityData.secondaryRoles ? asStringArray(entityData.secondaryRoles).join(', ') : null,
             entityData.likelihoodLevel,
             entityData.mentions || 0,
             entityData.currentStatus,
@@ -34,7 +44,7 @@ export const bulkOperationsRepository = {
 
         // Insert evidence types
         if (entityData.evidenceTypes && Array.isArray(entityData.evidenceTypes)) {
-          for (const typeName of entityData.evidenceTypes) {
+          for (const typeName of asStringArray(entityData.evidenceTypes)) {
             const { rows: typeRows } = await client.query(
               'SELECT id FROM evidence_types WHERE type_name = $1',
               [typeName],
@@ -53,8 +63,9 @@ export const bulkOperationsRepository = {
         }
 
         // Insert documents and mentions
-        if (entityData.fileReferences && entityData.fileReferences.length > 0) {
-          for (const fileRef of entityData.fileReferences) {
+        const fileReferences = asRecordArray(entityData.fileReferences);
+        if (fileReferences.length > 0) {
+          for (const fileRef of fileReferences) {
             const { rows: existingDocs } = await client.query(
               'SELECT id FROM documents WHERE file_path = $1',
               [fileRef.filePath],

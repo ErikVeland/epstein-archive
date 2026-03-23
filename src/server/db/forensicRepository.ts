@@ -16,7 +16,11 @@ export const forensicRepository = {
   /**
    * Save or update forensic metrics
    */
-  saveMetrics: async (documentId: number | string, metrics: any, authenticityScore?: number) => {
+  saveMetrics: async (
+    documentId: number | string,
+    metrics: Record<string, unknown>,
+    authenticityScore?: number,
+  ) => {
     const pool = getApiPool();
     const sql = `
       INSERT INTO document_forensic_metrics (document_id, metrics_json, authenticity_score, last_analyzed_at)

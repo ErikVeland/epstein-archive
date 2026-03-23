@@ -13,7 +13,12 @@ export interface ExportIntegrityMeta {
 }
 
 const parseEvidenceMeta = (item: EvidenceItem): Record<string, unknown> => {
-  const raw = (item as any).metadata_json || (item as any).metadata || null;
+  const evidenceItem = item as EvidenceItem & {
+    metadata_json?: string | Record<string, unknown> | null;
+    metadata?: string | Record<string, unknown> | null;
+    ingest_run_id?: string;
+  };
+  const raw = evidenceItem.metadata_json || evidenceItem.metadata || null;
   if (!raw) return {};
   if (typeof raw === 'string') {
     try {
@@ -39,11 +44,12 @@ const normalizeEvidenceIds = (ids: Array<string | number>): string[] => {
 const resolveIngestRunIds = (evidence: EvidenceItem[]): string[] | 'mixed/unknown' => {
   const runIds = new Set<string>();
   for (const item of evidence) {
+    const evidenceItem = item as EvidenceItem & { ingest_run_id?: string };
     const meta = parseEvidenceMeta(item);
     const runId =
       (meta.ingest_run_id as string | undefined) ||
       (meta.ingestRunId as string | undefined) ||
-      ((item as any).ingest_run_id as string | undefined) ||
+      evidenceItem.ingest_run_id ||
       null;
     if (runId && runId.trim().length > 0) runIds.add(runId);
   }

@@ -107,6 +107,48 @@ interface RawGraphEdge {
   confidence?: number;
 }
 
+const TIMELINE_EVENT_TYPES: TimelineEvent['type'][] = [
+  'document',
+  'meeting',
+  'location',
+  'communication',
+  'hypothesis',
+  'other',
+];
+const toTimelineEventType = (rawType: string): TimelineEvent['type'] => {
+  const normalized = rawType.toLowerCase() as TimelineEvent['type'];
+  return TIMELINE_EVENT_TYPES.includes(normalized) ? normalized : 'other';
+};
+
+const NETWORK_NODE_TYPES = [
+  'person',
+  'document',
+  'organization',
+  'location',
+  'event',
+  'evidence',
+] as const;
+type NetworkNodeType = (typeof NETWORK_NODE_TYPES)[number];
+function toNetworkNodeType(raw: string): NetworkNodeType {
+  const lower = raw.toLowerCase() as NetworkNodeType;
+  return NETWORK_NODE_TYPES.includes(lower) ? lower : 'person';
+}
+
+const NETWORK_EDGE_TYPES = [
+  'connection',
+  'communication',
+  'financial',
+  'legal',
+  'family',
+  'business',
+  'evidence',
+] as const;
+type NetworkEdgeType = (typeof NETWORK_EDGE_TYPES)[number];
+function toNetworkEdgeType(raw: string): NetworkEdgeType {
+  const lower = raw.toLowerCase() as NetworkEdgeType;
+  return NETWORK_EDGE_TYPES.includes(lower) ? lower : 'connection';
+}
+
 interface InvestigationWorkspaceProps {
   investigationId?: string;
   onInvestigationSelect?: (investigation: Investigation) => void;
@@ -138,11 +180,17 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   });
   const [showNewInvestigationModal, setShowNewInvestigationModal] = useState(false);
   const [showCreateRelationshipModal, setShowCreateRelationshipModal] = useState(false);
-  const [newInvestigation, setNewInvestigation] = useState({
+  const [newInvestigation, setNewInvestigation] = useState<{
+    title: string;
+    description: string;
+    hypothesis: string;
+    priority: Investigation['priority'];
+    dueDate: string;
+  }>({
     title: '',
     description: '',
     hypothesis: '',
-    priority: 'medium' as const,
+    priority: 'medium',
     dueDate: '',
   });
   const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>([]);
@@ -322,7 +370,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
             title: e.title,
             startDate: new Date(e.start_date),
             description: e.description || '',
-            type: e.type,
+            type: toTimelineEventType(e.type),
             confidence: Number(e.confidence || 80),
             entities: (() => {
               try {
@@ -493,9 +541,15 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
       }
     };
 
-    window.addEventListener('add-to-investigation', handleAddToInvestigation as EventListener);
+    window.addEventListener(
+      'add-to-investigation',
+      handleAddToInvestigation as unknown as EventListener,
+    );
     return () => {
-      window.removeEventListener('add-to-investigation', handleAddToInvestigation as EventListener);
+      window.removeEventListener(
+        'add-to-investigation',
+        handleAddToInvestigation as unknown as EventListener,
+      );
     };
   }, [addToast, loadEvidenceItems, reloadCaseFolder, selectedInvestigation]);
 
@@ -672,9 +726,9 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
         // Transform entities to network nodes
         const nodes: NetworkNode[] = entities.map((e) => ({
           id: String(e.id),
-          type: e.entityType?.toLowerCase() || 'person',
+          type: toNetworkNodeType(e.entityType || 'person'),
           label: e.fullName,
-          description: e.primaryRole || e.title || 'Person of Interest',
+          description: e.primaryRole || 'Person of Interest',
           importance: e.redFlagRating || 0,
           metadata: {
             mentions: e.mentions || 0,
@@ -686,7 +740,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                   : (e.redFlagRating || 0) >= 2
                     ? 'medium'
                     : 'low',
-            category: e.primaryRole || e.title || 'Person of Interest',
+            category: e.primaryRole || 'Person of Interest',
           },
         }));
 
@@ -734,7 +788,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                 nodes.push({
                   id: String(gn.id),
                   label: gn.label,
-                  type: (gn.type || 'person').toLowerCase(),
+                  type: toNetworkNodeType(gn.type || 'person'),
                   importance: 1,
                   metadata: { category: 'Connected Entity' },
                 });
@@ -749,7 +803,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                   id: edgeId,
                   source: String(ge.source_id),
                   target: String(ge.target_id),
-                  type: ge.relationship_type || 'connection',
+                  type: toNetworkEdgeType(ge.relationship_type || 'connection'),
                   strength: Math.min(10, Math.round((ge.proximity_score ?? 0) * 10) || 5),
                   metadata: {
                     confidence: ge.confidence || 0.8,
@@ -850,7 +904,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
 
         const evidenceTimelineMap = new Map<string, number>();
         filteredEvidence.forEach((item) => {
-          const raw = item?.addedAt || item?.extractedAt;
+          const raw = item?.addedAt;
           if (!raw) return;
           const day = new Date(raw).toISOString().slice(0, 10);
           evidenceTimelineMap.set(day, (evidenceTimelineMap.get(day) || 0) + 1);
@@ -1029,7 +1083,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
           title: e.title,
           startDate: new Date(e.start_date),
           description: e.description || '',
-          type: e.type,
+          type: toTimelineEventType(e.type),
           confidence: e.confidence || 80,
           documents: JSON.parse(e.documents_json || '[]') as string[],
           hypothesisIds: [], // Add if schema supports
@@ -1039,7 +1093,9 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
           tags: [],
           sources: [],
           createdBy: 'system',
+          createdAt: new Date(e.created_at || e.start_date || Date.now()),
           updatedAt: new Date(),
+          layerId: 'default',
         }));
         setTimelineEvents(events);
       }
@@ -1083,7 +1139,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
           title: e.title,
           startDate: new Date(e.start_date),
           description: e.description || '',
-          type: e.type,
+          type: toTimelineEventType(e.type),
           confidence: e.confidence || 80,
           documents: JSON.parse(e.documents_json || '[]') as string[],
           hypothesisIds: [],
@@ -1093,7 +1149,9 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
           tags: [],
           sources: [],
           createdBy: 'system',
+          createdAt: new Date(e.created_at || e.start_date || Date.now()),
           updatedAt: new Date(),
+          layerId: 'default',
         }));
         setTimelineEvents(events);
       }
@@ -1563,7 +1621,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                 investigationId={selectedInvestigation.id}
                 initialHypothesis={selectedInvestigation.hypothesis}
                 evidenceItems={evidenceItems}
-                onHypothesesUpdate={setHypotheses}
+                onHypothesesUpdate={(updated) => setHypotheses(updated as Hypothesis[])}
               />
             )}
             {activeTab === 'notebook' && selectedInvestigation && (

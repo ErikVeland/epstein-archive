@@ -15,7 +15,7 @@ import {
   Trash2,
   Shield,
 } from 'lucide-react';
-import { ENTITY_CATEGORY_ICONS } from '../../../config/entityIcons';
+import { ENTITY_CATEGORY_ICONS, EntityCategory } from '../../../config/entityIcons';
 import { EvidenceAnnotationPanel, EvidenceAnnotation } from '../documents/EvidenceAnnotation';
 import { CloseButton } from '../common/CloseButton';
 import Icon from '../common/Icon';
@@ -63,7 +63,16 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
   const [filterType, setFilterType] = useState<string>('all');
   const [filterRelevance, setFilterRelevance] = useState<string>('all');
   const [showAddModal, setShowAddModal] = useState(false);
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  interface SearchResult {
+    id: number;
+    source: 'evidence' | 'document' | 'entity';
+    title?: string;
+    fullName?: string;
+    description?: string;
+    evidenceType?: string;
+    entityCategory?: string;
+  }
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [, setSelectedEvidence] = useState<Evidence | null>(null);
   const [annotatingEvidence, setAnnotatingEvidence] = useState<Evidence | null>(null);
@@ -133,10 +142,19 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
       ]);
 
       // Combine all search results
-      const combinedResults = [
-        ...(evidenceData.results || []).map((item: any) => ({ ...item, source: 'evidence' })),
-        ...(documentsData.results || []).map((item: any) => ({ ...item, source: 'document' })),
-        ...(entitiesData.results || []).map((item: any) => ({ ...item, source: 'entity' })),
+      const combinedResults: SearchResult[] = [
+        ...(evidenceData.results || []).map((item: Omit<SearchResult, 'source'>) => ({
+          ...item,
+          source: 'evidence' as const,
+        })),
+        ...(documentsData.results || []).map((item: Omit<SearchResult, 'source'>) => ({
+          ...item,
+          source: 'document' as const,
+        })),
+        ...(entitiesData.results || []).map((item: Omit<SearchResult, 'source'>) => ({
+          ...item,
+          source: 'entity' as const,
+        })),
       ];
 
       setSearchResults(combinedResults);
@@ -251,7 +269,8 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
                   >
                     <Icon
                       name={
-                        ((ENTITY_CATEGORY_ICONS as any)[ref.entityCategory]?.icon || 'User') as any
+                        (ENTITY_CATEGORY_ICONS[ref.entityCategory as EntityCategory]?.icon ||
+                          'User') as Parameters<typeof Icon>[0]['name']
                       }
                       size="xs"
                       className="w-2.5 h-2.5 flex-shrink-0"
@@ -445,14 +464,19 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
         </div>
         <div className="grid grid-cols-2 gap-3 max-h-48 overflow-y-auto">
           {entityCoverage.slice(0, 20).map((entity) => {
-            const IconComponent = (ENTITY_CATEGORY_ICONS as any)[entity.entityCategory] || User;
+            const entityIconName = (ENTITY_CATEGORY_ICONS[entity.entityCategory as EntityCategory]
+              ?.icon || 'User') as Parameters<typeof Icon>[0]['name'];
             return (
               <div
                 key={entity.id}
                 className="flex items-center justify-between p-2 bg-[var(--glass-bg-highlight)] rounded"
               >
                 <div className="flex items-center space-x-2 flex-1 min-w-0">
-                  <IconComponent className="w-4 h-4 text-[var(--text-muted)] flex-shrink-0" />
+                  <Icon
+                    name={entityIconName}
+                    size="sm"
+                    className="text-[var(--text-muted)] flex-shrink-0"
+                  />
                   <span className="text-sm text-[var(--text-primary)] truncate">
                     {entity.fullName}
                   </span>
@@ -655,7 +679,7 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-[var(--text-muted)]">
                         {result.source === 'evidence'
-                          ? getEvidenceTypeLabel(result.evidenceType)
+                          ? getEvidenceTypeLabel(result.evidenceType ?? '')
                           : result.source === 'document'
                             ? 'Document'
                             : 'Entity'}

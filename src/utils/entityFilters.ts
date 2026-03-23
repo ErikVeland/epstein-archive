@@ -152,17 +152,26 @@ export const isJunkEntity = (name: string): boolean => {
  */
 export const filterPeopleOnly = (people: Person[]): Person[] => {
   return people.filter((p) => {
-    const rawName = (p.name || (p as any).full_name || (p as any).fullName || '').trim();
+    const person = p as Person & {
+      full_name?: string;
+      fullName?: string;
+      type?: string;
+      junk_tier?: string;
+      junkTier?: string;
+      junk_flag?: number;
+      junkFlag?: number;
+    };
+    const rawName = (p.name || person.full_name || person.fullName || '').trim();
     if (!rawName) return false;
 
     // Check type explicitly if available
-    const type = p.entityType || (p as any).type;
+    const type = p.entityType || person.type;
     if (type && !['person', 'Person', 'Individual', 'Unknown'].includes(type)) {
       return false;
     }
 
-    const junkTier = String((p as any).junk_tier || (p as any).junkTier || '').toLowerCase();
-    const junkFlag = Number((p as any).junk_flag || (p as any).junkFlag || 0);
+    const junkTier = String(person.junk_tier || person.junkTier || '').toLowerCase();
+    const junkFlag = Number(person.junk_flag || person.junkFlag || 0);
     if (junkTier === 'junk' || junkFlag > 0) return false;
 
     // Apply junk filters

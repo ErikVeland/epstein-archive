@@ -82,11 +82,15 @@ export const auditAccess = (
       if (res.statusCode >= 200 && res.statusCode < 300) {
         const id = req.params.id;
         if (id) {
-          void logAudit(action, (req as any).user?.id || null, resourceType, id, {}).catch(
-            (err) => {
-              logger.error({ err: err }, 'Audit log write failed in auditAccess middleware');
-            },
-          );
+          void logAudit(
+            action,
+            (req as AuthenticatedRequest).user?.id || null,
+            resourceType,
+            id,
+            {},
+          ).catch((err) => {
+            logger.error({ err: err }, 'Audit log write failed in auditAccess middleware');
+          });
         }
       }
     });

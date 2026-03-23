@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Icon from '../common/Icon';
+import type { IconName } from '../common/Icon';
 
 interface DataQualityMetrics {
   totalDocuments: number;
@@ -104,7 +105,7 @@ export const DataQualityDashboard: React.FC = () => {
         <MetricCard
           title="Entities with Roles"
           value={`${Math.round((metrics.entityQuality.withRoles / metrics.entityQuality.total) * 100)}%`}
-          icon="UserCheck"
+          icon="Users"
           color="blue"
         />
       </div>
@@ -217,7 +218,7 @@ export const DataQualityDashboard: React.FC = () => {
 const MetricCard: React.FC<{
   title: string;
   value: string;
-  icon: string;
+  icon: IconName;
   color: 'cyan' | 'green' | 'yellow' | 'red' | 'purple' | 'blue';
 }> = ({ title, value, icon, color }) => {
   const colorClasses = {
@@ -237,7 +238,7 @@ const MetricCard: React.FC<{
       className={`bg-gradient-to-br ${colorClasses[color]} rounded-[var(--radius-lg)] p-4 border`}
     >
       <div className="flex items-center gap-2 mb-2">
-        <Icon name={icon as any} size="sm" className={colorClasses[color].split(' ').pop()} />
+        <Icon name={icon} size="sm" className={colorClasses[color].split(' ').pop()} />
         <span className="text-xs text-[var(--text-muted)]">{title}</span>
       </div>
       <p className="text-2xl font-bold text-[var(--text-primary)]">{value}</p>

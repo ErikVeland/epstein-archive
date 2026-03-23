@@ -203,7 +203,7 @@ export class PredictiveAnalyticsService {
     }));
   }
 
-  async getRiskAssessmentDashboard(): Promise<any> {
+  async getRiskAssessmentDashboard(): Promise<Record<string, unknown>> {
     const pool = getApiPool();
 
     // Calculate overall risk metrics
@@ -279,7 +279,7 @@ export class PredictiveAnalyticsService {
     };
   }
 
-  async getPredictiveInsights(searchTerm?: string): Promise<any> {
+  async getPredictiveInsights(searchTerm?: string): Promise<Record<string, unknown>> {
     const pool = getApiPool();
 
     // Find entities that appear in similar contexts to known high-risk entities
@@ -299,7 +299,7 @@ export class PredictiveAnalyticsService {
     `;
 
     let queryWithParams = contextSimilarityQuery;
-    const params: any = {};
+    const params: Record<string, string> = {};
 
     if (searchTerm) {
       queryWithParams += ` AND (e.full_name ILIKE $1 OR de.full_name ILIKE $1)`;
@@ -320,12 +320,14 @@ export class PredictiveAnalyticsService {
     const connectionInferences = await this.getConnectionInferences();
 
     return {
-      contextSimilarity: similarContextEntities.map((entity: any) => ({
-        entity: entity.full_name,
-        currentRisk: entity.red_flag_rating,
-        similarityScore: parseInt(entity.similarContextCount, 10),
-        reason: 'Appears in similar contexts as high-risk entities',
-      })),
+      contextSimilarity: similarContextEntities.map(
+        (entity: { full_name: string; red_flag_rating: number; similarContextCount: string }) => ({
+          entity: entity.full_name,
+          currentRisk: entity.red_flag_rating,
+          similarityScore: parseInt(entity.similarContextCount, 10),
+          reason: 'Appears in similar contexts as high-risk entities',
+        }),
+      ),
       patternPredictions,
       connectionInferences,
       summary: {

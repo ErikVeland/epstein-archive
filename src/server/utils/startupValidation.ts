@@ -57,7 +57,7 @@ export async function validateStartup() {
     const { rows: existingTablesRaw } = await pool.query(
       "SELECT tablename as name FROM pg_catalog.pg_tables WHERE schemaname = 'public'",
     );
-    const existingTables = existingTablesRaw.map((r: any) => r.name);
+    const existingTables = existingTablesRaw.map((r: { name: string }) => r.name);
 
     // Check critical tables
     if (!existingTables.includes('entities')) errors.push('Missing critical table: entities');
@@ -110,8 +110,8 @@ export async function validateStartup() {
     if (!existingTables.includes('pgmigrations')) {
       warnings.push('pgmigrations table missing. Migrations may not have run.');
     }
-  } catch (e: any) {
-    errors.push(`Database connection failed during validation: ${e.message}`);
+  } catch (e: unknown) {
+    errors.push(`Database connection failed during validation: ${(e as Error).message}`);
   }
 
   // Report

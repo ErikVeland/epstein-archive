@@ -14,6 +14,56 @@ import {
 
 const router = Router();
 
+interface GraphNodeRaw {
+  id: unknown;
+  label?: unknown;
+  type?: unknown;
+  risk?: unknown;
+  connectionCount?: unknown;
+  mentions?: unknown;
+  entity_type?: unknown;
+  community_id?: unknown;
+}
+
+interface GraphEdgeRaw {
+  source: unknown;
+  target: unknown;
+  type?: unknown;
+  weight?: unknown;
+  confidence?: unknown;
+  classification?: unknown;
+}
+
+interface GraphClusterRaw {
+  id: unknown;
+  label?: unknown;
+  size?: unknown;
+  risk?: unknown;
+}
+
+interface GraphEdgeEvidence {
+  documentId?: unknown;
+  title?: unknown;
+  snippet?: unknown;
+  date?: unknown;
+  sourceType?: unknown;
+  model?: unknown;
+}
+
+interface MergedGraphNode extends GraphNodeRaw {
+  __mergedIds: string[];
+  __score: number;
+}
+
+interface NormalizedEdge {
+  source: string;
+  target: string;
+  type: unknown;
+  weight: number;
+  confidence: number;
+  classification: unknown;
+}
+
 function normalizeGraphLabel(raw: string): string {
   const trimmed = String(raw || '')
     .replace(/\s+/g, ' ')
@@ -135,13 +185,13 @@ router.get('/global', graphRateLimiter, async (req, res, next) => {
       // Enhance labels (optional)
 
       return res.json({
-        nodes: clusters.map((c: any) => ({
+        nodes: (clusters as GraphClusterRaw[]).map((c) => ({
           id: c.id,
-          label: `${c.label} (${c.size})`,
+          label: `${String(c.label || '')} (${String(c.size || '')})`,
           type: 'cluster',
           risk: c.risk,
           memberCount: c.size,
-          community: parseInt(c.id.split('-')[1]),
+          community: parseInt(String(c.id || '').split('-')[1]),
         })),
         edges: [], // No edges in cluster view for clarity
       });
@@ -161,15 +211,15 @@ router.get('/global', graphRateLimiter, async (req, res, next) => {
       const edges = await getGraphPathEdges(pathNodeArray, startDate, endDate);
 
       return res.json({
-        nodes: nodes.map((n: any) => ({
+        nodes: (nodes as GraphNodeRaw[]).map((n) => ({
           id: String(n.id),
           label: n.label,
           type: n.type,
           risk: n.risk,
-          val: n.val,
-          community: n.community,
+          val: (n as unknown as Record<string, unknown>).val,
+          community: (n as unknown as Record<string, unknown>).community,
         })),
-        edges: edges.map((e: any) => ({
+        edges: (edges as GraphEdgeRaw[]).map((e) => ({
           source: String(e.source),
           target: String(e.target),
           type: e.type,
@@ -184,9 +234,9 @@ router.get('/global', graphRateLimiter, async (req, res, next) => {
     // Deterministic Sort: Risk DESC, Degree DESC, ID ASC
     const rawNodes = await getGlobalGraphNodes({ minRisk, limit, startDate, endDate });
     const remapToCanonicalId = new Map<string, string>();
-    const groupedByLabel = new Map<string, any>();
+    const groupedByLabel = new Map<string, MergedGraphNode>();
 
-    for (const n of rawNodes) {
+    for (const n of rawNodes as GraphNodeRaw[]) {
       const id = String(n.id);
       const normalizedLabel = normalizeGraphLabel(String(n.label || ''));
       if (!normalizedLabel || isLikelyJunkGraphLabel(normalizedLabel)) continue;
@@ -228,7 +278,7 @@ router.get('/global', graphRateLimiter, async (req, res, next) => {
     }
 
     const nodesArr = Array.from(groupedByLabel.values());
-    const canonicalIds = rawNodes.map((n: any) => String(n.id));
+    const canonicalIds = (rawNodes as GraphNodeRaw[]).map((n) => String(n.id));
 
     // Quick exit if no nodes
     if (canonicalIds.length === 0) {
@@ -237,8 +287,8 @@ router.get('/global', graphRateLimiter, async (req, res, next) => {
 
     // 2. Fetch Relationships between these nodes — injection-safe ANY($N::bigint[]) binding
     const rawEdges = await getGlobalGraphEdges({ canonicalIds, startDate, endDate });
-    const edgeMap = new Map<string, any>();
-    for (const e of rawEdges) {
+    const edgeMap = new Map<string, NormalizedEdge>();
+    for (const e of rawEdges as GraphEdgeRaw[]) {
       const sourceRemapped = remapToCanonicalId.get(String(e.source)) || String(e.source);
       const targetRemapped = remapToCanonicalId.get(String(e.target)) || String(e.target);
       if (sourceRemapped === targetRemapped) continue;
@@ -266,7 +316,7 @@ router.get('/global', graphRateLimiter, async (req, res, next) => {
 
     // Return formatting aligned with GraphService
     res.json({
-      nodes: nodesArr.map((n: any) => ({
+      nodes: nodesArr.map((n) => ({
         id: String(n.id),
         label: n.label,
         type: n.type || 'unknown',
@@ -274,8 +324,8 @@ router.get('/global', graphRateLimiter, async (req, res, next) => {
         connectionCount: Number(n.connectionCount || 0),
         community: Number(n.community_id || 0),
       })),
-      edges: edgesArr.map((e: any) => ({
-        id: `${e.source}-${e.target}-${e.type}`,
+      edges: edgesArr.map((e) => ({
+        id: `${e.source}-${e.target}-${String(e.type)}`,
         source: String(e.source),
         target: String(e.target),
         type: e.type,
@@ -303,8 +353,8 @@ router.get('/edge-evidence', async (req, res, next) => {
     const docs = await getEdgeEvidenceDocuments(String(sourceId), String(targetId));
     const rel = getEdgeRelationship(String(sourceId), String(targetId));
 
-    const evidence = docs.map((d: any) => ({
-      id: `doc-${d.documentId}`,
+    const evidence = (docs as GraphEdgeEvidence[]).map((d) => ({
+      id: `doc-${String(d.documentId || '')}`,
       documentId: d.documentId,
       title: d.title,
       snippet: d.snippet || 'No snippet available',

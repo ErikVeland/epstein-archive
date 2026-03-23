@@ -82,14 +82,14 @@ export const FinancialTransactionAnalysis: React.FC<FinancialTransactionAnalysis
           : [];
 
       const txAmounts = transactions
-        .map((tx: any) => Number(tx.amount ?? tx.transaction_amount ?? 0))
+        .map((tx: Record<string, unknown>) => Number(tx.amount ?? tx.transaction_amount ?? 0))
         .filter((amount: number) => Number.isFinite(amount) && amount > 0);
 
       const totalAmount = txAmounts.reduce((sum: number, value: number) => sum + value, 0);
       const largest = txAmounts.reduce((max: number, value: number) => Math.max(max, value), 0);
       const avg = txAmounts.length > 0 ? totalAmount / txAmounts.length : 0;
 
-      const highRisk = transactions.filter((tx: any) => {
+      const highRisk = transactions.filter((tx: Record<string, unknown>) => {
         const risk = String(tx.risk_level ?? tx.risk ?? '').toLowerCase();
         return risk === 'high' || risk === 'critical';
       });
@@ -281,7 +281,7 @@ export const FinancialTransactionAnalysis: React.FC<FinancialTransactionAnalysis
                   (type) => (
                     <button
                       key={type}
-                      onClick={() => setFilterType(type as any)}
+                      onClick={() => setFilterType(type as typeof filterType)}
                       className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
                         filterType === type
                           ? 'bg-green-100 text-green-700'
@@ -298,7 +298,7 @@ export const FinancialTransactionAnalysis: React.FC<FinancialTransactionAnalysis
               <span className="text-sm font-medium text-[var(--text-primary)]">Sort by:</span>
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as any)}
+                onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
                 className="px-3 py-1 text-xs border border-[var(--glass-border)] rounded-md focus:outline-none focus:ring-1 focus:ring-green-500"
               >
                 <option value="confidence">Confidence</option>

@@ -17,11 +17,42 @@ import { DocumentPDFTab } from './subcomponents/DocumentPDFTab';
 import { DocumentAnalysisTab } from './subcomponents/DocumentAnalysisTab';
 import { deriveSummary, normalizeList } from './DocumentModalUtils';
 
+interface DocEntityRecord {
+  id?: string | number;
+  name?: string;
+  fullName?: string;
+  entityType?: string;
+  type?: string;
+  role?: string;
+  primaryRole?: string;
+  mentions?: number;
+  [key: string]: unknown;
+}
+
+interface DocRecord {
+  id?: string | number;
+  title?: string;
+  fileName?: string;
+  description?: string;
+  contentPreview?: string;
+  contentRefined?: string;
+  content?: string;
+  evidenceType?: string;
+  ingestRunId?: string | null;
+  ingest_run_id?: string | null;
+  entities?: DocEntityRecord[];
+  mentionedEntities?: DocEntityRecord[];
+  metadata?: Record<string, unknown>;
+  caseLinks?: unknown;
+  timelineReferences?: unknown;
+  [key: string]: unknown;
+}
+
 interface Props {
   id: string;
   searchTerm?: string;
   onClose: () => void;
-  initialDoc?: any;
+  initialDoc?: DocRecord;
 }
 
 type ViewerTab = 'analysis' | 'pdf' | 'provenance';
@@ -92,10 +123,10 @@ export const DocumentModal: React.FC<Props> = ({
     }
   }, [activeTab]);
 
-  const [doc, setDoc] = useState<any | null>(initialDoc || null);
-  const [thread, setThread] = useState<{ threadId: string; messages: any[] } | null>(null);
-  const [relatedDocs, setRelatedDocs] = useState<any[]>([]);
-  const [selectedEntity, setSelectedEntity] = useState<any | null>(null);
+  const [doc, setDoc] = useState<DocRecord | null>(initialDoc || null);
+  const [thread, setThread] = useState<{ threadId: string; messages: unknown[] } | null>(null);
+  const [relatedDocs, setRelatedDocs] = useState<DocRecord[]>([]);
+  const [selectedEntity, setSelectedEntity] = useState<DocEntityRecord | null>(null);
   const [entityModalId, setEntityModalId] = useState<string | null>(null);
   const [showRecoveryHighlights, setShowRecoveryHighlights] = useState(true);
   const [expandedEntities, setExpandedEntities] = useState(false);
@@ -156,7 +187,7 @@ export const DocumentModal: React.FC<Props> = ({
     apiClient
       .getDocument(id)
       .then((nextDoc) => {
-        if (mounted) setDoc(nextDoc);
+        if (mounted) setDoc(nextDoc as DocRecord);
       })
       .catch(() => {
         // Keep initial doc if request fails.
@@ -175,7 +206,7 @@ export const DocumentModal: React.FC<Props> = ({
     apiClient
       .getRelatedDocuments(id)
       .then((docs) => {
-        if (mounted) setRelatedDocs(docs);
+        if (mounted) setRelatedDocs(docs as DocRecord[]);
       })
       .catch(() => {
         // optional
@@ -260,9 +291,9 @@ export const DocumentModal: React.FC<Props> = ({
   const entities = useMemo(() => {
     const fromDoc = Array.isArray(doc?.entities) ? doc.entities : [];
     const fromMentioned = Array.isArray(doc?.mentionedEntities) ? doc.mentionedEntities : [];
-    const byName = new Map<string, any>();
+    const byName = new Map<string, DocEntityRecord>();
 
-    [...fromDoc, ...fromMentioned].forEach((entity: any) => {
+    [...fromDoc, ...fromMentioned].forEach((entity: DocEntityRecord) => {
       const name = String(entity?.fullName || entity?.name || '').trim();
       if (!name) return;
       if (!byName.has(name.toLowerCase())) {
@@ -274,7 +305,7 @@ export const DocumentModal: React.FC<Props> = ({
   }, [doc]);
 
   const groupedEntities = useMemo(() => {
-    const groups: Record<string, any[]> = {
+    const groups: Record<string, DocEntityRecord[]> = {
       People: [],
       Organizations: [],
       Locations: [],
@@ -293,7 +324,10 @@ export const DocumentModal: React.FC<Props> = ({
       else groups['Other'].push(ent);
     });
 
-    return Object.entries(groups).filter(([_, items]) => items.length > 0) as [string, any[]][];
+    return Object.entries(groups).filter(([_, items]) => items.length > 0) as [
+      string,
+      DocEntityRecord[],
+    ][];
   }, [entities]);
 
   const caseLinks = useMemo(
@@ -363,13 +397,13 @@ export const DocumentModal: React.FC<Props> = ({
         return (
           <DocumentPDFTab
             documentId={id}
-            docId={doc.id || id}
+            docId={String(doc.id ?? id)}
             content={cleanText || ocrText}
             searchTerm={localSearchTerm}
             openOriginalDocument={openOriginalDocument}
             isEmail={String(doc.evidenceType || '').toLowerCase() === 'email'}
             metadata={doc.metadata}
-            title={doc.title || doc.fileName}
+            title={doc.title || doc.fileName || ''}
           />
         );
       case 'analysis':
@@ -385,11 +419,23 @@ export const DocumentModal: React.FC<Props> = ({
             setShowRecoveryHighlights={setShowRecoveryHighlights}
             isReadingMode={isReadingMode}
             setIsReadingMode={setIsReadingMode}
-            setSelectedEntity={setSelectedEntity}
+            setSelectedEntity={
+              setSelectedEntity as unknown as (
+                value: { id?: string | number; name?: string } | null,
+              ) => void
+            }
             setEntityModalId={setEntityModalId}
             entities={entities}
             groupedEntities={groupedEntities}
-            relatedDocs={relatedDocs}
+            relatedDocs={
+              relatedDocs as unknown as {
+                id: string | number;
+                title?: string;
+                fileName?: string;
+                evidenceType?: string;
+                dateCreated?: string;
+              }[]
+            }
             isLoadingRelated={isLoadingRelated}
             onNavigateToDoc={(newId) => navigate(`${location.pathname}?documentId=${newId}`)}
             cleanText={cleanText}
@@ -397,7 +443,11 @@ export const DocumentModal: React.FC<Props> = ({
           />
         );
       case 'provenance':
-        return <ProvenancePanel document={doc} />;
+        return (
+          <ProvenancePanel
+            document={doc as unknown as Parameters<typeof ProvenancePanel>[0]['document']}
+          />
+        );
       default:
         return null;
     }
@@ -467,7 +517,7 @@ export const DocumentModal: React.FC<Props> = ({
                   setSelectedEntity={setSelectedEntity}
                   caseLinks={caseLinks}
                   timelineReferences={timelineReferences}
-                  rightPaneScrollRef={rightPaneScrollRef as any}
+                  rightPaneScrollRef={rightPaneScrollRef as React.RefObject<HTMLDivElement>}
                   onOpenDossier={setEntityModalId}
                   threadCount={thread?.messages?.length || 0}
                 />

@@ -16,7 +16,8 @@ const getRelationshipsSchema = z.object({
 // Relationships API
 router.get('/', validate(getRelationshipsSchema), async (req, res, next) => {
   try {
-    const { entityId, limit, minWeight } = req.query as any;
+    type RelQuery = z.infer<typeof getRelationshipsSchema>['query'];
+    const { entityId, limit, minWeight } = req.query as unknown as RelQuery;
 
     const { relationshipsRepository } = await import('../db/relationshipsRepository.js');
 

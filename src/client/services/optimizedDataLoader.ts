@@ -1,6 +1,15 @@
 import { Person } from '../types';
 import { apiClient } from './apiClient';
 
+interface EntityStatsCache {
+  totalPeople: number;
+  highRisk: number;
+  mediumRisk: number;
+  lowRisk: number;
+  totalMentions: number;
+  totalFiles: number;
+}
+
 export interface RealPerson extends Person {
   fullName: string;
   primaryRole: string;
@@ -43,7 +52,7 @@ export interface SearchFilters {
 export class OptimizedDataService {
   private static instance: OptimizedDataService;
   private isInitialized: boolean = false;
-  private statsCache: any | null = null;
+  private statsCache: EntityStatsCache | null = null;
   private readonly PAGE_SIZE = 24; // Show 24 items per page (4x6 grid)
 
   static getInstance(): OptimizedDataService {
@@ -116,7 +125,9 @@ export class OptimizedDataService {
   /**
    * Transform API entity to RealPerson format
    */
-  private transformApiEntityToRealPerson(entity: any): RealPerson {
+  private transformApiEntityToRealPerson(
+    entity: Person & { title_variants?: string[]; keyEvidence?: string },
+  ): RealPerson {
     return {
       id: entity.id,
       name: entity.name,
@@ -146,7 +157,7 @@ export class OptimizedDataService {
   /**
    * Get statistics from database
    */
-  getStats(): any {
+  getStats(): EntityStatsCache {
     // This is a synchronous method, so we'll return cached stats
     // The stats will be updated asynchronously when needed
     if (!this.statsCache) {
@@ -226,8 +237,8 @@ export class OptimizedDataService {
   async getDatabaseInfo(): Promise<{
     isReady: boolean;
     size: number;
-    stats: any;
-    cacheStats: any;
+    stats: EntityStatsCache;
+    cacheStats: Record<string, string>;
   }> {
     try {
       const healthCheck = await apiClient.healthCheck();

@@ -99,7 +99,7 @@ export const memoryRepository = {
     input: UpdateMemoryEntryInput,
   ): Promise<MemoryEntry | null> => {
     const updateFields: string[] = [];
-    const values: any[] = [];
+    const values: unknown[] = [];
     let i = 1;
 
     if (input.content !== undefined) {
@@ -166,7 +166,7 @@ export const memoryRepository = {
   ): Promise<MemorySearchResult> => {
     const offset = (page - 1) * limit;
     const conditions: string[] = [];
-    const params: any[] = [];
+    const params: unknown[] = [];
     let i = 1;
 
     if (filters.memoryType) {

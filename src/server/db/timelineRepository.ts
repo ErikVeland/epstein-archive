@@ -55,7 +55,7 @@ function getTimelineGroupKey(title: string, date: string): string {
   return `${normalizedTitle}|${String(date || '')}`;
 }
 
-function timelineRowPreferenceScore(row: any): number {
+function timelineRowPreferenceScore(row: Record<string, unknown>): number {
   let score = 0;
   if (PREFERRED_TITLES.has(String(row.title || ''))) score += 100;
   if (
@@ -120,7 +120,7 @@ export const timelineRepository = {
         params,
       );
 
-      const deduped = new Map<string, any>();
+      const deduped = new Map<string, Record<string, unknown>>();
       for (const row of res.rows) {
         const key = getTimelineGroupKey(String(row.title || ''), String(row.start_date || ''));
         const existing = deduped.get(key);
@@ -133,7 +133,7 @@ export const timelineRepository = {
 
       // Transform Global Events
       const mappedEvents = await Promise.all(
-        globalEvents.map(async (e: any) => {
+        globalEvents.map(async (e: Record<string, unknown>) => {
           let entityData: Array<{ id: number | null; name: string }> = [];
           let resolvedEntityIds: number[] = [];
 
@@ -219,7 +219,7 @@ export const timelineRepository = {
                 );
               }
             } catch (err) {
-              logger.warn('[Timeline] Failed to parse entities for event', e.id, err);
+              logger.warn({ err, eventId: e.id }, '[Timeline] Failed to parse entities for event');
               entityData = [];
               resolvedEntityIds = [];
             }
@@ -239,9 +239,8 @@ export const timelineRepository = {
               }
             } catch (err) {
               logger.warn(
+                { err, relatedDocumentId: e.related_document_id },
                 '[Timeline] Failed to fetch related document',
-                e.related_document_id,
-                err,
               );
               relatedDocument = null;
             }
@@ -335,7 +334,10 @@ export const timelineRepository = {
                 };
               }
             } catch (err) {
-              logger.warn('[Timeline] Failed to compute support stats for event', e.id, err);
+              logger.warn(
+                { err, eventId: e.id },
+                '[Timeline] Failed to compute support stats for event',
+              );
             }
           }
 

@@ -127,9 +127,11 @@ router.get('/enhanced', analyticsRateLimiter, cacheResponse(60), async (_req, re
       .sort((a, b) => Number(b?.connectionCount || 0) - Number(a?.connectionCount || 0))
       .slice(0, 100)
       .map(({ __score, ...row }) => row);
-    const topConnectedIds = new Set(topConnectedRows.map((row: any) => Number(row.id)));
+    const topConnectedIds = new Set(
+      topConnectedRows.map((row: Record<string, unknown>) => Number(row.id)),
+    );
     const filteredTopRelationshipsRows = (topRelationshipsRows || []).filter(
-      (rel: any) =>
+      (rel: Record<string, unknown>) =>
         topConnectedIds.has(Number(rel?.sourceId || rel?.source_id)) &&
         topConnectedIds.has(Number(rel?.targetId || rel?.target_id)),
     );
@@ -183,7 +185,7 @@ router.post(
         message: 'Junk reconciliation started in background',
         timestamp: new Date().toISOString(),
       });
-    } catch (error: any) {
+    } catch (error) {
       logger.error({ err: error }, '❌ Error in junk reconciliation');
       next(error);
     }
@@ -210,5 +212,182 @@ router.post(
     }
   },
 );
+
+// Analytics specific correlation heuristics
+router.get('/correlations', authenticateRequest, async (_req, res, next) => {
+  try {
+    const pool = getApiPool();
+
+    // 1. Get Top Entity by Mentions
+    const topEntityRes = await pool.query(`
+      SELECT e.id, e.canonical_id, e.full_name as "fullName", e.name
+      FROM entities e
+      ORDER BY (SELECT COUNT(*) FROM entity_mentions em WHERE em.entity_id = e.id) DESC
+      LIMIT 1
+    `);
+    const topEntity = topEntityRes.rows[0];
+
+    // 2. Build Data Sources Summary
+    const statsRes = await pool.query(`
+      SELECT 
+        (SELECT COUNT(*) FROM documents) as "totalDocuments",
+        (SELECT COUNT(*) FROM entities) as "totalEntities"
+    `);
+    const stats = statsRes.rows[0];
+
+    const dataSources = [
+      {
+        id: 'documents',
+        type: 'document',
+        name: 'Documents',
+        description: 'Indexed evidence documents',
+        lastUpdated: new Date().toISOString().slice(0, 10),
+        reliability: 'verified',
+        recordCount: Number(stats?.totalDocuments || 0),
+        coverage: 100,
+      },
+      {
+        id: 'entities',
+        type: 'legal',
+        name: 'Entities',
+        description: 'People and organisations with mentions',
+        lastUpdated: new Date().toISOString().slice(0, 10),
+        reliability: 'high',
+        recordCount: Number(stats?.totalEntities || 0),
+        coverage: 100,
+      },
+    ];
+
+    const correlations: Array<Record<string, unknown>> = [];
+
+    if (topEntity) {
+      const topEntityId = topEntity.canonical_id || topEntity.id;
+      const topEntityName = topEntity.fullName || topEntity.name || String(topEntityId);
+
+      // 3. Relationships Correlations
+      const relRes = await pool.query(
+        `
+        SELECT 
+          target_entity_id as "target_id",
+          relationship_type,
+          proximity_score,
+          1 as "confidence"
+        FROM entity_relationships
+        WHERE source_entity_id = $1 OR target_entity_id = $1
+        ORDER BY proximity_score DESC LIMIT 20
+      `,
+        [topEntityId],
+      );
+
+      relRes.rows.forEach((r, idx) => {
+        correlations.push({
+          id: `rel-${idx}`,
+          type: 'entity',
+          confidence: Math.round(Number(r.confidence || 0) * 100) || 75,
+          description: `Relationship ${r.relationship_type} with entity ${r.target_id}`,
+          sources: ['entities', 'documents'],
+          entities: [topEntityName, String(r.target_id)],
+          timeRange: { start: 'Unknown', end: 'Unknown' },
+          significance:
+            Number(r.proximity_score || 0) > 0.7
+              ? 'high'
+              : Number(r.proximity_score || 0) > 0.4
+                ? 'medium'
+                : 'low',
+          evidence: [],
+          anomalies: [],
+        });
+      });
+
+      // 4. Financial Correlations
+      const txRes = await pool
+        .query(
+          `
+        SELECT from_entity, to_entity, risk_level
+        FROM financial_transactions
+        WHERE risk_level IN ('high', 'critical')
+        LIMIT 500
+      `,
+        )
+        .catch(() => ({ rows: [] })); // Catch if table doesn't exist
+
+      const highRiskTxs = txRes.rows;
+      if (highRiskTxs.length > 0) {
+        const counterparties = Array.from(
+          new Set(
+            highRiskTxs
+              .flatMap((t: Record<string, unknown>) => [t.from_entity, t.to_entity])
+              .filter(Boolean)
+              .map(String),
+          ),
+        );
+        correlations.push({
+          id: 'financial-high-risk',
+          type: 'financial',
+          confidence: 80,
+          description: `High-risk financial transfers involving ${counterparties.length} counterparties and ${highRiskTxs.length} flagged transactions for ${topEntityName}`,
+          sources: ['financial'],
+          entities: [topEntityName, ...counterparties],
+          timeRange: { start: 'Unknown', end: 'Unknown' },
+          significance:
+            highRiskTxs.length > 50 ? 'critical' : highRiskTxs.length > 10 ? 'high' : 'medium',
+          evidence: [],
+          anomalies: [],
+        });
+      }
+
+      // 5. Communications Correlations
+      const commRes = await pool
+        .query(
+          `
+        SELECT "from", "to"
+        FROM communications
+        WHERE (sender_id = $1 OR receiver_ids @> ARRAY[$1]::integer[])
+          AND content ILIKE '%flight%'
+        LIMIT 200
+      `,
+          [topEntityId],
+        )
+        .catch(() => ({ rows: [] }));
+
+      const commEvents = commRes.rows;
+      if (commEvents.length > 0) {
+        const peers = Array.from(
+          new Set(
+            commEvents
+              .flatMap((e: Record<string, unknown>) => [
+                e.from,
+                ...(Array.isArray(e.to) ? e.to : []),
+              ])
+              .filter(Boolean)
+              .map(String),
+          ),
+        );
+        correlations.push({
+          id: 'communication-flight',
+          type: 'communication',
+          confidence: 75,
+          description:
+            'Cluster of communications referencing flight or logistics activity around a key entity.',
+          sources: ['communication'],
+          entities: [topEntityName, ...peers],
+          timeRange: { start: 'Unknown', end: 'Unknown' },
+          significance: commEvents.length > 30 ? 'high' : 'medium',
+          evidence: [],
+          anomalies: [],
+        });
+      }
+    }
+
+    res.json({
+      dataSources,
+      correlations,
+      rules: [],
+    });
+  } catch (error) {
+    logger.error({ err: error }, '❌ Error fetching correlations');
+    next(error);
+  }
+});
 
 export default router;

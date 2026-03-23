@@ -4,7 +4,7 @@ import { CloseButton } from '../../common/CloseButton';
 import { formatDate } from '../DocumentModalUtils';
 
 interface DocumentHeaderProps {
-  doc: any;
+  doc: Record<string, any>;
   localSearchTerm: string;
   setLocalSearchTerm: (value: string) => void;
   canReturnToCase: boolean;
@@ -47,7 +47,7 @@ export const DocumentHeader: React.FC<DocumentHeaderProps> = ({
             </span>
             <span className="text-[10px] uppercase font-bold text-text-muted tracking-widest flex items-center gap-2 font-mono">
               <Calendar className="w-3.5 h-3.5 opacity-70" />
-              {formatDate(doc.dateModified || doc.updatedAt)}
+              {formatDate(doc.dateModified || doc.updatedAt || doc.dateModified)}
             </span>
           </div>
         </div>

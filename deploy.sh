@@ -9,6 +9,7 @@ set -euo pipefail
 PRODUCTION_USER="${EPSTEIN_PROD_SSH_USER:-svc_epstein}"
 PRODUCTION_HOST="${EPSTEIN_PROD_HOST:-194.195.248.217}"
 PRODUCTION_PATH="${EPSTEIN_PROD_PATH:-/home/${PRODUCTION_USER}/epstein-archive}"
+REMOTE_HOME="/home/${PRODUCTION_USER}"
 SSH_KEY_PATH="${EPSTEIN_PROD_SSH_KEY_PATH:-$HOME/.ssh/id_epstein_prod_ed25519}"
 SSH_OPTS=(-i "$SSH_KEY_PATH" -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new)
 
@@ -46,10 +47,10 @@ verify_release_notes_version() {
 }
 
 remote_pm2_reload_cmd() {
-  cat <<'CMD'
+  cat <<CMD
 set -e
-cd /home/deploy/epstein-archive
-export PNPM_HOME="/home/deploy/.local/share/pnpm"
+cd "${PRODUCTION_PATH}"
+export PNPM_HOME="${REMOTE_HOME}/.local/share/pnpm"
 export PATH="$PNPM_HOME:$PATH"
 export NODE_ENV=production
 
@@ -103,10 +104,10 @@ CMD
 }
 
 remote_db_preflight_cmd() {
-  cat <<'CMD'
+  cat <<CMD
 set -e
-cd /home/deploy/epstein-archive
-export PNPM_HOME="/home/deploy/.local/share/pnpm"
+cd "${PRODUCTION_PATH}"
+export PNPM_HOME="${REMOTE_HOME}/.local/share/pnpm"
 export PATH="$PNPM_HOME:$PATH"
 export NODE_ENV=production
 
@@ -126,10 +127,10 @@ CMD
 }
 
 remote_db_cert_gate_cmd() {
-  cat <<'CMD'
+  cat <<CMD
 set -e
-cd /home/deploy/epstein-archive
-export PNPM_HOME="/home/deploy/.local/share/pnpm"
+cd "${PRODUCTION_PATH}"
+export PNPM_HOME="${REMOTE_HOME}/.local/share/pnpm"
 export PATH="$PNPM_HOME:$PATH"
 export NODE_ENV=production
 
@@ -152,10 +153,10 @@ CMD
 }
 
 remote_env_sanity_cmd() {
-  cat <<'CMD'
+  cat <<CMD
 set -e
-cd /home/deploy/epstein-archive
-export PNPM_HOME="/home/deploy/.local/share/pnpm"
+cd "${PRODUCTION_PATH}"
+export PNPM_HOME="${REMOTE_HOME}/.local/share/pnpm"
 export PATH="$PNPM_HOME:$PATH"
 export NODE_ENV=production
 
@@ -248,7 +249,7 @@ perform_rollback() {
       echo \"Rolling back code to \$TARGET...\"
       git reset --hard \$TARGET
 
-      export PNPM_HOME=\"/home/deploy/.local/share/pnpm\"
+      export PNPM_HOME=\"${REMOTE_HOME}/.local/share/pnpm\"
       export PATH=\"\$PNPM_HOME:\$PATH\"
       export NODE_ENV=production
       pnpm install --frozen-lockfile
@@ -447,7 +448,7 @@ if [ "$DEPLOY_DB" = true ]; then
       git reset --hard origin/main
       git clean -fd
 
-      export PNPM_HOME=\"/home/deploy/.local/share/pnpm\"
+      export PNPM_HOME=\"${REMOTE_HOME}/.local/share/pnpm\"
       export PATH=\"\$PNPM_HOME:\$PATH\"
       export NODE_ENV=production
 
@@ -541,7 +542,7 @@ if [ "$DB_ONLY" = false ]; then
       rm -rf dist
       rm -rf packages/db/dist
 
-      export PNPM_HOME="/home/deploy/.local/share/pnpm"
+      export PNPM_HOME="${REMOTE_HOME}/.local/share/pnpm"
       export PATH="\$PNPM_HOME:\$PATH"
       export NODE_ENV=production
 

@@ -8,6 +8,7 @@ import type {
   InvestigationEvidenceListItemDto,
   InvestigationEvidenceListResponseDto,
 } from '@shared/dto/investigations';
+import type { InvestigationSummaryDto } from './investigations.api';
 
 export type EvidenceTargetType = 'document' | 'entity' | 'media' | null;
 
@@ -17,42 +18,47 @@ export interface NormalizedCaseEvidenceItem extends Omit<
 > {
   targetType: EvidenceTargetType;
   targetId: string | null;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
 }
 
-const safeParseJson = (value: unknown): Record<string, any> => {
+const safeParseJson = (value: unknown): Record<string, unknown> => {
   if (!value) return {};
-  if (typeof value === 'object') return value as Record<string, any>;
+  if (typeof value === 'object') return value as Record<string, unknown>;
   if (typeof value !== 'string') return {};
   try {
-    return JSON.parse(value) as Record<string, any>;
+    return JSON.parse(value) as Record<string, unknown>;
   } catch {
     return {};
   }
 };
 
-export const mapApiInvestigation = (inv: any): Investigation & { uuid?: string } => ({
-  id: String(inv.id),
-  title: inv.title,
-  description: inv.description || '',
-  hypothesis: inv.scope || '',
-  status:
-    inv.status === 'open'
-      ? 'active'
-      : inv.status === 'in_review'
-        ? 'review'
-        : inv.status === 'closed'
-          ? 'published'
-          : 'archived',
-  createdAt: new Date(inv.createdAt),
-  updatedAt: new Date(inv.updatedAt),
-  team: [],
-  leadInvestigator: String(inv.ownerId || ''),
-  permissions: [],
-  tags: [],
-  priority: 'medium',
-  uuid: inv.uuid ? String(inv.uuid) : undefined,
-});
+export const mapApiInvestigation = (
+  inv: InvestigationSummaryDto | Record<string, unknown>,
+): Investigation & { uuid?: string } => {
+  const r = inv as Record<string, unknown>;
+  return {
+    id: String(r.id),
+    title: String(r.title || ''),
+    description: String(r.description || ''),
+    hypothesis: String(r.scope || ''),
+    status:
+      r.status === 'open'
+        ? 'active'
+        : r.status === 'in_review'
+          ? 'review'
+          : r.status === 'closed'
+            ? 'published'
+            : ('archived' as Investigation['status']),
+    createdAt: new Date(String(r.createdAt || '')),
+    updatedAt: new Date(String(r.updatedAt || '')),
+    team: [],
+    leadInvestigator: String(r.ownerId || ''),
+    permissions: [],
+    tags: [],
+    priority: 'medium' as const,
+    uuid: r.uuid ? String(r.uuid) : undefined,
+  };
+};
 
 export const normalizeEvidenceListItem = (
   row: InvestigationEvidenceListItemDto,
@@ -78,7 +84,11 @@ export const normalizeEvidencePage = (payload: InvestigationEvidenceListResponse
 
 export const resolveCaseEvidenceTarget = (
   item: InvestigationCaseEvidenceItemDto,
-): { targetType: EvidenceTargetType; targetId: string | null; metadata: Record<string, any> } => {
+): {
+  targetType: EvidenceTargetType;
+  targetId: string | null;
+  metadata: Record<string, unknown>;
+} => {
   const metadata = safeParseJson(item.metadataJson);
   const sourcePath = String(item.sourcePath || '');
 
@@ -150,5 +160,5 @@ export const findEvidenceByDeepLinkId = (
   );
 };
 
-export const selectShareableInvestigationId = (inv: any): string =>
+export const selectShareableInvestigationId = (inv: Record<string, unknown>): string =>
   String(inv?.uuid || inv?.id || '');

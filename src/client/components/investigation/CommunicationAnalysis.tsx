@@ -46,6 +46,8 @@ export interface CommunicationPattern {
   recommendations: string[];
 }
 
+type PatternFilterType = 'all' | 'frequency' | 'timing' | 'content' | 'network' | 'anomaly';
+
 export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
   investigation,
   evidence,
@@ -59,9 +61,7 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
   const [analysisProgress, setAnalysisProgress] = useState(0);
   const [analysisMessage, setAnalysisMessage] = useState('Ready');
   const [lastRunAt, setLastRunAt] = useState<string | null>(null);
-  const [filterType, setFilterType] = useState<
-    'all' | 'frequency' | 'timing' | 'content' | 'network' | 'anomaly'
-  >('all');
+  const [filterType, setFilterType] = useState<PatternFilterType>('all');
 
   const linkedEntityCount = useMemo(
     () =>
@@ -86,12 +86,12 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
         const allItems = Array.isArray(payload?.all) ? payload.all : [];
         const fromCaseFolder = allItems
           .filter(
-            (item: any) =>
+            (item: Record<string, unknown>) =>
               item?.targetType === 'entity' ||
               String(item?.sourcePath || '').startsWith('entity:') ||
               ['entity', 'person', 'organization'].includes(String(item?.type || '').toLowerCase()),
           )
-          .map((item: any) => {
+          .map((item: Record<string, unknown>) => {
             if (item?.targetId) return String(item.targetId);
             const sourcePath = String(item?.sourcePath || '');
             const match = sourcePath.match(/^entity:(\d+)$/);
@@ -130,7 +130,7 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
       documentId: string;
       threadId: string;
       subject: string;
-      date: string | null;
+      date: string;
       from: string;
       to: string[];
       cc: string[];
@@ -144,17 +144,20 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
         const res = await apiClient.getEntityCommunications(entityId, {
           limit: 500,
         });
-        const events = (res.data || []).map((e: any) => ({
-          entityId,
-          documentId: String(e.documentId || e.document_id || ''),
-          threadId: String(e.threadId || e.thread_id || ''),
-          subject: String(e.subject || ''),
-          date: e.date || null,
-          from: String(e.from || ''),
-          to: Array.isArray(e.to) ? e.to : [],
-          cc: Array.isArray(e.cc) ? e.cc : [],
-          topic: String(e.topic || 'misc'),
-        }));
+        const events = (res.data || []).map((e: unknown) => {
+          const ev = e as Record<string, unknown>;
+          return {
+            entityId,
+            documentId: String(ev.documentId || ev.document_id || ''),
+            threadId: String(ev.threadId || ev.thread_id || ''),
+            subject: String(ev.subject || ''),
+            date: ev.date ? String(ev.date) : '',
+            from: String(ev.from || ''),
+            to: Array.isArray(ev.to) ? (ev.to as string[]) : [],
+            cc: Array.isArray(ev.cc) ? (ev.cc as string[]) : [],
+            topic: String(ev.topic || 'misc'),
+          };
+        });
         allEvents.push(...events);
       } catch (err) {
         // If one entity fails, continue with others
@@ -562,19 +565,21 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
             <Filter className="w-4 h-4 text-[var(--text-muted)]" />
             <span className="text-sm font-medium text-[var(--text-primary)]">Filter by type:</span>
             <div className="flex gap-2">
-              {['all', 'frequency', 'timing', 'content', 'network', 'anomaly'].map((type) => (
-                <button
-                  key={type}
-                  onClick={() => setFilterType(type as any)}
-                  className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
-                    filterType === type
-                      ? 'bg-red-100 text-red-700'
-                      : 'bg-[var(--app-bg)] text-[var(--text-primary)] hover:bg-[var(--app-bg)]'
-                  }`}
-                >
-                  {type.charAt(0).toUpperCase() + type.slice(1)}
-                </button>
-              ))}
+              {(['all', 'frequency', 'timing', 'content', 'network', 'anomaly'] as const).map(
+                (type) => (
+                  <button
+                    key={type}
+                    onClick={() => setFilterType(type)}
+                    className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
+                      filterType === type
+                        ? 'bg-red-100 text-red-700'
+                        : 'bg-[var(--app-bg)] text-[var(--text-primary)] hover:bg-[var(--app-bg)]'
+                    }`}
+                  >
+                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                  </button>
+                ),
+              )}
             </div>
           </div>
         </div>

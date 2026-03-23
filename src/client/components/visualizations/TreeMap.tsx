@@ -1,20 +1,33 @@
 import React, { useState, useRef } from 'react';
 import { ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 import { filterPeopleOnly } from '../../utils/entityFilters';
+import type { Person } from '../../types';
+import { useAnalytics } from '../../contexts/AnalyticsContext';
+
+export interface PersonLike {
+  name?: string;
+  fullName?: string;
+  mentions?: number;
+  redFlagRating?: number;
+  type?: string;
+  entityType?: string;
+  [key: string]: unknown;
+}
 
 interface TreeMapProps {
-  people: any[];
-  onPersonClick?: (person: any) => void;
+  people: PersonLike[];
 }
 
 interface TreeMapNode {
   name: string;
   value: number;
   redFlagRating: number;
-  person: any;
+  person: PersonLike;
 }
 
-export const TreeMap: React.FC<TreeMapProps> = ({ people, onPersonClick }) => {
+export const TreeMap: React.FC<TreeMapProps> = ({ people }) => {
+  const { onPersonSelect } = useAnalytics();
+  const onPersonClick = onPersonSelect as unknown as (person: PersonLike) => void;
   const [hoveredNode, setHoveredNode] = useState<TreeMapNode | null>(null);
   const [transform, setTransform] = useState({ k: 1, x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -28,7 +41,7 @@ export const TreeMap: React.FC<TreeMapProps> = ({ people, onPersonClick }) => {
       const type = (p.type || p.entityType || '').toLowerCase();
       return type === 'person' || type === '' || !type;
     })
-    .filter((p) => (p.name || p.fullName) && filterPeopleOnly([p as any]).length > 0)
+    .filter((p) => (p.name || p.fullName) && filterPeopleOnly([p as unknown as Person]).length > 0)
     .sort((a, b) => Number(b.mentions || 0) - Number(a.mentions || 0))
     .slice(0, 50)
     .map((p) => ({

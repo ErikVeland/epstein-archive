@@ -22,7 +22,8 @@ const formatUiError = (error: unknown, fallback: string): string => {
   if (error instanceof Error && error.message) return error.message;
   if (typeof error === 'string' && error.trim()) return error;
   if (error && typeof error === 'object') {
-    const maybe = (error as any).message || (error as any).error || (error as any).detail;
+    const errorObj = error as Record<string, unknown>;
+    const maybe = errorObj.message || errorObj.error || errorObj.detail;
     if (typeof maybe === 'string' && maybe.trim()) return maybe;
     try {
       return JSON.stringify(error);
