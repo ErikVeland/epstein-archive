@@ -532,13 +532,25 @@ export const entitiesRepository = {
 
     // Hard exclusion: never surface junk/OCR/role-fragment entities on the front page.
     // This is a WHERE-level filter so junk can't bubble up regardless of sort order.
+    // Use simple ILIKE patterns to avoid regex escaping issues in parameterized queries.
     whereParts.push(`NOT (
-      LOWER(e.full_name) ~* '^(dear|dearest|watch|watching|defendant|defendants|plaintiff|plaintiffs|philanthropy|re:|fwd:|fw:|from:|to:|cc:|bcc:)\\s'
-      OR LOWER(e.full_name) ~* E'\\\\m.+\\'s\\\\M\\\\s+(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\\\\M'
-      OR LOWER(e.full_name) ~* '^(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\\\\s+'
-      OR LOWER(e.full_name) ~* '^(mr|ms|miss|mrs)\\\\s+(epstein|maxwell|trump)\\\\s*$'
-      OR LOWER(e.full_name) ~* '^(president|defendant|plaintiff)\\\\s+'
-      OR e.full_name ~* '\\\\m(on)\\\\M\\\\s+(mon|tue|wed|thu|fri|sat|sun|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\\\\M'
+      e.full_name ILIKE 'dear %'
+      OR e.full_name ILIKE 'dearest %'
+      OR e.full_name ILIKE 'watch %'
+      OR e.full_name ILIKE 'watching %'
+      OR e.full_name ILIKE 'defendant %'
+      OR e.full_name ILIKE 'defendants %'
+      OR e.full_name ILIKE 'plaintiff %'
+      OR e.full_name ILIKE 'plaintiffs %'
+      OR e.full_name ILIKE 'philanthropy %'
+      OR e.full_name ILIKE '%''s lawyer'
+      OR e.full_name ILIKE '%''s assistant'
+      OR e.full_name ILIKE '%''s pilot'
+      OR e.full_name ILIKE '%''s masseuse'
+      OR e.full_name ILIKE '%''s housekeeper'
+      OR e.full_name ILIKE '%''s aide'
+      OR e.full_name ILIKE '%''s counsel'
+      OR e.full_name ILIKE '%''s staff'
     )`);
 
     const whereSql = whereParts.length ? `WHERE ${whereParts.join(' AND ')}` : '';
