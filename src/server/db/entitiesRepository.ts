@@ -247,7 +247,7 @@ const EVIDENCE_LADDER_RANK: Record<'NONE' | 'L3' | 'L2' | 'L1', number> = {
 
 const SUBJECT_AGGREGATE_ENRICHMENT_LIMIT = Math.max(
   1,
-  Number(process.env.SUBJECT_AGGREGATE_ENRICHMENT_LIMIT || 8) || 8,
+  Number(process.env.SUBJECT_AGGREGATE_ENRICHMENT_LIMIT || 200) || 200,
 );
 
 async function loadAggregateStatsForSubjects(
