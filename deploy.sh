@@ -51,7 +51,7 @@ remote_pm2_reload_cmd() {
 set -e
 cd "${PRODUCTION_PATH}"
 export PNPM_HOME="${REMOTE_HOME}/.local/share/pnpm"
-export PATH="$PNPM_HOME:$PATH"
+export PATH="\$PNPM_HOME:\$PATH"
 export NODE_ENV=production
 
 if [ -f .env ]; then
@@ -59,12 +59,12 @@ if [ -f .env ]; then
   source .env
   set +a
 fi
-[ -n "${DATABASE_URL:-}" ] || (echo "❌ DATABASE_URL missing in remote PM2 restart checks" && exit 1)
+[ -n "\${DATABASE_URL:-}" ] || (echo "❌ DATABASE_URL missing in remote PM2 restart checks" && exit 1)
 
 # 1. Environment & Resource Checks
 echo "Checking environment..."
-node -v | grep -q "v2" || (echo "❌ Node version too old (need v20+), found $(node -v)" && exit 1)
-df -h . | awk 'NR==2 {print $4}' | grep -q "G" || echo "⚠️  Low disk space warning"
+node -v | grep -q "v2" || (echo "❌ Node version too old (need v20+), found \$(node -v)" && exit 1)
+df -h . | awk 'NR==2 {print \$4}' | grep -q "G" || echo "⚠️  Low disk space warning"
 
 # 2. Database Connectivity Gate (Fail closed)
 echo "Checking database connectivity..."
@@ -108,7 +108,7 @@ remote_db_preflight_cmd() {
 set -e
 cd "${PRODUCTION_PATH}"
 export PNPM_HOME="${REMOTE_HOME}/.local/share/pnpm"
-export PATH="$PNPM_HOME:$PATH"
+export PATH="\$PNPM_HOME:\$PATH"
 export NODE_ENV=production
 
 if [ -f .env ]; then
@@ -116,7 +116,7 @@ if [ -f .env ]; then
   source .env
   set +a
 fi
-[ -n "${DATABASE_URL:-}" ] || (echo "❌ DATABASE_URL missing in remote DB preflight" && exit 1)
+[ -n "\${DATABASE_URL:-}" ] || (echo "❌ DATABASE_URL missing in remote DB preflight" && exit 1)
 
 # CERT_STEP: pg_connectivity_pre_migration
 pnpm db:check
@@ -131,7 +131,7 @@ remote_db_cert_gate_cmd() {
 set -e
 cd "${PRODUCTION_PATH}"
 export PNPM_HOME="${REMOTE_HOME}/.local/share/pnpm"
-export PATH="$PNPM_HOME:$PATH"
+export PATH="\$PNPM_HOME:\$PATH"
 export NODE_ENV=production
 
 if [ -f .env ]; then
@@ -139,7 +139,7 @@ if [ -f .env ]; then
   source .env
   set +a
 fi
-[ -n "${DATABASE_URL:-}" ] || (echo "❌ DATABASE_URL missing in remote DB cert gates" && exit 1)
+[ -n "\${DATABASE_URL:-}" ] || (echo "❌ DATABASE_URL missing in remote DB cert gates" && exit 1)
 
 # CERT_STEP: schema_hash_verification
 # pnpm schema:hash:check
@@ -148,7 +148,7 @@ fi
 node --import tsx/esm scripts/pg_explain.ts || exit 1
 
 # CERT_STEP: db_confirmed_healthy_before_restart
-psql "$DATABASE_URL" -c "SELECT 1" || exit 1
+psql "\$DATABASE_URL" -c "SELECT 1" || exit 1
 CMD
 }
 
@@ -157,7 +157,7 @@ remote_env_sanity_cmd() {
 set -e
 cd "${PRODUCTION_PATH}"
 export PNPM_HOME="${REMOTE_HOME}/.local/share/pnpm"
-export PATH="$PNPM_HOME:$PATH"
+export PATH="\$PNPM_HOME:\$PATH"
 export NODE_ENV=production
 
 if [ -f .env ]; then
@@ -165,18 +165,18 @@ if [ -f .env ]; then
   source .env
   set +a
 fi
-[ -n "${DATABASE_URL:-}" ] || (echo "❌ DATABASE_URL missing in remote .env" && exit 1)
-[ -z "${DB_DIALECT:-}" ] || (echo "❌ Legacy DB_DIALECT is set in remote .env; remove it for Postgres-only runtime." && exit 1)
+[ -n "\${DATABASE_URL:-}" ] || (echo "❌ DATABASE_URL missing in remote .env" && exit 1)
+[ -z "\${DB_DIALECT:-}" ] || (echo "❌ Legacy DB_DIALECT is set in remote .env; remove it for Postgres-only runtime." && exit 1)
 
 echo "Remote env sanity (masked DATABASE_URL):"
   # Safely check for credentials without leaking full URL
-  if printf '%s\n' "$DATABASE_URL" | grep -qv "@"; then
+  if printf '%s\n' "\$DATABASE_URL" | grep -qv "@"; then
     echo "❌ FATAL: DATABASE_URL is missing credentials (username:password@)."
-    echo "   Postgres is defaulting to system user '$(whoami)', who lacks DB roles."
+    echo "   Postgres is defaulting to system user '\$(whoami)', who lacks DB roles."
     echo "   Update your production .env with: DATABASE_URL=postgresql://USER:PASS@HOST/DB"
     exit 1
   fi
-  printf '%s\n' "$DATABASE_URL" | sed -E 's#(postgres(ql)?://[^:/]+):[^@]*@#\1:***@#'
+  printf '%s\n' "\$DATABASE_URL" | sed -E 's#(postgres(ql)?://[^:/]+):[^@]*@#\1:***@#'
 pnpm db:check
 CMD
 }
