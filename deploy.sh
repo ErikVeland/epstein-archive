@@ -555,6 +555,11 @@ if [ "$DB_ONLY" = false ]; then
         cp -an .prev_dist_assets/. dist/assets/ 2>/dev/null || true
         rm -rf .prev_dist_assets
       fi
+
+      # Ensure nginx (www-data) can traverse the home dir and read dist/
+      echo 'Fixing nginx read permissions on dist...'
+      chmod o+x "${REMOTE_HOME}"
+      chmod -R o+rX dist
     "
 
     # CERT_STEP: app_restart_after_db_healthy
