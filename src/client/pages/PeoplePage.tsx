@@ -8,7 +8,8 @@ import SortFilter from '../components/layout/SortFilter';
 import SubjectCardV2 from '../components/entities/SubjectCardV2';
 import PersonCardSkeleton from '../components/entities/PersonCardSkeleton';
 import { Person, SubjectCardDTO } from '../types';
-import { apiClient } from '../services/apiClient';
+import { useSubjectsQuery } from '../hooks/useSubjectsQuery';
+import { GlassButton } from '../components/ui/GlassButton';
 
 interface DataStats {
   totalPeople: number;
@@ -52,48 +53,26 @@ export const PeoplePage: React.FC<PeoplePageProps> = ({
   searchTerm,
   onPersonClick,
 }) => {
-  const [subjects, setSubjects] = useState<SubjectCardDTO[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
 
   const PAGE_SIZE = 24;
+  const {
+    data: subjectsResponse,
+    isLoading,
+    isFetching,
+  } = useSubjectsQuery({
+    page,
+    pageSize: PAGE_SIZE,
+    searchTerm,
+    entityType,
+    sortBy,
+    sortOrder,
+    selectedRiskLevel,
+  });
 
-  useEffect(() => {
-    let active = true;
-
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const filters = {
-          search: searchTerm,
-          role: undefined,
-          entityType: entityType === 'all' ? undefined : entityType,
-          sortBy,
-          likelihood: selectedRiskLevel,
-          sortOrder,
-        };
-
-        const res = await apiClient.getSubjects(filters, page, PAGE_SIZE);
-        if (active) {
-          setSubjects(res.subjects || []);
-          setTotal(res.total || 0);
-        }
-      } catch {
-        if (active) {
-          setSubjects([]);
-          setTotal(0);
-        }
-      } finally {
-        if (active) setLoading(false);
-      }
-    };
-
-    fetchData();
-    return () => {
-      active = false;
-    };
-  }, [page, searchTerm, entityType, sortBy, sortOrder, selectedRiskLevel]);
+  const subjects: SubjectCardDTO[] = subjectsResponse?.subjects || [];
+  const total = subjectsResponse?.total || 0;
+  const loading = isLoading || (isFetching && subjects.length === 0);
 
   useEffect(() => {
     setPage(1);
@@ -164,13 +143,15 @@ export const PeoplePage: React.FC<PeoplePageProps> = ({
 
             <div className="w-full md:w-auto grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] gap-2 md:flex md:items-center font-sans">
               {isAdmin && (
-                <button
+                <GlassButton
                   onClick={onAddSubject}
-                  className="control px-3 text-sm font-medium text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)] hidden md:flex items-center gap-2"
+                  variant="secondary"
+                  size="sm"
+                  className="hidden md:flex items-center gap-2"
                 >
                   <Icon name="Plus" size="sm" />
                   <span className="hidden sm:inline">Add Subject</span>
-                </button>
+                </GlassButton>
               )}
 
               <EntityTypeFilter
@@ -199,14 +180,16 @@ export const PeoplePage: React.FC<PeoplePageProps> = ({
                 className="w-full md:w-auto"
               />
 
-              <button
+              <GlassButton
                 onClick={onSortOrderToggle}
-                className="control h-11 w-11 flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors shrink-0"
+                variant="ghost"
+                size="sm"
+                className="h-11 w-11 shrink-0 !px-0 !py-0"
                 title={`Sort ${sortOrder === 'asc' ? 'Descending' : 'Ascending'}`}
                 aria-label={`Sort ${sortOrder === 'asc' ? 'Descending' : 'Ascending'}`}
               >
                 {sortOrder === 'asc' ? '↑' : '↓'}
-              </button>
+              </GlassButton>
             </div>
             <div className="text-xs text-[var(--text-muted)] uppercase tracking-[0.12em]">
               Sort: {sortBy.replace('_', ' ')} ({sortOrder})

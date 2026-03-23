@@ -1314,29 +1314,40 @@ function App() {
     [location.pathname, location.search, navigate],
   );
 
-  const navSegmentBaseClass = `flex h-full w-full min-w-0 items-center justify-center ${
+  const navSegmentBaseClass = `main-nav-segment flex h-full w-full min-w-0 items-center justify-center ${
     navLayoutMode === 'icons'
       ? 'gap-0 px-2'
       : navLayoutMode === 'compact'
         ? 'gap-1.5 px-2.5'
         : 'gap-1.5 px-3 lg:px-4'
-  } rounded-none transition-all duration-200 whitespace-nowrap border-0 bg-transparent ${
-    navLayoutMode === 'icons' ? 'max-w-11' : ''
-  }`;
-  const getNavSegmentClass = (isActive: boolean, extraClass: string = '') =>
-    `${navSegmentBaseClass} ${
-      isActive
-        ? `bg-[var(--glass-bg-highlight)] shadow-[var(--glass-shadow-soft)] text-[var(--text-strong)]`
-        : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)]'
-    } ${extraClass}`.trim();
-  const navItemClass = 'flex-none h-full';
+  } rounded-none whitespace-nowrap border-0 bg-transparent`;
+  const navThemeClassByTab: Record<string, string> = {
+    people: 'main-nav-segment-people',
+    documents: 'main-nav-segment-documents',
+    investigations: 'main-nav-segment-investigations',
+    timeline: 'main-nav-segment-timeline',
+    flights: 'main-nav-segment-flights',
+    properties: 'main-nav-segment-properties',
+    media: 'main-nav-segment-media',
+    emails: 'main-nav-segment-emails',
+    blackbook: 'main-nav-segment-blackbook',
+    analytics: 'main-nav-segment-analytics',
+    about: 'main-nav-segment-about',
+  };
+  const getNavSegmentClass = (
+    tab: keyof typeof navThemeClassByTab,
+    isActive: boolean,
+    extraClass: string = '',
+  ) =>
+    `${navSegmentBaseClass} ${navThemeClassByTab[tab]} ${isActive ? 'main-nav-segment-active' : ''} ${extraClass}`.trim();
+  const navItemClass = 'flex h-full min-w-0 flex-1';
   const navLabelClass = navLayoutMode === 'icons' ? 'hidden' : 'inline';
   const navPillClass =
     navLayoutMode === 'normal'
-      ? 'flex h-11 min-w-full items-stretch rounded-full overflow-hidden bg-[var(--glass-bg)]/40 hover:bg-[var(--glass-bg)]/60 shadow-[var(--glass-shadow-soft)] transition-colors'
+      ? 'flex h-11 w-full items-stretch rounded-full overflow-hidden transition-colors'
       : navLayoutMode === 'compact'
-        ? 'flex h-10 min-w-full items-stretch rounded-full overflow-hidden bg-[var(--glass-bg)]/40 hover:bg-[var(--glass-bg)]/60 shadow-[var(--glass-shadow-soft)] transition-colors'
-        : 'flex h-11 min-w-full items-stretch rounded-full overflow-hidden bg-[var(--glass-bg)]/40 hover:bg-[var(--glass-bg)]/60 shadow-[var(--glass-shadow-soft)] transition-colors';
+        ? 'flex h-10 w-full items-stretch rounded-full overflow-hidden transition-colors'
+        : 'flex h-11 w-full items-stretch rounded-full overflow-hidden transition-colors';
 
   useEffect(() => {
     const track = navTrackRef.current;
@@ -1758,7 +1769,7 @@ function App() {
                       <div className={navItemClass}>
                         <button
                           onClick={() => navigate('/people')}
-                          className={getNavSegmentClass(activeTab === 'people')}
+                          className={getNavSegmentClass('people', activeTab === 'people')}
                         >
                           <Icon name="Users" size="sm" />
                           <span className={navLabelClass}>People</span>
@@ -1767,7 +1778,7 @@ function App() {
                       <div className={navItemClass}>
                         <button
                           onClick={() => navigate('/documents')}
-                          className={getNavSegmentClass(activeTab === 'documents')}
+                          className={getNavSegmentClass('documents', activeTab === 'documents')}
                         >
                           <Icon name="FileText" size="sm" />
                           <span className={navLabelClass}>Documents</span>
@@ -1787,6 +1798,7 @@ function App() {
                             navigate('/investigations');
                           }}
                           className={getNavSegmentClass(
+                            'investigations',
                             activeTab === 'investigations',
                             investigateAttract && activeTab !== 'investigations'
                               ? 'ring-2 ring-[var(--accent-danger)] shadow-lg shadow-[var(--accent-danger)]/30 animate-pulse'
@@ -1865,7 +1877,7 @@ function App() {
                         <button
                           onClick={() => navigate('/timeline')}
                           onMouseEnter={() => preloader.prefetchJson('/api/timeline')}
-                          className={getNavSegmentClass(activeTab === 'timeline')}
+                          className={getNavSegmentClass('timeline', activeTab === 'timeline')}
                         >
                           <Icon name="Clock" size="sm" />
                           <span className={navLabelClass}>Timeline</span>
@@ -1875,7 +1887,7 @@ function App() {
                         <button
                           onClick={() => navigate('/flights')}
                           onMouseEnter={() => preloader.prefetchJson('/api/flights')}
-                          className={getNavSegmentClass(activeTab === 'flights')}
+                          className={getNavSegmentClass('flights', activeTab === 'flights')}
                         >
                           <Icon name="Navigation" size="sm" />
                           <span className={navLabelClass}>Flights</span>
@@ -1885,7 +1897,7 @@ function App() {
                         <button
                           onClick={() => navigate('/properties')}
                           onMouseEnter={() => preloader.prefetchJson('/api/properties/stats')}
-                          className={getNavSegmentClass(activeTab === 'properties')}
+                          className={getNavSegmentClass('properties', activeTab === 'properties')}
                         >
                           <Icon name="Building" size="sm" />
                           <span className={navLabelClass}>Properties</span>
@@ -1898,7 +1910,7 @@ function App() {
                             preloader.prefetchJson('/api/media/albums');
                             preloader.prefetchJson('/api/media/images?limit=24');
                           }}
-                          className={getNavSegmentClass(activeTab === 'media')}
+                          className={getNavSegmentClass('media', activeTab === 'media')}
                         >
                           <Icon name="Newspaper" size="sm" />
                           <span className={navLabelClass}>Media</span>
@@ -1908,7 +1920,7 @@ function App() {
                         <button
                           onClick={() => navigate('/emails')}
                           onMouseEnter={() => preloader.prefetchJson('/api/emails')}
-                          className={getNavSegmentClass(activeTab === 'emails')}
+                          className={getNavSegmentClass('emails', activeTab === 'emails')}
                         >
                           <Icon name="Mail" size="sm" />
                           <span className={navLabelClass}>Emails</span>
@@ -1918,7 +1930,7 @@ function App() {
                         <button
                           onClick={() => navigate('/blackbook')}
                           onMouseEnter={() => preloader.prefetchJson('/api/media/albums')}
-                          className={getNavSegmentClass(activeTab === 'blackbook')}
+                          className={getNavSegmentClass('blackbook', activeTab === 'blackbook')}
                         >
                           <Icon name="BookOpen" size="sm" />
                           <span className={navLabelClass}>Black Book</span>
@@ -1927,7 +1939,7 @@ function App() {
                       <div className={navItemClass}>
                         <button
                           onClick={() => navigate('/analytics')}
-                          className={getNavSegmentClass(activeTab === 'analytics')}
+                          className={getNavSegmentClass('analytics', activeTab === 'analytics')}
                         >
                           <Icon name="BarChart3" size="sm" />
                           <span className={navLabelClass}>Analytics</span>
@@ -1936,7 +1948,7 @@ function App() {
                       <div className={navItemClass}>
                         <button
                           onClick={() => navigate('/about')}
-                          className={getNavSegmentClass(activeTab === 'about')}
+                          className={getNavSegmentClass('about', activeTab === 'about')}
                         >
                           <Icon name="Shield" size="sm" />
                           <span className={navLabelClass}>About</span>

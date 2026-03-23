@@ -98,11 +98,36 @@
 
   /* Navigation Category Colors — Explore section */
   --nav-documents: #34d399;
+  --nav-documents-bg: color-mix(in srgb, #064e3b 18%, transparent);
+  --nav-documents-bg-hover: color-mix(in srgb, #10b981 26%, transparent);
+  --nav-documents-border: color-mix(in srgb, #34d399 20%, transparent);
   --nav-documents-hover-bg: color-mix(in srgb, #10b981 20%, transparent);
   --nav-emails: #fbbf24;
+  --nav-emails-bg: color-mix(in srgb, #78350f 18%, transparent);
+  --nav-emails-bg-hover: color-mix(in srgb, #f59e0b 28%, transparent);
+  --nav-emails-border: color-mix(in srgb, #fbbf24 18%, transparent);
   --nav-emails-hover-bg: color-mix(in srgb, #f59e0b 20%, transparent);
   --nav-media: #a78bfa;
+  --nav-media-bg: color-mix(in srgb, #4c1d95 16%, transparent);
+  --nav-media-bg-hover: color-mix(in srgb, #8b5cf6 26%, transparent);
+  --nav-media-border: color-mix(in srgb, #a78bfa 18%, transparent);
   --nav-media-hover-bg: color-mix(in srgb, #8b5cf6 20%, transparent);
+  --nav-people: #60a5fa;
+  --nav-people-bg: color-mix(in srgb, #1d4ed8 16%, transparent);
+  --nav-people-bg-hover: color-mix(in srgb, #2563eb 24%, transparent);
+  --nav-people-border: color-mix(in srgb, #60a5fa 18%, transparent);
+  --nav-properties: #f97316;
+  --nav-properties-bg: color-mix(in srgb, #9a3412 16%, transparent);
+  --nav-properties-bg-hover: color-mix(in srgb, #ea580c 24%, transparent);
+  --nav-properties-border: color-mix(in srgb, #fb923c 18%, transparent);
+  --nav-blackbook: #f472b6;
+  --nav-blackbook-bg: color-mix(in srgb, #9d174d 16%, transparent);
+  --nav-blackbook-bg-hover: color-mix(in srgb, #ec4899 24%, transparent);
+  --nav-blackbook-border: color-mix(in srgb, #f472b6 18%, transparent);
+  --nav-about: #cbd5e1;
+  --nav-about-bg: color-mix(in srgb, #334155 18%, transparent);
+  --nav-about-bg-hover: color-mix(in srgb, #64748b 24%, transparent);
+  --nav-about-border: color-mix(in srgb, #cbd5e1 18%, transparent);
 
   /* Navigation Category Colors — Intelligence section */
   --nav-investigations: #ec4899;
@@ -478,17 +503,19 @@ body {
 
 .main-nav-track {
   @apply w-full [scrollbar-width:none] [&::-webkit-scrollbar]:hidden;
-  overflow-x: auto;
+  overflow-x: hidden;
 }
 
 .main-nav-pill {
-  @apply rounded-full border overflow-hidden;
-  width: max(100%, max-content);
-  border-color: color-mix(in srgb, var(--glass-border) 82%, transparent);
+  @apply rounded-full overflow-hidden;
+  width: 100%;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 58%, transparent);
   background:
-    linear-gradient(to bottom, rgba(248, 250, 252, 0.05), rgba(15, 23, 42, 0.02)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(148, 163, 184, 0.015)),
     color-mix(in srgb, var(--glass-bg-strong) 94%, transparent);
-  box-shadow: var(--glass-shadow-soft);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 10px 24px rgba(2, 6, 23, 0.26);
 }
 
 .main-nav-pill > * {
@@ -497,6 +524,37 @@ body {
 }
 
 /* Navigation micro-interactions */
+.main-nav-segment {
+  position: relative;
+  color: var(--text-secondary);
+  text-shadow: 0 1px 1px rgba(2, 6, 23, 0.2);
+  transition:
+    transform var(--duration-fast) var(--easing-swift),
+    box-shadow var(--duration-fast) var(--easing-swift),
+    background-color var(--duration-fast) var(--easing-swift),
+    color var(--duration-fast) var(--easing-swift),
+    border-color var(--duration-fast) var(--easing-swift);
+}
+
+.main-nav-segment::before {
+  content: '';
+  position: absolute;
+  inset: 7px 4px;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.01)), transparent;
+  opacity: 0;
+  transform: scale(0.98);
+  transition:
+    opacity var(--duration-fast) var(--easing-swift),
+    transform var(--duration-fast) var(--easing-swift),
+    border-color var(--duration-fast) var(--easing-swift),
+    box-shadow var(--duration-fast) var(--easing-swift),
+    background-color var(--duration-fast) var(--easing-swift);
+  pointer-events: none;
+}
+
 .main-nav-pill button {
   transition:
     transform var(--duration-fast) var(--easing-swift),
@@ -511,6 +569,108 @@ body {
 .main-nav-pill button:active {
   transform: translateY(0);
 }
+.main-nav-segment:hover,
+.main-nav-segment-active {
+  color: var(--text-strong);
+}
+
+.main-nav-segment:hover::before,
+.main-nav-segment-active::before {
+  opacity: 1;
+  transform: scale(1);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 10px 18px rgba(2, 6, 23, 0.16);
+}
+
+.main-nav-segment-people:hover::before,
+.main-nav-segment-people.main-nav-segment-active::before {
+  border-color: var(--nav-people-border);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.02)),
+    var(--nav-people-bg-hover);
+}
+
+.main-nav-segment-documents:hover::before,
+.main-nav-segment-documents.main-nav-segment-active::before {
+  border-color: var(--nav-documents-border);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.02)),
+    var(--nav-documents-bg-hover);
+}
+
+.main-nav-segment-investigations:hover::before,
+.main-nav-segment-investigations.main-nav-segment-active::before {
+  border-color: var(--nav-investigations-border);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.02)),
+    var(--nav-investigations-bg-hover);
+}
+
+.main-nav-segment-timeline:hover::before,
+.main-nav-segment-timeline.main-nav-segment-active::before {
+  border-color: var(--nav-timeline-border);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.02)),
+    var(--nav-timeline-bg-hover);
+}
+
+.main-nav-segment-flights:hover::before,
+.main-nav-segment-flights.main-nav-segment-active::before {
+  border-color: var(--nav-flights-border);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.02)),
+    var(--nav-flights-bg-hover);
+}
+
+.main-nav-segment-properties:hover::before,
+.main-nav-segment-properties.main-nav-segment-active::before {
+  border-color: var(--nav-properties-border);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.02)),
+    var(--nav-properties-bg-hover);
+}
+
+.main-nav-segment-media:hover::before,
+.main-nav-segment-media.main-nav-segment-active::before {
+  border-color: var(--nav-media-border);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.02)),
+    var(--nav-media-bg-hover);
+}
+
+.main-nav-segment-emails:hover::before,
+.main-nav-segment-emails.main-nav-segment-active::before {
+  border-color: var(--nav-emails-border);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.02)),
+    var(--nav-emails-bg-hover);
+}
+
+.main-nav-segment-blackbook:hover::before,
+.main-nav-segment-blackbook.main-nav-segment-active::before {
+  border-color: var(--nav-blackbook-border);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.02)),
+    var(--nav-blackbook-bg-hover);
+}
+
+.main-nav-segment-analytics:hover::before,
+.main-nav-segment-analytics.main-nav-segment-active::before {
+  border-color: var(--nav-analytics-border);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.02)),
+    var(--nav-analytics-bg-hover);
+}
+
+.main-nav-segment-about:hover::before,
+.main-nav-segment-about.main-nav-segment-active::before {
+  border-color: var(--nav-about-border);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.02)),
+    var(--nav-about-bg-hover);
+}
+
 .main-nav-pill:hover {
   backdrop-filter: blur(calc(var(--glass-blur) * 1.1));
 }
