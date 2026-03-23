@@ -122,7 +122,7 @@ fi
 pnpm db:check
 
 # CERT_STEP: extension_check_pg_stat_statements
-# psql "$DATABASE_URL" -c "SELECT 1 FROM pg_extension WHERE extname='pg_stat_statements'" | grep 1 || exit 1
+# psql "\$DATABASE_URL" -c "SELECT 1 FROM pg_extension WHERE extname='pg_stat_statements'" | grep 1 || exit 1
 CMD
 }
 
