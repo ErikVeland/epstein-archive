@@ -530,6 +530,17 @@ export const entitiesRepository = {
       whereParts.push(`COALESCE(e.entity_type, 'Person') = ${p}`);
     }
 
+    // Hard exclusion: never surface junk/OCR/role-fragment entities on the front page.
+    // This is a WHERE-level filter so junk can't bubble up regardless of sort order.
+    whereParts.push(`NOT (
+      LOWER(e.full_name) ~* '^(dear|dearest|watch|watching|defendant|defendants|plaintiff|plaintiffs|philanthropy|re:|fwd:|fw:|from:|to:|cc:|bcc:)\\s'
+      OR LOWER(e.full_name) ~* E'\\\\m.+\\'s\\\\M\\\\s+(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\\\\M'
+      OR LOWER(e.full_name) ~* '^(lawyer|assistant|aide|counsel|staff|pilot|masseuse|housekeeper)\\\\s+'
+      OR LOWER(e.full_name) ~* '^(mr|ms|miss|mrs)\\\\s+(epstein|maxwell|trump)\\\\s*$'
+      OR LOWER(e.full_name) ~* '^(president|defendant|plaintiff)\\\\s+'
+      OR e.full_name ~* '\\\\m(on)\\\\M\\\\s+(mon|tue|wed|thu|fri|sat|sun|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\\\\M'
+    )`);
+
     const whereSql = whereParts.length ? `WHERE ${whereParts.join(' AND ')}` : '';
 
     const riskRankExpr = `CASE UPPER(COALESCE(e.risk_level, 'LOW')) WHEN 'HIGH' THEN 3 WHEN 'MEDIUM' THEN 2 WHEN 'LOW' THEN 1 ELSE 0 END`;

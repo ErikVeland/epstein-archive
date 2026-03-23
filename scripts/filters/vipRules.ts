@@ -1511,7 +1511,459 @@ const BULK_VIP_RULES = [
   ...buildBulkVipRules(BULK_VIP_OTHER_NOTABLE, 'Associate', 'medium'),
 ];
 
-export const VIP_RULES: VipRule[] = mergeVipRules(BASE_VIP_RULES, BULK_VIP_RULES);
+// Extended alias patches for top-150 figures — honorifics, nicknames, misspellings, initials
+const EXTENDED_VIP_ALIAS_PATCHES: Array<{
+  canonicalName: string;
+  aliases: string[];
+  patterns?: RegExp[];
+}> = [
+  // --- Core perpetrators ---
+  {
+    canonicalName: 'Jeffrey Epstein',
+    aliases: [
+      'Jeffrey E Epstein',
+      'Jeff E. Epstein',
+      'J. Epstein',
+      'JE',
+      'J.E.',
+      'Epstein',
+      'Mr Epstein',
+      'Jeffrey Epstien',
+      'Jeffery Epstien',
+      'Jeffrey Epstein Jr',
+      'Jeffrey Epstein Sr',
+      'Epstein Jeffrey',
+    ],
+    patterns: [/\bEpstein\b/i],
+  },
+  {
+    canonicalName: 'Ghislaine Maxwell',
+    aliases: [
+      'Ghislaine',
+      'Maxwell',
+      'G Maxwell',
+      'Ms Maxwell',
+      'Ghislaine Maxwel',
+      'Ghislaine Maxell',
+      'Ghislaine Maxwelll',
+      'Ghislane Maxwel',
+      'Ghislaine Maxwell-Scott',
+      'GM',
+    ],
+    patterns: [/Ghislaine/i],
+  },
+  // --- US Presidents / Politicians ---
+  {
+    canonicalName: 'Donald Trump',
+    aliases: [
+      'Trump',
+      'Donald',
+      'POTUS 45',
+      'POTUS45',
+      '45th President',
+      'Donald Trump Sr',
+      'Donald J Trump Sr',
+      'Mr Donald Trump',
+      'Donald Trump Jr Sr',
+      'Donnie Trump',
+      'Don Trump',
+    ],
+  },
+  {
+    canonicalName: 'Bill Clinton',
+    aliases: [
+      'Clinton',
+      'President Bill Clinton',
+      'Pres Clinton',
+      'Pres. Clinton',
+      'Bill',
+      'Billy Clinton',
+      'William J Clinton',
+      'William J. Clinton',
+      'POTUS 42',
+      'POTUS42',
+      '42nd President',
+      'BC',
+    ],
+  },
+  {
+    canonicalName: 'Hillary Clinton',
+    aliases: [
+      'Hillary',
+      'Mrs Clinton',
+      'Secretary Hillary Clinton',
+      'Hillary R Clinton',
+      'H Clinton',
+      'H.R.C.',
+      'Sec Clinton',
+      'Sec. Clinton',
+      'Hillary Rodham',
+    ],
+  },
+  {
+    canonicalName: 'Barack Obama',
+    aliases: [
+      'Obama',
+      'President Barack Obama',
+      'Pres Obama',
+      'Barry Obama',
+      'Barry Soetoro',
+      'Barack H. Obama',
+      'B Obama',
+      'POTUS 44',
+      'POTUS44',
+      '44th President',
+      'BO',
+    ],
+  },
+  {
+    canonicalName: 'Joe Biden',
+    aliases: [
+      'Biden',
+      'President Joe Biden',
+      'Pres Biden',
+      'VP Biden',
+      'Vice President Biden',
+      'Joseph R. Biden Jr',
+      'Joseph Biden Jr',
+      'POTUS 46',
+      'POTUS46',
+      '46th President',
+      'JB',
+    ],
+  },
+  {
+    canonicalName: 'Bill Richardson',
+    aliases: [
+      'Richardson',
+      'Gov Richardson',
+      'Governor Bill Richardson',
+      'William Blaine Richardson',
+      'William B Richardson',
+    ],
+  },
+  {
+    canonicalName: 'Benjamin Netanyahu',
+    aliases: [
+      'Netanyahu',
+      'Bibi',
+      'PM Bibi',
+      'Prime Minister Netanyahu',
+      'Binyamin Netanyhu',
+      'Benjamin Netanyhu',
+      'Bibi Netanyhu',
+    ],
+  },
+  {
+    canonicalName: 'Ehud Barak',
+    aliases: [
+      'Barak',
+      'PM Barak',
+      'Prime Minister Ehud Barak',
+      'Ehud Barak Ben-Arzi',
+      'Ehud Barack',
+    ],
+  },
+  {
+    canonicalName: 'George Mitchell',
+    aliases: [
+      'Mitchell',
+      'Sen Mitchell',
+      'Senator George Mitchell',
+      'George J Mitchell',
+      'George Mitchell Jr',
+    ],
+  },
+  // --- Royals ---
+  {
+    canonicalName: 'Prince Andrew',
+    aliases: [
+      'Andrew',
+      'Prince Andrew Windsor',
+      'Andrew Windsor',
+      'HRH Andrew',
+      'Duke of York Andrew',
+      'Prince Andrew Duke of York',
+      'Andrew Albert Christian Edward Windsor',
+    ],
+  },
+  {
+    canonicalName: 'Sarah Ferguson',
+    aliases: [
+      'Ferguson',
+      'Fergie',
+      'Sarah Duchess of York',
+      'Sarah Ferguson-Windsor',
+      'Sarah Ferguson Windsor',
+    ],
+  },
+  // --- Key associates / complicit ---
+  {
+    canonicalName: 'Alan Dershowitz',
+    aliases: [
+      'Dershowitz',
+      'Prof Dershowitz',
+      'Alan M. Dershowitz',
+      'Alan Dershowits',
+      'Allen Dershowitz',
+      'Alan Dershowits',
+      'A Dershowitz',
+      'A. Dershowitz',
+    ],
+  },
+  {
+    canonicalName: 'Les Wexner',
+    aliases: [
+      'Wexner',
+      'Leslie Wexner',
+      'Les H Wexner',
+      'L Wexner',
+      'Leslie H Wexner',
+      'Mr Wexner',
+    ],
+  },
+  {
+    canonicalName: 'Leon Black',
+    aliases: ['Black', 'Leon D Black', 'Leon D. Black', 'Mr Black', 'Leon Black Apollo'],
+  },
+  {
+    canonicalName: 'Glenn Dubin',
+    aliases: ['Dubin', 'Glenn R Dubin', 'Glenn R. Dubin', 'Mr Dubin'],
+  },
+  {
+    canonicalName: 'Jes Staley',
+    aliases: ['Staley', 'James E Staley', 'James E. Staley', 'Mr Staley', 'Jes Staley Barclays'],
+  },
+  {
+    canonicalName: 'Larry Summers',
+    aliases: [
+      'Summers',
+      'Lawrence H. Summers',
+      'Larry H Summers',
+      'Secretary Larry Summers',
+      'Sec Summers',
+      'L Summers',
+    ],
+  },
+  {
+    canonicalName: 'Harvey Weinstein',
+    aliases: ['Weinstein', 'Harvey W. Weinstein', 'Mr Weinstein', 'Harvey Weinstein Producer'],
+  },
+  {
+    canonicalName: 'Peter Thiel',
+    aliases: ['Thiel', 'Peter A Thiel', 'Peter A. Thiel', 'Mr Thiel'],
+  },
+  {
+    canonicalName: 'Steven Hoffenberg',
+    aliases: ['Hoffenberg', 'Steve Hoffenberg', 'Steven B Hoffenberg', 'Mr Hoffenberg'],
+  },
+  {
+    canonicalName: 'Mark Epstein',
+    aliases: ['Mark Epstein', 'izmo', 'M Epstein', 'Mark J Epstein'],
+  },
+  // --- Survivors ---
+  {
+    canonicalName: 'Virginia Giuffre',
+    aliases: [
+      'Giuffre',
+      'Virginia',
+      'Virginia Roberts',
+      'Virginia R Giuffre',
+      'Virginia Roberts-Giuffre',
+      'V Roberts',
+      'V Giuffre',
+      'Virginia Giuffre Roberts',
+    ],
+  },
+  // --- Celebrities ---
+  {
+    canonicalName: 'Bill Gates',
+    aliases: [
+      'Gates',
+      'William Gates',
+      'William H Gates',
+      'William H. Gates III',
+      'Bill Gates III',
+      'Mr Gates',
+    ],
+  },
+  {
+    canonicalName: 'Elon Musk',
+    aliases: ['Musk', 'Elon R Musk', 'Mr Musk', 'Elon Reeve Musk'],
+  },
+  {
+    canonicalName: 'Jeff Bezos',
+    aliases: ['Bezos', 'Jeffrey Bezos', 'Jeffrey P Bezos', 'Jeffrey P. Bezos', 'Mr Bezos'],
+  },
+  {
+    canonicalName: 'George Soros',
+    aliases: ['Soros', 'György Schwartz', 'George Schwartz', 'Mr Soros', 'George Soros Sr'],
+  },
+  {
+    canonicalName: 'Michael Jackson',
+    aliases: [
+      'Jackson',
+      'MJ',
+      'Michael J Jackson',
+      'Michael Joseph Jackson',
+      'King of Pop',
+      'Jacko',
+    ],
+  },
+  {
+    canonicalName: 'Kevin Spacey',
+    aliases: ['Spacey', 'Kevin Spacey Fowler', 'Kevin S Fowler', 'Mr Spacey'],
+  },
+  {
+    canonicalName: 'Naomi Campbell',
+    aliases: ['Campbell', 'Naomi Elaine Campbell', 'Ms Campbell'],
+  },
+  {
+    canonicalName: 'Leonardo DiCaprio',
+    aliases: ['DiCaprio', 'Leo DiCaprio', 'Leonardo Wilhelm DiCaprio', 'Mr DiCaprio'],
+  },
+  {
+    canonicalName: 'Mick Jagger',
+    aliases: ['Jagger', 'Sir Mick', 'Michael Jagger', 'Michael Philip Jagger', 'Mr Jagger'],
+  },
+  {
+    canonicalName: 'Stephen Hawking',
+    aliases: [
+      'Hawking',
+      'Prof Hawking',
+      'Stephen W Hawking',
+      'Stephen William Hawking',
+      'Dr Hawking',
+    ],
+  },
+  {
+    canonicalName: 'Noam Chomsky',
+    aliases: ['Chomsky', 'Avram Chomsky', 'Avram Noam Chomsky', 'Prof Chomsky'],
+  },
+  {
+    canonicalName: 'Robert F. Kennedy Jr',
+    aliases: [
+      'RFK Jr',
+      'RFK',
+      'Robert Kennedy Jr',
+      'Robert F Kennedy Jr',
+      'Bobby Kennedy Jr',
+      'Kennedy Jr',
+    ],
+  },
+  {
+    canonicalName: 'Sarah Kellen',
+    aliases: ['Kellen', 'Sarah Vickers', 'Sarah Vidal', 'Sarah Kellen Vidal', 'Ms Kellen'],
+  },
+  {
+    canonicalName: 'Nadia Marcinkova',
+    aliases: ['Marcinkova', 'Nadia Marcinko', 'Global Girl', 'Nadia M', 'Nadia Marcinkova Pilot'],
+  },
+  {
+    canonicalName: 'Jean Luc Brunel',
+    aliases: [
+      'Brunel',
+      'Jean-Luc Brunel',
+      'JL Brunel',
+      'J.L. Brunel',
+      'Jean Luc Brunnel',
+      'Jean-Luc Brunnel',
+      'Mr Brunel',
+    ],
+  },
+  {
+    canonicalName: 'Sean "Diddy" Combs',
+    aliases: [
+      'Diddy',
+      'Puff Daddy',
+      'P Diddy',
+      'Puffy',
+      'Brother Love',
+      'Sean Combs',
+      'Sean John Combs',
+      'Mr Combs',
+    ],
+  },
+  {
+    canonicalName: 'Melania Trump',
+    aliases: [
+      'Melania',
+      'Melania Knauss',
+      'Melania Knauss-Trump',
+      'Mrs Trump',
+      'Mrs. Melania Trump',
+    ],
+  },
+  {
+    canonicalName: 'Ivanka Trump',
+    aliases: ['Ivanka', 'Ivanka Marie Trump', 'Ms Ivanka Trump', 'Ivanka Trump Kushner'],
+  },
+  {
+    canonicalName: 'Robert Maxwell',
+    aliases: [
+      'Maxwell',
+      'Captain Bob',
+      'Ian Robert Maxwell',
+      'Jan Ludvik Hoch',
+      'Robert Maxwell Sr',
+    ],
+  },
+  {
+    canonicalName: 'Mark Middleton',
+    aliases: ['Middleton', 'Mark Middleton Clinton', 'Mr Middleton'],
+  },
+  {
+    canonicalName: 'Ken Starr',
+    aliases: ['Starr', 'Kenneth W Starr', 'Kenneth Winston Starr', 'Judge Starr', 'Mr Starr'],
+  },
+  {
+    canonicalName: 'Brad Edwards',
+    aliases: ['Edwards', 'Bradley J Edwards', 'Bradley J. Edwards', 'Attorney Edwards'],
+  },
+  {
+    canonicalName: 'Howard Lutnick',
+    aliases: ['Lutnick', 'Howard W Lutnick', 'Howard W. Lutnick', 'Mr Lutnick', 'Lutnick Cantor'],
+  },
+  {
+    canonicalName: 'Warren Buffett',
+    aliases: ['Buffett', 'Warren E Buffett', 'Warren E. Buffett', 'Mr Buffett', 'Oracle of Omaha'],
+  },
+  {
+    canonicalName: 'Vladimir Putin',
+    aliases: [
+      'Putin',
+      'Vladimir V Putin',
+      'Vladimir Vladimirovich Putin',
+      'Pres Putin',
+      'Mr Putin',
+    ],
+  },
+];
+
+function applyExtendedAliasPatches(rules: VipRule[]): VipRule[] {
+  const byCanonical = new Map<string, VipRule>(
+    rules.map((r) => [normalizeVipToken(r.canonicalName), r]),
+  );
+  for (const patch of EXTENDED_VIP_ALIAS_PATCHES) {
+    const key = normalizeVipToken(patch.canonicalName);
+    const rule = byCanonical.get(key);
+    if (!rule) continue;
+    const aliasSet = new Set(rule.aliases);
+    for (const alias of patch.aliases) aliasSet.add(alias);
+    rule.aliases = Array.from(aliasSet);
+    if (patch.patterns) {
+      const existingSources = new Set(rule.patterns.map((p) => p.source));
+      for (const p of patch.patterns) {
+        if (!existingSources.has(p.source)) rule.patterns.push(p);
+      }
+    }
+  }
+  return rules;
+}
+
+export const VIP_RULES: VipRule[] = applyExtendedAliasPatches(
+  mergeVipRules(BASE_VIP_RULES, BULK_VIP_RULES),
+);
 
 const HONORIFIC_PREFIXES = [
   'mr',
