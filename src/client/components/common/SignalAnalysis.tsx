@@ -21,8 +21,8 @@ export const SignalAnalysis: React.FC<SignalAnalysisProps> = ({ description, rat
         value: 0,
         label: 'Network',
         icon: Network,
-        color: 'text-purple-400',
-        barColor: 'bg-purple-500',
+        color: 'text-[var(--accent-secondary)]',
+        barColor: 'bg-[var(--accent-secondary)]',
       },
       evidence: {
         value: 0,
@@ -35,8 +35,8 @@ export const SignalAnalysis: React.FC<SignalAnalysisProps> = ({ description, rat
         value: rating * 20,
         label: 'Risk Index',
         icon: AlertTriangle,
-        color: 'text-red-400',
-        barColor: 'bg-red-500',
+        color: 'text-[var(--accent-danger)]',
+        barColor: 'bg-[var(--accent-danger)]',
       },
     };
 
@@ -67,27 +67,27 @@ export const SignalAnalysis: React.FC<SignalAnalysisProps> = ({ description, rat
   const signals = parseSignals();
 
   return (
-    <div className="bg-[var(--glass-bg-strong)]/40 border border-[var(--glass-border)] rounded-[var(--radius-xl)] p-5 shadow-inner">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-widest flex items-center gap-2">
+    <div className="bg-[var(--glass-bg-strong)]/40 border border-[var(--glass-border)] rounded-[var(--radius-xl)] p-[var(--space-5)] shadow-inner">
+      <div className="flex items-center justify-between mb-[var(--space-4)]">
+        <h3 className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-widest flex items-center gap-[var(--space-2)]">
           <Activity className="w-4 h-4 text-[var(--accent)]" />
           Forensic Signal Analysis
         </h3>
-        <div className="flex gap-1">
+        <div className="flex gap-[var(--space-1)]">
           {Array.from({ length: 5 }).map((_, i) => (
             <div
               key={i}
-              className={`w-1.5 h-3 rounded-full ${i < rating ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'bg-[var(--glass-bg)]'}`}
+              className={`w-1.5 h-3 rounded-full ${i < rating ? 'bg-[var(--accent-danger)] shadow-[0_0_8px_color-mix(in_srgb,var(--accent-danger)_50%,transparent)]' : 'bg-[var(--glass-bg)]'}`}
             />
           ))}
         </div>
       </div>
 
-      <div className="grid gap-4">
+      <div className="grid gap-[var(--space-4)]">
         {signals.map((signal, i) => (
-          <div key={i} className="space-y-1.5">
+          <div key={i} className="space-y-[var(--space-1)]">
             <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider">
-              <div className={`flex items-center gap-1.5 ${signal.color}`}>
+              <div className={`flex items-center gap-[var(--space-1)] ${signal.color}`}>
                 <signal.icon className="w-3 h-3" />
                 {signal.label}
               </div>
@@ -103,7 +103,7 @@ export const SignalAnalysis: React.FC<SignalAnalysisProps> = ({ description, rat
         ))}
       </div>
 
-      <div className="mt-4 pt-4 border-t border-[var(--glass-border)]">
+      <div className="mt-[var(--space-4)] pt-[var(--space-4)] border-t border-[var(--glass-border)]">
         <p className="text-[11px] text-[var(--text-muted)] leading-relaxed italic opacity-80 group-hover:opacity-100 transition-opacity">
           &ldquo;{description.replace('Signal Analysis: ', '')}&rdquo;
         </p>

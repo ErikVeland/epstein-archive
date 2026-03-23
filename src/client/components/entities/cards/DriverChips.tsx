@@ -10,7 +10,7 @@ export const DriverChips: React.FC<DriverChipsProps> = ({ chips }) => {
   if (!chips || chips.length === 0) return null;
 
   return (
-    <div className="flex flex-wrap gap-1.5 mt-2">
+    <div className="flex flex-wrap gap-[var(--space-1)] mt-[var(--space-2)]">
       {chips.map((chip, idx) => {
         const style =
           chip.type === 'critical'
@@ -31,7 +31,7 @@ export const DriverChips: React.FC<DriverChipsProps> = ({ chips }) => {
         return (
           <Tooltip key={idx} content={content} position="top-end">
             <span
-              className={`px-2 py-0.5 rounded text-[10px] uppercase font-medium tracking-wide border ${style}`}
+              className={`px-[var(--space-2)] py-[var(--space-1)] rounded text-[10px] uppercase font-medium tracking-wide border ${style}`}
             >
               {chip.label}
             </span>

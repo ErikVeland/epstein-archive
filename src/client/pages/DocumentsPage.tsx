@@ -17,7 +17,7 @@ export const DocumentsPage: React.FC<DocumentsPageProps> = ({
 }) => {
   return (
     <ScopedErrorBoundary>
-      <div className="space-y-6">
+      <div className="space-y-[var(--space-6)]">
         <DocumentBrowser
           searchTerm={searchTerm}
           onSearchTermChange={onSearchTermChange}

@@ -4,6 +4,8 @@
  * Verifies that hot endpoints don't exceed query budgets
  */
 
+import { describe, expect, test } from 'vitest';
+
 import { queryCounter } from '../src/server/queryCounter';
 
 describe('Query Count Regression Guards', () => {

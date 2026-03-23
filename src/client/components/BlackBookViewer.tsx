@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Search, Phone, Mail, MapPin, User, Book, Eye, FileText, ExternalLink } from 'lucide-react';
 import { extractCleanName, formatPhoneNumber } from '../utils/prettifyOCR';
 import { Link } from 'react-router-dom';
@@ -40,11 +41,7 @@ const parseStringList = (value: unknown): string[] => {
 };
 
 export const BlackBookViewer: React.FC = () => {
-  const [entries, setEntries] = useState<BlackBookEntry[]>([]);
-  const [filteredEntries, setFilteredEntries] = useState<BlackBookEntry[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [selectedLetter, setSelectedLetter] = useState<string>('ALL');
   const [hasPhone, setHasPhone] = useState<boolean>(false);
   const [hasEmail, setHasEmail] = useState<boolean>(false);
@@ -55,13 +52,25 @@ export const BlackBookViewer: React.FC = () => {
 
   const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
-  const fetchBlackBookEntries = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  const {
+    data: entries = [],
+    isLoading,
+    isError,
+    error: queryError,
+    refetch,
+  } = useQuery<BlackBookEntry[]>({
+    queryKey: [
+      'black-book',
+      searchTerm,
+      selectedLetter,
+      hasPhone,
+      hasEmail,
+      hasAddress,
+      selectedCategory,
+    ],
+    queryFn: async () => {
       const params = new URLSearchParams();
       if (searchTerm.trim()) params.set('search', searchTerm.trim());
-      // Do not send ALL as a literal server-side filter.
       if (selectedLetter && selectedLetter !== 'ALL') params.set('letter', selectedLetter);
       if (hasPhone) params.set('hasPhone', 'true');
       if (hasEmail) params.set('hasEmail', 'true');
@@ -75,11 +84,9 @@ export const BlackBookViewer: React.FC = () => {
       }
       const result = await response.json();
 
-      // API now returns {data: [...], total, page, pageSize, totalPages}
       const data = result.data || [];
 
-      // Parse JSON fields safely
-      const parsedEntries = data.map((entry: Record<string, unknown>): BlackBookEntry => {
+      return data.map((entry: Record<string, unknown>): BlackBookEntry => {
         const rawPhones = entry.phone_numbers ?? entry.phoneNumbers;
         const rawAddresses = entry.addresses;
         const rawEmails = entry.email_addresses ?? entry.emailAddresses;
@@ -121,27 +128,16 @@ export const BlackBookViewer: React.FC = () => {
                 : undefined,
         };
       });
+    },
+  });
 
-      setEntries(parsedEntries);
-      setFilteredEntries(parsedEntries);
-    } catch (error) {
-      console.error('Error fetching Black Book entries:', error);
-      setEntries([]);
-      setFilteredEntries([]);
-      setError(error instanceof Error ? error.message : 'Failed to load Black Book entries');
-    } finally {
-      setLoading(false);
-    }
-  }, [searchTerm, selectedLetter, hasPhone, hasEmail, hasAddress, selectedCategory]);
-
-  useEffect(() => {
-    fetchBlackBookEntries();
-  }, [fetchBlackBookEntries]);
-
-  // Client-side fallback remains if needed
-  useEffect(() => {
-    setFilteredEntries(entries);
-  }, [entries]);
+  const filteredEntries = entries;
+  const error = isError
+    ? queryError instanceof Error
+      ? queryError.message
+      : 'Failed to load Black Book entries'
+    : null;
+  const fetchBlackBookEntries = refetch;
 
   const extractName = useCallback((entryText?: string | null): string => {
     const lines = String(entryText || '').split('\n');
@@ -156,7 +152,7 @@ export const BlackBookViewer: React.FC = () => {
     [navigate],
   );
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent)]"></div>
@@ -506,7 +502,7 @@ export const BlackBookViewer: React.FC = () => {
           </p>
           {error && (
             <button
-              onClick={fetchBlackBookEntries}
+              onClick={() => void fetchBlackBookEntries()}
               className="mt-4 px-4 py-2 rounded-[var(--radius-lg)] bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)] transition-colors"
             >
               Retry

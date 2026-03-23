@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Users, Plus, X, Search } from 'lucide-react';
 
-interface PersonData {
+export interface PersonData {
   id: number;
   name: string;
   role: string;
@@ -98,25 +98,25 @@ export const PeopleSelector: React.FC<PeopleSelectorProps> = ({
   };
 
   const getRedFlagColor = (rating: number = 0) => {
-    if (rating >= 4) return 'text-red-400';
-    if (rating >= 3) return 'text-orange-400';
-    if (rating >= 2) return 'text-yellow-400';
+    if (rating >= 4) return 'text-[var(--accent-danger)]';
+    if (rating >= 3) return 'text-[var(--accent-warning)]';
+    if (rating >= 2) return 'text-[var(--accent)]';
     return 'text-[var(--text-muted)]';
   };
 
   return (
-    <div className={`space-y-3 ${className}`}>
-      <div className="flex items-center gap-2 text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">
+    <div className={`space-y-[var(--space-3)] ${className}`}>
+      <div className="flex items-center gap-[var(--space-2)] text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">
         <Users className="w-4 h-4" />
         People in Photo
       </div>
 
       {/* Selected People */}
-      <div className="space-y-2">
+      <div className="space-y-[var(--space-2)]">
         {selectedPeople.map((person) => (
           <div
             key={person.id}
-            className={`flex items-center justify-between p-2 bg-[var(--glass-bg)]/50 rounded-[var(--radius-lg)] border border-[var(--glass-border)] ${onPersonClick ? 'cursor-pointer hover:bg-[var(--glass-bg)] transition-colors' : ''}`}
+            className={`flex items-center justify-between p-[var(--space-2)] bg-[var(--glass-bg)]/50 rounded-[var(--radius-lg)] border border-[var(--glass-border)] ${onPersonClick ? 'cursor-pointer hover:bg-[var(--glass-bg)] transition-colors' : ''}`}
             onClick={() => onPersonClick && onPersonClick(person)}
           >
             <div>
@@ -132,7 +132,7 @@ export const PeopleSelector: React.FC<PeopleSelectorProps> = ({
                   e.stopPropagation();
                   handleRemovePerson(person);
                 }}
-                className="p-1 hover:bg-[var(--glass-bg-highlight)] rounded text-[var(--text-muted)] hover:text-red-400 transition-colors"
+                className="p-[var(--space-1)] hover:bg-[var(--glass-bg-highlight)] rounded text-[var(--text-muted)] hover:text-[var(--accent-danger)] transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -152,22 +152,24 @@ export const PeopleSelector: React.FC<PeopleSelectorProps> = ({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onFocus={() => setShowDropdown(true)}
-              className="w-full pl-9 pr-3 py-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] text-sm focus:outline-none focus:border-[var(--accent)]"
+              className="w-full pl-[var(--space-9)] pr-[var(--space-3)] py-[var(--space-2)] bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] text-sm focus:outline-none focus:border-[var(--accent)]"
             />
           </div>
 
           {/* Search Results Dropdown */}
           {showDropdown && (searchResults.length > 0 || isSearching) && (
-            <div className="absolute z-50 mt-1 w-full dropdown-surface overflow-hidden">
+            <div className="absolute z-50 mt-[var(--space-1)] w-full dropdown-surface overflow-hidden">
               {isSearching ? (
-                <div className="p-3 text-center text-sm text-[var(--text-muted)]">Searching...</div>
+                <div className="p-[var(--space-3)] text-center text-sm text-[var(--text-muted)]">
+                  Searching...
+                </div>
               ) : (
                 <div className="max-h-48 overflow-y-auto">
                   {searchResults.map((person) => (
                     <button
                       key={person.id}
                       onClick={() => handleAddPerson(person)}
-                      className="w-full flex items-center justify-between p-2 hover:bg-[var(--glass-bg-highlight)]/50 text-left"
+                      className="w-full flex items-center justify-between p-[var(--space-2)] hover:bg-[var(--glass-bg-highlight)]/50 text-left"
                     >
                       <div>
                         <div className="text-sm text-[var(--text-primary)]">{person.name}</div>

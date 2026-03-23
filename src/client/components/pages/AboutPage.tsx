@@ -516,8 +516,8 @@ export const AboutPage: React.FC = () => {
       </section>
 
       {/* Analysis Article */}
-      <section className="bg-[var(--glass-bg-strong)]/50 rounded-[var(--radius-lg)] p-8 space-y-6 border border-[var(--glass-border)]">
-        <div className="flex items-center gap-3 mb-6 pb-6 border-b border-[var(--glass-border)]">
+      <section className="soft-glass-panel-strong rounded-[var(--radius-lg)] p-8 space-y-6">
+        <div className="flex items-center gap-3 mb-6 pb-6 border-b soft-glass-divider">
           <FileText className="h-8 w-8 text-[var(--accent)]" />
           <div>
             <h2 className="text-3xl font-bold text-[var(--text-primary)]">
@@ -633,7 +633,7 @@ export const AboutPage: React.FC = () => {
           </p>
 
           {/* Ingestion Progress Dashboard (Requested placement) */}
-          <div className="bg-[var(--glass-bg)]/80 rounded-[var(--radius-xl)] p-8 my-8 border border-[var(--accent)]/30 shadow-[var(--glass-shadow)] shadow-blue-500/5 backdrop-blur-sm not-prose">
+          <div className="soft-glass-accent rounded-[var(--radius-xl)] p-8 my-8 not-prose">
             <h3 className="text-xl font-bold text-[var(--text-primary)] mb-6 flex items-center gap-3">
               <Database className="h-6 w-6 text-[var(--accent)]" />
               Dataset Ingestion Dashboard
@@ -675,7 +675,7 @@ export const AboutPage: React.FC = () => {
                       </div>
                     </div>
 
-                    <div className="relative h-3 bg-[var(--glass-bg-strong)]/50 rounded-full overflow-hidden border border-[var(--glass-border)]">
+                    <div className="soft-glass-inset relative h-3 rounded-full overflow-hidden">
                       <div
                         className="absolute inset-y-0 left-0 bg-[var(--glass-bg-highlight)]/20 transition-all duration-1000"
                         style={{ width: `${downloadPercent}%` }}
@@ -694,7 +694,7 @@ export const AboutPage: React.FC = () => {
               })}
             </div>
             {!ingestionComplete && pipelineStatus?.eta_minutes && (
-              <div className="mt-6 pt-4 border-t border-[var(--glass-border)] flex flex-col gap-4">
+              <div className="mt-6 pt-4 border-t soft-glass-divider flex flex-col gap-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-[var(--text-muted)] text-xs">
                     <TrendingUp className="h-4 w-4 text-[var(--accent)]" />
@@ -735,7 +735,7 @@ export const AboutPage: React.FC = () => {
               </div>
             )}
             {ingestionComplete && (
-              <div className="mt-6 pt-4 border-t border-[var(--glass-border)] flex items-start gap-3">
+              <div className="mt-6 pt-4 border-t soft-glass-divider flex items-start gap-3">
                 <CheckCircle2 className="h-4 w-4 mt-0.5 text-[var(--accent-success)]" />
                 <p className="text-xs text-[var(--accent-success)]/90 font-mono">
                   Ingestion has reached 100%. Remaining pipeline work is intelligence analysis,
@@ -751,7 +751,7 @@ export const AboutPage: React.FC = () => {
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {/* Dataset 9 */}
-            <div className="bg-[var(--glass-bg)]/50 rounded-[var(--radius-lg)] p-5 border border-[var(--glass-border)]">
+            <div className="soft-glass-inset rounded-[var(--radius-lg)] p-5">
               <div className="flex items-center justify-between mb-3">
                 <h4 className="text-lg font-semibold text-[var(--text-primary)]">Dataset 9</h4>
                 <span className="text-xs font-mono text-[var(--accent-warning)] bg-[var(--accent-warning)]/10 px-2 py-1 rounded border border-[var(--accent-warning)]/20">
@@ -772,7 +772,7 @@ export const AboutPage: React.FC = () => {
             </div>
 
             {/* Dataset 10 */}
-            <div className="bg-[var(--glass-bg)]/50 rounded-[var(--radius-lg)] p-5 border border-[var(--glass-border)]">
+            <div className="soft-glass-inset rounded-[var(--radius-lg)] p-5">
               <div className="flex items-center justify-between mb-3">
                 <h4 className="text-lg font-semibold text-[var(--text-primary)]">Dataset 10</h4>
                 <span className="text-xs font-mono text-[var(--accent-danger)] bg-[var(--accent-danger)]/10 px-2 py-1 rounded border border-[var(--accent-danger)]/20">
@@ -796,7 +796,7 @@ export const AboutPage: React.FC = () => {
             </div>
 
             {/* Dataset 11 */}
-            <div className="bg-[var(--glass-bg)]/50 rounded-[var(--radius-lg)] p-5 border border-[var(--glass-border)]">
+            <div className="soft-glass-inset rounded-[var(--radius-lg)] p-5">
               <div className="flex items-center justify-between mb-3">
                 <h4 className="text-lg font-semibold text-[var(--text-primary)]">Dataset 11</h4>
                 <span className="text-xs font-mono text-[var(--accent-danger)] bg-[var(--accent-danger)]/10 px-2 py-1 rounded border border-[var(--accent-danger)]/20">
@@ -816,7 +816,7 @@ export const AboutPage: React.FC = () => {
             </div>
 
             {/* Dataset 12 */}
-            <div className="bg-[var(--glass-bg)]/50 rounded-[var(--radius-lg)] p-5 border border-[var(--glass-border)]">
+            <div className="soft-glass-inset rounded-[var(--radius-lg)] p-5">
               <div className="flex items-center justify-between mb-3">
                 <h4 className="text-lg font-semibold text-[var(--text-primary)]">Dataset 12</h4>
                 <span className="text-xs font-mono text-[var(--accent-success)] bg-[var(--accent-success)]/10 px-2 py-1 rounded border border-[var(--accent-success)]/20">
@@ -837,7 +837,7 @@ export const AboutPage: React.FC = () => {
             </div>
 
             {/* Overall Statistics */}
-            <div className="surface-glass-card rounded-[var(--radius-lg)] p-5 border border-[var(--accent)]/30 md:col-span-2 lg:col-span-2">
+            <div className="soft-glass-accent rounded-[var(--radius-lg)] p-5 md:col-span-2 lg:col-span-2">
               <h4 className="text-lg font-semibold text-[var(--text-primary)] mb-3">
                 Cross-Dataset Analysis (13,455 Documents)
               </h4>
@@ -864,7 +864,7 @@ export const AboutPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-[var(--accent-info)]/10 border border-[var(--accent)]/20 rounded-[var(--radius-lg)] p-5 mt-6">
+          <div className="soft-glass-accent rounded-[var(--radius-lg)] p-5 mt-6">
             <h4 className="text-[var(--accent)] font-semibold mb-2 flex items-center gap-2">
               <Info className="h-5 w-5" />
               What We Learned
@@ -887,7 +887,7 @@ export const AboutPage: React.FC = () => {
                 of all DOJ documents contain email, message, or call records
               </li>
             </ul>
-            <div className="mt-4 pt-4 border-t border-[var(--accent)]/20">
+            <div className="mt-4 pt-4 border-t soft-glass-divider">
               <a
                 href="/faq"
                 className="text-[var(--accent)] hover:text-[var(--text-primary)] text-sm font-medium inline-flex items-center gap-1 transition-colors"
@@ -898,7 +898,7 @@ export const AboutPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-[var(--glass-bg)]/50 rounded-[var(--radius-lg)] p-6 mt-8 border border-[var(--glass-border)]">
+          <div className="soft-glass-panel rounded-[var(--radius-lg)] p-6 mt-8">
             <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-6 flex items-center gap-2">
               <Shield className="h-6 w-6 text-[var(--accent-success)]" />
               Legal Thresholds: Association vs. Complicity
@@ -906,7 +906,7 @@ export const AboutPage: React.FC = () => {
 
             <div className="grid gap-4 md:grid-cols-3 mb-6">
               {/* Mere Presence */}
-              <div className="bg-[var(--glass-bg-highlight)]/30 p-4 rounded-[var(--radius-lg)] border border-[var(--glass-border)]">
+              <div className="soft-glass-inset p-4 rounded-[var(--radius-lg)]">
                 <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] mb-2">
                   Mere Presence
                 </div>
@@ -916,7 +916,7 @@ export const AboutPage: React.FC = () => {
               </div>
 
               {/* Complicity */}
-              <div className="bg-[var(--glass-bg-highlight)]/30 p-4 rounded-[var(--radius-lg)] border border-[var(--glass-border)]">
+              <div className="soft-glass-inset p-4 rounded-[var(--radius-lg)]">
                 <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--accent-warning)]/20 text-[var(--accent-warning)] border border-[var(--accent-warning)]/30 mb-2">
                   Complicity
                 </div>
@@ -926,7 +926,7 @@ export const AboutPage: React.FC = () => {
               </div>
 
               {/* Conspiracy */}
-              <div className="bg-[var(--glass-bg-highlight)]/30 p-4 rounded-[var(--radius-lg)] border border-[var(--glass-border)]">
+              <div className="soft-glass-inset p-4 rounded-[var(--radius-lg)]">
                 <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--accent-danger)]/20 text-[var(--accent-danger)] border border-[var(--accent-danger)]/30 mb-2">
                   Conspiracy
                 </div>
@@ -936,7 +936,7 @@ export const AboutPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-[var(--accent-info)]/10 border border-[var(--accent)]/20 rounded-[var(--radius-lg)] p-4 mb-6">
+            <div className="soft-glass-accent rounded-[var(--radius-lg)] p-4 mb-6">
               <h4 className="text-[var(--accent)] font-semibold mb-2 flex items-center gap-2">
                 DOJ Findings (July 2025)
               </h4>
@@ -947,7 +947,7 @@ export const AboutPage: React.FC = () => {
               </p>
             </div>
 
-            <div className="text-[var(--text-muted)] text-sm italic border-t border-[var(--glass-border)] pt-4">
+            <div className="text-[var(--text-muted)] text-sm italic border-t soft-glass-divider pt-4">
               <strong className="text-[var(--text-secondary)] not-italic">How we use this:</strong>{' '}
               These legal thresholds directly inform our <strong>Red Flag Index</strong>. Entities
               with mere "Flight Log" appearances receive a low risk score (1-2), while those with

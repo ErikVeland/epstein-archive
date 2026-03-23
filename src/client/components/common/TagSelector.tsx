@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Tag, Plus, X, Check, Search } from 'lucide-react';
 
-interface TagData {
+export interface TagData {
   id: number;
   name: string;
   color: string;
@@ -24,8 +25,8 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
   className = '',
   isAdmin = false,
 }) => {
-  const [allTags, setAllTags] = useState<TagData[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [newTagName, setNewTagName] = useState('');
@@ -46,20 +47,18 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
     '#64748b',
   ];
 
-  // Fetch all available tags
-  useEffect(() => {
-    fetch('/api/media/tags')
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setAllTags(data);
-        } else {
-          console.error('Invalid response from /api/media/tags - expected array:', data);
-          setAllTags([]);
-        }
-      })
-      .catch(console.error);
-  }, []);
+  const { data: allTags = [] } = useQuery<TagData[]>({
+    queryKey: ['media-tags'],
+    queryFn: async () => {
+      const res = await fetch('/api/media/tags');
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        return data as TagData[];
+      }
+      console.error('Invalid response from /api/media/tags - expected array:', data);
+      return [];
+    },
+  });
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -112,8 +111,8 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
       });
 
       if (res.ok) {
-        const newTag = await res.json();
-        setAllTags([...allTags, newTag]);
+        const newTag = (await res.json()) as TagData;
+        await queryClient.invalidateQueries({ queryKey: ['media-tags'] });
         handleToggleTag(newTag);
         setNewTagName('');
         setIsCreating(false);

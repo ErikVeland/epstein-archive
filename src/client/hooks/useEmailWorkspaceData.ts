@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import {
   apiClient,
   EmailMailboxDTO,
@@ -65,9 +66,23 @@ export function useEmailWorkspaceData({
   showSuppressedJunk,
   updateUrlState,
 }: UseEmailWorkspaceDataOptions) {
-  const [mailboxes, setMailboxes] = useState<EmailMailboxDTO[]>([]);
-  const [mailboxesLoading, setMailboxesLoading] = useState(true);
-  const [mailboxesError, setMailboxesError] = useState<string | null>(null);
+  const {
+    data: mailboxesData,
+    isLoading: mailboxesLoading,
+    error: mailboxesQueryError,
+  } = useQuery<EmailMailboxDTO[]>({
+    queryKey: ['email-mailboxes', showSuppressedJunk],
+    queryFn: async () => {
+      const response = await apiClient.getEmailMailboxes({ showSuppressedJunk });
+      return response.data;
+    },
+    staleTime: 30_000,
+  });
+
+  const mailboxes = mailboxesData ?? [];
+  const mailboxesError = mailboxesQueryError
+    ? formatUiError(mailboxesQueryError, 'Failed to load mailboxes')
+    : null;
 
   const [threads, setThreads] = useState<EmailThreadDTO[]>([]);
   const [threadsLoading, setThreadsLoading] = useState(true);
@@ -89,6 +104,14 @@ export function useEmailWorkspaceData({
   const autoOpenedThreadRef = useRef<string | null>(null);
   const limiterRef = useRef({ active: 0, queue: [] as Array<() => void> });
 
+  // Deselect thread if selected mailbox no longer contains it
+  useEffect(() => {
+    if (!mailboxesData) return;
+    if (!mailboxesData.some((mailbox) => mailbox.mailboxId === selectedMailboxId)) {
+      setSelectedThreadId(null);
+    }
+  }, [mailboxesData, selectedMailboxId]);
+
   const withBodyLimiter = useCallback(async (task: () => Promise<void>) => {
     await new Promise<void>((resolve, reject) => {
       const run = () => {
@@ -107,23 +130,6 @@ export function useEmailWorkspaceData({
       else limiterRef.current.queue.push(run);
     });
   }, []);
-
-  const loadMailboxes = useCallback(async () => {
-    setMailboxesLoading(true);
-    setMailboxesError(null);
-    try {
-      const response = await apiClient.getEmailMailboxes({ showSuppressedJunk });
-      setMailboxes(response.data);
-      if (!response.data.some((mailbox) => mailbox.mailboxId === selectedMailboxId)) {
-        setSelectedThreadId(null);
-      }
-    } catch (error) {
-      console.error(error);
-      setMailboxesError(formatUiError(error, 'Failed to load mailboxes'));
-    } finally {
-      setMailboxesLoading(false);
-    }
-  }, [selectedMailboxId, showSuppressedJunk]);
 
   const loadThreads = useCallback(
     async (cursor: string | null, append: boolean) => {
@@ -329,10 +335,6 @@ export function useEmailWorkspaceData({
   );
 
   const selectedThread = selectedThreadId ? threadDetails[selectedThreadId] || null : null;
-
-  useEffect(() => {
-    void loadMailboxes();
-  }, [loadMailboxes]);
 
   useEffect(() => {
     updateUrlState({

@@ -1,5 +1,57 @@
 # Release Notes
 
+## v17.2.0 - 2026-03-23 - Flights, Properties, Evidence UI & Pipeline Hardening
+
+This release ships three new first-class UI slices, a full `any`-free TypeScript pass, a correctness fix for entity sort ordering, and significant pipeline and server resilience improvements.
+
+### What's New for Users
+
+**Flights explorer**
+
+- New `/flights` section with a full flight tracker, map view, timeline view, network graph, stats header, and detail panel.
+- Flight cards surface passenger manifests, tail numbers, origin/destination airports, and date ranges.
+
+**Properties browser**
+
+- New `/properties` section with browse, analytics, and associates views.
+- Property cards link to associated entities and surface ownership and visit history.
+
+**Evidence search improvements**
+
+- Evidence results now render with a dedicated card layout including document snippets, filter controls, and a result card with provenance and redaction indicators.
+- Evidence filters support type, date range, and entity scoping.
+
+**Legal page**
+
+- New `/legal` route with terms and privacy content, accessible from the footer.
+
+**Routing overhaul**
+
+- App shell migrated to nested `<Routes>` / `<Route>` with `useMatch`-based active tab detection, replacing the previous manual pathname comparison.
+- Flights, Properties, Evidence, and Legal routes are now first-class lazy-loaded entries.
+
+### Bug Fixes
+
+- Fixed entity sort-by-mentions using a stale denormalized `entities.mentions` column instead of a live count from `entity_mentions`. All sort paths (mentions, red_flag, risk, document_count, recent tiebreakers) now use correlated subqueries against the live table.
+- Fixed document sort: date/title/size/red_flag sort paths now use a dynamic `ORDER BY` clause with correct column expressions and parameter binding, replacing a broken `CASE`-based approach that silently fell through to the default.
+- Fixed `purgeCache` → `purgeCacheByPattern` call site in the app server after the cache middleware API changed.
+
+### Under the Hood
+
+- Complete `any`-free TypeScript pass across the entire codebase — zero `any` casts, zero TS errors.
+- Shared API types extracted to `src/client/types/api.ts`; inline interface duplication removed from `App.tsx` and other consumers.
+- Sentry integration added (`src/server/services/sentry.ts`); `initSentry()` called at app startup, `sentryErrorHandler` wired into the Express error chain.
+- AI enrichment and pipeline timeouts are now configurable via environment variables (`EXO_DISCOVERY_TIMEOUT_MS`, `AI_REQUEST_TIMEOUT_MS`, `PIPELINE_DOC_TIMEOUT_MS`, `PIPELINE_STALL_TIMEOUT_MS`, etc.) with safe defaults.
+- Pipeline watchdog added with configurable stall detection, per-service recovery commands, and cooldown logic.
+- VIP entity lookup now degrades gracefully on Postgres statement timeout, returning a cached result rather than propagating the error.
+- CORS dev origins expanded to include ports 4173 and 5173 for Vite preview and dev server compatibility.
+- `deepCamelKeys` middleware removed from the app server (was already handled at the route/mapper layer).
+- Documents trigram index migration added (`043_documents_trigram_index.sql`) for faster full-text search.
+- Test hygiene checker and junk entity consolidation script added to the scripts directory.
+- Design token strict baseline updated.
+
+---
+
 ## v17.1.1 - 2026-03-23 - Dossier UX & Navigation Polish
 
 This patch tightens a few high-visibility UI and data issues that showed up immediately after the 17.1.0 rollout.

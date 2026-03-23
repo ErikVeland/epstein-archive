@@ -27,7 +27,9 @@ interface SectionProps {
 
 export const Section: React.FC<SectionProps> = ({ children, title, className = '' }) => {
   return (
-    <section className={`mt-[var(--space-6)] mb-[var(--space-3)] first:mt-0 ${className}`}>
+    <section
+      className={`mt-[var(--space-6)] mb-[var(--space-3)] first:[margin-top:0] ${className}`}
+    >
       {title && (
         <h2 className="text-[var(--font-size-h2)] font-semibold text-[var(--text-primary)] mb-[var(--space-3)]">
           {title}

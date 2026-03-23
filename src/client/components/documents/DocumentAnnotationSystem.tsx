@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CheckCircle, Flag, Highlighter, MessageSquare, Tag, XCircle } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../../services/apiClient';
 
 type AnnotationType = 'highlight' | 'note' | 'evidence' | 'question' | 'contradiction' | 'tag';
@@ -70,16 +71,32 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
   onAnnotationCreate,
 }) => {
   const contentRef = useRef<HTMLDivElement>(null);
-  const [annotations, setAnnotations] = useState<PublicDocumentAnnotation[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [loadError, setLoadError] = useState<string | null>(null);
   const [activeAnnotationId, setActiveAnnotationId] = useState<string | null>(null);
+  const [localAnnotations, setLocalAnnotations] = useState<PublicDocumentAnnotation[]>([]);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [pendingSelection, setPendingSelection] = useState<PendingSelection | null>(null);
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
   const [draftType, setDraftType] = useState<AnnotationType>('highlight');
   const [draftNote, setDraftNote] = useState('');
   const [draftAuthor, setDraftAuthor] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+
+  const {
+    data: fetchedAnnotations = [],
+    isLoading,
+    error: fetchError,
+  } = useQuery<PublicDocumentAnnotation[]>({
+    queryKey: ['documentAnnotations', documentId],
+    queryFn: () => apiClient.getPublicDocumentAnnotations(documentId),
+    staleTime: 30_000,
+  });
+
+  const annotations = useMemo(
+    () => [...fetchedAnnotations, ...localAnnotations],
+    [fetchedAnnotations, localAnnotations],
+  );
+
+  const displayError = fetchError instanceof Error ? fetchError.message : loadError;
 
   const activeAnnotation = useMemo(() => {
     if (!activeAnnotationId) return null;
@@ -90,30 +107,6 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
     const savedAuthor = localStorage.getItem('public_annotation_author') || '';
     setDraftAuthor(savedAuthor);
   }, []);
-
-  useEffect(() => {
-    let mounted = true;
-    setIsLoading(true);
-    setLoadError(null);
-
-    apiClient
-      .getPublicDocumentAnnotations(documentId)
-      .then((rows) => {
-        if (!mounted) return;
-        setAnnotations(rows);
-      })
-      .catch((error) => {
-        if (!mounted) return;
-        setLoadError(error instanceof Error ? error.message : 'Failed to load annotations');
-      })
-      .finally(() => {
-        if (mounted) setIsLoading(false);
-      });
-
-    return () => {
-      mounted = false;
-    };
-  }, [documentId]);
 
   const clearSelectionDraft = () => {
     setPendingSelection(null);
@@ -188,7 +181,7 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
         localStorage.setItem('public_annotation_author', draftAuthor.trim());
       }
 
-      setAnnotations((prev) => [...prev, saved]);
+      setLocalAnnotations((prev) => [...prev, saved]);
       setActiveAnnotationId(saved.id);
       onAnnotationCreate?.(saved);
       clearSelectionDraft();
@@ -307,9 +300,9 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
           {renderedContent}
         </div>
 
-        {loadError && (
+        {displayError && (
           <div className="mt-3 text-xs text-rose-300 bg-rose-900/30 border border-rose-400/30 rounded-md px-3 py-2">
-            {loadError}
+            {displayError}
           </div>
         )}
 

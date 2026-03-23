@@ -12,6 +12,7 @@ import pinoHttp from 'pino-http';
 import { logger } from './server/services/Logger.js';
 import { requestIdMiddleware } from './server/middleware/requestId.js';
 import { globalErrorHandler } from './server/utils/errorHandler.js';
+import { initSentry, sentryErrorHandler } from './server/services/sentry.js';
 import {
   initPools,
   assertProductionPg,
@@ -61,7 +62,7 @@ import {
   mapSubjectsListResponseDto,
 } from './server/mappers/entitiesDtoMapper.js';
 import { validate, subjectsQuerySchema } from './server/middleware/validate.js';
-import { purgeCache } from './server/middleware/cache.js';
+import { purgeCacheByPattern } from './server/middleware/cache.js';
 import { pgSaturationShed } from './server/middleware/pgShed.js';
 import { retryStormDetector } from './server/middleware/retryStorm.js';
 import { queryCounter } from './server/queryCounter.js';
@@ -79,6 +80,7 @@ export class App {
   }
 
   public async init() {
+    initSentry();
     await this.initializeDatabase();
     this.initializeMiddleware();
     this.initializeRoutes();
@@ -201,8 +203,12 @@ export class App {
           const defaultDevOrigins = [
             'http://localhost:3000',
             'http://localhost:3002',
+            'http://localhost:4173',
+            'http://localhost:5173',
             'http://127.0.0.1:3000',
             'http://127.0.0.1:3002',
+            'http://127.0.0.1:4173',
+            'http://127.0.0.1:5173',
           ];
           const allowedOrigins =
             configured.length > 0
@@ -270,31 +276,6 @@ export class App {
     this.app.use(cookieParser());
 
     // 5. Custom Headers (none needed beyond helmet defaults)
-
-    // 5b. API response normalisation: recursively convert all object keys to camelCase
-    // so client code can reliably use camelCase regardless of how raw DB rows are named.
-    function toCamelCaseKey(str: string): string {
-      return str.replace(/_([a-z0-9])/g, (_, c: string) => c.toUpperCase());
-    }
-    function deepCamelKeys(obj: unknown): unknown {
-      if (Array.isArray(obj)) return obj.map(deepCamelKeys);
-      if (obj !== null && typeof obj === 'object' && !(obj instanceof Date)) {
-        return Object.fromEntries(
-          Object.entries(obj as Record<string, unknown>).map(([k, v]) => [
-            toCamelCaseKey(k),
-            deepCamelKeys(v),
-          ]),
-        );
-      }
-      return obj;
-    }
-    this.app.use('/api', (_req, res, next) => {
-      const originalJson = res.json.bind(res);
-      res.json = function (body: unknown) {
-        return originalJson(deepCamelKeys(body));
-      };
-      next();
-    });
 
     // 6. Static files
     this.app.use((req, res, next) => {
@@ -609,11 +590,16 @@ export class App {
       if (req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS') {
         return next();
       }
-      // Purge API response cache after any successful write operation so
-      // subsequent reads reflect the mutation.
+      // Purge only the cache keys relevant to the mutated resource so
+      // unrelated cached responses remain warm.
       res.on('finish', () => {
         if (res.statusCode >= 200 && res.statusCode < 300) {
-          purgeCache();
+          // Derive the top-level resource segment from the request path.
+          // e.g. POST /api/entities/42 → purge /api/entities*
+          const segment = req.path.split('/').filter(Boolean)[0];
+          if (segment) {
+            purgeCacheByPattern(new RegExp(`/api/${segment}`));
+          }
         }
       });
       return authenticateRequest(req, res, (authErr?: unknown) => {
@@ -930,6 +916,8 @@ export class App {
   }
 
   private initializeErrorHandling() {
+    // Forward unhandled errors to Sentry before our own handler takes over.
+    this.app.use(sentryErrorHandler);
     this.app.use(globalErrorHandler);
   }
 

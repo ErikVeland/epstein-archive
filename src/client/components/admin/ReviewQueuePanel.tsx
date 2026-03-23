@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Shield, CheckCircle, XCircle, AlertTriangle, Eye, Clock } from 'lucide-react';
 
 interface ReviewItem {
@@ -17,26 +18,20 @@ interface ReviewItem {
 }
 
 export const ReviewQueuePanel: React.FC = () => {
-  const [items, setItems] = useState<ReviewItem[]>([]);
-  const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [reviewNote, setReviewNote] = useState('');
 
-  const fetchItems = async () => {
-    try {
+  const {
+    data: items = [],
+    isLoading,
+    refetch,
+  } = useQuery<ReviewItem[]>({
+    queryKey: ['admin-review-queue'],
+    queryFn: async () => {
       const res = await fetch('/api/admin/review-queue');
-      const data = await res.json();
-      setItems(data);
-    } catch (err) {
-      console.error('Failed to fetch review queue:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchItems();
-  }, []);
+      return res.json() as Promise<ReviewItem[]>;
+    },
+  });
 
   const handleDecision = async (id: string, decision: 'reviewed' | 'rejected') => {
     try {
@@ -46,16 +41,16 @@ export const ReviewQueuePanel: React.FC = () => {
         body: JSON.stringify({ status: decision, notes: reviewNote }),
       });
       if (res.ok) {
-        setItems(items.filter((item) => item.id !== id));
         setSelectedId(null);
         setReviewNote('');
+        await refetch();
       }
     } catch (err) {
       console.error('Decision failed:', err);
     }
   };
 
-  if (loading)
+  if (isLoading)
     return (
       <div className="p-8 text-[var(--text-muted)] animate-pulse">Loading forensics queue...</div>
     );

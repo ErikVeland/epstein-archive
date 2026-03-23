@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { FileText, Printer, Calendar, CheckCircle, FileJson } from 'lucide-react';
 
 interface ReportEntity {
@@ -84,29 +85,28 @@ export default function ForensicReportGenerator({
   const [includeCharts, setIncludeCharts] = useState(true);
   const [classification, setClassification] = useState<string>('confidential');
   const [targetAudience, setTargetAudience] = useState<string>('legal');
-  const [realData, setRealData] = useState<{
-    stats: ReportStats | null;
-    entities: ReportEntity[];
-    transactions: ReportTransaction[];
-    timeline: ReportTimelineItem[];
-  }>({ stats: null, entities: [], transactions: [], timeline: [] });
-
-  // Fetch real data
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        let statsRes, entitiesRes, transactionsRes, timelineRes;
+  const { data: realData = { stats: null, entities: [], transactions: [], timeline: [] } } =
+    useQuery({
+      queryKey: ['forensic-report-real-data', investigationId || 'global'],
+      queryFn: async (): Promise<{
+        stats: ReportStats | null;
+        entities: ReportEntity[];
+        transactions: ReportTransaction[];
+        timeline: ReportTimelineItem[];
+      }> => {
+        let statsRes: Response;
+        let entitiesRes: Response;
+        let transactionsRes: Response;
+        let timelineRes: Response;
 
         if (investigationId) {
-          // Scoped Fetching
           [statsRes, entitiesRes, transactionsRes, timelineRes] = await Promise.all([
-            fetch('/api/stats'), // Global stats still useful for context, or we could stub
-            fetch(`/api/investigations/${investigationId}/evidence`), // Use evidence to derive entities
+            fetch('/api/stats'),
+            fetch(`/api/investigations/${investigationId}/evidence`),
             fetch(`/api/investigations/${investigationId}/transactions`),
             fetch(`/api/investigations/${investigationId}/timeline-events`),
           ]);
         } else {
-          // Global Fetching
           [statsRes, entitiesRes, transactionsRes, timelineRes] = await Promise.all([
             fetch('/api/stats'),
             fetch('/api/entities?limit=50&sortBy=red_flag_rating&sortOrder=desc'),
@@ -122,17 +122,14 @@ export default function ForensicReportGenerator({
 
         if (investigationId) {
           const evidence = (await entitiesRes.json()) as ReportEntity[];
-          // Filter for entities in evidence
-          // This is a simplification; ideally we fetch full entity details for each evidence item
           entities = evidence
             .filter((e) => e.type === 'entity')
             .map((e) => ({
               name: e.title,
-              redFlagRating: 0, // Need to fetch this if important
+              redFlagRating: 0,
               id: e.source_id,
             }));
-          // Timeline format might differ slightly between endpoints, normalize it
-          timeline = (timeline as ReportTimelineItem[]).map((e) => ({
+          timeline = timeline.map((e) => ({
             ...e,
             date: e.start_date || e.date,
           }));
@@ -141,18 +138,14 @@ export default function ForensicReportGenerator({
           entities = entitiesData.data || [];
         }
 
-        setRealData({
+        return {
           stats,
-          entities: entities,
+          entities,
           transactions: Array.isArray(transactions) ? transactions : [],
           timeline: Array.isArray(timeline) ? timeline : [],
-        });
-      } catch (error) {
-        console.error('Error fetching real forensic data:', error);
-      }
-    };
-    fetchData();
-  }, [investigationId]);
+        };
+      },
+    });
 
   useEffect(() => {
     const reportTemplates: ReportTemplate[] = [

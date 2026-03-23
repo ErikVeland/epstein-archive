@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Icon, { type IconName } from '../common/Icon';
 // import { Link } from 'react-router-dom';
 
@@ -92,46 +93,49 @@ export const InvestigationActivityFeed: React.FC<InvestigationActivityFeedProps>
   refreshInterval = 30000, // 30 seconds default
   compact = false,
 }) => {
-  const [activities, setActivities] = useState<ActivityItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const queryKey = useMemo(
+    () => ['investigation-activity', investigationId, maxItems] as const,
+    [investigationId, maxItems],
+  );
 
-  const fetchActivity = useCallback(async () => {
-    try {
+  const {
+    data: activities = [],
+    isLoading,
+    error: queryError,
+  } = useQuery({
+    queryKey,
+    queryFn: async () => {
       const res = await fetch(`/api/investigations/${investigationId}/activity?limit=${maxItems}`);
       if (!res.ok) throw new Error('Failed to fetch activity');
-      const data = await res.json();
-      setActivities(data);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load activity');
-    } finally {
-      setLoading(false);
-    }
-  }, [investigationId, maxItems]);
+      return res.json() as Promise<ActivityItem[]>;
+    },
+    refetchInterval: refreshInterval > 0 ? refreshInterval : false,
+  });
 
-  useEffect(() => {
-    fetchActivity();
-
-    // Set up refresh interval if enabled
-    if (refreshInterval > 0) {
-      const interval = setInterval(fetchActivity, refreshInterval);
-      return () => clearInterval(interval);
-    }
-  }, [fetchActivity, refreshInterval]);
+  const refetch = useCallback(() => {
+    void queryClient.invalidateQueries({ queryKey });
+  }, [queryClient, queryKey]);
 
   // Listen for new items added via custom event
-  useEffect(() => {
+  React.useEffect(() => {
     const handleItemAdded = () => {
       // Refresh after a short delay to allow the server to process
-      setTimeout(fetchActivity, 500);
+      setTimeout(refetch, 500);
     };
 
     window.addEventListener('investigation-item-added', handleItemAdded);
     return () => window.removeEventListener('investigation-item-added', handleItemAdded);
-  }, [fetchActivity]);
+  }, [refetch]);
 
-  if (loading) {
+  const error =
+    queryError instanceof Error
+      ? queryError.message
+      : queryError
+        ? 'Failed to load activity'
+        : null;
+
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
         <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[var(--accent)]" />

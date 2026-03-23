@@ -6,7 +6,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    include: ['tests/unit/**/*.test.ts', 'tests/query-count.test.ts'],
+    include: ['src/test/**/*.test.ts', 'tests/unit/**/*.test.ts', 'tests/query-count.test.ts'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

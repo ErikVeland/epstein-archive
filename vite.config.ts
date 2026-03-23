@@ -5,6 +5,8 @@ import { visualizer } from 'rollup-plugin-visualizer';
 import path from 'path';
 
 const packageJson = JSON.parse(readFileSync('./package.json', 'utf-8'));
+const apiBaseUrl = process.env.VITE_API_URL || 'http://localhost:3012/api';
+const apiProxyTarget = apiBaseUrl.replace(/\/api\/?$/, '');
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -77,12 +79,12 @@ export default defineConfig({
     open: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:3012',
+        target: apiProxyTarget,
         changeOrigin: true,
         secure: false,
       },
       '/files': {
-        target: 'http://localhost:3012',
+        target: apiProxyTarget,
         changeOrigin: true,
         secure: false,
       },

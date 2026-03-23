@@ -35,17 +35,19 @@ export const ViewerShell: React.FC<ViewerShellProps> = ({
   return (
     <div className={`flex h-full min-h-0 flex-col overflow-hidden ${className}`}>
       <header
-        className={`shrink-0 flex items-center justify-between gap-6 border-b border-white/5 bg-[var(--glass-bg-strong)]/20 ${headerClassName}`}
+        className={`shrink-0 flex items-center justify-between gap-[var(--space-6)] border-b border-[color:color-mix(in_srgb,var(--glass-border)_42%,transparent)] bg-[var(--glass-bg-strong)]/20 ${headerClassName}`}
       >
         <div className="min-w-0 flex-1">{header}</div>
         {actions ? (
-          <div className="shrink-0 flex items-center gap-3 pr-4 md:pr-8">{actions}</div>
+          <div className="shrink-0 flex items-center gap-[var(--space-3)] pr-[var(--space-4)] md:pr-[var(--space-8)]">
+            {actions}
+          </div>
         ) : null}
       </header>
 
       {tabs && activeTab && onTabChange ? (
         <div
-          className={`shrink-0 border-b border-white/5 bg-[var(--glass-bg-strong)]/10 ${tabsClassName}`}
+          className={`shrink-0 border-b border-[color:color-mix(in_srgb,var(--glass-border)_42%,transparent)] bg-[var(--glass-bg-strong)]/10 ${tabsClassName}`}
         >
           <Tabs tabs={tabs} activeTab={activeTab} onChange={onTabChange} variant="viewer" />
         </div>

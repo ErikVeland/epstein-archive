@@ -65,7 +65,7 @@ const CustomTooltip = ({
           {(data.redacted ?? 0) > 0 && (
             <div className="flex justify-between gap-4">
               <span className="text-[var(--text-muted)]">Redacted:</span>
-              <span className="text-orange-400 font-mono">
+              <span className="text-[var(--accent-warning)] font-mono">
                 {(data.redacted ?? 0).toLocaleString()} ({redactedPercent}%)
               </span>
             </div>
@@ -74,7 +74,7 @@ const CustomTooltip = ({
             <div className="flex justify-between gap-4">
               <span className="text-[var(--text-muted)]">Avg Risk:</span>
               <span
-                className={`font-mono ${data.avgRisk >= 4 ? 'text-red-400' : data.avgRisk >= 2 ? 'text-amber-400' : 'text-green-400'}`}
+                className={`font-mono ${data.avgRisk >= 4 ? 'text-[var(--accent-danger)]' : data.avgRisk >= 2 ? 'text-[var(--accent-warning)]' : 'text-[var(--accent-success)]'}`}
               >
                 {'🚩'.repeat(Math.round(data.avgRisk))}
               </span>

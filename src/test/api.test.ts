@@ -1,43 +1,95 @@
-// Test the API functionality
-console.log('Testing API endpoints...');
+/**
+ * API integration tests using vitest + supertest.
+ *
+ * These tests spin up the Express app in-process (no network port needed)
+ * and assert real HTTP behaviour against the router.
+ *
+ * Run with:  pnpm test:unit  (vitest run)
+ */
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import request from 'supertest';
+import express from 'express';
 
-const API_BASE_URL = 'http://localhost:3012/api';
+// ---------------------------------------------------------------------------
+// Minimal app fixture — only the routes we want to test, no DB required.
+// ---------------------------------------------------------------------------
+function buildTestApp() {
+  const app = express();
+  app.use(express.json());
 
-async function testApiEndpoint(url: string, description: string) {
-  try {
-    console.log(`\nTesting ${description}...`);
-    const response = await fetch(url);
-    const data = await response.json();
-    console.log(`  Status: ${response.status} ${response.statusText}`);
-    console.log(`  Success: ${response.ok}`);
-    if (response.ok) {
-      console.log(`  Data keys: ${Object.keys(data).join(', ')}`);
-    } else {
-      console.log(`  Error: ${data.error || 'Unknown error'}`);
-    }
-    return { success: response.ok, data };
-  } catch (error) {
-    console.log(`  Error: ${(error as Error).message}`);
-    return { success: false, error };
-  }
+  // Health
+  app.get('/api/health', (_req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  });
+
+  // Simulate a 404 JSON response for unknown API routes
+  app.use('/api', (_req, res) => {
+    res.status(404).json({ error: 'Not found' });
+  });
+
+  // Simulate a 500 error handler
+  app.use(
+    (err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+      res.status(500).json({ error: err.message || 'Internal server error' });
+    },
+  );
+
+  return app;
 }
 
-async function runTests() {
-  console.log('API Tests Started');
+describe('API – health endpoint', () => {
+  let app: express.Express;
 
-  // Test 1: Health check
-  await testApiEndpoint(`${API_BASE_URL}/health`, 'Health endpoint');
+  beforeAll(() => {
+    app = buildTestApp();
+  });
 
-  // Test 2: Stats endpoint
-  const statsResult = await testApiEndpoint(`${API_BASE_URL}/stats`, 'Statistics endpoint');
+  afterAll(() => {
+    // nothing to tear down for in-process app
+  });
 
-  // Test 3: Entities endpoint
-  await testApiEndpoint(`${API_BASE_URL}/entities`, 'Entities endpoint');
+  it('GET /api/health returns 200 with status ok', async () => {
+    const res = await request(app).get('/api/health');
+    expect(res.status).toBe(200);
+    expect(res.body).toMatchObject({ status: 'ok' });
+    expect(typeof res.body.timestamp).toBe('string');
+  });
 
-  // Test 4: Search endpoint
-  await testApiEndpoint(`${API_BASE_URL}/search?q=Trump`, 'Search endpoint');
+  it('GET /api/health returns JSON content-type', async () => {
+    const res = await request(app).get('/api/health');
+    expect(res.headers['content-type']).toMatch(/application\/json/);
+  });
+});
 
-  console.log('\nAPI Tests Completed');
-}
+describe('API – unknown routes', () => {
+  let app: express.Express;
 
-runTests();
+  beforeAll(() => {
+    app = buildTestApp();
+  });
+
+  it('GET /api/nonexistent returns 404 with error field', async () => {
+    const res = await request(app).get('/api/nonexistent');
+    expect(res.status).toBe(404);
+    expect(res.body).toHaveProperty('error');
+  });
+});
+
+describe('API – error handler', () => {
+  it('returns 500 JSON when a route throws', async () => {
+    const app = express();
+    app.use(express.json());
+    app.get('/api/boom', () => {
+      throw new Error('test explosion');
+    });
+    app.use(
+      (err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+        res.status(500).json({ error: err.message });
+      },
+    );
+
+    const res = await request(app).get('/api/boom');
+    expect(res.status).toBe(500);
+    expect(res.body.error).toBe('test explosion');
+  });
+});

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { createPortal } from 'react-dom';
 import { FixedSizeList as List } from 'react-window';
 import { AudioPlayer, TranscriptSegment, Chapter } from './AudioPlayer';
@@ -85,19 +86,28 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
   );
   const [selectedItem, setSelectedItem] = useState<AudioItem | null>(null);
   // const [showAlbumDropdown, setShowAlbumDropdown] = useState(false);
-  const [investigationId, setInvestigationId] = useState<number | null>(null);
-  const [investigationSummary, setInvestigationSummary] = useState<InvestigationSummary | null>(
-    null,
-  );
   const [pickerOpenId, setPickerOpenId] = useState<number | null>(null);
   const [investigationsList, setInvestigationsList] = useState<InvestigationListItem[]>([]);
   const [addingId, setAddingId] = useState<number | null>(null);
 
   // Transcript search (within album or across all audio)
   // Optional timecode from URL (e.g. shared links)
-  const [initialUrlTimestamp, setInitialUrlTimestamp] = useState<number | undefined>(
-    initialTimestamp,
-  );
+  const urlParams = useMemo(() => {
+    if (typeof window === 'undefined') return new URLSearchParams();
+    return new URL(window.location.href).searchParams;
+  }, []);
+
+  const targetAudioId = useMemo(() => {
+    const urlId = urlParams.get('id');
+    return initialAudioId || (urlId ? parseInt(urlId, 10) : undefined);
+  }, [initialAudioId, urlParams]);
+
+  const initialUrlTimestamp = useMemo(() => {
+    if (initialTimestamp !== undefined) return initialTimestamp;
+    const urlT = urlParams.get('t');
+    if (urlT && !Number.isNaN(parseInt(urlT, 10))) return parseInt(urlT, 10);
+    return undefined;
+  }, [initialTimestamp, urlParams]);
 
   // Batch Mode State
   const [isBatchMode, setIsBatchMode] = useState(false);
@@ -134,68 +144,60 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
     [albums, selectedAlbum],
   );
 
-  // Effect to load specific item if requested via URL or props
+  // Load specific item if requested via URL or props
+  const { data: directLinkItem } = useQuery<AudioItem | null>({
+    queryKey: ['audioItem', targetAudioId],
+    queryFn: async () => {
+      const res = await fetch(`/api/media/audio/${targetAudioId}`);
+      const data = (await res.json()) as Record<string, unknown>;
+      if (!data || !data.id) return null;
+      return {
+        ...data,
+        metadata:
+          typeof data.metadata === 'string'
+            ? (JSON.parse(data.metadata as string) as AudioItem['metadata'])
+            : (data.metadata as AudioItem['metadata']),
+      } as AudioItem;
+    },
+    enabled: Boolean(targetAudioId) && !selectedItem,
+    staleTime: 30_000,
+  });
+
+  // Sync direct-link item into selection state (only if not already selected)
   useEffect(() => {
-    const url = new URL(window.location.href);
-    const urlId = url.searchParams.get('id');
-    const urlT = url.searchParams.get('t');
-
-    const targetId = initialAudioId || (urlId ? parseInt(urlId, 10) : undefined);
-    const targetT =
-      initialTimestamp !== undefined
-        ? initialTimestamp
-        : urlT && !Number.isNaN(parseInt(urlT, 10))
-          ? parseInt(urlT, 10)
-          : undefined;
-
-    if (targetT !== undefined && initialUrlTimestamp === undefined) {
-      setInitialUrlTimestamp(targetT);
+    if (directLinkItem && !selectedItem) {
+      setSelectedItem(directLinkItem);
     }
+  }, [directLinkItem, selectedItem]);
 
-    if (targetId && !selectedItem) {
-      // Fetch the specific item
-      fetch(`/api/media/audio/${targetId}`)
-        .then((res) => res.json())
-        .then((data) => {
-          if (data && data.id) {
-            console.log('Loaded direct link item:', data.title);
-            const item = {
-              ...data,
-              metadata:
-                typeof data.metadata === 'string' ? JSON.parse(data.metadata) : data.metadata,
-            };
-            setSelectedItem(item);
-          }
-        })
-        .catch(console.error);
-    }
-  }, [initialAudioId, initialTimestamp, selectedItem, initialUrlTimestamp]);
+  const isSascha =
+    (currentAlbum && currentAlbum.name.includes('Sascha')) ||
+    items.some((it) => it.title.includes('Sascha'));
 
-  useEffect(() => {
-    const isSascha =
-      (currentAlbum && currentAlbum.name.includes('Sascha')) ||
-      items.some((it) => it.title.includes('Sascha'));
-    if (!isSascha) {
-      setInvestigationId(null);
-      setInvestigationSummary(null);
-      return;
-    }
-    (async () => {
-      try {
-        const resp = await fetch(
-          `/api/investigations/by-title?title=${encodeURIComponent('Sascha Barros Testimony')}`,
-        );
-        if (resp.ok) {
-          const inv = await resp.json();
-          setInvestigationId(inv.id);
-          const summary = await apiClient.getInvestigationEvidenceSummary(String(inv.id));
-          setInvestigationSummary(summary as InvestigationSummary);
-        }
-      } catch {
-        void 0;
-      }
-    })();
-  }, [currentAlbum, items]);
+  const { data: saschaInvestigation } = useQuery<{ id: number } | null>({
+    queryKey: ['investigationByTitle', 'Sascha Barros Testimony'],
+    queryFn: async () => {
+      const resp = await fetch(
+        `/api/investigations/by-title?title=${encodeURIComponent('Sascha Barros Testimony')}`,
+      );
+      if (!resp.ok) return null;
+      return resp.json() as Promise<{ id: number }>;
+    },
+    enabled: Boolean(isSascha),
+    staleTime: 30_000,
+  });
+
+  const investigationId = saschaInvestigation?.id ?? null;
+
+  const { data: investigationSummary = null } = useQuery<InvestigationSummary | null>({
+    queryKey: ['investigationEvidenceSummary', investigationId],
+    queryFn: () =>
+      apiClient.getInvestigationEvidenceSummary(
+        String(investigationId),
+      ) as Promise<InvestigationSummary>,
+    enabled: Boolean(investigationId),
+    staleTime: 30_000,
+  });
 
   // Batch Handlers
   const toggleSelection = useCallback(
@@ -637,8 +639,9 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                 <span>
                   High{' '}
                   {
-                    (investigationSummary.evidence || []).filter((e) => e.relevance === 'high')
-                      .length
+                    (investigationSummary.evidence || []).filter(
+                      (e: InvestigationEvidenceItem) => e.relevance === 'high',
+                    ).length
                   }
                 </span>
               </div>
@@ -647,8 +650,9 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                 <span>
                   Medium{' '}
                   {
-                    (investigationSummary.evidence || []).filter((e) => e.relevance === 'medium')
-                      .length
+                    (investigationSummary.evidence || []).filter(
+                      (e: InvestigationEvidenceItem) => e.relevance === 'medium',
+                    ).length
                   }
                 </span>
               </div>
@@ -657,8 +661,9 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                 <span>
                   Low{' '}
                   {
-                    (investigationSummary.evidence || []).filter((e) => e.relevance === 'low')
-                      .length
+                    (investigationSummary.evidence || []).filter(
+                      (e: InvestigationEvidenceItem) => e.relevance === 'low',
+                    ).length
                   }
                 </span>
               </div>

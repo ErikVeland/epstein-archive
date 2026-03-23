@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Document, Page, pdfjs } from 'react-pdf';
 import {
   ZoomIn,
@@ -31,16 +32,6 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
   const [rotation, setRotation] = useState<number>(0);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [viewerWidth, setViewerWidth] = useState<number>(0);
-  const [docMeta, setDocMeta] = useState<{
-    fileName?: string;
-    filePath?: string;
-    originalFilePath?: string;
-    cleanedPath?: string;
-    mimeType?: string;
-  } | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
   const viewerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -54,37 +45,39 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
     return () => obs.disconnect();
   }, []);
 
-  useEffect(() => {
-    const fetchDoc = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const primaryRes = await fetch(`/api/documents/${documentId}`);
-        const fallbackRes = !primaryRes.ok ? await fetch(`/api/evidence/${documentId}`) : null;
-        const res = primaryRes.ok ? primaryRes : fallbackRes;
+  type DocMeta = {
+    fileName?: string;
+    filePath?: string;
+    originalFilePath?: string;
+    cleanedPath?: string;
+    mimeType?: string;
+  };
 
-        if (!res || !res.ok) {
-          setError('Failed to fetch document metadata');
-          return;
-        }
-
-        const data = await res.json();
-        setDocMeta({
-          fileName: data.fileName || data.file_name,
-          filePath: data.filePath || data.file_path,
-          originalFilePath: data.originalFilePath || data.original_file_path,
-          cleanedPath: data.cleanedPath || data.cleaned_path,
-          mimeType: data.mimeType || data.mime_type || data.fileType || data.file_type,
-        });
-      } catch (err) {
-        console.error('Error fetching document metadata:', err);
-        setError('Error connecting to API');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchDoc();
-  }, [documentId]);
+  const {
+    data: docMeta = null,
+    isLoading,
+    error: fetchError,
+  } = useQuery<DocMeta | null>({
+    queryKey: ['pdfVariantMeta', documentId],
+    queryFn: async () => {
+      const primaryRes = await fetch(`/api/documents/${documentId}`);
+      const fallbackRes = !primaryRes.ok ? await fetch(`/api/evidence/${documentId}`) : null;
+      const res = primaryRes.ok ? primaryRes : fallbackRes;
+      if (!res || !res.ok) throw new Error('Failed to fetch document metadata');
+      const data = (await res.json()) as Record<string, unknown>;
+      return {
+        fileName: (data.fileName || data.file_name) as string | undefined,
+        filePath: (data.filePath || data.file_path) as string | undefined,
+        originalFilePath: (data.originalFilePath || data.original_file_path) as string | undefined,
+        cleanedPath: (data.cleanedPath || data.cleaned_path) as string | undefined,
+        mimeType: (data.mimeType || data.mime_type || data.fileType || data.file_type) as
+          | string
+          | undefined,
+      };
+    },
+    staleTime: 30_000,
+  });
+  const error = fetchError instanceof Error ? fetchError.message : null;
 
   const onDocumentLoadSuccess = ({ numPages }: { numPages: number }) => {
     setNumPages(numPages);

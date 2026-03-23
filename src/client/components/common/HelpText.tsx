@@ -17,7 +17,7 @@ const HelpText: React.FC<HelpTextProps> = ({
   className = '',
 }) => {
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
+    <div className={`flex items-center gap-[var(--space-2)] ${className}`}>
       <span>{children}</span>
       <Tooltip content={text} position={position} delay={delay}>
         <span

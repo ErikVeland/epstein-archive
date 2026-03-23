@@ -65,12 +65,14 @@ const BASE_VIP_RULES: VipRule[] = [
     },
   },
   {
-    canonicalName: 'Jean-Luc Brunel',
+    canonicalName: 'Jean Luc Brunel',
     type: 'Person',
     aliases: [
+      'Jean-Luc Brunel',
       'Jean Luc Brunel',
       'Jean Luc Brunnel',
       'Jean-Luc Brunnel',
+      'Jean Luc Brunelc',
       'MC2 Model Management',
       'J.L. Brunel',
     ],
@@ -1531,6 +1533,20 @@ const HONORIFIC_PREFIXES = [
   'justice',
 ];
 
+const VIP_WRAPPER_PREFIXES = [
+  'dear',
+  'dearest',
+  'defendant',
+  'defendants',
+  'plaintiff',
+  'plaintiffs',
+  'watch',
+  'watching',
+  'philanthropy',
+] as const;
+
+const VIP_WRAPPER_SUFFIXES = ['to', 'from'] as const;
+
 function normalizeVipToken(value: string): string {
   return value
     .toLowerCase()
@@ -1554,6 +1570,31 @@ function stripHonorificPrefix(value: string): string {
     }
   }
   return current;
+}
+
+function unwrapVipCandidate(value: string): string[] {
+  const seen = new Set<string>();
+  const queue = [stripHonorificPrefix(value)];
+
+  while (queue.length > 0) {
+    const current = normalizeVipToken(queue.shift() || '');
+    if (!current || seen.has(current)) continue;
+    seen.add(current);
+
+    for (const prefix of VIP_WRAPPER_PREFIXES) {
+      if (current.startsWith(`${prefix} `)) {
+        queue.push(current.slice(prefix.length + 1));
+      }
+    }
+
+    for (const suffix of VIP_WRAPPER_SUFFIXES) {
+      if (current.endsWith(` ${suffix}`)) {
+        queue.push(current.slice(0, -(suffix.length + 1)));
+      }
+    }
+  }
+
+  return Array.from(seen);
 }
 
 function buildGeneratedPersonAliases(canonicalName: string): string[] {
@@ -1607,23 +1648,20 @@ const VIP_ALIAS_CACHE = new Map<string, Set<string>>(
 );
 
 export function resolveVip(name: string): string | null {
-  const normalized = normalizeVipToken(name);
-  const stripped = stripHonorificPrefix(normalized);
-  if (!normalized) return null;
+  const candidates = unwrapVipCandidate(name);
+  if (candidates.length === 0) return null;
 
-  for (const rule of VIP_RULES) {
-    const aliases = VIP_ALIAS_CACHE.get(rule.canonicalName);
-    if (aliases && (aliases.has(normalized) || aliases.has(stripped))) {
-      return rule.canonicalName;
-    }
-    for (const pattern of rule.patterns) {
-      const normalizedMatch = normalized.match(pattern);
-      if (normalizedMatch && normalizedMatch[0].trim() === normalized) {
+  for (const candidate of candidates) {
+    for (const rule of VIP_RULES) {
+      const aliases = VIP_ALIAS_CACHE.get(rule.canonicalName);
+      if (aliases && aliases.has(candidate)) {
         return rule.canonicalName;
       }
-      const strippedMatch = stripped.match(pattern);
-      if (strippedMatch && strippedMatch[0].trim() === stripped) {
-        return rule.canonicalName;
+      for (const pattern of rule.patterns) {
+        const candidateMatch = candidate.match(pattern);
+        if (candidateMatch && candidateMatch[0].trim() === candidate) {
+          return rule.canonicalName;
+        }
       }
     }
   }

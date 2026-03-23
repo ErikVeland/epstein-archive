@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { BrowseFilters, Document } from '../types/documents';
 import { apiClient } from '../services/apiClient';
 
@@ -87,6 +88,8 @@ interface UseDocumentBrowserDataOptions {
   selectedDocumentId?: string;
 }
 
+const EMPTY_DOCUMENTS: Document[] = [];
+
 export function useDocumentBrowserData({
   effectiveSearchTerm,
   globalTimeRange,
@@ -97,13 +100,8 @@ export function useDocumentBrowserData({
   hideLowCredibility,
   selectedDocumentId,
 }: UseDocumentBrowserDataOptions) {
-  const [documents, setDocuments] = useState<Document[]>([]);
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalDocuments, setTotalDocuments] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
-  const [isFetching, setIsFetching] = useState(false);
-  const [fetchBlockedUntil] = useState<number>(0);
   const requestKeyRef = useRef<string | null>(null);
 
   const queryKey = useMemo(
@@ -136,82 +134,55 @@ export function useDocumentBrowserData({
     ],
   );
 
+  // Reset to page 1 when filters change
   useEffect(() => {
-    const fetchDocuments = async () => {
-      if (fetchBlockedUntil > Date.now()) return;
+    setCurrentPage(1);
+  }, [queryKey]);
 
-      const effectiveStart = globalTimeRange[0] ?? filters.dateRange?.start;
-      const effectiveEnd = globalTimeRange[1] ?? filters.dateRange?.end;
+  const effectiveStart = globalTimeRange[0] ?? filters.dateRange?.start;
+  const effectiveEnd = globalTimeRange[1] ?? filters.dateRange?.end;
+
+  const { data: queryResult, isFetching } = useQuery({
+    queryKey: ['documents', queryKey, currentPage],
+    queryFn: async () => {
       const requestKey = `${queryKey}:${currentPage}`;
       requestKeyRef.current = requestKey;
 
-      try {
-        setIsFetching(true);
+      const result = await apiClient.getDocuments(
+        {
+          search:
+            effectiveSearchTerm && effectiveSearchTerm.trim() ? effectiveSearchTerm : undefined,
+          sortBy: sortBy || undefined,
+          sortOrder,
+          evidenceType:
+            filters.categories && filters.categories.length > 0 ? filters.categories[0] : undefined,
+          source: filters.source && filters.source.length > 0 ? filters.source : undefined,
+          startDate: effectiveStart ?? undefined,
+          endDate: effectiveEnd ?? undefined,
+          redFlagLevel: filters.redFlagLevel,
+          collectionId: filters.collectionId,
+          fileType: filters.fileType,
+        },
+        currentPage,
+        itemsPerPage,
+      );
 
-        const result = await apiClient.getDocuments(
-          {
-            search:
-              effectiveSearchTerm && effectiveSearchTerm.trim() ? effectiveSearchTerm : undefined,
-            sortBy: sortBy || undefined,
-            sortOrder,
-            evidenceType:
-              filters.categories && filters.categories.length > 0
-                ? filters.categories[0]
-                : undefined,
-            source: filters.source && filters.source.length > 0 ? filters.source : undefined,
-            startDate: effectiveStart ?? undefined,
-            endDate: effectiveEnd ?? undefined,
-            redFlagLevel: filters.redFlagLevel,
-            collectionId: filters.collectionId,
-            fileType: filters.fileType,
-          },
-          currentPage,
-          itemsPerPage,
-        );
+      const newDocs: Document[] = (result.data || []).map((doc) =>
+        mapApiDocumentToDocument(doc as unknown as Record<string, unknown>),
+      );
+      return {
+        documents: newDocs,
+        total: result.total ?? 0,
+        hasMore: newDocs.length === itemsPerPage,
+      };
+    },
+    staleTime: 30_000,
+    placeholderData: (prev) => prev,
+  });
 
-        if (requestKeyRef.current !== requestKey) return;
-
-        const newDocs: Document[] = (result.data || []).map((doc) =>
-          mapApiDocumentToDocument(doc as unknown as Record<string, unknown>),
-        );
-        setDocuments(newDocs);
-        setTotalDocuments(result.total ?? 0);
-        setHasMore(newDocs.length === itemsPerPage);
-      } catch (error) {
-        console.error('DocumentBrowser: Error fetching documents:', error);
-        if (requestKeyRef.current !== requestKey) return;
-        setHasMore(false);
-        setTotalDocuments(0);
-        setDocuments([]);
-      } finally {
-        if (requestKeyRef.current === requestKey) {
-          setIsFetching(false);
-        }
-      }
-    };
-
-    void fetchDocuments();
-  }, [
-    currentPage,
-    effectiveSearchTerm,
-    fetchBlockedUntil,
-    filters.categories,
-    filters.collectionId,
-    filters.dateRange,
-    filters.fileType,
-    filters.redFlagLevel,
-    filters.source,
-    globalTimeRange,
-    itemsPerPage,
-    queryKey,
-    sortBy,
-    sortOrder,
-  ]);
-
-  useEffect(() => {
-    setCurrentPage(1);
-    setHasMore(true);
-  }, [queryKey]);
+  const documents = queryResult?.documents ?? EMPTY_DOCUMENTS;
+  const totalDocuments = queryResult?.total ?? 0;
+  const hasMore = queryResult?.hasMore ?? true;
 
   const filteredDocuments = useMemo(() => {
     if (!hideLowCredibility) return documents;

@@ -42,56 +42,6 @@ const API_BASE_URL =
   (typeof process !== 'undefined' && process.env?.VITE_API_URL) ||
   '/api';
 
-// --- In-Memory Cache with TTL ---
-interface CacheEntry<T> {
-  data: T;
-  timestamp: number;
-  ttl: number;
-}
-
-const cache = new Map<string, CacheEntry<unknown>>();
-const DEFAULT_CACHE_TTL = 30000; // 30 seconds
-const MAX_CACHE_SIZE = 200;
-
-function getCachedData<T>(key: string): T | null {
-  const entry = cache.get(key);
-  if (!entry) return null;
-
-  // Check if expired
-  if (Date.now() - entry.timestamp > entry.ttl) {
-    cache.delete(key);
-    return null;
-  }
-
-  return entry.data as T;
-}
-
-function setCachedData<T>(key: string, data: T, ttl: number = DEFAULT_CACHE_TTL): void {
-  if (cache.size >= MAX_CACHE_SIZE) {
-    // Evict the oldest entry to keep the cache bounded
-    const oldestKey = cache.keys().next().value;
-    if (oldestKey !== undefined) cache.delete(oldestKey);
-  }
-  cache.set(key, {
-    data,
-    timestamp: Date.now(),
-    ttl,
-  });
-}
-
-function invalidateCache(pattern?: string): void {
-  if (!pattern) {
-    cache.clear();
-    return;
-  }
-
-  for (const key of cache.keys()) {
-    if (key.includes(pattern)) {
-      cache.delete(key);
-    }
-  }
-}
-
 class ContractError extends Error {
   isContractError: boolean;
 
@@ -250,14 +200,8 @@ class ApiClient {
     },
   ): Promise<T> {
     const method = options?.method || 'GET';
-    const shouldCache = options?.useCache !== false && method === 'GET';
 
-    if (shouldCache) {
-      const cached = getCachedData<T>(url);
-      if (cached) return cached;
-    }
-
-    const { useCache: _, cacheTtl, _retryCount, signal, ...fetchOptions } = options || {};
+    const { useCache: _, cacheTtl: _ttl, _retryCount, signal, ...fetchOptions } = options || {};
     const retryCount = _retryCount || 0;
 
     const executeRequest = async (token: string | null): Promise<Response> => {
@@ -359,7 +303,6 @@ class ApiClient {
           .catch(() => {});
       }
 
-      if (shouldCache) setCachedData(url, data, cacheTtl);
       return data as T;
     } catch (error: unknown) {
       if ((error as Error).name === 'AbortError') throw error;
@@ -426,11 +369,6 @@ class ApiClient {
       method: 'DELETE',
       useCache: false,
     });
-  }
-
-  // Clear cache (useful after mutations)
-  clearCache(pattern?: string): void {
-    invalidateCache(pattern);
   }
 
   async getSubjects(

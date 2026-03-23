@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -71,24 +72,23 @@ export const InteractiveEntityMap: React.FC<InteractiveEntityMapProps> = ({
   onEntitySelect,
   minRiskLevel = 0,
 }) => {
-  const [entities, setEntities] = useState<MapEntity[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const fetchMapEntities = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  const {
+    data: entities = [],
+    isLoading,
+    isError,
+    error: queryError,
+    refetch,
+  } = useQuery<MapEntity[]>({
+    queryKey: ['map-entities', minRiskLevel],
+    queryFn: async () => {
       const res = await apiClient.get<MapEntity[]>(`/map/entities?minRisk=${minRiskLevel}`, {
         useCache: true,
       });
 
       const entityRows = Array.isArray(res) ? res : [];
-      if (entityRows.length > 0) {
-        setEntities(entityRows);
-        return;
-      }
+      if (entityRows.length > 0) return entityRows;
 
       // Real-data fallback: show airport locations from flight logs when entity geo coords are absent.
       const airports = await apiClient.get<
@@ -106,23 +106,19 @@ export const InteractiveEntityMap: React.FC<InteractiveEntityMapProps> = ({
         type: 'Airport',
       }));
 
-      if (airportEntities.length > 0) {
-        setEntities(airportEntities);
-      } else {
-        setEntities([]);
-        setError('No geospatial coordinates available for entities or flights');
-      }
-    } catch (err) {
-      console.error('Failed to fetch map entities:', err);
-      setError('Failed to load map data');
-    } finally {
-      setLoading(false);
-    }
-  }, [minRiskLevel]);
+      if (airportEntities.length > 0) return airportEntities;
 
-  useEffect(() => {
-    fetchMapEntities();
-  }, [fetchMapEntities]);
+      throw new Error('No geospatial coordinates available for entities or flights');
+    },
+  });
+
+  const loading = isLoading;
+  const error = isError
+    ? queryError instanceof Error
+      ? queryError.message
+      : 'Failed to load map data'
+    : null;
+  const fetchMapEntities = refetch;
 
   const getMarkerIcon = (riskScore: number) => {
     // Dynamic color based on risk
@@ -158,7 +154,7 @@ export const InteractiveEntityMap: React.FC<InteractiveEntityMapProps> = ({
             <AlertTriangle className="h-8 w-8 text-red-500 mx-auto mb-2" />
             <p className="text-red-400 text-sm">{error}</p>
             <button
-              onClick={fetchMapEntities}
+              onClick={() => void fetchMapEntities()}
               className="mt-2 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] underline"
             >
               Retry

@@ -119,7 +119,7 @@ function MetricStat({ label, icon, value }: { label: string; icon: IconName; val
         <span className="text-[11px] tracking-[0.12em] uppercase text-[var(--text-muted)]">
           {label}
         </span>
-        <span className="chip h-6 px-2 flex items-center text-cyan-200 border-cyan-300/25">
+        <span className="chip h-6 px-2 flex items-center text-[var(--accent)] border-[var(--accent)]/25">
           <Icon name={icon} size="xs" />
         </span>
       </div>

@@ -24,6 +24,7 @@ interface AddToInvestigationButtonProps {
   variant?: 'button' | 'icon' | 'dropdown' | 'quick';
   className?: string;
   defaultInvestigationId?: string;
+  stopPropagation?: boolean;
 }
 
 export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> = ({
@@ -33,6 +34,7 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
   variant = 'button',
   className = '',
   defaultInvestigationId,
+  stopPropagation = false,
 }) => {
   const {
     investigations: contextInvestigations,
@@ -191,12 +193,17 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
 
   const ItemIcon = getItemIcon();
   const hasInvestigations = investigations.length > 0;
+  const maybeStopPropagation = (event: React.SyntheticEvent) => {
+    if (stopPropagation) event.stopPropagation();
+  };
 
   return (
     <>
       {variant === 'button' && (
         <button
-          onClick={() => {
+          type="button"
+          onClick={(event) => {
+            maybeStopPropagation(event);
             if (!hasInvestigations) setIsCreatingNew(true);
             setShowModal(true);
           }}
@@ -210,7 +217,9 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
 
       {variant === 'icon' && (
         <button
-          onClick={() => {
+          type="button"
+          onClick={(event) => {
+            maybeStopPropagation(event);
             if (!hasInvestigations) setIsCreatingNew(true);
             setShowModal(true);
           }}
@@ -224,7 +233,9 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
       {variant === 'dropdown' && (
         <div className="relative group">
           <button
-            onClick={() => {
+            type="button"
+            onClick={(event) => {
+              maybeStopPropagation(event);
               if (!hasInvestigations) setIsCreatingNew(true);
               setShowModal(true);
             }}
@@ -238,7 +249,11 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
 
       {variant === 'quick' && (
         <button
-          onClick={handleQuickAdd}
+          type="button"
+          onClick={(event) => {
+            maybeStopPropagation(event);
+            void handleQuickAdd();
+          }}
           disabled={isLoading}
           className={`flex items-center justify-center p-1.5 bg-[var(--accent)]/80 hover:bg-blue-700 text-[var(--text-primary)] rounded transition-colors disabled:opacity-50 ${className}`}
           title="Add to Investigation"

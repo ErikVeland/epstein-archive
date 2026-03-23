@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Bold,
@@ -371,85 +372,87 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
     }
   });
 
+  const [notebookSeeded, setNotebookSeeded] = useState(false);
+
+  const { data: notebookFetchResult, isLoading: notebookQueryLoading } = useQuery({
+    queryKey: ['evidence-notebook', investigationId],
+    queryFn: async () => {
+      const [evidenceSummary, notebook] = await Promise.all([
+        apiClient.getInvestigationEvidenceSummary(String(investigationId)) as Promise<{
+          evidence?: EvidenceRecord[];
+        }>,
+        apiClient.getInvestigationNotebook(String(investigationId)) as Promise<
+          Record<string, unknown>
+        >,
+      ]);
+      const evidenceItems = Array.isArray(evidenceSummary?.evidence)
+        ? evidenceSummary.evidence
+        : [];
+      const persistedEvidenceAnnotations = await loadEvidenceAnnotationsFromApi(evidenceItems);
+      return { evidenceSummary, notebook, persistedEvidenceAnnotations };
+    },
+  });
+
+  // Seed local mutable state once from query result
   useEffect(() => {
-    let mounted = true;
+    if (notebookSeeded || !notebookFetchResult) return;
 
-    const fetchSummary = async () => {
-      setLoading(true);
+    const { evidenceSummary, notebook, persistedEvidenceAnnotations } = notebookFetchResult;
+
+    setSummary(evidenceSummary);
+
+    const loadedOrder = Array.isArray(notebook?.order)
+      ? (notebook.order as unknown[]).filter((v) => Number.isFinite(Number(v))).map(Number)
+      : [];
+    const fallbackOrder = evidenceSummary?.evidence
+      ? evidenceSummary.evidence.map((e) => Number(e.id)).filter((v) => Number.isFinite(v))
+      : [];
+
+    setOrder(loadedOrder.length > 0 ? loadedOrder : fallbackOrder);
+
+    const loadedAnnotations = Array.isArray(notebook?.annotations)
+      ? (notebook.annotations as NotebookAnnotation[])
+      : [];
+    const nonEvidence = loadedAnnotations.filter((a) => a.source !== 'evidence');
+    const mergedAnnotations = [...nonEvidence, ...persistedEvidenceAnnotations];
+    setAnnotations(mergedAnnotations);
+
+    const caseNotes = mergedAnnotations.find((a) => a.id === 'case-notes')?.content || '';
+    const localDraftRaw = localStorage.getItem(localDraftKey);
+    if (localDraftRaw) {
       try {
-        const [evidenceSummary, notebook] = await Promise.all([
-          apiClient.getInvestigationEvidenceSummary(String(investigationId)) as Promise<{
-            evidence?: EvidenceRecord[];
-          }>,
-          apiClient.getInvestigationNotebook(String(investigationId)) as Promise<
-            Record<string, unknown>
-          >,
-        ]);
-
-        if (!mounted) return;
-
-        setSummary(evidenceSummary);
-
-        const loadedOrder = Array.isArray(notebook?.order)
-          ? notebook.order.filter((v: unknown) => Number.isFinite(Number(v))).map(Number)
-          : [];
-        const fallbackOrder = evidenceSummary?.evidence
-          ? evidenceSummary.evidence.map((e) => Number(e.id)).filter((v) => Number.isFinite(v))
-          : [];
-
-        setOrder(loadedOrder.length > 0 ? loadedOrder : fallbackOrder);
-
-        const loadedAnnotations = Array.isArray(notebook?.annotations)
-          ? (notebook.annotations as NotebookAnnotation[])
-          : [];
-        const evidenceItems = Array.isArray(evidenceSummary?.evidence)
-          ? evidenceSummary.evidence
-          : [];
-        const persistedEvidenceAnnotations = await loadEvidenceAnnotationsFromApi(evidenceItems);
-
-        const nonEvidence = loadedAnnotations.filter((a) => a.source !== 'evidence');
-        const mergedAnnotations = [...nonEvidence, ...persistedEvidenceAnnotations];
-        setAnnotations(mergedAnnotations);
-
-        const caseNotes = mergedAnnotations.find((a) => a.id === 'case-notes')?.content || '';
-        const localDraftRaw = localStorage.getItem(localDraftKey);
-        if (localDraftRaw) {
-          try {
-            const localDraft = JSON.parse(localDraftRaw);
-            const localNotes = typeof localDraft?.notes === 'string' ? localDraft.notes : '';
-            const localOrder = Array.isArray(localDraft?.order) ? localDraft.order : [];
-            if (localNotes.trim().length > 0) {
-              setNotesDraft(localNotes);
-            } else {
-              setNotesDraft(caseNotes);
-            }
-            if (localOrder.length > 0) setOrder(localOrder);
-            if (localDraft?.savedAt) {
-              setLastSavedAt(localDraft.savedAt);
-              setSaveState('saved');
-            }
-          } catch (_error) {
-            setNotesDraft(caseNotes);
-          }
-        } else {
-          setNotesDraft(caseNotes);
+        const localDraft = JSON.parse(localDraftRaw) as Record<string, unknown>;
+        const localNotes = typeof localDraft?.notes === 'string' ? localDraft.notes : '';
+        const localOrder = Array.isArray(localDraft?.order) ? (localDraft.order as number[]) : [];
+        setNotesDraft(localNotes.trim().length > 0 ? localNotes : caseNotes);
+        if (localOrder.length > 0) setOrder(localOrder);
+        if (localDraft?.savedAt) {
+          setLastSavedAt(String(localDraft.savedAt));
+          setSaveState('saved');
         }
       } catch (_error) {
-        if (!mounted) return;
-        setSummary({ evidence: [] });
-        setOrder([]);
-      } finally {
-        if (mounted) setLoading(false);
+        setNotesDraft(caseNotes);
       }
-    };
+    } else {
+      setNotesDraft(caseNotes);
+    }
 
-    fetchSummary();
+    setNotebookSeeded(true);
+  }, [notebookFetchResult, notebookSeeded, localDraftKey]);
 
+  // Derive loading from query until seeded
+  useEffect(() => {
+    if (!notebookQueryLoading && notebookSeeded) {
+      setLoading(false);
+    }
+  }, [notebookQueryLoading, notebookSeeded]);
+
+  // Cleanup debounce on unmount
+  useEffect(() => {
     return () => {
-      mounted = false;
       if (debounceRef.current) window.clearTimeout(debounceRef.current);
     };
-  }, [investigationId, localDraftKey, loadEvidenceAnnotationsFromApi]);
+  }, []);
 
   useEffect(() => {
     const onEvidenceAnnotationUpdated = (event: Event) => {

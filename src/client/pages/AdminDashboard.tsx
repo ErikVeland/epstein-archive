@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import {
   Users,
@@ -79,14 +80,10 @@ export const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<
     'users' | 'audit' | 'review' | 'system' | 'ingestion' | 'backups'
   >('users');
+  // users is kept in local state because it is mutated by create/update/delete actions
   const [users, setUsers] = useState<User[]>([]);
-  const [logs, setLogs] = useState<AuditLogEntry[]>([]);
-  const [health, setHealth] = useState<SystemHealth | null>(null);
-  const [ingestRuns, setIngestRuns] = useState<IngestRun[]>([]);
-  const [backups, setBackups] = useState<BackupSnapshot[]>([]);
+  const [usersSeeded, setUsersSeeded] = useState(false);
 
-  const [loading, setLoading] = useState(true);
-  const [auditLoading, setAuditLoading] = useState(false);
   const [error, setError] = useState('');
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -110,13 +107,8 @@ export const AdminDashboard: React.FC = () => {
 
   const { user: currentUser, logout } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const errorMessage = (err: unknown) => (err instanceof Error ? err.message : 'Unexpected error');
-
-  useEffect(() => {
-    if (activeTab === 'audit') {
-      fetchAuditLogs();
-    }
-  }, [activeTab]);
 
   const handleLogout = async () => {
     if (confirm('Are you sure you want to log out?')) {
@@ -125,89 +117,82 @@ export const AdminDashboard: React.FC = () => {
     }
   };
 
-  const fetchUsers = useCallback(async () => {
-    try {
-      setLoading(true);
+  // --- useQuery: users (seeded into mutable local state) ---
+  const { data: fetchedUsers, isLoading: loading } = useQuery({
+    queryKey: ['admin-users'],
+    queryFn: async () => {
       const res = await fetch('/api/users');
       if (!res.ok) throw new Error('Failed to fetch users');
-      const data = await res.json();
-      setUsers(data);
-    } catch (err) {
-      setError(errorMessage(err));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const fetchAuditLogs = async () => {
-    try {
-      setAuditLoading(true);
-      const res = await fetch('/api/admin/audit-logs?limit=200');
-      if (!res.ok) throw new Error('Failed to fetch audit logs');
-      const data = await res.json();
-      setLogs(data);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setAuditLoading(false);
-    }
-  };
-
-  const fetchHealth = useCallback(async () => {
-    try {
-      const res = await fetch('/api/health');
-      if (res.ok) {
-        const data = await res.json();
-        setHealth(data);
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  }, []);
+      return res.json() as Promise<User[]>;
+    },
+  });
 
   useEffect(() => {
-    fetchUsers();
-    fetchHealth();
-  }, [fetchUsers, fetchHealth]);
+    if (!usersSeeded && fetchedUsers !== undefined) {
+      setUsers(fetchedUsers);
+      setUsersSeeded(true);
+    }
+  }, [fetchedUsers, usersSeeded]);
 
-  const fetchIngestRuns = async () => {
-    try {
+  // --- useQuery: audit logs (read-only, no external mutations) ---
+  const {
+    data: logs = [],
+    isLoading: auditLoading,
+    refetch: refetchAuditLogs,
+  } = useQuery({
+    queryKey: ['admin-audit-logs'],
+    queryFn: async () => {
+      const res = await fetch('/api/admin/audit-logs?limit=200');
+      if (!res.ok) throw new Error('Failed to fetch audit logs');
+      return res.json() as Promise<AuditLogEntry[]>;
+    },
+    enabled: activeTab === 'audit',
+  });
+
+  // --- useQuery: system health (read-only) ---
+  const { data: health = null } = useQuery({
+    queryKey: ['admin-health'],
+    queryFn: async () => {
+      const res = await fetch('/api/health');
+      if (!res.ok) throw new Error('Failed to fetch health');
+      return res.json() as Promise<SystemHealth>;
+    },
+  });
+
+  // --- useQuery: ingest runs (read-only, loaded on-demand) ---
+  const { data: ingestRuns = [] } = useQuery<IngestRun[]>({
+    queryKey: ['admin-ingest-runs'],
+    queryFn: async () => {
       const res = await fetch('/api/stats/ingest-runs');
-      if (res.ok) {
-        const data = (await res.json()) as Array<Record<string, unknown>>;
-        setIngestRuns(
-          data.map((run) => ({
-            id: String(run.id || ''),
-            status: String(run.status || 'failed'),
-            startedAt: String(run.startedAt || run.started_at || new Date().toISOString()),
-            gitCommit: run.gitCommit ? String(run.gitCommit) : null,
-            agenticModelId: run.agenticModelId ? String(run.agenticModelId) : null,
-            agenticEnabled: Boolean(run.agenticEnabled),
-          })),
-        );
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  };
+      if (!res.ok) throw new Error('Failed to fetch ingest runs');
+      const data = (await res.json()) as Array<Record<string, unknown>>;
+      return data.map((run) => ({
+        id: String(run.id || ''),
+        status: String(run.status || 'failed'),
+        startedAt: String(run.startedAt || run.started_at || new Date().toISOString()),
+        gitCommit: run.gitCommit ? String(run.gitCommit) : null,
+        agenticModelId: run.agenticModelId ? String(run.agenticModelId) : null,
+        agenticEnabled: Boolean(run.agenticEnabled),
+      }));
+    },
+    enabled: activeTab === 'ingestion',
+  });
 
-  const fetchBackups = async () => {
-    try {
+  // --- useQuery: backups (read-only, loaded on-demand) ---
+  const { data: backups = [] } = useQuery<BackupSnapshot[]>({
+    queryKey: ['admin-backups'],
+    queryFn: async () => {
       const res = await fetch('/api/stats/backups');
-      if (res.ok) {
-        const data = (await res.json()) as Array<Record<string, unknown>>;
-        setBackups(
-          data.map((backup) => ({
-            filename: String(backup.filename || ''),
-            size: Number(backup.size || 0),
-            createdAt: String(backup.createdAt || backup.created_at || new Date().toISOString()),
-          })),
-        );
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  };
+      if (!res.ok) throw new Error('Failed to fetch backups');
+      const data = (await res.json()) as Array<Record<string, unknown>>;
+      return data.map((backup) => ({
+        filename: String(backup.filename || ''),
+        size: Number(backup.size || 0),
+        createdAt: String(backup.createdAt || backup.created_at || new Date().toISOString()),
+      }));
+    },
+    enabled: activeTab === 'backups',
+  });
 
   const triggerBackup = async () => {
     if (!confirm('Create a new database snapshot? This is a zero-downtime operation.')) return;
@@ -215,17 +200,12 @@ export const AdminDashboard: React.FC = () => {
       const res = await fetch('/api/stats/backups/trigger', { method: 'POST' });
       if (res.ok) {
         alert('Backup created successfully.');
-        fetchBackups();
+        void queryClient.invalidateQueries({ queryKey: ['admin-backups'] });
       }
     } catch (_e) {
       alert('Backup failed');
     }
   };
-
-  useEffect(() => {
-    if (activeTab === 'ingestion') fetchIngestRuns();
-    if (activeTab === 'backups') fetchBackups();
-  }, [activeTab]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -606,7 +586,7 @@ export const AdminDashboard: React.FC = () => {
                 Audit Logs
               </h2>
               <button
-                onClick={fetchAuditLogs}
+                onClick={() => void refetchAuditLogs()}
                 className="p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)] rounded-lg transition-colors"
                 title="Refresh"
               >

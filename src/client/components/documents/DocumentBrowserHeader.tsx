@@ -173,7 +173,7 @@ export const DocumentBrowserHeader: React.FC<DocumentBrowserHeaderProps> = ({
               <ListIcon className="w-4 h-4" />
             )}
             <span className="text-xs uppercase tracking-wider font-semibold">
-              {viewMode === 'grid' ? 'Grid' : 'List'}
+              {viewMode === 'grid' ? 'List' : 'Grid'}
             </span>
           </button>
           <button

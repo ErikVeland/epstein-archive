@@ -20,8 +20,8 @@ import { MediaImage } from '../../types/media.types';
 import Icon from '../common/Icon';
 import { useAuth } from '../../contexts/AuthContext';
 import LocationMap from '../visualizations/LocationMap';
-import TagSelector from '../common/TagSelector';
-import PeopleSelector from '../entities/PeopleSelector';
+import TagSelector, { TagData } from '../common/TagSelector';
+import PeopleSelector, { PersonData } from '../entities/PeopleSelector';
 import { useScrollLock } from '../../hooks/useScrollLock';
 import { CloseButton } from '../common/CloseButton';
 
@@ -129,8 +129,8 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
   };
 
   // Tags and people state
-  const [imageTags, setImageTags] = useState<any[]>([]);
-  const [imagePeople, setImagePeople] = useState<any[]>([]);
+  const [imageTags, setImageTags] = useState<TagData[]>([]);
+  const [imagePeople, setImagePeople] = useState<PersonData[]>([]);
 
   // Fetch tags and people when image changes
   // Handle screen resize to auto-manage sidebar visibility

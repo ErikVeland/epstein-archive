@@ -31,6 +31,14 @@ export class AIEnrichmentService {
   // Exo (distributed cluster) configuration
   private static EXO_HOST = process.env.EXO_HOST || 'http://127.0.0.1:52415';
   private static discoveredExoModel: string | null = process.env.EXO_MODEL || null;
+  private static EXO_DISCOVERY_TIMEOUT_MS = Math.max(
+    1000,
+    parseInt(process.env.EXO_DISCOVERY_TIMEOUT_MS || '8000', 10) || 8000,
+  );
+  private static AI_REQUEST_TIMEOUT_MS = Math.max(
+    1000,
+    parseInt(process.env.AI_REQUEST_TIMEOUT_MS || '120000', 10) || 120000,
+  );
 
   /**
    * Automatically discovers the active model on the Exo cluster
@@ -47,7 +55,9 @@ export class AIEnrichmentService {
 
     try {
       logger.info(`🔍 Attempting Exo model discovery via: ${this.EXO_HOST}/v1/models`);
-      const response = await fetch(`${this.EXO_HOST}/v1/models`);
+      const response = await fetch(`${this.EXO_HOST}/v1/models`, {
+        signal: AbortSignal.timeout(this.EXO_DISCOVERY_TIMEOUT_MS),
+      });
       if (!response.ok) throw new Error(`Exo discovery failed: ${response.status}`);
 
       interface ExoModel {
@@ -146,7 +156,7 @@ export class AIEnrichmentService {
               // returned directly rather than consumed by reasoning_content.
               enable_thinking: false,
             }),
-            signal: AbortSignal.timeout(120_000),
+            signal: AbortSignal.timeout(this.AI_REQUEST_TIMEOUT_MS),
           });
 
           if (!response.ok) {
@@ -172,6 +182,7 @@ export class AIEnrichmentService {
               stream: false,
               options: { temperature, num_predict: maxTokens },
             }),
+            signal: AbortSignal.timeout(this.AI_REQUEST_TIMEOUT_MS),
           });
 
           if (!response.ok) {

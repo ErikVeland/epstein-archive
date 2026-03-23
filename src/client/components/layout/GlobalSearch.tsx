@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { createPortal } from 'react-dom';
 import DOMPurify from 'isomorphic-dompurify';
 import {
@@ -11,6 +13,8 @@ import {
   User,
   Building,
   ShieldAlert,
+  AlertCircle,
+  X,
 } from 'lucide-react';
 import { apiClient } from '../../services/apiClient';
 import { Person } from '../../types';
@@ -89,14 +93,25 @@ const GlobalSearch: React.FC = () => {
     date_range: { start: '', end: '' },
     min_word_count: 0,
   });
-  const [stats, setStats] = useState<Record<string, unknown> | null>(null);
+  const navigate = useNavigate();
+  const [searchError, setSearchError] = useState<string | null>(null);
 
-  useEffect(() => {
-    apiClient
-      .getStats()
-      .then((value) => setStats(asRecord(value)))
-      .catch(console.error);
-  }, []);
+  const handleDownload = (id: string, filename: string) => {
+    const a = document.createElement('a');
+    a.href = `/api/documents/${id}/file`;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
+  const { data: stats = null } = useQuery<Record<string, unknown> | null>({
+    queryKey: ['global-search-stats'],
+    queryFn: async () => {
+      const value = await apiClient.getStats();
+      return asRecord(value);
+    },
+  });
 
   const categories = [
     { id: 'all', name: 'All Categories', color: 'bg-[var(--glass-bg-highlight)]' },
@@ -130,6 +145,7 @@ const GlobalSearch: React.FC = () => {
 
   const performSearch = async () => {
     setLoading(true);
+    setSearchError(null);
 
     try {
       const data = asRecord(await apiClient.search(searchTerm, 100));
@@ -156,8 +172,20 @@ const GlobalSearch: React.FC = () => {
           file: asString(doc.filePath),
           filename: asString(doc.fileName),
           category: asString(doc.evidenceType, 'general_documents'),
-          entities: [],
-          dates: [],
+          entities: Array.isArray(doc.entities)
+            ? doc.entities
+                .map((entity) =>
+                  typeof entity === 'string'
+                    ? entity
+                    : entity && typeof entity === 'object'
+                      ? asString((entity as UnknownRecord).name)
+                      : '',
+                )
+                .filter(Boolean)
+            : Array.isArray(doc.keyEntities)
+              ? doc.keyEntities.map((entity) => asString(entity)).filter(Boolean)
+              : [],
+          dates: [asString(doc.dateCreated), asString(doc.extractedDate)].filter(Boolean),
           wordCount: asNumber(doc.wordCount, 0),
           score: asNumber(doc.score, 0),
           highlights: doc.snippet ? [asString(doc.snippet)] : [],
@@ -170,6 +198,7 @@ const GlobalSearch: React.FC = () => {
       }
     } catch (error) {
       console.error('Search error:', error);
+      setSearchError(error instanceof Error ? error.message : 'Search failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -195,6 +224,19 @@ const GlobalSearch: React.FC = () => {
     // Filter by word count
     if (filters.min_word_count > 0) {
       filtered = filtered.filter((result) => (result.wordCount || 0) >= filters.min_word_count);
+    }
+
+    if (filters.date_range.start || filters.date_range.end) {
+      const start = filters.date_range.start ? Date.parse(filters.date_range.start) : null;
+      const end = filters.date_range.end ? Date.parse(filters.date_range.end) : null;
+      filtered = filtered.filter((result) => {
+        const matchingDate = result.dates.find((value) => Number.isFinite(Date.parse(value)));
+        if (!matchingDate) return false;
+        const timestamp = Date.parse(matchingDate);
+        if (start !== null && timestamp < start) return false;
+        if (end !== null && timestamp > end) return false;
+        return true;
+      });
     }
 
     setFilteredResults(filtered);
@@ -246,9 +288,10 @@ const GlobalSearch: React.FC = () => {
             <button
               onClick={() => setSearchTerm('')}
               className="absolute right-4 top-1/2 transform -translate-y-1/2 p-1 rounded-full hover:bg-[var(--glass-bg)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+              aria-label="Clear search"
               title="Clear search"
             >
-              <Search className="h-4 w-4" />
+              <X className="h-4 w-4" />
             </button>
           )}
           {loading && (
@@ -313,7 +356,41 @@ const GlobalSearch: React.FC = () => {
               />
             </div>
 
-            <div className="flex items-end">
+            <div>
+              <label className="block text-[var(--text-primary)] text-sm font-medium mb-2">
+                Start Date
+              </label>
+              <input
+                type="date"
+                value={filters.date_range.start}
+                onChange={(e) =>
+                  setFilters({
+                    ...filters,
+                    date_range: { ...filters.date_range, start: e.target.value },
+                  })
+                }
+                className="w-full px-3 py-2 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--accent)]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[var(--text-primary)] text-sm font-medium mb-2">
+                End Date
+              </label>
+              <input
+                type="date"
+                value={filters.date_range.end}
+                onChange={(e) =>
+                  setFilters({
+                    ...filters,
+                    date_range: { ...filters.date_range, end: e.target.value },
+                  })
+                }
+                className="w-full px-3 py-2 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--accent)]"
+              />
+            </div>
+
+            <div className="flex items-end md:col-span-2 lg:col-span-2">
               <button
                 onClick={() =>
                   setFilters({
@@ -323,12 +400,33 @@ const GlobalSearch: React.FC = () => {
                     min_word_count: 0,
                   })
                 }
-                className="w-full px-4 py-2 bg-red-600 hover:bg-red-700 rounded-[var(--radius-lg)] text-[var(--text-primary)] transition-colors"
+                className="w-full px-4 py-2 bg-[var(--glass-bg-highlight)] hover:bg-[var(--glass-bg-strong)] rounded-[var(--radius-lg)] text-[var(--text-primary)] transition-colors"
               >
                 Clear Filters
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Error Banner */}
+      {searchError && (
+        <div
+          role="alert"
+          className="bg-red-900/30 border border-red-500/50 rounded-[var(--radius-lg)] p-4 flex items-center gap-3"
+        >
+          <AlertCircle className="h-5 w-5 text-red-400 shrink-0" />
+          <div>
+            <p className="text-red-300 text-sm font-medium">Search failed</p>
+            <p className="text-red-400/80 text-xs mt-0.5">{searchError}</p>
+          </div>
+          <button
+            onClick={() => setSearchError(null)}
+            className="ml-auto p-1 text-red-400 hover:text-red-300 transition-colors"
+            aria-label="Dismiss error"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
       )}
 
@@ -406,7 +504,7 @@ const GlobalSearch: React.FC = () => {
                 key={`inv-${index}`}
                 type="button"
                 className="w-full p-6 text-left bg-transparent hover:bg-cyan-900/10 transition-colors border-l-4 border-purple-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-inset"
-                onClick={() => (window.location.href = `/investigations/${asString(inv.uuid)}`)}
+                onClick={() => navigate(`/investigations/${asString(inv.uuid)}`)}
                 aria-label={`Open investigation ${asString(inv.title)}`}
               >
                 <div className="flex items-center space-x-3 mb-2">
@@ -587,18 +685,22 @@ const GlobalSearch: React.FC = () => {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      // Handle file preview
+                      navigate(`/documents/${result.id}`);
                     }}
                     className="p-2 bg-[var(--accent)] hover:bg-cyan-700 rounded-[var(--radius-lg)] text-[var(--text-primary)] transition-colors"
+                    aria-label={`View document: ${result.filename}`}
+                    title="View document"
                   >
                     <Eye className="h-4 w-4" />
                   </button>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      // Handle file download
+                      handleDownload(result.id, result.filename);
                     }}
                     className="p-2 bg-[var(--glass-bg-highlight)] hover:bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] text-[var(--text-primary)] transition-colors"
+                    aria-label={`Download document: ${result.filename}`}
+                    title="Download document"
                   >
                     <Download className="h-4 w-4" />
                   </button>
@@ -758,7 +860,8 @@ const GlobalSearch: React.FC = () => {
                 </button>
                 <button
                   onClick={() => {
-                    // Handle file preview
+                    setSelectedResult(null);
+                    navigate(`/documents/${selectedResult.id}`);
                   }}
                   className="px-4 py-2 bg-[var(--accent)] hover:bg-cyan-700 rounded-[var(--radius-lg)] text-[var(--text-primary)] transition-colors flex items-center space-x-2"
                 >

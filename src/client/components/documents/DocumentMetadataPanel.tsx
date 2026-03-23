@@ -55,7 +55,7 @@ export const DocumentMetadataPanel: React.FC<DocumentMetadataPanelProps> = ({
     <div className={`space-y-6 animate-in fade-in duration-500 ${className}`}>
       {/* AI Analysis - Premium Card */}
       {metadata.ai_summary && (
-        <section className="bg-gradient-to-br from-violet-500/5 to-cyan-500/5 rounded-[var(--radius-xl)] p-5 border border-white/5 shadow-[var(--glass-shadow)] overflow-hidden relative group">
+        <section className="bg-gradient-to-br from-violet-500/5 to-cyan-500/5 rounded-[var(--radius-xl)] p-5 border border-[color:color-mix(in_srgb,var(--glass-border)_42%,transparent)] shadow-[var(--glass-shadow)] overflow-hidden relative group">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
             <Bot className="w-16 h-16 text-violet-400" />
           </div>
@@ -137,7 +137,7 @@ export const DocumentMetadataPanel: React.FC<DocumentMetadataPanelProps> = ({
 
       {/* Analysis & Forensics Grid */}
       <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="surface-quiet p-4 rounded-[var(--radius-xl)] border border-white/5 flex flex-col justify-between overflow-hidden relative">
+        <div className="surface-quiet p-4 rounded-[var(--radius-xl)] border border-[color:color-mix(in_srgb,var(--glass-border)_42%,transparent)] flex flex-col justify-between overflow-hidden relative">
           <div className="absolute top-0 right-0 p-3 opacity-5">
             <Flag className="w-12 h-12" />
           </div>
@@ -165,7 +165,7 @@ export const DocumentMetadataPanel: React.FC<DocumentMetadataPanelProps> = ({
           </div>
         </div>
 
-        <div className="surface-quiet p-4 rounded-[var(--radius-xl)] border border-white/5">
+        <div className="surface-quiet p-4 rounded-[var(--radius-xl)] border border-[color:color-mix(in_srgb,var(--glass-border)_42%,transparent)]">
           <div className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-3">
             Signal Integrity
           </div>
@@ -199,7 +199,7 @@ export const DocumentMetadataPanel: React.FC<DocumentMetadataPanelProps> = ({
       </section>
 
       {/* File Information - Stable List */}
-      <section className="surface-quiet p-5 rounded-[var(--radius-xl)] border border-white/5">
+      <section className="surface-quiet p-5 rounded-[var(--radius-xl)] border border-[color:color-mix(in_srgb,var(--glass-border)_42%,transparent)]">
         <h3 className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
           <Database className="w-3 h-3" />
           Forensic Verification (SHA-256)
@@ -241,7 +241,7 @@ export const DocumentMetadataPanel: React.FC<DocumentMetadataPanelProps> = ({
       </section>
 
       {/* Sources & Classification */}
-      <section className="surface-quiet p-5 rounded-[var(--radius-xl)] border border-white/5">
+      <section className="surface-quiet p-5 rounded-[var(--radius-xl)] border border-[color:color-mix(in_srgb,var(--glass-border)_42%,transparent)]">
         <h3 className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
           <Globe className="w-3 h-3" />
           Data Origin

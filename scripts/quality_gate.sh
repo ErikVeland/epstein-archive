@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-export CI="${CI:-1}"
+export CI="${CI:-0}"
 export NODE_ENV="${NODE_ENV:-test}"
 
 echo "▶ Installing dependencies"
@@ -18,6 +18,7 @@ pnpm type-check
 
 echo "▶ Enforcing repo integrity gates"
 pnpm check:seed-conflict-policy
+pnpm check:test-hygiene
 pnpm check:design-tokens
 
 echo "▶ Running unit tests"

@@ -78,9 +78,9 @@ test.describe('Performance Regression Tests', () => {
     });
 
     await page.goto('/people');
-    await page.click('a[href="/documents"]');
+    await page.getByRole('button', { name: 'Documents', exact: true }).click();
     await page.waitForTimeout(1000);
-    await page.click('a[href="/media"]');
+    await page.getByRole('button', { name: 'Media', exact: true }).click();
     await page.waitForTimeout(1000);
 
     expect(errors).toHaveLength(0);
@@ -117,6 +117,7 @@ test.describe('Performance Regression Tests', () => {
     // Enable performance monitoring
     await page.evaluate(() => {
       (window as any).PerformanceMonitor?.setEnabled(true);
+      (window as any).PerformanceMonitor?.clear?.();
     });
 
     // Trigger re-render by changing filters

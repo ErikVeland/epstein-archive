@@ -1,69 +1,64 @@
-import assert from 'node:assert/strict';
+import { describe, expect, it } from 'vitest';
+
 import {
   clearForensicConfidenceCache,
   computeForensicConfidence,
 } from '../utils/forensicConfidence';
 
-console.log('Running forensic confidence determinism tests...');
+describe('forensic confidence', () => {
+  it('produces deterministic scores and cache keys', () => {
+    clearForensicConfidenceCache();
 
-clearForensicConfidenceCache();
+    const baseInput = {
+      toolId: 'documents',
+      count: 12,
+      ingestRunId: 'run-001',
+      rulesetVersion: 'forensic-rules-v1',
+      modelId: 'model-alpha',
+      factors: {
+        coverage: 0.8,
+        signalQuality: 0.7,
+        corroboration: 0.6,
+        modelCertainty: 0.9,
+      },
+      factorInputs: {
+        documentCount: 12,
+        timelineCount: 4,
+      },
+    };
 
-const baseInput = {
-  toolId: 'documents',
-  count: 12,
-  ingestRunId: 'run-001',
-  rulesetVersion: 'forensic-rules-v1',
-  modelId: 'model-alpha',
-  factors: {
-    coverage: 0.8,
-    signalQuality: 0.7,
-    corroboration: 0.6,
-    modelCertainty: 0.9,
-  },
-  factorInputs: {
-    documentCount: 12,
-    timelineCount: 4,
-  },
-};
+    const first = computeForensicConfidence(baseInput);
+    const second = computeForensicConfidence(baseInput);
 
-const first = computeForensicConfidence(baseInput);
-const second = computeForensicConfidence(baseInput);
+    expect(first.finalScore).toBe(second.finalScore);
+    expect(first.metadata.cacheKey).toBe(second.metadata.cacheKey);
 
-assert.equal(first.finalScore, second.finalScore, 'same inputs should produce same score');
-assert.equal(
-  first.metadata.cacheKey,
-  second.metadata.cacheKey,
-  'same inputs should reuse cache key',
-);
+    const changedRun = computeForensicConfidence({ ...baseInput, ingestRunId: 'run-002' });
+    expect(first.metadata.cacheKey).not.toBe(changedRun.metadata.cacheKey);
 
-const changedRun = computeForensicConfidence({ ...baseInput, ingestRunId: 'run-002' });
-assert.notEqual(
-  first.metadata.cacheKey,
-  changedRun.metadata.cacheKey,
-  'ingest run changes must invalidate cache key',
-);
+    const changedRuleset = computeForensicConfidence({
+      ...baseInput,
+      rulesetVersion: 'forensic-rules-v2',
+    });
+    expect(first.metadata.cacheKey).not.toBe(changedRuleset.metadata.cacheKey);
+  });
 
-const changedRuleset = computeForensicConfidence({
-  ...baseInput,
-  rulesetVersion: 'forensic-rules-v2',
+  it('returns a null score when required inputs are missing', () => {
+    const empty = computeForensicConfidence({
+      toolId: 'documents',
+      count: 0,
+      ingestRunId: 'run-001',
+      rulesetVersion: 'forensic-rules-v1',
+      modelId: 'model-alpha',
+      factors: {
+        coverage: null,
+        signalQuality: null,
+        corroboration: null,
+        modelCertainty: null,
+      },
+    });
+
+    expect(empty.finalScore).toBeNull();
+    expect(empty.missingInputs.length).toBeGreaterThan(0);
+  });
 });
-assert.notEqual(
-  first.metadata.cacheKey,
-  changedRuleset.metadata.cacheKey,
-  'ruleset changes must invalidate cache key',
-);
-
-const empty = computeForensicConfidence({
-  ...baseInput,
-  count: 0,
-  factors: {
-    coverage: null,
-    signalQuality: null,
-    corroboration: null,
-    modelCertainty: null,
-  },
-});
-assert.equal(empty.finalScore, null, 'missing inputs should return N/A (null score)');
-assert.ok(empty.missingInputs.length > 0, 'missing input explanation should be present');
-
-console.log('Forensic confidence tests passed.');

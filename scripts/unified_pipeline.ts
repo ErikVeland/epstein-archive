@@ -63,6 +63,60 @@ async function ensureDatabaseRunning(): Promise<void> {
 const BATCH_SIZE = parseInt(process.env.BATCH_SIZE || '20', 10);
 const CHECKPOINT_DIR = './pipeline_checkpoints';
 const LIVE_STATUS_FILE = './pipeline_checkpoints/live_status.json';
+const EXO_HEALTHCHECK_TIMEOUT_MS = Math.max(
+  1000,
+  parseInt(process.env.PIPELINE_EXO_HEALTH_TIMEOUT_MS || '8000', 10) || 8000,
+);
+const DOC_PROCESSING_TIMEOUT_MS = Math.max(
+  30_000,
+  parseInt(process.env.PIPELINE_DOC_TIMEOUT_MS || '180000', 10) || 180000,
+);
+const PIPELINE_STALL_TIMEOUT_MS = Math.max(
+  30_000,
+  parseInt(process.env.PIPELINE_STALL_TIMEOUT_MS || '240000', 10) || 240000,
+);
+const WATCHDOG_INTERVAL_MS = Math.max(
+  5000,
+  parseInt(process.env.PIPELINE_WATCHDOG_INTERVAL_MS || '15000', 10) || 15000,
+);
+const RECOVERY_COMMAND_TIMEOUT_MS = Math.max(
+  5000,
+  parseInt(process.env.PIPELINE_RECOVERY_COMMAND_TIMEOUT_MS || '45000', 10) || 45000,
+);
+const RECOVERY_HEALTH_GRACE_MS = Math.max(
+  2000,
+  parseInt(process.env.PIPELINE_RECOVERY_HEALTH_GRACE_MS || '12000', 10) || 12000,
+);
+const RECOVERY_COOLDOWN_MS = Math.max(
+  5000,
+  parseInt(process.env.PIPELINE_RECOVERY_COOLDOWN_MS || '120000', 10) || 120000,
+);
+
+type RecoveryService = 'exo' | 'postgres';
+
+const pipelineRuntime = {
+  phase: 'Starting',
+  lastHeartbeatAt: Date.now(),
+  lastProgressAt: Date.now(),
+  currentDocId: null as number | null,
+  currentFile: null as string | null,
+  currentDocStartedAt: 0,
+  stallReason: null as string | null,
+  recoveryInFlight: false,
+  lastRecoveryAt: 0,
+  watchdog: null as NodeJS.Timeout | null,
+  exitReason: null as string | null,
+};
+
+class PipelineBlockedError extends Error {
+  constructor(
+    message: string,
+    readonly service: RecoveryService,
+  ) {
+    super(message);
+    this.name = 'PipelineBlockedError';
+  }
+}
 
 function writeLiveStatus(fields: Record<string, unknown>) {
   try {
@@ -76,6 +130,240 @@ function writeLiveStatus(fields: Record<string, unknown>) {
       JSON.stringify({ ...current, pid: process.pid, ...fields }, null, 2),
     );
   } catch {}
+}
+
+function recordExit(reason: string, details: Record<string, unknown> = {}) {
+  pipelineRuntime.exitReason = reason;
+  const payload = {
+    running: false,
+    exitReason: reason,
+    lastError: reason,
+    ...details,
+  };
+  console.error(`\n🛑 Pipeline exiting: ${reason}`);
+  writeLiveStatus(payload);
+}
+
+function updateHeartbeat(fields: Record<string, unknown> = {}) {
+  pipelineRuntime.lastHeartbeatAt = Date.now();
+
+  const maybePhase = typeof fields.phase === 'string' ? fields.phase : null;
+  if (maybePhase) pipelineRuntime.phase = maybePhase;
+
+  const maybeCurrentFile = Object.prototype.hasOwnProperty.call(fields, 'currentFile')
+    ? fields.currentFile
+    : undefined;
+  if (typeof maybeCurrentFile === 'string' || maybeCurrentFile === null) {
+    pipelineRuntime.currentFile = maybeCurrentFile as string | null;
+  }
+
+  writeLiveStatus({
+    heartbeatAt: new Date(pipelineRuntime.lastHeartbeatAt).toISOString(),
+    blocked: false,
+    blockedReason: null,
+    recoveryInFlight: pipelineRuntime.recoveryInFlight,
+    recoveryLastAttemptAt: pipelineRuntime.lastRecoveryAt
+      ? new Date(pipelineRuntime.lastRecoveryAt).toISOString()
+      : null,
+    ...fields,
+  });
+}
+
+function markProgress(fields: Record<string, unknown> = {}) {
+  pipelineRuntime.lastProgressAt = Date.now();
+  updateHeartbeat({
+    lastProgressAt: new Date(pipelineRuntime.lastProgressAt).toISOString(),
+    ...fields,
+  });
+}
+
+function escapeAppleScript(value: string): string {
+  return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+}
+
+function sendMacNotification(title: string, message: string, subtitle?: string) {
+  const parts = [
+    `display notification "${escapeAppleScript(message)}" with title "${escapeAppleScript(title)}"`,
+  ];
+  if (subtitle) {
+    parts[0] += ` subtitle "${escapeAppleScript(subtitle)}"`;
+  }
+  spawnSync('/usr/bin/osascript', ['-e', parts[0]], { stdio: 'ignore' });
+}
+
+function defaultRecoveryCommands(service: RecoveryService): string[] {
+  if (service === 'postgres') {
+    return ['brew services restart postgresql@16'];
+  }
+
+  return [
+    'osascript -e \'tell application "EXO" to quit\' || true',
+    'pkill -f "/Applications/EXO.app" || true',
+    'open -a EXO',
+  ];
+}
+
+function getRecoveryCommands(service: RecoveryService): string[] {
+  const envKey =
+    service === 'exo' ? 'PIPELINE_RECOVERY_COMMANDS_EXO' : 'PIPELINE_RECOVERY_COMMANDS_POSTGRES';
+  const configured = String(process.env[envKey] || '')
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean);
+  return configured.length > 0 ? configured : defaultRecoveryCommands(service);
+}
+
+function runRecoveryCommands(service: RecoveryService) {
+  for (const command of getRecoveryCommands(service)) {
+    console.log(`   🩺 recovery(${service}): ${command}`);
+    const res = spawnSync('/bin/bash', ['-lc', command], {
+      cwd: process.cwd(),
+      env: process.env,
+      stdio: 'inherit',
+      timeout: RECOVERY_COMMAND_TIMEOUT_MS,
+    });
+    if ((res.status ?? 1) === 0) return;
+  }
+}
+
+async function isPostgresHealthy(): Promise<boolean> {
+  const client = new Client({ connectionString: process.env.DATABASE_URL || '' });
+  try {
+    await client.connect();
+    await client.query('SELECT 1');
+    return true;
+  } catch {
+    return false;
+  } finally {
+    await client.end().catch(() => {});
+  }
+}
+
+async function isExoHealthy(): Promise<boolean> {
+  const exoHost = process.env.EXO_HOST || 'http://127.0.0.1:52415';
+  try {
+    const res = await fetch(`${exoHost}/v1/models`, {
+      signal: AbortSignal.timeout(EXO_HEALTHCHECK_TIMEOUT_MS),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+async function isServiceHealthy(service: RecoveryService): Promise<boolean> {
+  return service === 'exo' ? isExoHealthy() : isPostgresHealthy();
+}
+
+async function attemptRecovery(service: RecoveryService, reason: string): Promise<void> {
+  const now = Date.now();
+  if (pipelineRuntime.recoveryInFlight) return;
+  if (now - pipelineRuntime.lastRecoveryAt < RECOVERY_COOLDOWN_MS) return;
+
+  pipelineRuntime.recoveryInFlight = true;
+  pipelineRuntime.lastRecoveryAt = now;
+  pipelineRuntime.stallReason = reason;
+  writeLiveStatus({
+    blocked: true,
+    blockedReason: reason,
+    recoveryInFlight: true,
+    recoveryService: service,
+    recoveryLastAttemptAt: new Date(now).toISOString(),
+  });
+
+  console.error(`\n🚨 Pipeline blocked: ${reason}`);
+  sendMacNotification('Epstein Pipeline Blocked', reason, `Recovering ${service}`);
+
+  try {
+    runRecoveryCommands(service);
+    await sleep(RECOVERY_HEALTH_GRACE_MS);
+  } finally {
+    pipelineRuntime.recoveryInFlight = false;
+    updateHeartbeat({
+      recoveryInFlight: false,
+      recoveryService: service,
+      blockedReason: reason,
+    });
+  }
+}
+
+async function ensureServiceHealthyOrRecover(
+  service: RecoveryService,
+  reason: string,
+  fatalMessage: string,
+) {
+  if (await isServiceHealthy(service)) return;
+
+  await attemptRecovery(service, reason);
+  if (await isServiceHealthy(service)) return;
+
+  writeLiveStatus({
+    blocked: true,
+    blockedReason: fatalMessage,
+    recoveryInFlight: false,
+    recoveryService: service,
+  });
+  sendMacNotification(
+    'Epstein Pipeline Needs Attention',
+    fatalMessage,
+    `Recovery failed: ${service}`,
+  );
+  throw new PipelineBlockedError(fatalMessage, service);
+}
+
+async function withTimeout<T>(
+  work: Promise<T>,
+  timeoutMs: number,
+  onTimeout: () => Promise<void>,
+  timeoutMessage: string,
+): Promise<T> {
+  let timer: NodeJS.Timeout | null = null;
+  try {
+    return await Promise.race([
+      work,
+      new Promise<T>((_, reject) => {
+        timer = setTimeout(async () => {
+          try {
+            await onTimeout();
+          } finally {
+            reject(new Error(timeoutMessage));
+          }
+        }, timeoutMs);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
+function startWatchdog() {
+  if (pipelineRuntime.watchdog) clearInterval(pipelineRuntime.watchdog);
+  pipelineRuntime.watchdog = setInterval(() => {
+    if (shuttingDown || pipelineRuntime.recoveryInFlight) return;
+
+    const now = Date.now();
+    const heartbeatAge = now - pipelineRuntime.lastHeartbeatAt;
+    const docAge =
+      pipelineRuntime.currentDocStartedAt > 0 ? now - pipelineRuntime.currentDocStartedAt : 0;
+
+    if (heartbeatAge > PIPELINE_STALL_TIMEOUT_MS || docAge > DOC_PROCESSING_TIMEOUT_MS) {
+      const file = pipelineRuntime.currentFile || 'unknown document';
+      const reason =
+        heartbeatAge > PIPELINE_STALL_TIMEOUT_MS
+          ? `No pipeline heartbeat for ${Math.round(heartbeatAge / 1000)}s during ${pipelineRuntime.phase}`
+          : `Document processing stalled for ${Math.round(docAge / 1000)}s on ${file}`;
+      void attemptRecovery('exo', reason).then(() => {
+        recordExit(`Watchdog forced process restart after EXO recovery attempt: ${reason}`, {
+          phase: 'Restarting',
+          blocked: true,
+          blockedReason: reason,
+          recoveryService: 'exo',
+        });
+        process.exitCode = 1;
+        setTimeout(() => process.exit(1), 250);
+      });
+    }
+  }, WATCHDOG_INTERVAL_MS);
 }
 
 // Ensure AI is enabled with Exo by default
@@ -167,31 +455,12 @@ async function runEnrichPhase(
   console.log(`   Provider: ${process.env.AI_PROVIDER}`);
   console.log(`   Mode: ${mode}`);
 
-  // Verify Exo cluster is reachable and has the target model loaded before burning retries on every doc
-  const exoHost = process.env.EXO_HOST || 'http://127.0.0.1:52415';
-  const exoModel =
-    process.env.EXO_MODEL || process.env.AI_MODEL || 'mlx-community/Qwen3-30B-A3B-4bit';
-  try {
-    const testRes = await fetch(`${exoHost}/v1/chat/completions`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: exoModel,
-        messages: [{ role: 'user', content: 'ping' }],
-        max_tokens: 1,
-      }),
-      signal: AbortSignal.timeout(60000),
-    });
-    if (testRes.status === 404) {
-      const body = (await testRes.json().catch(() => ({}))) as any;
-      console.log(
-        `   ⚠️  Exo model not loaded (${body?.error?.message ?? '404'}). Skipping enrichment phase.`,
-      );
-      return { documentsEnriched: 0, summariesGenerated: 0 };
-    }
-  } catch (err: any) {
-    console.log(`   ⚠️  Exo cluster unreachable (${err.message}). Skipping enrichment phase.`);
-    return { documentsEnriched: 0, summariesGenerated: 0 };
+  if ((process.env.AI_PROVIDER || 'local_ollama') === 'exo_cluster') {
+    await ensureServiceHealthyOrRecover(
+      'exo',
+      'Exo health check failed before enrichment',
+      'Exo stayed unhealthy after automatic recovery. Backfill cycle aborted.',
+    );
   }
 
   const pool = getIngestPool();
@@ -214,7 +483,13 @@ async function runEnrichPhase(
   const startTime = Date.now();
 
   // Record when this enrichment run began so the widget can compute throughput/ETA
-  writeLiveStatus({ enrichStartedAt: new Date().toISOString() });
+  markProgress({
+    phase: 'Enrichment',
+    enrichStartedAt: new Date().toISOString(),
+    enrichProcessed: 0,
+    currentFile: null,
+    currentDocId: null,
+  });
 
   while (!shuttingDown) {
     // Always query at offset 0: enriched docs drop out of the WHERE clause
@@ -235,11 +510,12 @@ async function runEnrichPhase(
     if (docs.length === 0) break;
 
     // Write progress to live_status.json once per batch so the widget stays current
-    writeLiveStatus({
+    updateHeartbeat({
       phase: 'Enrichment',
       enrichProcessed: documentsEnriched,
       enrichTotal,
       currentFile: docs[0]?.file_name ?? null,
+      currentDocId: docs[0]?.id ?? null,
     });
 
     // Process sequentially: EXO is local so parallel requests queue up on its side
@@ -247,6 +523,16 @@ async function runEnrichPhase(
     for (const doc of docs) {
       if (shuttingDown) break;
       try {
+        pipelineRuntime.currentDocId = Number(doc.id);
+        pipelineRuntime.currentFile = doc.file_name || null;
+        pipelineRuntime.currentDocStartedAt = Date.now();
+        updateHeartbeat({
+          phase: 'Enrichment',
+          currentDocId: doc.id,
+          currentFile: doc.file_name,
+          currentDocStartedAt: new Date(pipelineRuntime.currentDocStartedAt).toISOString(),
+        });
+
         // node-postgres auto-parses jsonb into objects; handle both cases
         let meta: Record<string, any> = {};
         if (doc.metadata_json) {
@@ -272,10 +558,20 @@ async function runEnrichPhase(
         // Release raw content from row object — refinedText is the only copy we need
         doc.content = null;
 
-        let summary = await AIEnrichmentService.summarizeDocument(refinedText, {
-          fileName: doc.file_name,
-          subject,
-        });
+        let summary = await withTimeout(
+          AIEnrichmentService.summarizeDocument(refinedText, {
+            fileName: doc.file_name,
+            subject,
+          }),
+          DOC_PROCESSING_TIMEOUT_MS,
+          async () => {
+            await attemptRecovery(
+              'exo',
+              `AI enrichment timed out after ${Math.round(DOC_PROCESSING_TIMEOUT_MS / 1000)}s on ${doc.file_name}`,
+            );
+          },
+          `AI enrichment timed out for document ${doc.id} (${doc.file_name})`,
+        );
 
         if (!summary || summary.length < 10) {
           const preview = refinedText
@@ -296,8 +592,25 @@ async function runEnrichPhase(
         );
         summariesGenerated++;
         documentsEnriched++;
+        markProgress({
+          phase: 'Enrichment',
+          enrichProcessed: documentsEnriched,
+          enrichTotal,
+          currentFile: doc.file_name,
+          currentDocId: doc.id,
+        });
       } catch (error) {
         console.error(`   ❌ Failed to enrich document ${doc.id}:`, error);
+        if (
+          error instanceof PipelineBlockedError ||
+          String((error as Error)?.message || '').includes('timed out')
+        ) {
+          throw error;
+        }
+      } finally {
+        pipelineRuntime.currentDocId = null;
+        pipelineRuntime.currentFile = null;
+        pipelineRuntime.currentDocStartedAt = 0;
       }
 
       if (documentsEnriched % 10 === 0) {
@@ -312,6 +625,9 @@ async function runEnrichPhase(
     await sleep(200);
   }
   console.log('\n');
+  pipelineRuntime.currentDocId = null;
+  pipelineRuntime.currentFile = null;
+  pipelineRuntime.currentDocStartedAt = 0;
   return { documentsEnriched, summariesGenerated };
 }
 
@@ -329,23 +645,23 @@ async function runCycle(mode: string, sourceDir: string): Promise<void> {
     startTime: new Date().toISOString(),
   };
 
-  writeLiveStatus({ running: true, phase: 'Ingest', crashed: false });
+  updateHeartbeat({ running: true, phase: 'Ingest', crashed: false });
   if (mode === 'ingest' || mode === 'full') {
     stats.ingestStats = await runIngestPhase(sourceDir);
-    writeLiveStatus({ phase: 'Intelligence' });
+    updateHeartbeat({ phase: 'Intelligence' });
     stats.intelStats = await runIntelPhase();
   }
   if (mode === 'backfill') {
-    writeLiveStatus({ phase: 'Enrichment' });
+    updateHeartbeat({ phase: 'Enrichment' });
     stats.enrichStats = await runEnrichPhase('backfill');
   } else if (mode === 'ingest') {
-    writeLiveStatus({ phase: 'Enrichment' });
+    updateHeartbeat({ phase: 'Enrichment' });
     stats.enrichStats = await runEnrichPhase('new');
   } else if (mode === 'full') {
-    writeLiveStatus({ phase: 'Enrichment' });
+    updateHeartbeat({ phase: 'Enrichment' });
     stats.enrichStats = await runEnrichPhase('all');
   }
-  writeLiveStatus({ phase: 'Idle' });
+  updateHeartbeat({ phase: 'Idle' });
 
   console.log('\n' + '='.repeat(70));
   console.log('✅ CYCLE COMPLETE — restarting in 30s');
@@ -364,13 +680,25 @@ async function main() {
   // Catch silent crashes
   process.on('uncaughtException', (err: Error) => {
     console.error('\n💀 UNCAUGHT EXCEPTION:', err);
-    writeLiveStatus({ crashed: true, lastError: err.message, phase: 'Crashed' });
+    recordExit(`Uncaught exception: ${err.message}`, { crashed: true, phase: 'Crashed' });
     process.exit(1);
   });
   process.on('unhandledRejection', (reason: unknown) => {
     console.error('\n💀 UNHANDLED REJECTION:', reason);
-    writeLiveStatus({ crashed: true, lastError: String(reason), phase: 'Crashed' });
+    recordExit(`Unhandled rejection: ${String(reason)}`, { crashed: true, phase: 'Crashed' });
     process.exit(1);
+  });
+  process.on('exit', (code) => {
+    const reason =
+      pipelineRuntime.exitReason ||
+      `Process exited with code ${code}${shuttingDown ? ' after shutdown request' : ''}`;
+    console.log(`\nℹ️ Final exit status: ${reason}`);
+    writeLiveStatus({
+      running: false,
+      exitReason: reason,
+      exitCode: code,
+      phase: shuttingDown ? 'Stopped' : 'Exited',
+    });
   });
 
   // SIGTERM is ignored — the pipeline must not be interrupted by OS memory pressure events.
@@ -380,7 +708,8 @@ async function main() {
     if (shuttingDown) return;
     shuttingDown = true;
     console.log('\n🛑 Stopped.');
-    writeLiveStatus({ running: false, phase: 'Stopped' });
+    pipelineRuntime.exitReason = 'Stopped by SIGINT';
+    writeLiveStatus({ running: false, phase: 'Stopped', exitReason: pipelineRuntime.exitReason });
   });
 
   const args = process.argv.slice(2);
@@ -401,9 +730,15 @@ async function main() {
   console.log('╚' + '═'.repeat(68) + '╝');
   console.log('   Mode: ' + mode + '  (runs continuously until killed)');
 
-  writeLiveStatus({ running: true, crashed: false, phase: 'Starting' });
+  updateHeartbeat({ running: true, crashed: false, phase: 'Starting' });
 
   await ensureDatabaseRunning();
+  await ensureServiceHealthyOrRecover(
+    'postgres',
+    'Postgres health check failed during pipeline startup',
+    'Postgres stayed unhealthy after automatic recovery. Pipeline cannot continue.',
+  );
+  startWatchdog();
 
   let cycleCount = 0;
   while (!shuttingDown) {
@@ -414,13 +749,15 @@ async function main() {
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
       console.error('\n❌ Cycle error (will retry in 60s):', error);
-      writeLiveStatus({ phase: 'Error', lastError: msg });
+      updateHeartbeat({ phase: 'Error', lastError: msg, blockedReason: msg });
       await sleep(60_000);
       continue;
     }
     if (!shuttingDown) await sleep(30_000);
   }
-  writeLiveStatus({ running: false, phase: 'Stopped' });
+  if (pipelineRuntime.watchdog) clearInterval(pipelineRuntime.watchdog);
+  pipelineRuntime.exitReason = pipelineRuntime.exitReason || 'Pipeline stopped cleanly';
+  updateHeartbeat({ running: false, phase: 'Stopped', exitReason: pipelineRuntime.exitReason });
   console.log('✅ Pipeline stopped cleanly.');
   process.exit(0);
 }

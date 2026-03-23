@@ -1,4 +1,5 @@
 import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import {
   Shield,
   Database,
@@ -31,31 +32,20 @@ interface PipelineStatus {
 }
 
 export const About: React.FC = () => {
-  const [stats, setStats] = React.useState<AboutStats | null>(null);
-  const [pipelineStatus, setPipelineStatus] = React.useState<PipelineStatus | null>(null);
+  const { data: statsData = null } = useQuery<Record<string, unknown> | null>({
+    queryKey: ['about-statistics'],
+    queryFn: async () =>
+      (await optimizedDataService.getStatistics()) as Record<string, unknown> | null,
+    staleTime: 300_000,
+  });
 
-  React.useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const data = (await optimizedDataService.getStatistics()) as Record<string, unknown> | null;
-        if (data) {
-          setStats({
-            total: 5200000,
-            released: Number(data.totalDocuments || data.documents || 0),
-          });
-          if (data.collectionCounts) {
-            // setIngestionStats(data.collectionCounts); // unused
-          }
-          if (data.pipeline_status && typeof data.pipeline_status === 'object') {
-            setPipelineStatus(data.pipeline_status as PipelineStatus);
-          }
-        }
-      } catch (e) {
-        console.error('Failed to fetch stats', e);
-      }
-    };
-    fetchStats();
-  }, []);
+  const stats: AboutStats | null = statsData
+    ? { total: 5200000, released: Number(statsData.totalDocuments || statsData.documents || 0) }
+    : null;
+  const pipelineStatus: PipelineStatus | null =
+    statsData?.pipeline_status && typeof statsData.pipeline_status === 'object'
+      ? (statsData.pipeline_status as PipelineStatus)
+      : null;
 
   const percentage = stats ? ((stats.released / stats.total) * 100).toFixed(4) : '0';
 

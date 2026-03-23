@@ -210,17 +210,17 @@ export function SensitiveContent({
           aria-label="Click to reveal sensitive content"
         >
           {/* Backdrop */}
-          <div className="absolute inset-0 bg-gradient-to-br from-slate-900/80 via-slate-800/70 to-slate-900/80 backdrop-blur-md" />
+          <div className="absolute inset-0 bg-gradient-to-br from-[var(--app-bg)]/80 via-[var(--glass-bg-strong)]/70 to-[var(--app-bg)]/80 backdrop-blur-md" />
 
           {/* Icon and label */}
-          <div className="relative z-30 flex flex-col items-center gap-3 transition-transform group-hover:scale-105">
+          <div className="relative z-30 flex flex-col items-center gap-[var(--space-3)] transition-transform group-hover:scale-105">
             <div className="w-16 h-16 rounded-full bg-[var(--glass-bg)]/80 border-2 border-[var(--glass-border)] flex items-center justify-center backdrop-blur-sm shadow-[var(--glass-shadow)] group-hover:border-[var(--glass-border)] transition-all">
               <EyeOff
                 size={28}
                 className="text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors"
               />
             </div>
-            <div className="flex flex-col items-center gap-1">
+            <div className="flex flex-col items-center gap-[var(--space-1)]">
               <span className="text-[var(--text-primary)] font-semibold text-sm tracking-wide uppercase">
                 {label}
               </span>

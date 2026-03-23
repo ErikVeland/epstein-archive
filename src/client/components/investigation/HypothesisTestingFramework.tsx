@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Target, Plus, Edit3, Trash2, Link, User, FileText } from 'lucide-react';
 import { EvidenceItem, Hypothesis as BaseHypothesis } from '../../types/investigation';
 
@@ -66,66 +67,70 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
   });
 
   // Fetch hypotheses from API on mount
-  useEffect(() => {
-    const fetchHypotheses = async () => {
-      try {
-        const response = await fetch(`/api/investigations/${investigationId}/hypotheses`);
-        if (response.ok) {
-          const data = await response.json();
-          if (data && data.length > 0) {
-            const loadedHypotheses: Hypothesis[] = data.map((h: Record<string, unknown>) => ({
-              id: `hyp-${h.id}`,
-              investigationId,
-              title: h.title,
-              description: h.description || '',
-              status: (h.status || 'proposed') as Hypothesis['status'],
-              confidence: h.confidence || 50,
-              createdAt: parseDate(h.created_at),
-              updatedAt: parseDate(h.updated_at),
-              createdBy: 'System',
-              evidenceLinks: [],
-              revisions: [],
-              evidence: [],
-              relatedHypotheses: [],
-            }));
-            setHypotheses(loadedHypotheses);
-            setActiveHypothesis(loadedHypotheses[0]);
-            onHypothesesUpdate(loadedHypotheses);
-            return;
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching hypotheses:', error);
-      }
+  const [hypothesesSeeded, setHypothesesSeeded] = useState(false);
 
-      // Fallback: If no hypotheses from API and we have an initialHypothesis, create one
-      if (initialHypothesis && hypotheses.length === 0) {
-        const defaultHypothesis: Hypothesis = {
-          id: 'hyp-1',
-          investigationId,
-          title: 'Initial Investigation Hypothesis',
-          description: initialHypothesis,
-          status: 'testing',
-          confidence: 50,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          createdBy: 'CurrentUser',
-          evidenceLinks: [],
-          revisions: [],
-          evidence: [],
-          relatedHypotheses: [],
-        };
-        setHypotheses([defaultHypothesis]);
-        setActiveHypothesis(defaultHypothesis);
-        onHypothesesUpdate([defaultHypothesis]);
-      }
-    };
+  const { data: fetchedHypotheses } = useQuery({
+    queryKey: ['investigation-hypotheses', investigationId],
+    queryFn: async () => {
+      const response = await fetch(`/api/investigations/${investigationId}/hypotheses`);
+      if (!response.ok) return null;
+      return response.json() as Promise<Record<string, unknown>[] | null>;
+    },
+    enabled: Boolean(investigationId),
+  });
 
-    if (investigationId) {
-      fetchHypotheses();
+  // Seed local mutable state from query data once
+  React.useEffect(() => {
+    if (hypothesesSeeded) return;
+    if (fetchedHypotheses === undefined) return; // still loading
+
+    if (fetchedHypotheses && fetchedHypotheses.length > 0) {
+      const loadedHypotheses: Hypothesis[] = fetchedHypotheses.map((h) => ({
+        id: `hyp-${h.id}`,
+        investigationId,
+        title: h.title as string,
+        description: (h.description as string) || '',
+        status: ((h.status as string) || 'proposed') as Hypothesis['status'],
+        confidence: (h.confidence as number) || 50,
+        createdAt: parseDate(h.created_at),
+        updatedAt: parseDate(h.updated_at),
+        createdBy: 'System',
+        evidenceLinks: [],
+        revisions: [],
+        evidence: [],
+        relatedHypotheses: [],
+      }));
+      setHypotheses(loadedHypotheses);
+      setActiveHypothesis(loadedHypotheses[0]);
+      onHypothesesUpdate(loadedHypotheses);
+      setHypothesesSeeded(true);
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- hypotheses.length, initialHypothesis, onHypothesesUpdate are stable or only needed on mount
-  }, [investigationId]);
+
+    // Fallback: If no hypotheses from API and we have an initialHypothesis, create one
+    if (initialHypothesis && hypotheses.length === 0) {
+      const defaultHypothesis: Hypothesis = {
+        id: 'hyp-1',
+        investigationId,
+        title: 'Initial Investigation Hypothesis',
+        description: initialHypothesis,
+        status: 'testing',
+        confidence: 50,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        createdBy: 'CurrentUser',
+        evidenceLinks: [],
+        revisions: [],
+        evidence: [],
+        relatedHypotheses: [],
+      };
+      setHypotheses([defaultHypothesis]);
+      setActiveHypothesis(defaultHypothesis);
+      onHypothesesUpdate([defaultHypothesis]);
+    }
+    setHypothesesSeeded(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- seeded once on first data arrival
+  }, [fetchedHypotheses, hypothesesSeeded]);
 
   const createHypothesis = () => {
     if (!newHypothesis.title.trim()) return;

@@ -839,8 +839,14 @@ export async function getEmailMailboxes(showSuppressedJunk: boolean) {
   const junkFilter = getJunkFilterClause(showSuppressedJunk);
   const mailboxScanLimit = Math.max(1_000, Number(process.env.EMAIL_MAILBOX_SCAN_LIMIT || 10_000));
 
-  const { rows: totalsRows } = await getApiPool().query(
-    `
+  let totals = {
+    totalThreads: 0,
+    totalMessages: 0,
+    lastActivityAt: null as string | null,
+  };
+  try {
+    const { rows: totalsRows } = await getApiPool().query(
+      `
       SELECT
         COUNT(DISTINCT COALESCE(
           metadata_json ->> 'thread_id',
@@ -855,8 +861,23 @@ export async function getEmailMailboxes(showSuppressedJunk: boolean) {
       WHERE d.evidence_type = 'email'
       ${junkFilter}
     `,
-  );
-  const totals = totalsRows[0];
+    );
+    totals = {
+      totalThreads: Number(totalsRows[0]?.totalThreads || 0),
+      totalMessages: Number(totalsRows[0]?.totalMessages || 0),
+      lastActivityAt: (totalsRows[0]?.lastActivityAt as string | null) || null,
+    };
+  } catch (error) {
+    const code =
+      typeof error === 'object' && error !== null && 'code' in error
+        ? String((error as { code?: unknown }).code || '')
+        : '';
+    if (code === '57014') {
+      logger.warn('[emails] mailbox totals timed out; returning zeroed aggregate totals');
+    } else {
+      throw error;
+    }
+  }
 
   let rows: Array<Record<string, unknown>> = [];
   try {
@@ -1036,29 +1057,53 @@ export async function getEmailThreads(params: {
     queryParams.push(minRisk);
   }
 
-  const baseSql = buildThreadBaseSql(where);
-  const countSql =
-    threadedWhere.length > 0
-      ? `SELECT COUNT(*)::bigint AS total FROM (${baseSql}) counted WHERE ${buildConversationThreadFilter('counted')}`
-      : buildThreadCountSql(where);
-  const { rows: countRows } = await getApiPool().query(countSql, queryParams);
-  const total = Number(countRows[0]?.total || 0);
+  try {
+    const baseSql = buildThreadBaseSql(where);
+    const countSql =
+      threadedWhere.length > 0
+        ? `SELECT COUNT(*)::bigint AS total FROM (${baseSql}) counted WHERE ${buildConversationThreadFilter('counted')}`
+        : buildThreadCountSql(where);
+    const { rows: countRows } = await getApiPool().query(countSql, queryParams);
+    const total = Number(countRows[0]?.total || 0);
 
-  const cursorParams: unknown[] = [];
-  let cursorClause = '';
-  if (parsedCursor) {
-    cursorClause = `${threadedWhere.length > 0 ? ' AND ' : ' WHERE '} (lastMessageAt < $${queryParams.length + 1} OR (lastMessageAt = $${queryParams.length + 1} AND threadId > $${queryParams.length + 2})) `;
-    cursorParams.push(parsedCursor.lastMessageAt, parsedCursor.threadId);
+    const cursorParams: unknown[] = [];
+    let cursorClause = '';
+    if (parsedCursor) {
+      cursorClause = `${threadedWhere.length > 0 ? ' AND ' : ' WHERE '} (lastMessageAt < $${queryParams.length + 1} OR (lastMessageAt = $${queryParams.length + 1} AND threadId > $${queryParams.length + 2})) `;
+      cursorParams.push(parsedCursor.lastMessageAt, parsedCursor.threadId);
+    }
+
+    const listSql = `${baseSql}
+        ${threadedWhere}
+        ${cursorClause}
+        ORDER BY lastMessageAt DESC, threadId ASC
+        LIMIT $${queryParams.length + cursorParams.length + 1}
+      `;
+
+    const { rows } = await getApiPool().query(listSql, [
+      ...queryParams,
+      ...cursorParams,
+      limit + 1,
+    ]);
+
+    return { rows, countRow: { total } };
+  } catch (error) {
+    const code =
+      typeof error === 'object' && error !== null && 'code' in error
+        ? String((error as { code?: unknown }).code || '')
+        : '';
+    if (code !== '57014') {
+      throw error;
+    }
+
+    logger.warn(
+      {
+        mailboxId,
+        tab,
+        limit,
+      },
+      '[emails] thread query timed out; returning empty thread list',
+    );
+    return { rows: [], countRow: { total: 0 } };
   }
-
-  const listSql = `${baseSql}
-      ${threadedWhere}
-      ${cursorClause}
-      ORDER BY lastMessageAt DESC, threadId ASC
-      LIMIT $${queryParams.length + cursorParams.length + 1}
-    `;
-
-  const { rows } = await getApiPool().query(listSql, [...queryParams, ...cursorParams, limit + 1]);
-
-  return { rows, countRow: { total } };
 }

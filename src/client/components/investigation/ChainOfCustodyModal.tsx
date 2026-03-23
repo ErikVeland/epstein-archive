@@ -1,7 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { createPortal } from 'react-dom';
 import { useScrollLock } from '../../hooks/useScrollLock';
 import { CloseButton } from '../common/CloseButton';
+
+interface CustodyEvent {
+  id: string | number;
+  action: string;
+  date: string;
+  actor: string;
+  notes?: string;
+}
 
 interface Props {
   evidenceId: string;
@@ -10,11 +19,10 @@ interface Props {
 
 export const ChainOfCustodyModal: React.FC<Props> = ({ evidenceId, onClose }) => {
   useScrollLock(true);
-  const [events, setEvents] = useState<any[]>([]);
+  const queryClient = useQueryClient();
   const [actor, setActor] = useState('');
   const [action, setAction] = useState('analyzed');
   const [notes, setNotes] = useState('');
-  const [loading, setLoading] = useState(false);
   const exportReport = async () => {
     const res = await fetch(`/api/evidence/${evidenceId}/custody/report`);
     const text = await res.text();
@@ -41,19 +49,15 @@ export const ChainOfCustodyModal: React.FC<Props> = ({ evidenceId, onClose }) =>
     window.open(`/api/evidence/${evidenceId}/custody/report.html`, '_blank');
   };
 
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(`/api/evidence/${evidenceId}/custody`);
-        const data = await res.json();
-        setEvents(data);
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, [evidenceId]);
+  const custodyQueryKey = ['evidence-custody', evidenceId] as const;
+
+  const { data: events = [], isLoading: loading } = useQuery({
+    queryKey: custodyQueryKey,
+    queryFn: async () => {
+      const res = await fetch(`/api/evidence/${evidenceId}/custody`);
+      return res.json() as Promise<CustodyEvent[]>;
+    },
+  });
 
   const addEvent = async () => {
     await fetch(`/api/evidence/${evidenceId}/custody`, {
@@ -61,9 +65,7 @@ export const ChainOfCustodyModal: React.FC<Props> = ({ evidenceId, onClose }) =>
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ actor, action, notes }),
     });
-    const res = await fetch(`/api/evidence/${evidenceId}/custody`);
-    const data = await res.json();
-    setEvents(data);
+    await queryClient.invalidateQueries({ queryKey: custodyQueryKey });
     setActor('');
     setAction('analyzed');
     setNotes('');

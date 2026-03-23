@@ -14,6 +14,7 @@ const OCR_NOISE_PATTERNS = [
 const deriveHumanTitle = (rawTitle: string): string => {
   const stripped = rawTitle
     .replace(/\.[a-z0-9]{2,5}$/i, '')
+    .replace(/^thumb\s+/i, '')
     .replace(/textify-ocr/gi, ' ')
     .replace(/temp[-_]/gi, ' ')
     .replace(/[_-]+/g, ' ')
@@ -24,6 +25,8 @@ const deriveHumanTitle = (rawTitle: string): string => {
   if (!stripped) return 'Untitled document';
 
   const lower = stripped.toLowerCase();
+  if (/^ai\s*\d*$/i.test(stripped)) return 'Unlabeled generated image';
+  if (lower.startsWith('img ') && /\d/.test(lower)) return 'Unlabeled image capture';
   if (lower.includes('deposition')) return 'Deposition transcript';
   if (lower.includes('flight') && lower.includes('log')) return 'Flight log';
   if (lower.includes('black') && lower.includes('book')) return 'Black book page';
@@ -160,6 +163,15 @@ export const documentsRepository = {
     const evidenceType =
       filters.evidenceType && filters.evidenceType !== 'all' ? filters.evidenceType : null;
     const sortBy = filters.sortBy || 'red_flag';
+    const sortOrder = filters.sortOrder === 'asc' ? 'ASC' : 'DESC';
+    const orderByClause =
+      sortBy === 'date'
+        ? `COALESCE(extracted_date, date_created) ${sortOrder}, red_flag_rating DESC`
+        : sortBy === 'title'
+          ? `COALESCE(NULLIF(title, ''), file_name) ${sortOrder}, COALESCE(extracted_date, date_created) DESC`
+          : sortBy === 'size'
+            ? `file_size ${sortOrder} NULLS LAST, COALESCE(extracted_date, date_created) DESC`
+            : `red_flag_rating ${sortOrder}, COALESCE(extracted_date, date_created) DESC`;
 
     // NOTE: content_refined is excluded from the ILIKE predicate — it can be hundreds of MB
     // per row and has no index. Full-text search on document content goes through searchRepository
@@ -189,12 +201,8 @@ export const documentsRepository = {
         AND (COALESCE(extracted_date, date_created) <= $6::timestamp OR $6::timestamp IS NULL)
         AND (red_flag_rating >= $7::int OR $7::int IS NULL)
         AND (red_flag_rating <= $8::int OR $8::int IS NULL)
-      ORDER BY
-        CASE WHEN $9::text = 'date' THEN COALESCE(extracted_date, date_created) END DESC,
-        CASE WHEN $9::text = 'title' THEN file_name END ASC,
-        CASE WHEN $9::text = 'red_flag' OR $9::text IS NULL THEN red_flag_rating END DESC,
-        COALESCE(extracted_date, date_created) DESC
-      LIMIT $10::int OFFSET $11::int
+      ORDER BY ${orderByClause}
+      LIMIT $9::int OFFSET $10::int
     `;
     const countSql = `
       SELECT COUNT(*) as total
@@ -217,7 +225,6 @@ export const documentsRepository = {
       filters.endDate || null,
       filters.minRedFlag ?? null,
       filters.maxRedFlag ?? null,
-      sortBy,
       limit,
       offset,
     ]);

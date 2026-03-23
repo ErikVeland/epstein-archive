@@ -210,7 +210,7 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
 
   return (
     <div className="min-h-screen text-[var(--text-primary)] overflow-x-hidden">
-      <div className="w-full py-4 md:py-6">
+      <div className="w-full py-[var(--space-4)] md:py-[var(--space-6)]">
         <DocumentBrowserHeader
           isHeaderCondensed={isHeaderCondensed}
           searchInput={searchInput}
@@ -260,13 +260,13 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
         </AnimatePresence>
 
         {hasHighlights && (
-          <div className="mb-4">
+          <div className="mb-[var(--space-4)]">
             <HighlightNavigationControls
               currentHighlightIndex={currentHighlightIndex}
               totalHighlights={totalHighlights}
               onNext={nextHighlight}
               onPrev={prevHighlight}
-              className="bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-md)] px-3 py-2 shrink-0"
+              className="bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-md)] px-[var(--space-3)] py-[var(--space-2)] shrink-0"
             />
           </div>
         )}

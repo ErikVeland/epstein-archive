@@ -29,16 +29,16 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
 
   const colorClasses = {
     primary: 'bg-[var(--accent)]',
-    secondary: 'bg-purple-500',
-    success: 'bg-green-500',
-    warning: 'bg-yellow-500',
-    danger: 'bg-red-500',
+    secondary: 'bg-accent-secondary',
+    success: 'bg-accent-success',
+    warning: 'bg-accent-warning',
+    danger: 'bg-accent-danger',
   };
 
   return (
     <div className={`w-full ${className}`}>
       {label && (
-        <div className="flex justify-between items-center mb-1">
+        <div className="flex justify-between items-center mb-[var(--space-1)]">
           <span className="text-sm font-medium text-[var(--text-primary)]">{label}</span>
           {showPercentage && (
             <span className="text-sm font-medium text-[var(--text-secondary)]">

@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import Icon from '../common/Icon';
 import { apiClient } from '../../services/apiClient';
 
@@ -22,19 +23,14 @@ export const EntityConfidenceDisplay: React.FC<EntityConfidenceDisplayProps> = (
   showBreakdown = false,
   size = 'md',
 }) => {
-  const [confidence, setConfidence] = useState<EntityConfidence | null>(null);
-  const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(showBreakdown);
 
-  useEffect(() => {
-    if (!entityId) return;
-
-    apiClient
-      .getEntityConfidence(entityId)
-      .then((data) => setConfidence(data as EntityConfidence))
-      .catch(() => setConfidence(null))
-      .finally(() => setLoading(false));
-  }, [entityId]);
+  const { data: confidence = null, isLoading: loading } = useQuery<EntityConfidence | null>({
+    queryKey: ['entityConfidence', entityId],
+    queryFn: () => apiClient.getEntityConfidence(entityId) as Promise<EntityConfidence>,
+    enabled: Boolean(entityId),
+    staleTime: 30_000,
+  });
 
   if (loading) {
     return <div className="animate-pulse bg-[var(--glass-bg-highlight)] rounded h-5 w-16" />;

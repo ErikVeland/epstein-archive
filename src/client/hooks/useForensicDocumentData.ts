@@ -1,10 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../services/apiClient';
 import type {
   ForensicAnalysis,
   ForensicCaseContext,
 } from '../components/investigation/ForensicDocumentAnalyzer';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ForensicMetricRecord = Record<string, any>;
 
 type DocumentMeta = {
@@ -51,19 +53,12 @@ export function useForensicDocumentData({
   );
   const [analysis, setAnalysis] = useState<ForensicAnalysis | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [metrics, setMetrics] = useState<ForensicMetricRecord | null>(null);
-  const [summary, setSummary] = useState<ForensicMetricRecord | null>(null);
-  const [topJs, setTopJs] = useState<ForensicMetricRecord[]>([]);
-  const [topDensity, setTopDensity] = useState<ForensicMetricRecord[]>([]);
-  const [topRisk, setTopRisk] = useState<ForensicMetricRecord[]>([]);
   const [compareAId, setCompareAId] = useState(initialCompareIds.compareAId);
   const [compareBId, setCompareBId] = useState(initialCompareIds.compareBId);
   const [compareA, setCompareA] = useState<ForensicMetricRecord | null>(null);
   const [compareB, setCompareB] = useState<ForensicMetricRecord | null>(null);
   const [quickMetrics, setQuickMetrics] = useState<Record<string, ForensicMetricRecord>>({});
   const [activeId, setActiveId] = useState(documentId);
-  const [docMeta, setDocMeta] = useState<DocumentMeta>(null);
-  const dashboardListsLoadedRef = useRef(false);
 
   useEffect(() => {
     setActiveId(documentId);
@@ -75,104 +70,97 @@ export function useForensicDocumentData({
     setCompareBId(nextIds.compareBId);
   }, [locationSearch]);
 
-  useEffect(() => {
-    if (!activeId) {
-      setDocMeta(null);
-      return;
-    }
+  // Fetch document metadata via useQuery
+  const { data: docMeta = null } = useQuery<DocumentMeta>({
+    queryKey: ['forensic-doc-meta', activeId],
+    queryFn: async ({ signal }) => {
+      if (!activeId) return null;
+      const data = (await apiClient.get<Record<string, unknown>>(`/evidence/${activeId}`, {
+        cacheTtl: 30_000,
+        signal,
+      })) as Record<string, unknown>;
+      const meta = (data.metadata || {}) as Record<string, unknown>;
+      return {
+        source_collection:
+          typeof meta.source_collection === 'string'
+            ? meta.source_collection
+            : typeof data.source_collection === 'string'
+              ? data.source_collection
+              : undefined,
+        source_original_url:
+          typeof meta.source_original_url === 'string' ? meta.source_original_url : undefined,
+        credibility_score:
+          typeof meta.credibility_score === 'number' ? meta.credibility_score : undefined,
+        sensitivity_flags: Array.isArray(meta.sensitivity_flags)
+          ? (meta.sensitivity_flags as string[])
+          : [],
+        filePath: typeof data.filePath === 'string' ? data.filePath : undefined,
+        originalFilePath:
+          typeof data.original_file_path === 'string'
+            ? data.original_file_path
+            : typeof data.originalFilePath === 'string'
+              ? data.originalFilePath
+              : undefined,
+        cleanedPath: typeof data.cleanedPath === 'string' ? data.cleanedPath : undefined,
+      };
+    },
+    enabled: Boolean(activeId),
+    staleTime: 30_000,
+  });
 
-    const controller = new AbortController();
+  // Fetch forensic metrics for the current document via useQuery
+  const { data: metrics = null } = useQuery<ForensicMetricRecord | null>({
+    queryKey: ['forensic-metrics', activeId],
+    queryFn: ({ signal }) =>
+      apiClient.get<ForensicMetricRecord>(`/forensic/metrics/${activeId}`, { signal }),
+    enabled: activeTab === 'dashboard' && Boolean(activeId),
+    staleTime: 30_000,
+  });
 
-    (async () => {
-      try {
-        const data = (await apiClient.get<Record<string, any>>(`/evidence/${activeId}`, {
-          cacheTtl: 30_000,
-          signal: controller.signal,
-        })) as Record<string, any>;
-        const meta = (data.metadata || {}) as Record<string, any>;
-        setDocMeta({
-          source_collection: meta.source_collection || data.source_collection,
-          source_original_url: meta.source_original_url,
-          credibility_score: meta.credibility_score,
-          sensitivity_flags: Array.isArray(meta.sensitivity_flags) ? meta.sensitivity_flags : [],
-          filePath: data.filePath,
-          originalFilePath: data.original_file_path || data.originalFilePath,
-          cleanedPath: data.cleanedPath,
-        });
-      } catch (error) {
-        if ((error as Error).name === 'AbortError') return;
-        console.error('Error fetching document metadata:', error);
-      }
-    })();
+  // Fetch the global metrics summary via useQuery
+  const { data: summary = null } = useQuery<ForensicMetricRecord | null>({
+    queryKey: ['forensic-metrics-summary'],
+    queryFn: ({ signal }) =>
+      apiClient.get<ForensicMetricRecord>('/forensic/metrics-summary', { signal }),
+    enabled: activeTab === 'dashboard',
+    staleTime: 60_000,
+  });
 
-    return () => {
-      controller.abort();
-    };
-  }, [activeId]);
+  // Fetch top lists (JS, density, risk) via useQuery
+  const { data: topListsData } = useQuery<{
+    topJs: ForensicMetricRecord[];
+    topDensity: ForensicMetricRecord[];
+    topRisk: ForensicMetricRecord[];
+  }>({
+    queryKey: ['forensic-top-lists'],
+    queryFn: async ({ signal }) => {
+      const [jsList, densityList, riskList] = await Promise.all([
+        apiClient.get<{ data?: ForensicMetricRecord[] }>(
+          '/forensic/metrics-list/top?by=js&limit=10',
+          { signal },
+        ),
+        apiClient.get<{ data?: ForensicMetricRecord[] }>(
+          '/forensic/metrics-list/top?by=density&limit=10',
+          { signal },
+        ),
+        apiClient.get<{ data?: ForensicMetricRecord[] }>(
+          '/forensic/metrics-list/top?by=risk&limit=10',
+          { signal },
+        ),
+      ]);
+      return {
+        topJs: jsList.data || [],
+        topDensity: densityList.data || [],
+        topRisk: riskList.data || [],
+      };
+    },
+    enabled: activeTab === 'dashboard',
+    staleTime: 60_000,
+  });
 
-  useEffect(() => {
-    if (!(activeTab === 'dashboard' && activeId)) return;
-
-    const controller = new AbortController();
-
-    (async () => {
-      try {
-        const nextMetrics = await apiClient.get<ForensicMetricRecord>(
-          `/forensic/metrics/${activeId}`,
-          {
-            signal: controller.signal,
-          },
-        );
-        setMetrics(nextMetrics);
-
-        if (!summary) {
-          const nextSummary = await apiClient.get<ForensicMetricRecord>(
-            '/forensic/metrics-summary',
-            {
-              signal: controller.signal,
-            },
-          );
-          setSummary(nextSummary);
-        }
-
-        if (!dashboardListsLoadedRef.current) {
-          const [jsList, densityList, riskList] = await Promise.all([
-            apiClient.get<{ data?: ForensicMetricRecord[] }>(
-              '/forensic/metrics-list/top?by=js&limit=10',
-              {
-                signal: controller.signal,
-              },
-            ),
-            apiClient.get<{ data?: ForensicMetricRecord[] }>(
-              '/forensic/metrics-list/top?by=density&limit=10',
-              {
-                signal: controller.signal,
-              },
-            ),
-            apiClient.get<{ data?: ForensicMetricRecord[] }>(
-              '/forensic/metrics-list/top?by=risk&limit=10',
-              {
-                signal: controller.signal,
-              },
-            ),
-          ]);
-          if (!controller.signal.aborted) {
-            setTopJs(jsList.data || []);
-            setTopDensity(densityList.data || []);
-            setTopRisk(riskList.data || []);
-            dashboardListsLoadedRef.current = true;
-          }
-        }
-      } catch (error) {
-        if ((error as Error).name === 'AbortError') return;
-        console.error('Error fetching forensic dashboard data:', error);
-      }
-    })();
-
-    return () => {
-      controller.abort();
-    };
-  }, [activeId, activeTab, summary]);
+  const topJs = topListsData?.topJs ?? [];
+  const topDensity = topListsData?.topDensity ?? [];
+  const topRisk = topListsData?.topRisk ?? [];
 
   const loadQuickMetric = useCallback(
     async (metricId: string) => {

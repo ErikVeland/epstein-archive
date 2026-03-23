@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import Icon from './Icon';
 
 interface BatchToolbarProps {
@@ -49,62 +50,35 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
   const [showRatingMenu, setShowRatingMenu] = useState(false);
   const [showMetadataMenu, setShowMetadataMenu] = useState(false);
 
-  // Tag and people state
-  const [tags, setTags] = useState<Tag[]>([]);
-  const [people, setPeople] = useState<Person[]>([]);
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
   const [selectedPeople, setSelectedPeople] = useState<number[]>([]);
-  const [loadingTags, setLoadingTags] = useState(false);
-  const [loadingPeople, setLoadingPeople] = useState(false);
   const [peopleFilter, setPeopleFilter] = useState('');
 
-  // Fetch tags and people when menus are opened
-  useEffect(() => {
-    if (showTagsMenu && tags.length === 0) {
-      fetchTags();
-    }
-  }, [showTagsMenu, tags.length]);
-
-  useEffect(() => {
-    if (showPeopleMenu && people.length === 0) {
-      fetchPeople();
-    }
-  }, [showPeopleMenu, people.length]);
-
-  const fetchTags = async () => {
-    setLoadingTags(true);
-    try {
+  const { data: tags = [], isLoading: loadingTags } = useQuery<Tag[]>({
+    queryKey: ['batch-toolbar-tags'],
+    queryFn: async () => {
       const response = await fetch('/api/media/tags');
       const data = await response.json();
-      setTags(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error('Failed to fetch tags:', error);
-      setTags([]);
-    } finally {
-      setLoadingTags(false);
-    }
-  };
+      return Array.isArray(data) ? (data as Tag[]) : [];
+    },
+    enabled: showTagsMenu,
+  });
 
-  const fetchPeople = async () => {
-    setLoadingPeople(true);
-    try {
+  const { data: people = [], isLoading: loadingPeople } = useQuery<Person[]>({
+    queryKey: ['batch-toolbar-people'],
+    queryFn: async () => {
       const response = await fetch('/api/entities?limit=100');
       const data = await response.json();
       const entities = Array.isArray(data.data) ? data.data : Array.isArray(data) ? data : [];
-      const formattedPeople: Person[] = entities.map((e: Record<string, unknown>) => ({
-        id: e.id,
-        name: e.fullName || e.name,
-        role: e.primaryRole || e.role || 'Unknown',
-        redFlagRating: e.redFlagRating ?? 0,
+      return (entities as Record<string, unknown>[]).map((e) => ({
+        id: e.id as number,
+        name: (e.fullName ?? e.name) as string,
+        role: (e.primaryRole ?? e.role ?? 'Unknown') as string,
+        redFlagRating: (e.redFlagRating as number) ?? 0,
       }));
-      setPeople(formattedPeople);
-    } catch (error) {
-      console.error('Failed to fetch people:', error);
-      setPeople([]);
-    } finally {
-      setLoadingPeople(false);
-    }
-  };
+    },
+    enabled: showPeopleMenu,
+  });
 
   const toggleTagSelection = (tagId: number) => {
     setSelectedTags((prev) =>
@@ -418,7 +392,7 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
                         onAssignRating(star);
                         setShowRatingMenu(false);
                       }}
-                      className="text-amber-400 hover:text-amber-300"
+                      className="text-accent-warning hover:text-[var(--accent-warning)]/80"
                     >
                       <Icon name="Star" size="sm" />
                     </button>
@@ -512,7 +486,7 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
             disabled={!canUndo}
             className={`flex items-center gap-2 px-3 py-2 rounded-[var(--radius-lg)] text-sm transition-colors h-8 shrink-0 ${
               canUndo
-                ? 'hover:bg-[var(--glass-bg-strong)] text-amber-400'
+                ? 'hover:bg-[var(--glass-bg-strong)] text-accent-warning'
                 : 'text-[var(--text-muted)] cursor-not-allowed'
             }`}
             title={canUndo ? 'Undo last action' : 'Nothing to undo'}

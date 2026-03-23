@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import Icon from '../common/Icon';
 import type { IconName } from '../common/Icon';
 
@@ -22,20 +23,20 @@ interface DataQualityMetrics {
 }
 
 export const DataQualityDashboard: React.FC = () => {
-  const [metrics, setMetrics] = useState<DataQualityMetrics | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetch('/api/data-quality/metrics')
-      .then((res) => {
-        if (!res.ok) throw new Error('Failed to fetch metrics');
-        return res.json();
-      })
-      .then(setMetrics)
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
-  }, []);
+  const {
+    data: metrics = null,
+    isLoading: loading,
+    error: queryError,
+  } = useQuery<DataQualityMetrics | null>({
+    queryKey: ['data-quality-metrics'],
+    queryFn: async () => {
+      const res = await fetch('/api/data-quality/metrics');
+      if (!res.ok) throw new Error('Failed to fetch metrics');
+      return res.json() as Promise<DataQualityMetrics>;
+    },
+    staleTime: 60_000,
+  });
+  const error = queryError instanceof Error ? queryError.message : null;
 
   if (loading) {
     return (

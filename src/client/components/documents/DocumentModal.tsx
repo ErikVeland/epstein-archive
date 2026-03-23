@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Sparkles, Users, Link2, Calendar } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../../services/apiClient';
 import { useModalFocusTrap } from '../../hooks/useModalFocusTrap';
 import { useScrollLock } from '../../hooks/useScrollLock';
@@ -123,9 +124,6 @@ export const DocumentModal: React.FC<Props> = ({
     }
   }, [activeTab]);
 
-  const [doc, setDoc] = useState<DocRecord | null>(initialDoc || null);
-  const [thread, setThread] = useState<{ threadId: string; messages: unknown[] } | null>(null);
-  const [relatedDocs, setRelatedDocs] = useState<DocRecord[]>([]);
   const [selectedEntity, setSelectedEntity] = useState<DocEntityRecord | null>(null);
   const [entityModalId, setEntityModalId] = useState<string | null>(null);
   const [showRecoveryHighlights, setShowRecoveryHighlights] = useState(true);
@@ -144,13 +142,33 @@ export const DocumentModal: React.FC<Props> = ({
   };
 
   const [localSearchTerm, setLocalSearchTerm] = useState(initialSearchTerm || '');
-  const [isLoadingRelated, setIsLoadingRelated] = useState(false);
   const [isReadingMode, setIsReadingMode] = useState(false);
   const [activeRailSection, setActiveRailSection] = useState<
     'metadata' | 'entities' | 'case' | 'timeline'
   >('metadata');
   const rightPaneScrollRef = useRef<HTMLDivElement | null>(null);
   const hasAutoSwitchedNoOcrRef = useRef(false);
+
+  const { data: fetchedDoc } = useQuery<DocRecord | null>({
+    queryKey: ['document', id],
+    queryFn: () => apiClient.getDocument(id) as Promise<DocRecord>,
+    initialData: initialDoc || null,
+    staleTime: 30_000,
+  });
+  const doc = fetchedDoc ?? null;
+
+  const { data: thread = null } = useQuery<{ threadId: string; messages: unknown[] } | null>({
+    queryKey: ['documentThread', id],
+    queryFn: () => apiClient.getDocumentThread(id),
+    staleTime: 30_000,
+  });
+
+  const { data: relatedDocs = [], isLoading: isLoadingRelated } = useQuery<DocRecord[]>({
+    queryKey: ['relatedDocuments', id],
+    queryFn: () => apiClient.getRelatedDocuments(id) as Promise<DocRecord[]>,
+    staleTime: 30_000,
+  });
+
   const hasAnyText = useMemo(
     () => Boolean(String(doc?.contentRefined || doc?.content || '').trim()),
     [doc?.content, doc?.contentRefined],
@@ -180,44 +198,6 @@ export const DocumentModal: React.FC<Props> = ({
 
   useEffect(() => {
     hasAutoSwitchedNoOcrRef.current = false;
-  }, [id]);
-
-  useEffect(() => {
-    let mounted = true;
-    apiClient
-      .getDocument(id)
-      .then((nextDoc) => {
-        if (mounted) setDoc(nextDoc as DocRecord);
-      })
-      .catch(() => {
-        // Keep initial doc if request fails.
-      });
-
-    apiClient
-      .getDocumentThread(id)
-      .then((nextThread) => {
-        if (mounted) setThread(nextThread);
-      })
-      .catch(() => {
-        // optional
-      });
-
-    setIsLoadingRelated(true);
-    apiClient
-      .getRelatedDocuments(id)
-      .then((docs) => {
-        if (mounted) setRelatedDocs(docs as DocRecord[]);
-      })
-      .catch(() => {
-        // optional
-      })
-      .finally(() => {
-        if (mounted) setIsLoadingRelated(false);
-      });
-
-    return () => {
-      mounted = false;
-    };
   }, [id]);
 
   useEffect(() => {

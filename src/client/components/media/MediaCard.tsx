@@ -57,7 +57,7 @@ export const MediaCard: React.FC<MediaCardProps> = ({ media, onClick }) => {
             sourceId: media.id,
           }}
           variant="quick"
-          className="text-xs px-2 py-1"
+          className="text-xs px-[var(--space-2)] py-[var(--space-1)]"
         />
       </div>
     </Card>

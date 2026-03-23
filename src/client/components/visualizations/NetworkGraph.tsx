@@ -655,7 +655,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
             setShowFilters(!showFilters);
             setHasInteractedWithFilter(true);
           }}
-          className={`p-2 rounded-[var(--radius-lg)] text-[var(--text-secondary)] relative ${showFilters ? 'bg-cyan-700 border border-[var(--accent)]' : 'bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] soft-glass-outline'}`}
+          className={`p-2 rounded-[var(--radius-lg)] text-[var(--text-secondary)] relative ${showFilters ? 'bg-[var(--accent)] border border-[var(--accent)]' : 'bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] soft-glass-outline'}`}
         >
           <Filter className="w-5 h-5" />
           {!hasInteractedWithFilter && !showFilters && (
@@ -696,7 +696,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
             {/* Severity Filter */}
             <div>
               <label className="flex items-center gap-2 text-xs text-[var(--text-secondary)] mb-2">
-                <AlertTriangle className="w-3 h-3 text-amber-400" />
+                <AlertTriangle className="w-3 h-3 text-[var(--accent-warning)]" />
                 Min Severity: {minSeverity}
               </label>
               <input

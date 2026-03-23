@@ -71,6 +71,9 @@ const CONTACT_PATTERNS = {
   phone: /(?:\+?(\d{1,3}))?[-. (]*(\d{3})[-. )]*(\d{3})[-. ]*(\d{4})/g,
 };
 
+const UNRESOLVED_WRAPPER_ENTITY_PATTERN =
+  /^(?:dear|dearest|defendant|defendants|plaintiff|plaintiffs|watch|watching|philanthropy)\b|\b(?:to|from)\s*$/i;
+
 import {
   ENTITY_BLACKLIST as _ENTITY_BLACKLIST,
   ENTITY_BLACKLIST_REGEX,
@@ -307,8 +310,6 @@ export async function runIntelligencePipeline() {
 
       for (const ent of entitiesFound) {
         let finalEnt = ent;
-        // Apply filters
-        if (isJunkEntity(ent.name)) continue;
 
         // Resolve VIPs
         // resolveVip returns string | null (the canonical name)
@@ -317,6 +318,12 @@ export async function runIntelligencePipeline() {
           finalEnt.name = vip;
           finalEnt.type = 'Person';
         }
+
+        if (!vip && UNRESOLVED_WRAPPER_ENTITY_PATTERN.test(ent.name)) continue;
+
+        // Apply filters after VIP consolidation so recoverable wrappers collapse
+        // into the correct canonical entity instead of being stored as junk.
+        if (isJunkEntity(finalEnt.name)) continue;
 
         // Insert/Find Entity
         let entityId: number;

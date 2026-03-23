@@ -38,6 +38,7 @@ const SortFilter: React.FC<SortFilterProps> = ({ value, onChange, options, class
       <button
         type="button"
         onClick={() => setIsOpen((open) => !open)}
+        data-testid="sort-filter"
         className="control px-3 text-sm flex items-center gap-2 justify-between w-full min-w-[140px]"
         aria-haspopup="listbox"
         aria-expanded={isOpen}

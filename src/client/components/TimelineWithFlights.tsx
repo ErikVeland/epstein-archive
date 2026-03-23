@@ -10,11 +10,11 @@ interface TimelineWithFlightsProps {
  */
 const TimelineWithFlights: React.FC<TimelineWithFlightsProps> = ({ className = '' }) => {
   return (
-    <div className={`space-y-6 ${className}`}>
+    <div className={`space-y-[var(--space-6)] ${className}`}>
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-[var(--space-4)]">
         <div>
-          <h2 className="text-2xl md:text-3xl font-bold text-[var(--text-primary)] mb-2">
+          <h2 className="text-2xl md:text-3xl font-bold text-[var(--text-primary)] mb-[var(--space-2)]">
             Investigation Timeline
           </h2>
           <p className="text-sm md:text-base text-[var(--text-secondary)]">

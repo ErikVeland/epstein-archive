@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, Profiler } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
@@ -364,9 +365,6 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
   const [activeQuickAction, setActiveQuickAction] = useState<
     'blackbook' | 'timeline' | 'search' | null
   >(null);
-  const [entity, setEntity] = useState<EntityDetails | null>(null);
-  const [loading, setLoading] = useState(true);
-
   // Documents Pagination State
   const [documents, setDocuments] = useState<EvidenceDocument[]>([]);
   const [totalDocs, setTotalDocs] = useState(0);
@@ -375,14 +373,6 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
   const [hasNextPage, setHasNextPage] = useState(true);
   const [docsInitialized, setDocsInitialized] = useState(false);
   const [docFilters, setDocFilters] = useState({ search: '', source: 'all', sort: 'relevance' });
-
-  // Investigations State
-  const [investigations, setInvestigations] = useState<InvestigationEntity[]>([]);
-  const [isInvestigationsLoading, setIsInvestigationsLoading] = useState(false);
-  const [investigationsInitialized, setInvestigationsInitialized] = useState(false);
-  const [mediaItems, setMediaItems] = useState<EntityPhoto[]>([]);
-  const [isMediaLoading, setIsMediaLoading] = useState(false);
-  const [mediaInitialized, setMediaInitialized] = useState(false);
 
   // Lazy load tabs - only fetch data when tab is activated
   const [tabsLoaded, setTabsLoaded] = useState<Set<string>>(new Set(['overview']));
@@ -407,17 +397,6 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
     [location.pathname, location.search, navigate],
   );
 
-  // Relationships (Network) State
-  const [relationships, setRelationships] = useState<
-    Array<{
-      entity_id: string;
-      relationship_type: string;
-      strength: number;
-      confidence: number;
-      name?: string;
-    }>
-  >([]);
-  const [networkLoading, setNetworkLoading] = useState(false);
   const [brokenMediaIds, setBrokenMediaIds] = useState<Record<string, boolean>>({});
   const blackBookSectionRef = React.useRef<HTMLDivElement | null>(null);
   const navigateFromModal = useCallback(
@@ -445,6 +424,16 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
     [navigateFromModal],
   );
 
+  const { data: entity, isLoading: loading } = useQuery<EntityDetails>({
+    queryKey: ['entity', entityId],
+    queryFn: async () => {
+      const data = (await apiClient.get(`/entities/${entityId}`)) as EntityDetails;
+      return data;
+    },
+    enabled: isOpen && !!entityId,
+    staleTime: 60_000,
+  });
+
   const isHighProfileEntity = useMemo(() => {
     const name = String(entity?.fullName || '').toLowerCase();
     return (
@@ -455,38 +444,12 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
   }, [entity?.fullName]);
 
   useEffect(() => {
-    if (!(isOpen && entityId)) return;
-    let cancelled = false;
-
-    (async () => {
-      setLoading(true);
-      try {
-        const data = (await apiClient.get(`/entities/${entityId}`)) as EntityDetails;
-        if (!cancelled) setEntity(data);
-      } catch (_err) {
-        console.error('Failed to load entity details');
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [entityId, isOpen]);
-
-  useEffect(() => {
     if (!isOpen) return;
     setDocuments([]);
     setTotalDocs(0);
     setHasNextPage(true);
     setDocsInitialized(false);
     setIsDocsLoading(false);
-    setInvestigations([]);
-    setInvestigationsInitialized(false);
-    setMediaItems([]);
-    setMediaInitialized(false);
-    setRelationships([]);
     setBrokenMediaIds({});
     setTabsLoaded(new Set(['overview']));
   }, [entityId, isOpen]);
@@ -638,163 +601,135 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
     loadNextPage,
   ]);
 
-  useEffect(() => {
-    // Only load relationships if network tab has been activated
-    if (isOpen && entityId && activeTab === 'network' && tabsLoaded.has('network')) {
-      const fetchRelationships = async () => {
-        setNetworkLoading(true);
-        try {
-          const resp = (await apiClient.get(`/relationships?entityId=${entityId}`)) as {
-            relationships: Array<{
-              entity_id: string;
-              relationship_type: string;
-              strength: number;
-              confidence: number;
-            }>;
-          };
-          let rels = resp.relationships || [];
-          if (!rels.length) {
-            const graphResp = (await apiClient.get(`/entities/${entityId}/graph?depth=2`)) as {
-              edges?: Array<{
-                source_id?: string | number;
-                target_id?: string | number;
-                relationship_type?: string;
-                proximity_score?: number;
-                weight?: number;
-                confidence?: number;
-              }>;
-            };
-            const graphEdges = Array.isArray(graphResp?.edges) ? graphResp.edges : [];
-            rels = graphEdges.slice(0, 80).map((edge) => ({
-              entity_id:
-                String(edge.source_id) === String(entityId)
-                  ? String(edge.target_id)
-                  : String(edge.source_id),
-              relationship_type: edge.relationship_type || 'associated_with',
-              strength: Number(edge.proximity_score || edge.weight || 0),
-              confidence: Number(edge.confidence || 0),
-            }));
-          }
+  type RelationshipEntry = {
+    entity_id: string;
+    relationship_type: string;
+    strength: number;
+    confidence: number;
+    name?: string;
+  };
 
-          const top = rels.slice(0, 20);
-          const withNames = await Promise.all(
-            top.map(async (r) => {
-              try {
-                const e = await apiClient.get(`/entities/${r.entity_id}`);
-                const entityData = e as { fullName?: string; name?: string };
-                return { ...r, name: entityData.fullName || entityData.name || r.entity_id };
-              } catch {
-                return { ...r, name: r.entity_id };
-              }
-            }),
-          );
-          setRelationships(withNames);
-        } catch (e) {
-          console.error('Error loading relationships', e);
-          setRelationships([]);
-        } finally {
-          setNetworkLoading(false);
-        }
+  const networkEnabled =
+    isOpen && !!entityId && activeTab === 'network' && tabsLoaded.has('network');
+  const { data: relationships = [], isLoading: networkLoading } = useQuery<RelationshipEntry[]>({
+    queryKey: ['relationships', entityId],
+    queryFn: async () => {
+      const resp = (await apiClient.get(`/relationships?entityId=${entityId}`)) as {
+        relationships: Array<{
+          entity_id: string;
+          relationship_type: string;
+          strength: number;
+          confidence: number;
+        }>;
       };
-      fetchRelationships();
-    }
-  }, [isOpen, entityId, activeTab, tabsLoaded]);
-
-  useEffect(() => {
-    if (!(isOpen && entityId && activeTab === 'investigations' && tabsLoaded.has('investigations')))
-      return;
-    let mounted = true;
-    const loadInvestigations = async () => {
-      setIsInvestigationsLoading(true);
-      try {
-        const response = (await apiClient.get(
-          `/entities/${entityId}/investigations`,
-        )) as InvestigationEntity[];
-        if (!mounted) return;
-        const primary = Array.isArray(response) ? response : [];
-        if (primary.length > 0 || !isHighProfileEntity) {
-          setInvestigations(primary);
-        } else {
-          const fallbackResp = (await apiClient.get('/investigations?status=open&limit=6')) as
-            | { data?: InvestigationEntity[] }
-            | InvestigationEntity[];
-          const fallbackItems: InvestigationEntity[] = Array.isArray(
-            (fallbackResp as { data?: InvestigationEntity[] })?.data,
-          )
-            ? (fallbackResp as { data: InvestigationEntity[] }).data
-            : Array.isArray(fallbackResp)
-              ? (fallbackResp as InvestigationEntity[])
-              : [];
-          setInvestigations(
-            fallbackItems.map((item) => ({
-              ...item,
-              _fallbackReason: 'Suggested open case',
-            })),
-          );
-        }
-      } catch (error) {
-        console.error('Error loading entity investigations', error);
-        if (mounted) setInvestigations([]);
-      } finally {
-        if (mounted) {
-          setInvestigationsInitialized(true);
-          setIsInvestigationsLoading(false);
-        }
+      let rels = resp.relationships || [];
+      if (!rels.length) {
+        const graphResp = (await apiClient.get(`/entities/${entityId}/graph?depth=2`)) as {
+          edges?: Array<{
+            source_id?: string | number;
+            target_id?: string | number;
+            relationship_type?: string;
+            proximity_score?: number;
+            weight?: number;
+            confidence?: number;
+          }>;
+        };
+        const graphEdges = Array.isArray(graphResp?.edges) ? graphResp.edges : [];
+        rels = graphEdges.slice(0, 80).map((edge) => ({
+          entity_id:
+            String(edge.source_id) === String(entityId)
+              ? String(edge.target_id)
+              : String(edge.source_id),
+          relationship_type: edge.relationship_type || 'associated_with',
+          strength: Number(edge.proximity_score || edge.weight || 0),
+          confidence: Number(edge.confidence || 0),
+        }));
       }
-    };
-    loadInvestigations();
-    return () => {
-      mounted = false;
-    };
-  }, [activeTab, entityId, isHighProfileEntity, isOpen, tabsLoaded]);
 
-  useEffect(() => {
-    if (!(isOpen && entityId && activeTab === 'media' && tabsLoaded.has('media'))) return;
-    if (mediaInitialized || isMediaLoading) return;
+      const top = rels.slice(0, 20);
+      return Promise.all(
+        top.map(async (r) => {
+          try {
+            const e = await apiClient.get(`/entities/${r.entity_id}`);
+            const entityData = e as { fullName?: string; name?: string };
+            return { ...r, name: entityData.fullName || entityData.name || r.entity_id };
+          } catch {
+            return { ...r, name: r.entity_id };
+          }
+        }),
+      );
+    },
+    enabled: networkEnabled,
+    staleTime: 60_000,
+    placeholderData: (prev) => prev,
+  });
 
-    let mounted = true;
-    const loadMedia = async () => {
-      setIsMediaLoading(true);
-      try {
-        const response = await fetch(`/api/entities/${entityId}/media`, {
-          credentials: 'include',
-          headers: { Accept: 'application/json' },
-        });
-
-        if (!mounted) return;
-
-        if (response.status === 204) {
-          setMediaItems([]);
-          return;
-        }
-
-        if (!response.ok) {
-          throw new Error(`Failed to fetch entity media: ${response.status}`);
-        }
-
-        const payload = (await response.json()) as unknown;
-        const normalized = Array.isArray(payload)
-          ? payload.map((item, index) =>
-              normalizeEntityMediaItem(item as Record<string, unknown>, index),
-            )
+  const investigationsEnabled =
+    isOpen &&
+    !!entityId &&
+    activeTab === 'investigations' &&
+    tabsLoaded.has('investigations') &&
+    entity !== undefined;
+  const {
+    data: investigations = [],
+    isLoading: isInvestigationsLoading,
+    isFetched: investigationsInitialized,
+  } = useQuery<InvestigationEntity[]>({
+    queryKey: ['investigations', entityId, isHighProfileEntity],
+    queryFn: async () => {
+      const response = (await apiClient.get(
+        `/entities/${entityId}/investigations`,
+      )) as InvestigationEntity[];
+      const primary = Array.isArray(response) ? response : [];
+      if (primary.length > 0 || !isHighProfileEntity) {
+        return primary;
+      }
+      const fallbackResp = (await apiClient.get('/investigations?status=open&limit=6')) as
+        | { data?: InvestigationEntity[] }
+        | InvestigationEntity[];
+      const fallbackItems: InvestigationEntity[] = Array.isArray(
+        (fallbackResp as { data?: InvestigationEntity[] })?.data,
+      )
+        ? (fallbackResp as { data: InvestigationEntity[] }).data
+        : Array.isArray(fallbackResp)
+          ? (fallbackResp as InvestigationEntity[])
           : [];
-        setMediaItems(normalized);
-      } catch (error) {
-        console.error('Error loading entity media', error);
-        setMediaItems([]);
-      } finally {
-        if (mounted) {
-          setMediaInitialized(true);
-          setIsMediaLoading(false);
-        }
-      }
-    };
+      return fallbackItems.map((item) => ({
+        ...item,
+        _fallbackReason: 'Suggested open case',
+      }));
+    },
+    enabled: investigationsEnabled,
+    staleTime: 60_000,
+  });
 
-    void loadMedia();
-    return () => {
-      mounted = false;
-    };
-  }, [activeTab, entityId, isMediaLoading, isOpen, mediaInitialized, tabsLoaded]);
+  const mediaEnabled = isOpen && !!entityId && activeTab === 'media' && tabsLoaded.has('media');
+  const { data: mediaItems = [], isLoading: isMediaLoading } = useQuery<EntityPhoto[]>({
+    queryKey: ['entityMedia', entityId],
+    queryFn: async () => {
+      const response = await fetch(`/api/entities/${entityId}/media`, {
+        credentials: 'include',
+        headers: { Accept: 'application/json' },
+      });
+
+      if (response.status === 204) {
+        return [];
+      }
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch entity media: ${response.status}`);
+      }
+
+      const payload = (await response.json()) as unknown;
+      return Array.isArray(payload)
+        ? payload.map((item, index) =>
+            normalizeEntityMediaItem(item as Record<string, unknown>, index),
+          )
+        : [];
+    },
+    enabled: mediaEnabled,
+    staleTime: 60_000,
+  });
 
   // Forensic Calculations
   const forensicData = useMemo(() => {
@@ -1205,7 +1140,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                             </span>
                           </div>
                           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                            <div className="p-4 bg-[var(--glass-bg)] rounded-[var(--radius-md)] border border-white/5 flex flex-col items-center justify-center text-center">
+                            <div className="p-4 bg-[var(--glass-bg)] rounded-[var(--radius-md)] border border-[color:color-mix(in_srgb,var(--glass-border)_42%,transparent)] flex flex-col items-center justify-center text-center">
                               <div className="text-2xl font-display text-[var(--accent)] mb-1">
                                 {entity.mentions}
                               </div>
@@ -1213,7 +1148,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                                 Mentions
                               </div>
                             </div>
-                            <div className="p-4 bg-[var(--glass-bg)] rounded-[var(--radius-md)] border border-white/5 flex flex-col items-center justify-center text-center">
+                            <div className="p-4 bg-[var(--glass-bg)] rounded-[var(--radius-md)] border border-[color:color-mix(in_srgb,var(--glass-border)_42%,transparent)] flex flex-col items-center justify-center text-center">
                               <div className="text-2xl font-display text-[var(--accent-emails)] mb-1">
                                 {totalDocs > 0 ? totalDocs : entity.mentions}
                               </div>
@@ -1221,7 +1156,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                                 Documents
                               </div>
                             </div>
-                            <div className="p-4 bg-[var(--glass-bg)] rounded-[var(--radius-md)] border border-white/5 flex flex-col items-center justify-center text-center">
+                            <div className="p-4 bg-[var(--glass-bg)] rounded-[var(--radius-md)] border border-[color:color-mix(in_srgb,var(--glass-border)_42%,transparent)] flex flex-col items-center justify-center text-center">
                               <div className="text-2xl font-display text-[var(--accent)] mb-1">
                                 {entity.photos?.length || 0}
                               </div>
@@ -1229,7 +1164,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                                 Media
                               </div>
                             </div>
-                            <div className="p-4 bg-[var(--glass-bg)] rounded-[var(--radius-md)] border border-white/5 flex flex-col items-center justify-center text-center">
+                            <div className="p-4 bg-[var(--glass-bg)] rounded-[var(--radius-md)] border border-[color:color-mix(in_srgb,var(--glass-border)_42%,transparent)] flex flex-col items-center justify-center text-center">
                               <div className="text-2xl font-display text-[var(--accent-evidence)] mb-1">
                                 {entity.evidenceTypes?.length || 0}
                               </div>

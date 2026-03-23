@@ -86,7 +86,7 @@ export const RouteMap: React.FC<RouteMapProps> = ({ departure, arrival, classNam
     >
       <ScopedErrorBoundary
         fallback={
-          <div className="h-full w-full flex items-center justify-center bg-[var(--glass-bg-strong)] p-4 text-center">
+          <div className="h-full w-full flex items-center justify-center bg-[var(--glass-bg-strong)] p-[var(--space-4)] text-center">
             <p className="text-[var(--accent-danger)] text-sm">Failed to render the route map.</p>
           </div>
         }

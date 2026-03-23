@@ -29,9 +29,8 @@
   <key>ProgramArguments</key>
   <array>
     <string>/bin/bash</string>
-    <string>-c</string>
-    <!-- caffeinate wraps the real command so sleep can't interrupt it -->
-    <string>exec caffeinate -s -i -- /opt/homebrew/bin/pnpm pipeline:backfill</string>
+    <string>-lc</string>
+    <string>cd '/Volumes/Media/Epstein Files/epstein-archive' && exec /opt/homebrew/bin/pnpm pipeline:backfill</string>
   </array>
 
   <!-- Absolute path to the project directory -->
@@ -47,6 +46,10 @@
     <string>production</string>
     <key>DATABASE_URL</key>
     <string>postgresql://epstein:epstein@localhost:5435/epstein_archive</string>
+    <key>AI_PROVIDER</key>
+    <string>exo_cluster</string>
+    <key>EXO_MODEL</key>
+    <string>mlx-community/Qwen3-0.6B-8bit</string>
   </dict>
 
   <!-- Restart automatically if the process exits for any reason -->

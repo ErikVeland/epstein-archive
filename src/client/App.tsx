@@ -1,10 +1,17 @@
 import { useState, useEffect, useCallback, useMemo, Suspense, lazy, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { preloader } from './utils/ResourcePreloader';
 import { runDevAffordanceAudit } from './utils/devAffordanceAudit';
 import { createPortal } from 'react-dom';
-import { useLocation, useNavigate, Link } from 'react-router-dom';
+import { useLocation, useNavigate, Link, Routes, Route, useMatch } from 'react-router-dom';
 // Icons imported as needed via Icon component
 import { Person } from './types';
+import type {
+  SeoConfig,
+  GlobalStatsPayload,
+  SearchResponsePayload,
+  EntityByIdResponse,
+} from './types/api';
 
 import { useNavigation } from './services/NavigationContext';
 import { apiClient } from './services/apiClient';
@@ -13,7 +20,6 @@ import { useCountUp } from './hooks/useCountUp';
 import MobileMenu from './components/layout/MobileMenu';
 import UndoProvider from './components/UndoManager';
 import ToastProvider from './components/common/ToastProvider';
-import { useToasts } from './components/common/useToasts';
 import ScopedErrorBoundary from './components/common/ScopedErrorBoundary';
 // ProgressBar available but not currently used
 import LoadingIndicator from './components/common/LoadingIndicator';
@@ -79,6 +85,9 @@ const AboutPage = lazy(() =>
 const FAQPage = lazy(() =>
   import('./components/pages/FAQPage').then((module) => ({ default: module.default })),
 );
+const LegalPage = lazy(() =>
+  import('./components/pages/LegalPage').then((module) => ({ default: module.LegalPage })),
+);
 const TheEpsteinFilesPage = lazy(() =>
   import('./pages/TheEpsteinFilesPage').then((module) => ({ default: module.TheEpsteinFilesPage })),
 );
@@ -100,49 +109,6 @@ interface ParsedReleaseNote {
   date: string;
   title: string;
   notes: string[];
-}
-
-type SeoSchema = Record<string, unknown> | Array<Record<string, unknown>>;
-
-interface SeoConfig {
-  title: string;
-  description: string;
-  url: string;
-  canonical: string;
-  type: 'CollectionPage' | 'Dataset' | 'article' | 'website';
-  keywords: string[];
-  schema?: SeoSchema;
-}
-
-interface SearchEntityPayload {
-  id: number | string;
-  name?: string;
-  fullName?: string;
-  canonicalName?: string;
-  matchedAlias?: string | null;
-  primaryRole?: string;
-  role?: string;
-  mention_count?: number;
-  mentions?: number;
-  redFlagRating?: number;
-  document_count?: number;
-  files?: number;
-}
-
-interface SearchResponsePayload {
-  entities?: SearchEntityPayload[];
-}
-
-interface LikelihoodBucket {
-  level: 'HIGH' | 'MEDIUM' | 'LOW' | string;
-  count: number;
-}
-
-interface GlobalStatsPayload {
-  totalEntities: number;
-  totalMentions: number;
-  totalDocuments: number;
-  likelihoodDistribution?: LikelihoodBucket[];
 }
 
 // Helper to parse markdown release notes
@@ -240,36 +206,8 @@ function App() {
   const navigate = useNavigate();
   const { user: currentUser, isAdmin } = useAuth();
 
-  // Determine active tab from URL
-  const getTabFromPath = (pathname: string): Tab => {
-    if (pathname === '/' || pathname === '/people') return 'people';
-    if (pathname === '/the-epstein-files') return 'landing';
-    if (pathname === '/epstein-documents') return 'landing';
-    if (pathname === '/epstein-people') return 'landing';
-    if (pathname === '/epstein-media') return 'landing';
-    if (pathname === '/epstein-timeline') return 'landing';
-    if (pathname === '/epstein-flights') return 'landing';
-    if (pathname.startsWith('/entity/')) return 'people'; // Entity modal opens on people tab
-    if (pathname.startsWith('/search')) return 'search';
-    if (pathname.startsWith('/documents')) return 'documents';
-    if (pathname.startsWith('/media')) return 'media';
-    if (pathname.startsWith('/timeline')) return 'timeline';
-    if (pathname.startsWith('/investigations')) return 'investigations';
-    if (pathname.startsWith('/investigate')) return 'investigations';
-    if (pathname.startsWith('/analytics')) return 'analytics';
-    if (pathname.startsWith('/blackbook')) return 'blackbook';
-    if (pathname.startsWith('/about')) return 'about';
-    if (pathname.startsWith('/emails')) return 'emails';
-    if (pathname === '/login') return 'login';
-    if (pathname.startsWith('/admin')) return 'admin';
-    if (pathname.startsWith('/review')) return 'review';
-    if (pathname.startsWith('/evidence/')) return 'evidence';
-    if (pathname.startsWith('/flights')) return 'flights';
-    if (pathname.startsWith('/properties')) return 'properties';
-    if (pathname.startsWith('/faq')) return 'faq';
-    return 'people'; // default
-  };
-
+  // Determine active tab from URL using React Router's useMatch hooks.
+  // This replaces the brittle manual string-matching getTabFromPath function.
   type Tab =
     | 'people'
     | 'search'
@@ -289,7 +227,64 @@ function App() {
     | 'review'
     | 'admin'
     | 'landing';
-  const activeTab = getTabFromPath(location.pathname);
+  const matchPeople = useMatch({ path: '/people', end: false });
+  const matchEntity = useMatch({ path: '/entity/:id', end: false });
+  const matchSearch = useMatch({ path: '/search', end: false });
+  const matchDocuments = useMatch({ path: '/documents', end: false });
+  const matchMedia = useMatch({ path: '/media', end: false });
+  const matchTimeline = useMatch({ path: '/timeline', end: false });
+  const matchFlights = useMatch({ path: '/flights', end: false });
+  const matchProperties = useMatch({ path: '/properties', end: false });
+  const matchInvestigations1 = useMatch({ path: '/investigations', end: false });
+  const matchInvestigations2 = useMatch({ path: '/investigate', end: false });
+  const matchInvestigations = matchInvestigations1 || matchInvestigations2;
+  const matchAnalytics = useMatch({ path: '/analytics', end: false });
+  const matchBlackbook = useMatch({ path: '/blackbook', end: false });
+  const matchAbout1 = useMatch({ path: '/about', end: false });
+  const matchAbout2 = useMatch({ path: '/privacy', end: false });
+  const matchAbout3 = useMatch({ path: '/terms', end: false });
+  const matchAbout = matchAbout1 || matchAbout2 || matchAbout3;
+  const matchEmails = useMatch({ path: '/emails', end: false });
+  const matchLogin = useMatch({ path: '/login', end: false });
+  const matchAdmin = useMatch({ path: '/admin', end: false });
+  const matchReview = useMatch({ path: '/review', end: false });
+  const matchEvidence = useMatch({ path: '/evidence/:id', end: false });
+  const matchFaq = useMatch({ path: '/faq', end: false });
+  const matchLanding1 = useMatch({ path: '/the-epstein-files', end: false });
+  const matchLanding2 = useMatch({ path: '/epstein-documents', end: false });
+  const matchLanding3 = useMatch({ path: '/epstein-people', end: false });
+  const matchLanding4 = useMatch({ path: '/epstein-media', end: false });
+  const matchLanding5 = useMatch({ path: '/epstein-timeline', end: false });
+  const matchLanding6 = useMatch({ path: '/epstein-flights', end: false });
+  const matchLanding =
+    matchLanding1 ||
+    matchLanding2 ||
+    matchLanding3 ||
+    matchLanding4 ||
+    matchLanding5 ||
+    matchLanding6;
+
+  const activeTab: Tab = (() => {
+    if (matchSearch) return 'search';
+    if (matchDocuments) return 'documents';
+    if (matchMedia) return 'media';
+    if (matchTimeline) return 'timeline';
+    if (matchFlights) return 'flights';
+    if (matchProperties) return 'properties';
+    if (matchInvestigations) return 'investigations';
+    if (matchAnalytics) return 'analytics';
+    if (matchBlackbook) return 'blackbook';
+    if (matchAbout) return 'about';
+    if (matchEmails) return 'emails';
+    if (matchLogin) return 'login';
+    if (matchAdmin) return 'admin';
+    if (matchReview) return 'review';
+    if (matchEvidence) return 'evidence';
+    if (matchFaq) return 'faq';
+    if (matchLanding) return 'landing';
+    if (matchEntity || matchPeople || location.pathname === '/') return 'people';
+    return 'people';
+  })();
   const tabLabels: Record<Tab, string> = {
     people: 'People',
     search: 'Search',
@@ -310,14 +305,6 @@ function App() {
     admin: 'Admin',
     landing: 'The Epstein Files',
   };
-  const landingVariant = (() => {
-    if (location.pathname === '/epstein-documents') return 'documents';
-    if (location.pathname === '/epstein-people') return 'people';
-    if (location.pathname === '/epstein-media') return 'media';
-    if (location.pathname === '/epstein-timeline') return 'timeline';
-    if (location.pathname === '/epstein-flights') return 'flights';
-    return 'overview';
-  })() as 'overview' | 'documents' | 'people' | 'media' | 'timeline' | 'flights';
   const seoConfig = useMemo<SeoConfig>(() => {
     const origin = 'https://epstein.academy';
     const canonical = `${origin}${location.pathname}`;
@@ -624,50 +611,43 @@ function App() {
     matchedAlias?: string | null;
   };
 
-  // Search suggestions from API (not limited to current page)
-  const [searchSuggestions, setSearchSuggestions] = useState<SearchSuggestion[]>([]);
-  const [searchSuggestionsLoading, setSearchSuggestionsLoading] = useState(false);
-
-  // Fetch search suggestions from API when search term changes
+  // Debounced search term for suggestions query key
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
   useEffect(() => {
-    const fetchSuggestions = async () => {
-      if (searchTerm.trim().length < 2) {
-        setSearchSuggestions([]);
-        return;
-      }
-
-      setSearchSuggestionsLoading(true);
-      try {
-        const response = await fetch(`/api/search?q=${encodeURIComponent(searchTerm)}&limit=10`);
-        const data = (await response.json()) as SearchResponsePayload;
-        const entities = Array.isArray(data.entities) ? data.entities : [];
-        const normalized: SearchSuggestion[] = entities.map((entity) => ({
-          id: entity.id,
-          name: entity.fullName || entity.name || 'Unknown',
-          fullName: entity.fullName || entity.name || 'Unknown',
-          canonicalName: entity.canonicalName || entity.fullName || entity.name || 'Unknown',
-          matchedAlias: entity.matchedAlias || null,
-          role: entity.primaryRole || entity.role || 'Unknown',
-          mentions: entity.mention_count || entity.mentions || 0,
-          redFlagRating: entity.redFlagRating ?? 0,
-          files: entity.document_count || entity.files || 0,
-          contexts: [],
-          evidenceTypes: [],
-          significantPassages: [],
-          fileReferences: [],
-        }));
-        setSearchSuggestions(normalized);
-      } catch (error) {
-        console.error('Error fetching search suggestions:', error);
-        setSearchSuggestions([]);
-      } finally {
-        setSearchSuggestionsLoading(false);
-      }
-    };
-
-    const debounceTimeout = setTimeout(fetchSuggestions, 200);
-    return () => clearTimeout(debounceTimeout);
+    const t = setTimeout(() => setDebouncedSearchTerm(searchTerm), 200);
+    return () => clearTimeout(t);
   }, [searchTerm]);
+
+  const { data: searchSuggestions = [], isFetching: searchSuggestionsLoading } = useQuery<
+    SearchSuggestion[]
+  >({
+    queryKey: ['searchSuggestions', debouncedSearchTerm],
+    queryFn: async () => {
+      const response = await fetch(
+        `/api/search?q=${encodeURIComponent(debouncedSearchTerm)}&limit=10`,
+      );
+      const data = (await response.json()) as SearchResponsePayload;
+      const entities = Array.isArray(data.entities) ? data.entities : [];
+      return entities.map((entity) => ({
+        id: entity.id,
+        name: entity.fullName || entity.name || 'Unknown',
+        fullName: entity.fullName || entity.name || 'Unknown',
+        canonicalName: entity.canonicalName || entity.fullName || entity.name || 'Unknown',
+        matchedAlias: entity.matchedAlias || null,
+        role: entity.primaryRole || entity.role || 'Unknown',
+        mentions: entity.mention_count || entity.mentions || 0,
+        redFlagRating: entity.redFlagRating ?? 0,
+        files: entity.document_count || entity.files || 0,
+        contexts: [],
+        evidenceTypes: [],
+        significantPassages: [],
+        fileReferences: [],
+      }));
+    },
+    enabled: debouncedSearchTerm.trim().length >= 2,
+    staleTime: 30_000,
+    placeholderData: (prev) => prev,
+  });
 
   // First  // Onboarding
   const { shouldShowOnboarding, completeOnboarding, skipOnboarding } = useFirstRunOnboarding();
@@ -680,74 +660,56 @@ function App() {
   }, [activeTab]);
 
   // Load entity from URL on page load (for shareable links)
+
+  const urlEntityMatch = location.pathname.match(/^\/entity\/(\d+)/);
+  const urlEntityId = urlEntityMatch ? parseInt(urlEntityMatch[1], 10) : null;
+  const needsEntityFetch = !!urlEntityId && (!selectedPerson || selectedPerson.id !== urlEntityId);
+
+  const { data: urlEntityData } = useQuery<EntityByIdResponse | null>({
+    queryKey: ['urlEntity', urlEntityId],
+    queryFn: async () => {
+      if (!urlEntityId) return null;
+      const res = await fetch(`/api/entities/${urlEntityId}`);
+      return (await res.json()) as EntityByIdResponse;
+    },
+    enabled: needsEntityFetch,
+    staleTime: 60_000,
+  });
+
   useEffect(() => {
-    const entityMatch = location.pathname.match(/^\/entity\/(\d+)/);
-    // Only fetch if we don't have the person OR if the ID doesn't match
-    if (entityMatch) {
-      const entityId = parseInt(entityMatch[1], 10);
-      if (!selectedPerson || selectedPerson.id !== entityId) {
-        // Clear conflicting modals
-        setDocumentModalId('');
-        setDocumentModalInitial(null);
+    if (!urlEntityData || !urlEntityData.id) return;
+    setDocumentModalId('');
+    setDocumentModalInitial(null);
+    const person: Person = {
+      id: urlEntityData.id,
+      name: urlEntityData.fullName || 'Unknown',
+      fullName: urlEntityData.fullName || 'Unknown',
+      role: urlEntityData.primaryRole || 'Unknown',
+      mentions: urlEntityData.mentions || urlEntityData.mention_count || 0,
+      redFlagRating: urlEntityData.redFlagRating ?? 0,
+      files: urlEntityData.documentCount || urlEntityData.document_count || 0,
+      contexts: [],
+      evidenceTypes: urlEntityData.evidenceTypes || [],
+      significantPassages: [],
+      likelihoodScore: urlEntityData.likelihoodLevel || 'MEDIUM',
+      fileReferences: [],
+      bio: urlEntityData.bio || urlEntityData.description,
+      birthDate: urlEntityData.birthDate,
+      deathDate: urlEntityData.deathDate,
+      photos: urlEntityData.photos,
+      blackBookEntries: urlEntityData.blackBookEntry,
+      entityType: urlEntityData.entityType || urlEntityData.type,
+      redFlagDescription: urlEntityData.redFlagDescription,
+    };
+    setSelectedPerson(person);
+  }, [urlEntityData]); // eslint-disable-line react-hooks/exhaustive-deps
 
-        type EntityByIdResponse = {
-          id: number;
-          fullName?: string;
-          primaryRole?: string;
-          mentions?: number;
-          mention_count?: number;
-          redFlagRating?: number;
-          documentCount?: number;
-          document_count?: number;
-          evidenceTypes?: string[];
-          likelihoodLevel?: string;
-          bio?: string;
-          description?: string;
-          birthDate?: string;
-          deathDate?: string;
-          photos?: Person['photos'];
-          blackBookEntry?: Person['blackBookEntries'];
-          entityType?: string;
-          type?: string;
-          redFlagDescription?: string;
-        };
-
-        fetch(`/api/entities/${entityId}`)
-          .then((res) => res.json())
-          .then((data: EntityByIdResponse) => {
-            if (data && data.id) {
-              const person: Person = {
-                id: data.id,
-                name: data.fullName || 'Unknown',
-                fullName: data.fullName || 'Unknown',
-                role: data.primaryRole || 'Unknown',
-                mentions: data.mentions || data.mention_count || 0,
-                redFlagRating: data.redFlagRating ?? 0,
-                files: data.documentCount || data.document_count || 0,
-                contexts: [],
-                evidenceTypes: data.evidenceTypes || [],
-                significantPassages: [],
-                likelihoodScore: data.likelihoodLevel || 'MEDIUM',
-                fileReferences: [],
-                bio: data.bio || data.description,
-                birthDate: data.birthDate,
-                deathDate: data.deathDate,
-                photos: data.photos,
-                blackBookEntries: data.blackBookEntry,
-                entityType: data.entityType || data.type,
-                redFlagDescription: data.redFlagDescription,
-              };
-              setSelectedPerson(person);
-            }
-          })
-          .catch((err) => console.error('Error loading entity from URL:', err));
-      }
-    } else if (selectedPerson && !location.pathname.startsWith('/blackbook')) {
+  useEffect(() => {
+    if (!urlEntityId && selectedPerson && !location.pathname.startsWith('/blackbook')) {
       // Clear selected person if we are not on an entity route anymore
-      // Exception for blackbook which might open a modal in-situ (though we're changing that)
       setSelectedPerson(null);
     }
-  }, [location.pathname, selectedPerson, setDocumentModalId, setDocumentModalInitial]); // Added setters to dependencies
+  }, [location.pathname, selectedPerson, urlEntityId]);
 
   // Handle global entity click events (e.g. from DocumentMetadataPanel or MediaViewerModal)
   useEffect(() => {
@@ -805,42 +767,36 @@ function App() {
 
   // Safety net for legacy justice.gov path swaps when edge proxy serves SPA shell.
   // Example: /epstein/files/DataSet%209/EFTA01188336.pdf
+  const legacyFileSuffix = location.pathname.startsWith('/epstein/files/')
+    ? location.pathname.replace(/^\/epstein\/files\//, '')
+    : null;
+
+  const { data: legacyFilePayload } = useQuery<{
+    redirectTo?: string;
+    documentId?: string;
+  } | null>({
+    queryKey: ['legacyFilePath', legacyFileSuffix],
+    queryFn: async () => {
+      if (!legacyFileSuffix) return null;
+      const response = await fetch(
+        `/api/resolve/epstein-file?path=${encodeURIComponent(legacyFileSuffix)}`,
+        { credentials: 'include' },
+      );
+      if (!response.ok) return null;
+      return (await response.json()) as { redirectTo?: string; documentId?: string };
+    },
+    enabled: !!legacyFileSuffix,
+    staleTime: Infinity,
+  });
+
   useEffect(() => {
-    if (!location.pathname.startsWith('/epstein/files/')) return;
-    const suffix = location.pathname.replace(/^\/epstein\/files\//, '');
-    if (!suffix) return;
-
-    let cancelled = false;
-    const resolveAndNavigate = async () => {
-      try {
-        const response = await fetch(
-          `/api/resolve/epstein-file?path=${encodeURIComponent(suffix)}`,
-          {
-            credentials: 'include',
-          },
-        );
-        if (!response.ok) return;
-
-        const payload = (await response.json()) as { redirectTo?: string; documentId?: string };
-        if (cancelled) return;
-
-        if (payload.redirectTo) {
-          navigate(payload.redirectTo, { replace: true });
-          return;
-        }
-        if (payload.documentId) {
-          navigate(`/documents/${payload.documentId}`, { replace: true });
-        }
-      } catch (error) {
-        console.error('Failed to resolve legacy epstein path:', error);
-      }
-    };
-
-    void resolveAndNavigate();
-    return () => {
-      cancelled = true;
-    };
-  }, [location.pathname, navigate]);
+    if (!legacyFilePayload) return;
+    if (legacyFilePayload.redirectTo) {
+      navigate(legacyFilePayload.redirectTo, { replace: true });
+    } else if (legacyFilePayload.documentId) {
+      navigate(`/documents/${legacyFilePayload.documentId}`, { replace: true });
+    }
+  }, [legacyFilePayload, navigate]);
 
   // Keyboard shortcuts for power users
   useEffect(() => {
@@ -988,139 +944,84 @@ function App() {
     location.pathname,
     previousPath,
   ]);
-  const [dataStats, setDataStats] = useState(() => {
-    return {
-      totalPeople: 0,
-      totalMentions: 0,
-      totalFiles: 0,
-      highRisk: 0,
-      mediumRisk: 0,
-      lowRisk: 0,
-    };
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Initialize optimized data service (caches first page to sessionStorage)
+  const { isLoading: isInitializing } = useQuery<void>({
+    queryKey: ['initDataService'],
+    queryFn: async () => {
+      const result = await apiClient.getEntities({}, 1);
+      const normalized = (result.data || []).map((person: Person) => ({
+        ...person,
+        redFlagRating: person.redFlagRating ?? 0,
+        name: person.name ?? person.fullName,
+        files: person.files ?? person.documentCount ?? 0,
+        likelihoodScore:
+          person.likelihoodScore ??
+          person.likelihoodLevel ??
+          ((person.redFlagRating ?? 0) >= 4
+            ? 'HIGH'
+            : (person.redFlagRating ?? 0) >= 2
+              ? 'MEDIUM'
+              : 'LOW'),
+      }));
+      try {
+        sessionStorage.setItem('epstein_archive_people_page1_v13_14_1', JSON.stringify(normalized));
+      } catch (e) {
+        console.error('Error caching people data:', e);
+      }
+    },
+    staleTime: Infinity,
+    retry: false,
   });
+
+  // Fetch global stats for header counters
+  const { data: globalStatsData } = useQuery<GlobalStatsPayload>({
+    queryKey: ['globalStats'],
+    queryFn: async () => (await apiClient.getStats()) as GlobalStatsPayload,
+    staleTime: 5 * 60_000,
+  });
+
+  const dataStats = useMemo(() => {
+    if (!globalStatsData) {
+      return {
+        totalPeople: 0,
+        totalMentions: 0,
+        totalFiles: 0,
+        highRisk: 0,
+        mediumRisk: 0,
+        lowRisk: 0,
+      };
+    }
+    const likelihoodDistribution = Array.isArray(globalStatsData.likelihoodDistribution)
+      ? globalStatsData.likelihoodDistribution
+      : [];
+    const highRisk = likelihoodDistribution.find((bucket) => bucket.level === 'HIGH')?.count || 0;
+    const mediumRisk =
+      likelihoodDistribution.find((bucket) => bucket.level === 'MEDIUM')?.count || 0;
+    const lowRisk = likelihoodDistribution.find((bucket) => bucket.level === 'LOW')?.count || 0;
+    const newStats = {
+      totalPeople: globalStatsData.totalEntities,
+      totalMentions: globalStatsData.totalMentions,
+      totalFiles: globalStatsData.totalDocuments,
+      highRisk,
+      mediumRisk,
+      lowRisk,
+    };
+    try {
+      sessionStorage.setItem('epstein_archive_stats_v13_14_1', JSON.stringify(newStats));
+    } catch {
+      // ignore
+    }
+    return newStats;
+  }, [globalStatsData]);
 
   // Animate header stats
   const headerTotalPeople = useCountUp(dataStats.totalPeople, 1000);
   const headerTotalMentions = useCountUp(dataStats.totalMentions, 1200);
   const headerTotalFiles = useCountUp(dataStats.totalFiles, 1100);
 
-  const [analyticsData, setAnalyticsData] = useState<GlobalStatsPayload | null>(null);
-  const [analyticsLoading, setAnalyticsLoading] = useState(false);
-  const [analyticsError, setAnalyticsError] = useState<string | null>(null);
-  const [isInitializing, setIsInitializing] = useState(true);
-  const [loadingProgress, setLoadingProgress] = useState<string>('Initializing...');
-  const [, setLoadingProgressValue] = useState<number>(0);
-
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  const { addToast } = useToasts();
-  useEffect(() => {
-    // Initialize optimized data service
-    const initializeDataService = async () => {
-      try {
-        setIsInitializing(true);
-        setLoadingProgress('Connecting to database...');
-        setLoadingProgressValue(10);
-        setLoadingProgress('Loading subjects...');
-        setLoadingProgressValue(30);
-
-        // Load first page of data
-        console.log('About to load first page...');
-        const result = await apiClient.getEntities({}, 1); // Use apiClient instead of OptimizedDataService
-        console.log('Initial data load:', {
-          dataLength: result.data.length,
-          total: result.total,
-          page: result.page,
-          totalPages: result.totalPages,
-          pageSize: result.pageSize,
-          firstPerson: result.data[0],
-        });
-        setLoadingProgress(`Loaded ${result.data.length} subjects...`);
-        setLoadingProgressValue(60);
-        const normalized = (result.data || []).map((person: Person) => ({
-          ...person,
-          redFlagRating: person.redFlagRating ?? 0,
-          name: person.name ?? person.fullName,
-          files: person.files ?? person.documentCount ?? 0,
-          likelihoodScore:
-            person.likelihoodScore ??
-            person.likelihoodLevel ??
-            ((person.redFlagRating ?? 0) >= 4
-              ? 'HIGH'
-              : (person.redFlagRating ?? 0) >= 2
-                ? 'MEDIUM'
-                : 'LOW'),
-        }));
-        // Cache first page for next load
-        try {
-          sessionStorage.setItem(
-            'epstein_archive_people_page1_v13_14_1',
-            JSON.stringify(normalized),
-          );
-        } catch (e) {
-          console.error('Error caching people data:', e);
-        }
-
-        // Enable virtual scrolling for large datasets (disabled for pagination)
-        // setUseVirtualScroll(result.total > 100);
-
-        // We don't update stats here anymore to avoid double-updates/jumps
-        // fetchGlobalStats will handle the authoritative stats
-      } catch (error) {
-        console.error('Error initializing data service:', error);
-      } finally {
-        setIsInitializing(false);
-      }
-    };
-
-    initializeDataService();
-
-    // Fetch global stats
-    const fetchGlobalStats = async () => {
-      try {
-        setLoadingProgress('Loading statistics...');
-        setLoadingProgressValue(80);
-        setLoadingProgress('Loading statistics...');
-        setLoadingProgressValue(80);
-        const stats = (await apiClient.getStats()) as GlobalStatsPayload;
-        console.log('Global stats loaded:', stats);
-        setLoadingProgress('Finalizing...');
-        setLoadingProgressValue(90);
-
-        const likelihoodDistribution = Array.isArray(stats.likelihoodDistribution)
-          ? stats.likelihoodDistribution
-          : [];
-        const highRisk =
-          likelihoodDistribution.find((bucket) => bucket.level === 'HIGH')?.count || 0;
-        const mediumRisk =
-          likelihoodDistribution.find((bucket) => bucket.level === 'MEDIUM')?.count || 0;
-        const lowRisk = likelihoodDistribution.find((bucket) => bucket.level === 'LOW')?.count || 0;
-
-        const newStats = {
-          totalPeople: stats.totalEntities,
-          totalMentions: stats.totalMentions,
-          totalFiles: stats.totalDocuments,
-          highRisk,
-          mediumRisk,
-          lowRisk,
-        };
-
-        // Only update if changed to prevent animation restart
-        setDataStats((prev: typeof newStats) => {
-          if (JSON.stringify(prev) !== JSON.stringify(newStats)) {
-            sessionStorage.setItem('epstein_archive_stats_v13_14_1', JSON.stringify(newStats));
-            return newStats;
-          }
-          return prev;
-        });
-        setLoadingProgressValue(100);
-      } catch (error) {
-        console.error('Error fetching global stats:', error);
-      }
-    };
-
-    fetchGlobalStats();
-  }, [addToast]);
+  const loadingProgress = isInitializing ? 'Loading subjects...' : 'Ready';
 
   useEffect(() => {
     try {
@@ -1134,7 +1035,7 @@ function App() {
       const t = setTimeout(() => setInvestigateAttract(false), 8000);
       return () => clearTimeout(t);
     } catch (e) {
-      console.warn('localStorage not available:', e);
+      void e;
     }
   }, [shouldShowOnboarding]);
 
@@ -1158,7 +1059,7 @@ function App() {
         return () => clearTimeout(timer);
       }
     } catch (e) {
-      console.warn('localStorage not available:', e);
+      void e;
     }
   }, [activeTab, shouldShowOnboarding]);
 
@@ -1222,76 +1123,65 @@ function App() {
     setSortOrder('desc');
   }, [setSelectedRiskLevel, setEntityType, setSearchTerm, setSortBy, setSortOrder]);
 
+  // Poll for new builds and reload if a new version is deployed
+  const currentHash = (() => {
+    const entry = document.querySelector<HTMLScriptElement>('script[type="module"][src]');
+    const src = entry?.src || '';
+    return (src.match(/index-([A-Za-z0-9_-]+)\.js/) || [])[1] || null;
+  })();
+  const { data: buildCheckHtml } = useQuery<string | null>({
+    queryKey: ['buildCheck'],
+    queryFn: async () => {
+      if (!currentHash) return null;
+      const res = await fetch(`/?build_check=${Date.now()}`, {
+        cache: 'no-store',
+        credentials: 'same-origin',
+      });
+      if (!res.ok) return null;
+      return res.text();
+    },
+    enabled: !!currentHash,
+    refetchInterval: 15_000,
+    staleTime: 0,
+  });
   useEffect(() => {
-    // No-op
-  }, []);
+    if (!buildCheckHtml || !currentHash) return;
+    const latestHash = (buildCheckHtml.match(/index-([A-Za-z0-9_-]+)\.js/) || [])[1] || null;
+    if (latestHash && latestHash !== currentHash) {
+      window.location.reload();
+    }
+  }, [buildCheckHtml, currentHash]);
 
-  useEffect(() => {
-    let cancelled = false;
-    const currentEntry = document.querySelector<HTMLScriptElement>('script[type="module"][src]');
-    const currentSrc = currentEntry?.src || '';
-    const currentHash = (currentSrc.match(/index-([A-Za-z0-9_-]+)\.js/) || [])[1] || null;
-    if (!currentHash) return;
-
-    const pollForNewBuild = async () => {
-      try {
-        const res = await fetch(`/?build_check=${Date.now()}`, {
-          cache: 'no-store',
-          credentials: 'same-origin',
-        });
-        if (!res.ok) return;
-        const html = await res.text();
-        const latestHash = (html.match(/index-([A-Za-z0-9_-]+)\.js/) || [])[1] || null;
-        if (!cancelled && latestHash && latestHash !== currentHash) {
-          window.location.reload();
-        }
-      } catch {
-        // Ignore transient network/cache probe failures
-      }
-    };
-
-    pollForNewBuild();
-    const interval = window.setInterval(pollForNewBuild, 15000);
-    return () => {
-      cancelled = true;
-      window.clearInterval(interval);
-    };
-  }, []);
-
-  const fetchAnalyticsData = useCallback(async () => {
-    try {
-      setAnalyticsLoading(true);
-      setAnalyticsError(null);
-      console.log('Fetching analytics data with filters:', filters);
-      // Get statistics from apiClient with filters
+  // Analytics data — fetched when the analytics tab is active
+  const {
+    data: analyticsData,
+    isFetching: analyticsLoading,
+    error: analyticsQueryError,
+    refetch: refetchAnalytics,
+  } = useQuery<GlobalStatsPayload>({
+    queryKey: ['analyticsStats', filters],
+    queryFn: async () => {
       const stats = (await apiClient.getStats(
         filters as unknown as { timeRange?: string[]; limit?: number },
       )) as GlobalStatsPayload;
-      console.log('Analytics stats:', stats);
+      return stats;
+    },
+    enabled: activeTab === 'analytics',
+    staleTime: 60_000,
+  });
 
-      setAnalyticsData(stats);
-    } catch (error) {
-      console.error('Error fetching analytics data:', error);
-      setAnalyticsError(error instanceof Error ? error.message : 'Failed to load analytics data');
-    } finally {
-      setAnalyticsLoading(false);
-    }
-  }, [filters]);
-
-  // Effect for fetching analytics data when tab changes
-  useEffect(() => {
-    if (activeTab === 'analytics') {
-      fetchAnalyticsData();
-    }
-  }, [activeTab, fetchAnalyticsData]);
+  const analyticsError =
+    analyticsQueryError instanceof Error
+      ? analyticsQueryError.message
+      : analyticsQueryError != null
+        ? 'Failed to load analytics data'
+        : null;
 
   // Effect to prefetch next page when current page loads
   // Prefetch effect removed
 
   const handlePersonClick = useCallback(
     (person: Person) => {
-      console.log('Person clicked:', person.name);
-
       // Save current path before opening modal so we can restore it on close
       setPreviousPath(location.pathname + location.search);
 
@@ -1790,8 +1680,8 @@ function App() {
                             try {
                               localStorage.setItem('investigate_attract_shown', 'true');
                               localStorage.setItem('investigate_popover_dismissed', 'true');
-                            } catch (e) {
-                              console.warn('localStorage not available:', e);
+                            } catch {
+                              // Ignore localStorage access errors.
                             }
                             setInvestigateAttract(false);
                             setInvestigatePopoverOpen(false);
@@ -1843,8 +1733,8 @@ function App() {
                                   onClick={() => {
                                     try {
                                       localStorage.setItem('investigate_popover_dismissed', 'true');
-                                    } catch (e) {
-                                      console.warn('localStorage not available:', e);
+                                    } catch {
+                                      // Ignore localStorage access errors.
                                     }
                                     setInvestigatePopoverOpen(false);
                                     setInvestigateAttract(false);
@@ -1858,8 +1748,8 @@ function App() {
                                     try {
                                       localStorage.setItem('investigate_popover_dismissed', 'true');
                                       localStorage.setItem('investigate_attract_shown', 'true');
-                                    } catch (e) {
-                                      console.warn('localStorage not available:', e);
+                                    } catch {
+                                      // Ignore localStorage access errors.
                                     }
                                     setInvestigatePopoverOpen(false);
                                     setInvestigateAttract(false);
@@ -1997,110 +1887,195 @@ function App() {
                       </div>
                     }
                   >
-                    {activeTab === 'people' && (
-                      <PeoplePage
-                        dataStats={dataStats}
-                        selectedRiskLevel={selectedRiskLevel}
-                        onRiskLevelClick={handleRiskLevelClick}
-                        onResetFilters={handleResetFilters}
-                        isAdmin={isAdmin}
-                        onAddSubject={() => setShowCreateEntityModal(true)}
-                        entityType={entityType}
-                        onEntityTypeChange={setEntityType}
-                        sortBy={sortBy}
-                        onSortByChange={(val) => {
-                          if (
-                            val === 'name' ||
-                            val === 'mentions' ||
-                            val === 'red_flag' ||
-                            val === 'risk'
-                          ) {
-                            setSortBy(val);
-                          }
-                        }}
-                        sortOrder={sortOrder}
-                        onSortOrderToggle={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                        searchTerm={searchTerm}
-                        onPersonClick={handlePersonClick}
-                      />
-                    )}
-
-                    {activeTab === 'analytics' && (
-                      <AnalyticsPage
-                        analyticsData={analyticsData ?? undefined}
-                        loading={analyticsLoading}
-                        error={analyticsError}
-                        onRetry={fetchAnalyticsData}
-                        onPersonSelect={handlePersonClick}
-                      />
-                    )}
-
-                    {activeTab === 'search' && <EvidenceSearch onPersonClick={handlePersonClick} />}
-
-                    {activeTab === 'documents' && (
-                      <DocumentsPage
-                        searchTerm={selectedDocumentSearchTerm}
-                        onSearchTermChange={setSelectedDocumentSearchTerm}
-                        selectedDocumentId={selectedDocumentId || ''}
-                        onDocumentClose={() => {
-                          setSelectedDocumentId('');
-                          setSelectedDocumentSearchTerm('');
-                        }}
-                      />
-                    )}
-                    {activeTab === 'timeline' && <TimelinePage />}
-                    {activeTab === 'flights' && <FlightsPage />}
-
-                    {activeTab === 'properties' && <PropertyPage />}
-
-                    {activeTab === 'emails' && <EmailPage />}
-                    {activeTab === 'media' && <MediaPage />}
-
-                    {activeTab === 'about' && <AboutPage />}
-                    {activeTab === 'faq' && <FAQPage />}
-                    {activeTab === 'landing' && <TheEpsteinFilesPage variant={landingVariant} />}
-
-                    {activeTab === 'login' && <LoginPage />}
-
-                    {activeTab === 'admin' && <AdminDashboard />}
-                    {activeTab === 'evidence' && <EvidenceDetail />}
-
-                    {activeTab === 'review' && (
-                      <Suspense
-                        fallback={
-                          <LoadingIndicator isLoading={true} label="Loading Review Dashboard..." />
+                    <Routes>
+                      <Route
+                        path="/"
+                        element={
+                          <PeoplePage
+                            dataStats={dataStats}
+                            selectedRiskLevel={selectedRiskLevel}
+                            onRiskLevelClick={handleRiskLevelClick}
+                            onResetFilters={handleResetFilters}
+                            isAdmin={isAdmin}
+                            onAddSubject={() => setShowCreateEntityModal(true)}
+                            entityType={entityType}
+                            onEntityTypeChange={setEntityType}
+                            sortBy={sortBy}
+                            onSortByChange={(val) => {
+                              if (
+                                val === 'name' ||
+                                val === 'mentions' ||
+                                val === 'red_flag' ||
+                                val === 'risk'
+                              ) {
+                                setSortBy(val);
+                              }
+                            }}
+                            sortOrder={sortOrder}
+                            onSortOrderToggle={() =>
+                              setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
+                            }
+                            searchTerm={searchTerm}
+                            onPersonClick={handlePersonClick}
+                          />
                         }
-                      >
-                        <ReviewDashboard />
-                      </Suspense>
-                    )}
-
-                    {activeTab === 'investigations' &&
-                      (() => {
-                        // Extract investigation ID from URL path
-                        // Supported:
-                        // - /investigations/:id
-                        // - /investigate/case/:id
-                        // - /investigate/case/:id/evidence/:evidenceId
-                        const pathParts = location.pathname.split('/');
-                        let investigationIdFromUrl: string | undefined;
-                        if (
-                          pathParts.length > 2 &&
-                          pathParts[1] === 'investigations' &&
-                          pathParts[2]
-                        ) {
-                          investigationIdFromUrl = pathParts[2];
-                        } else if (
-                          pathParts.length > 3 &&
-                          pathParts[1] === 'investigate' &&
-                          pathParts[2] === 'case' &&
-                          pathParts[3]
-                        ) {
-                          investigationIdFromUrl = pathParts[3];
+                      />
+                      <Route
+                        path="/people"
+                        element={
+                          <PeoplePage
+                            dataStats={dataStats}
+                            selectedRiskLevel={selectedRiskLevel}
+                            onRiskLevelClick={handleRiskLevelClick}
+                            onResetFilters={handleResetFilters}
+                            isAdmin={isAdmin}
+                            onAddSubject={() => setShowCreateEntityModal(true)}
+                            entityType={entityType}
+                            onEntityTypeChange={setEntityType}
+                            sortBy={sortBy}
+                            onSortByChange={(val) => {
+                              if (
+                                val === 'name' ||
+                                val === 'mentions' ||
+                                val === 'red_flag' ||
+                                val === 'risk'
+                              ) {
+                                setSortBy(val);
+                              }
+                            }}
+                            sortOrder={sortOrder}
+                            onSortOrderToggle={() =>
+                              setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
+                            }
+                            searchTerm={searchTerm}
+                            onPersonClick={handlePersonClick}
+                          />
                         }
-                        return (
+                      />
+                      {/* Entity deep-link — modal is handled separately; render people tab underneath */}
+                      <Route
+                        path="/entity/:id"
+                        element={
+                          <PeoplePage
+                            dataStats={dataStats}
+                            selectedRiskLevel={selectedRiskLevel}
+                            onRiskLevelClick={handleRiskLevelClick}
+                            onResetFilters={handleResetFilters}
+                            isAdmin={isAdmin}
+                            onAddSubject={() => setShowCreateEntityModal(true)}
+                            entityType={entityType}
+                            onEntityTypeChange={setEntityType}
+                            sortBy={sortBy}
+                            onSortByChange={(val) => {
+                              if (
+                                val === 'name' ||
+                                val === 'mentions' ||
+                                val === 'red_flag' ||
+                                val === 'risk'
+                              ) {
+                                setSortBy(val);
+                              }
+                            }}
+                            sortOrder={sortOrder}
+                            onSortOrderToggle={() =>
+                              setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
+                            }
+                            searchTerm={searchTerm}
+                            onPersonClick={handlePersonClick}
+                          />
+                        }
+                      />
+                      <Route
+                        path="/analytics"
+                        element={
+                          <AnalyticsPage
+                            analyticsData={analyticsData ?? undefined}
+                            loading={analyticsLoading}
+                            error={analyticsError}
+                            onRetry={refetchAnalytics}
+                            onPersonSelect={handlePersonClick}
+                          />
+                        }
+                      />
+                      <Route
+                        path="/search"
+                        element={<EvidenceSearch onPersonClick={handlePersonClick} />}
+                      />
+                      <Route
+                        path="/documents/*"
+                        element={
+                          <DocumentsPage
+                            searchTerm={selectedDocumentSearchTerm}
+                            onSearchTermChange={setSelectedDocumentSearchTerm}
+                            selectedDocumentId={selectedDocumentId || ''}
+                            onDocumentClose={() => {
+                              setSelectedDocumentId('');
+                              setSelectedDocumentSearchTerm('');
+                            }}
+                          />
+                        }
+                      />
+                      <Route path="/timeline/*" element={<TimelinePage />} />
+                      <Route path="/flights/*" element={<FlightsPage />} />
+                      <Route path="/properties/*" element={<PropertyPage />} />
+                      <Route path="/emails/*" element={<EmailPage />} />
+                      <Route path="/media/*" element={<MediaPage />} />
+                      <Route path="/about/*" element={<AboutPage />} />
+                      <Route path="/privacy" element={<LegalPage mode="privacy" />} />
+                      <Route path="/terms" element={<LegalPage mode="terms" />} />
+                      <Route path="/faq" element={<FAQPage />} />
+                      <Route
+                        path="/the-epstein-files"
+                        element={<TheEpsteinFilesPage variant="overview" />}
+                      />
+                      <Route
+                        path="/epstein-documents"
+                        element={<TheEpsteinFilesPage variant="documents" />}
+                      />
+                      <Route
+                        path="/epstein-people"
+                        element={<TheEpsteinFilesPage variant="people" />}
+                      />
+                      <Route
+                        path="/epstein-media"
+                        element={<TheEpsteinFilesPage variant="media" />}
+                      />
+                      <Route
+                        path="/epstein-timeline"
+                        element={<TheEpsteinFilesPage variant="timeline" />}
+                      />
+                      <Route
+                        path="/epstein-flights"
+                        element={<TheEpsteinFilesPage variant="flights" />}
+                      />
+                      <Route path="/login" element={<LoginPage />} />
+                      <Route path="/admin/*" element={<AdminDashboard />} />
+                      <Route path="/evidence/:id" element={<EvidenceDetail />} />
+                      <Route
+                        path="/review/*"
+                        element={
+                          <Suspense
+                            fallback={
+                              <LoadingIndicator
+                                isLoading={true}
+                                label="Loading Review Dashboard..."
+                              />
+                            }
+                          >
+                            <ReviewDashboard />
+                          </Suspense>
+                        }
+                      />
+                      <Route
+                        path="/investigations/*"
+                        element={
                           <InvestigationWorkspace
-                            investigationId={investigationIdFromUrl}
+                            investigationId={(() => {
+                              const parts = location.pathname.split('/');
+                              return parts[1] === 'investigations' && parts[2]
+                                ? parts[2]
+                                : undefined;
+                            })()}
                             currentUser={
                               currentUser
                                 ? {
@@ -2123,22 +2098,87 @@ function App() {
                                   }
                             }
                           />
-                        );
-                      })()}
-
-                    {activeTab === 'blackbook' && (
-                      <div className="mt-6">
-                        <Suspense
-                          fallback={
-                            <div className="flex items-center justify-center h-64">
-                              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent)]"></div>
-                            </div>
-                          }
-                        >
-                          <BlackBookViewer />
-                        </Suspense>
-                      </div>
-                    )}
+                        }
+                      />
+                      <Route
+                        path="/investigate/case/:id/*"
+                        element={
+                          <InvestigationWorkspace
+                            investigationId={location.pathname.split('/')[3]}
+                            currentUser={
+                              currentUser
+                                ? {
+                                    id: currentUser.id,
+                                    name: currentUser.username,
+                                    email: currentUser.email || 'investigator@example.com',
+                                    role: isAdmin ? 'lead' : 'analyst',
+                                    permissions: ['read', 'write', ...(isAdmin ? ['admin'] : [])],
+                                    joinedAt: new Date(),
+                                    expertise: ['investigative journalism', 'data analysis'],
+                                  }
+                                : {
+                                    id: 'guest',
+                                    name: 'Guest',
+                                    email: 'guest@example.com',
+                                    role: 'analyst',
+                                    permissions: ['read'],
+                                    joinedAt: new Date(),
+                                    expertise: [],
+                                  }
+                            }
+                          />
+                        }
+                      />
+                      <Route
+                        path="/blackbook/*"
+                        element={
+                          <div className="mt-6">
+                            <Suspense
+                              fallback={
+                                <div className="flex items-center justify-center h-64">
+                                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent)]"></div>
+                                </div>
+                              }
+                            >
+                              <BlackBookViewer />
+                            </Suspense>
+                          </div>
+                        }
+                      />
+                      {/* Fallback — default to people */}
+                      <Route
+                        path="*"
+                        element={
+                          <PeoplePage
+                            dataStats={dataStats}
+                            selectedRiskLevel={selectedRiskLevel}
+                            onRiskLevelClick={handleRiskLevelClick}
+                            onResetFilters={handleResetFilters}
+                            isAdmin={isAdmin}
+                            onAddSubject={() => setShowCreateEntityModal(true)}
+                            entityType={entityType}
+                            onEntityTypeChange={setEntityType}
+                            sortBy={sortBy}
+                            onSortByChange={(val) => {
+                              if (
+                                val === 'name' ||
+                                val === 'mentions' ||
+                                val === 'red_flag' ||
+                                val === 'risk'
+                              ) {
+                                setSortBy(val);
+                              }
+                            }}
+                            sortOrder={sortOrder}
+                            onSortOrderToggle={() =>
+                              setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
+                            }
+                            searchTerm={searchTerm}
+                            onPersonClick={handlePersonClick}
+                          />
+                        }
+                      />
+                    </Routes>
                   </Suspense>
                 </div>
               </div>

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../services/apiClient';
 
 interface CollectionAlbum {
@@ -9,22 +10,19 @@ interface CollectionAlbum {
   sensitiveCount?: number;
 }
 
-interface CollectionState<TItem, TAlbum extends CollectionAlbum> {
+interface CollectionState<TItem> {
   items: TItem[];
-  albums: TAlbum[];
   selectedAlbum: number | null;
   searchQuery: string;
   loading: boolean;
   error: string | null;
   page: number;
   hasMore: boolean;
-  libraryTotalCount: number;
 }
 
-type CollectionAction<TItem, TAlbum extends CollectionAlbum> =
+type CollectionAction<TItem> =
   | { type: 'SET_SELECTED_ALBUM'; value: number | null }
   | { type: 'SET_SEARCH_QUERY'; value: string }
-  | { type: 'BOOTSTRAP_SUCCESS'; albums: TAlbum[]; total: number }
   | { type: 'FETCH_START'; append: boolean }
   | { type: 'FETCH_SUCCESS'; items: TItem[]; page: number; hasMore: boolean; append: boolean }
   | { type: 'FETCH_ERROR'; message: string; append: boolean }
@@ -82,34 +80,30 @@ function invalidateCollectionCache(prefix: string) {
   }
 }
 
-function createInitialState<TItem, TAlbum extends CollectionAlbum>(
+function createInitialState<TItem>(
   initialAlbumId: number | null,
   initialSearchQuery: string,
-): CollectionState<TItem, TAlbum> {
+): CollectionState<TItem> {
   return {
     items: [],
-    albums: [],
     selectedAlbum: initialAlbumId,
     searchQuery: initialSearchQuery,
     loading: true,
     error: null,
     page: 1,
     hasMore: true,
-    libraryTotalCount: 0,
   };
 }
 
-function reducer<TItem, TAlbum extends CollectionAlbum>(
-  state: CollectionState<TItem, TAlbum>,
-  action: CollectionAction<TItem, TAlbum>,
-): CollectionState<TItem, TAlbum> {
+function reducer<TItem>(
+  state: CollectionState<TItem>,
+  action: CollectionAction<TItem>,
+): CollectionState<TItem> {
   switch (action.type) {
     case 'SET_SELECTED_ALBUM':
       return { ...state, selectedAlbum: action.value };
     case 'SET_SEARCH_QUERY':
       return { ...state, searchQuery: action.value };
-    case 'BOOTSTRAP_SUCCESS':
-      return { ...state, albums: action.albums, libraryTotalCount: action.total };
     case 'FETCH_START':
       return {
         ...state,
@@ -166,8 +160,8 @@ export function usePaginatedMediaCollection<TItem, TAlbum extends CollectionAlbu
     syncAlbumToUrl = false,
   } = options;
 
-  const [state, dispatch] = useReducer(reducer<TItem, TAlbum>, undefined, () =>
-    createInitialState<TItem, TAlbum>(initialAlbumId, initialSearchQuery),
+  const [state, dispatch] = useReducer(reducer<TItem>, undefined, () =>
+    createInitialState<TItem>(initialAlbumId, initialSearchQuery),
   );
   const requestKeyRef = useRef<string | null>(null);
   const loadMoreKeyRef = useRef<string | null>(null);
@@ -181,6 +175,27 @@ export function usePaginatedMediaCollection<TItem, TAlbum extends CollectionAlbu
       }),
     [mediaEndpoint, state.searchQuery, state.selectedAlbum],
   );
+
+  // Bootstrap data: albums and library total count via useQuery
+  const { data: bootstrapData } = useQuery({
+    queryKey: ['paginated-media-bootstrap', albumsEndpoint, mediaEndpoint],
+    queryFn: async () => {
+      const [albumsPayload, totalPayload] = await Promise.all([
+        apiClient.get<TAlbum[]>(albumsEndpoint, { cacheTtl: 60_000 }),
+        apiClient.get<Record<string, unknown>>(`${mediaEndpoint}?page=1&limit=1`, {
+          cacheTtl: 60_000,
+        }),
+      ]);
+      return {
+        albums: Array.isArray(albumsPayload) ? albumsPayload : ([] as TAlbum[]),
+        libraryTotalCount: Math.max(0, extractTotal(totalPayload) ?? 0),
+      };
+    },
+    staleTime: 60_000,
+  });
+
+  const albums = bootstrapData?.albums ?? ([] as TAlbum[]);
+  const libraryTotalCount = bootstrapData?.libraryTotalCount ?? 0;
 
   const fetchPage = useCallback(
     async (page: number, append: boolean) => {
@@ -266,35 +281,6 @@ export function usePaginatedMediaCollection<TItem, TAlbum extends CollectionAlbu
   );
 
   useEffect(() => {
-    let disposed = false;
-
-    (async () => {
-      try {
-        const [albumsPayload, totalPayload] = await Promise.all([
-          apiClient.get<TAlbum[]>(albumsEndpoint, { cacheTtl: 60_000 }),
-          apiClient.get<Record<string, unknown>>(`${mediaEndpoint}?page=1&limit=1`, {
-            cacheTtl: 60_000,
-          }),
-        ]);
-
-        if (disposed) return;
-
-        dispatch({
-          type: 'BOOTSTRAP_SUCCESS',
-          albums: Array.isArray(albumsPayload) ? albumsPayload : [],
-          total: Math.max(0, extractTotal(totalPayload) ?? 0),
-        });
-      } catch (error) {
-        console.error('Failed to bootstrap media collection:', error);
-      }
-    })();
-
-    return () => {
-      disposed = true;
-    };
-  }, [albumsEndpoint, extractTotal, mediaEndpoint]);
-
-  useEffect(() => {
     void fetchPage(1, false);
   }, [fetchPage, querySignature]);
 
@@ -326,7 +312,6 @@ export function usePaginatedMediaCollection<TItem, TAlbum extends CollectionAlbu
   const refresh = useCallback(async () => {
     invalidateCollectionCache(mediaEndpoint);
     invalidateCollectionCache(querySignature);
-    apiClient.clearCache(mediaEndpoint);
     loadMoreKeyRef.current = null;
     await fetchPage(1, false);
   }, [fetchPage, mediaEndpoint, querySignature]);
@@ -337,6 +322,8 @@ export function usePaginatedMediaCollection<TItem, TAlbum extends CollectionAlbu
 
   return {
     ...state,
+    albums,
+    libraryTotalCount,
     setSelectedAlbum,
     setSearchQuery,
     loadMore,

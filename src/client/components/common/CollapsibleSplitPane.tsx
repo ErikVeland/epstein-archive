@@ -135,7 +135,7 @@ export const CollapsibleSplitPane: React.FC<CollapsibleSplitPaneProps> = ({
     return (
       <div ref={rootRef} className={`flex h-full min-h-0 min-w-0 ${className}`}>
         <div className="shrink-0 flex items-stretch relative z-20" style={rightStyle}>
-          <div className="w-10 border-r border-[var(--glass-border)] bg-[var(--glass-bg)] flex flex-col items-center py-6 gap-6 shrink-0 relative z-30">
+          <div className="w-10 border-r border-[var(--glass-border)] bg-[var(--glass-bg)] flex flex-col items-center py-[var(--space-6)] gap-[var(--space-6)] shrink-0 relative z-30">
             <button
               type="button"
               onClick={() => setCollapsed(!collapsed)}

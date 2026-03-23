@@ -12,7 +12,8 @@ import {
   subjectsListResponseSchema,
 } from '../src/shared/schemas';
 
-const API_BASE_URL = process.env.PW_API_BASE_URL || 'http://localhost:3312';
+const apiPort = Number(process.env.PW_API_PORT || 3312);
+const API_BASE_URL = process.env.PW_API_BASE_URL || `http://127.0.0.1:${apiPort}`;
 
 const assertSchema = <T>(schema: ZodSchema<T>, payload: unknown, label: string): T => {
   const parsed = schema.safeParse(payload);
@@ -24,14 +25,31 @@ const assertSchema = <T>(schema: ZodSchema<T>, payload: unknown, label: string):
   throw new Error(`[DTO contract] ${label} failed schema validation: ${details}`);
 };
 
+const waitForOk = async (
+  request: Parameters<Parameters<typeof test.beforeAll>[0]>[0]['request'],
+  url: string,
+  attempts = 4,
+) => {
+  let lastStatus: number | null = null;
+  for (let index = 0; index < attempts; index += 1) {
+    const response = await request.get(url, { timeout: 15000 });
+    if (response.ok()) {
+      return response;
+    }
+    lastStatus = response.status();
+    if (index < attempts - 1) {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+    }
+  }
+  throw new Error(`Expected OK from ${url}, last status was ${lastStatus ?? 'unknown'}`);
+};
+
 test.describe('API DTO Contracts', () => {
   test.describe.configure({ mode: 'serial' });
 
   test.beforeAll(async ({ request }) => {
-    const response = await request.get(`${API_BASE_URL}/api/subjects?page=1&limit=1`, {
-      timeout: 15000,
-    });
-    expect(response.ok()).toBeTruthy();
+    test.setTimeout(90_000);
+    await waitForOk(request, `${API_BASE_URL}/api/subjects?page=1&limit=1`);
   });
 
   test('subjects list endpoint matches shared DTO schema', async ({ request }) => {

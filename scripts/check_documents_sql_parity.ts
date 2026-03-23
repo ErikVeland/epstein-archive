@@ -40,9 +40,11 @@ function normalizeSql(sql: string): string {
     .toLowerCase()
     .replace(/--.*$/gm, '')
     .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/\$\{[^}]+\}/g, '') // strip JS template expressions (dynamic ORDER BY etc.)
     .replace(/::[a-z_][a-z0-9_]*(\[\])?/g, '') // remove explicit casts
     .replace(/\$[0-9]+/g, ':p') // positional params
     .replace(/:[a-z_][a-z0-9_]*!?/g, ':p') // named params
+    .replace(/\border\s+by\b[\s\S]*?(?=\blimit\b)/i, '') // strip ORDER BY (intentionally dynamic)
     .replace(/\s+/g, ' ')
     .replace(/\s*([(),=])\s*/g, '$1')
     .trim();

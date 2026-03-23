@@ -43,8 +43,11 @@ export function useHighlightNavigation(
     // Add visual feedback - temporarily highlight the active mark
     marks.forEach((mark, i) => {
       if (i === newIndex) {
-        mark.classList.add('ring-2', 'ring-cyan-500', 'ring-offset-1');
-        setTimeout(() => mark.classList.remove('ring-2', 'ring-cyan-500', 'ring-offset-1'), 1000);
+        mark.classList.add('ring-[2px]', 'ring-[var(--accent)]', 'ring-offset-1');
+        setTimeout(
+          () => mark.classList.remove('ring-[2px]', 'ring-[var(--accent)]', 'ring-offset-1'),
+          1000,
+        );
       }
     });
   }, [containerRef, currentHighlightIndex, totalHighlights]);
@@ -63,8 +66,11 @@ export function useHighlightNavigation(
     // Add visual feedback
     marks.forEach((mark, i) => {
       if (i === newIndex) {
-        mark.classList.add('ring-2', 'ring-cyan-500', 'ring-offset-1');
-        setTimeout(() => mark.classList.remove('ring-2', 'ring-cyan-500', 'ring-offset-1'), 1000);
+        mark.classList.add('ring-[2px]', 'ring-[var(--accent)]', 'ring-offset-1');
+        setTimeout(
+          () => mark.classList.remove('ring-[2px]', 'ring-[var(--accent)]', 'ring-offset-1'),
+          1000,
+        );
       }
     });
   }, [containerRef, currentHighlightIndex, totalHighlights]);

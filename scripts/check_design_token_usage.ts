@@ -5,13 +5,29 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..');
 const clientDir = path.join(rootDir, 'src/client');
+const strictMode = process.env.STRICT_DESIGN_TOKENS === '1';
+const writeStrictBaseline = process.env.WRITE_STRICT_BASELINE === '1';
+const strictBaselinePath = path.join(rootDir, 'scripts/design-token-strict-baseline.json');
 const enforcedFiles = [
+  // Core common primitives
   'src/client/components/common/FormField.tsx',
   'src/client/components/common/Select.tsx',
   'src/client/components/common/SourceBadge.tsx',
   'src/client/components/common/Card.tsx',
   'src/client/components/common/BaseCard.tsx',
   'src/client/components/common/CloseButton.tsx',
+  'src/client/components/common/ProgressBar.tsx',
+  'src/client/components/common/Skeleton.tsx',
+  'src/client/components/common/Tabs.tsx',
+  'src/client/components/common/Tooltip.tsx',
+  'src/client/components/common/BatchToolbar.tsx',
+  'src/client/components/common/FormLayout.tsx',
+  // Glass UI primitives — must be 100% token-clean
+  'src/client/components/ui/GlassButton.tsx',
+  'src/client/components/ui/GlassModal.tsx',
+  'src/client/components/ui/GlassTooltip.tsx',
+  'src/client/components/ui/GlassDropdown.tsx',
+  'src/client/components/ui/GlassSwitch.tsx',
 ].map((filePath) => path.join(rootDir, filePath));
 const forbiddenArbitraryUtilities = [
   /\b(?:p|px|py|pt|pr|pb|pl|m|mx|my|mt|mr|mb|ml|gap|space-x|space-y)-\[(?:\d+|\d+\.\d+)(?:px|rem)\]/g,
@@ -19,6 +35,10 @@ const forbiddenArbitraryUtilities = [
 ];
 const classPattern =
   /\b(?:bg|text|border|from|to|via|ring)-(?:slate|gray|red|orange|amber|yellow|green|emerald|teal|cyan|blue|indigo|violet|purple|pink)-\d{2,3}\b/g;
+const strictClassPattern =
+  /\b(?:bg|text|border|from|to|via|ring)-(?:slate|gray|red|orange|amber|yellow|green|emerald|teal|cyan|blue|indigo|violet|purple|pink)-\d{2,3}\b/g;
+const strictSpacingPattern =
+  /\b(?:p|px|py|pt|pr|pb|pl|m|mx|my|mt|mr|mb|ml|gap|space-x|space-y)-(?:0|0\.5|1|1\.5|2|2\.5|3|3\.5|4|5|6|7|8|9|10|11|12|14|16)\b/g;
 
 function walk(dir: string): string[] {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
@@ -47,6 +67,7 @@ function main() {
     }
   }
   const arbitraryViolations: string[] = [];
+  const strictViolations: string[] = [];
   for (const filePath of walk(clientDir)) {
     const content = fs.readFileSync(filePath, 'utf8');
     for (const pattern of forbiddenArbitraryUtilities) {
@@ -54,6 +75,13 @@ function main() {
       if (pattern.test(content)) {
         arbitraryViolations.push(path.relative(rootDir, filePath));
         break;
+      }
+    }
+    if (strictMode || writeStrictBaseline) {
+      strictClassPattern.lastIndex = 0;
+      strictSpacingPattern.lastIndex = 0;
+      if (strictClassPattern.test(content) || strictSpacingPattern.test(content)) {
+        strictViolations.push(path.relative(rootDir, filePath));
       }
     }
   }
@@ -70,7 +98,27 @@ function main() {
     (requirement) => !configContent.includes(requirement),
   );
 
-  if (violations.length || arbitraryViolations.length || missingConfigRequirements.length) {
+  if (writeStrictBaseline) {
+    const baseline = Array.from(new Set(strictViolations)).sort();
+    fs.writeFileSync(strictBaselinePath, `${JSON.stringify(baseline, null, 2)}\n`, 'utf8');
+    console.log(`[design-token-usage] wrote strict baseline: ${baseline.length} files`);
+    return;
+  }
+
+  const strictBaseline = fs.existsSync(strictBaselinePath)
+    ? (JSON.parse(fs.readFileSync(strictBaselinePath, 'utf8')) as string[])
+    : [];
+  const strictBaselineSet = new Set(strictBaseline);
+  const strictNewViolations = strictViolations.filter(
+    (filePath) => !strictBaselineSet.has(filePath),
+  );
+
+  if (
+    violations.length ||
+    arbitraryViolations.length ||
+    missingConfigRequirements.length ||
+    strictNewViolations.length
+  ) {
     const parts: string[] = [];
     if (violations.length) {
       parts.push(`Hardcoded palette classes in governed primitives: ${violations.join(', ')}`);
@@ -81,7 +129,35 @@ function main() {
     if (missingConfigRequirements.length) {
       parts.push(`Tailwind token wiring missing: ${missingConfigRequirements.join(', ')}`);
     }
+    if (strictNewViolations.length) {
+      parts.push(
+        `STRICT_DESIGN_TOKENS new violations (raw palette/spacing classes): ${strictNewViolations.slice(0, 20).join(', ')}`,
+      );
+    }
     throw new Error(`Design token guard failed. ${parts.join(' | ')}`);
+  }
+
+  if (!strictMode) {
+    const advisoryCount = walk(clientDir).reduce((count, filePath) => {
+      const content = fs.readFileSync(filePath, 'utf8');
+      strictClassPattern.lastIndex = 0;
+      strictSpacingPattern.lastIndex = 0;
+      return (
+        count + (strictClassPattern.test(content) || strictSpacingPattern.test(content) ? 1 : 0)
+      );
+    }, 0);
+    if (advisoryCount > 0) {
+      console.log(
+        `[design-token-usage] advisory: ${advisoryCount} files still use raw palette/spacing classes`,
+      );
+      console.log('[design-token-usage] set STRICT_DESIGN_TOKENS=1 to enforce hard failure');
+    }
+  }
+
+  if (strictMode && strictViolations.length > 0) {
+    console.log(
+      `[design-token-usage] strict baseline debt: ${strictViolations.length} files (no new violations)`,
+    );
   }
 
   console.log('[design-token-usage] OK');

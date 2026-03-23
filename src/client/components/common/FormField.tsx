@@ -27,7 +27,7 @@ const FormField: React.FC<FormFieldProps> = ({
         className={`block text-sm font-medium ${semanticTokens.fieldLabel} ${spacingTokens.labelGap}`}
       >
         {label}
-        {required && <span className={`${semanticTokens.required} ml-1`}>*</span>}
+        {required && <span className={`${semanticTokens.required} ml-[var(--space-1)]`}>*</span>}
       </label>
       {children}
       {helpText && (

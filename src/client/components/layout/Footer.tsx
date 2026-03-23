@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { ExternalLink, Github, Eye, EyeOff, ArrowRight } from 'lucide-react';
 import { useSensitiveSettings } from '../../contexts/SensitiveSettingsContext';
 import { Link } from 'react-router-dom';
@@ -8,86 +9,59 @@ interface FooterProps {
   onVersionClick?: () => void;
 }
 
+interface SystemStatus {
+  status: 'checking' | 'operational' | 'error';
+  message?: string;
+  details?: string;
+}
+
 const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
-  const [systemStatus, setSystemStatus] = useState<{
-    status: 'checking' | 'operational' | 'error';
-    message?: string;
-    details?: string;
-  }>({ status: 'checking' });
   const { showAllSensitive, toggleShowAllSensitive } = useSensitiveSettings();
 
-  useEffect(() => {
-    const checkHealth = async () => {
+  const { data: systemStatus = { status: 'checking' as const } } = useQuery<SystemStatus>({
+    queryKey: ['footer-health'],
+    queryFn: async (): Promise<SystemStatus> => {
       try {
-        const [healthRes, statsRes, subjectsRes, documentsRes, mailboxesRes] =
-          await Promise.allSettled([
-            apiClient.readinessCheck(),
-            apiClient.getStats(),
-            apiClient.getSubjects({}, 1, 1),
-            apiClient.getDocuments({}, 1, 1),
-            apiClient.getEmailMailboxes(),
-          ]);
-
-        if (healthRes.status !== 'fulfilled') {
-          throw healthRes.reason;
-        }
-        if (statsRes.status !== 'fulfilled') {
-          throw statsRes.reason;
-        }
-
-        const health = healthRes.value;
-        const stats = statsRes.value as { totalEntities?: number; totalDocuments?: number };
+        const [health, stats] = await Promise.all([
+          apiClient.readinessCheck(),
+          apiClient.getStats(),
+        ]);
+        const typedStats = stats as { totalEntities?: number; totalDocuments?: number };
 
         const dbOk = health.checks?.db?.ok === true;
-        const statsEntities = Number(stats?.totalEntities || 0);
-        const statsDocuments = Number(stats?.totalDocuments || 0);
-        // Use ?? so undefined (counts timed out) falls back to stats; only explicit 0 is an error
+        const statsEntities = Number(typedStats?.totalEntities || 0);
+        const statsDocuments = Number(typedStats?.totalDocuments || 0);
         const entities = Number(health.checks?.data?.entities ?? statsEntities);
         const documents = Number(health.checks?.data?.documents ?? statsDocuments);
-        const probeFailures: string[] = [];
-
-        if (subjectsRes.status !== 'fulfilled') probeFailures.push('subjects');
-        if (documentsRes.status !== 'fulfilled') probeFailures.push('documents');
-        if (mailboxesRes.status !== 'fulfilled') probeFailures.push('emails/mailboxes');
 
         const hasMinimumData =
           entities > 0 && documents > 0 && statsEntities > 0 && statsDocuments > 0;
-        const probesHealthy = probeFailures.length === 0;
 
-        if (health.status === 'ok' && dbOk && hasMinimumData && probesHealthy) {
-          setSystemStatus({ status: 'operational' });
+        if (health.status === 'ok' && dbOk && hasMinimumData) {
+          return { status: 'operational' };
         } else {
           let errorDetail = 'Live services are responding with partial availability.';
           if (health.checks?.db?.ok === false) {
             errorDetail = 'The archive API is reachable, but database checks are failing.';
           } else if (!hasMinimumData) {
             errorDetail = 'Core datasets are still loading or currently unavailable.';
-          } else if (!probesHealthy) {
-            errorDetail = `Some live endpoints are unavailable: ${probeFailures.join(', ')}`;
           }
 
-          setSystemStatus({
-            status: 'error',
-            message: 'DEGRADED',
-            details: errorDetail,
-          });
+          return { status: 'error', message: 'DEGRADED', details: errorDetail };
         }
       } catch (error) {
-        setSystemStatus({
+        return {
           status: 'error',
           message: 'OFFLINE',
           details:
             error instanceof Error
               ? `Unable to reach live services: ${error.message}`
               : 'Unable to reach live services at the moment.',
-        });
+        };
       }
-    };
-    checkHealth();
-    // Re-check every 30 seconds for faster feedback
-    const interval = setInterval(checkHealth, 30000);
-    return () => clearInterval(interval);
-  }, []);
+    },
+    refetchInterval: 5 * 60 * 1000,
+  });
 
   const statusConfig = {
     checking: { color: 'bg-[var(--status-checking)]', text: 'Checking Live Data' },
@@ -304,13 +278,13 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
               </span>
             </button>
             <a
-              href="#"
+              href="/privacy"
               className="hover:text-[var(--text-primary)] transition-colors hover:underline decoration-[var(--glass-border)] underline-offset-4"
             >
               Privacy Policy
             </a>
             <a
-              href="#"
+              href="/terms"
               className="hover:text-[var(--text-primary)] transition-colors hover:underline decoration-[var(--glass-border)] underline-offset-4"
             >
               Terms of Service

@@ -292,10 +292,10 @@ const Icon: React.FC<IconProps> = ({
 
   const colorClasses = {
     primary: 'text-[var(--accent)]',
-    secondary: 'text-purple-400',
-    success: 'text-green-400',
-    warning: 'text-yellow-400',
-    danger: 'text-red-400',
+    secondary: 'text-[var(--accent-secondary)]',
+    success: 'text-[var(--accent-success)]',
+    warning: 'text-[var(--accent-warning)]',
+    danger: 'text-[var(--accent-danger)]',
     info: 'text-[var(--accent)]',
     white: 'text-[var(--text-primary)]',
     gray: 'text-[var(--text-muted)]',

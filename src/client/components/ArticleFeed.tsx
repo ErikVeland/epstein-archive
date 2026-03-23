@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Article, ArticleFeedService } from '../services/articleFeedService';
 import { ExternalLink, Calendar, Tag, RefreshCw, AlertCircle } from 'lucide-react';
 
@@ -13,33 +14,29 @@ export const ArticleFeed: React.FC<ArticleFeedProps> = ({
   tagFilter = 'epstein',
   maxArticles = 6,
 }) => {
-  const [articles, setArticles] = useState<Article[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-
   const feedService = new ArticleFeedService();
 
-  const fetchArticles = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
+  const {
+    data,
+    isLoading,
+    isError,
+    error: queryError,
+    refetch,
+  } = useQuery<{ articles: Article[]; fetchedAt: Date }>({
+    queryKey: ['article-feed', feedUrl, tagFilter, maxArticles],
+    queryFn: async () => {
       const fetchedArticles = await feedService.fetchArticles(feedUrl, tagFilter);
-      setArticles(fetchedArticles.slice(0, maxArticles));
-      setLastUpdated(new Date());
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch articles');
-      console.error('Error fetching articles:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+      return { articles: fetchedArticles.slice(0, maxArticles), fetchedAt: new Date() };
+    },
+  });
 
-  useEffect(() => {
-    fetchArticles();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- fetchArticles depends only on props and internal state
-  }, [feedUrl, tagFilter, maxArticles]);
+  const articles = data?.articles ?? [];
+  const lastUpdated = data?.fetchedAt ?? null;
+  const error = isError
+    ? queryError instanceof Error
+      ? queryError.message
+      : 'Failed to fetch articles'
+    : null;
 
   const formatDate = (dateString: string): string => {
     return feedService.formatPubDate(dateString);
@@ -49,7 +46,7 @@ export const ArticleFeed: React.FC<ArticleFeedProps> = ({
     return feedService.truncateText(text, maxLength);
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="bg-[var(--glass-bg-strong)] rounded-[var(--radius-lg)] p-6">
         <div className="flex items-center justify-between mb-4">
@@ -82,7 +79,7 @@ export const ArticleFeed: React.FC<ArticleFeedProps> = ({
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-[var(--text-primary)]">Latest Articles</h2>
           <button
-            onClick={fetchArticles}
+            onClick={() => void refetch()}
             className="flex items-center space-x-2 px-3 py-2 bg-[var(--accent)] text-[var(--text-primary)] rounded-[var(--radius-lg)] hover:bg-blue-700 transition-colors"
           >
             <RefreshCw className="w-4 h-4" />
@@ -106,7 +103,7 @@ export const ArticleFeed: React.FC<ArticleFeedProps> = ({
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-[var(--text-primary)]">Latest Articles</h2>
           <button
-            onClick={fetchArticles}
+            onClick={() => void refetch()}
             className="flex items-center space-x-2 px-3 py-2 bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] rounded-[var(--radius-lg)] hover:bg-[var(--glass-bg-highlight)] transition-colors"
           >
             <RefreshCw className="w-4 h-4" />
@@ -151,7 +148,7 @@ export const ArticleFeed: React.FC<ArticleFeedProps> = ({
             </span>
           )}
           <button
-            onClick={fetchArticles}
+            onClick={() => void refetch()}
             className="flex items-center space-x-2 px-3 py-2 bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] rounded-[var(--radius-lg)] hover:bg-[var(--glass-bg-highlight)] transition-colors"
           >
             <RefreshCw className="w-4 h-4" />

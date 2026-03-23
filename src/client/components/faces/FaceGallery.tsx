@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Icon from '../common/Icon';
 import { useToasts } from '../common/useToasts';
 
@@ -126,50 +127,31 @@ const EntitySearch: React.FC<{
 };
 
 export const FaceGallery: React.FC = () => {
-  const [clusters, setClusters] = useState<FaceCluster[]>([]);
-  const [loading, setLoading] = useState(true);
   const [selectedClusterId, setSelectedClusterId] = useState<string | null>(null);
-  const [clusterDetail, setClusterDetail] = useState<ClusterDetail | null>(null);
-  const [detailLoading, setDetailLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const { addToast } = useToasts();
+  const queryClient = useQueryClient();
 
-  const fetchClusters = useCallback(async () => {
-    try {
-      setLoading(true);
+  const { data: clusters = [], isLoading: loading } = useQuery<FaceCluster[]>({
+    queryKey: ['faceClusters'],
+    queryFn: async () => {
       const res = await fetch('/api/faces/clusters');
       if (!res.ok) throw new Error('Failed to fetch clusters');
-      setClusters(await res.json());
-    } catch {
-      addToast({ text: 'Failed to load face clusters', type: 'error' });
-    } finally {
-      setLoading(false);
-    }
-  }, [addToast]);
+      return res.json() as Promise<FaceCluster[]>;
+    },
+    staleTime: 30_000,
+  });
 
-  useEffect(() => {
-    void fetchClusters();
-  }, [fetchClusters]);
-
-  useEffect(() => {
-    if (!selectedClusterId) {
-      setClusterDetail(null);
-      return;
-    }
-    const load = async () => {
-      setDetailLoading(true);
-      try {
-        const res = await fetch(`/api/faces/clusters/${selectedClusterId}`);
-        if (!res.ok) throw new Error('Failed');
-        setClusterDetail(await res.json());
-      } catch {
-        addToast({ text: 'Failed to load cluster details', type: 'error' });
-      } finally {
-        setDetailLoading(false);
-      }
-    };
-    void load();
-  }, [selectedClusterId, addToast]);
+  const { data: clusterDetail = null, isLoading: detailLoading } = useQuery<ClusterDetail | null>({
+    queryKey: ['faceClusterDetail', selectedClusterId],
+    queryFn: async () => {
+      const res = await fetch(`/api/faces/clusters/${selectedClusterId}`);
+      if (!res.ok) throw new Error('Failed');
+      return res.json() as Promise<ClusterDetail>;
+    },
+    enabled: Boolean(selectedClusterId),
+    staleTime: 30_000,
+  });
 
   const patchCluster = async (payload: Record<string, unknown>) => {
     if (!selectedClusterId) return null;
@@ -181,7 +163,7 @@ export const FaceGallery: React.FC = () => {
         body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error('Failed');
-      return await res.json();
+      return (await res.json()) as FaceCluster;
     } finally {
       setSaving(false);
     }
@@ -191,13 +173,16 @@ export const FaceGallery: React.FC = () => {
     try {
       const updated = await patchCluster({ entity_id: entity.id, name: entity.name });
       if (!updated) return;
-      setClusterDetail((prev) =>
-        prev ? { ...prev, cluster: { ...prev.cluster, ...updated } } : null,
+      queryClient.setQueryData<ClusterDetail | null>(
+        ['faceClusterDetail', selectedClusterId],
+        (prev) => (prev ? { ...prev, cluster: { ...prev.cluster, ...updated } } : null),
       );
-      setClusters((prev) => prev.map((c) => (c.id === updated.id ? { ...c, ...updated } : c)));
-      const count = updated.tagged_photos ?? 0;
+      queryClient.setQueryData<FaceCluster[]>(['faceClusters'], (prev) =>
+        prev ? prev.map((c) => (c.id === updated.id ? { ...c, ...updated } : c)) : prev,
+      );
+      const count = (updated as unknown as Record<string, unknown>).tagged_photos ?? 0;
       addToast({
-        text: `Linked to ${entity.name} — ${count} photo${count !== 1 ? 's' : ''} tagged`,
+        text: `Linked to ${entity.name} — ${count as number} photo${(count as number) !== 1 ? 's' : ''} tagged`,
         type: 'success',
       });
     } catch {
@@ -209,10 +194,13 @@ export const FaceGallery: React.FC = () => {
     try {
       const updated = await patchCluster({ entity_id: null });
       if (!updated) return;
-      setClusterDetail((prev) =>
-        prev ? { ...prev, cluster: { ...prev.cluster, ...updated } } : null,
+      queryClient.setQueryData<ClusterDetail | null>(
+        ['faceClusterDetail', selectedClusterId],
+        (prev) => (prev ? { ...prev, cluster: { ...prev.cluster, ...updated } } : null),
       );
-      setClusters((prev) => prev.map((c) => (c.id === updated.id ? { ...c, ...updated } : c)));
+      queryClient.setQueryData<FaceCluster[]>(['faceClusters'], (prev) =>
+        prev ? prev.map((c) => (c.id === updated.id ? { ...c, ...updated } : c)) : prev,
+      );
       addToast({ text: 'Entity link removed', type: 'success' });
     } catch {
       addToast({ text: 'Failed to unlink', type: 'error' });
@@ -291,7 +279,7 @@ export const FaceGallery: React.FC = () => {
                     <button
                       onClick={handleUnlink}
                       disabled={saving}
-                      className="p-1.5 text-[var(--text-muted)] hover:text-red-400 transition-colors"
+                      className="p-1.5 text-[var(--text-muted)] hover:text-[var(--accent-danger)] transition-colors"
                       title="Remove entity link"
                     >
                       <Icon name="Unlink" size="xs" />
@@ -386,7 +374,7 @@ export const FaceGallery: React.FC = () => {
                 </div>
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60 group-hover:opacity-40 transition-opacity" />
-              <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm px-2 py-0.5 rounded text-xs font-mono text-[var(--accent)] border border-cyan-900/50">
+              <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm px-2 py-0.5 rounded text-xs font-mono text-[var(--accent)] border border-[var(--accent)]/30">
                 {cluster.face_count}
               </div>
               {cluster.entity_id && (

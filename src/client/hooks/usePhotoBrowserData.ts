@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../services/apiClient';
 import { Album, MediaImage, MediaStats, MediaTag } from '../types/media.types';
 
@@ -22,15 +23,11 @@ interface PhotoBrowserFilters {
 
 interface PhotoBrowserState {
   filters: PhotoBrowserFilters;
-  albums: Album[];
   images: MediaImage[];
-  availableTags: MediaTag[];
   availablePeople: PersonOption[];
-  libraryTotalCount: number;
   page: number;
   hasMore: boolean;
   loading: boolean;
-  bootstrapLoaded: boolean;
   pendingViewerIndex: number | null;
 }
 
@@ -39,12 +36,6 @@ type PhotoBrowserAction =
       type: 'SET_FILTER';
       key: keyof PhotoBrowserFilters;
       value: PhotoBrowserFilters[keyof PhotoBrowserFilters];
-    }
-  | {
-      type: 'SET_BOOTSTRAP_DATA';
-      albums?: Album[];
-      availableTags?: MediaTag[];
-      libraryTotalCount?: number;
     }
   | { type: 'SET_AVAILABLE_PEOPLE'; availablePeople: PersonOption[] }
   | { type: 'FETCH_START'; append: boolean }
@@ -101,15 +92,11 @@ function buildInitialState(): PhotoBrowserState {
       sortOrder: 'desc',
       searchQuery: '',
     },
-    albums: [],
     images: [],
-    availableTags: [],
     availablePeople: [],
-    libraryTotalCount: 0,
     page: 1,
     hasMore: true,
     loading: true,
-    bootstrapLoaded: false,
     pendingViewerIndex: null,
   };
 }
@@ -131,14 +118,6 @@ function reducer(state: PhotoBrowserState, action: PhotoBrowserAction): PhotoBro
           ...state.filters,
           [action.key]: action.value,
         },
-      };
-    case 'SET_BOOTSTRAP_DATA':
-      return {
-        ...state,
-        albums: action.albums ?? state.albums,
-        availableTags: action.availableTags ?? state.availableTags,
-        libraryTotalCount: action.libraryTotalCount ?? state.libraryTotalCount,
-        bootstrapLoaded: true,
       };
     case 'SET_AVAILABLE_PEOPLE':
       return {
@@ -234,6 +213,35 @@ export function usePhotoBrowserData() {
     [state.filters],
   );
 
+  // Bootstrap data: albums, tags, and library total count via useQuery
+  const { data: bootstrapData } = useQuery({
+    queryKey: ['photo-browser-bootstrap'],
+    queryFn: async () => {
+      const [albumsResult, tagsResult, totalResult] = await Promise.allSettled([
+        apiClient.get<Album[]>('/media/albums', { cacheTtl: 60_000 }),
+        apiClient.get<MediaTag[]>('/media/tags', { cacheTtl: 60_000 }),
+        fetchLibraryTotalCount(),
+      ]);
+      return {
+        albums:
+          albumsResult.status === 'fulfilled' && Array.isArray(albumsResult.value)
+            ? albumsResult.value
+            : ([] as Album[]),
+        availableTags:
+          tagsResult.status === 'fulfilled' && Array.isArray(tagsResult.value)
+            ? tagsResult.value
+            : ([] as MediaTag[]),
+        libraryTotalCount: totalResult.status === 'fulfilled' ? totalResult.value : 0,
+      };
+    },
+    staleTime: 60_000,
+  });
+
+  const albums = bootstrapData?.albums ?? [];
+  const availableTags = bootstrapData?.availableTags ?? [];
+  const libraryTotalCount = bootstrapData?.libraryTotalCount ?? 0;
+  const bootstrapLoaded = bootstrapData !== undefined;
+
   const runPageFetch = useCallback(
     async (page: number, append: boolean, signal?: AbortSignal) => {
       const endpoint = buildImageQuery(state.filters, page);
@@ -300,37 +308,6 @@ export function usePhotoBrowserData() {
     },
     [querySignature, state.filters],
   );
-
-  useEffect(() => {
-    let disposed = false;
-
-    (async () => {
-      const [albumsResult, tagsResult, totalResult] = await Promise.allSettled([
-        apiClient.get<Album[]>('/media/albums', { cacheTtl: 60_000 }),
-        apiClient.get<MediaTag[]>('/media/tags', { cacheTtl: 60_000 }),
-        fetchLibraryTotalCount(),
-      ]);
-
-      if (disposed) return;
-
-      dispatch({
-        type: 'SET_BOOTSTRAP_DATA',
-        albums:
-          albumsResult.status === 'fulfilled' && Array.isArray(albumsResult.value)
-            ? albumsResult.value
-            : [],
-        availableTags:
-          tagsResult.status === 'fulfilled' && Array.isArray(tagsResult.value)
-            ? tagsResult.value
-            : [],
-        libraryTotalCount: totalResult.status === 'fulfilled' ? totalResult.value : 0,
-      });
-    })();
-
-    return () => {
-      disposed = true;
-    };
-  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -439,6 +416,10 @@ export function usePhotoBrowserData() {
   return {
     ...state,
     ...state.filters,
+    albums,
+    availableTags,
+    libraryTotalCount,
+    bootstrapLoaded,
     setSelectedAlbum,
     setSelectedTag,
     setSelectedPerson,

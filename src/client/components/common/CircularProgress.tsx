@@ -66,7 +66,9 @@ const CircularProgress: React.FC<CircularProgressProps> = ({
         )}
       </div>
       {label && (
-        <span className="mt-2 text-sm font-medium text-[var(--text-secondary)]">{label}</span>
+        <span className="mt-[var(--space-2)] text-sm font-medium text-[var(--text-secondary)]">
+          {label}
+        </span>
       )}
     </div>
   );

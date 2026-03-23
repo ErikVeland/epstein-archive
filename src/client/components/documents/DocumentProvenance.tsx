@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import Icon from '../common/Icon';
 
 interface DocumentLineage {
@@ -31,23 +32,24 @@ export const DocumentProvenance: React.FC<DocumentProvenanceProps> = ({
   documentId,
   compact = false,
 }) => {
-  const [lineage, setLineage] = useState<DocumentLineage | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(!compact);
 
-  useEffect(() => {
-    if (!documentId) return;
-
-    fetch(`/api/documents/${documentId}/lineage`)
-      .then((res) => {
-        if (!res.ok) throw new Error('Failed to fetch lineage');
-        return res.json();
-      })
-      .then(setLineage)
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
-  }, [documentId]);
+  const {
+    data: lineage = null,
+    isLoading: loading,
+    error: fetchError,
+  } = useQuery<DocumentLineage | null>({
+    queryKey: ['documentLineage', documentId],
+    queryFn: async () => {
+      if (!documentId) return null;
+      const res = await fetch(`/api/documents/${documentId}/lineage`);
+      if (!res.ok) throw new Error('Failed to fetch lineage');
+      return res.json() as Promise<DocumentLineage>;
+    },
+    enabled: Boolean(documentId),
+    staleTime: 30_000,
+  });
+  const error = fetchError instanceof Error ? fetchError.message : null;
 
   if (loading) {
     return (

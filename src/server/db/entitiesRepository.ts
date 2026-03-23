@@ -117,10 +117,30 @@ async function buildVipDisplayLookup(): Promise<Map<string, string>> {
     return vipLookupCache.value;
   }
 
-  const raw = await runQuery<
-    undefined,
-    { full_name?: string; mentions?: number; aliases?: string }
-  >(entitiesQueries.getVipEntities, undefined, getApiPool());
+  let raw: Array<{ full_name?: string; mentions?: number; aliases?: string }> = [];
+  try {
+    raw = await runQuery<undefined, { full_name?: string; mentions?: number; aliases?: string }>(
+      entitiesQueries.getVipEntities,
+      undefined,
+      getApiPool(),
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    const code =
+      typeof error === 'object' && error !== null && 'code' in error
+        ? String((error as { code?: unknown }).code || '')
+        : '';
+    const isTimeout =
+      code === '57014' || /statement timeout|query read timeout|timeout/i.test(message);
+    if (!isTimeout) throw error;
+
+    const degradedLookup = vipLookupCache?.value ?? new Map<string, string>();
+    vipLookupCache = {
+      value: degradedLookup,
+      expiresAt: now + 60_000,
+    };
+    return degradedLookup;
+  }
   const bestByAlias = new Map<string, { canonicalName: string; score: number }>();
 
   for (const row of raw) {
@@ -188,34 +208,6 @@ function normalizeSubjectDedupeKey(name: string): string {
     .trim();
 }
 
-function normalizeSubjectKeySql(columnSql: string): string {
-  return `
-    TRIM(
-      REGEXP_REPLACE(
-        REGEXP_REPLACE(
-          REGEXP_REPLACE(
-            REGEXP_REPLACE(
-              REGEXP_REPLACE(LOWER(COALESCE(${columnSql}, '')), '\\m(to|from|cc|bcc|subject|re|fwd|fw)\\M\\s*$', ' ', 'gi'),
-              '[^a-z0-9\\s]',
-              ' ',
-              'g'
-            ),
-            '\\m(mr|mrs|ms|miss|dr|prof|professor|president|prime|minster|governor|senator|judge|justice|secretary)\\M',
-            ' ',
-            'gi'
-          ),
-          '\\m(the|of|and|or|inc|llc|corp|ltd|group|trust|[a-z])\\M',
-          ' ',
-          'gi'
-        ),
-        '\\s+',
-        ' ',
-        'g'
-      )
-    )
-  `;
-}
-
 function isLikelyInferredEntity(name: string, _role?: string): boolean {
   const n = String(name || '')
     .toLowerCase()
@@ -252,6 +244,82 @@ const EVIDENCE_LADDER_RANK: Record<'NONE' | 'L3' | 'L2' | 'L1', number> = {
   L2: 2,
   L1: 3,
 };
+
+const SUBJECT_AGGREGATE_ENRICHMENT_LIMIT = Math.max(
+  1,
+  Number(process.env.SUBJECT_AGGREGATE_ENRICHMENT_LIMIT || 8) || 8,
+);
+
+async function loadAggregateStatsForSubjects(
+  pool: ReturnType<typeof getApiPool>,
+  subjectIds: number[],
+): Promise<Map<number, { documents: number; distinctSources: number; verifiedMedia: number }>> {
+  const aggregateStatsByEntity = new Map<
+    number,
+    { documents: number; distinctSources: number; verifiedMedia: number }
+  >();
+
+  if (subjectIds.length === 0) {
+    return aggregateStatsByEntity;
+  }
+
+  const aggregateResult = await pool.query<{
+    entity_id: number;
+    documents: string | number;
+    distinct_sources: string | number;
+    verified_media: string | number;
+  }>({
+    text: `
+      SELECT
+        em.entity_id,
+        COUNT(DISTINCT em.document_id) AS documents,
+        COUNT(
+          DISTINCT CASE
+            WHEN NULLIF(BTRIM(COALESCE(d.evidence_type, '')), '') IS NOT NULL THEN LOWER(BTRIM(d.evidence_type))
+            WHEN d.file_type ILIKE 'image/%'
+              OR d.file_type ILIKE 'video/%'
+              OR d.file_type ILIKE 'audio/%' THEN 'media'
+            WHEN LOWER(COALESCE(d.file_name, '')) LIKE '%.eml'
+              OR LOWER(COALESCE(d.file_name, '')) LIKE '%.msg'
+              OR LOWER(COALESCE(d.file_path, '')) LIKE '%/email%'
+              OR LOWER(COALESCE(d.file_path, '')) LIKE '%/emails%' THEN 'email'
+            WHEN LOWER(COALESCE(d.file_path, '')) LIKE '%black%book%' THEN 'black_book'
+            WHEN LOWER(COALESCE(d.file_path, '')) LIKE '%flight%' THEN 'flight'
+            WHEN LOWER(COALESCE(d.file_name, '')) LIKE '%.pdf'
+              OR LOWER(COALESCE(d.file_name, '')) LIKE '%.txt'
+              OR LOWER(COALESCE(d.file_name, '')) LIKE '%.doc'
+              OR LOWER(COALESCE(d.file_name, '')) LIKE '%.docx'
+              OR LOWER(COALESCE(d.file_name, '')) LIKE '%.xls'
+              OR LOWER(COALESCE(d.file_name, '')) LIKE '%.xlsx' THEN 'document'
+            ELSE NULL
+          END
+        ) AS distinct_sources,
+        COUNT(DISTINCT em.document_id) FILTER (
+          WHERE d.evidence_type = 'media'
+            AND (
+              d.file_type ILIKE 'image/%'
+              OR d.file_type ILIKE 'video/%'
+              OR d.file_type ILIKE 'audio/%'
+            )
+        ) AS verified_media
+      FROM entity_mentions em
+      JOIN documents d ON d.id = em.document_id
+      WHERE em.entity_id = ANY($1::bigint[])
+      GROUP BY em.entity_id
+    `,
+    values: [subjectIds],
+  });
+
+  for (const row of aggregateResult.rows) {
+    aggregateStatsByEntity.set(Number(row.entity_id), {
+      documents: Number(row.documents || 0),
+      distinctSources: Number(row.distinct_sources || 0),
+      verifiedMedia: Number(row.verified_media || 0),
+    });
+  }
+
+  return aggregateStatsByEntity;
+}
 
 async function getSubjectCardsFallback(
   page: number,
@@ -374,6 +442,39 @@ async function getSubjectCardsFallback(
     };
   });
 
+  try {
+    const subjectIds = subjects
+      .map((subject) => Number(subject.id))
+      .filter((id) => Number.isFinite(id) && id > 0);
+    const aggregateStatsByEntity =
+      subjectIds.length <= SUBJECT_AGGREGATE_ENRICHMENT_LIMIT
+        ? await loadAggregateStatsForSubjects(pool, subjectIds)
+        : new Map<number, { documents: number; distinctSources: number; verifiedMedia: number }>();
+
+    for (const subject of subjects) {
+      const aggregateStats = aggregateStatsByEntity.get(Number(subject.id));
+      if (!aggregateStats) continue;
+      subject.stats.documents = aggregateStats.documents;
+      subject.stats.distinctSources = aggregateStats.distinctSources;
+      subject.stats.verifiedMedia = aggregateStats.verifiedMedia;
+      subject.forensics.signalStrength.corroboration = Math.min(
+        100,
+        aggregateStats.verifiedMedia * 20,
+      );
+      if (aggregateStats.verifiedMedia > 0) {
+        subject.forensics.evidenceLadder = 'L1';
+        if (!subject.forensics.driverLabels.includes('Media Mentions')) {
+          subject.forensics.driverLabels = [
+            ...subject.forensics.driverLabels,
+            'Media Mentions',
+          ].slice(0, 4);
+        }
+      }
+    }
+  } catch {
+    // Fallback should stay fast even if aggregate enrichment is unavailable.
+  }
+
   return {
     subjects,
     total: Number(countRows?.[0]?.total || 0),
@@ -456,6 +557,19 @@ export const entitiesRepository = {
 
     const orderByTerms: string[] = [];
     orderByTerms.push(`${inferredRankExpr} ASC`);
+    const documentCountExpr = `(
+      SELECT COUNT(DISTINCT em.document_id)
+      FROM entity_mentions em
+      WHERE em.entity_id = e.id
+    )`;
+    // Use a live subquery for mention counts so sort order reflects the current
+    // entity_mentions table rather than the denormalized (and potentially stale)
+    // entities.mentions column.
+    const mentionCountExpr = `(
+      SELECT COUNT(*)
+      FROM entity_mentions em
+      WHERE em.entity_id = e.id
+    )`;
 
     if (sortKey === 'red_flag' || sortKey === 'rfi' || sortKey === 'default') {
       // Canonical ordering for subject cards:
@@ -463,33 +577,33 @@ export const entitiesRepository = {
       orderByTerms.push(
         `COALESCE(e.red_flag_rating, 0) ${sortOrder}`,
         `${riskRankExpr} ${sortOrder}`,
-        `COALESCE(mc.mentions, 0) ${sortOrder}`,
+        `${mentionCountExpr} ${sortOrder}`,
       );
     } else if (sortKey === 'risk') {
       orderByTerms.push(
         `${riskRankExpr} ${sortOrder}`,
         `COALESCE(e.red_flag_rating, 0) ${sortOrder}`,
-        `COALESCE(mc.mentions, 0) ${sortOrder}`,
+        `${mentionCountExpr} ${sortOrder}`,
       );
     } else if (sortKey === 'mentions') {
       orderByTerms.push(
-        `COALESCE(mc.mentions, 0) ${sortOrder}`,
+        `${mentionCountExpr} ${sortOrder}`,
         `COALESCE(e.red_flag_rating, 0) DESC`,
         `${riskRankExpr} DESC`,
       );
     } else if (sortKey === 'document_count' || sortKey === 'document-count') {
       orderByTerms.push(
-        `COALESCE(mc.documents, 0) ${sortOrder}`,
+        `${documentCountExpr} ${sortOrder}`,
         `COALESCE(e.red_flag_rating, 0) DESC`,
         `${riskRankExpr} DESC`,
-        `COALESCE(mc.mentions, 0) DESC`,
+        `${mentionCountExpr} DESC`,
       );
     } else if (sortKey === 'recent') {
       orderByTerms.push(
         `e.id ${sortOrder}`,
         `COALESCE(e.red_flag_rating, 0) DESC`,
         `${riskRankExpr} DESC`,
-        `COALESCE(mc.mentions, 0) DESC`,
+        `${mentionCountExpr} DESC`,
       );
     } else {
       orderByTerms.push(`LOWER(COALESCE(e.full_name, '')) ${sortOrder}`);
@@ -501,71 +615,34 @@ export const entitiesRepository = {
     const listParams = [...params, limit, offset];
 
     try {
-      // Run main query, count, max-connectivity, and VIP lookup in parallel
       const [rawEntitiesResult, countResult, maxConnResult, vipDisplayLookup] = await Promise.all([
-        pool.query(
-          `
-          WITH mention_counts AS (
-            SELECT
-              em.entity_id,
-              COUNT(*)::bigint AS mentions,
-              COUNT(DISTINCT em.document_id)::bigint AS documents
-            FROM entity_mentions em
-            GROUP BY em.entity_id
-          )
+        pool.query({
+          text: `
           SELECT
             e.id,
             e.full_name as "fullName",
             e.primary_role as "primaryRole",
             e.bio,
-            COALESCE(mc.mentions, COALESCE(e.mentions, 0)) as mentions,
+            COALESCE(e.mentions, 0) as mentions,
             e.risk_level as "riskLevel",
             e.red_flag_rating as "redFlagRating",
             e.connections_summary as "connections",
-            e.was_agentic as "wasAgentic",
-            (
-              SELECT COUNT(*)
-              FROM entity_mentions em2
-              JOIN documents d ON d.id = em2.document_id
-              WHERE em2.entity_id = e.id
-                AND d.evidence_type = 'media'
-            ) as "mediaCount",
-            (SELECT COUNT(*) FROM black_book_entries WHERE person_id = e.id) as "blackBookCount",
-            (
-              SELECT m.id
-              FROM media_items m
-              LEFT JOIN media_item_people mip ON m.id = mip.media_item_id::text
-              LEFT JOIN media_albums ma ON ma.id = m.album_id
-              WHERE (
-                COALESCE(mip.entity_id, m.entity_id) = e.id
-                OR LOWER(COALESCE(ma.name, '')) = LOWER(COALESCE(e.full_name, ''))
-                OR EXISTS (
-                  SELECT 1
-                  FROM unnest(regexp_split_to_array(LOWER(COALESCE(e.aliases, '')), '\\s*,\\s*')) alias_name
-                  WHERE alias_name <> ''
-                    AND alias_name = LOWER(COALESCE(ma.name, ''))
-                )
-              )
-                AND (m.file_type ILIKE 'image/%' OR m.file_type IS NULL)
-              ORDER BY COALESCE(m.red_flag_rating, 0) DESC, m.id DESC
-              LIMIT 1
-            ) as "topPhotoId"
+            e.was_agentic as "wasAgentic"
           FROM entities e
-          LEFT JOIN mention_counts mc ON mc.entity_id = e.id
           ${whereSql}
           ORDER BY ${orderBySql}
           LIMIT $${listParams.length - 1} OFFSET $${listParams.length}
           `,
-          listParams,
-        ),
-        pool.query<{ total: string }>(
-          `
+          values: listParams,
+        }),
+        pool.query<{ total: string }>({
+          text: `
           SELECT COUNT(*)::bigint AS total
           FROM entities e
           ${whereSql}
           `,
-          params,
-        ),
+          values: params,
+        }),
         runQuery<undefined, { maxConn?: number }>(
           entitiesQueries.getMaxConnectivity,
           undefined,
@@ -577,151 +654,19 @@ export const entitiesRepository = {
       const rawEntities = rawEntitiesResult.rows as Array<Record<string, unknown>>;
       const total = Number(countResult.rows[0]?.total || 0);
       const maxConnectivityCount = Number(maxConnResult[0]?.maxConn || 1);
-
-      const pageNormalizedKeys = Array.from(
-        new Set(
-          rawEntities
-            .map((row) => resolveDisplayName(String(row.fullName || ''), vipDisplayLookup))
-            .map((name) => normalizeSubjectDedupeKey(name))
-            .filter(Boolean),
-        ),
-      );
-
-      let entitiesForPageMerge = rawEntities;
-      if (pageNormalizedKeys.length > 0) {
-        const supplementalParams = [...params];
-        const keysParam = `$${supplementalParams.length + 1}`;
-        supplementalParams.push(pageNormalizedKeys);
-
-        const whereWithKeysSql = whereParts.length
-          ? `WHERE ${whereParts.join(' AND ')} AND ${normalizeSubjectKeySql('e.full_name')} = ANY(${keysParam}::text[])`
-          : `WHERE ${normalizeSubjectKeySql('e.full_name')} = ANY(${keysParam}::text[])`;
-
-        const supplementalResult = await pool.query(
-          `
-          WITH mention_counts AS (
-            SELECT
-              em.entity_id,
-              COUNT(*)::bigint AS mentions,
-              COUNT(DISTINCT em.document_id)::bigint AS documents
-            FROM entity_mentions em
-            GROUP BY em.entity_id
-          )
-          SELECT
-            e.id,
-            e.full_name as "fullName",
-            e.primary_role as "primaryRole",
-            e.bio,
-            COALESCE(mc.mentions, COALESCE(e.mentions, 0)) as mentions,
-            e.risk_level as "riskLevel",
-            e.red_flag_rating as "redFlagRating",
-            e.connections_summary as "connections",
-            e.was_agentic as "wasAgentic",
-          (
-              SELECT COUNT(*)
-              FROM entity_mentions em2
-              JOIN documents d ON d.id = em2.document_id
-              WHERE em2.entity_id = e.id
-                AND d.evidence_type = 'media'
-            ) as "mediaCount",
-            (SELECT COUNT(*) FROM black_book_entries WHERE person_id = e.id) as "blackBookCount",
-            (
-              SELECT m.id
-              FROM media_items m
-              LEFT JOIN media_item_people mip ON m.id = mip.media_item_id::text
-              LEFT JOIN media_albums ma ON ma.id = m.album_id
-              WHERE (
-                COALESCE(mip.entity_id, m.entity_id) = e.id
-                OR LOWER(COALESCE(ma.name, '')) = LOWER(COALESCE(e.full_name, ''))
-                OR EXISTS (
-                  SELECT 1
-                  FROM unnest(regexp_split_to_array(LOWER(COALESCE(e.aliases, '')), '\\s*,\\s*')) alias_name
-                  WHERE alias_name <> ''
-                    AND alias_name = LOWER(COALESCE(ma.name, ''))
-                )
-              )
-                AND (m.file_type ILIKE 'image/%' OR m.file_type IS NULL)
-              ORDER BY COALESCE(m.red_flag_rating, 0) DESC, m.id DESC
-              LIMIT 1
-            ) as "topPhotoId"
-          FROM entities e
-          LEFT JOIN mention_counts mc ON mc.entity_id = e.id
-          ${whereWithKeysSql}
-          `,
-          supplementalParams,
-        );
-
-        const byId = new Map<string, Record<string, unknown>>();
-        for (const row of [...rawEntities, ...supplementalResult.rows]) {
-          byId.set(String(row.id), row);
-        }
-        entitiesForPageMerge = Array.from(byId.values());
-      }
+      const entitiesForPageMerge = rawEntities;
 
       const subjectIds = entitiesForPageMerge
         .map((row) => Number(row.id))
         .filter((id) => Number.isFinite(id) && id > 0);
 
-      const aggregateStatsByEntity = new Map<
-        number,
-        { documents: number; distinctSources: number; verifiedMedia: number }
-      >();
-      if (subjectIds.length > 0) {
-        const aggregateResult = await pool.query<{
-          entity_id: number;
-          documents: string | number;
-          distinct_sources: string | number;
-          verified_media: string | number;
-        }>(
-          `
-          SELECT
-            em.entity_id,
-            COUNT(DISTINCT em.document_id) AS documents,
-            COUNT(
-              DISTINCT CASE
-                WHEN NULLIF(BTRIM(COALESCE(d.evidence_type, '')), '') IS NOT NULL THEN LOWER(BTRIM(d.evidence_type))
-                WHEN d.file_type ILIKE 'image/%'
-                  OR d.file_type ILIKE 'video/%'
-                  OR d.file_type ILIKE 'audio/%' THEN 'media'
-                WHEN LOWER(COALESCE(d.file_name, '')) LIKE '%.eml'
-                  OR LOWER(COALESCE(d.file_name, '')) LIKE '%.msg'
-                  OR LOWER(COALESCE(d.file_path, '')) LIKE '%/email%'
-                  OR LOWER(COALESCE(d.file_path, '')) LIKE '%/emails%' THEN 'email'
-                WHEN LOWER(COALESCE(d.file_path, '')) LIKE '%black%book%' THEN 'black_book'
-                WHEN LOWER(COALESCE(d.file_path, '')) LIKE '%flight%' THEN 'flight'
-                WHEN LOWER(COALESCE(d.file_name, '')) LIKE '%.pdf'
-                  OR LOWER(COALESCE(d.file_name, '')) LIKE '%.txt'
-                  OR LOWER(COALESCE(d.file_name, '')) LIKE '%.doc'
-                  OR LOWER(COALESCE(d.file_name, '')) LIKE '%.docx'
-                  OR LOWER(COALESCE(d.file_name, '')) LIKE '%.xls'
-                  OR LOWER(COALESCE(d.file_name, '')) LIKE '%.xlsx' THEN 'document'
-                ELSE NULL
-              END
-            ) AS distinct_sources,
-            COUNT(DISTINCT em.document_id) FILTER (
-              WHERE d.evidence_type = 'media'
-                AND (
-                  d.file_type ILIKE 'image/%'
-                  OR d.file_type ILIKE 'video/%'
-                  OR d.file_type ILIKE 'audio/%'
-                )
-            ) AS verified_media
-          FROM entity_mentions em
-          JOIN documents d ON d.id = em.document_id
-          WHERE em.entity_id = ANY($1::bigint[])
-          GROUP BY em.entity_id
-        `,
-          [subjectIds],
-        );
-
-        for (const row of aggregateResult.rows) {
-          aggregateStatsByEntity.set(Number(row.entity_id), {
-            documents: Number(row.documents || 0),
-            distinctSources: Number(row.distinct_sources || 0),
-            verifiedMedia: Number(row.verified_media || 0),
-          });
-        }
-      }
+      const aggregateStatsByEntity =
+        subjectIds.length <= SUBJECT_AGGREGATE_ENRICHMENT_LIMIT
+          ? await loadAggregateStatsForSubjects(pool, subjectIds)
+          : new Map<
+              number,
+              { documents: number; distinctSources: number; verifiedMedia: number }
+            >();
 
       const subjects: SubjectCardListItemDto[] = entitiesForPageMerge.map((e) => {
         const entityId = Number(e.id || 0);
@@ -933,7 +878,8 @@ export const entitiesRepository = {
         typeof error === 'object' && error !== null && 'code' in error
           ? String((error as { code?: unknown }).code || '')
           : '';
-      const isStatementTimeout = code === '57014' || /statement timeout/i.test(message);
+      const isStatementTimeout =
+        code === '57014' || /statement timeout|query read timeout|timeout/i.test(message);
       if (!isStatementTimeout) throw error;
       return getSubjectCardsFallback(page, limit, filters, sortBy);
     }

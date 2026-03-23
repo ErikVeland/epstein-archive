@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { CheckCircle, XCircle, SkipForward, AlertCircle } from 'lucide-react';
 import { useToasts } from './common/useToasts';
 
@@ -32,57 +33,56 @@ const parseStringList = (value: unknown): string[] => {
   return [];
 };
 
+interface ReviewQueueData {
+  entries: ReviewEntry[];
+  stats: { total: number; reviewed: number; remaining: number };
+}
+
+const EMPTY_REVIEW_ENTRIES: ReviewEntry[] = [];
+const EMPTY_REVIEW_STATS = { total: 0, reviewed: 0, remaining: 0 };
+
 export const BlackBookReview: React.FC = () => {
-  const [entries, setEntries] = useState<ReviewEntry[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [editedName, setEditedName] = useState('');
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [stats, setStats] = useState({ total: 0, reviewed: 0, remaining: 0 });
   const { addToast } = useToasts();
 
-  useEffect(() => {
-    fetchReviewEntries();
-  }, []);
-
-  useEffect(() => {
-    if (entries.length > 0 && currentIndex < entries.length) {
-      setEditedName(entries[currentIndex].cleaned_name);
-    }
-  }, [currentIndex, entries]);
-
-  const fetchReviewEntries = async () => {
-    try {
-      setLoading(true);
+  const { data, isLoading, refetch } = useQuery<ReviewQueueData>({
+    queryKey: ['black-book-review'],
+    queryFn: async () => {
       const response = await fetch('/api/black-book/review');
       const data = await response.json();
 
-      // Parse JSON fields
-      const parsed = (Array.isArray(data.entries) ? data.entries : []).map(
+      const entries = (Array.isArray(data.entries) ? data.entries : []).map(
         (entry: Record<string, unknown>) => ({
           ...entry,
           phone_numbers: parseStringList(entry.phone_numbers),
           addresses: parseStringList(entry.addresses),
           email_addresses: parseStringList(entry.email_addresses),
         }),
-      );
+      ) as ReviewEntry[];
 
-      setEntries(parsed as ReviewEntry[]);
-      setStats(
+      const stats =
         typeof data.stats === 'object' && data.stats !== null
           ? {
               total: Number((data.stats as Record<string, unknown>).total || 0),
               reviewed: Number((data.stats as Record<string, unknown>).reviewed || 0),
               remaining: Number((data.stats as Record<string, unknown>).remaining || 0),
             }
-          : { total: 0, reviewed: 0, remaining: 0 },
-      );
-    } catch (error) {
-      console.error('Error fetching review entries:', error);
-    } finally {
-      setLoading(false);
+          : { total: 0, reviewed: 0, remaining: 0 };
+
+      return { entries, stats };
+    },
+  });
+
+  const entries = data?.entries ?? EMPTY_REVIEW_ENTRIES;
+  const stats = data?.stats ?? EMPTY_REVIEW_STATS;
+
+  useEffect(() => {
+    if (entries.length > 0 && currentIndex < entries.length) {
+      setEditedName(entries[currentIndex].cleaned_name);
     }
-  };
+  }, [currentIndex, entries]);
 
   const handleAction = async (action: 'approve' | 'skip' | 'delete') => {
     if (currentIndex >= entries.length) return;
@@ -104,17 +104,10 @@ export const BlackBookReview: React.FC = () => {
       if (currentIndex < entries.length - 1) {
         setCurrentIndex(currentIndex + 1);
       } else {
-        // Refresh to get updated stats
-        await fetchReviewEntries();
+        // Refresh to get updated stats and entries
+        await refetch();
         setCurrentIndex(0);
       }
-
-      // Update stats
-      setStats((prev) => ({
-        ...prev,
-        reviewed: prev.reviewed + 1,
-        remaining: prev.remaining - 1,
-      }));
     } catch (error) {
       console.error('Error saving review:', error);
       addToast({ text: 'Failed to save. Please try again.', type: 'error' });
@@ -123,7 +116,7 @@ export const BlackBookReview: React.FC = () => {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent)]"></div>

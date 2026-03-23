@@ -23,14 +23,14 @@ export const HighlightNavigationControls: React.FC<HighlightNavigationControlsPr
   if (totalHighlights === 0) return null;
 
   return (
-    <div className={`flex items-center gap-1 ${className}`}>
-      <span className="text-xs text-[var(--text-muted)] font-mono mr-2">
+    <div className={`flex items-center gap-[var(--space-1)] ${className}`}>
+      <span className="text-xs text-[var(--text-muted)] font-mono mr-[var(--space-2)]">
         {currentHighlightIndex} / {totalHighlights}
       </span>
       <button
         onClick={onPrev}
         disabled={totalHighlights === 0}
-        className="p-1.5 rounded hover:bg-[var(--glass-bg-highlight)] text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        className="p-[var(--space-1)] rounded hover:bg-[var(--glass-bg-highlight)] text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
         title="Previous highlight (Ctrl/Cmd + Shift + G)"
         aria-label="Previous highlight"
       >
@@ -39,7 +39,7 @@ export const HighlightNavigationControls: React.FC<HighlightNavigationControlsPr
       <button
         onClick={onNext}
         disabled={totalHighlights === 0}
-        className="p-1.5 rounded hover:bg-[var(--glass-bg-highlight)] text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+        className="p-[var(--space-1)] rounded hover:bg-[var(--glass-bg-highlight)] text-[var(--text-muted)] hover:text-[var(--text-primary)] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
         title="Next highlight (Ctrl/Cmd + G)"
         aria-label="Next highlight"
       >

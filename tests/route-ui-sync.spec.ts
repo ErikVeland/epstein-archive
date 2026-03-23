@@ -1,9 +1,10 @@
 import { expect, test, type APIRequestContext } from '@playwright/test';
 
-const API_BASE =
-  process.env.NODE_ENV === 'production'
-    ? 'https://epstein.academy/api'
-    : `${process.env.PW_API_BASE_URL || 'http://localhost:3312'}/api`;
+const apiPort = Number(process.env.PW_API_PORT || 3312);
+const useProductionBaseUrl = process.env.PW_USE_PROD_BASE_URL === '1';
+const API_BASE = useProductionBaseUrl
+  ? 'https://epstein.academy/api'
+  : `${process.env.PW_API_BASE_URL || `http://127.0.0.1:${apiPort}`}/api`;
 
 const resolveFirstEntityId = async (request: APIRequestContext): Promise<string | null> => {
   const response = await request.get(

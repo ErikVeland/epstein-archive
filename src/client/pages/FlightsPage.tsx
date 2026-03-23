@@ -5,7 +5,7 @@ import ScopedErrorBoundary from '../components/common/ScopedErrorBoundary';
 export const FlightsPage: React.FC = () => {
   return (
     <ScopedErrorBoundary>
-      <div className="surface-glass-card p-6 min-h-[500px]">
+      <div className="surface-glass-card p-[var(--space-6)] min-h-[500px]">
         <FlightTracker />
       </div>
     </ScopedErrorBoundary>

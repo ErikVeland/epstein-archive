@@ -23,11 +23,7 @@ WHERE (:search::text IS NULL OR file_name ILIKE :search OR source_collection ILI
   AND (COALESCE(extracted_date, date_created) <= :endDate OR :endDate IS NULL)
   AND (red_flag_rating >= :minRedFlag OR :minRedFlag IS NULL)
   AND (red_flag_rating <= :maxRedFlag OR :maxRedFlag IS NULL)
-ORDER BY 
-  CASE WHEN :sortBy = 'date' THEN COALESCE(extracted_date, date_created) END DESC,
-  CASE WHEN :sortBy = 'title' THEN file_name END ASC,
-  CASE WHEN :sortBy = 'red_flag' OR :sortBy IS NULL THEN red_flag_rating END DESC,
-  COALESCE(extracted_date, date_created) DESC
+ORDER BY red_flag_rating DESC, COALESCE(extracted_date, date_created) DESC
 LIMIT :limit! OFFSET :offset!;
 
 /* @name countDocuments */

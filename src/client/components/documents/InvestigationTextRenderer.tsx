@@ -510,7 +510,7 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
         </section>
       )}
 
-      <div className="flex items-center justify-between gap-4 py-2 border-b border-white/5">
+      <div className="flex items-center justify-between gap-4 py-2 border-b border-[color:color-mix(in_srgb,var(--glass-border)_42%,transparent)]">
         <div className="flex items-center gap-4">
           <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] flex items-center gap-3">
             {mode === 'clean' ? 'Refined Content' : 'Original OCR Stream'}
@@ -554,7 +554,7 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
             <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
               Highlight Density
             </span>
-            <div className="flex p-0.5 bg-[var(--glass-bg-strong)]/60 rounded-[var(--radius-lg)] border border-white/5">
+            <div className="flex p-0.5 bg-[var(--glass-bg-strong)]/60 rounded-[var(--radius-lg)] border border-[color:color-mix(in_srgb,var(--glass-border)_42%,transparent)]">
               {(['off', 'subtle', 'strong'] as const).map((d) => (
                 <button
                   key={d}
@@ -616,7 +616,7 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
           ))}
         </div>
         {hasMoreLines && (
-          <div className="mt-8 border-t border-white/5 pt-6">
+          <div className="mt-8 border-t border-[color:color-mix(in_srgb,var(--glass-border)_42%,transparent)] pt-6">
             <button
               type="button"
               onClick={() => setLineLimit((prev) => Math.min(totalLineCount, prev + 1200))}
@@ -631,7 +631,7 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
 
       {hover && (
         <div
-          className="fixed z-[11000] pointer-events-none rounded-[var(--radius-xl)] border border-white/10 bg-[var(--glass-bg-strong)]/95 backdrop-blur-md p-4 text-xs shadow-[var(--glass-shadow)] animate-in zoom-in-95 duration-200"
+          className="fixed z-[11000] pointer-events-none rounded-[var(--radius-xl)] border border-[color:color-mix(in_srgb,var(--glass-border)_52%,transparent)] bg-[var(--glass-bg-strong)]/95 backdrop-blur-md p-4 text-xs shadow-[var(--glass-shadow)] animate-in zoom-in-95 duration-200"
           style={{ left: hover.x, top: hover.y }}
         >
           <div className="flex items-center justify-between mb-2">

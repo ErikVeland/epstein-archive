@@ -8,12 +8,12 @@ interface SignalPanelProps {
 
 export const SignalPanel: React.FC<SignalPanelProps> = ({ metrics }) => {
   return (
-    <div className="flex flex-col gap-1 w-full py-1">
+    <div className="flex flex-col gap-[var(--space-1)] w-full py-[var(--space-1)]">
       <Tooltip
         content="Exposure: relative mention volume across the corpus. Computed from log10(mentions+1) scaled to 0–100."
         position="top-end"
       >
-        <div className="flex items-center gap-2 text-[10px] font-medium tracking-wide">
+        <div className="flex items-center gap-[var(--space-2)] text-[10px] font-medium tracking-wide">
           <span className="text-[var(--text-muted)] w-16">Exposure</span>
           <div className="flex-1 h-[3px] bg-[var(--glass-bg)]/80 rounded-full overflow-hidden">
             <div
@@ -28,7 +28,7 @@ export const SignalPanel: React.FC<SignalPanelProps> = ({ metrics }) => {
         content="Network: connectivity score from relationship density. Based on connection count, capped for visualization."
         position="top-end"
       >
-        <div className="flex items-center gap-2 text-[10px] font-medium tracking-wide">
+        <div className="flex items-center gap-[var(--space-2)] text-[10px] font-medium tracking-wide">
           <span className="text-[var(--text-muted)] w-16">Network</span>
           <div className="flex-1 h-[3px] bg-[var(--glass-bg)]/80 rounded-full overflow-hidden">
             <div
@@ -43,7 +43,7 @@ export const SignalPanel: React.FC<SignalPanelProps> = ({ metrics }) => {
         content="Source: corroboration from distinct evidence types and document diversity contributing to the signal."
         position="top-end"
       >
-        <div className="flex items-center gap-2 text-[10px] font-medium tracking-wide">
+        <div className="flex items-center gap-[var(--space-2)] text-[10px] font-medium tracking-wide">
           <span className="text-[var(--text-muted)] w-16">Source</span>
           <div className="flex-1 h-[3px] bg-[var(--glass-bg)]/80 rounded-full overflow-hidden">
             <div

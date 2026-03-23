@@ -67,6 +67,7 @@ export const Tabs: React.FC<TabsProps> = ({
         <button
           key={tab.key}
           ref={(el) => (tabRefs.current[tab.key] = el)}
+          data-testid={`tab-${tab.key}`}
           className={`tab-item ${activeTab === tab.key ? 'active' : ''}`}
           role="tab"
           aria-selected={activeTab === tab.key}

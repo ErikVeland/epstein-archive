@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { createPortal } from 'react-dom';
 import { X, Network, Save, Search } from 'lucide-react';
 import { apiClient } from '../../services/apiClient';
@@ -43,27 +44,32 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProps> = (
   });
 
   // Load initial entities if IDs provided
-  useEffect(() => {
-    const loadInitial = async () => {
-      if (initialSourceId) {
-        try {
-          const entity = await apiClient.getEntity(initialSourceId);
-          setSelectedSource(entity);
-        } catch (e) {
-          console.error(e);
-        }
-      }
-      if (initialTargetId) {
-        try {
-          const entity = await apiClient.getEntity(initialTargetId);
-          setSelectedTarget(entity);
-        } catch (e) {
-          console.error(e);
-        }
-      }
-    };
-    loadInitial();
-  }, [initialSourceId, initialTargetId]);
+  const { data: initialSourceEntity } = useQuery<Person | null>({
+    queryKey: ['entity', initialSourceId],
+    queryFn: () => apiClient.getEntity(initialSourceId!),
+    enabled: Boolean(initialSourceId),
+    staleTime: 30_000,
+  });
+
+  const { data: initialTargetEntity } = useQuery<Person | null>({
+    queryKey: ['entity', initialTargetId],
+    queryFn: () => apiClient.getEntity(initialTargetId!),
+    enabled: Boolean(initialTargetId),
+    staleTime: 30_000,
+  });
+
+  // Sync fetched initial entities into selection state (only once, when first resolved)
+  React.useEffect(() => {
+    if (initialSourceEntity && !selectedSource) {
+      setSelectedSource(initialSourceEntity);
+    }
+  }, [initialSourceEntity, selectedSource]);
+
+  React.useEffect(() => {
+    if (initialTargetEntity && !selectedTarget) {
+      setSelectedTarget(initialTargetEntity);
+    }
+  }, [initialTargetEntity, selectedTarget]);
 
   // Search Handlers
   const handleSearch = async (term: string, type: 'source' | 'target') => {

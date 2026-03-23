@@ -19,11 +19,11 @@ const sizeClasses = {
 // Consistent color scale for all risk levels with better contrast
 const colors = {
   0: 'text-[var(--text-muted)]',
-  1: 'text-yellow-400',
-  2: 'text-orange-400',
-  3: 'text-red-400',
-  4: 'text-purple-400',
-  5: 'text-pink-500',
+  1: 'text-[var(--accent-warning)]',
+  2: 'text-[var(--accent-warning)]',
+  3: 'text-[var(--accent-danger)]',
+  4: 'text-[var(--accent-secondary)]',
+  5: 'text-[var(--accent-danger)]',
 };
 
 // Standardized labels for consistency
@@ -94,7 +94,7 @@ export const RedFlagIndex: React.FC<RedFlagIndexProps> = ({
         );
       case 'combined':
         return (
-          <div className="inline-flex items-center gap-1">
+          <div className="inline-flex items-center gap-[var(--space-1)]">
             <span className={`${sizeClasses[size]} ${colorClass}`} aria-hidden="true">
               {peppers}
             </span>
@@ -120,7 +120,7 @@ export const RedFlagIndex: React.FC<RedFlagIndexProps> = ({
 
   return (
     <div className="inline-flex flex-col">
-      <div className="inline-flex items-center gap-2">
+      <div className="inline-flex items-center gap-[var(--space-2)]">
         {renderContent()}
         {showLabel && (
           <span className={`${sizeClasses[size]} text-[var(--text-muted)]`}>
@@ -131,7 +131,9 @@ export const RedFlagIndex: React.FC<RedFlagIndexProps> = ({
           <span className={`${sizeClasses[size]} ${colorClass}`}>{description}</span>
         )}
       </div>
-      {showLegend && <div className="mt-1 text-xs text-[var(--text-muted)]">{riskCategory}</div>}
+      {showLegend && (
+        <div className="mt-[var(--space-1)] text-xs text-[var(--text-muted)]">{riskCategory}</div>
+      )}
     </div>
   );
 };

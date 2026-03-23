@@ -9,6 +9,12 @@ import { defineConfig, devices } from '@playwright/test';
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
+const apiPort = Number(process.env.PW_API_PORT || 3312);
+const webPort = Number(process.env.PW_WEB_PORT || 4173);
+const localBaseUrl = `http://127.0.0.1:${webPort}`;
+const localApiBaseUrl = `http://127.0.0.1:${apiPort}`;
+const useProductionBaseUrl = process.env.PW_USE_PROD_BASE_URL === '1';
+
 export default defineConfig({
   testDir: './tests',
   testIgnore: ['query-count.test.ts', 'epstein-archive.spec.ts', 'unit/**'],
@@ -25,8 +31,9 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL:
-      process.env.NODE_ENV === 'production' ? 'https://epstein.academy' : 'http://localhost:3002',
+    baseURL: useProductionBaseUrl
+      ? 'https://epstein.academy'
+      : process.env.PW_BASE_URL || localBaseUrl,
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
@@ -78,21 +85,20 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   /* Run your local dev server before starting the tests */
-  webServer:
-    process.env.NODE_ENV === 'production'
-      ? []
-      : [
-          {
-            command: 'npm run dev',
-            port: 3002,
-            reuseExistingServer: false,
-            timeout: 120 * 1000,
-          },
-          {
-            command: 'PORT=3312 npm run server',
-            port: 3312,
-            reuseExistingServer: false,
-            timeout: 120 * 1000,
-          },
-        ],
+  webServer: useProductionBaseUrl
+    ? []
+    : [
+        {
+          command: `NODE_ENV=development VITE_API_URL=${localApiBaseUrl}/api pnpm exec vite --port ${webPort} --host 127.0.0.1 --strictPort`,
+          port: webPort,
+          reuseExistingServer: true,
+          timeout: 120 * 1000,
+        },
+        {
+          command: `NODE_ENV=development PORT=${apiPort} pnpm exec tsx src/server.ts`,
+          url: `${localApiBaseUrl}/api/subjects?page=1&limit=1`,
+          reuseExistingServer: true,
+          timeout: 120 * 1000,
+        },
+      ],
 });

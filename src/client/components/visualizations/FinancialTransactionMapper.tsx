@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import {
   TrendingUp,
   TrendingDown,
@@ -53,228 +54,179 @@ interface FinancialTransactionMapperProps {
   investigationId?: string | number;
 }
 
+function getRiskScoreValue(riskLevel: string): number {
+  switch (riskLevel) {
+    case 'low':
+      return 1;
+    case 'medium':
+      return 3;
+    case 'high':
+      return 7;
+    case 'critical':
+      return 10;
+    default:
+      return 0;
+  }
+}
+
+function analyzeTransactionFlows(transactions: Transaction[]): TransactionFlow[] {
+  const entityMap = new Map<string, TransactionFlow>();
+
+  transactions.forEach((tx) => {
+    if (!entityMap.has(tx.fromEntity)) {
+      entityMap.set(tx.fromEntity, {
+        entity: tx.fromEntity,
+        inflow: 0,
+        outflow: 0,
+        netFlow: 0,
+        transactionCount: 0,
+        riskScore: 0,
+        connections: [],
+      });
+    }
+    if (!entityMap.has(tx.toEntity)) {
+      entityMap.set(tx.toEntity, {
+        entity: tx.toEntity,
+        inflow: 0,
+        outflow: 0,
+        netFlow: 0,
+        transactionCount: 0,
+        riskScore: 0,
+        connections: [],
+      });
+    }
+
+    const fromFlow = entityMap.get(tx.fromEntity) as TransactionFlow;
+    const toFlow = entityMap.get(tx.toEntity) as TransactionFlow;
+
+    fromFlow.outflow += tx.amount;
+    fromFlow.netFlow -= tx.amount;
+    fromFlow.transactionCount++;
+    fromFlow.riskScore += getRiskScoreValue(tx.riskLevel);
+    if (!fromFlow.connections.includes(tx.toEntity)) fromFlow.connections.push(tx.toEntity);
+
+    toFlow.inflow += tx.amount;
+    toFlow.netFlow += tx.amount;
+    toFlow.transactionCount++;
+    toFlow.riskScore += getRiskScoreValue(tx.riskLevel);
+    if (!toFlow.connections.includes(tx.fromEntity)) toFlow.connections.push(tx.fromEntity);
+  });
+
+  return Array.from(entityMap.values());
+}
+
+function detectRoundTripPattern(transactions: Transaction[]): FinancialPattern | null {
+  const epsteinOutflows = transactions.filter((tx) => tx.fromEntity === 'Jeffrey Epstein');
+  const epsteinInflows = transactions.filter((tx) => tx.toEntity === 'Jeffrey Epstein');
+
+  const suspiciousRoundTrip = epsteinOutflows.some((outTx) =>
+    epsteinInflows.some((inTx) => {
+      const daysDiff = Math.abs(
+        (new Date(inTx.date).getTime() - new Date(outTx.date).getTime()) / (1000 * 3600 * 24),
+      );
+      return daysDiff < 365 && Math.abs(inTx.amount - outTx.amount) < outTx.amount * 0.2;
+    }),
+  );
+
+  if (suspiciousRoundTrip) {
+    return {
+      type: 'round_trip',
+      confidence: 78,
+      transactions: transactions.map((tx) => tx.id),
+      description: 'Suspicious round-trip transactions suggesting artificial fund movement',
+      severity: 'high',
+    };
+  }
+  return null;
+}
+
+function detectFinancialPatterns(transactions: Transaction[]): FinancialPattern[] {
+  const patterns: FinancialPattern[] = [];
+
+  const layeringTxs = transactions.filter(
+    (tx) => tx.type === 'transfer' && tx.riskLevel === 'critical' && tx.amount > 5000000,
+  );
+  if (layeringTxs.length >= 2) {
+    patterns.push({
+      type: 'layering',
+      confidence: 85,
+      transactions: layeringTxs.map((tx) => tx.id),
+      description: 'Multiple large transfers suggesting money laundering layering phase',
+      severity: 'critical',
+    });
+  }
+
+  const shellTxs = transactions.filter(
+    (tx) =>
+      tx.type === 'transfer' &&
+      (tx.method === 'shell' || tx.toEntity.includes('Trust') || tx.toEntity.includes('LLC')),
+  );
+  if (shellTxs.length >= 2) {
+    patterns.push({
+      type: 'shell_network',
+      confidence: 92,
+      transactions: shellTxs.map((tx) => tx.id),
+      description: 'Network of shell companies used to obscure beneficial ownership',
+      severity: 'high',
+    });
+  }
+
+  const epsteinTxs = transactions.filter(
+    (tx) => tx.fromEntity === 'Jeffrey Epstein' || tx.toEntity === 'Jeffrey Epstein',
+  );
+  const roundTripPattern = detectRoundTripPattern(epsteinTxs);
+  if (roundTripPattern) patterns.push(roundTripPattern);
+
+  return patterns;
+}
+
 export default function FinancialTransactionMapper({
   investigationId,
 }: FinancialTransactionMapperProps = {}) {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
-  const [flowAnalysis, setFlowAnalysis] = useState<TransactionFlow[]>([]);
-  const [detectedPatterns, setDetectedPatterns] = useState<FinancialPattern[]>([]);
   const [viewMode, setViewMode] = useState<'flow' | 'network' | 'timeline' | 'patterns'>('flow');
   const [filterRisk, setFilterRisk] = useState<string>('all');
   const [filterAmount, setFilterAmount] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
-  const [, setLoading] = useState(true);
-  const [, setError] = useState<string | null>(null);
 
-  // Fetch real transaction data from API
-  useEffect(() => {
-    const fetchTransactions = async () => {
-      setLoading(true);
-      setError(null);
+  const { data: transactions = [] } = useQuery<Transaction[]>({
+    queryKey: ['financial-transactions', investigationId],
+    queryFn: async () => {
+      const endpoint = investigationId
+        ? `/api/investigations/${investigationId}/transactions`
+        : '/api/financial/transactions';
 
-      try {
-        // Use investigation-specific endpoint if ID provided, else global endpoint
-        const endpoint = investigationId
-          ? `/api/investigations/${investigationId}/transactions`
-          : '/api/financial/transactions';
-
-        const response = await fetch(endpoint);
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch transactions');
-        }
-
-        const data = await response.json();
-
-        if (data && data.length > 0) {
-          // Map API response to Transaction interface
-          const mappedTransactions: Transaction[] = data.map((tx: Record<string, unknown>) => ({
-            id: `tx-${tx.id}`,
-            fromEntity: (tx.from_entity as string) || '',
-            toEntity: (tx.to_entity as string) || '',
-            amount: (tx.amount as number) || 0,
-            currency: (tx.currency as string) || 'USD',
-            date: (tx.transaction_date as string) || '',
-            type: ((tx.transaction_type as Transaction['type'] | undefined) ||
-              'transfer') as Transaction['type'],
-            method: ((tx.method as Transaction['method'] | undefined) ||
-              'wire') as Transaction['method'],
-            riskLevel: ((tx.risk_level as Transaction['riskLevel'] | undefined) ||
-              'medium') as Transaction['riskLevel'],
-            description: (tx.description as string) || '',
-            suspiciousIndicators: (tx.suspiciousIndicators as string[]) || [],
-            sourceDocuments: (tx.sourceDocumentIds as string[]) || [],
-          }));
-
-          setTransactions(mappedTransactions);
-          analyzeTransactionFlows(mappedTransactions);
-          detectFinancialPatterns(mappedTransactions);
-        } else {
-          setTransactions([]);
-          setFlowAnalysis([]);
-          setDetectedPatterns([]);
-        }
-      } catch (err) {
-        console.error('Error fetching transactions:', err);
-        setError('Failed to load transaction data');
-        setTransactions([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTransactions();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- analyzeTransactionFlows, detectFinancialPatterns are stable helpers
-  }, [investigationId]);
-
-  const analyzeTransactionFlows = (transactions: Transaction[]) => {
-    const entityMap = new Map<string, TransactionFlow>();
-
-    transactions.forEach((tx) => {
-      // From entity analysis
-      if (!entityMap.has(tx.fromEntity)) {
-        entityMap.set(tx.fromEntity, {
-          entity: tx.fromEntity,
-          inflow: 0,
-          outflow: 0,
-          netFlow: 0,
-          transactionCount: 0,
-          riskScore: 0,
-          connections: [],
-        });
+      const response = await fetch(endpoint);
+      if (!response.ok) {
+        throw new Error('Failed to fetch transactions');
       }
 
-      // To entity analysis
-      if (!entityMap.has(tx.toEntity)) {
-        entityMap.set(tx.toEntity, {
-          entity: tx.toEntity,
-          inflow: 0,
-          outflow: 0,
-          netFlow: 0,
-          transactionCount: 0,
-          riskScore: 0,
-          connections: [],
-        });
-      }
+      const data = await response.json();
+      if (!data || data.length === 0) return [];
 
-      const fromFlow = entityMap.get(tx.fromEntity)!;
-      const toFlow = entityMap.get(tx.toEntity)!;
+      return (data as Record<string, unknown>[]).map((tx) => ({
+        id: `tx-${tx.id}`,
+        fromEntity: (tx.from_entity as string) || '',
+        toEntity: (tx.to_entity as string) || '',
+        amount: (tx.amount as number) || 0,
+        currency: (tx.currency as string) || 'USD',
+        date: (tx.transaction_date as string) || '',
+        type: ((tx.transaction_type as Transaction['type'] | undefined) ||
+          'transfer') as Transaction['type'],
+        method: ((tx.method as Transaction['method'] | undefined) ||
+          'wire') as Transaction['method'],
+        riskLevel: ((tx.risk_level as Transaction['riskLevel'] | undefined) ||
+          'medium') as Transaction['riskLevel'],
+        description: (tx.description as string) || '',
+        suspiciousIndicators: (tx.suspiciousIndicators as string[]) || [],
+        sourceDocuments: (tx.sourceDocumentIds as string[]) || [],
+      }));
+    },
+  });
 
-      fromFlow.outflow += tx.amount;
-      fromFlow.netFlow -= tx.amount;
-      fromFlow.transactionCount++;
-      fromFlow.riskScore += getRiskScore(tx.riskLevel);
-      if (!fromFlow.connections.includes(tx.toEntity)) {
-        fromFlow.connections.push(tx.toEntity);
-      }
-
-      toFlow.inflow += tx.amount;
-      toFlow.netFlow += tx.amount;
-      toFlow.transactionCount++;
-      toFlow.riskScore += getRiskScore(tx.riskLevel);
-      if (!toFlow.connections.includes(tx.fromEntity)) {
-        toFlow.connections.push(tx.fromEntity);
-      }
-    });
-
-    setFlowAnalysis(Array.from(entityMap.values()));
-  };
-
-  const detectFinancialPatterns = (transactions: Transaction[]) => {
-    const patterns: FinancialPattern[] = [];
-
-    // Detect layering pattern (multiple transfers to obscure source)
-    const layeringTxs = transactions.filter(
-      (tx) => tx.type === 'transfer' && tx.riskLevel === 'critical' && tx.amount > 5000000,
-    );
-
-    if (layeringTxs.length >= 2) {
-      patterns.push({
-        type: 'layering',
-        confidence: 85,
-        transactions: layeringTxs.map((tx) => tx.id),
-        description: 'Multiple large transfers suggesting money laundering layering phase',
-        severity: 'critical',
-      });
-    }
-
-    // Detect shell network pattern
-    const shellTxs = transactions.filter(
-      (tx) =>
-        tx.type === 'transfer' &&
-        (tx.method === 'shell' || tx.toEntity.includes('Trust') || tx.toEntity.includes('LLC')),
-    );
-
-    if (shellTxs.length >= 2) {
-      patterns.push({
-        type: 'shell_network',
-        confidence: 92,
-        transactions: shellTxs.map((tx) => tx.id),
-        description: 'Network of shell companies used to obscure beneficial ownership',
-        severity: 'high',
-      });
-    }
-
-    // Detect round-trip pattern
-    const epsteinTxs = transactions.filter(
-      (tx) => tx.fromEntity === 'Jeffrey Epstein' || tx.toEntity === 'Jeffrey Epstein',
-    );
-
-    const roundTripPattern = detectRoundTripPattern(epsteinTxs);
-    if (roundTripPattern) {
-      patterns.push(roundTripPattern);
-    }
-
-    setDetectedPatterns(patterns);
-  };
-
-  const detectRoundTripPattern = (transactions: Transaction[]): FinancialPattern | null => {
-    // Simplified round-trip detection
-    const epsteinOutflows = transactions.filter((tx) => tx.fromEntity === 'Jeffrey Epstein');
-    const epsteinInflows = transactions.filter((tx) => tx.toEntity === 'Jeffrey Epstein');
-
-    const suspiciousRoundTrip = epsteinOutflows.some((outTx) =>
-      epsteinInflows.some((inTx) => {
-        const outDate = new Date(outTx.date);
-        const inDate = new Date(inTx.date);
-        const daysDiff = Math.abs((inDate.getTime() - outDate.getTime()) / (1000 * 3600 * 24));
-
-        return (
-          daysDiff < 365 && // Within a year
-          Math.abs(inTx.amount - outTx.amount) < outTx.amount * 0.2
-        ); // Similar amounts
-      }),
-    );
-
-    if (suspiciousRoundTrip) {
-      return {
-        type: 'round_trip',
-        confidence: 78,
-        transactions: transactions.map((tx) => tx.id),
-        description: 'Suspicious round-trip transactions suggesting artificial fund movement',
-        severity: 'high',
-      };
-    }
-
-    return null;
-  };
-
-  const getRiskScore = (riskLevel: string): number => {
-    switch (riskLevel) {
-      case 'low':
-        return 1;
-      case 'medium':
-        return 3;
-      case 'high':
-        return 7;
-      case 'critical':
-        return 10;
-      default:
-        return 0;
-    }
-  };
+  const flowAnalysis = useMemo(() => analyzeTransactionFlows(transactions), [transactions]);
+  const detectedPatterns = useMemo(() => detectFinancialPatterns(transactions), [transactions]);
 
   const formatCurrency = (amount: number, currency: string = 'USD'): string => {
     return new Intl.NumberFormat('en-US', {
@@ -557,7 +509,7 @@ export default function FinancialTransactionMapper({
                           {transaction.riskLevel === 'low' && (
                             <Shield className="w-5 h-5 text-green-400" />
                           )}
-                          <div onClick={(e) => e.stopPropagation()}>
+                          <span onClick={(e) => e.stopPropagation()}>
                             <AddToInvestigationButton
                               item={{
                                 id: transaction.id,
@@ -582,7 +534,7 @@ export default function FinancialTransactionMapper({
                               variant="icon"
                               className="hover:bg-[var(--glass-bg-highlight)] p-1"
                             />
-                          </div>
+                          </span>
                         </div>
                       </div>
 

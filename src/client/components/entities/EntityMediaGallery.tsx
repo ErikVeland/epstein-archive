@@ -121,8 +121,12 @@ export const EntityMediaGallery: React.FC<EntityMediaGalleryProps> = ({
               />
             </div>
 
-            {/* Caption */}
-            <div className="mt-4 text-center" onClick={(e) => e.stopPropagation()}>
+            {/* Caption — role=presentation stops clicks bubbling to the overlay close handler */}
+            <div
+              className="mt-4 text-center"
+              role="presentation"
+              onClick={(e) => e.stopPropagation()}
+            >
               <h3 className="text-lg font-medium text-[var(--text-primary)]">
                 {selectedMedia.title || entityName}
               </h3>

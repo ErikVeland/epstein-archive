@@ -40,20 +40,20 @@ export function MobileAlbumDropdown({
     <div className="md:hidden">
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between px-3 py-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] text-sm h-8"
+        className="w-full flex items-center justify-between px-[var(--space-3)] py-[var(--space-2)] bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] text-sm h-8"
       >
-        <span className="flex items-center gap-2">
+        <span className="flex items-center gap-[var(--space-2)]">
           <Icon name="Folder" size="sm" />
           {displayName}
         </span>
         <Icon name={isOpen ? 'ChevronUp' : 'ChevronDown'} size="sm" />
       </button>
       {isOpen && (
-        <div className="absolute left-3 right-3 mt-1 dropdown-surface z-30 max-h-60 overflow-y-auto">
+        <div className="absolute left-[var(--space-3)] right-[var(--space-3)] mt-[var(--space-1)] dropdown-surface z-30 max-h-60 overflow-y-auto">
           <button
-            className={`w-full px-4 py-3 text-left text-sm flex items-center justify-between ${
+            className={`w-full px-[var(--space-4)] py-[var(--space-3)] text-left text-sm flex items-center justify-between ${
               selectedAlbum === null
-                ? 'bg-cyan-900/20 text-[var(--accent)]'
+                ? 'bg-[var(--accent)]/15 text-[var(--accent)]'
                 : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)]'
             }`}
             onClick={() => handleSelect(null)}
@@ -64,9 +64,9 @@ export function MobileAlbumDropdown({
           {albums.map((album) => (
             <button
               key={album.id}
-              className={`w-full px-4 py-3 text-left text-sm flex items-center justify-between border-t border-[var(--glass-border)] ${
+              className={`w-full px-[var(--space-4)] py-[var(--space-3)] text-left text-sm flex items-center justify-between border-t border-[var(--glass-border)] ${
                 selectedAlbum === album.id
-                  ? 'bg-cyan-900/20 text-[var(--accent)]'
+                  ? 'bg-[var(--accent)]/15 text-[var(--accent)]'
                   : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)]'
               }`}
               onClick={() => handleSelect(album.id)}
