@@ -592,13 +592,15 @@ body {
 .main-nav-segment::before {
   content: '';
   position: absolute;
-  inset: 7px 4px;
-  border-radius: 9999px;
+  inset: 5px 0;
+  border-radius: 0;
   border: 1px solid transparent;
+  border-left: none;
+  border-right: none;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.01)), transparent;
   opacity: 0;
-  transform: scale(0.98);
+  transform: scaleY(0.96);
   transition:
     opacity var(--duration-fast) var(--easing-swift),
     transform var(--duration-fast) var(--easing-swift),
@@ -606,6 +608,28 @@ body {
     box-shadow var(--duration-fast) var(--easing-swift),
     background-color var(--duration-fast) var(--easing-swift);
   pointer-events: none;
+}
+
+/* First segment: round left edge to match pill */
+.main-nav-pill > *:first-child .main-nav-segment::before {
+  border-radius: 9999px 0 0 9999px;
+  border-left: 1px solid transparent;
+}
+
+/* Last segment: round right edge to match pill */
+.main-nav-pill > *:last-child .main-nav-segment::before {
+  border-radius: 0 9999px 9999px 0;
+  border-right: 1px solid transparent;
+}
+
+/* Restore border-color on first/last when colored themes apply */
+.main-nav-pill > *:first-child .main-nav-segment-people:hover::before,
+.main-nav-pill > *:first-child .main-nav-segment-people.main-nav-segment-active::before {
+  border-left-color: var(--nav-people-border);
+}
+.main-nav-pill > *:last-child .main-nav-segment-about:hover::before,
+.main-nav-pill > *:last-child .main-nav-segment-about.main-nav-segment-active::before {
+  border-right-color: var(--nav-about-border);
 }
 
 .main-nav-pill button {
@@ -630,7 +654,7 @@ body {
 .main-nav-segment:hover::before,
 .main-nav-segment-active::before {
   opacity: 1;
-  transform: scale(1);
+  transform: scaleY(1);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
     0 10px 18px rgba(2, 6, 23, 0.16);
