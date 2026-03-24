@@ -53,12 +53,14 @@ jobs:
         env:
           DATABASE_URL: postgres://postgres:password@localhost:5432/epstein_test
 
-      - name: Configure SSH key
+      - name: Configure SSH key and Git
         shell: bash
         env:
           PROD_SSH_PRIVATE_KEY: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
         run: |
           set -euo pipefail
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
           install -m 700 -d "$HOME/.ssh"
           printf '%s\n' "$PROD_SSH_PRIVATE_KEY" > "$HOME/.ssh/id_epstein_prod_ed25519"
           chmod 600 "$HOME/.ssh/id_epstein_prod_ed25519"
