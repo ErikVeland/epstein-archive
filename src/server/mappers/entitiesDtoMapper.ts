@@ -125,6 +125,7 @@ export const mapSubjectCardDto = (subject: UnknownRecord): SubjectCardListItemDt
             }
           : undefined,
       ...(subject.topPhotoId ? { topPhotoId: String(subject.topPhotoId) } : {}),
+      ...(subject.faceCropUrl ? { faceCropUrl: String(subject.faceCropUrl) } : {}),
     };
   })(),
 });
@@ -212,6 +213,7 @@ export const mapEntityDetailDto = (entity: UnknownRecord) => {
     : Array.isArray(entity.relationships)
       ? entity.relationships
       : [];
+  const relationships = Array.isArray(entity.relationships) ? entity.relationships : [];
   const blackBookEntries = Array.isArray(entity.blackBookEntries) ? entity.blackBookEntries : [];
   const photos = Array.isArray(entity.photos) ? entity.photos : [];
   const significantPassages = Array.isArray(entity.significant_passages)
@@ -249,7 +251,9 @@ export const mapEntityDetailDto = (entity: UnknownRecord) => {
     description: String(entity.description || bio),
     photos,
     significantPassages,
+    relationships,
     birthDate: entity.birthDate ?? entity.birth_date ?? null,
     deathDate: entity.deathDate ?? entity.death_date ?? null,
+    ...(entity.faceCropUrl ? { faceCropUrl: String(entity.faceCropUrl) } : {}),
   };
 };

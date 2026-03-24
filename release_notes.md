@@ -1,5 +1,15 @@
 # Release Notes
 
+## v17.2.4 - 2026-03-24 - Hotfix Profile Disappearances
+
+This patch rectifies a critical omission from v17.2.3 which led to entity profiles rendering without images, metrics, or media files.
+
+### Bug Fixes
+
+- **Nginx Proxying Rules**: Corrected internal path generation for `faceCropUrls` to use the canonical `/files/` endpoint instead of `/data/` which was actively blocked by the Vite configuration and Web Servers, causing 404 black circles to render for Avatars.
+- **DTO Scrubbing**: The API mapper was actively stripping `faceCropUrl` and `relationships` array elements from the network payload. Updated the parsing layer so these elements pass through to the frontend.
+- **Segregated Artifact Types**: Aggregated entity media metadata queries across BOTH `documents` and `media_items` tables using native SQL `UNION` operations. This ensures that historical images parsed as documents are still routed effectively into the Evidence tabs alongside newer `media_items`.
+
 ## v17.2.3 - 2026-03-24 - Entity Metrics & Face Crops
 
 This patch resolves bugs with entity profile metrics showing zero counts, and migrates the entity avatars to use targeted face crop images.

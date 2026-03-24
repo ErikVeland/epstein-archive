@@ -15,7 +15,7 @@ export const mediaRepository = {
     }
 
     const result = await mediaQueries.getAlbumsByMediaType.run({ likePattern }, getApiPool());
-    return result.map((row: MediaRow) => ({
+    return result.map((row) => ({
       ...row,
       itemCount: Number(row.itemCount || 0),
       sensitiveCount: Number(row.sensitiveCount || 0),
@@ -26,7 +26,7 @@ export const mediaRepository = {
   getMediaItems: async (entityId: string) => {
     const mediaItems = await mediaQueries.getMediaItemsByEntity.run({ entityId }, getApiPool());
 
-    return mediaItems.map((item: MediaRow) => {
+    const mappedMedia = mediaItems.map((item) => {
       let metadata: Record<string, unknown> = {};
       try {
         if (item.metadataJson) {
@@ -47,13 +47,56 @@ export const mediaRepository = {
         metadata,
       };
     });
+
+    const docMediaRes = await getApiPool().query(
+      `
+      SELECT 
+        d.id::text, 
+        d.file_path as "filePath",
+        d.file_type as "fileType",
+        d.title,
+        d.red_flag_rating as "redFlagRating",
+        d.metadata_json as "metadataJson"
+      FROM entity_mentions em
+      JOIN documents d ON d.id = em.document_id
+      WHERE em.entity_id = $1::bigint
+      AND d.evidence_type = 'media'
+      `,
+      [entityId],
+    );
+
+    const supplemental = docMediaRes.rows.map((row) => {
+      let metadata: Record<string, unknown> = {};
+      try {
+        if (row.metadataJson) {
+          metadata =
+            typeof row.metadataJson === 'string'
+              ? JSON.parse(row.metadataJson)
+              : (row.metadataJson as Record<string, unknown>);
+        }
+      } catch (e) {
+        logger.error({ err: e, documentId: row.id }, 'Error parsing metadata for document media');
+      }
+
+      return {
+        id: Number(row.id),
+        filePath: row.filePath,
+        fileType: row.fileType,
+        title: row.title,
+        fileSize: 0,
+        redFlagRating: Number(row.redFlagRating || 0),
+        metadata,
+      };
+    });
+
+    return [...mappedMedia, ...supplemental].sort((a, b) => b.redFlagRating - a.redFlagRating);
   },
 
   // Get all media items (for Evidence Media tab)
   getAllMediaItems: async () => {
     const mediaItems = await mediaQueries.getAllMediaItems.run(undefined, getApiPool());
 
-    return mediaItems.map((item: MediaRow) => {
+    return mediaItems.map((item) => {
       let metadata: Record<string, unknown> = {};
       try {
         if (item.metadataJson) {

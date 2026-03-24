@@ -440,7 +440,9 @@ async function getSubjectCardsFallback(
       },
       topPreview: undefined,
       ...(row.topPhotoId ? { topPhotoId: String(row.topPhotoId) } : {}),
-      ...(row.faceCropPath ? { faceCropUrl: `/${row.faceCropPath}` } : {}),
+      ...(row.faceCropPath
+        ? { faceCropUrl: `/${String(row.faceCropPath).replace(/^data\//, 'files/')}` }
+        : {}),
     };
   });
 
@@ -740,7 +742,9 @@ export const entitiesRepository = {
           },
           topPreview: undefined,
           ...(e.topPhotoId ? { topPhotoId: String(e.topPhotoId) } : {}),
-          ...(e.faceCropPath ? { faceCropUrl: `/${e.faceCropPath}` } : {}),
+          ...(e.faceCropPath
+            ? { faceCropUrl: `/${String(e.faceCropPath).replace(/^data\//, 'files/')}` }
+            : {}),
         };
       });
 
@@ -1018,12 +1022,24 @@ export const entitiesRepository = {
 
     const photosRes = await getApiPool().query(
       `
-      SELECT mi.id, mi.file_path, mi.thumbnail_path, mi.title
-      FROM media_item_people mip
-      JOIN media_items mi ON mi.id::text = mip.media_item_id::text
-      WHERE mip.entity_id = $1::bigint
-      AND (mi.file_type ILIKE 'image/%' OR mi.file_type IS NULL)
-      ORDER BY mi.red_flag_rating DESC NULLS LAST, mi.id DESC
+      SELECT id, file_path, thumbnail_path, title
+      FROM (
+        SELECT mi.id::text, mi.file_path, mi.thumbnail_path, mi.title, mi.red_flag_rating
+        FROM media_item_people mip
+        JOIN media_items mi ON mi.id::text = mip.media_item_id::text
+        WHERE mip.entity_id = $1::bigint
+        AND (mi.file_type ILIKE 'image/%' OR mi.file_type IS NULL)
+        
+        UNION ALL
+        
+        SELECT d.id::text, d.file_path, NULL as thumbnail_path, d.title, d.red_flag_rating
+        FROM entity_mentions em
+        JOIN documents d ON d.id = em.document_id
+        WHERE em.entity_id = $1::bigint
+        AND d.evidence_type = 'media'
+        AND (d.file_type ILIKE 'image/%' OR d.file_type IS NULL)
+      ) combined
+      ORDER BY red_flag_rating DESC NULLS LAST, id DESC
     `,
       [entityId],
     );
