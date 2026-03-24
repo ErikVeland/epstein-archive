@@ -2,8 +2,6 @@ import { mediaQueries } from '@epstein/db';
 import { getApiPool } from './connection.js';
 import { logger } from '../services/Logger.js';
 
-type MediaRow = Record<string, unknown>;
-
 export const mediaRepository = {
   // Get all albums with counts for a specific media type
   getAlbumsByMediaType: async (fileType: 'audio' | 'video') => {
@@ -15,7 +13,7 @@ export const mediaRepository = {
     }
 
     const result = await mediaQueries.getAlbumsByMediaType.run({ likePattern }, getApiPool());
-    return result.map((row) => ({
+    return result.map((row: any) => ({
       ...row,
       itemCount: Number(row.itemCount || 0),
       sensitiveCount: Number(row.sensitiveCount || 0),
@@ -26,7 +24,7 @@ export const mediaRepository = {
   getMediaItems: async (entityId: string) => {
     const mediaItems = await mediaQueries.getMediaItemsByEntity.run({ entityId }, getApiPool());
 
-    const mappedMedia = mediaItems.map((item) => {
+    const mappedMedia = mediaItems.map((item: any) => {
       let metadata: Record<string, unknown> = {};
       try {
         if (item.metadataJson) {
@@ -96,7 +94,7 @@ export const mediaRepository = {
   getAllMediaItems: async () => {
     const mediaItems = await mediaQueries.getAllMediaItems.run(undefined, getApiPool());
 
-    return mediaItems.map((item) => {
+    return mediaItems.map((item: any) => {
       let metadata: Record<string, unknown> = {};
       try {
         if (item.metadataJson) {
