@@ -22,6 +22,16 @@ SELECT
     LIMIT 1
   ) as "topPhotoId",
   (
+    SELECT d.file_path
+    FROM entity_mentions em 
+    JOIN documents d ON d.id = em.document_id 
+    WHERE em.entity_id = e.id
+    AND d.evidence_type = 'media'
+    AND (d.file_type ILIKE 'image/%' OR d.file_type IS NULL)
+    ORDER BY d.red_flag_rating DESC, d.id DESC
+    LIMIT 1
+  ) as "topPhotoPath",
+  (
     SELECT f.crop_path
     FROM face_clusters fc
     JOIN faces f ON fc.id = f.cluster_id

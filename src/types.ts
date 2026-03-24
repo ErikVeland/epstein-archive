@@ -187,6 +187,7 @@ export interface SubjectCardDTO {
     year?: number;
   };
   topPhotoId?: string;
+  topPhotoUrl?: string;
   redFlagRating?: number;
   faceCropUrl?: string;
 }

@@ -33,6 +33,7 @@ export interface IGetSubjectCardsResult {
   redFlagRating: number | null;
   riskLevel: string | null;
   topPhotoId: string | null;
+  topPhotoPath: string | null;
   wasAgentic: number | null;
 }
 
@@ -59,10 +60,10 @@ const getSubjectCardsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 1051, b: 1061 },
-        { a: 1098, b: 1108 },
-        { a: 1134, b: 1144 },
-        { a: 1165, b: 1175 },
+        { a: 1361, b: 1371 },
+        { a: 1408, b: 1418 },
+        { a: 1444, b: 1454 },
+        { a: 1475, b: 1485 },
       ],
     },
     {
@@ -70,8 +71,8 @@ const getSubjectCardsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 1204, b: 1214 },
-        { a: 1220, b: 1230 },
+        { a: 1514, b: 1524 },
+        { a: 1530, b: 1540 },
       ],
     },
     {
@@ -79,8 +80,8 @@ const getSubjectCardsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 1269, b: 1279 },
-        { a: 1284, b: 1294 },
+        { a: 1579, b: 1589 },
+        { a: 1594, b: 1604 },
       ],
     },
     {
@@ -88,8 +89,8 @@ const getSubjectCardsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 1333, b: 1343 },
-        { a: 1348, b: 1358 },
+        { a: 1643, b: 1653 },
+        { a: 1658, b: 1668 },
       ],
     },
     {
@@ -97,8 +98,8 @@ const getSubjectCardsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 1393, b: 1397 },
-        { a: 1402, b: 1406 },
+        { a: 1703, b: 1707 },
+        { a: 1712, b: 1716 },
       ],
     },
     {
@@ -106,15 +107,15 @@ const getSubjectCardsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 1469, b: 1475 },
-        { a: 1524, b: 1530 },
+        { a: 1779, b: 1785 },
+        { a: 1834, b: 1840 },
       ],
     },
-    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 1613, b: 1619 }] },
-    { name: 'offset', required: true, transform: { type: 'scalar' }, locs: [{ a: 1628, b: 1635 }] },
+    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 1923, b: 1929 }] },
+    { name: 'offset', required: true, transform: { type: 'scalar' }, locs: [{ a: 1938, b: 1945 }] },
   ],
   statement:
-    'SELECT \n  e.id,\n  e.full_name as "fullName",\n  e.primary_role as "primaryRole",\n  e.bio,\n  e.mentions,\n  e.risk_level as "riskLevel",\n  e.red_flag_rating as "redFlagRating",\n  e.connections_summary as "connections",\n  e.was_agentic as "wasAgentic",\n  (SELECT COUNT(*) FROM entity_mentions em JOIN documents d ON d.id = em.document_id WHERE em.entity_id = e.id AND d.evidence_type = \'media\') as "mediaCount",\n  (SELECT COUNT(*) FROM black_book_entries WHERE person_id = e.id) as "blackBookCount",\n  (\n    SELECT d.id\n    FROM entity_mentions em \n    JOIN documents d ON d.id = em.document_id \n    WHERE em.entity_id = e.id\n    AND d.evidence_type = \'media\'\n    AND (d.file_type ILIKE \'image/%\' OR d.file_type IS NULL)\n    ORDER BY d.red_flag_rating DESC, d.id DESC\n    LIMIT 1\n  ) as "topPhotoId",\n  (\n    SELECT f.crop_path\n    FROM face_clusters fc\n    JOIN faces f ON fc.id = f.cluster_id\n    WHERE fc.entity_id = e.id\n    AND f.crop_path IS NOT NULL\n    ORDER BY f.detection_confidence DESC\n    LIMIT 1\n  ) as "faceCropPath"\nFROM entities e\nWHERE (:searchTerm::text IS NULL OR e.full_name ILIKE :searchTerm OR e.primary_role ILIKE :searchTerm OR e.aliases ILIKE :searchTerm)\n  AND (e.risk_level = ANY(:riskLevels) OR :riskLevels IS NULL)\n  AND (e.red_flag_rating >= :minRedFlag OR :minRedFlag IS NULL)\n  AND (e.red_flag_rating <= :maxRedFlag OR :maxRedFlag IS NULL)\n  AND (e.primary_role = :role OR :role IS NULL)\nORDER BY \n  COALESCE(e.is_vip, 0) DESC,\n  CASE WHEN :sortBy = \'name\' THEN e.full_name END ASC,\n  CASE WHEN :sortBy = \'recent\' THEN e.id END DESC,\n  e.red_flag_rating DESC,\n  e.mentions DESC\nLIMIT :limit! OFFSET :offset!',
+    'SELECT \n  e.id,\n  e.full_name as "fullName",\n  e.primary_role as "primaryRole",\n  e.bio,\n  e.mentions,\n  e.risk_level as "riskLevel",\n  e.red_flag_rating as "redFlagRating",\n  e.connections_summary as "connections",\n  e.was_agentic as "wasAgentic",\n  (SELECT COUNT(*) FROM entity_mentions em JOIN documents d ON d.id = em.document_id WHERE em.entity_id = e.id AND d.evidence_type = \'media\') as "mediaCount",\n  (SELECT COUNT(*) FROM black_book_entries WHERE person_id = e.id) as "blackBookCount",\n  (\n    SELECT d.id\n    FROM entity_mentions em \n    JOIN documents d ON d.id = em.document_id \n    WHERE em.entity_id = e.id\n    AND d.evidence_type = \'media\'\n    AND (d.file_type ILIKE \'image/%\' OR d.file_type IS NULL)\n    ORDER BY d.red_flag_rating DESC, d.id DESC\n    LIMIT 1\n  ) as "topPhotoId",\n  (\n    SELECT d.file_path\n    FROM entity_mentions em \n    JOIN documents d ON d.id = em.document_id \n    WHERE em.entity_id = e.id\n    AND d.evidence_type = \'media\'\n    AND (d.file_type ILIKE \'image/%\' OR d.file_type IS NULL)\n    ORDER BY d.red_flag_rating DESC, d.id DESC\n    LIMIT 1\n  ) as "topPhotoPath",\n  (\n    SELECT f.crop_path\n    FROM face_clusters fc\n    JOIN faces f ON fc.id = f.cluster_id\n    WHERE fc.entity_id = e.id\n    AND f.crop_path IS NOT NULL\n    ORDER BY f.detection_confidence DESC\n    LIMIT 1\n  ) as "faceCropPath"\nFROM entities e\nWHERE (:searchTerm::text IS NULL OR e.full_name ILIKE :searchTerm OR e.primary_role ILIKE :searchTerm OR e.aliases ILIKE :searchTerm)\n  AND (e.risk_level = ANY(:riskLevels) OR :riskLevels IS NULL)\n  AND (e.red_flag_rating >= :minRedFlag OR :minRedFlag IS NULL)\n  AND (e.red_flag_rating <= :maxRedFlag OR :maxRedFlag IS NULL)\n  AND (e.primary_role = :role OR :role IS NULL)\nORDER BY \n  COALESCE(e.is_vip, 0) DESC,\n  CASE WHEN :sortBy = \'name\' THEN e.full_name END ASC,\n  CASE WHEN :sortBy = \'recent\' THEN e.id END DESC,\n  e.red_flag_rating DESC,\n  e.mentions DESC\nLIMIT :limit! OFFSET :offset!',
 };
 
 /**
@@ -142,6 +143,16 @@ const getSubjectCardsIR: any = {
  *     ORDER BY d.red_flag_rating DESC, d.id DESC
  *     LIMIT 1
  *   ) as "topPhotoId",
+ *   (
+ *     SELECT d.file_path
+ *     FROM entity_mentions em
+ *     JOIN documents d ON d.id = em.document_id
+ *     WHERE em.entity_id = e.id
+ *     AND d.evidence_type = 'media'
+ *     AND (d.file_type ILIKE 'image/%' OR d.file_type IS NULL)
+ *     ORDER BY d.red_flag_rating DESC, d.id DESC
+ *     LIMIT 1
+ *   ) as "topPhotoPath",
  *   (
  *     SELECT f.crop_path
  *     FROM face_clusters fc

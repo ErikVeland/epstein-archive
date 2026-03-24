@@ -43,6 +43,12 @@ export const mediaRepository = {
         fileSize: 0,
         redFlagRating: Number(item.redFlagRating || 0),
         metadata,
+        url: item.filePath ? `/${String(item.filePath).replace(/^data\//, 'files/')}` : undefined,
+        thumbnailUrl: item.thumbnailPath
+          ? `/${String(item.thumbnailPath).replace(/^data\//, 'files/')}`
+          : item.filePath
+            ? `/${String(item.filePath).replace(/^data\//, 'files/')}`
+            : undefined,
       };
     });
 
@@ -84,6 +90,10 @@ export const mediaRepository = {
         fileSize: 0,
         redFlagRating: Number(row.redFlagRating || 0),
         metadata,
+        url: row.filePath ? `/${String(row.filePath).replace(/^data\//, 'files/')}` : undefined,
+        thumbnailUrl: row.filePath
+          ? `/${String(row.filePath).replace(/^data\//, 'files/')}`
+          : undefined,
       };
     });
 

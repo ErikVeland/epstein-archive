@@ -1,5 +1,9 @@
 # Release Notes
 
+## v17.2.5 - 2026-03-24 - Hotfix 404 Proxies
+
+- **Media Endpoint Scrubbing**: Completely bypassed the `id` proxying mapping logic for the `topPhotoId` fallback avatar, utilizing native `d.file_path` endpoints to prevent 404s.
+
 ## v17.2.4 - 2026-03-24 - Hotfix Profile Disappearances
 
 This patch rectifies a critical omission from v17.2.3 which led to entity profiles rendering without images, metrics, or media files.

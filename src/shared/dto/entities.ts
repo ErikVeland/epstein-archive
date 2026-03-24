@@ -38,6 +38,7 @@ export interface SubjectCardListItemDto {
   forensics: SubjectCardForensicsDto;
   topPreview?: SubjectCardTopPreviewDto;
   topPhotoId?: string;
+  topPhotoUrl?: string;
   faceCropUrl?: string;
 }
 

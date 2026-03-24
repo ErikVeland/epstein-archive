@@ -355,6 +355,7 @@ async function getSubjectCardsFallback(
     mediaCount?: number;
     blackBookCount?: number;
     topPhotoId?: number | string;
+    topPhotoPath?: string;
     faceCropPath?: string;
   }
   const [rows, countRows, maxConnResult, vipDisplayLookup] = await Promise.all([
@@ -440,6 +441,9 @@ async function getSubjectCardsFallback(
       },
       topPreview: undefined,
       ...(row.topPhotoId ? { topPhotoId: String(row.topPhotoId) } : {}),
+      ...(row.topPhotoPath
+        ? { topPhotoUrl: `/${String(row.topPhotoPath).replace(/^data\//, 'files/')}` }
+        : {}),
       ...(row.faceCropPath
         ? { faceCropUrl: `/${String(row.faceCropPath).replace(/^data\//, 'files/')}` }
         : {}),
@@ -742,6 +746,9 @@ export const entitiesRepository = {
           },
           topPreview: undefined,
           ...(e.topPhotoId ? { topPhotoId: String(e.topPhotoId) } : {}),
+          ...(e.topPhotoPath
+            ? { topPhotoUrl: `/${String(e.topPhotoPath).replace(/^data\//, 'files/')}` }
+            : {}),
           ...(e.faceCropPath
             ? { faceCropUrl: `/${String(e.faceCropPath).replace(/^data\//, 'files/')}` }
             : {}),
@@ -750,7 +757,7 @@ export const entitiesRepository = {
 
       const mergedByNormalizedName = new Map<
         string,
-        SubjectCardListItemDto & { topPhotoId?: string; faceCropUrl?: string }
+        SubjectCardListItemDto & { topPhotoId?: string; topPhotoUrl?: string; faceCropUrl?: string }
       >();
       for (const subject of subjects) {
         const norm = normalizeSubjectDedupeKey(subject.name);
@@ -789,7 +796,11 @@ export const entitiesRepository = {
         const base = preferIncoming ? subject : existing;
         const other = preferIncoming ? existing : subject;
 
-        const merged: SubjectCardListItemDto & { topPhotoId?: string; faceCropUrl?: string } = {
+        const merged: SubjectCardListItemDto & {
+          topPhotoId?: string;
+          topPhotoUrl?: string;
+          faceCropUrl?: string;
+        } = {
           ...base,
           role:
             base.role && base.role !== 'Unknown'
@@ -840,6 +851,7 @@ export const entitiesRepository = {
             driverLabels: mergedDrivers,
           },
           topPhotoId: base.topPhotoId || other.topPhotoId,
+          topPhotoUrl: base.topPhotoUrl || other.topPhotoUrl,
           faceCropUrl: base.faceCropUrl || other.faceCropUrl,
         };
 
@@ -1078,14 +1090,14 @@ export const entitiesRepository = {
       })),
       photos: photosRes.rows.map((row) => ({
         id: String(row.id),
-        url: row.file_path ? `/api/media/images/${row.id}/file` : undefined,
+        url: row.file_path ? `/${String(row.file_path).replace(/^data\//, 'files/')}` : undefined,
         thumbnailUrl: row.thumbnail_path
-          ? `/api/media/images/${row.id}/thumbnail`
+          ? `/${String(row.thumbnail_path).replace(/^data\//, 'files/')}`
           : row.file_path
-            ? `/api/media/images/${row.id}/file`
+            ? `/${String(row.file_path).replace(/^data\//, 'files/')}`
             : undefined,
-        filePath: row.file_path ?? '',
-        title: row.title,
+        filePath: String(row.file_path ?? ''),
+        title: String(row.title ?? ''),
       })),
     };
   },
