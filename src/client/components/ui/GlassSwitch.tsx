@@ -11,7 +11,7 @@ export const GlassSwitch = React.forwardRef<
     ref={ref}
   >
     <div className="absolute inset-0 z-0 bg-[var(--glass-shine)] rounded-full pointer-events-none opacity-40 mix-blend-overlay" />
-    <SwitchPrimitives.Thumb className="relative z-10 pointer-events-none block h-5 w-5 rounded-full bg-white shadow-md ring-0 transition-transform duration-300 ease-[var(--easing-liquid)] data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-[2px]" />
+    <SwitchPrimitives.Thumb className="relative z-10 pointer-events-none block h-5 w-5 rounded-full bg-[var(--text-primary)] shadow-md ring-0 transition-transform duration-300 ease-[var(--easing-liquid)] data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-[2px]" />
   </SwitchPrimitives.Root>
 ));
 GlassSwitch.displayName = SwitchPrimitives.Root.displayName;

@@ -196,7 +196,7 @@ export const TreeMap: React.FC<TreeMapProps> = ({ people }) => {
                         x={node.x + node.width / 2}
                         y={node.y + node.height / 2 - 8}
                         textAnchor="middle"
-                        className="fill-white font-semibold text-xs pointer-events-none user-select-none"
+                        className="fill-[var(--text-primary)] font-semibold text-xs pointer-events-none user-select-none"
                         style={{
                           fontSize: Math.min(14, (node.width * transform.k) / 8) / transform.k,
                         }}
@@ -207,7 +207,7 @@ export const TreeMap: React.FC<TreeMapProps> = ({ people }) => {
                         x={node.x + node.width / 2}
                         y={node.y + node.height / 2 + 8}
                         textAnchor="middle"
-                        className="fill-white/80 text-xs pointer-events-none user-select-none"
+                        className="fill-[var(--text-primary)] text-xs pointer-events-none user-select-none"
                         style={{
                           fontSize: Math.min(12, (node.width * transform.k) / 10) / transform.k,
                         }}

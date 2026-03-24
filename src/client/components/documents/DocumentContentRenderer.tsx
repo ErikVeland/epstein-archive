@@ -94,7 +94,7 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
           const regex = new RegExp(`(${escapeRegExp(term)})`, 'gi');
           return text.replace(
             regex,
-            '<mark class="bg-yellow-500 text-black px-1 rounded">$1</mark>',
+            '<mark class="bg-yellow-500 text-[var(--bg-dark)] px-1 rounded">$1</mark>',
           );
         }
         return text;
@@ -102,7 +102,10 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
 
       const pattern = `(${terms.map(escapeRegExp).join('|')})`;
       const regex = new RegExp(pattern, 'gi');
-      return text.replace(regex, '<mark class="bg-yellow-500 text-black px-1 rounded">$1</mark>');
+      return text.replace(
+        regex,
+        '<mark class="bg-yellow-500 text-[var(--bg-dark)] px-1 rounded">$1</mark>',
+      );
     } catch (e) {
       console.warn('Error highlighting text:', e);
       return text;
@@ -122,7 +125,7 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
         <span>
           {parts.map((part, i) =>
             regex.test(part) ? (
-              <mark key={i} className="bg-yellow-500 text-black px-1 rounded">
+              <mark key={i} className="bg-yellow-500 text-[var(--bg-dark)] px-1 rounded">
                 {part}
               </mark>
             ) : (
@@ -892,7 +895,7 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
                   Open in New Tab ↗
                 </a>
               </div>
-              <div className="bg-white rounded-[var(--radius-lg)] border border-[var(--glass-border)] overflow-hidden h-full min-h-[600px] max-h-[80vh]">
+              <div className="bg-[var(--text-primary)] rounded-[var(--radius-lg)] border border-[var(--glass-border)] overflow-hidden h-full min-h-[600px] max-h-[80vh]">
                 <iframe
                   src={`${doc.originalFileUrl}${doc.page_number ? `#page=${doc.page_number}` : ''}`}
                   className="w-full h-full border-none"

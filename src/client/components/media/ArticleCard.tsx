@@ -81,17 +81,17 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({ article, onClick }) =>
         </p>
 
         {/* Footer: Author & Read Time */}
-        <div className="flex items-center justify-between border-t border-white/10 pt-4">
+        <div className="flex items-center justify-between border-t border-[var(--glass-border)] pt-4">
           <div className="flex items-center gap-3">
             {article.authorAvatar ? (
               <img
                 src={article.authorAvatar}
                 alt={article.author}
                 loading="lazy"
-                className="h-8 w-8 rounded-full border border-white/20"
+                className="h-8 w-8 rounded-full border border-[var(--glass-border)]"
               />
             ) : (
-              <div className="h-8 w-8 rounded-full bg-[var(--glass-bg-highlight)] border border-white/10 flex items-center justify-center text-xs font-bold text-[var(--text-primary)]">
+              <div className="h-8 w-8 rounded-full bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] flex items-center justify-center text-xs font-bold text-[var(--text-primary)]">
                 <User className="h-4 w-4" />
               </div>
             )}
@@ -105,7 +105,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({ article, onClick }) =>
             </div>
           </div>
 
-          <div className="rounded-full bg-white/10 p-2 text-[var(--text-primary)] backdrop-blur-sm transition-colors group-hover:bg-[var(--accent)] group-hover:text-[var(--text-primary)]">
+          <div className="rounded-full bg-[var(--glass-bg-highlight)] p-2 text-[var(--text-primary)] backdrop-blur-sm transition-colors group-hover:bg-[var(--accent)] group-hover:text-[var(--text-primary)]">
             <ArrowUpRight className="h-5 w-5" />
           </div>
         </div>

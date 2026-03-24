@@ -401,7 +401,7 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
       </div>
 
       {showAddModal && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-[var(--glass-bg-strong)] flex items-center justify-center z-50 p-4">
           <div className="bg-[var(--glass-bg)] rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] w-full max-w-md border border-[var(--glass-border)]">
             <div className="border-b border-[var(--glass-border)] p-5">
               <h3 className="text-lg font-semibold text-[var(--text-primary)]">

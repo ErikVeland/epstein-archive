@@ -2023,7 +2023,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
 
       {/* New Investigation Modal */}
       {showNewInvestigationModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-[var(--glass-bg-strong)] backdrop-blur-md flex items-center justify-center z-50 p-4">
           <div className="liquid-glass-modal rounded-[var(--radius-xl)] p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
             <h3 className="text-xl font-bold text-[var(--text-primary)] mb-6">
               Create New Investigation

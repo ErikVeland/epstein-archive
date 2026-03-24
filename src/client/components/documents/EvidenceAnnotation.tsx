@@ -312,7 +312,7 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
 
   if (loading) {
     return (
-      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+      <div className="fixed inset-0 bg-[var(--glass-bg-strong)] flex items-center justify-center z-50">
         <div className="bg-[var(--glass-bg)] rounded-[var(--radius-xl)] p-8 max-w-md">
           <div className="animate-pulse flex flex-col items-center">
             <div className="h-8 w-48 bg-[var(--glass-bg-highlight)] rounded mb-4"></div>
@@ -324,7 +324,7 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
   }
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-[var(--glass-bg-strong)] flex items-center justify-center z-50 p-4">
       <div className="bg-[var(--glass-bg)] rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] w-full max-w-3xl max-h-[90vh] flex flex-col border border-[var(--glass-border)]">
         {/* Header */}
         <div className="border-b border-[var(--glass-border)] p-6">
@@ -346,7 +346,7 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
               onClick={onClose}
               size="md"
               label="Close evidence annotation"
-              className="bg-transparent hover:bg-white/10 border-[var(--glass-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)] shrink-0"
+              className="bg-transparent hover:bg-[var(--glass-bg-highlight)] border-[var(--glass-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)] shrink-0"
             />
           </div>
 
@@ -521,7 +521,7 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                         onClick={() => setNewHighlight({ ...newHighlight, color: color.value })}
                         className={`w-6 h-6 rounded ${color.class} ${
                           newHighlight.color === color.value
-                            ? 'ring-2 ring-white ring-offset-2 ring-offset-slate-900'
+                            ? 'ring-2 ring-[var(--glass-border)] ring-offset-2 ring-offset-slate-900'
                             : ''
                         }`}
                         title={color.name}

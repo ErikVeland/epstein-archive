@@ -1,0 +1,2221 @@
+diff --git a/src/client/App.tsx b/src/client/App.tsx
+index f57a76d4a..686387e2a 100644
+--- a/src/client/App.tsx
++++ b/src/client/App.tsx
+@@ -1355,7 +1355,7 @@ function App() {
+                         title="New Investigation"
+                       >
+                         <Icon name="Plus" size="sm" color="white" />
+-                        <span className="max-w-0 group-hover:max-w-xs overflow-hidden transition-all duration-300 opacity-0 group-hover:opacity-100 whitespace-nowrap text-sm text-white ml-0 group-hover:ml-2">
++                        <span className="max-w-0 group-hover:max-w-xs overflow-hidden transition-all duration-300 opacity-0 group-hover:opacity-100 whitespace-nowrap text-sm text-[var(--text-primary)] ml-0 group-hover:ml-2">
+                           New
+                         </span>
+                       </button>
+@@ -1367,7 +1367,7 @@ function App() {
+                         title="Keyboard Shortcuts"
+                       >
+                         <Icon name="Command" size="sm" color="info" />
+-                        <span className="max-w-0 group-hover:max-w-xs overflow-hidden transition-all duration-300 opacity-0 group-hover:opacity-100 whitespace-nowrap text-sm text-white ml-0 group-hover:ml-2">
++                        <span className="max-w-0 group-hover:max-w-xs overflow-hidden transition-all duration-300 opacity-0 group-hover:opacity-100 whitespace-nowrap text-sm text-[var(--text-primary)] ml-0 group-hover:ml-2">
+                           Shortcuts
+                         </span>
+                       </button>
+@@ -1391,7 +1391,7 @@ function App() {
+                         title="What's New"
+                       >
+                         <Icon name="Book" size="sm" color="info" />
+-                        <span className="max-w-0 group-hover:max-w-xs overflow-hidden transition-all duration-300 opacity-0 group-hover:opacity-100 whitespace-nowrap text-sm text-white ml-0 group-hover:ml-2">
++                        <span className="max-w-0 group-hover:max-w-xs overflow-hidden transition-all duration-300 opacity-0 group-hover:opacity-100 whitespace-nowrap text-sm text-[var(--text-primary)] ml-0 group-hover:ml-2">
+                           What's New
+                         </span>
+                       </button>
+@@ -2187,7 +2187,7 @@ function App() {
+             {/* Evidence Modal */}
+             <Suspense
+               fallback={
+-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
++                <div className="fixed inset-0 bg-[var(--glass-bg-strong)] backdrop-blur-sm flex items-center justify-center z-50">
+                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent)]"></div>
+                 </div>
+               }
+@@ -2208,7 +2208,7 @@ function App() {
+             {/* Inline Document Modal */}
+             <Suspense
+               fallback={
+-                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
++                <div className="fixed inset-0 bg-[var(--glass-bg-strong)] flex items-center justify-center z-50">
+                   <div className="w-8 h-8 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin" />
+                 </div>
+               }
+diff --git a/src/client/components/EvidenceSearch.tsx b/src/client/components/EvidenceSearch.tsx
+index 6be659fff..ae1526dfb 100644
+--- a/src/client/components/EvidenceSearch.tsx
++++ b/src/client/components/EvidenceSearch.tsx
+@@ -285,7 +285,7 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
+                 className="bg-[var(--glass-bg)]/50 border border-[var(--glass-border)] rounded-[var(--radius-xl)] p-5 relative overflow-hidden"
+                 aria-label="Loading search result"
+               >
+-                <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
++                <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-[var(--glass-highlight)] to-transparent"></div>
+                 <div className="flex items-start justify-between mb-4">
+                   <div className="flex items-center space-x-3">
+                     <div className="bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] w-10 h-10 animate-pulse"></div>
+diff --git a/src/client/components/FileBrowser.tsx b/src/client/components/FileBrowser.tsx
+index 7fd122a57..ec12345c3 100644
+--- a/src/client/components/FileBrowser.tsx
++++ b/src/client/components/FileBrowser.tsx
+@@ -261,7 +261,7 @@ const FileBrowser: React.FC = () => {
+       {/* File Preview Modal */}
+       {selectedFile &&
+         createPortal(
+-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
++          <div className="fixed inset-0 bg-[var(--glass-bg-strong)] backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
+             <div className="bg-[var(--glass-bg)] rounded-[var(--radius-xl)] max-w-4xl w-full max-h-[80vh] overflow-hidden border border-[var(--glass-border)]">
+               <div className="p-6 border-b border-[var(--glass-border)]">
+                 <div className="flex items-center justify-between">
+diff --git a/src/client/components/FinancialTransactionAnalysis.tsx b/src/client/components/FinancialTransactionAnalysis.tsx
+index 3acd5d87c..737844dd3 100644
+--- a/src/client/components/FinancialTransactionAnalysis.tsx
++++ b/src/client/components/FinancialTransactionAnalysis.tsx
+@@ -226,7 +226,7 @@ export const FinancialTransactionAnalysis: React.FC<FinancialTransactionAnalysis
+   });
+ 
+   return (
+-    <div className="bg-white rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)]">
++    <div className="bg-[var(--text-primary)] rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)]">
+       {/* Header */}
+       <div className="border-b border-[var(--glass-border)] px-6 py-4">
+         <div className="flex items-center justify-between">
+@@ -432,8 +432,8 @@ export const FinancialTransactionAnalysis: React.FC<FinancialTransactionAnalysis
+ 
+       {/* Pattern Detail Modal */}
+       {selectedPattern && (
+-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+-          <div className="bg-white rounded-[var(--radius-lg)] p-6 w-full max-w-2xl max-h-96 overflow-auto">
++        <div className="fixed inset-0 bg-[var(--glass-bg-strong)] bg-opacity-50 flex items-center justify-center z-50">
++          <div className="bg-[var(--text-primary)] rounded-[var(--radius-lg)] p-6 w-full max-w-2xl max-h-96 overflow-auto">
+             <div className="flex items-start justify-between mb-4">
+               <div>
+                 <h3 className="text-lg font-medium text-[var(--text-primary)]">
+diff --git a/src/client/components/FirstRunOnboarding.tsx b/src/client/components/FirstRunOnboarding.tsx
+index 28e249d98..02a9b3166 100644
+--- a/src/client/components/FirstRunOnboarding.tsx
++++ b/src/client/components/FirstRunOnboarding.tsx
+@@ -65,7 +65,7 @@ export const FirstRunOnboarding: React.FC<FirstRunOnboardingProps> = ({ onComple
+   const { title, description, icon } = getStepContent();
+ 
+   return (
+-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
++    <div className="fixed inset-0 bg-[var(--glass-bg-strong)] backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
+       <div className="glass-panel w-full max-w-2xl rounded-[var(--radius-xl)] overflow-hidden shadow-[var(--glass-shadow)] shadow-cyan-900/20 border border-[var(--glass-border)]">
+         {/* Header */}
+         <div className="flex items-center justify-between p-6 pb-4 border-b border-[var(--glass-border)]">
+diff --git a/src/client/components/PatternRecognitionAI.tsx b/src/client/components/PatternRecognitionAI.tsx
+index 2ac5617e2..f9a41ab79 100644
+--- a/src/client/components/PatternRecognitionAI.tsx
++++ b/src/client/components/PatternRecognitionAI.tsx
+@@ -282,7 +282,7 @@ export const PatternRecognitionAI: React.FC<PatternRecognitionAIProps> = ({
+   };
+ 
+   return (
+-    <div className="bg-white rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)]">
++    <div className="bg-[var(--text-primary)] rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)]">
+       {/* Header */}
+       <div className="border-b border-[var(--glass-border)] px-6 py-4">
+         <div className="flex items-center justify-between">
+@@ -392,8 +392,8 @@ export const PatternRecognitionAI: React.FC<PatternRecognitionAIProps> = ({
+ 
+       {/* Pattern Detail Modal */}
+       {selectedPattern && (
+-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+-          <div className="bg-white rounded-[var(--radius-lg)] p-6 w-full max-w-2xl max-h-96 overflow-auto">
++        <div className="fixed inset-0 bg-[var(--glass-bg-strong)] bg-opacity-50 flex items-center justify-center z-50">
++          <div className="bg-[var(--text-primary)] rounded-[var(--radius-lg)] p-6 w-full max-w-2xl max-h-96 overflow-auto">
+             <div className="flex items-start justify-between mb-4">
+               <div>
+                 <h3 className="text-lg font-medium text-[var(--text-primary)]">
+diff --git a/src/client/components/ReleaseNotesPanel.tsx b/src/client/components/ReleaseNotesPanel.tsx
+index 73c2d703c..ce89dec30 100644
+--- a/src/client/components/ReleaseNotesPanel.tsx
++++ b/src/client/components/ReleaseNotesPanel.tsx
+@@ -48,7 +48,7 @@ export const ReleaseNotesPanel: React.FC<ReleaseNotesPanelProps> = ({
+   if (!isOpen) return null;
+ 
+   return (
+-    <div className="fixed inset-0 bg-black/60 flex items-center justify-end z-50 p-0 md:p-4">
++    <div className="fixed inset-0 bg-[var(--glass-bg-strong)] flex items-center justify-end z-50 p-0 md:p-4">
+       <button
+         type="button"
+         className="absolute inset-0"
+diff --git a/src/client/components/admin/ReviewQueuePanel.tsx b/src/client/components/admin/ReviewQueuePanel.tsx
+index 5ebbc8174..16f818850 100644
+--- a/src/client/components/admin/ReviewQueuePanel.tsx
++++ b/src/client/components/admin/ReviewQueuePanel.tsx
+@@ -130,7 +130,7 @@ export const ReviewQueuePanel: React.FC = () => {
+                       <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">
+                         Baseline (Before)
+                       </label>
+-                      <pre className="bg-slate-950 p-4 rounded-[var(--radius-lg)] border border-[var(--glass-border)] text-xs font-mono text-[var(--text-muted)] overflow-x-auto">
++                      <pre className="bg-[var(--glass-bg)] p-4 rounded-[var(--radius-lg)] border border-[var(--glass-border)] text-xs font-mono text-[var(--text-muted)] overflow-x-auto">
+                         {JSON.stringify(item.payloadJson.before, null, 2)}
+                       </pre>
+                     </div>
+@@ -138,7 +138,7 @@ export const ReviewQueuePanel: React.FC = () => {
+                       <label className="text-xs font-bold text-[var(--accent)] uppercase tracking-widest">
+                         Agentic Output (After)
+                       </label>
+-                      <pre className="bg-slate-950 p-4 rounded-[var(--radius-lg)] border border-indigo-900/30 text-xs font-mono text-indigo-100 overflow-x-auto shadow-inner shadow-indigo-500/5">
++                      <pre className="bg-[var(--glass-bg)] p-4 rounded-[var(--radius-lg)] border border-indigo-900/30 text-xs font-mono text-indigo-100 overflow-x-auto shadow-inner shadow-indigo-500/5">
+                         {JSON.stringify(item.payloadJson.after, null, 2)}
+                       </pre>
+                     </div>
+@@ -156,7 +156,7 @@ export const ReviewQueuePanel: React.FC = () => {
+                       placeholder="Add forensic review notes..."
+                       value={reviewNote}
+                       onChange={(e) => setReviewNote(e.target.value)}
+-                      className="w-full bg-slate-950 border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-3 text-sm text-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition-colors h-24"
++                      className="w-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-3 text-sm text-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition-colors h-24"
+                     />
+                     <div className="flex gap-3">
+                       <button
+diff --git a/src/client/components/common/ErrorBoundary.tsx b/src/client/components/common/ErrorBoundary.tsx
+index 0c1d6d64c..7319077fa 100644
+--- a/src/client/components/common/ErrorBoundary.tsx
++++ b/src/client/components/common/ErrorBoundary.tsx
+@@ -28,7 +28,7 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
+     if (this.state.hasError) {
+       const msg = this.state.error?.message || 'Unexpected error';
+       return (
+-        <div className="min-h-screen bg-gray-950 text-[var(--text-primary)] flex items-center justify-center p-6">
++        <div className="min-h-screen bg-[var(--glass-bg)] text-[var(--text-primary)] flex items-center justify-center p-6">
+           <div className="max-w-lg w-full bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-xl)] p-6 shadow-[var(--glass-shadow)]">
+             <h1 className="text-xl font-bold text-red-400 mb-2">Something went wrong</h1>
+             <p className="text-[var(--text-secondary)] text-sm mb-4">{msg}</p>
+diff --git a/src/client/components/common/EvidenceModal.tsx b/src/client/components/common/EvidenceModal.tsx
+index 3d40f634b..a5dc6a292 100644
+--- a/src/client/components/common/EvidenceModal.tsx
++++ b/src/client/components/common/EvidenceModal.tsx
+@@ -933,7 +933,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen,
+             initial={{ opacity: 0 }}
+             animate={{ opacity: 1 }}
+             exit={{ opacity: 0 }}
+-            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
++            className="absolute inset-0 bg-[var(--glass-bg-strong)] backdrop-blur-sm"
+             onClick={onClose}
+           />
+ 
+@@ -948,7 +948,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen,
+               <div className="relative shrink-0">
+                 <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-[var(--bg-dark)] ring-1 ring-[var(--glass-border)] overflow-hidden shadow-[var(--glass-shadow-soft)] relative">
+                   {loading ? (
+-                    <div className="w-full h-full animate-pulse bg-white/5" />
++                    <div className="w-full h-full animate-pulse bg-[var(--glass-highlight)]" />
+                   ) : headerPhotoUrl && !brokenMediaIds[headerPhotoId] ? (
+                     <img
+                       src={headerPhotoUrl}
+@@ -980,12 +980,12 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen,
+               <div className="flex-1 min-w-0">
+                 {loading ? (
+                   <div className="space-y-4">
+-                    <div className="h-10 w-64 bg-white/5 rounded-md animate-pulse" />
+-                    <div className="h-6 w-48 bg-white/5 rounded-md animate-pulse" />
++                    <div className="h-10 w-64 bg-[var(--glass-highlight)] rounded-md animate-pulse" />
++                    <div className="h-6 w-48 bg-[var(--glass-highlight)] rounded-md animate-pulse" />
+                     <div className="flex gap-4 pt-2">
+-                      <div className="h-4 w-24 bg-white/5 rounded-md animate-pulse" />
+-                      <div className="h-4 w-24 bg-white/5 rounded-md animate-pulse" />
+-                      <div className="h-4 w-24 bg-white/5 rounded-md animate-pulse" />
++                      <div className="h-4 w-24 bg-[var(--glass-highlight)] rounded-md animate-pulse" />
++                      <div className="h-4 w-24 bg-[var(--glass-highlight)] rounded-md animate-pulse" />
++                      <div className="h-4 w-24 bg-[var(--glass-highlight)] rounded-md animate-pulse" />
+                     </div>
+                   </div>
+                 ) : (
+@@ -1400,10 +1400,10 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen,
+                             key={i}
+                             className="h-28 surface-glass-card rounded-[var(--radius-lg)] p-5 flex gap-5 items-center animate-pulse"
+                           >
+-                            <div className="w-14 h-14 rounded bg-white/5" />
++                            <div className="w-14 h-14 rounded bg-[var(--glass-highlight)]" />
+                             <div className="flex-1 space-y-3">
+-                              <div className="h-5 w-3/4 bg-white/5 rounded" />
+-                              <div className="h-4 w-1/2 bg-white/5 rounded" />
++                              <div className="h-5 w-3/4 bg-[var(--glass-highlight)] rounded" />
++                              <div className="h-4 w-1/2 bg-[var(--glass-highlight)] rounded" />
+                             </div>
+                           </div>
+                         ))}
+@@ -1501,7 +1501,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen,
+                                           if (!doc) {
+                                             return (
+                                               <div style={style} className="p-4">
+-                                                <div className="h-full bg-slate-950/20 soft-glass-outline rounded-[var(--radius-lg)] animate-pulse" />
++                                                <div className="h-full bg-[var(--glass-bg)] soft-glass-outline rounded-[var(--radius-lg)] animate-pulse" />
+                                               </div>
+                                             );
+                                           }
+@@ -1711,11 +1711,11 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen,
+                       <div className="space-y-5">
+                         {Array.from({ length: 3 }).map((_, i) => (
+                           <div key={i} className="surface-glass-card p-6 space-y-4 animate-pulse">
+-                            <div className="h-6 w-1/3 bg-white/5 rounded" />
+-                            <div className="h-4 w-2/3 bg-white/5 rounded" />
++                            <div className="h-6 w-1/3 bg-[var(--glass-highlight)] rounded" />
++                            <div className="h-4 w-2/3 bg-[var(--glass-highlight)] rounded" />
+                             <div className="flex gap-4">
+-                              <div className="h-6 w-24 bg-white/5 rounded-full" />
+-                              <div className="h-6 w-24 bg-white/5 rounded-full" />
++                              <div className="h-6 w-24 bg-[var(--glass-highlight)] rounded-full" />
++                              <div className="h-6 w-24 bg-[var(--glass-highlight)] rounded-full" />
+                             </div>
+                           </div>
+                         ))}
+diff --git a/src/client/components/common/Icon.tsx b/src/client/components/common/Icon.tsx
+index 955c8af18..c67c256cf 100644
+--- a/src/client/components/common/Icon.tsx
++++ b/src/client/components/common/Icon.tsx
+@@ -299,7 +299,7 @@ const Icon: React.FC<IconProps> = ({
+     info: 'text-[var(--accent)]',
+     white: 'text-[var(--text-primary)]',
+     gray: 'text-[var(--text-muted)]',
+-    black: 'text-black',
++    black: 'text-[var(--bg-dark)]',
+     blue: 'text-[var(--accent)]',
+     inherit: '',
+   };
+diff --git a/src/client/components/common/SensitiveContent.tsx b/src/client/components/common/SensitiveContent.tsx
+index 64c414f6c..dd434e0aa 100644
+--- a/src/client/components/common/SensitiveContent.tsx
++++ b/src/client/components/common/SensitiveContent.tsx
+@@ -206,7 +206,7 @@ export function SensitiveContent({
+       {!isRevealing && (
+         <button
+           onClick={handleReveal}
+-          className="absolute inset-0 flex flex-col items-center justify-center z-20 cursor-pointer transition-all hover:bg-black/10 group"
++          className="absolute inset-0 flex flex-col items-center justify-center z-20 cursor-pointer transition-all hover:bg-[var(--glass-bg-strong)] group"
+           aria-label="Click to reveal sensitive content"
+         >
+           {/* Backdrop */}
+diff --git a/src/client/components/common/Skeleton.tsx b/src/client/components/common/Skeleton.tsx
+index 5a875351c..f96435aa2 100644
+--- a/src/client/components/common/Skeleton.tsx
++++ b/src/client/components/common/Skeleton.tsx
+@@ -6,5 +6,5 @@ interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
+ }
+ 
+ export function Skeleton({ className, ...props }: SkeletonProps) {
+-  return <div className={cn('animate-pulse rounded-md bg-white/10', className)} {...props} />;
++  return <div className={cn('animate-pulse rounded-md bg-[var(--glass-bg-highlight)]', className)} {...props} />;
+ }
+diff --git a/src/client/components/common/TagSelector.tsx b/src/client/components/common/TagSelector.tsx
+index 864ee5e2a..6ccf08678 100644
+--- a/src/client/components/common/TagSelector.tsx
++++ b/src/client/components/common/TagSelector.tsx
+@@ -220,7 +220,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
+                       <button
+                         key={color}
+                         onClick={() => setNewTagColor(color)}
+-                        className={`w-5 h-5 rounded-full ${newTagColor === color ? 'ring-2 ring-white ring-offset-1 ring-offset-slate-800' : ''}`}
++                        className={`w-5 h-5 rounded-full ${newTagColor === color ? 'ring-2 ring-[var(--glass-border)] ring-offset-1 ring-offset-slate-800' : ''}`}
+                         style={{ backgroundColor: color }}
+                       />
+                     ))}
+diff --git a/src/client/components/common/ToastProvider.tsx b/src/client/components/common/ToastProvider.tsx
+index ab7cdeb36..aa732336d 100644
+--- a/src/client/components/common/ToastProvider.tsx
++++ b/src/client/components/common/ToastProvider.tsx
+@@ -52,7 +52,7 @@ export default function ToastProvider({ children }: { children: ReactNode }) {
+                   t.action!.onClick();
+                   removeToast(t.id);
+                 }}
+-                className="ml-2 px-2 py-1 text-xs rounded hover:bg-white/10 transition-colors"
++                className="ml-2 px-2 py-1 text-xs rounded hover:bg-[var(--glass-bg-highlight)] transition-colors"
+               >
+                 {t.action.label}
+               </button>
+@@ -62,7 +62,7 @@ export default function ToastProvider({ children }: { children: ReactNode }) {
+                 onClick={() => removeToast(t.id)}
+                 size="sm"
+                 label="Dismiss notification"
+-                className="ml-2 h-6 w-6 border-transparent bg-transparent text-current hover:bg-white/10"
++                className="ml-2 h-6 w-6 border-transparent bg-transparent text-current hover:bg-[var(--glass-bg-highlight)]"
+               />
+             )}
+           </div>
+diff --git a/src/client/components/documents/DocumentAnnotationSystem.tsx b/src/client/components/documents/DocumentAnnotationSystem.tsx
+index 718a6fb7c..c6c1e3211 100644
+--- a/src/client/components/documents/DocumentAnnotationSystem.tsx
++++ b/src/client/components/documents/DocumentAnnotationSystem.tsx
+@@ -259,7 +259,7 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
+           type="button"
+           className={`rounded-sm px-0.5 text-left align-baseline transition-colors ${
+             typeMeta.className
+-          } ${isActive ? 'ring-1 ring-cyan-300/80' : 'hover:ring-1 hover:ring-white/30'}`}
++          } ${isActive ? 'ring-1 ring-cyan-300/80' : 'hover:ring-1 hover:ring-[var(--glass-border)]'}`}
+           title={`${typeMeta.label}: ${annotation.note || annotation.selectedText}`}
+           onClick={() => setActiveAnnotationId(annotation.id)}
+         >
+diff --git a/src/client/components/documents/DocumentContentRenderer.tsx b/src/client/components/documents/DocumentContentRenderer.tsx
+index 5b93a26d9..86b7ed11a 100644
+--- a/src/client/components/documents/DocumentContentRenderer.tsx
++++ b/src/client/components/documents/DocumentContentRenderer.tsx
+@@ -94,7 +94,7 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
+           const regex = new RegExp(`(${escapeRegExp(term)})`, 'gi');
+           return text.replace(
+             regex,
+-            '<mark class="bg-yellow-500 text-black px-1 rounded">$1</mark>',
++            '<mark class="bg-yellow-500 text-[var(--bg-dark)] px-1 rounded">$1</mark>',
+           );
+         }
+         return text;
+@@ -102,7 +102,7 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
+ 
+       const pattern = `(${terms.map(escapeRegExp).join('|')})`;
+       const regex = new RegExp(pattern, 'gi');
+-      return text.replace(regex, '<mark class="bg-yellow-500 text-black px-1 rounded">$1</mark>');
++      return text.replace(regex, '<mark class="bg-yellow-500 text-[var(--bg-dark)] px-1 rounded">$1</mark>');
+     } catch (e) {
+       console.warn('Error highlighting text:', e);
+       return text;
+@@ -122,7 +122,7 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
+         <span>
+           {parts.map((part, i) =>
+             regex.test(part) ? (
+-              <mark key={i} className="bg-yellow-500 text-black px-1 rounded">
++              <mark key={i} className="bg-yellow-500 text-[var(--bg-dark)] px-1 rounded">
+                 {part}
+               </mark>
+             ) : (
+@@ -892,7 +892,7 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
+                   Open in New Tab ↗
+                 </a>
+               </div>
+-              <div className="bg-white rounded-[var(--radius-lg)] border border-[var(--glass-border)] overflow-hidden h-full min-h-[600px] max-h-[80vh]">
++              <div className="bg-[var(--text-primary)] rounded-[var(--radius-lg)] border border-[var(--glass-border)] overflow-hidden h-full min-h-[600px] max-h-[80vh]">
+                 <iframe
+                   src={`${doc.originalFileUrl}${doc.page_number ? `#page=${doc.page_number}` : ''}`}
+                   className="w-full h-full border-none"
+diff --git a/src/client/components/documents/DocumentList.tsx b/src/client/components/documents/DocumentList.tsx
+index be0185aa6..d1d963cab 100644
+--- a/src/client/components/documents/DocumentList.tsx
++++ b/src/client/components/documents/DocumentList.tsx
+@@ -46,7 +46,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
+     return (
+       <div
+         className={
+-          viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6' : 'space-y-3'
++          viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4' : 'space-y-3'
+         }
+       >
+         <DocumentSkeleton count={itemsPerPage} />
+diff --git a/src/client/components/documents/DocumentModal.tsx b/src/client/components/documents/DocumentModal.tsx
+index b2ff0373d..68b02ca58 100644
+--- a/src/client/components/documents/DocumentModal.tsx
++++ b/src/client/components/documents/DocumentModal.tsx
+@@ -336,7 +336,7 @@ export const DocumentModal: React.FC<Props> = ({
+ 
+   if (!doc) {
+     return createPortal(
+-      <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[1050] flex items-center justify-center p-4">
++      <div className="fixed inset-0 bg-[var(--glass-bg)] backdrop-blur-md z-[1050] flex items-center justify-center p-4">
+         <div className="surface-glass p-6 pointer-events-auto">
+           <div className="text-[var(--text-primary)] font-semibold mb-2">
+             Unable to load document
+@@ -485,7 +485,7 @@ export const DocumentModal: React.FC<Props> = ({
+               </div>
+             }
+             right={
+-              <aside className="h-full bg-slate-950/10 overflow-y-auto custom-scrollbar">
++              <aside className="h-full bg-[var(--glass-bg)] overflow-y-auto custom-scrollbar">
+                 <DocumentMetadataRail
+                   doc={doc}
+                   id={id}
+diff --git a/src/client/components/documents/DocumentSkeleton.tsx b/src/client/components/documents/DocumentSkeleton.tsx
+index 2f0371953..5da6fd5a0 100644
+--- a/src/client/components/documents/DocumentSkeleton.tsx
++++ b/src/client/components/documents/DocumentSkeleton.tsx
+@@ -6,7 +6,7 @@ interface DocumentSkeletonProps {
+ 
+ const DocumentSkeleton: React.FC<DocumentSkeletonProps> = ({ count = 12 }) => {
+   return (
+-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
++    <>
+       {[...Array(count)].map((_, i) => (
+         <div
+           key={i}
+@@ -14,7 +14,7 @@ const DocumentSkeleton: React.FC<DocumentSkeletonProps> = ({ count = 12 }) => {
+           aria-label="Loading document preview"
+         >
+           {/* Shimmer effect */}
+-          <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
++          <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-[var(--glass-highlight)] to-transparent"></div>
+ 
+           {/* Document header */}
+           <div className="flex items-start justify-between mb-4">
+@@ -45,7 +45,7 @@ const DocumentSkeleton: React.FC<DocumentSkeletonProps> = ({ count = 12 }) => {
+           </div>
+         </div>
+       ))}
+-    </div>
++    </>
+   );
+ };
+ 
+diff --git a/src/client/components/documents/EvidenceAnnotation.tsx b/src/client/components/documents/EvidenceAnnotation.tsx
+index 3dc1c84f2..3df0dd813 100644
+--- a/src/client/components/documents/EvidenceAnnotation.tsx
++++ b/src/client/components/documents/EvidenceAnnotation.tsx
+@@ -312,7 +312,7 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
+ 
+   if (loading) {
+     return (
+-      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
++      <div className="fixed inset-0 bg-[var(--glass-bg-strong)] flex items-center justify-center z-50">
+         <div className="bg-[var(--glass-bg)] rounded-[var(--radius-xl)] p-8 max-w-md">
+           <div className="animate-pulse flex flex-col items-center">
+             <div className="h-8 w-48 bg-[var(--glass-bg-highlight)] rounded mb-4"></div>
+@@ -324,7 +324,7 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
+   }
+ 
+   return (
+-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
++    <div className="fixed inset-0 bg-[var(--glass-bg-strong)] flex items-center justify-center z-50 p-4">
+       <div className="bg-[var(--glass-bg)] rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] w-full max-w-3xl max-h-[90vh] flex flex-col border border-[var(--glass-border)]">
+         {/* Header */}
+         <div className="border-b border-[var(--glass-border)] p-6">
+@@ -346,7 +346,7 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
+               onClick={onClose}
+               size="md"
+               label="Close evidence annotation"
+-              className="bg-transparent hover:bg-white/10 border-[var(--glass-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)] shrink-0"
++              className="bg-transparent hover:bg-[var(--glass-bg-highlight)] border-[var(--glass-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)] shrink-0"
+             />
+           </div>
+ 
+@@ -521,7 +521,7 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
+                         onClick={() => setNewHighlight({ ...newHighlight, color: color.value })}
+                         className={`w-6 h-6 rounded ${color.class} ${
+                           newHighlight.color === color.value
+-                            ? 'ring-2 ring-white ring-offset-2 ring-offset-slate-900'
++                            ? 'ring-2 ring-[var(--glass-border)] ring-offset-2 ring-offset-slate-900'
+                             : ''
+                         }`}
+                         title={color.name}
+diff --git a/src/client/components/documents/PDFVariantViewer.tsx b/src/client/components/documents/PDFVariantViewer.tsx
+index 43577ec3a..b8a2bb7a2 100644
+--- a/src/client/components/documents/PDFVariantViewer.tsx
++++ b/src/client/components/documents/PDFVariantViewer.tsx
+@@ -139,7 +139,7 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
+                 value={searchTerm}
+                 onChange={(e) => setSearchTerm(e.target.value)}
+                 placeholder="Find in page..."
+-                className="pl-9 pr-3 py-1.5 bg-slate-950/50 border border-[var(--glass-border)] rounded-md text-xs text-[var(--text-primary)] placeholder-slate-500 focus:outline-none focus:border-[var(--accent)]/50 w-40"
++                className="pl-9 pr-3 py-1.5 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-md text-xs text-[var(--text-primary)] placeholder-slate-500 focus:outline-none focus:border-[var(--accent)]/50 w-40"
+               />
+             </div>
+           </div>
+@@ -204,7 +204,7 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
+             <img
+               src={currentUrl}
+               alt={docMeta?.fileName || `Document ${documentId}`}
+-              className="max-w-full max-h-[calc(100vh-380px)] object-contain rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)] ring-1 ring-white/10"
++              className="max-w-full max-h-[calc(100vh-380px)] object-contain rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)] ring-1 ring-[var(--glass-border)]"
+             />
+           </div>
+         ) : assetType !== 'pdf' ? (
+@@ -243,7 +243,7 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
+                 loading={
+                   <div className="h-[800px] w-full bg-[var(--glass-bg)]/20 animate-pulse rounded-[var(--radius-lg)]" />
+                 }
+-                className="shadow-[var(--glass-shadow)] ring-1 ring-white/10"
++                className="shadow-[var(--glass-shadow)] ring-1 ring-[var(--glass-border)]"
+                 renderTextLayer={true}
+                 renderAnnotationLayer={true}
+               />
+diff --git a/src/client/components/documents/subcomponents/DocumentAnalysisTab.tsx b/src/client/components/documents/subcomponents/DocumentAnalysisTab.tsx
+index 7fed25a24..92771c3d7 100644
+--- a/src/client/components/documents/subcomponents/DocumentAnalysisTab.tsx
++++ b/src/client/components/documents/subcomponents/DocumentAnalysisTab.tsx
+@@ -146,7 +146,7 @@ export const DocumentAnalysisTab: React.FC<DocumentAnalysisTabProps> = ({
+       )}
+ 
+       {textSubview === 'clean' && (
+-        <div className="pt-12 border-t border-white/5 space-y-12">
++        <div className="pt-12 border-t border-[var(--glass-border)] space-y-12">
+           <section className="surface-quiet p-5">
+             <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Annotations</h3>
+             <DocumentAnnotationSystem
+@@ -202,7 +202,7 @@ export const DocumentAnalysisTab: React.FC<DocumentAnalysisTabProps> = ({
+                             </div>
+                           </div>
+                           {(entity.mentions ?? 0) > 0 && (
+-                            <div className="mt-3 pt-3 border-t border-white/5 flex items-center justify-between">
++                            <div className="mt-3 pt-3 border-t border-[var(--glass-border)] flex items-center justify-between">
+                               <span className="text-[9px] text-[var(--text-muted)] uppercase font-bold">
+                                 {entity.mentions} Mentions
+                               </span>
+diff --git a/src/client/components/entities/CreateEntityModal.tsx b/src/client/components/entities/CreateEntityModal.tsx
+index ad23a610b..c032a6d34 100644
+--- a/src/client/components/entities/CreateEntityModal.tsx
++++ b/src/client/components/entities/CreateEntityModal.tsx
+@@ -208,7 +208,7 @@ export const CreateEntityModal: React.FC<CreateEntityModalProps> = ({ onClose, o
+             >
+               {loading ? (
+                 <>
+-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
++                  <div className="w-4 h-4 border-2 border-[var(--glass-border)] border-t-white rounded-full animate-spin" />
+                   Creating...
+                 </>
+               ) : (
+diff --git a/src/client/components/entities/EntityEvidencePanel.tsx b/src/client/components/entities/EntityEvidencePanel.tsx
+index 70ba0842b..03a6807d8 100644
+--- a/src/client/components/entities/EntityEvidencePanel.tsx
++++ b/src/client/components/entities/EntityEvidencePanel.tsx
+@@ -634,7 +634,7 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
+                     confidence={item.confidence}
+                     ingestRunId={item.ingestRunId}
+                     wasAgentic={item.wasAgentic}
+-                    className="bg-slate-950/30 p-3 rounded-[var(--radius-lg)] border border-[var(--glass-border)]"
++                    className="bg-[var(--glass-bg)] p-3 rounded-[var(--radius-lg)] border border-[var(--glass-border)]"
+                   />
+                 </div>
+ 
+diff --git a/src/client/components/entities/EntityMediaGallery.tsx b/src/client/components/entities/EntityMediaGallery.tsx
+index 378d6c3b1..8cce2ed4b 100644
+--- a/src/client/components/entities/EntityMediaGallery.tsx
++++ b/src/client/components/entities/EntityMediaGallery.tsx
+@@ -71,13 +71,13 @@ export const EntityMediaGallery: React.FC<EntityMediaGalleryProps> = ({
+               loading="lazy"
+             />
+             {/* Overlay */}
+-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
++            <div className="absolute inset-0 bg-[var(--glass-bg-strong)] group-hover:bg-[var(--glass-bg-strong)] transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+               <ZoomIn className="text-[var(--text-primary)] w-6 h-6 drop-shadow-[var(--glass-shadow)] transform scale-75 group-hover:scale-100 transition-transform" />
+             </div>
+ 
+             {/* Type Indicator if needed (e.g. video) */}
+             {item.type === 'video' && (
+-              <div className="absolute top-2 right-2 w-6 h-6 bg-black/50 rounded-full flex items-center justify-center backdrop-blur-sm">
++              <div className="absolute top-2 right-2 w-6 h-6 bg-[var(--glass-bg-strong)] rounded-full flex items-center justify-center backdrop-blur-sm">
+                 <Play className="w-3 h-3 text-[var(--text-primary)] ml-0.5" />
+               </div>
+             )}
+@@ -97,7 +97,7 @@ export const EntityMediaGallery: React.FC<EntityMediaGalleryProps> = ({
+       {/* Lightbox Modal */}
+       {selectedMedia && (
+         <div
+-          className="fixed inset-0 z-[10000] bg-black/95 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
++          className="fixed inset-0 z-[10000] bg-[var(--glass-bg-strong)] backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
+           onClick={() => setSelectedMedia(null)}
+         >
+           <div className="relative max-w-5xl w-full max-h-[90vh] flex flex-col items-center">
+diff --git a/src/client/components/entities/PersonCardSkeleton.tsx b/src/client/components/entities/PersonCardSkeleton.tsx
+index 0c14e3dac..9aba5e3bd 100644
+--- a/src/client/components/entities/PersonCardSkeleton.tsx
++++ b/src/client/components/entities/PersonCardSkeleton.tsx
+@@ -4,7 +4,7 @@ const PersonCardSkeleton: React.FC = () => {
+   return (
+     <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-xl)] p-6 relative overflow-hidden shadow-[var(--glass-shadow)]">
+       {/* Shimmer effect */}
+-      <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
++      <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-[var(--glass-highlight)] to-transparent"></div>
+ 
+       {/* Mention intensity bar */}
+       <div className="mb-4 h-1 bg-[var(--glass-border)] rounded-full overflow-hidden animate-pulse"></div>
+diff --git a/src/client/components/evidence/ClaimsList.tsx b/src/client/components/evidence/ClaimsList.tsx
+index 799f64996..60028fb40 100644
+--- a/src/client/components/evidence/ClaimsList.tsx
++++ b/src/client/components/evidence/ClaimsList.tsx
+@@ -97,7 +97,7 @@ export function ClaimsList({ claims }: ClaimsListProps) {
+   };
+ 
+   return (
+-    <div className="bg-white rounded-[var(--radius-lg)] shadow overflow-hidden">
++    <div className="bg-[var(--text-primary)] rounded-[var(--radius-lg)] shadow overflow-hidden">
+       <div className="px-4 py-3 border-b border-[var(--glass-border)] bg-[var(--app-bg)] flex justify-between items-center">
+         <h3 className="text-sm font-semibold text-[var(--text-primary)] uppercase tracking-wider flex items-center gap-2">
+           <BadgeCheck className="w-5 h-5 text-[var(--accent)]" />
+diff --git a/src/client/components/evidence/ContactListViewer.tsx b/src/client/components/evidence/ContactListViewer.tsx
+index 60c611b5e..fefde1f1c 100644
+--- a/src/client/components/evidence/ContactListViewer.tsx
++++ b/src/client/components/evidence/ContactListViewer.tsx
+@@ -104,7 +104,7 @@ export function ContactListViewer({ evidence }: ContactListViewerProps) {
+         {filteredContacts.map((contact, index) => (
+           <div
+             key={index}
+-            className="p-4 bg-white border border-[var(--glass-border)] rounded-[var(--radius-lg)] hover:border-[var(--accent)] hover:shadow-sm transition"
++            className="p-4 bg-[var(--text-primary)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] hover:border-[var(--accent)] hover:shadow-sm transition"
+           >
+             <div className="flex items-start">
+               <User className="h-5 w-5 text-[var(--text-muted)] mr-3 mt-0.5 flex-shrink-0" />
+diff --git a/src/client/components/evidence/DepositionViewer.tsx b/src/client/components/evidence/DepositionViewer.tsx
+index ae61f3d61..7cd140ce2 100644
+--- a/src/client/components/evidence/DepositionViewer.tsx
++++ b/src/client/components/evidence/DepositionViewer.tsx
+@@ -95,7 +95,7 @@ export function DepositionViewer({ evidence }: DepositionViewerProps) {
+       </div>
+ 
+       {/* Deposition Text */}
+-      <div className="bg-white border border-[var(--glass-border)] rounded-[var(--radius-lg)]">
++      <div className="bg-[var(--text-primary)] border border-[var(--glass-border)] rounded-[var(--radius-lg)]">
+         <div className="p-6">
+           {lines.map((line, index) => (
+             <div key={index} className="flex text-sm leading-relaxed mb-2">
+diff --git a/src/client/components/evidence/DocumentViewer.tsx b/src/client/components/evidence/DocumentViewer.tsx
+index ef40660ef..6965d0167 100644
+--- a/src/client/components/evidence/DocumentViewer.tsx
++++ b/src/client/components/evidence/DocumentViewer.tsx
+@@ -206,7 +206,7 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
+ 
+   return (
+     <div className="h-full flex flex-col animate-in fade-in duration-700">
+-      <div className="shrink-0 p-4 md:p-6 border-b border-white/5 flex items-center justify-between flex-wrap gap-4 bg-[var(--glass-bg-strong)]/40">
++      <div className="shrink-0 p-4 md:p-6 border-b border-[var(--glass-border)] flex items-center justify-between flex-wrap gap-4 bg-[var(--glass-bg-strong)]/40">
+         <div className="flex-1 min-w-[240px] max-w-md relative group">
+           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-muted)] group-focus-within:text-[var(--accent)] transition-colors" />
+           <input
+@@ -214,14 +214,14 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
+             placeholder="Scoping search..."
+             value={searchTerm}
+             onChange={(e) => setSearchTerm(e.target.value)}
+-            className="control w-full pl-10 pr-20 py-2 !bg-slate-950/40 border-white/5 focus:!border-[var(--accent)]/50"
++            className="control w-full pl-10 pr-20 py-2 !bg-[var(--glass-bg)] border-[var(--glass-border)] focus:!border-[var(--accent)]/50"
+           />
+           {totalMatches > 0 && (
+             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
+               <span className="text-[10px] font-black text-[var(--accent)] tracking-tighter uppercase whitespace-nowrap">
+                 {currentMatch}/{totalMatches}
+               </span>
+-              <div className="flex gap-1 border-l border-white/10 pl-2">
++              <div className="flex gap-1 border-l border-[var(--glass-border)] pl-2">
+                 <button
+                   onClick={() => navigateMatch('prev')}
+                   className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+@@ -241,7 +241,7 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
+ 
+         <div className="flex items-center gap-2">
+           {/* Quick Actions */}
+-          <div className="flex p-1 bg-slate-950/40 rounded-[var(--radius-xl)] border border-white/5 gap-1">
++          <div className="flex p-1 bg-[var(--glass-bg)] rounded-[var(--radius-xl)] border border-[var(--glass-border)] gap-1">
+             <button
+               onClick={() => setShowRaw(false)}
+               className={`px-3 py-1.5 rounded-[var(--radius-lg)] text-[10px] font-black uppercase tracking-widest transition-all ${!showRaw ? 'bg-[var(--accent)]/20 text-[var(--accent)] border border-[var(--accent)]/30' : 'text-[var(--text-primary)] hover:text-[var(--text-muted)]'}`}
+@@ -271,7 +271,7 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
+ 
+           <button
+             onClick={copyText}
+-            className="control !h-10 px-4 flex items-center gap-2 text-xs font-bold border-white/5 bg-[var(--glass-bg-strong)]/60"
++            className="control !h-10 px-4 flex items-center gap-2 text-xs font-bold border-[var(--glass-border)] bg-[var(--glass-bg-strong)]/60"
+           >
+             {copied ? (
+               <Check className="w-4 h-4 text-emerald-500" />
+@@ -287,7 +287,7 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
+               download
+               target="_blank"
+               rel="noopener noreferrer"
+-              className="control !h-10 w-10 flex items-center justify-center border-white/5 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
++              className="control !h-10 w-10 flex items-center justify-center border-[var(--glass-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+               title="Download Original"
+             >
+               <Download className="w-4 h-4" />
+@@ -295,7 +295,7 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
+           )}
+ 
+           {redactionSummary.length > 0 && (
+-            <div className="flex items-center gap-2 pl-3 border-l border-white/10">
++            <div className="flex items-center gap-2 pl-3 border-l border-[var(--glass-border)]">
+               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">
+                 Contains Redactions
+               </span>
+@@ -316,7 +316,7 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
+       {/* Main Content Area */}
+       <div
+         ref={contentRef}
+-        className="flex-1 overflow-y-auto p-6 md:p-12 transition-all duration-500 custom-scrollbar bg-slate-950/10"
++        className="flex-1 overflow-y-auto p-6 md:p-12 transition-all duration-500 custom-scrollbar bg-[var(--glass-bg)]"
+       >
+         <div className="max-w-4xl mx-auto">
+           {(evidence.metadata?.key_excerpts?.length ?? 0) > 0 && !showRaw && (
+diff --git a/src/client/components/evidence/EvidenceDocSnippets.tsx b/src/client/components/evidence/EvidenceDocSnippets.tsx
+index b83a7ff88..72c5297e5 100644
+--- a/src/client/components/evidence/EvidenceDocSnippets.tsx
++++ b/src/client/components/evidence/EvidenceDocSnippets.tsx
+@@ -55,7 +55,7 @@ export function EvidenceDocSnippets({ snippets, searchTerm }: EvidenceDocSnippet
+             </div>
+             {d.snippet && (
+               <div
+-                className="text-sm text-[var(--text-secondary)] font-mono bg-black/30 p-2 rounded mb-2 border-l-2 border-[var(--accent)]/30"
++                className="text-sm text-[var(--text-secondary)] font-mono bg-[var(--glass-bg-strong)] p-2 rounded mb-2 border-l-2 border-[var(--accent)]/30"
+                 // DOMPurify sanitizes the snippet before rendering — safe against XSS
+                 dangerouslySetInnerHTML={{
+                   __html: DOMPurify.sanitize(d.snippet, {
+diff --git a/src/client/components/evidence/EvidenceLadder.tsx b/src/client/components/evidence/EvidenceLadder.tsx
+index 5ce84d62d..d60dd2dbc 100644
+--- a/src/client/components/evidence/EvidenceLadder.tsx
++++ b/src/client/components/evidence/EvidenceLadder.tsx
+@@ -57,7 +57,7 @@ export const EvidenceLadder: React.FC<EvidenceLadderProps> = ({
+         className={`flex items-start gap-4 p-4 rounded-[var(--radius-xl)] border ${activeLevel.borderColor} ${activeLevel.bgColor} backdrop-blur-sm`}
+       >
+         <div
+-          className={`p-2 rounded-[var(--radius-lg)] ${activeLevel.borderColor} border bg-slate-950/50`}
++          className={`p-2 rounded-[var(--radius-lg)] ${activeLevel.borderColor} border bg-[var(--glass-bg)]`}
+         >
+           <activeLevel.icon size={20} className={activeLevel.color} />
+         </div>
+@@ -66,7 +66,7 @@ export const EvidenceLadder: React.FC<EvidenceLadderProps> = ({
+             <h4 className={`font-bold text-sm uppercase tracking-wider ${activeLevel.color}`}>
+               {activeLevel.name}
+             </h4>
+-            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-950/50 border border-[var(--glass-border)]">
++            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[var(--glass-bg)] border border-[var(--glass-border)]">
+               <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase">
+                 Confidence
+               </span>
+@@ -115,7 +115,7 @@ export const EvidenceLadder: React.FC<EvidenceLadderProps> = ({
+ 
+       {/* Evidence Pack Details (Optional) */}
+       {evidencePack && (
+-        <div className="bg-slate-950/50 border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-3 space-y-2">
++        <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-3 space-y-2">
+           <div className="flex items-center gap-2 text-[var(--text-muted)] text-[10px] font-bold uppercase tracking-widest px-1">
+             <ChevronRight size={12} />
+             Structural Context
+diff --git a/src/client/components/evidence/ImageViewer.tsx b/src/client/components/evidence/ImageViewer.tsx
+index d4857e924..19c98a03f 100644
+--- a/src/client/components/evidence/ImageViewer.tsx
++++ b/src/client/components/evidence/ImageViewer.tsx
+@@ -34,7 +34,7 @@ export function ImageViewer({ evidence }: ImageViewerProps) {
+         <div className="flex items-center space-x-2">
+           <button
+             onClick={zoomOut}
+-            className="p-2 text-[var(--text-primary)] bg-white border border-[var(--glass-border)] rounded-[var(--radius-lg)] hover:bg-[var(--app-bg)]"
++            className="p-2 text-[var(--text-primary)] bg-[var(--text-primary)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] hover:bg-[var(--app-bg)]"
+             title="Zoom out"
+           >
+             <ZoomOut className="h-5 w-5" />
+@@ -46,7 +46,7 @@ export function ImageViewer({ evidence }: ImageViewerProps) {
+ 
+           <button
+             onClick={zoomIn}
+-            className="p-2 text-[var(--text-primary)] bg-white border border-[var(--glass-border)] rounded-[var(--radius-lg)] hover:bg-[var(--app-bg)]"
++            className="p-2 text-[var(--text-primary)] bg-[var(--text-primary)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] hover:bg-[var(--app-bg)]"
+             title="Zoom in"
+           >
+             <ZoomIn className="h-5 w-5" />
+@@ -54,14 +54,14 @@ export function ImageViewer({ evidence }: ImageViewerProps) {
+ 
+           <button
+             onClick={() => setFullscreen(!fullscreen)}
+-            className="p-2 text-[var(--text-primary)] bg-white border border-[var(--glass-border)] rounded-[var(--radius-lg)] hover:bg-[var(--app-bg)]"
++            className="p-2 text-[var(--text-primary)] bg-[var(--text-primary)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] hover:bg-[var(--app-bg)]"
+             title="Fullscreen"
+           >
+             <Maximize2 className="h-5 w-5" />
+           </button>
+         </div>
+ 
+-        <button className="flex items-center px-4 py-2 text-sm font-medium text-[var(--text-primary)] bg-white border border-[var(--glass-border)] rounded-[var(--radius-lg)] hover:bg-[var(--app-bg)]">
++        <button className="flex items-center px-4 py-2 text-sm font-medium text-[var(--text-primary)] bg-[var(--text-primary)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] hover:bg-[var(--app-bg)]">
+           <Download className="h-4 w-4 mr-2" />
+           Download Image
+         </button>
+@@ -113,7 +113,7 @@ export function ImageViewer({ evidence }: ImageViewerProps) {
+         )}
+ 
+         {evidence.extractedText && evidence.extractedText.trim().length > 10 && (
+-          <div className="p-4 bg-white border border-[var(--glass-border)] rounded-[var(--radius-lg)]">
++          <div className="p-4 bg-[var(--text-primary)] border border-[var(--glass-border)] rounded-[var(--radius-lg)]">
+             <h4 className="text-sm font-semibold text-[var(--text-primary)] mb-2">OCR Text</h4>
+             <div className="text-sm text-[var(--text-primary)] whitespace-pre-wrap">
+               {evidence.extractedText}
+diff --git a/src/client/components/evidence/TableViewer.tsx b/src/client/components/evidence/TableViewer.tsx
+index 3c7f59d05..b07844edb 100644
+--- a/src/client/components/evidence/TableViewer.tsx
++++ b/src/client/components/evidence/TableViewer.tsx
+@@ -79,7 +79,7 @@ export function TableViewer({ evidence }: TableViewerProps) {
+ 
+         <button
+           onClick={downloadCSV}
+-          className="flex items-center px-4 py-2 text-sm font-medium text-[var(--text-primary)] bg-white border border-[var(--glass-border)] rounded-[var(--radius-lg)] hover:bg-[var(--app-bg)]"
++          className="flex items-center px-4 py-2 text-sm font-medium text-[var(--text-primary)] bg-[var(--text-primary)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] hover:bg-[var(--app-bg)]"
+         >
+           <Download className="h-4 w-4 mr-2" />
+           Download CSV
+diff --git a/src/client/components/faces/FaceGallery.tsx b/src/client/components/faces/FaceGallery.tsx
+index ff120bb10..16975333c 100644
+--- a/src/client/components/faces/FaceGallery.tsx
++++ b/src/client/components/faces/FaceGallery.tsx
+@@ -328,7 +328,7 @@ export const FaceGallery: React.FC = () => {
+                     href={`/media?id=${face.media_item_id}`}
+                     target="_blank"
+                     rel="noopener noreferrer"
+-                    className="absolute top-2 right-2 p-1.5 bg-black/60 rounded-full text-[var(--text-primary)] opacity-0 group-hover:opacity-100 hover:bg-[var(--accent)] transition-all"
++                    className="absolute top-2 right-2 p-1.5 bg-[var(--glass-bg-strong)] rounded-full text-[var(--text-primary)] opacity-0 group-hover:opacity-100 hover:bg-[var(--accent)] transition-all"
+                     title="View original photo"
+                   >
+                     <Icon name="ExternalLink" size="xs" />
+@@ -374,7 +374,7 @@ export const FaceGallery: React.FC = () => {
+                 </div>
+               )}
+               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60 group-hover:opacity-40 transition-opacity" />
+-              <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm px-2 py-0.5 rounded text-xs font-mono text-[var(--accent)] border border-[var(--accent)]/30">
++              <div className="absolute bottom-2 right-2 bg-[var(--glass-bg-strong)] backdrop-blur-sm px-2 py-0.5 rounded text-xs font-mono text-[var(--accent)] border border-[var(--accent)]/30">
+                 {cluster.face_count}
+               </div>
+               {cluster.entity_id && (
+diff --git a/src/client/components/flights/FlightTimelineView.tsx b/src/client/components/flights/FlightTimelineView.tsx
+index cc6e9a76e..40030a4ef 100644
+--- a/src/client/components/flights/FlightTimelineView.tsx
++++ b/src/client/components/flights/FlightTimelineView.tsx
+@@ -17,7 +17,7 @@ export const FlightTimelineView: React.FC<FlightTimelineViewProps> = ({
+ }) => (
+   <div
+     className="flight-timeline-container"
+-    style={{ flex: 1, minHeight: '600px', height: '100%', width: '100%' }}
++    style={{ flex: 1, minHeight: '600px', height: '800px', width: '100%' }}
+   >
+     {flights.length === 0 ? (
+       <div className="no-flights text-[var(--text-muted)] p-[var(--space-8)] text-center bg-[var(--glass-bg)]/50 rounded-[var(--radius-lg)]">
+diff --git a/src/client/components/investigation/BoardOnboarding.tsx b/src/client/components/investigation/BoardOnboarding.tsx
+index d092b1afe..944ae0f94 100644
+--- a/src/client/components/investigation/BoardOnboarding.tsx
++++ b/src/client/components/investigation/BoardOnboarding.tsx
+@@ -64,7 +64,7 @@ export const BoardOnboarding: React.FC<BoardOnboardingProps> = ({ onComplete, on
+       initial={{ opacity: 0 }}
+       animate={{ opacity: 1 }}
+       exit={{ opacity: 0 }}
+-      className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center z-50 p-4"
++      className="fixed inset-0 bg-[var(--glass-bg)] backdrop-blur-md flex items-center justify-center z-50 p-4"
+     >
+       <motion.div
+         initial={{ scale: 0.95, opacity: 0, y: 20 }}
+@@ -103,7 +103,7 @@ export const BoardOnboarding: React.FC<BoardOnboardingProps> = ({ onComplete, on
+               className="flex flex-col items-center"
+             >
+               <div
+-                className={`mb-6 p-4 rounded-[var(--radius-xl)] ${currentStep.bg} ${currentStep.border} border shadow-[var(--glass-shadow)] ${currentStep.glow} ring-1 ring-white/5`}
++                className={`mb-6 p-4 rounded-[var(--radius-xl)] ${currentStep.bg} ${currentStep.border} border shadow-[var(--glass-shadow)] ${currentStep.glow} ring-1 ring-[var(--glass-border)]`}
+               >
+                 <Icon className={`h-8 w-8 ${currentStep.color}`} />
+               </div>
+diff --git a/src/client/components/investigation/CommunicationAnalysis.tsx b/src/client/components/investigation/CommunicationAnalysis.tsx
+index f02d450b8..8f9d7cdbf 100644
+--- a/src/client/components/investigation/CommunicationAnalysis.tsx
++++ b/src/client/components/investigation/CommunicationAnalysis.tsx
+@@ -511,7 +511,7 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
+   };
+ 
+   return (
+-    <div className="bg-white rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)]">
++    <div className="bg-[var(--text-primary)] rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)]">
+       {/* Header */}
+       <div className="border-b border-[var(--glass-border)] px-6 py-4">
+         <div className="flex items-center justify-between">
+@@ -680,8 +680,8 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
+ 
+       {/* Pattern Detail Modal */}
+       {selectedPattern && (
+-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+-          <div className="bg-white rounded-[var(--radius-lg)] p-6 w-full max-w-2xl max-h-96 overflow-auto">
++        <div className="fixed inset-0 bg-[var(--glass-bg-strong)] bg-opacity-50 flex items-center justify-center z-50">
++          <div className="bg-[var(--text-primary)] rounded-[var(--radius-lg)] p-6 w-full max-w-2xl max-h-96 overflow-auto">
+             <div className="flex items-start justify-between mb-4">
+               <div>
+                 <h3 className="text-lg font-medium text-[var(--text-primary)]">
+diff --git a/src/client/components/investigation/EvidenceNotebook.tsx b/src/client/components/investigation/EvidenceNotebook.tsx
+index 1c80df851..70c4706a4 100644
+--- a/src/client/components/investigation/EvidenceNotebook.tsx
++++ b/src/client/components/investigation/EvidenceNotebook.tsx
+@@ -83,7 +83,7 @@ const renderMarkdown = (markdown: string): string => {
+   let content = source.replace(/```([\s\S]*?)```/g, (_match, code) => {
+     const token = `__CODE_BLOCK_${codeBlocks.length}__`;
+     codeBlocks.push(
+-      `<pre class="bg-slate-950 border border-[var(--glass-border)] rounded-md p-3 overflow-x-auto"><code>${code}</code></pre>`,
++      `<pre class="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-md p-3 overflow-x-auto"><code>${code}</code></pre>`,
+     );
+     return token;
+   });
+@@ -785,11 +785,11 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
+               }
+             }}
+             placeholder="Write your narrative, key claims, or open questions for this case."
+-            className="w-full min-h-[220px] bg-slate-950 border border-[var(--glass-border)] rounded-md px-3 py-2 text-sm text-[var(--text-primary)] placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/60"
++            className="w-full min-h-[220px] bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-md px-3 py-2 text-sm text-[var(--text-primary)] placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/60"
+           />
+         ) : (
+           <div
+-            className="min-h-[220px] bg-slate-950 border border-[var(--glass-border)] rounded-md px-4 py-3 prose prose-invert max-w-none"
++            className="min-h-[220px] bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-md px-4 py-3 prose prose-invert max-w-none"
+             dangerouslySetInnerHTML={{
+               __html:
+                 markdownPreviewHtml ||
+@@ -813,7 +813,7 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
+             {evidenceAnnotations.map((annotation) => (
+               <div
+                 key={annotation.id}
+-                className="bg-slate-950 border border-[var(--glass-border)] rounded-md px-3 py-2"
++                className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-md px-3 py-2"
+               >
+                 <div className="flex items-center gap-2 text-xs text-[var(--text-muted)] mb-1">
+                   <span className="px-1.5 py-0.5 rounded bg-[var(--glass-bg)] text-[var(--text-secondary)]">
+diff --git a/src/client/components/investigation/ForensicAnalysisWorkspace.tsx b/src/client/components/investigation/ForensicAnalysisWorkspace.tsx
+index 9fc5d17f4..e8b548b4c 100644
+--- a/src/client/components/investigation/ForensicAnalysisWorkspace.tsx
++++ b/src/client/components/investigation/ForensicAnalysisWorkspace.tsx
+@@ -765,7 +765,7 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
+       </div>
+ 
+       {selectedConfidenceTool && (
+-        <div className="fixed inset-0 z-[1100] bg-black/60 flex items-center justify-center p-4">
++        <div className="fixed inset-0 z-[1100] bg-[var(--glass-bg-strong)] flex items-center justify-center p-4">
+           <div className="w-full max-w-2xl rounded-[var(--radius-xl)] border border-[var(--glass-border)] bg-[var(--glass-bg-strong)] text-[var(--text-primary)] max-h-[90vh] overflow-auto">
+             <div className="p-4 border-b border-[var(--glass-border)] flex items-center justify-between">
+               <div>
+diff --git a/src/client/components/investigation/ForensicDocumentAnalyzer.tsx b/src/client/components/investigation/ForensicDocumentAnalyzer.tsx
+index ea1421eaa..7d81e58ca 100644
+--- a/src/client/components/investigation/ForensicDocumentAnalyzer.tsx
++++ b/src/client/components/investigation/ForensicDocumentAnalyzer.tsx
+@@ -860,7 +860,7 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
+                       {analysis.entities.map((entity, index) => (
+                         <div
+                           key={index}
+-                          className="p-4 bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] hover:bg-gray-650 transition-colors cursor-pointer"
++                          className="p-4 bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] hover:bg-[var(--glass-bg)] transition-colors cursor-pointer"
+                           onClick={() => setSelectedEntity(entity)}
+                         >
+                           <div className="flex items-start gap-3">
+@@ -994,7 +994,7 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
+ 
+       {/* Entity Detail Modal */}
+       {selectedEntity && (
+-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
++        <div className="fixed inset-0 bg-[var(--glass-bg-strong)] bg-opacity-50 flex items-center justify-center z-50 p-4">
+           <div className="bg-[var(--glass-bg)] rounded-[var(--radius-xl)] max-w-lg w-full p-6 border border-[var(--glass-border)] shadow-[var(--glass-shadow)]">
+             <div className="flex justify-between items-start mb-4">
+               <div>
+diff --git a/src/client/components/investigation/ForensicReportGenerator.tsx b/src/client/components/investigation/ForensicReportGenerator.tsx
+index ea0849899..29235ee24 100644
+--- a/src/client/components/investigation/ForensicReportGenerator.tsx
++++ b/src/client/components/investigation/ForensicReportGenerator.tsx
+@@ -600,7 +600,7 @@ It is concluded that the identified patterns are consistent with complex organis
+               >
+                 {isGenerating ? (
+                   <>
+-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
++                    <div className="w-4 h-4 border-2 border-[var(--glass-border)] border-t-transparent rounded-full animate-spin"></div>
+                     Generating...
+                   </>
+                 ) : (
+diff --git a/src/client/components/investigation/InvestigationBoard.tsx b/src/client/components/investigation/InvestigationBoard.tsx
+index b59333655..8db94479a 100644
+--- a/src/client/components/investigation/InvestigationBoard.tsx
++++ b/src/client/components/investigation/InvestigationBoard.tsx
+@@ -224,7 +224,7 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
+ 
+   return (
+     <Profiler id="InvestigationBoard" onRender={onBoardRender}>
+-      <div className="flex h-full bg-slate-950 overflow-hidden">
++      <div className="flex h-full bg-[var(--glass-bg)] overflow-hidden">
+         <div className="absolute top-4 right-4 z-10">
+           <button
+             onClick={() => window.open(`/api/investigations/${investigationId}/briefing`, '_blank')}
+@@ -345,7 +345,7 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
+           </div>
+         </div>
+ 
+-        <div className="w-1/3 border-r border-[var(--glass-border)] flex flex-col min-w-[300px] bg-slate-950">
++        <div className="w-1/3 border-r border-[var(--glass-border)] flex flex-col min-w-[300px] bg-[var(--glass-bg)]">
+           <div className="p-4 border-b border-[var(--glass-border)] bg-[var(--glass-bg-strong)]/50 flex items-center justify-between">
+             <div className="flex items-center gap-2">
+               <FileText className="w-5 h-5 text-[var(--accent)]" />
+diff --git a/src/client/components/investigation/InvestigationEvidencePanel.tsx b/src/client/components/investigation/InvestigationEvidencePanel.tsx
+index 37f04b19f..49055b775 100644
+--- a/src/client/components/investigation/InvestigationEvidencePanel.tsx
++++ b/src/client/components/investigation/InvestigationEvidencePanel.tsx
+@@ -396,7 +396,7 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
+               onClick={onClose}
+               size="md"
+               label="Close evidence collection panel"
+-              className="bg-transparent hover:bg-white/10 border-[var(--glass-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)] shrink-0"
++              className="bg-transparent hover:bg-[var(--glass-bg-highlight)] border-[var(--glass-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)] shrink-0"
+             />
+           )}
+         </div>
+@@ -612,7 +612,7 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
+ 
+       {/* Add Evidence Modal */}
+       {showAddModal && (
+-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
++        <div className="fixed inset-0 bg-[var(--glass-bg-strong)] bg-opacity-70 flex items-center justify-center z-50">
+           <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)] w-full max-w-2xl max-h-[80vh] overflow-hidden border border-[var(--glass-border)]">
+             <div className="border-b border-[var(--glass-border)] p-6">
+               <div className="flex items-center justify-between">
+@@ -621,7 +621,7 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
+                   onClick={() => setShowAddModal(false)}
+                   size="md"
+                   label="Close add evidence modal"
+-                  className="bg-transparent hover:bg-white/10 border-[var(--glass-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
++                  className="bg-transparent hover:bg-[var(--glass-bg-highlight)] border-[var(--glass-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                 />
+               </div>
+             </div>
+diff --git a/src/client/components/investigation/InvestigationMemoryPanel.tsx b/src/client/components/investigation/InvestigationMemoryPanel.tsx
+index 9868fa327..4ef834da1 100644
+--- a/src/client/components/investigation/InvestigationMemoryPanel.tsx
++++ b/src/client/components/investigation/InvestigationMemoryPanel.tsx
+@@ -96,7 +96,7 @@ export const InvestigationMemoryPanel: React.FC<InvestigationMemoryPanelProps> =
+   }, [entries]);
+ 
+   return (
+-    <div className="fixed inset-0 z-40 flex items-stretch justify-end bg-slate-950/60 backdrop-blur-sm">
++    <div className="fixed inset-0 z-40 flex items-stretch justify-end bg-[var(--glass-bg)] backdrop-blur-sm">
+       <div className="w-full max-w-md bg-[var(--glass-bg-strong)] border-l border-[var(--glass-border)] shadow-[var(--glass-shadow)] flex flex-col">
+         <div className="px-4 sm:px-6 py-4 border-b border-[var(--glass-border)] flex items-center justify-between">
+           <div>
+diff --git a/src/client/components/investigation/InvestigationOnboarding.tsx b/src/client/components/investigation/InvestigationOnboarding.tsx
+index 752cbae0e..dd8789913 100644
+--- a/src/client/components/investigation/InvestigationOnboarding.tsx
++++ b/src/client/components/investigation/InvestigationOnboarding.tsx
+@@ -67,13 +67,13 @@ export const InvestigationOnboarding: React.FC<InvestigationOnboardingProps> = (
+       initial={{ opacity: 0 }}
+       animate={{ opacity: 1 }}
+       exit={{ opacity: 0 }}
+-      className="fixed inset-0 bg-slate-950/60 backdrop-blur-md flex items-center justify-center z-50 p-4"
++      className="fixed inset-0 bg-[var(--glass-bg)] backdrop-blur-md flex items-center justify-center z-50 p-4"
+     >
+       <motion.div
+         initial={{ scale: 0.95, opacity: 0, y: 20 }}
+         animate={{ scale: 1, opacity: 1, y: 0 }}
+         transition={{ type: 'spring', duration: 0.5, bounce: 0.3 }}
+-        className="relative bg-[var(--glass-bg-strong)]/90 border border-white/10 rounded-3xl shadow-[var(--glass-shadow)] w-full max-w-lg overflow-hidden backdrop-blur-xl"
++        className="relative bg-[var(--glass-bg-strong)]/90 border border-[var(--glass-border)] rounded-3xl shadow-[var(--glass-shadow)] w-full max-w-lg overflow-hidden backdrop-blur-xl"
+       >
+         {/* Decorative Background Gradients */}
+         <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-[var(--accent)]/10 rounded-full blur-3xl pointer-events-none" />
+@@ -101,7 +101,7 @@ export const InvestigationOnboarding: React.FC<InvestigationOnboardingProps> = (
+             onClick={onSkip}
+             size="md"
+             label="Close investigation onboarding"
+-            className="bg-transparent hover:bg-white/10 border-white/10"
++            className="bg-transparent hover:bg-[var(--glass-bg-highlight)] border-[var(--glass-border)]"
+           />
+         </div>
+ 
+@@ -118,7 +118,7 @@ export const InvestigationOnboarding: React.FC<InvestigationOnboardingProps> = (
+             >
+               {/* Icon Container */}
+               <div
+-                className={`mb-8 p-6 rounded-[var(--radius-xl)] ${currentStep.bg} ${currentStep.border} border shadow-[0_0_30px_-5px] ${currentStep.glow} ring-1 ring-white/5`}
++                className={`mb-8 p-6 rounded-[var(--radius-xl)] ${currentStep.bg} ${currentStep.border} border shadow-[0_0_30px_-5px] ${currentStep.glow} ring-1 ring-[var(--glass-border)]`}
+               >
+                 <Icon className={`h-10 w-10 ${currentStep.color}`} />
+               </div>
+diff --git a/src/client/components/investigation/InvestigationTasksPanel.tsx b/src/client/components/investigation/InvestigationTasksPanel.tsx
+index 5f371df9c..67e9b9bcc 100644
+--- a/src/client/components/investigation/InvestigationTasksPanel.tsx
++++ b/src/client/components/investigation/InvestigationTasksPanel.tsx
+@@ -175,7 +175,7 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
+   };
+ 
+   return (
+-    <div className="fixed inset-0 z-40 flex items-stretch justify-end bg-slate-950/60 backdrop-blur-sm">
++    <div className="fixed inset-0 z-40 flex items-stretch justify-end bg-[var(--glass-bg)] backdrop-blur-sm">
+       <div className="w-full max-w-md bg-[var(--glass-bg-strong)] border-l border-[var(--glass-border)] shadow-[var(--glass-shadow)] flex flex-col">
+         <div className="px-4 sm:px-6 py-4 border-b border-[var(--glass-border)] flex items-center justify-between">
+           <div>
+diff --git a/src/client/components/investigation/InvestigationTeamManagement.tsx b/src/client/components/investigation/InvestigationTeamManagement.tsx
+index 7644b34d3..b54e5d325 100644
+--- a/src/client/components/investigation/InvestigationTeamManagement.tsx
++++ b/src/client/components/investigation/InvestigationTeamManagement.tsx
+@@ -401,7 +401,7 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
+       </div>
+ 
+       {showAddModal && (
+-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
++        <div className="fixed inset-0 bg-[var(--glass-bg-strong)] flex items-center justify-center z-50 p-4">
+           <div className="bg-[var(--glass-bg)] rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] w-full max-w-md border border-[var(--glass-border)]">
+             <div className="border-b border-[var(--glass-border)] p-5">
+               <h3 className="text-lg font-semibold text-[var(--text-primary)]">
+diff --git a/src/client/components/investigation/InvestigationWorkspace.tsx b/src/client/components/investigation/InvestigationWorkspace.tsx
+index caefa81d7..5430f111a 100644
+--- a/src/client/components/investigation/InvestigationWorkspace.tsx
++++ b/src/client/components/investigation/InvestigationWorkspace.tsx
+@@ -2023,7 +2023,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
+ 
+       {/* New Investigation Modal */}
+       {showNewInvestigationModal && (
+-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-4">
++        <div className="fixed inset-0 bg-[var(--glass-bg-strong)] backdrop-blur-md flex items-center justify-center z-50 p-4">
+           <div className="liquid-glass-modal rounded-[var(--radius-xl)] p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+             <h3 className="text-xl font-bold text-[var(--text-primary)] mb-6">
+               Create New Investigation
+diff --git a/src/client/components/investigation/MultiSourceCorrelationEngine.tsx b/src/client/components/investigation/MultiSourceCorrelationEngine.tsx
+index 2b55f858c..7096e87af 100644
+--- a/src/client/components/investigation/MultiSourceCorrelationEngine.tsx
++++ b/src/client/components/investigation/MultiSourceCorrelationEngine.tsx
+@@ -270,7 +270,7 @@ export default function MultiSourceCorrelationEngine() {
+               >
+                 {isAnalyzing ? (
+                   <>
+-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
++                    <div className="w-4 h-4 border-2 border-[var(--glass-border)] border-t-transparent rounded-full animate-spin"></div>
+                     Analyzing...
+                   </>
+                 ) : (
+diff --git a/src/client/components/layout/Footer.tsx b/src/client/components/layout/Footer.tsx
+index 73cb2aa39..250aa282a 100644
+--- a/src/client/components/layout/Footer.tsx
++++ b/src/client/components/layout/Footer.tsx
+@@ -98,7 +98,7 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
+                   <div className="font-bold mb-1">Live Data Status</div>
+                   <div className="font-mono mb-1">{systemStatus.message}</div>
+                   {systemStatus.details && (
+-                    <div className="text-[10px] opacity-80 leading-tight border-t border-white/5 pt-1 mt-1">
++                    <div className="text-[10px] opacity-80 leading-tight border-t border-[var(--glass-border)] pt-1 mt-1">
+                       {systemStatus.details}
+                     </div>
+                   )}
+diff --git a/src/client/components/layout/GlobalSearch.tsx b/src/client/components/layout/GlobalSearch.tsx
+index 5a5069647..1789abeaa 100644
+--- a/src/client/components/layout/GlobalSearch.tsx
++++ b/src/client/components/layout/GlobalSearch.tsx
+@@ -744,7 +744,7 @@ const GlobalSearch: React.FC = () => {
+       {/* Result Detail Modal */}
+       {selectedResult &&
+         createPortal(
+-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
++          <div className="fixed inset-0 bg-[var(--glass-bg-strong)] backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
+             <div className="bg-[var(--glass-bg)] rounded-[var(--radius-xl)] max-w-4xl w-full max-h-[80vh] overflow-hidden border border-[var(--glass-border)]">
+               <div className="p-6 border-b border-[var(--glass-border)]">
+                 <div className="flex items-center justify-between">
+diff --git a/src/client/components/media/ArticleCard.tsx b/src/client/components/media/ArticleCard.tsx
+index fb3f276cf..f8473c837 100644
+--- a/src/client/components/media/ArticleCard.tsx
++++ b/src/client/components/media/ArticleCard.tsx
+@@ -81,17 +81,17 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({ article, onClick }) =>
+         </p>
+ 
+         {/* Footer: Author & Read Time */}
+-        <div className="flex items-center justify-between border-t border-white/10 pt-4">
++        <div className="flex items-center justify-between border-t border-[var(--glass-border)] pt-4">
+           <div className="flex items-center gap-3">
+             {article.authorAvatar ? (
+               <img
+                 src={article.authorAvatar}
+                 alt={article.author}
+                 loading="lazy"
+-                className="h-8 w-8 rounded-full border border-white/20"
++                className="h-8 w-8 rounded-full border border-[var(--glass-border)]"
+               />
+             ) : (
+-              <div className="h-8 w-8 rounded-full bg-[var(--glass-bg-highlight)] border border-white/10 flex items-center justify-center text-xs font-bold text-[var(--text-primary)]">
++              <div className="h-8 w-8 rounded-full bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] flex items-center justify-center text-xs font-bold text-[var(--text-primary)]">
+                 <User className="h-4 w-4" />
+               </div>
+             )}
+@@ -105,7 +105,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({ article, onClick }) =>
+             </div>
+           </div>
+ 
+-          <div className="rounded-full bg-white/10 p-2 text-[var(--text-primary)] backdrop-blur-sm transition-colors group-hover:bg-[var(--accent)] group-hover:text-[var(--text-primary)]">
++          <div className="rounded-full bg-[var(--glass-bg-highlight)] p-2 text-[var(--text-primary)] backdrop-blur-sm transition-colors group-hover:bg-[var(--accent)] group-hover:text-[var(--text-primary)]">
+             <ArrowUpRight className="h-5 w-5" />
+           </div>
+         </div>
+diff --git a/src/client/components/media/ArticlesTab.tsx b/src/client/components/media/ArticlesTab.tsx
+index 0caaa2322..5fc38aaf8 100644
+--- a/src/client/components/media/ArticlesTab.tsx
++++ b/src/client/components/media/ArticlesTab.tsx
+@@ -151,7 +151,7 @@ export const ArticlesTab: React.FC = () => {
+   };
+ 
+   return (
+-    <div className="flex flex-col h-full min-h-[500px] bg-slate-950 border border-[var(--glass-border)] shadow-[var(--glass-shadow)] overflow-hidden rounded-[var(--radius-lg)]">
++    <div className="flex flex-col h-full min-h-[500px] bg-[var(--glass-bg)] border border-[var(--glass-border)] shadow-[var(--glass-shadow)] overflow-hidden rounded-[var(--radius-lg)]">
+       {/* Header with controls */}
+       <div className="bg-[var(--glass-bg-strong)] border-b border-[var(--glass-border)] flex flex-col md:flex-row md:items-center justify-between px-3 py-2 md:px-4 md:h-14 shrink-0 z-10 gap-2">
+         {/* Mobile Publication Dropdown */}
+@@ -264,9 +264,9 @@ export const ArticlesTab: React.FC = () => {
+         </aside>
+ 
+         {/* Main Content */}
+-        <div className="flex-1 bg-slate-950 flex flex-col overflow-hidden relative">
++        <div className="flex-1 bg-[var(--glass-bg)] flex flex-col overflow-hidden relative">
+           {loading ? (
+-            <div className="absolute inset-0 flex items-center justify-center z-20 bg-slate-950/50 backdrop-blur-sm">
++            <div className="absolute inset-0 flex items-center justify-center z-20 bg-[var(--glass-bg)] backdrop-blur-sm">
+               <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[var(--accent)]"></div>
+             </div>
+           ) : null}
+diff --git a/src/client/components/media/AudioBrowser.tsx b/src/client/components/media/AudioBrowser.tsx
+index fe179fcf9..fdd646b12 100644
+--- a/src/client/components/media/AudioBrowser.tsx
++++ b/src/client/components/media/AudioBrowser.tsx
+@@ -398,7 +398,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
+                         </div>
+                       )}
+                       {addingId === item.id && (
+-                        <div className="text-[10px] text-[var(--text-primary)] bg-black/60 px-2 py-0.5 rounded">
++                        <div className="text-[10px] text-[var(--text-primary)] bg-[var(--glass-bg-strong)] px-2 py-0.5 rounded">
+                           …
+                         </div>
+                       )}
+@@ -441,7 +441,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
+                       )}
+ 
+                       {(item.metadata?.duration || 0) > 0 && (
+-                        <div className="absolute bottom-2 right-2 px-2 py-1 bg-black/80 text-[var(--text-primary)] text-xs rounded-full font-mono flex items-center gap-1">
++                        <div className="absolute bottom-2 right-2 px-2 py-1 bg-[var(--glass-bg-strong)] text-[var(--text-primary)] text-xs rounded-full font-mono flex items-center gap-1">
+                           <Clock size={10} />
+                           {Math.floor((item.metadata?.duration || 0) / 60)}:
+                           {((item.metadata?.duration || 0) % 60).toString().padStart(2, '0')}
+diff --git a/src/client/components/media/AudioPlayer.tsx b/src/client/components/media/AudioPlayer.tsx
+index 5dba8168b..56dc1144c 100644
+--- a/src/client/components/media/AudioPlayer.tsx
++++ b/src/client/components/media/AudioPlayer.tsx
+@@ -476,7 +476,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
+   };
+ 
+   return (
+-    <div className="flex flex-col h-full bg-slate-950 border border-[var(--glass-border)] rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)] overflow-hidden">
++    <div className="flex flex-col h-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)] overflow-hidden">
+       {/* Header */}
+       <div className="px-4 py-3 bg-[var(--glass-bg-strong)] border-b border-[var(--glass-border)]">
+         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+@@ -569,7 +569,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
+       <div className="flex flex-1 min-h-0 overflow-hidden relative">
+         {/* Sensitive Content Warning Overlay */}
+         {!hasRevealed && (
+-          <div className="absolute inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-300">
++          <div className="absolute inset-0 z-50 bg-[var(--glass-bg)] backdrop-blur-md flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-300">
+             <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-6 ring-1 ring-red-500/30">
+               <Shield className="h-8 w-8 text-red-500" />
+             </div>
+@@ -661,7 +661,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
+             {/* Active Chapter Display */}
+             {computedChapters.length > 0 && (
+               <div className="absolute top-4 left-4 right-4 text-center z-20">
+-                <span className="text-xs font-mono text-[var(--accent)] uppercase tracking-widest bg-black/50 px-2 py-1 rounded">
++                <span className="text-xs font-mono text-[var(--accent)] uppercase tracking-widest bg-[var(--glass-bg-strong)] px-2 py-1 rounded">
+                   Current Chapter
+                 </span>
+                 <h4 className="text-lg text-[var(--text-primary)] font-light drop-shadow-[var(--glass-shadow)] mt-1">
+@@ -690,7 +690,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
+             {computedChapters.map((chapter, i) => (
+               <div
+                 key={i}
+-                className="absolute top-0 w-0.5 h-2 bg-[var(--glass-bg-highlight)] hover:bg-white cursor-pointer z-10 transition-colors"
++                className="absolute top-0 w-0.5 h-2 bg-[var(--glass-bg-highlight)] hover:bg-[var(--text-primary)] cursor-pointer z-10 transition-colors"
+                 style={{ left: `${(chapter.startTime / duration) * 100}%` }}
+                 title={chapter.title}
+                 onClick={(e) => {
+@@ -716,7 +716,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
+ 
+             <button
+               onClick={togglePlay}
+-              className="w-14 h-14 rounded-full bg-[var(--accent)] hover:bg-[var(--accent)] text-black flex items-center justify-center shadow-[var(--glass-shadow)] shadow-cyan-900/20 transition-all hover:scale-105"
++              className="w-14 h-14 rounded-full bg-[var(--accent)] hover:bg-[var(--accent)] text-[var(--bg-dark)] flex items-center justify-center shadow-[var(--glass-shadow)] shadow-cyan-900/20 transition-all hover:scale-105"
+             >
+               {isPlaying ? (
+                 <Pause size={24} fill="currentColor" />
+@@ -931,8 +931,8 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
+       </div>
+ 
+       {showFullTranscriptOverlay && (
+-        <div className="fixed inset-0 z-[1300] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+-          <div className="w-full max-w-5xl h-[90vh] max-h-[90vh] bg-slate-950 border border-[var(--glass-border)] rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)] overflow-hidden flex flex-col">
++        <div className="fixed inset-0 z-[1300] bg-[var(--glass-bg-strong)] backdrop-blur-sm flex items-center justify-center p-4">
++          <div className="w-full max-w-5xl h-[90vh] max-h-[90vh] bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)] overflow-hidden flex flex-col">
+             <div className="flex items-center justify-between p-3 bg-[var(--glass-bg-strong)] border-b border-[var(--glass-border)]">
+               <div className="flex items-center gap-2">
+                 <button
+diff --git a/src/client/components/media/MediaAndArticlesTab.tsx b/src/client/components/media/MediaAndArticlesTab.tsx
+index 8d5f4949f..6034fa6bb 100644
+--- a/src/client/components/media/MediaAndArticlesTab.tsx
++++ b/src/client/components/media/MediaAndArticlesTab.tsx
+@@ -135,7 +135,7 @@ export const MediaAndArticlesTab: React.FC = () => {
+   };
+ 
+   return (
+-    <div className="flex flex-col h-full bg-slate-950 overflow-hidden">
++    <div className="flex flex-col h-full bg-[var(--glass-bg)] overflow-hidden">
+       <SEO
+         title={shareMetadata?.title || 'Epstein Media Archive'}
+         description={
+@@ -219,11 +219,11 @@ export const MediaAndArticlesTab: React.FC = () => {
+       </div>
+ 
+       {/* Content Area with isolation */}
+-      <div className="flex-grow relative min-h-0 bg-slate-950">
++      <div className="flex-grow relative min-h-0 bg-[var(--glass-bg)]">
+         <ScopedErrorBoundary>
+           <Suspense
+             fallback={
+-              <div className="absolute inset-0 flex items-center justify-center bg-slate-950">
++              <div className="absolute inset-0 flex items-center justify-center bg-[var(--glass-bg)]">
+                 <div className="flex flex-col items-center gap-3">
+                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent)]"></div>
+                   <p className="text-[var(--text-muted)] text-xs font-mono tracking-widest uppercase">
+diff --git a/src/client/components/media/MediaViewer.tsx b/src/client/components/media/MediaViewer.tsx
+index 1937dc24c..b14e4e2f4 100644
+--- a/src/client/components/media/MediaViewer.tsx
++++ b/src/client/components/media/MediaViewer.tsx
+@@ -81,7 +81,7 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({
+ 
+     if (isImage) {
+       return (
+-        <div className="flex items-center justify-center w-full h-full overflow-auto bg-black/50">
++        <div className="flex items-center justify-center w-full h-full overflow-auto bg-[var(--glass-bg-strong)]">
+           <img
+             src={filePath}
+             alt={fileName}
+@@ -136,7 +136,7 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({
+ 
+   const content = (
+     <div
+-      className={`${inline ? 'relative w-full h-full' : 'fixed inset-0 bg-black bg-opacity-90 z-[1100]'} flex flex-col`}
++      className={`${inline ? 'relative w-full h-full' : 'fixed inset-0 bg-[var(--glass-bg-strong)] bg-opacity-90 z-[1100]'} flex flex-col`}
+     >
+       {/* Header */}
+       <div
+diff --git a/src/client/components/media/MediaViewerModal.tsx b/src/client/components/media/MediaViewerModal.tsx
+index b1b6869e4..7300d91a0 100644
+--- a/src/client/components/media/MediaViewerModal.tsx
++++ b/src/client/components/media/MediaViewerModal.tsx
+@@ -342,7 +342,7 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
+   return createPortal(
+     <div
+       id="MediaViewerModal"
+-      className="fixed inset-0 z-[2000] bg-black/95 backdrop-blur-md flex overflow-hidden"
++      className="fixed inset-0 z-[2000] bg-[var(--glass-bg-strong)] backdrop-blur-md flex overflow-hidden"
+     >
+       {/* Main Image Area */}
+       <div
+diff --git a/src/client/components/media/PhotoBrowser.tsx b/src/client/components/media/PhotoBrowser.tsx
+index 68d281264..f4a1610c9 100644
+--- a/src/client/components/media/PhotoBrowser.tsx
++++ b/src/client/components/media/PhotoBrowser.tsx
+@@ -897,7 +897,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
+           )}
+ 
+           <div
+-            className="flex-1 min-h-[360px] overflow-hidden relative bg-slate-950"
++            className="flex-1 min-h-[360px] overflow-hidden relative bg-[var(--glass-bg)]"
+             onClick={handleGridClick}
+           >
+             {!loading && images.length === 0 ? (
+diff --git a/src/client/components/media/VideoBrowser.tsx b/src/client/components/media/VideoBrowser.tsx
+index ca065d53d..c818eb180 100644
+--- a/src/client/components/media/VideoBrowser.tsx
++++ b/src/client/components/media/VideoBrowser.tsx
+@@ -124,7 +124,7 @@ const VideoCell = React.memo(({ columnIndex, rowIndex, style, data }: GridChildC
+         onClick={() => onVideoClick(video, index)}
+         tabIndex={isBatchMode ? 0 : -1}
+       >
+-        <div className="aspect-video relative overflow-hidden bg-black">
++        <div className="aspect-video relative overflow-hidden bg-[var(--glass-bg-strong)]">
+           <SensitiveContent isSensitive={video.isSensitive} className="w-full h-full">
+             <img
+               key={video.id}
+@@ -140,9 +140,9 @@ const VideoCell = React.memo(({ columnIndex, rowIndex, style, data }: GridChildC
+                 img.classList.remove('group-hover:scale-110');
+               }}
+             />
+-            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
++            <div className="absolute inset-0 bg-[var(--glass-bg-strong)] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+               <div className="w-12 h-12 bg-[var(--accent)] rounded-full flex items-center justify-center shadow-[var(--glass-shadow)] transform scale-90 group-hover:scale-100 transition-transform">
+-                <Play className="text-[var(--text-primary)] fill-white h-6 w-6 ml-1" />
++                <Play className="text-[var(--text-primary)] fill-[var(--text-primary)] h-6 w-6 ml-1" />
+               </div>
+             </div>
+           </SensitiveContent>
+@@ -152,7 +152,7 @@ const VideoCell = React.memo(({ columnIndex, rowIndex, style, data }: GridChildC
+               className={`absolute top-2 left-2 z-10 w-6 h-6 rounded-md border flex items-center justify-center transition-colors ${
+                 isSelected
+                   ? 'bg-[var(--accent)] border-[var(--accent)]'
+-                  : 'bg-black/50 border-[var(--glass-border)]'
++                  : 'bg-[var(--glass-bg-strong)] border-[var(--glass-border)]'
+               }`}
+             >
+               {isSelected && <CheckSquare className="h-4 w-4 text-[var(--text-primary)]" />}
+@@ -160,7 +160,7 @@ const VideoCell = React.memo(({ columnIndex, rowIndex, style, data }: GridChildC
+           )}
+ 
+           {video.metadata?.duration && (
+-            <div className="absolute bottom-2 right-2 bg-black/80 px-1.5 py-0.5 rounded text-[10px] text-[var(--text-primary)] font-medium flex items-center gap-1">
++            <div className="absolute bottom-2 right-2 bg-[var(--glass-bg-strong)] px-1.5 py-0.5 rounded text-[10px] text-[var(--text-primary)] font-medium flex items-center gap-1">
+               <Clock className="h-3 w-3" />
+               {Math.floor(video.metadata.duration / 60)}:
+               {
+@@ -493,7 +493,7 @@ export const VideoBrowser: React.FC = () => {
+             </AutoSizer>
+ 
+             {loading && items.length === 0 && (
+-              <div className="absolute inset-0 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm z-10">
++              <div className="absolute inset-0 flex items-center justify-center bg-[var(--glass-bg)] backdrop-blur-sm z-10">
+                 <div className="flex flex-col items-center gap-3">
+                   <div className="w-10 h-10 border-4 border-[var(--accent)] border-t-transparent rounded-full animate-spin"></div>
+                   <p className="text-[var(--text-muted)] font-medium font-mono text-xs uppercase tracking-widest animate-pulse">
+@@ -531,7 +531,7 @@ export const VideoBrowser: React.FC = () => {
+       {/* Video Player Modal */}
+       {selectedItem &&
+         createPortal(
+-          <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 md:p-8">
++          <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-[var(--glass-bg-strong)] backdrop-blur-sm p-4 md:p-8">
+             <div className="w-full max-w-6xl h-[90vh] max-h-[90vh]">
+               <VideoPlayer
+                 src={`/api/media/video/${selectedItem.id}/stream`}
+diff --git a/src/client/components/media/VideoPlayer.tsx b/src/client/components/media/VideoPlayer.tsx
+index 71afcc0d7..038dd60da 100644
+--- a/src/client/components/media/VideoPlayer.tsx
++++ b/src/client/components/media/VideoPlayer.tsx
+@@ -325,7 +325,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
+   };
+ 
+   return (
+-    <div className="flex flex-col h-full bg-slate-950 border border-[var(--glass-border)] rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)] overflow-hidden">
++    <div className="flex flex-col h-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)] overflow-hidden">
+       {/* Header */}
+       <div className="px-4 py-3 bg-[var(--glass-bg-strong)] border-b border-[var(--glass-border)] shrink-0">
+         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+@@ -412,13 +412,13 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
+         {/* Main Content (Video) */}
+         <div
+           ref={containerRef}
+-          className="flex-1 bg-black relative flex items-center justify-center overflow-hidden group"
++          className="flex-1 bg-[var(--glass-bg-strong)] relative flex items-center justify-center overflow-hidden group"
+           onMouseMove={handleMouseMove}
+           onMouseLeave={() => isPlaying && setShowControls(false)}
+         >
+           {/* Sensitive Content Warning Overlay */}
+           {!hasRevealed && (
+-            <div className="absolute inset-0 z-50 bg-slate-950/95 flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-300">
++            <div className="absolute inset-0 z-50 bg-[var(--glass-bg)] flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-300">
+               <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-6 ring-1 ring-red-500/30">
+                 <Shield className="h-8 w-8 text-red-500" />
+               </div>
+@@ -477,13 +477,13 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
+                 max={duration || 100}
+                 value={currentTime}
+                 onChange={(e) => seek(parseFloat(e.target.value))}
+-                className="w-full h-1.5 bg-white/20 rounded-[var(--radius-lg)] appearance-none cursor-pointer accent-cyan-500 hover:h-2 transition-all"
++                className="w-full h-1.5 bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] appearance-none cursor-pointer accent-cyan-500 hover:h-2 transition-all"
+               />
+               {/* Chapter Markers */}
+               {chapters.map((chapter, i) => (
+                 <div
+                   key={i}
+-                  className="absolute top-0 w-0.5 h-1.5 bg-yellow-500 hover:bg-white cursor-pointer z-10 transition-colors"
++                  className="absolute top-0 w-0.5 h-1.5 bg-yellow-500 hover:bg-[var(--text-primary)] cursor-pointer z-10 transition-colors"
+                   style={{ left: `${(chapter.startTime / duration) * 100}%` }}
+                   title={chapter.title}
+                   onClick={(e) => {
+@@ -532,7 +532,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
+                       setVolume(parseFloat(e.target.value));
+                       if (videoRef.current) videoRef.current.volume = parseFloat(e.target.value);
+                     }}
+-                    className="w-0 overflow-hidden group-hover/vol:w-20 transition-all h-1 bg-white/30 rounded-[var(--radius-lg)] appearance-none cursor-pointer accent-white"
++                    className="w-0 overflow-hidden group-hover/vol:w-20 transition-all h-1 bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] appearance-none cursor-pointer accent-white"
+                   />
+                 </div>
+ 
+@@ -552,7 +552,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
+               </div>
+ 
+               <div className="flex items-center gap-4">
+-                <div className="flex items-center gap-1 bg-white/10 rounded px-1">
++                <div className="flex items-center gap-1 bg-[var(--glass-bg-highlight)] rounded px-1">
+                   {[0.5, 1, 1.5, 2].map((rate) => (
+                     <button
+                       key={rate}
+@@ -560,7 +560,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
+                         setPlaybackRate(rate);
+                         if (videoRef.current) videoRef.current.playbackRate = rate;
+                       }}
+-                      className={`px-2 py-0.5 text-xs rounded ${playbackRate === rate ? 'bg-white/20 text-[var(--text-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}
++                      className={`px-2 py-0.5 text-xs rounded ${playbackRate === rate ? 'bg-[var(--glass-bg-highlight)] text-[var(--text-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}
+                     >
+                       {rate}x
+                     </button>
+@@ -721,8 +721,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
+         )}
+       </div>
+       {showFullTranscriptOverlay && (
+-        <div className="fixed inset-0 z-[1300] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+-          <div className="w-full max-w-5xl h-[90vh] max-h-[90vh] bg-slate-950 border border-[var(--glass-border)] rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)] overflow-hidden flex flex-col">
++        <div className="fixed inset-0 z-[1300] bg-[var(--glass-bg-strong)] backdrop-blur-sm flex items-center justify-center p-4">
++          <div className="w-full max-w-5xl h-[90vh] max-h-[90vh] bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)] overflow-hidden flex flex-col">
+             <div className="flex items-center justify-between p-3 bg-[var(--glass-bg-strong)] border-b border-[var(--glass-border)]">
+               <div className="flex items-center gap-2">
+                 <button
+diff --git a/src/client/components/pages/About.tsx b/src/client/components/pages/About.tsx
+index 39ecbd4d5..89b5728e6 100644
+--- a/src/client/components/pages/About.tsx
++++ b/src/client/components/pages/About.tsx
+@@ -139,7 +139,7 @@ export const About: React.FC = () => {
+                     style={{ width: `${ingestPercent}%` }}
+                   >
+                     {!isComplete && (
+-                      <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite] skew-x-12"></div>
++                      <div className="absolute inset-0 bg-[var(--glass-bg-highlight)] animate-[shimmer_2s_infinite] skew-x-12"></div>
+                     )}
+                   </div>
+                 </div>
+diff --git a/src/client/components/pages/AboutPage.tsx b/src/client/components/pages/AboutPage.tsx
+index d08021ff2..6ec10d1a5 100644
+--- a/src/client/components/pages/AboutPage.tsx
++++ b/src/client/components/pages/AboutPage.tsx
+@@ -685,7 +685,7 @@ export const AboutPage: React.FC = () => {
+                         style={{ width: `${ingestPercent}%` }}
+                       >
+                         {!isComplete && (
+-                          <div className="absolute inset-0 bg-white/10 animate-[shimmer_2s_infinite]"></div>
++                          <div className="absolute inset-0 bg-[var(--glass-bg-highlight)] animate-[shimmer_2s_infinite]"></div>
+                         )}
+                       </div>
+                     </div>
+diff --git a/src/client/components/pages/StatsSkeleton.tsx b/src/client/components/pages/StatsSkeleton.tsx
+index b8cacd410..17539c735 100644
+--- a/src/client/components/pages/StatsSkeleton.tsx
++++ b/src/client/components/pages/StatsSkeleton.tsx
+@@ -9,7 +9,7 @@ const StatsSkeleton: React.FC = () => {
+           className="bg-[var(--glass-bg)]/50 border border-[var(--glass-border)] rounded-[var(--radius-xl)] p-3 md:p-6 relative overflow-hidden"
+         >
+           {/* Shimmer effect */}
+-          <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
++          <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-[var(--glass-highlight)] to-transparent"></div>
+           <div className="h-3 md:h-4 w-3 md:w-4 bg-[var(--glass-bg-highlight)] rounded mb-1 md:mb-2 animate-pulse"></div>
+           <div className="h-6 md:h-8 w-12 md:w-16 bg-[var(--glass-bg-highlight)] rounded mb-1 animate-pulse"></div>
+           <div className="h-2 md:h-3 w-16 md:w-24 bg-[var(--glass-bg-highlight)] rounded animate-pulse"></div>
+diff --git a/src/client/components/shared/MediaBrowserLayout.tsx b/src/client/components/shared/MediaBrowserLayout.tsx
+index c81862ef0..3ffcc2822 100644
+--- a/src/client/components/shared/MediaBrowserLayout.tsx
++++ b/src/client/components/shared/MediaBrowserLayout.tsx
+@@ -54,7 +54,7 @@ export function MediaBrowserLayout({
+   isInitialLoad = false,
+ }: MediaBrowserLayoutProps): React.ReactElement {
+   return (
+-    <div className="flex flex-col h-full bg-slate-950 border border-[var(--glass-border)] shadow-[var(--glass-shadow)] overflow-hidden rounded-[var(--radius-lg)]">
++    <div className="flex flex-col h-full bg-[var(--glass-bg)] border border-[var(--glass-border)] shadow-[var(--glass-shadow)] overflow-hidden rounded-[var(--radius-lg)]">
+       {/* Header */}
+       <div className="bg-[var(--glass-bg-strong)] border-b border-[var(--glass-border)] flex flex-col md:flex-row md:items-center justify-between px-3 py-2 md:px-4 md:h-14 shrink-0 z-10 gap-2">
+         {/* Mobile Album Dropdown */}
+@@ -83,10 +83,10 @@ export function MediaBrowserLayout({
+         {albumSidebar}
+ 
+         {/* Main Content */}
+-        <div className="flex-1 bg-slate-950 flex flex-col overflow-hidden">
++        <div className="flex-1 bg-[var(--glass-bg)] flex flex-col overflow-hidden">
+           {/* Loading overlay for initial load */}
+           {loading && isInitialLoad && (
+-            <div className="absolute inset-0 flex items-center justify-center z-20 bg-slate-950/50 backdrop-blur-sm">
++            <div className="absolute inset-0 flex items-center justify-center z-20 bg-[var(--glass-bg)] backdrop-blur-sm">
+               <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[var(--accent)]" />
+             </div>
+           )}
+diff --git a/src/client/components/ui/GlassButton.tsx b/src/client/components/ui/GlassButton.tsx
+index 8af0b677b..7db5cf0f1 100644
+--- a/src/client/components/ui/GlassButton.tsx
++++ b/src/client/components/ui/GlassButton.tsx
+@@ -15,7 +15,7 @@ export const GlassButton = React.forwardRef<HTMLButtonElement, GlassButtonProps>
+       'relative inline-flex items-center justify-center font-sans font-medium transition-all duration-300 ease-[var(--easing-liquid)] rounded-md focus:outline-none focus:ring-2 focus:ring-accent-primary focus:ring-offset-2 focus:ring-offset-bg-surface overflow-hidden select-none disabled:opacity-50 disabled:pointer-events-none';
+ 
+     const glassBase =
+-      'before:absolute before:inset-0 before:z-0 before:rounded-md before:pointer-events-none before:bg-[var(--glass-shine)] before:border before:border-white/10 before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-300';
++      'before:absolute before:inset-0 before:z-0 before:rounded-md before:pointer-events-none before:bg-[var(--glass-shine)] before:border before:border-[var(--glass-border)] before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-300';
+ 
+     const variants = {
+       primary:
+diff --git a/src/client/components/ui/GlassDropdown.tsx b/src/client/components/ui/GlassDropdown.tsx
+index 486ab495b..005822956 100644
+--- a/src/client/components/ui/GlassDropdown.tsx
++++ b/src/client/components/ui/GlassDropdown.tsx
+@@ -32,7 +32,7 @@ export const DropdownMenuItem = React.forwardRef<
+ >(({ className = '', ...props }, ref) => (
+   <DropdownMenuPrimitive.Item
+     ref={ref}
+-    className={`relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent-primary focus:text-white data-[disabled]:pointer-events-none data-[disabled]:opacity-50 ${className}`}
++    className={`relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent-primary focus:text-[var(--text-primary)] data-[disabled]:pointer-events-none data-[disabled]:opacity-50 ${className}`}
+     {...props}
+   />
+ ));
+diff --git a/src/client/components/ui/GlassModal.tsx b/src/client/components/ui/GlassModal.tsx
+index b1d5bf239..c0d4cb4e5 100644
+--- a/src/client/components/ui/GlassModal.tsx
++++ b/src/client/components/ui/GlassModal.tsx
+@@ -12,7 +12,7 @@ export const DialogOverlay = React.forwardRef<
+ >(({ className = '', ...props }, ref) => (
+   <DialogPrimitive.Overlay
+     ref={ref}
+-    className={`fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-all duration-300 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=open]:fade-in ${className}`}
++    className={`fixed inset-0 z-50 bg-[var(--glass-bg-strong)] backdrop-blur-sm transition-all duration-300 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=open]:fade-in ${className}`}
+     {...props}
+   />
+ ));
+diff --git a/src/client/components/ui/GlassSwitch.tsx b/src/client/components/ui/GlassSwitch.tsx
+index 83639ceca..dd3fc8693 100644
+--- a/src/client/components/ui/GlassSwitch.tsx
++++ b/src/client/components/ui/GlassSwitch.tsx
+@@ -11,7 +11,7 @@ export const GlassSwitch = React.forwardRef<
+     ref={ref}
+   >
+     <div className="absolute inset-0 z-0 bg-[var(--glass-shine)] rounded-full pointer-events-none opacity-40 mix-blend-overlay" />
+-    <SwitchPrimitives.Thumb className="relative z-10 pointer-events-none block h-5 w-5 rounded-full bg-white shadow-md ring-0 transition-transform duration-300 ease-[var(--easing-liquid)] data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-[2px]" />
++    <SwitchPrimitives.Thumb className="relative z-10 pointer-events-none block h-5 w-5 rounded-full bg-[var(--text-primary)] shadow-md ring-0 transition-transform duration-300 ease-[var(--easing-liquid)] data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-[2px]" />
+   </SwitchPrimitives.Root>
+ ));
+ GlassSwitch.displayName = SwitchPrimitives.Root.displayName;
+diff --git a/src/client/components/visualizations/InteractiveEntityMap.tsx b/src/client/components/visualizations/InteractiveEntityMap.tsx
+index f298b4f55..d809911ce 100644
+--- a/src/client/components/visualizations/InteractiveEntityMap.tsx
++++ b/src/client/components/visualizations/InteractiveEntityMap.tsx
+@@ -253,7 +253,7 @@ export const InteractiveEntityMap: React.FC<InteractiveEntityMapProps> = ({
+ 
+   if (isExpanded) {
+     return (
+-      <div className="fixed inset-0 z-[2000] bg-black/95 flex flex-col">
++      <div className="fixed inset-0 z-[2000] bg-[var(--glass-bg-strong)] flex flex-col">
+         <div className="flex items-center justify-between p-4 border-b border-[var(--glass-border)]">
+           <h2 className="text-xl font-bold text-[var(--text-primary)] flex items-center gap-2">
+             <MapPin className="w-5 h-5 text-[var(--accent)]" />
+diff --git a/src/client/components/visualizations/LocationMap.tsx b/src/client/components/visualizations/LocationMap.tsx
+index b854ba9d2..1b510abd1 100644
+--- a/src/client/components/visualizations/LocationMap.tsx
++++ b/src/client/components/visualizations/LocationMap.tsx
+@@ -35,7 +35,7 @@ export const LocationMap: React.FC<LocationMapProps> = ({
+   if (isExpanded) {
+     return (
+       <ScopedErrorBoundary>
+-        <div className="fixed inset-0 z-50 bg-black/90 flex flex-col">
++        <div className="fixed inset-0 z-50 bg-[var(--glass-bg-strong)] flex flex-col">
+           {/* Header */}
+           <div className="flex items-center justify-between p-4 bg-[var(--glass-bg-strong)]/95 border-b border-[var(--glass-border)]">
+             <div className="flex items-center gap-3">
+diff --git a/src/client/components/visualizations/NetworkVisualization.tsx b/src/client/components/visualizations/NetworkVisualization.tsx
+index d7c66bb4b..06f318609 100644
+--- a/src/client/components/visualizations/NetworkVisualization.tsx
++++ b/src/client/components/visualizations/NetworkVisualization.tsx
+@@ -1064,7 +1064,7 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
+                         className={`w-8 h-4 rounded-full relative transition-colors ${damningEvidenceOnly ? 'bg-red-500' : 'bg-[var(--glass-bg-highlight)]'}`}
+                       >
+                         <div
+-                          className={`absolute top-1 w-2 h-2 rounded-full bg-white transition-all ${damningEvidenceOnly ? 'left-5' : 'left-1'}`}
++                          className={`absolute top-1 w-2 h-2 rounded-full bg-[var(--text-primary)] transition-all ${damningEvidenceOnly ? 'left-5' : 'left-1'}`}
+                         />
+                       </div>
+                     </div>
+diff --git a/src/client/components/visualizations/TreeMap.tsx b/src/client/components/visualizations/TreeMap.tsx
+index 9621b0523..a30188e92 100644
+--- a/src/client/components/visualizations/TreeMap.tsx
++++ b/src/client/components/visualizations/TreeMap.tsx
+@@ -196,7 +196,7 @@ export const TreeMap: React.FC<TreeMapProps> = ({ people }) => {
+                         x={node.x + node.width / 2}
+                         y={node.y + node.height / 2 - 8}
+                         textAnchor="middle"
+-                        className="fill-white font-semibold text-xs pointer-events-none user-select-none"
++                        className="fill-[var(--text-primary)] font-semibold text-xs pointer-events-none user-select-none"
+                         style={{
+                           fontSize: Math.min(14, (node.width * transform.k) / 8) / transform.k,
+                         }}
+@@ -207,7 +207,7 @@ export const TreeMap: React.FC<TreeMapProps> = ({ people }) => {
+                         x={node.x + node.width / 2}
+                         y={node.y + node.height / 2 + 8}
+                         textAnchor="middle"
+-                        className="fill-white/80 text-xs pointer-events-none user-select-none"
++                        className="fill-[var(--text-primary)] text-xs pointer-events-none user-select-none"
+                         style={{
+                           fontSize: Math.min(12, (node.width * transform.k) / 10) / transform.k,
+                         }}
+diff --git a/src/client/index.css b/src/client/index.css
+index fb6a290e4..7fee1add6 100644
+--- a/src/client/index.css
++++ b/src/client/index.css
+@@ -57,15 +57,15 @@
+   --bg-surface: #111114;
+   --glass-bg: rgba(15, 23, 42, 0.56);
+   --glass-bg-strong: rgba(15, 23, 42, 0.74);
+-  --glass-border: rgba(148, 163, 184, 0.13);
+-  --glass-border-highlight: rgba(148, 163, 184, 0.24);
++  --glass-border: rgba(148, 163, 184, 0.06);
++  --glass-border-highlight: rgba(148, 163, 184, 0.12);
+   --glass-highlight: rgba(248, 250, 252, 0.2);
+   --glass-bg-highlight: rgba(248, 250, 252, 0.06);
+   --glass-shadow: 0 10px 32px rgba(2, 6, 23, 0.45);
+   --glass-shadow-soft: 0 5px 20px rgba(2, 6, 23, 0.25);
+   --glass-blur: 18px;
+   --bg-elevated: #1a1a21;
+-  --border-subtle: rgba(148, 163, 184, 0.12);
++  --border-subtle: rgba(148, 163, 184, 0.04);
+ 
+   /* Text Aliases for component usage */
+   --text-strong: #f8fafc;
+@@ -592,7 +592,7 @@ body {
+ .main-nav-segment::before {
+   content: '';
+   position: absolute;
+-  inset: 5px 0;
++  inset: 0;
+   border-radius: 0;
+   border: 1px solid transparent;
+   border-left: none;
+diff --git a/src/client/pages/AdminDashboard.tsx b/src/client/pages/AdminDashboard.tsx
+index 33d0fb390..5ea235892 100644
+--- a/src/client/pages/AdminDashboard.tsx
++++ b/src/client/pages/AdminDashboard.tsx
+@@ -319,7 +319,7 @@ export const AdminDashboard: React.FC = () => {
+               onClick={() => setError('')}
+               size="sm"
+               label="Dismiss error"
+-              className="ml-2 border-red-700/60 bg-red-950/60 text-red-200 hover:bg-red-900/70 hover:text-white"
++              className="ml-2 border-red-700/60 bg-red-950/60 text-red-200 hover:bg-red-900/70 hover:text-[var(--text-primary)]"
+             />
+           </div>
+         )}
+@@ -351,7 +351,7 @@ export const AdminDashboard: React.FC = () => {
+             onClick={() => setActiveTab('users')}
+             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+               activeTab === 'users'
+-                ? 'bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent)]/20'
++                ? 'bg-[var(--accent)] text-[var(--text-primary)] shadow-lg shadow-[var(--accent)]/20'
+                 : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)]'
+             }`}
+           >
+@@ -362,7 +362,7 @@ export const AdminDashboard: React.FC = () => {
+             onClick={() => setActiveTab('audit')}
+             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+               activeTab === 'audit'
+-                ? 'bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent)]/20'
++                ? 'bg-[var(--accent)] text-[var(--text-primary)] shadow-lg shadow-[var(--accent)]/20'
+                 : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)]'
+             }`}
+           >
+@@ -373,7 +373,7 @@ export const AdminDashboard: React.FC = () => {
+             onClick={() => setActiveTab('system')}
+             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+               activeTab === 'system'
+-                ? 'bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent)]/20'
++                ? 'bg-[var(--accent)] text-[var(--text-primary)] shadow-lg shadow-[var(--accent)]/20'
+                 : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)]'
+             }`}
+           >
+@@ -384,7 +384,7 @@ export const AdminDashboard: React.FC = () => {
+             onClick={() => setActiveTab('review')}
+             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+               activeTab === 'review'
+-                ? 'bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent)]/20'
++                ? 'bg-[var(--accent)] text-[var(--text-primary)] shadow-lg shadow-[var(--accent)]/20'
+                 : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)]'
+             }`}
+           >
+@@ -395,7 +395,7 @@ export const AdminDashboard: React.FC = () => {
+             onClick={() => setActiveTab('ingestion')}
+             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+               activeTab === 'ingestion'
+-                ? 'bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent)]/20'
++                ? 'bg-[var(--accent)] text-[var(--text-primary)] shadow-lg shadow-[var(--accent)]/20'
+                 : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)]'
+             }`}
+           >
+@@ -406,7 +406,7 @@ export const AdminDashboard: React.FC = () => {
+             onClick={() => setActiveTab('backups')}
+             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+               activeTab === 'backups'
+-                ? 'bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent)]/20'
++                ? 'bg-[var(--accent)] text-[var(--text-primary)] shadow-lg shadow-[var(--accent)]/20'
+                 : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)]'
+             }`}
+           >
+@@ -477,7 +477,7 @@ export const AdminDashboard: React.FC = () => {
+                   </div>
+                   <button
+                     onClick={openCreateModal}
+-                    className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] hover:brightness-110 text-white rounded-lg transition-colors shadow-lg shadow-[var(--accent)]/20 whitespace-nowrap"
++                    className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] hover:brightness-110 text-[var(--text-primary)] rounded-lg transition-colors shadow-lg shadow-[var(--accent)]/20 whitespace-nowrap"
+                   >
+                     <UserPlus size={18} />
+                     <span>Add User</span>
+@@ -818,7 +818,7 @@ export const AdminDashboard: React.FC = () => {
+               </div>
+               <button
+                 onClick={triggerBackup}
+-                className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] hover:brightness-110 text-white rounded-lg transition-colors shadow-lg shadow-[var(--accent)]/20"
++                className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] hover:brightness-110 text-[var(--text-primary)] rounded-lg transition-colors shadow-lg shadow-[var(--accent)]/20"
+               >
+                 <RefreshCw size={18} />
+                 Snapshot Now
+@@ -878,7 +878,7 @@ export const AdminDashboard: React.FC = () => {
+ 
+       {/* Create/Edit Modal */}
+       {isModalOpen && (
+-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
++        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--glass-bg-strong)] backdrop-blur-sm">
+           <div className="w-full max-w-md glass-panel shadow-2xl rounded-xl animate-in fade-in zoom-in duration-200">
+             <div className="flex items-center justify-between p-6 border-b border-[var(--glass-border)]">
+               <h3 className="text-xl font-semibold text-[var(--text-primary)]">
+@@ -945,13 +945,13 @@ export const AdminDashboard: React.FC = () => {
+                   }}
+                   className="w-full bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-lg px-3 py-2 text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--accent)] outline-none transition-all"
+                 >
+-                  <option value="viewer" className="bg-slate-900">
++                  <option value="viewer" className="bg-[var(--glass-bg)]">
+                     Viewer (Read Only)
+                   </option>
+-                  <option value="investigator" className="bg-slate-900">
++                  <option value="investigator" className="bg-[var(--glass-bg)]">
+                     Investigator (Can Edit)
+                   </option>
+-                  <option value="admin" className="bg-slate-900">
++                  <option value="admin" className="bg-[var(--glass-bg)]">
+                     Admin (Full Access)
+                   </option>
+                 </select>
+@@ -967,7 +967,7 @@ export const AdminDashboard: React.FC = () => {
+                 </button>
+                 <button
+                   type="submit"
+-                  className="flex-1 px-4 py-2 bg-[var(--accent)] hover:brightness-110 text-white rounded-lg transition-colors font-medium shadow-lg shadow-[var(--accent)]/20"
++                  className="flex-1 px-4 py-2 bg-[var(--accent)] hover:brightness-110 text-[var(--text-primary)] rounded-lg transition-colors font-medium shadow-lg shadow-[var(--accent)]/20"
+                 >
+                   {editingUser ? 'Save Changes' : 'Create User'}
+                 </button>
+diff --git a/src/client/pages/EvidenceDetail.tsx b/src/client/pages/EvidenceDetail.tsx
+index a699facd1..6ba760f0f 100644
+--- a/src/client/pages/EvidenceDetail.tsx
++++ b/src/client/pages/EvidenceDetail.tsx
+@@ -136,7 +136,7 @@ export function EvidenceDetail() {
+   const getRedFlagColor = (rating: number): string => {
+     if (rating >= 4) return 'text-red-600 bg-red-50';
+     if (rating >= 2) return 'text-orange-600 bg-orange-50';
+-    return 'text-gray-600 bg-gray-50';
++    return 'text-[var(--text-primary)] bg-[var(--glass-bg)]';
+   };
+ 
+   const getEvidenceTypeLabel = (type: string): string => {
+@@ -186,10 +186,10 @@ export function EvidenceDetail() {
+ 
+   if (loading) {
+     return (
+-      <div className="flex items-center justify-center min-h-screen bg-slate-950">
++      <div className="flex items-center justify-center min-h-screen bg-[var(--glass-bg)]">
+         <div className="text-center">
+           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+-          <p className="mt-4 text-slate-300">Loading evidence...</p>
++          <p className="mt-4 text-[var(--text-primary)]">Loading evidence...</p>
+         </div>
+       </div>
+     );
+@@ -197,10 +197,10 @@ export function EvidenceDetail() {
+ 
+   if (error || !evidence) {
+     return (
+-      <div className="flex items-center justify-center min-h-screen bg-slate-950">
++      <div className="flex items-center justify-center min-h-screen bg-[var(--glass-bg)]">
+         <div className="text-center">
+           <AlertTriangle className="h-12 w-12 text-red-600 mx-auto" />
+-          <p className="mt-4 text-slate-300">{error || 'Evidence not found'}</p>
++          <p className="mt-4 text-[var(--text-primary)]">{error || 'Evidence not found'}</p>
+           <Link to="/evidence" className="mt-4 inline-block text-cyan-400 hover:underline">
+             ← Back to Evidence List
+           </Link>
+@@ -210,7 +210,7 @@ export function EvidenceDetail() {
+   }
+ 
+   return (
+-    <div className="min-h-screen bg-slate-950 text-slate-100">
++    <div className="min-h-screen bg-[var(--glass-bg)] text-[var(--text-primary)]">
+       <SEO
+         title={evidence.title}
+         description={
+@@ -219,17 +219,17 @@ export function EvidenceDetail() {
+         type="article"
+       />
+       {/* Header */}
+-      <div className="bg-slate-900 border-b border-slate-700">
++      <div className="bg-[var(--glass-bg)] border-b border-[var(--glass-border)]">
+         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+           <div className="flex items-center justify-between">
+             <div className="flex items-center space-x-4">
+-              <Link to="/evidence" className="text-slate-300 hover:text-white flex items-center">
++              <Link to="/evidence" className="text-[var(--text-primary)] hover:text-[var(--text-primary)] flex items-center">
+                 <ChevronLeft className="h-5 w-5" />
+                 <span className="ml-1">Back</span>
+               </Link>
+               <div>
+-                <h1 className="text-2xl font-bold text-slate-100">{evidence.title}</h1>
+-                <p className="text-xs font-light text-slate-400 mt-1 truncate">
++                <h1 className="text-2xl font-bold text-[var(--text-primary)]">{evidence.title}</h1>
++                <p className="text-xs font-light text-[var(--text-muted)] mt-1 truncate">
+                   {evidence.originalFilename}
+                 </p>
+               </div>
+@@ -238,33 +238,33 @@ export function EvidenceDetail() {
+             <div className="flex items-center space-x-2">
+               <button
+                 onClick={handleShare}
+-                className="p-2 text-slate-300 hover:bg-slate-800 rounded"
++                className="p-2 text-[var(--text-primary)] hover:bg-[var(--glass-bg)] rounded"
+                 aria-label="Share evidence"
+               >
+                 <Share2 className="h-5 w-5" />
+               </button>
+               <button
+                 onClick={handleBookmark}
+-                className="p-2 text-slate-300 hover:bg-slate-800 rounded"
++                className="p-2 text-[var(--text-primary)] hover:bg-[var(--glass-bg)] rounded"
+                 aria-label="Bookmark evidence"
+               >
+                 <Bookmark className="h-5 w-5" />
+               </button>
+               <button
+                 onClick={handleDownload}
+-                className="p-2 text-slate-300 hover:bg-slate-800 rounded"
++                className="p-2 text-[var(--text-primary)] hover:bg-[var(--glass-bg)] rounded"
+                 aria-label="Download evidence file"
+               >
+                 <Download className="h-5 w-5" />
+               </button>
+             </div>
+           </div>
+-          {actionNotice && <p className="mt-2 text-xs text-slate-400">{actionNotice}</p>}
++          {actionNotice && <p className="mt-2 text-xs text-[var(--text-muted)]">{actionNotice}</p>}
+         </div>
+       </div>
+ 
+       {/* Metadata Bar */}
+-      <div className="bg-slate-900 border-b border-slate-700">
++      <div className="bg-[var(--glass-bg)] border-b border-[var(--glass-border)]">
+         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+           <div className="flex items-center justify-between flex-wrap gap-4">
+             <div className="flex items-center space-x-4">
+@@ -311,14 +311,14 @@ export function EvidenceDetail() {
+               )}
+ 
+               {evidence.createdAt && (
+-                <span className="inline-flex items-center text-sm text-slate-300">
++                <span className="inline-flex items-center text-sm text-[var(--text-primary)]">
+                   <Calendar className="h-4 w-4 mr-1" />
+                   {formatDate(evidence.createdAt)}
+                 </span>
+               )}
+             </div>
+ 
+-            <div className="flex items-center space-x-4 text-sm text-slate-300">
++            <div className="flex items-center space-x-4 text-sm text-[var(--text-primary)]">
+               <span>{evidence.wordCount?.toLocaleString()} words</span>
+               <span>{formatFileSize(evidence.fileSize)}</span>
+             </div>
+@@ -326,12 +326,12 @@ export function EvidenceDetail() {
+ 
+           {evidence.tags && evidence.tags.length > 0 && (
+             <div className="mt-3 flex items-center space-x-2">
+-              <Tag className="h-4 w-4 text-slate-400" />
++              <Tag className="h-4 w-4 text-[var(--text-muted)]" />
+               <div className="flex flex-wrap gap-2">
+                 {evidence.tags.map((tag, index) => (
+                   <span
+                     key={index}
+-                    className="px-2 py-1 bg-slate-800 text-slate-200 text-xs rounded"
++                    className="px-2 py-1 bg-[var(--glass-bg)] text-[var(--text-primary)] text-xs rounded"
+                   >
+                     {tag}
+                   </span>
+@@ -346,7 +346,7 @@ export function EvidenceDetail() {
+         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+           {/* Main Content */}
+           <div className="lg:col-span-3">
+-            <div className="bg-slate-900 rounded-lg shadow border border-slate-700">
++            <div className="bg-[var(--glass-bg)] rounded-lg shadow border border-[var(--glass-border)]">
+               {renderViewer()}
+             </div>
+           </div>
+@@ -362,8 +362,8 @@ export function EvidenceDetail() {
+ 
+             {/* Linked Entities */}
+             {evidence.entities && evidence.entities.length > 0 && (
+-              <div className="bg-slate-900 rounded-lg shadow border border-slate-700 p-4">
+-                <h3 className="font-semibold text-slate-100 mb-4 flex items-center">
++              <div className="bg-[var(--glass-bg)] rounded-lg shadow border border-[var(--glass-border)] p-4">
++                <h3 className="font-semibold text-[var(--text-primary)] mb-4 flex items-center">
+                   <Users className="h-5 w-5 mr-2" />
+                   Linked Entities ({evidence.entities.length})
+                 </h3>
+@@ -374,16 +374,16 @@ export function EvidenceDetail() {
+                       <Link
+                         key={entity.id}
+                         to={`/entities/${entity.id}`}
+-                        className="block p-3 border border-slate-700 rounded-lg hover:border-cyan-500 hover:shadow-sm transition"
++                        className="block p-3 border border-[var(--glass-border)] rounded-lg hover:border-cyan-500 hover:shadow-sm transition"
+                       >
+                         <div className="flex items-start justify-between">
+                           <div className="flex-1 min-w-0">
+-                            <p className="text-sm font-medium text-slate-100 truncate">
++                            <p className="text-sm font-medium text-[var(--text-primary)] truncate">
+                               {entity.name}
+                             </p>
+-                            <p className="text-xs text-slate-400 mt-1">Role: {entity.role}</p>
++                            <p className="text-xs text-[var(--text-muted)] mt-1">Role: {entity.role}</p>
+                             {entity.confidence < 1 && (
+-                              <p className="text-xs text-slate-500 mt-1">
++                              <p className="text-xs text-[var(--text-muted)] mt-1">
+                                 Confidence: {(entity.confidence * 100).toFixed(0)}%
+                               </p>
+                             )}
+@@ -399,15 +399,15 @@ export function EvidenceDetail() {
+ 
+             {/* Metadata */}
+             {evidence.metadata && Object.keys(evidence.metadata).length > 0 && (
+-              <div className="bg-white rounded-lg shadow p-4">
+-                <h3 className="font-semibold text-gray-900 mb-4">Metadata</h3>
++              <div className="bg-[var(--text-primary)] rounded-lg shadow p-4">
++                <h3 className="font-semibold text-[var(--text-primary)] mb-4">Metadata</h3>
+                 <dl className="space-y-2 text-sm">
+                   {Object.entries(evidence.metadata).map(([key, value]) => (
+                     <div key={key}>
+-                      <dt className="text-gray-600 font-medium">
++                      <dt className="text-[var(--text-primary)] font-medium">
+                         {key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}
+                       </dt>
+-                      <dd className="text-gray-900 mt-1">
++                      <dd className="text-[var(--text-primary)] mt-1">
+                         {typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)}
+                       </dd>
+                     </div>
+diff --git a/src/client/pages/LoginPage.tsx b/src/client/pages/LoginPage.tsx
+index 397b72fd5..d2359fc74 100644
+--- a/src/client/pages/LoginPage.tsx
++++ b/src/client/pages/LoginPage.tsx
+@@ -44,8 +44,8 @@ export const LoginPage: React.FC = () => {
+ 
+   return (
+     <div className="flex items-center justify-center min-h-[calc(100vh-200px)] p-4">
+-      <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-lg p-8 shadow-xl">
+-        <h2 className="text-2xl font-bold text-slate-100 mb-6 text-center">Admin Login</h2>
++      <div className="w-full max-w-md bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-lg p-8 shadow-xl">
++        <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-6 text-center">Admin Login</h2>
+ 
+         {error && (
+           <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded mb-4 text-sm">
+@@ -55,23 +55,23 @@ export const LoginPage: React.FC = () => {
+ 
+         <form onSubmit={handleSubmit} className="space-y-4">
+           <div>
+-            <label className="block text-sm font-medium text-slate-400 mb-1">Username</label>
++            <label className="block text-sm font-medium text-[var(--text-muted)] mb-1">Username</label>
+             <input
+               type="text"
+               value={username}
+               onChange={(e) => setUsername(e.target.value)}
+-              className="w-full bg-slate-800 border-slate-700 text-slate-100 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
++              className="w-full bg-[var(--glass-bg)] border-[var(--glass-border)] text-[var(--text-primary)] rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+               required
+             />
+           </div>
+ 
+           <div>
+-            <label className="block text-sm font-medium text-slate-400 mb-1">Password</label>
++            <label className="block text-sm font-medium text-[var(--text-muted)] mb-1">Password</label>
+             <input
+               type="password"
+               value={password}
+               onChange={(e) => setPassword(e.target.value)}
+-              className="w-full bg-slate-800 border-slate-700 text-slate-100 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
++              className="w-full bg-[var(--glass-bg)] border-[var(--glass-border)] text-[var(--text-primary)] rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+               required
+             />
+           </div>
+@@ -79,7 +79,7 @@ export const LoginPage: React.FC = () => {
+           <button
+             type="submit"
+             disabled={loading}
+-            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2 px-4 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
++            className="w-full bg-blue-600 hover:bg-blue-500 text-[var(--text-primary)] font-medium py-2 px-4 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+           >
+             {loading ? 'Signing in...' : 'Sign In'}
+           </button>
+diff --git a/src/client/pages/ReviewDashboard.tsx b/src/client/pages/ReviewDashboard.tsx
+index 5de6ac3d7..2c417e5d9 100644
+--- a/src/client/pages/ReviewDashboard.tsx
++++ b/src/client/pages/ReviewDashboard.tsx
+@@ -143,7 +143,7 @@ export function ReviewDashboard() {
+                           Signal: {(item.signal_score * 100).toFixed(0)}
+                         </span>
+                       </div>
+-                      <p className="text-sm text-[var(--text-primary)] mb-4 font-mono leading-relaxed bg-black/20 p-4 rounded-lg shadow-inner">
++                      <p className="text-sm text-[var(--text-primary)] mb-4 font-mono leading-relaxed bg-[var(--glass-bg-strong)] p-4 rounded-lg shadow-inner">
+                         "...{item.mention_context}..."
+                       </p>
+                       <div className="text-xs text-[var(--text-muted)] flex items-center gap-1.5 font-medium tracking-wide">
+@@ -160,14 +160,14 @@ export function ReviewDashboard() {
+                     <div className="flex flex-col gap-3 opacity-50 group-hover:opacity-100 transition-opacity">
+                       <button
+                         onClick={() => verifyItem(item.id, 'mentions')}
+-                        className="p-2.5 bg-green-500/10 hover:bg-green-500 text-green-500 hover:text-white rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.1)] hover:shadow-[0_5px_15px_rgba(34,197,94,0.4)] transition-all transform hover:scale-110"
++                        className="p-2.5 bg-green-500/10 hover:bg-green-500 text-green-500 hover:text-[var(--text-primary)] rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.1)] hover:shadow-[0_5px_15px_rgba(34,197,94,0.4)] transition-all transform hover:scale-110"
+                         title="Verify"
+                       >
+                         <Check className="w-5 h-5" />
+                       </button>
+                       <button
+                         onClick={() => rejectItem(item.id, 'mentions')}
+-                        className="p-2.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.1)] hover:shadow-[0_5px_15px_rgba(239,68,68,0.4)] transition-all transform hover:scale-110"
++                        className="p-2.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-[var(--text-primary)] rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.1)] hover:shadow-[0_5px_15px_rgba(239,68,68,0.4)] transition-all transform hover:scale-110"
+                         title="Reject"
+                       >
+                         <X className="w-5 h-5" />
+@@ -213,14 +213,14 @@ export function ReviewDashboard() {
+                     <div className="flex flex-col gap-3 opacity-50 group-hover:opacity-100 transition-opacity">
+                       <button
+                         onClick={() => verifyItem(item.id, 'claims')}
+-                        className="p-2.5 bg-green-500/10 hover:bg-green-500 text-green-500 hover:text-white rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.1)] hover:shadow-[0_5px_15px_rgba(34,197,94,0.4)] transition-all transform hover:scale-110"
++                        className="p-2.5 bg-green-500/10 hover:bg-green-500 text-green-500 hover:text-[var(--text-primary)] rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.1)] hover:shadow-[0_5px_15px_rgba(34,197,94,0.4)] transition-all transform hover:scale-110"
+                         title="Verify"
+                       >
+                         <Check className="w-5 h-5" />
+                       </button>
+                       <button
+                         onClick={() => rejectItem(item.id, 'claims')}
+-                        className="p-2.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.1)] hover:shadow-[0_5px_15px_rgba(239,68,68,0.4)] transition-all transform hover:scale-110"
++                        className="p-2.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-[var(--text-primary)] rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.1)] hover:shadow-[0_5px_15px_rgba(239,68,68,0.4)] transition-all transform hover:scale-110"
+                         title="Reject"
+                       >
+                         <X className="w-5 h-5" />
+diff --git a/src/client/pages/TheEpsteinFilesPage.tsx b/src/client/pages/TheEpsteinFilesPage.tsx
+index 0305cf92a..9410c60d8 100644
+--- a/src/client/pages/TheEpsteinFilesPage.tsx
++++ b/src/client/pages/TheEpsteinFilesPage.tsx
+@@ -100,13 +100,13 @@ export const TheEpsteinFilesPage: React.FC<TheEpsteinFilesPageProps> = ({ varian
+   return (
+     <div className="max-w-5xl mx-auto px-6 py-12 space-y-8">
+       <header className="space-y-4">
+-        <h1 className="text-4xl font-bold text-white">{copy.title}</h1>
+-        <p className="text-lg text-slate-300 max-w-4xl">{copy.description}</p>
++        <h1 className="text-4xl font-bold text-[var(--text-primary)]">{copy.title}</h1>
++        <p className="text-lg text-[var(--text-primary)] max-w-4xl">{copy.description}</p>
+       </header>
+ 
+-      <section className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
++      <section className="rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] p-6">
+         <h2 className="text-xl font-semibold text-cyan-300 mb-4">What You Can Do Here</h2>
+-        <ul className="space-y-3 text-slate-200">
++        <ul className="space-y-3 text-[var(--text-primary)]">
+           {copy.points.map((point) => (
+             <li key={point} className="list-disc ml-6">
+               {point}
+@@ -115,14 +115,14 @@ export const TheEpsteinFilesPage: React.FC<TheEpsteinFilesPageProps> = ({ varian
+         </ul>
+       </section>
+ 
+-      <section className="rounded-2xl border border-slate-800 bg-slate-900/40 p-6">
+-        <h2 className="text-xl font-semibold text-white mb-4">Explore Archive Sections</h2>
++      <section className="rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] p-6">
++        <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-4">Explore Archive Sections</h2>
+         <div className="grid gap-3 sm:grid-cols-2">
+           {discoveryLinks.map((item) => (
+             <Link
+               key={item.href}
+               to={item.href}
+-              className="rounded-lg border border-slate-700 bg-slate-900/70 px-4 py-3 text-slate-200 hover:border-cyan-500/60 hover:text-cyan-200 transition-colors"
++              className="rounded-lg border border-[var(--glass-border)] bg-[var(--glass-bg)] px-4 py-3 text-[var(--text-primary)] hover:border-cyan-500/60 hover:text-cyan-200 transition-colors"
+             >
+               {item.label}
+             </Link>

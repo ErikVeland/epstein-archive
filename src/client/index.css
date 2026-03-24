@@ -57,15 +57,15 @@
   --bg-surface: #111114;
   --glass-bg: rgba(15, 23, 42, 0.56);
   --glass-bg-strong: rgba(15, 23, 42, 0.74);
-  --glass-border: rgba(148, 163, 184, 0.13);
-  --glass-border-highlight: rgba(148, 163, 184, 0.24);
+  --glass-border: rgba(148, 163, 184, 0.06);
+  --glass-border-highlight: rgba(148, 163, 184, 0.12);
   --glass-highlight: rgba(248, 250, 252, 0.2);
   --glass-bg-highlight: rgba(248, 250, 252, 0.06);
   --glass-shadow: 0 10px 32px rgba(2, 6, 23, 0.45);
   --glass-shadow-soft: 0 5px 20px rgba(2, 6, 23, 0.25);
   --glass-blur: 18px;
   --bg-elevated: #1a1a21;
-  --border-subtle: rgba(148, 163, 184, 0.12);
+  --border-subtle: rgba(148, 163, 184, 0.04);
 
   /* Text Aliases for component usage */
   --text-strong: #f8fafc;
@@ -592,7 +592,7 @@ body {
 .main-nav-segment::before {
   content: '';
   position: absolute;
-  inset: 5px 0;
+  inset: 0;
   border-radius: 0;
   border: 1px solid transparent;
   border-left: none;

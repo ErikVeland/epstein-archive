@@ -226,7 +226,7 @@ export const FinancialTransactionAnalysis: React.FC<FinancialTransactionAnalysis
   });
 
   return (
-    <div className="bg-white rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)]">
+    <div className="bg-[var(--text-primary)] rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)]">
       {/* Header */}
       <div className="border-b border-[var(--glass-border)] px-6 py-4">
         <div className="flex items-center justify-between">
@@ -432,8 +432,8 @@ export const FinancialTransactionAnalysis: React.FC<FinancialTransactionAnalysis
 
       {/* Pattern Detail Modal */}
       {selectedPattern && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-[var(--radius-lg)] p-6 w-full max-w-2xl max-h-96 overflow-auto">
+        <div className="fixed inset-0 bg-[var(--glass-bg-strong)] bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-[var(--text-primary)] rounded-[var(--radius-lg)] p-6 w-full max-w-2xl max-h-96 overflow-auto">
             <div className="flex items-start justify-between mb-4">
               <div>
                 <h3 className="text-lg font-medium text-[var(--text-primary)]">

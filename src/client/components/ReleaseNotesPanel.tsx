@@ -48,7 +48,7 @@ export const ReleaseNotesPanel: React.FC<ReleaseNotesPanelProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-end z-50 p-0 md:p-4">
+    <div className="fixed inset-0 bg-[var(--glass-bg-strong)] flex items-center justify-end z-50 p-0 md:p-4">
       <button
         type="button"
         className="absolute inset-0"

@@ -261,7 +261,7 @@ const FileBrowser: React.FC = () => {
       {/* File Preview Modal */}
       {selectedFile &&
         createPortal(
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
+          <div className="fixed inset-0 bg-[var(--glass-bg-strong)] backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
             <div className="bg-[var(--glass-bg)] rounded-[var(--radius-xl)] max-w-4xl w-full max-h-[80vh] overflow-hidden border border-[var(--glass-border)]">
               <div className="p-6 border-b border-[var(--glass-border)]">
                 <div className="flex items-center justify-between">

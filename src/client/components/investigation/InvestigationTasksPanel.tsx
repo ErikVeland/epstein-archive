@@ -175,7 +175,7 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
   };
 
   return (
-    <div className="fixed inset-0 z-40 flex items-stretch justify-end bg-slate-950/60 backdrop-blur-sm">
+    <div className="fixed inset-0 z-40 flex items-stretch justify-end bg-[var(--glass-bg)] backdrop-blur-sm">
       <div className="w-full max-w-md bg-[var(--glass-bg-strong)] border-l border-[var(--glass-border)] shadow-[var(--glass-shadow)] flex flex-col">
         <div className="px-4 sm:px-6 py-4 border-b border-[var(--glass-border)] flex items-center justify-between">
           <div>

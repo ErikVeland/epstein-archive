@@ -860,7 +860,7 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                       {analysis.entities.map((entity, index) => (
                         <div
                           key={index}
-                          className="p-4 bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] hover:bg-gray-650 transition-colors cursor-pointer"
+                          className="p-4 bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] hover:bg-[var(--glass-bg)] transition-colors cursor-pointer"
                           onClick={() => setSelectedEntity(entity)}
                         >
                           <div className="flex items-start gap-3">
@@ -994,7 +994,7 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
 
       {/* Entity Detail Modal */}
       {selectedEntity && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-[var(--glass-bg-strong)] bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-[var(--glass-bg)] rounded-[var(--radius-xl)] max-w-lg w-full p-6 border border-[var(--glass-border)] shadow-[var(--glass-shadow)]">
             <div className="flex justify-between items-start mb-4">
               <div>

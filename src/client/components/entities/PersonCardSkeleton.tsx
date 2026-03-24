@@ -4,7 +4,7 @@ const PersonCardSkeleton: React.FC = () => {
   return (
     <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-xl)] p-6 relative overflow-hidden shadow-[var(--glass-shadow)]">
       {/* Shimmer effect */}
-      <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+      <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-[var(--glass-highlight)] to-transparent"></div>
 
       {/* Mention intensity bar */}
       <div className="mb-4 h-1 bg-[var(--glass-border)] rounded-full overflow-hidden animate-pulse"></div>

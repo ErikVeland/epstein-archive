@@ -336,7 +336,7 @@ export const DocumentModal: React.FC<Props> = ({
 
   if (!doc) {
     return createPortal(
-      <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[1050] flex items-center justify-center p-4">
+      <div className="fixed inset-0 bg-[var(--glass-bg)] backdrop-blur-md z-[1050] flex items-center justify-center p-4">
         <div className="surface-glass p-6 pointer-events-auto">
           <div className="text-[var(--text-primary)] font-semibold mb-2">
             Unable to load document
@@ -485,7 +485,7 @@ export const DocumentModal: React.FC<Props> = ({
               </div>
             }
             right={
-              <aside className="h-full bg-slate-950/10 overflow-y-auto custom-scrollbar">
+              <aside className="h-full bg-[var(--glass-bg)] overflow-y-auto custom-scrollbar">
                 <DocumentMetadataRail
                   doc={doc}
                   id={id}

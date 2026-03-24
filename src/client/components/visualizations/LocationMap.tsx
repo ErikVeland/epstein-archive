@@ -35,7 +35,7 @@ export const LocationMap: React.FC<LocationMapProps> = ({
   if (isExpanded) {
     return (
       <ScopedErrorBoundary>
-        <div className="fixed inset-0 z-50 bg-black/90 flex flex-col">
+        <div className="fixed inset-0 z-50 bg-[var(--glass-bg-strong)] flex flex-col">
           {/* Header */}
           <div className="flex items-center justify-between p-4 bg-[var(--glass-bg-strong)]/95 border-b border-[var(--glass-border)]">
             <div className="flex items-center gap-3">

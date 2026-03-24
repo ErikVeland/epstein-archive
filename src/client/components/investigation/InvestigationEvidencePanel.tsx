@@ -396,7 +396,7 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
               onClick={onClose}
               size="md"
               label="Close evidence collection panel"
-              className="bg-transparent hover:bg-white/10 border-[var(--glass-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)] shrink-0"
+              className="bg-transparent hover:bg-[var(--glass-bg-highlight)] border-[var(--glass-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)] shrink-0"
             />
           )}
         </div>
@@ -612,7 +612,7 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
 
       {/* Add Evidence Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-[var(--glass-bg-strong)] bg-opacity-70 flex items-center justify-center z-50">
           <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)] w-full max-w-2xl max-h-[80vh] overflow-hidden border border-[var(--glass-border)]">
             <div className="border-b border-[var(--glass-border)] p-6">
               <div className="flex items-center justify-between">
@@ -621,7 +621,7 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
                   onClick={() => setShowAddModal(false)}
                   size="md"
                   label="Close add evidence modal"
-                  className="bg-transparent hover:bg-white/10 border-[var(--glass-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                  className="bg-transparent hover:bg-[var(--glass-bg-highlight)] border-[var(--glass-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
                 />
               </div>
             </div>

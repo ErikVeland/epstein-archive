@@ -143,7 +143,7 @@ export function ReviewDashboard() {
                           Signal: {(item.signal_score * 100).toFixed(0)}
                         </span>
                       </div>
-                      <p className="text-sm text-[var(--text-primary)] mb-4 font-mono leading-relaxed bg-black/20 p-4 rounded-lg shadow-inner">
+                      <p className="text-sm text-[var(--text-primary)] mb-4 font-mono leading-relaxed bg-[var(--glass-bg-strong)] p-4 rounded-lg shadow-inner">
                         "...{item.mention_context}..."
                       </p>
                       <div className="text-xs text-[var(--text-muted)] flex items-center gap-1.5 font-medium tracking-wide">
@@ -160,14 +160,14 @@ export function ReviewDashboard() {
                     <div className="flex flex-col gap-3 opacity-50 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() => verifyItem(item.id, 'mentions')}
-                        className="p-2.5 bg-green-500/10 hover:bg-green-500 text-green-500 hover:text-white rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.1)] hover:shadow-[0_5px_15px_rgba(34,197,94,0.4)] transition-all transform hover:scale-110"
+                        className="p-2.5 bg-green-500/10 hover:bg-green-500 text-green-500 hover:text-[var(--text-primary)] rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.1)] hover:shadow-[0_5px_15px_rgba(34,197,94,0.4)] transition-all transform hover:scale-110"
                         title="Verify"
                       >
                         <Check className="w-5 h-5" />
                       </button>
                       <button
                         onClick={() => rejectItem(item.id, 'mentions')}
-                        className="p-2.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.1)] hover:shadow-[0_5px_15px_rgba(239,68,68,0.4)] transition-all transform hover:scale-110"
+                        className="p-2.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-[var(--text-primary)] rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.1)] hover:shadow-[0_5px_15px_rgba(239,68,68,0.4)] transition-all transform hover:scale-110"
                         title="Reject"
                       >
                         <X className="w-5 h-5" />
@@ -213,14 +213,14 @@ export function ReviewDashboard() {
                     <div className="flex flex-col gap-3 opacity-50 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() => verifyItem(item.id, 'claims')}
-                        className="p-2.5 bg-green-500/10 hover:bg-green-500 text-green-500 hover:text-white rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.1)] hover:shadow-[0_5px_15px_rgba(34,197,94,0.4)] transition-all transform hover:scale-110"
+                        className="p-2.5 bg-green-500/10 hover:bg-green-500 text-green-500 hover:text-[var(--text-primary)] rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.1)] hover:shadow-[0_5px_15px_rgba(34,197,94,0.4)] transition-all transform hover:scale-110"
                         title="Verify"
                       >
                         <Check className="w-5 h-5" />
                       </button>
                       <button
                         onClick={() => rejectItem(item.id, 'claims')}
-                        className="p-2.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.1)] hover:shadow-[0_5px_15px_rgba(239,68,68,0.4)] transition-all transform hover:scale-110"
+                        className="p-2.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-[var(--text-primary)] rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.1)] hover:shadow-[0_5px_15px_rgba(239,68,68,0.4)] transition-all transform hover:scale-110"
                         title="Reject"
                       >
                         <X className="w-5 h-5" />

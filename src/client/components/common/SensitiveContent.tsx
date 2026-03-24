@@ -206,7 +206,7 @@ export function SensitiveContent({
       {!isRevealing && (
         <button
           onClick={handleReveal}
-          className="absolute inset-0 flex flex-col items-center justify-center z-20 cursor-pointer transition-all hover:bg-black/10 group"
+          className="absolute inset-0 flex flex-col items-center justify-center z-20 cursor-pointer transition-all hover:bg-[var(--glass-bg-strong)] group"
           aria-label="Click to reveal sensitive content"
         >
           {/* Backdrop */}

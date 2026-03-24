@@ -224,7 +224,7 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
 
   return (
     <Profiler id="InvestigationBoard" onRender={onBoardRender}>
-      <div className="flex h-full bg-slate-950 overflow-hidden">
+      <div className="flex h-full bg-[var(--glass-bg)] overflow-hidden">
         <div className="absolute top-4 right-4 z-10">
           <button
             onClick={() => window.open(`/api/investigations/${investigationId}/briefing`, '_blank')}
@@ -345,7 +345,7 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
           </div>
         </div>
 
-        <div className="w-1/3 border-r border-[var(--glass-border)] flex flex-col min-w-[300px] bg-slate-950">
+        <div className="w-1/3 border-r border-[var(--glass-border)] flex flex-col min-w-[300px] bg-[var(--glass-bg)]">
           <div className="p-4 border-b border-[var(--glass-border)] bg-[var(--glass-bg-strong)]/50 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <FileText className="w-5 h-5 text-[var(--accent)]" />

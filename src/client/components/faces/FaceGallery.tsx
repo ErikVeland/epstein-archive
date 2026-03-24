@@ -328,7 +328,7 @@ export const FaceGallery: React.FC = () => {
                     href={`/media?id=${face.media_item_id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="absolute top-2 right-2 p-1.5 bg-black/60 rounded-full text-[var(--text-primary)] opacity-0 group-hover:opacity-100 hover:bg-[var(--accent)] transition-all"
+                    className="absolute top-2 right-2 p-1.5 bg-[var(--glass-bg-strong)] rounded-full text-[var(--text-primary)] opacity-0 group-hover:opacity-100 hover:bg-[var(--accent)] transition-all"
                     title="View original photo"
                   >
                     <Icon name="ExternalLink" size="xs" />
@@ -374,7 +374,7 @@ export const FaceGallery: React.FC = () => {
                 </div>
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60 group-hover:opacity-40 transition-opacity" />
-              <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm px-2 py-0.5 rounded text-xs font-mono text-[var(--accent)] border border-[var(--accent)]/30">
+              <div className="absolute bottom-2 right-2 bg-[var(--glass-bg-strong)] backdrop-blur-sm px-2 py-0.5 rounded text-xs font-mono text-[var(--accent)] border border-[var(--accent)]/30">
                 {cluster.face_count}
               </div>
               {cluster.entity_id && (

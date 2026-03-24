@@ -220,7 +220,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
                       <button
                         key={color}
                         onClick={() => setNewTagColor(color)}
-                        className={`w-5 h-5 rounded-full ${newTagColor === color ? 'ring-2 ring-white ring-offset-1 ring-offset-slate-800' : ''}`}
+                        className={`w-5 h-5 rounded-full ${newTagColor === color ? 'ring-2 ring-[var(--glass-border)] ring-offset-1 ring-offset-slate-800' : ''}`}
                         style={{ backgroundColor: color }}
                       />
                     ))}

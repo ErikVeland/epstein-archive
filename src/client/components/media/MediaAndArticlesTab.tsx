@@ -135,7 +135,7 @@ export const MediaAndArticlesTab: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-slate-950 overflow-hidden">
+    <div className="flex flex-col h-full bg-[var(--glass-bg)] overflow-hidden">
       <SEO
         title={shareMetadata?.title || 'Epstein Media Archive'}
         description={
@@ -219,11 +219,11 @@ export const MediaAndArticlesTab: React.FC = () => {
       </div>
 
       {/* Content Area with isolation */}
-      <div className="flex-grow relative min-h-0 bg-slate-950">
+      <div className="flex-grow relative min-h-0 bg-[var(--glass-bg)]">
         <ScopedErrorBoundary>
           <Suspense
             fallback={
-              <div className="absolute inset-0 flex items-center justify-center bg-slate-950">
+              <div className="absolute inset-0 flex items-center justify-center bg-[var(--glass-bg)]">
                 <div className="flex flex-col items-center gap-3">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent)]"></div>
                   <p className="text-[var(--text-muted)] text-xs font-mono tracking-widest uppercase">

@@ -71,13 +71,13 @@ export const EntityMediaGallery: React.FC<EntityMediaGalleryProps> = ({
               loading="lazy"
             />
             {/* Overlay */}
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+            <div className="absolute inset-0 bg-[var(--glass-bg-strong)] group-hover:bg-[var(--glass-bg-strong)] transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
               <ZoomIn className="text-[var(--text-primary)] w-6 h-6 drop-shadow-[var(--glass-shadow)] transform scale-75 group-hover:scale-100 transition-transform" />
             </div>
 
             {/* Type Indicator if needed (e.g. video) */}
             {item.type === 'video' && (
-              <div className="absolute top-2 right-2 w-6 h-6 bg-black/50 rounded-full flex items-center justify-center backdrop-blur-sm">
+              <div className="absolute top-2 right-2 w-6 h-6 bg-[var(--glass-bg-strong)] rounded-full flex items-center justify-center backdrop-blur-sm">
                 <Play className="w-3 h-3 text-[var(--text-primary)] ml-0.5" />
               </div>
             )}
@@ -97,7 +97,7 @@ export const EntityMediaGallery: React.FC<EntityMediaGalleryProps> = ({
       {/* Lightbox Modal */}
       {selectedMedia && (
         <div
-          className="fixed inset-0 z-[10000] bg-black/95 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
+          className="fixed inset-0 z-[10000] bg-[var(--glass-bg-strong)] backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200"
           onClick={() => setSelectedMedia(null)}
         >
           <div className="relative max-w-5xl w-full max-h-[90vh] flex flex-col items-center">

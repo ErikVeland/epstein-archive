@@ -17,7 +17,7 @@ export const FlightTimelineView: React.FC<FlightTimelineViewProps> = ({
 }) => (
   <div
     className="flight-timeline-container"
-    style={{ flex: 1, minHeight: '600px', height: '100%', width: '100%' }}
+    style={{ flex: 1, minHeight: '600px', height: '800px', width: '100%' }}
   >
     {flights.length === 0 ? (
       <div className="no-flights text-[var(--text-muted)] p-[var(--space-8)] text-center bg-[var(--glass-bg)]/50 rounded-[var(--radius-lg)]">

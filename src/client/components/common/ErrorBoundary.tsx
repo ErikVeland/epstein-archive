@@ -28,7 +28,7 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
     if (this.state.hasError) {
       const msg = this.state.error?.message || 'Unexpected error';
       return (
-        <div className="min-h-screen bg-gray-950 text-[var(--text-primary)] flex items-center justify-center p-6">
+        <div className="min-h-screen bg-[var(--glass-bg)] text-[var(--text-primary)] flex items-center justify-center p-6">
           <div className="max-w-lg w-full bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-xl)] p-6 shadow-[var(--glass-shadow)]">
             <h1 className="text-xl font-bold text-red-400 mb-2">Something went wrong</h1>
             <p className="text-[var(--text-secondary)] text-sm mb-4">{msg}</p>

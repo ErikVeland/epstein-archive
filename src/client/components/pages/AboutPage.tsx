@@ -685,7 +685,7 @@ export const AboutPage: React.FC = () => {
                         style={{ width: `${ingestPercent}%` }}
                       >
                         {!isComplete && (
-                          <div className="absolute inset-0 bg-white/10 animate-[shimmer_2s_infinite]"></div>
+                          <div className="absolute inset-0 bg-[var(--glass-bg-highlight)] animate-[shimmer_2s_infinite]"></div>
                         )}
                       </div>
                     </div>

@@ -44,8 +44,10 @@ export const LoginPage: React.FC = () => {
 
   return (
     <div className="flex items-center justify-center min-h-[calc(100vh-200px)] p-4">
-      <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-lg p-8 shadow-xl">
-        <h2 className="text-2xl font-bold text-slate-100 mb-6 text-center">Admin Login</h2>
+      <div className="w-full max-w-md bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-lg p-8 shadow-xl">
+        <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-6 text-center">
+          Admin Login
+        </h2>
 
         {error && (
           <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded mb-4 text-sm">
@@ -55,23 +57,27 @@ export const LoginPage: React.FC = () => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-400 mb-1">Username</label>
+            <label className="block text-sm font-medium text-[var(--text-muted)] mb-1">
+              Username
+            </label>
             <input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full bg-slate-800 border-slate-700 text-slate-100 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full bg-[var(--glass-bg)] border-[var(--glass-border)] text-[var(--text-primary)] rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-400 mb-1">Password</label>
+            <label className="block text-sm font-medium text-[var(--text-muted)] mb-1">
+              Password
+            </label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-slate-800 border-slate-700 text-slate-100 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full bg-[var(--glass-bg)] border-[var(--glass-border)] text-[var(--text-primary)] rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               required
             />
           </div>
@@ -79,7 +85,7 @@ export const LoginPage: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2 px-4 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-blue-600 hover:bg-blue-500 text-[var(--text-primary)] font-medium py-2 px-4 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Signing in...' : 'Sign In'}
           </button>

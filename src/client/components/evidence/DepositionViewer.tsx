@@ -95,7 +95,7 @@ export function DepositionViewer({ evidence }: DepositionViewerProps) {
       </div>
 
       {/* Deposition Text */}
-      <div className="bg-white border border-[var(--glass-border)] rounded-[var(--radius-lg)]">
+      <div className="bg-[var(--text-primary)] border border-[var(--glass-border)] rounded-[var(--radius-lg)]">
         <div className="p-6">
           {lines.map((line, index) => (
             <div key={index} className="flex text-sm leading-relaxed mb-2">

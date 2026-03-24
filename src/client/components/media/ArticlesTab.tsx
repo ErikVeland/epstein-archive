@@ -151,7 +151,7 @@ export const ArticlesTab: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full min-h-[500px] bg-slate-950 border border-[var(--glass-border)] shadow-[var(--glass-shadow)] overflow-hidden rounded-[var(--radius-lg)]">
+    <div className="flex flex-col h-full min-h-[500px] bg-[var(--glass-bg)] border border-[var(--glass-border)] shadow-[var(--glass-shadow)] overflow-hidden rounded-[var(--radius-lg)]">
       {/* Header with controls */}
       <div className="bg-[var(--glass-bg-strong)] border-b border-[var(--glass-border)] flex flex-col md:flex-row md:items-center justify-between px-3 py-2 md:px-4 md:h-14 shrink-0 z-10 gap-2">
         {/* Mobile Publication Dropdown */}
@@ -264,9 +264,9 @@ export const ArticlesTab: React.FC = () => {
         </aside>
 
         {/* Main Content */}
-        <div className="flex-1 bg-slate-950 flex flex-col overflow-hidden relative">
+        <div className="flex-1 bg-[var(--glass-bg)] flex flex-col overflow-hidden relative">
           {loading ? (
-            <div className="absolute inset-0 flex items-center justify-center z-20 bg-slate-950/50 backdrop-blur-sm">
+            <div className="absolute inset-0 flex items-center justify-center z-20 bg-[var(--glass-bg)] backdrop-blur-sm">
               <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[var(--accent)]"></div>
             </div>
           ) : null}

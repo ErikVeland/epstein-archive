@@ -765,7 +765,7 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
       </div>
 
       {selectedConfidenceTool && (
-        <div className="fixed inset-0 z-[1100] bg-black/60 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[1100] bg-[var(--glass-bg-strong)] flex items-center justify-center p-4">
           <div className="w-full max-w-2xl rounded-[var(--radius-xl)] border border-[var(--glass-border)] bg-[var(--glass-bg-strong)] text-[var(--text-primary)] max-h-[90vh] overflow-auto">
             <div className="p-4 border-b border-[var(--glass-border)] flex items-center justify-between">
               <div>

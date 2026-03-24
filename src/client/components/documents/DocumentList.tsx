@@ -46,7 +46,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
     return (
       <div
         className={
-          viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6' : 'space-y-3'
+          viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4' : 'space-y-3'
         }
       >
         <DocumentSkeleton count={itemsPerPage} />

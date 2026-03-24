@@ -130,7 +130,7 @@ export const ReviewQueuePanel: React.FC = () => {
                       <label className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-widest">
                         Baseline (Before)
                       </label>
-                      <pre className="bg-slate-950 p-4 rounded-[var(--radius-lg)] border border-[var(--glass-border)] text-xs font-mono text-[var(--text-muted)] overflow-x-auto">
+                      <pre className="bg-[var(--glass-bg)] p-4 rounded-[var(--radius-lg)] border border-[var(--glass-border)] text-xs font-mono text-[var(--text-muted)] overflow-x-auto">
                         {JSON.stringify(item.payloadJson.before, null, 2)}
                       </pre>
                     </div>
@@ -138,7 +138,7 @@ export const ReviewQueuePanel: React.FC = () => {
                       <label className="text-xs font-bold text-[var(--accent)] uppercase tracking-widest">
                         Agentic Output (After)
                       </label>
-                      <pre className="bg-slate-950 p-4 rounded-[var(--radius-lg)] border border-indigo-900/30 text-xs font-mono text-indigo-100 overflow-x-auto shadow-inner shadow-indigo-500/5">
+                      <pre className="bg-[var(--glass-bg)] p-4 rounded-[var(--radius-lg)] border border-indigo-900/30 text-xs font-mono text-indigo-100 overflow-x-auto shadow-inner shadow-indigo-500/5">
                         {JSON.stringify(item.payloadJson.after, null, 2)}
                       </pre>
                     </div>
@@ -156,7 +156,7 @@ export const ReviewQueuePanel: React.FC = () => {
                       placeholder="Add forensic review notes..."
                       value={reviewNote}
                       onChange={(e) => setReviewNote(e.target.value)}
-                      className="w-full bg-slate-950 border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-3 text-sm text-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition-colors h-24"
+                      className="w-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-3 text-sm text-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition-colors h-24"
                     />
                     <div className="flex gap-3">
                       <button

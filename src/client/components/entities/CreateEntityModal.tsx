@@ -208,7 +208,7 @@ export const CreateEntityModal: React.FC<CreateEntityModalProps> = ({ onClose, o
             >
               {loading ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <div className="w-4 h-4 border-2 border-[var(--glass-border)] border-t-white rounded-full animate-spin" />
                   Creating...
                 </>
               ) : (

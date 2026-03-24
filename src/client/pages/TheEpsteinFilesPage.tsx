@@ -100,13 +100,13 @@ export const TheEpsteinFilesPage: React.FC<TheEpsteinFilesPageProps> = ({ varian
   return (
     <div className="max-w-5xl mx-auto px-6 py-12 space-y-8">
       <header className="space-y-4">
-        <h1 className="text-4xl font-bold text-white">{copy.title}</h1>
-        <p className="text-lg text-slate-300 max-w-4xl">{copy.description}</p>
+        <h1 className="text-4xl font-bold text-[var(--text-primary)]">{copy.title}</h1>
+        <p className="text-lg text-[var(--text-primary)] max-w-4xl">{copy.description}</p>
       </header>
 
-      <section className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
+      <section className="rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] p-6">
         <h2 className="text-xl font-semibold text-cyan-300 mb-4">What You Can Do Here</h2>
-        <ul className="space-y-3 text-slate-200">
+        <ul className="space-y-3 text-[var(--text-primary)]">
           {copy.points.map((point) => (
             <li key={point} className="list-disc ml-6">
               {point}
@@ -115,14 +115,16 @@ export const TheEpsteinFilesPage: React.FC<TheEpsteinFilesPageProps> = ({ varian
         </ul>
       </section>
 
-      <section className="rounded-2xl border border-slate-800 bg-slate-900/40 p-6">
-        <h2 className="text-xl font-semibold text-white mb-4">Explore Archive Sections</h2>
+      <section className="rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] p-6">
+        <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-4">
+          Explore Archive Sections
+        </h2>
         <div className="grid gap-3 sm:grid-cols-2">
           {discoveryLinks.map((item) => (
             <Link
               key={item.href}
               to={item.href}
-              className="rounded-lg border border-slate-700 bg-slate-900/70 px-4 py-3 text-slate-200 hover:border-cyan-500/60 hover:text-cyan-200 transition-colors"
+              className="rounded-lg border border-[var(--glass-border)] bg-[var(--glass-bg)] px-4 py-3 text-[var(--text-primary)] hover:border-cyan-500/60 hover:text-cyan-200 transition-colors"
             >
               {item.label}
             </Link>

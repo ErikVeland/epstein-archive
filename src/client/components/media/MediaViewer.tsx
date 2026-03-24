@@ -81,7 +81,7 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({
 
     if (isImage) {
       return (
-        <div className="flex items-center justify-center w-full h-full overflow-auto bg-black/50">
+        <div className="flex items-center justify-center w-full h-full overflow-auto bg-[var(--glass-bg-strong)]">
           <img
             src={filePath}
             alt={fileName}
@@ -136,7 +136,7 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({
 
   const content = (
     <div
-      className={`${inline ? 'relative w-full h-full' : 'fixed inset-0 bg-black bg-opacity-90 z-[1100]'} flex flex-col`}
+      className={`${inline ? 'relative w-full h-full' : 'fixed inset-0 bg-[var(--glass-bg-strong)] bg-opacity-90 z-[1100]'} flex flex-col`}
     >
       {/* Header */}
       <div

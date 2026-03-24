@@ -634,7 +634,7 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
                     confidence={item.confidence}
                     ingestRunId={item.ingestRunId}
                     wasAgentic={item.wasAgentic}
-                    className="bg-slate-950/30 p-3 rounded-[var(--radius-lg)] border border-[var(--glass-border)]"
+                    className="bg-[var(--glass-bg)] p-3 rounded-[var(--radius-lg)] border border-[var(--glass-border)]"
                   />
                 </div>
 

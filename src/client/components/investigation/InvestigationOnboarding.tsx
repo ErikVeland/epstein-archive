@@ -67,13 +67,13 @@ export const InvestigationOnboarding: React.FC<InvestigationOnboardingProps> = (
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-slate-950/60 backdrop-blur-md flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-[var(--glass-bg)] backdrop-blur-md flex items-center justify-center z-50 p-4"
     >
       <motion.div
         initial={{ scale: 0.95, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         transition={{ type: 'spring', duration: 0.5, bounce: 0.3 }}
-        className="relative bg-[var(--glass-bg-strong)]/90 border border-white/10 rounded-3xl shadow-[var(--glass-shadow)] w-full max-w-lg overflow-hidden backdrop-blur-xl"
+        className="relative bg-[var(--glass-bg-strong)]/90 border border-[var(--glass-border)] rounded-3xl shadow-[var(--glass-shadow)] w-full max-w-lg overflow-hidden backdrop-blur-xl"
       >
         {/* Decorative Background Gradients */}
         <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-[var(--accent)]/10 rounded-full blur-3xl pointer-events-none" />
@@ -101,7 +101,7 @@ export const InvestigationOnboarding: React.FC<InvestigationOnboardingProps> = (
             onClick={onSkip}
             size="md"
             label="Close investigation onboarding"
-            className="bg-transparent hover:bg-white/10 border-white/10"
+            className="bg-transparent hover:bg-[var(--glass-bg-highlight)] border-[var(--glass-border)]"
           />
         </div>
 
@@ -118,7 +118,7 @@ export const InvestigationOnboarding: React.FC<InvestigationOnboardingProps> = (
             >
               {/* Icon Container */}
               <div
-                className={`mb-8 p-6 rounded-[var(--radius-xl)] ${currentStep.bg} ${currentStep.border} border shadow-[0_0_30px_-5px] ${currentStep.glow} ring-1 ring-white/5`}
+                className={`mb-8 p-6 rounded-[var(--radius-xl)] ${currentStep.bg} ${currentStep.border} border shadow-[0_0_30px_-5px] ${currentStep.glow} ring-1 ring-[var(--glass-border)]`}
               >
                 <Icon className={`h-10 w-10 ${currentStep.color}`} />
               </div>

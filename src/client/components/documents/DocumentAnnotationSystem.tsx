@@ -259,7 +259,7 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
           type="button"
           className={`rounded-sm px-0.5 text-left align-baseline transition-colors ${
             typeMeta.className
-          } ${isActive ? 'ring-1 ring-cyan-300/80' : 'hover:ring-1 hover:ring-white/30'}`}
+          } ${isActive ? 'ring-1 ring-cyan-300/80' : 'hover:ring-1 hover:ring-[var(--glass-border)]'}`}
           title={`${typeMeta.label}: ${annotation.note || annotation.selectedText}`}
           onClick={() => setActiveAnnotationId(annotation.id)}
         >

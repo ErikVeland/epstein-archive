@@ -206,7 +206,7 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
 
   return (
     <div className="h-full flex flex-col animate-in fade-in duration-700">
-      <div className="shrink-0 p-4 md:p-6 border-b border-white/5 flex items-center justify-between flex-wrap gap-4 bg-[var(--glass-bg-strong)]/40">
+      <div className="shrink-0 p-4 md:p-6 border-b border-[var(--glass-border)] flex items-center justify-between flex-wrap gap-4 bg-[var(--glass-bg-strong)]/40">
         <div className="flex-1 min-w-[240px] max-w-md relative group">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-muted)] group-focus-within:text-[var(--accent)] transition-colors" />
           <input
@@ -214,14 +214,14 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
             placeholder="Scoping search..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="control w-full pl-10 pr-20 py-2 !bg-slate-950/40 border-white/5 focus:!border-[var(--accent)]/50"
+            className="control w-full pl-10 pr-20 py-2 !bg-[var(--glass-bg)] border-[var(--glass-border)] focus:!border-[var(--accent)]/50"
           />
           {totalMatches > 0 && (
             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
               <span className="text-[10px] font-black text-[var(--accent)] tracking-tighter uppercase whitespace-nowrap">
                 {currentMatch}/{totalMatches}
               </span>
-              <div className="flex gap-1 border-l border-white/10 pl-2">
+              <div className="flex gap-1 border-l border-[var(--glass-border)] pl-2">
                 <button
                   onClick={() => navigateMatch('prev')}
                   className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
@@ -241,7 +241,7 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
 
         <div className="flex items-center gap-2">
           {/* Quick Actions */}
-          <div className="flex p-1 bg-slate-950/40 rounded-[var(--radius-xl)] border border-white/5 gap-1">
+          <div className="flex p-1 bg-[var(--glass-bg)] rounded-[var(--radius-xl)] border border-[var(--glass-border)] gap-1">
             <button
               onClick={() => setShowRaw(false)}
               className={`px-3 py-1.5 rounded-[var(--radius-lg)] text-[10px] font-black uppercase tracking-widest transition-all ${!showRaw ? 'bg-[var(--accent)]/20 text-[var(--accent)] border border-[var(--accent)]/30' : 'text-[var(--text-primary)] hover:text-[var(--text-muted)]'}`}
@@ -271,7 +271,7 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
 
           <button
             onClick={copyText}
-            className="control !h-10 px-4 flex items-center gap-2 text-xs font-bold border-white/5 bg-[var(--glass-bg-strong)]/60"
+            className="control !h-10 px-4 flex items-center gap-2 text-xs font-bold border-[var(--glass-border)] bg-[var(--glass-bg-strong)]/60"
           >
             {copied ? (
               <Check className="w-4 h-4 text-emerald-500" />
@@ -287,7 +287,7 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
               download
               target="_blank"
               rel="noopener noreferrer"
-              className="control !h-10 w-10 flex items-center justify-center border-white/5 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+              className="control !h-10 w-10 flex items-center justify-center border-[var(--glass-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
               title="Download Original"
             >
               <Download className="w-4 h-4" />
@@ -295,7 +295,7 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
           )}
 
           {redactionSummary.length > 0 && (
-            <div className="flex items-center gap-2 pl-3 border-l border-white/10">
+            <div className="flex items-center gap-2 pl-3 border-l border-[var(--glass-border)]">
               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">
                 Contains Redactions
               </span>
@@ -316,7 +316,7 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
       {/* Main Content Area */}
       <div
         ref={contentRef}
-        className="flex-1 overflow-y-auto p-6 md:p-12 transition-all duration-500 custom-scrollbar bg-slate-950/10"
+        className="flex-1 overflow-y-auto p-6 md:p-12 transition-all duration-500 custom-scrollbar bg-[var(--glass-bg)]"
       >
         <div className="max-w-4xl mx-auto">
           {(evidence.metadata?.key_excerpts?.length ?? 0) > 0 && !showRaw && (

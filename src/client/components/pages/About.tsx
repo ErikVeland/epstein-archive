@@ -139,7 +139,7 @@ export const About: React.FC = () => {
                     style={{ width: `${ingestPercent}%` }}
                   >
                     {!isComplete && (
-                      <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite] skew-x-12"></div>
+                      <div className="absolute inset-0 bg-[var(--glass-bg-highlight)] animate-[shimmer_2s_infinite] skew-x-12"></div>
                     )}
                   </div>
                 </div>

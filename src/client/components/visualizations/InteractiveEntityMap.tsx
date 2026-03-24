@@ -253,7 +253,7 @@ export const InteractiveEntityMap: React.FC<InteractiveEntityMapProps> = ({
 
   if (isExpanded) {
     return (
-      <div className="fixed inset-0 z-[2000] bg-black/95 flex flex-col">
+      <div className="fixed inset-0 z-[2000] bg-[var(--glass-bg-strong)] flex flex-col">
         <div className="flex items-center justify-between p-4 border-b border-[var(--glass-border)]">
           <h2 className="text-xl font-bold text-[var(--text-primary)] flex items-center gap-2">
             <MapPin className="w-5 h-5 text-[var(--accent)]" />

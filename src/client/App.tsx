@@ -1355,7 +1355,7 @@ function App() {
                         title="New Investigation"
                       >
                         <Icon name="Plus" size="sm" color="white" />
-                        <span className="max-w-0 group-hover:max-w-xs overflow-hidden transition-all duration-300 opacity-0 group-hover:opacity-100 whitespace-nowrap text-sm text-white ml-0 group-hover:ml-2">
+                        <span className="max-w-0 group-hover:max-w-xs overflow-hidden transition-all duration-300 opacity-0 group-hover:opacity-100 whitespace-nowrap text-sm text-[var(--text-primary)] ml-0 group-hover:ml-2">
                           New
                         </span>
                       </button>
@@ -1367,7 +1367,7 @@ function App() {
                         title="Keyboard Shortcuts"
                       >
                         <Icon name="Command" size="sm" color="info" />
-                        <span className="max-w-0 group-hover:max-w-xs overflow-hidden transition-all duration-300 opacity-0 group-hover:opacity-100 whitespace-nowrap text-sm text-white ml-0 group-hover:ml-2">
+                        <span className="max-w-0 group-hover:max-w-xs overflow-hidden transition-all duration-300 opacity-0 group-hover:opacity-100 whitespace-nowrap text-sm text-[var(--text-primary)] ml-0 group-hover:ml-2">
                           Shortcuts
                         </span>
                       </button>
@@ -1391,7 +1391,7 @@ function App() {
                         title="What's New"
                       >
                         <Icon name="Book" size="sm" color="info" />
-                        <span className="max-w-0 group-hover:max-w-xs overflow-hidden transition-all duration-300 opacity-0 group-hover:opacity-100 whitespace-nowrap text-sm text-white ml-0 group-hover:ml-2">
+                        <span className="max-w-0 group-hover:max-w-xs overflow-hidden transition-all duration-300 opacity-0 group-hover:opacity-100 whitespace-nowrap text-sm text-[var(--text-primary)] ml-0 group-hover:ml-2">
                           What's New
                         </span>
                       </button>
@@ -2187,7 +2187,7 @@ function App() {
             {/* Evidence Modal */}
             <Suspense
               fallback={
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+                <div className="fixed inset-0 bg-[var(--glass-bg-strong)] backdrop-blur-sm flex items-center justify-center z-50">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent)]"></div>
                 </div>
               }
@@ -2208,7 +2208,7 @@ function App() {
             {/* Inline Document Modal */}
             <Suspense
               fallback={
-                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+                <div className="fixed inset-0 bg-[var(--glass-bg-strong)] flex items-center justify-center z-50">
                   <div className="w-8 h-8 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin" />
                 </div>
               }

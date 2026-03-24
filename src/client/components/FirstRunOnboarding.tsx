@@ -65,7 +65,7 @@ export const FirstRunOnboarding: React.FC<FirstRunOnboardingProps> = ({ onComple
   const { title, description, icon } = getStepContent();
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
+    <div className="fixed inset-0 bg-[var(--glass-bg-strong)] backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
       <div className="glass-panel w-full max-w-2xl rounded-[var(--radius-xl)] overflow-hidden shadow-[var(--glass-shadow)] shadow-cyan-900/20 border border-[var(--glass-border)]">
         {/* Header */}
         <div className="flex items-center justify-between p-6 pb-4 border-b border-[var(--glass-border)]">

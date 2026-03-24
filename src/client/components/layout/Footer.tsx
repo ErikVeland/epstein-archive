@@ -98,7 +98,7 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
                   <div className="font-bold mb-1">Live Data Status</div>
                   <div className="font-mono mb-1">{systemStatus.message}</div>
                   {systemStatus.details && (
-                    <div className="text-[10px] opacity-80 leading-tight border-t border-white/5 pt-1 mt-1">
+                    <div className="text-[10px] opacity-80 leading-tight border-t border-[var(--glass-border)] pt-1 mt-1">
                       {systemStatus.details}
                     </div>
                   )}

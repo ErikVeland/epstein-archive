@@ -1064,7 +1064,7 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
                         className={`w-8 h-4 rounded-full relative transition-colors ${damningEvidenceOnly ? 'bg-red-500' : 'bg-[var(--glass-bg-highlight)]'}`}
                       >
                         <div
-                          className={`absolute top-1 w-2 h-2 rounded-full bg-white transition-all ${damningEvidenceOnly ? 'left-5' : 'left-1'}`}
+                          className={`absolute top-1 w-2 h-2 rounded-full bg-[var(--text-primary)] transition-all ${damningEvidenceOnly ? 'left-5' : 'left-1'}`}
                         />
                       </div>
                     </div>

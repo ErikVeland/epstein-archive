@@ -57,7 +57,7 @@ export const EvidenceLadder: React.FC<EvidenceLadderProps> = ({
         className={`flex items-start gap-4 p-4 rounded-[var(--radius-xl)] border ${activeLevel.borderColor} ${activeLevel.bgColor} backdrop-blur-sm`}
       >
         <div
-          className={`p-2 rounded-[var(--radius-lg)] ${activeLevel.borderColor} border bg-slate-950/50`}
+          className={`p-2 rounded-[var(--radius-lg)] ${activeLevel.borderColor} border bg-[var(--glass-bg)]`}
         >
           <activeLevel.icon size={20} className={activeLevel.color} />
         </div>
@@ -66,7 +66,7 @@ export const EvidenceLadder: React.FC<EvidenceLadderProps> = ({
             <h4 className={`font-bold text-sm uppercase tracking-wider ${activeLevel.color}`}>
               {activeLevel.name}
             </h4>
-            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-950/50 border border-[var(--glass-border)]">
+            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[var(--glass-bg)] border border-[var(--glass-border)]">
               <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase">
                 Confidence
               </span>
@@ -115,7 +115,7 @@ export const EvidenceLadder: React.FC<EvidenceLadderProps> = ({
 
       {/* Evidence Pack Details (Optional) */}
       {evidencePack && (
-        <div className="bg-slate-950/50 border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-3 space-y-2">
+        <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-3 space-y-2">
           <div className="flex items-center gap-2 text-[var(--text-muted)] text-[10px] font-bold uppercase tracking-widest px-1">
             <ChevronRight size={12} />
             Structural Context

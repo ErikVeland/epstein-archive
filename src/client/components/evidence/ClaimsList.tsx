@@ -97,7 +97,7 @@ export function ClaimsList({ claims }: ClaimsListProps) {
   };
 
   return (
-    <div className="bg-white rounded-[var(--radius-lg)] shadow overflow-hidden">
+    <div className="bg-[var(--text-primary)] rounded-[var(--radius-lg)] shadow overflow-hidden">
       <div className="px-4 py-3 border-b border-[var(--glass-border)] bg-[var(--app-bg)] flex justify-between items-center">
         <h3 className="text-sm font-semibold text-[var(--text-primary)] uppercase tracking-wider flex items-center gap-2">
           <BadgeCheck className="w-5 h-5 text-[var(--accent)]" />

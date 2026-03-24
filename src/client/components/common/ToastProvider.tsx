@@ -52,7 +52,7 @@ export default function ToastProvider({ children }: { children: ReactNode }) {
                   t.action!.onClick();
                   removeToast(t.id);
                 }}
-                className="ml-2 px-2 py-1 text-xs rounded hover:bg-white/10 transition-colors"
+                className="ml-2 px-2 py-1 text-xs rounded hover:bg-[var(--glass-bg-highlight)] transition-colors"
               >
                 {t.action.label}
               </button>
@@ -62,7 +62,7 @@ export default function ToastProvider({ children }: { children: ReactNode }) {
                 onClick={() => removeToast(t.id)}
                 size="sm"
                 label="Dismiss notification"
-                className="ml-2 h-6 w-6 border-transparent bg-transparent text-current hover:bg-white/10"
+                className="ml-2 h-6 w-6 border-transparent bg-transparent text-current hover:bg-[var(--glass-bg-highlight)]"
               />
             )}
           </div>

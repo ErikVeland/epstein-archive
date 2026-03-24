@@ -83,7 +83,7 @@ const renderMarkdown = (markdown: string): string => {
   let content = source.replace(/```([\s\S]*?)```/g, (_match, code) => {
     const token = `__CODE_BLOCK_${codeBlocks.length}__`;
     codeBlocks.push(
-      `<pre class="bg-slate-950 border border-[var(--glass-border)] rounded-md p-3 overflow-x-auto"><code>${code}</code></pre>`,
+      `<pre class="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-md p-3 overflow-x-auto"><code>${code}</code></pre>`,
     );
     return token;
   });
@@ -785,11 +785,11 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
               }
             }}
             placeholder="Write your narrative, key claims, or open questions for this case."
-            className="w-full min-h-[220px] bg-slate-950 border border-[var(--glass-border)] rounded-md px-3 py-2 text-sm text-[var(--text-primary)] placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/60"
+            className="w-full min-h-[220px] bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-md px-3 py-2 text-sm text-[var(--text-primary)] placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/60"
           />
         ) : (
           <div
-            className="min-h-[220px] bg-slate-950 border border-[var(--glass-border)] rounded-md px-4 py-3 prose prose-invert max-w-none"
+            className="min-h-[220px] bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-md px-4 py-3 prose prose-invert max-w-none"
             dangerouslySetInnerHTML={{
               __html:
                 markdownPreviewHtml ||
@@ -813,7 +813,7 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
             {evidenceAnnotations.map((annotation) => (
               <div
                 key={annotation.id}
-                className="bg-slate-950 border border-[var(--glass-border)] rounded-md px-3 py-2"
+                className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-md px-3 py-2"
               >
                 <div className="flex items-center gap-2 text-xs text-[var(--text-muted)] mb-1">
                   <span className="px-1.5 py-0.5 rounded bg-[var(--glass-bg)] text-[var(--text-secondary)]">

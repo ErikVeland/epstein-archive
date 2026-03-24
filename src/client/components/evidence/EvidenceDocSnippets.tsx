@@ -55,7 +55,7 @@ export function EvidenceDocSnippets({ snippets, searchTerm }: EvidenceDocSnippet
             </div>
             {d.snippet && (
               <div
-                className="text-sm text-[var(--text-secondary)] font-mono bg-black/30 p-2 rounded mb-2 border-l-2 border-[var(--accent)]/30"
+                className="text-sm text-[var(--text-secondary)] font-mono bg-[var(--glass-bg-strong)] p-2 rounded mb-2 border-l-2 border-[var(--accent)]/30"
                 // DOMPurify sanitizes the snippet before rendering — safe against XSS
                 dangerouslySetInnerHTML={{
                   __html: DOMPurify.sanitize(d.snippet, {

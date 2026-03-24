@@ -146,7 +146,7 @@ export const DocumentAnalysisTab: React.FC<DocumentAnalysisTabProps> = ({
       )}
 
       {textSubview === 'clean' && (
-        <div className="pt-12 border-t border-white/5 space-y-12">
+        <div className="pt-12 border-t border-[var(--glass-border)] space-y-12">
           <section className="surface-quiet p-5">
             <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Annotations</h3>
             <DocumentAnnotationSystem
@@ -202,7 +202,7 @@ export const DocumentAnalysisTab: React.FC<DocumentAnalysisTabProps> = ({
                             </div>
                           </div>
                           {(entity.mentions ?? 0) > 0 && (
-                            <div className="mt-3 pt-3 border-t border-white/5 flex items-center justify-between">
+                            <div className="mt-3 pt-3 border-t border-[var(--glass-border)] flex items-center justify-between">
                               <span className="text-[9px] text-[var(--text-muted)] uppercase font-bold">
                                 {entity.mentions} Mentions
                               </span>

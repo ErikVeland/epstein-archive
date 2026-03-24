@@ -64,7 +64,7 @@ export const BoardOnboarding: React.FC<BoardOnboardingProps> = ({ onComplete, on
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-[var(--glass-bg)] backdrop-blur-md flex items-center justify-center z-50 p-4"
     >
       <motion.div
         initial={{ scale: 0.95, opacity: 0, y: 20 }}
@@ -103,7 +103,7 @@ export const BoardOnboarding: React.FC<BoardOnboardingProps> = ({ onComplete, on
               className="flex flex-col items-center"
             >
               <div
-                className={`mb-6 p-4 rounded-[var(--radius-xl)] ${currentStep.bg} ${currentStep.border} border shadow-[var(--glass-shadow)] ${currentStep.glow} ring-1 ring-white/5`}
+                className={`mb-6 p-4 rounded-[var(--radius-xl)] ${currentStep.bg} ${currentStep.border} border shadow-[var(--glass-shadow)] ${currentStep.glow} ring-1 ring-[var(--glass-border)]`}
               >
                 <Icon className={`h-8 w-8 ${currentStep.color}`} />
               </div>

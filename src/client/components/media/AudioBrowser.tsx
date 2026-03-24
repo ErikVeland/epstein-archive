@@ -398,7 +398,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                         </div>
                       )}
                       {addingId === item.id && (
-                        <div className="text-[10px] text-[var(--text-primary)] bg-black/60 px-2 py-0.5 rounded">
+                        <div className="text-[10px] text-[var(--text-primary)] bg-[var(--glass-bg-strong)] px-2 py-0.5 rounded">
                           …
                         </div>
                       )}
@@ -441,7 +441,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                       )}
 
                       {(item.metadata?.duration || 0) > 0 && (
-                        <div className="absolute bottom-2 right-2 px-2 py-1 bg-black/80 text-[var(--text-primary)] text-xs rounded-full font-mono flex items-center gap-1">
+                        <div className="absolute bottom-2 right-2 px-2 py-1 bg-[var(--glass-bg-strong)] text-[var(--text-primary)] text-xs rounded-full font-mono flex items-center gap-1">
                           <Clock size={10} />
                           {Math.floor((item.metadata?.duration || 0) / 60)}:
                           {((item.metadata?.duration || 0) % 60).toString().padStart(2, '0')}

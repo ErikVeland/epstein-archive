@@ -319,7 +319,7 @@ export const AdminDashboard: React.FC = () => {
               onClick={() => setError('')}
               size="sm"
               label="Dismiss error"
-              className="ml-2 border-red-700/60 bg-red-950/60 text-red-200 hover:bg-red-900/70 hover:text-white"
+              className="ml-2 border-red-700/60 bg-red-950/60 text-red-200 hover:bg-red-900/70 hover:text-[var(--text-primary)]"
             />
           </div>
         )}
@@ -351,7 +351,7 @@ export const AdminDashboard: React.FC = () => {
             onClick={() => setActiveTab('users')}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               activeTab === 'users'
-                ? 'bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent)]/20'
+                ? 'bg-[var(--accent)] text-[var(--text-primary)] shadow-lg shadow-[var(--accent)]/20'
                 : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)]'
             }`}
           >
@@ -362,7 +362,7 @@ export const AdminDashboard: React.FC = () => {
             onClick={() => setActiveTab('audit')}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               activeTab === 'audit'
-                ? 'bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent)]/20'
+                ? 'bg-[var(--accent)] text-[var(--text-primary)] shadow-lg shadow-[var(--accent)]/20'
                 : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)]'
             }`}
           >
@@ -373,7 +373,7 @@ export const AdminDashboard: React.FC = () => {
             onClick={() => setActiveTab('system')}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               activeTab === 'system'
-                ? 'bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent)]/20'
+                ? 'bg-[var(--accent)] text-[var(--text-primary)] shadow-lg shadow-[var(--accent)]/20'
                 : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)]'
             }`}
           >
@@ -384,7 +384,7 @@ export const AdminDashboard: React.FC = () => {
             onClick={() => setActiveTab('review')}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               activeTab === 'review'
-                ? 'bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent)]/20'
+                ? 'bg-[var(--accent)] text-[var(--text-primary)] shadow-lg shadow-[var(--accent)]/20'
                 : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)]'
             }`}
           >
@@ -395,7 +395,7 @@ export const AdminDashboard: React.FC = () => {
             onClick={() => setActiveTab('ingestion')}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               activeTab === 'ingestion'
-                ? 'bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent)]/20'
+                ? 'bg-[var(--accent)] text-[var(--text-primary)] shadow-lg shadow-[var(--accent)]/20'
                 : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)]'
             }`}
           >
@@ -406,7 +406,7 @@ export const AdminDashboard: React.FC = () => {
             onClick={() => setActiveTab('backups')}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               activeTab === 'backups'
-                ? 'bg-[var(--accent)] text-white shadow-lg shadow-[var(--accent)]/20'
+                ? 'bg-[var(--accent)] text-[var(--text-primary)] shadow-lg shadow-[var(--accent)]/20'
                 : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)]'
             }`}
           >
@@ -477,7 +477,7 @@ export const AdminDashboard: React.FC = () => {
                   </div>
                   <button
                     onClick={openCreateModal}
-                    className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] hover:brightness-110 text-white rounded-lg transition-colors shadow-lg shadow-[var(--accent)]/20 whitespace-nowrap"
+                    className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] hover:brightness-110 text-[var(--text-primary)] rounded-lg transition-colors shadow-lg shadow-[var(--accent)]/20 whitespace-nowrap"
                   >
                     <UserPlus size={18} />
                     <span>Add User</span>
@@ -818,7 +818,7 @@ export const AdminDashboard: React.FC = () => {
               </div>
               <button
                 onClick={triggerBackup}
-                className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] hover:brightness-110 text-white rounded-lg transition-colors shadow-lg shadow-[var(--accent)]/20"
+                className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] hover:brightness-110 text-[var(--text-primary)] rounded-lg transition-colors shadow-lg shadow-[var(--accent)]/20"
               >
                 <RefreshCw size={18} />
                 Snapshot Now
@@ -878,7 +878,7 @@ export const AdminDashboard: React.FC = () => {
 
       {/* Create/Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--glass-bg-strong)] backdrop-blur-sm">
           <div className="w-full max-w-md glass-panel shadow-2xl rounded-xl animate-in fade-in zoom-in duration-200">
             <div className="flex items-center justify-between p-6 border-b border-[var(--glass-border)]">
               <h3 className="text-xl font-semibold text-[var(--text-primary)]">
@@ -945,13 +945,13 @@ export const AdminDashboard: React.FC = () => {
                   }}
                   className="w-full bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-lg px-3 py-2 text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--accent)] outline-none transition-all"
                 >
-                  <option value="viewer" className="bg-slate-900">
+                  <option value="viewer" className="bg-[var(--glass-bg)]">
                     Viewer (Read Only)
                   </option>
-                  <option value="investigator" className="bg-slate-900">
+                  <option value="investigator" className="bg-[var(--glass-bg)]">
                     Investigator (Can Edit)
                   </option>
-                  <option value="admin" className="bg-slate-900">
+                  <option value="admin" className="bg-[var(--glass-bg)]">
                     Admin (Full Access)
                   </option>
                 </select>
@@ -967,7 +967,7 @@ export const AdminDashboard: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-[var(--accent)] hover:brightness-110 text-white rounded-lg transition-colors font-medium shadow-lg shadow-[var(--accent)]/20"
+                  className="flex-1 px-4 py-2 bg-[var(--accent)] hover:brightness-110 text-[var(--text-primary)] rounded-lg transition-colors font-medium shadow-lg shadow-[var(--accent)]/20"
                 >
                   {editingUser ? 'Save Changes' : 'Create User'}
                 </button>

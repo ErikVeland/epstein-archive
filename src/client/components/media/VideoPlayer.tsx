@@ -325,7 +325,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full bg-slate-950 border border-[var(--glass-border)] rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)] overflow-hidden">
+    <div className="flex flex-col h-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)] overflow-hidden">
       {/* Header */}
       <div className="px-4 py-3 bg-[var(--glass-bg-strong)] border-b border-[var(--glass-border)] shrink-0">
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
@@ -412,13 +412,13 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         {/* Main Content (Video) */}
         <div
           ref={containerRef}
-          className="flex-1 bg-black relative flex items-center justify-center overflow-hidden group"
+          className="flex-1 bg-[var(--glass-bg-strong)] relative flex items-center justify-center overflow-hidden group"
           onMouseMove={handleMouseMove}
           onMouseLeave={() => isPlaying && setShowControls(false)}
         >
           {/* Sensitive Content Warning Overlay */}
           {!hasRevealed && (
-            <div className="absolute inset-0 z-50 bg-slate-950/95 flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-300">
+            <div className="absolute inset-0 z-50 bg-[var(--glass-bg)] flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-300">
               <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-6 ring-1 ring-red-500/30">
                 <Shield className="h-8 w-8 text-red-500" />
               </div>
@@ -477,13 +477,13 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                 max={duration || 100}
                 value={currentTime}
                 onChange={(e) => seek(parseFloat(e.target.value))}
-                className="w-full h-1.5 bg-white/20 rounded-[var(--radius-lg)] appearance-none cursor-pointer accent-cyan-500 hover:h-2 transition-all"
+                className="w-full h-1.5 bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] appearance-none cursor-pointer accent-cyan-500 hover:h-2 transition-all"
               />
               {/* Chapter Markers */}
               {chapters.map((chapter, i) => (
                 <div
                   key={i}
-                  className="absolute top-0 w-0.5 h-1.5 bg-yellow-500 hover:bg-white cursor-pointer z-10 transition-colors"
+                  className="absolute top-0 w-0.5 h-1.5 bg-yellow-500 hover:bg-[var(--text-primary)] cursor-pointer z-10 transition-colors"
                   style={{ left: `${(chapter.startTime / duration) * 100}%` }}
                   title={chapter.title}
                   onClick={(e) => {
@@ -532,7 +532,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                       setVolume(parseFloat(e.target.value));
                       if (videoRef.current) videoRef.current.volume = parseFloat(e.target.value);
                     }}
-                    className="w-0 overflow-hidden group-hover/vol:w-20 transition-all h-1 bg-white/30 rounded-[var(--radius-lg)] appearance-none cursor-pointer accent-white"
+                    className="w-0 overflow-hidden group-hover/vol:w-20 transition-all h-1 bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] appearance-none cursor-pointer accent-white"
                   />
                 </div>
 
@@ -552,7 +552,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
               </div>
 
               <div className="flex items-center gap-4">
-                <div className="flex items-center gap-1 bg-white/10 rounded px-1">
+                <div className="flex items-center gap-1 bg-[var(--glass-bg-highlight)] rounded px-1">
                   {[0.5, 1, 1.5, 2].map((rate) => (
                     <button
                       key={rate}
@@ -560,7 +560,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                         setPlaybackRate(rate);
                         if (videoRef.current) videoRef.current.playbackRate = rate;
                       }}
-                      className={`px-2 py-0.5 text-xs rounded ${playbackRate === rate ? 'bg-white/20 text-[var(--text-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}
+                      className={`px-2 py-0.5 text-xs rounded ${playbackRate === rate ? 'bg-[var(--glass-bg-highlight)] text-[var(--text-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}
                     >
                       {rate}x
                     </button>
@@ -721,8 +721,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         )}
       </div>
       {showFullTranscriptOverlay && (
-        <div className="fixed inset-0 z-[1300] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-5xl h-[90vh] max-h-[90vh] bg-slate-950 border border-[var(--glass-border)] rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)] overflow-hidden flex flex-col">
+        <div className="fixed inset-0 z-[1300] bg-[var(--glass-bg-strong)] backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-5xl h-[90vh] max-h-[90vh] bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)] overflow-hidden flex flex-col">
             <div className="flex items-center justify-between p-3 bg-[var(--glass-bg-strong)] border-b border-[var(--glass-border)]">
               <div className="flex items-center gap-2">
                 <button

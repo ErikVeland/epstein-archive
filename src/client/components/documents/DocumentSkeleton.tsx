@@ -6,7 +6,7 @@ interface DocumentSkeletonProps {
 
 const DocumentSkeleton: React.FC<DocumentSkeletonProps> = ({ count = 12 }) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <>
       {[...Array(count)].map((_, i) => (
         <div
           key={i}
@@ -14,7 +14,7 @@ const DocumentSkeleton: React.FC<DocumentSkeletonProps> = ({ count = 12 }) => {
           aria-label="Loading document preview"
         >
           {/* Shimmer effect */}
-          <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+          <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-[var(--glass-highlight)] to-transparent"></div>
 
           {/* Document header */}
           <div className="flex items-start justify-between mb-4">
@@ -45,7 +45,7 @@ const DocumentSkeleton: React.FC<DocumentSkeletonProps> = ({ count = 12 }) => {
           </div>
         </div>
       ))}
-    </div>
+    </>
   );
 };
 

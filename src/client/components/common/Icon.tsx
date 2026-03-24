@@ -299,7 +299,7 @@ const Icon: React.FC<IconProps> = ({
     info: 'text-[var(--accent)]',
     white: 'text-[var(--text-primary)]',
     gray: 'text-[var(--text-muted)]',
-    black: 'text-black',
+    black: 'text-[var(--bg-dark)]',
     blue: 'text-[var(--accent)]',
     inherit: '',
   };

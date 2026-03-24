@@ -15,7 +15,7 @@ export const GlassButton = React.forwardRef<HTMLButtonElement, GlassButtonProps>
       'relative inline-flex items-center justify-center font-sans font-medium transition-all duration-300 ease-[var(--easing-liquid)] rounded-md focus:outline-none focus:ring-2 focus:ring-accent-primary focus:ring-offset-2 focus:ring-offset-bg-surface overflow-hidden select-none disabled:opacity-50 disabled:pointer-events-none';
 
     const glassBase =
-      'before:absolute before:inset-0 before:z-0 before:rounded-md before:pointer-events-none before:bg-[var(--glass-shine)] before:border before:border-white/10 before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-300';
+      'before:absolute before:inset-0 before:z-0 before:rounded-md before:pointer-events-none before:bg-[var(--glass-shine)] before:border before:border-[var(--glass-border)] before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-300';
 
     const variants = {
       primary:

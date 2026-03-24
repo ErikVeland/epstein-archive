@@ -139,7 +139,7 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Find in page..."
-                className="pl-9 pr-3 py-1.5 bg-slate-950/50 border border-[var(--glass-border)] rounded-md text-xs text-[var(--text-primary)] placeholder-slate-500 focus:outline-none focus:border-[var(--accent)]/50 w-40"
+                className="pl-9 pr-3 py-1.5 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-md text-xs text-[var(--text-primary)] placeholder-slate-500 focus:outline-none focus:border-[var(--accent)]/50 w-40"
               />
             </div>
           </div>
@@ -204,7 +204,7 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
             <img
               src={currentUrl}
               alt={docMeta?.fileName || `Document ${documentId}`}
-              className="max-w-full max-h-[calc(100vh-380px)] object-contain rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)] ring-1 ring-white/10"
+              className="max-w-full max-h-[calc(100vh-380px)] object-contain rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)] ring-1 ring-[var(--glass-border)]"
             />
           </div>
         ) : assetType !== 'pdf' ? (
@@ -243,7 +243,7 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
                 loading={
                   <div className="h-[800px] w-full bg-[var(--glass-bg)]/20 animate-pulse rounded-[var(--radius-lg)]" />
                 }
-                className="shadow-[var(--glass-shadow)] ring-1 ring-white/10"
+                className="shadow-[var(--glass-shadow)] ring-1 ring-[var(--glass-border)]"
                 renderTextLayer={true}
                 renderAnnotationLayer={true}
               />

@@ -79,7 +79,7 @@ export function TableViewer({ evidence }: TableViewerProps) {
 
         <button
           onClick={downloadCSV}
-          className="flex items-center px-4 py-2 text-sm font-medium text-[var(--text-primary)] bg-white border border-[var(--glass-border)] rounded-[var(--radius-lg)] hover:bg-[var(--app-bg)]"
+          className="flex items-center px-4 py-2 text-sm font-medium text-[var(--text-primary)] bg-[var(--text-primary)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] hover:bg-[var(--app-bg)]"
         >
           <Download className="h-4 w-4 mr-2" />
           Download CSV

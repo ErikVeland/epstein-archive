@@ -104,7 +104,7 @@ export function ContactListViewer({ evidence }: ContactListViewerProps) {
         {filteredContacts.map((contact, index) => (
           <div
             key={index}
-            className="p-4 bg-white border border-[var(--glass-border)] rounded-[var(--radius-lg)] hover:border-[var(--accent)] hover:shadow-sm transition"
+            className="p-4 bg-[var(--text-primary)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] hover:border-[var(--accent)] hover:shadow-sm transition"
           >
             <div className="flex items-start">
               <User className="h-5 w-5 text-[var(--text-muted)] mr-3 mt-0.5 flex-shrink-0" />

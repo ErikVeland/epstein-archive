@@ -897,7 +897,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
           )}
 
           <div
-            className="flex-1 min-h-[360px] overflow-hidden relative bg-slate-950"
+            className="flex-1 min-h-[360px] overflow-hidden relative bg-[var(--glass-bg)]"
             onClick={handleGridClick}
           >
             {!loading && images.length === 0 ? (

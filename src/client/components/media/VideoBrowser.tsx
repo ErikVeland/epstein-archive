@@ -124,7 +124,7 @@ const VideoCell = React.memo(({ columnIndex, rowIndex, style, data }: GridChildC
         onClick={() => onVideoClick(video, index)}
         tabIndex={isBatchMode ? 0 : -1}
       >
-        <div className="aspect-video relative overflow-hidden bg-black">
+        <div className="aspect-video relative overflow-hidden bg-[var(--glass-bg-strong)]">
           <SensitiveContent isSensitive={video.isSensitive} className="w-full h-full">
             <img
               key={video.id}
@@ -140,9 +140,9 @@ const VideoCell = React.memo(({ columnIndex, rowIndex, style, data }: GridChildC
                 img.classList.remove('group-hover:scale-110');
               }}
             />
-            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="absolute inset-0 bg-[var(--glass-bg-strong)] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
               <div className="w-12 h-12 bg-[var(--accent)] rounded-full flex items-center justify-center shadow-[var(--glass-shadow)] transform scale-90 group-hover:scale-100 transition-transform">
-                <Play className="text-[var(--text-primary)] fill-white h-6 w-6 ml-1" />
+                <Play className="text-[var(--text-primary)] fill-[var(--text-primary)] h-6 w-6 ml-1" />
               </div>
             </div>
           </SensitiveContent>
@@ -152,7 +152,7 @@ const VideoCell = React.memo(({ columnIndex, rowIndex, style, data }: GridChildC
               className={`absolute top-2 left-2 z-10 w-6 h-6 rounded-md border flex items-center justify-center transition-colors ${
                 isSelected
                   ? 'bg-[var(--accent)] border-[var(--accent)]'
-                  : 'bg-black/50 border-[var(--glass-border)]'
+                  : 'bg-[var(--glass-bg-strong)] border-[var(--glass-border)]'
               }`}
             >
               {isSelected && <CheckSquare className="h-4 w-4 text-[var(--text-primary)]" />}
@@ -160,7 +160,7 @@ const VideoCell = React.memo(({ columnIndex, rowIndex, style, data }: GridChildC
           )}
 
           {video.metadata?.duration && (
-            <div className="absolute bottom-2 right-2 bg-black/80 px-1.5 py-0.5 rounded text-[10px] text-[var(--text-primary)] font-medium flex items-center gap-1">
+            <div className="absolute bottom-2 right-2 bg-[var(--glass-bg-strong)] px-1.5 py-0.5 rounded text-[10px] text-[var(--text-primary)] font-medium flex items-center gap-1">
               <Clock className="h-3 w-3" />
               {Math.floor(video.metadata.duration / 60)}:
               {
@@ -493,7 +493,7 @@ export const VideoBrowser: React.FC = () => {
             </AutoSizer>
 
             {loading && items.length === 0 && (
-              <div className="absolute inset-0 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm z-10">
+              <div className="absolute inset-0 flex items-center justify-center bg-[var(--glass-bg)] backdrop-blur-sm z-10">
                 <div className="flex flex-col items-center gap-3">
                   <div className="w-10 h-10 border-4 border-[var(--accent)] border-t-transparent rounded-full animate-spin"></div>
                   <p className="text-[var(--text-muted)] font-medium font-mono text-xs uppercase tracking-widest animate-pulse">
@@ -531,7 +531,7 @@ export const VideoBrowser: React.FC = () => {
       {/* Video Player Modal */}
       {selectedItem &&
         createPortal(
-          <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 md:p-8">
+          <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-[var(--glass-bg-strong)] backdrop-blur-sm p-4 md:p-8">
             <div className="w-full max-w-6xl h-[90vh] max-h-[90vh]">
               <VideoPlayer
                 src={`/api/media/video/${selectedItem.id}/stream`}

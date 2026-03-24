@@ -933,7 +933,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            className="absolute inset-0 bg-[var(--glass-bg-strong)] backdrop-blur-sm"
             onClick={onClose}
           />
 
@@ -948,7 +948,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
               <div className="relative shrink-0">
                 <div className="w-24 h-24 md:w-32 md:h-32 rounded-full bg-[var(--bg-dark)] ring-1 ring-[var(--glass-border)] overflow-hidden shadow-[var(--glass-shadow-soft)] relative">
                   {loading ? (
-                    <div className="w-full h-full animate-pulse bg-white/5" />
+                    <div className="w-full h-full animate-pulse bg-[var(--glass-highlight)]" />
                   ) : headerPhotoUrl && !brokenMediaIds[headerPhotoId] ? (
                     <img
                       src={headerPhotoUrl}
@@ -980,12 +980,12 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
               <div className="flex-1 min-w-0">
                 {loading ? (
                   <div className="space-y-4">
-                    <div className="h-10 w-64 bg-white/5 rounded-md animate-pulse" />
-                    <div className="h-6 w-48 bg-white/5 rounded-md animate-pulse" />
+                    <div className="h-10 w-64 bg-[var(--glass-highlight)] rounded-md animate-pulse" />
+                    <div className="h-6 w-48 bg-[var(--glass-highlight)] rounded-md animate-pulse" />
                     <div className="flex gap-4 pt-2">
-                      <div className="h-4 w-24 bg-white/5 rounded-md animate-pulse" />
-                      <div className="h-4 w-24 bg-white/5 rounded-md animate-pulse" />
-                      <div className="h-4 w-24 bg-white/5 rounded-md animate-pulse" />
+                      <div className="h-4 w-24 bg-[var(--glass-highlight)] rounded-md animate-pulse" />
+                      <div className="h-4 w-24 bg-[var(--glass-highlight)] rounded-md animate-pulse" />
+                      <div className="h-4 w-24 bg-[var(--glass-highlight)] rounded-md animate-pulse" />
                     </div>
                   </div>
                 ) : (
@@ -1400,10 +1400,10 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                             key={i}
                             className="h-28 surface-glass-card rounded-[var(--radius-lg)] p-5 flex gap-5 items-center animate-pulse"
                           >
-                            <div className="w-14 h-14 rounded bg-white/5" />
+                            <div className="w-14 h-14 rounded bg-[var(--glass-highlight)]" />
                             <div className="flex-1 space-y-3">
-                              <div className="h-5 w-3/4 bg-white/5 rounded" />
-                              <div className="h-4 w-1/2 bg-white/5 rounded" />
+                              <div className="h-5 w-3/4 bg-[var(--glass-highlight)] rounded" />
+                              <div className="h-4 w-1/2 bg-[var(--glass-highlight)] rounded" />
                             </div>
                           </div>
                         ))}
@@ -1501,7 +1501,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                                           if (!doc) {
                                             return (
                                               <div style={style} className="p-4">
-                                                <div className="h-full bg-slate-950/20 soft-glass-outline rounded-[var(--radius-lg)] animate-pulse" />
+                                                <div className="h-full bg-[var(--glass-bg)] soft-glass-outline rounded-[var(--radius-lg)] animate-pulse" />
                                               </div>
                                             );
                                           }
@@ -1711,11 +1711,11 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                       <div className="space-y-5">
                         {Array.from({ length: 3 }).map((_, i) => (
                           <div key={i} className="surface-glass-card p-6 space-y-4 animate-pulse">
-                            <div className="h-6 w-1/3 bg-white/5 rounded" />
-                            <div className="h-4 w-2/3 bg-white/5 rounded" />
+                            <div className="h-6 w-1/3 bg-[var(--glass-highlight)] rounded" />
+                            <div className="h-4 w-2/3 bg-[var(--glass-highlight)] rounded" />
                             <div className="flex gap-4">
-                              <div className="h-6 w-24 bg-white/5 rounded-full" />
-                              <div className="h-6 w-24 bg-white/5 rounded-full" />
+                              <div className="h-6 w-24 bg-[var(--glass-highlight)] rounded-full" />
+                              <div className="h-6 w-24 bg-[var(--glass-highlight)] rounded-full" />
                             </div>
                           </div>
                         ))}
