@@ -1,5 +1,18 @@
 # Release Notes
 
+## v17.2.3 - 2026-03-24 - Entity Metrics & Face Crops
+
+This patch resolves bugs with entity profile metrics showing zero counts, and migrates the entity avatars to use targeted face crop images.
+
+### Bug Fixes
+
+- **Verified Media Metric**: Updated backend `getEntityById` route to correctly fetch and append `photos` to the payload, ensuring accurate validation counts in the Evidence Modal.
+- **Relationship Signals**: Removed an invalid UI threshold which inadvertently filtered out all relationships due to an underlying database scale misinterpretation (0.0 to 1.0 proximity scores).
+
+### Features
+
+- **Face Crop Avatars**: Entity images now prioritize crops of their faces across the frontend application. If a crop is unavailable, it gracefully falls back to the full context photo thumbnail.
+
 ## v17.2.2 - 2026-03-24 - Entity Modal Height Fix
 
 This patch resolves an issue where the Evidence and Investigations tabs inside the Entity Profile modal were completely blank due to a collapsed container height layout bug.

@@ -167,6 +167,8 @@ interface EntityDetails {
   blackBookEntries?: BlackBookEntry[];
   birthDate?: string | null;
   deathDate?: string | null;
+  relationships?: any[];
+  faceCropUrl?: string;
 }
 
 interface EntityEvidenceFallbackResponse {
@@ -888,7 +890,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
     if (!entity || !forensicData) return '';
     const docsCount = totalDocs > 0 ? totalDocs : documents.length || entity.mentions;
     const mediaCount = entity.photos?.length || 0;
-    const relationCount = relationships.length;
+    const relationCount = entity.relationships ? entity.relationships.length : relationships.length;
     const riskDescriptor =
       (entity.redFlagRating || 0) >= 4
         ? 'high direct exposure'
@@ -921,9 +923,10 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
 
   if (!isOpen) return null;
 
+  // Derive top photo for header
   const headerPhoto = entity?.photos?.[0];
   const headerPhotoId = headerPhoto?.id ? String(headerPhoto.id) : 'header-photo';
-  const headerPhotoUrl = resolveEntityPhotoUrl(headerPhoto, true);
+  const headerPhotoUrl = entity?.faceCropUrl || resolveEntityPhotoUrl(headerPhoto, true);
 
   return createPortal(
     <Profiler id="EvidenceModal" onRender={onRenderCallback}>

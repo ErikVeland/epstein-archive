@@ -20,7 +20,16 @@ SELECT
     AND (d.file_type ILIKE 'image/%' OR d.file_type IS NULL)
     ORDER BY d.red_flag_rating DESC, d.id DESC
     LIMIT 1
-  ) as "topPhotoId"
+  ) as "topPhotoId",
+  (
+    SELECT f.crop_path
+    FROM face_clusters fc
+    JOIN faces f ON fc.id = f.cluster_id
+    WHERE fc.entity_id = e.id
+    AND f.crop_path IS NOT NULL
+    ORDER BY f.detection_confidence DESC
+    LIMIT 1
+  ) as "faceCropPath"
 FROM entities e
 WHERE (:searchTerm::text IS NULL OR e.full_name ILIKE :searchTerm OR e.primary_role ILIKE :searchTerm OR e.aliases ILIKE :searchTerm)
   AND (e.risk_level = ANY(:riskLevels) OR :riskLevels IS NULL)
@@ -42,7 +51,18 @@ WHERE (:searchTerm::text IS NULL OR e.full_name ILIKE :searchTerm OR e.primary_r
   AND (e.risk_level = ANY(:riskLevels) OR :riskLevels IS NULL);
 
 /* @name getEntityById */
-SELECT * FROM entities WHERE id = :id!;
+SELECT 
+  e.*,
+  (
+    SELECT f.crop_path
+    FROM face_clusters fc
+    JOIN faces f ON fc.id = f.cluster_id
+    WHERE fc.entity_id = e.id
+    AND f.crop_path IS NOT NULL
+    ORDER BY f.detection_confidence DESC
+    LIMIT 1
+  ) as "faceCropPath"
+FROM entities e WHERE e.id = :id!;
 /* @name getVipEntities */
 SELECT full_name, aliases, COALESCE(mentions, 0) as mentions
 FROM entities

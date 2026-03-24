@@ -547,13 +547,16 @@ export interface IGetInvestigationEvidenceSummaryParams {
 /** 'GetInvestigationEvidenceSummary' return type */
 export interface IGetInvestigationEvidenceSummaryResult {
   addedAt: Date | null;
+  cleanedPath: string | null;
   createdAt: Date | null;
   description: string | null;
   evidenceType: string | null;
   id: string;
   notes: string | null;
+  originalFilePath: string | null;
   redFlagRating: number | null;
   relevance: string | null;
+  source: string | null;
   title: string;
 }
 
@@ -570,11 +573,11 @@ const getInvestigationEvidenceSummaryIR: any = {
       name: 'investigationId',
       required: true,
       transform: { type: 'scalar' },
-      locs: [{ a: 313, b: 329 }],
+      locs: [{ a: 423, b: 439 }],
     },
   ],
   statement:
-    'SELECT \n  e.id,\n  e.evidence_type as "evidenceType",\n  e.title,\n  e.description,\n  e.red_flag_rating as "redFlagRating",\n  e.created_at as "createdAt",\n  ie.notes,\n  ie.relevance,\n  ie.added_at as "addedAt"\nFROM investigation_evidence ie\nINNER JOIN evidence e ON e.id = ie.evidence_id\nWHERE ie.investigation_id = :investigationId!\nORDER BY ie.added_at DESC',
+    'SELECT \n  e.id,\n  e.evidence_type as "evidenceType",\n  e.title,\n  e.description,\n  e.red_flag_rating as "redFlagRating",\n  e.created_at as "createdAt",\n  e.source_path as "source",\n  e.cleaned_path as "cleanedPath",\n  e.original_file_path as "originalFilePath",\n  ie.notes,\n  ie.relevance,\n  ie.added_at as "addedAt"\nFROM investigation_evidence ie\nINNER JOIN evidence e ON e.id = ie.evidence_id\nWHERE ie.investigation_id = :investigationId!\nORDER BY ie.added_at DESC',
 };
 
 /**
@@ -587,6 +590,9 @@ const getInvestigationEvidenceSummaryIR: any = {
  *   e.description,
  *   e.red_flag_rating as "redFlagRating",
  *   e.created_at as "createdAt",
+ *   e.source_path as "source",
+ *   e.cleaned_path as "cleanedPath",
+ *   e.original_file_path as "originalFilePath",
  *   ie.notes,
  *   ie.relevance,
  *   ie.added_at as "addedAt"
@@ -911,6 +917,7 @@ export interface IGetEvidenceByIdDetailedParams {
 
 /** 'GetEvidenceByIdDetailed' return type */
 export interface IGetEvidenceByIdDetailedResult {
+  cleanedPath: string | null;
   createdAt: Date | null;
   description: string | null;
   evidenceTags: string | null;
@@ -921,6 +928,7 @@ export interface IGetEvidenceByIdDetailedResult {
   metadataJson: Json | null;
   modifiedAt: Date | null;
   originalFilename: string | null;
+  originalFilePath: string | null;
   redFlagRating: number | null;
   sourcePath: string | null;
   title: string;
@@ -936,10 +944,10 @@ export interface IGetEvidenceByIdDetailedQuery {
 const getEvidenceByIdDetailedIR: any = {
   usedParamSet: { id: true },
   params: [
-    { name: 'id', required: true, transform: { type: 'scalar' }, locs: [{ a: 464, b: 467 }] },
+    { name: 'id', required: true, transform: { type: 'scalar' }, locs: [{ a: 545, b: 548 }] },
   ],
   statement:
-    'SELECT \n  e.id,\n  e.evidence_type as "evidenceType",\n  e.title,\n  e.description,\n  e.original_filename as "originalFilename",\n  e.source_path as "sourcePath",\n  e.extracted_text as "extractedText",\n  e.created_at as "createdAt",\n  e.modified_at as "modifiedAt",\n  e.red_flag_rating as "redFlagRating",\n  e.evidence_tags as "evidenceTags",\n  e.metadata_json as "metadataJson",\n  e.word_count as "wordCount",\n  e.file_size as "fileSize"\nFROM evidence e\nWHERE e.id = :id!',
+    'SELECT \n  e.id,\n  e.evidence_type as "evidenceType",\n  e.title,\n  e.description,\n  e.original_filename as "originalFilename",\n  e.source_path as "sourcePath",\n  e.cleaned_path as "cleanedPath",\n  e.original_file_path as "originalFilePath",\n  e.extracted_text as "extractedText",\n  e.created_at as "createdAt",\n  e.modified_at as "modifiedAt",\n  e.red_flag_rating as "redFlagRating",\n  e.evidence_tags as "evidenceTags",\n  e.metadata_json as "metadataJson",\n  e.word_count as "wordCount",\n  e.file_size as "fileSize"\nFROM evidence e\nWHERE e.id = :id!',
 };
 
 /**
@@ -952,6 +960,8 @@ const getEvidenceByIdDetailedIR: any = {
  *   e.description,
  *   e.original_filename as "originalFilename",
  *   e.source_path as "sourcePath",
+ *   e.cleaned_path as "cleanedPath",
+ *   e.original_file_path as "originalFilePath",
  *   e.extracted_text as "extractedText",
  *   e.created_at as "createdAt",
  *   e.modified_at as "modifiedAt",

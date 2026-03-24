@@ -24,6 +24,7 @@ export interface IGetSubjectCardsResult {
   bio: string | null;
   blackBookCount: string | null;
   connections: string | null;
+  faceCropPath: string | null;
   fullName: string;
   id: string;
   mediaCount: string | null;
@@ -58,10 +59,10 @@ const getSubjectCardsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 819, b: 829 },
-        { a: 866, b: 876 },
-        { a: 902, b: 912 },
-        { a: 933, b: 943 },
+        { a: 1051, b: 1061 },
+        { a: 1098, b: 1108 },
+        { a: 1134, b: 1144 },
+        { a: 1165, b: 1175 },
       ],
     },
     {
@@ -69,8 +70,8 @@ const getSubjectCardsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 972, b: 982 },
-        { a: 988, b: 998 },
+        { a: 1204, b: 1214 },
+        { a: 1220, b: 1230 },
       ],
     },
     {
@@ -78,8 +79,8 @@ const getSubjectCardsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 1037, b: 1047 },
-        { a: 1052, b: 1062 },
+        { a: 1269, b: 1279 },
+        { a: 1284, b: 1294 },
       ],
     },
     {
@@ -87,8 +88,8 @@ const getSubjectCardsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 1101, b: 1111 },
-        { a: 1116, b: 1126 },
+        { a: 1333, b: 1343 },
+        { a: 1348, b: 1358 },
       ],
     },
     {
@@ -96,8 +97,8 @@ const getSubjectCardsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 1161, b: 1165 },
-        { a: 1170, b: 1174 },
+        { a: 1393, b: 1397 },
+        { a: 1402, b: 1406 },
       ],
     },
     {
@@ -105,15 +106,15 @@ const getSubjectCardsIR: any = {
       required: false,
       transform: { type: 'scalar' },
       locs: [
-        { a: 1237, b: 1243 },
-        { a: 1292, b: 1298 },
+        { a: 1469, b: 1475 },
+        { a: 1524, b: 1530 },
       ],
     },
-    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 1381, b: 1387 }] },
-    { name: 'offset', required: true, transform: { type: 'scalar' }, locs: [{ a: 1396, b: 1403 }] },
+    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 1613, b: 1619 }] },
+    { name: 'offset', required: true, transform: { type: 'scalar' }, locs: [{ a: 1628, b: 1635 }] },
   ],
   statement:
-    'SELECT \n  e.id,\n  e.full_name as "fullName",\n  e.primary_role as "primaryRole",\n  e.bio,\n  e.mentions,\n  e.risk_level as "riskLevel",\n  e.red_flag_rating as "redFlagRating",\n  e.connections_summary as "connections",\n  e.was_agentic as "wasAgentic",\n  (SELECT COUNT(*) FROM entity_mentions em JOIN documents d ON d.id = em.document_id WHERE em.entity_id = e.id AND d.evidence_type = \'media\') as "mediaCount",\n  (SELECT COUNT(*) FROM black_book_entries WHERE person_id = e.id) as "blackBookCount",\n  (\n    SELECT d.id\n    FROM entity_mentions em \n    JOIN documents d ON d.id = em.document_id \n    WHERE em.entity_id = e.id\n    AND d.evidence_type = \'media\'\n    AND (d.file_type ILIKE \'image/%\' OR d.file_type IS NULL)\n    ORDER BY d.red_flag_rating DESC, d.id DESC\n    LIMIT 1\n  ) as "topPhotoId"\nFROM entities e\nWHERE (:searchTerm::text IS NULL OR e.full_name ILIKE :searchTerm OR e.primary_role ILIKE :searchTerm OR e.aliases ILIKE :searchTerm)\n  AND (e.risk_level = ANY(:riskLevels) OR :riskLevels IS NULL)\n  AND (e.red_flag_rating >= :minRedFlag OR :minRedFlag IS NULL)\n  AND (e.red_flag_rating <= :maxRedFlag OR :maxRedFlag IS NULL)\n  AND (e.primary_role = :role OR :role IS NULL)\nORDER BY \n  COALESCE(e.is_vip, 0) DESC,\n  CASE WHEN :sortBy = \'name\' THEN e.full_name END ASC,\n  CASE WHEN :sortBy = \'recent\' THEN e.id END DESC,\n  e.red_flag_rating DESC,\n  e.mentions DESC\nLIMIT :limit! OFFSET :offset!',
+    'SELECT \n  e.id,\n  e.full_name as "fullName",\n  e.primary_role as "primaryRole",\n  e.bio,\n  e.mentions,\n  e.risk_level as "riskLevel",\n  e.red_flag_rating as "redFlagRating",\n  e.connections_summary as "connections",\n  e.was_agentic as "wasAgentic",\n  (SELECT COUNT(*) FROM entity_mentions em JOIN documents d ON d.id = em.document_id WHERE em.entity_id = e.id AND d.evidence_type = \'media\') as "mediaCount",\n  (SELECT COUNT(*) FROM black_book_entries WHERE person_id = e.id) as "blackBookCount",\n  (\n    SELECT d.id\n    FROM entity_mentions em \n    JOIN documents d ON d.id = em.document_id \n    WHERE em.entity_id = e.id\n    AND d.evidence_type = \'media\'\n    AND (d.file_type ILIKE \'image/%\' OR d.file_type IS NULL)\n    ORDER BY d.red_flag_rating DESC, d.id DESC\n    LIMIT 1\n  ) as "topPhotoId",\n  (\n    SELECT f.crop_path\n    FROM face_clusters fc\n    JOIN faces f ON fc.id = f.cluster_id\n    WHERE fc.entity_id = e.id\n    AND f.crop_path IS NOT NULL\n    ORDER BY f.detection_confidence DESC\n    LIMIT 1\n  ) as "faceCropPath"\nFROM entities e\nWHERE (:searchTerm::text IS NULL OR e.full_name ILIKE :searchTerm OR e.primary_role ILIKE :searchTerm OR e.aliases ILIKE :searchTerm)\n  AND (e.risk_level = ANY(:riskLevels) OR :riskLevels IS NULL)\n  AND (e.red_flag_rating >= :minRedFlag OR :minRedFlag IS NULL)\n  AND (e.red_flag_rating <= :maxRedFlag OR :maxRedFlag IS NULL)\n  AND (e.primary_role = :role OR :role IS NULL)\nORDER BY \n  COALESCE(e.is_vip, 0) DESC,\n  CASE WHEN :sortBy = \'name\' THEN e.full_name END ASC,\n  CASE WHEN :sortBy = \'recent\' THEN e.id END DESC,\n  e.red_flag_rating DESC,\n  e.mentions DESC\nLIMIT :limit! OFFSET :offset!',
 };
 
 /**
@@ -140,7 +141,16 @@ const getSubjectCardsIR: any = {
  *     AND (d.file_type ILIKE 'image/%' OR d.file_type IS NULL)
  *     ORDER BY d.red_flag_rating DESC, d.id DESC
  *     LIMIT 1
- *   ) as "topPhotoId"
+ *   ) as "topPhotoId",
+ *   (
+ *     SELECT f.crop_path
+ *     FROM face_clusters fc
+ *     JOIN faces f ON fc.id = f.cluster_id
+ *     WHERE fc.entity_id = e.id
+ *     AND f.crop_path IS NOT NULL
+ *     ORDER BY f.detection_confidence DESC
+ *     LIMIT 1
+ *   ) as "faceCropPath"
  * FROM entities e
  * WHERE (:searchTerm::text IS NULL OR e.full_name ILIKE :searchTerm OR e.primary_role ILIKE :searchTerm OR e.aliases ILIKE :searchTerm)
  *   AND (e.risk_level = ANY(:riskLevels) OR :riskLevels IS NULL)
@@ -238,6 +248,7 @@ export interface IGetEntityByIdResult {
   entity_metadata_json: Json | null;
   entity_type: string | null;
   evidence_count: number | null;
+  faceCropPath: string | null;
   fts_vector: string | null;
   full_name: string;
   id: string;
@@ -256,6 +267,7 @@ export interface IGetEntityByIdResult {
   quarantine_status: number | null;
   red_flag_description: string | null;
   red_flag_rating: number | null;
+  red_flag_score: number | null;
   risk_level: string | null;
   title: string | null;
   type: string | null;
@@ -271,14 +283,28 @@ export interface IGetEntityByIdQuery {
 
 const getEntityByIdIR: any = {
   usedParamSet: { id: true },
-  params: [{ name: 'id', required: true, transform: { type: 'scalar' }, locs: [{ a: 34, b: 37 }] }],
-  statement: 'SELECT * FROM entities WHERE id = :id!',
+  params: [
+    { name: 'id', required: true, transform: { type: 'scalar' }, locs: [{ a: 275, b: 278 }] },
+  ],
+  statement:
+    'SELECT \n  e.*,\n  (\n    SELECT f.crop_path\n    FROM face_clusters fc\n    JOIN faces f ON fc.id = f.cluster_id\n    WHERE fc.entity_id = e.id\n    AND f.crop_path IS NOT NULL\n    ORDER BY f.detection_confidence DESC\n    LIMIT 1\n  ) as "faceCropPath"\nFROM entities e WHERE e.id = :id!',
 };
 
 /**
  * Query generated from SQL:
  * ```
- * SELECT * FROM entities WHERE id = :id!
+ * SELECT
+ *   e.*,
+ *   (
+ *     SELECT f.crop_path
+ *     FROM face_clusters fc
+ *     JOIN faces f ON fc.id = f.cluster_id
+ *     WHERE fc.entity_id = e.id
+ *     AND f.crop_path IS NOT NULL
+ *     ORDER BY f.detection_confidence DESC
+ *     LIMIT 1
+ *   ) as "faceCropPath"
+ * FROM entities e WHERE e.id = :id!
  * ```
  */
 export const getEntityById = new PreparedQuery<IGetEntityByIdParams, IGetEntityByIdResult>(

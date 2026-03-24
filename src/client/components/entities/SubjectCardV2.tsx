@@ -21,7 +21,8 @@ interface SubjectCardV2Props {
 const SubjectCardV2: React.FC<SubjectCardV2Props> = React.memo(({ subject, style, onClick }) => {
   const navigate = useNavigate();
   const topPhotoId = subject.topPhotoId;
-  const avatarUrl = topPhotoId ? `/api/media/images/${topPhotoId}/thumbnail` : null;
+  const avatarUrl =
+    subject.faceCropUrl || (topPhotoId ? `/api/media/images/${topPhotoId}/thumbnail` : null);
 
   // Safety fallbacks
   const stats = subject.stats || {

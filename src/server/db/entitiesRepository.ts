@@ -355,6 +355,7 @@ async function getSubjectCardsFallback(
     mediaCount?: number;
     blackBookCount?: number;
     topPhotoId?: number | string;
+    faceCropPath?: string;
   }
   const [rows, countRows, maxConnResult, vipDisplayLookup] = await Promise.all([
     runQuery<
@@ -439,6 +440,7 @@ async function getSubjectCardsFallback(
       },
       topPreview: undefined,
       ...(row.topPhotoId ? { topPhotoId: String(row.topPhotoId) } : {}),
+      ...(row.faceCropPath ? { faceCropUrl: `/${row.faceCropPath}` } : {}),
     };
   });
 
@@ -738,12 +740,13 @@ export const entitiesRepository = {
           },
           topPreview: undefined,
           ...(e.topPhotoId ? { topPhotoId: String(e.topPhotoId) } : {}),
+          ...(e.faceCropPath ? { faceCropUrl: `/${e.faceCropPath}` } : {}),
         };
       });
 
       const mergedByNormalizedName = new Map<
         string,
-        SubjectCardListItemDto & { topPhotoId?: string }
+        SubjectCardListItemDto & { topPhotoId?: string; faceCropUrl?: string }
       >();
       for (const subject of subjects) {
         const norm = normalizeSubjectDedupeKey(subject.name);
@@ -782,7 +785,7 @@ export const entitiesRepository = {
         const base = preferIncoming ? subject : existing;
         const other = preferIncoming ? existing : subject;
 
-        const merged: SubjectCardListItemDto & { topPhotoId?: string } = {
+        const merged: SubjectCardListItemDto & { topPhotoId?: string; faceCropUrl?: string } = {
           ...base,
           role:
             base.role && base.role !== 'Unknown'
@@ -833,6 +836,7 @@ export const entitiesRepository = {
             driverLabels: mergedDrivers,
           },
           topPhotoId: base.topPhotoId || other.topPhotoId,
+          faceCropUrl: base.faceCropUrl || other.faceCropUrl,
         };
 
         mergedByNormalizedName.set(norm, merged);
@@ -1012,6 +1016,18 @@ export const entitiesRepository = {
       getApiPool(),
     );
 
+    const photosRes = await getApiPool().query(
+      `
+      SELECT mi.id, mi.file_path, mi.thumbnail_path, mi.title
+      FROM media_item_people mip
+      JOIN media_items mi ON mi.id::text = mip.media_item_id::text
+      WHERE mip.entity_id = $1::bigint
+      AND (mi.file_type ILIKE 'image/%' OR mi.file_type IS NULL)
+      ORDER BY mi.red_flag_rating DESC NULLS LAST, mi.id DESC
+    `,
+      [entityId],
+    );
+
     return {
       ...entity,
       id: String(entity.id),
@@ -1043,6 +1059,17 @@ export const entitiesRepository = {
         targetRole: r.targetRole,
         type: r.relationship_type,
         confidence: Number(r.confidence || 0),
+      })),
+      photos: photosRes.rows.map((row) => ({
+        id: String(row.id),
+        url: row.file_path ? `/api/media/images/${row.id}/file` : undefined,
+        thumbnailUrl: row.thumbnail_path
+          ? `/api/media/images/${row.id}/thumbnail`
+          : row.file_path
+            ? `/api/media/images/${row.id}/file`
+            : undefined,
+        filePath: row.file_path ?? '',
+        title: row.title,
       })),
     };
   },
