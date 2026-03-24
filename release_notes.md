@@ -1,5 +1,22 @@
 # Release Notes
 
+## v17.2.1 - 2026-03-24 - Liquid Glass UI Refinements
+
+This patch addresses several UI layout consistency issues and systematically removes hardcoded colors to fully adhere to the Liquid Glass design aesthetic.
+
+### UI / UX
+
+- **Navigation Alignment:** Fixed top and bottom margins in the main navigation bar so buttons are perfectly flush with the background container.
+- **Loading Skeleton Consistency:** Corrected a nested grid layout bug in `DocumentSkeleton` to ensure loading squares perfectly align with actual document cards.
+- **Flight Logs Restoration:** Fixed a virtualization bug where the `AutoSizer` container collapsed to 0px, causing flight timelines to disappear.
+
+### Design System Hardening
+
+- **Global Border Softness:** Reduced the opacity of `--glass-border`, `--glass-border-highlight`, and `--border-subtle` in `index.css` to eliminate harsh wireframe aesthetics and achieve a softer glass presentation.
+- **Hardcoded Color Purge:** Swept the entire `.tsx` codebase and replaced 60+ instances of hardcoded Tailwind colors (`bg-white/10`, `border-white/5`, etc.) with their respective Liquid Glass CSS variables (`--glass-bg-highlight`, `--glass-border`, etc.).
+
+---
+
 ## v17.2.0 - 2026-03-23 - Flights, Properties, Evidence UI & Pipeline Hardening
 
 This release ships three new first-class UI slices, a full `any`-free TypeScript pass, a correctness fix for entity sort ordering, and significant pipeline and server resilience improvements.
