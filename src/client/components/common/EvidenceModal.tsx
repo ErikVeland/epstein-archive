@@ -1365,7 +1365,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
               {/* 2. EVIDENCE TAB */}
               {activeTab === 'evidence' && (
                 <div
-                  className="h-full flex flex-col min-h-0"
+                  className="absolute inset-0 flex flex-col bg-transparent"
                   data-testid="entity-modal-tab-evidence"
                 >
                   {/* FILTERS TOOLBAR */}
@@ -1693,7 +1693,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
 
               {/* 5. INVESTIGATIONS TAB */}
               {activeTab === 'investigations' && (
-                <div className="h-full flex flex-col min-h-0 bg-transparent">
+                <div className="absolute inset-0 flex flex-col bg-transparent">
                   <div className="p-6 border-b border-[color:color-mix(in_srgb,var(--glass-border)_60%,transparent)] flex items-center justify-between shrink-0">
                     <h3 className="text-sm font-semibold text-text-strong flex items-center gap-3 font-sans tracking-wide">
                       <Briefcase size={16} className="text-[var(--accent-investigate)]" />

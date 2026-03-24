@@ -1,5 +1,15 @@
 # Release Notes
 
+## v17.2.2 - 2026-03-24 - Entity Modal Height Fix
+
+This patch resolves an issue where the Evidence and Investigations tabs inside the Entity Profile modal were completely blank due to a collapsed container height layout bug.
+
+### Bug Fixes
+
+- **Modal Tab Visibility:** Fixed an issue where the `react-window` AutoSizer in the Entity Evidence tab collapsed to 0px height, causing no evidence documents to render. Both Evidence and Investigations tabs now strictly fill their parent layout bounds using `absolute inset-0`.
+
+---
+
 ## v17.2.1 - 2026-03-24 - Liquid Glass UI Refinements
 
 This patch addresses several UI layout consistency issues and systematically removes hardcoded colors to fully adhere to the Liquid Glass design aesthetic.
