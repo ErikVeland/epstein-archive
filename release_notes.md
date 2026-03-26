@@ -1,5 +1,14 @@
 # Release Notes
 
+## v17.2.6 - 2026-03-26 - Comprehensive 404 Elimination
+
+Full audit and elimination of all raw `data/...` file paths leaking into client-facing URLs.
+
+- **Entity media paths**: `getMediaItems` now converts `filePath`, `thumbnailPath`, `url`, and `thumbnailUrl` to `/files/...` format, closing the `onError` fallback 404 cascade in EvidenceModal
+- **Entity photos**: `getEntityById` `filePath` field converted to `/files/...`; photos query capped at 24 items to prevent browser overload
+- **Subject card avatars**: `topPhotoUrl` now passed through `mapSubjectCardDto` (was silently dropped)
+- **Audio thumbnails**: `AudioBrowser` and `AudioPlayer` replaced the non-existent `/api/static?path=` endpoint with proper `/files/...` path resolution
+
 ## v17.2.5 - 2026-03-24 - Hotfix 404 Proxies
 
 - **Media Endpoint Scrubbing**: Completely bypassed the `id` proxying mapping logic for the `topPhotoId` fallback avatar, utilizing native `d.file_path` endpoints to prevent 404s.
