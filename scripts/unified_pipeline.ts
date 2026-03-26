@@ -378,6 +378,7 @@ interface PipelineStats {
   ingestStats?: { filesProcessed: number; errors: number };
   intelStats?: { entitiesExtracted: number; relationsFound: number };
   enrichStats?: { documentsEnriched: number; summariesGenerated: number };
+  ocrCleanStats?: { docsProcessed: number };
 }
 
 /**
@@ -637,6 +638,120 @@ const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve,
 let shuttingDown = false;
 
 /**
+ * Phase 4: OCR CLEAN — fill in content_refined for completed docs that already
+ * have ai_summary but were enriched before OCR cleaning was part of the pipeline.
+ */
+async function runOcrCleanPhase(): Promise<{ docsProcessed: number }> {
+  console.log('\n' + '='.repeat(70));
+  console.log('🔧 PHASE 4: OCR CLEANING (content_refined backfill)');
+  console.log('='.repeat(70));
+
+  if ((process.env.AI_PROVIDER || 'local_ollama') === 'exo_cluster') {
+    await ensureServiceHealthyOrRecover(
+      'exo',
+      'Exo health check failed before OCR cleaning',
+      'Exo stayed unhealthy after automatic recovery. OCR clean phase aborted.',
+    );
+  }
+
+  const pool = getIngestPool();
+  const CONCURRENCY = 8;
+  const BATCH = 100;
+
+  const { rows: countRows } = await pool.query(`
+    SELECT COUNT(*) AS n FROM documents
+    WHERE content IS NOT NULL
+      AND length(content) >= 100
+      AND content_refined IS NULL
+  `);
+  const total = parseInt(countRows[0].n, 10);
+
+  updateHeartbeat({
+    phase: 'OcrClean',
+    ocrCleanProcessed: 0,
+    ocrCleanTotal: total,
+  });
+
+  if (total === 0) {
+    console.log('   ✅ No documents need OCR cleaning.');
+    return { docsProcessed: 0 };
+  }
+
+  console.log(`   📊 ${total.toLocaleString()} docs need OCR cleaning`);
+
+  let processed = 0;
+  let lastId = 0;
+
+  // Keep the watchdog satisfied during long LLM batches. callLLM can retry up to
+  // 3× at 120s each (≈373s total) which exceeds the 240s stall timeout before a
+  // batch ever completes. A periodic ping ensures we never go silent that long.
+  const heartbeatKeepalive = setInterval(() => {
+    updateHeartbeat({ phase: 'OcrClean', ocrCleanProcessed: processed, ocrCleanTotal: total });
+  }, 30_000);
+
+  try {
+    while (!shuttingDown) {
+      const { rows } = await pool.query(
+        `SELECT id, file_path, content FROM documents
+       WHERE content IS NOT NULL
+         AND length(content) >= 100
+         AND content_refined IS NULL
+         AND id > $1
+       ORDER BY id LIMIT $2`,
+        [lastId, BATCH],
+      );
+      if (rows.length === 0) break;
+
+      for (let i = 0; i < rows.length; i += CONCURRENCY) {
+        if (shuttingDown) break;
+        const chunk = rows.slice(i, i + CONCURRENCY);
+        await Promise.allSettled(
+          chunk.map(async (row: any) => {
+            try {
+              const cleaned = await AIEnrichmentService.cleanOCRText(row.content as string);
+              if (cleaned && cleaned !== row.content) {
+                await pool.query(
+                  `UPDATE documents SET content_refined = $1, last_processed_at = NOW() WHERE id = $2`,
+                  [cleaned, row.id],
+                );
+              } else {
+                // Mark as cleaned even if unchanged so we don't revisit it
+                await pool.query(
+                  `UPDATE documents SET content_refined = $1, last_processed_at = NOW() WHERE id = $2`,
+                  [row.content, row.id],
+                );
+              }
+            } catch {
+              /* non-fatal — will be retried next cycle */
+            }
+          }),
+        );
+        processed += chunk.length;
+        // Update heartbeat after every batch (not just every 50 docs) so the watchdog
+        // doesn't fire — LCM(batchSize=8, 50)=200 docs would be ~750s between updates,
+        // well past the 240s stall timeout.
+        updateHeartbeat({ phase: 'OcrClean', ocrCleanProcessed: processed, ocrCleanTotal: total });
+        if (processed % 50 === 0 || processed === total) {
+          const pct = ((processed / total) * 100).toFixed(1);
+          process.stdout.write(
+            `\r   🔧 Cleaned ${processed.toLocaleString()} / ${total.toLocaleString()} (${pct}%)`,
+          );
+        }
+      }
+
+      lastId = rows[rows.length - 1].id as number;
+    }
+  } finally {
+    clearInterval(heartbeatKeepalive);
+  }
+
+  process.stdout.write(
+    `\n   ✅ OCR cleaning complete — ${processed.toLocaleString()} docs processed.\n`,
+  );
+  return { docsProcessed: processed };
+}
+
+/**
  * Run one full pipeline cycle.
  */
 async function runCycle(mode: string, sourceDir: string): Promise<void> {
@@ -661,6 +776,8 @@ async function runCycle(mode: string, sourceDir: string): Promise<void> {
     updateHeartbeat({ phase: 'Enrichment' });
     stats.enrichStats = await runEnrichPhase('all');
   }
+  updateHeartbeat({ phase: 'OcrClean' });
+  stats.ocrCleanStats = await runOcrCleanPhase();
   updateHeartbeat({ phase: 'Idle' });
 
   console.log('\n' + '='.repeat(70));
