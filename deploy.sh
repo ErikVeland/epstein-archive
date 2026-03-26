@@ -417,10 +417,14 @@ if [ "$DRY_RUN" = false ] && [ "$DB_ONLY" = false ]; then
   log_step "Building locally to verify integrity..."
   pnpm build:prod
 
-  log_step "Pushing code to origin..."
-  git push origin main --no-verify
+  if [[ "${CI:-}" != "true" && "${CI:-}" != "1" ]]; then
+    log_step "Pushing code to origin..."
+    git push origin main --no-verify
 
-  wait_for_ci_green
+    wait_for_ci_green
+  else
+    log_step "Running in CI — skipping git push and CI-wait (already triggered by push)."
+  fi
 fi
 
 if [ "$DRY_RUN" = false ]; then
