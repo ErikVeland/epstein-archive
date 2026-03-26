@@ -606,7 +606,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                 {albumImages.map((img, i) => (
                   <img
                     key={i}
-                    src={`/api/static?path=${encodeURIComponent(img)}`}
+                    src={img.startsWith('/') ? img : `/${img.replace(/^data\//, 'files/')}`}
                     alt="Album Art"
                     className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${i === currentImageIndex ? 'opacity-50' : 'opacity-0'}`}
                     data-fb="0"
@@ -615,12 +615,11 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                       const tried = t.getAttribute('data-fb') === '1';
                       if (!tried) {
                         t.setAttribute('data-fb', '1');
-                        const u = new URL(t.src, window.location.origin);
-                        const p = u.searchParams.get('path') || '';
-                        const next = p.endsWith('.jpg')
-                          ? p.replace('.jpg', '.webp')
-                          : p.replace('.webp', '.jpg');
-                        t.src = `/api/static?path=${encodeURIComponent(next)}`;
+                        const src = t.src;
+                        const next = src.endsWith('.jpg')
+                          ? src.replace('.jpg', '.webp')
+                          : src.replace('.webp', '.jpg');
+                        t.src = next;
                       } else {
                         t.src = 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
                       }

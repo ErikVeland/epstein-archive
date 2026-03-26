@@ -1052,6 +1052,7 @@ export const entitiesRepository = {
         AND (d.file_type ILIKE 'image/%' OR d.file_type IS NULL)
       ) combined
       ORDER BY red_flag_rating DESC NULLS LAST, id DESC
+      LIMIT 24
     `,
       [entityId],
     );
@@ -1096,7 +1097,7 @@ export const entitiesRepository = {
           : row.file_path
             ? `/${String(row.file_path).replace(/^data\//, 'files/')}`
             : undefined,
-        filePath: String(row.file_path ?? ''),
+        filePath: row.file_path ? `/${String(row.file_path).replace(/^data\//, 'files/')}` : '',
         title: String(row.title ?? ''),
       })),
     };

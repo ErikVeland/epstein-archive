@@ -125,6 +125,7 @@ export const mapSubjectCardDto = (subject: UnknownRecord): SubjectCardListItemDt
             }
           : undefined,
       ...(subject.topPhotoId ? { topPhotoId: String(subject.topPhotoId) } : {}),
+      ...(subject.topPhotoUrl ? { topPhotoUrl: String(subject.topPhotoUrl) } : {}),
       ...(subject.faceCropUrl ? { faceCropUrl: String(subject.faceCropUrl) } : {}),
     };
   })(),

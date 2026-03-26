@@ -37,18 +37,22 @@ export const mediaRepository = {
         logger.error({ err: e, mediaId: item.id }, 'Error parsing metadata for media item');
       }
 
+      const fileUrl = item.filePath
+        ? `/${String(item.filePath).replace(/^data\//, 'files/')}`
+        : undefined;
+      const thumbUrl = item.thumbnailPath
+        ? `/${String(item.thumbnailPath).replace(/^data\//, 'files/')}`
+        : fileUrl;
       return {
         ...item,
         id: Number(item.id),
         fileSize: 0,
         redFlagRating: Number(item.redFlagRating || 0),
         metadata,
-        url: item.filePath ? `/${String(item.filePath).replace(/^data\//, 'files/')}` : undefined,
-        thumbnailUrl: item.thumbnailPath
-          ? `/${String(item.thumbnailPath).replace(/^data\//, 'files/')}`
-          : item.filePath
-            ? `/${String(item.filePath).replace(/^data\//, 'files/')}`
-            : undefined,
+        filePath: fileUrl,
+        thumbnailPath: thumbUrl,
+        url: fileUrl,
+        thumbnailUrl: thumbUrl,
       };
     });
 
@@ -82,18 +86,19 @@ export const mediaRepository = {
         logger.error({ err: e, documentId: row.id }, 'Error parsing metadata for document media');
       }
 
+      const fileUrl = row.filePath
+        ? `/${String(row.filePath).replace(/^data\//, 'files/')}`
+        : undefined;
       return {
         id: Number(row.id),
-        filePath: row.filePath,
+        filePath: fileUrl,
         fileType: row.fileType,
         title: row.title,
         fileSize: 0,
         redFlagRating: Number(row.redFlagRating || 0),
         metadata,
-        url: row.filePath ? `/${String(row.filePath).replace(/^data\//, 'files/')}` : undefined,
-        thumbnailUrl: row.filePath
-          ? `/${String(row.filePath).replace(/^data\//, 'files/')}`
-          : undefined,
+        url: fileUrl,
+        thumbnailUrl: fileUrl,
       };
     });
 

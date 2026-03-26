@@ -317,7 +317,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                   ? item.metadata.thumbnailPath
                   : null;
               const displayImage = thumb
-                ? `/api/static?path=${encodeURIComponent(thumb)}`
+                ? `/${String(thumb).replace(/^data\//, 'files/')}`
                 : isSascha
                   ? `/data/media/audio/lvoocaudiop1/lvoocaudiop1.webp`
                   : null;
@@ -423,12 +423,11 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                             const tried = t.getAttribute('data-fb') === '1';
                             if (!tried) {
                               t.setAttribute('data-fb', '1');
-                              const u = new URL(t.src, window.location.origin);
-                              const p = u.searchParams.get('path') || '';
-                              const next = p.endsWith('.jpg')
-                                ? p.replace('.jpg', '.webp')
-                                : p.replace('.webp', '.jpg');
-                              t.src = `/api/static?path=${encodeURIComponent(next)}`;
+                              const src = t.src;
+                              const next = src.endsWith('.jpg')
+                                ? src.replace('.jpg', '.webp')
+                                : src.replace('.webp', '.jpg');
+                              t.src = next;
                             } else {
                               t.src = 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
                             }
