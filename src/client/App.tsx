@@ -35,6 +35,7 @@ import { useAuth } from './contexts/AuthContext';
 import { useFilters } from './contexts/useFilters';
 import { LoginPage } from './pages/LoginPage';
 import { SEO } from './components/common/SEO';
+import { Surface, cn } from '@design-system';
 const PeoplePage = lazy(() =>
   import('./pages/PeoplePage').then((m) => ({ default: m.PeoplePage })),
 );
@@ -1231,8 +1232,7 @@ function App() {
     tab: keyof typeof navThemeClassByTab,
     isActive: boolean,
     extraClass: string = '',
-  ) =>
-    `${navSegmentBaseClass} ${navThemeClassByTab[tab]} ${isActive ? 'main-nav-segment-active' : ''} ${extraClass}`.trim();
+  ) => cn('nav-segment', navThemeClassByTab[tab], isActive && 'is-active', extraClass);
   const navItemClass = 'flex h-full min-w-0 flex-1';
   const navLabelClass = navLayoutMode === 'icons' ? 'hidden' : 'inline';
   const navPillClass =
@@ -1390,11 +1390,11 @@ function App() {
                       {/* What's New */}
                       <button
                         onClick={() => setShowReleaseNotes(true)}
-                        className="group control flex items-center rounded-full h-11 pl-2.5 pr-2.5 hover:pr-4 transition-all duration-300"
+                        className="group control stack-x v-center rounded-full h-11 px-3 transition-all duration-300"
                         title="What's New"
                       >
                         <Icon name="Book" size="sm" color="info" />
-                        <span className="max-w-0 group-hover:max-w-xs overflow-hidden transition-all duration-300 opacity-0 group-hover:opacity-100 whitespace-nowrap text-sm text-[var(--text-primary)] ml-0 group-hover:ml-2">
+                        <span className="max-w-0 group-hover:max-w-xs clip transition-all duration-300 opacity-0 group-hover:opacity-100 whitespace-nowrap text-sm text-[var(--text-primary)] ml-0 group-hover:ml-2">
                           What's New
                         </span>
                       </button>
@@ -1403,7 +1403,7 @@ function App() {
                       {isAdmin && (
                         <button
                           onClick={() => navigate('/admin')}
-                          className="group control flex items-center rounded-full h-11 pl-2.5 pr-2.5 hover:pr-4 transition-all duration-300"
+                          className="group control stack-x v-center rounded-full h-11 px-3 transition-all duration-300"
                           title="Admin Dashboard"
                         >
                           <Icon name="Shield" size="sm" className="text-[var(--accent-info)]" />
