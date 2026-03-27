@@ -1208,25 +1208,18 @@ function App() {
     [location.pathname, location.search, navigate],
   );
 
-  const navSegmentBaseClass = `main-nav-segment flex h-full w-full min-w-0 items-center justify-center ${
-    navLayoutMode === 'icons'
-      ? 'gap-0 px-2'
-      : navLayoutMode === 'compact'
-        ? 'gap-1.5 px-2.5'
-        : 'gap-1.5 px-3 lg:px-4'
-  } rounded-none whitespace-nowrap border-0 bg-transparent`;
   const navThemeClassByTab: Record<string, string> = {
-    people: 'main-nav-segment-people',
-    documents: 'main-nav-segment-documents',
-    investigations: 'main-nav-segment-investigations',
-    timeline: 'main-nav-segment-timeline',
-    flights: 'main-nav-segment-flights',
-    properties: 'main-nav-segment-properties',
-    media: 'main-nav-segment-media',
-    emails: 'main-nav-segment-emails',
-    blackbook: 'main-nav-segment-blackbook',
-    analytics: 'main-nav-segment-analytics',
-    about: 'main-nav-segment-about',
+    people: 'nav-accent-people',
+    documents: 'nav-accent-documents',
+    investigations: 'nav-accent-investigations',
+    timeline: 'nav-accent-timeline',
+    flights: 'nav-accent-flights',
+    properties: 'nav-accent-properties',
+    media: 'nav-accent-media',
+    emails: 'nav-accent-emails',
+    blackbook: 'nav-accent-blackbook',
+    analytics: 'nav-accent-analytics',
+    about: 'nav-accent-about',
   };
   const getNavSegmentClass = (
     tab: keyof typeof navThemeClassByTab,
