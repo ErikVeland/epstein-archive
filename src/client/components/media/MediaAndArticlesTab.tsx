@@ -102,20 +102,49 @@ export const MediaAndArticlesTab: React.FC = () => {
         }
 
         if (albumId) {
-          const firstImageRes = await fetch(`/api/media/images?albumId=${albumId}&page=1&limit=1`);
-          if (firstImageRes.ok) {
-            const payload = await firstImageRes.json();
-            const firstImageId = payload?.data?.[0]?.id;
-            if (firstImageId) {
-              setShareMetadata({
-                title: `Epstein Media Album ${albumId}`,
-                description: 'Shared media album from the Epstein Files archive.',
-                image: `https://epstein.academy/api/media/images/${firstImageId}/file`,
-                imageAlt: `Album ${albumId} preview`,
-              });
-              return;
+          const isAudio = location.pathname === '/media/audio';
+          const isVideo = location.pathname === '/media/video';
+
+          // Fetch album name from the correct endpoint based on tab
+          const albumsEndpoint = isAudio
+            ? '/api/media/audio/albums'
+            : isVideo
+              ? '/api/media/video/albums'
+              : '/api/media/albums';
+
+          let albumName = `Album ${albumId}`;
+          let previewImageUrl: string | undefined;
+
+          const albumsRes = await fetch(albumsEndpoint);
+          if (albumsRes.ok) {
+            const albums: Array<{ id: number; name: string }> = await albumsRes.json();
+            const match = albums.find((a) => String(a.id) === albumId);
+            if (match?.name) albumName = match.name;
+          }
+
+          // For photo albums, fetch first image as preview
+          if (!isAudio && !isVideo) {
+            const firstImageRes = await fetch(
+              `/api/media/images?albumId=${albumId}&page=1&limit=1`,
+            );
+            if (firstImageRes.ok) {
+              const payload = await firstImageRes.json();
+              const firstImageId = payload?.data?.[0]?.id;
+              if (firstImageId) {
+                previewImageUrl = `https://epstein.academy/api/media/images/${firstImageId}/file`;
+              }
             }
           }
+
+          if (!cancelled) {
+            setShareMetadata({
+              title: albumName,
+              description: `Explore the "${albumName}" collection from the Epstein Files archive.`,
+              image: previewImageUrl || 'https://epstein.academy/epstein-files.jpg',
+              imageAlt: `${albumName} preview`,
+            });
+          }
+          return;
         }
 
         setDefault();

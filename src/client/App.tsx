@@ -1867,7 +1867,7 @@ function App() {
               />
 
               {/* Tab Content */}
-              <div id="main-content" className="flex-grow">
+              <div id="main-content" className="flex-grow min-h-0">
                 {/* Breadcrumb navigation */}
                 <div className="mb-4 px-4 md:px-0">
                   <Breadcrumb

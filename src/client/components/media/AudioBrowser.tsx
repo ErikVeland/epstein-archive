@@ -248,15 +248,18 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
     });
   }, []);
 
-  // Virtualization setup
+  // Virtualization setup — measure container dimensions via ResizeObserver
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
+  const [containerHeight, setContainerHeight] = useState(600);
 
-  // Measure container width for responsive grid calculation
   useEffect(() => {
     if (!containerRef.current) return;
     const observer = new ResizeObserver((entries) => {
-      setContainerWidth(entries[0].contentRect.width);
+      const { width, height } = entries[0].contentRect;
+      setContainerWidth(width);
+      // Cap at innerHeight to break any circular size dependency
+      if (height > 0) setContainerHeight(Math.min(height, window.innerHeight));
     });
     observer.observe(containerRef.current);
     return () => observer.disconnect();
@@ -265,17 +268,12 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
   // Calculate columns dynamically based on available width
   const columns = useMemo(() => {
     if (containerWidth === 0) return 1;
-    // Aim for a 3-column layout by default on typical desktop widths,
-    // similar to the video browser grid. Use a smaller min card width
-    // to keep cards reasonably compact while still accommodating
-    // multi-line transcript previews.
     const gap = 24; // gap-6
     const padding = 48; // px-6 * 2
     const minCardWidth = 260;
     const available = containerWidth - padding;
     const rawCols = Math.floor((available + gap) / (minCardWidth + gap));
-    const cols = Math.max(1, rawCols);
-    return cols;
+    return Math.max(1, rawCols);
   }, [containerWidth]);
 
   const rowCount = Math.ceil(items.length / columns);
@@ -782,7 +780,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
             ) : containerWidth > 0 ? (
               <div className="h-full flex flex-col">
                 <List
-                  height={containerRef.current?.clientHeight || 600}
+                  height={containerHeight}
                   itemCount={rowCount}
                   itemSize={440}
                   width="100%"
@@ -803,8 +801,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                   ))}
                   onScroll={({ scrollOffset, scrollUpdateWasRequested }) => {
                     if (scrollUpdateWasRequested) return;
-                    const containerHeight = containerRef.current?.clientHeight || 600;
-                    const totalHeight = rowCount * 520;
+                    const totalHeight = rowCount * 440;
                     if (
                       scrollOffset + containerHeight >= totalHeight - 200 &&
                       !loading &&

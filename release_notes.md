@@ -1,5 +1,12 @@
 # Release Notes
 
+## v17.2.8 - 2026-03-26 - Fix Media Browser Height & Album Share Previews
+
+- **AudioBrowser height**: Fixed `FixedSizeList` receiving a runaway height value by tracking container dimensions via `ResizeObserver` (with `window.innerHeight` cap) instead of reading `containerRef.current?.clientHeight` synchronously during render — eliminates the 263,766px list expansion
+- **AudioBrowser infinite scroll**: Fixed scroll threshold bug where `rowCount * 520` (wrong) was used instead of `rowCount * 440` (the actual `itemSize`), preventing `loadMore` from ever firing
+- **App layout**: Added `min-h-0` to `#main-content` flex item to properly constrain height propagation to child media browsers
+- **Album social share**: Album link previews now show the real album name (fetched from the appropriate albums API) instead of the raw ID; audio/video albums no longer incorrectly query the photo images API; preview image uses the album's first photo when available
+
 ## v17.2.7 - 2026-03-26 - Eliminate White Lines
 
 Removed all light/white UI artifacts across the dark-themed app.
