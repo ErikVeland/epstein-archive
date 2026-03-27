@@ -251,16 +251,16 @@ export const FinancialTransactionAnalysis: React.FC<FinancialTransactionAnalysis
 
       {/* Analysis Progress */}
       {isAnalyzing && (
-        <div className="px-6 py-4 bg-green-50 border-b border-green-200">
+        <div className="px-6 py-4 bg-green-900/20 border-b border-green-900/40">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-green-900">
+            <span className="text-sm font-medium text-green-300">
               Analyzing financial transaction patterns...
             </span>
-            <span className="text-sm text-green-700">{analysisProgress}%</span>
+            <span className="text-sm text-green-400">{analysisProgress}%</span>
           </div>
-          <div className="w-full bg-green-200 rounded-full h-2">
+          <div className="w-full bg-green-900/40 rounded-full h-2">
             <div
-              className="bg-green-600 h-2 rounded-full transition-all duration-300"
+              className="bg-green-500 h-2 rounded-full transition-all duration-300"
               style={{ width: `${analysisProgress}%` }}
             />
           </div>

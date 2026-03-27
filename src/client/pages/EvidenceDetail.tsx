@@ -134,8 +134,8 @@ export function EvidenceDetail() {
   };
 
   const getRedFlagColor = (rating: number): string => {
-    if (rating >= 4) return 'text-red-600 bg-red-50';
-    if (rating >= 2) return 'text-orange-600 bg-orange-50';
+    if (rating >= 4) return 'text-red-400 bg-red-900/20';
+    if (rating >= 2) return 'text-orange-400 bg-orange-900/20';
     return 'text-[var(--text-primary)] bg-[var(--glass-bg)]';
   };
 

@@ -87,9 +87,9 @@ export function TableViewer({ evidence }: TableViewerProps) {
       </div>
 
       {rows.length > 100 && (
-        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-[var(--radius-lg)] flex items-start">
+        <div className="mb-4 p-3 bg-blue-900/20 border border-blue-900/40 rounded-[var(--radius-lg)] flex items-start">
           <Info className="h-5 w-5 text-[var(--accent)] mr-2 flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-blue-800">
+          <p className="text-sm text-blue-300">
             Showing all {rows.length.toLocaleString()} rows using virtual scrolling for performance.
           </p>
         </div>

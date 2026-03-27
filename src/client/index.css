@@ -181,6 +181,9 @@
   --source-public-border: color-mix(in srgb, #6ee7b7 26%, transparent);
   --source-public-text: #d1fae5;
   --source-public-shadow: 0 1px 2px color-mix(in srgb, #064e3b 22%, transparent);
+
+  /* App-level background — used for content areas and page fills */
+  --app-bg: var(--bg-dark);
 }
 
 html,

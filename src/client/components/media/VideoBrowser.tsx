@@ -124,7 +124,7 @@ const VideoCell = React.memo(({ columnIndex, rowIndex, style, data }: GridChildC
         onClick={() => onVideoClick(video, index)}
         tabIndex={isBatchMode ? 0 : -1}
       >
-        <div className="aspect-video relative overflow-hidden bg-[var(--glass-bg-strong)]">
+        <div className="aspect-video relative overflow-hidden">
           <SensitiveContent isSensitive={video.isSensitive} className="w-full h-full">
             <img
               key={video.id}

@@ -544,14 +544,14 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
 
       {/* Analysis Progress */}
       {isAnalyzing && (
-        <div className="px-6 py-4 bg-red-50 border-b border-red-200">
+        <div className="px-6 py-4 bg-red-900/20 border-b border-red-900/40">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-red-900">{analysisMessage}</span>
-            <span className="text-sm text-red-700">{analysisProgress}%</span>
+            <span className="text-sm font-medium text-red-300">{analysisMessage}</span>
+            <span className="text-sm text-red-400">{analysisProgress}%</span>
           </div>
-          <div className="w-full bg-red-200 rounded-full h-2">
+          <div className="w-full bg-red-900/40 rounded-full h-2">
             <div
-              className="bg-red-600 h-2 rounded-full transition-all duration-300"
+              className="bg-red-500 h-2 rounded-full transition-all duration-300"
               style={{ width: `${analysisProgress}%` }}
             />
           </div>

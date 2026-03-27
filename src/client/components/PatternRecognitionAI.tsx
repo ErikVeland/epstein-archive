@@ -307,16 +307,16 @@ export const PatternRecognitionAI: React.FC<PatternRecognitionAIProps> = ({
 
       {/* Analysis Progress */}
       {isAnalyzing && (
-        <div className="px-6 py-4 bg-purple-50 border-b border-purple-200">
+        <div className="px-6 py-4 bg-purple-900/20 border-b border-purple-900/40">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-purple-900">
+            <span className="text-sm font-medium text-purple-300">
               Analyzing patterns across evidence...
             </span>
-            <span className="text-sm text-purple-700">{analysisProgress}%</span>
+            <span className="text-sm text-purple-400">{analysisProgress}%</span>
           </div>
-          <div className="w-full bg-purple-200 rounded-full h-2">
+          <div className="w-full bg-purple-900/40 rounded-full h-2">
             <div
-              className="bg-purple-600 h-2 rounded-full transition-all duration-300"
+              className="bg-purple-500 h-2 rounded-full transition-all duration-300"
               style={{ width: `${analysisProgress}%` }}
             />
           </div>

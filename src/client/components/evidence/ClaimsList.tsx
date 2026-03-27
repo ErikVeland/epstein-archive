@@ -97,15 +97,15 @@ export function ClaimsList({ claims }: ClaimsListProps) {
   };
 
   return (
-    <div className="bg-[var(--text-primary)] rounded-[var(--radius-lg)] shadow overflow-hidden">
-      <div className="px-4 py-3 border-b border-[var(--glass-border)] bg-[var(--app-bg)] flex justify-between items-center">
+    <div className="bg-[var(--glass-bg-strong)] rounded-[var(--radius-lg)] shadow overflow-hidden">
+      <div className="px-4 py-3 border-b border-[var(--glass-border)] bg-[var(--glass-bg)] flex justify-between items-center">
         <h3 className="text-sm font-semibold text-[var(--text-primary)] uppercase tracking-wider flex items-center gap-2">
           <BadgeCheck className="w-5 h-5 text-[var(--accent)]" />
           Extracted Facts & Claims
         </h3>
         <span className="text-xs text-[var(--text-muted)]">{claims.length} items</span>
       </div>
-      <ul className="divide-y divide-gray-200">
+      <ul className="divide-y divide-[var(--glass-border)]">
         {claims.map((claim) => {
           const status = feedback[claim.id];
           return (
@@ -113,10 +113,10 @@ export function ClaimsList({ claims }: ClaimsListProps) {
               key={claim.id}
               className={`p-4 transition-colors group ${
                 status === 'rejected'
-                  ? 'bg-red-50 opacity-60'
+                  ? 'bg-red-900/20 opacity-60'
                   : status === 'verified'
-                    ? 'bg-green-50'
-                    : 'hover:bg-[var(--app-bg)]'
+                    ? 'bg-green-900/20'
+                    : 'hover:bg-[var(--glass-bg)]'
               }`}
             >
               <div className="flex items-start justify-between">
@@ -130,7 +130,7 @@ export function ClaimsList({ claims }: ClaimsListProps) {
                     {status && (
                       <span
                         className={`text-xs font-bold uppercase ${
-                          status === 'verified' ? 'text-green-600' : 'text-red-600'
+                          status === 'verified' ? 'text-green-400' : 'text-red-400'
                         }`}
                       >
                         • {status}
@@ -138,11 +138,11 @@ export function ClaimsList({ claims }: ClaimsListProps) {
                     )}
                   </div>
                   <p className="text-[var(--text-primary)] text-sm mt-1">
-                    <span className="font-semibold text-blue-900">{claim.subject_name}</span>{' '}
-                    <span className="text-[var(--text-primary)] px-1 italic">
+                    <span className="font-semibold text-[var(--accent)]">{claim.subject_name}</span>{' '}
+                    <span className="text-[var(--text-secondary)] px-1 italic">
                       {claim.predicate.replace(/_/g, ' ')}
                     </span>{' '}
-                    <span className="font-semibold text-blue-900">{claim.object_name}</span>
+                    <span className="font-semibold text-[var(--accent)]">{claim.object_name}</span>
                   </p>
                 </div>
                 {!status && (

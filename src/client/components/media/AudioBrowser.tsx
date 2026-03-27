@@ -412,7 +412,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                         )}
                       </div>
                     )}
-                    <div className="aspect-video bg-[var(--glass-bg-strong)] relative flex items-center justify-center group-hover:bg-[var(--glass-bg)] transition-colors overflow-hidden">
+                    <div className="aspect-video relative flex items-center justify-center overflow-hidden">
                       {displayImage ? (
                         <img
                           src={displayImage}
