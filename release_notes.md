@@ -1,5 +1,12 @@
 # Release Notes
 
+## v17.2.9 - 2026-03-27 - Eliminate Remaining White Lines & About Page Cleanup
+
+- **Media browsers**: Replaced solid `bg-[var(--app-bg)] + border` outer container on AudioBrowser, VideoBrowser, PhotoBrowser, and ArticlesTab with `soft-glass-panel-strong` — eliminates the visible rectangular outline and gives each browser the liquid glass appearance
+- **TableViewer**: Fixed bare `border-r` column dividers that used `currentColor` (#e2e8f0, nearly white) — now explicitly use `border-[var(--glass-border)]`
+- **FileBrowser / GlobalSearch**: Replaced `divide-gray-700` with `divide-[var(--glass-border)]`
+- **AboutPage**: Removed Lisa Noelle Volding credit and the Original Publication box from the Audio & Video section
+
 ## v17.2.8 - 2026-03-26 - Fix Media Browser Height & Album Share Previews
 
 - **AudioBrowser height**: Fixed `FixedSizeList` receiving a runaway height value by tracking container dimensions via `ResizeObserver` (with `window.innerHeight` cap) instead of reading `containerRef.current?.clientHeight` synchronously during render — eliminates the 263,766px list expansion
