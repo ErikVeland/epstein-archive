@@ -17,6 +17,7 @@ import { SensitiveContent } from '../common/SensitiveContent';
 import { useAuth } from '../../contexts/AuthContext';
 import { Person } from '../../types';
 import { PhotoSortField as SortField, usePhotoBrowserData } from '../../hooks/usePhotoBrowserData';
+import { MediaEmptyState } from '../shared/MediaBrowserLayout';
 
 // Lazy load EvidenceModal to reduce initial bundle size
 const EvidenceModal = React.lazy(() =>
@@ -80,7 +81,7 @@ const GridCell = React.memo(
         >
           {/* Selection indicator */}
           {isBatchMode && (
-            <div className="absolute top-2 left-2 w-6 h-6 flex items-center justify-center rounded-full bg-[var(--accent)] text-[var(--text-primary)] text-xs font-bold z-10">
+            <div className="absolute top-2 left-2 w-8 h-8 md:w-6 md:h-6 flex items-center justify-center rounded-full bg-[var(--accent)] text-[var(--text-primary)] text-xs font-bold z-10">
               {isSelected ? '✓' : index + 1}
             </div>
           )}
@@ -144,7 +145,7 @@ const ListRow = React.memo(({ index, style, data }: ListChildComponentProps<Item
       >
         {/* Selection indicator */}
         {isBatchMode && (
-          <div className="w-6 h-6 flex items-center justify-center rounded-full bg-[var(--accent)] text-[var(--text-primary)] text-xs font-bold mr-2">
+          <div className="w-8 h-8 md:w-6 md:h-6 flex items-center justify-center rounded-full bg-[var(--accent)] text-[var(--text-primary)] text-xs font-bold mr-2 shrink-0">
             {isSelected ? '✓' : index + 1}
           </div>
         )}
@@ -604,12 +605,12 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
   return (
     <div className="flex flex-col h-full min-h-[500px] soft-glass-panel-strong overflow-hidden rounded-[var(--radius-lg)]">
       {/* Header with controls */}
-      <div className="app-header-glass flex flex-col md:flex-row md:items-center justify-between px-3 py-2 md:px-4 md:h-14 shrink-0 z-10 gap-2">
+      <div className="app-header-glass flex flex-col md:flex-row md:items-center justify-between px-3 py-2 md:px-6 md:h-14 shrink-0 z-10 gap-2">
         {/* Mobile Album Dropdown */}
         <div className="md:hidden">
           <button
             onClick={() => setShowAlbumDropdown(!showAlbumDropdown)}
-            className="w-full flex items-center justify-between px-3 py-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] text-sm h-8"
+            className="w-full flex items-center justify-between px-3 py-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] text-sm h-10"
           >
             <span className="flex items-center gap-2">
               <Icon name="Folder" size="sm" />
@@ -665,7 +666,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
           {/* Mobile share button */}
           <button
             onClick={handleShare}
-            className="md:hidden flex items-center justify-center w-10 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-muted)] hover:text-[var(--text-primary)] h-8"
+            className="md:hidden flex items-center justify-center w-10 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-muted)] hover:text-[var(--text-primary)] h-10"
           >
             {showCopied ? (
               <Icon name="Check" size="sm" className="text-green-500" />
@@ -901,10 +902,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
             onClick={handleGridClick}
           >
             {!loading && images.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-[var(--text-muted)]">
-                <Icon name="Image" size="lg" className="mb-2 opacity-50" />
-                <p>No images found</p>
-              </div>
+              <MediaEmptyState icon="Image" message="No images found" />
             ) : (
               <AutoSizer>
                 {({ width, height }) => {

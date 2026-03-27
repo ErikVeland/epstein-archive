@@ -19,6 +19,16 @@
   --space-8: 32px;
   --space-10: 40px;
   --space-12: 48px;
+  --space-16: 64px;
+
+  /* Shared layout + control sizing */
+  --control-height: 44px;
+  --control-height-compact: 36px;
+  --control-padding-inline: var(--space-4);
+  --header-height-mobile: 60px;
+  --mobile-drawer-width: 22rem;
+  --content-max-width: 1440px;
+  --content-inline-padding: clamp(1rem, 3vw, 2rem);
 
   /* Typography */
   --font-display: 'DM Serif Display', Georgia, serif;
@@ -393,7 +403,14 @@ body {
 }
 .control {
   @apply glass-panel rounded-[var(--radius-md)] px-4 py-2 transition-all;
-  min-height: 44px;
+  min-height: var(--control-height);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding-inline: var(--control-padding-inline);
+  white-space: nowrap;
+  flex-shrink: 0;
   box-shadow: var(--glass-shadow-soft);
   will-change: background-color, border-color;
 }
@@ -471,7 +488,7 @@ body {
 
 .header-search-pill {
   @apply relative flex items-center rounded-full overflow-hidden;
-  min-height: 44px;
+  min-height: var(--control-height);
   background:
     linear-gradient(to bottom, rgba(248, 250, 252, 0.06), rgba(15, 23, 42, 0.02)),
     color-mix(in srgb, var(--glass-bg-strong) 94%, transparent);
@@ -544,13 +561,14 @@ body {
 
 .header-search-button {
   @apply inline-flex items-center justify-center rounded-full text-white transition-all;
-  width: 38px;
-  height: 38px;
+  width: calc(var(--control-height) - 6px);
+  height: calc(var(--control-height) - 6px);
   margin: 3px;
   background: linear-gradient(145deg, #d4a84b, #b8860b);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.2),
     0 4px 8px rgba(180, 130, 50, 0.2);
+  flex-shrink: 0;
 }
 
 .header-search-button:hover {
@@ -559,12 +577,14 @@ body {
 
 .main-nav-track {
   @apply w-full [scrollbar-width:none] [&::-webkit-scrollbar]:hidden;
-  overflow-x: hidden;
+  overflow-x: auto;
+  overflow-y: visible;
 }
 
 .main-nav-pill {
   @apply rounded-full overflow-hidden;
-  width: 100%;
+  width: max-content;
+  min-width: 100%;
   border: 1px solid color-mix(in srgb, var(--glass-border) 58%, transparent);
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(148, 163, 184, 0.015)),
@@ -790,19 +810,104 @@ body {
 /* Content shell for asymmetry and edge-to-edge sections */
 .content-shell {
   width: 100%;
-  max-width: 1440px;
+  max-width: var(--content-max-width);
   margin-left: auto;
   margin-right: auto;
   padding-top: 1rem;
   padding-bottom: 2rem;
-  padding-left: clamp(1rem, 4vw, 3rem);
-  padding-right: clamp(0.5rem, 2vw, 1.25rem);
+  padding-left: var(--content-inline-padding);
+  padding-right: var(--content-inline-padding);
   position: relative;
   z-index: 10;
 }
 .edge-breakout {
-  margin-left: calc(-1 * clamp(1rem, 4vw, 3rem));
-  margin-right: calc(-1 * clamp(0.5rem, 2vw, 1.25rem));
+  margin-left: calc(-1 * var(--content-inline-padding));
+  margin-right: calc(-1 * var(--content-inline-padding));
+}
+
+.control-cluster {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.control-scroll-row {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-2);
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: var(--space-1);
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.control-scroll-row::-webkit-scrollbar {
+  display: none;
+}
+
+.control-scroll-row > * {
+  flex-shrink: 0;
+}
+
+.mobile-nav-action {
+  width: 100%;
+  min-height: var(--control-height);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-lg);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.mobile-nav-action-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mobile-nav-panel {
+  width: min(86vw, var(--mobile-drawer-width));
+}
+
+.mobile-stat-card {
+  min-height: 72px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+@media (max-width: 767px) {
+  .content-shell {
+    padding-top: var(--space-4);
+    padding-bottom: var(--space-6);
+  }
+
+  .control-mobile-full {
+    width: 100%;
+  }
+
+  .control-scroll-row-mobile {
+    display: flex;
+    align-items: stretch;
+    gap: var(--space-2);
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: var(--space-1);
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .control-scroll-row-mobile::-webkit-scrollbar {
+    display: none;
+  }
+
+  .control-scroll-row-mobile > * {
+    flex-shrink: 0;
+  }
 }
 
 /* react-pdf styles */

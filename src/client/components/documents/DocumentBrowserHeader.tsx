@@ -63,7 +63,7 @@ export const DocumentBrowserHeader: React.FC<DocumentBrowserHeaderProps> = ({
         isHeaderCondensed ? 'py-2 mb-3' : 'py-3 mb-4'
       }`}
     >
-      <div className="flex items-center justify-between gap-3 mb-2">
+      <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <h1
             className={`font-bold text-[var(--text-primary)] ${isHeaderCondensed ? 'text-lg' : 'text-2xl'}`}
@@ -76,7 +76,7 @@ export const DocumentBrowserHeader: React.FC<DocumentBrowserHeaderProps> = ({
             </p>
           )}
         </div>
-        <div className="text-xs text-[var(--text-muted)] shrink-0">
+        <div className="text-xs text-[var(--text-muted)] sm:shrink-0">
           {isFetching ? 'Updating results: ' : ''}
           Showing {filteredCount} of {totalDocuments.toLocaleString()}
         </div>
@@ -108,11 +108,11 @@ export const DocumentBrowserHeader: React.FC<DocumentBrowserHeaderProps> = ({
           )}
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap xl:justify-end">
+        <div className="control-scroll-row-mobile xl:flex xl:flex-wrap xl:items-center xl:justify-end xl:overflow-visible xl:pb-0">
           <select
             value={selectedTranche}
             onChange={(e) => applyTrancheFilter(e.target.value)}
-            className="control h-11 px-3 text-sm leading-none bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-md)]"
+            className="control h-11 min-w-[9.5rem] bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-md)] text-sm leading-none"
             aria-label="Filter by tranche"
             title="Filter documents by tranche/source collection"
           >
@@ -127,7 +127,7 @@ export const DocumentBrowserHeader: React.FC<DocumentBrowserHeaderProps> = ({
             onChange={(e) =>
               setSortBy(e.target.value as 'relevance' | 'date' | 'red_flag' | 'fileType' | 'size')
             }
-            className="control h-11 px-3 text-sm leading-none bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-md)]"
+            className="control h-11 min-w-[7rem] bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-md)] text-sm leading-none"
             aria-label="Sort field"
           >
             <option value="red_flag">Risk</option>
@@ -137,7 +137,7 @@ export const DocumentBrowserHeader: React.FC<DocumentBrowserHeaderProps> = ({
           </select>
           <button
             onClick={() => setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')}
-            className="control h-11 px-3 text-sm inline-flex items-center justify-center"
+            className="control h-11 min-w-[5.5rem] text-sm"
           >
             {sortOrder === 'desc' ? 'Desc' : 'Asc'}
           </button>
@@ -147,7 +147,7 @@ export const DocumentBrowserHeader: React.FC<DocumentBrowserHeaderProps> = ({
               setItemsPerPage(Number(e.target.value));
               setCurrentPage(1);
             }}
-            className="control h-11 px-3 text-sm leading-none bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-md)]"
+            className="control h-11 min-w-[5.5rem] bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-md)] text-sm leading-none"
             aria-label="Results per page"
           >
             <option value={25}>25</option>
@@ -156,14 +156,14 @@ export const DocumentBrowserHeader: React.FC<DocumentBrowserHeaderProps> = ({
           </select>
           <button
             onClick={() => setDensityMode(densityMode === 'compact' ? 'comfortable' : 'compact')}
-            className="control h-11 px-3 text-sm inline-flex items-center justify-center"
+            className="control h-11 min-w-[9rem] text-sm"
             aria-label="Toggle density mode"
           >
             {densityMode === 'compact' ? 'Compact' : 'Comfortable'}
           </button>
           <button
             onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-            className="control h-11 px-3 inline-flex items-center gap-2 text-sm"
+            className="control h-11 min-w-[7rem] text-sm"
             aria-label={`Switch to ${viewMode === 'grid' ? 'list' : 'grid'} view`}
             title={`Switch to ${viewMode === 'grid' ? 'list' : 'grid'} view`}
           >
@@ -178,7 +178,7 @@ export const DocumentBrowserHeader: React.FC<DocumentBrowserHeaderProps> = ({
           </button>
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="control h-11 px-3 text-sm inline-flex items-center gap-1.5"
+            className="control h-11 min-w-[7.5rem] text-sm"
           >
             <Filter className="w-4 h-4" />
             Filters

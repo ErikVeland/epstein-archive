@@ -32,7 +32,7 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
     <div className="mb-4 space-y-3">
       {/* Category + significance chips row */}
       <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-        <div className="overflow-x-auto pb-1 min-w-0 flex-1">
+        <div className="control-scroll-row min-w-0 flex-1">
           <div className="inline-flex min-w-max items-center rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg-strong)] overflow-hidden divide-x divide-[var(--glass-border)]">
             {[
               { type: 'all', label: 'All', icon: <Folder className="w-3.5 h-3.5" /> },
@@ -74,7 +74,7 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 md:justify-end md:shrink-0">
+        <div className="control-scroll-row md:flex-wrap md:justify-end md:overflow-visible md:pb-0 md:shrink-0">
           {selectedTranche !== 'all' && (
             <span className="px-3 py-1.5 rounded-full text-sm bg-[var(--accent)]/20 text-[var(--text-primary)] border border-[var(--accent)]/40">
               Tranche: {DOJ_TRANCHE_OPTIONS.find((entry) => entry.value === selectedTranche)?.label}

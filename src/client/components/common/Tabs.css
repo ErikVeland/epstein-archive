@@ -5,6 +5,7 @@
   background: transparent;
   gap: var(--space-1);
   overflow-x: auto;
+  overflow-y: hidden;
   scrollbar-width: none;
   -ms-overflow-style: none;
   --tab-accent: var(--accent);
@@ -33,7 +34,7 @@
 
 .tab-item {
   position: relative;
-  height: 44px;
+  min-height: var(--control-height);
   padding: 0 var(--space-4);
   display: flex;
   align-items: center;
@@ -57,7 +58,7 @@
 
 .tabs-container.viewer .tab-item {
   border-radius: 0;
-  height: 42px;
+  min-height: calc(var(--control-height) - 2px);
   border-bottom: 2px solid transparent;
   color: var(--text-dim);
   text-transform: none;
@@ -78,7 +79,7 @@
 }
 
 .tabs-container.compact .tab-item {
-  height: 36px;
+  min-height: var(--control-height-compact);
   padding: 0 var(--space-3);
   font-size: 10px;
 }

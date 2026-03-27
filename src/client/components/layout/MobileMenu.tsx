@@ -76,13 +76,13 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
       <button
         type="button"
         aria-label="Close menu"
-        className="absolute inset-0 top-[60px] app-backdrop transition-all duration-300"
+        className="absolute inset-0 top-[var(--header-height-mobile)] app-backdrop transition-all duration-300"
         onClick={onClose}
       />
 
       {/* Menu panel - on top of backdrop */}
       <div
-        className={`absolute left-0 top-[60px] bottom-0 w-4/5 max-w-sm bg-[var(--bg-surface)] backdrop-blur-xl border-r border-[var(--glass-border)] shadow-[var(--glass-shadow)] transform transition-transform duration-300 ease-out z-10 flex flex-col ${open ? 'translate-x-0' : '-translate-x-full'}`}
+        className={`mobile-nav-panel absolute left-0 top-[var(--header-height-mobile)] bottom-0 bg-[var(--bg-surface)] backdrop-blur-xl border-r border-[var(--glass-border)] shadow-[var(--glass-shadow)] transform transition-transform duration-300 ease-out z-10 flex flex-col ${open ? 'translate-x-0' : '-translate-x-full'}`}
         onClick={(e) => e.stopPropagation()} // Prevent clicks inside menu from closing it
         onTouchStart={(e) => {
           const startX = e.touches[0].clientX;
@@ -140,7 +140,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
         {/* Scrollable Content Area - flex-1 takes remaining height */}
         <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-1 min-h-0">
           <button
-            className="w-full flex items-center gap-3 px-3 py-3 rounded-[var(--radius-lg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)] transition-colors group"
+            className="mobile-nav-action text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)] transition-colors group"
             onClick={() => handleNavigation('/')}
           >
             <div className="p-1.5 rounded-md bg-[var(--glass-bg)] group-hover:bg-[var(--glass-bg-strong)] transition-colors">
@@ -150,7 +150,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
                 className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--text-primary)]"
               />
             </div>
-            <span className="font-medium text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]">
+            <span className="mobile-nav-action-label font-medium text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]">
               Home
             </span>
           </button>
@@ -160,42 +160,48 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
           </div>
 
           <button
-            className="w-full flex items-center gap-3 px-3 py-3 rounded-[var(--radius-lg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] transition-all duration-300 group hover:translate-x-1"
+            className="mobile-nav-action text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] transition-all duration-300 group hover:translate-x-1"
             onClick={() => handleNavigation('/people')}
           >
             <div className="p-1.5 rounded-md bg-[var(--glass-bg)] group-hover:bg-[var(--accent)]/20 shadow-[var(--glass-shadow-soft)] transition-colors">
               <Icon name="Users" size="sm" className="w-4 h-4 text-[var(--accent)]" />
             </div>
-            <span className="font-medium text-[var(--text-primary)] transition-colors">People</span>
+            <span className="mobile-nav-action-label font-medium text-[var(--text-primary)] transition-colors">
+              People
+            </span>
           </button>
           <button
-            className="w-full flex items-center gap-3 px-3 py-3 rounded-[var(--radius-lg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] transition-all duration-300 group hover:translate-x-1"
+            className="mobile-nav-action text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] transition-all duration-300 group hover:translate-x-1"
             onClick={() => handleNavigation('/documents')}
           >
             <div className="p-1.5 rounded-md bg-[var(--glass-bg)] group-hover:bg-[var(--nav-documents-hover-bg)] shadow-[var(--glass-shadow-soft)] transition-colors">
               <Icon name="FileText" size="sm" className="w-4 h-4 text-[var(--nav-documents)]" />
             </div>
-            <span className="font-medium text-[var(--text-primary)] transition-colors">
+            <span className="mobile-nav-action-label font-medium text-[var(--text-primary)] transition-colors">
               Documents
             </span>
           </button>
           <button
-            className="w-full flex items-center gap-3 px-3 py-3 rounded-[var(--radius-lg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] transition-all duration-300 group hover:translate-x-1"
+            className="mobile-nav-action text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] transition-all duration-300 group hover:translate-x-1"
             onClick={() => handleNavigation('/emails')}
           >
             <div className="p-1.5 rounded-md bg-[var(--glass-bg)] group-hover:bg-[var(--nav-emails-hover-bg)] shadow-[var(--glass-shadow-soft)] transition-colors">
               <Icon name="Mail" size="sm" className="w-4 h-4 text-[var(--nav-emails)]" />
             </div>
-            <span className="font-medium text-[var(--text-primary)] transition-colors">Emails</span>
+            <span className="mobile-nav-action-label font-medium text-[var(--text-primary)] transition-colors">
+              Emails
+            </span>
           </button>
           <button
-            className="w-full flex items-center gap-3 px-3 py-3 rounded-[var(--radius-lg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] transition-all duration-300 group hover:translate-x-1"
+            className="mobile-nav-action text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] transition-all duration-300 group hover:translate-x-1"
             onClick={() => handleNavigation('/media')}
           >
             <div className="p-1.5 rounded-md bg-[var(--glass-bg)] group-hover:bg-[var(--nav-media-hover-bg)] shadow-[var(--glass-shadow-soft)] transition-colors">
               <Icon name="Newspaper" size="sm" className="w-4 h-4 text-[var(--nav-media)]" />
             </div>
-            <span className="font-medium text-[var(--text-primary)] transition-colors">Media</span>
+            <span className="mobile-nav-action-label font-medium text-[var(--text-primary)] transition-colors">
+              Media
+            </span>
           </button>
 
           <div className="my-2 border-t border-[var(--glass-border)] mx-3"></div>
@@ -204,7 +210,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
           </div>
 
           <button
-            className={`w-full flex items-center gap-3 px-3 py-3 rounded-[var(--radius-lg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] transition-all group ${attract ? 'ring-1 ring-[var(--nav-investigations-ring)] shadow-[var(--nav-investigations-glow)] bg-[var(--glass-bg)]/50' : ''}`}
+            className={`mobile-nav-action text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] transition-all group ${attract ? 'ring-1 ring-[var(--nav-investigations-ring)] shadow-[var(--nav-investigations-glow)] bg-[var(--glass-bg)]/50' : ''}`}
             onClick={() => {
               try {
                 localStorage.setItem('investigate_attract_shown', 'true');
@@ -225,46 +231,46 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
             </div>
           </button>
           <button
-            className="w-full flex items-center gap-3 px-3 py-3 rounded-[var(--radius-lg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] transition-colors group"
+            className="mobile-nav-action text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] transition-colors group"
             onClick={() => handleNavigation('/blackbook')}
           >
             <div className="p-1.5 rounded-md bg-[var(--glass-bg)] group-hover:bg-[var(--glass-bg-highlight)] transition-colors border border-[var(--glass-border)]">
               <Icon name="Book" size="sm" className="w-4 h-4 text-[var(--text-secondary)]" />
             </div>
-            <span className="font-medium text-[var(--text-primary)] group-hover:text-[var(--text-primary)]">
+            <span className="mobile-nav-action-label font-medium text-[var(--text-primary)] group-hover:text-[var(--text-primary)]">
               Black Book
             </span>
           </button>
           <button
-            className="w-full flex items-center gap-3 px-3 py-3 rounded-[var(--radius-lg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] transition-colors group"
+            className="mobile-nav-action text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] transition-colors group"
             onClick={() => handleNavigation('/timeline')}
           >
             <div className="p-1.5 rounded-md bg-[var(--nav-timeline-bg)] group-hover:bg-[var(--nav-timeline-bg-hover)] transition-colors border border-[var(--nav-timeline-border)]">
               <Icon name="Clock" size="sm" className="w-4 h-4 text-[var(--nav-timeline)]" />
             </div>
-            <span className="font-medium text-[var(--text-primary)] group-hover:text-[var(--text-primary)]">
+            <span className="mobile-nav-action-label font-medium text-[var(--text-primary)] group-hover:text-[var(--text-primary)]">
               Timeline
             </span>
           </button>
           <button
-            className="w-full flex items-center gap-3 px-3 py-3 rounded-[var(--radius-lg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] transition-colors group"
+            className="mobile-nav-action text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] transition-colors group"
             onClick={() => handleNavigation('/flights')}
           >
             <div className="p-1.5 rounded-md bg-[var(--nav-flights-bg)] group-hover:bg-[var(--nav-flights-bg-hover)] transition-colors border border-[var(--nav-flights-border)]">
               <Icon name="Navigation" size="sm" className="w-4 h-4 text-[var(--nav-flights)]" />
             </div>
-            <span className="font-medium text-[var(--text-primary)] group-hover:text-[var(--text-primary)]">
+            <span className="mobile-nav-action-label font-medium text-[var(--text-primary)] group-hover:text-[var(--text-primary)]">
               Flights
             </span>
           </button>
           <button
-            className="w-full flex items-center gap-3 px-3 py-3 rounded-[var(--radius-lg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] transition-colors group"
+            className="mobile-nav-action text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] transition-colors group"
             onClick={() => handleNavigation('/analytics')}
           >
             <div className="p-1.5 rounded-md bg-[var(--nav-analytics-bg)] group-hover:bg-[var(--nav-analytics-bg-hover)] transition-colors border border-[var(--nav-analytics-border)]">
               <Icon name="BarChart3" size="sm" className="w-4 h-4 text-[var(--nav-analytics)]" />
             </div>
-            <span className="font-medium text-[var(--text-primary)] group-hover:text-[var(--text-primary)]">
+            <span className="mobile-nav-action-label font-medium text-[var(--text-primary)] group-hover:text-[var(--text-primary)]">
               Analytics
             </span>
           </button>
@@ -272,26 +278,26 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
           <div className="my-2 border-t border-[var(--glass-border)] mx-3"></div>
 
           <button
-            className="w-full flex items-center gap-3 px-3 py-3 rounded-[var(--radius-lg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] transition-colors group"
+            className="mobile-nav-action text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] transition-colors group"
             onClick={() => handleNavigation('/about')}
           >
             <div className="p-1.5 rounded-md bg-[var(--glass-bg)]/50 group-hover:bg-[var(--glass-bg)] transition-colors">
               <Icon name="Shield" size="sm" className="w-4 h-4 text-[var(--text-muted)]" />
             </div>
-            <span className="font-medium text-[var(--text-primary)] group-hover:text-[var(--text-primary)]">
+            <span className="mobile-nav-action-label font-medium text-[var(--text-primary)] group-hover:text-[var(--text-primary)]">
               About
             </span>
           </button>
 
           {isAdmin && (
             <button
-              className="w-full flex items-center gap-3 px-3 py-3 rounded-[var(--radius-lg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] transition-colors group"
+              className="mobile-nav-action text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] transition-colors group"
               onClick={() => handleNavigation('/admin')}
             >
               <div className="p-1.5 rounded-md bg-[var(--glass-bg)]/50 group-hover:bg-[var(--glass-bg)] transition-colors">
                 <Icon name="Settings" size="sm" className="w-4 h-4 text-[var(--text-muted)]" />
               </div>
-              <span className="font-medium text-[var(--text-primary)] group-hover:text-[var(--text-primary)]">
+              <span className="mobile-nav-action-label font-medium text-[var(--text-primary)] group-hover:text-[var(--text-primary)]">
                 Admin
               </span>
             </button>

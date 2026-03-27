@@ -22,6 +22,7 @@ export interface GlobalStatsPayload {
   totalEntities: number;
   totalMentions: number;
   totalDocuments: number;
+  totalRelationships?: number;
   likelihoodDistribution?: LikelihoodBucket[];
 }
 

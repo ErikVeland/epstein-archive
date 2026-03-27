@@ -1,5 +1,16 @@
 # Release Notes
 
+## v17.2.10 - 2026-03-27 - Mobile-First UI Consistency Pass
+
+- **FlightTracker**: Added `md:hidden` native `<select>` for view mode (Timeline/Map/Stats/Network) — previously the 4 toggle buttons overflowed and were unusable on mobile. Filters now stack vertically on mobile (`flex-col md:flex-row`)
+- **EmailPage**: Reduced `min-h` from 560px to 320px on mobile so the email client isn't clipped on small phones
+- **Batch selection**: Increased touch targets in PhotoBrowser and VideoBrowser from `w-6 h-6` (24px) to `w-8 h-8` (32px) on mobile, `md:w-6 md:h-6` on desktop
+- **Header consistency**: All media browser headers now use `app-header-glass` class (ArticlesTab was using raw `bg-[var(--glass-bg-strong)] border-b`) and standardized padding `px-3 py-2 md:px-6 md:h-14`
+- **Mobile dropdown buttons**: Standardized to `h-10` (40px) across AudioBrowser, PhotoBrowser, VideoBrowser, and ArticlesTab — previously `h-8` (32px) in most places
+- **Empty states**: PhotoBrowser, AudioBrowser, and VideoBrowser now use the shared `MediaEmptyState` component; VideoBrowser had no empty state at all — added with Film icon
+- **SignalPanel** (v17.2.9 follow-up): Bars now show numeric score alongside color-coded fill
+- **Entity cards**: Mobile-first horizontal row layout with avatar, name/role/chips, badge, and mentions count
+
 ## v17.2.9 - 2026-03-27 - Eliminate Remaining White Lines & About Page Cleanup
 
 - **Media browsers**: Replaced solid `bg-[var(--app-bg)] + border` outer container on AudioBrowser, VideoBrowser, PhotoBrowser, and ArticlesTab with `soft-glass-panel-strong` — eliminates the visible rectangular outline and gives each browser the liquid glass appearance

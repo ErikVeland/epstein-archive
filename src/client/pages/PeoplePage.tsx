@@ -18,6 +18,7 @@ interface DataStats {
   mediumRisk: number;
   lowRisk: number;
   totalMentions: number;
+  totalRelationships: number;
 }
 
 interface PeoplePageProps {

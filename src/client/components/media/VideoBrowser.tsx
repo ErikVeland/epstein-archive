@@ -9,6 +9,7 @@ import BatchToolbar from '../common/BatchToolbar';
 import { SensitiveWarningBanner } from '../shared/SensitiveWarningBanner';
 import Icon from '../common/Icon';
 import { usePaginatedMediaCollection } from '../../hooks/usePaginatedMediaCollection';
+import { MediaEmptyState } from '../shared/MediaBrowserLayout';
 
 interface VideoItem {
   id: number;
@@ -149,7 +150,7 @@ const VideoCell = React.memo(({ columnIndex, rowIndex, style, data }: GridChildC
 
           {isBatchMode && (
             <div
-              className={`absolute top-2 left-2 z-10 w-6 h-6 rounded-md border flex items-center justify-center transition-colors ${
+              className={`absolute top-2 left-2 z-10 w-8 h-8 md:w-6 md:h-6 rounded-md border flex items-center justify-center transition-colors ${
                 isSelected
                   ? 'bg-[var(--accent)] border-[var(--accent)]'
                   : 'bg-[var(--glass-bg-strong)] border-[var(--glass-border)]'
@@ -316,7 +317,7 @@ export const VideoBrowser: React.FC = () => {
         <div className="md:hidden">
           <button
             onClick={() => setShowAlbumDropdown(!showAlbumDropdown)}
-            className="w-full flex items-center justify-between px-3 py-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] text-sm h-8"
+            className="w-full flex items-center justify-between px-3 py-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] text-sm h-10"
           >
             <span className="flex items-center gap-2">
               <Icon name="Folder" size="sm" />
@@ -448,6 +449,9 @@ export const VideoBrowser: React.FC = () => {
           )}
 
           <div className="flex-1 min-h-[360px] overflow-hidden relative">
+            {!loading && items.length === 0 ? (
+              <MediaEmptyState icon="Film" message="No video recordings found" />
+            ) : null}
             <AutoSizer>
               {({ width, height }) => {
                 if (width < 50) return null;

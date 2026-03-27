@@ -127,7 +127,22 @@ export const FlightTracker: React.FC = () => {
       </div>
 
       <div className="tracker-controls">
-        <div className="view-toggle">
+        {/* Mobile view selector */}
+        <div className="md:hidden w-full">
+          <Select
+            value={viewMode}
+            onChange={(e) => setViewMode(e.target.value as ViewMode)}
+            options={[
+              { value: 'timeline', label: 'Timeline' },
+              { value: 'map', label: 'Map' },
+              { value: 'stats', label: 'Stats' },
+              { value: 'network', label: 'Network' },
+            ]}
+          />
+        </div>
+
+        {/* Desktop view toggle */}
+        <div className="view-toggle hidden md:flex">
           <GlassButton
             variant={viewMode === 'timeline' ? 'primary' : 'ghost'}
             size="sm"
@@ -163,9 +178,9 @@ export const FlightTracker: React.FC = () => {
         </div>
 
         <div className="filters">
-          <div className="flex flex-wrap gap-4">
+          <div className="flex flex-col md:flex-row flex-wrap gap-3">
             <Select
-              containerClassName="min-w-[200px]"
+              containerClassName="w-full md:min-w-[200px] md:w-auto"
               value={selectedPassenger}
               onChange={(e) => setSelectedPassenger(e.target.value)}
               options={[
@@ -178,20 +193,20 @@ export const FlightTracker: React.FC = () => {
             />
 
             <div className="flex items-center gap-2 bg-[var(--glass-bg-strong)]/50 border border-[var(--glass-border)] rounded-[var(--radius-lg)] px-3 py-2">
-              <Icon name="Calendar" size="sm" className="text-[var(--text-muted)]" />
+              <Icon name="Calendar" size="sm" className="text-[var(--text-muted)] shrink-0" />
               <input
                 type="date"
                 value={dateRange.start}
                 onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-                className="bg-transparent border-none text-[var(--text-primary)] text-sm focus:outline-none"
+                className="bg-transparent border-none text-[var(--text-primary)] text-sm focus:outline-none min-w-0 w-full md:w-auto"
                 placeholder="Start Date"
               />
-              <span className="text-[var(--text-muted)]">-</span>
+              <span className="text-[var(--text-muted)] shrink-0">–</span>
               <input
                 type="date"
                 value={dateRange.end}
                 onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-                className="bg-transparent border-none text-[var(--text-primary)] text-sm focus:outline-none"
+                className="bg-transparent border-none text-[var(--text-primary)] text-sm focus:outline-none min-w-0 w-full md:w-auto"
                 placeholder="End Date"
               />
             </div>

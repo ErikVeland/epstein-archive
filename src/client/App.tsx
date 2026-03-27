@@ -988,6 +988,7 @@ function App() {
         totalPeople: 0,
         totalMentions: 0,
         totalFiles: 0,
+        totalRelationships: 0,
         highRisk: 0,
         mediumRisk: 0,
         lowRisk: 0,
@@ -1004,6 +1005,7 @@ function App() {
       totalPeople: globalStatsData.totalEntities,
       totalMentions: globalStatsData.totalMentions,
       totalFiles: globalStatsData.totalDocuments,
+      totalRelationships: globalStatsData.totalRelationships || 0,
       highRisk,
       mediumRisk,
       lowRisk,
@@ -1310,9 +1312,9 @@ function App() {
             {/* Header */}
             <header className="app-header-glass transition-all duration-300">
               <div className="content-shell">
-                <div className="flex flex-col md:flex-row items-center justify-between py-1.5 min-h-[52px] gap-3">
+                <div className="flex flex-col gap-3 py-1.5 md:flex-row md:items-center md:justify-between">
                   {/* LEFT: Logo and Stats */}
-                  <div className="flex items-center gap-6">
+                  <div className="flex w-full items-center justify-between gap-4 md:w-auto md:justify-start md:gap-6">
                     {/* Logo */}
                     <Link
                       to="/"
@@ -1345,7 +1347,7 @@ function App() {
                   </div>
 
                   {/* RIGHT: Actions and Search */}
-                  <div className="flex items-center gap-3 w-full md:w-auto">
+                  <div className="flex w-full items-center gap-2 md:w-auto md:gap-3">
                     {/* Button Group */}
                     <div className="hidden md:flex items-center gap-2 mr-2">
                       {/* New Investigation */}
@@ -1412,7 +1414,7 @@ function App() {
                     </div>
 
                     {/* Search Bar */}
-                    <div className="relative flex-1 md:flex-none max-w-md">
+                    <div className="relative min-w-0 flex-1 md:flex-none md:max-w-md">
                       <div className="header-search-pill">
                         <div className="relative flex-1 min-w-0 pl-2">
                           <Icon
@@ -1596,7 +1598,7 @@ function App() {
                     {/* Mobile Menu Toggle */}
                     <button
                       onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                      className="md:hidden p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                      className="control md:hidden h-11 w-11 px-0 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                     >
                       {isMobileMenuOpen ? (
                         <Icon name="X" size="sm" />
@@ -1611,10 +1613,10 @@ function App() {
 
             <div className="content-shell flex-grow">
               {/* Mobile Stats Row */}
-              <div className="md:hidden grid grid-cols-3 gap-2 mb-6 text-center">
+              <div className="mb-6 grid grid-cols-3 gap-2 text-center md:hidden">
                 <button
                   onClick={() => navigate('/search')}
-                  className="surface-glass-card rounded-lg p-2 hover:bg-[var(--glass-bg-strong)] transition-colors cursor-pointer"
+                  className="mobile-stat-card surface-glass-card rounded-lg p-2 hover:bg-[var(--glass-bg-strong)] transition-colors cursor-pointer"
                 >
                   <div className="text-xs text-[var(--text-secondary)] uppercase tracking-wider">
                     People
@@ -1625,7 +1627,7 @@ function App() {
                 </button>
                 <button
                   onClick={() => navigate('/search')}
-                  className="surface-glass-card rounded-lg p-2 hover:bg-[var(--glass-bg-strong)] transition-colors cursor-pointer"
+                  className="mobile-stat-card surface-glass-card rounded-lg p-2 hover:bg-[var(--glass-bg-strong)] transition-colors cursor-pointer"
                 >
                   <div className="text-xs text-[var(--text-secondary)] uppercase tracking-wider">
                     Mentions
@@ -1636,7 +1638,7 @@ function App() {
                 </button>
                 <button
                   onClick={() => navigate('/documents')}
-                  className="surface-glass-card rounded-lg p-2 hover:bg-[var(--glass-bg-strong)] transition-colors cursor-pointer"
+                  className="mobile-stat-card surface-glass-card rounded-lg p-2 hover:bg-[var(--glass-bg-strong)] transition-colors cursor-pointer"
                 >
                   <div className="text-xs text-[var(--text-secondary)] uppercase tracking-wider">
                     Files

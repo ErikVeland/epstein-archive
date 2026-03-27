@@ -153,12 +153,12 @@ export const ArticlesTab: React.FC = () => {
   return (
     <div className="flex flex-col h-full min-h-[500px] soft-glass-panel-strong overflow-hidden rounded-[var(--radius-lg)]">
       {/* Header with controls */}
-      <div className="bg-[var(--glass-bg-strong)] border-b border-[var(--glass-border)] flex flex-col md:flex-row md:items-center justify-between px-3 py-2 md:px-4 md:h-14 shrink-0 z-10 gap-2">
+      <div className="app-header-glass flex flex-col md:flex-row md:items-center justify-between px-3 py-2 md:px-6 md:h-14 shrink-0 z-10 gap-2">
         {/* Mobile Publication Dropdown */}
         <div className="md:hidden">
           <button
             onClick={() => setShowPublicationDropdown(!showPublicationDropdown)}
-            className="w-full flex items-center justify-between px-3 py-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] text-sm h-8"
+            className="w-full flex items-center justify-between px-3 py-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] text-sm h-10"
           >
             <span className="flex items-center gap-2">
               <Newspaper className="w-4 h-4" />

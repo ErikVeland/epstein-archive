@@ -11,6 +11,7 @@ interface StatsDisplayProps {
     mediumRisk: number;
     lowRisk: number;
     totalMentions: number;
+    totalRelationships: number;
   };
   selectedRiskLevel?: 'HIGH' | 'MEDIUM' | 'LOW' | null;
   onRiskLevelClick?: (level: 'HIGH' | 'MEDIUM' | 'LOW') => void;
@@ -27,6 +28,7 @@ export function StatsDisplay({
   const mediumRiskCount = useCountUp(stats.mediumRisk, 1600);
   const mentionsCount = useCountUp(stats.totalMentions, 1800);
   const documentsCount = useCountUp(stats.totalFiles, 1900);
+  const connectionsCount = useCountUp(stats.totalRelationships, 2000);
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3 mb-4">
@@ -54,17 +56,17 @@ export function StatsDisplay({
       >
         <div className="flex items-center justify-between mb-2">
           <span className="text-[11px] tracking-[0.12em] uppercase text-[var(--text-muted)]">
-            Documents
+            Connections
           </span>
-          <span className="chip h-6 px-2 flex items-center text-[var(--chip-accent)] border-[var(--chip-accent-border)]">
-            <Icon name="FileText" size="xs" />
+          <span className="chip h-6 px-2 flex items-center text-[var(--accent-success)] border-[var(--accent-success)]/25">
+            <Icon name="Network" size="xs" />
           </span>
         </div>
         <div className="data-emphasis text-[var(--text-primary)] tabular-nums">
-          {documentsCount.toLocaleString()}
+          {connectionsCount.toLocaleString()}
         </div>
         <div className="mt-1 text-[11px] text-[var(--text-muted)] uppercase tracking-[0.1em]">
-          {stats.totalPeople.toLocaleString()} Subjects
+          {documentsCount.toLocaleString()} Documents
         </div>
       </button>
     </div>

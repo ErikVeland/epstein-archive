@@ -12,7 +12,7 @@ export const GlassButton = React.forwardRef<HTMLButtonElement, GlassButtonProps>
     const Comp = asChild ? Slot : 'button';
 
     const baseStyles =
-      'relative inline-flex items-center justify-center font-sans font-medium transition-all duration-300 ease-[var(--easing-liquid)] rounded-md focus:outline-none focus:ring-2 focus:ring-accent-primary focus:ring-offset-2 focus:ring-offset-bg-surface overflow-hidden select-none disabled:opacity-50 disabled:pointer-events-none';
+      'relative inline-flex min-h-[var(--control-height)] shrink-0 items-center justify-center whitespace-nowrap font-sans font-medium transition-all duration-300 ease-[var(--easing-liquid)] rounded-md focus:outline-none focus:ring-2 focus:ring-accent-primary focus:ring-offset-2 focus:ring-offset-bg-surface overflow-hidden select-none disabled:opacity-50 disabled:pointer-events-none';
 
     const glassBase =
       'before:absolute before:inset-0 before:z-0 before:rounded-md before:pointer-events-none before:bg-[var(--glass-shine)] before:border before:border-[var(--glass-border)] before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-300';
@@ -29,9 +29,9 @@ export const GlassButton = React.forwardRef<HTMLButtonElement, GlassButtonProps>
     };
 
     const sizes = {
-      sm: 'text-sm px-3 py-1.5',
-      md: 'text-base px-5 py-2',
-      lg: 'text-lg px-6 py-3',
+      sm: 'text-sm px-3 py-1.5 min-h-[var(--control-height-compact)]',
+      md: 'text-base px-5 py-2 min-h-[var(--control-height)]',
+      lg: 'text-lg px-6 py-3 min-h-[calc(var(--control-height)+4px)]',
     };
 
     return (

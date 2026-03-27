@@ -10,6 +10,7 @@ import { SensitiveWarningBanner } from '../shared/SensitiveWarningBanner';
 import Icon from '../common/Icon';
 import { apiClient } from '../../services/apiClient';
 import { usePaginatedMediaCollection } from '../../hooks/usePaginatedMediaCollection';
+import { MediaEmptyState } from '../shared/MediaBrowserLayout';
 
 interface AudioItem {
   id: number;
@@ -85,7 +86,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
     [initialAlbumId],
   );
   const [selectedItem, setSelectedItem] = useState<AudioItem | null>(null);
-  // const [showAlbumDropdown, setShowAlbumDropdown] = useState(false);
+  const [showAlbumDropdown, setShowAlbumDropdown] = useState(false);
   const [pickerOpenId, setPickerOpenId] = useState<number | null>(null);
   const [investigationsList, setInvestigationsList] = useState<InvestigationListItem[]>([]);
   const [addingId, setAddingId] = useState<number | null>(null);
@@ -609,8 +610,49 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
   return (
     <div className="flex flex-col h-full min-h-[500px] soft-glass-panel-strong overflow-hidden rounded-[var(--radius-lg)]">
       {/* Header */}
-      <div className="app-header-glass px-6 py-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between shrink-0 z-10">
-        <div className="flex flex-col gap-1">
+      <div className="app-header-glass px-3 py-2 md:px-6 md:h-14 flex flex-col gap-2 md:gap-0 md:flex-row md:items-center md:justify-between shrink-0 z-10">
+        {/* Mobile Album Dropdown */}
+        <div className="md:hidden relative">
+          <button
+            onClick={() => setShowAlbumDropdown(!showAlbumDropdown)}
+            className="w-full flex items-center justify-between px-3 py-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] text-sm h-10"
+          >
+            <span className="flex items-center gap-2">
+              <Music size={14} />
+              {selectedAlbum ? albums.find((a) => a.id === selectedAlbum)?.name : 'All Audio'}
+            </span>
+            <Icon name={showAlbumDropdown ? 'ChevronUp' : 'ChevronDown'} size="sm" />
+          </button>
+          {showAlbumDropdown && (
+            <div className="absolute left-0 right-0 mt-1 dropdown-surface z-30 max-h-60 overflow-y-auto">
+              <button
+                className={`w-full px-4 py-3 text-left text-sm flex items-center justify-between ${selectedAlbum === null ? 'bg-cyan-900/20 text-[var(--accent)]' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)]'}`}
+                onClick={() => {
+                  setSelectedAlbum(null);
+                  setShowAlbumDropdown(false);
+                }}
+              >
+                <span>All Audio</span>
+                <span className="text-xs opacity-70">{libraryTotalCount}</span>
+              </button>
+              {albums.map((album) => (
+                <button
+                  key={album.id}
+                  className={`w-full px-4 py-3 text-left text-sm flex items-center justify-between border-t border-[var(--glass-border)] ${selectedAlbum === album.id ? 'bg-cyan-900/20 text-[var(--accent)]' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)]'}`}
+                  onClick={() => {
+                    setSelectedAlbum(album.id);
+                    setShowAlbumDropdown(false);
+                  }}
+                >
+                  <span className="truncate">{album.name}</span>
+                  <span className="text-xs opacity-70">{album.itemCount || 0}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="hidden md:flex flex-col gap-1">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-[var(--radius-lg)] bg-[var(--accent)]/10 border border-[var(--accent)]/20 flex items-center justify-center text-[var(--accent)]">
               <Music size={20} />
@@ -773,10 +815,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
 
           <div ref={containerRef} className="flex-1 overflow-hidden">
             {items.length === 0 && !loading ? (
-              <div className="flex flex-col items-center justify-center h-full text-[var(--text-muted)]">
-                <Icon name="Music" size="lg" className="mb-2 opacity-50" />
-                <p>No audio recordings found</p>
-              </div>
+              <MediaEmptyState icon="Music" message="No audio recordings found" />
             ) : containerWidth > 0 ? (
               <div className="h-full flex flex-col">
                 <List
