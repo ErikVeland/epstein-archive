@@ -63,27 +63,48 @@ src/client/
 │   │   ├── colors.ts               ← all color values as typed constants + CSS var names
 │   │   ├── typography.ts           ← type scale, font families, weights
 │   │   ├── spacing.ts              ← spacing scale
-│   │   ├── surfaces.ts             ← 3 canonical glass surface definitions
+│   │   ├── surfaces.ts             ← canonical surface variant definitions
 │   │   ├── motion.ts               ← easing curves, durations
 │   │   └── index.ts                ← re-exports all tokens
-│   ├── components/
-│   │   ├── Button.tsx              ← replaces GlassButton
-│   │   ├── Surface.tsx             ← typed wrapper for 3 glass variants
-│   │   ├── Badge.tsx               ← risk / nav category / status / count variants
+│   ├── lib/
+│   │   ├── cn.ts                   ← shared cn() utility (clsx + tailwind-merge)
+│   │   ├── variants.ts             ← class-variance-authority (CVA) setup + conventions
+│   │   └── radix.ts                ← Radix glue: forwardRef patterns, asChild types, data-* hooks
+│   ├── components/                 ← primitives only (no domain knowledge)
+│   │   ├── Button.tsx              ← replaces GlassButton; CVA variants, asChild
+│   │   ├── Surface.tsx             ← typed wrapper for canonical glass variants
+│   │   ├── Badge.tsx               ← semantic variants (risk, nav, status, count)
 │   │   ├── Icon.tsx                ← moves from common/, same API
 │   │   ├── EmptyState.tsx          ← replaces all inline empty-state JSX
-│   │   ├── Spinner.tsx             ← replaces all inline animate-spin patterns
+│   │   ├── Spinner.tsx             ← replaces inline animate-spin patterns
+│   │   ├── Tabs.tsx                ← Radix Tabs wrapper (replaces common/Tabs)
+│   │   ├── Select.tsx              ← Radix Select wrapper (replaces GlassDropdown)
+│   │   ├── Dialog.tsx              ← Radix Dialog wrapper (replaces GlassModal)
+│   │   ├── Popover.tsx             ← Radix Popover wrapper
+│   │   └── index.ts
+│   ├── patterns/                   ← shared composites (domain-agnostic, too shared for features)
 │   │   ├── MediaBrowser.tsx        ← shared shell for photo/video/audio/articles
-│   │   └── index.ts                ← re-exports all components
+│   │   ├── Toolbar.tsx             ← flexible toolbar with scrollable item slots
+│   │   ├── FilterBar.tsx           ← search + filter controls composite
+│   │   ├── StatusBanner.tsx        ← error/warning/info banners
+│   │   └── index.ts
 │   └── index.ts                    ← @design-system alias root
 │
 ├── components/                     ← domain components (consumers of @design-system)
-├── index.css                       ← shrinks to keyframes + @font-face only (~4KB)
+├── index.css                       ← base resets, :root CSS vars, keyframes, @font-face
 └── tailwind.config.js              ← references tokens/, color palette locked
 ```
 
 **Path alias:** `@design-system` → `src/client/design-system/index.ts`
 Add to `vite.config.ts` resolve.alias and `tsconfig.json` paths.
+
+### Layer responsibilities
+
+- **`tokens/`** — values only. No React, no classes, no side effects.
+- **`lib/`** — utilities every component needs: `cn()`, CVA, Radix conventions. No UI.
+- **`components/`** — primitives. One clear responsibility each. No domain knowledge.
+- **`patterns/`** — composites built from components. Shared across multiple feature domains. Domain-agnostic (MediaBrowser knows about grids, toolbars, and sidebars — not photos or audio).
+- **`src/client/components/`** — domain components. Know about SubjectCards, FlightTrackers, etc. Import from `@design-system` only.
 
 ---
 
@@ -181,13 +202,13 @@ Tailwind text utilities are restricted to this scale. `text-base`, `text-md`, ar
 
 ### Surfaces (`tokens/surfaces.ts`)
 
-Three canonical variants replace six overlapping CSS classes:
+Three canonical variants replace six overlapping CSS classes. Naming follows semantic intent, not visual description:
 
-| Variant   | CSS class emitted     | Use when                                                      | Replaces                                           |
-| --------- | --------------------- | ------------------------------------------------------------- | -------------------------------------------------- |
-| `base`    | `.ds-surface-base`    | Static content panels, sidebars, page sections                | `.glass-panel`, `.glass-surface`, `.surface-glass` |
-| `card`    | `.ds-surface-card`    | Clickable/interactive items, result rows, expandable sections | `.glass-card`, `.surface-glass-card`               |
-| `overlay` | `.ds-surface-overlay` | Modals, dropdowns, tooltips                                   | `.surface-quiet` + modal styles                    |
+| Variant    | CSS class emitted      | Use when                                                      | Replaces                                           |
+| ---------- | ---------------------- | ------------------------------------------------------------- | -------------------------------------------------- |
+| `default`  | `.ds-surface-default`  | Static content panels, sidebars, page sections                | `.glass-panel`, `.glass-surface`, `.surface-glass` |
+| `elevated` | `.ds-surface-elevated` | Clickable/interactive items, result rows, expandable sections | `.glass-card`, `.surface-glass-card`               |
+| `accent`   | `.ds-surface-accent`   | Modals, dropdowns, highlighted panels, tooltips               | `.surface-quiet` + modal styles                    |
 
 All surface styles are generated from tokens — no hardcoded values in the CSS class definitions. The `Surface.tsx` component is the only entry point; raw class names are not exported.
 
@@ -242,7 +263,7 @@ Typed wrapper for the three glass variants. The only way to render a glass surfa
 
 ```tsx
 <Surface
-  variant="base" | "card" | "overlay"
+  variant="default" | "elevated" | "accent"
   padding="sm" | "md" | "lg" | "none"
   interactive?    // adds hover lift + border-highlight transition
   as?="div" | "section" | "article" | "aside"  // defaults to div
@@ -315,9 +336,87 @@ Completes the abstraction begun with `.media-browser-*` CSS classes. The four me
 
 ---
 
+## Radix-Ready Component Conventions
+
+Every component in `design-system/components/` must follow these conventions from day one. This ensures components can swap Radix internals later without changing call sites.
+
+### Required for all components
+
+1. **`forwardRef`** — every component wraps with `React.forwardRef` so consumers can attach refs
+2. **`asChild`** (where composition matters) — accepts Radix's `Slot` for polymorphic rendering. Button, Badge, Surface, and Icon all support `asChild`
+3. **Controlled + uncontrolled modes** — components with open/closed or selected state must support both `value`/`onChange` (controlled) and `defaultValue` (uncontrolled)
+4. **`data-*` styling hooks** — all interactive state is exposed as data attributes for CSS targeting, not class conditions:
+   - `data-state="open|closed|checked|unchecked"`
+   - `data-disabled` (boolean attribute, present when disabled)
+   - `data-variant="primary|secondary|ghost|danger|nav"`
+   - `data-size="sm|md|lg"`
+   - Allows CSS to style state without JS class manipulation
+5. **Token-driven variants only** — CVA variant definitions reference only design tokens (via Tailwind semantic classes). No hardcoded colors, no arbitrary values.
+6. **No page-level CSS class dependencies** — components must be portable. They cannot depend on classes defined in `index.css` or any CSS file outside the design system.
+7. **Accessible keyboard/focus behavior** — matches the eventual Radix primitive's expected keyboard contract (e.g., Button responds to Enter/Space, Tabs responds to arrow keys) even before Radix is wired in.
+
+### CVA pattern (via `lib/variants.ts`)
+
+All component variants are defined with class-variance-authority:
+
+```ts
+// lib/variants.ts exports a pre-configured cva wrapper
+import { cva, type VariantProps } from 'class-variance-authority';
+export { cva, type VariantProps };
+
+// Usage in Button.tsx:
+const buttonVariants = cva(
+  // base classes (always applied)
+  'inline-flex items-center justify-center rounded font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg-surface disabled:opacity-50 disabled:pointer-events-none',
+  {
+    variants: {
+      variant: {
+        primary: 'bg-accent text-bg-page hover:bg-accent/90 active:scale-[0.99]',
+        secondary:
+          'bg-bg-elevated border border-glass-border text-text-primary hover:border-glass-border-highlight',
+        ghost: 'text-text-secondary hover:bg-bg-elevated hover:text-text-primary',
+        danger: 'bg-accent-danger text-text-primary hover:bg-accent-danger/90',
+        nav: 'text-text-primary', // navCategory prop applies category color via data-category
+      },
+      size: {
+        sm: 'h-7 px-3 text-small gap-1.5',
+        md: 'h-9 px-4 text-body gap-2',
+        lg: 'h-11 px-6 text-body gap-2.5',
+      },
+    },
+    defaultVariants: { variant: 'secondary', size: 'md' },
+  },
+);
+```
+
+### Radix glue (`lib/radix.ts`)
+
+Exports shared types and utilities for wrapping Radix primitives:
+
+```ts
+// Slot for asChild composition
+export { Slot } from '@radix-ui/react-slot';
+
+// Helper type for components that accept asChild
+export type AsChildProps = { asChild?: boolean };
+
+// Consistent data-state helper
+export function useDataState(state: Record<string, boolean | string | undefined>) {
+  return Object.fromEntries(
+    Object.entries(state)
+      .filter(([, v]) => v !== undefined && v !== false)
+      .map(([k, v]) => [`data-${k}`, v === true ? '' : v]),
+  );
+}
+```
+
+---
+
 ## Enforcement
 
-### Layer 1 — ESLint (author-time, red squiggles in editor)
+ESLint is the primary enforcement mechanism — author-time, visible in the editor before code is even saved. The Tailwind color lockdown is a secondary backstop, not the main signal. Violations should never reach CI; they should be caught at the keyboard.
+
+### Layer 1 — ESLint (primary: author-time, red squiggles in editor)
 
 ```js
 'no-restricted-imports': [
@@ -336,7 +435,9 @@ Completes the abstraction begun with `.media-browser-*` CSS classes. The four me
 ]
 ```
 
-### Layer 2 — Tailwind color lockdown (build-time, silent failure in browser)
+### Layer 2 — Tailwind color lockdown (backstop: build-time, silent failure in browser)
+
+The ESLint rule catches hardcoded hex values. The Tailwind lockdown catches cases that slip through — unknown color utilities produce nothing visually. This is a backstop, not the primary line of defense.
 
 The full Tailwind color palette is replaced with only named semantic tokens:
 
@@ -400,18 +501,54 @@ Each wave ends with a gate: `pnpm lint` passes with zero violations, `pnpm type-
 
 ### Wave 0 — Build the design-system layer
 
-**No component changes.** Establish the foundation:
+**No component changes.** Establish the entire foundation before touching any existing component.
 
-- Create `src/client/design-system/` with all token files
-- Refactor existing `GlassButton`, `GlassModal`, `GlassSwitch`, `GlassTooltip`, `GlassDropdown` into `design-system/components/`
-- Add `Icon`, `EmptyState`, `Spinner`, `Badge`, `Surface`, `MediaBrowser` as new components
-- Add `@design-system` path alias to `vite.config.ts` and `tsconfig.json`
-- Implement ESLint rules
-- Lock Tailwind color palette
-- Extend boundary check
-- Update `index.css` to emit CSS custom properties from token values (single source)
+**Path alias + tooling:**
 
-Gate: lint passes, type-check passes, app renders identically to before.
+- Add `@design-system` alias to `vite.config.ts` resolve.alias and `tsconfig.json` paths
+- Install `clsx`, `tailwind-merge`, `class-variance-authority` if not present
+- Install `@radix-ui/react-slot` for `asChild` support
+
+**`lib/` setup:**
+
+- `cn.ts` — `clsx` + `tailwind-merge` utility
+- `variants.ts` — CVA re-export + project conventions in comments
+- `radix.ts` — Slot, AsChildProps type, useDataState helper
+
+**`tokens/` — all token files with typed exports**
+
+**`components/` — new and migrated primitives (Radix-ready conventions applied to all):**
+
+- Migrate `GlassButton` → `Button` (CVA variants, asChild, forwardRef, data-\* hooks)
+- Migrate `GlassModal` → `Dialog` (Radix Dialog wrapper)
+- Migrate `GlassDropdown` → `Select` (Radix Select wrapper)
+- Migrate `GlassSwitch` → `Switch` (already Radix — move location)
+- Migrate `GlassTooltip` → `Tooltip` (already Radix — move location)
+- Migrate `common/Icon` → `Icon` (same API, new location)
+- Add `Surface` (default | elevated | accent, forwardRef, asChild)
+- Add `Badge` (semantic variants, forwardRef)
+- Add `EmptyState`, `Spinner`
+- Add `Tabs` (Radix Tabs wrapper, migrated from common/Tabs)
+
+**`patterns/` — new composites:**
+
+- Add `MediaBrowser`, `Toolbar`, `FilterBar`, `StatusBanner`
+
+**Enforcement:**
+
+- Implement all three ESLint rules
+- Lock Tailwind color palette (replace `extend.colors` with locked `colors`)
+- Extend `check:boundaries` script
+
+**`index.css` scope after Wave 0:**
+
+- Retain: `@font-face`, `@keyframes`, base resets, `:root {}` CSS variable block
+- The `:root` block stays authoritative — values must match `tokens/colors.ts` exactly
+- Remove from this wave: `.media-browser-*` utility classes (move into `MediaBrowser.tsx`)
+- Remaining `.glass-*`, `.surface-*` classes stay until their migration waves remove them
+- Target after Wave 0: ~22KB (keyframes + resets + vars + glass classes pending migration)
+
+Gate: `pnpm lint` zero violations, `pnpm type-check` zero errors, app renders identically to before.
 
 ### Wave 1 — Media (highest drift, in progress)
 
@@ -421,8 +558,8 @@ Gate: lint passes, type-check passes, app renders identically to before.
 
 ### Wave 2 — Common primitives
 
-- `Card.tsx` — use `<Surface variant="card">`, `<Badge>`, `<Icon>`
-- `Tabs.tsx` + `Tabs.css` — migrate styles to token-driven, delete `Tabs.css`
+- `Card.tsx` — use `<Surface variant="elevated">`, `<Badge>`, `<Icon>`
+- `Tabs.tsx` + `Tabs.css` — deleted; consumers updated to use `<Tabs>` from `@design-system`
 - `BatchToolbar.tsx` — use `<Button variant="ghost">` throughout
 - `VirtualList.tsx` — token-based loading/empty states
 - `DocumentCard.css` — delete file, migrate to inline token-based styles
