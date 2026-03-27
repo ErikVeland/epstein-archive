@@ -1,5 +1,16 @@
 # Release Notes
 
+## v17.2.7 - 2026-03-26 - Eliminate White Lines
+
+Removed all light/white UI artifacts across the dark-themed app.
+
+- **AudioBrowser / VideoBrowser**: Removed duplicate `bg-[var(--glass-bg-strong)]` from `aspect-video` containers — the nested semi-transparent background stacked on the card's own background, creating a darker thumbnail region with a visible seam at top/bottom edges
+- **CSS variable**: Defined missing `--app-bg` variable (was undefined/transparent throughout the app)
+- **ClaimsList**: Fixed `bg-[var(--text-primary)]` (light `#e2e8f0`) used as container background; replaced `divide-gray-200` with dark border; swapped `bg-red-50`/`bg-green-50` and light text colors for dark-theme equivalents
+- **Analysis progress bars**: `PatternRecognitionAI`, `CommunicationAnalysis`, `FinancialTransactionAnalysis` — replaced `bg-*-50`/`border-*-200` light progress sections with dark `bg-*-900/20` variants
+- **TableViewer**: `bg-blue-50` info notice → dark blue
+- **EvidenceDetail**: `bg-red-50`/`bg-orange-50` risk rating badges → dark equivalents
+
 ## v17.2.6 - 2026-03-26 - Comprehensive 404 Elimination
 
 Full audit and elimination of all raw `data/...` file paths leaking into client-facing URLs.
