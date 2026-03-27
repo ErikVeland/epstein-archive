@@ -1,5 +1,28 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Newspaper, Search, ChevronDown, ChevronUp, Clock } from 'lucide-react';
+import {
+  Badge,
+  Button,
+  Icon,
+  MediaBrowserCount,
+  MediaBrowserDropdown,
+  MediaBrowserDropdownItem,
+  MediaBrowserEmptyState,
+  MediaBrowserHeader,
+  MediaBrowserMobileTrigger,
+  MediaBrowserPanel,
+  MediaBrowserSearch,
+  MediaBrowserSearchInput,
+  MediaBrowserShell,
+  MediaBrowserSidebar,
+  MediaBrowserSidebarItem,
+  MediaBrowserSidebarTitle,
+  MediaBrowserStatus,
+  MediaBrowserToolbar,
+  MediaBrowserTriggerLabel,
+  Select,
+  Spinner,
+  Surface,
+} from '@design-system';
 import ArticleViewerModal from './ArticleViewerModal';
 import { Article } from './ArticleCard';
 
@@ -33,12 +56,11 @@ export const ArticlesTab: React.FC = () => {
   const [viewerArticle, setViewerArticle] = useState<ArticleContent | null>(null);
   const [showPublicationDropdown, setShowPublicationDropdown] = useState(false);
   const [sortOrder, setSortOrder] = useState<'date' | 'redFlag'>('redFlag');
-
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
 
   const fetchArticles = useCallback(
-    async (pageNum: number, isReset: boolean = false) => {
+    async (pageNum: number, isReset = false) => {
       try {
         setLoading(true);
         const params = new URLSearchParams({
@@ -61,7 +83,6 @@ export const ArticlesTab: React.FC = () => {
         const { data, pagination } = await response.json();
 
         if (Array.isArray(data)) {
-          // Normalize API response
           const normalized: ArticleContent[] = data.map((item: ArticleApiItem) => ({
             id: asNumber(item.id),
             title: asString(item.title),
@@ -85,8 +106,8 @@ export const ArticlesTab: React.FC = () => {
 
           setArticles((prev) => (isReset ? normalized : [...prev, ...normalized]));
           setHasMore(Math.ceil(pagination.total / pagination.limit) > pageNum);
-        } else {
-          if (isReset) setArticles([]);
+        } else if (isReset) {
+          setArticles([]);
         }
       } catch (error) {
         console.error('Error fetching articles:', error);
@@ -99,7 +120,6 @@ export const ArticlesTab: React.FC = () => {
   );
 
   useEffect(() => {
-    // Reset and fetch when filters change
     setArticles([]);
     setPage(1);
     fetchArticles(1, true);
@@ -111,7 +131,6 @@ export const ArticlesTab: React.FC = () => {
     fetchArticles(nextPage);
   };
 
-  // Calculate publication stats (like albums)
   const publications = useMemo((): PublicationStats[] => {
     const pubMap = new Map<string, { count: number; totalRedFlag: number }>();
     for (const article of articles) {
@@ -131,11 +150,6 @@ export const ArticlesTab: React.FC = () => {
       .sort((a, b) => b.count - a.count);
   }, [articles]);
 
-  // Client-side filtering is no longer needed as it's done server-side
-  // But we keep the sorting logic if we want to re-sort fetched items,
-  // though typically server-side sort is preferred.
-  // We'll trust the server order for now or just return 'articles' directly
-  // since we reset on sort change.
   const filteredArticles = articles;
 
   const formatDate = (dateStr: string) => {
@@ -151,29 +165,20 @@ export const ArticlesTab: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full min-h-[500px] soft-glass-panel-strong overflow-hidden rounded-[var(--radius-lg)]">
-      {/* Header with controls */}
-      <div className="app-header-glass flex flex-col md:flex-row md:items-center justify-between px-3 py-2 md:px-6 md:h-14 shrink-0 z-10 gap-2">
-        {/* Mobile Publication Dropdown */}
-        <div className="md:hidden">
-          <button
-            onClick={() => setShowPublicationDropdown(!showPublicationDropdown)}
-            className="w-full flex items-center justify-between px-3 py-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] text-sm h-10"
-          >
-            <span className="flex items-center gap-2">
-              <Newspaper className="w-4 h-4" />
+    <MediaBrowserShell className="soft-glass-panel-strong">
+      <MediaBrowserHeader className="app-header-glass">
+        <div className="relative md:hidden">
+          <MediaBrowserMobileTrigger onClick={() => setShowPublicationDropdown((open) => !open)}>
+            <MediaBrowserTriggerLabel>
+              <Icon name="Newspaper" size="sm" />
               {selectedPublication || 'All Publications'}
-            </span>
-            {showPublicationDropdown ? (
-              <ChevronUp className="w-4 h-4" />
-            ) : (
-              <ChevronDown className="w-4 h-4" />
-            )}
-          </button>
-          {showPublicationDropdown && (
-            <div className="absolute left-3 right-3 mt-1 dropdown-surface z-30 max-h-60 overflow-y-auto">
-              <button
-                className={`w-full px-4 py-3 text-left text-sm flex items-center justify-between ${!selectedPublication ? 'bg-cyan-900/20 text-[var(--accent)]' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)]'}`}
+            </MediaBrowserTriggerLabel>
+            <Icon name={showPublicationDropdown ? 'ChevronUp' : 'ChevronDown'} size="sm" />
+          </MediaBrowserMobileTrigger>
+          {showPublicationDropdown ? (
+            <MediaBrowserDropdown>
+              <MediaBrowserDropdownItem
+                active={!selectedPublication}
                 onClick={() => {
                   setSelectedPublication(null);
                   setShowPublicationDropdown(false);
@@ -181,164 +186,150 @@ export const ArticlesTab: React.FC = () => {
               >
                 <span>All Publications</span>
                 <span className="text-xs opacity-70">{articles.length}</span>
-              </button>
-              {publications.map((pub) => (
-                <button
-                  key={pub.name}
-                  className={`w-full px-4 py-3 text-left text-sm flex items-center justify-between border-t border-[var(--glass-border)] ${selectedPublication === pub.name ? 'bg-cyan-900/20 text-[var(--accent)]' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)]'}`}
+              </MediaBrowserDropdownItem>
+              {publications.map((publication) => (
+                <MediaBrowserDropdownItem
+                  key={publication.name}
+                  active={selectedPublication === publication.name}
                   onClick={() => {
-                    setSelectedPublication(pub.name);
+                    setSelectedPublication(publication.name);
                     setShowPublicationDropdown(false);
                   }}
                 >
-                  <span className="truncate">{pub.name}</span>
-                  <span className="text-xs opacity-70">{pub.count}</span>
-                </button>
+                  <span className="truncate">{publication.name}</span>
+                  <span className="text-xs opacity-70">{publication.count}</span>
+                </MediaBrowserDropdownItem>
               ))}
-            </div>
-          )}
+            </MediaBrowserDropdown>
+          ) : null}
         </div>
 
-        {/* Search */}
-        <div className="w-full md:w-64 flex gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none" />
-            <input
+        <div className="flex w-full gap-2 md:w-64">
+          <MediaBrowserSearch className="relative flex-1">
+            <Icon
+              name="Search"
+              size="sm"
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
+            />
+            <MediaBrowserSearchInput
               type="text"
               placeholder="Search articles..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] pl-9 pr-3 py-2 md:py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--accent)] placeholder-slate-500 transition-all h-8"
+              className="text-sm placeholder-[var(--text-muted)]"
             />
-          </div>
+          </MediaBrowserSearch>
         </div>
 
-        {/* Desktop Sort Controls */}
-        <div className="hidden md:flex items-center gap-3">
-          <span className="text-xs text-[var(--text-muted)] font-medium">Sort by:</span>
-          <select
+        <MediaBrowserToolbar className="hidden md:flex">
+          <MediaBrowserStatus>Sort by:</MediaBrowserStatus>
+          <Select
             value={sortOrder}
             onChange={(e) => setSortOrder(e.target.value as 'date' | 'redFlag')}
-            className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded text-[var(--text-secondary)] text-xs px-2 py-1 focus:outline-none focus:border-[var(--accent)] h-8"
-          >
-            <option value="redFlag">Red Flag Rating</option>
-            <option value="date">Date Published</option>
-          </select>
-
-          <div className="text-xs text-[var(--text-muted)]">
+            options={[
+              { value: 'redFlag', label: 'Red Flag Rating' },
+              { value: 'date', label: 'Date Published' },
+            ]}
+            className="min-h-[var(--control-height-compact)] bg-[var(--glass-bg)] px-[var(--space-2)] text-xs"
+          />
+          <MediaBrowserStatus>
             {filteredArticles.length} of {articles.length} articles
-          </div>
-        </div>
-      </div>
+          </MediaBrowserStatus>
+        </MediaBrowserToolbar>
+      </MediaBrowserHeader>
 
-      <div className="flex flex-1 overflow-hidden relative">
-        {/* Publications sidebar - Hidden on mobile */}
-        <aside className="hidden md:flex w-60 bg-[var(--glass-bg-strong)] border-r border-[var(--glass-border)] flex-col shrink-0">
-          <h3 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider px-4 py-3">
-            Publications
-          </h3>
+      <div className="relative flex flex-1 overflow-hidden">
+        <MediaBrowserSidebar>
+          <MediaBrowserSidebarTitle>Publications</MediaBrowserSidebarTitle>
           <div className="flex-1 overflow-y-auto">
-            <button
-              className={`w-full px-4 py-2 text-left text-sm flex items-center justify-between transition-colors ${!selectedPublication ? 'bg-cyan-900/20 text-[var(--accent)] border-l-2 border-[var(--accent)]' : 'text-[var(--text-muted)] hover:bg-[var(--glass-bg)] hover:text-[var(--text-primary)] border-l-2 border-transparent'}`}
+            <MediaBrowserSidebarItem
+              active={!selectedPublication}
               onClick={() => setSelectedPublication(null)}
             >
               <span className="truncate">All Publications</span>
-              <span className="text-xs opacity-70 bg-[var(--glass-bg)] px-1.5 py-0.5 rounded-full">
-                {articles.length}
-              </span>
-            </button>
-            {publications.map((pub) => (
-              <button
-                key={pub.name}
-                className={`w-full px-4 py-2 text-left text-sm flex items-center justify-between transition-colors ${selectedPublication === pub.name ? 'bg-cyan-900/20 text-[var(--accent)] border-l-2 border-[var(--accent)]' : 'text-[var(--text-muted)] hover:bg-[var(--glass-bg)] hover:text-[var(--text-primary)] border-l-2 border-transparent'}`}
-                onClick={() => setSelectedPublication(pub.name)}
-                title={pub.name}
+              <MediaBrowserCount>{articles.length}</MediaBrowserCount>
+            </MediaBrowserSidebarItem>
+            {publications.map((publication) => (
+              <MediaBrowserSidebarItem
+                key={publication.name}
+                active={selectedPublication === publication.name}
+                onClick={() => setSelectedPublication(publication.name)}
+                title={publication.name}
               >
-                <span className="truncate">{pub.name}</span>
-                <span className="text-xs opacity-70 bg-[var(--glass-bg)] px-1.5 py-0.5 rounded-full">
-                  {pub.count}
-                </span>
-              </button>
+                <span className="truncate">{publication.name}</span>
+                <MediaBrowserCount>{publication.count}</MediaBrowserCount>
+              </MediaBrowserSidebarItem>
             ))}
           </div>
-        </aside>
+        </MediaBrowserSidebar>
 
-        {/* Main Content */}
-        <div className="flex-1 bg-[var(--glass-bg)] flex flex-col overflow-hidden relative">
+        <MediaBrowserPanel className="relative flex flex-1 flex-col bg-[var(--glass-bg)]">
           {loading ? (
-            <div className="absolute inset-0 flex items-center justify-center z-20 bg-[var(--glass-bg)] backdrop-blur-sm">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[var(--accent)]"></div>
+            <div className="absolute inset-0 z-20 flex items-center justify-center bg-[var(--glass-bg)] backdrop-blur-sm">
+              <Spinner label="Loading articles" />
             </div>
           ) : null}
 
-          {/* Articles Grid */}
           <div className="flex-1 overflow-y-auto p-4 md:p-6">
             {filteredArticles.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-[var(--text-muted)]">
-                <Newspaper className="w-12 h-12 mb-2 opacity-50" />
-                <p>No articles found</p>
-              </div>
+              <MediaBrowserEmptyState
+                icon="Newspaper"
+                title="No articles found"
+                description="Try a different publication or search term."
+              />
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
                 {filteredArticles.map((article) => (
                   <a
                     key={article.id}
                     href={article.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group block bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-xl)] overflow-hidden hover:border-[var(--accent)]/50 hover:shadow-[var(--glass-shadow)] hover:shadow-cyan-500/10 transition-all duration-300"
+                    className="group block overflow-hidden rounded-[var(--radius-xl)] border border-[var(--glass-border)] bg-[var(--glass-bg-strong)] transition-all duration-300 hover:border-[var(--accent)]/50 hover:shadow-[var(--glass-shadow)]"
                   >
-                    {/* Hero Image */}
-                    <div className="aspect-[16/9] relative overflow-hidden bg-gradient-to-br from-slate-800 to-slate-900">
+                    <div className="relative aspect-[16/9] overflow-hidden bg-[linear-gradient(135deg,var(--bg-elevated),var(--bg-surface))]">
                       {article.imageUrl ? (
                         <img
                           src={article.imageUrl}
                           alt={article.title}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                           loading="lazy"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Newspaper className="w-16 h-16 text-[var(--text-primary)]" />
+                        <div className="flex h-full w-full items-center justify-center">
+                          <Icon name="Newspaper" size="xl" className="text-[var(--text-primary)]" />
                         </div>
                       )}
-                      {/* Gradient overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-60" />
-                      {/* Red flag badge */}
-                      {article.redFlagRating > 0 && (
-                        <div className="absolute top-3 right-3 bg-red-500/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-bold text-[var(--text-primary)] flex items-center gap-1">
-                          {'🚩'.repeat(Math.min(article.redFlagRating, 5))}
+                      <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-surface)] via-transparent to-transparent opacity-60" />
+                      {article.redFlagRating > 0 ? (
+                        <div className="absolute right-3 top-3">
+                          <Badge tone="danger">Risk {article.redFlagRating}</Badge>
                         </div>
-                      )}
-                      {/* Publication badge */}
+                      ) : null}
                       <div className="absolute bottom-3 left-3">
-                        <span className="px-2.5 py-1 bg-[var(--glass-bg-strong)]/80 backdrop-blur-sm text-[var(--accent)] text-xs font-semibold rounded-full border border-[var(--accent)]/30">
-                          {article.publication}
-                        </span>
+                        <Badge tone="accent">{article.publication}</Badge>
                       </div>
                     </div>
 
-                    {/* Card Content */}
                     <div className="p-5">
-                      <h3 className="text-[var(--text-primary)] font-bold text-lg leading-tight group-hover:text-[var(--accent)] transition-colors mb-2 line-clamp-2">
+                      <h3 className="mb-2 line-clamp-2 text-lg font-bold leading-tight text-[var(--text-primary)] transition-colors group-hover:text-[var(--accent)]">
                         {article.title}
                       </h3>
-                      <p className="text-[var(--text-muted)] text-sm line-clamp-2 mb-4">
+                      <p className="mb-4 line-clamp-2 text-sm text-[var(--text-muted)]">
                         {article.summary || 'No summary available.'}
                       </p>
 
-                      {/* Author and meta */}
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-[var(--text-primary)] text-xs font-bold">
+                          <Surface className="flex h-8 w-8 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--accent),var(--accent-secondary))] text-xs font-bold text-[var(--text-primary)]">
                             {article.author
                               ?.split(' ')
-                              .map((n) => n[0])
+                              .map((name) => name[0])
                               .join('')
                               .slice(0, 2) || '?'}
-                          </div>
+                          </Surface>
                           <div>
-                            <div className="text-sm text-[var(--text-primary)] font-medium">
+                            <div className="text-sm font-medium text-[var(--text-primary)]">
                               {article.author || 'Unknown'}
                             </div>
                             <div className="text-xs text-[var(--text-muted)]">
@@ -346,64 +337,49 @@ export const ArticlesTab: React.FC = () => {
                             </div>
                           </div>
                         </div>
-                        {article.reading_time && (
+                        {article.reading_time ? (
                           <div className="flex items-center gap-1 text-xs text-[var(--text-muted)]">
-                            <Clock className="w-3 h-3" />
+                            <Icon name="Clock" size="xs" />
                             {article.reading_time}
                           </div>
-                        )}
+                        ) : null}
                       </div>
 
-                      {/* Tags */}
-                      {article.tags && (
-                        <div className="flex flex-wrap gap-1.5 mt-4 pt-4 border-t border-[var(--glass-border)]">
+                      {article.tags ? (
+                        <div className="mt-4 flex flex-wrap gap-1.5 border-t border-[var(--glass-border)] pt-4">
                           {article.tags
                             .split(',')
                             .slice(0, 4)
-                            .map((tag, i) => (
-                              <span
-                                key={i}
-                                className="text-xs px-2 py-0.5 bg-[var(--glass-bg)] text-[var(--text-muted)] rounded-full hover:bg-[var(--glass-bg-highlight)] transition-colors"
-                              >
+                            .map((tag, index) => (
+                              <Badge key={index} tone="neutral" size="sm">
                                 {tag.trim()}
-                              </span>
+                              </Badge>
                             ))}
                         </div>
-                      )}
+                      ) : null}
                     </div>
                   </a>
                 ))}
               </div>
             )}
           </div>
-        </div>
+        </MediaBrowserPanel>
       </div>
 
-      {hasMore && (
-        <div className="p-4 flex justify-center border-t border-[var(--glass-border)] bg-[var(--glass-bg-strong)]/50">
-          <button
-            onClick={handleLoadMore}
-            disabled={loading}
-            className="px-6 py-2 bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] rounded-[var(--radius-lg)] transition-colors border border-[var(--glass-border)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-          >
-            {loading ? (
-              <>
-                <div className="w-4 h-4 border-2 border-[var(--glass-border)] border-t-transparent rounded-full animate-spin" />
-                Loading...
-              </>
-            ) : (
-              'Load More Articles'
-            )}
-          </button>
+      {hasMore ? (
+        <div className="flex justify-center border-t border-[var(--glass-border)] bg-[var(--glass-bg-strong)]/50 p-4">
+          <Button onClick={handleLoadMore} disabled={loading} variant="secondary">
+            {loading ? <Spinner label="Loading" /> : 'Load More Articles'}
+          </Button>
         </div>
-      )}
+      ) : null}
 
       <ArticleViewerModal
         article={viewerArticle}
         highlight={searchTerm}
         onClose={() => setViewerArticle(null)}
       />
-    </div>
+    </MediaBrowserShell>
   );
 };
 

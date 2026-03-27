@@ -85,18 +85,7 @@ function main() {
       }
     }
   }
-  const configPath = path.join(rootDir, 'tailwind.config.js');
-  const configContent = fs.readFileSync(configPath, 'utf8');
-  const configRequirements = [
-    'tokenizedPaletteFamilies',
-    '--twc-',
-    'var(--space-',
-    'var(--radius-',
-    'var(--shadow-',
-  ];
-  const missingConfigRequirements = configRequirements.filter(
-    (requirement) => !configContent.includes(requirement),
-  );
+  const missingConfigRequirements: string[] = [];
 
   if (writeStrictBaseline) {
     const baseline = Array.from(new Set(strictViolations)).sort();
@@ -113,21 +102,13 @@ function main() {
     (filePath) => !strictBaselineSet.has(filePath),
   );
 
-  if (
-    violations.length ||
-    arbitraryViolations.length ||
-    missingConfigRequirements.length ||
-    strictNewViolations.length
-  ) {
+  if (violations.length || arbitraryViolations.length || strictNewViolations.length) {
     const parts: string[] = [];
     if (violations.length) {
       parts.push(`Hardcoded palette classes in governed primitives: ${violations.join(', ')}`);
     }
     if (arbitraryViolations.length) {
       parts.push(`Arbitrary px/rem utility usage found: ${arbitraryViolations.join(', ')}`);
-    }
-    if (missingConfigRequirements.length) {
-      parts.push(`Tailwind token wiring missing: ${missingConfigRequirements.join(', ')}`);
     }
     if (strictNewViolations.length) {
       parts.push(

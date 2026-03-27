@@ -15,36 +15,33 @@ interface EvidenceResultCardProps {
   onPersonClick: (person: Person) => void;
 }
 
+const likelihoodToneClass: Record<string, string> = {
+  HIGH: 'tone-danger',
+  MEDIUM: 'tone-warning',
+  LOW: 'tone-success',
+};
+
 export function EvidenceResultCard({ result, onPersonClick }: EvidenceResultCardProps) {
+  const likelihoodTone =
+    result.person.likelihoodScore !== undefined
+      ? (likelihoodToneClass[result.person.likelihoodScore] ?? 'tone-info')
+      : 'tone-info';
+
   return (
-    <div className="bg-[var(--glass-bg)] rounded-[var(--radius-xl)] border border-[var(--glass-border)] overflow-hidden">
-      {/* Person Header - Mobile-optimized with stacked layout */}
-      <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-4 py-3 border-b border-[var(--glass-border)]">
-        {/* Entity Name - Always prominent at top */}
+    <div className="glass-panel overflow-hidden rounded-[var(--radius-xl)]">
+      <div className="soft-glass-panel border-b border-[var(--glass-border)] px-4 py-3">
         <button
           onClick={() => onPersonClick(result.person)}
-          className="text-lg md:text-base font-bold text-[var(--text-primary)] hover:text-[var(--accent)] transition-colors mb-2 md:mb-0 block text-left w-full truncate"
+          className="mb-3 block w-full truncate text-left text-lg font-bold text-[var(--text-primary)] transition-colors hover:text-[var(--accent)] md:mb-2 md:text-base"
           title="Click to view full profile"
         >
           {result.person.name}
         </button>
 
-        {/* Metadata - Stacked on mobile, inline on desktop */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-          {/* Tags row */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <Icon name="User" size="sm" color="primary" className="shrink-0 hidden md:block" />
-            <span
-              className={`px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase shrink-0 ${
-                result.person.likelihoodScore === 'HIGH'
-                  ? 'bg-red-900/80 text-red-200'
-                  : result.person.likelihoodScore === 'MEDIUM'
-                    ? 'bg-yellow-900/80 text-yellow-200'
-                    : 'bg-green-900/80 text-green-200'
-              }`}
-            >
-              {result.person.likelihoodScore}
-            </span>
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-wrap items-center gap-2">
+            <Icon name="User" size="sm" color="primary" className="hidden shrink-0 md:block" />
+            <span className={`status-chip ${likelihoodTone}`}>{result.person.likelihoodScore}</span>
             {result.person.redFlagRating !== undefined && (
               <RedFlagIndex
                 value={result.person.redFlagRating}
@@ -55,11 +52,10 @@ export function EvidenceResultCard({ result, onPersonClick }: EvidenceResultCard
             )}
           </div>
 
-          {/* Stats and actions - stacked text on mobile */}
-          <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
-            <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2 text-xs text-[var(--text-muted)]">
+          <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-3">
+            <div className="flex flex-col gap-1 text-xs text-[var(--text-muted)] md:flex-row md:items-center md:gap-2">
               <span>{result.person.mentions?.toLocaleString()} mentions</span>
-              <span className="hidden md:inline text-[var(--text-primary)]">•</span>
+              <span className="hidden text-[var(--text-primary)] md:inline">•</span>
               <span>{result.person.files} files</span>
             </div>
             <AddToInvestigationButton
@@ -71,43 +67,40 @@ export function EvidenceResultCard({ result, onPersonClick }: EvidenceResultCard
                 sourceId: result.person.id?.toString() || '',
               }}
               variant="quick"
-              className="hover:bg-[var(--glass-bg-highlight)] self-start md:self-auto"
+              className="self-start hover:bg-[var(--glass-bg-highlight)] md:self-auto"
             />
           </div>
         </div>
       </div>
 
-      {/* Evidence Types */}
-      <div className="p-4 border-b border-[var(--glass-border)]">
+      <div className="border-b border-[var(--glass-border)] p-4">
         <div className="flex flex-wrap gap-2">
-          {result.person.evidenceTypes.map((type, i) => (
-            <span key={i} className="px-2 py-1 bg-blue-900 text-blue-200 rounded text-xs">
+          {result.person.evidenceTypes.map((type, index) => (
+            <span key={index} className="status-chip tone-info">
               {type.replace('_', ' ').toUpperCase()}
             </span>
           ))}
         </div>
       </div>
 
-      {/* Matching Contexts */}
       {result.matchingContexts.length > 0 && (
-        <div className="p-4 border-b border-[var(--glass-border)]">
+        <div className="border-b border-[var(--glass-border)] p-4">
           <h4
-            className="text-sm font-medium text-[var(--text-secondary)] mb-3 flex items-center gap-2"
+            className="mb-3 flex items-center gap-2 text-sm font-medium text-[var(--text-secondary)]"
             aria-level={3}
           >
             <Icon name="FileText" size="sm" />
             Contexts ({result.matchingContexts.length})
           </h4>
-          {/* Microcopy for Contexts */}
-          <div className="text-xs text-[var(--text-muted)] mb-3 flex items-start gap-1">
-            <Icon name="Info" size="xs" className="mt-0.5 flex-shrink-0" />
+          <div className="mb-3 flex items-start gap-1 text-xs text-[var(--text-muted)]">
+            <Icon name="Info" size="xs" className="mt-0.5 shrink-0" />
             <span>Relevant excerpts from documents mentioning this subject</span>
           </div>
           <div className="space-y-3">
-            {result.matchingContexts.map((context, i) => (
-              <div key={i} className="bg-[var(--glass-bg-strong)] p-3 rounded-[var(--radius-lg)]">
-                <div className="text-sm text-[var(--text-secondary)] mb-2">{context.context}</div>
-                <div className="flex items-center gap-2 text-xs text-[var(--text-muted)] overflow-hidden">
+            {result.matchingContexts.map((context, index) => (
+              <div key={index} className="soft-glass-panel rounded-[var(--radius-lg)] p-3">
+                <div className="mb-2 text-sm text-[var(--text-secondary)]">{context.context}</div>
+                <div className="flex items-center gap-2 overflow-hidden text-xs text-[var(--text-muted)]">
                   <Icon name="FileText" size="xs" className="shrink-0" />
                   <span className="truncate">{context.file}</span>
                   {context.date !== 'Unknown' && (
@@ -124,32 +117,29 @@ export function EvidenceResultCard({ result, onPersonClick }: EvidenceResultCard
         </div>
       )}
 
-      {/* Matching Red Flag Passages */}
       {result.matchingPassages.length > 0 && (
-        <div className="p-4 bg-red-900 bg-opacity-20">
-          <h4
-            className="text-sm font-medium text-red-300 mb-3 flex items-center gap-2"
-            aria-level={3}
-          >
-            <Icon name="AlertTriangle" size="sm" color="danger" />
-            Key Passages ({result.matchingPassages.length})
-          </h4>
-          {/* Microcopy for Key Passages */}
-          <div className="text-xs text-red-200 mb-3 flex items-start gap-1">
-            <Icon name="Info" size="xs" className="mt-0.5 flex-shrink-0" />
-            <span>Excerpts containing flagged keywords or significant mentions</span>
+        <div className="p-4">
+          <div className="status-banner status-banner-danger mb-3">
+            <div>
+              <h4 className="mb-1 flex items-center gap-2 text-sm font-medium" aria-level={3}>
+                <Icon name="AlertTriangle" size="sm" color="danger" />
+                Key Passages ({result.matchingPassages.length})
+              </h4>
+              <div className="flex items-start gap-1 text-xs">
+                <Icon name="Info" size="xs" className="mt-0.5 shrink-0" />
+                <span>Excerpts containing flagged keywords or significant mentions</span>
+              </div>
+            </div>
           </div>
           <div className="space-y-3">
-            {result.matchingPassages.map((passage, i) => (
+            {result.matchingPassages.map((passage, index) => (
               <div
-                key={i}
-                className="bg-red-900 bg-opacity-30 p-3 rounded-[var(--radius-lg)] border border-red-700"
+                key={index}
+                className="rounded-[var(--radius-lg)] border border-[color:color-mix(in_srgb,var(--accent-danger)_30%,transparent)] bg-[color:color-mix(in_srgb,var(--accent-danger)_10%,transparent)] p-3"
               >
-                <div className="text-sm text-red-200 mb-2">{passage.passage}</div>
-                <div className="flex items-center gap-2 text-xs text-red-400">
-                  <span className="px-2 py-1 bg-red-800 rounded">
-                    {passage.keyword.toUpperCase()}
-                  </span>
+                <div className="mb-2 text-sm text-[var(--text-primary)]">{passage.passage}</div>
+                <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--text-muted)]">
+                  <span className="status-chip tone-danger">{passage.keyword.toUpperCase()}</span>
                   <span>•</span>
                   <span>{passage.filename}</span>
                 </div>

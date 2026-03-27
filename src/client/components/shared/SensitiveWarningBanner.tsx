@@ -35,20 +35,20 @@ export function SensitiveWarningBanner({
     mediaType === 'audio' ? 'Listener' : mediaType === 'video' ? 'Viewer' : 'Viewer';
 
   return (
-    <div className="bg-red-900/80 border-b border-red-700 px-4 py-3 flex items-start gap-3 relative">
-      <AlertTriangle className="text-red-400 shrink-0 mt-0.5" size={20} />
+    <div className="status-banner status-banner-danger relative rounded-none border-x-0 border-t-0">
+      <AlertTriangle className="shrink-0 mt-0.5" size={20} />
       <div className="flex-1 pr-6">
-        <h4 className="text-red-200 font-bold text-sm uppercase tracking-wider">
+        <h4 className="font-bold text-sm uppercase tracking-wider">
           Sensitive & Disturbing Content
         </h4>
-        <p className="text-red-300/90 text-sm mt-1">
+        <p className="text-sm mt-1 opacity-90">
           This album contains {mediaTypeLabel} testimony from victims and survivors. Content may be
           graphic, traumatic, and disturbing. {discretionLabel} discretion is strongly advised.
         </p>
       </div>
       <button
         onClick={handleDismiss}
-        className="absolute right-2 top-2 p-1.5 text-red-300/60 hover:text-red-200 hover:bg-red-800/50 rounded-full transition-colors"
+        className="absolute right-2 top-2 p-1.5 rounded-full transition-colors opacity-70 hover:opacity-100 hover:bg-[var(--glass-bg-highlight)]"
         aria-label="Dismiss warning"
       >
         <svg

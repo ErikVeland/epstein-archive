@@ -1,7 +1,7 @@
 import React from 'react';
 import Icon, { IconName } from './Icon';
 import { RedFlagIndex } from '../visualizations/RedFlagIndex';
-import { spacingTokens } from '../../styles/designSystem';
+import { spacingTokens } from '@design-system';
 
 interface CardProps {
   children?: React.ReactNode;

@@ -2,12 +2,30 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query';
 import { createPortal } from 'react-dom';
 import { FixedSizeList as List } from 'react-window';
+import {
+  Icon,
+  MediaBrowserCount,
+  MediaBrowserDropdown,
+  MediaBrowserDropdownItem,
+  MediaBrowserHeader,
+  MediaBrowserMobileTrigger,
+  MediaBrowserPanel,
+  MediaBrowserSearch,
+  MediaBrowserSearchInput,
+  MediaBrowserShell,
+  MediaBrowserSidebar,
+  MediaBrowserSidebarItem,
+  MediaBrowserSidebarTitle,
+  MediaBrowserStatus,
+  MediaBrowserToolbar,
+  MediaBrowserTriggerLabel,
+  Spinner,
+  StatusBanner,
+} from '@design-system';
 import { AudioPlayer, TranscriptSegment, Chapter } from './AudioPlayer';
-import { Music, CheckSquare, Square, Clock, Calendar } from 'lucide-react';
 import { SensitiveContent } from '../common/SensitiveContent';
 import BatchToolbar from '../common/BatchToolbar';
 import { SensitiveWarningBanner } from '../shared/SensitiveWarningBanner';
-import Icon from '../common/Icon';
 import { apiClient } from '../../services/apiClient';
 import { usePaginatedMediaCollection } from '../../hooks/usePaginatedMediaCollection';
 import { MediaEmptyState } from '../shared/MediaBrowserLayout';
@@ -405,9 +423,13 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                     {isBatchMode && (
                       <div className="absolute top-2 left-2 z-20">
                         {isSelected ? (
-                          <CheckSquare className="text-[var(--accent)] fill-cyan-950" />
+                          <Icon
+                            name="CheckSquare"
+                            size="sm"
+                            className="text-[var(--accent)] fill-cyan-950"
+                          />
                         ) : (
-                          <Square className="text-[var(--text-primary)]/70" />
+                          <Icon name="Square" size="sm" className="text-[var(--text-primary)]/70" />
                         )}
                       </div>
                     )}
@@ -434,13 +456,13 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                         />
                       ) : (
                         <div className="w-16 h-16 rounded-full bg-[var(--glass-bg)] flex items-center justify-center border border-[var(--glass-border)] group-hover:scale-110 transition-transform shadow-[var(--glass-shadow)]">
-                          <Music size={32} className="text-[var(--accent)]" />
+                          <Icon name="Music" size="xl" color="primary" />
                         </div>
                       )}
 
                       {(item.metadata?.duration || 0) > 0 && (
                         <div className="absolute bottom-2 right-2 px-2 py-1 bg-[var(--glass-bg-strong)] text-[var(--text-primary)] text-xs rounded-full font-mono flex items-center gap-1">
-                          <Clock size={10} />
+                          <Icon name="Clock" size="xs" ariaHidden={true} />
                           {Math.floor((item.metadata?.duration || 0) / 60)}:
                           {((item.metadata?.duration || 0) % 60).toString().padStart(2, '0')}
                         </div>
@@ -481,7 +503,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
 
                     <div className="mt-auto space-y-2">
                       <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
-                        <Calendar size={12} />
+                        <Icon name="Calendar" size="xs" ariaHidden={true} />
                         <span>{formatDate(item.createdAt)}</span>
                       </div>
                       {item.description && (
@@ -608,54 +630,51 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
   }, [selectedItem, selectedAlbum]);
 
   return (
-    <div className="flex flex-col h-full min-h-[500px] soft-glass-panel-strong overflow-hidden rounded-[var(--radius-lg)]">
+    <MediaBrowserShell className="soft-glass-panel-strong">
       {/* Header */}
-      <div className="app-header-glass px-3 py-2 md:px-6 md:h-14 flex flex-col gap-2 md:gap-0 md:flex-row md:items-center md:justify-between shrink-0 z-10">
+      <MediaBrowserHeader className="app-header-glass">
         {/* Mobile Album Dropdown */}
         <div className="md:hidden relative">
-          <button
-            onClick={() => setShowAlbumDropdown(!showAlbumDropdown)}
-            className="w-full flex items-center justify-between px-3 py-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] text-sm h-10"
-          >
-            <span className="flex items-center gap-2">
-              <Music size={14} />
+          <MediaBrowserMobileTrigger onClick={() => setShowAlbumDropdown(!showAlbumDropdown)}>
+            <MediaBrowserTriggerLabel>
+              <Icon name="Music" size="sm" />
               {selectedAlbum ? albums.find((a) => a.id === selectedAlbum)?.name : 'All Audio'}
-            </span>
+            </MediaBrowserTriggerLabel>
             <Icon name={showAlbumDropdown ? 'ChevronUp' : 'ChevronDown'} size="sm" />
-          </button>
+          </MediaBrowserMobileTrigger>
           {showAlbumDropdown && (
-            <div className="absolute left-0 right-0 mt-1 dropdown-surface z-30 max-h-60 overflow-y-auto">
-              <button
-                className={`w-full px-4 py-3 text-left text-sm flex items-center justify-between ${selectedAlbum === null ? 'bg-cyan-900/20 text-[var(--accent)]' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)]'}`}
+            <MediaBrowserDropdown className="max-h-60">
+              <MediaBrowserDropdownItem
+                active={selectedAlbum === null}
                 onClick={() => {
                   setSelectedAlbum(null);
                   setShowAlbumDropdown(false);
                 }}
               >
                 <span>All Audio</span>
-                <span className="text-xs opacity-70">{libraryTotalCount}</span>
-              </button>
+                <MediaBrowserCount>{libraryTotalCount}</MediaBrowserCount>
+              </MediaBrowserDropdownItem>
               {albums.map((album) => (
-                <button
+                <MediaBrowserDropdownItem
                   key={album.id}
-                  className={`w-full px-4 py-3 text-left text-sm flex items-center justify-between border-t border-[var(--glass-border)] ${selectedAlbum === album.id ? 'bg-cyan-900/20 text-[var(--accent)]' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)]'}`}
+                  active={selectedAlbum === album.id}
                   onClick={() => {
                     setSelectedAlbum(album.id);
                     setShowAlbumDropdown(false);
                   }}
                 >
                   <span className="truncate">{album.name}</span>
-                  <span className="text-xs opacity-70">{album.itemCount || 0}</span>
-                </button>
+                  <MediaBrowserCount>{album.itemCount || 0}</MediaBrowserCount>
+                </MediaBrowserDropdownItem>
               ))}
-            </div>
+            </MediaBrowserDropdown>
           )}
         </div>
 
         <div className="hidden md:flex flex-col gap-1">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-[var(--radius-lg)] bg-[var(--accent)]/10 border border-[var(--accent)]/20 flex items-center justify-center text-[var(--accent)]">
-              <Music size={20} />
+              <Icon name="Music" size="lg" />
             </div>
             <div>
               <h2 className="text-xl font-bold text-[var(--text-primary)] tracking-tight">
@@ -710,30 +729,30 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
           )}
         </div>
 
-        <div className="flex items-center gap-3">
+        <MediaBrowserToolbar className="media-browser-toolbar-scroll">
           {/* Transcript search */}
-          <div className="relative w-64">
+          <MediaBrowserSearch className="w-64">
             <Icon
               name="Search"
               size="sm"
               className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none"
             />
-            <input
+            <MediaBrowserSearchInput
               type="text"
               value={transcriptSearch}
               onChange={(e) => setTranscriptSearch(e.target.value)}
               placeholder={
                 selectedAlbum ? 'Search transcripts in this album…' : 'Search transcripts…'
               }
-              className="w-full bg-[var(--app-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/50 placeholder-[var(--text-muted)] transition-all border-hover-[var(--glass-border-highlight)]"
+              className="text-sm placeholder-[var(--text-muted)]"
             />
-          </div>
+          </MediaBrowserSearch>
 
           <div className="h-8 w-[1px] bg-[var(--glass-border)] mx-1 hidden md:block"></div>
 
           <button
             onClick={() => setIsBatchMode(!isBatchMode)}
-            className={`px-4 py-2 rounded-[var(--radius-lg)] text-xs font-bold uppercase tracking-wider transition-all shadow-[var(--glass-shadow)] ${
+            className={`control px-[var(--space-4)] text-xs font-bold uppercase tracking-wider ${
               isBatchMode
                 ? 'bg-[var(--accent)] text-[var(--text-primary)] ring-2 ring-[var(--accent)]/30'
                 : 'bg-[var(--glass-bg)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)]'
@@ -756,62 +775,56 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                 void 0;
               }
             }}
-            className="px-4 py-2 rounded-[var(--radius-lg)] text-xs font-bold uppercase tracking-wider bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-[var(--text-primary)] border border-amber-500/50 shadow-[var(--glass-shadow)] shadow-amber-900/20 active:scale-95 transition-all flex items-center gap-2"
+            className="control px-[var(--space-4)] text-xs font-bold uppercase tracking-wider bg-[var(--accent-warning)]/20 text-[var(--text-primary)] border-[var(--accent-warning)]/40 active:scale-95"
           >
             <Icon name="ExternalLink" size="xs" />
             <span>Open Investigation</span>
           </button>
-        </div>
-      </div>
+        </MediaBrowserToolbar>
+      </MediaBrowserHeader>
 
       <div className="flex flex-1 overflow-hidden relative">
         {/* Albums sidebar - Hidden on mobile */}
-        <aside className="hidden md:flex w-60 bg-[var(--glass-bg-strong)] border-r border-[var(--glass-border)] flex-col shrink-0">
-          <h3 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider px-4 py-3">
-            Albums
-          </h3>
+        <MediaBrowserSidebar className="w-60">
+          <MediaBrowserSidebarTitle>Albums</MediaBrowserSidebarTitle>
           <div className="flex-1 overflow-y-auto">
-            <button
-              className={`w-full px-4 py-2 text-left text-sm flex items-center justify-between transition-colors ${selectedAlbum === null ? 'bg-cyan-900/20 text-[var(--accent)] border-l-2 border-[var(--accent)]' : 'text-[var(--text-muted)] hover:bg-[var(--glass-bg)] hover:text-[var(--text-primary)] border-l-2 border-transparent'}`}
+            <MediaBrowserSidebarItem
+              active={selectedAlbum === null}
               onClick={() => setSelectedAlbum(null)}
             >
               <span className="truncate">All Audio</span>
-              <span className="text-xs opacity-70 bg-[var(--glass-bg)] px-1.5 py-0.5 rounded-full">
-                {libraryTotalCount}
-              </span>
-            </button>
+              <MediaBrowserCount>{libraryTotalCount}</MediaBrowserCount>
+            </MediaBrowserSidebarItem>
             {albums.map((album) => (
-              <button
+              <MediaBrowserSidebarItem
                 key={album.id}
-                className={`w-full px-4 py-2 text-left text-sm flex items-center justify-between transition-colors ${selectedAlbum === album.id ? 'bg-cyan-900/20 text-[var(--accent)] border-l-2 border-[var(--accent)]' : 'text-[var(--text-muted)] hover:bg-[var(--glass-bg)] hover:text-[var(--text-primary)] border-l-2 border-transparent'}`}
+                active={selectedAlbum === album.id}
                 onClick={() => setSelectedAlbum(album.id)}
                 title={album.name}
               >
                 <span className="truncate">{album.name}</span>
-                <span className="text-xs opacity-70 bg-[var(--glass-bg)] px-1.5 py-0.5 rounded-full">
-                  {album.itemCount || 0}
-                </span>
-              </button>
+                <MediaBrowserCount>{album.itemCount || 0}</MediaBrowserCount>
+              </MediaBrowserSidebarItem>
             ))}
           </div>
-        </aside>
+        </MediaBrowserSidebar>
 
         {/* Main Content */}
-        <div className="flex-1 bg-[var(--app-bg)] flex flex-col overflow-hidden">
+        <MediaBrowserPanel className="relative flex flex-1 flex-col bg-[var(--app-bg)]">
           {loading && items.length === 0 ? (
-            <div className="absolute inset-0 flex items-center justify-center z-20 bg-[var(--app-bg)]/50 backdrop-blur-sm">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[var(--accent)]"></div>
+            <div className="absolute inset-0 z-20 flex items-center justify-center bg-[var(--app-bg)]/50 backdrop-blur-sm">
+              <Spinner label="Loading audio" />
             </div>
           ) : null}
 
           {/* Sensitive Content Warning Banner */}
           {showSensitiveWarning && <SensitiveWarningBanner mediaType="audio" />}
 
-          {error && (
-            <div className="bg-red-900/20 border border-red-500/50 text-red-200 p-4 mx-6 mt-6 rounded-[var(--radius-lg)]">
+          {error ? (
+            <StatusBanner tone="danger" className="mx-6 mt-6">
               {error}
-            </div>
-          )}
+            </StatusBanner>
+          ) : null}
 
           <div ref={containerRef} className="flex-1 overflow-hidden">
             {items.length === 0 && !loading ? (
@@ -854,19 +867,19 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                 </List>
                 {loading && (
                   <div className="py-4 flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-[var(--accent)]"></div>
+                    <Spinner label="Loading more audio" size="sm" />
                   </div>
                 )}
               </div>
             ) : null}
           </div>
-        </div>
+        </MediaBrowserPanel>
       </div>
 
       {/* Footer Status Bar */}
       <div className="h-6 bg-[var(--glass-bg-strong)] border-t border-[var(--glass-border)] flex items-center justify-between px-3 text-[10px] text-[var(--text-muted)] select-none shrink-0">
-        <div>{items.length} items</div>
-        <div>{selectedAlbum ? currentAlbum?.name : 'All Audio'}</div>
+        <MediaBrowserStatus>{items.length} items</MediaBrowserStatus>
+        <MediaBrowserStatus>{selectedAlbum ? currentAlbum?.name : 'All Audio'}</MediaBrowserStatus>
       </div>
 
       {/* Batch Toolbar */}
@@ -929,6 +942,6 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
           </div>,
           document.body,
         )}
-    </div>
+    </MediaBrowserShell>
   );
 };

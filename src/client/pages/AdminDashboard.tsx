@@ -76,6 +76,15 @@ type UserRole = User['role'];
 const isUserRole = (value: string): value is UserRole =>
   value === 'admin' || value === 'investigator' || value === 'viewer';
 
+const adminTabs = [
+  { key: 'users', label: 'User Management', icon: Users },
+  { key: 'audit', label: 'Audit Logs', icon: Activity },
+  { key: 'system', label: 'System Health', icon: Server },
+  { key: 'review', label: 'Agentic Review', icon: ShieldCheck },
+  { key: 'ingestion', label: 'Ingestion History', icon: RefreshCw },
+  { key: 'backups', label: 'Backups', icon: Database },
+] as const;
+
 export const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<
     'users' | 'audit' | 'review' | 'system' | 'ingestion' | 'backups'
@@ -308,18 +317,18 @@ export const AdminDashboard: React.FC = () => {
       <div className="w-full max-w-7xl mx-auto px-4 py-8 space-y-8">
         {/* Header */}
         {error && (
-          <div className="mb-4 flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+          <div className="status-banner status-banner-danger mb-4 text-sm">
             <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0" />
             <div className="flex-1">
               <p className="font-medium">An error occurred while loading admin data.</p>
-              <p className="mt-1 text-red-200/80 break-all">{error}</p>
+              <p className="mt-1 break-all opacity-80">{error}</p>
             </div>
             <CloseButton
               type="button"
               onClick={() => setError('')}
               size="sm"
               label="Dismiss error"
-              className="ml-2 border-red-700/60 bg-red-950/60 text-red-200 hover:bg-red-900/70 hover:text-[var(--text-primary)]"
+              className="ml-2 border-[var(--accent-danger)]/40 bg-[var(--glass-bg)] text-inherit hover:bg-[var(--glass-bg-highlight)] hover:text-[var(--text-primary)]"
             />
           </div>
         )}
@@ -337,7 +346,7 @@ export const AdminDashboard: React.FC = () => {
           <div className="flex items-center gap-3">
             <button
               onClick={handleLogout}
-              className="flex items-center gap-2 px-4 py-2 bg-[var(--glass-bg-strong)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-lg transition-colors border border-[var(--glass-border)]"
+              className="control bg-[var(--glass-bg-strong)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
             >
               <LogOut size={18} />
               <span>Log Out</span>
@@ -346,73 +355,17 @@ export const AdminDashboard: React.FC = () => {
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex space-x-1 bg-[var(--glass-bg)]/40 p-1.5 rounded-2xl shadow-[var(--glass-shadow-soft)] w-fit backdrop-blur-md">
-          <button
-            onClick={() => setActiveTab('users')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === 'users'
-                ? 'bg-[var(--accent)] text-[var(--text-primary)] shadow-lg shadow-[var(--accent)]/20'
-                : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)]'
-            }`}
-          >
-            <Users size={18} />
-            User Management
-          </button>
-          <button
-            onClick={() => setActiveTab('audit')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === 'audit'
-                ? 'bg-[var(--accent)] text-[var(--text-primary)] shadow-lg shadow-[var(--accent)]/20'
-                : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)]'
-            }`}
-          >
-            <Activity size={18} />
-            Audit Logs
-          </button>
-          <button
-            onClick={() => setActiveTab('system')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === 'system'
-                ? 'bg-[var(--accent)] text-[var(--text-primary)] shadow-lg shadow-[var(--accent)]/20'
-                : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)]'
-            }`}
-          >
-            <Server size={18} />
-            System Health
-          </button>
-          <button
-            onClick={() => setActiveTab('review')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === 'review'
-                ? 'bg-[var(--accent)] text-[var(--text-primary)] shadow-lg shadow-[var(--accent)]/20'
-                : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)]'
-            }`}
-          >
-            <ShieldCheck size={18} />
-            Agentic Review
-          </button>
-          <button
-            onClick={() => setActiveTab('ingestion')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === 'ingestion'
-                ? 'bg-[var(--accent)] text-[var(--text-primary)] shadow-lg shadow-[var(--accent)]/20'
-                : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)]'
-            }`}
-          >
-            <RefreshCw size={18} />
-            Ingestion History
-          </button>
-          <button
-            onClick={() => setActiveTab('backups')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === 'backups'
-                ? 'bg-[var(--accent)] text-[var(--text-primary)] shadow-lg shadow-[var(--accent)]/20'
-                : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)]'
-            }`}
-          >
-            <Database size={18} />
-            Backups
-          </button>
+        <div className="admin-tab-list">
+          {adminTabs.map(({ key, label, icon: TabIcon }) => (
+            <button
+              key={key}
+              onClick={() => setActiveTab(key)}
+              className={`admin-tab-button ${activeTab === key ? 'is-active' : ''}`}
+            >
+              <TabIcon size={18} />
+              {label}
+            </button>
+          ))}
         </div>
 
         {/* --- USERS TAB --- */}
@@ -420,7 +373,7 @@ export const AdminDashboard: React.FC = () => {
           <div className="space-y-6 animate-in fade-in duration-300">
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="p-6 rounded-2xl bg-[var(--glass-bg)]/30 border border-[var(--glass-border)]/50 backdrop-blur-xl shadow-[var(--glass-shadow-soft)] hover:-translate-y-1 hover:shadow-[var(--glass-shadow)] transition-all duration-300 group">
+              <div className="admin-stat-card group">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-[10px] uppercase tracking-[0.2em] font-bold text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors">
                     Total Users
@@ -436,18 +389,18 @@ export const AdminDashboard: React.FC = () => {
                   <h3 className="text-[10px] uppercase tracking-[0.2em] font-bold text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors">
                     Admins
                   </h3>
-                  <Shield className="text-purple-400 w-5 h-5 opacity-70 group-hover:opacity-100 transition-opacity" />
+                  <Shield className="w-5 h-5 opacity-70 text-[var(--accent-warning)] group-hover:opacity-100 transition-opacity" />
                 </div>
                 <div className="text-5xl font-light tracking-tighter text-[var(--text-primary)] font-mono">
                   {users.filter((u) => u.role === 'admin').length}
                 </div>
               </div>
-              <div className="p-6 rounded-2xl bg-[var(--glass-bg)]/30 border border-[var(--glass-border)]/50 backdrop-blur-xl shadow-[var(--glass-shadow-soft)] hover:-translate-y-1 hover:shadow-[var(--glass-shadow)] transition-all duration-300 group">
+              <div className="admin-stat-card group">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-[10px] uppercase tracking-[0.2em] font-bold text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors">
                     Active (24h)
                   </h3>
-                  <Check className="text-green-400 w-5 h-5 opacity-70 group-hover:opacity-100 transition-opacity" />
+                  <Check className="w-5 h-5 opacity-70 text-[var(--accent-success)] group-hover:opacity-100 transition-opacity" />
                 </div>
                 <div className="text-5xl font-light tracking-tighter text-[var(--text-primary)] font-mono">
                   {
@@ -477,7 +430,7 @@ export const AdminDashboard: React.FC = () => {
                   </div>
                   <button
                     onClick={openCreateModal}
-                    className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] hover:brightness-110 text-[var(--text-primary)] rounded-lg transition-colors shadow-lg shadow-[var(--accent)]/20 whitespace-nowrap"
+                    className="control whitespace-nowrap bg-[var(--accent)] text-[var(--text-primary)] shadow-lg shadow-[var(--accent)]/20"
                   >
                     <UserPlus size={18} />
                     <span>Add User</span>
@@ -517,7 +470,7 @@ export const AdminDashboard: React.FC = () => {
                         >
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center font-medium text-sm">
+                              <div className="w-8 h-8 rounded-full tone-info flex items-center justify-center font-medium text-sm">
                                 {user.username.charAt(0).toUpperCase()}
                               </div>
                               <div className="font-medium text-[var(--text-primary)]">
@@ -529,10 +482,10 @@ export const AdminDashboard: React.FC = () => {
                             <span
                               className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border ${
                                 user.role === 'admin'
-                                  ? 'bg-purple-500/10 text-purple-400 border-purple-500/20'
+                                  ? 'tone-warning'
                                   : user.role === 'investigator'
-                                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                                    : 'bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] border-[var(--glass-border)]'
+                                    ? 'tone-success'
+                                    : 'tone-muted'
                               }`}
                             >
                               {user.role === 'admin' && <Shield size={12} />}
@@ -551,7 +504,7 @@ export const AdminDashboard: React.FC = () => {
                             <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                               <button
                                 onClick={() => openEditModal(user)}
-                                className="p-1.5 text-[var(--text-muted)] hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
+                                className="p-1.5 text-[var(--text-muted)] hover:text-[var(--accent-info)] hover:bg-[var(--glass-bg-highlight)] rounded-lg transition-colors"
                                 title="Edit User"
                               >
                                 <Edit2 size={16} />
@@ -559,7 +512,7 @@ export const AdminDashboard: React.FC = () => {
                               {user.id !== currentUser?.id && (
                                 <button
                                   onClick={() => handleDelete(user.id)}
-                                  className="p-1.5 text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                                  className="p-1.5 text-[var(--text-muted)] hover:text-[var(--accent-danger)] hover:bg-[var(--glass-bg-highlight)] rounded-lg transition-colors"
                                   title="Delete User"
                                 >
                                   <Trash2 size={16} />
@@ -582,7 +535,7 @@ export const AdminDashboard: React.FC = () => {
           <div className="glass-panel rounded-xl overflow-hidden animate-in fade-in duration-300">
             <div className="p-4 border-b border-[var(--glass-border)] flex items-center justify-between">
               <h2 className="text-lg font-semibold text-[var(--text-primary)] flex items-center gap-2">
-                <Activity className="text-blue-400 w-5 h-5" />
+                <Activity className="w-5 h-5 text-[var(--accent-info)]" />
                 Audit Logs
               </h2>
               <button
@@ -658,9 +611,9 @@ export const AdminDashboard: React.FC = () => {
         {activeTab === 'system' && (
           <div className="space-y-6 animate-in fade-in duration-300">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="p-6 rounded-2xl bg-[var(--glass-bg)]/30 border border-[var(--glass-border)]/50 backdrop-blur-xl shadow-[var(--glass-shadow-soft)] hover:-translate-y-1 hover:shadow-[var(--glass-shadow)] transition-all duration-300 group">
+              <div className="admin-stat-card group">
                 <div className="flex items-center gap-3 mb-4">
-                  <Activity className="text-green-400 opacity-70 group-hover:opacity-100 transition-opacity" />
+                  <Activity className="opacity-70 text-[var(--accent-success)] group-hover:opacity-100 transition-opacity" />
                   <h3 className="text-[10px] uppercase tracking-[0.2em] font-bold text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors">
                     Status
                   </h3>
@@ -673,9 +626,9 @@ export const AdminDashboard: React.FC = () => {
                 </p>
               </div>
 
-              <div className="p-6 rounded-2xl bg-[var(--glass-bg)]/30 border border-[var(--glass-border)]/50 backdrop-blur-xl shadow-[var(--glass-shadow-soft)] hover:-translate-y-1 hover:shadow-[var(--glass-shadow)] transition-all duration-300 group">
+              <div className="admin-stat-card group">
                 <div className="flex items-center gap-3 mb-4">
-                  <Database className="text-blue-400 opacity-70 group-hover:opacity-100 transition-opacity" />
+                  <Database className="opacity-70 text-[var(--accent-info)] group-hover:opacity-100 transition-opacity" />
                   <h3 className="text-[10px] uppercase tracking-[0.2em] font-bold text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors">
                     Database
                   </h3>
@@ -688,9 +641,9 @@ export const AdminDashboard: React.FC = () => {
                 </p>
               </div>
 
-              <div className="p-6 rounded-2xl bg-[var(--glass-bg)]/30 border border-[var(--glass-border)]/50 backdrop-blur-xl shadow-[var(--glass-shadow-soft)] hover:-translate-y-1 hover:shadow-[var(--glass-shadow)] transition-all duration-300 group">
+              <div className="admin-stat-card group">
                 <div className="flex items-center gap-3 mb-4">
-                  <FileText className="text-orange-400 opacity-70 group-hover:opacity-100 transition-opacity" />
+                  <FileText className="opacity-70 text-[var(--accent-warning)] group-hover:opacity-100 transition-opacity" />
                   <h3 className="text-[10px] uppercase tracking-[0.2em] font-bold text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors">
                     Documents
                   </h3>
@@ -700,9 +653,9 @@ export const AdminDashboard: React.FC = () => {
                 </div>
               </div>
 
-              <div className="p-6 rounded-2xl bg-[var(--glass-bg)]/30 border border-[var(--glass-border)]/50 backdrop-blur-xl shadow-[var(--glass-shadow-soft)] hover:-translate-y-1 hover:shadow-[var(--glass-shadow)] transition-all duration-300 group">
+              <div className="admin-stat-card group">
                 <div className="flex items-center gap-3 mb-4">
-                  <Cpu className="text-purple-400 opacity-70 group-hover:opacity-100 transition-opacity" />
+                  <Cpu className="opacity-70 text-[var(--accent-warning)] group-hover:opacity-100 transition-opacity" />
                   <h3 className="text-[10px] uppercase tracking-[0.2em] font-bold text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors">
                     Environment
                   </h3>
@@ -714,11 +667,11 @@ export const AdminDashboard: React.FC = () => {
             </div>
 
             {/* Add more system controls here later */}
-            <div className="bg-amber-500/10 border border-amber-500/30 p-4 rounded-xl flex items-start gap-3">
-              <AlertTriangle className="text-amber-500 mt-0.5" />
+            <div className="status-banner status-banner-warning">
+              <AlertTriangle className="mt-0.5" />
               <div>
-                <h4 className="text-amber-400 font-medium">System Maintenance</h4>
-                <p className="text-amber-400/80 text-sm mt-1">
+                <h4 className="font-medium">System Maintenance</h4>
+                <p className="text-sm mt-1 opacity-80">
                   Advanced system operations (re-indexing, cache clearing) are currently handled via
                   CLI scripts. Do not attempt to modify production database directly while server is
                   running.
@@ -733,7 +686,7 @@ export const AdminDashboard: React.FC = () => {
           <div className="glass-panel rounded-xl overflow-hidden animate-in fade-in duration-300">
             <div className="p-4 border-b border-[var(--glass-border)] flex items-center justify-between font-bold">
               <h2 className="text-lg font-semibold text-[var(--text-primary)] flex items-center gap-2">
-                <RefreshCw className="text-orange-400 w-5 h-5" />
+                <RefreshCw className="w-5 h-5 text-[var(--accent-warning)]" />
                 Ingestion History
               </h2>
             </div>
@@ -761,10 +714,10 @@ export const AdminDashboard: React.FC = () => {
                         <span
                           className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
                             run.status === 'success'
-                              ? 'bg-green-500/10 text-green-400 border border-green-500/20'
+                              ? 'tone-success'
                               : run.status === 'running'
-                                ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
-                                : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                                ? 'tone-info'
+                                : 'tone-danger'
                           }`}
                         >
                           {run.status}
@@ -782,7 +735,7 @@ export const AdminDashboard: React.FC = () => {
                             {run.agenticModelId || 'Legacy'}
                           </span>
                           {run.agenticEnabled && (
-                            <span className="text-[8px] bg-purple-500/20 text-purple-400 px-1 rounded w-fit font-bold uppercase">
+                            <span className="status-chip tone-warning text-[8px] w-fit font-bold uppercase">
                               AGENTIC
                             </span>
                           )}
@@ -818,7 +771,7 @@ export const AdminDashboard: React.FC = () => {
               </div>
               <button
                 onClick={triggerBackup}
-                className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] hover:brightness-110 text-[var(--text-primary)] rounded-lg transition-colors shadow-lg shadow-[var(--accent)]/20"
+                className="control bg-[var(--accent)] text-[var(--text-primary)] shadow-lg shadow-[var(--accent)]/20"
               >
                 <RefreshCw size={18} />
                 Snapshot Now

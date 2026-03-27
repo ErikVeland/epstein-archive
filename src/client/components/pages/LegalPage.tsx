@@ -43,15 +43,15 @@ export const LegalPage: React.FC<LegalPageProps> = ({ mode }) => {
   const sections = mode === 'privacy' ? PRIVACY_SECTIONS : TERMS_SECTIONS;
 
   return (
-    <div className="surface-glass-card p-6 md:p-8 max-w-4xl">
-      <div className="space-y-3 mb-8">
+    <div className="surface-glass-card max-w-4xl p-[var(--space-6)] md:p-[var(--space-8)]">
+      <div className="mb-[var(--space-8)] space-y-[var(--space-3)]">
         <h1 className="text-3xl font-semibold text-[var(--text-primary)]">{title}</h1>
         <p className="text-[var(--text-secondary)] max-w-2xl">{intro}</p>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-[var(--space-6)]">
         {sections.map((section) => (
-          <section key={section.heading} className="space-y-2">
+          <section key={section.heading} className="space-y-[var(--space-2)]">
             <h2 className="text-lg font-semibold text-[var(--text-primary)]">{section.heading}</h2>
             <p className="text-[var(--text-secondary)] leading-7">{section.body}</p>
           </section>

@@ -33,6 +33,117 @@
           }
         ]
       }
+    },
+    {
+      "files": [
+        "src/client/design-system/components/**/*.{ts,tsx,js,jsx}",
+        "src/client/design-system/patterns/**/*.{ts,tsx,js,jsx}",
+        "src/client/components/common/FormField.tsx",
+        "src/client/components/common/Select.tsx",
+        "src/client/components/common/SourceBadge.tsx",
+        "src/client/components/common/Card.tsx",
+        "src/client/components/common/BaseCard.tsx",
+        "src/client/components/common/CloseButton.tsx",
+        "src/client/components/common/ProgressBar.tsx",
+        "src/client/components/common/Skeleton.tsx",
+        "src/client/components/common/Tabs.tsx",
+        "src/client/components/common/Tooltip.tsx",
+        "src/client/components/common/BatchToolbar.tsx",
+        "src/client/components/common/FormLayout.tsx",
+        "src/client/components/ui/GlassButton.tsx",
+        "src/client/components/ui/GlassModal.tsx",
+        "src/client/components/ui/GlassTooltip.tsx",
+        "src/client/components/ui/GlassDropdown.tsx",
+        "src/client/components/ui/GlassSwitch.tsx",
+        "src/client/components/evidence/EvidenceFilters.tsx",
+        "src/client/components/shared/MediaBrowserLayout.tsx",
+        "src/client/components/media/ArticlesTab.tsx",
+        "src/client/components/media/VideoBrowser.tsx"
+      ],
+      "rules": {
+        "no-restricted-syntax": [
+          "error",
+          {
+            "selector": "Literal[value=/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/]",
+            "message": "Do not use raw hex colors. Use design tokens from @design-system."
+          },
+          {
+            "selector": "TemplateElement[value.raw=/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/]",
+            "message": "Do not use raw hex colors. Use design tokens from @design-system."
+          }
+        ]
+      }
+    },
+    {
+      "files": ["src/client/components/**/*.{ts,tsx,js,jsx}"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "lucide-react",
+                "message": "Use Icon from @design-system."
+              }
+            ],
+            "patterns": [
+              {
+                "group": ["@radix-ui/*"],
+                "message": "Use design-system components, not Radix directly."
+              },
+              {
+                "group": [
+                  "**/index.css",
+                  "@client/index.css",
+                  "../index.css",
+                  "../../index.css",
+                  "../../../index.css"
+                ],
+                "message": "Components must not import index.css directly."
+              },
+              {
+                "group": [
+                  "@client/styles/designSystem",
+                  "../styles/designSystem",
+                  "../../styles/designSystem",
+                  "../../../styles/designSystem"
+                ],
+                "message": "Import tokens from @design-system instead of styles/designSystem."
+              }
+            ]
+          }
+        ]
+      },
+      "excludedFiles": [
+        "src/client/components/common/Icon.tsx",
+        "src/client/components/common/CloseButton.tsx",
+        "src/client/components/common/CollapsibleSplitPane.tsx",
+        "src/client/components/common/EvidenceModal.tsx",
+        "src/client/components/common/Select.tsx",
+        "src/client/components/common/SignalAnalysis.tsx",
+        "src/client/components/common/SensitiveContent.tsx",
+        "src/client/components/common/TagSelector.tsx",
+        "src/client/components/common/TailoredErrorFallback.tsx",
+        "src/client/components/FileBrowser.tsx",
+        "src/client/components/ArticleFeed.tsx",
+        "src/client/components/BlackBookReview.tsx",
+        "src/client/components/BlackBookViewer.tsx",
+        "src/client/components/FinancialTransactionAnalysis.tsx",
+        "src/client/components/FirstRunOnboarding.tsx",
+        "src/client/components/PatternRecognitionAI.tsx",
+        "src/client/components/ReleaseNotesPanel.tsx",
+        "src/client/components/admin/ReviewQueuePanel.tsx",
+        "src/client/components/documents/**/*.{ts,tsx,js,jsx}",
+        "src/client/components/email/**/*.{ts,tsx,js,jsx}",
+        "src/client/components/entities/**/*.{ts,tsx,js,jsx}",
+        "src/client/components/evidence/**/*.{ts,tsx,js,jsx}",
+        "src/client/components/investigation/**/*.{ts,tsx,js,jsx}",
+        "src/client/components/layout/**/*.{ts,tsx,js,jsx}",
+        "src/client/components/media/**/*.{ts,tsx,js,jsx}",
+        "src/client/components/pages/**/*.{ts,tsx,js,jsx}",
+        "src/client/components/shared/**/*.{ts,tsx,js,jsx}",
+        "src/client/components/visualizations/**/*.{ts,tsx,js,jsx}"
+      ]
     }
   ],
   "rules": {

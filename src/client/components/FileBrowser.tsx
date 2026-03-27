@@ -35,12 +35,32 @@ const FileBrowser: React.FC = () => {
 
   const categories = [
     { id: 'all', name: 'All Files', icon: Folder, color: 'text-[var(--accent)]' },
-    { id: 'emails', name: 'Emails & Communications', icon: Mail, color: 'text-green-400' },
-    { id: 'documents', name: 'Legal Documents', icon: FileText, color: 'text-red-400' },
-    { id: 'images', name: 'Images & Photos', icon: Image, color: 'text-purple-400' },
-    { id: 'flight_logs', name: 'Flight Records', icon: FileSpreadsheet, color: 'text-yellow-400' },
+    {
+      id: 'emails',
+      name: 'Emails & Communications',
+      icon: Mail,
+      color: 'text-[var(--accent-success)]',
+    },
+    {
+      id: 'documents',
+      name: 'Legal Documents',
+      icon: FileText,
+      color: 'text-[var(--accent-danger)]',
+    },
+    { id: 'images', name: 'Images & Photos', icon: Image, color: 'text-[var(--accent-info)]' },
+    {
+      id: 'flight_logs',
+      name: 'Flight Records',
+      icon: FileSpreadsheet,
+      color: 'text-[var(--accent-warning)]',
+    },
     { id: 'testimonies', name: 'Testimonies', icon: User, color: 'text-[var(--accent)]' },
-    { id: 'financial', name: 'Financial Records', icon: FileSpreadsheet, color: 'text-orange-400' },
+    {
+      id: 'financial',
+      name: 'Financial Records',
+      icon: FileSpreadsheet,
+      color: 'text-[var(--accent-warning)]',
+    },
   ];
 
   useEffect(() => {
@@ -160,12 +180,12 @@ const FileBrowser: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Category Filter */}
-      <div className="bg-[var(--glass-bg)] p-4 rounded-[var(--radius-xl)]">
+      <div className="glass-panel p-4 rounded-[var(--radius-xl)]">
         <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
           Browse by Category
         </h3>
         {loadError && (
-          <div className="mb-4 text-sm text-rose-300 bg-rose-900/30 border border-rose-400/30 rounded px-3 py-2">
+          <div className="status-banner status-banner-danger mb-4 rounded-[var(--radius-lg)] px-3 py-2 text-sm">
             {loadError}
           </div>
         )}
@@ -176,9 +196,9 @@ const FileBrowser: React.FC = () => {
               <button
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
-                className={`flex flex-col items-center p-3 rounded-[var(--radius-lg)] transition-all duration-200 ${
+                className={`flex flex-col min-h-[var(--space-16)] items-center p-3 rounded-[var(--radius-lg)] transition-all duration-200 ${
                   selectedCategory === category.id
-                    ? 'bg-gradient-to-br from-cyan-600 to-blue-600 text-[var(--text-primary)] shadow-[var(--glass-shadow)]'
+                    ? 'soft-glass-accent text-[var(--text-primary)] shadow-[var(--glass-shadow)]'
                     : 'bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)]'
                 }`}
               >
@@ -191,13 +211,13 @@ const FileBrowser: React.FC = () => {
       </div>
 
       {/* Search */}
-      <div className="bg-[var(--glass-bg)] p-4 rounded-[var(--radius-xl)]">
+      <div className="glass-panel p-4 rounded-[var(--radius-xl)]">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[var(--text-muted)]" />
           <input
             type="text"
             placeholder="Search files by name or content..."
-            className="w-full pl-10 pr-4 py-3 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] placeholder-gray-400 focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent"
+            className="control w-full justify-start pl-10 pr-4 text-[var(--text-primary)] placeholder-[var(--text-muted)]"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -205,7 +225,7 @@ const FileBrowser: React.FC = () => {
       </div>
 
       {/* File List */}
-      <div className="bg-[var(--glass-bg)] rounded-[var(--radius-xl)] overflow-hidden">
+      <div className="glass-panel rounded-[var(--radius-xl)] overflow-hidden">
         <div className="p-4 border-b border-[var(--glass-border)]">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-[var(--text-primary)]">
@@ -272,7 +292,7 @@ const FileBrowser: React.FC = () => {
                     </h3>
                   </div>
                   <div className="flex items-center space-x-3">
-                    <button className="flex items-center space-x-2 px-4 py-2 bg-[var(--accent)] hover:bg-cyan-700 rounded-[var(--radius-lg)] text-[var(--text-primary)] transition-colors">
+                    <button className="control bg-[var(--accent)] text-[var(--text-primary)]">
                       <Download className="h-4 w-4" />
                       <span>Download</span>
                     </button>

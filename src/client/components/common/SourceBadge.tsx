@@ -1,5 +1,5 @@
 import React from 'react';
-import { sourceBadgeTokens, spacingTokens } from '../../styles/designSystem';
+import { sourceBadgeTokens, spacingTokens } from '@design-system';
 
 interface SourceBadgeProps {
   source: 'Seventh Production' | 'Black Book' | 'Public Record' | string;

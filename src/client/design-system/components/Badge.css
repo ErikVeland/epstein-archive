@@ -1,0 +1,163 @@
+/* Badge.css - Bespoke Design System */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--space-1) + 2px);
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  padding: 2px calc(var(--space-2) + 2px);
+  font-size: var(--type-small);
+  font-weight: var(--weight-semibold, 600);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  outline: none;
+  transition: all var(--duration-fast) var(--easing-liquid);
+  white-space: nowrap;
+}
+
+/* Tones */
+.badge.tone-warning {
+  background: color-mix(in srgb, var(--accent-warning) 14%, transparent);
+  color: var(--accent-warning);
+  border-color: color-mix(in srgb, var(--accent-warning) 24%, transparent);
+}
+
+.badge.tone-accent {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 24%, transparent);
+}
+
+.badge.tone-info {
+  background: color-mix(in srgb, var(--accent-info) 14%, transparent);
+  color: var(--accent-info);
+  border-color: color-mix(in srgb, var(--accent-info) 24%, transparent);
+}
+
+.badge.tone-success {
+  background: color-mix(in srgb, var(--accent-success) 14%, transparent);
+  color: var(--accent-success);
+  border-color: color-mix(in srgb, var(--accent-success) 24%, transparent);
+}
+
+.badge.tone-danger {
+  background: color-mix(in srgb, var(--accent-danger) 14%, transparent);
+  color: var(--accent-danger);
+  border-color: color-mix(in srgb, var(--accent-danger) 24%, transparent);
+}
+
+.badge.tone-muted {
+  background: var(--glass-bg);
+  color: var(--text-muted);
+  border-color: var(--glass-border);
+}
+
+.badge.tone-neutral {
+  background: var(--glass-bg-strong);
+  color: var(--text-secondary);
+  border-color: var(--glass-border);
+}
+
+/* Sizes */
+.badge.size-sm {
+  min-height: 20px;
+  padding-inline: calc(var(--space-1) + 2px);
+  font-size: 10px;
+}
+
+.badge.size-md {
+  min-height: 24px;
+  font-size: 11px;
+}
+
+.badge.size-lg {
+  min-height: 28px;
+  padding-inline: var(--space-3);
+  font-size: 12px;
+}
+
+/* Risk Variants */
+.badge.risk-critical {
+  background: #c0392b;
+  color: white;
+  border-color: #a93226;
+}
+
+.badge.risk-high {
+  background: #e74c3c;
+  color: white;
+  border-color: #c0392b;
+}
+
+.badge.risk-medium {
+  background: #f39c12;
+  color: white;
+  border-color: #d68910;
+}
+
+.badge.risk-low {
+  background: #27ae60;
+  color: white;
+  border-color: #2ecc71;
+}
+
+.badge.risk-minimal {
+  background: color-mix(in srgb, var(--accent-success) 14%, transparent);
+  color: var(--accent-success);
+  border-color: color-mix(in srgb, var(--accent-success) 24%, transparent);
+}
+
+.badge.risk-unknown {
+  background: var(--glass-bg);
+  color: var(--text-muted);
+  border-color: var(--glass-border);
+}
+
+/* Nav Variants */
+.badge.nav-docs {
+  border-color: var(--nav-documents-border, rgba(52, 211, 153, 0.25));
+  background: var(--nav-documents-bg, rgba(52, 211, 153, 0.12));
+  color: var(--nav-documents, #34d399);
+}
+
+.badge.nav-emails {
+  border-color: var(--nav-emails-border, rgba(251, 191, 36, 0.25));
+  background: var(--nav-emails-bg, rgba(251, 191, 36, 0.12));
+  color: var(--nav-emails, #fbbf24);
+}
+
+.badge.nav-media {
+  border-color: var(--nav-media-border, rgba(167, 139, 250, 0.25));
+  background: var(--nav-media-bg, rgba(167, 139, 250, 0.12));
+  color: var(--nav-media, #a78bfa);
+}
+
+.badge.nav-people {
+  border-color: var(--nav-people-border, rgba(96, 165, 250, 0.25));
+  background: var(--nav-people-bg, rgba(96, 165, 250, 0.12));
+  color: var(--nav-people, #60a5fa);
+}
+
+.badge.nav-investigations {
+  border-color: var(--nav-investigations-border, rgba(248, 113, 113, 0.25));
+  background: var(--nav-investigations-bg, rgba(248, 113, 113, 0.12));
+  color: var(--nav-investigations, #f87171);
+}
+
+/* Hover effects */
+.badge:hover {
+  background: color-mix(in srgb, currentColor 20%, transparent);
+}
+
+.badge-content {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--space-1) + 2px);
+}
+
+.badge-count {
+  opacity: 0.6;
+  font-variant-numeric: tabular-nums;
+}

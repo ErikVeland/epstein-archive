@@ -1,6 +1,5 @@
 import React from 'react';
-import Icon from '../common/Icon';
-import type { IconName } from '../common/Icon';
+import { Button, EmptyState, Surface, StatusBanner, type IconName } from '@design-system';
 
 interface MediaBrowserLayoutProps {
   /** Page title (e.g., "Audio Recordings", "Video Recordings") */
@@ -54,7 +53,7 @@ export function MediaBrowserLayout({
   isInitialLoad = false,
 }: MediaBrowserLayoutProps): React.ReactElement {
   return (
-    <div className="flex flex-col h-full bg-[var(--glass-bg)] border border-[var(--glass-border)] shadow-[var(--glass-shadow)] overflow-hidden rounded-[var(--radius-lg)]">
+    <Surface className="flex h-full flex-col overflow-hidden rounded-[var(--radius-lg)]">
       {/* Header */}
       <div className="bg-[var(--glass-bg-strong)] border-b border-[var(--glass-border)] flex flex-col md:flex-row md:items-center justify-between px-3 py-2 md:px-4 md:h-14 shrink-0 z-10 gap-2">
         {/* Mobile Album Dropdown */}
@@ -67,11 +66,11 @@ export function MediaBrowserLayout({
           </div>
           <button
             onClick={onToggleBatchMode}
-            className={`px-3 py-1.5 rounded-[var(--radius-lg)] text-xs transition-colors ${
+            className={
               isBatchMode
-                ? 'bg-[var(--accent)] text-[var(--text-primary)]'
-                : 'bg-[var(--glass-bg)] text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-[var(--glass-border)]'
-            }`}
+                ? 'control h-8 min-h-8 bg-[var(--accent)] px-3 text-xs text-[var(--text-primary)]'
+                : 'control h-8 min-h-8 px-3 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+            }
           >
             {isBatchMode ? 'Exit Batch' : 'Batch Edit'}
           </button>
@@ -96,9 +95,9 @@ export function MediaBrowserLayout({
 
           {/* Error Display */}
           {error && (
-            <div className="bg-red-900/20 border border-red-500/50 text-red-200 p-4 mx-6 mt-6 rounded-[var(--radius-lg)]">
+            <StatusBanner tone="danger" className="mx-6 mt-6">
               {error}
-            </div>
+            </StatusBanner>
           )}
 
           {/* Content Area */}
@@ -114,7 +113,7 @@ export function MediaBrowserLayout({
 
       {/* Batch Toolbar */}
       {batchToolbar}
-    </div>
+    </Surface>
   );
 }
 
@@ -128,12 +127,7 @@ export function MediaEmptyState({
   icon: IconName;
   message: string;
 }): React.ReactElement {
-  return (
-    <div className="flex flex-col items-center justify-center h-full text-[var(--text-muted)]">
-      <Icon name={icon} size="lg" className="mb-2 opacity-50" />
-      <p>{message}</p>
-    </div>
-  );
+  return <EmptyState icon={icon} title={message} />;
 }
 
 /**
@@ -142,12 +136,9 @@ export function MediaEmptyState({
 export function LoadMoreButton({ onClick }: { onClick: () => void }): React.ReactElement {
   return (
     <div className="text-center mt-8">
-      <button
-        onClick={onClick}
-        className="px-6 py-2 bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] rounded-full text-sm font-medium transition-colors"
-      >
+      <Button onClick={onClick} variant="secondary" className="rounded-full px-[var(--space-6)]">
         Load More
-      </button>
+      </Button>
     </div>
   );
 }

@@ -1216,14 +1216,14 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                 </div>
                 <button
                   onClick={() => setShowTasksPanel(true)}
-                  className="hidden md:inline-flex items-center px-3 py-2 rounded-md text-xs font-medium bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)] hover:border-[var(--glass-border)] transition-colors"
+                  className="hidden md:inline-flex control min-h-[var(--control-height-compact)] px-3 text-xs font-medium bg-[var(--glass-bg)] text-[var(--text-primary)]"
                 >
-                  <Flag className="w-3.5 h-3.5 mr-1.5 text-amber-400" />
+                  <Flag className="w-3.5 h-3.5 mr-1.5 text-[var(--accent-warning)]" />
                   Tasks
                 </button>
                 <button
                   onClick={() => setShowMemoryPanel(true)}
-                  className="hidden md:inline-flex items-center px-3 py-2 rounded-md text-xs font-medium bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)] hover:border-[var(--glass-border)] transition-colors"
+                  className="hidden md:inline-flex control min-h-[var(--control-height-compact)] px-3 text-xs font-medium bg-[var(--glass-bg)] text-[var(--text-primary)]"
                 >
                   <BookOpen className="w-3.5 h-3.5 mr-1.5 text-[var(--accent)]" />
                   Memory
@@ -1234,7 +1234,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
             {!selectedInvestigation && (
               <button
                 onClick={() => setShowNewInvestigationModal(true)}
-                className="flex items-center justify-center sm:justify-start px-3 sm:px-4 py-2 bg-[var(--accent)] text-[var(--text-primary)] rounded-md hover:bg-blue-700 transition-colors shadow-[var(--glass-shadow)] shadow-blue-900/20 h-10 whitespace-nowrap"
+                className="control flex items-center justify-center sm:justify-start px-3 sm:px-4 bg-[var(--accent)] text-[var(--text-primary)] shadow-[var(--glass-shadow)]"
               >
                 <Plus className="w-5 h-5 sm:w-4 sm:h-4 sm:mr-2 shrink-0" />
                 <span className="hidden sm:inline">New Investigation</span>
@@ -1263,7 +1263,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
               <button
                 onClick={() => setShowNewInvestigationModal(true)}
-                className="group relative flex flex-col items-start p-6 bg-gradient-to-br from-blue-600/20 to-blue-900/20 border border-[var(--accent)]/30 rounded-[var(--radius-xl)] hover:border-[var(--accent)]/60 hover:from-blue-600/30 hover:to-blue-900/30 transition-all duration-300 text-left"
+                className="group relative flex flex-col items-start p-6 soft-glass-accent rounded-[var(--radius-xl)] transition-all duration-300 text-left"
               >
                 <div className="bg-[var(--accent)] rounded-[var(--radius-lg)] p-3 mb-4 shadow-[var(--glass-shadow)] shadow-blue-900/30 group-hover:scale-110 transition-transform duration-300">
                   <Plus className="w-8 h-8 text-[var(--text-primary)]" />
@@ -1271,7 +1271,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                 <h3 className="text-xl font-semibold text-[var(--text-primary)] mb-2">
                   New Investigation
                 </h3>
-                <p className="text-sm text-blue-200/70">
+                <p className="text-sm text-[var(--text-secondary)]/80">
                   Start a fresh investigation. Define your hypothesis, set a scope, and begin
                   gathering evidence.
                 </p>
@@ -1335,7 +1335,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                                   }).then(() => loadInvestigations());
                                 }
                               }}
-                              className="text-[var(--text-muted)] hover:text-red-400 transition-colors p-1"
+                              className="text-[var(--text-muted)] hover:text-[var(--accent-danger)] transition-colors p-1"
                               title="Delete investigation"
                             >
                               <span className="sr-only">Delete</span>×
@@ -1447,7 +1447,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                           whitespace-nowrap overflow-hidden w-full
                           ${
                             activeTab === tab.id
-                              ? 'bg-blue-900/40 text-[var(--accent)] border border-[var(--accent)]/30 shadow-sm relative z-10'
+                              ? 'soft-glass-accent text-[var(--accent)] border border-[var(--accent)]/30 shadow-sm relative z-10'
                               : 'text-[var(--text-muted)] hover:bg-[var(--glass-bg-highlight)]/50 hover:text-[var(--text-primary)]'
                           }
                         `}
@@ -1477,7 +1477,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                       onClick={() => navigateToTab(tab.id)}
                       className={`h-8 w-8 rounded-md flex items-center justify-center transition-colors ${
                         activeTab === tab.id
-                          ? 'bg-blue-900/40 text-[var(--accent)]'
+                          ? 'soft-glass-accent text-[var(--accent)]'
                           : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)]/50'
                       }`}
                       title={tab.label}
@@ -2125,7 +2125,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
               <button
                 onClick={createInvestigation}
                 disabled={!newInvestigation.title || !newInvestigation.description}
-                className="px-4 h-10 flex items-center justify-center text-sm font-medium text-[var(--text-primary)] bg-[var(--accent)] rounded-[var(--radius-lg)] hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-[var(--glass-shadow)] shadow-blue-900/20"
+                className="control px-4 text-sm font-medium text-[var(--text-primary)] bg-[var(--accent)] disabled:opacity-50 disabled:cursor-not-allowed shadow-[var(--glass-shadow)]"
               >
                 Create Investigation
               </button>

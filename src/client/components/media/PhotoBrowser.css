@@ -1,0 +1,251 @@
+/* PhotoBrowser.css - Bespoke Media UI */
+
+.photo-grid-cell {
+  padding: 4px;
+}
+
+.photo-card {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background: var(--bg-dark);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: all var(--duration-normal) var(--easing-liquid);
+  box-shadow: var(--glass-shadow-soft);
+  cursor: pointer;
+  outline: none;
+}
+
+.photo-card:hover {
+  border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--accent) 20%, transparent);
+  transform: translateY(-2px);
+}
+
+.photo-card.is-selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.photo-selection-indicator {
+  position: absolute;
+  top: var(--space-2);
+  left: var(--space-2);
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: var(--accent);
+  color: var(--text-primary);
+  font-size: 10px;
+  font-weight: 800;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.photo-image-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.photo-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: color-mix(in srgb, var(--glass-bg-strong) 50%, transparent);
+}
+
+.photo-overlay {
+  position: absolute;
+  inset: auto 0 0 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent);
+  padding: var(--space-3);
+  opacity: 1;
+  transition: opacity var(--duration-fast);
+}
+
+@media (min-width: 768px) {
+  .photo-overlay {
+    opacity: 0;
+  }
+  .photo-card:hover .photo-overlay {
+    opacity: 1;
+  }
+}
+
+.photo-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.photo-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: var(--space-1);
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.photo-list-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-2);
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border-bottom: 1px solid var(--glass-border);
+  transition: background var(--duration-fast);
+  cursor: pointer;
+  outline: none;
+}
+
+.photo-list-row:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.photo-list-row.is-selected {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  border-bottom-color: var(--accent);
+}
+
+.photo-list-thumb {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  background: var(--bg-dark);
+  border: 1px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.photo-list-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.photo-list-filename {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.photo-list-date,
+.photo-list-size {
+  width: 100px;
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.photo-list-size {
+  width: 80px;
+  font-family: var(--font-mono);
+}
+
+/* Layout Utilities */
+.photo-browser-search-container {
+  position: relative;
+  flex: 1;
+}
+
+.photo-browser-search-icon {
+  position: absolute;
+  left: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.photo-browser-view-controls {
+  display: flex;
+  height: 32px;
+  background: var(--glass-bg-highlight);
+  border: 1px solid var(--glass-border);
+  padding: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.view-btn {
+  width: 32px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-xs, 2px);
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all var(--duration-fast);
+}
+
+.view-btn:hover {
+  color: var(--text-primary);
+}
+
+.view-btn.is-active {
+  background: var(--glass-bg-highlight);
+  color: var(--text-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.media-browser-layout-container {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.media-browser-sidebar-scroll {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.media-browser-main-panel {
+  flex: 1;
+  background: var(--app-bg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.media-browser-loading-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  background: color-mix(in srgb, var(--app-bg) 50%, transparent);
+  backdrop-filter: blur(4px);
+  pointer-events: none;
+}
+
+.photo-browser-search-input {
+  font-size: 14px;
+  color: var(--text-primary);
+  background: transparent;
+  border: none;
+  outline: none;
+  width: 100%;
+  padding-left: var(--space-10);
+}
+
+.photo-browser-search-input::placeholder {
+  color: var(--text-muted);
+}

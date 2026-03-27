@@ -13,6 +13,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@client': path.resolve(__dirname, 'src/client'),
+      '@design-system': path.resolve(__dirname, 'src/client/design-system'),
       '@server': path.resolve(__dirname, 'src/server'),
       '@shared': path.resolve(__dirname, 'src/shared'),
     },

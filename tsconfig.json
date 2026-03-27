@@ -18,6 +18,8 @@
     "baseUrl": ".",
     "paths": {
       "@client/*": ["src/client/*"],
+      "@design-system": ["src/client/design-system/index.ts"],
+      "@design-system/*": ["src/client/design-system/*"],
       "@server/*": ["src/server/*"],
       "@shared/*": ["src/shared/*"]
     },

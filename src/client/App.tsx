@@ -102,6 +102,7 @@ const ReviewDashboard = lazy(() =>
   import('./pages/ReviewDashboard').then((module) => ({ default: module.ReviewDashboard })),
 );
 
+import './AppShell.css';
 import releaseNotesRaw from '../../release_notes.md?raw';
 
 interface ParsedReleaseNote {
@@ -1498,7 +1499,7 @@ function App() {
                           )}
                           <div className="border-t border-[var(--glass-border)] mt-1 pt-1">
                             <button
-                              className="w-full text-left px-3 py-2 text-sm text-[var(--accent)] hover:bg-[var(--glass-bg-strong)] flex items-center gap-2"
+                              className="full-width text-left px-3 py-2 text-sm text-[var(--accent)] hover:bg-[var(--glass-bg-strong)] stack-x v-center gap-2"
                               onClick={() =>
                                 navigate(`/search?q=${encodeURIComponent(searchTerm)}`)
                               }
@@ -1512,12 +1513,16 @@ function App() {
                     </div>
 
                     {/* Global Date Range Filter */}
-                    <div ref={dateRangePickerRef} className="hidden md:flex items-center relative">
+                    <div ref={dateRangePickerRef} className="hidden md:stack-x v-center relative">
                       <button
                         onClick={() => setShowDateRangePicker((v) => !v)}
                         aria-expanded={showDateRangePicker}
                         aria-haspopup="dialog"
-                        className={`group control flex items-center rounded-full h-11 px-3 gap-2 transition-all duration-300${filters.timeRange[0] || filters.timeRange[1] ? ' text-[var(--accent-warning)]' : ''}`}
+                        className={cn(
+                          'group control stack-x v-center rounded-full h-11 px-3 gap-2 transition-all duration-300',
+                          (filters.timeRange[0] || filters.timeRange[1]) &&
+                            'text-[var(--accent-warning)]',
+                        )}
                         title="Global date range filter"
                       >
                         <Icon
@@ -1532,15 +1537,14 @@ function App() {
                         )}
                       </button>
                       {showDateRangePicker && (
-                        <div
-                          className="absolute top-full right-0 mt-2 z-50 glass-panel p-4 w-72"
+                        <Surface
+                          variant="elevated"
+                          className="filter-popover"
                           role="dialog"
                           aria-label="Global date range filter"
                         >
-                          <div className="text-xs font-semibold text-[var(--text-secondary)] mb-3 uppercase tracking-wider">
-                            Global Date Filter
-                          </div>
-                          <div className="space-y-3">
+                          <div className="filter-title">Global Date Filter</div>
+                          <div className="stack-y gap-3">
                             <div>
                               <label
                                 htmlFor="global-date-from"
@@ -1551,7 +1555,7 @@ function App() {
                               <input
                                 id="global-date-from"
                                 type="date"
-                                className="w-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-md px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
+                                className="full-width bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-md px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
                                 value={filters.timeRange[0] ?? ''}
                                 onChange={(e) =>
                                   setFilters({
@@ -1585,13 +1589,13 @@ function App() {
                                   setFilters({ timeRange: [null, null] });
                                   setShowDateRangePicker(false);
                                 }}
-                                className="w-full text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--glass-border)] rounded-md py-2 transition-colors"
+                                className="full-width text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--glass-border)] rounded-md py-2 transition-colors"
                               >
                                 Clear date filter
                               </button>
                             )}
                           </div>
-                        </div>
+                        </Surface>
                       )}
                     </div>
 
@@ -1613,37 +1617,31 @@ function App() {
 
             <div className="content-shell flex-grow">
               {/* Mobile Stats Row */}
-              <div className="mb-6 grid grid-cols-3 gap-2 text-center md:hidden">
+              <div className="mobile-stats-grid">
                 <button
                   onClick={() => navigate('/search')}
-                  className="mobile-stat-card surface-glass-card rounded-lg p-2 hover:bg-[var(--glass-bg-strong)] transition-colors cursor-pointer"
+                  className="mobile-stat-card surface-glass-card"
                 >
-                  <div className="text-xs text-[var(--text-secondary)] uppercase tracking-wider">
-                    People
-                  </div>
-                  <div className="text-lg font-bold text-[var(--accent)]">
+                  <div className="mobile-stat-label">People</div>
+                  <div className="mobile-stat-value text-[var(--accent)]">
                     {headerTotalPeople.toLocaleString()}
                   </div>
                 </button>
                 <button
                   onClick={() => navigate('/search')}
-                  className="mobile-stat-card surface-glass-card rounded-lg p-2 hover:bg-[var(--glass-bg-strong)] transition-colors cursor-pointer"
+                  className="mobile-stat-card surface-glass-card"
                 >
-                  <div className="text-xs text-[var(--text-secondary)] uppercase tracking-wider">
-                    Mentions
-                  </div>
-                  <div className="text-lg font-bold text-[var(--accent-info)]">
+                  <div className="mobile-stat-label">Mentions</div>
+                  <div className="mobile-stat-value text-[var(--accent-info)]">
                     {headerTotalMentions.toLocaleString()}
                   </div>
                 </button>
                 <button
                   onClick={() => navigate('/documents')}
-                  className="mobile-stat-card surface-glass-card rounded-lg p-2 hover:bg-[var(--glass-bg-strong)] transition-colors cursor-pointer"
+                  className="mobile-stat-card surface-glass-card"
                 >
-                  <div className="text-xs text-[var(--text-secondary)] uppercase tracking-wider">
-                    Files
-                  </div>
-                  <div className="text-lg font-bold text-[var(--accent-docs)]">
+                  <div className="mobile-stat-label">Files</div>
+                  <div className="mobile-stat-value text-[var(--accent-docs)]">
                     {headerTotalFiles.toLocaleString()}
                   </div>
                 </button>
@@ -1884,7 +1882,10 @@ function App() {
                 <div className="view-transition-enter view-transition-enter-active">
                   <Suspense
                     fallback={
-                      <div className="flex items-center justify-center h-64">
+                      <div
+                        className="stack-x v-center h-center full-height"
+                        style={{ minHeight: '16rem' }}
+                      >
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent)]"></div>
                       </div>
                     }

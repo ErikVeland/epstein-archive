@@ -1,0 +1,158 @@
+.tabs-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+  background: transparent;
+  gap: var(--space-1);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  --tab-accent: var(--accent);
+  --tab-text-muted: var(--text-dim);
+  --tab-text-active: var(--text-strong);
+}
+
+.tabs-list {
+  position: relative;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.tabs-container.viewer {
+  overflow: visible;
+  flex-wrap: wrap;
+  gap: 0;
+  padding: 0;
+}
+
+.tabs-container.compact {
+  background: rgba(15, 23, 42, 0.4);
+  padding: 4px;
+  border-radius: 14px;
+  gap: 4px;
+  border-bottom: none;
+}
+
+.tabs-container::-webkit-scrollbar {
+  display: none;
+}
+
+.tab-item {
+  position: relative;
+  min-height: var(--control-height);
+  padding: 0 var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--tab-text-muted);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  transition: all var(--duration-normal) var(--easing-liquid);
+  white-space: nowrap;
+  outline: none;
+  flex-shrink: 0;
+  border-radius: 10px;
+  z-index: 1;
+}
+
+.tabs-container.viewer .tab-item {
+  border-radius: 0;
+  min-height: calc(var(--control-height) - 2px);
+  border-bottom: 2px solid transparent;
+  color: var(--text-dim);
+  text-transform: none;
+  letter-spacing: 0.01em;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 0 16px;
+}
+
+.tabs-container.viewer .tab-item:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.tabs-container.viewer .tab-item.active {
+  border-bottom-color: var(--accent);
+  color: var(--text-strong);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.tabs-container.compact .tab-item {
+  min-height: var(--control-height-compact);
+  padding: 0 var(--space-3);
+  font-size: 10px;
+}
+
+.tab-item:hover {
+  color: var(--text-default);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.tab-item.active {
+  color: var(--tab-text-active);
+}
+
+.tabs-container.compact .tab-item.active {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.tab-indicator {
+  position: absolute;
+  bottom: 0;
+  height: 2px;
+  background: var(--accent);
+  box-shadow: none;
+  transition: all var(--duration-normal) var(--easing-liquid);
+  pointer-events: none;
+  border-radius: 999px;
+  z-index: 2;
+}
+
+.tabs-container.compact .tab-indicator {
+  display: none;
+}
+
+.tabs-container.viewer .tab-indicator {
+  display: none;
+}
+
+.tab-badge {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-dim);
+  font-size: 9px;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-weight: 800;
+  transition: all var(--duration-normal) ease;
+}
+
+.tab-item.active .tab-badge {
+  background: var(--accent);
+  color: white;
+}
+
+.tab-icon {
+  width: 14px;
+  height: 14px;
+  opacity: 0.5;
+  transition: all var(--duration-normal) ease;
+}
+
+.tab-item.active .tab-icon {
+  opacity: 1;
+  color: var(--accent);
+}
+
+.tab-item:focus-visible {
+  box-shadow: 0 0 0 2px var(--accent-glow);
+}

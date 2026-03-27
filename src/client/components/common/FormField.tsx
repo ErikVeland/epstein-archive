@@ -1,5 +1,5 @@
 import React from 'react';
-import { semanticTokens, spacingTokens } from '../../styles/designSystem';
+import { semanticTokens, spacingTokens } from '@design-system';
 
 interface FormFieldProps {
   label: React.ReactNode;

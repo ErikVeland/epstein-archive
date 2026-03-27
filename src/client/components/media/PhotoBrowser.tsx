@@ -7,9 +7,33 @@ import {
   ListChildComponentProps,
   areEqual,
 } from 'react-window';
+import {
+  Badge,
+  Button,
+  cn,
+  Icon,
+  MediaBrowserCount,
+  MediaBrowserDropdown,
+  MediaBrowserDropdownItem,
+  MediaBrowserHeader,
+  MediaBrowserMobileTrigger,
+  MediaBrowserPanel,
+  MediaBrowserSearch,
+  MediaBrowserSearchInput,
+  MediaBrowserShell,
+  MediaBrowserSidebar,
+  MediaBrowserSidebarItem,
+  MediaBrowserSidebarTitle,
+  MediaBrowserStatus,
+  MediaBrowserToolbar,
+  MediaBrowserTriggerLabel,
+  Select,
+  Spinner,
+  StatusBanner,
+  Surface,
+} from '@design-system';
 import AutoSizer from '../common/AutoSizer';
 import { MediaImage } from '../../types/media.types';
-import Icon from '../common/Icon';
 import MediaViewerModal from './MediaViewerModal';
 import BatchToolbar from '../common/BatchToolbar';
 import LazyImage from '../common/LazyImage';
@@ -18,6 +42,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { Person } from '../../types';
 import { PhotoSortField as SortField, usePhotoBrowserData } from '../../hooks/usePhotoBrowserData';
 import { MediaEmptyState } from '../shared/MediaBrowserLayout';
+import './PhotoBrowser.css';
 
 // Lazy load EvidenceModal to reduce initial bundle size
 const EvidenceModal = React.lazy(() =>
@@ -68,9 +93,9 @@ const GridCell = React.memo(
     const isSelected = selectedImages.has(img.id);
 
     return (
-      <div style={{ ...style, padding: '4px' }}>
+      <div className="photo-grid-cell" style={style}>
         <button
-          className={`w-full h-full group relative bg-[var(--app-bg)] border rounded-[var(--radius-lg)] overflow-hidden transition-all shadow-[var(--glass-shadow)] hover:shadow-[var(--accent)]/20 ${isSelected ? 'border-[var(--accent)] ring-2 ring-[var(--accent)]/30' : 'border-[var(--glass-border)] hover:border-[var(--accent)]/50'}`}
+          className={cn('photo-card', isSelected && 'is-selected')}
           onClick={(e) => onImageClick(img, index, e)}
           onKeyDown={(e) => {
             if (isBatchMode && e.key === 'Enter') {
@@ -79,13 +104,10 @@ const GridCell = React.memo(
           }}
           tabIndex={isBatchMode ? 0 : -1}
         >
-          {/* Selection indicator */}
           {isBatchMode && (
-            <div className="absolute top-2 left-2 w-8 h-8 md:w-6 md:h-6 flex items-center justify-center rounded-full bg-[var(--accent)] text-[var(--text-primary)] text-xs font-bold z-10">
-              {isSelected ? '✓' : index + 1}
-            </div>
+            <div className="photo-selection-indicator">{isSelected ? '✓' : index + 1}</div>
           )}
-          <SensitiveContent isSensitive={img.isSensitive} className="w-full h-full relative">
+          <SensitiveContent isSensitive={img.isSensitive} className="photo-image-container">
             <LazyImage
               key={img.id}
               src={`/api/media/images/${img.id}/thumbnail`}
@@ -95,18 +117,14 @@ const GridCell = React.memo(
                 el.onerror = null;
                 el.src = `/api/media/images/${img.id}/file`;
               }}
-              className="w-full h-full object-contain bg-[var(--glass-bg-strong)]/50"
+              className="photo-image"
             />
           </SensitiveContent>
-          {/* Title overlay */}
-          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 to-transparent p-3 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200">
-            <div
-              className="text-xs text-[var(--text-primary)] font-medium truncate"
-              title={img.title}
-            >
+          <div className="photo-overlay">
+            <div className="photo-title" title={img.title}>
               {img.title}
             </div>
-            <div className="text-[10px] text-[var(--text-muted)] flex justify-between mt-1">
+            <div className="photo-meta">
               <span>{formatDate(img.dateTaken)}</span>
               <span>{formatFileSize(img.fileSize)}</span>
             </div>
@@ -134,7 +152,7 @@ const ListRow = React.memo(({ index, style, data }: ListChildComponentProps<Item
   return (
     <div style={style}>
       <button
-        className={`flex items-center gap-4 p-2 border-b border-[var(--glass-border)] w-full text-left group transition-colors h-full ${isSelected ? 'bg-[var(--glass-bg-active)] border-[var(--accent)]' : 'hover:bg-[var(--glass-bg-highlight)]'}`}
+        className={cn('photo-list-row', isSelected && 'is-selected')}
         onClick={(e) => onImageClick(img, index, e)}
         onKeyDown={(e) => {
           if (isBatchMode && e.key === 'Enter') {
@@ -143,14 +161,16 @@ const ListRow = React.memo(({ index, style, data }: ListChildComponentProps<Item
         }}
         tabIndex={isBatchMode ? 0 : -1}
       >
-        {/* Selection indicator */}
         {isBatchMode && (
-          <div className="w-8 h-8 md:w-6 md:h-6 flex items-center justify-center rounded-full bg-[var(--accent)] text-[var(--text-primary)] text-xs font-bold mr-2 shrink-0">
+          <div
+            className="photo-selection-indicator"
+            style={{ position: 'static', marginRight: '8px' }}
+          >
             {isSelected ? '✓' : index + 1}
           </div>
         )}
-        <div className="w-12 h-12 bg-[var(--app-bg)] border border-[var(--glass-border)] rounded-[var(--radius-sm)] flex items-center justify-center shrink-0">
-          <SensitiveContent isSensitive={img.isSensitive} className="w-full h-full">
+        <div className="photo-list-thumb">
+          <SensitiveContent isSensitive={img.isSensitive} className="photo-image-container">
             <LazyImage
               key={img.id}
               src={`/api/media/images/${img.id}/thumbnail`}
@@ -160,28 +180,21 @@ const ListRow = React.memo(({ index, style, data }: ListChildComponentProps<Item
                 el.onerror = null;
                 el.src = `/api/media/images/${img.id}/file`;
               }}
-              className="w-full h-full object-contain"
+              className="photo-image"
             />
           </SensitiveContent>
         </div>
-        <div className="flex-1 min-w-0">
-          <div
-            className="text-sm text-[var(--text-secondary)] font-medium truncate group-hover:text-[var(--accent)] transition-colors"
-            title={img.title}
-          >
+        <div className="photo-list-info">
+          <div className="photo-title" title={img.title}>
             {img.title}
           </div>
-          <div className="text-xs text-[var(--text-muted)] truncate">
+          <div className="photo-list-filename">
             {img.title !== img.filename ? img.filename : ''}
           </div>
         </div>
 
-        <div className="w-32 text-xs text-[var(--text-muted)] text-right shrink-0">
-          {formatDate(img.dateTaken || img.dateAdded)}
-        </div>
-        <div className="w-20 text-xs text-[var(--text-muted)] text-right shrink-0 font-mono">
-          {formatFileSize(img.fileSize)}
-        </div>
+        <div className="photo-list-date">{formatDate(img.dateTaken || img.dateAdded)}</div>
+        <div className="photo-list-size">{formatFileSize(img.fileSize)}</div>
       </button>
     </div>
   );
@@ -603,25 +616,25 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
   };
 
   return (
-    <div className="flex flex-col h-full min-h-[500px] soft-glass-panel-strong overflow-hidden rounded-[var(--radius-lg)]">
+    <MediaBrowserShell className="soft-glass-panel-strong">
       {/* Header with controls */}
-      <div className="app-header-glass flex flex-col md:flex-row md:items-center justify-between px-3 py-2 md:px-6 md:h-14 shrink-0 z-10 gap-2">
+      <MediaBrowserHeader className="app-header-glass">
         {/* Mobile Album Dropdown */}
-        <div className="md:hidden">
-          <button
+        <div className="md:hidden relative">
+          <MediaBrowserMobileTrigger
             onClick={() => setShowAlbumDropdown(!showAlbumDropdown)}
-            className="w-full flex items-center justify-between px-3 py-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] text-sm h-10"
+            style={{ position: 'relative' }}
           >
-            <span className="flex items-center gap-2">
+            <MediaBrowserTriggerLabel>
               <Icon name="Folder" size="sm" />
               {selectedAlbum ? albums.find((a) => a.id === selectedAlbum)?.name : 'All Photos'}
-            </span>
+            </MediaBrowserTriggerLabel>
             <Icon name={showAlbumDropdown ? 'ChevronUp' : 'ChevronDown'} size="sm" />
-          </button>
+          </MediaBrowserMobileTrigger>
           {showAlbumDropdown && (
-            <div className="absolute left-3 right-3 mt-1 dropdown-surface z-30 max-h-60 overflow-y-auto">
-              <button
-                className={`w-full px-4 py-3 text-left text-sm flex items-center justify-between ${selectedAlbum === null ? 'bg-cyan-900/20 text-[var(--accent)]' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)]'}`}
+            <MediaBrowserDropdown>
+              <MediaBrowserDropdownItem
+                active={selectedAlbum === null}
                 onClick={() => {
                   setSelectedAlbum(null);
                   setShowAlbumDropdown(false);
@@ -629,11 +642,11 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
               >
                 <span>All Photos</span>
                 <span className="text-xs opacity-70">{libraryTotalCount}</span>
-              </button>
+              </MediaBrowserDropdownItem>
               {albums.map((album) => (
-                <button
+                <MediaBrowserDropdownItem
                   key={album.id}
-                  className={`w-full px-4 py-3 text-left text-sm flex items-center justify-between border-t border-[var(--glass-border)] ${selectedAlbum === album.id ? 'bg-cyan-900/20 text-[var(--accent)]' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)]'}`}
+                  active={selectedAlbum === album.id}
                   onClick={() => {
                     setSelectedAlbum(album.id);
                     setShowAlbumDropdown(false);
@@ -641,213 +654,200 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
                 >
                   <span className="truncate">{album.name}</span>
                   <span className="text-xs opacity-70">{album.imageCount || 0}</span>
-                </button>
+                </MediaBrowserDropdownItem>
               ))}
-            </div>
+            </MediaBrowserDropdown>
           )}
         </div>
 
         {/* Search - Smaller on mobile */}
         <div className="w-full md:w-64 flex gap-2">
-          <div className="relative flex-1">
-            <Icon
-              name="Search"
-              size="sm"
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none"
-            />
-            <input
+          <MediaBrowserSearch className="photo-browser-search-container">
+            <Icon name="Search" size="sm" className="photo-browser-search-icon" />
+            <MediaBrowserSearchInput
               type="text"
               placeholder="Search images..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] pl-9 pr-3 py-2 md:py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--accent)] placeholder-slate-500 transition-all h-8"
+              className="photo-browser-search-input"
             />
-          </div>
+          </MediaBrowserSearch>
           {/* Mobile share button */}
-          <button
+          <Button
             onClick={handleShare}
-            className="md:hidden flex items-center justify-center w-10 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-muted)] hover:text-[var(--text-primary)] h-10"
+            variant="secondary"
+            className="md:hidden h-11 w-11 px-0 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
           >
             {showCopied ? (
-              <Icon name="Check" size="sm" className="text-green-500" />
+              <Icon name="Check" size="sm" color="success" />
             ) : (
               <Icon name="Share2" size="sm" />
             )}
-          </button>
+          </Button>
         </div>
 
         {/* Desktop Sort and View Controls - Hidden on mobile */}
-        <div className="hidden md:flex items-center gap-3">
-          <button
+        <MediaBrowserToolbar className="hidden md:flex">
+          <Button
             onClick={handleShare}
-            className="flex items-center gap-2 px-3 py-1.5 bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--glass-border)] rounded text-xs transition-colors h-8"
+            variant="secondary"
+            className="min-h-[var(--control-height-compact)] px-[var(--space-3)] text-xs"
           >
             {showCopied ? (
-              <Icon name="Check" size="sm" className="text-green-500" />
+              <Icon name="Check" size="sm" color="success" />
             ) : (
               <Icon name="Share2" size="sm" />
             )}
             Share
-          </button>
+          </Button>
 
           {/* Filters */}
           <div className="flex items-center gap-2">
-            <select
+            <Select
               value={selectedTag || ''}
               onChange={(e) => setSelectedTag(e.target.value ? parseInt(e.target.value) : null)}
-              className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded text-[var(--text-secondary)] text-xs px-2 py-1 focus:outline-none focus:border-[var(--accent)] h-8 max-w-[100px]"
-            >
-              <option value="">All Tags</option>
-              {availableTags.map((tag) => (
-                <option key={tag.id} value={tag.id}>
-                  {tag.name}
-                </option>
-              ))}
-            </select>
+              className="min-h-[var(--control-height-compact)] max-w-[100px] bg-[var(--glass-bg)] px-[var(--space-2)] text-xs"
+              options={[
+                { value: '', label: 'All Tags' },
+                ...availableTags.map((tag) => ({ value: tag.id, label: tag.name })),
+              ]}
+            />
 
-            <select
+            <Select
               value={selectedPerson || ''}
               onChange={(e) => setSelectedPerson(e.target.value ? parseInt(e.target.value) : null)}
               onFocus={loadPeopleOptions}
-              className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded text-[var(--text-secondary)] text-xs px-2 py-1 focus:outline-none focus:border-[var(--accent)] h-8 max-w-[100px]"
-            >
-              <option value="">All People</option>
-              {availablePeople.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
+              className="min-h-[var(--control-height-compact)] max-w-[100px] bg-[var(--glass-bg)] px-[var(--space-2)] text-xs"
+              options={[
+                { value: '', label: 'All People' },
+                ...availablePeople.map((person) => ({ value: person.id, label: person.name })),
+              ]}
+            />
 
-            <button
+            <Button
               onClick={() => setHasPeopleOnly(!hasPeopleOnly)}
-              className={`flex items-center gap-2 px-3 py-1.5 border rounded text-xs transition-colors h-8 ${hasPeopleOnly ? 'bg-cyan-900/50 border-[var(--accent)] text-[var(--accent)]' : 'bg-[var(--glass-bg)] border-[var(--glass-border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
+              variant="secondary"
+              className={`min-h-[var(--control-height-compact)] px-[var(--space-3)] text-xs ${hasPeopleOnly ? 'bg-[var(--accent)]/15 border-[var(--accent)] text-[var(--accent)]' : ''}`}
               title="Show only images with people"
             >
               <Icon name="Users" size="sm" />
-            </button>
+            </Button>
           </div>
 
           <div className="w-px h-6 bg-[var(--glass-bg-highlight)] mx-1"></div>
 
           <div className="flex items-center gap-2">
-            <span className="text-xs text-[var(--text-muted)] font-medium">Sort by:</span>
-            <select
+            <MediaBrowserStatus>Sort by:</MediaBrowserStatus>
+            <Select
               value={sortField}
               onChange={(e) => setSortField(e.target.value as SortField)}
-              className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded text-[var(--text-secondary)] text-xs px-2 py-1 focus:outline-none focus:border-[var(--accent)] h-8"
-            >
-              <option value="date_added">Date Added</option>
-              <option value="date_taken">Date Taken</option>
-              <option value="filename">Name</option>
-              <option value="file_size">Size</option>
-              <option value="title">Title</option>
-            </select>
+              className="h-8 bg-[var(--glass-bg)] px-[var(--space-2)] text-xs"
+              options={[
+                { value: 'date_added', label: 'Date Added' },
+                { value: 'date_taken', label: 'Date Taken' },
+                { value: 'filename', label: 'Name' },
+                { value: 'file_size', label: 'Size' },
+                { value: 'title', label: 'Title' },
+              ]}
+            />
           </div>
 
-          <button
+          <Button
             onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-            className="w-8 h-8 flex items-center justify-center bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-[var(--glass-border)] rounded transition-colors"
+            variant="secondary"
+            className="h-8 w-8 px-0 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
             title={sortOrder === 'asc' ? 'Ascending' : 'Descending'}
           >
             <Icon name={sortOrder === 'asc' ? 'ArrowUp' : 'ArrowDown'} size="sm" />
-          </button>
+          </Button>
 
-          <div className="flex bg-[var(--glass-bg)] p-0.5 rounded border border-[var(--glass-border)] h-8">
+          <Surface variant="quiet" className="photo-browser-view-controls">
             <button
-              className={`w-8 h-full flex items-center justify-center rounded ${viewMode === 'grid' ? 'bg-[var(--glass-bg-highlight)] text-[var(--text-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}
+              className={cn('view-btn', viewMode === 'grid' && 'is-active')}
               onClick={() => setViewMode('grid')}
               title="Grid View"
             >
               <Icon name="Grid" size="sm" />
             </button>
             <button
-              className={`w-8 h-full flex items-center justify-center rounded ${viewMode === 'list' ? 'bg-[var(--glass-bg-highlight)] text-[var(--text-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}
+              className={cn('view-btn', viewMode === 'list' && 'is-active')}
               onClick={() => setViewMode('list')}
               title="List View"
             >
               <Icon name="List" size="sm" />
             </button>
-          </div>
+          </Surface>
 
           {/* Batch Mode Toggle - Admin Only */}
           {isAdmin && (
-            <button
+            <Button
               onClick={isBatchMode ? exitBatchMode : enterBatchMode}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded text-xs font-medium transition-colors ${isBatchMode ? 'bg-[var(--accent)] hover:bg-[var(--accent)] text-[var(--text-primary)]' : 'bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--glass-border)]'} h-8`}
+              variant={isBatchMode ? 'primary' : 'secondary'}
+              className="h-8 gap-2 px-3 py-1.5 text-xs font-medium"
             >
               <Icon name="CheckSquare" size="sm" />
               {isBatchMode ? 'Exit Batch Mode' : 'Batch Edit'}
-            </button>
+            </Button>
           )}
-        </div>
-      </div>
+        </MediaBrowserToolbar>
+      </MediaBrowserHeader>
 
-      <div className="flex flex-1 overflow-hidden relative">
-        {/* Albums sidebar - Hidden on mobile */}
-        <aside className="hidden md:flex w-60 bg-[var(--glass-bg-strong)] border-r border-[var(--glass-border)] flex-col shrink-0">
-          <h3 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider px-4 py-3">
-            Albums
-          </h3>
-          <div className="flex-1 overflow-y-auto">
-            <button
-              className={`w-full px-4 py-2 text-left text-sm flex items-center justify-between transition-colors ${selectedAlbum === null ? 'bg-cyan-900/20 text-[var(--accent)] border-l-2 border-[var(--accent)]' : 'text-[var(--text-muted)] hover:bg-[var(--glass-bg)] hover:text-[var(--text-primary)] border-l-2 border-transparent'}`}
+      <div className="media-browser-layout-container">
+        <MediaBrowserSidebar>
+          <MediaBrowserSidebarTitle>Albums</MediaBrowserSidebarTitle>
+          <div className="media-browser-sidebar-scroll">
+            <MediaBrowserSidebarItem
+              active={selectedAlbum === null}
               onClick={() => setSelectedAlbum(null)}
             >
               <span className="truncate">All Photos</span>
-              <span className="text-xs opacity-70 bg-[var(--glass-bg)] px-1.5 py-0.5 rounded-full">
-                {libraryTotalCount}
-              </span>
-            </button>
+              <MediaBrowserCount>{libraryTotalCount}</MediaBrowserCount>
+            </MediaBrowserSidebarItem>
             {albums.map((album) => (
-              <button
+              <MediaBrowserSidebarItem
                 key={album.id}
-                className={`w-full px-4 py-2 text-left text-sm flex items-center justify-between transition-colors ${selectedAlbum === album.id ? 'bg-cyan-900/20 text-[var(--accent)] border-l-2 border-[var(--accent)]' : 'text-[var(--text-muted)] hover:bg-[var(--glass-bg)] hover:text-[var(--text-primary)] border-l-2 border-transparent'}`}
+                active={selectedAlbum === album.id}
                 onClick={() => setSelectedAlbum(album.id)}
                 title={album.name}
               >
                 <span className="truncate">{album.name}</span>
-                <span className="text-xs opacity-70 bg-[var(--glass-bg)] px-1.5 py-0.5 rounded-full">
-                  {album.imageCount || 0}
-                </span>
-              </button>
+                <MediaBrowserCount>{album.imageCount || 0}</MediaBrowserCount>
+              </MediaBrowserSidebarItem>
             ))}
           </div>
-        </aside>
+        </MediaBrowserSidebar>
 
-        {/* Main Content */}
-        <div className="flex-1 bg-[var(--app-bg)] flex flex-col overflow-hidden relative">
+        <MediaBrowserPanel className="media-browser-main-panel">
           {loading && images.length === 0 ? (
-            <div className="absolute inset-0 flex items-center justify-center z-20 bg-[var(--app-bg)]/50 backdrop-blur-sm pointer-events-none">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[var(--accent)]"></div>
+            <div className="media-browser-loading-overlay">
+              <Spinner label="Loading photos" />
             </div>
           ) : null}
 
           {/* Discreet loading indicator for updates */}
           {loading && images.length > 0 && (
             <div className="absolute top-4 right-4 z-20">
-              <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-[var(--accent)] drop-shadow-[var(--glass-shadow)]"></div>
+              <Spinner label="Updating" className="gap-0 [&>span]:sr-only" />
             </div>
           )}
 
           {/* Warning Banner for Fake/Unconfirmed Albums */}
           {selectedAlbum &&
             albums.find((a) => a.id === selectedAlbum)?.name.match(/Fake|Unconfirmed/i) && (
-              <div className="bg-red-900/80 border-b border-red-700 px-4 py-3 flex items-start gap-3">
-                <Icon name="AlertTriangle" className="text-red-400 shrink-0 mt-0.5" />
+              <StatusBanner tone="danger" className="rounded-none border-x-0 border-t-0 px-4 py-3">
                 <div>
-                  <h4 className="text-red-200 font-bold text-sm uppercase tracking-wider">
+                  <h4 className="text-sm font-bold uppercase tracking-wider">
                     {albums.find((a) => a.id === selectedAlbum)?.name.includes('Fake')
                       ? 'Confirmed Fake Media'
                       : 'Unconfirmed / Unverified Content'}
                   </h4>
-                  <p className="text-red-300/90 text-sm mt-1">
+                  <p className="mt-1 text-sm">
                     {albums.find((a) => a.id === selectedAlbum)?.name.includes('Fake')
                       ? 'These images have been confirmed as AI-generated or photoshopped. They are distributed to spread misinformation and discredit survivors. Viewing them may be harmful.'
                       : 'These images currently lack provenance or verification. Treat with extreme caution as they may be manipulated or out of context.'}
                   </p>
                 </div>
-              </div>
+              </StatusBanner>
             )}
 
           {/* Active Filters */}
@@ -858,9 +858,10 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
               </span>
 
               {selectedTag && (
-                <button
+                <Badge
                   onClick={() => setSelectedTag(null)}
-                  className="flex items-center gap-1.5 px-2 py-0.5 bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] rounded-full text-xs transition-colors group"
+                  tone="neutral"
+                  className="cursor-pointer gap-1.5 transition-colors group hover:bg-[var(--glass-bg-highlight)]"
                 >
                   <span>Tag: {selectedTag}</span>
                   <Icon
@@ -868,13 +869,14 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
                     size="xs"
                     className="text-[var(--text-muted)] group-hover:text-[var(--text-primary)]"
                   />
-                </button>
+                </Badge>
               )}
 
               {selectedPerson && (
-                <button
+                <Badge
                   onClick={() => setSelectedPerson(null)}
-                  className="flex items-center gap-1.5 px-2 py-0.5 bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] rounded-full text-xs transition-colors group"
+                  tone="neutral"
+                  className="cursor-pointer gap-1.5 transition-colors group hover:bg-[var(--glass-bg-highlight)]"
                 >
                   <span>Person: {selectedPerson}</span>
                   <Icon
@@ -882,7 +884,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
                     size="xs"
                     className="text-[var(--text-muted)] group-hover:text-[var(--text-primary)]"
                   />
-                </button>
+                </Badge>
               )}
 
               <button
@@ -1023,7 +1025,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
                 document.body,
               )}
           </div>
-        </div>
+        </MediaBrowserPanel>
       </div>
 
       {/* Footer Status Bar */}
@@ -1064,7 +1066,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
           </div>
         </React.Suspense>
       )}
-    </div>
+    </MediaBrowserShell>
   );
 });
 

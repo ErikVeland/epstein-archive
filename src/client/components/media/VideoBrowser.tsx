@@ -1,13 +1,31 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { FixedSizeGrid as Grid, GridChildComponentProps, areEqual } from 'react-window';
 import { createPortal } from 'react-dom';
+import {
+  Icon,
+  MediaBrowserCount,
+  MediaBrowserDropdown,
+  MediaBrowserDropdownItem,
+  MediaBrowserHeader,
+  MediaBrowserMobileTrigger,
+  MediaBrowserPanel,
+  MediaBrowserSearch,
+  MediaBrowserSearchInput,
+  MediaBrowserShell,
+  MediaBrowserSidebar,
+  MediaBrowserSidebarItem,
+  MediaBrowserSidebarTitle,
+  MediaBrowserStatus,
+  MediaBrowserToolbar,
+  MediaBrowserTriggerLabel,
+  Spinner,
+  StatusBanner,
+} from '@design-system';
 import AutoSizer from '../common/AutoSizer';
 import { VideoPlayer } from './VideoPlayer';
-import { Play, Calendar, CheckSquare, Clock } from 'lucide-react';
 import { SensitiveContent } from '../common/SensitiveContent';
 import BatchToolbar from '../common/BatchToolbar';
 import { SensitiveWarningBanner } from '../shared/SensitiveWarningBanner';
-import Icon from '../common/Icon';
 import { usePaginatedMediaCollection } from '../../hooks/usePaginatedMediaCollection';
 import { MediaEmptyState } from '../shared/MediaBrowserLayout';
 
@@ -143,7 +161,11 @@ const VideoCell = React.memo(({ columnIndex, rowIndex, style, data }: GridChildC
             />
             <div className="absolute inset-0 bg-[var(--glass-bg-strong)] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
               <div className="w-12 h-12 bg-[var(--accent)] rounded-full flex items-center justify-center shadow-[var(--glass-shadow)] transform scale-90 group-hover:scale-100 transition-transform">
-                <Play className="text-[var(--text-primary)] fill-[var(--text-primary)] h-6 w-6 ml-1" />
+                <Icon
+                  name="Play"
+                  size="lg"
+                  className="ml-1 text-[var(--text-primary)] fill-[var(--text-primary)]"
+                />
               </div>
             </div>
           </SensitiveContent>
@@ -156,13 +178,13 @@ const VideoCell = React.memo(({ columnIndex, rowIndex, style, data }: GridChildC
                   : 'bg-[var(--glass-bg-strong)] border-[var(--glass-border)]'
               }`}
             >
-              {isSelected && <CheckSquare className="h-4 w-4 text-[var(--text-primary)]" />}
+              {isSelected ? <Icon name="CheckSquare" size="sm" color="white" /> : null}
             </div>
           )}
 
           {video.metadata?.duration && (
             <div className="absolute bottom-2 right-2 bg-[var(--glass-bg-strong)] px-1.5 py-0.5 rounded text-[10px] text-[var(--text-primary)] font-medium flex items-center gap-1">
-              <Clock className="h-3 w-3" />
+              <Icon name="Clock" size="xs" color="white" />
               {Math.floor(video.metadata.duration / 60)}:
               {
                 Math.floor(video.metadata.duration % 60)
@@ -180,7 +202,7 @@ const VideoCell = React.memo(({ columnIndex, rowIndex, style, data }: GridChildC
           </h3>
           <div className="flex items-center gap-3 mt-1.5">
             <div className="text-[10px] text-[var(--text-muted)] flex items-center gap-1">
-              <Calendar className="h-3 w-3" />
+              <Icon name="Calendar" size="xs" color="gray" />
               {formatDate(video.createdAt)}
             </div>
           </div>
@@ -310,25 +332,22 @@ export const VideoBrowser: React.FC = () => {
   );
 
   return (
-    <div className="flex flex-col h-full min-h-[500px] soft-glass-panel-strong overflow-hidden rounded-[var(--radius-lg)]">
+    <MediaBrowserShell className="soft-glass-panel-strong">
       {/* Header */}
-      <div className="app-header-glass flex flex-col md:flex-row md:items-center justify-between px-3 py-2 md:px-6 md:h-14 shrink-0 z-10 gap-2">
+      <MediaBrowserHeader className="app-header-glass">
         {/* Mobile Album Dropdown */}
-        <div className="md:hidden">
-          <button
-            onClick={() => setShowAlbumDropdown(!showAlbumDropdown)}
-            className="w-full flex items-center justify-between px-3 py-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] text-sm h-10"
-          >
-            <span className="flex items-center gap-2">
+        <div className="md:hidden relative">
+          <MediaBrowserMobileTrigger onClick={() => setShowAlbumDropdown(!showAlbumDropdown)}>
+            <MediaBrowserTriggerLabel>
               <Icon name="Folder" size="sm" />
               {selectedAlbum ? currentAlbum?.name : 'All Videos'}
-            </span>
+            </MediaBrowserTriggerLabel>
             <Icon name={showAlbumDropdown ? 'ChevronUp' : 'ChevronDown'} size="sm" />
-          </button>
+          </MediaBrowserMobileTrigger>
           {showAlbumDropdown && (
-            <div className="absolute left-3 right-3 mt-1 dropdown-surface z-30 max-h-60 overflow-y-auto">
-              <button
-                className={`w-full px-4 py-3 text-left text-sm flex items-center justify-between ${selectedAlbum === null ? 'bg-cyan-900/20 text-[var(--accent)]' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)]'}`}
+            <MediaBrowserDropdown>
+              <MediaBrowserDropdownItem
+                active={selectedAlbum === null}
                 onClick={() => {
                   setSelectedAlbum(null);
                   setShowAlbumDropdown(false);
@@ -336,11 +355,11 @@ export const VideoBrowser: React.FC = () => {
               >
                 <span>All Videos</span>
                 <span className="text-xs opacity-70">{libraryTotalCount}</span>
-              </button>
+              </MediaBrowserDropdownItem>
               {albums.map((album) => (
-                <button
+                <MediaBrowserDropdownItem
                   key={album.id}
-                  className={`w-full px-4 py-3 text-left text-sm flex items-center justify-between border-t border-[var(--glass-border)] ${selectedAlbum === album.id ? 'bg-cyan-900/20 text-[var(--accent)]' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)]'}`}
+                  active={selectedAlbum === album.id}
                   onClick={() => {
                     setSelectedAlbum(album.id);
                     setShowAlbumDropdown(false);
@@ -348,9 +367,9 @@ export const VideoBrowser: React.FC = () => {
                 >
                   <span className="truncate">{album.name}</span>
                   <span className="text-xs opacity-70">{album.itemCount || 0}</span>
-                </button>
+                </MediaBrowserDropdownItem>
               ))}
-            </div>
+            </MediaBrowserDropdown>
           )}
         </div>
 
@@ -361,92 +380,82 @@ export const VideoBrowser: React.FC = () => {
               Forensic video evidence
             </p>
           </div>
-          <div className="flex-1 flex items-center gap-3 justify-end">
+          <MediaBrowserToolbar className="media-browser-toolbar-scroll md:justify-end flex-1">
             {/* Transcript search within current album / all videos */}
-            <div className="relative w-full max-w-xs">
+            <MediaBrowserSearch className="relative w-full max-w-xs">
               <Icon
                 name="Search"
                 size="sm"
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none"
               />
-              <input
+              <MediaBrowserSearchInput
                 type="text"
                 value={transcriptSearch}
                 onChange={(e) => setTranscriptSearch(e.target.value)}
                 placeholder={
                   selectedAlbum ? 'Search transcripts in this album…' : 'Search transcripts…'
                 }
-                className="w-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] pl-9 pr-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-[var(--accent)] placeholder-slate-500"
+                className="text-xs placeholder-[var(--text-muted)]"
               />
-            </div>
-            <span className="text-xs text-[var(--text-muted)] whitespace-nowrap">
+            </MediaBrowserSearch>
+            <MediaBrowserStatus>
               {items.length} loaded{libraryTotalCount ? ` / ${libraryTotalCount}` : ''}
-            </span>
+            </MediaBrowserStatus>
             <button
               onClick={() => void refresh()}
-              className="px-2 py-1 rounded-[var(--radius-lg)] text-xs bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--glass-border)]"
+              className="control min-h-[var(--control-height-compact)] bg-[var(--glass-bg)] px-[var(--space-2)] text-xs"
               title="Reload"
             >
               Reload
             </button>
-          </div>
+          </MediaBrowserToolbar>
           <button
             onClick={() => setIsBatchMode(!isBatchMode)}
-            className={`px-3 py-1.5 rounded-[var(--radius-lg)] text-xs transition-colors ${isBatchMode ? 'bg-[var(--accent)] text-[var(--text-primary)]' : 'bg-[var(--glass-bg)] text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-[var(--glass-border)]'}`}
+            className={`control min-h-[var(--control-height-compact)] px-[var(--space-3)] text-xs ${isBatchMode ? 'bg-[var(--accent)] text-[var(--text-primary)]' : 'bg-[var(--glass-bg)] text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-[var(--glass-border)]'}`}
           >
             {isBatchMode ? 'Exit Batch' : 'Batch Edit'}
           </button>
         </div>
-      </div>
+      </MediaBrowserHeader>
 
       <div className="flex flex-1 overflow-hidden relative">
         {/* Albums sidebar - Hidden on mobile */}
-        <aside className="hidden md:flex w-60 bg-[var(--glass-bg-strong)] border-r border-[var(--glass-border)] flex-col shrink-0">
-          <h3 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider px-4 py-3">
-            Albums
-          </h3>
+        <MediaBrowserSidebar>
+          <MediaBrowserSidebarTitle>Albums</MediaBrowserSidebarTitle>
           <div className="flex-1 overflow-y-auto">
-            <button
-              className={`w-full px-4 py-2 text-left text-sm flex items-center justify-between transition-colors ${selectedAlbum === null ? 'bg-cyan-900/20 text-[var(--accent)] border-l-2 border-[var(--accent)]' : 'text-[var(--text-muted)] hover:bg-[var(--glass-bg)] hover:text-[var(--text-primary)] border-l-2 border-transparent'}`}
+            <MediaBrowserSidebarItem
+              active={selectedAlbum === null}
               onClick={() => setSelectedAlbum(null)}
             >
               <span className="truncate">All Videos</span>
-              <span className="text-xs opacity-70 bg-[var(--glass-bg)] px-1.5 py-0.5 rounded-full">
-                {libraryTotalCount}
-              </span>
-            </button>
+              <MediaBrowserCount>{libraryTotalCount}</MediaBrowserCount>
+            </MediaBrowserSidebarItem>
             {albums.map((album) => (
-              <button
+              <MediaBrowserSidebarItem
                 key={album.id}
-                className={`w-full px-4 py-2 text-left text-sm flex items-center justify-between transition-colors ${selectedAlbum === album.id ? 'bg-cyan-900/20 text-[var(--accent)] border-l-2 border-[var(--accent)]' : 'text-[var(--text-muted)] hover:bg-[var(--glass-bg)] hover:text-[var(--text-primary)] border-l-2 border-transparent'}`}
+                active={selectedAlbum === album.id}
                 onClick={() => setSelectedAlbum(album.id)}
                 title={album.name}
               >
                 <span className="truncate">{album.name}</span>
-                <span className="text-xs opacity-70 bg-[var(--glass-bg)] px-1.5 py-0.5 rounded-full">
-                  {album.itemCount || 0}
-                </span>
-              </button>
+                <MediaBrowserCount>{album.itemCount || 0}</MediaBrowserCount>
+              </MediaBrowserSidebarItem>
             ))}
           </div>
-        </aside>
+        </MediaBrowserSidebar>
 
         {/* Main Content */}
-        <div className="flex-1 bg-[var(--app-bg)] flex flex-col overflow-hidden">
+        <MediaBrowserPanel className="flex-1 bg-[var(--app-bg)] flex flex-col overflow-hidden">
           {loading && items.length === 0 ? (
             <div className="absolute inset-0 flex items-center justify-center z-20 bg-[var(--app-bg)]/50 backdrop-blur-sm">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[var(--accent)]"></div>
+              <Spinner label="Loading videos" />
             </div>
           ) : null}
 
           {/* Sensitive Content Warning Banner */}
           {showSensitiveWarning && <SensitiveWarningBanner mediaType="video" />}
 
-          {error && (
-            <div className="bg-red-900/20 border border-red-500/50 text-red-200 p-4 mx-6 mt-6 rounded-[var(--radius-lg)]">
-              {error}
-            </div>
-          )}
+          {error ? <StatusBanner tone="danger">{error}</StatusBanner> : null}
 
           <div className="flex-1 min-h-[360px] overflow-hidden relative">
             {!loading && items.length === 0 ? (
@@ -507,7 +516,7 @@ export const VideoBrowser: React.FC = () => {
               </div>
             )}
           </div>
-        </div>
+        </MediaBrowserPanel>
       </div>
 
       {/* Footer Status Bar */}
@@ -564,6 +573,6 @@ export const VideoBrowser: React.FC = () => {
           </div>,
           document.body,
         )}
-    </div>
+    </MediaBrowserShell>
   );
 };
