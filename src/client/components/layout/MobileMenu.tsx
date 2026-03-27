@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import Icon from '../common/Icon';
 import { CloseButton } from '../common/CloseButton';
 import { useAuth } from '../../contexts/AuthContext';
+import { cn } from '@design-system';
+import './MobileMenu.css';
 
 interface MobileMenuProps {
   open: boolean;
@@ -70,7 +72,10 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
 
   return (
     <div
-      className={`mobile-nav md:hidden fixed inset-0 z-[60] transition-opacity duration-300 ${open ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+      className={cn(
+        'mobile-nav fixed inset-0 z-[60] transition-opacity duration-300 md:hidden',
+        open ? 'opacity-100' : 'opacity-0 pointer-events-none',
+      )}
     >
       {/* Backdrop overlay - closes menu when clicked */}
       <button
@@ -82,7 +87,10 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
 
       {/* Menu panel - on top of backdrop */}
       <div
-        className={`mobile-nav-panel absolute left-0 top-[var(--header-height-mobile)] bottom-0 bg-[var(--bg-surface)] backdrop-blur-xl border-r border-[var(--glass-border)] shadow-[var(--glass-shadow)] transform transition-transform duration-300 ease-out z-10 flex flex-col ${open ? 'translate-x-0' : '-translate-x-full'}`}
+        className={cn(
+          'mobile-nav-panel absolute left-0 top-[var(--header-height-mobile)] bottom-0 surface-glass backdrop-blur-xl border-r border-[var(--glass-border)] shadow-[var(--glass-shadow)] transform transition-transform duration-300 ease-out z-10 stack-y',
+          open ? 'translate-x-0' : '-translate-x-full',
+        )}
         onClick={(e) => e.stopPropagation()} // Prevent clicks inside menu from closing it
         onTouchStart={(e) => {
           const startX = e.touches[0].clientX;
@@ -97,8 +105,8 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
           window.addEventListener('touchend', cleanup);
         }}
       >
-        <div className="flex-none flex items-center justify-between p-4 border-b border-[var(--glass-border)] bg-[var(--glass-bg)]">
-          <h3 className="text-[var(--text-primary)] font-semibold flex items-center gap-2">
+        <div className="no-shrink mobile-nav-header stack-x v-center h-between border-b border-[var(--glass-border)] bg-[var(--glass-bg)]">
+          <h3 className="text-[var(--text-primary)] font-semibold stack-x v-center gap-2">
             <Icon name="Menu" size="sm" className="text-[var(--accent)]" />
             Navigation
           </h3>
@@ -111,12 +119,12 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
         </div>
 
         {/* Mobile Search Input */}
-        <div className="flex-none p-4 border-b border-[var(--glass-border)] bg-transparent">
+        <div className="no-shrink mobile-search-container border-b border-[var(--glass-border)] bg-transparent">
           <div className="relative group">
             <input
               type="text"
               placeholder="Search people, documents..."
-              className="w-full bg-[var(--glass-bg)] text-[var(--text-primary)] placeholder-[var(--text-muted)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] pl-10 pr-4 py-3 focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] outline-none transition-all"
+              className="full-width bg-[var(--glass-bg)] text-[var(--text-primary)] placeholder-[var(--text-muted)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] pl-10 pr-4 py-3 focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] outline-none transition-all"
               value={searchTerm}
               onChange={(e) => onSearchTermChange(e.target.value)}
               onKeyDown={(e) => {
@@ -138,7 +146,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
         </div>
 
         {/* Scrollable Content Area - flex-1 takes remaining height */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-1 min-h-0">
+        <div className="flex-fill overflow-y-auto custom-scrollbar mobile-nav-content min-h-0">
           <button
             className="mobile-nav-action text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)] transition-colors group"
             onClick={() => handleNavigation('/')}
@@ -160,13 +168,13 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
           </div>
 
           <button
-            className="mobile-nav-action text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] transition-all duration-300 group hover:translate-x-1"
+            className="mobile-nav-action text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] group hover:translate-x-1"
             onClick={() => handleNavigation('/people')}
           >
-            <div className="p-1.5 rounded-md bg-[var(--glass-bg)] group-hover:bg-[var(--accent)]/20 shadow-[var(--glass-shadow-soft)] transition-colors">
+            <div className="mobile-nav-action-icon group-hover:bg-[var(--accent)]/20 shadow-[var(--glass-shadow-soft)] transition-colors">
               <Icon name="Users" size="sm" className="w-4 h-4 text-[var(--accent)]" />
             </div>
-            <span className="mobile-nav-action-label font-medium text-[var(--text-primary)] transition-colors">
+            <span className="mobile-nav-action-label text-[var(--text-primary)] transition-colors">
               People
             </span>
           </button>
@@ -205,9 +213,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
           </button>
 
           <div className="my-2 border-t border-[var(--glass-border)] mx-3"></div>
-          <div className="px-3 py-1.5 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
-            Intelligence
-          </div>
+          <div className="mobile-section-header">Intelligence</div>
 
           <button
             className={`mobile-nav-action text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] transition-all group ${attract ? 'ring-1 ring-[var(--nav-investigations-ring)] shadow-[var(--nav-investigations-glow)] bg-[var(--glass-bg)]/50' : ''}`}
@@ -305,7 +311,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
         </div>
 
         {/* Footer - Flex item at bottom */}
-        <div className="flex-none p-4 border-t border-[var(--glass-border)] bg-[var(--glass-bg)] text-center">
+        <div className="no-shrink mobile-nav-footer border-t border-[var(--glass-border)] bg-[var(--glass-bg)]">
           <p className="text-[10px] text-[var(--text-muted)]">
             v{__APP_VERSION__} • Epstein Archive
           </p>
