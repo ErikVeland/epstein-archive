@@ -6,6 +6,8 @@ import { TreeMap } from './TreeMap';
 import { filterPeopleOnly, isJunkEntity } from '../../utils/entityFilters';
 import { useAnalytics } from '../../contexts/AnalyticsContextState';
 import ScopedErrorBoundary from '../common/ScopedErrorBoundary';
+import { Surface, cn } from '@design-system';
+import './DataVisualization.css';
 
 interface EntityRecord {
   name?: string;
@@ -256,7 +258,7 @@ export const DataVisualization: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-96">
+      <div className="stack-x v-center h-center" style={{ height: '24rem' }}>
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent)] shadow-[0_0_15px_rgba(6,182,212,0.5)]"></div>
       </div>
     );
@@ -264,12 +266,12 @@ export const DataVisualization: React.FC = () => {
 
   if (error) {
     return (
-      <div className="text-center py-12 text-red-400 glass-panel rounded-[var(--radius-xl)]">
+      <div className="text-center py-12 text-red-400 glass-card rounded-[var(--radius-xl)]">
         <AlertTriangle className="mx-auto h-12 w-12 mb-4 opacity-80" />
         <p className="text-lg mb-4">{error}</p>
         <button
           onClick={onRetry}
-          className="px-6 py-2 bg-[var(--glass-bg)] rounded-[var(--radius-lg)] hover:bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] transition-all hover:scale-105"
+          className="px-6 py-2 bg-[var(--glass-bg)] rounded-[var(--radius-lg)] hover:bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] transition-all"
         >
           Retry Analysis
         </button>
@@ -278,23 +280,23 @@ export const DataVisualization: React.FC = () => {
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="stack-y gap-8 animate-in fade-in duration-500">
       {/* Charts Row 1 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="viz-grid">
         {/* Top Entities Bar Chart - Enhanced */}
         <div className="glass-card p-6 rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
             <Activity className="h-24 w-24 text-[var(--accent)]" />
           </div>
 
-          <h3 className="text-xl font-bold text-[var(--text-primary)] mb-6 flex items-center gap-2 flex-wrap relative z-10">
+          <h3 className="text-xl font-bold text-[var(--text-primary)] mb-6 stack-x v-center gap-2 wrap relative z-10">
             <Users className="h-5 w-5 text-[var(--accent)]" />
             <span className="neon-text-cyan">Top Mentioned Individuals</span>
           </h3>
 
           {/* Microcopy for Top Entities Chart */}
-          <div className="text-xs text-[var(--text-muted)] mb-6 flex items-start gap-2 bg-[var(--glass-bg-strong)]/50 p-3 rounded-[var(--radius-lg)] border border-[var(--glass-border)] backdrop-blur-sm relative z-10">
-            <Info className="h-4 w-4 mt-0.5 flex-shrink-0 text-[var(--accent)]" />
+          <div className="text-xs text-[var(--text-muted)] mb-6 stack-x v-start gap-2 bg-[var(--glass-bg-strong)]/50 p-3 rounded-[var(--radius-lg)] border border-[var(--glass-border)] backdrop-blur-sm relative z-10">
+            <Info className="h-4 w-4 mt-0.5 no-shrink text-[var(--accent)]" />
             <span>
               Individuals with the highest frequency of appearances across all analyzed documents.
               Colors indicate risk level. Click to view details.
@@ -323,14 +325,14 @@ export const DataVisualization: React.FC = () => {
                           : 'Low';
                 const riskColor =
                   risk >= 5
-                    ? 'text-fuchsia-300 border-fuchsia-500/40 bg-fuchsia-900/30'
+                    ? 'risk-tag-critical'
                     : risk >= 4
-                      ? 'text-red-300 border-red-500/40 bg-red-900/30'
+                      ? 'risk-tag-high'
                       : risk >= 3
-                        ? 'text-amber-300 border-amber-500/40 bg-amber-900/30'
+                        ? 'risk-tag-elevated'
                         : risk >= 2
-                          ? 'text-[var(--accent)] border-[var(--accent)]/40 bg-cyan-900/30'
-                          : 'text-emerald-300 border-emerald-500/40 bg-emerald-900/30';
+                          ? 'risk-tag-guarded'
+                          : 'risk-tag-low';
 
                 return (
                   <button
@@ -339,32 +341,23 @@ export const DataVisualization: React.FC = () => {
                     onClick={() =>
                       onPersonSelect && onPersonSelect(entry.person as unknown as Person)
                     }
-                    className="w-full text-left rounded-[var(--radius-lg)] border border-[var(--glass-border)] bg-[var(--glass-bg-strong)]/45 hover:bg-[var(--glass-bg)]/70 hover:border-[var(--accent)]/40 transition-colors p-3"
+                    className="entity-ranking-card"
                   >
-                    <div className="grid grid-cols-[40px_minmax(0,1fr)_120px] items-center gap-3">
-                      <div className="w-10 h-10 rounded-md border border-amber-500/40 bg-gradient-to-b from-amber-900/50 to-slate-900/70 flex items-center justify-center font-bold text-amber-200">
-                        {index + 1}
-                      </div>
+                    <div className="grid grid-cols-[40px_minmax(0,1fr)_120px] v-center gap-3">
+                      <div className="ranking-number">{index + 1}</div>
                       <div className="min-w-0">
                         <div className="text-[var(--text-primary)] font-semibold truncate">
                           {entry.name}
                         </div>
-                        <div className="mt-2 h-2.5 rounded bg-[var(--glass-bg)] overflow-hidden">
-                          <div
-                            className="h-full bg-gradient-to-r from-amber-400 via-cyan-400 to-blue-500"
-                            style={{ width: `${barWidth}%` }}
-                          />
+                        <div className="ranking-bar-container">
+                          <div className="ranking-bar" style={{ width: `${barWidth}%` }} />
                         </div>
                       </div>
                       <div className="text-right">
                         <div className="text-[var(--text-primary)] font-mono text-sm">
                           {entry.mentions.toLocaleString()}
                         </div>
-                        <div
-                          className={`inline-flex mt-1 px-2 py-0.5 rounded border text-[10px] uppercase tracking-wider ${riskColor}`}
-                        >
-                          {riskLabel}
-                        </div>
+                        <div className={cn('risk-tag', riskColor)}>{riskLabel}</div>
                       </div>
                     </div>
                   </button>
@@ -380,13 +373,13 @@ export const DataVisualization: React.FC = () => {
             <ShieldAlert className="h-24 w-24 text-orange-500" />
           </div>
 
-          <h3 className="text-xl font-bold text-[var(--text-primary)] mb-6 flex items-center gap-2 relative z-10">
+          <h3 className="text-xl font-bold text-[var(--text-primary)] mb-6 stack-x v-center gap-2 relative z-10">
             <AlertTriangle className="h-5 w-5 text-orange-400" />
             <span>Risk Level Distribution</span>
           </h3>
           {/* Microcopy for Risk Distribution Chart */}
-          <div className="text-xs text-[var(--text-muted)] mb-6 flex items-start gap-2 bg-[var(--glass-bg-strong)]/50 p-3 rounded-[var(--radius-lg)] border border-[var(--glass-border)] backdrop-blur-sm relative z-10">
-            <Info className="h-4 w-4 mt-0.5 flex-shrink-0 text-orange-400" />
+          <div className="text-xs text-[var(--text-muted)] mb-6 stack-x v-start gap-2 bg-[var(--glass-bg-strong)]/50 p-3 rounded-[var(--radius-lg)] border border-[var(--glass-border)] backdrop-blur-sm relative z-10">
+            <Info className="h-4 w-4 mt-0.5 no-shrink text-orange-400" />
             <span>
               Breakdown of entities by Red Flag Index score (0-5), indicating the density of
               connection to illicit activities.
@@ -423,11 +416,11 @@ export const DataVisualization: React.FC = () => {
             </div>
           </div>
           {/* Legend */}
-          <div className="flex flex-wrap justify-center gap-4 mt-4 relative z-10">
+          <div className="stack-x h-center gap-4 mt-4 relative z-10 wrap">
             {riskDistribution.map((item, index) => (
               <div
                 key={index}
-                className="flex items-center gap-2 px-3 py-1 bg-[var(--glass-bg-strong)]/40 rounded-full border border-[var(--glass-border)]"
+                className="stack-x v-center gap-2 px-3 py-1 bg-[var(--glass-bg-strong)]/40 rounded-full border border-[var(--glass-border)]"
               >
                 <div
                   className="w-3 h-3 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.5)]"
@@ -444,10 +437,10 @@ export const DataVisualization: React.FC = () => {
 
       {/* Interactive Tree Map */}
       <div className="glass-card p-6 rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] relative overflow-hidden">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4 relative z-10">
-          <h3 className="text-xl font-bold text-[var(--text-primary)] flex items-center gap-2">
+        <div className="stack-y sm:stack-x v-center h-between mb-6 gap-4 relative z-10">
+          <h3 className="text-xl font-bold text-[var(--text-primary)] stack-x v-center gap-2">
             <Activity className="h-5 w-5 text-purple-400" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
+            <span className="text-transparent bg-clip-text gradient-purple-pink">
               Interactive Entity Map
             </span>
           </h3>
@@ -457,8 +450,8 @@ export const DataVisualization: React.FC = () => {
         </div>
 
         {/* Microcopy for Tree Map */}
-        <div className="text-xs text-[var(--text-muted)] mb-6 flex items-start gap-2 bg-[var(--glass-bg-strong)]/50 p-3 rounded-[var(--radius-lg)] border border-[var(--glass-border)] backdrop-blur-sm relative z-10">
-          <Info className="h-4 w-4 mt-0.5 flex-shrink-0 text-purple-400" />
+        <div className="text-xs text-[var(--text-muted)] mb-6 stack-x v-start gap-2 bg-[var(--glass-bg-strong)]/50 p-3 rounded-[var(--radius-lg)] border border-[var(--glass-border)] backdrop-blur-sm relative z-10">
+          <Info className="h-4 w-4 mt-0.5 no-shrink text-purple-400" />
           <span>
             Visual representation of entity prominence. Box size correlates to mention frequency.
             Click any box to view detailed evidence.
@@ -496,33 +489,27 @@ export const DataVisualization: React.FC = () => {
       </div>
 
       {/* Summary Statistics Footer */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="glass-panel p-4 rounded-[var(--radius-xl)] hover:bg-[var(--glass-bg)]/60 transition-colors group">
-          <div className="text-3xl font-bold text-[var(--text-primary)] font-mono group-hover:text-[var(--accent)] transition-colors">
+      <div className="stats-summary-grid">
+        <div className="glass-card stat-widget hover:bg-[var(--glass-bg)]/60 transition-colors group">
+          <div className="stat-value group-hover:text-[var(--accent)] transition-colors">
             {stats.totalPeople.toLocaleString()}
           </div>
-          <div className="text-[var(--text-muted)] text-xs mt-1 font-medium uppercase tracking-wide flex items-center gap-1">
-            Total Individuals
-          </div>
+          <div className="stat-label flex-row v-center gap-1">Total Individuals</div>
         </div>
-        <div className="glass-panel p-4 rounded-[var(--radius-xl)] hover:bg-[var(--glass-bg)]/60 transition-colors group">
-          <div className="text-3xl font-bold text-[var(--text-primary)] font-mono group-hover:text-[var(--accent)] transition-colors">
+        <div className="glass-card stat-widget hover:bg-[var(--glass-bg)]/60 transition-colors group">
+          <div className="stat-value group-hover:text-[var(--accent)] transition-colors">
             {stats.totalPeople > 0 ? Math.round(stats.totalMentions / stats.totalPeople) : 0}
           </div>
-          <div className="text-[var(--text-muted)] text-xs mt-1 font-medium uppercase tracking-wide">
-            Avg Mentions
-          </div>
+          <div className="stat-label">Avg Mentions</div>
         </div>
-        <div className="glass-panel p-4 rounded-[var(--radius-xl)] hover:bg-[var(--glass-bg)]/60 transition-colors group">
-          <div className="text-3xl font-bold text-[var(--text-primary)] font-mono group-hover:text-purple-400 transition-colors">
+        <div className="glass-card stat-widget hover:bg-[var(--glass-bg)]/60 transition-colors group">
+          <div className="stat-value group-hover:text-purple-400 transition-colors">
             {stats.uniqueRoles.toLocaleString()}
           </div>
-          <div className="text-[var(--text-muted)] text-xs mt-1 font-medium uppercase tracking-wide">
-            Unique Roles
-          </div>
+          <div className="stat-label">Unique Roles</div>
         </div>
-        <div className="glass-panel p-4 rounded-[var(--radius-xl)] hover:bg-[var(--glass-bg)]/60 transition-colors group">
-          <div className="text-3xl font-bold text-[var(--text-primary)] font-mono group-hover:text-pink-400 transition-colors">
+        <div className="glass-card stat-widget hover:bg-[var(--glass-bg)]/60 transition-colors group">
+          <div className="stat-value group-hover:text-pink-400 transition-colors">
             {(() => {
               const source = people.length > 0 ? people : analyticsData?.topConnectedEntities || [];
               if (source.length === 0) return '0';
@@ -531,9 +518,7 @@ export const DataVisualization: React.FC = () => {
               ).toLocaleString();
             })()}
           </div>
-          <div className="text-[var(--text-muted)] text-xs mt-1 font-medium uppercase tracking-wide">
-            Max Mentions
-          </div>
+          <div className="stat-label">Max Mentions</div>
         </div>
       </div>
     </div>
