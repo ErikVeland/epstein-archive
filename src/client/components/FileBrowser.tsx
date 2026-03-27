@@ -13,6 +13,8 @@ import {
   FileSpreadsheet,
 } from 'lucide-react';
 import { CloseButton } from './common/CloseButton';
+import { cn, Surface } from '@design-system';
+import './FileBrowser.css';
 
 interface FileItem {
   name: string;
@@ -171,14 +173,14 @@ const FileBrowser: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="stack-x v-center h-center" style={{ height: '16rem' }}>
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent)]"></div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="stack-y gap-6">
       {/* Category Filter */}
       <div className="glass-panel p-4 rounded-[var(--radius-xl)]">
         <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
@@ -189,21 +191,22 @@ const FileBrowser: React.FC = () => {
             {loadError}
           </div>
         )}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+        <div className="file-browser-grid">
           {categories.map((category) => {
             const Icon = category.icon;
             return (
               <button
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
-                className={`flex flex-col min-h-[var(--space-16)] items-center p-3 rounded-[var(--radius-lg)] transition-all duration-200 ${
+                className={cn(
+                  'category-card',
                   selectedCategory === category.id
                     ? 'soft-glass-accent text-[var(--text-primary)] shadow-[var(--glass-shadow)]'
-                    : 'bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)]'
-                }`}
+                    : 'bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)]',
+                )}
               >
-                <Icon className="h-6 w-6 mb-2" />
-                <span className="text-xs text-center font-medium">{category.name}</span>
+                <Icon className="h-6 w-6 no-shrink mb-2" />
+                <span className="text-xs text-center font-medium capitalize">{category.name}</span>
               </button>
             );
           })}
@@ -213,11 +216,11 @@ const FileBrowser: React.FC = () => {
       {/* Search */}
       <div className="glass-panel p-4 rounded-[var(--radius-xl)]">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[var(--text-muted)]" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[var(--text-muted)]" />
           <input
             type="text"
             placeholder="Search files by name or content..."
-            className="control w-full justify-start pl-10 pr-4 text-[var(--text-primary)] placeholder-[var(--text-muted)]"
+            className="control full-width text-left pl-10 pr-4 text-[var(--text-primary)] placeholder-[var(--text-muted)]"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -227,7 +230,7 @@ const FileBrowser: React.FC = () => {
       {/* File List */}
       <div className="glass-panel rounded-[var(--radius-xl)] overflow-hidden">
         <div className="p-4 border-b border-[var(--glass-border)]">
-          <div className="flex items-center justify-between">
+          <div className="stack-x v-center h-between">
             <h3 className="text-lg font-semibold text-[var(--text-primary)]">
               {selectedCategory === 'all'
                 ? 'All Files'
@@ -239,7 +242,7 @@ const FileBrowser: React.FC = () => {
           </div>
         </div>
 
-        <div className="divide-y divide-[var(--glass-border)]">
+        <div className="stack-y">
           {filteredFiles.map((file, index) => {
             const Icon = getFileIcon(file);
             return (
@@ -247,18 +250,20 @@ const FileBrowser: React.FC = () => {
                 key={index}
                 type="button"
                 onClick={() => handleFileClick(file)}
-                className="w-full p-4 text-left bg-transparent hover:bg-[var(--glass-bg-highlight)] transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-inset"
+                className="file-list-item bg-transparent"
                 aria-label={`Preview file ${file.name}`}
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <Icon className="h-5 w-5 text-[var(--accent)]" />
+                <div className="stack-x v-center h-between full-width">
+                  <div className="stack-x v-center gap-3">
+                    <Icon className="h-5 w-5 text-[var(--accent)] no-shrink" />
                     <div>
                       <h4 className="text-[var(--text-primary)] font-medium">{file.name}</h4>
-                      <p className="text-[var(--text-muted)] text-sm">{file.path}</p>
+                      <p className="text-[var(--text-muted)] text-sm truncate max-w-[300px]">
+                        {file.path}
+                      </p>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-4 text-sm text-[var(--text-muted)]">
+                  <div className="stack-x v-center gap-4 text-sm text-[var(--text-muted)]">
                     {file.size && <span>{formatFileSize(file.size)}</span>}
                     {file.modified && <span>{file.modified}</span>}
                     <Eye className="h-4 w-4" />
@@ -278,20 +283,19 @@ const FileBrowser: React.FC = () => {
         )}
       </div>
 
-      {/* File Preview Modal */}
       {selectedFile &&
         createPortal(
-          <div className="fixed inset-0 bg-[var(--glass-bg-strong)] backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
-            <div className="bg-[var(--glass-bg)] rounded-[var(--radius-xl)] max-w-4xl w-full max-h-[80vh] overflow-hidden border border-[var(--glass-border)]">
-              <div className="p-6 border-b border-[var(--glass-border)]">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <File className="h-6 w-6 text-[var(--accent)]" />
-                    <h3 className="text-xl font-semibold text-[var(--text-primary)]">
+          <div className="file-preview-overlay bg-[var(--glass-bg-strong)] backdrop-blur-sm z-[9999]">
+            <Surface variant="elevated" className="file-preview-modal">
+              <div className="p-6 border-b border-[var(--glass-border)] no-shrink">
+                <div className="stack-x v-center h-between">
+                  <div className="stack-x v-center gap-3">
+                    <File className="h-6 w-6 text-[var(--accent)] no-shrink" />
+                    <h3 className="text-xl font-semibold text-[var(--text-primary)] truncate">
                       {selectedFile.name}
                     </h3>
                   </div>
-                  <div className="flex items-center space-x-3">
+                  <div className="stack-x v-center gap-3 no-shrink">
                     <button className="control bg-[var(--accent)] text-[var(--text-primary)]">
                       <Download className="h-4 w-4" />
                       <span>Download</span>
@@ -305,9 +309,9 @@ const FileBrowser: React.FC = () => {
                   </div>
                 </div>
               </div>
-              <div className="p-6 overflow-y-auto max-h-[60vh]">
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="file-preview-content flex-fill">
+                <div className="stack-y gap-4">
+                  <div className="file-preview-info text-sm">
                     <div>
                       <span className="text-[var(--text-muted)]">Path:</span>
                       <p className="text-[var(--text-primary)]">{selectedFile.path}</p>
@@ -335,13 +339,13 @@ const FileBrowser: React.FC = () => {
                   </div>
                   <div className="border-t border-[var(--glass-border)] pt-4">
                     <h4 className="text-[var(--text-primary)] font-medium mb-2">Content Preview</h4>
-                    <div className="bg-[var(--glass-bg-strong)] p-4 rounded-[var(--radius-lg)] text-[var(--text-secondary)] font-mono text-sm max-h-64 overflow-y-auto">
+                    <pre className="bg-[var(--glass-bg-strong)] p-4 rounded-[var(--radius-lg)] text-[var(--text-secondary)] font-mono text-sm max-h-64 overflow-y-auto whitespace-pre-wrap">
                       {selectedFile.content || 'File content would be displayed here...'}
-                    </div>
+                    </pre>
                   </div>
                 </div>
               </div>
-            </div>
+            </Surface>
           </div>,
           document.body,
         )}
