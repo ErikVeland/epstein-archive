@@ -219,7 +219,7 @@ const FileBrowser: React.FC = () => {
           </div>
         </div>
 
-        <div className="divide-y divide-gray-700">
+        <div className="divide-y divide-[var(--glass-border)]">
           {filteredFiles.map((file, index) => {
             const Icon = getFileIcon(file);
             return (

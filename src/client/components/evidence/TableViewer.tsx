@@ -50,13 +50,13 @@ export function TableViewer({ evidence }: TableViewerProps) {
         style={style}
         className="flex border-b border-[var(--glass-border)] hover:bg-[var(--app-bg)]"
       >
-        <div className="w-16 flex-shrink-0 px-4 py-3 text-sm text-[var(--text-muted)] border-r">
+        <div className="w-16 flex-shrink-0 px-4 py-3 text-sm text-[var(--text-muted)] border-r border-[var(--glass-border)]">
           {index + 1}
         </div>
         {row.map((cell, cellIndex) => (
           <div
             key={cellIndex}
-            className="flex-1 px-4 py-3 text-sm text-[var(--text-primary)] border-r last:border-r-0"
+            className="flex-1 px-4 py-3 text-sm text-[var(--text-primary)] border-r border-[var(--glass-border)] last:border-r-0"
             style={{ minWidth: '150px' }}
           >
             {cell}
@@ -99,13 +99,13 @@ export function TableViewer({ evidence }: TableViewerProps) {
       <div className="border border-[var(--glass-border)] rounded-[var(--radius-lg)] overflow-hidden">
         {/* Column Headers */}
         <div className="bg-[var(--app-bg)] border-b border-[var(--glass-border)] flex sticky top-0 z-10">
-          <div className="w-16 flex-shrink-0 px-4 py-3 text-sm font-semibold text-[var(--text-primary)] border-r">
+          <div className="w-16 flex-shrink-0 px-4 py-3 text-sm font-semibold text-[var(--text-primary)] border-r border-[var(--glass-border)]">
             #
           </div>
           {headers.map((header, index) => (
             <div
               key={index}
-              className="flex-1 px-4 py-3 text-sm font-semibold text-[var(--text-primary)] border-r last:border-r-0"
+              className="flex-1 px-4 py-3 text-sm font-semibold text-[var(--text-primary)] border-r border-[var(--glass-border)] last:border-r-0"
               style={{ minWidth: '150px' }}
             >
               {header}

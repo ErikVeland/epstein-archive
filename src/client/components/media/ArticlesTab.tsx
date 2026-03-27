@@ -151,7 +151,7 @@ export const ArticlesTab: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full min-h-[500px] bg-[var(--glass-bg)] border border-[var(--glass-border)] shadow-[var(--glass-shadow)] overflow-hidden rounded-[var(--radius-lg)]">
+    <div className="flex flex-col h-full min-h-[500px] soft-glass-panel-strong overflow-hidden rounded-[var(--radius-lg)]">
       {/* Header with controls */}
       <div className="bg-[var(--glass-bg-strong)] border-b border-[var(--glass-border)] flex flex-col md:flex-row md:items-center justify-between px-3 py-2 md:px-4 md:h-14 shrink-0 z-10 gap-2">
         {/* Mobile Publication Dropdown */}

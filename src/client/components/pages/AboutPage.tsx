@@ -1047,53 +1047,28 @@ export const AboutPage: React.FC = () => {
           The archive features interview audio with precision transcripts, chapter markers, and a
           synchronized reading experience.
         </p>
-        <div className="grid md:grid-cols-2 gap-4">
-          <div className="bg-[var(--glass-bg)]/50 rounded-[var(--radius-lg)] p-4 border border-[var(--glass-border)]">
-            <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">Credits</h3>
-            <ul className="space-y-2 text-[var(--text-secondary)]">
-              <li>
-                Testimony & Interview:
-                <a
-                  href="https://www.threads.com/@saschabarros"
-                  className="text-[var(--accent)] hover:underline ml-1"
-                >
-                  Sascha Riley
-                </a>
-              </li>
-              <li>
-                Investigation & Publication:
-                <a
-                  href="https://www.threads.com/@lvoldeng"
-                  className="text-[var(--accent)] hover:underline ml-1"
-                >
-                  Lisa Noelle Volding
-                </a>
-              </li>
-              <li>
-                Transcripts:
-                <a
-                  href="https://www.threads.com/@roguerevision"
-                  className="text-[var(--accent)] hover:underline ml-1"
-                >
-                  Gareth Wright
-                </a>
-              </li>
-            </ul>
-          </div>
-          <div className="bg-[var(--glass-bg)]/50 rounded-[var(--radius-lg)] p-4 border border-[var(--glass-border)]">
-            <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">
-              Original Publication
-            </h3>
-            <p className="text-[var(--text-secondary)] mb-3">
-              Read the original briefing and recordings:
-            </p>
-            <a
-              href="https://lisevoldeng.substack.com/p/dont-worry-boys-are-hard-to-find?r=1uodw7&triedRedirect=true"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-[var(--radius-lg)] bg-[var(--accent)] hover:bg-[var(--accent)] text-[var(--text-primary)] font-semibold shadow-[var(--glass-shadow)] shadow-blue-900/20"
-            >
-              Read Full Briefing on Substack
-            </a>
-          </div>
+        <div className="bg-[var(--glass-bg)]/50 rounded-[var(--radius-lg)] p-4 border border-[var(--glass-border)] max-w-sm">
+          <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">Credits</h3>
+          <ul className="space-y-2 text-[var(--text-secondary)]">
+            <li>
+              Testimony & Interview:
+              <a
+                href="https://www.threads.com/@saschabarros"
+                className="text-[var(--accent)] hover:underline ml-1"
+              >
+                Sascha Riley
+              </a>
+            </li>
+            <li>
+              Transcripts:
+              <a
+                href="https://www.threads.com/@roguerevision"
+                className="text-[var(--accent)] hover:underline ml-1"
+              >
+                Gareth Wright
+              </a>
+            </li>
+          </ul>
         </div>
       </section>
 

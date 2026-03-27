@@ -496,7 +496,7 @@ const GlobalSearch: React.FC = () => {
           </div>
         </div>
 
-        <div className="divide-y divide-gray-700">
+        <div className="divide-y divide-[var(--glass-border)]">
           {/* Investigations Section */}
           {investigationResults.length > 0 &&
             investigationResults.map((inv, index) => (

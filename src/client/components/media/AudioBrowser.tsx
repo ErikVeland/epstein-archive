@@ -607,7 +607,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
   }, [selectedItem, selectedAlbum]);
 
   return (
-    <div className="flex flex-col h-full min-h-[500px] bg-[var(--app-bg)] border border-[var(--glass-border)] shadow-[var(--glass-shadow)] overflow-hidden rounded-[var(--radius-lg)]">
+    <div className="flex flex-col h-full min-h-[500px] soft-glass-panel-strong overflow-hidden rounded-[var(--radius-lg)]">
       {/* Header */}
       <div className="app-header-glass px-6 py-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between shrink-0 z-10">
         <div className="flex flex-col gap-1">
