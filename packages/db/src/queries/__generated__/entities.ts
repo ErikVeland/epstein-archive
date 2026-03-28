@@ -256,6 +256,7 @@ export interface IGetEntityByIdResult {
   quarantine_status: number | null;
   red_flag_description: string | null;
   red_flag_rating: number | null;
+  red_flag_score: number | null;
   risk_level: string | null;
   title: string | null;
   type: string | null;

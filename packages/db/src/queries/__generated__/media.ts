@@ -217,17 +217,22 @@ export interface IGetMediaItemByIdParams {
 /** 'GetMediaItemById' return type */
 export interface IGetMediaItemByIdResult {
   createdAt: Date | null;
+  dateTaken: Date | null;
   description: string | null;
   documentId: string | null;
   entityId: string | null;
   filePath: string;
+  fileSize: string | null;
   fileType: string | null;
+  height: number | null;
   id: string;
   isSensitive: boolean | null;
   metadataJson: Json | null;
   redFlagRating: number | null;
+  thumbnailPath: string | null;
   title: string | null;
   verificationStatus: string | null;
+  width: number | null;
 }
 
 /** 'GetMediaItemById' query type */
@@ -239,10 +244,10 @@ export interface IGetMediaItemByIdQuery {
 const getMediaItemByIdIR: any = {
   usedParamSet: { id: true },
   params: [
-    { name: 'id', required: true, transform: { type: 'scalar' }, locs: [{ a: 358, b: 361 }] },
+    { name: 'id', required: true, transform: { type: 'scalar' }, locs: [{ a: 470, b: 473 }] },
   ],
   statement:
-    'SELECT\n  id,\n  entity_id as "entityId",\n  document_id as "documentId",\n  file_path as "filePath",\n  file_type as "fileType",\n  title,\n  description,\n  is_sensitive as "isSensitive",\n  verification_status as "verificationStatus",\n  red_flag_rating as "redFlagRating",\n  metadata_json as "metadataJson",\n  created_at as "createdAt"\nFROM media_items\nWHERE id = :id!',
+    'SELECT\n  id,\n  entity_id as "entityId",\n  document_id as "documentId",\n  file_path as "filePath",\n  thumbnail_path as "thumbnailPath",\n  file_type as "fileType",\n  file_size as "fileSize",\n  width,\n  height,\n  title,\n  description,\n  is_sensitive as "isSensitive",\n  verification_status as "verificationStatus",\n  red_flag_rating as "redFlagRating",\n  metadata_json as "metadataJson",\n  date_taken as "dateTaken",\n  created_at as "createdAt"\nFROM media_items\nWHERE id = :id!',
 };
 
 /**
@@ -253,13 +258,18 @@ const getMediaItemByIdIR: any = {
  *   entity_id as "entityId",
  *   document_id as "documentId",
  *   file_path as "filePath",
+ *   thumbnail_path as "thumbnailPath",
  *   file_type as "fileType",
+ *   file_size as "fileSize",
+ *   width,
+ *   height,
  *   title,
  *   description,
  *   is_sensitive as "isSensitive",
  *   verification_status as "verificationStatus",
  *   red_flag_rating as "redFlagRating",
  *   metadata_json as "metadataJson",
+ *   date_taken as "dateTaken",
  *   created_at as "createdAt"
  * FROM media_items
  * WHERE id = :id!

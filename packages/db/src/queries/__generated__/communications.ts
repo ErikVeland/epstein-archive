@@ -163,9 +163,12 @@ export interface IGetMessageByIdResult {
   content_hash: string | null;
   content_preview: string | null;
   content_refined: string | null;
+  content_sha256: string | null;
   created_at: Date | null;
   date_created: Date | null;
+  end_offset: number | null;
   evidence_type: string | null;
+  extracted_date: Date | null;
   failed_redaction_count: number | null;
   failed_redaction_data: string | null;
   file_name: string | null;
@@ -174,7 +177,9 @@ export interface IGetMessageByIdResult {
   file_type: string | null;
   fts_vector: string | null;
   has_failed_redactions: number | null;
+  hash_algo: string | null;
   id: string;
+  ingestion_run_id: string | null;
   is_hidden: number | null;
   is_sensitive: boolean | null;
   last_processed_at: Date | null;
@@ -183,6 +188,7 @@ export interface IGetMessageByIdResult {
   original_file_id: string | null;
   original_file_path: string | null;
   page_count: number | null;
+  pipeline_version: string | null;
   processing_attempts: number | null;
   processing_error: string | null;
   processing_status: string | null;
@@ -191,7 +197,9 @@ export interface IGetMessageByIdResult {
   redaction_coverage_before: number | null;
   signal_score: number | null;
   source_collection: string | null;
+  start_offset: number | null;
   title: string | null;
+  unredacted_span_json: string | null;
   unredacted_text_gain: number | null;
   unredaction_attempted: number | null;
   unredaction_baseline_vocab: string | null;
@@ -295,9 +303,12 @@ export interface IGetCommunicationsForEntityResult {
   content_hash: string | null;
   content_preview: string | null;
   content_refined: string | null;
+  content_sha256: string | null;
   created_at: Date | null;
   date_created: Date | null;
+  end_offset: number | null;
   evidence_type: string | null;
+  extracted_date: Date | null;
   failed_redaction_count: number | null;
   failed_redaction_data: string | null;
   file_name: string | null;
@@ -306,7 +317,9 @@ export interface IGetCommunicationsForEntityResult {
   file_type: string | null;
   fts_vector: string | null;
   has_failed_redactions: number | null;
+  hash_algo: string | null;
   id: string;
+  ingestion_run_id: string | null;
   is_hidden: number | null;
   is_sensitive: boolean | null;
   last_processed_at: Date | null;
@@ -315,6 +328,7 @@ export interface IGetCommunicationsForEntityResult {
   original_file_id: string | null;
   original_file_path: string | null;
   page_count: number | null;
+  pipeline_version: string | null;
   processing_attempts: number | null;
   processing_error: string | null;
   processing_status: string | null;
@@ -323,7 +337,9 @@ export interface IGetCommunicationsForEntityResult {
   redaction_coverage_before: number | null;
   signal_score: number | null;
   source_collection: string | null;
+  start_offset: number | null;
   title: string | null;
+  unredacted_span_json: string | null;
   unredacted_text_gain: number | null;
   unredaction_attempted: number | null;
   unredaction_baseline_vocab: string | null;

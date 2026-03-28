@@ -1,13 +1,26 @@
 /** Types generated for queries found in "src/queries/jobs.sql" */
 import { PreparedQuery } from '@pgtyped/runtime';
 
-/** Query 'CreateJob' is invalid, so its result is assigned type 'never'.
- *  */
-export type ICreateJobResult = never;
+export type NumberOrString = number | string;
 
-/** Query 'CreateJob' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type ICreateJobParams = never;
+/** 'CreateJob' parameters type */
+export interface ICreateJobParams {
+  runId: NumberOrString;
+  stepName: string;
+  targetId: NumberOrString;
+  targetType: string;
+}
+
+/** 'CreateJob' return type */
+export interface ICreateJobResult {
+  id: string;
+}
+
+/** 'CreateJob' query type */
+export interface ICreateJobQuery {
+  params: ICreateJobParams;
+  result: ICreateJobResult;
+}
 
 const createJobIR: any = {
   usedParamSet: { runId: true, stepName: true, targetType: true, targetId: true },
@@ -82,13 +95,21 @@ const listJobsIR: any = {
  */
 export const listJobs = new PreparedQuery<IListJobsParams, IListJobsResult>(listJobsIR);
 
-/** Query 'UpdateJobStatus' is invalid, so its result is assigned type 'never'.
- *  */
-export type IUpdateJobStatusResult = never;
+/** 'UpdateJobStatus' parameters type */
+export interface IUpdateJobStatusParams {
+  error?: string | null | void;
+  id: NumberOrString;
+  status: string;
+}
 
-/** Query 'UpdateJobStatus' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type IUpdateJobStatusParams = never;
+/** 'UpdateJobStatus' return type */
+export type IUpdateJobStatusResult = void;
+
+/** 'UpdateJobStatus' query type */
+export interface IUpdateJobStatusQuery {
+  params: IUpdateJobStatusParams;
+  result: IUpdateJobStatusResult;
+}
 
 const updateJobStatusIR: any = {
   usedParamSet: { status: true, error: true, id: true },
@@ -177,13 +198,34 @@ export const findLeasableJob = new PreparedQuery<IFindLeasableJobParams, IFindLe
   findLeasableJobIR,
 );
 
-/** Query 'LockJob' is invalid, so its result is assigned type 'never'.
- *  */
-export type ILockJobResult = never;
+/** 'LockJob' parameters type */
+export interface ILockJobParams {
+  id: NumberOrString;
+  workerId: string;
+}
 
-/** Query 'LockJob' is invalid, so its parameters are assigned type 'never'.
- *  */
-export type ILockJobParams = never;
+/** 'LockJob' return type */
+export interface ILockJobResult {
+  attempts: number;
+  created_at: Date;
+  id: string;
+  last_error: string | null;
+  locked_at: Date | null;
+  locked_by: string | null;
+  max_attempts: number;
+  run_id: string | null;
+  status: string;
+  step_name: string;
+  target_id: string;
+  target_type: string;
+  updated_at: Date;
+}
+
+/** 'LockJob' query type */
+export interface ILockJobQuery {
+  params: ILockJobParams;
+  result: ILockJobResult;
+}
 
 const lockJobIR: any = {
   usedParamSet: { workerId: true, id: true },

@@ -66,13 +66,18 @@ SELECT
   entity_id as "entityId",
   document_id as "documentId",
   file_path as "filePath",
+  thumbnail_path as "thumbnailPath",
   file_type as "fileType",
+  file_size as "fileSize",
+  width,
+  height,
   title,
   description,
   is_sensitive as "isSensitive",
   verification_status as "verificationStatus",
   red_flag_rating as "redFlagRating",
   metadata_json as "metadataJson",
+  date_taken as "dateTaken",
   created_at as "createdAt"
 FROM media_items
 WHERE id = :id!;

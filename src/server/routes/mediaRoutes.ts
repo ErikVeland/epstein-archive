@@ -166,7 +166,15 @@ router.get('/images', validate(mediaImagesQuerySchema), async (req, res, next) =
       verificationStatus: query.verificationStatus,
       minRedFlagRating: query.minRedFlagRating ? Number(query.minRedFlagRating) : undefined,
       hasPeople: query.hasPeople === 'true',
-      sortBy: sortField,
+      sortBy: sortField as
+        | 'date_added'
+        | 'date_taken'
+        | 'filename'
+        | 'file_size'
+        | 'title'
+        | 'date'
+        | 'rating'
+        | undefined,
       sortOrder,
       fileType: 'image',
       transcriptQuery: query.search,
@@ -378,7 +386,7 @@ const runImageBatch = async <T>(
   imageIds: number[],
   handler: (imageId: number) => Promise<T>,
 ): Promise<
-  Array<{ id: number; success: true } & T> | Array<{ id: number; success: false; error: string }>
+  Array<({ id: number; success: true } & T) | { id: number; success: false; error: string }>
 > =>
   Promise.all(
     imageIds.map(async (imageId) => {

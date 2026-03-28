@@ -2,7 +2,27 @@ import { mediaQueries } from '@epstein/db';
 import { getApiPool } from './connection.js';
 import { logger } from '../services/Logger.js';
 
-type MediaRow = Record<string, unknown>;
+export interface MediaItem {
+  id: number;
+  entityId: string | null;
+  documentId: string | null;
+  filePath: string;
+  thumbnailPath: string | null;
+  fileType: string | null;
+  fileSize: number;
+  width: number;
+  height: number;
+  title: string | null;
+  description: string | null;
+  isSensitive: boolean;
+  verificationStatus: string | null;
+  redFlagRating: number;
+  metadata: Record<string, unknown>;
+  dateTaken: Date | null;
+  createdAt: Date | null;
+  tags?: string[];
+  people?: Array<{ id: number; name: string }>;
+}
 
 export const mediaRepository = {
   // Get all albums with counts for a specific media type
@@ -15,7 +35,7 @@ export const mediaRepository = {
     }
 
     const result = await mediaQueries.getAlbumsByMediaType.run({ likePattern }, getApiPool());
-    return result.map((row: MediaRow) => ({
+    return result.map((row: any) => ({
       ...row,
       itemCount: Number(row.itemCount || 0),
       sensitiveCount: Number(row.sensitiveCount || 0),
@@ -26,7 +46,7 @@ export const mediaRepository = {
   getMediaItems: async (entityId: string) => {
     const mediaItems = await mediaQueries.getMediaItemsByEntity.run({ entityId }, getApiPool());
 
-    return mediaItems.map((item: MediaRow) => {
+    return mediaItems.map((item: any) => {
       let metadata: Record<string, unknown> = {};
       try {
         if (item.metadataJson) {
@@ -53,7 +73,7 @@ export const mediaRepository = {
   getAllMediaItems: async () => {
     const mediaItems = await mediaQueries.getAllMediaItems.run(undefined, getApiPool());
 
-    return mediaItems.map((item: MediaRow) => {
+    return mediaItems.map((item: any) => {
       let metadata: Record<string, unknown> = {};
       try {
         if (item.metadataJson) {
@@ -85,9 +105,9 @@ export const mediaRepository = {
   },
 
   // Get single media item by ID
-  getMediaItemById: async (id: number) => {
-    const rows = await mediaQueries.getMediaItemById.run({ id: String(id) }, getApiPool()); // id is text in Postgres
-    const item = rows[0];
+  getMediaItemById: async (id: number): Promise<MediaItem | undefined> => {
+    const rows = await mediaQueries.getMediaItemById.run({ id: String(id) }, getApiPool());
+    const item = rows[0] as any;
     if (!item) return undefined;
 
     let metadata: Record<string, unknown> = {};
@@ -105,9 +125,19 @@ export const mediaRepository = {
     return {
       ...item,
       id: Number(item.id),
+      entityId: item.entityId || null,
+      documentId: item.documentId || null,
+      filePath: item.filePath || '',
+      thumbnailPath: item.thumbnailPath || null,
+      fileType: item.fileType || null,
+      fileSize: Number(item.fileSize || 0),
+      width: Number(item.width || 0),
+      height: Number(item.height || 0),
       isSensitive: Boolean(item.isSensitive),
+      verificationStatus: item.verificationStatus || null,
       redFlagRating: Number(item.redFlagRating || 0),
-      fileSize: 0,
+      dateTaken: item.dateTaken || null,
+      createdAt: item.createdAt || null,
       metadata,
     };
   },

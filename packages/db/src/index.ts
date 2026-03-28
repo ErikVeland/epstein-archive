@@ -170,6 +170,7 @@ export * as documentsQueries from './queries/__generated__/documents.js';
 export * as searchQueries from './queries/__generated__/search.js';
 export * as statsQueries from './queries/__generated__/stats.js';
 export * as mediaQueries from './queries/__generated__/media.js';
+export * from './queries/__generated__/media.js';
 export * as blackBookQueries from './queries/__generated__/black_book.js';
 export * as flightsQueries from './queries/__generated__/flights.js';
 export * as financialQueries from './queries/__generated__/financial.js';
