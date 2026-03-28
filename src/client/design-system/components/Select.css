@@ -96,7 +96,9 @@
   outline: none;
   cursor: default;
   user-select: none;
-  transition: background var(--duration-fast), color var(--duration-fast);
+  transition:
+    background var(--duration-fast),
+    color var(--duration-fast);
 }
 
 .select-item[data-disabled] {
@@ -109,7 +111,7 @@
   color: var(--text-primary);
 }
 
-.select-item[data-state="checked"] {
+.select-item[data-state='checked'] {
   color: var(--accent);
 }
 
