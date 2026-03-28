@@ -11,6 +11,7 @@ import {
   Check,
 } from 'lucide-react';
 import { CloseButton } from '../common/CloseButton';
+import { useScrollLock } from '../../hooks/useScrollLock';
 
 export interface TranscriptSegment {
   start: number;
@@ -123,6 +124,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   const [showCopied, setShowCopied] = useState(false);
   const sidebarSearchInputRef = useRef<HTMLInputElement | null>(null);
   const overlaySearchInputRef = useRef<HTMLInputElement | null>(null);
+  useScrollLock(showFullTranscriptOverlay);
 
   // Toggle transcript visibility and persist preference
   const toggleTranscript = () => {

@@ -23,6 +23,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { ReviewQueuePanel } from '../components/admin/ReviewQueuePanel';
 import { ShieldCheck } from 'lucide-react';
 import { CloseButton } from '../components/common/CloseButton';
+import { useScrollLock } from '../hooks/useScrollLock';
 
 interface User {
   id: string;
@@ -91,6 +92,7 @@ export const AdminDashboard: React.FC = () => {
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  useScrollLock(isModalOpen);
 
   // Form states
   const [formData, setFormData] = useState<{

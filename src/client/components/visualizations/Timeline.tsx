@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { FileText, Calendar, Users, ArrowUp, ArrowDown } from 'lucide-react';
 import { CloseButton } from '../common/CloseButton';
 import { useFilters } from '../../contexts/useFilters';
+import { useScrollLock } from '../../hooks/useScrollLock';
 import ScopedErrorBoundary from '../common/ScopedErrorBoundary';
 
 interface EntityLink {
@@ -53,6 +54,7 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
     'medium',
     'low',
   ]); // Default to show all
+  useScrollLock(!!selectedEvent);
 
   // Filter events based on significance
   const filteredEvents = useMemo(() => {

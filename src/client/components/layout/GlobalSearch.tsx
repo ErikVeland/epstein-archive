@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { apiClient } from '../../services/apiClient';
 import { Person } from '../../types';
+import { useScrollLock } from '../../hooks/useScrollLock';
 import { CloseButton } from '../common/CloseButton';
 
 interface SearchResult {
@@ -95,6 +96,7 @@ const GlobalSearch: React.FC = () => {
   });
   const navigate = useNavigate();
   const [searchError, setSearchError] = useState<string | null>(null);
+  useScrollLock(!!selectedResult);
 
   const handleDownload = (id: string, filename: string) => {
     const a = document.createElement('a');

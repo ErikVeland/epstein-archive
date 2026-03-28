@@ -13,6 +13,7 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { apiClient } from '../../services/apiClient';
+import { useScrollLock } from '../../hooks/useScrollLock';
 import ScopedErrorBoundary from '../common/ScopedErrorBoundary';
 
 // Fix for default marker icon issues
@@ -73,6 +74,7 @@ export const InteractiveEntityMap: React.FC<InteractiveEntityMapProps> = ({
   minRiskLevel = 0,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  useScrollLock(isExpanded);
 
   const {
     data: entities = [],

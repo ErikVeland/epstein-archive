@@ -19,6 +19,7 @@ import {
   Info,
 } from 'lucide-react';
 import { useToasts } from '../common/useToasts';
+import { useScrollLock } from '../../hooks/useScrollLock';
 
 interface TimelineBuilderProps {
   investigation: Investigation;
@@ -60,6 +61,7 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
   const [narrativeOrder, setNarrativeOrder] = useState<string[]>([]);
   const timelineRef = useRef<HTMLDivElement>(null);
   const { addToast } = useToasts();
+  useScrollLock(isAddingEvent || !!editingEvent);
   const narrativeOrderStorageKey = `investigation_timeline_order_mode_${investigation.id}`;
   const narrativeOrderListKey = `investigation_timeline_manual_order_${investigation.id}`;
 

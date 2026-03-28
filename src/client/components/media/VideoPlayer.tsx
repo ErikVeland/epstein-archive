@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { TranscriptSegment, Chapter } from './AudioPlayer'; // Reuse types
 import { CloseButton } from '../common/CloseButton';
+import { useScrollLock } from '../../hooks/useScrollLock';
 
 interface VideoPlayerProps {
   src: string;
@@ -72,6 +73,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [showCopied, setShowCopied] = useState(false);
   const sidebarSearchInputRef = useRef<HTMLInputElement | null>(null);
   const overlaySearchInputRef = useRef<HTMLInputElement | null>(null);
+  useScrollLock(showFullTranscriptOverlay);
 
   // In-player transcript search state
   const [transcriptSearch, setTranscriptSearch] = useState('');

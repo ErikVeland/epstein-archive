@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { MapPin, Maximize2, Minimize2, ExternalLink, Navigation } from 'lucide-react';
 import ScopedErrorBoundary from '../common/ScopedErrorBoundary';
+import { useScrollLock } from '../../hooks/useScrollLock';
 
 interface LocationMapProps {
   latitude: number;
@@ -16,6 +17,7 @@ export const LocationMap: React.FC<LocationMapProps> = ({
   className = '',
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  useScrollLock(isExpanded);
 
   // Round coordinates for display
   const latDisplay = Math.abs(latitude).toFixed(5) + '° ' + (latitude >= 0 ? 'N' : 'S');

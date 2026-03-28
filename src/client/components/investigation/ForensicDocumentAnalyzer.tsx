@@ -31,6 +31,7 @@ import {
 import { DocumentMetadataPanel } from '../documents/DocumentMetadataPanel';
 import { Tabs } from '../common/Tabs';
 import { useForensicDocumentData } from '../../hooks/useForensicDocumentData';
+import { useScrollLock } from '../../hooks/useScrollLock';
 
 // Set up PDF.js worker
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
@@ -153,6 +154,7 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
   const navigate = useNavigate();
   const location = useLocation();
   const [selectedEntity, setSelectedEntity] = useState<DetectedEntity | null>(null);
+  useScrollLock(!!selectedEntity);
   const [activeTab, setActiveTab] = useState<
     'dashboard' | 'entities' | 'patterns' | 'anomalies' | 'metadata'
   >('dashboard');

@@ -14,6 +14,7 @@ import {
   Info,
 } from 'lucide-react';
 import { useToasts } from '../common/useToasts';
+import { useScrollLock } from '../../hooks/useScrollLock';
 
 interface InvestigationTeamManagementProps {
   investigation: Investigation;
@@ -58,6 +59,7 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
   const [newEmail, setNewEmail] = useState('');
   const [newRole, setNewRole] = useState<TeamRole>('researcher');
   const { addToast } = useToasts();
+  useScrollLock(showAddModal);
 
   const ensureLead = useCallback(
     (members: Investigator[]): Investigator[] => {

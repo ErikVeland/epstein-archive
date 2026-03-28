@@ -13,6 +13,7 @@ import {
   Phone,
 } from 'lucide-react';
 import { useToasts } from '../common/useToasts';
+import { useScrollLock } from '../../hooks/useScrollLock';
 import { CloseButton } from '../common/CloseButton';
 
 interface CommunicationAnalysisProps {
@@ -62,6 +63,7 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
   const [analysisMessage, setAnalysisMessage] = useState('Ready');
   const [lastRunAt, setLastRunAt] = useState<string | null>(null);
   const [filterType, setFilterType] = useState<PatternFilterType>('all');
+  useScrollLock(!!selectedPattern);
 
   const linkedEntityCount = useMemo(
     () =>
