@@ -537,10 +537,9 @@ if [ "$DB_ONLY" = false ]; then
         cp -a dist/assets/. .prev_dist_assets/ 2>/dev/null || true
       fi
 
-      # CRITICAL: Purge stale build artifacts to prevent deployment desync
-      echo 'Purging stale build artifacts...'
-      rm -rf dist
-      rm -rf packages/db/dist
+      # Keep the currently served build in place while the new one compiles.
+      # This prevents nginx from serving 500s/404s during the build window.
+      echo 'Keeping current build live during compile for zero-downtime static serving...'
 
       export PNPM_HOME="${REMOTE_HOME}/.local/share/pnpm"
       export PATH="\$PNPM_HOME:\$PATH"
