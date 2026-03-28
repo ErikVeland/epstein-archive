@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ZoomIn, Play } from 'lucide-react';
 import { CloseButton } from '../common/CloseButton';
 import Icon from '../common/Icon';
+import { useScrollLock } from '../../hooks/useScrollLock';
 
 interface MediaItem {
   id: string;
@@ -23,6 +24,7 @@ export const EntityMediaGallery: React.FC<EntityMediaGalleryProps> = ({
   loading,
 }) => {
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
+  useScrollLock(!!selectedMedia);
 
   if (loading) {
     return (

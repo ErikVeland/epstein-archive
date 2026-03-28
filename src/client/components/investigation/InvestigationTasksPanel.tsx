@@ -4,6 +4,7 @@ import { useToasts } from '../common/useToasts';
 import { CheckCircle2, Clock, Flag, Loader2, Plus } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { CloseButton } from '../common/CloseButton';
+import { useScrollLock } from '../../hooks/useScrollLock';
 
 interface InvestigationTasksPanelProps {
   investigationId: string;
@@ -64,6 +65,7 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
   const [priorityFilter, setPriorityFilter] = useState<TaskPriority | 'all'>('all');
   const { addToast } = useToasts();
   const { user } = useAuth();
+  useScrollLock(true);
 
   const loadTasks = useCallback(async () => {
     if (!investigationId) return;

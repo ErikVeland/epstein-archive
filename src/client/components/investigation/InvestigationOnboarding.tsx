@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ArrowRight, Filter, Search, FileText, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CloseButton } from '../common/CloseButton';
+import { useScrollLock } from '../../hooks/useScrollLock';
 
 interface InvestigationOnboardingProps {
   onComplete: () => void;
@@ -14,6 +15,7 @@ export const InvestigationOnboarding: React.FC<InvestigationOnboardingProps> = (
 }) => {
   const [step, setStep] = useState(1);
   const totalSteps = 3;
+  useScrollLock(true);
 
   const handleNext = () => {
     if (step < totalSteps) {

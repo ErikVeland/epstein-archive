@@ -5,6 +5,7 @@ import Icon from '../common/Icon';
 import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
 import { CloseButton } from '../common/CloseButton';
 import { RouteMap } from '../visualizations/RouteMap';
+import { useScrollLock } from '../../hooks/useScrollLock';
 import type { Flight, AirportCoords } from './types';
 
 interface FlightDetailPanelProps {
@@ -20,6 +21,8 @@ export const FlightDetailPanel: React.FC<FlightDetailPanelProps> = ({
   onClose,
   formatDate,
 }) => {
+  useScrollLock(!!flight);
+
   if (!flight) return null;
 
   const departureCoords = airports[flight.departure_airport];

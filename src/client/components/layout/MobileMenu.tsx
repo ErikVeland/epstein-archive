@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Icon from '../common/Icon';
 import { CloseButton } from '../common/CloseButton';
 import { useAuth } from '../../contexts/AuthContext';
+import { useScrollLock } from '../../hooks/useScrollLock';
 import { cn } from '@design-system';
 import './MobileMenu.css';
 
@@ -24,6 +25,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
 }) => {
   const [attract, setAttract] = useState<boolean>(false);
   const { isAdmin } = useAuth();
+  useScrollLock(open);
 
   useEffect(() => {
     const shown =
@@ -38,18 +40,6 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
     const timer = setTimeout(() => setAttract(false), 8000);
     return () => clearTimeout(timer);
   }, []);
-
-  // Lock body scroll when menu is open
-  useEffect(() => {
-    if (open) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [open]);
 
   // Ensure mobile menu doesn't linger when viewport switches to desktop.
   useEffect(() => {

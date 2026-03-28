@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowRight, Filter, Search, Flag, Plus } from 'lucide-react';
 import { CloseButton } from './common/CloseButton';
+import { useScrollLock } from '../hooks/useScrollLock';
 
 interface FirstRunOnboardingProps {
   onComplete: () => void;
@@ -10,6 +11,7 @@ interface FirstRunOnboardingProps {
 export const FirstRunOnboarding: React.FC<FirstRunOnboardingProps> = ({ onComplete, onSkip }) => {
   const [step, setStep] = useState(1);
   const totalSteps = 4;
+  useScrollLock(true);
 
   const handleNext = () => {
     if (step < totalSteps) {
