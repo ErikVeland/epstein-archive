@@ -1,4 +1,5 @@
 import React from 'react';
+import s from './ProgressBar.module.css';
 
 interface ProgressBarProps {
   value: number;
@@ -9,6 +10,20 @@ interface ProgressBarProps {
   color?: 'primary' | 'secondary' | 'success' | 'warning' | 'danger';
   className?: string;
 }
+
+const trackSizeMap = {
+  sm: s.trackSm,
+  md: s.trackMd,
+  lg: s.trackLg,
+} as const;
+
+const fillColorMap = {
+  primary: s.fillPrimary,
+  secondary: s.fillSecondary,
+  success: s.fillSuccess,
+  warning: s.fillWarning,
+  danger: s.fillDanger,
+} as const;
 
 const ProgressBar: React.FC<ProgressBarProps> = ({
   value,
@@ -21,44 +36,23 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
 }) => {
   const percentage = Math.min(100, Math.max(0, (value / max) * 100));
 
-  const sizeClasses = {
-    sm: 'h-2',
-    md: 'h-3',
-    lg: 'h-4',
-  };
-
-  const colorClasses = {
-    primary: 'bg-[var(--accent)]',
-    secondary: 'bg-accent-secondary',
-    success: 'bg-accent-success',
-    warning: 'bg-accent-warning',
-    danger: 'bg-accent-danger',
-  };
-
   return (
-    <div className={`w-full ${className}`}>
+    <div className={`${s.root} ${className}`}>
       {label && (
-        <div className="flex justify-between items-center mb-[var(--space-1)]">
-          <span className="text-sm font-medium text-[var(--text-primary)]">{label}</span>
-          {showPercentage && (
-            <span className="text-sm font-medium text-[var(--text-secondary)]">
-              {Math.round(percentage)}%
-            </span>
-          )}
+        <div className={s.header}>
+          <span className={s.label}>{label}</span>
+          {showPercentage && <span className={s.percentage}>{Math.round(percentage)}%</span>}
         </div>
       )}
       <div
-        className={`w-full ${sizeClasses[size]} bg-[var(--glass-bg-strong)] rounded-full overflow-hidden`}
+        className={`${s.track} ${trackSizeMap[size]}`}
         role="progressbar"
         aria-valuenow={value}
         aria-valuemin={0}
         aria-valuemax={max}
         aria-label={label || 'Progress'}
       >
-        <div
-          className={`h-full ${colorClasses[color]} rounded-full transition-all duration-300 ease-out`}
-          style={{ width: `${percentage}%` }}
-        />
+        <div className={`${s.fill} ${fillColorMap[color]}`} style={{ width: `${percentage}%` }} />
       </div>
     </div>
   );
