@@ -28,6 +28,24 @@ require_cmd() { command -v "$1" >/dev/null 2>&1 || { log_error "Required command
 require_file() { [ -f "$1" ] || { log_error "Required file not found: $1"; exit 1; }; }
 remote_ssh() { ssh "${SSH_OPTS[@]}" "${PRODUCTION_USER}@${PRODUCTION_HOST}" "$@"; }
 
+ensure_local_git_identity() {
+  local current_name current_email fallback_name fallback_email
+  current_name=$(git config user.name || true)
+  current_email=$(git config user.email || true)
+
+  if [ -n "$current_name" ] && [ -n "$current_email" ]; then
+    return 0
+  fi
+
+  fallback_name="${GIT_AUTHOR_NAME:-${GITHUB_ACTOR:-Epstein Deploy Bot}}"
+  fallback_email="${GIT_AUTHOR_EMAIL:-${GITHUB_ACTOR:+${GITHUB_ACTOR}@users.noreply.github.com}}"
+  fallback_email="${fallback_email:-deploy-bot@epstein.academy}"
+
+  git config user.name "$fallback_name"
+  git config user.email "$fallback_email"
+  log_warning "Configured local git identity for this repository: ${fallback_name} <${fallback_email}>"
+}
+
 verify_release_notes_version() {
   local current_version
   current_version=$(sed -n 's/.*"version":[[:space:]]*"\([^"]*\)".*/\1/p' package.json | head -n 1)
@@ -400,6 +418,7 @@ if [ "$DRY_RUN" = false ] && [ "$DB_ONLY" = false ]; then
     log_step "Working tree is dirty; auto-committing changes before deploy..."
     git status --short
     git add -A
+    ensure_local_git_identity
     # Prompt for meaningful commit message if interactive, otherwise use context-aware default
     if [ -t 0 ]; then
       read -p "Enter commit message: " COMMIT_MSG
