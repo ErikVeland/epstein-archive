@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ArrowRight, Target, FileText, BookOpen, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CloseButton } from '../common/CloseButton';
+import { useScrollLock } from '../../hooks/useScrollLock';
 
 interface BoardOnboardingProps {
   onComplete: () => void;
@@ -11,6 +12,7 @@ interface BoardOnboardingProps {
 export const BoardOnboarding: React.FC<BoardOnboardingProps> = ({ onComplete, onSkip }) => {
   const [step, setStep] = useState(1);
   const totalSteps = 3;
+  useScrollLock(true);
 
   const handleNext = () => {
     if (step < totalSteps) {

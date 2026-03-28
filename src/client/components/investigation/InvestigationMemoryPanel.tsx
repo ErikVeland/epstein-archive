@@ -4,6 +4,7 @@ import { useToasts } from '../common/useToasts';
 import { BookOpen, Loader2, Search, Star, Trash2 } from 'lucide-react';
 import type { MemoryEntry } from '../../types/memory';
 import { CloseButton } from '../common/CloseButton';
+import { useScrollLock } from '../../hooks/useScrollLock';
 
 interface InvestigationMemoryPanelProps {
   investigationId: string;
@@ -23,6 +24,7 @@ export const InvestigationMemoryPanel: React.FC<InvestigationMemoryPanelProps> =
   const [importance, setImportance] = useState(0.7);
   const [isSaving, setIsSaving] = useState(false);
   const { addToast } = useToasts();
+  useScrollLock(true);
 
   const loadEntries = useCallback(async () => {
     if (!investigationId) return;

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Download, ZoomIn, ZoomOut, RotateCw } from 'lucide-react';
 import { CloseButton } from '../common/CloseButton';
+import { useScrollLock } from '../../hooks/useScrollLock';
 
 interface MediaViewerProps {
   filePath: string;
@@ -22,6 +23,7 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({
   const [rotation, setRotation] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  useScrollLock(!inline);
 
   const handleZoomIn = () => {
     setZoom((prev) => Math.min(prev + 0.2, 3));
