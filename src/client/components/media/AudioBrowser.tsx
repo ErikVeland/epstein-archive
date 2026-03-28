@@ -10,6 +10,9 @@ import { SensitiveWarningBanner } from '../shared/SensitiveWarningBanner';
 import Icon from '../common/Icon';
 import { apiClient } from '../../services/apiClient';
 import { usePaginatedMediaCollection } from '../../hooks/usePaginatedMediaCollection';
+import { AlbumSidebar } from '../shared/AlbumSidebar';
+import { MobileAlbumDropdown } from '../shared/MobileAlbumDropdown';
+import { SEO } from '../common/SEO';
 
 interface AudioItem {
   id: number;
@@ -85,7 +88,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
     [initialAlbumId],
   );
   const [selectedItem, setSelectedItem] = useState<AudioItem | null>(null);
-  // const [showAlbumDropdown, setShowAlbumDropdown] = useState(false);
+  const [showAlbumDropdown, setShowAlbumDropdown] = useState(false);
   const [pickerOpenId, setPickerOpenId] = useState<number | null>(null);
   const [investigationsList, setInvestigationsList] = useState<InvestigationListItem[]>([]);
   const [addingId, setAddingId] = useState<number | null>(null);
@@ -610,290 +613,283 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
   }, [selectedItem, selectedAlbum]);
 
   return (
-    <div className="flex flex-col h-full min-h-[500px] bg-[var(--app-bg)] border border-[var(--glass-border)] shadow-[var(--glass-shadow)] overflow-hidden rounded-[var(--radius-lg)]">
-      {/* Header */}
-      <div className="app-header-glass px-6 py-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between shrink-0 z-10">
-        <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-[var(--radius-lg)] bg-[var(--accent)]/10 border border-[var(--accent)]/20 flex items-center justify-center text-[var(--accent)]">
-              <Music size={20} />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-[var(--text-primary)] tracking-tight">
-                Audio Recordings
-              </h2>
-              <p className="text-[var(--text-muted)] text-xs font-medium">
-                Forensic audio evidence and transcripts
-              </p>
-            </div>
-          </div>
-
-          {investigationSummary && (
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              <div className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-amber-900/30 text-amber-300 border border-amber-500/30 text-[11px] font-bold uppercase tracking-wider">
-                <Icon name="Database" size="xs" />
-                <span>Evidence {investigationSummary.totalEvidence}</span>
-              </div>
-              <div className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-green-900/30 text-green-300 border border-green-500/30 text-[11px] font-bold uppercase tracking-wider">
-                <Icon name="Shield" size="xs" />
-                <span>
-                  High{' '}
-                  {
-                    (investigationSummary.evidence || []).filter(
-                      (e: InvestigationEvidenceItem) => e.relevance === 'high',
-                    ).length
-                  }
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-blue-900/30 text-[var(--accent)] border border-[var(--accent)]/30 text-[11px] font-bold uppercase tracking-wider">
-                <Icon name="Check" size="xs" />
-                <span>
-                  Medium{' '}
-                  {
-                    (investigationSummary.evidence || []).filter(
-                      (e: InvestigationEvidenceItem) => e.relevance === 'medium',
-                    ).length
-                  }
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-[var(--glass-bg)]/60 text-[var(--text-muted)] border border-[var(--glass-border)] text-[11px] font-bold uppercase tracking-wider">
-                <Icon name="Info" size="xs" />
-                <span>
-                  Low{' '}
-                  {
-                    (investigationSummary.evidence || []).filter(
-                      (e: InvestigationEvidenceItem) => e.relevance === 'low',
-                    ).length
-                  }
-                </span>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="flex items-center gap-3">
-          {/* Transcript search */}
-          <div className="relative w-64">
-            <Icon
-              name="Search"
-              size="sm"
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none"
-            />
-            <input
-              type="text"
-              value={transcriptSearch}
-              onChange={(e) => setTranscriptSearch(e.target.value)}
-              placeholder={
-                selectedAlbum ? 'Search transcripts in this album…' : 'Search transcripts…'
-              }
-              className="w-full bg-[var(--app-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/50 placeholder-[var(--text-muted)] transition-all border-hover-[var(--glass-border-highlight)]"
-            />
-          </div>
-
-          <div className="h-8 w-[1px] bg-[var(--glass-border)] mx-1 hidden md:block"></div>
-
-          <button
-            onClick={() => setIsBatchMode(!isBatchMode)}
-            className={`px-4 py-2 rounded-[var(--radius-lg)] text-xs font-bold uppercase tracking-wider transition-all shadow-[var(--glass-shadow)] ${
-              isBatchMode
-                ? 'bg-[var(--accent)] text-[var(--text-primary)] ring-2 ring-[var(--accent)]/30'
-                : 'bg-[var(--glass-bg)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)]'
-            }`}
-          >
-            {isBatchMode ? 'Exit Batch' : 'Batch Edit'}
-          </button>
-
-          <button
-            onClick={async () => {
-              try {
-                const resp = await fetch(
-                  `/api/investigations/by-title?title=${encodeURIComponent('Sascha Barros Testimony')}`,
-                );
-                if (resp.ok) {
-                  const inv = await resp.json();
-                  window.location.href = `/investigations/${inv.id}`;
-                }
-              } catch {
-                void 0;
-              }
-            }}
-            className="px-4 py-2 rounded-[var(--radius-lg)] text-xs font-bold uppercase tracking-wider bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-[var(--text-primary)] border border-amber-500/50 shadow-[var(--glass-shadow)] shadow-amber-900/20 active:scale-95 transition-all flex items-center gap-2"
-          >
-            <Icon name="ExternalLink" size="xs" />
-            <span>Open Investigation</span>
-          </button>
-        </div>
-      </div>
-
-      <div className="flex flex-1 overflow-hidden relative">
-        {/* Albums sidebar - Hidden on mobile */}
-        <aside className="hidden md:flex w-60 bg-[var(--glass-bg-strong)] border-r border-[var(--glass-border)] flex-col shrink-0">
-          <h3 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider px-4 py-3">
-            Albums
-          </h3>
-          <div className="flex-1 overflow-y-auto">
-            <button
-              className={`w-full px-4 py-2 text-left text-sm flex items-center justify-between transition-colors ${selectedAlbum === null ? 'bg-cyan-900/20 text-[var(--accent)] border-l-2 border-[var(--accent)]' : 'text-[var(--text-muted)] hover:bg-[var(--glass-bg)] hover:text-[var(--text-primary)] border-l-2 border-transparent'}`}
-              onClick={() => setSelectedAlbum(null)}
-            >
-              <span className="truncate">All Audio</span>
-              <span className="text-xs opacity-70 bg-[var(--glass-bg)] px-1.5 py-0.5 rounded-full">
-                {libraryTotalCount}
-              </span>
-            </button>
-            {albums.map((album) => (
-              <button
-                key={album.id}
-                className={`w-full px-4 py-2 text-left text-sm flex items-center justify-between transition-colors ${selectedAlbum === album.id ? 'bg-cyan-900/20 text-[var(--accent)] border-l-2 border-[var(--accent)]' : 'text-[var(--text-muted)] hover:bg-[var(--glass-bg)] hover:text-[var(--text-primary)] border-l-2 border-transparent'}`}
-                onClick={() => setSelectedAlbum(album.id)}
-                title={album.name}
-              >
-                <span className="truncate">{album.name}</span>
-                <span className="text-xs opacity-70 bg-[var(--glass-bg)] px-1.5 py-0.5 rounded-full">
-                  {album.itemCount || 0}
-                </span>
-              </button>
-            ))}
-          </div>
-        </aside>
-
-        {/* Main Content */}
-        <div className="flex-1 bg-[var(--app-bg)] flex flex-col overflow-hidden">
-          {loading && items.length === 0 ? (
-            <div className="absolute inset-0 flex items-center justify-center z-20 bg-[var(--app-bg)]/50 backdrop-blur-sm">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[var(--accent)]"></div>
-            </div>
-          ) : null}
-
-          {/* Sensitive Content Warning Banner */}
-          {showSensitiveWarning && <SensitiveWarningBanner mediaType="audio" />}
-
-          {error && (
-            <div className="bg-red-900/20 border border-red-500/50 text-red-200 p-4 mx-6 mt-6 rounded-[var(--radius-lg)]">
-              {error}
-            </div>
-          )}
-
-          <div ref={containerRef} className="flex-1 overflow-hidden">
-            {items.length === 0 && !loading ? (
-              <div className="flex flex-col items-center justify-center h-full text-[var(--text-muted)]">
-                <Icon name="Music" size="lg" className="mb-2 opacity-50" />
-                <p>No audio recordings found</p>
-              </div>
-            ) : containerWidth > 0 ? (
-              <div className="h-full flex flex-col">
-                <List
-                  height={containerRef.current?.clientHeight || 600}
-                  itemCount={rowCount}
-                  itemSize={440}
-                  width="100%"
-                  overscanCount={2}
-                  className="scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent"
-                  innerElementType={React.forwardRef<
-                    HTMLDivElement,
-                    React.HTMLAttributes<HTMLDivElement>
-                  >(({ style, ...rest }, ref) => (
-                    <div
-                      ref={ref}
-                      style={{
-                        ...style,
-                        height: `${parseFloat(String(style?.height ?? '0')) + 48}px`, // +24px top, +24px bottom
-                      }}
-                      {...rest}
-                    />
-                  ))}
-                  onScroll={({ scrollOffset, scrollUpdateWasRequested }) => {
-                    if (scrollUpdateWasRequested) return;
-                    const containerHeight = containerRef.current?.clientHeight || 600;
-                    const totalHeight = rowCount * 520;
-                    if (
-                      scrollOffset + containerHeight >= totalHeight - 200 &&
-                      !loading &&
-                      hasMore
-                    ) {
-                      void loadMore();
-                    }
-                  }}
-                >
-                  {Row}
-                </List>
-                {loading && (
-                  <div className="py-4 flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-[var(--accent)]"></div>
-                  </div>
-                )}
-              </div>
-            ) : null}
-          </div>
-        </div>
-      </div>
-
-      {/* Footer Status Bar */}
-      <div className="h-6 bg-[var(--glass-bg-strong)] border-t border-[var(--glass-border)] flex items-center justify-between px-3 text-[10px] text-[var(--text-muted)] select-none shrink-0">
-        <div>{items.length} items</div>
-        <div>{selectedAlbum ? currentAlbum?.name : 'All Audio'}</div>
-      </div>
-
-      {/* Batch Toolbar */}
-      {isBatchMode && selectedItems.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-4xl px-4">
-          <BatchToolbar
-            selectedCount={selectedItems.size}
-            onRotate={() => {}}
-            onAssignTags={(tags) => handleBatchTag(tags, 'add')}
-            onAssignPeople={handleBatchPeople}
-            onAssignRating={() => {}}
-            onEditMetadata={() => {}}
-            onCancel={() => setSelectedItems(new Set())}
-            onDeselect={() => setSelectedItems(new Set())}
+    <>
+      <SEO
+        title={currentAlbum ? `${currentAlbum.name} — Audio` : 'Audio Recordings'}
+        description="Forensic audio evidence and transcripts from the Epstein files."
+      />
+      <div className="flex flex-col h-full min-h-[500px] bg-[var(--app-bg)] border border-[var(--glass-border)] shadow-[var(--glass-shadow)] overflow-hidden rounded-[var(--radius-lg)]">
+        {/* Header */}
+        <div className="app-header-glass px-6 py-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between shrink-0 z-10">
+          <MobileAlbumDropdown
+            albums={albums}
+            selectedAlbum={selectedAlbum}
+            onSelectAlbum={setSelectedAlbum}
+            isOpen={showAlbumDropdown}
+            onToggle={() => setShowAlbumDropdown((v) => !v)}
+            totalItemCount={libraryTotalCount}
+            allLabel="All Audio"
+            currentAlbumName={currentAlbum?.name}
           />
-        </div>
-      )}
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-[var(--radius-lg)] bg-[var(--accent)]/10 border border-[var(--accent)]/20 flex items-center justify-center text-[var(--accent)]">
+                <Music size={20} />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-[var(--text-primary)] tracking-tight">
+                  Audio Recordings
+                </h2>
+                <p className="text-[var(--text-muted)] text-xs font-medium">
+                  Forensic audio evidence and transcripts
+                </p>
+              </div>
+            </div>
 
-      {/* Audio Player Modal */}
-      {selectedItem &&
-        createPortal(
-          <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-[var(--app-backdrop)] p-4 md:p-8 animate-in fade-in duration-200">
-            <div className="w-full max-w-5xl h-[90vh] max-h-[90vh] shadow-[var(--glass-shadow)] ring-1 ring-[var(--glass-border-highlight)] rounded-[var(--radius-lg)] overflow-hidden">
-              <AudioPlayer
-                key={selectedItem.id}
-                src={`/api/media/audio/${selectedItem.id}/stream`}
-                title={selectedItem.title}
-                transcript={selectedItem.metadata.transcript}
-                chapters={selectedItem.metadata.chapters}
-                autoPlay
-                isSensitive={selectedItem.isSensitive}
-                warningText={selectedItem.description}
-                documentId={selectedItem.id}
-                initialTime={
-                  initialUrlTimestamp !== undefined &&
-                  selectedItem.id === (initialAudioId || selectedItem.id)
-                    ? initialUrlTimestamp
-                    : 0
+            {investigationSummary && (
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-amber-900/30 text-amber-300 border border-amber-500/30 text-[11px] font-bold uppercase tracking-wider">
+                  <Icon name="Database" size="xs" />
+                  <span>Evidence {investigationSummary.totalEvidence}</span>
+                </div>
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-green-900/30 text-green-300 border border-green-500/30 text-[11px] font-bold uppercase tracking-wider">
+                  <Icon name="Shield" size="xs" />
+                  <span>
+                    High{' '}
+                    {
+                      (investigationSummary.evidence || []).filter(
+                        (e: InvestigationEvidenceItem) => e.relevance === 'high',
+                      ).length
+                    }
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-blue-900/30 text-[var(--accent)] border border-[var(--accent)]/30 text-[11px] font-bold uppercase tracking-wider">
+                  <Icon name="Check" size="xs" />
+                  <span>
+                    Medium{' '}
+                    {
+                      (investigationSummary.evidence || []).filter(
+                        (e: InvestigationEvidenceItem) => e.relevance === 'medium',
+                      ).length
+                    }
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-[var(--glass-bg)]/60 text-[var(--text-muted)] border border-[var(--glass-border)] text-[11px] font-bold uppercase tracking-wider">
+                  <Icon name="Info" size="xs" />
+                  <span>
+                    Low{' '}
+                    {
+                      (investigationSummary.evidence || []).filter(
+                        (e: InvestigationEvidenceItem) => e.relevance === 'low',
+                      ).length
+                    }
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center gap-3">
+            {/* Transcript search */}
+            <div className="relative w-64">
+              <Icon
+                name="Search"
+                size="sm"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none"
+              />
+              <input
+                type="text"
+                value={transcriptSearch}
+                onChange={(e) => setTranscriptSearch(e.target.value)}
+                placeholder={
+                  selectedAlbum ? 'Search transcripts in this album…' : 'Search transcripts…'
                 }
-                albumImages={
-                  selectedItem.title.includes('Sascha') ||
-                  (selectedItem.albumName && selectedItem.albumName.includes('Sascha')) ||
-                  (currentAlbum && currentAlbum.name.includes('Sascha'))
-                    ? [
-                        '/data/media/audio/lvoocaudiop1/lvoocaudiop1.webp',
-                        '/data/media/audio/lvoocaudiop1/lvoocaudiop1.jpg',
-                      ]
-                    : []
-                }
-                onClose={() => {
-                  setSelectedItem(null);
-                  // Clear URL params but keep album if selected
-                  const url = new URL(window.location.href);
-                  url.searchParams.delete('id');
-                  url.searchParams.delete('t');
-                  window.history.pushState({}, '', url.toString());
-                }}
+                className="w-full bg-[var(--app-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/50 placeholder-[var(--text-muted)] transition-all border-hover-[var(--glass-border-highlight)]"
               />
             </div>
-          </div>,
-          document.body,
+
+            <div className="h-8 w-[1px] bg-[var(--glass-border)] mx-1 hidden md:block"></div>
+
+            <button
+              onClick={() => setIsBatchMode(!isBatchMode)}
+              className={`px-4 py-2 rounded-[var(--radius-lg)] text-xs font-bold uppercase tracking-wider transition-all shadow-[var(--glass-shadow)] ${
+                isBatchMode
+                  ? 'bg-[var(--accent)] text-[var(--text-primary)] ring-2 ring-[var(--accent)]/30'
+                  : 'bg-[var(--glass-bg)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)]'
+              }`}
+            >
+              {isBatchMode ? 'Exit Batch' : 'Batch Edit'}
+            </button>
+
+            <button
+              onClick={async () => {
+                try {
+                  const resp = await fetch(
+                    `/api/investigations/by-title?title=${encodeURIComponent('Sascha Barros Testimony')}`,
+                  );
+                  if (resp.ok) {
+                    const inv = await resp.json();
+                    window.location.href = `/investigations/${inv.id}`;
+                  }
+                } catch {
+                  void 0;
+                }
+              }}
+              className="px-4 py-2 rounded-[var(--radius-lg)] text-xs font-bold uppercase tracking-wider bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-[var(--text-primary)] border border-amber-500/50 shadow-[var(--glass-shadow)] shadow-amber-900/20 active:scale-95 transition-all flex items-center gap-2"
+            >
+              <Icon name="ExternalLink" size="xs" />
+              <span>Open Investigation</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="flex flex-1 overflow-hidden relative">
+          <AlbumSidebar
+            albums={albums}
+            selectedAlbum={selectedAlbum}
+            onSelectAlbum={setSelectedAlbum}
+            totalItemCount={libraryTotalCount}
+            allLabel="All Audio"
+          />
+
+          {/* Main Content */}
+          <div className="flex-1 bg-[var(--app-bg)] flex flex-col overflow-hidden">
+            {loading && items.length === 0 ? (
+              <div className="absolute inset-0 flex items-center justify-center z-20 bg-[var(--app-bg)]/50 backdrop-blur-sm">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[var(--accent)]"></div>
+              </div>
+            ) : null}
+
+            {/* Sensitive Content Warning Banner */}
+            {showSensitiveWarning && <SensitiveWarningBanner mediaType="audio" />}
+
+            {error && (
+              <div className="bg-red-900/20 border border-red-500/50 text-red-200 p-4 mx-6 mt-6 rounded-[var(--radius-lg)]">
+                {error}
+              </div>
+            )}
+
+            <div ref={containerRef} className="flex-1 overflow-hidden">
+              {items.length === 0 && !loading ? (
+                <div className="flex flex-col items-center justify-center h-full text-[var(--text-muted)]">
+                  <Icon name="Music" size="lg" className="mb-2 opacity-50" />
+                  <p>No audio recordings found</p>
+                </div>
+              ) : containerWidth > 0 ? (
+                <div className="h-full flex flex-col">
+                  <List
+                    height={containerRef.current?.clientHeight || 600}
+                    itemCount={rowCount}
+                    itemSize={440}
+                    width="100%"
+                    overscanCount={2}
+                    className="scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent"
+                    innerElementType={React.forwardRef<
+                      HTMLDivElement,
+                      React.HTMLAttributes<HTMLDivElement>
+                    >(({ style, ...rest }, ref) => (
+                      <div
+                        ref={ref}
+                        style={{
+                          ...style,
+                          height: `${parseFloat(String(style?.height ?? '0')) + 48}px`, // +24px top, +24px bottom
+                        }}
+                        {...rest}
+                      />
+                    ))}
+                    onScroll={({ scrollOffset, scrollUpdateWasRequested }) => {
+                      if (scrollUpdateWasRequested) return;
+                      const containerHeight = containerRef.current?.clientHeight || 600;
+                      const totalHeight = rowCount * 520;
+                      if (
+                        scrollOffset + containerHeight >= totalHeight - 200 &&
+                        !loading &&
+                        hasMore
+                      ) {
+                        void loadMore();
+                      }
+                    }}
+                  >
+                    {Row}
+                  </List>
+                  {loading && (
+                    <div className="py-4 flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-[var(--accent)]"></div>
+                    </div>
+                  )}
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </div>
+
+        {/* Footer Status Bar */}
+        <div className="h-6 bg-[var(--glass-bg-strong)] border-t border-[var(--glass-border)] flex items-center justify-between px-3 text-[10px] text-[var(--text-muted)] select-none shrink-0">
+          <div>{items.length} items</div>
+          <div>{selectedAlbum ? currentAlbum?.name : 'All Audio'}</div>
+        </div>
+
+        {/* Batch Toolbar */}
+        {isBatchMode && selectedItems.size > 0 && (
+          <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-4xl px-4">
+            <BatchToolbar
+              selectedCount={selectedItems.size}
+              onRotate={() => {}}
+              onAssignTags={(tags) => handleBatchTag(tags, 'add')}
+              onAssignPeople={handleBatchPeople}
+              onAssignRating={() => {}}
+              onEditMetadata={() => {}}
+              onCancel={() => setSelectedItems(new Set())}
+              onDeselect={() => setSelectedItems(new Set())}
+            />
+          </div>
         )}
-    </div>
+
+        {/* Audio Player Modal */}
+        {selectedItem &&
+          createPortal(
+            <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-[var(--app-backdrop)] p-4 md:p-8 animate-in fade-in duration-200">
+              <div className="w-full max-w-5xl h-[90vh] max-h-[90vh] shadow-[var(--glass-shadow)] ring-1 ring-[var(--glass-border-highlight)] rounded-[var(--radius-lg)] overflow-hidden">
+                <AudioPlayer
+                  key={selectedItem.id}
+                  src={`/api/media/audio/${selectedItem.id}/stream`}
+                  title={selectedItem.title}
+                  transcript={selectedItem.metadata.transcript}
+                  chapters={selectedItem.metadata.chapters}
+                  autoPlay
+                  isSensitive={selectedItem.isSensitive}
+                  warningText={selectedItem.description}
+                  documentId={selectedItem.id}
+                  initialTime={
+                    initialUrlTimestamp !== undefined &&
+                    selectedItem.id === (initialAudioId || selectedItem.id)
+                      ? initialUrlTimestamp
+                      : 0
+                  }
+                  albumImages={
+                    selectedItem.title.includes('Sascha') ||
+                    (selectedItem.albumName && selectedItem.albumName.includes('Sascha')) ||
+                    (currentAlbum && currentAlbum.name.includes('Sascha'))
+                      ? [
+                          '/data/media/audio/lvoocaudiop1/lvoocaudiop1.webp',
+                          '/data/media/audio/lvoocaudiop1/lvoocaudiop1.jpg',
+                        ]
+                      : []
+                  }
+                  onClose={() => {
+                    setSelectedItem(null);
+                    // Clear URL params but keep album if selected
+                    const url = new URL(window.location.href);
+                    url.searchParams.delete('id');
+                    url.searchParams.delete('t');
+                    window.history.pushState({}, '', url.toString());
+                  }}
+                />
+              </div>
+            </div>,
+            document.body,
+          )}
+      </div>
+    </>
   );
 };
