@@ -1,5 +1,6 @@
 import React from 'react';
-import { semanticTokens, spacingTokens } from '../../styles/designSystem';
+import s from './FormField.module.css';
+import { cn } from '../../utils/cn';
 
 interface FormFieldProps {
   label: React.ReactNode;
@@ -21,28 +22,19 @@ const FormField: React.FC<FormFieldProps> = ({
   className = '',
 }) => {
   return (
-    <div className={`${spacingTokens.fieldGap} ${className}`}>
-      <label
-        htmlFor={id}
-        className={`block text-sm font-medium ${semanticTokens.fieldLabel} ${spacingTokens.labelGap}`}
-      >
+    <div className={cn(s.root, className)}>
+      <label htmlFor={id} className={s.label}>
         {label}
-        {required && <span className={`${semanticTokens.required} ml-[var(--space-1)]`}>*</span>}
+        {required && <span className={s.required}>*</span>}
       </label>
       {children}
       {helpText && (
-        <p
-          className={`${spacingTokens.helperGap} text-xs ${semanticTokens.helperText}`}
-          id={`${id}-description`}
-        >
+        <p className={s.helper} id={`${id}-description`}>
           {helpText}
         </p>
       )}
       {error && (
-        <p
-          className={`${spacingTokens.helperGap} text-xs ${semanticTokens.errorText}`}
-          id={`${id}-error`}
-        >
+        <p className={s.error} id={`${id}-error`}>
           {error}
         </p>
       )}
