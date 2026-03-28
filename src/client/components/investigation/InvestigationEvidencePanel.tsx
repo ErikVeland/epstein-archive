@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { ENTITY_CATEGORY_ICONS, EntityCategory } from '../../../config/entityIcons';
 import { EvidenceAnnotationPanel, EvidenceAnnotation } from '../documents/EvidenceAnnotation';
+import { useScrollLock } from '../../hooks/useScrollLock';
 import { CloseButton } from '../common/CloseButton';
 import Icon from '../common/Icon';
 import { apiClient } from '../../services/apiClient';
@@ -86,6 +87,7 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
   const [pivotEntityId, setPivotEntityId] = useState<string | null>(null);
   const [pivotEntityName, setPivotEntityName] = useState('');
   const [clusterMode, setClusterMode] = useState<'none' | 'entity' | 'date'>('none');
+  useScrollLock(showAddModal);
 
   useEffect(() => {
     loadEvidenceSummary();

@@ -42,6 +42,7 @@ import { InvestigationTimelineBuilder } from './InvestigationTimelineBuilder';
 import { InvestigationExportTools } from './InvestigationExportTools';
 import { ForensicAnalysisWorkspace } from './ForensicAnalysisWorkspace';
 import { useInvestigationOnboarding } from '../../hooks/useInvestigationOnboarding';
+import { useScrollLock } from '../../hooks/useScrollLock';
 import { InvestigationOnboarding } from './InvestigationOnboarding';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { DataIntegrityPanel } from '../visualizations/DataIntegrityPanel';
@@ -179,6 +180,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
     onError: (message) => addToast({ text: message, type: 'error' }),
   });
   const [showNewInvestigationModal, setShowNewInvestigationModal] = useState(false);
+  useScrollLock(showNewInvestigationModal);
   const [showCreateRelationshipModal, setShowCreateRelationshipModal] = useState(false);
   const [newInvestigation, setNewInvestigation] = useState<{
     title: string;
