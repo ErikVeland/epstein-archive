@@ -6,7 +6,7 @@ import { TreeMap } from './TreeMap';
 import { filterPeopleOnly, isJunkEntity } from '../../utils/entityFilters';
 import { useAnalytics } from '../../contexts/AnalyticsContextState';
 import ScopedErrorBoundary from '../common/ScopedErrorBoundary';
-import { Surface, cn } from '@design-system';
+import { cn } from '@design-system';
 import './DataVisualization.css';
 
 interface EntityRecord {
