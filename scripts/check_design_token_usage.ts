@@ -40,6 +40,18 @@ const strictClassPattern =
 const strictSpacingPattern =
   /\b(?:p|px|py|pt|pr|pb|pl|m|mx|my|mt|mr|mb|ml|gap|space-x|space-y)-(?:0|0\.5|1|1\.5|2|2\.5|3|3\.5|4|5|6|7|8|9|10|11|12|14|16)\b/g;
 
+const moduleGovernedFiles = new Set(
+  [
+    'src/client/design-system/components/Button.tsx',
+    'src/client/components/common/CloseButton.tsx',
+    'src/client/components/common/ProgressBar.tsx',
+    'src/client/components/common/SourceBadge.tsx',
+  ].map((f) => path.join(rootDir, f)),
+);
+
+const tailwindUtilityPattern =
+  /["'`][^"'`]*\b(flex|grid|items-center|items-start|justify-between|justify-center|gap-\d|p-\d|px-\d|py-\d|pt-\d|pb-\d|m-\d|mx-\d|my-\d|mt-\d|mb-\d|w-full|h-\d|text-(?:xs|sm|base|lg|xl)|font-(?:medium|bold|semibold|mono)|rounded(?:-(?:md|lg|xl|full|sm))?|overflow-(?:hidden|auto|scroll)|absolute|relative|hidden|block|inline-flex|inline-block|truncate|uppercase|transition-)\b[^"'`]*["'`]/;
+
 function walk(dir: string): string[] {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
   const files: string[] = [];
@@ -82,6 +94,13 @@ function main() {
       strictSpacingPattern.lastIndex = 0;
       if (strictClassPattern.test(content) || strictSpacingPattern.test(content)) {
         strictViolations.push(path.relative(rootDir, filePath));
+      }
+    }
+    if (moduleGovernedFiles.has(filePath)) {
+      if (tailwindUtilityPattern.test(content)) {
+        violations.push(
+          `${path.relative(rootDir, filePath)} — CSS module governed file contains Tailwind utility strings`,
+        );
       }
     }
   }
