@@ -30,9 +30,15 @@
   overflow: hidden;
 }
 
-.trackSm { height: 0.5rem; }
-.trackMd { height: 0.75rem; }
-.trackLg { height: 1rem; }
+.trackSm {
+  height: 0.5rem;
+}
+.trackMd {
+  height: 0.75rem;
+}
+.trackLg {
+  height: 1rem;
+}
 
 .fill {
   height: 100%;
@@ -40,8 +46,18 @@
   transition: width 300ms ease-out;
 }
 
-.fillPrimary   { background: var(--accent); }
-.fillSecondary { background: var(--accent-secondary); }
-.fillSuccess   { background: var(--accent-success); }
-.fillWarning   { background: var(--accent-warning); }
-.fillDanger    { background: var(--accent-danger); }
+.fillPrimary {
+  background: var(--accent);
+}
+.fillSecondary {
+  background: var(--accent-secondary);
+}
+.fillSuccess {
+  background: var(--accent-success);
+}
+.fillWarning {
+  background: var(--accent-warning);
+}
+.fillDanger {
+  background: var(--accent-danger);
+}
