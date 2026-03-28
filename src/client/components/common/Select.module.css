@@ -32,13 +32,14 @@
   padding: 0.625rem var(--space-3);
   padding-right: 2.5rem;
   cursor: pointer;
+  outline: none;
   transition:
     background var(--duration-fast) var(--easing-swift),
-    border-color var(--duration-fast) var(--easing-swift);
+    border-color var(--duration-fast) var(--easing-swift),
+    box-shadow var(--duration-fast) var(--easing-swift);
 }
 
-.select:focus {
-  outline: none;
+.select:focus-visible {
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 50%, transparent);
   border-color: var(--accent);
 }
@@ -52,7 +53,7 @@
   border-color: var(--accent-danger);
 }
 
-.select.hasError:focus {
+.select.hasError:focus-visible {
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-danger) 20%, transparent);
   border-color: var(--accent-danger);
 }

@@ -21,13 +21,21 @@ export const Select: React.FC<SelectProps> = ({
   error,
   containerClassName = '',
   className = '',
+  id,
+  name,
   ...props
 }) => {
+  const selectId = id ?? (name ? `select-${name}` : undefined);
+
   return (
     <div className={cn(s.root, containerClassName)}>
-      {label && <label className={s.label}>{label}</label>}
+      {label && (
+        <label className={s.label} htmlFor={selectId}>
+          {label}
+        </label>
+      )}
       <div className={s.wrapper}>
-        <select className={cn(s.select, error && s.hasError, className)} {...props}>
+        <select id={selectId} className={cn(s.select, error && s.hasError, className)} {...props}>
           {options.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
