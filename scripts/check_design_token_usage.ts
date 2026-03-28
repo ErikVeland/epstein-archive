@@ -46,6 +46,11 @@ const moduleGovernedFiles = new Set(
     'src/client/components/common/CloseButton.tsx',
     'src/client/components/common/ProgressBar.tsx',
     'src/client/components/common/SourceBadge.tsx',
+    'src/client/components/common/Skeleton.tsx',
+    'src/client/components/common/LoadingIndicator.tsx',
+    'src/client/components/common/Card.tsx',
+    'src/client/components/common/FormField.tsx',
+    'src/client/components/common/Select.tsx',
   ].map((f) => path.join(rootDir, f)),
 );
 
