@@ -35,7 +35,7 @@ const documentsListQuerySchema = z.object({
       .optional(),
     minRedFlag: z.coerce.number().int().min(0).max(5).optional(),
     maxRedFlag: z.coerce.number().int().min(0).max(5).optional(),
-    sortBy: z.enum(['date', 'title', 'red_flag', 'size']).optional(),
+    sortBy: z.enum(['date', 'title', 'red_flag', 'size', 'relevance', 'fileType']).optional(),
     sortOrder: z.enum(['asc', 'desc']).optional(),
     collectionId: z.string().optional(),
   }),
@@ -352,6 +352,17 @@ router.get('/:id/file', validate(documentIdSchema), async (req, res, next) => {
 
     res.setHeader('Content-Disposition', 'inline');
     return res.sendFile(canonicalFilePath);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/:id/related', validate(documentIdSchema), async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const limit = Math.min(50, Math.max(1, Number(req.query.limit || 10)));
+    const related = await documentsRepository.getRelatedDocuments(id, limit);
+    res.json(related);
   } catch (error) {
     next(error);
   }

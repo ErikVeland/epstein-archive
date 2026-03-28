@@ -15,7 +15,13 @@ SELECT
   source_collection as "sourceCollection",
   COUNT(*) OVER () as "totalCount"
 FROM documents
-WHERE (:search::text IS NULL OR file_name ILIKE :search OR source_collection ILIKE :search OR file_path ILIKE :search)
+WHERE (
+  :search::text IS NULL
+  OR file_name ILIKE :search
+  OR source_collection ILIKE :search
+  OR file_path ILIKE :search
+  OR fts_vector @@ websearch_to_tsquery('english', :search)
+)
   AND (file_type = ANY(:fileTypes) OR :fileTypes IS NULL)
   AND (evidence_type = :evidenceType OR :evidenceType IS NULL)
   AND (source_collection = ANY(:sources) OR :sources IS NULL)
@@ -29,7 +35,13 @@ LIMIT :limit! OFFSET :offset!;
 /* @name countDocuments */
 SELECT COUNT(*) as total 
 FROM documents
-WHERE (:search::text IS NULL OR file_name ILIKE :search OR source_collection ILIKE :search OR file_path ILIKE :search)
+WHERE (
+  :search::text IS NULL
+  OR file_name ILIKE :search
+  OR source_collection ILIKE :search
+  OR file_path ILIKE :search
+  OR fts_vector @@ websearch_to_tsquery('english', :search)
+)
   AND (file_type = ANY(:fileTypes) OR :fileTypes IS NULL)
   AND (evidence_type = :evidenceType OR :evidenceType IS NULL)
   AND (source_collection = ANY(:sources) OR :sources IS NULL)

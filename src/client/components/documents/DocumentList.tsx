@@ -156,8 +156,8 @@ export const DocumentList: React.FC<DocumentListProps> = ({
             </div>
           </div>
           <button
-            onClick={() => setCurrentPage(currentPage + 1)}
-            disabled={currentPage >= totalPages || isFetching}
+            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+            disabled={currentPage === totalPages || isFetching}
             className="px-4 py-2 bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--glass-bg-highlight)] transition-colors"
           >
             Next

@@ -56,6 +56,7 @@ import blackBookRoutes from './server/routes/blackBookRoutes.js';
 import faceRoutes from './server/routes/faceRoutes.js';
 import { entitiesRepository } from './server/db/entitiesRepository.js';
 import { mediaRepository } from './server/db/mediaRepository.js';
+import { searchRepository } from './server/db/searchRepository.js';
 import {
   mapEntityDetailDto,
   mapEntityListResponseDto,
@@ -704,6 +705,29 @@ export class App {
           'relevance',
         );
         res.json({ results: result.entities });
+      } catch (error) {
+        next(error);
+      }
+    });
+    router.get('/search', async (req, res, next) => {
+      try {
+        const query = req.query as Record<string, unknown>;
+        const q = String(query.q || query.query || '').trim();
+        const limit = Math.min(100, Math.max(1, Number(query.limit || 20)));
+
+        if (!q) {
+          return res.json({
+            entities: [],
+            documents: [],
+            investigations: [],
+            articles: [],
+            media: [],
+            didYouMean: [],
+          });
+        }
+
+        const result = await searchRepository.search(q, limit);
+        res.json(result);
       } catch (error) {
         next(error);
       }

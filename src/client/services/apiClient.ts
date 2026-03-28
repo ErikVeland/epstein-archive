@@ -389,6 +389,8 @@ class ApiClient {
       queryParams.append('entityType', (filters as Record<string, unknown>).entityType as string);
     if ((filters as Record<string, unknown>).sortBy)
       queryParams.append('sortBy', (filters as Record<string, unknown>).sortBy as string);
+    if ((filters as Record<string, unknown>).sortOrder)
+      queryParams.append('sortOrder', (filters as Record<string, unknown>).sortOrder as string);
     if ((filters as Record<string, unknown>).likelihood) {
       if (Array.isArray((filters as Record<string, unknown>).likelihood)) {
         ((filters as Record<string, unknown>).likelihood as string[]).forEach((l: string) =>

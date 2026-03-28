@@ -37,13 +37,9 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            // Keep truly massive/isolated libraries separate
+            // Keep PDF tooling isolated, but consolidate the rest of vendor code.
+            // Splitting chart/icon packages has caused brittle production chunk graphs.
             if (id.includes('react-pdf') || id.includes('pdfjs-dist')) return 'vendor-pdf';
-            if (id.includes('recharts') || id.includes('d3')) return 'vendor-charts';
-            if (id.includes('lucide-react')) return 'vendor-icons';
-
-            // Everything else in node_modules goes to vendor
-            // This ensures React and its core ecosystem stay together
             return 'vendor';
           }
 
