@@ -29,6 +29,7 @@ const fsPromises = fs.promises;
 // Schemas
 const searchEvidenceSchema = z.object({
   query: z.object({
+    q: z.string().optional(),
     query: z.string().optional(),
     limit: z.coerce.number().int().min(1).default(50),
   }),
@@ -226,15 +227,16 @@ router.post(
 router.get('/search', validate(searchEvidenceSchema), async (req: Request, res: Response) => {
   try {
     type SearchQuery = z.infer<typeof searchEvidenceSchema>['query'];
-    const { query, limit } = req.query as unknown as SearchQuery;
+    const { q, query, limit } = req.query as unknown as SearchQuery;
+    const searchTerm = typeof q === 'string' && q.trim().length > 0 ? q : query;
 
-    if (!query) {
+    if (!searchTerm) {
       // Return recent documents if no query
       const result = await documentsRepository.getDocuments(1, limit, {});
       return res.json(result);
     }
 
-    const result = await searchRepository.search(query, limit);
+    const result = await searchRepository.search(searchTerm, limit);
     res.json(result);
   } catch (error) {
     logger.error({ err: error }, 'Evidence search error');

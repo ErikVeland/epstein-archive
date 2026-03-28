@@ -162,20 +162,25 @@ export const documentsRepository = {
 
     const evidenceType =
       filters.evidenceType && filters.evidenceType !== 'all' ? filters.evidenceType : null;
-    const sortBy = filters.sortBy || 'red_flag';
+    const fullTextSearch = search || null;
+    const requestedSortBy = filters.sortBy || 'red_flag';
+    const sortBy =
+      requestedSortBy === 'relevance' && !fullTextSearch ? 'red_flag' : requestedSortBy;
     const sortOrder = filters.sortOrder === 'asc' ? 'ASC' : 'DESC';
     const orderByClause =
-      sortBy === 'date'
-        ? `COALESCE(extracted_date, date_created) ${sortOrder}, red_flag_rating DESC`
-        : sortBy === 'title'
-          ? `COALESCE(NULLIF(title, ''), file_name) ${sortOrder}, COALESCE(extracted_date, date_created) DESC`
-          : sortBy === 'size'
-            ? `file_size ${sortOrder} NULLS LAST, COALESCE(extracted_date, date_created) DESC`
-            : `red_flag_rating ${sortOrder}, COALESCE(extracted_date, date_created) DESC`;
+      sortBy === 'relevance' && fullTextSearch
+        ? `ts_rank_cd(fts_vector, websearch_to_tsquery('english', $11::text), 32) ${sortOrder}, red_flag_rating DESC, COALESCE(extracted_date, date_created) DESC`
+        : sortBy === 'date'
+          ? `COALESCE(extracted_date, date_created) ${sortOrder}, red_flag_rating DESC`
+          : sortBy === 'title'
+            ? `COALESCE(NULLIF(title, ''), file_name) ${sortOrder}, COALESCE(extracted_date, date_created) DESC`
+            : sortBy === 'fileType'
+              ? `file_type ${sortOrder} NULLS LAST, COALESCE(NULLIF(title, ''), file_name) ASC`
+              : sortBy === 'size'
+                ? `file_size ${sortOrder} NULLS LAST, COALESCE(extracted_date, date_created) DESC`
+                : `red_flag_rating ${sortOrder}, COALESCE(extracted_date, date_created) DESC`;
 
-    // NOTE: content_refined is excluded from the ILIKE predicate — it can be hundreds of MB
-    // per row and has no index. Full-text search on document content goes through searchRepository
-    // (websearch_to_tsquery + GIN index). This query covers filename/path/collection filters.
+    // Support indexed content search directly in the document browser.
     const docsSql = `
       SELECT
         id,
@@ -193,7 +198,13 @@ export const documentsRepository = {
         source_collection as "sourceCollection",
         COUNT(*) OVER () as "totalCount"
       FROM documents
-      WHERE ($1::text IS NULL OR file_name ILIKE $1 OR source_collection ILIKE $1 OR file_path ILIKE $1)
+      WHERE (
+          $1::text IS NULL
+          OR file_name ILIKE $1
+          OR source_collection ILIKE $1
+          OR file_path ILIKE $1
+          OR fts_vector @@ websearch_to_tsquery('english', $11::text)
+        )
         AND (file_type = ANY($2::text[]) OR $2::text[] IS NULL)
         AND (evidence_type = $3::text OR $3::text IS NULL)
         AND (source_collection = ANY($4::text[]) OR $4::text[] IS NULL)
@@ -207,7 +218,13 @@ export const documentsRepository = {
     const countSql = `
       SELECT COUNT(*) as total
       FROM documents
-      WHERE ($1::text IS NULL OR file_name ILIKE $1 OR source_collection ILIKE $1 OR file_path ILIKE $1)
+      WHERE (
+          $1::text IS NULL
+          OR file_name ILIKE $1
+          OR source_collection ILIKE $1
+          OR file_path ILIKE $1
+          OR fts_vector @@ websearch_to_tsquery('english', $9::text)
+        )
         AND (file_type = ANY($2::text[]) OR $2::text[] IS NULL)
         AND (evidence_type = $3::text OR $3::text IS NULL)
         AND (source_collection = ANY($4::text[]) OR $4::text[] IS NULL)
@@ -227,6 +244,7 @@ export const documentsRepository = {
       filters.maxRedFlag ?? null,
       limit,
       offset,
+      fullTextSearch,
     ]);
     const docs = docsRes.rows as Array<Record<string, unknown>>;
     let total = Number((docs[0] as { totalCount?: string | number } | undefined)?.totalCount ?? 0);
@@ -240,6 +258,7 @@ export const documentsRepository = {
         filters.endDate || null,
         filters.minRedFlag ?? null,
         filters.maxRedFlag ?? null,
+        fullTextSearch,
       ]);
       total = Number(countRes.rows[0]?.total ?? 0);
     }

@@ -32,7 +32,7 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const searchParam = params.get('search');
+    const searchParam = params.get('search') || params.get('q');
     if (searchParam && searchParam !== contextSearchTerm) {
       if (onSearchTermChange) {
         onSearchTermChange(searchParam);
