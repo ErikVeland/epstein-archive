@@ -66,6 +66,7 @@ jobs:
 
       - name: Deploy to production
         env:
+          DATABASE_URL: postgres://postgres:password@localhost:5432/epstein_test
           EPSTEIN_PROD_HOST: ${{ secrets.PROD_HOST || '194.195.248.217' }}
           EPSTEIN_PROD_SSH_USER: ${{ secrets.PROD_USER || 'svc_epstein' }}
         run: ./deploy.sh
