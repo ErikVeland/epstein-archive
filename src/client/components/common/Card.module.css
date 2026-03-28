@@ -184,3 +184,13 @@
     opacity: 1;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .root {
+    animation: none;
+  }
+
+  .root:active {
+    transform: none;
+  }
+}
