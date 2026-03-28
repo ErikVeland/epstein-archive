@@ -256,7 +256,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
           className={`p-4 rounded-[var(--radius-lg)] border transition-all ${
             selectedType === null
               ? 'bg-[var(--accent)]/20 border-[var(--accent)]/50 ring-2 ring-[var(--accent)]/30'
-              : 'bg-[var(--glass-bg)]/50 border-[var(--glass-border)] hover:border-[var(--glass-border)]'
+              : 'surface-glass hover:bg-[var(--glass-bg-highlight)]'
           }`}
         >
           <Icon name="Folder" size="md" className="mx-auto mb-2 text-[var(--accent)]" />
@@ -275,7 +275,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
               className={`p-4 rounded-[var(--radius-lg)] border transition-all ${
                 selectedType === type
                   ? `bg-${config.color}-600/20 border-${config.color}-500/50 ring-2 ring-${config.color}-500/30`
-                  : 'bg-[var(--glass-bg)]/50 border-[var(--glass-border)] hover:border-[var(--glass-border)]'
+                  : 'surface-glass hover:bg-[var(--glass-bg-highlight)]'
               }`}
             >
               <Icon
@@ -291,7 +291,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap items-center gap-3 p-4 bg-[var(--glass-bg)]/30 rounded-[var(--radius-lg)]">
+      <div className="flex flex-wrap items-center gap-3 p-4 surface-glass">
         {/* Search */}
         <div className="relative flex-1 min-w-[200px]">
           <Icon
@@ -304,7 +304,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
             placeholder="Search evidence..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-[var(--glass-bg-strong)]/50 border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/50"
+            className="w-full pl-10 pr-4 py-2 surface-glass text-[var(--text-primary)] placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/50"
           />
         </div>
 
@@ -318,7 +318,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
               className={`px-3 py-1.5 rounded-[var(--radius-lg)] text-xs font-medium border transition-colors ${
                 relevanceFilter === rel
                   ? relevanceColors[rel]
-                  : 'bg-[var(--glass-bg)] border-[var(--glass-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+                  : 'surface-glass text-[var(--text-muted)] hover:text-[var(--text-primary)]'
               }`}
             >
               {rel.charAt(0).toUpperCase() + rel.slice(1)}
@@ -372,10 +372,10 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
               return (
                 <div
                   key={item.id}
-                  className={`p-4 bg-[var(--glass-bg)]/50 border rounded-[var(--radius-lg)] transition-colors ${
+                  className={`p-4 surface-glass transition-colors ${
                     isDeepLinkedItem(item)
                       ? 'border-[var(--accent)] ring-2 ring-[var(--accent)]/40'
-                      : 'border-[var(--glass-border)] hover:border-[var(--glass-border)]'
+                      : 'hover:bg-[var(--glass-bg-highlight)]'
                   }`}
                   data-evidence-row-id={resolveEvidenceKey(item)}
                 >

@@ -214,7 +214,7 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
             placeholder="Scoping search..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="control w-full pl-10 pr-20 py-2 !bg-[var(--glass-bg)] border-[var(--glass-border)] focus:!border-[var(--accent)]/50"
+            className="control w-full pl-10 pr-20 py-2 surface-glass focus:!border-[var(--accent)]/50"
           />
           {totalMatches > 0 && (
             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
@@ -241,7 +241,7 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
 
         <div className="flex items-center gap-2">
           {/* Quick Actions */}
-          <div className="flex p-1 bg-[var(--glass-bg)] rounded-[var(--radius-xl)] border border-[var(--glass-border)] gap-1">
+          <div className="flex p-1 gap-1 surface-glass">
             <button
               onClick={() => setShowRaw(false)}
               className={`px-3 py-1.5 rounded-[var(--radius-lg)] text-[10px] font-black uppercase tracking-widest transition-all ${!showRaw ? 'bg-[var(--accent)]/20 text-[var(--accent)] border border-[var(--accent)]/30' : 'text-[var(--text-primary)] hover:text-[var(--text-muted)]'}`}

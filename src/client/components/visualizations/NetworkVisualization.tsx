@@ -768,7 +768,7 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
   );
 
   return (
-    <div className="bg-[var(--glass-bg-strong)] rounded-[var(--radius-xl)] border border-[var(--glass-border)] overflow-hidden shadow-[var(--glass-shadow)] flex flex-col h-full min-h-[600px]">
+    <div className="surface-glass overflow-hidden shadow-[var(--glass-shadow)] flex flex-col h-full min-h-[600px]">
       {/* Header */}
       <div className="p-4 border-b border-[var(--glass-border)] bg-[var(--glass-bg-strong)]/80 backdrop-blur-md z-10">
         <div className="flex items-center justify-between">
@@ -800,7 +800,7 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
                 placeholder="Search entities..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="h-10 pl-10 pr-4 bg-[var(--glass-bg)]/50 border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/50 transition-all w-64"
+                className="h-10 pl-10 pr-4 surface-glass text-[var(--text-primary)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/50 transition-all w-64"
               />
             </div>
 
@@ -809,7 +809,7 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
               className={`h-10 px-4 flex items-center gap-2 rounded-[var(--radius-lg)] text-sm font-semibold transition-all ${
                 showTableView
                   ? 'bg-[var(--accent)] text-[var(--text-primary)] shadow-[var(--glass-shadow)] shadow-blue-500/20'
-                  : 'bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)]'
+                  : 'surface-glass text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)]'
               }`}
             >
               {showTableView ? <Network className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
@@ -818,14 +818,14 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
 
             <button
               onClick={() => setShowSettings(!showSettings)}
-              className={`h-10 w-10 flex items-center justify-center rounded-[var(--radius-lg)] transition-all ${showSettings ? 'bg-[var(--glass-bg-highlight)] text-[var(--text-primary)]' : 'bg-[var(--glass-bg)] text-[var(--text-muted)] border border-[var(--glass-border)]'}`}
+              className={`h-10 w-10 flex items-center justify-center rounded-[var(--radius-lg)] transition-all ${showSettings ? 'bg-[var(--glass-bg-highlight)] text-[var(--text-primary)]' : 'surface-glass text-[var(--text-muted)]'}`}
             >
               <Settings className="w-4 h-4" />
             </button>
 
             <button
               onClick={exportNetwork}
-              className="h-10 w-10 flex items-center justify-center bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all"
+              className="h-10 w-10 flex items-center justify-center surface-glass text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all"
               title="Export Network"
             >
               <Download className="w-4 h-4" />
@@ -846,7 +846,7 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
                         <Users className="w-5 h-5 text-[var(--accent)]" />
                         Filtered Entities ({filteredNodes.length})
                       </h4>
-                      <div className="bg-[var(--glass-bg)]/40 border border-[var(--glass-border)] rounded-[var(--radius-xl)] overflow-hidden backdrop-blur-sm">
+                      <div className="surface-glass overflow-hidden backdrop-blur-sm">
                         <table className="w-full text-left border-collapse">
                           <thead>
                             <tr className="bg-[var(--glass-bg)]/60 text-[var(--text-muted)] text-xs font-bold uppercase tracking-wider">
@@ -928,7 +928,7 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
                     onMouseLeave={handleMouseUp}
                   />
 
-                  <div className="absolute bottom-6 left-6 flex items-center gap-2 p-1 bg-[var(--glass-bg-strong)]/80 border border-[var(--glass-border)] rounded-[var(--radius-xl)] backdrop-blur-md shadow-[var(--glass-shadow)]">
+                  <div className="absolute bottom-6 left-6 flex items-center gap-2 p-1 surface-glass backdrop-blur-md shadow-[var(--glass-shadow)]">
                     <button
                       onClick={() => setZoom((prev) => Math.min(3, prev * 1.2))}
                       className="p-2 hover:bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-[var(--radius-lg)] transition-all"
@@ -954,7 +954,7 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
                     </button>
                   </div>
 
-                  <div className="absolute bottom-6 right-6 p-4 bg-[var(--glass-bg-strong)]/60 border border-[var(--glass-border)] rounded-[var(--radius-xl)] backdrop-blur-sm hidden lg:block">
+                  <div className="absolute bottom-6 right-6 p-4 surface-glass backdrop-blur-sm hidden lg:block">
                     <h5 className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mb-3">
                       Entity Key
                     </h5>

@@ -72,10 +72,10 @@ export const BoardOnboarding: React.FC<BoardOnboardingProps> = ({ onComplete, on
         initial={{ scale: 0.95, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         transition={{ type: 'spring', duration: 0.5, bounce: 0.3 }}
-        className="relative bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] w-full max-w-md overflow-hidden"
+        className="relative surface-glass shadow-[var(--glass-shadow)] w-full max-w-md overflow-hidden"
       >
         {/* Progress Bar */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-[var(--glass-bg)]">
+        <div className="absolute top-0 left-0 right-0 h-1 surface-glass">
           <motion.div
             className="h-full bg-[var(--accent)]"
             initial={{ width: '0%' }}

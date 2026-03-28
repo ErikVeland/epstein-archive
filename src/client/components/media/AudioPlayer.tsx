@@ -478,7 +478,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)] overflow-hidden">
+    <div className="flex flex-col h-full surface-glass shadow-[var(--glass-shadow)] overflow-hidden">
       {/* Header */}
       <div className="px-4 py-3 bg-[var(--glass-bg-strong)] border-b border-[var(--glass-border)]">
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
@@ -527,7 +527,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                     });
                 }, 50);
               }}
-              className="px-3 py-1.5 bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] text-xs text-[var(--accent)] rounded-full transition-colors flex items-center gap-2 border border-[var(--glass-border)]"
+              className="px-3 py-1.5 surface-glass hover:bg-[var(--glass-bg-highlight)] text-xs text-[var(--accent)] rounded-full transition-colors flex items-center gap-2"
               title="Read full transcript overlay"
             >
               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -601,7 +601,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
         {/* Main Content (Visuals + Controls) */}
         <div className="flex-1 flex flex-col p-4 md:p-6 overflow-y-auto">
           {/* Visualizer / Slideshow Area */}
-          <div className="flex-1 min-h-[100px] bg-[var(--glass-bg-strong)]/50 rounded-[var(--radius-lg)] border border-[var(--glass-border)] mb-6 flex items-center justify-center relative overflow-hidden group">
+          <div className="flex-1 min-h-[100px] surface-glass mb-6 flex items-center justify-center relative overflow-hidden group">
             {albumImages && albumImages.length > 0 ? (
               // Slideshow Mode
               <div className="absolute inset-0 w-full h-full">
@@ -760,7 +760,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
               />
             </div>
 
-            <div className="flex items-center gap-2 bg-[var(--glass-bg-strong)] rounded-[var(--radius-lg)] p-1 border border-[var(--glass-border)]">
+            <div className="flex items-center gap-2 surface-glass p-1">
               {[0.5, 1, 1.5, 2].map((rate) => (
                 <button
                   key={rate}
@@ -830,7 +830,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                           lastInteractionRef.current = Date.now();
                         }}
                         placeholder="Search in transcript…"
-                        className="flex-1 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded text-[var(--text-primary)] text-xs px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[var(--accent)] placeholder-slate-500"
+                        className="flex-1 surface-glass rounded text-[var(--text-primary)] text-xs px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[var(--accent)] placeholder-slate-500"
                       />
                       {normalizedTranscriptQuery && (
                         <div className="flex items-center gap-1 text-[10px] text-[var(--text-muted)]">
@@ -934,7 +934,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
       {showFullTranscriptOverlay && (
         <div className="fixed inset-0 z-[1300] bg-[var(--glass-bg-strong)] backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-5xl h-[90vh] max-h-[90vh] bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)] overflow-hidden flex flex-col">
+          <div className="w-full max-w-5xl h-[90vh] max-h-[90vh] surface-glass shadow-[var(--glass-shadow)] overflow-hidden flex flex-col">
             <div className="flex items-center justify-between p-3 bg-[var(--glass-bg-strong)] border-b border-[var(--glass-border)]">
               <div className="flex items-center gap-2">
                 <button
@@ -971,7 +971,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                     lastInteractionRef.current = Date.now();
                   }}
                   placeholder="Search in transcript…"
-                  className="flex-1 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded text-[var(--text-primary)] text-xs px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[var(--accent)] placeholder-slate-500"
+                  className="flex-1 surface-glass rounded text-[var(--text-primary)] text-xs px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[var(--accent)] placeholder-slate-500"
                 />
                 {normalizedTranscriptQuery && (
                   <div className="flex items-center gap-1 text-[10px] text-[var(--text-muted)]">

@@ -61,7 +61,7 @@ export function EvidenceFilters({
   resultCount,
 }: EvidenceFiltersProps) {
   return (
-    <div className="bg-gradient-to-r from-[var(--glass-bg)] to-[var(--glass-bg-strong)] p-6 rounded-[var(--radius-xl)] border border-[var(--glass-border)]">
+    <div className="surface-glass p-6">
       <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
         <Icon name="Search" size="lg" />
         Evidence Search
@@ -77,7 +77,7 @@ export function EvidenceFilters({
 
       {/* Loading State */}
       {loading && (
-        <div className="mb-6 p-4 bg-[var(--glass-bg)]/50 rounded-[var(--radius-lg)] border border-[var(--glass-border)]">
+        <div className="mb-6 p-4 surface-glass">
           <div className="text-center">
             <div className="text-[var(--accent)] text-sm mb-3" role="status">
               {loadingProgress}
@@ -116,7 +116,7 @@ export function EvidenceFilters({
             placeholder="Search names, contexts, or evidence..."
             value={searchTerm}
             onChange={(e) => onSearchTermChange(e.target.value)}
-            className="w-full pl-10 pr-10 h-10 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent disabled:opacity-50 form-input"
+            className="w-full pl-10 pr-10 h-10 surface-glass text-[var(--text-primary)] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent disabled:opacity-50 form-input"
             aria-label="Search for evidence by names, contexts, or keywords"
           />
           {searchTerm && (
@@ -142,7 +142,7 @@ export function EvidenceFilters({
       <div className="md:hidden mb-4">
         <button
           onClick={onShowFiltersToggle}
-          className="w-full flex items-center justify-between px-4 py-3 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)]"
+          className="w-full flex items-center justify-between px-4 py-3 surface-glass text-[var(--text-primary)]"
         >
           <span className="flex items-center gap-2">
             <Icon name="Filter" size="sm" />
@@ -173,7 +173,7 @@ export function EvidenceFilters({
                 onChange={(e) => onRiskLevelChange(e.target.value)}
                 disabled={loading}
                 aria-describedby="risk-level-description"
-                className="w-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] px-3 h-10 text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] disabled:opacity-50 form-select"
+                className="w-full surface-glass px-3 h-10 text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] disabled:opacity-50 form-select"
               >
                 {filterOptions.riskLevels.map((level) => (
                   <option key={level.value} value={level.value}>
@@ -204,7 +204,7 @@ export function EvidenceFilters({
               onChange={(e) => onEvidenceTypeChange(e.target.value)}
               disabled={loading}
               aria-describedby="evidence-type-description"
-              className="w-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] px-3 h-10 text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] disabled:opacity-50 form-select"
+              className="w-full surface-glass px-3 h-10 text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] disabled:opacity-50 form-select"
             >
               <option value="ALL">All Types</option>
               {allEvidenceTypes.map((type) => (
@@ -236,7 +236,7 @@ export function EvidenceFilters({
                 onChange={(e) => onMinRedFlagRatingChange(Number(e.target.value))}
                 disabled={loading}
                 aria-describedby="min-rating-description"
-                className="w-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] px-3 h-10 text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] disabled:opacity-50 form-select"
+                className="w-full surface-glass px-3 h-10 text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] disabled:opacity-50 form-select"
               >
                 {filterOptions.redFlagRatings.map((rating) => (
                   <option key={rating.value} value={rating.value}>
@@ -268,7 +268,7 @@ export function EvidenceFilters({
                 onChange={(e) => onMaxRedFlagRatingChange(Number(e.target.value))}
                 disabled={loading}
                 aria-describedby="max-rating-description"
-                className="w-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] px-3 h-10 text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] disabled:opacity-50 form-select"
+                className="w-full surface-glass px-3 h-10 text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] disabled:opacity-50 form-select"
               >
                 {filterOptions.redFlagRatings.map((rating) => (
                   <option key={rating.value} value={rating.value}>
@@ -300,7 +300,7 @@ export function EvidenceFilters({
                 onChange={(e) => onSortByChange(e.target.value as SortBy)}
                 disabled={loading}
                 aria-describedby="sort-by-description"
-                className="w-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] px-3 h-10 text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] disabled:opacity-50 form-select"
+                className="w-full surface-glass px-3 h-10 text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] disabled:opacity-50 form-select"
               >
                 {filterOptions.sortByOptions.map((option) => (
                   <option key={option.value} value={option.value}>

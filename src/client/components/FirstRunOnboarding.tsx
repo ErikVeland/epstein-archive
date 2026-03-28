@@ -68,7 +68,7 @@ export const FirstRunOnboarding: React.FC<FirstRunOnboardingProps> = ({ onComple
 
   return (
     <div className="fixed inset-0 bg-[var(--glass-bg-strong)] backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
-      <div className="glass-panel w-full max-w-2xl rounded-[var(--radius-xl)] overflow-hidden shadow-[var(--glass-shadow)] shadow-cyan-900/20 border border-[var(--glass-border)]">
+      <div className="surface-glass w-full max-w-2xl overflow-hidden shadow-[var(--glass-shadow)] shadow-cyan-900/20">
         {/* Header */}
         <div className="flex items-center justify-between p-6 pb-4 border-b border-[var(--glass-border)]">
           <h2 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-2">
@@ -93,7 +93,7 @@ export const FirstRunOnboarding: React.FC<FirstRunOnboardingProps> = ({ onComple
               {Math.round((step / totalSteps) * 100)}% complete
             </span>
           </div>
-          <div className="w-full bg-[var(--glass-bg)] rounded-full h-1.5 overflow-hidden">
+          <div className="w-full surface-glass h-1.5 overflow-hidden">
             <div
               className="bg-gradient-to-r from-cyan-500 to-blue-500 h-full rounded-full transition-all duration-500 ease-out shadow-[0_0_10px_rgba(6,182,212,0.5)]"
               style={{ width: `${(step / totalSteps) * 100}%` }}
@@ -105,7 +105,7 @@ export const FirstRunOnboarding: React.FC<FirstRunOnboardingProps> = ({ onComple
         <div className="px-8 py-8 min-h-[300px] flex flex-col items-center justify-center text-center">
           <div className="mb-8 relative group">
             <div className="absolute inset-0 bg-[var(--accent)]/20 blur-xl rounded-full group-hover:bg-[var(--accent)]/30 transition-all duration-500"></div>
-            <div className="relative bg-[var(--glass-bg)]/80 p-6 rounded-[var(--radius-xl)] border border-[var(--glass-border)] shadow-[var(--glass-shadow)] group-hover:scale-110 transition-transform duration-300">
+            <div className="relative surface-glass p-6 group-hover:scale-110 transition-transform duration-300">
               {React.cloneElement(icon as React.ReactElement, {
                 className: 'h-12 w-12 text-[var(--accent)]',
               })}

@@ -290,18 +290,18 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
                 {showAllSensitive ? 'Sensitive Content Visible' : 'Sensitive Content'}
               </span>
             </button>
-            <a
-              href="/privacy"
+            <Link
+              to="/privacy"
               className="hover:text-[var(--text-primary)] transition-colors hover:underline decoration-[var(--glass-border)] underline-offset-4"
             >
               Privacy Policy
-            </a>
-            <a
-              href="/terms"
+            </Link>
+            <Link
+              to="/terms"
               className="hover:text-[var(--text-primary)] transition-colors hover:underline decoration-[var(--glass-border)] underline-offset-4"
             >
               Terms of Service
-            </a>
+            </Link>
           </div>
         </div>
       </div>

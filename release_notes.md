@@ -1,5 +1,30 @@
 # Release Notes
 
+## v18.0.0 - 2026-03-28 - Liquid Glass UI Overhaul & Routing Stability
+
+This major release delivers the "Liquid Glass" design system, standardizing the application's aesthetic across all core modules while significantly improving navigation stability and interface performance.
+
+### What's New for Users
+
+**Liquid Glass Design System**
+
+- **Standardized Surfaces**: All panels, cards, and control clusters now utilize the high-performance `.surface-glass` utility, providing a deep, consistent depth effect with optimized backdrop-blur rendering.
+- **Enhanced Visualization**: The Network Analysis graph and Case Folder views have been restyled for better legibility and a more premium, professional aesthetic.
+- **Improved Density**: Refined spacing and visual hierarchy across all search and browsing interfaces (Documents, Evidence, Media).
+
+**Navigation & Stability**
+
+- **SPA Routing Fixes**: The global Footer and main navigation paths have been fully migrated to React Router components, eliminating full-browser reloads and preserving application state during browsing.
+- **Search Precision**: Document and evidence search inputs now feature improved focus states and more consistent behavior across the dashboard.
+
+### Under the Hood
+
+- Standardized UI tokens integrated into `src/client/index.css` to eliminate CSS drift.
+- Pre-flight routing and UI synchronization tests added to the Playwright suite.
+- Clean-up of 50+ instances of legacy Tailwind glass utility classes.
+
+---
+
 ## v17.2.0 - 2026-03-23 - Flights, Properties, Evidence UI & Pipeline Hardening
 
 This release ships three new first-class UI slices, a full `any`-free TypeScript pass, a correctness fix for entity sort ordering, and significant pipeline and server resilience improvements.

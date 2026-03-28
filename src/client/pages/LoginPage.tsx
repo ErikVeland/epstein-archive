@@ -44,7 +44,7 @@ export const LoginPage: React.FC = () => {
 
   return (
     <div className="flex items-center justify-center min-h-[calc(100vh-200px)] p-4">
-      <div className="w-full max-w-md bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-lg p-8 shadow-xl">
+      <div className="w-full max-w-md surface-glass p-8 shadow-xl">
         <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-6 text-center">
           Admin Login
         </h2>
@@ -64,7 +64,7 @@ export const LoginPage: React.FC = () => {
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full bg-[var(--glass-bg)] border-[var(--glass-border)] text-[var(--text-primary)] rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full surface-glass text-[var(--text-primary)] rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               required
             />
           </div>
@@ -77,7 +77,7 @@ export const LoginPage: React.FC = () => {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-[var(--glass-bg)] border-[var(--glass-border)] text-[var(--text-primary)] rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full surface-glass text-[var(--text-primary)] rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               required
             />
           </div>

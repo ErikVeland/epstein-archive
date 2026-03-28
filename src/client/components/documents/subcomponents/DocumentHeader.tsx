@@ -32,7 +32,7 @@ export const DocumentHeader: React.FC<DocumentHeaderProps> = ({
   return (
     <div className="surface-glass-header flex flex-col lg:flex-row lg:items-center gap-5 py-6 px-8 min-w-0 border-b border-[var(--glass-border)] bg-transparent relative z-10">
       <div className="flex items-start lg:items-center gap-5 w-full lg:w-auto min-w-0">
-        <div className="w-14 h-14 rounded-[var(--radius-lg)] bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] flex items-center justify-center shrink-0 shadow-[var(--glass-shadow)] backdrop-blur-md">
+        <div className="w-14 h-14 surface-glass flex items-center justify-center shrink-0 shadow-[var(--glass-shadow)] backdrop-blur-md">
           <FileText className="w-7 h-7 text-[var(--accent)] opacity-90 block" />
         </div>
         <div className="min-w-0 flex-1 pl-1">
@@ -46,8 +46,8 @@ export const DocumentHeader: React.FC<DocumentHeaderProps> = ({
             <span
               className={`px-3 py-1 rounded-[var(--radius-sm)] text-[10px] font-bold uppercase tracking-widest border ${
                 doc.evidenceType === 'email'
-                  ? 'bg-[var(--glass-bg)] text-[var(--accent-emails)] border-[var(--accent-emails)]/20 shadow-sm shadow-[var(--accent-emails)]/10'
-                  : 'bg-[var(--glass-bg)] text-text-dim border-[var(--glass-border)]'
+                  ? 'surface-glass text-[var(--accent-emails)] border-[var(--accent-emails)]/20 shadow-sm shadow-[var(--accent-emails)]/10'
+                  : 'surface-glass text-text-dim'
               }`}
             >
               {doc.evidenceType || doc.fileType || 'Unclassified Record'}
@@ -66,7 +66,7 @@ export const DocumentHeader: React.FC<DocumentHeaderProps> = ({
           <input
             type="text"
             placeholder="Find in record..."
-            className="control !h-12 w-full !pl-12 !pr-4 !bg-[var(--glass-bg)] border-[var(--glass-border)] focus:!border-[var(--accent)] transition-all text-sm font-medium text-text-strong rounded-[var(--radius-md)] placeholder:text-text-muted/60 focus:bg-transparent shadow-inner focus:shadow-none"
+            className="control !h-12 w-full !pl-12 !pr-4 surface-glass focus:!border-[var(--accent)] transition-all text-sm font-medium text-text-strong rounded-[var(--radius-md)] placeholder:text-text-muted/60 focus:bg-transparent shadow-inner focus:shadow-none"
             value={localSearchTerm}
             onChange={(e) => setLocalSearchTerm(e.target.value)}
             autoComplete="off"

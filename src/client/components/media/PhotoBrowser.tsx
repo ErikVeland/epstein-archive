@@ -655,13 +655,13 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
                 placeholder="Search images..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] pl-9 pr-3 py-2 md:py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--accent)] placeholder-slate-500 transition-all h-8"
+                className="w-full surface-glass text-[var(--text-primary)] pl-9 pr-3 py-2 md:py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--accent)] placeholder-slate-500 transition-all h-8"
               />
             </div>
             {/* Mobile share button */}
             <button
               onClick={handleShare}
-              className="md:hidden flex items-center justify-center w-10 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-muted)] hover:text-[var(--text-primary)] h-8"
+              className="md:hidden flex items-center justify-center w-10 surface-glass text-[var(--text-muted)] hover:text-[var(--text-primary)] h-8"
             >
               {showCopied ? (
                 <Icon name="Check" size="sm" className="text-green-500" />
@@ -675,7 +675,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
           <div className="hidden md:flex items-center gap-3">
             <button
               onClick={handleShare}
-              className="flex items-center gap-2 px-3 py-1.5 bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--glass-border)] rounded text-xs transition-colors h-8"
+              className="flex items-center gap-2 px-3 py-1.5 surface-glass hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded text-xs transition-colors h-8"
             >
               {showCopied ? (
                 <Icon name="Check" size="sm" className="text-green-500" />
@@ -690,7 +690,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
               <select
                 value={selectedTag || ''}
                 onChange={(e) => setSelectedTag(e.target.value ? parseInt(e.target.value) : null)}
-                className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded text-[var(--text-secondary)] text-xs px-2 py-1 focus:outline-none focus:border-[var(--accent)] h-8 max-w-[100px]"
+                className="surface-glass rounded text-[var(--text-secondary)] text-xs px-2 py-1 focus:outline-none focus:border-[var(--accent)] h-8 max-w-[100px]"
               >
                 <option value="">All Tags</option>
                 {availableTags.map((tag) => (
@@ -706,7 +706,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
                   setSelectedPerson(e.target.value ? parseInt(e.target.value) : null)
                 }
                 onFocus={loadPeopleOptions}
-                className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded text-[var(--text-secondary)] text-xs px-2 py-1 focus:outline-none focus:border-[var(--accent)] h-8 max-w-[100px]"
+                className="surface-glass rounded text-[var(--text-secondary)] text-xs px-2 py-1 focus:outline-none focus:border-[var(--accent)] h-8 max-w-[100px]"
               >
                 <option value="">All People</option>
                 {availablePeople.map((p) => (
@@ -718,7 +718,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
 
               <button
                 onClick={() => setHasPeopleOnly(!hasPeopleOnly)}
-                className={`flex items-center gap-2 px-3 py-1.5 border rounded text-xs transition-colors h-8 ${hasPeopleOnly ? 'bg-cyan-900/50 border-[var(--accent)] text-[var(--accent)]' : 'bg-[var(--glass-bg)] border-[var(--glass-border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
+                className={`flex items-center gap-2 px-3 py-1.5 border rounded text-xs transition-colors h-8 ${hasPeopleOnly ? 'bg-cyan-900/50 border-[var(--accent)] text-[var(--accent)]' : 'surface-glass text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
                 title="Show only images with people"
               >
                 <Icon name="Users" size="sm" />
@@ -732,7 +732,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
               <select
                 value={sortField}
                 onChange={(e) => setSortField(e.target.value as SortField)}
-                className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded text-[var(--text-secondary)] text-xs px-2 py-1 focus:outline-none focus:border-[var(--accent)] h-8"
+                className="surface-glass rounded text-[var(--text-secondary)] text-xs px-2 py-1 focus:outline-none focus:border-[var(--accent)] h-8"
               >
                 <option value="date_added">Date Added</option>
                 <option value="date_taken">Date Taken</option>
@@ -744,13 +744,13 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
 
             <button
               onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-              className="w-8 h-8 flex items-center justify-center bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-[var(--glass-border)] rounded transition-colors"
+              className="w-8 h-8 flex items-center justify-center surface-glass hover:bg-[var(--glass-bg-highlight)] text-[var(--text-muted)] hover:text-[var(--text-primary)] rounded transition-colors"
               title={sortOrder === 'asc' ? 'Ascending' : 'Descending'}
             >
               <Icon name={sortOrder === 'asc' ? 'ArrowUp' : 'ArrowDown'} size="sm" />
             </button>
 
-            <div className="flex bg-[var(--glass-bg)] p-0.5 rounded border border-[var(--glass-border)] h-8">
+            <div className="flex surface-glass p-0.5 rounded h-8">
               <button
                 className={`w-8 h-full flex items-center justify-center rounded ${viewMode === 'grid' ? 'bg-[var(--glass-bg-highlight)] text-[var(--text-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}
                 onClick={() => setViewMode('grid')}
@@ -771,7 +771,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
             {isAdmin && (
               <button
                 onClick={isBatchMode ? exitBatchMode : enterBatchMode}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded text-xs font-medium transition-colors ${isBatchMode ? 'bg-[var(--accent)] hover:bg-[var(--accent)] text-[var(--text-primary)]' : 'bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--glass-border)]'} h-8`}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded text-xs font-medium transition-colors ${isBatchMode ? 'bg-[var(--accent)] hover:bg-[var(--accent)] text-[var(--text-primary)]' : 'surface-glass hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'} h-8`}
               >
                 <Icon name="CheckSquare" size="sm" />
                 {isBatchMode ? 'Exit Batch Mode' : 'Batch Edit'}

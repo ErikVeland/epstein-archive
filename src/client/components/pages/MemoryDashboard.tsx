@@ -87,7 +87,7 @@ const MemoryDashboard: React.FC = () => {
                   memoryType: (e.target.value as MemorySearchFilters['memoryType']) || undefined,
                 })
               }
-              className="w-full rounded-md bg-[var(--glass-bg)] border-[var(--glass-border)] shadow-sm focus:border-[var(--accent)] focus:ring-[var(--accent)] sm:text-sm"
+              className="w-full rounded-md surface-glass shadow-sm focus:border-[var(--accent)] focus:ring-[var(--accent)] sm:text-sm"
             >
               <option value="">All Types</option>
               <option value="declarative">Declarative</option>
@@ -109,7 +109,7 @@ const MemoryDashboard: React.FC = () => {
                   status: (e.target.value as MemorySearchFilters['status']) || undefined,
                 })
               }
-              className="w-full rounded-md bg-[var(--glass-bg)] border-[var(--glass-border)] shadow-sm focus:border-[var(--accent)] focus:ring-[var(--accent)] sm:text-sm"
+              className="w-full rounded-md surface-glass shadow-sm focus:border-[var(--accent)] focus:ring-[var(--accent)] sm:text-sm"
             >
               <option value="">All Status</option>
               <option value="active">Active</option>
@@ -132,7 +132,7 @@ const MemoryDashboard: React.FC = () => {
                 })
               }
               placeholder="Search memory content..."
-              className="w-full rounded-md bg-[var(--glass-bg)] border-[var(--glass-border)] shadow-sm focus:border-[var(--accent)] focus:ring-[var(--accent)] sm:text-sm"
+              className="w-full rounded-md surface-glass shadow-sm focus:border-[var(--accent)] focus:ring-[var(--accent)] sm:text-sm"
             />
           </div>
 
@@ -172,7 +172,7 @@ const MemoryDashboard: React.FC = () => {
                     e.target.value as 'declarative' | 'episodic' | 'working' | 'procedural',
                   )
                 }
-                className="w-full rounded-md bg-[var(--glass-bg)] border-[var(--glass-border)] shadow-sm focus:border-[var(--accent)] focus:ring-[var(--accent)] sm:text-sm"
+                className="w-full rounded-md surface-glass shadow-sm focus:border-[var(--accent)] focus:ring-[var(--accent)] sm:text-sm"
               >
                 <option value="declarative">Declarative</option>
                 <option value="episodic">Episodic</option>
@@ -189,7 +189,7 @@ const MemoryDashboard: React.FC = () => {
                 value={newMemoryContent}
                 onChange={(e) => setNewMemoryContent(e.target.value)}
                 rows={4}
-                className="w-full rounded-md bg-[var(--glass-bg)] border-[var(--glass-border)] shadow-sm focus:border-[var(--accent)] focus:ring-[var(--accent)] sm:text-sm"
+                className="w-full rounded-md surface-glass shadow-sm focus:border-[var(--accent)] focus:ring-[var(--accent)] sm:text-sm"
                 placeholder="Enter memory content..."
               />
             </div>
@@ -202,7 +202,7 @@ const MemoryDashboard: React.FC = () => {
                 type="text"
                 value={newMemoryTags}
                 onChange={(e) => setNewMemoryTags(e.target.value)}
-                className="w-full rounded-md bg-[var(--glass-bg)] border-[var(--glass-border)] shadow-sm focus:border-[var(--accent)] focus:ring-[var(--accent)] sm:text-sm"
+                className="w-full rounded-md surface-glass shadow-sm focus:border-[var(--accent)] focus:ring-[var(--accent)] sm:text-sm"
                 placeholder="tag1, tag2, tag3"
               />
             </div>
@@ -443,7 +443,7 @@ const MemoryDashboard: React.FC = () => {
                     onChange={(e) =>
                       setEditStatus(e.target.value as 'active' | 'archived' | 'deprecated')
                     }
-                    className="mt-1 w-full rounded-md bg-[var(--glass-bg)] border-[var(--glass-border)] shadow-sm focus:border-[var(--accent)] focus:ring-[var(--accent)] sm:text-sm"
+                    className="mt-1 w-full rounded-md surface-glass shadow-sm focus:border-[var(--accent)] focus:ring-[var(--accent)] sm:text-sm"
                   >
                     <option value="active">Active</option>
                     <option value="archived">Archived</option>
@@ -462,7 +462,7 @@ const MemoryDashboard: React.FC = () => {
                   type="text"
                   value={editTags}
                   onChange={(e) => setEditTags(e.target.value)}
-                  className="mt-1 w-full rounded-md bg-[var(--glass-bg)] border-[var(--glass-border)] shadow-sm focus:border-[var(--accent)] focus:ring-[var(--accent)] sm:text-sm"
+                  className="mt-1 w-full rounded-md surface-glass shadow-sm focus:border-[var(--accent)] focus:ring-[var(--accent)] sm:text-sm"
                   placeholder="tag1, tag2, tag3"
                 />
               ) : (
