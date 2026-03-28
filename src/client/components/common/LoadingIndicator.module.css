@@ -1,0 +1,44 @@
+/* src/client/components/common/LoadingIndicator.module.css */
+
+.root {
+  position: fixed;
+  top: var(--space-3);
+  right: var(--space-3);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border-radius: 9999px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.spinner {
+  width: 0.75rem;
+  height: 0.75rem;
+  border: 2px solid var(--accent);
+  border-top-color: transparent;
+  border-radius: 9999px;
+  animation: loadingIndicatorSpin 0.6s linear infinite;
+  flex-shrink: 0;
+}
+
+.label {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  color: var(--text-secondary);
+  max-width: 6.25rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@keyframes loadingIndicatorSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}

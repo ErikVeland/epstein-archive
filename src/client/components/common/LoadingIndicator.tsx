@@ -1,4 +1,5 @@
 import React from 'react';
+import s from './LoadingIndicator.module.css';
 
 interface LoadingIndicatorProps {
   isLoading: boolean;
@@ -13,11 +14,9 @@ const LoadingIndicator: React.FC<LoadingIndicatorProps> = ({ isLoading, label })
   if (!isLoading) return null;
 
   return (
-    <div className="fixed top-3 right-3 z-50 flex items-center gap-[var(--space-2)] px-[var(--space-3)] py-[var(--space-1)] rounded-full bg-[var(--glass-bg)] border border-[var(--glass-border)] shadow-[var(--glass-shadow)] backdrop-blur-sm">
-      <div className="w-3 h-3 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin" />
-      {label && (
-        <span className="text-xs text-[var(--text-secondary)] max-w-[100px] truncate">{label}</span>
-      )}
+    <div className={s.root}>
+      <div className={s.spinner} />
+      {label && <span className={s.label}>{label}</span>}
     </div>
   );
 };
