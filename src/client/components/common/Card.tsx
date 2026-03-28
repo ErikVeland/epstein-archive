@@ -1,7 +1,8 @@
 import React from 'react';
+import { cn } from '../../utils/cn';
 import Icon, { IconName } from './Icon';
 import { RedFlagIndex } from '../visualizations/RedFlagIndex';
-import { spacingTokens } from '../../styles/designSystem';
+import s from './Card.module.css';
 
 interface CardProps {
   children?: React.ReactNode;
@@ -47,43 +48,32 @@ export const Card: React.FC<CardProps> = ({
   return (
     <div
       onClick={onClick}
-      className={`
-        surface-glass-card ${spacingTokens.cardPadding}
-        active:scale-[0.99]
-        transition-all duration-300 ${onClick ? 'cursor-pointer hover:bg-[var(--glass-bg-strong)] hover:border-[var(--glass-border-highlight)] hover:shadow-[var(--glass-shadow)]' : ''} group animate-fade-in
-        ${className}
-      `}
+      className={cn('surface-glass-card', s.root, onClick && s.clickable, className)}
     >
       {/* Header section with title, subtitle, and icon */}
       {(title || subtitle || icon || redFlagRating !== undefined) && (
-        <div className="flex items-start justify-between mb-5 gap-4">
-          <div className="flex items-start space-x-4 overflow-hidden">
+        <div className={s.header}>
+          <div className={s.headerLeft}>
             {icon && (
-              <div className="shrink-0 mt-0.5">
+              <div className={s.iconWrapper}>
                 <Icon name={icon} size="md" color={iconColor} />
               </div>
             )}
-            <div className="min-w-0">
+            <div className={s.textBlock}>
               {title && (
-                <h3
-                  className="text-lg font-bold text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors line-clamp-2 leading-tight break-all"
-                  title={title}
-                >
+                <h3 className={s.title} title={title}>
                   {title}
                 </h3>
               )}
               {subtitle && (
-                <p
-                  className="text-sm text-[var(--text-secondary)] truncate mt-1.5 font-medium"
-                  title={subtitle}
-                >
+                <p className={s.subtitle} title={subtitle}>
                   {subtitle}
                 </p>
               )}
             </div>
           </div>
           {redFlagRating !== undefined && (
-            <div className="flex items-center shrink-0">
+            <div className={s.headerRight}>
               <RedFlagIndex
                 value={redFlagRating}
                 size="sm"
@@ -97,22 +87,21 @@ export const Card: React.FC<CardProps> = ({
       )}
 
       {/* Main content */}
-      <div className={spacingTokens.cardSectionGap}>{children}</div>
+      <div className={s.content}>{children}</div>
 
       {/* Metadata section */}
       {metadata.length > 0 && (
-        <div className="mt-5 pt-4 border-t border-[var(--glass-border)]">
-          <div className="flex flex-wrap gap-y-2 gap-x-4 text-xs text-[var(--text-secondary)]">
+        <div className={s.metadata}>
+          <div className={s.metadataList}>
             {metadata.map((item, index) => (
-              <div
-                key={index}
-                className="flex items-center px-2 py-1 bg-[var(--glass-bg-strong)] rounded-md border border-[var(--glass-border)]"
-              >
+              <div key={index} className={s.metadataItem}>
                 {item.icon && (
-                  <Icon name={item.icon} size="xs" className="mr-1.5 text-[var(--text-muted)]" />
+                  <span className={s.metaIconWrapper}>
+                    <Icon name={item.icon} size="xs" />
+                  </span>
                 )}
-                <span className="font-medium text-[var(--text-muted)] mr-1">{item.label}:</span>
-                <span className="text-[var(--text-secondary)] font-semibold">{item.value}</span>
+                <span className={s.metaLabel}>{item.label}:</span>
+                <span className={s.metaValue}>{item.value}</span>
               </div>
             ))}
           </div>
@@ -121,29 +110,20 @@ export const Card: React.FC<CardProps> = ({
 
       {/* Action buttons */}
       {actionButtons.length > 0 && (
-        <div className="mt-5 flex items-center justify-between pt-2">
-          <div></div>
-          <div className="flex items-center gap-2">
-            {actionButtons.map((button, index) => (
-              <button
-                key={index}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  button.onClick();
-                }}
-                className={`
-                  text-xs font-medium px-4 py-2 rounded-[var(--radius-lg)] transition-all duration-200
-                  ${
-                    button.variant === 'primary'
-                      ? 'bg-[var(--accent)] hover:brightness-110 text-[var(--text-primary)] shadow-[var(--glass-shadow)]'
-                      : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)] border border-transparent hover:border-[var(--glass-border)]'
-                  }
-                `}
-              >
-                {button.label}
-              </button>
-            ))}
-          </div>
+        <div className={s.actions}>
+          {actionButtons.map((button, index) => (
+            <button
+              key={index}
+              onClick={(e) => {
+                e.stopPropagation();
+                button.onClick();
+              }}
+              className={s.actionBtn}
+              data-variant={button.variant ?? 'secondary'}
+            >
+              {button.label}
+            </button>
+          ))}
         </div>
       )}
     </div>
