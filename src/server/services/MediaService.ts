@@ -92,10 +92,23 @@ export class MediaService {
         ? new Date(String(row['date_modified'])).toISOString()
         : row['dateModified']
           ? new Date(String(row['dateModified'])).toISOString()
-          : '',
+          : row['created_at']
+            ? new Date(String(row['created_at'])).toISOString()
+            : row['createdAt']
+              ? new Date(String(row['createdAt'])).toISOString()
+              : '',
       tags: [],
       isSensitive: Boolean(row['is_sensitive'] ?? row['isSensitive']),
-      rating: row['rating'] == null ? undefined : Number(row['rating']),
+      rating:
+        row['rating'] == null
+          ? row['red_flag_rating'] == null && row['redFlagRating'] == null
+            ? undefined
+            : Number(row['red_flag_rating'] ?? row['redFlagRating'])
+          : Number(row['rating']),
+      redFlagRating:
+        row['red_flag_rating'] == null && row['redFlagRating'] == null
+          ? undefined
+          : Number(row['red_flag_rating'] ?? row['redFlagRating']),
     };
   }
 
@@ -357,6 +370,7 @@ export class MediaService {
           height,
           title,
           description,
+          album_id as "albumId",
           is_sensitive as "isSensitive",
           verification_status as "verificationStatus",
           red_flag_rating as "redFlagRating",
@@ -432,6 +446,7 @@ export class MediaService {
       width: 'width',
       height: 'height',
       fileSize: 'file_size',
+      redFlagRating: 'red_flag_rating',
     };
 
     Object.entries(updates).forEach(([key, value]) => {
@@ -448,7 +463,7 @@ export class MediaService {
       await this.pgExec(
         `
         UPDATE media_items
-        SET ${setClauses.join(', ')}, date_modified = CURRENT_TIMESTAMP
+        SET ${setClauses.join(', ')}
         WHERE id = $${values.length}
       `,
         values,
@@ -501,7 +516,6 @@ export class MediaService {
     const metadata = await sharp(imagePath).metadata();
 
     await this.updateImage(id, {
-      orientation: 1,
       width: metadata.width,
       height: metadata.height,
       fileSize: metadata.size,
@@ -633,11 +647,11 @@ export class MediaService {
       `
       INSERT INTO media_item_tags (media_item_id, tag_id)
       SELECT i.item_id, t.tag_id
-      FROM unnest($1::int[]) AS i(item_id)
+      FROM unnest($1::text[]) AS i(item_id)
       CROSS JOIN unnest($2::int[]) AS t(tag_id)
       ON CONFLICT DO NOTHING
       `,
-      [itemIds, tagIds],
+      [itemIds.map(String), tagIds],
     );
   }
 
@@ -646,10 +660,10 @@ export class MediaService {
     await this.pgExec(
       `
       DELETE FROM media_item_tags
-      WHERE media_item_id = ANY($1::int[])
+      WHERE media_item_id = ANY($1::text[])
         AND tag_id = ANY($2::int[])
       `,
-      [itemIds, tagIds],
+      [itemIds.map(String), tagIds],
     );
   }
 

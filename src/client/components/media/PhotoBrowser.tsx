@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import {
   FixedSizeGrid as Grid,
@@ -17,6 +17,9 @@ import { SensitiveContent } from '../common/SensitiveContent';
 import { useAuth } from '../../contexts/AuthContext';
 import { Person } from '../../types';
 import { PhotoSortField as SortField, usePhotoBrowserData } from '../../hooks/usePhotoBrowserData';
+import { AlbumSidebar } from '../shared/AlbumSidebar';
+import { MobileAlbumDropdown } from '../shared/MobileAlbumDropdown';
+import { SEO } from '../common/SEO';
 
 // Lazy load EvidenceModal to reduce initial bundle size
 const EvidenceModal = React.lazy(() =>
@@ -230,6 +233,24 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
     updateImages,
     consumePendingViewerIndex,
   } = usePhotoBrowserData();
+
+  const selectedTagLabel =
+    selectedTag != null
+      ? (availableTags.find((tag) => tag.id === selectedTag)?.name ?? `${selectedTag}`)
+      : null;
+  const selectedPersonLabel =
+    selectedPerson != null
+      ? (availablePeople.find((person) => person.id === selectedPerson)?.name ??
+        `${selectedPerson}`)
+      : null;
+  const currentAlbum = useMemo(
+    () => albums.find((album) => album.id === selectedAlbum) ?? null,
+    [albums, selectedAlbum],
+  );
+  const adaptedAlbums = useMemo(
+    () => albums.map((album) => ({ ...album, itemCount: album.imageCount ?? 0 })),
+    [albums],
+  );
 
   useEffect(() => {
     if (pendingViewerIndex === null) return;
@@ -459,13 +480,13 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
     if (selectedImages.size === 0) return;
 
     try {
-      const response = await fetch('/api/media/images/batch/tags', {
+      const response = await fetch('/api/media/items/batch/tags', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          imageIds: Array.from(selectedImages),
+          itemIds: Array.from(selectedImages),
           tagIds,
           action,
         }),
@@ -494,14 +515,14 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
     if (selectedImages.size === 0) return;
 
     try {
-      const response = await fetch('/api/media/images/batch/people', {
+      const response = await fetch('/api/media/items/batch/people', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          imageIds: Array.from(selectedImages),
-          entityIds,
+          itemIds: Array.from(selectedImages),
+          personIds: entityIds,
           action,
         }),
       });
@@ -602,246 +623,199 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
   };
 
   return (
-    <div className="flex flex-col h-full min-h-[500px] bg-[var(--app-bg)] border border-[var(--glass-border)] shadow-[var(--glass-shadow)] overflow-hidden rounded-[var(--radius-lg)]">
-      {/* Header with controls */}
-      <div className="app-header-glass flex flex-col md:flex-row md:items-center justify-between px-3 py-2 md:px-4 md:h-14 shrink-0 z-10 gap-2">
-        {/* Mobile Album Dropdown */}
-        <div className="md:hidden">
-          <button
-            onClick={() => setShowAlbumDropdown(!showAlbumDropdown)}
-            className="w-full flex items-center justify-between px-3 py-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] text-sm h-8"
-          >
-            <span className="flex items-center gap-2">
-              <Icon name="Folder" size="sm" />
-              {selectedAlbum ? albums.find((a) => a.id === selectedAlbum)?.name : 'All Photos'}
-            </span>
-            <Icon name={showAlbumDropdown ? 'ChevronUp' : 'ChevronDown'} size="sm" />
-          </button>
-          {showAlbumDropdown && (
-            <div className="absolute left-3 right-3 mt-1 dropdown-surface z-30 max-h-60 overflow-y-auto">
-              <button
-                className={`w-full px-4 py-3 text-left text-sm flex items-center justify-between ${selectedAlbum === null ? 'bg-cyan-900/20 text-[var(--accent)]' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)]'}`}
-                onClick={() => {
-                  setSelectedAlbum(null);
-                  setShowAlbumDropdown(false);
-                }}
+    <>
+      <SEO
+        title={currentAlbum ? `${currentAlbum.name} — Photos` : 'Photo Archive'}
+        description="Forensic photo evidence from the Epstein files."
+      />
+      <div className="surface-glass flex flex-col h-full min-h-[500px] overflow-hidden">
+        {/* Header with controls */}
+        <div className="app-header-glass flex flex-col md:flex-row md:items-center justify-between px-3 py-2 md:px-4 md:h-14 shrink-0 z-10 gap-2">
+          <MobileAlbumDropdown
+            albums={adaptedAlbums}
+            selectedAlbum={selectedAlbum}
+            onSelectAlbum={setSelectedAlbum}
+            isOpen={showAlbumDropdown}
+            onToggle={() => setShowAlbumDropdown((value) => !value)}
+            totalItemCount={libraryTotalCount}
+            allLabel="All Photos"
+            currentAlbumName={currentAlbum?.name}
+          />
+
+          {/* Search - Smaller on mobile */}
+          <div className="w-full md:w-64 flex gap-2">
+            <div className="relative flex-1">
+              <Icon
+                name="Search"
+                size="sm"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none"
+              />
+              <input
+                type="text"
+                placeholder="Search images..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] pl-9 pr-3 py-2 md:py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--accent)] placeholder-slate-500 transition-all h-8"
+              />
+            </div>
+            {/* Mobile share button */}
+            <button
+              onClick={handleShare}
+              className="md:hidden flex items-center justify-center w-10 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-muted)] hover:text-[var(--text-primary)] h-8"
+            >
+              {showCopied ? (
+                <Icon name="Check" size="sm" className="text-green-500" />
+              ) : (
+                <Icon name="Share2" size="sm" />
+              )}
+            </button>
+          </div>
+
+          {/* Desktop Sort and View Controls - Hidden on mobile */}
+          <div className="hidden md:flex items-center gap-3">
+            <button
+              onClick={handleShare}
+              className="flex items-center gap-2 px-3 py-1.5 bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--glass-border)] rounded text-xs transition-colors h-8"
+            >
+              {showCopied ? (
+                <Icon name="Check" size="sm" className="text-green-500" />
+              ) : (
+                <Icon name="Share2" size="sm" />
+              )}
+              Share
+            </button>
+
+            {/* Filters */}
+            <div className="flex items-center gap-2">
+              <select
+                value={selectedTag || ''}
+                onChange={(e) => setSelectedTag(e.target.value ? parseInt(e.target.value) : null)}
+                className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded text-[var(--text-secondary)] text-xs px-2 py-1 focus:outline-none focus:border-[var(--accent)] h-8 max-w-[100px]"
               >
-                <span>All Photos</span>
-                <span className="text-xs opacity-70">{libraryTotalCount}</span>
-              </button>
-              {albums.map((album) => (
-                <button
-                  key={album.id}
-                  className={`w-full px-4 py-3 text-left text-sm flex items-center justify-between border-t border-[var(--glass-border)] ${selectedAlbum === album.id ? 'bg-cyan-900/20 text-[var(--accent)]' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)]'}`}
-                  onClick={() => {
-                    setSelectedAlbum(album.id);
-                    setShowAlbumDropdown(false);
-                  }}
-                >
-                  <span className="truncate">{album.name}</span>
-                  <span className="text-xs opacity-70">{album.imageCount || 0}</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+                <option value="">All Tags</option>
+                {availableTags.map((tag) => (
+                  <option key={tag.id} value={tag.id}>
+                    {tag.name}
+                  </option>
+                ))}
+              </select>
 
-        {/* Search - Smaller on mobile */}
-        <div className="w-full md:w-64 flex gap-2">
-          <div className="relative flex-1">
-            <Icon
-              name="Search"
-              size="sm"
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none"
-            />
-            <input
-              type="text"
-              placeholder="Search images..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] pl-9 pr-3 py-2 md:py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--accent)] placeholder-slate-500 transition-all h-8"
-            />
-          </div>
-          {/* Mobile share button */}
-          <button
-            onClick={handleShare}
-            className="md:hidden flex items-center justify-center w-10 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-muted)] hover:text-[var(--text-primary)] h-8"
-          >
-            {showCopied ? (
-              <Icon name="Check" size="sm" className="text-green-500" />
-            ) : (
-              <Icon name="Share2" size="sm" />
-            )}
-          </button>
-        </div>
-
-        {/* Desktop Sort and View Controls - Hidden on mobile */}
-        <div className="hidden md:flex items-center gap-3">
-          <button
-            onClick={handleShare}
-            className="flex items-center gap-2 px-3 py-1.5 bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--glass-border)] rounded text-xs transition-colors h-8"
-          >
-            {showCopied ? (
-              <Icon name="Check" size="sm" className="text-green-500" />
-            ) : (
-              <Icon name="Share2" size="sm" />
-            )}
-            Share
-          </button>
-
-          {/* Filters */}
-          <div className="flex items-center gap-2">
-            <select
-              value={selectedTag || ''}
-              onChange={(e) => setSelectedTag(e.target.value ? parseInt(e.target.value) : null)}
-              className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded text-[var(--text-secondary)] text-xs px-2 py-1 focus:outline-none focus:border-[var(--accent)] h-8 max-w-[100px]"
-            >
-              <option value="">All Tags</option>
-              {availableTags.map((tag) => (
-                <option key={tag.id} value={tag.id}>
-                  {tag.name}
-                </option>
-              ))}
-            </select>
-
-            <select
-              value={selectedPerson || ''}
-              onChange={(e) => setSelectedPerson(e.target.value ? parseInt(e.target.value) : null)}
-              onFocus={loadPeopleOptions}
-              className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded text-[var(--text-secondary)] text-xs px-2 py-1 focus:outline-none focus:border-[var(--accent)] h-8 max-w-[100px]"
-            >
-              <option value="">All People</option>
-              {availablePeople.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-
-            <button
-              onClick={() => setHasPeopleOnly(!hasPeopleOnly)}
-              className={`flex items-center gap-2 px-3 py-1.5 border rounded text-xs transition-colors h-8 ${hasPeopleOnly ? 'bg-cyan-900/50 border-[var(--accent)] text-[var(--accent)]' : 'bg-[var(--glass-bg)] border-[var(--glass-border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
-              title="Show only images with people"
-            >
-              <Icon name="Users" size="sm" />
-            </button>
-          </div>
-
-          <div className="w-px h-6 bg-[var(--glass-bg-highlight)] mx-1"></div>
-
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-[var(--text-muted)] font-medium">Sort by:</span>
-            <select
-              value={sortField}
-              onChange={(e) => setSortField(e.target.value as SortField)}
-              className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded text-[var(--text-secondary)] text-xs px-2 py-1 focus:outline-none focus:border-[var(--accent)] h-8"
-            >
-              <option value="date_added">Date Added</option>
-              <option value="date_taken">Date Taken</option>
-              <option value="filename">Name</option>
-              <option value="file_size">Size</option>
-              <option value="title">Title</option>
-            </select>
-          </div>
-
-          <button
-            onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-            className="w-8 h-8 flex items-center justify-center bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-[var(--glass-border)] rounded transition-colors"
-            title={sortOrder === 'asc' ? 'Ascending' : 'Descending'}
-          >
-            <Icon name={sortOrder === 'asc' ? 'ArrowUp' : 'ArrowDown'} size="sm" />
-          </button>
-
-          <div className="flex bg-[var(--glass-bg)] p-0.5 rounded border border-[var(--glass-border)] h-8">
-            <button
-              className={`w-8 h-full flex items-center justify-center rounded ${viewMode === 'grid' ? 'bg-[var(--glass-bg-highlight)] text-[var(--text-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}
-              onClick={() => setViewMode('grid')}
-              title="Grid View"
-            >
-              <Icon name="Grid" size="sm" />
-            </button>
-            <button
-              className={`w-8 h-full flex items-center justify-center rounded ${viewMode === 'list' ? 'bg-[var(--glass-bg-highlight)] text-[var(--text-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}
-              onClick={() => setViewMode('list')}
-              title="List View"
-            >
-              <Icon name="List" size="sm" />
-            </button>
-          </div>
-
-          {/* Batch Mode Toggle - Admin Only */}
-          {isAdmin && (
-            <button
-              onClick={isBatchMode ? exitBatchMode : enterBatchMode}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded text-xs font-medium transition-colors ${isBatchMode ? 'bg-[var(--accent)] hover:bg-[var(--accent)] text-[var(--text-primary)]' : 'bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--glass-border)]'} h-8`}
-            >
-              <Icon name="CheckSquare" size="sm" />
-              {isBatchMode ? 'Exit Batch Mode' : 'Batch Edit'}
-            </button>
-          )}
-        </div>
-      </div>
-
-      <div className="flex flex-1 overflow-hidden relative">
-        {/* Albums sidebar - Hidden on mobile */}
-        <aside className="hidden md:flex w-60 bg-[var(--glass-bg-strong)] border-r border-[var(--glass-border)] flex-col shrink-0">
-          <h3 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider px-4 py-3">
-            Albums
-          </h3>
-          <div className="flex-1 overflow-y-auto">
-            <button
-              className={`w-full px-4 py-2 text-left text-sm flex items-center justify-between transition-colors ${selectedAlbum === null ? 'bg-cyan-900/20 text-[var(--accent)] border-l-2 border-[var(--accent)]' : 'text-[var(--text-muted)] hover:bg-[var(--glass-bg)] hover:text-[var(--text-primary)] border-l-2 border-transparent'}`}
-              onClick={() => setSelectedAlbum(null)}
-            >
-              <span className="truncate">All Photos</span>
-              <span className="text-xs opacity-70 bg-[var(--glass-bg)] px-1.5 py-0.5 rounded-full">
-                {libraryTotalCount}
-              </span>
-            </button>
-            {albums.map((album) => (
-              <button
-                key={album.id}
-                className={`w-full px-4 py-2 text-left text-sm flex items-center justify-between transition-colors ${selectedAlbum === album.id ? 'bg-cyan-900/20 text-[var(--accent)] border-l-2 border-[var(--accent)]' : 'text-[var(--text-muted)] hover:bg-[var(--glass-bg)] hover:text-[var(--text-primary)] border-l-2 border-transparent'}`}
-                onClick={() => setSelectedAlbum(album.id)}
-                title={album.name}
+              <select
+                value={selectedPerson || ''}
+                onChange={(e) =>
+                  setSelectedPerson(e.target.value ? parseInt(e.target.value) : null)
+                }
+                onFocus={loadPeopleOptions}
+                className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded text-[var(--text-secondary)] text-xs px-2 py-1 focus:outline-none focus:border-[var(--accent)] h-8 max-w-[100px]"
               >
-                <span className="truncate">{album.name}</span>
-                <span className="text-xs opacity-70 bg-[var(--glass-bg)] px-1.5 py-0.5 rounded-full">
-                  {album.imageCount || 0}
-                </span>
+                <option value="">All People</option>
+                {availablePeople.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+
+              <button
+                onClick={() => setHasPeopleOnly(!hasPeopleOnly)}
+                className={`flex items-center gap-2 px-3 py-1.5 border rounded text-xs transition-colors h-8 ${hasPeopleOnly ? 'bg-cyan-900/50 border-[var(--accent)] text-[var(--accent)]' : 'bg-[var(--glass-bg)] border-[var(--glass-border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
+                title="Show only images with people"
+              >
+                <Icon name="Users" size="sm" />
               </button>
-            ))}
+            </div>
+
+            <div className="w-px h-6 bg-[var(--glass-bg-highlight)] mx-1"></div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-[var(--text-muted)] font-medium">Sort by:</span>
+              <select
+                value={sortField}
+                onChange={(e) => setSortField(e.target.value as SortField)}
+                className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded text-[var(--text-secondary)] text-xs px-2 py-1 focus:outline-none focus:border-[var(--accent)] h-8"
+              >
+                <option value="date_added">Date Added</option>
+                <option value="date_taken">Date Taken</option>
+                <option value="filename">Name</option>
+                <option value="file_size">Size</option>
+                <option value="title">Title</option>
+              </select>
+            </div>
+
+            <button
+              onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+              className="w-8 h-8 flex items-center justify-center bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-muted)] hover:text-[var(--text-primary)] border border-[var(--glass-border)] rounded transition-colors"
+              title={sortOrder === 'asc' ? 'Ascending' : 'Descending'}
+            >
+              <Icon name={sortOrder === 'asc' ? 'ArrowUp' : 'ArrowDown'} size="sm" />
+            </button>
+
+            <div className="flex bg-[var(--glass-bg)] p-0.5 rounded border border-[var(--glass-border)] h-8">
+              <button
+                className={`w-8 h-full flex items-center justify-center rounded ${viewMode === 'grid' ? 'bg-[var(--glass-bg-highlight)] text-[var(--text-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}
+                onClick={() => setViewMode('grid')}
+                title="Grid View"
+              >
+                <Icon name="Grid" size="sm" />
+              </button>
+              <button
+                className={`w-8 h-full flex items-center justify-center rounded ${viewMode === 'list' ? 'bg-[var(--glass-bg-highlight)] text-[var(--text-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}
+                onClick={() => setViewMode('list')}
+                title="List View"
+              >
+                <Icon name="List" size="sm" />
+              </button>
+            </div>
+
+            {/* Batch Mode Toggle - Admin Only */}
+            {isAdmin && (
+              <button
+                onClick={isBatchMode ? exitBatchMode : enterBatchMode}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded text-xs font-medium transition-colors ${isBatchMode ? 'bg-[var(--accent)] hover:bg-[var(--accent)] text-[var(--text-primary)]' : 'bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--glass-border)]'} h-8`}
+              >
+                <Icon name="CheckSquare" size="sm" />
+                {isBatchMode ? 'Exit Batch Mode' : 'Batch Edit'}
+              </button>
+            )}
           </div>
-        </aside>
+        </div>
 
-        {/* Main Content */}
-        <div className="flex-1 bg-[var(--app-bg)] flex flex-col overflow-hidden relative">
-          {loading && images.length === 0 ? (
-            <div className="absolute inset-0 flex items-center justify-center z-20 bg-[var(--app-bg)]/50 backdrop-blur-sm pointer-events-none">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[var(--accent)]"></div>
-            </div>
-          ) : null}
+        <div className="flex flex-1 overflow-hidden relative">
+          <AlbumSidebar
+            albums={adaptedAlbums}
+            selectedAlbum={selectedAlbum}
+            onSelectAlbum={setSelectedAlbum}
+            totalItemCount={libraryTotalCount}
+            allLabel="All Photos"
+          />
 
-          {/* Discreet loading indicator for updates */}
-          {loading && images.length > 0 && (
-            <div className="absolute top-4 right-4 z-20">
-              <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-[var(--accent)] drop-shadow-[var(--glass-shadow)]"></div>
-            </div>
-          )}
+          {/* Main Content */}
+          <div className="flex-1 bg-transparent flex flex-col overflow-hidden relative">
+            {loading && images.length === 0 ? (
+              <div className="absolute inset-0 flex items-center justify-center z-20 bg-[var(--app-bg)]/50 backdrop-blur-sm pointer-events-none">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[var(--accent)]"></div>
+              </div>
+            ) : null}
 
-          {/* Warning Banner for Fake/Unconfirmed Albums */}
-          {selectedAlbum &&
-            albums.find((a) => a.id === selectedAlbum)?.name.match(/Fake|Unconfirmed/i) && (
+            {/* Discreet loading indicator for updates */}
+            {loading && images.length > 0 && (
+              <div className="absolute top-4 right-4 z-20">
+                <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-[var(--accent)] drop-shadow-[var(--glass-shadow)]"></div>
+              </div>
+            )}
+
+            {/* Warning Banner for Fake/Unconfirmed Albums */}
+            {selectedAlbum && currentAlbum?.name.match(/Fake|Unconfirmed/i) && (
               <div className="bg-red-900/80 border-b border-red-700 px-4 py-3 flex items-start gap-3">
                 <Icon name="AlertTriangle" className="text-red-400 shrink-0 mt-0.5" />
                 <div>
                   <h4 className="text-red-200 font-bold text-sm uppercase tracking-wider">
-                    {albums.find((a) => a.id === selectedAlbum)?.name.includes('Fake')
+                    {currentAlbum.name.includes('Fake')
                       ? 'Confirmed Fake Media'
                       : 'Unconfirmed / Unverified Content'}
                   </h4>
                   <p className="text-red-300/90 text-sm mt-1">
-                    {albums.find((a) => a.id === selectedAlbum)?.name.includes('Fake')
+                    {currentAlbum.name.includes('Fake')
                       ? 'These images have been confirmed as AI-generated or photoshopped. They are distributed to spread misinformation and discredit survivors. Viewing them may be harmful.'
                       : 'These images currently lack provenance or verification. Treat with extreme caution as they may be manipulated or out of context.'}
                   </p>
@@ -849,224 +823,225 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
               </div>
             )}
 
-          {/* Active Filters */}
-          {(selectedTag || selectedPerson) && (
-            <div className="flex items-center gap-2 px-4 py-2 bg-[var(--glass-bg-strong)] border-b border-[var(--glass-border)]">
-              <span className="text-xs text-[var(--text-muted)] uppercase tracking-wider font-semibold">
-                Filtered by:
-              </span>
+            {/* Active Filters */}
+            {(selectedTag || selectedPerson) && (
+              <div className="surface-glass-header mx-3 mt-3 flex items-center gap-2 px-4 py-2 border-b border-[var(--glass-border)] md:mx-4">
+                <span className="text-xs text-[var(--text-muted)] uppercase tracking-wider font-semibold">
+                  Filtered by:
+                </span>
 
-              {selectedTag && (
+                {selectedTag && (
+                  <button
+                    onClick={() => setSelectedTag(null)}
+                    className="flex items-center gap-1.5 px-2 py-0.5 bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] rounded-full text-xs transition-colors group"
+                  >
+                    <span>Tag: {selectedTagLabel}</span>
+                    <Icon
+                      name="X"
+                      size="xs"
+                      className="text-[var(--text-muted)] group-hover:text-[var(--text-primary)]"
+                    />
+                  </button>
+                )}
+
+                {selectedPerson && (
+                  <button
+                    onClick={() => setSelectedPerson(null)}
+                    className="flex items-center gap-1.5 px-2 py-0.5 bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] rounded-full text-xs transition-colors group"
+                  >
+                    <span>Person: {selectedPersonLabel}</span>
+                    <Icon
+                      name="X"
+                      size="xs"
+                      className="text-[var(--text-muted)] group-hover:text-[var(--text-primary)]"
+                    />
+                  </button>
+                )}
+
                 <button
-                  onClick={() => setSelectedTag(null)}
-                  className="flex items-center gap-1.5 px-2 py-0.5 bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] rounded-full text-xs transition-colors group"
+                  onClick={() => {
+                    setSelectedTag(null);
+                    setSelectedPerson(null);
+                  }}
+                  className="text-xs text-[var(--text-muted)] hover:text-[var(--text-muted)] ml-auto"
                 >
-                  <span>Tag: {selectedTag}</span>
-                  <Icon
-                    name="X"
-                    size="xs"
-                    className="text-[var(--text-muted)] group-hover:text-[var(--text-primary)]"
-                  />
+                  Clear all
                 </button>
-              )}
-
-              {selectedPerson && (
-                <button
-                  onClick={() => setSelectedPerson(null)}
-                  className="flex items-center gap-1.5 px-2 py-0.5 bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] rounded-full text-xs transition-colors group"
-                >
-                  <span>Person: {selectedPerson}</span>
-                  <Icon
-                    name="X"
-                    size="xs"
-                    className="text-[var(--text-muted)] group-hover:text-[var(--text-primary)]"
-                  />
-                </button>
-              )}
-
-              <button
-                onClick={() => {
-                  setSelectedTag(null);
-                  setSelectedPerson(null);
-                }}
-                className="text-xs text-[var(--text-muted)] hover:text-[var(--text-muted)] ml-auto"
-              >
-                Clear all
-              </button>
-            </div>
-          )}
-
-          <div
-            className="flex-1 min-h-[360px] overflow-hidden relative bg-[var(--glass-bg)]"
-            onClick={handleGridClick}
-          >
-            {!loading && images.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-[var(--text-muted)]">
-                <Icon name="Image" size="lg" className="mb-2 opacity-50" />
-                <p>No images found</p>
               </div>
-            ) : (
-              <AutoSizer>
-                {({ width, height }) => {
-                  if (width < 50) return null; // Avoid invalid calculations
-                  if (viewMode === 'grid') {
-                    const minColumnWidth = 200;
-                    const gap = 16; // gap-4
-                    const availableWidth = width - 48; // p-6 equivalent padding
-                    const columnCount = Math.max(
-                      1,
-                      Math.floor((availableWidth + gap) / (minColumnWidth + gap)),
-                    );
-                    const columnWidth = (availableWidth - gap * (columnCount - 1)) / columnCount;
-                    const rowCount = Math.ceil(images.length / columnCount);
-                    // Aspect ratio 3:2 roughly plus padding
-                    const rowHeight = columnWidth / 1.5 + 8;
-
-                    const itemData = {
-                      images,
-                      selectedImages,
-                      isBatchMode,
-                      onImageClick: handleImageClick,
-                      onToggleSelection: toggleImageSelection,
-                      columnCount,
-                      formatDate,
-                      formatFileSize,
-                    };
-
-                    return (
-                      <Grid
-                        columnCount={columnCount}
-                        columnWidth={columnWidth + gap}
-                        height={height}
-                        rowCount={rowCount}
-                        rowHeight={rowHeight + gap}
-                        width={width}
-                        itemData={itemData}
-                        className="scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent p-6"
-                        style={{ overflowX: 'hidden' }}
-                        onItemsRendered={({ visibleRowStopIndex }) => {
-                          const visibleIndex = visibleRowStopIndex * columnCount;
-                          if (visibleIndex >= images.length - 20 && hasMore && !loading) {
-                            void loadMore();
-                          }
-                        }}
-                      >
-                        {GridCell}
-                      </Grid>
-                    );
-                  } else {
-                    // List View
-                    const itemData = {
-                      images,
-                      selectedImages,
-                      isBatchMode,
-                      onImageClick: handleImageClick,
-                      onToggleSelection: toggleImageSelection,
-                      formatDate,
-                      formatFileSize,
-                    };
-
-                    return (
-                      <List
-                        height={height}
-                        itemCount={images.length}
-                        itemSize={72} // Height of list item
-                        width={width}
-                        itemData={itemData}
-                        className="scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent p-6"
-                        onItemsRendered={({ visibleStopIndex }) => {
-                          if (visibleStopIndex >= images.length - 10 && hasMore && !loading) {
-                            void loadMore();
-                          }
-                        }}
-                      >
-                        {ListRow}
-                      </List>
-                    );
-                  }
-                }}
-              </AutoSizer>
             )}
 
-            {/* Batch Toolbar - Rendered via Portal for true viewport positioning */}
-            {isBatchMode &&
-              createPortal(
-                <div className="fixed bottom-8 left-0 right-0 flex justify-center z-[1000] pointer-events-none">
-                  <div className="mx-4 max-w-[calc(100vw-2rem)] md:max-w-fit pointer-events-auto">
-                    <BatchToolbar
-                      selectedCount={selectedImages.size}
-                      onRotate={handleBatchRotate}
-                      onAssignTags={(tags) => {
-                        // For now, we'll just add tags
-                        handleBatchTag(tags, 'add');
-                      }}
-                      onAssignPeople={(people) => {
-                        // For now, we'll just add people
-                        handleBatchPeople(people, 'add');
-                      }}
-                      onAssignRating={handleBatchRate}
-                      onEditMetadata={(field, value) => {
-                        // Create updates object based on field
-                        const updates: { title?: string; description?: string } = {};
-                        if (field === 'title') {
-                          updates.title = value;
-                        } else if (field === 'description') {
-                          updates.description = value;
-                        }
-                        handleBatchMetadata(updates);
-                      }}
-                      onCancel={exitBatchMode}
-                      onDeselect={clearSelection}
-                      onUndo={handleUndo}
-                      canUndo={undoStack.length > 0}
-                    />
-                  </div>
-                </div>,
-                document.body,
+            <div
+              className="flex-1 min-h-[360px] overflow-hidden relative bg-transparent"
+              onClick={handleGridClick}
+            >
+              {!loading && images.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-[var(--text-muted)]">
+                  <Icon name="Image" size="lg" className="mb-2 opacity-50" />
+                  <p>No images found</p>
+                </div>
+              ) : (
+                <AutoSizer>
+                  {({ width, height }) => {
+                    if (width < 50) return null; // Avoid invalid calculations
+                    if (viewMode === 'grid') {
+                      const minColumnWidth = 200;
+                      const gap = 16; // gap-4
+                      const availableWidth = width - 48; // p-6 equivalent padding
+                      const columnCount = Math.max(
+                        1,
+                        Math.floor((availableWidth + gap) / (minColumnWidth + gap)),
+                      );
+                      const columnWidth = (availableWidth - gap * (columnCount - 1)) / columnCount;
+                      const rowCount = Math.ceil(images.length / columnCount);
+                      // Aspect ratio 3:2 roughly plus padding
+                      const rowHeight = columnWidth / 1.5 + 8;
+
+                      const itemData = {
+                        images,
+                        selectedImages,
+                        isBatchMode,
+                        onImageClick: handleImageClick,
+                        onToggleSelection: toggleImageSelection,
+                        columnCount,
+                        formatDate,
+                        formatFileSize,
+                      };
+
+                      return (
+                        <Grid
+                          columnCount={columnCount}
+                          columnWidth={columnWidth + gap}
+                          height={height}
+                          rowCount={rowCount}
+                          rowHeight={rowHeight + gap}
+                          width={width}
+                          itemData={itemData}
+                          className="scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent p-6"
+                          style={{ overflowX: 'hidden' }}
+                          onItemsRendered={({ visibleRowStopIndex }) => {
+                            const visibleIndex = visibleRowStopIndex * columnCount;
+                            if (visibleIndex >= images.length - 20 && hasMore && !loading) {
+                              void loadMore();
+                            }
+                          }}
+                        >
+                          {GridCell}
+                        </Grid>
+                      );
+                    } else {
+                      // List View
+                      const itemData = {
+                        images,
+                        selectedImages,
+                        isBatchMode,
+                        onImageClick: handleImageClick,
+                        onToggleSelection: toggleImageSelection,
+                        formatDate,
+                        formatFileSize,
+                      };
+
+                      return (
+                        <List
+                          height={height}
+                          itemCount={images.length}
+                          itemSize={72} // Height of list item
+                          width={width}
+                          itemData={itemData}
+                          className="scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent p-6"
+                          onItemsRendered={({ visibleStopIndex }) => {
+                            if (visibleStopIndex >= images.length - 10 && hasMore && !loading) {
+                              void loadMore();
+                            }
+                          }}
+                        >
+                          {ListRow}
+                        </List>
+                      );
+                    }
+                  }}
+                </AutoSizer>
               )}
+
+              {/* Batch Toolbar - Rendered via Portal for true viewport positioning */}
+              {isBatchMode &&
+                createPortal(
+                  <div className="fixed bottom-8 left-0 right-0 flex justify-center z-[1000] pointer-events-none">
+                    <div className="mx-4 max-w-[calc(100vw-2rem)] md:max-w-fit pointer-events-auto">
+                      <BatchToolbar
+                        selectedCount={selectedImages.size}
+                        onRotate={handleBatchRotate}
+                        onAssignTags={(tags) => {
+                          // For now, we'll just add tags
+                          handleBatchTag(tags, 'add');
+                        }}
+                        onAssignPeople={(people) => {
+                          // For now, we'll just add people
+                          handleBatchPeople(people, 'add');
+                        }}
+                        onAssignRating={handleBatchRate}
+                        onEditMetadata={(field, value) => {
+                          // Create updates object based on field
+                          const updates: { title?: string; description?: string } = {};
+                          if (field === 'title') {
+                            updates.title = value;
+                          } else if (field === 'description') {
+                            updates.description = value;
+                          }
+                          handleBatchMetadata(updates);
+                        }}
+                        onCancel={exitBatchMode}
+                        onDeselect={clearSelection}
+                        onUndo={handleUndo}
+                        canUndo={undoStack.length > 0}
+                      />
+                    </div>
+                  </div>,
+                  document.body,
+                )}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Footer Status Bar */}
-      <div className="h-6 bg-[var(--glass-bg-strong)] border-t border-[var(--glass-border)] flex items-center justify-between px-3 text-[10px] text-[var(--text-muted)] select-none shrink-0">
-        <div>{images.length} items</div>
-        <div>{selectedAlbum ? albums.find((a) => a.id === selectedAlbum)?.name : 'All Photos'}</div>
-      </div>
+        {/* Footer Status Bar */}
+        <div className="h-6 bg-[var(--glass-bg-strong)] border-t border-[var(--glass-border)] flex items-center justify-between px-3 text-[10px] text-[var(--text-muted)] select-none shrink-0">
+          <div>{images.length} items</div>
+          <div>{selectedAlbum ? currentAlbum?.name : 'All Photos'}</div>
+        </div>
 
-      {/* Full Screen Viewer */}
-      {viewerStartIndex !== null && (
-        <MediaViewerModal
-          images={images}
-          initialIndex={viewerStartIndex}
-          onClose={handleCloseViewer}
-          onImageUpdate={(updatedImage) => {
-            const newImages = [...images];
-            const index = newImages.findIndex((img) => img.id === updatedImage.id);
-            if (index !== -1) {
-              newImages[index] = updatedImage;
-              updateImages(() => newImages);
-            }
-          }}
-          onEntityClick={(person) => {
-            // Open EvidenceModal for the clicked person
-            // Construct a partial person object from the minimal data we have
-            setPreviewPerson({ id: person.id, name: person.name || '' });
-          }}
-        />
-      )}
-      {previewPerson && (
-        <React.Suspense fallback={null}>
-          <div className="fixed inset-0 z-[11000] pointer-events-auto">
-            <EvidenceModal
-              entityId={String(previewPerson.id)}
-              isOpen={!!previewPerson}
-              onClose={() => setPreviewPerson(null)}
-            />
-          </div>
-        </React.Suspense>
-      )}
-    </div>
+        {/* Full Screen Viewer */}
+        {viewerStartIndex !== null && (
+          <MediaViewerModal
+            images={images}
+            initialIndex={viewerStartIndex}
+            onClose={handleCloseViewer}
+            onImageUpdate={(updatedImage) => {
+              const newImages = [...images];
+              const index = newImages.findIndex((img) => img.id === updatedImage.id);
+              if (index !== -1) {
+                newImages[index] = updatedImage;
+                updateImages(() => newImages);
+              }
+            }}
+            onEntityClick={(person) => {
+              // Open EvidenceModal for the clicked person
+              // Construct a partial person object from the minimal data we have
+              setPreviewPerson({ id: person.id, name: person.name || '' });
+            }}
+          />
+        )}
+        {previewPerson && (
+          <React.Suspense fallback={null}>
+            <div className="fixed inset-0 z-[11000] pointer-events-auto">
+              <EvidenceModal
+                entityId={String(previewPerson.id)}
+                isOpen={!!previewPerson}
+                onClose={() => setPreviewPerson(null)}
+              />
+            </div>
+          </React.Suspense>
+        )}
+      </div>
+    </>
   );
 });
 

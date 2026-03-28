@@ -149,7 +149,7 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
       </div>
 
       {/* Desktop inline detailed filters */}
-      <div className="glass-panel p-6 shadow-[var(--glass-shadow)] backdrop-blur-md">
+      <div className="surface-glass p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* File Type Filter */}
           <div>

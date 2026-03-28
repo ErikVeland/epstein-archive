@@ -558,7 +558,7 @@ function App() {
   const [previousPath, setPreviousPath] = useState<string>('/people');
 
   // Document Viewing
-  const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
+  const [, setSelectedDocumentId] = useState<string | null>(null);
   const [selectedDocumentSearchTerm, setSelectedDocumentSearchTerm] = useState<string>('');
   const [documentModalId, setDocumentModalId] = useState<string | null>(null);
   const [documentModalInitial, setDocumentModalInitial] = useState<Record<string, unknown> | null>(
@@ -947,7 +947,7 @@ function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Initialize optimized data service (caches first page to sessionStorage)
-  const { isLoading: isInitializing } = useQuery<void>({
+  const { isLoading: isInitializing } = useQuery<boolean>({
     queryKey: ['initDataService'],
     queryFn: async () => {
       const result = await apiClient.getEntities({}, 1);
@@ -970,6 +970,7 @@ function App() {
       } catch (e) {
         console.error('Error caching people data:', e);
       }
+      return true;
     },
     staleTime: Infinity,
     retry: false,
@@ -2007,11 +2008,7 @@ function App() {
                           <DocumentsPage
                             searchTerm={selectedDocumentSearchTerm}
                             onSearchTermChange={setSelectedDocumentSearchTerm}
-                            selectedDocumentId={selectedDocumentId || ''}
-                            onDocumentClose={() => {
-                              setSelectedDocumentId('');
-                              setSelectedDocumentSearchTerm('');
-                            }}
+                            selectedDocumentId={documentModalId || ''}
                           />
                         }
                       />

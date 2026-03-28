@@ -104,6 +104,18 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
     const urlId = urlParams.get('id');
     return initialAudioId || (urlId ? parseInt(urlId, 10) : undefined);
   }, [initialAudioId, urlParams]);
+  const buildAudioQuery = useCallback(
+    (
+      params: URLSearchParams,
+      { searchQuery }: { selectedAlbum: number | null; searchQuery: string },
+    ) => {
+      if (searchQuery.trim()) {
+        params.append('transcriptQuery', searchQuery.trim());
+      }
+      params.append('sortBy', 'title');
+    },
+    [],
+  );
 
   const initialUrlTimestamp = useMemo(() => {
     if (initialTimestamp !== undefined) return initialTimestamp;
@@ -133,12 +145,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
     albumsEndpoint: '/media/audio/albums',
     initialAlbumId: initialAlbumSelection,
     errorMessage: 'Failed to load audio content',
-    buildQuery: (params, { searchQuery }) => {
-      if (searchQuery.trim()) {
-        params.append('transcriptQuery', searchQuery.trim());
-      }
-      params.append('sortBy', 'title');
-    },
+    buildQuery: buildAudioQuery,
     syncAlbumToUrl: true,
   });
 
@@ -328,7 +335,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
               return (
                 <div
                   key={item.id}
-                  className={`bg-[var(--glass-bg-strong)] border-[var(--glass-border)] rounded-[var(--radius-lg)] overflow-hidden transition-all group cursor-pointer flex flex-col min-h-[260px] ${isSelected ? 'border-[var(--accent)] ring-1 ring-[var(--accent)]' : 'hover:border-[var(--accent)]/30'}`}
+                  className={`surface-glass-card overflow-hidden transition-all group cursor-pointer flex flex-col min-h-[260px] ${isSelected ? 'border-[var(--accent)] ring-1 ring-[var(--accent)]' : 'hover:border-[var(--accent)]/30'}`}
                   onClick={(_e) => {
                     if (isBatchMode) {
                       toggleSelection(item.id);
@@ -618,7 +625,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
         title={currentAlbum ? `${currentAlbum.name} — Audio` : 'Audio Recordings'}
         description="Forensic audio evidence and transcripts from the Epstein files."
       />
-      <div className="flex flex-col h-full min-h-[500px] bg-[var(--app-bg)] border border-[var(--glass-border)] shadow-[var(--glass-shadow)] overflow-hidden rounded-[var(--radius-lg)]">
+      <div className="surface-glass flex flex-col h-full min-h-[500px] overflow-hidden">
         {/* Header */}
         <div className="app-header-glass px-6 py-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between shrink-0 z-10">
           <MobileAlbumDropdown
@@ -753,7 +760,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
           />
 
           {/* Main Content */}
-          <div className="flex-1 bg-[var(--app-bg)] flex flex-col overflow-hidden">
+          <div className="flex-1 bg-transparent flex flex-col overflow-hidden">
             {loading && items.length === 0 ? (
               <div className="absolute inset-0 flex items-center justify-center z-20 bg-[var(--app-bg)]/50 backdrop-blur-sm">
                 <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[var(--accent)]"></div>

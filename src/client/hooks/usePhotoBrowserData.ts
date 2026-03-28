@@ -171,8 +171,6 @@ function buildImageQuery(filters: PhotoBrowserFilters, page: number): string {
   if (filters.selectedPerson) params.append('personId', filters.selectedPerson.toString());
   if (filters.hasPeopleOnly) params.append('hasPeople', 'true');
   if (filters.searchQuery.trim()) params.append('search', filters.searchQuery.trim());
-  params.append('verificationStatus', 'verified');
-  params.append('minRedFlagRating', '2');
   params.append('sortField', filters.sortField);
   params.append('sortOrder', filters.sortOrder);
   params.append('page', page.toString());

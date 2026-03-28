@@ -497,7 +497,11 @@ export const documentsRepository = {
       >
     ).run({ documentId: docId }, getApiPool());
 
-    let derivedContent = (typeof document.content === 'string' ? document.content : '').trim();
+    const rawContent = (typeof document.content === 'string' ? document.content : '').trim();
+    const refinedContent =
+      typeof document.contentRefined === 'string' ? document.contentRefined.trim() : '';
+
+    let derivedContent = rawContent;
     if (!derivedContent) {
       // Some production schemas use document_pages.content instead of extracted_text.
       // Prefer extracted_text when available, then gracefully fall back.
@@ -563,7 +567,7 @@ export const documentsRepository = {
       extractedDate: document.extractedDate,
       evidenceType: document.evidenceType || 'document',
       content: derivedContent,
-      contentRefined: derivedContent, // Fall back to OCR/page text when content_refined is empty.
+      contentRefined: refinedContent || derivedContent,
       metadata,
       redFlagRating: Number(document.redFlagRating || 0),
       wordCount: Number(

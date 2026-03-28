@@ -81,9 +81,12 @@ function stringifyApiErrorMessage(value: unknown): string | null {
 }
 
 class ApiClient {
+  private static readonly MAX_CACHE_SIZE = 200;
+
   private accessToken: string | null = null;
   private isRefreshing = false;
   private refreshSubscribers: ((token: string | null) => void)[] = [];
+  private responseCache = new Map<string, { data: unknown; expiresAt: number }>();
 
   private outcomes: { timestamp: number; is5xx: boolean }[] = [];
   private isCircuitTripped = false;
@@ -128,6 +131,24 @@ class ApiClient {
 
   private addRefreshSubscriber(cb: (token: string | null) => void) {
     this.refreshSubscribers.push(cb);
+  }
+
+  private getCachedData<T>(key: string): T | null {
+    const entry = this.responseCache.get(key);
+    if (!entry) return null;
+    if (Date.now() > entry.expiresAt) {
+      this.responseCache.delete(key);
+      return null;
+    }
+    return entry.data as T;
+  }
+
+  private setCachedData(key: string, data: unknown, ttlMs: number) {
+    if (this.responseCache.size >= ApiClient.MAX_CACHE_SIZE) {
+      const oldestKey = this.responseCache.keys().next().value;
+      if (oldestKey) this.responseCache.delete(oldestKey);
+    }
+    this.responseCache.set(key, { data, expiresAt: Date.now() + ttlMs });
   }
 
   private async refreshToken(): Promise<string | null> {
@@ -184,6 +205,10 @@ class ApiClient {
     if (isGet) {
       const bodyString = options?.body ? stableStringify(options.body) : '{}';
       const key = `GET:${url}?${bodyString}`;
+      if (options?.useCache) {
+        const cached = this.getCachedData<T>(key);
+        if (cached !== null) return cached;
+      }
       return singleFlight(key, () => this.executeFetchWithRetries<T>(url, options));
     }
 
@@ -288,6 +313,10 @@ class ApiClient {
       }
 
       const data = await response.json();
+      if (method === 'GET' && options?.useCache) {
+        const bodyString = options.body ? stableStringify(options.body) : '{}';
+        this.setCachedData(`GET:${url}?${bodyString}`, data, options.cacheTtl ?? 60_000);
+      }
 
       const duration = performance.now() - startTime;
       if (typeof window !== 'undefined') {

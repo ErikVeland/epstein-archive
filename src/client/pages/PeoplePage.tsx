@@ -121,7 +121,10 @@ export const PeoplePage: React.FC<PeoplePageProps> = ({
   return (
     <ScopedErrorBoundary>
       <Profiler id="PeoplePage" onRender={onRenderCallback}>
-        <div data-testid="people-page" className="space-y-5 h-full flex flex-col">
+        <div
+          data-testid="people-page"
+          className="surface-glass space-y-5 h-full flex flex-col p-4 md:p-5"
+        >
           {loading && !dataStats.totalPeople ? (
             <StatsSkeleton />
           ) : (
@@ -196,7 +199,7 @@ export const PeoplePage: React.FC<PeoplePageProps> = ({
             </div>
           </div>
 
-          <div className="flex-1 min-h-[600px] w-full">
+          <div className="surface-glass-card flex-1 min-h-[600px] w-full p-4 md:p-5">
             {loading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {[...Array(6)].map((_, i) => (

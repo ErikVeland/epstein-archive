@@ -15,7 +15,7 @@ const LoadingIndicator: React.FC<LoadingIndicatorProps> = ({ isLoading, label })
 
   return (
     <div className={s.root} role="status" aria-label={label ?? 'Loading'}>
-      <div className={s.spinner} aria-hidden="true" />
+      <div className={s.spinner} aria-hidden />
       {label && <span className={s.label}>{label}</span>}
     </div>
   );

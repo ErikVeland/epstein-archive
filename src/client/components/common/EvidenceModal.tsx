@@ -173,7 +173,15 @@ interface EntityEvidenceFallbackResponse {
   evidence?: Array<Record<string, unknown>>;
   stats?: {
     totalEvidence?: number;
+    typeBreakdown?: Array<{
+      evidence_type?: string;
+      count?: number;
+    }>;
   };
+}
+
+interface EntityEvidenceResponse extends EntityEvidenceFallbackResponse {
+  evidence?: Array<Record<string, unknown>>;
 }
 
 const toStringArray = (value: unknown): string[] => {
@@ -307,11 +315,31 @@ const formatMetaDate = (value?: string | null): string => {
   return parsed.toLocaleDateString();
 };
 
+const isVisualMediaItem = (photo: EntityPhoto | undefined | null): boolean => {
+  if (!photo) return false;
+  const mediaType = String(photo.type || photo.sourceType || '').toLowerCase();
+  if (mediaType.startsWith('image/')) return true;
+  if (mediaType.startsWith('audio/') || mediaType.startsWith('video/')) return false;
+
+  const candidate = String(
+    photo.thumbnailUrl ||
+      photo.thumbnail_url ||
+      photo.url ||
+      photo.fullUrl ||
+      photo.filePath ||
+      photo.filename ||
+      '',
+  ).toLowerCase();
+
+  return /\.(png|jpe?g|gif|webp|svg|avif)$/i.test(candidate);
+};
+
 const resolveEntityPhotoUrl = (
   photo: EntityPhoto | undefined | null,
   preferThumbnail = true,
 ): string | null => {
   if (!photo) return null;
+  if (!isVisualMediaItem(photo)) return null;
 
   const thumbCandidates = [
     photo.thumbnailUrl,
@@ -429,6 +457,18 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
     queryFn: async () => {
       const data = (await apiClient.get(`/entities/${entityId}`)) as EntityDetails;
       return data;
+    },
+    enabled: isOpen && !!entityId,
+    staleTime: 60_000,
+  });
+
+  const { data: entityEvidence } = useQuery<EntityEvidenceResponse>({
+    queryKey: ['entity-evidence-summary', entityId],
+    queryFn: async () => {
+      const response = (await apiClient.get(
+        `/entities/${entityId}/evidence`,
+      )) as EntityEvidenceResponse;
+      return response;
     },
     enabled: isOpen && !!entityId,
     staleTime: 60_000,
@@ -603,11 +643,30 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
 
   type RelationshipEntry = {
     entity_id: string;
+    related_entity_id?: string;
     relationship_type: string;
     strength: number;
     confidence: number;
     name?: string;
   };
+
+  const { data: relationshipSummary = [] } = useQuery<RelationshipEntry[]>({
+    queryKey: ['relationships-summary', entityId],
+    queryFn: async () => {
+      const resp = (await apiClient.get(`/relationships?entityId=${entityId}`)) as {
+        relationships: Array<{
+          entity_id: string;
+          related_entity_id?: string;
+          relationship_type: string;
+          strength: number;
+          confidence: number;
+        }>;
+      };
+      return Array.isArray(resp.relationships) ? resp.relationships : [];
+    },
+    enabled: isOpen && !!entityId,
+    staleTime: 60_000,
+  });
 
   const networkEnabled =
     isOpen && !!entityId && activeTab === 'network' && tabsLoaded.has('network');
@@ -617,6 +676,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
       const resp = (await apiClient.get(`/relationships?entityId=${entityId}`)) as {
         relationships: Array<{
           entity_id: string;
+          related_entity_id?: string;
           relationship_type: string;
           strength: number;
           confidence: number;
@@ -649,12 +709,13 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
       const top = rels.slice(0, 20);
       return Promise.all(
         top.map(async (r) => {
+          const relatedEntityId = r.related_entity_id || r.entity_id;
           try {
-            const e = await apiClient.get(`/entities/${r.entity_id}`);
+            const e = await apiClient.get(`/entities/${relatedEntityId}`);
             const entityData = e as { fullName?: string; name?: string };
-            return { ...r, name: entityData.fullName || entityData.name || r.entity_id };
+            return { ...r, name: entityData.fullName || entityData.name || relatedEntityId };
           } catch {
-            return { ...r, name: r.entity_id };
+            return { ...r, name: relatedEntityId };
           }
         }),
       );
@@ -703,7 +764,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
     staleTime: 60_000,
   });
 
-  const mediaEnabled = isOpen && !!entityId && activeTab === 'media' && tabsLoaded.has('media');
+  const mediaEnabled = isOpen && !!entityId && (activeTab === 'media' || activeTab === 'overview');
   const { data: mediaItems = [], isLoading: isMediaLoading } = useQuery<EntityPhoto[]>({
     queryKey: ['entityMedia', entityId],
     queryFn: async () => {
@@ -760,12 +821,12 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
       type: 'Person',
       connectionCount: relationships.length,
       riskLevel: entity.redFlagRating || 0,
-      photoUrl: entity.photos?.[0]?.url,
+      photoUrl: mediaItems[0]?.url || entity.photos?.[0]?.url,
     };
 
     const relatedNodes = relationships.map((r) => ({
-      id: r.entity_id,
-      name: r.name || r.entity_id,
+      id: r.related_entity_id || r.entity_id,
+      name: r.name || r.related_entity_id || r.entity_id,
       role: 'Associate',
       type: 'Person',
       connectionCount: 1,
@@ -774,9 +835,9 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
 
     const links = relationships.map((r) => ({
       sourceId: String(entity.id),
-      targetId: String(r.entity_id),
+      targetId: String(r.related_entity_id || r.entity_id),
       source: String(entity.id),
-      target: String(r.entity_id),
+      target: String(r.related_entity_id || r.entity_id),
       type: r.relationship_type,
       weight: r.strength,
     }));
@@ -785,7 +846,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
       entities: [centralNode, ...relatedNodes],
       relationships: links,
     };
-  }, [entity, relationships]);
+  }, [entity, mediaItems, relationships]);
 
   const renderEvidenceCard = useCallback(
     (doc: EvidenceDocument) => {
@@ -887,16 +948,56 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
   const forensicSummary = useMemo(() => {
     if (!entity || !forensicData) return '';
     const docsCount = totalDocs > 0 ? totalDocs : documents.length || entity.mentions;
-    const mediaCount = entity.photos?.length || 0;
-    const relationCount = relationships.length;
+    const verifiedMediaCount = mediaItems.filter(
+      (item) => item.verified || item.directEvidence,
+    ).length;
+    const mediaCount = verifiedMediaCount || mediaItems.length || entity.photos?.length || 0;
+    const relationCount = relationshipSummary.length || relationships.length;
     const riskDescriptor =
       (entity.redFlagRating || 0) >= 4
         ? 'high direct exposure'
         : (entity.redFlagRating || 0) >= 2
           ? 'moderate exposure'
           : 'limited direct exposure';
-    return `${riskDescriptor} across ${docsCount.toLocaleString()} documents; appears in ${mediaCount.toLocaleString()} verified media items; connected to ${relationCount.toLocaleString()} relationship signals.`;
-  }, [documents.length, entity, forensicData, relationships.length, totalDocs]);
+    const mediaDescriptor =
+      verifiedMediaCount > 0 && verifiedMediaCount === mediaCount
+        ? 'verified media items'
+        : 'media items';
+    return `${riskDescriptor} across ${docsCount.toLocaleString()} documents; appears in ${mediaCount.toLocaleString()} ${mediaDescriptor}; connected to ${relationCount.toLocaleString()} relationship signals.`;
+  }, [
+    documents.length,
+    entity,
+    forensicData,
+    mediaItems,
+    relationshipSummary.length,
+    relationships.length,
+    totalDocs,
+  ]);
+
+  const overviewEvidenceTypesCount =
+    entityEvidence?.stats?.typeBreakdown?.filter((item) => item.evidence_type).length ||
+    entity?.evidenceTypes?.length ||
+    0;
+
+  const overviewSignificantPassages: SignificantPassage[] =
+    entity?.significantPassages && entity.significantPassages.length > 0
+      ? entity.significantPassages
+      : Array.isArray(entityEvidence?.evidence)
+        ? entityEvidence.evidence.slice(0, 5).map((item) => ({
+            documentId: item.document_id as string | number | undefined,
+            source: (item.evidence_type as string | undefined) || 'Document',
+            passage:
+              (item.context_snippet as string | undefined) ||
+              (item.description as string | undefined) ||
+              (item.title as string | undefined) ||
+              '',
+            filename:
+              (item.title as string | undefined) ||
+              (item.source_path as string | undefined) ||
+              'Untitled source',
+            keyword: (item.evidence_type as string | undefined) || undefined,
+          }))
+        : [];
 
   // Scroll Lock
   useScrollLock(isOpen);
@@ -921,7 +1022,9 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
 
   if (!isOpen) return null;
 
-  const headerPhoto = entity?.photos?.[0];
+  const headerMediaItems = mediaItems.length > 0 ? mediaItems : entity?.photos || [];
+  const headerPhoto =
+    headerMediaItems.find((item) => isVisualMediaItem(item)) || headerMediaItems[0];
   const headerPhotoId = headerPhoto?.id ? String(headerPhoto.id) : 'header-photo';
   const headerPhotoUrl = resolveEntityPhotoUrl(headerPhoto, true);
 
@@ -971,7 +1074,11 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-[var(--text-primary)]">
-                      <Search size={32} />
+                      {headerPhoto && !isVisualMediaItem(headerPhoto) ? (
+                        <FileText size={32} />
+                      ) : (
+                        <Search size={32} />
+                      )}
                     </div>
                   )}
                 </div>
@@ -1158,7 +1265,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                             </div>
                             <div className="p-4 bg-[var(--glass-bg)] rounded-[var(--radius-md)] border border-[color:color-mix(in_srgb,var(--glass-border)_42%,transparent)] flex flex-col items-center justify-center text-center">
                               <div className="text-2xl font-display text-[var(--accent)] mb-1">
-                                {entity.photos?.length || 0}
+                                {mediaItems.length || entity.photos?.length || 0}
                               </div>
                               <div className="text-[10px] font-semibold tracking-widest uppercase text-text-dim">
                                 Media
@@ -1166,7 +1273,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                             </div>
                             <div className="p-4 bg-[var(--glass-bg)] rounded-[var(--radius-md)] border border-[color:color-mix(in_srgb,var(--glass-border)_42%,transparent)] flex flex-col items-center justify-center text-center">
                               <div className="text-2xl font-display text-[var(--accent-evidence)] mb-1">
-                                {entity.evidenceTypes?.length || 0}
+                                {overviewEvidenceTypesCount}
                               </div>
                               <div className="text-[10px] font-semibold tracking-widest uppercase text-text-dim">
                                 Source Types
@@ -1202,14 +1309,14 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                       </div>
 
                       {/* HIGH SIGNIFICANCE EVIDENCE */}
-                      {entity.significantPassages && entity.significantPassages.length > 0 && (
+                      {overviewSignificantPassages.length > 0 && (
                         <div className="mt-10">
                           <h3 className="text-text-strong font-medium flex items-center gap-3 font-sans tracking-wide text-sm mb-6 pb-2 border-b border-[var(--glass-border)]">
                             <AlertTriangle size={16} className="text-[var(--risk-critical)]" /> High
                             Significance Evidence
                           </h3>
                           <div className="grid gap-4">
-                            {entity.significantPassages.map((passage, idx) => (
+                            {overviewSignificantPassages.map((passage, idx) => (
                               <article
                                 key={idx}
                                 className={`surface-glass-card p-6 hover:bg-[var(--glass-bg-strong)] transition-colors ${
@@ -1560,9 +1667,14 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                               className="surface-glass-card overflow-hidden group soft-glass-outline"
                             >
                               <div className="aspect-video bg-[var(--bg-dark)] overflow-hidden relative border-b border-[color:color-mix(in_srgb,var(--glass-border)_60%,transparent)]">
-                                {brokenMediaIds[String(photo.id)] ? (
+                                {brokenMediaIds[String(photo.id)] || !isVisualMediaItem(photo) ? (
                                   <div className="w-full h-full flex items-center justify-center text-text-dim">
-                                    <ImageIcon size={28} />
+                                    <div className="flex flex-col items-center gap-2">
+                                      <FileText size={28} />
+                                      <span className="text-[10px] uppercase tracking-widest">
+                                        {sourceType}
+                                      </span>
+                                    </div>
                                   </div>
                                 ) : (
                                   <img

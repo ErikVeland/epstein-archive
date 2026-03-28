@@ -1,5 +1,5 @@
 import express, { Express, Request, Response } from 'express';
-import cors from 'cors';
+import cors, { CorsOptions } from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
@@ -113,9 +113,99 @@ export class App {
     }
   }
 
+  private buildConnectSrc(): string[] {
+    const connectSrc = new Set<string>(["'self'"]);
+
+    const addOrigins = (input: string | undefined | null) => {
+      const raw = String(input || '').trim();
+      if (!raw) return;
+
+      for (const candidate of raw
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean)) {
+        try {
+          connectSrc.add(new URL(candidate).origin);
+        } catch {
+          if (/^https?:\/\//i.test(candidate)) {
+            connectSrc.add(candidate.replace(/\/+$/, ''));
+          }
+        }
+      }
+    };
+
+    if (process.env.NODE_ENV !== 'production') {
+      [
+        'http://localhost:3000',
+        'http://localhost:3002',
+        'http://localhost:4173',
+        'http://localhost:5173',
+        'http://localhost:3312',
+        'http://127.0.0.1:3000',
+        'http://127.0.0.1:3002',
+        'http://127.0.0.1:4173',
+        'http://127.0.0.1:5173',
+        'http://127.0.0.1:3312',
+      ].forEach((origin) => connectSrc.add(origin));
+    }
+
+    addOrigins(process.env.VITE_API_URL);
+    addOrigins(process.env.CORS_ORIGIN);
+
+    return Array.from(connectSrc);
+  }
+
+  private buildCorsOptions(): CorsOptions {
+    const configuredOrigins = new Set(
+      String(process.env.CORS_ORIGIN || '')
+        .split(',')
+        .map((item) => item.trim())
+        .filter(Boolean)
+        .map((origin) => {
+          try {
+            return new URL(origin).origin;
+          } catch {
+            return origin.replace(/\/+$/, '');
+          }
+        }),
+    );
+    const isProduction = process.env.NODE_ENV === 'production';
+    const localhostOriginPattern = /^https?:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?$/;
+
+    return {
+      origin: (origin, callback) => {
+        // Allow same-origin / server-to-server requests (no Origin header).
+        // Write-route protection is handled by auth middleware, not CORS.
+        if (!origin) {
+          return callback(null, true);
+        }
+
+        const normalizedOrigin = (() => {
+          try {
+            return new URL(origin).origin;
+          } catch {
+            return origin.replace(/\/+$/, '');
+          }
+        })();
+
+        if (!isProduction && localhostOriginPattern.test(normalizedOrigin)) {
+          return callback(null, true);
+        }
+
+        if (configuredOrigins.has(normalizedOrigin)) {
+          return callback(null, true);
+        }
+
+        return callback(new Error(`CORS origin denied: ${normalizedOrigin}`));
+      },
+      credentials: true,
+    };
+  }
+
   private initializeMiddleware() {
     const isProduction = process.env.NODE_ENV === 'production';
     const scriptSrc = isProduction ? ["'self'"] : ["'self'", "'unsafe-inline'", "'unsafe-eval'"];
+    const connectSrc = this.buildConnectSrc();
 
     // Respect real client IP from upstream proxy (nginx) so rate limits are per-user, not global.
     this.app.set('trust proxy', 1);
@@ -186,7 +276,7 @@ export class App {
             styleSrc: ["'self'", "'unsafe-inline'"],
             imgSrc: ["'self'", 'data:', 'blob:'],
             fontSrc: ["'self'", 'data:'],
-            connectSrc: ["'self'"],
+            connectSrc,
             objectSrc: ["'none'"],
             upgradeInsecureRequests: [],
           },
@@ -194,43 +284,9 @@ export class App {
         crossOriginEmbedderPolicy: false,
       }),
     );
-    this.app.use(
-      cors({
-        origin: (origin, callback) => {
-          const configured = String(process.env.CORS_ORIGIN || '')
-            .split(',')
-            .map((item) => item.trim())
-            .filter(Boolean);
-          const defaultDevOrigins = [
-            'http://localhost:3000',
-            'http://localhost:3002',
-            'http://localhost:4173',
-            'http://localhost:5173',
-            'http://127.0.0.1:3000',
-            'http://127.0.0.1:3002',
-            'http://127.0.0.1:4173',
-            'http://127.0.0.1:5173',
-          ];
-          const allowedOrigins =
-            configured.length > 0
-              ? configured
-              : process.env.NODE_ENV === 'production'
-                ? []
-                : defaultDevOrigins;
-
-          // Allow same-origin / server-to-server requests (no Origin header).
-          // Write-route protection is handled by auth middleware, not CORS.
-          if (!origin) {
-            return callback(null, true);
-          }
-          if (allowedOrigins.includes(origin)) {
-            return callback(null, true);
-          }
-          return callback(new Error('CORS origin denied'));
-        },
-        credentials: true,
-      }),
-    );
+    const corsOptions = this.buildCorsOptions();
+    this.app.use(cors(corsOptions));
+    this.app.options('*', cors(corsOptions));
     this.app.use(compression());
 
     // 2. Load Shedding
@@ -642,8 +698,20 @@ export class App {
         const page = Math.max(1, Number(query.page || 1));
         const limit = Math.min(500, Math.max(1, Number(query.limit || 24)));
         const sortByRaw = String(query.sortBy || 'risk').toLowerCase();
-        const sortBy =
-          sortByRaw === 'red_flag_rating' || sortByRaw === 'red_flag' ? 'red_flag' : sortByRaw;
+        const sortByAliases: Record<string, SortOption> = {
+          default: 'red_flag',
+          red_flag: 'red_flag',
+          red_flag_rating: 'red_flag',
+          rfi: 'red_flag',
+          risk: 'risk',
+          mentions: 'mentions',
+          name: 'name',
+          recent: 'recent',
+          relevance: 'relevance',
+          document_count: 'document-count',
+          'document-count': 'document-count',
+        };
+        const sortBy = sortByAliases[sortByRaw] || 'red_flag';
 
         const likelihoodRaw = query.likelihood || query.likelihoodScore;
         const likelihoodScore = Array.isArray(likelihoodRaw)
@@ -662,12 +730,7 @@ export class App {
             query.maxRedFlagIndex !== undefined ? Number(query.maxRedFlagIndex) : undefined,
           entityType: typeof query.type === 'string' ? query.type : undefined,
         };
-        const result = await entitiesRepository.getEntities(
-          page,
-          limit,
-          filters,
-          sortBy as SortOption,
-        );
+        const result = await entitiesRepository.getEntities(page, limit, filters, sortBy);
 
         res.json(
           mapEntityListResponseDto({

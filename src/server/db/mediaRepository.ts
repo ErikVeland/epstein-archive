@@ -118,11 +118,14 @@ export const mediaRepository = {
     limit: number = 24,
     filters?: {
       entityId?: string;
+      tagId?: number;
+      personId?: number;
       verificationStatus?: string;
       minRedFlagRating?: number;
       fileType?: string; // 'image' or 'audio' or mimetype
       albumId?: number;
-      sortBy?: 'title' | 'date' | 'rating';
+      sortBy?: 'title' | 'date' | 'rating' | 'date_added' | 'date_taken' | 'filename' | 'file_size';
+      sortOrder?: 'asc' | 'desc';
       transcriptQuery?: string;
       hasPeople?: boolean;
     },
@@ -151,14 +154,48 @@ export const mediaRepository = {
     if (filters?.entityId) {
       whereParts.push(`m.entity_id = ${addParam(BigInt(filters.entityId))}::bigint`);
     }
+    if (filters?.personId != null) {
+      whereParts.push(
+        `EXISTS (
+          SELECT 1
+          FROM media_item_people mp
+          WHERE mp.media_item_id::text = m.id::text
+            AND mp.entity_id = ${addParam(filters.personId)}::bigint
+        )`,
+      );
+    }
+    if (filters?.tagId != null) {
+      whereParts.push(
+        `EXISTS (
+          SELECT 1
+          FROM media_item_tags mt
+          WHERE mt.media_item_id::text = m.id::text
+            AND mt.tag_id = ${addParam(filters.tagId)}::bigint
+        )`,
+      );
+    }
     if (fileTypePattern) {
       whereParts.push(`m.file_type LIKE ${addParam(fileTypePattern)}::text`);
+    }
+    if (filters?.verificationStatus?.trim()) {
+      whereParts.push(
+        `m.verification_status = ${addParam(filters.verificationStatus.trim())}::text`,
+      );
     }
     if (filters?.minRedFlagRating != null) {
       whereParts.push(`m.red_flag_rating >= ${addParam(filters.minRedFlagRating)}::int`);
     }
     if (filters?.albumId != null) {
       whereParts.push(`m.album_id = ${addParam(filters.albumId)}::int`);
+    }
+    if (filters?.hasPeople) {
+      whereParts.push(
+        `EXISTS (
+          SELECT 1
+          FROM media_item_people mp
+          WHERE mp.media_item_id::text = m.id::text
+        )`,
+      );
     }
     if (filters?.transcriptQuery?.trim()) {
       const q = `%${filters.transcriptQuery.trim()}%`;
@@ -179,13 +216,20 @@ export const mediaRepository = {
     );
     const total = Number((countRes.rows[0] as { total?: unknown })?.total || 0);
 
-    let orderBySql = 'm.red_flag_rating DESC, m.created_at DESC';
+    const sortOrder = filters?.sortOrder === 'asc' ? 'ASC' : 'DESC';
+    let orderBySql = `m.red_flag_rating DESC, m.created_at DESC`;
     if (filters?.sortBy === 'title') {
-      orderBySql = `LOWER(COALESCE(m.title, '')) ASC, m.created_at DESC`;
-    } else if (filters?.sortBy === 'date') {
-      orderBySql = 'm.created_at DESC';
+      orderBySql = `LOWER(COALESCE(m.title, '')) ${sortOrder}, m.created_at DESC`;
+    } else if (filters?.sortBy === 'date' || filters?.sortBy === 'date_added') {
+      orderBySql = `m.created_at ${sortOrder}, m.id DESC`;
+    } else if (filters?.sortBy === 'date_taken') {
+      orderBySql = `m.date_taken ${sortOrder} NULLS LAST, m.created_at DESC`;
+    } else if (filters?.sortBy === 'filename') {
+      orderBySql = `LOWER(COALESCE(m.file_path, '')) ${sortOrder}, m.created_at DESC`;
+    } else if (filters?.sortBy === 'file_size') {
+      orderBySql = `m.file_size ${sortOrder} NULLS LAST, m.created_at DESC`;
     } else if (filters?.sortBy === 'rating') {
-      orderBySql = 'm.red_flag_rating DESC, m.created_at DESC';
+      orderBySql = `m.red_flag_rating ${sortOrder}, m.created_at DESC`;
     }
 
     const listParams = [...queryParams];
@@ -215,10 +259,17 @@ export const mediaRepository = {
           m.metadata_json as "metadataJson",
           m.date_taken as "dateTaken",
           m.created_at as "createdAt",
-          string_agg(DISTINCT e.id || ':' || e.full_name, ',') as people
+          string_agg(DISTINCT e.id || ':' || e.full_name, ',') as people,
+          COALESCE(
+            json_agg(DISTINCT jsonb_build_object('id', t.id, 'name', t.name))
+              FILTER (WHERE t.id IS NOT NULL),
+            '[]'::json
+          ) as tags
         FROM media_items m
         LEFT JOIN media_item_people mp ON m.id = mp.media_item_id::text
         LEFT JOIN entities e ON mp.entity_id = e.id
+        LEFT JOIN media_item_tags mt ON m.id = mt.media_item_id::text
+        LEFT JOIN media_tags t ON mt.tag_id = t.id
         ${whereSql}
         GROUP BY m.id
         ORDER BY ${orderBySql}
@@ -246,6 +297,7 @@ export const mediaRepository = {
       dateTaken: Date | null;
       createdAt: Date | null;
       people: string | null;
+      tags: unknown;
     }
     const mediaItems = listRes.rows as MediaListRow[];
 
@@ -269,6 +321,15 @@ export const mediaRepository = {
               return { id: parseInt(id), name };
             })
           : [];
+        const tags = Array.isArray(item.tags)
+          ? item.tags
+              .map((tag) => {
+                const record = tag as Record<string, unknown>;
+                const name = typeof record.name === 'string' ? record.name : '';
+                return name || null;
+              })
+              .filter((tagName): tagName is string => Boolean(tagName))
+          : [];
 
         return {
           ...item,
@@ -277,7 +338,7 @@ export const mediaRepository = {
           isSensitive: Boolean(item.isSensitive),
           redFlagRating: Number(item.redFlagRating || 0),
           metadata,
-          tags: [], // Tags missing in current Postgres schema
+          tags,
           people,
         };
       }),

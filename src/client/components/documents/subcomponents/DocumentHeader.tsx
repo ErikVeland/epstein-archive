@@ -4,7 +4,14 @@ import { CloseButton } from '../../common/CloseButton';
 import { formatDate } from '../DocumentModalUtils';
 
 interface DocumentHeaderProps {
-  doc: Record<string, any>;
+  doc: {
+    title?: string | null;
+    fileName?: string | null;
+    evidenceType?: string | null;
+    fileType?: string | null;
+    dateModified?: string | null;
+    updatedAt?: string | null;
+  };
   localSearchTerm: string;
   setLocalSearchTerm: (value: string) => void;
   canReturnToCase: boolean;
@@ -23,7 +30,7 @@ export const DocumentHeader: React.FC<DocumentHeaderProps> = ({
   onClose,
 }) => {
   return (
-    <div className="flex flex-col lg:flex-row lg:items-center gap-5 py-6 px-8 min-w-0 border-b border-[var(--glass-border)] bg-transparent relative z-10 glass-panel">
+    <div className="surface-glass-header flex flex-col lg:flex-row lg:items-center gap-5 py-6 px-8 min-w-0 border-b border-[var(--glass-border)] bg-transparent relative z-10">
       <div className="flex items-start lg:items-center gap-5 w-full lg:w-auto min-w-0">
         <div className="w-14 h-14 rounded-[var(--radius-lg)] bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] flex items-center justify-center shrink-0 shadow-[var(--glass-shadow)] backdrop-blur-md">
           <FileText className="w-7 h-7 text-[var(--accent)] opacity-90 block" />

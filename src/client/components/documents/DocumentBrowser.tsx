@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import { AnimatePresence, motion } from 'framer-motion';
 import { Document, BrowseFilters, DocumentCollection } from '../../types/documents';
 import { useNavigation } from '../../services/NavigationContext';
-import { DocumentModal } from './DocumentModal';
 import { useHighlightNavigation } from '../../hooks/useHighlightNavigation';
 import { HighlightNavigationControls } from './HighlightNavigationControls';
 import { useFilters } from '../../contexts/useFilters';
@@ -12,20 +11,20 @@ import { DocumentBrowserFilters } from './DocumentBrowserFilters';
 import { DocumentList } from './DocumentList';
 import { DocumentHoverPreview } from './DocumentHoverPreview';
 import { useDocumentBrowserData } from '../../hooks/useDocumentBrowserData';
+import { useNavigate } from 'react-router-dom';
 
 interface DocumentBrowserProps {
   searchTerm?: string;
   onSearchTermChange?: (term: string) => void;
   selectedDocumentId?: string;
-  onDocumentClose?: () => void;
 }
 
 export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
   searchTerm: externalSearchTerm,
   onSearchTermChange,
   selectedDocumentId,
-  onDocumentClose,
 }) => {
+  const navigate = useNavigate();
   const { filters: globalFilters } = useFilters();
   const navigation = useNavigation();
   const { searchTerm: contextSearchTerm, setSearchTerm: setContextSearchTerm } = navigation;
@@ -82,6 +81,19 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
   const [hoveredDoc, setHoveredDoc] = useState<Document | null>(null);
   const [hoverRect, setHoverRect] = useState<DOMRect | null>(null);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const openDocumentRoute = useCallback(
+    (document: Document) => {
+      const params = new URLSearchParams(window.location.search);
+      if (effectiveSearchTerm?.trim()) {
+        params.set('search', effectiveSearchTerm.trim());
+      } else {
+        params.delete('search');
+      }
+      const query = params.toString();
+      navigate(`/documents/${document.id}${query ? `?${query}` : ''}`);
+    },
+    [effectiveSearchTerm, navigate],
+  );
 
   const handleHoverStart = useCallback((doc: Document, rect: DOMRect) => {
     if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
@@ -126,26 +138,17 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const {
-    documents,
-    filteredDocuments,
-    selectedDocument,
-    setSelectedDocument,
-    handleDocumentSelect,
-    currentPage,
-    setCurrentPage,
-    totalDocuments,
-    isFetching,
-  } = useDocumentBrowserData({
-    effectiveSearchTerm,
-    globalTimeRange: globalFilters.timeRange,
-    sortBy,
-    sortOrder,
-    filters,
-    itemsPerPage,
-    hideLowCredibility,
-    selectedDocumentId,
-  });
+  const { documents, filteredDocuments, currentPage, setCurrentPage, totalDocuments, isFetching } =
+    useDocumentBrowserData({
+      effectiveSearchTerm,
+      globalTimeRange: globalFilters.timeRange,
+      sortBy,
+      sortOrder,
+      filters,
+      itemsPerPage,
+      hideLowCredibility,
+      selectedDocumentId,
+    });
 
   const fileTypeOptions = useMemo(() => {
     if (!collection) return [];
@@ -209,7 +212,7 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
   };
 
   return (
-    <div className="min-h-screen text-[var(--text-primary)] overflow-x-hidden">
+    <div className="surface-glass min-h-screen text-[var(--text-primary)] overflow-x-hidden">
       <div className="w-full py-[var(--space-4)] md:py-[var(--space-6)]">
         <DocumentBrowserHeader
           isHeaderCondensed={isHeaderCondensed}
@@ -266,7 +269,7 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
               totalHighlights={totalHighlights}
               onNext={nextHighlight}
               onPrev={prevHighlight}
-              className="bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-md)] px-[var(--space-3)] py-[var(--space-2)] shrink-0"
+              className="surface-glass-card px-[var(--space-3)] py-[var(--space-2)] shrink-0"
             />
           </div>
         )}
@@ -276,7 +279,7 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
           filteredDocuments={filteredDocuments}
           viewMode={viewMode}
           densityMode={densityMode}
-          handleDocumentSelect={handleDocumentSelect}
+          handleDocumentSelect={openDocumentRoute}
           handleHoverStart={handleHoverStart}
           handleHoverEnd={handleHoverEnd}
           isFetching={isFetching}
@@ -289,22 +292,6 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
           jumpToPage={jumpToPage}
           setJumpToPage={setJumpToPage}
         />
-
-        {selectedDocument && (
-          <DocumentModal
-            id={String(selectedDocument.id)}
-            searchTerm={effectiveSearchTerm}
-            initialDoc={
-              selectedDocument as unknown as Parameters<
-                typeof import('./DocumentModal').DocumentModal
-              >[0]['initialDoc']
-            }
-            onClose={() => {
-              setSelectedDocument(null);
-              onDocumentClose?.();
-            }}
-          />
-        )}
 
         <AnimatePresence>
           {hoveredDoc && hoverRect && <DocumentHoverPreview doc={hoveredDoc} rect={hoverRect} />}

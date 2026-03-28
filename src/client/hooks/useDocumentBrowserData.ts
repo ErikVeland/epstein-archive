@@ -100,7 +100,6 @@ export function useDocumentBrowserData({
   hideLowCredibility,
   selectedDocumentId,
 }: UseDocumentBrowserDataOptions) {
-  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const requestKeyRef = useRef<string | null>(null);
 
@@ -176,6 +175,7 @@ export function useDocumentBrowserData({
         hasMore: newDocs.length === itemsPerPage,
       };
     },
+    enabled: !selectedDocumentId,
     staleTime: 30_000,
     placeholderData: (prev) => prev,
   });
@@ -189,44 +189,11 @@ export function useDocumentBrowserData({
     return documents.filter((d) => (d.metadata?.credibility_score ?? 1) >= 0.6);
   }, [documents, hideLowCredibility]);
 
-  const handleDocumentSelect = useCallback(async (document: Document) => {
-    setSelectedDocument(document);
-    try {
-      const fullDoc = await apiClient.getDocument(document.id);
-      if (fullDoc) {
-        setSelectedDocument((prev) =>
-          prev?.id === document.id ? { ...prev, ...(fullDoc as Record<string, unknown>) } : prev,
-        );
-      }
-    } catch (error) {
-      console.error('Error fetching full document content:', error);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!selectedDocumentId) return;
-    if (selectedDocument?.id === selectedDocumentId) return;
-
-    const existing = documents.find((doc) => doc.id === selectedDocumentId);
-    if (existing) {
-      void handleDocumentSelect(existing);
-      return;
-    }
-
-    apiClient
-      .getDocument(selectedDocumentId)
-      .then((docData) => {
-        if (!docData) return;
-        void handleDocumentSelect(mapApiDocumentToDocument(docData as Record<string, unknown>));
-      })
-      .catch((err) => console.error('Error fetching selected document:', err));
-  }, [documents, handleDocumentSelect, selectedDocument, selectedDocumentId]);
+  const handleDocumentSelect = useCallback((document: Document) => document, []);
 
   return {
     documents,
     filteredDocuments,
-    selectedDocument,
-    setSelectedDocument,
     handleDocumentSelect,
     currentPage,
     setCurrentPage,

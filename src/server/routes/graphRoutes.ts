@@ -99,7 +99,7 @@ function normalizeGraphLabel(raw: string): string {
 
 // Generic document-noise fragments that bleed into entity names during OCR/extraction.
 // Checked via substring match (toLowerCase) against the candidate label.
-const JUNK_SUBSTRINGS = new Set([
+const OCR_JUNK_FRAGMENTS = new Set([
   'demolition',
   'bracket',
   'column',
@@ -138,7 +138,7 @@ function isLikelyJunkGraphLabel(label: string): boolean {
   if (v.endsWith(' group') || v.endsWith(' inc') || v.endsWith(' llc') || v.endsWith(' corp')) {
     return true;
   }
-  return [...JUNK_SUBSTRINGS].some((fragment) => v.includes(fragment));
+  return [...OCR_JUNK_FRAGMENTS].some((fragment) => v.includes(fragment));
 }
 
 // Legacy root alias for older clients/tests expecting /api/graph to return the global graph payload.

@@ -45,6 +45,18 @@ interface UsePaginatedMediaCollectionOptions<TItem> {
   syncAlbumToUrl?: boolean;
 }
 
+function defaultExtractItems<TItem>(payload: Record<string, unknown>): TItem[] {
+  return Array.isArray(payload?.mediaItems) ? (payload.mediaItems as TItem[]) : [];
+}
+
+function defaultExtractTotal(payload: Record<string, unknown>): number | null {
+  return typeof payload?.total === 'number'
+    ? payload.total
+    : Array.isArray(payload?.mediaItems)
+      ? (payload.mediaItems as unknown[]).length
+      : null;
+}
+
 const CACHE_TTL = 30_000;
 const collectionPageCache = new Map<
   string,
@@ -149,14 +161,8 @@ export function usePaginatedMediaCollection<TItem, TAlbum extends CollectionAlbu
     errorMessage,
     buildQuery,
     transformItems,
-    extractItems = (payload: Record<string, unknown>) =>
-      Array.isArray(payload?.mediaItems) ? (payload.mediaItems as TItem[]) : [],
-    extractTotal = (payload: Record<string, unknown>) =>
-      typeof payload?.total === 'number'
-        ? payload.total
-        : Array.isArray(payload?.mediaItems)
-          ? (payload.mediaItems as unknown[]).length
-          : null,
+    extractItems = defaultExtractItems,
+    extractTotal = defaultExtractTotal,
     syncAlbumToUrl = false,
   } = options;
 

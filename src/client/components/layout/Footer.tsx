@@ -188,6 +188,19 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
                 </a>
               </li>
               <li>
+                <a
+                  href="https://www.gofundme.com/manage/never-stop-talking-about-the-epstein-files"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-[var(--accent)] transition-colors flex items-center gap-2 group w-fit"
+                >
+                  <span className="group-hover:translate-x-1 transition-transform">
+                    GoFundMe Campaign
+                  </span>
+                  <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </a>
+              </li>
+              <li>
                 <p className="text-xs text-[var(--text-muted)] mt-2 italic border-l-2 border-[var(--glass-border)] pl-3">
                   "Independent open-source intelligence requires community support."
                 </p>

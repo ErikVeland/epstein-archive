@@ -1,4 +1,4 @@
-.tabs-container {
+.root {
   display: flex;
   align-items: center;
   position: relative;
@@ -12,26 +12,26 @@
   --tab-text-active: var(--text-strong);
 }
 
-.tabs-container.viewer {
+.root::-webkit-scrollbar {
+  display: none;
+}
+
+.viewer {
   overflow: visible;
   flex-wrap: wrap;
   gap: 0;
   padding: 0;
 }
 
-.tabs-container.compact {
+.compact {
   background: rgba(15, 23, 42, 0.4);
-  padding: 4px;
-  border-radius: 14px;
-  gap: 4px;
+  padding: var(--space-1);
+  border-radius: var(--radius-xl);
+  gap: var(--space-1);
   border-bottom: none;
 }
 
-.tabs-container::-webkit-scrollbar {
-  display: none;
-}
-
-.tab-item {
+.tabItem {
   position: relative;
   height: 44px;
   padding: 0 var(--space-4);
@@ -43,11 +43,15 @@
   background: transparent;
   color: var(--tab-text-muted);
   font-family: var(--font-sans);
-  font-size: 12px;
+  font-size: var(--font-size-xs);
   font-weight: 500;
   text-transform: none;
   letter-spacing: 0.02em;
-  transition: all var(--duration-normal) var(--easing-liquid);
+  transition:
+    color var(--duration-normal) var(--easing-liquid),
+    background var(--duration-normal) var(--easing-liquid),
+    box-shadow var(--duration-normal) ease,
+    opacity var(--duration-normal) ease;
   white-space: nowrap;
   outline: none;
   flex-shrink: 0;
@@ -55,95 +59,98 @@
   z-index: 1;
 }
 
-.tabs-container.viewer .tab-item {
+.tabItem:hover {
+  color: var(--text-default);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.tabItemActive {
+  color: var(--tab-text-active);
+}
+
+.viewer .tabItem {
   border-radius: 0;
   height: 42px;
   border-bottom: 2px solid transparent;
   color: var(--text-dim);
   text-transform: none;
   letter-spacing: 0.01em;
-  font-size: 12px;
+  font-size: var(--font-size-xs);
   font-weight: 600;
-  padding: 0 16px;
+  padding: 0 var(--space-4);
 }
 
-.tabs-container.viewer .tab-item:hover {
+.viewer .tabItem:hover {
   background: rgba(255, 255, 255, 0.03);
 }
 
-.tabs-container.viewer .tab-item.active {
+.viewer .tabItemActive {
   border-bottom-color: var(--accent);
   color: var(--text-strong);
   background: rgba(255, 255, 255, 0.02);
 }
 
-.tabs-container.compact .tab-item {
+.compact .tabItem {
   height: 36px;
   padding: 0 var(--space-3);
   font-size: 10px;
 }
 
-.tab-item:hover {
-  color: var(--text-default);
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.tab-item.active {
-  color: var(--tab-text-active);
-}
-
-.tabs-container.compact .tab-item.active {
+.compact .tabItemActive {
   background: rgba(255, 255, 255, 0.08);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-.tab-indicator {
+.tabIndicator {
   position: absolute;
   bottom: 0;
   height: 2px;
   background: var(--accent);
   box-shadow: none;
-  transition: all var(--duration-normal) var(--easing-liquid);
+  transition:
+    transform var(--duration-normal) var(--easing-liquid),
+    width var(--duration-normal) var(--easing-liquid);
   pointer-events: none;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   z-index: 2;
 }
 
-.tabs-container.compact .tab-indicator {
-  display: none; /* In compact mode, background highlight is the indicator */
-}
-
-.tabs-container.viewer .tab-indicator {
+.compact .tabIndicator,
+.viewer .tabIndicator {
   display: none;
 }
 
-.tab-badge {
+.tabBadge {
   background: rgba(255, 255, 255, 0.1);
   color: var(--text-dim);
   font-size: 9px;
   padding: 1px 6px;
   border-radius: 10px;
   font-weight: 800;
-  transition: all var(--duration-normal) ease;
+  transition:
+    background var(--duration-normal) ease,
+    color var(--duration-normal) ease;
 }
 
-.tab-item.active .tab-badge {
+.tabItemActive .tabBadge {
   background: var(--accent);
-  color: white;
+  color: var(--color-text-inverse, #fff);
 }
 
-.tab-icon {
+.tabIcon {
   width: 14px;
   height: 14px;
   opacity: 0.5;
-  transition: all var(--duration-normal) ease;
+  transition:
+    opacity var(--duration-normal) ease,
+    color var(--duration-normal) ease;
 }
 
-.tab-item.active .tab-icon {
+.tabItemActive .tabIcon {
   opacity: 1;
   color: var(--accent);
 }
 
-.tab-item:focus-visible {
+.tabItem:focus-visible {
   box-shadow: 0 0 0 2px var(--accent-glow);
 }

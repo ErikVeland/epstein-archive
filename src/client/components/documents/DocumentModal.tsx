@@ -149,10 +149,14 @@ export const DocumentModal: React.FC<Props> = ({
   const rightPaneScrollRef = useRef<HTMLDivElement | null>(null);
   const hasAutoSwitchedNoOcrRef = useRef(false);
 
-  const { data: fetchedDoc } = useQuery<DocRecord | null>({
+  const {
+    data: fetchedDoc,
+    isLoading: isLoadingDoc,
+    isFetching: isFetchingDoc,
+  } = useQuery<DocRecord | null>({
     queryKey: ['document', id],
     queryFn: () => apiClient.getDocument(id) as Promise<DocRecord>,
-    initialData: initialDoc || null,
+    initialData: initialDoc ?? undefined,
     staleTime: 30_000,
   });
   const doc = fetchedDoc ?? null;
@@ -334,6 +338,21 @@ export const DocumentModal: React.FC<Props> = ({
 
   const summary = useMemo(() => deriveSummary(doc || {}), [doc]);
 
+  if (!doc && (isLoadingDoc || isFetchingDoc)) {
+    return createPortal(
+      <div className="fixed inset-0 bg-[var(--glass-bg)] backdrop-blur-md z-[1050] flex items-center justify-center p-4">
+        <div className="surface-glass p-6 pointer-events-auto">
+          <div className="text-[var(--text-primary)] font-semibold mb-2">Loading document</div>
+          <div className="text-[var(--text-muted)] mb-4">
+            Fetching the linked record and related evidence.
+          </div>
+          <div className="w-8 h-8 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin" />
+        </div>
+      </div>,
+      document.body,
+    );
+  }
+
   if (!doc) {
     return createPortal(
       <div className="fixed inset-0 bg-[var(--glass-bg)] backdrop-blur-md z-[1050] flex items-center justify-center p-4">
@@ -444,7 +463,7 @@ export const DocumentModal: React.FC<Props> = ({
       onClick={onClose}
     >
       <div
-        className="glass-panel app-header-glass rounded-none md:rounded-[var(--radius-xl)] w-full h-full flex flex-col border-0 md:border md:border-[var(--glass-border)] pointer-events-auto overflow-hidden shadow-[var(--glass-shadow)]"
+        className="surface-glass app-header-glass rounded-none md:rounded-[var(--radius-xl)] w-full h-full flex flex-col border-0 md:border md:border-[var(--glass-border)] pointer-events-auto overflow-hidden shadow-[var(--glass-shadow)]"
         style={{
           width: 'clamp(960px, 94vw, 1500px)',
           height: 'clamp(600px, 90vh, 1000px)',

@@ -51,11 +51,13 @@ const moduleGovernedFiles = new Set(
     'src/client/components/common/Card.tsx',
     'src/client/components/common/FormField.tsx',
     'src/client/components/common/Select.tsx',
+    'src/client/components/common/Tabs.tsx',
+    'src/client/components/common/Tooltip.tsx',
   ].map((f) => path.join(rootDir, f)),
 );
 
 const tailwindUtilityPattern =
-  /["'`][^"'`]*\b(flex|grid|items-center|items-start|justify-between|justify-center|gap-\d|p-\d|px-\d|py-\d|pt-\d|pb-\d|m-\d|mx-\d|my-\d|mt-\d|mb-\d|w-full|h-\d|text-(?:xs|sm|base|lg|xl)|font-(?:medium|bold|semibold|mono)|rounded(?:-(?:md|lg|xl|full|sm))?|overflow-(?:hidden|auto|scroll)|absolute|relative|hidden|block|inline-flex|inline-block|truncate|uppercase|transition-)\b[^"'`]*["'`]/;
+  /["'`][^"'`\n\r]*\b(flex|grid|items-center|items-start|justify-between|justify-center|gap-\d|p-\d|px-\d|py-\d|pt-\d|pb-\d|m-\d|mx-\d|my-\d|mt-\d|mb-\d|w-full|h-\d|text-(?:xs|sm|base|lg|xl)|font-(?:medium|bold|semibold|mono)|rounded(?:-(?:md|lg|xl|full|sm))?|overflow-(?:hidden|auto|scroll)|absolute|relative|hidden|block|inline-flex|inline-block|truncate|uppercase|transition-)\b[^"'`\n\r]*["'`]/;
 
 function walk(dir: string): string[] {
   const entries = fs.readdirSync(dir, { withFileTypes: true });

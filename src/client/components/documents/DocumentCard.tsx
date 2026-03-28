@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles, User, Database, Calendar, Eye } from 'lucide-react';
 import { Document } from '../../types/documents';
@@ -22,16 +22,23 @@ interface DocumentCardProps {
   onHoverEnd?: () => void;
 }
 
-export const DocumentCard: React.FC<DocumentCardProps> = ({
-  document,
-  searchTerm,
-  dense,
-  active,
-  onClick,
-  onHoverStart,
-  onHoverEnd,
-}) => {
-  const cardRef = useRef<HTMLElement>(null);
+export const DocumentCard = React.forwardRef<HTMLElement, DocumentCardProps>(function DocumentCard(
+  { document, searchTerm, dense, active, onClick, onHoverStart, onHoverEnd },
+  forwardedRef,
+) {
+  const cardRef = useRef<HTMLElement | null>(null);
+  const setRefs = useCallback(
+    (node: HTMLElement | null) => {
+      cardRef.current = node;
+      if (!forwardedRef) return;
+      if (typeof forwardedRef === 'function') {
+        forwardedRef(node);
+      } else {
+        (forwardedRef as { current: HTMLElement | null }).current = node;
+      }
+    },
+    [forwardedRef],
+  );
   const displayTitle = document.title || document.filename || 'Untitled document';
   const previewText = getSafePreviewText(document);
   const risk = Number(document.redFlagRating || 0);
@@ -46,7 +53,7 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
 
   return (
     <motion.article
-      ref={cardRef}
+      ref={setRefs}
       data-testid="document-card"
       className={`document-card ${dense ? 'dense' : ''} ${active ? 'active' : ''}`}
       onClick={() => onClick(document)}
@@ -115,4 +122,4 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
       </div>
     </motion.article>
   );
-};
+});

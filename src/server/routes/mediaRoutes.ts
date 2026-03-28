@@ -26,6 +26,8 @@ const mediaImagesQuerySchema = z.object({
     page: z.coerce.number().int().min(1).default(1),
     limit: z.coerce.number().int().min(1).max(500).default(24),
     albumId: z.coerce.number().int().positive().optional(),
+    tagId: z.coerce.number().int().positive().optional(),
+    personId: z.coerce.number().int().positive().optional(),
     sortField: z.string().optional(),
     sortOrder: z.enum(['asc', 'desc', 'ASC', 'DESC']).optional(),
     slim: z.preprocess((v) => v === 'true' || v === true, z.boolean()).optional(),
@@ -39,6 +41,54 @@ const mediaImagesQuerySchema = z.object({
 const mediaIdParamSchema = z.object({
   params: z.object({
     id: z.coerce.number().int().positive(),
+  }),
+});
+
+const imageUpdateSchema = z.object({
+  params: mediaIdParamSchema.shape.params,
+  body: z
+    .object({
+      title: z.string().trim().max(500).optional(),
+      description: z.string().trim().max(5000).optional(),
+      redFlagRating: z.coerce.number().int().min(0).max(5).optional(),
+    })
+    .refine((body) => Object.keys(body).length > 0, {
+      message: 'At least one field must be provided',
+    }),
+});
+
+const imageRotateSchema = z.object({
+  params: mediaIdParamSchema.shape.params,
+  body: z.object({
+    direction: z.enum(['left', 'right']),
+  }),
+});
+
+const imageBatchRotateSchema = z.object({
+  body: z.object({
+    imageIds: z.array(z.coerce.number().int().positive()).min(1),
+    direction: z.enum(['left', 'right']),
+  }),
+});
+
+const imageBatchRateSchema = z.object({
+  body: z.object({
+    imageIds: z.array(z.coerce.number().int().positive()).min(1),
+    rating: z.coerce.number().int().min(0).max(5),
+  }),
+});
+
+const imageBatchMetadataSchema = z.object({
+  body: z.object({
+    imageIds: z.array(z.coerce.number().int().positive()).min(1),
+    updates: z
+      .object({
+        title: z.string().trim().max(500).optional(),
+        description: z.string().trim().max(5000).optional(),
+      })
+      .refine((updates) => Object.keys(updates).length > 0, {
+        message: 'At least one metadata field must be provided',
+      }),
   }),
 });
 
@@ -106,14 +156,18 @@ router.get('/images', validate(mediaImagesQuerySchema), async (req, res, next) =
     const page = Number(query.page || 1);
     const limit = Number(query.limit || 24);
     const sortField = String(query.sortField || 'date_added').toLowerCase();
+    const sortOrder = String(query.sortOrder || 'desc').toLowerCase() === 'asc' ? 'asc' : 'desc';
     const slim = Boolean(query.slim);
-
-    const sortBy: 'title' | 'date' | 'rating' =
-      sortField === 'title' ? 'title' : sortField === 'rating' ? 'rating' : 'date';
 
     const { mediaItems, total } = await mediaRepository.getMediaItemsPaginated(page, limit, {
       albumId: query.albumId ? Number(query.albumId) : undefined,
-      sortBy,
+      tagId: query.tagId ? Number(query.tagId) : undefined,
+      personId: query.personId ? Number(query.personId) : undefined,
+      verificationStatus: query.verificationStatus,
+      minRedFlagRating: query.minRedFlagRating ? Number(query.minRedFlagRating) : undefined,
+      hasPeople: query.hasPeople === 'true',
+      sortBy: sortField,
+      sortOrder,
       fileType: 'image',
       transcriptQuery: query.search,
     });
@@ -221,12 +275,55 @@ router.get('/images/:id/people', validate(mediaIdParamSchema), async (req, res, 
 });
 
 // Edit and moderation routes remain authenticated.
-router.put('/images/:id', authenticateRequest, validate(mediaIdParamSchema), (_req, res) => {
-  res.status(501).json({ error: 'Not implemented' });
-});
-router.put('/images/:id/rotate', authenticateRequest, validate(mediaIdParamSchema), (_req, res) => {
-  res.status(501).json({ error: 'Not implemented' });
-});
+router.put(
+  '/images/:id',
+  authenticateRequest,
+  validate(imageUpdateSchema),
+  async (req, res, next) => {
+    try {
+      const imageId = Number(req.params.id);
+      const { title, description, redFlagRating } = req.body as {
+        title?: string;
+        description?: string;
+        redFlagRating?: number;
+      };
+
+      await mediaService.updateImage(imageId, {
+        ...(title !== undefined ? { title } : {}),
+        ...(description !== undefined ? { description } : {}),
+        ...(redFlagRating !== undefined ? { redFlagRating } : {}),
+      });
+
+      const updatedImage = await mediaService.getImageById(imageId);
+      if (!updatedImage) return res.status(404).json({ error: 'Image not found' });
+
+      res.json(updatedImage);
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+router.put(
+  '/images/:id/rotate',
+  authenticateRequest,
+  validate(imageRotateSchema),
+  async (req, res, next) => {
+    try {
+      const imageId = Number(req.params.id);
+      const { direction } = req.body as { direction: 'left' | 'right' };
+      const degrees = direction === 'right' ? 90 : -90;
+
+      await mediaService.rotateImage(imageId, degrees);
+
+      const updatedImage = await mediaService.getImageById(imageId);
+      if (!updatedImage) return res.status(404).json({ error: 'Image not found' });
+
+      res.json(updatedImage);
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 router.post(
   '/images/:id/tags',
   authenticateRequest,
@@ -277,21 +374,143 @@ router.delete('/images/:id/people/:personId', authenticateRequest, async (req, r
   }
 });
 
-router.post('/images/batch/rotate', authenticateRequest, (_req, res) => {
-  res.status(501).json({ error: 'Not implemented' });
-});
-router.post('/images/batch/rate', authenticateRequest, (_req, res) => {
-  res.status(501).json({ error: 'Not implemented' });
-});
-router.post('/images/batch/tags', authenticateRequest, (_req, res) => {
-  res.status(501).json({ error: 'Not implemented' });
-});
-router.post('/images/batch/people', authenticateRequest, (_req, res) => {
-  res.status(501).json({ error: 'Not implemented' });
-});
-router.post('/images/batch/metadata', authenticateRequest, (_req, res) => {
-  res.status(501).json({ error: 'Not implemented' });
-});
+const runImageBatch = async <T>(
+  imageIds: number[],
+  handler: (imageId: number) => Promise<T>,
+): Promise<
+  Array<{ id: number; success: true } & T> | Array<{ id: number; success: false; error: string }>
+> =>
+  Promise.all(
+    imageIds.map(async (imageId) => {
+      try {
+        const result = await handler(imageId);
+        return { id: imageId, success: true as const, ...result };
+      } catch (error) {
+        return {
+          id: imageId,
+          success: false as const,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        };
+      }
+    }),
+  );
+
+router.put(
+  '/images/batch/rotate',
+  authenticateRequest,
+  validate(imageBatchRotateSchema),
+  async (req, res, next) => {
+    try {
+      const { imageIds, direction } = req.body as {
+        imageIds: number[];
+        direction: 'left' | 'right';
+      };
+      const degrees = direction === 'right' ? 90 : -90;
+      const results = await runImageBatch(imageIds, async (imageId) => {
+        await mediaService.rotateImage(imageId, degrees);
+        return { image: await mediaService.getImageById(imageId) };
+      });
+      res.json({ results });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+router.post(
+  '/images/batch/rotate',
+  authenticateRequest,
+  validate(imageBatchRotateSchema),
+  async (req, res, next) => {
+    try {
+      const { imageIds, direction } = req.body as {
+        imageIds: number[];
+        direction: 'left' | 'right';
+      };
+      const degrees = direction === 'right' ? 90 : -90;
+      const results = await runImageBatch(imageIds, async (imageId) => {
+        await mediaService.rotateImage(imageId, degrees);
+        return { image: await mediaService.getImageById(imageId) };
+      });
+      res.json({ results });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+router.put(
+  '/images/batch/rate',
+  authenticateRequest,
+  validate(imageBatchRateSchema),
+  async (req, res, next) => {
+    try {
+      const { imageIds, rating } = req.body as { imageIds: number[]; rating: number };
+      const results = await runImageBatch(imageIds, async (imageId) => {
+        await mediaService.updateImage(imageId, { redFlagRating: rating });
+        return { image: await mediaService.getImageById(imageId) };
+      });
+      res.json({ results });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+router.post(
+  '/images/batch/rate',
+  authenticateRequest,
+  validate(imageBatchRateSchema),
+  async (req, res, next) => {
+    try {
+      const { imageIds, rating } = req.body as { imageIds: number[]; rating: number };
+      const results = await runImageBatch(imageIds, async (imageId) => {
+        await mediaService.updateImage(imageId, { redFlagRating: rating });
+        return { image: await mediaService.getImageById(imageId) };
+      });
+      res.json({ results });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+router.put(
+  '/images/batch/metadata',
+  authenticateRequest,
+  validate(imageBatchMetadataSchema),
+  async (req, res, next) => {
+    try {
+      const { imageIds, updates } = req.body as {
+        imageIds: number[];
+        updates: { title?: string; description?: string };
+      };
+      const results = await runImageBatch(imageIds, async (imageId) => {
+        await mediaService.updateImage(imageId, updates);
+        return { image: await mediaService.getImageById(imageId) };
+      });
+      res.json({ results });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+router.post(
+  '/images/batch/metadata',
+  authenticateRequest,
+  validate(imageBatchMetadataSchema),
+  async (req, res, next) => {
+    try {
+      const { imageIds, updates } = req.body as {
+        imageIds: number[];
+        updates: { title?: string; description?: string };
+      };
+      const results = await runImageBatch(imageIds, async (imageId) => {
+        await mediaService.updateImage(imageId, updates);
+        return { image: await mediaService.getImageById(imageId) };
+      });
+      res.json({ results });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 // ─── Shared schema for audio/video list queries ───────────────────────────────
 
@@ -446,6 +665,19 @@ const batchTagsSchema = z.object({
   }),
 });
 
+const batchImageTagsSchema = z.object({
+  body: z
+    .object({
+      itemIds: z.array(z.coerce.number().int().positive()).optional(),
+      imageIds: z.array(z.coerce.number().int().positive()).optional(),
+      tagIds: z.array(z.coerce.number().int().positive()).min(1),
+      action: z.enum(['add', 'remove']),
+    })
+    .refine((body) => (body.itemIds?.length ?? 0) > 0 || (body.imageIds?.length ?? 0) > 0, {
+      message: 'At least one item id is required',
+    }),
+});
+
 const batchPeopleSchema = z.object({
   body: z.object({
     itemIds: z.array(z.number().int().positive()),
@@ -453,6 +685,47 @@ const batchPeopleSchema = z.object({
     action: z.enum(['add', 'remove']).optional(),
   }),
 });
+
+const batchImagePeopleSchema = z.object({
+  body: z
+    .object({
+      itemIds: z.array(z.coerce.number().int().positive()).optional(),
+      imageIds: z.array(z.coerce.number().int().positive()).optional(),
+      personIds: z.array(z.coerce.number().int().positive()).optional(),
+      entityIds: z.array(z.coerce.number().int().positive()).optional(),
+      action: z.enum(['add', 'remove']).optional(),
+    })
+    .refine((body) => (body.itemIds?.length ?? 0) > 0 || (body.imageIds?.length ?? 0) > 0, {
+      message: 'At least one item id is required',
+    })
+    .refine((body) => (body.personIds?.length ?? 0) > 0 || (body.entityIds?.length ?? 0) > 0, {
+      message: 'At least one person id is required',
+    }),
+});
+
+const handleBatchTags = async (itemIds: number[], tagIds: number[], action: 'add' | 'remove') => {
+  if (action === 'add') {
+    await mediaService.batchAddTagsToItems(itemIds, tagIds);
+  } else {
+    await mediaService.batchRemoveTagsFromItems(itemIds, tagIds);
+  }
+
+  return itemIds.map((id) => ({ id, success: true }));
+};
+
+const handleBatchPeople = async (
+  itemIds: number[],
+  personIds: number[],
+  action?: 'add' | 'remove',
+) => {
+  if (action === 'remove') {
+    await mediaService.batchRemovePeopleFromItems(itemIds, personIds);
+  } else {
+    await mediaService.batchAddPeopleToItems(itemIds, personIds);
+  }
+
+  return itemIds.map((id) => ({ id, success: true }));
+};
 
 router.put(
   '/items/batch/tags',
@@ -465,12 +738,8 @@ router.put(
         tagIds: number[];
         action: 'add' | 'remove';
       };
-      if (action === 'add') {
-        await mediaService.batchAddTagsToItems(itemIds, tagIds);
-      } else {
-        await mediaService.batchRemoveTagsFromItems(itemIds, tagIds);
-      }
-      res.json({ ok: true });
+      const results = await handleBatchTags(itemIds, tagIds, action);
+      res.json({ ok: true, results });
     } catch (error) {
       next(error);
     }
@@ -488,12 +757,98 @@ router.put(
         personIds: number[];
         action?: 'add' | 'remove';
       };
-      if (action === 'remove') {
-        await mediaService.batchRemovePeopleFromItems(itemIds, personIds);
-      } else {
-        await mediaService.batchAddPeopleToItems(itemIds, personIds);
-      }
-      res.json({ ok: true });
+      const results = await handleBatchPeople(itemIds, personIds, action);
+      res.json({ ok: true, results });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+router.put(
+  '/images/batch/tags',
+  authenticateRequest,
+  validate(batchImageTagsSchema),
+  async (req, res, next) => {
+    try {
+      const { imageIds, itemIds, tagIds, action } = req.body as {
+        imageIds?: number[];
+        itemIds?: number[];
+        tagIds: number[];
+        action: 'add' | 'remove';
+      };
+      const results = await handleBatchTags(itemIds ?? imageIds ?? [], tagIds, action);
+      res.json({ ok: true, results });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+router.post(
+  '/images/batch/tags',
+  authenticateRequest,
+  validate(batchImageTagsSchema),
+  async (req, res, next) => {
+    try {
+      const { imageIds, itemIds, tagIds, action } = req.body as {
+        imageIds?: number[];
+        itemIds?: number[];
+        tagIds: number[];
+        action: 'add' | 'remove';
+      };
+      const results = await handleBatchTags(itemIds ?? imageIds ?? [], tagIds, action);
+      res.json({ ok: true, results });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+router.put(
+  '/images/batch/people',
+  authenticateRequest,
+  validate(batchImagePeopleSchema),
+  async (req, res, next) => {
+    try {
+      const { imageIds, itemIds, personIds, entityIds, action } = req.body as {
+        imageIds?: number[];
+        itemIds?: number[];
+        personIds?: number[];
+        entityIds?: number[];
+        action?: 'add' | 'remove';
+      };
+      const results = await handleBatchPeople(
+        itemIds ?? imageIds ?? [],
+        personIds ?? entityIds ?? [],
+        action,
+      );
+      res.json({ ok: true, results });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+router.post(
+  '/images/batch/people',
+  authenticateRequest,
+  validate(batchImagePeopleSchema),
+  async (req, res, next) => {
+    try {
+      const { imageIds, itemIds, personIds, entityIds, action } = req.body as {
+        imageIds?: number[];
+        itemIds?: number[];
+        personIds?: number[];
+        entityIds?: number[];
+        action?: 'add' | 'remove';
+      };
+      const results = await handleBatchPeople(
+        itemIds ?? imageIds ?? [],
+        personIds ?? entityIds ?? [],
+        action,
+      );
+      res.json({ ok: true, results });
     } catch (error) {
       next(error);
     }

@@ -54,6 +54,7 @@ export interface MediaImage {
   // Related data
   tags?: string[];
   rating?: number;
+  redFlagRating?: number;
   isSensitive?: boolean;
 }
 

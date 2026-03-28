@@ -1,5 +1,22 @@
 // Rules for consolidating Top 100 VIP entities into canonical profiles
 // This prevents fragmentation (e.g. "Jeffry Epstein" vs "Jeffrey Epstein")
+import {
+  normalizeEntityNameToken,
+  stripEntityHonorificPrefix,
+  unwrapEntityNameCandidates,
+} from '../../src/shared/entityNameNormalization.js';
+
+function normalizeVipToken(value: string): string {
+  return normalizeEntityNameToken(value);
+}
+
+function stripHonorificPrefix(value: string): string {
+  return stripEntityHonorificPrefix(value);
+}
+
+function unwrapVipCandidate(value: string): string[] {
+  return unwrapEntityNameCandidates(value);
+}
 
 export interface VipRule {
   canonicalName: string;
@@ -1964,90 +1981,6 @@ function applyExtendedAliasPatches(rules: VipRule[]): VipRule[] {
 export const VIP_RULES: VipRule[] = applyExtendedAliasPatches(
   mergeVipRules(BASE_VIP_RULES, BULK_VIP_RULES),
 );
-
-const HONORIFIC_PREFIXES = [
-  'mr',
-  'mrs',
-  'ms',
-  'miss',
-  'dr',
-  'prof',
-  'president',
-  'prime minister',
-  'pm',
-  'governor',
-  'gov',
-  'senator',
-  'sen',
-  'rep',
-  'representative',
-  'judge',
-  'justice',
-];
-
-const VIP_WRAPPER_PREFIXES = [
-  'dear',
-  'dearest',
-  'defendant',
-  'defendants',
-  'plaintiff',
-  'plaintiffs',
-  'watch',
-  'watching',
-  'philanthropy',
-] as const;
-
-const VIP_WRAPPER_SUFFIXES = ['to', 'from'] as const;
-
-function normalizeVipToken(value: string): string {
-  return value
-    .toLowerCase()
-    .replace(/[.,'"`]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-function stripHonorificPrefix(value: string): string {
-  let current = normalizeVipToken(value);
-  let changed = true;
-  while (changed) {
-    changed = false;
-    for (const prefix of HONORIFIC_PREFIXES) {
-      if (current === prefix) continue;
-      if (current.startsWith(`${prefix} `)) {
-        current = current.slice(prefix.length + 1).trim();
-        changed = true;
-        break;
-      }
-    }
-  }
-  return current;
-}
-
-function unwrapVipCandidate(value: string): string[] {
-  const seen = new Set<string>();
-  const queue = [stripHonorificPrefix(value)];
-
-  while (queue.length > 0) {
-    const current = normalizeVipToken(queue.shift() || '');
-    if (!current || seen.has(current)) continue;
-    seen.add(current);
-
-    for (const prefix of VIP_WRAPPER_PREFIXES) {
-      if (current.startsWith(`${prefix} `)) {
-        queue.push(current.slice(prefix.length + 1));
-      }
-    }
-
-    for (const suffix of VIP_WRAPPER_SUFFIXES) {
-      if (current.endsWith(` ${suffix}`)) {
-        queue.push(current.slice(0, -(suffix.length + 1)));
-      }
-    }
-  }
-
-  return Array.from(seen);
-}
 
 function buildGeneratedPersonAliases(canonicalName: string): string[] {
   const clean = normalizeVipToken(canonicalName);

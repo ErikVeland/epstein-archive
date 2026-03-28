@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import './Tabs.css';
+import { cn } from '../../utils/cn';
+import s from './Tabs.module.css';
 
 export interface TabItem {
   key: string;
@@ -26,6 +27,12 @@ export const Tabs: React.FC<TabsProps> = ({
   const [indicatorStyle, setIndicatorStyle] = useState<React.CSSProperties>({});
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const variantClassName = {
+    default: undefined,
+    compact: s.compact,
+    viewer: s.viewer,
+  }[variant];
 
   useEffect(() => {
     const activeTabElement = tabRefs.current[activeTab];
@@ -62,13 +69,13 @@ export const Tabs: React.FC<TabsProps> = ({
   };
 
   return (
-    <div className={`tabs-container ${variant} ${className}`} role="tablist" ref={containerRef}>
+    <div className={cn(s.root, variantClassName, className)} role="tablist" ref={containerRef}>
       {tabs.map((tab, index) => (
         <button
           key={tab.key}
           ref={(el) => (tabRefs.current[tab.key] = el)}
           data-testid={`tab-${tab.key}`}
-          className={`tab-item ${activeTab === tab.key ? 'active' : ''}`}
+          className={cn(s.tabItem, activeTab === tab.key && s.tabItemActive)}
           role="tab"
           aria-selected={activeTab === tab.key}
           aria-controls={`panel-${tab.key}`}
@@ -77,12 +84,12 @@ export const Tabs: React.FC<TabsProps> = ({
           onKeyDown={(e) => handleKeyDown(e, index)}
           tabIndex={activeTab === tab.key ? 0 : -1}
         >
-          {tab.icon && <span className="tab-icon">{tab.icon}</span>}
+          {tab.icon && <span className={s.tabIcon}>{tab.icon}</span>}
           <span>{tab.label}</span>
-          {tab.count !== undefined && <span className="tab-badge">{tab.count}</span>}
+          {tab.count !== undefined && <span className={s.tabBadge}>{tab.count}</span>}
         </button>
       ))}
-      <div className="tab-indicator" style={indicatorStyle} aria-hidden="true" />
+      <div className={s.tabIndicator} style={indicatorStyle} aria-hidden="true" />
     </div>
   );
 };

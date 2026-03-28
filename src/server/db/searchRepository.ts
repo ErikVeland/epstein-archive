@@ -1,6 +1,7 @@
 import { searchQueries } from '@epstein/db';
 import { getApiPool } from './connection.js';
 import { logger } from '../services/Logger.js';
+import { buildVipDisplayLookup, resolveCanonicalVipName } from './vipNameResolver.js';
 
 const normalizeAliasValue = (value: string): string =>
   value
@@ -217,19 +218,22 @@ export const searchRepository = {
       }
     }
 
+    const vipDisplayLookup = await buildVipDisplayLookup();
+
     return {
       entities: entityRows.map((row: Record<string, unknown>) => {
         const aliases = parseEntityAliases(typeof row.aliases === 'string' ? row.aliases : null);
+        const resolvedName = resolveCanonicalVipName(String(row.fullName || ''), vipDisplayLookup);
         const stats = entityStatsById.get(Number(row.id));
         return {
           id: String(row.id),
-          fullName: String(row.fullName || ''),
-          canonicalName: String(row.fullName || ''),
-          name: String(row.fullName || ''),
+          fullName: resolvedName,
+          canonicalName: resolvedName,
+          name: resolvedName,
           primaryRole: String(row.primaryRole || ''),
           title: String(row.primaryRole || ''),
           aliases,
-          matchedAlias: resolveMatchedAlias(searchTerm, String(row.fullName || ''), aliases),
+          matchedAlias: resolveMatchedAlias(searchTerm, resolvedName, aliases),
           entityType: 'Person',
           secondaryRoles: [],
           likelihoodLevel: stats?.riskLevel ?? null,
