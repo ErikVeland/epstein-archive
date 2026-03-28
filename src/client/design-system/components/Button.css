@@ -1,0 +1,130 @@
+/* src/client/design-system/components/Button.css */
+
+.ds-btn {
+  /* Layout */
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  white-space: nowrap;
+  flex-shrink: 0;
+  padding-inline: var(--control-padding-inline);
+
+  /* Typography */
+  font-family: inherit;
+  font-weight: var(--weight-medium);
+  font-size: var(--type-small);
+
+  /* Interactive */
+  cursor: pointer;
+  user-select: none;
+
+  /* Glass surface */
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(148, 163, 184, 0.012)),
+    color-mix(in srgb, var(--glass-bg) 94%, transparent);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid color-mix(in srgb, var(--glass-border) 88%, transparent);
+  border-radius: var(--radius-md);
+  box-shadow: var(--glass-shadow-soft);
+  transition:
+    background-color var(--duration-fast) var(--easing-swift),
+    border-color var(--duration-fast) var(--easing-swift),
+    box-shadow var(--duration-fast) var(--easing-swift),
+    transform var(--duration-fast) var(--easing-swift),
+    color var(--duration-fast) var(--easing-swift),
+    filter var(--duration-fast) var(--easing-swift);
+  will-change: background-color, border-color;
+}
+
+.ds-btn:hover:not(:disabled) {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(148, 163, 184, 0.018)),
+    color-mix(in srgb, var(--glass-bg-strong) 95%, transparent);
+  border-color: color-mix(in srgb, var(--glass-border-highlight) 78%, transparent);
+  transform: translateY(-1px);
+  box-shadow: var(--glass-shadow);
+}
+
+.ds-btn:active:not(:disabled) {
+  box-shadow: var(--glass-shadow-soft);
+  transform: translateY(0);
+}
+
+.ds-btn:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 80%, #fff 20%);
+  outline-offset: 2px;
+}
+
+.ds-btn:disabled {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+/* --- Size variants --- */
+
+.ds-btn[data-size='sm'] {
+  min-height: var(--control-height-compact);
+  font-size: var(--type-small);
+}
+
+.ds-btn[data-size='md'] {
+  min-height: var(--control-height);
+  font-size: var(--type-small);
+}
+
+.ds-btn[data-size='lg'] {
+  min-height: calc(var(--control-height) + 4px);
+  font-size: var(--type-body);
+}
+
+/* --- Semantic variants --- */
+
+.ds-btn[data-variant='primary'] {
+  background: var(--accent);
+  color: var(--bg-dark);
+  border-color: transparent;
+  box-shadow: var(--glass-shadow);
+}
+
+.ds-btn[data-variant='primary']:hover:not(:disabled) {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+  background: var(--accent);
+}
+
+.ds-btn[data-variant='secondary'] {
+  color: var(--text-secondary);
+  background: color-mix(in srgb, var(--glass-bg) 70%, transparent);
+}
+
+.ds-btn[data-variant='secondary']:hover:not(:disabled) {
+  color: var(--text-primary);
+  background: var(--glass-bg-strong);
+}
+
+.ds-btn[data-variant='danger'] {
+  border-color: color-mix(in srgb, var(--accent-danger) 30%, transparent);
+  background: color-mix(in srgb, var(--accent-danger) 16%, transparent);
+  color: color-mix(in srgb, var(--accent-danger) 30%, #fff 70%);
+}
+
+.ds-btn[data-variant='danger']:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent-danger) 24%, transparent);
+  border-color: color-mix(in srgb, var(--accent-danger) 40%, transparent);
+}
+
+.ds-btn[data-variant='ghost'] {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-secondary);
+}
+
+.ds-btn[data-variant='ghost']:hover:not(:disabled) {
+  background: var(--glass-bg-strong);
+  color: var(--text-primary);
+  box-shadow: none;
+}
