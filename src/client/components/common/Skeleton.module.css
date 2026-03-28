@@ -1,10 +1,12 @@
+/* src/client/components/common/Skeleton.module.css */
+
 .root {
   border-radius: var(--radius-md);
   background: var(--glass-bg-highlight);
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation: skeletonPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-@keyframes pulse {
+@keyframes skeletonPulse {
   0%,
   100% {
     opacity: 1;
