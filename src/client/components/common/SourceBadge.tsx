@@ -1,41 +1,24 @@
 import React from 'react';
-import { sourceBadgeTokens, spacingTokens } from '../../styles/designSystem';
+import s from './SourceBadge.module.css';
 
 interface SourceBadgeProps {
   source: 'Seventh Production' | 'Black Book' | 'Public Record' | string;
   className?: string;
 }
 
-export const SourceBadge: React.FC<SourceBadgeProps> = ({ source, className = '' }) => {
-  // Get source badge color
-  const getSourceColor = (source: string) => {
-    switch (source) {
-      case 'Black Book':
-        return sourceBadgeTokens.blackBook;
-      case 'Seventh Production':
-        return sourceBadgeTokens.seventhProduction;
-      case 'Public Record':
-        return sourceBadgeTokens.publicRecord;
-      default:
-        return sourceBadgeTokens.fallback;
-    }
-  };
+function getVariantClass(source: string): string {
+  switch (source) {
+    case 'Black Book':
+      return s.blackBook;
+    case 'Seventh Production':
+      return s.seventhProduction;
+    case 'Public Record':
+      return s.publicRecord;
+    default:
+      return s.fallback;
+  }
+}
 
-  return (
-    <span
-      className={`
-      ${spacingTokens.chipPadding}
-      rounded-full 
-      text-xs 
-      font-medium
-      border 
-      shadow-sm 
-      backdrop-blur-sm
-      ${getSourceColor(source)}
-      ${className}
-    `}
-    >
-      {source}
-    </span>
-  );
+export const SourceBadge: React.FC<SourceBadgeProps> = ({ source, className = '' }) => {
+  return <span className={`${s.root} ${getVariantClass(source)} ${className}`}>{source}</span>;
 };
