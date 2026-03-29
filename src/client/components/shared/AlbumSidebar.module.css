@@ -1,0 +1,76 @@
+/* src/client/components/shared/AlbumSidebar.module.css */
+
+.sidebar {
+  display: none; /* hidden by default on mobile */
+  width: 15rem; /* w-60 */
+  background: var(--glass-bg-strong);
+  border-right: 1px solid var(--glass-border);
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+  .sidebar {
+    display: flex;
+  }
+}
+
+.heading {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: var(--space-3) var(--space-4);
+}
+
+.list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Base album button */
+.albumBtn {
+  width: 100%;
+  padding: var(--space-2) var(--space-4);
+  text-align: left;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background-color var(--duration-fast) var(--easing-liquid),
+    color var(--duration-fast) var(--easing-liquid);
+  border-left: 2px solid transparent;
+  color: var(--text-muted);
+}
+
+.albumBtn:hover {
+  background: var(--glass-bg);
+  color: var(--text-primary);
+}
+
+/* Selected state modifier */
+.albumBtnSelected {
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  color: var(--accent);
+  border-left-color: var(--accent);
+}
+
+.albumBtnSelected:hover {
+  background: color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+.albumName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.badge {
+  font-size: 0.75rem;
+  opacity: 0.7;
+  background: var(--glass-bg);
+  padding: 0.125rem 0.375rem;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}

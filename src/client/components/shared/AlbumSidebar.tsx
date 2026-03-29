@@ -1,5 +1,6 @@
 import React from 'react';
 import type { MediaAlbum } from '../../hooks/useMediaBrowser';
+import s from './AlbumSidebar.module.css';
 
 interface AlbumSidebarProps {
   albums: MediaAlbum[];
@@ -21,42 +22,26 @@ export function AlbumSidebar({
   totalItemCount,
   allLabel,
 }: AlbumSidebarProps): React.ReactElement {
-  const getButtonClasses = (isSelected: boolean): string => {
-    const base =
-      'w-full px-4 py-2 text-left text-sm flex items-center justify-between transition-colors border-l-2';
-
-    if (isSelected) {
-      return `${base} bg-cyan-900/20 text-[var(--accent)] border-[var(--accent)]`;
-    }
-    return `${base} text-[var(--text-muted)] hover:bg-[var(--glass-bg)] hover:text-[var(--text-primary)] border-transparent`;
-  };
-
   return (
-    <aside className="hidden md:flex w-60 bg-[var(--glass-bg-strong)] border-r border-[var(--glass-border)] flex-col shrink-0">
-      <h3 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider px-4 py-3">
-        Albums
-      </h3>
-      <div className="flex-1 overflow-y-auto">
+    <aside className={s.sidebar}>
+      <h3 className={s.heading}>Albums</h3>
+      <div className={s.list}>
         <button
-          className={getButtonClasses(selectedAlbum === null)}
+          className={`${s.albumBtn} ${selectedAlbum === null ? s.albumBtnSelected : ''}`}
           onClick={() => onSelectAlbum(null)}
         >
-          <span className="truncate">{allLabel}</span>
-          <span className="text-xs opacity-70 bg-[var(--glass-bg)] px-1.5 py-0.5 rounded-full">
-            {totalItemCount}
-          </span>
+          <span className={s.albumName}>{allLabel}</span>
+          <span className={s.badge}>{totalItemCount}</span>
         </button>
         {albums.map((album) => (
           <button
             key={album.id}
-            className={getButtonClasses(selectedAlbum === album.id)}
+            className={`${s.albumBtn} ${selectedAlbum === album.id ? s.albumBtnSelected : ''}`}
             onClick={() => onSelectAlbum(album.id)}
             title={album.name}
           >
-            <span className="truncate">{album.name}</span>
-            <span className="text-xs opacity-70 bg-[var(--glass-bg)] px-1.5 py-0.5 rounded-full">
-              {album.itemCount || 0}
-            </span>
+            <span className={s.albumName}>{album.name}</span>
+            <span className={s.badge}>{album.itemCount || 0}</span>
           </button>
         ))}
       </div>
