@@ -55,6 +55,8 @@ const moduleGovernedFiles = new Set(
     'src/client/components/common/Tooltip.tsx',
     'src/client/components/common/LoadingPill.tsx',
     'src/client/components/common/TagSelector.tsx',
+    'src/client/components/common/BatchToolbar.tsx',
+    'src/client/components/common/AddToInvestigationButton.tsx',
   ].map((f) => path.join(rootDir, f)),
 );
 
