@@ -3,6 +3,7 @@ import { Investigation } from '../../types/investigation';
 import Icon from './Icon';
 import { useInvestigations } from '../../contexts/InvestigationsContext';
 import { CloseButton } from './CloseButton';
+import s from './AddToInvestigationButton.module.css';
 
 interface AddToInvestigationItem {
   id: string;
@@ -52,6 +53,7 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
   const [newDescription, setNewDescription] = useState('');
 
   const [isLoading, setIsLoading] = useState(false);
+  const [toast, setToast] = useState<{ message: string; kind: 'success' | 'error' } | null>(null);
 
   // Use investigations from context if not provided via props
   const investigations = propInvestigations || contextInvestigations;
@@ -67,6 +69,11 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
     }
   }, [defaultInvestigationId, selectedInvestigation, investigations]);
 
+  const showToast = (message: string, kind: 'success' | 'error') => {
+    setToast({ message, kind });
+    setTimeout(() => setToast(null), 2300);
+  };
+
   const handleAddToInvestigation = async () => {
     if (!selectedInvestigationId && !isCreatingNew) return;
     if (isCreatingNew && !newTitle.trim()) return;
@@ -81,7 +88,7 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
         const newInv = await createInvestigation({
           title: newTitle,
           description: newDescription,
-          hypothesis: '', // Optional initial hypothesis
+          hypothesis: '',
           status: 'active',
           leadInvestigator: '1',
           priority: 'medium',
@@ -114,7 +121,6 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
 
   const handleQuickAdd = async () => {
     if (!selectedInvestigationId) {
-      // Show modal to select investigation if none selected
       if (!hasInvestigations) setIsCreatingNew(true);
       setShowModal(true);
       return;
@@ -123,45 +129,15 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
     setIsLoading(true);
 
     try {
-      // Use context method if available, otherwise use prop method
       if (addToInvestigation) {
         await addToInvestigation(selectedInvestigationId, item, 'medium');
       } else if (onAddToInvestigation) {
         onAddToInvestigation(selectedInvestigationId, item, 'medium');
       }
-
-      // Show success feedback
-      const button = document.createElement('div');
-      button.className =
-        'fixed bottom-4 right-4 px-4 py-2 bg-green-600 text-[var(--text-primary)] rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)] z-50 animate-fade-in';
-      button.textContent = 'Added to investigation!';
-      document.body.appendChild(button);
-
-      // Remove after animation
-      setTimeout(() => {
-        button.classList.remove('animate-fade-in');
-        button.classList.add('animate-fade-out');
-        setTimeout(() => {
-          document.body.removeChild(button);
-        }, 300);
-      }, 2000);
+      showToast('Added to investigation!', 'success');
     } catch (error) {
       console.error('Error adding to investigation:', error);
-      // Show error feedback
-      const button = document.createElement('div');
-      button.className =
-        'fixed bottom-4 right-4 px-4 py-2 bg-red-600 text-[var(--text-primary)] rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)] z-50 animate-fade-in';
-      button.textContent = 'Failed to add to investigation';
-      document.body.appendChild(button);
-
-      // Remove after animation
-      setTimeout(() => {
-        button.classList.remove('animate-fade-in');
-        button.classList.add('animate-fade-out');
-        setTimeout(() => {
-          document.body.removeChild(button);
-        }, 300);
-      }, 2000);
+      showToast('Failed to add to investigation', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -180,14 +156,14 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
     }
   };
 
-  const getRelevanceColor = (rel: 'high' | 'medium' | 'low') => {
+  const getRelevanceClass = (rel: 'high' | 'medium' | 'low') => {
     switch (rel) {
       case 'high':
-        return 'bg-red-600 hover:bg-red-700';
+        return s.relevanceHigh;
       case 'medium':
-        return 'bg-yellow-600 hover:bg-yellow-700';
+        return s.relevanceMedium;
       case 'low':
-        return 'bg-green-600 hover:bg-green-700';
+        return s.relevanceLow;
     }
   };
 
@@ -207,7 +183,7 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
             if (!hasInvestigations) setIsCreatingNew(true);
             setShowModal(true);
           }}
-          className={`flex items-center gap-2 px-3 py-2 bg-[var(--accent)] hover:bg-blue-700 text-[var(--text-primary)] rounded-[var(--radius-lg)] transition-colors text-sm ${className}`}
+          className={`${s.triggerButton} ${className}`}
           title="Add to Investigation"
         >
           <Icon name="Plus" size="sm" />
@@ -223,7 +199,7 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
             if (!hasInvestigations) setIsCreatingNew(true);
             setShowModal(true);
           }}
-          className={`p-2 text-[var(--accent)] hover:text-[var(--accent)] hover:bg-blue-900/30 rounded-[var(--radius-lg)] transition-colors ${className}`}
+          className={`${s.triggerIcon} ${className}`}
           title="Add to Investigation"
         >
           <Icon name="Plus" size="sm" />
@@ -231,7 +207,7 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
       )}
 
       {variant === 'dropdown' && (
-        <div className="relative group">
+        <div className={s.dropdownWrapper}>
           <button
             type="button"
             onClick={(event) => {
@@ -239,7 +215,7 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
               if (!hasInvestigations) setIsCreatingNew(true);
               setShowModal(true);
             }}
-            className={`flex items-center gap-2 px-3 py-2 text-[var(--accent)] hover:text-[var(--accent)] hover:bg-blue-900/30 rounded-[var(--radius-lg)] transition-colors text-sm ${className}`}
+            className={`${s.triggerDropdown} ${className}`}
           >
             <Icon name="Plus" size="sm" />
             <span>Add to Investigation</span>
@@ -255,28 +231,29 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
             void handleQuickAdd();
           }}
           disabled={isLoading}
-          className={`flex items-center justify-center p-1.5 bg-[var(--accent)]/80 hover:bg-blue-700 text-[var(--text-primary)] rounded transition-colors disabled:opacity-50 ${className}`}
+          className={`${s.triggerQuick} ${className}`}
           title="Add to Investigation"
         >
-          {isLoading ? (
-            <div className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-          ) : (
-            <Icon name="Plus" size="xs" />
-          )}
+          {isLoading ? <div className={s.quickSpinner} /> : <Icon name="Plus" size="xs" />}
         </button>
+      )}
+
+      {/* Toast notification */}
+      {toast && (
+        <div className={`${s.toast} ${toast.kind === 'success' ? s.toastSuccess : s.toastError}`}>
+          {toast.message}
+        </div>
       )}
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 app-backdrop flex items-center justify-center z-50">
-          <div className="glass-panel overflow-hidden w-full max-w-md">
-            <div className="border-b border-[var(--glass-border)] p-6 bg-[var(--glass-bg)]">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
+        <div className={`${s.overlay} app-backdrop`}>
+          <div className={`${s.panel} glass-panel`}>
+            <div className={s.modalHeader}>
+              <div className={s.modalHeaderInner}>
+                <div className={s.modalTitleRow}>
                   <Icon name={ItemIcon} size="sm" color="info" />
-                  <h3 className="text-xl font-bold text-[var(--text-primary)]">
-                    Add to Investigation
-                  </h3>
+                  <h3 className={s.modalTitle}>Add to Investigation</h3>
                 </div>
                 <CloseButton
                   onClick={() => setShowModal(false)}
@@ -286,33 +263,29 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
               </div>
             </div>
 
-            <div className="p-6 space-y-4">
+            <div className={s.modalBody}>
               {/* Item Preview */}
-              <div className="surface-glass-card p-4">
-                <div className="flex items-center gap-3 mb-2">
+              <div className={`${s.itemPreview} surface-glass-card`}>
+                <div className={s.itemPreviewHeader}>
                   <Icon name={ItemIcon} size="xs" color="gray" />
-                  <h4 className="font-semibold text-[var(--text-primary)]">{item.title}</h4>
+                  <h4 className={s.itemTitle}>{item.title}</h4>
                 </div>
-                <p className="text-sm text-[var(--text-secondary)] line-clamp-2">
-                  {item.description}
-                </p>
-                <div className="flex items-center gap-2 mt-2">
-                  <span className="text-xs px-2 py-1 bg-[var(--glass-bg-strong)] rounded text-[var(--text-secondary)]">
-                    {item.type}
-                  </span>
+                <p className={s.itemDescription}>{item.description}</p>
+                <div className={s.itemTypeBadge}>
+                  <span className={s.itemTypeLabel}>{item.type}</span>
                 </div>
               </div>
 
               {/* Investigation Selection or Creation */}
               <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="block text-sm font-medium text-[var(--text-secondary)]">
+                <div className={s.sectionLabel}>
+                  <label className={s.labelText}>
                     {isCreatingNew ? 'New Investigation Details' : 'Select Investigation'}
                   </label>
                   <button
                     onClick={() => setIsCreatingNew(!isCreatingNew || !hasInvestigations)}
                     disabled={!hasInvestigations}
-                    className="text-xs text-[var(--accent)] hover:text-[var(--accent)] transition-colors"
+                    className={s.toggleModeBtn}
                   >
                     {!hasInvestigations
                       ? 'No cases yet'
@@ -323,27 +296,27 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
                 </div>
 
                 {isCreatingNew || !hasInvestigations ? (
-                  <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className={s.createFields}>
                     <input
                       type="text"
                       placeholder="Investigation Title"
                       value={newTitle}
                       onChange={(e) => setNewTitle(e.target.value)}
-                      className="w-full px-4 h-10 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] placeholder-[var(--text-muted)]"
+                      className={s.textInput}
                       autoFocus
                     />
                     <textarea
                       placeholder="Description (optional)"
                       value={newDescription}
                       onChange={(e) => setNewDescription(e.target.value)}
-                      className="w-full px-4 py-2 h-20 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] placeholder-[var(--text-muted)] resize-none text-sm"
+                      className={s.textarea}
                     />
                   </div>
                 ) : (
                   <select
                     value={selectedInvestigationId}
                     onChange={(e) => setSelectedInvestigationId(e.target.value)}
-                    className="w-full px-4 h-10 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+                    className={s.invSelect}
                   >
                     <option value="">Choose an investigation...</option>
                     {investigations.map((inv) => (
@@ -357,18 +330,14 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
 
               {/* Relevance Selection */}
               <div>
-                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                  Evidence Relevance
-                </label>
-                <div className="grid grid-cols-3 gap-2">
+                <label className={s.relevanceLabel}>Evidence Relevance</label>
+                <div className={s.relevanceGrid}>
                   {(['high', 'medium', 'low'] as const).map((rel) => (
                     <button
                       key={rel}
                       onClick={() => setRelevance(rel)}
-                      className={`px-3 h-10 flex items-center justify-center rounded-[var(--radius-lg)] text-sm font-medium transition-colors ${
-                        relevance === rel
-                          ? getRelevanceColor(rel)
-                          : 'bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-strong)]'
+                      className={`${s.relevanceBtn} ${
+                        relevance === rel ? getRelevanceClass(rel) : s.relevanceBtnOff
                       }`}
                     >
                       {rel.charAt(0).toUpperCase() + rel.slice(1)}
@@ -378,11 +347,8 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
               </div>
             </div>
 
-            <div className="border-t border-[var(--glass-border)] p-6 flex justify-end gap-3 bg-[var(--glass-bg)]">
-              <button
-                onClick={() => setShowModal(false)}
-                className="px-4 h-10 flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-[var(--radius-lg)] transition-colors"
-              >
+            <div className={s.modalFooter}>
+              <button onClick={() => setShowModal(false)} className={s.footerCancelBtn}>
                 Cancel
               </button>
               <button
@@ -392,11 +358,9 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
                   (isCreatingNew && !newTitle.trim()) ||
                   isLoading
                 }
-                className="px-4 h-10 flex items-center justify-center bg-[var(--accent)] hover:bg-blue-700 disabled:bg-[var(--glass-bg-strong)] disabled:text-[var(--text-muted)] disabled:cursor-not-allowed text-[var(--text-primary)] rounded-[var(--radius-lg)] transition-colors flex items-center gap-2"
+                className={s.footerSubmitBtn}
               >
-                {isLoading && (
-                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                )}
+                {isLoading && <div className={s.submitSpinner} />}
                 {isLoading ? 'Adding...' : isCreatingNew ? 'Create & Add' : 'Add to Investigation'}
               </button>
             </div>

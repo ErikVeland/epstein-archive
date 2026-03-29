@@ -1,0 +1,469 @@
+/* AddToInvestigationButton.module.css */
+
+/* ── Trigger variants ─────────────────────────────────── */
+
+/* 'button' variant — filled accent */
+.triggerButton {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--accent);
+  color: var(--text-primary);
+  border-radius: var(--radius-lg);
+  font-size: 0.875rem;
+  transition: filter var(--duration-fast) var(--easing-liquid);
+}
+
+.triggerButton:hover {
+  filter: brightness(0.9);
+}
+
+/* 'icon' variant — ghost with accent text */
+.triggerIcon {
+  padding: var(--space-2);
+  color: var(--accent);
+  border-radius: var(--radius-lg);
+  transition: background-color var(--duration-fast) var(--easing-liquid);
+}
+
+.triggerIcon:hover {
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
+/* Wrapper for dropdown variant */
+.dropdownWrapper {
+  position: relative;
+}
+
+/* 'dropdown' variant — ghost row */
+.triggerDropdown {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  color: var(--accent);
+  border-radius: var(--radius-lg);
+  font-size: 0.875rem;
+  transition: background-color var(--duration-fast) var(--easing-liquid);
+}
+
+.triggerDropdown:hover {
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
+/* 'quick' variant — compact filled icon button */
+.triggerQuick {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.375rem;
+  background: color-mix(in srgb, var(--accent) 80%, transparent);
+  color: var(--text-primary);
+  border-radius: var(--radius-sm);
+  transition: filter var(--duration-fast) var(--easing-liquid);
+}
+
+.triggerQuick:hover {
+  filter: brightness(0.9);
+}
+
+.triggerQuick:disabled {
+  opacity: 0.5;
+}
+
+/* Quick spinner */
+.quickSpinner {
+  width: 0.875rem;
+  height: 0.875rem;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 9999px;
+  animation: addToInvSpin 0.6s linear infinite;
+}
+
+@keyframes addToInvSpin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quickSpinner {
+    animation: none;
+    opacity: 0.6;
+  }
+}
+
+/* ── Toast notification ───────────────────────────────── */
+.toast {
+  position: fixed;
+  bottom: var(--space-4);
+  right: var(--space-4);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  z-index: 50;
+  animation: addToInvFadeIn 150ms var(--easing-liquid);
+}
+
+.toastSuccess {
+  background: var(--accent-success);
+  /* darken slightly so text is readable */
+  background: color-mix(in srgb, var(--accent-success) 80%, #000);
+}
+
+.toastError {
+  background: var(--accent-danger);
+  background: color-mix(in srgb, var(--accent-danger) 80%, #000);
+}
+
+@keyframes addToInvFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    animation: none;
+  }
+}
+
+/* ── Modal ────────────────────────────────────────────── */
+.overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.panel {
+  overflow: hidden;
+  width: 100%;
+  max-width: 28rem;
+}
+
+/* Modal header */
+.modalHeader {
+  border-bottom: 1px solid var(--glass-border);
+  padding: var(--space-6);
+  background: var(--glass-bg);
+}
+
+.modalHeaderInner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modalTitleRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.modalTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* Modal body */
+.modalBody {
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Item preview card */
+.itemPreview {
+  padding: var(--space-4);
+}
+
+.itemPreviewHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.itemTitle {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.itemDescription {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.itemTypeBadge {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.itemTypeLabel {
+  font-size: 0.75rem;
+  padding: 0.25rem var(--space-2);
+  background: var(--glass-bg-strong);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+}
+
+/* Investigation select / create section */
+.sectionLabel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+}
+
+.labelText {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.relevanceLabel {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-2);
+}
+
+.toggleModeBtn {
+  font-size: 0.75rem;
+  color: var(--accent);
+  transition: opacity var(--duration-fast) var(--easing-liquid);
+}
+
+.toggleModeBtn:hover {
+  opacity: 0.8;
+}
+
+.toggleModeBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Create-new form */
+.createFields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  animation: addToInvSlideDown 200ms var(--easing-liquid);
+}
+
+@keyframes addToInvSlideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .createFields {
+    animation: none;
+  }
+}
+
+.textInput {
+  width: 100%;
+  padding: 0 var(--space-4);
+  height: 2.5rem;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color var(--duration-fast) var(--easing-liquid),
+    box-shadow var(--duration-fast) var(--easing-liquid);
+}
+
+.textInput:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.textInput::placeholder {
+  color: var(--text-muted);
+}
+
+.textarea {
+  width: 100%;
+  padding: var(--space-2) var(--space-4);
+  height: 5rem;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  resize: none;
+  outline: none;
+  transition: border-color var(--duration-fast) var(--easing-liquid),
+    box-shadow var(--duration-fast) var(--easing-liquid);
+}
+
+.textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.textarea::placeholder {
+  color: var(--text-muted);
+}
+
+/* Investigation select dropdown */
+.invSelect {
+  width: 100%;
+  padding: 0 var(--space-4);
+  height: 2.5rem;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color var(--duration-fast) var(--easing-liquid),
+    box-shadow var(--duration-fast) var(--easing-liquid);
+}
+
+.invSelect:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+/* ── Relevance buttons ────────────────────────────────── */
+.relevanceGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+}
+
+.relevanceBtn {
+  padding: 0 var(--space-3);
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-lg);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: filter var(--duration-fast) var(--easing-liquid);
+}
+
+/* Unselected base */
+.relevanceBtnOff {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+  transition: background-color var(--duration-fast) var(--easing-liquid);
+}
+
+.relevanceBtnOff:hover {
+  background: var(--glass-bg-strong);
+}
+
+/* Selected states — semantic colors */
+.relevanceHigh {
+  background: color-mix(in srgb, var(--accent-danger) 80%, #000);
+  color: var(--text-primary);
+}
+
+.relevanceHigh:hover {
+  filter: brightness(0.9);
+}
+
+.relevanceMedium {
+  background: color-mix(in srgb, var(--accent-warning) 80%, #000);
+  color: var(--text-primary);
+}
+
+.relevanceMedium:hover {
+  filter: brightness(0.9);
+}
+
+.relevanceLow {
+  background: color-mix(in srgb, var(--accent-success) 80%, #000);
+  color: var(--text-primary);
+}
+
+.relevanceLow:hover {
+  filter: brightness(0.9);
+}
+
+/* ── Modal footer ─────────────────────────────────────── */
+.modalFooter {
+  border-top: 1px solid var(--glass-border);
+  padding: var(--space-6);
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  background: var(--glass-bg);
+}
+
+.footerCancelBtn {
+  padding: 0 var(--space-4);
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  border-radius: var(--radius-lg);
+  transition: color var(--duration-fast) var(--easing-liquid);
+}
+
+.footerCancelBtn:hover {
+  color: var(--text-primary);
+}
+
+.footerSubmitBtn {
+  padding: 0 var(--space-4);
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  background: var(--accent);
+  color: var(--text-primary);
+  border-radius: var(--radius-lg);
+  transition: filter var(--duration-fast) var(--easing-liquid);
+}
+
+.footerSubmitBtn:hover {
+  filter: brightness(0.9);
+}
+
+.footerSubmitBtn:disabled {
+  background: var(--glass-bg-strong);
+  color: var(--text-muted);
+  cursor: not-allowed;
+  filter: none;
+}
+
+/* Spinner inside submit button */
+.submitSpinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 9999px;
+  animation: addToInvSpin 0.6s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .submitSpinner {
+    animation: none;
+    opacity: 0.6;
+  }
+}
