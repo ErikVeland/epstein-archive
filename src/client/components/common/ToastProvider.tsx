@@ -1,6 +1,7 @@
 import { useState, useCallback, ReactNode, useEffect } from 'react';
 import { ToastCtx, Toast } from './toastContext';
 import { CloseButton } from './CloseButton';
+import s from './ToastProvider.module.css';
 
 export default function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
@@ -34,17 +35,15 @@ export default function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastCtx.Provider value={{ addToast }}>
       {children}
-      <div className="fixed top-3 right-3 z-[100] space-y-2">
+      <div className={s.toastStack}>
         {toasts.map((t) => (
           <div
             key={t.id}
-            className={`px-3 py-2 rounded-[var(--radius-lg)] text-xs shadow-[var(--glass-shadow)] border flex items-center justify-between ${toastTypeClass[t.type ?? 'info'] ?? 'toast-info'}`}
+            className={`${s.toast} ${toastTypeClass[t.type ?? 'info'] ?? 'toast-info'}`}
           >
-            <div className="flex items-center">
+            <div className={s.toastBody}>
               {t.text}
-              {t.type === 'loading' && (
-                <div className="ml-2 w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
-              )}
+              {t.type === 'loading' && <div className={s.loadingSpinner} />}
             </div>
             {t.action && (
               <button
@@ -52,7 +51,7 @@ export default function ToastProvider({ children }: { children: ReactNode }) {
                   t.action!.onClick();
                   removeToast(t.id);
                 }}
-                className="ml-2 px-2 py-1 text-xs rounded hover:bg-[var(--glass-bg-highlight)] transition-colors"
+                className={s.actionBtn}
               >
                 {t.action.label}
               </button>
@@ -62,7 +61,7 @@ export default function ToastProvider({ children }: { children: ReactNode }) {
                 onClick={() => removeToast(t.id)}
                 size="sm"
                 label="Dismiss notification"
-                className="ml-2 h-6 w-6 border-transparent bg-transparent text-current hover:bg-[var(--glass-bg-highlight)]"
+                className={s.closeBtn}
               />
             )}
           </div>
