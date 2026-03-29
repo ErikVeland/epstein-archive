@@ -1,0 +1,52 @@
+/* src/client/components/shared/SensitiveWarningBanner.module.css */
+
+.banner {
+  background: var(--bg-danger-deep);
+  border-bottom: 1px solid var(--border-danger);
+  padding: 0.75rem var(--space-4); /* px-4 py-3 */
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  position: relative;
+}
+
+.icon {
+  color: var(--text-danger);
+  flex-shrink: 0;
+  margin-top: 0.125rem; /* mt-0.5 */
+}
+
+.body {
+  flex: 1;
+  padding-right: 1.5rem; /* pr-6 */
+}
+
+.heading {
+  color: var(--text-danger-strong);
+  font-weight: 700;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.message {
+  color: color-mix(in srgb, var(--text-danger) 90%, transparent);
+  font-size: 0.875rem;
+  margin-top: var(--space-1);
+}
+
+.dismissBtn {
+  position: absolute;
+  right: var(--space-2);
+  top: var(--space-2);
+  padding: 0.375rem; /* p-1.5 */
+  color: color-mix(in srgb, var(--text-danger-strong) 60%, transparent);
+  border-radius: 9999px;
+  transition: color var(--duration-fast) var(--easing-liquid),
+    background-color var(--duration-fast) var(--easing-liquid);
+}
+
+.dismissBtn:hover {
+  color: var(--text-danger-strong);
+  background: color-mix(in srgb, var(--bg-danger-deep) 50%, transparent);
+}
