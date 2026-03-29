@@ -1,0 +1,73 @@
+/* src/client/components/layout/SortFilter.module.css */
+
+.root {
+  position: relative;
+  z-index: var(--z-content); /* 10 — collapsed state */
+}
+
+.rootOpen {
+  z-index: 1200; /* above Radix portals at z-1000 */
+}
+
+.trigger {
+  padding-inline: var(--space-3);
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  justify-content: space-between;
+  width: 100%;
+  min-width: 8.75rem; /* min-w-[140px] */
+}
+
+.triggerInner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dropdown {
+  position: absolute;
+  z-index: 1210; /* above trigger */
+  margin-top: var(--space-1);
+  width: 100%;
+  min-width: 10rem; /* min-w-[160px] */
+  right: 0;
+  padding: var(--space-1);
+}
+
+@media (min-width: 768px) {
+  .dropdown {
+    left: 0;
+    right: auto;
+  }
+}
+
+.list {
+  padding-block: var(--space-1);
+}
+
+.option {
+  padding: 0 var(--space-3);
+  height: 2.5rem; /* h-10 */
+  font-size: 0.875rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  transition: background-color var(--duration-fast) var(--easing-liquid);
+}
+
+.option:hover {
+  background: color-mix(in srgb, var(--glass-bg-highlight) 55%, transparent);
+}
+
+.optionSelected {
+  background: color-mix(in srgb, var(--glass-bg-highlight) 65%, transparent);
+  color: var(--text-primary);
+}
