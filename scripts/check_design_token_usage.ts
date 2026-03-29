@@ -62,6 +62,10 @@ const moduleGovernedFiles = new Set(
     'src/client/components/shared/SensitiveWarningBanner.tsx',
     'src/client/components/shared/AlbumSidebar.tsx',
     'src/client/components/shared/MediaBrowserLayout.tsx',
+    'src/client/components/common/ErrorBoundary.tsx',
+    'src/client/components/common/ToastProvider.tsx',
+    'src/client/components/layout/SortFilter.tsx',
+    'src/client/components/layout/SearchFilters.tsx',
   ].map((f) => path.join(rootDir, f)),
 );
 
