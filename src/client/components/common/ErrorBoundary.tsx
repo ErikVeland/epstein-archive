@@ -1,4 +1,5 @@
 import React, { Component, ReactNode } from 'react';
+import s from './ErrorBoundary.module.css';
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -28,15 +29,12 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
     if (this.state.hasError) {
       const msg = this.state.error?.message || 'Unexpected error';
       return (
-        <div className="min-h-screen bg-[var(--glass-bg)] text-[var(--text-primary)] flex items-center justify-center p-6">
-          <div className="max-w-lg w-full bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-xl)] p-6 shadow-[var(--glass-shadow)]">
-            <h1 className="text-xl font-bold text-red-400 mb-2">Something went wrong</h1>
-            <p className="text-[var(--text-secondary)] text-sm mb-4">{msg}</p>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => window.location.reload()}
-                className="px-3 py-2 bg-red-600 hover:bg-red-700 text-[var(--text-primary)] rounded-[var(--radius-lg)]"
-              >
+        <div className={s.screen}>
+          <div className={s.card}>
+            <h1 className={s.heading}>Something went wrong</h1>
+            <p className={s.message}>{msg}</p>
+            <div className={s.actions}>
+              <button onClick={() => window.location.reload()} className={s.reloadBtn}>
                 Reload
               </button>
               <button
@@ -48,9 +46,9 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
                   }
                   window.location.reload();
                 }}
-                className="px-3 py-2 bg-[var(--glass-bg-highlight)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] rounded-[var(--radius-lg)]"
+                className={s.clearBtn}
               >
-                Clear cache & reload
+                Clear cache &amp; reload
               </button>
             </div>
           </div>

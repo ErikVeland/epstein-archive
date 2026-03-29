@@ -1,0 +1,64 @@
+/* src/client/components/common/ErrorBoundary.module.css */
+
+.screen {
+  min-height: 100vh;
+  background: var(--glass-bg);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+}
+
+.card {
+  max-width: 32rem; /* max-w-lg */
+  width: 100%;
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  box-shadow: var(--glass-shadow);
+}
+
+.heading {
+  font-size: 1.25rem; /* text-xl */
+  font-weight: 700;
+  color: var(--text-danger);
+  margin-bottom: var(--space-2);
+}
+
+.message {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin-bottom: var(--space-4);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.reloadBtn {
+  padding: var(--space-2) var(--space-3);
+  background: #dc2626;
+  color: var(--text-primary);
+  border-radius: var(--radius-lg);
+  transition: background-color var(--duration-fast) var(--easing-liquid);
+}
+
+.reloadBtn:hover {
+  background: #b91c1c;
+}
+
+.clearBtn {
+  padding: var(--space-2) var(--space-3);
+  background: var(--glass-bg-highlight);
+  color: var(--text-primary);
+  border-radius: var(--radius-lg);
+  transition: background-color var(--duration-fast) var(--easing-liquid);
+}
+
+.clearBtn:hover {
+  background: var(--glass-bg-strong);
+}
