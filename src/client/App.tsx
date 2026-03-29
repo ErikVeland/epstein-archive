@@ -11,6 +11,7 @@ import type {
   GlobalStatsPayload,
   SearchResponsePayload,
   EntityByIdResponse,
+  SearchDocumentPayload,
 } from './types/api';
 
 import { useNavigation } from './services/NavigationContext';
@@ -610,6 +611,14 @@ function App() {
     canonicalName?: string;
     matchedAlias?: string | null;
   };
+  type SearchDocumentSuggestion = {
+    kind: 'document';
+    id: string;
+    title: string;
+    snippet?: string;
+    evidenceType?: string;
+  };
+  type HeaderSuggestion = ({ kind: 'entity' } & SearchSuggestion) | SearchDocumentSuggestion;
 
   // Debounced search term for suggestions query key
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
@@ -619,7 +628,7 @@ function App() {
   }, [searchTerm]);
 
   const { data: searchSuggestions = [], isFetching: searchSuggestionsLoading } = useQuery<
-    SearchSuggestion[]
+    HeaderSuggestion[]
   >({
     queryKey: ['searchSuggestions', debouncedSearchTerm],
     queryFn: async () => {
@@ -628,7 +637,9 @@ function App() {
       );
       const data = (await response.json()) as SearchResponsePayload;
       const entities = Array.isArray(data.entities) ? data.entities : [];
-      return entities.map((entity) => ({
+      const documents = Array.isArray(data.documents) ? data.documents : [];
+      const entitySuggestions: HeaderSuggestion[] = entities.map((entity) => ({
+        kind: 'entity',
         id: entity.id,
         name: entity.fullName || entity.name || 'Unknown',
         fullName: entity.fullName || entity.name || 'Unknown',
@@ -643,6 +654,16 @@ function App() {
         significantPassages: [],
         fileReferences: [],
       }));
+      const documentSuggestions: HeaderSuggestion[] = documents
+        .slice(0, 4)
+        .map((document: SearchDocumentPayload) => ({
+          kind: 'document',
+          id: String(document.id),
+          title: document.title || document.fileName || 'Untitled document',
+          snippet: document.snippet || undefined,
+          evidenceType: document.evidenceType || undefined,
+        }));
+      return [...entitySuggestions, ...documentSuggestions];
     },
     enabled: debouncedSearchTerm.trim().length >= 2,
     staleTime: 30_000,
@@ -1205,6 +1226,18 @@ function App() {
     [location.pathname, location.search, navigate],
   );
 
+  const handleDocumentSuggestionClick = useCallback(
+    (documentId: string) => {
+      setPreviousPath(location.pathname + location.search);
+      setSelectedPerson(null);
+      setDocumentModalInitial(null);
+      setDocumentModalId(documentId);
+      setSelectedDocumentId(documentId);
+      navigate(`/documents/${documentId}`);
+    },
+    [location.pathname, location.search, navigate],
+  );
+
   const navSegmentBaseClass = `main-nav-segment flex h-full w-full min-w-0 items-center justify-center ${
     navLayoutMode === 'icons'
       ? 'gap-0 px-2'
@@ -1470,29 +1503,50 @@ function App() {
                               Searching...
                             </div>
                           ) : searchSuggestions.length > 0 ? (
-                            searchSuggestions.slice(0, 8).map((p, i) => (
-                              <button
-                                key={`sugg-${p.id}-${i}`}
-                                className="w-full text-left px-3 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)] flex items-center gap-2"
-                                onClick={() => handlePersonClick(p)}
-                              >
-                                <Icon name="User" size="sm" color="gray" />
-                                <span className="truncate flex-1">
-                                  {p.canonicalName || p.name}
-                                  {p.matchedAlias && (
-                                    <span className="ml-1 text-[11px] text-[var(--text-muted)]">
-                                      ({p.matchedAlias})
-                                    </span>
-                                  )}
-                                </span>
-                                <span className="text-xs text-[var(--text-secondary)]">
-                                  {p.role !== 'Unknown' ? p.role : 'Subject'}
-                                </span>
-                              </button>
-                            ))
+                            searchSuggestions.slice(0, 8).map((suggestion, i) =>
+                              suggestion.kind === 'entity' ? (
+                                <button
+                                  key={`entity-sugg-${suggestion.id}-${i}`}
+                                  className="w-full text-left px-3 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)] flex items-center gap-2"
+                                  onClick={() => handlePersonClick(suggestion)}
+                                >
+                                  <Icon name="User" size="sm" color="gray" />
+                                  <span className="truncate flex-1">
+                                    {suggestion.canonicalName || suggestion.name}
+                                    {suggestion.matchedAlias && (
+                                      <span className="ml-1 text-[11px] text-[var(--text-muted)]">
+                                        ({suggestion.matchedAlias})
+                                      </span>
+                                    )}
+                                  </span>
+                                  <span className="text-xs text-[var(--text-secondary)]">
+                                    {suggestion.role !== 'Unknown' ? suggestion.role : 'Subject'}
+                                  </span>
+                                </button>
+                              ) : (
+                                <button
+                                  key={`doc-sugg-${suggestion.id}-${i}`}
+                                  className="w-full text-left px-3 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)] flex items-start gap-2"
+                                  onClick={() => handleDocumentSuggestionClick(suggestion.id)}
+                                >
+                                  <Icon name="FileText" size="sm" color="gray" className="mt-0.5" />
+                                  <span className="min-w-0 flex-1">
+                                    <span className="block truncate">{suggestion.title}</span>
+                                    {suggestion.snippet && (
+                                      <span className="block text-xs text-[var(--text-secondary)] line-clamp-2">
+                                        {suggestion.snippet.replace(/<[^>]+>/g, '')}
+                                      </span>
+                                    )}
+                                  </span>
+                                  <span className="text-xs text-[var(--text-secondary)] shrink-0">
+                                    {suggestion.evidenceType || 'Document'}
+                                  </span>
+                                </button>
+                              ),
+                            )
                           ) : (
                             <div className="px-3 py-2 text-sm text-[var(--text-secondary)]">
-                              No subjects found
+                              No subjects or documents found
                             </div>
                           )}
                           <div className="border-t border-[var(--glass-border)] mt-1 pt-1">

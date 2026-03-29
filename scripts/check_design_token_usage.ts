@@ -57,6 +57,11 @@ const moduleGovernedFiles = new Set(
     'src/client/components/common/TagSelector.tsx',
     'src/client/components/common/BatchToolbar.tsx',
     'src/client/components/common/AddToInvestigationButton.tsx',
+    'src/client/components/pages/LegalPage.tsx',
+    'src/client/components/shared/DegradedBanner.tsx',
+    'src/client/components/shared/SensitiveWarningBanner.tsx',
+    'src/client/components/shared/AlbumSidebar.tsx',
+    'src/client/components/shared/MediaBrowserLayout.tsx',
   ].map((f) => path.join(rootDir, f)),
 );
 
