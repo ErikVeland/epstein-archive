@@ -1,0 +1,269 @@
+/* src/client/components/common/TagSelector.module.css */
+
+.root {
+  position: relative;
+}
+
+/* Selected tags row */
+.tagList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin-bottom: var(--space-2);
+}
+
+/* Individual tag pill */
+.tagPill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0.125rem var(--space-2);
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  /* background set via inline style (dynamic color) */
+}
+
+.tagPill.clickable {
+  cursor: pointer;
+}
+
+.tagPill.clickable:hover {
+  opacity: 0.9;
+}
+
+/* Remove button inside tag pill */
+.tagRemove {
+  margin-left: var(--space-1);
+  padding: 0.125rem;
+  border-radius: var(--radius-sm);
+  transition: background-color var(--duration-normal) var(--easing-liquid);
+}
+
+.tagRemove:hover {
+  background: var(--glass-bg-highlight);
+}
+
+/* "Add Tag" trigger button */
+.addBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem var(--space-2);
+  background: color-mix(in srgb, var(--glass-bg-highlight) 50%, transparent);
+  color: var(--text-secondary);
+  border-radius: var(--radius-lg);
+  font-size: 0.75rem;
+  font-weight: 500;
+  transition: background-color var(--duration-normal) var(--easing-liquid),
+    color var(--duration-normal) var(--easing-liquid);
+}
+
+.addBtn:hover {
+  background: var(--glass-bg-highlight);
+  color: var(--text-primary);
+}
+
+/* Dropdown container */
+.dropdown {
+  position: absolute;
+  z-index: 50;
+  margin-top: var(--space-2);
+  width: 14rem;
+  overflow: hidden;
+}
+
+/* Search area */
+.searchWrap {
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.searchInner {
+  position: relative;
+}
+
+.searchIcon {
+  position: absolute;
+  left: var(--space-2);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  padding-left: 2rem;
+  padding-right: var(--space-3);
+  padding-top: 0.375rem;
+  padding-bottom: 0.375rem;
+  background: var(--glass-bg-highlight);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color var(--duration-normal) var(--easing-liquid);
+}
+
+.searchInput:focus {
+  border-color: var(--accent);
+}
+
+/* Tags list scrollable area */
+.tagListScroll {
+  max-height: 10rem;
+  overflow-y: auto;
+  padding: var(--space-1);
+}
+
+/* Individual tag option row */
+.tagOption {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.375rem var(--space-2);
+  border-radius: var(--radius-sm);
+  text-align: left;
+  transition: background-color var(--duration-normal) var(--easing-liquid);
+}
+
+.tagOption:hover {
+  background: var(--glass-bg-highlight);
+}
+
+.tagOptionInner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.tagDot {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 9999px;
+  flex-shrink: 0;
+  /* background set via inline style */
+}
+
+.tagName {
+  font-size: 0.875rem;
+  color: var(--text-primary);
+}
+
+/* Checkmark for selected tag */
+.tagCheck {
+  width: 1rem;
+  height: 1rem;
+  color: var(--accent-success);
+  flex-shrink: 0;
+}
+
+.emptyMsg {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  padding: 0.375rem var(--space-2);
+}
+
+/* Create new tag section */
+.createWrap {
+  border-top: 1px solid var(--glass-border);
+  padding: var(--space-2);
+}
+
+.createFields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.createInput {
+  width: 100%;
+  padding: 0.375rem var(--space-2);
+  background: var(--glass-bg-highlight);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color var(--duration-normal) var(--easing-liquid);
+}
+
+.createInput:focus {
+  border-color: var(--accent);
+}
+
+/* Color swatches row */
+.colorSwatches {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.colorSwatch {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 9999px;
+  /* background set via inline style */
+  transition: box-shadow var(--duration-normal) var(--easing-liquid);
+}
+
+/* Selected swatch ring — simulates ring-2 ring-offset-1 ring-offset-slate-800 */
+.colorSwatch.selected {
+  box-shadow: 0 0 0 1px #1e293b, 0 0 0 3px var(--glass-border);
+}
+
+/* Create/Cancel buttons row */
+.createActions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.createBtn {
+  flex: 1;
+  padding: var(--space-1) var(--space-2);
+  background: var(--accent);
+  color: var(--text-primary);
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 500;
+  transition: filter var(--duration-normal) var(--easing-liquid);
+}
+
+.createBtn:hover {
+  filter: brightness(1.1);
+}
+
+.cancelBtn {
+  padding: var(--space-1) var(--space-2);
+  background: var(--glass-bg-highlight);
+  color: var(--text-primary);
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  transition: filter var(--duration-normal) var(--easing-liquid);
+}
+
+.cancelBtn:hover {
+  filter: brightness(1.1);
+}
+
+/* "Create new tag" trigger button */
+.createTrigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0.375rem var(--space-2);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  transition: background-color var(--duration-normal) var(--easing-liquid),
+    color var(--duration-normal) var(--easing-liquid);
+}
+
+.createTrigger:hover {
+  background: var(--glass-bg-highlight);
+  color: var(--text-primary);
+}
