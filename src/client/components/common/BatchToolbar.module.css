@@ -1,0 +1,596 @@
+/* BatchToolbar.module.css */
+
+/* Root glass container */
+.root {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--glass-shadow);
+  max-width: 100%;
+}
+
+/* Inner row */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-2);
+}
+
+/* ── Selected badge ───────────────────────────────────── */
+.badge {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  background: var(--glass-bg-strong);
+  border-radius: var(--radius-lg);
+  padding: var(--space-1);
+  height: 2rem;
+  flex-shrink: 0;
+}
+
+.badgeCount {
+  padding: 0 var(--space-2);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.deselectBtn {
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  transition: background-color var(--duration-fast) var(--easing-liquid),
+    color var(--duration-fast) var(--easing-liquid);
+}
+
+.deselectBtn:hover {
+  background: var(--glass-bg-highlight);
+  color: var(--text-primary);
+}
+
+/* ── Divider ──────────────────────────────────────────── */
+.divider {
+  width: 1px;
+  height: 1.5rem;
+  background: var(--glass-border);
+  flex-shrink: 0;
+}
+
+/* ── Menu trigger buttons ─────────────────────────────── */
+.menuWrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.menuTrigger {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-lg);
+  font-size: 0.875rem;
+  height: 2rem;
+  transition: background-color var(--duration-fast) var(--easing-liquid);
+}
+
+.menuTrigger:hover {
+  background: var(--glass-bg-strong);
+}
+
+/* Responsive label — hidden on narrow, visible at sm */
+.triggerLabel {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .triggerLabel {
+    display: inline;
+  }
+}
+
+/* ── Dropdown containers ──────────────────────────────── */
+.dropdown {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  margin-bottom: var(--space-2);
+  z-index: 50;
+}
+
+.dropdownWide {
+  width: 20rem; /* ~w-80 */
+}
+
+.dropdownNarrow {
+  width: 12rem; /* ~w-48 */
+}
+
+/* Dropdown header */
+.dropdownHeader {
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.dropdownTitle {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.dropdownSubtitle {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+/* Dropdown body (scrollable list area) */
+.dropdownBody {
+  padding: var(--space-2);
+  max-height: 15rem;
+  overflow-y: auto;
+}
+
+/* Dropdown footer */
+.dropdownFooter {
+  padding: var(--space-3);
+  border-top: 1px solid var(--glass-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.dropdownFooterEnd {
+  padding: var(--space-2);
+  border-top: 1px solid var(--glass-border);
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+/* Generic cancel button (wide) */
+.cancelBtn {
+  padding: var(--space-2) var(--space-4);
+  font-size: 0.875rem;
+  background: var(--glass-bg-strong);
+  color: var(--text-secondary);
+  border-radius: var(--radius-lg);
+  transition: background-color var(--duration-fast) var(--easing-liquid),
+    color var(--duration-fast) var(--easing-liquid);
+}
+
+.cancelBtn:hover {
+  background: var(--glass-bg-highlight);
+  color: var(--text-primary);
+}
+
+/* Compact cancel (h-8) used in people/metadata footers */
+.cancelBtnSm {
+  padding: 0.375rem var(--space-3);
+  height: 2rem;
+  font-size: 0.875rem;
+  background: var(--glass-bg-strong);
+  color: var(--text-secondary);
+  border-radius: var(--radius-lg);
+  transition: background-color var(--duration-fast) var(--easing-liquid),
+    color var(--duration-fast) var(--easing-liquid);
+}
+
+.cancelBtnSm:hover {
+  background: var(--glass-bg-highlight);
+  color: var(--text-primary);
+}
+
+/* Apply button — active (wide, tags menu) */
+.applyBtnActive {
+  padding: var(--space-2) var(--space-6);
+  font-size: 0.875rem;
+  border-radius: var(--radius-lg);
+  font-weight: 600;
+  background: var(--accent);
+  color: var(--text-primary);
+  box-shadow: var(--glass-shadow), 0 0 12px var(--accent-glow);
+  transition: filter var(--duration-fast) var(--easing-liquid);
+}
+
+.applyBtnActive:hover {
+  filter: brightness(1.1);
+}
+
+/* Apply button — disabled */
+.applyBtnInactive {
+  padding: var(--space-2) var(--space-6);
+  font-size: 0.875rem;
+  border-radius: var(--radius-lg);
+  font-weight: 600;
+  background: var(--glass-bg-strong);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+/* Compact apply buttons (h-8) used in people footer */
+.applyBtnSmActive {
+  padding: 0.375rem var(--space-4);
+  height: 2rem;
+  font-size: 0.875rem;
+  border-radius: var(--radius-lg);
+  font-weight: 600;
+  background: var(--accent);
+  color: var(--text-primary);
+  box-shadow: var(--glass-shadow), 0 0 12px var(--accent-glow);
+  transition: filter var(--duration-fast) var(--easing-liquid);
+}
+
+.applyBtnSmActive:hover {
+  filter: brightness(1.1);
+}
+
+.applyBtnSmInactive {
+  padding: 0.375rem var(--space-4);
+  height: 2rem;
+  font-size: 0.875rem;
+  border-radius: var(--radius-lg);
+  font-weight: 600;
+  background: var(--glass-bg-strong);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+/* ── Tags section ─────────────────────────────────────── */
+.selectedTagsBar {
+  margin-top: var(--space-2);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.tagPill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0.125rem var(--space-2);
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  color: var(--text-primary);
+  /* background set via inline style (dynamic tag color) */
+}
+
+.tagPillRemove {
+  color: var(--text-primary);
+  transition: opacity var(--duration-fast) var(--easing-liquid);
+}
+
+.tagPillRemove:hover {
+  opacity: 0.8;
+}
+
+/* Loading / empty message */
+.emptyMsg {
+  text-align: center;
+  padding: var(--space-4) var(--space-2);
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+/* Tags 2-column grid */
+.tagsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-2);
+}
+
+/* Tag option button (unselected base) */
+.tagOption {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border-radius: var(--radius-lg);
+  font-size: 0.875rem;
+  text-align: left;
+  border: 2px solid transparent;
+  transition: border-color var(--duration-fast) var(--easing-liquid),
+    transform var(--duration-fast) var(--easing-liquid),
+    box-shadow var(--duration-fast) var(--easing-liquid);
+}
+
+.tagOption:hover {
+  border-color: var(--glass-border-highlight);
+}
+
+/* Selected state */
+.tagOptionSelected {
+  border-color: var(--text-primary);
+  box-shadow: var(--glass-shadow);
+  transform: scale(1.05);
+}
+
+/* Tag dot (color indicator) */
+.tagDot {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 9999px;
+  border: 2px solid color-mix(in srgb, var(--text-primary) 50%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  /* background set via inline style */
+}
+
+.tagDotCheck {
+  color: var(--text-primary);
+  font-size: 0.75rem;
+}
+
+.tagName {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.tagNameSelected {
+  color: var(--text-primary);
+}
+
+.tagNameUnselected {
+  color: var(--text-secondary);
+}
+
+/* ── People section ───────────────────────────────────── */
+.filterInput {
+  width: 100%;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  padding: 0.375rem var(--space-3);
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color var(--duration-fast) var(--easing-liquid),
+    box-shadow var(--duration-fast) var(--easing-liquid);
+}
+
+.filterInput:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.filterInput::placeholder {
+  color: var(--text-muted);
+}
+
+.peopleList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.personRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  text-align: left;
+  transition: background-color var(--duration-fast) var(--easing-liquid);
+}
+
+.personRowSelected {
+  background: var(--accent);
+  color: var(--text-primary);
+}
+
+.personRowUnselected {
+  background: var(--glass-bg-strong);
+  color: var(--text-secondary);
+}
+
+.personRowUnselected:hover {
+  background: var(--glass-bg-highlight);
+}
+
+.personAvatar {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 9999px;
+  background: var(--glass-bg-highlight);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+.personInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.personName {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.personRole {
+  font-size: 0.75rem;
+  opacity: 0.75;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.personFlags {
+  font-size: 0.75rem;
+}
+
+/* ── Rating section ───────────────────────────────────── */
+.dropdownPad {
+  padding: var(--space-3);
+}
+
+.starsRow {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-1);
+  margin-bottom: var(--space-3);
+}
+
+.starBtn {
+  color: var(--accent-warning);
+  transition: opacity var(--duration-fast) var(--easing-liquid);
+}
+
+.starBtn:hover {
+  opacity: 0.8;
+}
+
+/* ── Metadata section ─────────────────────────────────── */
+.metaBody {
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.fieldLabel {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-1);
+}
+
+.textInput {
+  width: 100%;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  padding: 0.375rem var(--space-3);
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  height: 2rem;
+  outline: none;
+  transition: border-color var(--duration-fast) var(--easing-liquid),
+    box-shadow var(--duration-fast) var(--easing-liquid);
+}
+
+.textInput:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.textareaInput {
+  width: 100%;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  padding: 0.375rem var(--space-3);
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color var(--duration-fast) var(--easing-liquid),
+    box-shadow var(--duration-fast) var(--easing-liquid);
+}
+
+.textareaInput:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+/* ── Action buttons (undo / save / cancel) ────────────── */
+.undoBtnActive {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-lg);
+  font-size: 0.875rem;
+  height: 2rem;
+  flex-shrink: 0;
+  color: var(--accent-warning);
+  transition: background-color var(--duration-fast) var(--easing-liquid);
+}
+
+.undoBtnActive:hover {
+  background: var(--glass-bg-strong);
+}
+
+.undoBtnDisabled {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-lg);
+  font-size: 0.875rem;
+  height: 2rem;
+  flex-shrink: 0;
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.saveBtnActive {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-lg);
+  font-size: 0.875rem;
+  font-weight: 600;
+  height: 2rem;
+  flex-shrink: 0;
+  background: var(--accent);
+  color: var(--text-primary);
+  box-shadow: var(--glass-shadow), 0 0 12px var(--accent-glow);
+  transition: filter var(--duration-fast) var(--easing-liquid);
+}
+
+.saveBtnActive:hover {
+  filter: brightness(1.1);
+}
+
+.saveBtnDisabled {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-lg);
+  font-size: 0.875rem;
+  font-weight: 600;
+  height: 2rem;
+  flex-shrink: 0;
+  background: var(--glass-bg-strong);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+/* The red Cancel that exits batch mode entirely */
+.cancelActionBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-lg);
+  font-size: 0.875rem;
+  height: 2rem;
+  flex-shrink: 0;
+  color: var(--accent-danger);
+  transition: background-color var(--duration-fast) var(--easing-liquid);
+}
+
+.cancelActionBtn:hover {
+  background: var(--glass-bg-strong);
+}

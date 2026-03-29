@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Icon from './Icon';
+import s from './BatchToolbar.module.css';
 
 interface BatchToolbarProps {
   selectedCount: number;
@@ -54,6 +55,9 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
   const [selectedPeople, setSelectedPeople] = useState<number[]>([]);
   const [peopleFilter, setPeopleFilter] = useState('');
 
+  const metadataTitleRef = useRef<HTMLInputElement>(null);
+  const metadataDescRef = useRef<HTMLTextAreaElement>(null);
+
   const { data: tags = [], isLoading: loadingTags } = useQuery<Tag[]>({
     queryKey: ['batch-toolbar-tags'],
     queryFn: async () => {
@@ -105,45 +109,36 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
   };
 
   return (
-    <div className="bg-[var(--glass-bg)] backdrop-blur-sm border border-[var(--glass-border)] rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] max-w-full">
-      <div className="flex items-center gap-1 p-2">
+    <div className={s.root}>
+      <div className={s.toolbar}>
         {/* Selected count with deselect button */}
-        <div className="flex items-center gap-1 bg-[var(--glass-bg-strong)] rounded-[var(--radius-lg)] px-1 py-1 h-8 shrink-0">
-          <span className="px-2 text-sm font-medium text-[var(--accent)] whitespace-nowrap">
-            {selectedCount} selected
-          </span>
+        <div className={s.badge}>
+          <span className={s.badgeCount}>{selectedCount} selected</span>
           {onDeselect && (
-            <button
-              onClick={onDeselect}
-              className="w-6 h-6 flex items-center justify-center rounded-md hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
-              title="Clear selection"
-            >
+            <button onClick={onDeselect} className={s.deselectBtn} title="Clear selection">
               <Icon name="X" size="sm" />
             </button>
           )}
         </div>
 
         {/* Divider */}
-        <div className="w-px h-6 bg-[var(--glass-border)] shrink-0"></div>
+        <div className={s.divider} />
 
         {/* Rotate actions */}
-        <div className="relative shrink-0">
-          <button
-            onClick={() => setShowRotateMenu(!showRotateMenu)}
-            className="flex items-center gap-2 px-3 py-2 hover:bg-[var(--glass-bg-strong)] rounded-[var(--radius-lg)] text-sm transition-colors h-8"
-          >
+        <div className={s.menuWrap}>
+          <button onClick={() => setShowRotateMenu(!showRotateMenu)} className={s.menuTrigger}>
             <Icon name="RotateCw" size="sm" />
-            <span className="hidden sm:inline">Rotate</span>
+            <span className={s.triggerLabel}>Rotate</span>
           </button>
 
           {showRotateMenu && (
-            <div className="absolute bottom-full left-0 mb-2 dropdown-surface z-50">
+            <div className={`${s.dropdown} dropdown-surface`}>
               <button
                 onClick={() => {
                   onRotate('left');
                   setShowRotateMenu(false);
                 }}
-                className="flex items-center gap-2 w-full px-4 py-2 hover:bg-[var(--glass-bg-strong)] rounded-[var(--radius-lg)] text-sm text-left"
+                className={s.menuTrigger}
               >
                 <Icon name="RotateCcw" size="sm" />
                 Rotate Left
@@ -153,7 +148,7 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
                   onRotate('right');
                   setShowRotateMenu(false);
                 }}
-                className="flex items-center gap-2 w-full px-4 py-2 hover:bg-[var(--glass-bg-strong)] rounded-[var(--radius-lg)] text-sm text-left"
+                className={s.menuTrigger}
               >
                 <Icon name="RotateCw" size="sm" />
                 Rotate Right
@@ -163,36 +158,31 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
         </div>
 
         {/* Tags action */}
-        <div className="relative shrink-0">
-          <button
-            onClick={() => setShowTagsMenu(!showTagsMenu)}
-            className="flex items-center gap-2 px-3 py-2 hover:bg-[var(--glass-bg-strong)] rounded-[var(--radius-lg)] text-sm transition-colors h-8"
-          >
+        <div className={s.menuWrap}>
+          <button onClick={() => setShowTagsMenu(!showTagsMenu)} className={s.menuTrigger}>
             <Icon name="Tag" size="sm" />
-            <span className="hidden sm:inline">Tags</span>
+            <span className={s.triggerLabel}>Tags</span>
           </button>
 
           {showTagsMenu && (
-            <div className="absolute bottom-full left-0 mb-2 dropdown-surface z-50 w-80">
-              <div className="p-3 border-b border-[var(--glass-border)]">
-                <h3 className="text-sm font-medium text-[var(--text-primary)] mb-2">Assign Tags</h3>
-                <p className="text-xs text-[var(--text-secondary)]">
-                  Select tags to apply to {selectedCount} images
-                </p>
+            <div className={`${s.dropdown} ${s.dropdownWide} dropdown-surface`}>
+              <div className={s.dropdownHeader}>
+                <h3 className={s.dropdownTitle}>Assign Tags</h3>
+                <p className={s.dropdownSubtitle}>Select tags to apply to {selectedCount} images</p>
                 {selectedTags.length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-1">
+                  <div className={s.selectedTagsBar}>
                     {selectedTags.map((id) => {
                       const tag = tags.find((t) => t.id === id);
                       return tag ? (
                         <span
                           key={id}
-                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs text-[var(--text-primary)]"
+                          className={s.tagPill}
                           style={{ backgroundColor: tag.color || '#06b6d4' }}
                         >
                           {tag.name}
                           <button
                             onClick={() => toggleTagSelection(id)}
-                            className="hover:text-[var(--text-primary)]"
+                            className={s.tagPillRemove}
                           >
                             ×
                           </button>
@@ -202,42 +192,31 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
                   </div>
                 )}
               </div>
-              <div className="p-2 max-h-60 overflow-y-auto">
+              <div className={s.dropdownBody}>
                 {loadingTags ? (
-                  <div className="text-center py-4 text-sm text-[var(--text-muted)]">
-                    Loading tags...
-                  </div>
+                  <div className={s.emptyMsg}>Loading tags...</div>
                 ) : tags.length === 0 ? (
-                  <div className="text-center py-4 text-sm text-[var(--text-muted)]">
-                    No tags available
-                  </div>
+                  <div className={s.emptyMsg}>No tags available</div>
                 ) : (
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className={s.tagsGrid}>
                     {tags.map((tag) => (
                       <button
                         key={tag.id}
                         onClick={() => toggleTagSelection(tag.id)}
-                        className={`flex items-center gap-2 p-2 rounded-[var(--radius-lg)] text-sm text-left transition-all border-2 ${
-                          selectedTags.includes(tag.id)
-                            ? 'border-[var(--text-primary)] shadow-[var(--glass-shadow)] scale-105'
-                            : 'border-transparent hover:border-[var(--glass-border-highlight)]'
-                        }`}
+                        className={`${s.tagOption} ${selectedTags.includes(tag.id) ? s.tagOptionSelected : ''}`}
                         style={{
                           backgroundColor: selectedTags.includes(tag.id)
                             ? tag.color || '#06b6d4'
                             : `${tag.color}40` || '#06b6d440',
                         }}
                       >
-                        <div
-                          className="w-4 h-4 rounded-full border-2 border-[var(--text-primary)]/50 flex items-center justify-center"
-                          style={{ backgroundColor: tag.color }}
-                        >
+                        <div className={s.tagDot} style={{ backgroundColor: tag.color }}>
                           {selectedTags.includes(tag.id) && (
-                            <span className="text-[var(--text-primary)] text-xs">✓</span>
+                            <span className={s.tagDotCheck}>✓</span>
                           )}
                         </div>
                         <span
-                          className={`truncate font-medium ${selectedTags.includes(tag.id) ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}
+                          className={`${s.tagName} ${selectedTags.includes(tag.id) ? s.tagNameSelected : s.tagNameUnselected}`}
                         >
                           {tag.name}
                         </span>
@@ -246,24 +225,20 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
                   </div>
                 )}
               </div>
-              <div className="p-3 border-t border-[var(--glass-border)] flex justify-between items-center gap-2">
+              <div className={s.dropdownFooter}>
                 <button
                   onClick={() => {
                     setShowTagsMenu(false);
                     setSelectedTags([]);
                   }}
-                  className="px-4 py-2 text-sm bg-[var(--glass-bg-strong)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-[var(--radius-lg)]"
+                  className={s.cancelBtn}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleApplyTags}
                   disabled={selectedTags.length === 0}
-                  className={`px-6 py-2 text-sm rounded-[var(--radius-lg)] font-semibold transition-all ${
-                    selectedTags.length === 0
-                      ? 'bg-[var(--glass-bg-strong)] text-[var(--text-muted)] cursor-not-allowed'
-                      : 'bg-[var(--accent)] hover:brightness-110 text-[var(--text-primary)] shadow-[var(--glass-shadow)] shadow-[var(--accent)]/30'
-                  }`}
+                  className={selectedTags.length === 0 ? s.applyBtnInactive : s.applyBtnActive}
                 >
                   💾 Save Tags ({selectedTags.length})
                 </button>
@@ -273,43 +248,32 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
         </div>
 
         {/* People action */}
-        <div className="relative shrink-0">
-          <button
-            onClick={() => setShowPeopleMenu(!showPeopleMenu)}
-            className="flex items-center gap-2 px-3 py-2 hover:bg-[var(--glass-bg-strong)] rounded-[var(--radius-lg)] text-sm transition-colors h-8"
-          >
+        <div className={s.menuWrap}>
+          <button onClick={() => setShowPeopleMenu(!showPeopleMenu)} className={s.menuTrigger}>
             <Icon name="User" size="sm" />
-            <span className="hidden sm:inline">People</span>
+            <span className={s.triggerLabel}>People</span>
           </button>
 
           {showPeopleMenu && (
-            <div className="absolute bottom-full left-0 mb-2 dropdown-surface z-50 w-80">
-              <div className="p-3 border-b border-[var(--glass-border)]">
-                <h3 className="text-sm font-medium text-[var(--text-primary)] mb-2">
-                  Assign People
-                </h3>
-                <p className="text-xs text-[var(--text-secondary)] mb-2">
-                  Select people to tag in {selectedCount} images
-                </p>
+            <div className={`${s.dropdown} ${s.dropdownWide} dropdown-surface`}>
+              <div className={s.dropdownHeader}>
+                <h3 className={s.dropdownTitle}>Assign People</h3>
+                <p className={s.dropdownSubtitle}>Select people to tag in {selectedCount} images</p>
                 <input
                   type="text"
                   placeholder="Filter people..."
                   value={peopleFilter}
                   onChange={(e) => setPeopleFilter(e.target.value)}
-                  className="w-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded px-3 py-1.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+                  className={s.filterInput}
                 />
               </div>
-              <div className="p-2 max-h-60 overflow-y-auto">
+              <div className={s.dropdownBody}>
                 {loadingPeople ? (
-                  <div className="text-center py-4 text-sm text-[var(--text-muted)]">
-                    Loading people...
-                  </div>
+                  <div className={s.emptyMsg}>Loading people...</div>
                 ) : people.length === 0 ? (
-                  <div className="text-center py-4 text-sm text-[var(--text-muted)]">
-                    No people available
-                  </div>
+                  <div className={s.emptyMsg}>No people available</div>
                 ) : (
-                  <div className="space-y-1">
+                  <div className={s.peopleList}>
                     {people
                       .filter(
                         (person) =>
@@ -321,20 +285,16 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
                         <button
                           key={person.id}
                           onClick={() => togglePersonSelection(person.id)}
-                          className={`flex items-center gap-2 w-full p-2 rounded text-sm text-left transition-colors ${
-                            selectedPeople.includes(person.id)
-                              ? 'bg-[var(--accent)] text-[var(--text-primary)]'
-                              : 'bg-[var(--glass-bg-strong)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)]'
-                          }`}
+                          className={`${s.personRow} ${selectedPeople.includes(person.id) ? s.personRowSelected : s.personRowUnselected}`}
                         >
-                          <div className="w-6 h-6 rounded-full bg-[var(--glass-bg-highlight)] flex items-center justify-center text-xs">
+                          <div className={s.personAvatar}>
                             {person.name.charAt(0).toUpperCase()}
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="font-medium truncate">{person.name}</div>
-                            <div className="text-xs opacity-75 truncate">{person.role}</div>
+                          <div className={s.personInfo}>
+                            <div className={s.personName}>{person.name}</div>
+                            <div className={s.personRole}>{person.role}</div>
                           </div>
-                          <div className="text-xs">
+                          <div className={s.personFlags}>
                             {person.redFlagRating > 0 && '🚩'.repeat(person.redFlagRating)}
                           </div>
                         </button>
@@ -342,24 +302,22 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
                   </div>
                 )}
               </div>
-              <div className="p-2 border-t border-[var(--glass-border)] flex justify-end gap-2">
+              <div className={s.dropdownFooterEnd}>
                 <button
                   onClick={() => {
                     setShowPeopleMenu(false);
                     setSelectedPeople([]);
                   }}
-                  className="px-3 py-1.5 text-sm bg-[var(--glass-bg-strong)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-[var(--radius-lg)] h-8"
+                  className={s.cancelBtnSm}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleApplyPeople}
                   disabled={selectedPeople.length === 0}
-                  className={`px-4 py-1.5 text-sm rounded-[var(--radius-lg)] font-semibold transition-all ${
-                    selectedPeople.length === 0
-                      ? 'bg-[var(--glass-bg-strong)] text-[var(--text-muted)] cursor-not-allowed'
-                      : 'bg-[var(--accent)] hover:brightness-110 text-[var(--text-primary)] shadow-[var(--glass-shadow)] shadow-[var(--accent)]/30'
-                  } h-8`}
+                  className={
+                    selectedPeople.length === 0 ? s.applyBtnSmInactive : s.applyBtnSmActive
+                  }
                 >
                   💾 Save People ({selectedPeople.length})
                 </button>
@@ -369,22 +327,17 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
         </div>
 
         {/* Rating action */}
-        <div className="relative shrink-0">
-          <button
-            onClick={() => setShowRatingMenu(!showRatingMenu)}
-            className="flex items-center gap-2 px-3 py-2 hover:bg-[var(--glass-bg-strong)] rounded-[var(--radius-lg)] text-sm transition-colors h-8"
-          >
+        <div className={s.menuWrap}>
+          <button onClick={() => setShowRatingMenu(!showRatingMenu)} className={s.menuTrigger}>
             <Icon name="Star" size="sm" />
-            <span className="hidden sm:inline">Rating</span>
+            <span className={s.triggerLabel}>Rating</span>
           </button>
 
           {showRatingMenu && (
-            <div className="absolute bottom-full left-0 mb-2 dropdown-surface z-50 w-48">
-              <div className="p-3">
-                <h3 className="text-sm font-medium text-[var(--text-primary)] mb-2">
-                  Assign Rating
-                </h3>
-                <div className="flex justify-center gap-1 mb-3">
+            <div className={`${s.dropdown} ${s.dropdownNarrow} dropdown-surface`}>
+              <div className={s.dropdownPad}>
+                <h3 className={s.dropdownTitle}>Assign Rating</h3>
+                <div className={s.starsRow}>
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
                       key={star}
@@ -392,7 +345,7 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
                         onAssignRating(star);
                         setShowRatingMenu(false);
                       }}
-                      className="text-accent-warning hover:text-[var(--accent-warning)]/80"
+                      className={s.starBtn}
                     >
                       <Icon name="Star" size="sm" />
                     </button>
@@ -404,70 +357,51 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
         </div>
 
         {/* Metadata action */}
-        <div className="relative shrink-0">
-          <button
-            onClick={() => setShowMetadataMenu(!showMetadataMenu)}
-            className="flex items-center gap-2 px-3 py-2 hover:bg-[var(--glass-bg-strong)] rounded-[var(--radius-lg)] text-sm transition-colors h-8"
-          >
+        <div className={s.menuWrap}>
+          <button onClick={() => setShowMetadataMenu(!showMetadataMenu)} className={s.menuTrigger}>
             <Icon name="Edit3" size="sm" />
-            <span className="hidden sm:inline">Edit</span>
+            <span className={s.triggerLabel}>Edit</span>
           </button>
 
           {showMetadataMenu && (
-            <div className="absolute bottom-full left-0 mb-2 dropdown-surface z-50 w-80">
-              <div className="p-3 border-b border-[var(--glass-border)]">
-                <h3 className="text-sm font-medium text-[var(--text-primary)] mb-2">
-                  Edit Metadata
-                </h3>
-                <p className="text-xs text-[var(--text-secondary)]">
-                  Apply changes to {selectedCount} images
-                </p>
+            <div className={`${s.dropdown} ${s.dropdownWide} dropdown-surface`}>
+              <div className={s.dropdownHeader}>
+                <h3 className={s.dropdownTitle}>Edit Metadata</h3>
+                <p className={s.dropdownSubtitle}>Apply changes to {selectedCount} images</p>
               </div>
-              <div className="p-3 space-y-3">
+              <div className={s.metaBody}>
                 <div>
-                  <label className="block text-xs text-[var(--text-secondary)] mb-1">Title</label>
+                  <label className={s.fieldLabel}>Title</label>
                   <input
+                    ref={metadataTitleRef}
                     type="text"
                     placeholder="Enter new title"
-                    className="w-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded px-3 py-1.5 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)] h-8"
+                    className={s.textInput}
                   />
                 </div>
                 <div>
-                  <label className="block text-xs text-[var(--text-secondary)] mb-1">
-                    Description
-                  </label>
+                  <label className={s.fieldLabel}>Description</label>
                   <textarea
+                    ref={metadataDescRef}
                     placeholder="Enter new description"
                     rows={3}
-                    className="w-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded px-3 py-1.5 text-sm text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
-                  ></textarea>
+                    className={s.textareaInput}
+                  />
                 </div>
               </div>
-              <div className="p-2 border-t border-[var(--glass-border)] flex justify-end gap-2">
-                <button
-                  onClick={() => setShowMetadataMenu(false)}
-                  className="px-3 py-1.5 text-sm bg-[var(--glass-bg-strong)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-[var(--radius-lg)] h-8"
-                >
+              <div className={s.dropdownFooterEnd}>
+                <button onClick={() => setShowMetadataMenu(false)} className={s.cancelBtnSm}>
                   Cancel
                 </button>
                 <button
                   onClick={() => {
-                    const titleInput = document.querySelector<HTMLInputElement>(
-                      '.dropdown-surface.z-50.w-80 input',
-                    );
-                    const descInput = document.querySelector<HTMLTextAreaElement>(
-                      '.dropdown-surface.z-50.w-80 textarea',
-                    );
-
-                    if (titleInput?.value) {
-                      onEditMetadata('title', titleInput.value);
-                    }
-                    if (descInput?.value) {
-                      onEditMetadata('description', descInput.value);
-                    }
+                    const titleVal = metadataTitleRef.current?.value;
+                    const descVal = metadataDescRef.current?.value;
+                    if (titleVal) onEditMetadata('title', titleVal);
+                    if (descVal) onEditMetadata('description', descVal);
                     setShowMetadataMenu(false);
                   }}
-                  className="px-3 py-1.5 text-sm bg-[var(--accent)] hover:brightness-110 text-[var(--text-primary)] rounded-[var(--radius-lg)] h-8"
+                  className={s.applyBtnSmActive}
                 >
                   Apply to All
                 </button>
@@ -477,22 +411,18 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
         </div>
 
         {/* Divider */}
-        <div className="w-px h-6 bg-[var(--glass-border)] shrink-0"></div>
+        <div className={s.divider} />
 
         {/* Undo button */}
         {onUndo && (
           <button
             onClick={onUndo}
             disabled={!canUndo}
-            className={`flex items-center gap-2 px-3 py-2 rounded-[var(--radius-lg)] text-sm transition-colors h-8 shrink-0 ${
-              canUndo
-                ? 'hover:bg-[var(--glass-bg-strong)] text-accent-warning'
-                : 'text-[var(--text-muted)] cursor-not-allowed'
-            }`}
+            className={canUndo ? s.undoBtnActive : s.undoBtnDisabled}
             title={canUndo ? 'Undo last action' : 'Nothing to undo'}
           >
             <Icon name="Undo2" size="sm" />
-            <span className="hidden sm:inline">Undo</span>
+            <span className={s.triggerLabel}>Undo</span>
           </button>
         )}
 
@@ -501,25 +431,18 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
           <button
             onClick={onSave}
             disabled={!hasChanges}
-            className={`flex items-center gap-2 px-4 py-2 rounded-[var(--radius-lg)] text-sm font-semibold transition-all h-8 shrink-0 ${
-              hasChanges
-                ? 'bg-[var(--accent)] hover:brightness-110 text-[var(--text-primary)] shadow-[var(--glass-shadow)] shadow-[var(--accent)]/30'
-                : 'bg-[var(--glass-bg-strong)] text-[var(--text-muted)] cursor-not-allowed'
-            }`}
+            className={hasChanges ? s.saveBtnActive : s.saveBtnDisabled}
             title={hasChanges ? 'Save all changes' : 'No changes to save'}
           >
             <Icon name="Save" size="sm" />
-            <span className="hidden sm:inline">Save</span>
+            <span className={s.triggerLabel}>Save</span>
           </button>
         )}
 
         {/* Cancel button */}
-        <button
-          onClick={onCancel}
-          className="flex items-center gap-2 px-3 py-2 hover:bg-[var(--glass-bg-strong)] rounded-[var(--radius-lg)] text-sm transition-colors text-rose-400 h-8 shrink-0"
-        >
+        <button onClick={onCancel} className={s.cancelActionBtn}>
           <Icon name="X" size="sm" />
-          <span className="hidden sm:inline">Cancel</span>
+          <span className={s.triggerLabel}>Cancel</span>
         </button>
       </div>
     </div>
