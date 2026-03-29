@@ -1,0 +1,35 @@
+/* src/client/components/shared/DegradedBanner.module.css */
+
+.banner {
+  background: color-mix(in srgb, var(--accent-warning) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-warning) 50%, transparent);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  margin-top: var(--space-4);
+  color: var(--accent-warning);
+  max-width: 42rem; /* max-w-2xl */
+  margin-left: auto;
+  margin-right: auto;
+  box-shadow: var(--glass-shadow);
+}
+
+.icon {
+  flex-shrink: 0;
+}
+
+.text {
+  font-size: 0.875rem;
+}
+
+.strong {
+  font-weight: 600;
+  display: block;
+}
+
+.detail {
+  opacity: 0.9;
+}
