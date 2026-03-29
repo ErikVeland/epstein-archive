@@ -53,6 +53,8 @@ const moduleGovernedFiles = new Set(
     'src/client/components/common/Select.tsx',
     'src/client/components/common/Tabs.tsx',
     'src/client/components/common/Tooltip.tsx',
+    'src/client/components/common/LoadingPill.tsx',
+    'src/client/components/common/TagSelector.tsx',
   ].map((f) => path.join(rootDir, f)),
 );
 

@@ -149,7 +149,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
                 }}
                 className={s.tagRemove}
               >
-                <X className="w-3 h-3" />
+                <X size={12} />
               </button>
             )}
           </span>
@@ -158,7 +158,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
 
       {/* Add Tag Button */}
       <button onClick={() => setIsOpen(!isOpen)} className={s.addBtn}>
-        <Tag className="w-3.5 h-3.5" />
+        <Tag size={14} />
         Add Tag
       </button>
 
@@ -168,7 +168,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
           {isAdmin && (
             <div className={s.searchWrap}>
               <div className={s.searchInner}>
-                <Search className={`${s.searchIcon} w-4 h-4`} />
+                <Search className={s.searchIcon} />
                 <input
                   type="text"
                   placeholder="Search tags..."
@@ -228,7 +228,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
                 </div>
               ) : (
                 <button onClick={() => setIsCreating(true)} className={s.createTrigger}>
-                  <Plus className="w-4 h-4" />
+                  <Plus size={16} />
                   Create new tag
                 </button>
               )}
