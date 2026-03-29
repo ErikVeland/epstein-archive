@@ -1,6 +1,7 @@
 import React from 'react';
 import { Filter, Users, Calendar, AlertTriangle } from 'lucide-react';
 import { SearchFilters as ISearchFilters } from '../../types';
+import s from './SearchFilters.module.css';
 
 interface SearchFiltersProps {
   filters: ISearchFilters;
@@ -13,22 +14,22 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ filters, setFilters }) =>
   };
 
   return (
-    <div className="bg-[var(--glass-bg)]/50 backdrop-blur-sm border border-[var(--glass-border)] rounded-[var(--radius-xl)] p-6 mb-8">
-      <div className="flex items-center space-x-2 mb-4">
-        <Filter className="h-5 w-5 text-primary-400" />
-        <h3 className="text-lg font-semibold text-[var(--text-primary)]">Filters</h3>
+    <div className={s.root}>
+      <div className={s.header}>
+        <Filter className={s.headerIcon} size={20} />
+        <h3 className={s.heading}>Filters</h3>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-            <AlertTriangle className="inline h-4 w-4 mr-1" />
+      <div className={s.grid}>
+        <div className={s.field}>
+          <label className={s.label}>
+            <AlertTriangle className={s.labelIcon} size={16} />
             Likelihood Level
           </label>
           <select
             value={filters.likelihood}
             onChange={(e) => handleFilterChange('likelihood', e.target.value)}
-            className="w-full bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] px-3 py-2 text-[var(--text-primary)] focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            className={s.select}
           >
             <option value="all">All Levels</option>
             <option value="HIGH">High Risk</option>
@@ -37,9 +38,9 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ filters, setFilters }) =>
           </select>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-            <Users className="inline h-4 w-4 mr-1" />
+        <div className={s.field}>
+          <label className={s.label}>
+            <Users className={s.labelIcon} size={16} />
             Min Mentions
           </label>
           <input
@@ -47,19 +48,17 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ filters, setFilters }) =>
             min="0"
             value={filters.minMentions}
             onChange={(e) => handleFilterChange('minMentions', parseInt(e.target.value) || 0)}
-            className="w-full bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] px-3 py-2 text-[var(--text-primary)] focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            className={s.input}
             placeholder="0"
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-            Role Type
-          </label>
+        <div className={s.field}>
+          <label className={s.label}>Role Type</label>
           <select
             value={filters.role}
             onChange={(e) => handleFilterChange('role', e.target.value)}
-            className="w-full bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] px-3 py-2 text-[var(--text-primary)] focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            className={s.select}
           >
             <option value="all">All Roles</option>
             <option value="president">President/Politician</option>
@@ -70,15 +69,15 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ filters, setFilters }) =>
           </select>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-            <Calendar className="inline h-4 w-4 mr-1" />
+        <div className={s.field}>
+          <label className={s.label}>
+            <Calendar className={s.labelIcon} size={16} />
             Current Status
           </label>
           <select
             value={filters.status}
             onChange={(e) => handleFilterChange('status', e.target.value)}
-            className="w-full bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] px-3 py-2 text-[var(--text-primary)] focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            className={s.select}
           >
             <option value="all">All Status</option>
             <option value="active">Active</option>
