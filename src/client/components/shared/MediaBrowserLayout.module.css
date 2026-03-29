@@ -1,0 +1,198 @@
+/* src/client/components/shared/MediaBrowserLayout.module.css */
+
+/* ── Root container ──────────────────────────────────────── */
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+}
+
+/* ── Header ──────────────────────────────────────────────── */
+.header {
+  background: var(--glass-bg-strong);
+  border-bottom: 1px solid var(--glass-border);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  flex-shrink: 0;
+  z-index: var(--z-content);
+  gap: var(--space-2);
+}
+
+@media (min-width: 768px) {
+  .header {
+    flex-direction: row;
+    align-items: center;
+    padding: 0 var(--space-4);
+    height: 3.5rem; /* h-14 */
+  }
+}
+
+.titleGroup {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.titleText {
+  font-size: 1.125rem;
+  font-weight: 300;
+  color: var(--text-primary);
+}
+
+.subtitle {
+  display: none;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  .subtitle {
+    display: block;
+  }
+}
+
+.batchBtn {
+  padding: var(--space-1) var(--space-3); /* py-1.5 px-3 */
+  border-radius: var(--radius-lg);
+  font-size: 0.75rem;
+  transition: background-color var(--duration-fast) var(--easing-liquid),
+    color var(--duration-fast) var(--easing-liquid);
+  background: var(--glass-bg);
+  color: var(--text-muted);
+  border: 1px solid var(--glass-border);
+}
+
+.batchBtn:hover {
+  color: var(--text-primary);
+}
+
+.batchBtnActive {
+  background: var(--accent);
+  color: var(--text-primary);
+  border-color: transparent;
+}
+
+/* ── Body ────────────────────────────────────────────────── */
+.body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.main {
+  flex: 1;
+  background: var(--glass-bg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-6);
+}
+
+/* ── Loading overlay ─────────────────────────────────────── */
+.loadingOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-above);
+  background: var(--glass-bg);
+  backdrop-filter: blur(4px);
+}
+
+.spinner {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  border-top-color: var(--accent);
+  border-bottom-color: var(--accent);
+  animation: mediaBrowserSpin 1s linear infinite;
+}
+
+@keyframes mediaBrowserSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+    opacity: 0.6;
+  }
+}
+
+/* ── Error box ───────────────────────────────────────────── */
+.errorBox {
+  background: color-mix(in srgb, var(--bg-danger-deep) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-danger) 50%, transparent);
+  color: var(--text-danger-strong);
+  padding: var(--space-4);
+  margin: var(--space-6);
+  border-radius: var(--radius-lg);
+}
+
+/* ── Footer ──────────────────────────────────────────────── */
+.footer {
+  height: 1.5rem;
+  background: var(--glass-bg-strong);
+  border-top: 1px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-3);
+  font-size: 0.625rem;
+  color: var(--text-muted);
+  user-select: none;
+  flex-shrink: 0;
+}
+
+/* ── MediaEmptyState (exported helper) ───────────────────── */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-muted);
+}
+
+.emptyIcon {
+  margin-bottom: var(--space-2);
+  opacity: 0.5;
+}
+
+/* ── LoadMoreButton (exported helper) ────────────────────── */
+.loadMoreWrap {
+  text-align: center;
+  margin-top: var(--space-8);
+}
+
+.loadMoreBtn {
+  padding: var(--space-2) var(--space-6);
+  background: var(--glass-bg);
+  color: var(--text-secondary);
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: background-color var(--duration-fast) var(--easing-liquid);
+}
+
+.loadMoreBtn:hover {
+  background: var(--glass-bg-highlight);
+}
