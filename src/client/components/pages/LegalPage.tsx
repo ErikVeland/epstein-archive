@@ -1,4 +1,5 @@
 import React from 'react';
+import s from './LegalPage.module.css';
 
 interface LegalPageProps {
   mode: 'privacy' | 'terms';
@@ -43,17 +44,17 @@ export const LegalPage: React.FC<LegalPageProps> = ({ mode }) => {
   const sections = mode === 'privacy' ? PRIVACY_SECTIONS : TERMS_SECTIONS;
 
   return (
-    <div className="surface-glass-card p-6 md:p-8 max-w-4xl">
-      <div className="space-y-3 mb-8">
-        <h1 className="text-3xl font-semibold text-[var(--text-primary)]">{title}</h1>
-        <p className="text-[var(--text-secondary)] max-w-2xl">{intro}</p>
+    <div className={`surface-glass-card ${s.root}`}>
+      <div className={s.titleBlock}>
+        <h1 className={s.title}>{title}</h1>
+        <p className={s.intro}>{intro}</p>
       </div>
 
-      <div className="space-y-6">
+      <div className={s.sections}>
         {sections.map((section) => (
-          <section key={section.heading} className="space-y-2">
-            <h2 className="text-lg font-semibold text-[var(--text-primary)]">{section.heading}</h2>
-            <p className="text-[var(--text-secondary)] leading-7">{section.body}</p>
+          <section key={section.heading} className={s.section}>
+            <h2 className={s.sectionHeading}>{section.heading}</h2>
+            <p className={s.sectionBody}>{section.body}</p>
           </section>
         ))}
       </div>

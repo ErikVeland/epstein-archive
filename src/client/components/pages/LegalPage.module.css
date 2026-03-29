@@ -1,0 +1,53 @@
+/* src/client/components/pages/LegalPage.module.css */
+
+.root {
+  padding: var(--space-6);
+  max-width: 56rem; /* max-w-4xl = 896px = 56rem */
+}
+
+@media (min-width: 768px) {
+  .root {
+    padding: var(--space-8);
+  }
+}
+
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-8);
+}
+
+.title {
+  font-size: 1.875rem; /* text-3xl */
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.intro {
+  color: var(--text-secondary);
+  max-width: 42rem; /* max-w-2xl */
+}
+
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.sectionHeading {
+  font-size: 1.125rem; /* text-lg */
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.sectionBody {
+  color: var(--text-secondary);
+  line-height: 1.75; /* leading-7 */
+}
