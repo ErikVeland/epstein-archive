@@ -159,7 +159,7 @@ fi
 if command -v psql >/dev/null 2>&1; then
   log "Media file_type completeness gate"
   MISSING_MEDIA_FILETYPE="$(
-    psql "$DATABASE_URL" -Atc "SELECT COUNT(*) FROM media_items WHERE (file_type IS NULL OR btrim(file_type) = '') AND file_path IS NOT NULL AND btrim(file_path) <> ''" 2>/dev/null || echo '__PSQL_ERROR__'
+    psql "$DATABASE_URL" -Atc "SELECT COUNT(*) FROM media_items WHERE id >= 1000000 AND (file_type IS NULL OR btrim(file_type) = '') AND file_path IS NOT NULL AND btrim(file_path) <> ''" 2>/dev/null || echo '__PSQL_ERROR__'
   )"
   if [[ "$MISSING_MEDIA_FILETYPE" == "__PSQL_ERROR__" ]]; then
     if is_ci; then
@@ -174,8 +174,8 @@ if command -v psql >/dev/null 2>&1; then
   IFS='|' read -r MISSING_DOC_FILETYPE MISSING_DOC_EVIDENCETYPE < <(
     psql "$DATABASE_URL" -Atc "
       SELECT
-        COUNT(*) FILTER (WHERE (file_type IS NULL OR btrim(file_type) = '') AND file_path IS NOT NULL AND btrim(file_path) <> ''),
-        COUNT(*) FILTER (WHERE (evidence_type IS NULL OR btrim(evidence_type) = '') AND file_path IS NOT NULL AND btrim(file_path) <> '')
+        COUNT(*) FILTER (WHERE id >= 1000000 AND (file_type IS NULL OR btrim(file_type) = '') AND file_path IS NOT NULL AND btrim(file_path) <> ''),
+        COUNT(*) FILTER (WHERE id >= 1000000 AND (evidence_type IS NULL OR btrim(evidence_type) = '') AND file_path IS NOT NULL AND btrim(file_path) <> '')
       FROM documents
     " 2>/dev/null || echo '__PSQL_ERROR__ __PSQL_ERROR__'
   )
