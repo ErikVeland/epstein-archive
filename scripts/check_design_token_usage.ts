@@ -95,6 +95,8 @@ const moduleGovernedFiles = new Set(
     'src/client/components/pages/About.tsx',
     // Phase 9e
     'src/client/components/pages/EnhancedAnalytics.tsx',
+    // Phase 9f
+    'src/client/components/pages/AboutPage.tsx',
   ].map((f) => path.join(rootDir, f)),
 );
 

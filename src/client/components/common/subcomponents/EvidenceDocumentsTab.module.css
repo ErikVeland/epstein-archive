@@ -1,0 +1,224 @@
+.tabContainer {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.toolbar {
+  padding: var(--space-5);
+  border-bottom: 1px solid color-mix(in srgb, var(--glass-border) 60%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  flex-shrink: 0;
+  background: transparent;
+}
+
+@media (min-width: 768px) {
+  .toolbar {
+    padding: var(--space-6);
+    flex-direction: row;
+  }
+}
+
+.searchWrapper {
+  composes: header-search-pill from global;
+  position: relative;
+  flex: 1;
+  max-width: 32rem; /* max-w-lg */
+}
+
+.searchIcon {
+  position: absolute;
+  left: var(--space-4);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  transition: color var(--duration-fast) var(--easing-liquid);
+}
+
+.searchInput {
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding-left: 3rem; /* pl-12 */
+  padding-right: var(--space-6);
+  padding-top: var(--space-3);
+  padding-bottom: var(--space-3);
+  font-size: 0.875rem; /* text-sm */
+  color: var(--text-strong);
+  font-weight: 500;
+  outline: none;
+}
+
+.searchInput::placeholder {
+  color: var(--text-muted);
+}
+
+.searchWrapper:focus-within .searchIcon {
+  color: var(--accent);
+}
+
+.countBadge {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: var(--space-2) var(--space-4);
+  background-color: var(--glass-bg);
+  border-radius: 9999px;
+  align-self: center;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--glass-border) 80%, transparent);
+}
+
+@media (min-width: 768px) {
+  .countBadge {
+    margin-left: auto;
+  }
+}
+
+.listContainer {
+  flex: 1;
+  min-height: 0;
+  background: transparent;
+  overflow: hidden;
+}
+
+.skeletonStack {
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.skeletonCard {
+  height: 7rem; /* h-28 */
+  composes: surface-glass-card from global;
+  padding: var(--space-5);
+  display: flex;
+  gap: var(--space-5);
+  align-items: center;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.skeletonIcon {
+  width: 3.5rem; /* w-14 */
+  height: 3.5rem;
+  border-radius: var(--radius-md);
+  background-color: var(--glass-bg-highlight);
+}
+
+.skeletonText {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.skeletonLine {
+  height: 1.25rem; /* h-5 */
+  width: 75%;
+  background-color: var(--glass-bg-highlight);
+  border-radius: var(--radius-sm);
+}
+
+.skeletonSubline {
+  height: 1rem; /* h-4 */
+  width: 50%;
+  background-color: var(--glass-bg-highlight);
+  border-radius: var(--radius-sm);
+}
+
+.emptyState {
+  height: 100%;
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding-left: var(--space-6);
+  padding-right: var(--space-6);
+  color: var(--text-dim);
+}
+
+.emptyIcon {
+  margin-bottom: var(--space-4);
+  opacity: 0.3;
+  color: var(--accent);
+}
+
+.emptyTitle {
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  font-size: 1.25rem; /* text-xl */
+  margin-bottom: var(--space-2);
+}
+
+.emptyText {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  max-width: 28rem; /* max-w-md */
+}
+
+.listWrapper {
+  height: 100%;
+  width: 100%;
+}
+
+.plainList {
+  height: 100%;
+  overflow-y: auto;
+  padding: var(--space-2) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* Custom scrollbar hook */
+.plainList {
+  composes: custom-scrollbar from global;
+}
+
+.itemWrapper {
+  min-height: 164px;
+}
+
+.loadMoreWrapper {
+  padding-top: var(--space-3);
+  padding-bottom: var(--space-3);
+  display: flex;
+  justify-content: center;
+}
+
+.loadMoreBtn {
+  composes: control from global;
+  height: 2.25rem; /* h-9 */
+  padding-left: var(--space-4);
+  padding-right: var(--space-4);
+  font-size: var(--type-xs);
+  color: var(--text-primary);
+}
+
+.virtualList {
+  composes: custom-scrollbar from global;
+}
+
+.virtualPadding {
+  padding: var(--space-2) var(--space-4);
+}
+
+.virtualSkeleton {
+  height: 100%;
+  background-color: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  animation: pulse 2s infinite;
+}

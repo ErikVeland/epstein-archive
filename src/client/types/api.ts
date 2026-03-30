@@ -40,8 +40,20 @@ export interface SearchEntityPayload {
   files?: number;
 }
 
+export interface SearchDocumentPayload {
+  id: number | string;
+  fileName?: string;
+  title?: string;
+  filePath?: string;
+  snippet?: string;
+  evidenceType?: string;
+  fileType?: string | null;
+  redFlagRating?: number | null;
+}
+
 export interface SearchResponsePayload {
   entities?: SearchEntityPayload[];
+  documents?: SearchDocumentPayload[];
 }
 
 export interface EntityByIdResponse {

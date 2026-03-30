@@ -6,15 +6,36 @@ interface DocumentLineage {
   document: {
     id: number;
     fileName: string;
-    sourceCollection: string;
-    sourceOriginalUrl: string;
+    file_name?: string;
+    sourceCollection?: string;
+    source_collection?: string;
+    sourceOriginalUrl?: string;
+    source_original_url?: string;
     credibilityScore: number;
-    ocrEngine: string;
-    ocrQualityScore: number;
-    processedAt: string;
+    credibility_score?: number;
+    ocrEngine?: string;
+    ocr_engine?: string;
+    ocrQualityScore?: number;
+    ocr_quality_score?: number;
+    processedAt?: string;
+    ocr_processed_at?: string;
   };
   originalDocument: { id: number; fileName: string } | null;
   childDocuments: { id: number; file_name: string; page_number: number }[];
+  processingInfo?: {
+    ocrEngine?: string;
+    ocrQualityScore?: number;
+    processedAt?: string;
+  };
+  provenance?: {
+    status?: string;
+    score?: number;
+    sourceSystem?: string;
+    sourceRelease?: string;
+    sourcePath?: string;
+    sourceUrl?: string;
+    acquisitionMethod?: string;
+  };
   auditTrail: {
     timestamp: string;
     user: string;
@@ -50,6 +71,22 @@ export const DocumentProvenance: React.FC<DocumentProvenanceProps> = ({
     staleTime: 30_000,
   });
   const error = fetchError instanceof Error ? fetchError.message : null;
+  const sourceCollection =
+    lineage?.document?.sourceCollection ||
+    lineage?.document?.source_collection ||
+    lineage?.provenance?.sourceRelease ||
+    'Not specified';
+  const credibilityScore =
+    lineage?.document?.credibilityScore ?? lineage?.document?.credibility_score ?? null;
+  const ocrEngine =
+    lineage?.processingInfo?.ocrEngine ||
+    lineage?.document?.ocrEngine ||
+    lineage?.document?.ocr_engine;
+  const ocrQualityScore =
+    lineage?.processingInfo?.ocrQualityScore ??
+    lineage?.document?.ocrQualityScore ??
+    lineage?.document?.ocr_quality_score ??
+    null;
 
   if (loading) {
     return (
@@ -92,9 +129,9 @@ export const DocumentProvenance: React.FC<DocumentProvenanceProps> = ({
         className="flex items-center gap-2 text-xs text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors"
       >
         <Icon name="Shield" size="xs" />
-        <span>{lineage.document.sourceCollection || 'Source Info'}</span>
-        <span className={getCredibilityColor(lineage.document.credibilityScore)}>
-          ({getCredibilityLabel(lineage.document.credibilityScore)})
+        <span>{sourceCollection || 'Source Info'}</span>
+        <span className={getCredibilityColor(credibilityScore)}>
+          ({getCredibilityLabel(credibilityScore)})
         </span>
         <Icon name="ChevronDown" size="xs" />
       </button>
@@ -124,37 +161,31 @@ export const DocumentProvenance: React.FC<DocumentProvenanceProps> = ({
         <div className="grid grid-cols-2 gap-3 text-xs">
           <div>
             <span className="text-[var(--text-muted)]">Source Collection</span>
-            <p className="text-[var(--text-primary)] font-medium">
-              {lineage.document.sourceCollection || 'Not specified'}
-            </p>
+            <p className="text-[var(--text-primary)] font-medium">{sourceCollection}</p>
           </div>
           <div>
             <span className="text-[var(--text-muted)]">Credibility</span>
-            <p className={`font-medium ${getCredibilityColor(lineage.document.credibilityScore)}`}>
-              {lineage.document.credibilityScore
-                ? `${Math.round(lineage.document.credibilityScore * 100)}% (${getCredibilityLabel(lineage.document.credibilityScore)})`
+            <p className={`font-medium ${getCredibilityColor(credibilityScore)}`}>
+              {credibilityScore
+                ? `${Math.round(credibilityScore * 100)}% (${getCredibilityLabel(credibilityScore)})`
                 : 'Not assessed'}
             </p>
           </div>
         </div>
 
         {/* OCR Info */}
-        {lineage.document.ocrEngine && (
+        {ocrEngine && (
           <div className="flex items-center gap-4 text-xs bg-[var(--glass-bg-highlight)]/30 rounded px-3 py-2">
             <div className="flex items-center gap-1.5">
               <Icon name="FileSearch" size="xs" className="text-purple-400" />
               <span className="text-[var(--text-muted)]">OCR:</span>
-              <span className="text-[var(--text-primary)]">{lineage.document.ocrEngine}</span>
+              <span className="text-[var(--text-primary)]">{ocrEngine}</span>
             </div>
-            {lineage.document.ocrQualityScore && (
+            {ocrQualityScore && (
               <div className="flex items-center gap-1.5">
                 <span className="text-[var(--text-muted)]">Quality:</span>
-                <span
-                  className={
-                    lineage.document.ocrQualityScore >= 0.7 ? 'text-green-400' : 'text-yellow-400'
-                  }
-                >
-                  {Math.round(lineage.document.ocrQualityScore * 100)}%
+                <span className={ocrQualityScore >= 0.7 ? 'text-green-400' : 'text-yellow-400'}>
+                  {Math.round(ocrQualityScore * 100)}%
                 </span>
               </div>
             )}

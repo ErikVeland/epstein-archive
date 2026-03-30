@@ -40,6 +40,11 @@ import { TextCleaner } from './utils/text_cleaner.js';
 import { getIngestPool } from '../src/server/db/connection.js';
 import { AIEnrichmentService } from '../src/server/services/AIEnrichmentService.js';
 import { markViewsDirty } from '../src/server/services/matViewRefresh.js';
+import {
+  computeSha256Hex,
+  documentProvenanceService,
+  inferSourceSystem,
+} from '../src/server/services/documentProvenanceService.js';
 
 // ============================================================================
 // CONFIGURATION & VERSIONING
@@ -1162,6 +1167,22 @@ async function processDocument(
   let existingDoc: any;
 
   try {
+    const sourceUrl =
+      metaOverride?.source_url ||
+      metaOverride?.source_original_url ||
+      metaOverride?.sourceUrl ||
+      null;
+    const sourceAcquisitionMethod = metaOverride?.parent_document_id
+      ? 'derived_from_parent_document'
+      : sourceUrl
+        ? 'imported_source_url'
+        : 'filesystem_ingest';
+    const sourceSystem = inferSourceSystem({
+      sourceCollection: collection.name,
+      sourcePath: filePath,
+      sourceUrl,
+    });
+
     // Fast-Skip: Check by path first to avoid rehashing files already in the database
     const encodedPath = filePath
       .split('/')
@@ -1224,8 +1245,9 @@ async function processDocument(
           INSERT INTO documents (
             file_name, file_path, source_collection, content_sha256,
             processing_status, pipeline_version, ingestion_run_id, hash_algo,
-            parent_document_id
-          ) VALUES ($1, $2, $3, $4, 'queued', $5, $6, 'sha256', $7)
+            parent_document_id, source_path, source_url, source_system,
+            source_release, source_acquisition_method
+          ) VALUES ($1, $2, $3, $4, 'queued', $5, $6, 'sha256', $7, $8, $9, $10, $11, $12)
           RETURNING id, processing_status
         `,
               [
@@ -1236,6 +1258,11 @@ async function processDocument(
                 PIPELINE_VERSION,
                 currentRun.id,
                 metaOverride?.parent_document_id || null,
+                filePath,
+                sourceUrl,
+                sourceSystem,
+                collection.name,
+                sourceAcquisitionMethod,
               ],
             )
           ).rows[0] ?? null;
@@ -1376,8 +1403,79 @@ async function processDocument(
       phash: phash || undefined,
     });
 
+    if (documentId) {
+      await documentProvenanceService.upsertEvent(
+        {
+          documentId,
+          runId: currentRun.id,
+          eventType: 'ingest_discovered',
+          actorType: 'system',
+          toolName: 'ingest_pipeline',
+          toolVersion: PIPELINE_VERSION,
+          sourceCollection: collection.name,
+          sourcePath: filePath,
+          sourceUrl,
+          fileSha256: sha256,
+          metadata: {
+            fileName: basename(filePath),
+            sourceSystem,
+            sourceAcquisitionMethod,
+          },
+        },
+        db,
+      );
+
+      await documentProvenanceService.upsertEvent(
+        {
+          documentId,
+          runId: currentRun.id,
+          eventType: 'asset_registered',
+          eventOrder: 1,
+          actorType: 'system',
+          toolName: 'ingest_pipeline',
+          toolVersion: PIPELINE_VERSION,
+          outputAssetId: assetId,
+          sourceCollection: collection.name,
+          sourcePath: filePath,
+          sourceUrl,
+          fileSha256: sha256,
+          metadata: {
+            mimeType,
+            fileSize: stats.size,
+            phash,
+            isOriginal: true,
+          },
+        },
+        db,
+      );
+    }
+
     // Apply watermark if needed (Creates a derivative asset)
     const derivative = await applyWatermark(filePath, collection.name, assetId);
+    if (documentId && derivative) {
+      await documentProvenanceService.upsertEvent(
+        {
+          documentId,
+          runId: currentRun.id,
+          eventType: 'derivative_generated',
+          eventOrder: 2,
+          actorType: 'system',
+          toolName: 'ingest_pipeline',
+          toolVersion: PIPELINE_VERSION,
+          inputAssetId: assetId,
+          outputAssetId: (derivative as any).assetId,
+          sourceCollection: collection.name,
+          sourcePath: filePath,
+          sourceUrl,
+          fileSha256: (derivative as any).sha256 || null,
+          metadata: {
+            derivativeKind: 'watermarked',
+            derivativePath: (derivative as any).derivativePath || null,
+          },
+        },
+        db,
+      );
+    }
 
     // buffer already read above for sha256
     // Use SHA-256 as the primary hash now
@@ -1569,6 +1667,19 @@ async function processDocument(
       metadataObj.aiSummary = aiSummary;
     }
     const wordCount = content ? (content.match(/\b[\w']+\b/g) || []).length : 0;
+    const normalizedTextSha256 = content ? computeSha256Hex(content) : null;
+    metadataObj.provenance = {
+      file_sha256: sha256,
+      normalized_text_sha256: normalizedTextSha256,
+      ingestion_run_id: currentRun.id,
+      pipeline_version: PIPELINE_VERSION,
+      source_collection: collection.name,
+      source_path: filePath,
+      source_url: sourceUrl,
+      source_system: sourceSystem,
+      source_acquisition_method: sourceAcquisitionMethod,
+      parent_document_id: metaOverride?.parent_document_id || null,
+    };
     // fileType already calculated above
 
     // Update the skeleton document with extracted content
@@ -1593,9 +1704,10 @@ async function processDocument(
                 unredaction_baseline_vocab = $15,
                 evidence_type = $16,
                 unredacted_span_json = $17,
+                normalized_text_sha256 = $18,
                 analyzed_at = NOW(),
                 created_at = NOW()
-            WHERE id = $18
+            WHERE id = $19
         `,
       [
         content,
@@ -1615,9 +1727,83 @@ async function processDocument(
         unredactionBaselineVocab,
         evidenceType,
         unredactedSpanJson,
+        normalizedTextSha256,
         documentId,
       ],
     );
+
+    if (documentId) {
+      await documentProvenanceService.upsertEvent(
+        {
+          documentId,
+          runId: currentRun.id,
+          eventType: 'content_extracted',
+          eventOrder: 3,
+          actorType: 'system',
+          toolName: 'ingest_pipeline',
+          toolVersion: PIPELINE_VERSION,
+          outputAssetId: assetId,
+          sourceCollection: collection.name,
+          sourcePath: filePath,
+          sourceUrl,
+          fileSha256: sha256,
+          textSha256: normalizedTextSha256,
+          metadata: {
+            evidenceType,
+            fileType,
+            mimeType,
+            pageCount,
+            wordCount,
+            unredactionAttempted,
+            unredactionSucceeded,
+            ocrFallbackUsed:
+              mimeType === 'application/pdf' && pageCount > 0
+                ? redactionCoverageBefore !== null || redactionCoverageAfter !== null
+                : false,
+          },
+        },
+        db,
+      );
+
+      if (metaOverride?.parent_document_id) {
+        await documentProvenanceService.upsertEvent(
+          {
+            documentId,
+            runId: currentRun.id,
+            eventType: 'derived_from_parent_document',
+            eventOrder: 4,
+            actorType: 'system',
+            toolName: 'ingest_pipeline',
+            toolVersion: PIPELINE_VERSION,
+            inputDocumentId: metaOverride.parent_document_id,
+            parentDocumentId: metaOverride.parent_document_id,
+            sourceCollection: collection.name,
+            sourcePath: filePath,
+            sourceUrl,
+            fileSha256: sha256,
+            textSha256: normalizedTextSha256,
+            metadata: {
+              sourceAcquisitionMethod,
+            },
+          },
+          db,
+        );
+      }
+
+      await documentProvenanceService.refreshDocumentSummary(
+        documentId,
+        {
+          normalizedTextSha256,
+          sourceCollection: collection.name,
+          sourcePath: filePath,
+          sourceUrl,
+          sourceSystem,
+          sourceRelease: collection.name,
+          sourceAcquisitionMethod,
+        },
+        db,
+      );
+    }
 
     // Phase 9: Sync Job Completion
     if (leasedJob) {

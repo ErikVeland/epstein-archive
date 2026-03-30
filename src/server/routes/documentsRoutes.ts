@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { documentsRepository } from '../db/documentsRepository.js';
 import { documentPagesRepository } from '../db/documentPagesRepository.js';
 import { documentAnnotationsRepository } from '../db/documentAnnotationsRepository.js';
+import { dataQualityRepository } from '../db/dataQualityRepository.js';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
 import { mapDocumentsListResponseDto } from '../mappers/documentsDtoMapper.js';
@@ -123,6 +124,25 @@ router.get('/:id/pages', validate(documentIdSchema), async (req, res, next) => {
     const { id } = req.params;
     const result = await documentPagesRepository.getDocumentPages(id);
     res.json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/documents/:id/lineage
+router.get('/:id/lineage', validate(documentIdSchema), async (req, res, next) => {
+  try {
+    const documentId = Number(req.params.id);
+    if (!Number.isFinite(documentId) || documentId <= 0) {
+      return res.status(400).json({ error: 'Invalid document id' });
+    }
+
+    const lineage = await dataQualityRepository.getDocumentLineage(documentId);
+    if (!lineage) {
+      return res.status(404).json({ error: 'Document lineage not found' });
+    }
+
+    return res.json(lineage);
   } catch (error) {
     next(error);
   }

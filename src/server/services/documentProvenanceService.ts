@@ -12,7 +12,7 @@ export type ProvenanceStatus = 'missing' | 'shallow' | 'substantial' | 'verified
 
 export interface ProvenanceEventInput {
   documentId: number;
-  runId?: number | null;
+  runId?: number | string | null;
   eventType: string;
   eventOrder?: number;
   actorType?: string;
@@ -35,6 +35,7 @@ export interface ProvenanceEventInput {
 
 export interface ProvenanceSummaryPatch {
   normalizedTextSha256?: string | null;
+  sourceCollection?: string | null;
   sourcePath?: string | null;
   sourceUrl?: string | null;
   sourceSystem?: string | null;
@@ -85,7 +86,13 @@ export function inferSourceSystem(input: {
     .join(' ')
     .toLowerCase();
 
-  if (haystack.includes('justice.gov') || haystack.includes('doj')) return 'doj_release';
+  if (
+    haystack.includes('justice.gov') ||
+    haystack.includes('doj') ||
+    haystack.includes('department of justice')
+  ) {
+    return 'doj_release';
+  }
   if (haystack.includes('court')) return 'court_record';
   if (haystack.includes('email')) return 'email_import';
   if (haystack.includes('archive')) return 'archive_import';
@@ -131,6 +138,20 @@ function buildEventKey(input: ProvenanceEventInput): string {
       metadata: input.metadata ?? null,
     }),
   );
+}
+
+function toNullableBigIntLike(value: unknown): number | null {
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? Math.trunc(value) : null;
+  }
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    if (!/^-?\d+$/.test(trimmed)) return null;
+    const parsed = Number(trimmed);
+    return Number.isFinite(parsed) ? Math.trunc(parsed) : null;
+  }
+  return null;
 }
 
 async function getDocumentSignals(
@@ -194,6 +215,7 @@ export const documentProvenanceService = {
   async upsertEvent(input: ProvenanceEventInput, executor: Queryable = getApiPool()) {
     const eventKey = input.eventKey || buildEventKey(input);
     const metadataJson = JSON.stringify(input.metadata || {});
+    const runId = toNullableBigIntLike(input.runId);
     const occurredAt =
       input.occurredAt instanceof Date
         ? input.occurredAt.toISOString()
@@ -234,7 +256,7 @@ export const documentProvenanceService = {
       [
         eventKey,
         input.documentId,
-        input.runId || null,
+        runId,
         input.eventType,
         input.eventOrder ?? 0,
         input.actorType || 'system',
@@ -264,7 +286,7 @@ export const documentProvenanceService = {
     const sourceSystem =
       patch.sourceSystem ||
       inferSourceSystem({
-        sourceCollection: patch.sourceRelease || null,
+        sourceCollection: patch.sourceCollection || null,
         sourcePath: patch.sourcePath || null,
         sourceUrl: patch.sourceUrl || null,
       });

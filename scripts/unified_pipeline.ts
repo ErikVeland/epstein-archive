@@ -444,6 +444,21 @@ async function runIntelPhase(): Promise<{ entitiesExtracted: number; relationsFo
 }
 
 /**
+ * Phase 2.5: PROVENANCE BACKFILL - rebuild durable provenance for legacy rows
+ */
+async function runProvenanceBackfillPhase(): Promise<{ documentsTouched: number }> {
+  console.log('\n' + '='.repeat(70));
+  console.log('🧾 PHASE 2.5: PROVENANCE BACKFILL');
+  console.log('='.repeat(70));
+
+  const exitCode = await runScript('scripts/backfill_document_provenance.ts');
+
+  return {
+    documentsTouched: exitCode === 0 ? 1 : 0,
+  };
+}
+
+/**
  * Phase 3: ENRICH - AI-powered enrichment for all documents
  */
 async function runEnrichPhase(
@@ -652,6 +667,8 @@ async function runCycle(mode: string, sourceDir: string): Promise<void> {
     stats.intelStats = await runIntelPhase();
   }
   if (mode === 'backfill') {
+    updateHeartbeat({ phase: 'Provenance Backfill' });
+    await runProvenanceBackfillPhase();
     updateHeartbeat({ phase: 'Enrichment' });
     stats.enrichStats = await runEnrichPhase('backfill');
   } else if (mode === 'ingest') {

@@ -109,6 +109,13 @@ async function main() {
     });
   });
 
+  await step('Backfill document provenance', async () => {
+    execSync('npm run provenance:backfill', {
+      env: { ...process.env, PROVENANCE_BACKFILL_MAX: process.env.PROVENANCE_BACKFILL_MAX || '0' },
+      stdio: 'inherit',
+    });
+  });
+
   // ── 3. VACUUM ANALYZE hot tables ────────────────────────────────
   // Must use a raw client — VACUUM cannot run inside a transaction
   await step('VACUUM ANALYZE hot tables', async () => {

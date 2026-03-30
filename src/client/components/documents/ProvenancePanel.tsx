@@ -1,6 +1,9 @@
 import React from 'react';
+import { useQuery } from '@tanstack/react-query';
+import Icon from '../common/Icon';
 
 interface ProvenanceDocument {
+  id?: string | number;
   ingest_run_id?: string;
   ingestRunId?: string;
   rulesetVersion?: string;
@@ -14,6 +17,32 @@ interface ProvenanceDocument {
   dateModified?: string;
   confidenceBreakdown?: Record<string, unknown>;
   metadata?: Record<string, unknown>;
+}
+
+interface ProvenanceLineageResponse {
+  provenance?: {
+    status?: string | null;
+    score?: number | null;
+    sourceSystem?: string | null;
+    sourceRelease?: string | null;
+    sourcePath?: string | null;
+    sourceUrl?: string | null;
+    acquisitionMethod?: string | null;
+  };
+  provenanceEvents?: Array<{
+    id: number;
+    event_type: string;
+    tool_name?: string | null;
+    tool_version?: string | null;
+    source_path?: string | null;
+    source_url?: string | null;
+    occurred_at?: string | null;
+  }>;
+  processingInfo?: {
+    ocrEngine?: string | null;
+    ocrQualityScore?: number | null;
+    processedAt?: string | null;
+  };
 }
 
 interface ProvenancePanelProps {
@@ -71,6 +100,36 @@ const readConfidence = (document: ProvenanceDocument) => {
 export const ProvenancePanel: React.FC<ProvenancePanelProps> = ({ document }) => {
   const metadata = document?.metadata || {};
   const confidence = readConfidence(document);
+  const documentId = document?.id ? String(document.id) : null;
+
+  const { data: lineage, isLoading: isLoadingLineage } = useQuery<ProvenanceLineageResponse | null>(
+    {
+      queryKey: ['documentLineage', documentId],
+      queryFn: async () => {
+        if (!documentId) return null;
+        const response = await fetch(`/api/documents/${documentId}/lineage`);
+        if (!response.ok) {
+          throw new Error('Failed to load durable provenance');
+        }
+        return (await response.json()) as ProvenanceLineageResponse;
+      },
+      enabled: Boolean(documentId),
+      staleTime: 30_000,
+    },
+  );
+
+  const durableStatus = lineage?.provenance?.status || 'missing';
+  const durableScore =
+    typeof lineage?.provenance?.score === 'number' ? lineage.provenance.score : null;
+  const durableSourcePath = lineage?.provenance?.sourcePath || 'N/A';
+  const durableSourceUrl = lineage?.provenance?.sourceUrl || 'N/A';
+  const durableSourceSystem = lineage?.provenance?.sourceSystem || 'N/A';
+  const durableSourceRelease = lineage?.provenance?.sourceRelease || 'N/A';
+  const durableAcquisitionMethod = lineage?.provenance?.acquisitionMethod || 'N/A';
+  const eventCount = Array.isArray(lineage?.provenanceEvents) ? lineage.provenanceEvents.length : 0;
+  const recentEvents = Array.isArray(lineage?.provenanceEvents)
+    ? lineage.provenanceEvents.slice(-5).reverse()
+    : [];
 
   const ingestRunId = readFirstString([
     document?.ingest_run_id,
@@ -116,6 +175,82 @@ export const ProvenancePanel: React.FC<ProvenancePanelProps> = ({ document }) =>
 
   return (
     <div className="space-y-4 text-sm text-[var(--text-primary)]">
+      <section className="surface-quiet p-4">
+        <h3 className="text-xs uppercase tracking-wide text-[var(--text-muted)] mb-3">
+          Durable provenance
+        </h3>
+        {isLoadingLineage ? (
+          <div className="flex items-center gap-2 text-[var(--text-secondary)]">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[var(--accent)]" />
+            Loading provenance ledger...
+          </div>
+        ) : (
+          <>
+            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <dt className="text-xs text-[var(--text-muted)] mb-1">Status</dt>
+                <dd className="font-medium capitalize">{durableStatus.replace(/_/g, ' ')}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-[var(--text-muted)] mb-1">Score</dt>
+                <dd>{durableScore === null ? 'N/A' : `${Math.round(durableScore)} / 100`}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-[var(--text-muted)] mb-1">Source system</dt>
+                <dd className="font-mono text-xs break-all">{durableSourceSystem}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-[var(--text-muted)] mb-1">Acquisition method</dt>
+                <dd className="font-mono text-xs break-all">{durableAcquisitionMethod}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-[var(--text-muted)] mb-1">Source release</dt>
+                <dd className="font-mono text-xs break-all">{durableSourceRelease}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-[var(--text-muted)] mb-1">Ledger events</dt>
+                <dd>{eventCount}</dd>
+              </div>
+              <div className="sm:col-span-2">
+                <dt className="text-xs text-[var(--text-muted)] mb-1">Source path</dt>
+                <dd className="font-mono text-xs break-all">{durableSourcePath}</dd>
+              </div>
+              <div className="sm:col-span-2">
+                <dt className="text-xs text-[var(--text-muted)] mb-1">Source URL</dt>
+                <dd className="font-mono text-xs break-all">{durableSourceUrl}</dd>
+              </div>
+            </dl>
+
+            {recentEvents.length > 0 && (
+              <div className="mt-4">
+                <h4 className="text-xs uppercase tracking-wide text-[var(--text-muted)] mb-2">
+                  Recent events
+                </h4>
+                <div className="space-y-2">
+                  {recentEvents.map((event) => (
+                    <div
+                      key={event.id}
+                      className="rounded-md border border-[var(--glass-border)] bg-[var(--glass-bg)]/50 px-3 py-2"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="font-medium">{event.event_type.replace(/_/g, ' ')}</span>
+                        <span className="text-xs text-[var(--text-muted)]">
+                          {formatTimestamp(event.occurred_at)}
+                        </span>
+                      </div>
+                      <div className="mt-1 text-xs text-[var(--text-secondary)]">
+                        {event.tool_name || 'system'}
+                        {event.tool_version ? ` • ${event.tool_version}` : ''}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </section>
+
       <section className="surface-quiet p-4">
         <h3 className="text-xs uppercase tracking-wide text-[var(--text-muted)] mb-3">
           Pipeline provenance
@@ -182,6 +317,15 @@ export const ProvenancePanel: React.FC<ProvenancePanelProps> = ({ document }) =>
           equivalent results; differences indicate upstream source, ruleset, or model-version
           changes.
         </p>
+        {lineage?.processingInfo?.ocrEngine && (
+          <div className="mt-3 flex items-center gap-2 text-xs text-[var(--text-secondary)]">
+            <Icon name="FileSearch" size="xs" />
+            OCR engine {lineage.processingInfo.ocrEngine}
+            {typeof lineage.processingInfo.ocrQualityScore === 'number'
+              ? ` • quality ${Math.round(lineage.processingInfo.ocrQualityScore * 100)}%`
+              : ''}
+          </div>
+        )}
       </section>
     </div>
   );

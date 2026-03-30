@@ -54,6 +54,61 @@ function buildPrefixQuery(phrase: string): string {
   return tokens.length > 0 ? tokens.map((w) => `${w}:*`).join(' & ') : '';
 }
 
+async function loadEntityFallbackRows(searchTerm: string, limit: number) {
+  if (!searchTerm || limit <= 0) return [];
+
+  const partialPattern = `%${searchTerm}%`;
+  const normalizedSearchTerm = searchTerm.toLowerCase();
+  const similarityThreshold = 0.24;
+  return getApiPool().query<{
+    id: number | string;
+    fullName: string | null;
+    primaryRole: string | null;
+    aliases: string | null;
+    redFlagRating: number | string | null;
+    similarityScore: number | string | null;
+  }>(
+    `
+      SELECT
+        e.id,
+        e.full_name AS "fullName",
+        e.primary_role AS "primaryRole",
+        e.aliases,
+        e.red_flag_rating AS "redFlagRating",
+        GREATEST(
+          similarity(LOWER(COALESCE(e.full_name, '')), $2),
+          similarity(LOWER(COALESCE(e.aliases, '')), $2)
+        ) AS "similarityScore"
+      FROM entities e
+      WHERE COALESCE(e.junk_tier, 'clean') = 'clean'
+        AND COALESCE(e.quarantine_status, 0) = 0
+        AND (
+          e.full_name ILIKE $1
+          OR COALESCE(e.aliases, '') ILIKE $1
+          OR similarity(LOWER(COALESCE(e.full_name, '')), $2) >= $4
+          OR similarity(LOWER(COALESCE(e.aliases, '')), $2) >= $4
+        )
+      ORDER BY
+        CASE
+          WHEN LOWER(e.full_name) = LOWER($2) THEN 0
+          WHEN LOWER(COALESCE(e.aliases, '')) LIKE '%' || LOWER($2) || '%' THEN 1
+          WHEN LOWER(e.full_name) LIKE LOWER($2) || '%' THEN 2
+          WHEN GREATEST(
+            similarity(LOWER(COALESCE(e.full_name, '')), $2),
+            similarity(LOWER(COALESCE(e.aliases, '')), $2)
+          ) >= $4 THEN 3
+          ELSE 4
+        END,
+        "similarityScore" DESC,
+        COALESCE(e.red_flag_rating, 0) DESC,
+        COALESCE(e.mentions, 0) DESC,
+        e.id DESC
+      LIMIT $3
+    `,
+    [partialPattern, normalizedSearchTerm, limit, similarityThreshold],
+  );
+}
+
 export const searchRepository = {
   search: async (
     query: string,
@@ -88,6 +143,25 @@ export const searchRepository = {
           { searchTerm: tsArg, limit: safeLimit },
           getApiPool(),
         );
+    const mergedEntityRows = [...entityRows];
+    if (!isPrefix && mergedEntityRows.length < safeLimit) {
+      try {
+        const fallbackRows = await loadEntityFallbackRows(
+          searchTerm,
+          Math.max(safeLimit * 2, safeLimit - mergedEntityRows.length),
+        );
+        const seenIds = new Set(mergedEntityRows.map((row) => String(row.id)));
+        for (const row of fallbackRows.rows) {
+          const entityId = String(row.id);
+          if (seenIds.has(entityId)) continue;
+          mergedEntityRows.push(row);
+          seenIds.add(entityId);
+          if (mergedEntityRows.length >= safeLimit) break;
+        }
+      } catch (error) {
+        logger.warn({ err: error }, '[searchRepository] entity fallback search failed');
+      }
+    }
 
     // ── Documents ─────────────────────────────────────────────────────────────
     let minRedFlag: number | null = null;
@@ -148,7 +222,7 @@ export const searchRepository = {
       getApiPool(),
     );
 
-    const entityIds = entityRows
+    const entityIds = mergedEntityRows
       .map((row: { id: string | number }) => Number(row.id))
       .filter((id: number) => Number.isFinite(id) && id > 0);
     const entityStatsById = new Map<
@@ -221,7 +295,7 @@ export const searchRepository = {
     const vipDisplayLookup = await buildVipDisplayLookup();
 
     return {
-      entities: entityRows.map((row: Record<string, unknown>) => {
+      entities: mergedEntityRows.map((row: Record<string, unknown>) => {
         const aliases = parseEntityAliases(typeof row.aliases === 'string' ? row.aliases : null);
         const resolvedName = resolveCanonicalVipName(String(row.fullName || ''), vipDisplayLookup);
         const stats = entityStatsById.get(Number(row.id));

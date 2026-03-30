@@ -1,0 +1,42 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  items-center: center;
+  justify-content: center;
+  padding: var(--space-4);
+}
+
+@media (min-width: 640px) {
+  .overlay {
+    padding: var(--space-6);
+  }
+}
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  background-color: var(--glass-bg-strong);
+  backdrop-filter: blur(4px);
+}
+
+.modal {
+  position: relative;
+  width: 100%;
+  max-width: 72rem; /* max-w-6xl */
+  height: 85vh;
+  composes: glass-panel from global;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--glass-shadow);
+}
+
+.contentArea {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  background-color: var(--glass-bg-strong);
+}

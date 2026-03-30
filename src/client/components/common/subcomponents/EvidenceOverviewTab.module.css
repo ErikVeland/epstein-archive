@@ -1,0 +1,366 @@
+.container {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+}
+
+.loadingContainer {
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.loadingGrid {
+  display: grid;
+  grid-template-cols: 1fr;
+  gap: var(--space-6);
+}
+
+@media (min-width: 1024px) {
+  .loadingGrid {
+    grid-template-cols: 1fr 1fr;
+  }
+}
+
+.skeletonHero {
+  height: 12rem;
+  width: 100%;
+  border-radius: var(--radius-lg);
+  background-color: var(--glass-bg);
+  animation: pulse 2s infinite;
+}
+
+.loadingStack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.skeletonLabel {
+  height: 1.5rem;
+  width: 12rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--glass-bg);
+  animation: pulse 2s infinite;
+}
+
+.skeletonCard {
+  height: 6rem;
+  width: 100%;
+  border-radius: var(--radius-md);
+  background-color: var(--glass-bg);
+  animation: pulse 2s infinite;
+}
+
+.forensicGrid {
+  display: grid;
+  grid-template-cols: 1fr;
+  gap: var(--space-6);
+}
+
+@media (min-width: 768px) {
+  .forensicGrid {
+    gap: var(--space-8);
+  }
+}
+
+@media (min-width: 1024px) {
+  .forensicGrid {
+    grid-template-cols: 1fr 1fr;
+  }
+}
+
+.metricsCard, .signalsCard {
+  composes: glass-card from global;
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+}
+
+.metricsCard {
+  justify-content: space-between;
+}
+
+.metricsBadges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+}
+
+.riskBadge, .evidenceBadge {
+  composes: semantic-chip from global;
+}
+
+.risk-critical { composes: risk-critical from global; }
+.risk-high { composes: risk-high from global; }
+.risk-medium { composes: risk-medium from global; }
+.risk-low { composes: risk-low from global; }
+.risk-minimal { composes: risk-minimal from global; }
+
+.evidence-l1 {
+  color: #34d399; /* success */
+  border-color: color-mix(in srgb, #34d399 30%, transparent);
+  background: color-mix(in srgb, #34d399 10%, transparent);
+}
+
+.evidence-l2 {
+  color: #fbbf24; /* warning */
+  border-color: color-mix(in srgb, #fbbf24 30%, transparent);
+  background: color-mix(in srgb, #fbbf24 10%, transparent);
+}
+
+.evidence-l3 {
+  color: #a78bfa; /* purple */
+  border-color: color-mix(in srgb, #a78bfa 30%, transparent);
+  background: color-mix(in srgb, #a78bfa 10%, transparent);
+}
+
+.badgeIcon {
+  opacity: 0.8;
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-cols: repeat(2, 1fr);
+  gap: var(--space-3);
+}
+
+@media (min-width: 768px) {
+  .metricsGrid {
+    grid-template-cols: repeat(4, 1fr);
+  }
+}
+
+.metricItem {
+  padding: var(--space-4);
+  background-color: var(--glass-bg);
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 42%, transparent);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.metricValue {
+  font-family: var(--font-display);
+  font-size: 1.5rem; /* text-2xl */
+  margin-bottom: var(--space-1);
+}
+
+.accent { color: var(--accent); }
+.accentEmails { color: var(--accent-emails); }
+.accentEvidence { color: var(--accent-evidence); }
+
+.metricLabel {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.driversSection {
+  margin-top: var(--space-8);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--glass-border);
+}
+
+.sectionHeader {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.headerIcon {
+  color: var(--accent);
+}
+
+.sectionHeaderWithMeta {
+  composes: sectionHeader;
+  justify-content: space-between;
+  margin-bottom: var(--space-5);
+}
+
+.headerMeta {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-dim);
+  opacity: 0.7;
+}
+
+.analysisNote {
+  margin-top: var(--space-6);
+  padding: var(--space-4);
+  background-color: var(--glass-bg-highlight); /* surface-quiet */
+  border-radius: var(--radius-md);
+  border-left: 2px solid var(--accent);
+}
+
+.analysisLabel {
+  color: var(--text-default);
+  font-weight: 500;
+  text-transform: uppercase;
+  font-size: var(--type-xs);
+  letter-spacing: var(--tracking-wide);
+  display: block;
+  margin-bottom: var(--space-1);
+}
+
+.analysisText {
+  font-size: 0.875rem; /* text-sm */
+  color: var(--text-muted);
+  line-height: 1.625;
+}
+
+.evidenceSection {
+  margin-top: var(--space-2);
+}
+
+.tabTitle {
+  color: var(--text-strong);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-family: var(--font-sans);
+  letter-spacing: var(--tracking-wide);
+  font-size: 0.875rem; /* text-sm */
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.criticalIcon {
+  color: var(--risk-critical);
+}
+
+.evidenceGrid {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.blackbookCard {
+  composes: glass-card from global;
+  border-left: 3px solid var(--accent-investigate);
+  padding: var(--space-6);
+  margin-bottom: var(--space-10);
+  margin-top: var(--space-2);
+}
+
+.blackbookHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-5);
+}
+
+.blackbookTitle {
+  color: var(--text-strong);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-sans);
+  letter-spacing: var(--tracking-wide);
+  font-size: 0.875rem;
+}
+
+.investigateIcon {
+  color: var(--accent-investigate);
+}
+
+.viewFullLink {
+  font-size: 11px;
+  font-bold: 700;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  transition: color var(--duration-fast) var(--easing-liquid);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.viewFullLink:hover {
+  color: var(--accent-investigate);
+}
+
+.blackbookContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.entryGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.phoneList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.phoneChip {
+  padding: var(--space-2) var(--space-3);
+  background-color: var(--glass-bg);
+  color: var(--text-default);
+  font-size: var(--type-xs);
+  font-family: var(--font-mono);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.phoneIcon {
+  opacity: 0.6;
+}
+
+.entryNotes {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-style: italic;
+  border-left: 3px solid var(--glass-border);
+  padding-left: var(--space-4);
+  padding-top: var(--space-1);
+  padding-bottom: var(--space-1);
+}
+
+.bioSection {
+  margin-bottom: var(--space-10);
+}
+
+.bioHeader {
+  color: var(--text-secondary);
+  font-weight: 600;
+  margin-bottom: var(--space-3);
+}
+
+.bioText {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  line-height: 1.625;
+  max-width: 56rem; /* max-w-4xl */
+}

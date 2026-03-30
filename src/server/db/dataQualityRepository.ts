@@ -55,7 +55,12 @@ export const dataQualityRepository = {
     const totalDocs = totalRows[0];
 
     const { rows: provenanceRows } = await pool.query(
-      "SELECT COUNT(*) as c FROM documents WHERE source_collection IS NOT NULL AND source_collection != ''",
+      `
+      SELECT COUNT(*) as c
+      FROM documents
+      WHERE COALESCE(provenance_score, 0) >= 60
+         OR COALESCE(provenance_status, '') IN ('substantial', 'verified')
+      `,
     );
     const docsWithProvenance = provenanceRows[0];
 
@@ -295,6 +300,13 @@ export const dataQualityRepository = {
         d.file_name,
         d.source_collection,
         d.source_original_url,
+        d.source_path,
+        d.source_url,
+        d.source_system,
+        d.source_release,
+        d.source_acquisition_method,
+        d.provenance_status,
+        d.provenance_score,
         d.credibility_score,
         d.original_file_id,
         d.ocr_engine,
@@ -318,8 +330,36 @@ export const dataQualityRepository = {
       `
       SELECT id, file_name, page_number
       FROM documents
-      WHERE parent_id = $1
+      WHERE parent_document_id = $1
       ORDER BY page_number ASC
+    `,
+      [documentId],
+    );
+
+    const { rows: provenanceEvents } = await pool.query(
+      `
+      SELECT
+        id,
+        event_type,
+        event_order,
+        actor_type,
+        actor_id,
+        tool_name,
+        tool_version,
+        input_asset_id,
+        output_asset_id,
+        input_document_id,
+        parent_document_id,
+        source_collection,
+        source_path,
+        source_url,
+        file_sha256,
+        text_sha256,
+        metadata_json,
+        occurred_at
+      FROM document_provenance_events
+      WHERE document_id = $1
+      ORDER BY occurred_at ASC, event_order ASC, id ASC
     `,
       [documentId],
     );
@@ -351,6 +391,16 @@ export const dataQualityRepository = {
         ocrQualityScore: doc.ocr_quality_score,
         processedAt: doc.ocr_processed_at,
       },
+      provenance: {
+        status: doc.provenance_status,
+        score: doc.provenance_score,
+        sourceSystem: doc.source_system,
+        sourceRelease: doc.source_release,
+        sourcePath: doc.source_path,
+        sourceUrl: doc.source_url || doc.source_original_url,
+        acquisitionMethod: doc.source_acquisition_method,
+      },
+      provenanceEvents,
       auditTrail: auditEntries.map(
         (e: {
           timestamp: string;

@@ -1,0 +1,232 @@
+.container {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  composes: custom-scrollbar from global;
+  padding: var(--space-6);
+}
+
+.loadingState {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+}
+
+.loadingIcon {
+  margin-bottom: var(--space-4);
+  opacity: 0.2;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.1; }
+}
+
+.grid {
+  display: grid;
+  grid-template-cols: 1fr;
+  gap: var(--space-4);
+}
+
+@media (min-width: 640px) {
+  .grid {
+    grid-template-cols: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1280px) {
+  .grid {
+    grid-template-cols: repeat(3, 1fr);
+  }
+}
+
+.card {
+  composes: glass-card from global;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: all var(--duration-normal) var(--easing-liquid);
+}
+
+.card:hover {
+  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+  box-shadow: var(--glass-shadow);
+}
+
+.mediaWrapper {
+  aspect-ratio: 16 / 9;
+  background-color: var(--bg-dark);
+  overflow: hidden;
+  position: relative;
+  border-bottom: 1px solid color-mix(in srgb, var(--glass-border) 60%, transparent);
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 700ms var(--easing-liquid);
+}
+
+.card:hover .image {
+  transform: scale(1.05);
+}
+
+.mediaPlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dim);
+}
+
+.placeholderContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.sourceLabel {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+}
+
+.cardBody {
+  padding: var(--space-5);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 1rem; /* text-base */
+  color: var(--text-strong);
+  line-height: 1.4;
+  flex: 1;
+  transition: color var(--duration-fast) var(--easing-liquid);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card:hover .title {
+  color: var(--accent);
+}
+
+.badges {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.riskBadge, .directBadge {
+  composes: semantic-chip from global;
+}
+
+.risk-critical { composes: risk-critical from global; }
+.risk-high { composes: risk-high from global; }
+.risk-medium { composes: risk-medium from global; }
+.risk-low { composes: risk-low from global; }
+.risk-minimal { composes: risk-minimal from global; }
+
+.directBadge {
+  background: color-mix(in srgb, var(--accent-success) 12%, transparent);
+  border-color: color-mix(in srgb, var(--accent-success) 30%, transparent);
+  color: var(--accent-success);
+}
+
+.badgeIcon {
+  opacity: 0.8;
+}
+
+.metaRow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-dim);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-2);
+}
+
+.metaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.tagsRow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: var(--space-4);
+}
+
+.tagsLabel {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-right: var(--space-2);
+}
+
+.cardFooter {
+  margin-top: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--glass-border);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.openBtn {
+  composes: control from global;
+  height: 2rem; /* h-8 */
+  padding-left: var(--space-4);
+  padding-right: var(--space-4);
+  font-size: var(--type-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-default);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--easing-liquid);
+  cursor: pointer;
+}
+
+.card:hover .openBtn {
+  opacity: 1;
+}
+
+.emptyState {
+  padding-top: 5rem;
+  padding-bottom: 5rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.emptyIcon {
+  margin-bottom: var(--space-4);
+  opacity: 0.2;
+}
