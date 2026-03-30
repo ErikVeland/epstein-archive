@@ -79,6 +79,8 @@ const moduleGovernedFiles = new Set(
     'src/client/components/common/WikiLink.tsx',
     'src/client/components/common/CollapsibleSplitPane.tsx',
     'src/client/components/common/ScopedErrorBoundary.tsx',
+    // Phase 8 — navigation + layout
+    'src/client/components/layout/MobileMenu.tsx',
   ].map((f) => path.join(rootDir, f)),
 );
 

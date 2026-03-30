@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import s from './MobileMenu.module.css';
 import Icon from '../common/Icon';
 import { CloseButton } from '../common/CloseButton';
 import { useAuth } from '../../contexts/AuthContext';
@@ -59,20 +60,18 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
   };
 
   return (
-    <div
-      className={`mobile-nav md:hidden fixed inset-0 z-[60] transition-opacity duration-300 ${open ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
-    >
+    <div className={`mobile-nav ${s.root} ${open ? s.rootOpen : s.rootClosed}`}>
       {/* Backdrop overlay - closes menu when clicked */}
       <button
         type="button"
         aria-label="Close menu"
-        className="absolute inset-0 top-[60px] app-backdrop transition-all duration-300"
+        className={`app-backdrop ${s.backdrop}`}
         onClick={onClose}
       />
 
       {/* Menu panel - on top of backdrop */}
       <div
-        className={`absolute left-0 top-[60px] bottom-0 w-4/5 max-w-sm bg-[var(--bg-surface)] backdrop-blur-xl border-r border-[var(--glass-border)] shadow-[var(--glass-shadow)] transform transition-transform duration-300 ease-out z-10 flex flex-col ${open ? 'translate-x-0' : '-translate-x-full'}`}
+        className={`${s.panel} ${open ? '' : s.panelClosed}`}
         onClick={(e) => e.stopPropagation()} // Prevent clicks inside menu from closing it
         onTouchStart={(e) => {
           const startX = e.touches[0].clientX;
@@ -87,26 +86,21 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
           window.addEventListener('touchend', cleanup);
         }}
       >
-        <div className="flex-none flex items-center justify-between p-4 border-b border-[var(--glass-border)] bg-[var(--glass-bg)]">
-          <h3 className="text-[var(--text-primary)] font-semibold flex items-center gap-2">
-            <Icon name="Menu" size="sm" className="text-[var(--accent)]" />
+        <div className={s.panelHeader}>
+          <h3 className={s.panelTitle}>
+            <Icon name="Menu" size="sm" className={s.panelTitleIcon} />
             Navigation
           </h3>
-          <CloseButton
-            onClick={onClose}
-            size="sm"
-            label="Close menu"
-            className="bg-transparent hover:bg-[var(--glass-bg-strong)] text-[var(--text-secondary)]"
-          />
+          <CloseButton onClick={onClose} size="sm" label="Close menu" className={s.closeBtn} />
         </div>
 
         {/* Mobile Search Input */}
-        <div className="flex-none p-4 border-b border-[var(--glass-border)] bg-transparent">
-          <div className="relative group">
+        <div className={s.searchSection}>
+          <div className={s.searchWrap}>
             <input
               type="text"
               placeholder="Search people, documents..."
-              className="w-full bg-[var(--glass-bg)] text-[var(--text-primary)] placeholder-[var(--text-muted)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] pl-10 pr-4 py-3 focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)] outline-none transition-all"
+              className={s.searchInput}
               value={searchTerm}
               onChange={(e) => onSearchTermChange(e.target.value)}
               onKeyDown={(e) => {
@@ -121,80 +115,65 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
                 }
               }}
             />
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none group-focus-within:text-[var(--accent)] transition-colors">
-              <Icon name="Search" size="xs" className="text-[var(--text-muted)]" />
+            <div className={s.searchIconWrap}>
+              <Icon name="Search" size="xs" />
             </div>
           </div>
         </div>
 
         {/* Scrollable Content Area - flex-1 takes remaining height */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-1 min-h-0">
-          <button
-            className="w-full flex items-center gap-3 px-3 py-3 rounded-[var(--radius-lg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)] transition-colors group"
-            onClick={() => handleNavigation('/')}
-          >
-            <div className="p-1.5 rounded-md bg-[var(--glass-bg)] group-hover:bg-[var(--glass-bg-strong)] transition-colors">
-              <Icon
-                name="Home"
-                size="sm"
-                className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--text-primary)]"
-              />
+        <div className={`${s.navList} custom-scrollbar`}>
+          <button className={`${s.navItem} ${s.navItemHome}`} onClick={() => handleNavigation('/')}>
+            <div className={s.iconWrap}>
+              <Icon name="Home" size="sm" />
             </div>
-            <span className="font-medium text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]">
-              Home
-            </span>
+            <span className={s.navLabel}>Home</span>
           </button>
 
-          <div className="px-3 py-2 mt-2 mb-1 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
-            Explore
-          </div>
+          <div className={`${s.sectionLabel} ${s.sectionLabelTop}`}>Explore</div>
 
           <button
-            className="w-full flex items-center gap-3 px-3 py-3 rounded-[var(--radius-lg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] transition-all duration-300 group hover:translate-x-1"
+            className={`${s.navItem} ${s.navItemSlide} ${s.navItemPeople}`}
             onClick={() => handleNavigation('/people')}
           >
-            <div className="p-1.5 rounded-md bg-[var(--glass-bg)] group-hover:bg-[var(--accent)]/20 shadow-[var(--glass-shadow-soft)] transition-colors">
-              <Icon name="Users" size="sm" className="w-4 h-4 text-[var(--accent)]" />
+            <div className={s.iconWrap}>
+              <Icon name="Users" size="sm" className={s.iconPeople} />
             </div>
-            <span className="font-medium text-[var(--text-primary)] transition-colors">People</span>
+            <span className={s.navLabel}>People</span>
           </button>
           <button
-            className="w-full flex items-center gap-3 px-3 py-3 rounded-[var(--radius-lg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] transition-all duration-300 group hover:translate-x-1"
+            className={`${s.navItem} ${s.navItemSlide} ${s.navItemDocuments}`}
             onClick={() => handleNavigation('/documents')}
           >
-            <div className="p-1.5 rounded-md bg-[var(--glass-bg)] group-hover:bg-[var(--nav-documents-hover-bg)] shadow-[var(--glass-shadow-soft)] transition-colors">
-              <Icon name="FileText" size="sm" className="w-4 h-4 text-[var(--nav-documents)]" />
+            <div className={s.iconWrap}>
+              <Icon name="FileText" size="sm" className={s.iconDocuments} />
             </div>
-            <span className="font-medium text-[var(--text-primary)] transition-colors">
-              Documents
-            </span>
+            <span className={s.navLabel}>Documents</span>
           </button>
           <button
-            className="w-full flex items-center gap-3 px-3 py-3 rounded-[var(--radius-lg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] transition-all duration-300 group hover:translate-x-1"
+            className={`${s.navItem} ${s.navItemSlide} ${s.navItemEmails}`}
             onClick={() => handleNavigation('/emails')}
           >
-            <div className="p-1.5 rounded-md bg-[var(--glass-bg)] group-hover:bg-[var(--nav-emails-hover-bg)] shadow-[var(--glass-shadow-soft)] transition-colors">
-              <Icon name="Mail" size="sm" className="w-4 h-4 text-[var(--nav-emails)]" />
+            <div className={s.iconWrap}>
+              <Icon name="Mail" size="sm" className={s.iconEmails} />
             </div>
-            <span className="font-medium text-[var(--text-primary)] transition-colors">Emails</span>
+            <span className={s.navLabel}>Emails</span>
           </button>
           <button
-            className="w-full flex items-center gap-3 px-3 py-3 rounded-[var(--radius-lg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] transition-all duration-300 group hover:translate-x-1"
+            className={`${s.navItem} ${s.navItemSlide} ${s.navItemMedia}`}
             onClick={() => handleNavigation('/media')}
           >
-            <div className="p-1.5 rounded-md bg-[var(--glass-bg)] group-hover:bg-[var(--nav-media-hover-bg)] shadow-[var(--glass-shadow-soft)] transition-colors">
-              <Icon name="Newspaper" size="sm" className="w-4 h-4 text-[var(--nav-media)]" />
+            <div className={s.iconWrap}>
+              <Icon name="Newspaper" size="sm" className={s.iconMedia} />
             </div>
-            <span className="font-medium text-[var(--text-primary)] transition-colors">Media</span>
+            <span className={s.navLabel}>Media</span>
           </button>
 
-          <div className="my-2 border-t border-[var(--glass-border)] mx-3"></div>
-          <div className="px-3 py-1.5 text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
-            Intelligence
-          </div>
+          <div className={s.divider} />
+          <div className={`${s.sectionLabel} ${s.sectionLabelMid}`}>Intelligence</div>
 
           <button
-            className={`w-full flex items-center gap-3 px-3 py-3 rounded-[var(--radius-lg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] transition-all group ${attract ? 'ring-1 ring-[var(--nav-investigations-ring)] shadow-[var(--nav-investigations-glow)] bg-[var(--glass-bg)]/50' : ''}`}
+            className={`${s.navItem} ${s.navItemInvestigations} ${attract ? s.navItemAttract : ''}`}
             onClick={() => {
               try {
                 localStorage.setItem('investigate_attract_shown', 'true');
@@ -205,94 +184,78 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
               handleNavigation('/investigations');
             }}
           >
-            <div className="p-1.5 rounded-md bg-[var(--nav-investigations-bg)] group-hover:bg-[var(--nav-investigations-bg-hover)] transition-colors border border-[var(--nav-investigations-border)]">
-              <Icon name="Target" size="sm" className="w-4 h-4 text-[var(--nav-investigations)]" />
+            <div className={`${s.iconWrap} ${s.iconWrapInvestigations}`}>
+              <Icon name="Target" size="sm" className={s.iconInvestigations} />
             </div>
-            <div className="flex flex-col items-start">
-              <span className="font-medium text-[var(--text-primary)] group-hover:text-[var(--text-primary)]">
-                Investigations
-              </span>
+            <div className={s.navLabelGroup}>
+              <span className={s.navLabel}>Investigations</span>
             </div>
           </button>
           <button
-            className="w-full flex items-center gap-3 px-3 py-3 rounded-[var(--radius-lg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] transition-colors group"
+            className={`${s.navItem} ${s.navItemBlackBook}`}
             onClick={() => handleNavigation('/blackbook')}
           >
-            <div className="p-1.5 rounded-md bg-[var(--glass-bg)] group-hover:bg-[var(--glass-bg-highlight)] transition-colors border border-[var(--glass-border)]">
-              <Icon name="Book" size="sm" className="w-4 h-4 text-[var(--text-secondary)]" />
+            <div className={`${s.iconWrap} ${s.iconWrapBlackBook}`}>
+              <Icon name="Book" size="sm" />
             </div>
-            <span className="font-medium text-[var(--text-primary)] group-hover:text-[var(--text-primary)]">
-              Black Book
-            </span>
+            <span className={s.navLabel}>Black Book</span>
           </button>
           <button
-            className="w-full flex items-center gap-3 px-3 py-3 rounded-[var(--radius-lg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] transition-colors group"
+            className={`${s.navItem} ${s.navItemTimeline}`}
             onClick={() => handleNavigation('/timeline')}
           >
-            <div className="p-1.5 rounded-md bg-[var(--nav-timeline-bg)] group-hover:bg-[var(--nav-timeline-bg-hover)] transition-colors border border-[var(--nav-timeline-border)]">
-              <Icon name="Clock" size="sm" className="w-4 h-4 text-[var(--nav-timeline)]" />
+            <div className={`${s.iconWrap} ${s.iconWrapTimeline}`}>
+              <Icon name="Clock" size="sm" className={s.iconTimeline} />
             </div>
-            <span className="font-medium text-[var(--text-primary)] group-hover:text-[var(--text-primary)]">
-              Timeline
-            </span>
+            <span className={s.navLabel}>Timeline</span>
           </button>
           <button
-            className="w-full flex items-center gap-3 px-3 py-3 rounded-[var(--radius-lg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] transition-colors group"
+            className={`${s.navItem} ${s.navItemFlights}`}
             onClick={() => handleNavigation('/flights')}
           >
-            <div className="p-1.5 rounded-md bg-[var(--nav-flights-bg)] group-hover:bg-[var(--nav-flights-bg-hover)] transition-colors border border-[var(--nav-flights-border)]">
-              <Icon name="Navigation" size="sm" className="w-4 h-4 text-[var(--nav-flights)]" />
+            <div className={`${s.iconWrap} ${s.iconWrapFlights}`}>
+              <Icon name="Navigation" size="sm" className={s.iconFlights} />
             </div>
-            <span className="font-medium text-[var(--text-primary)] group-hover:text-[var(--text-primary)]">
-              Flights
-            </span>
+            <span className={s.navLabel}>Flights</span>
           </button>
           <button
-            className="w-full flex items-center gap-3 px-3 py-3 rounded-[var(--radius-lg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] transition-colors group"
+            className={`${s.navItem} ${s.navItemAnalytics}`}
             onClick={() => handleNavigation('/analytics')}
           >
-            <div className="p-1.5 rounded-md bg-[var(--nav-analytics-bg)] group-hover:bg-[var(--nav-analytics-bg-hover)] transition-colors border border-[var(--nav-analytics-border)]">
-              <Icon name="BarChart3" size="sm" className="w-4 h-4 text-[var(--nav-analytics)]" />
+            <div className={`${s.iconWrap} ${s.iconWrapAnalytics}`}>
+              <Icon name="BarChart3" size="sm" className={s.iconAnalytics} />
             </div>
-            <span className="font-medium text-[var(--text-primary)] group-hover:text-[var(--text-primary)]">
-              Analytics
-            </span>
+            <span className={s.navLabel}>Analytics</span>
           </button>
 
-          <div className="my-2 border-t border-[var(--glass-border)] mx-3"></div>
+          <div className={s.divider} />
 
           <button
-            className="w-full flex items-center gap-3 px-3 py-3 rounded-[var(--radius-lg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] transition-colors group"
+            className={`${s.navItem} ${s.navItemAbout}`}
             onClick={() => handleNavigation('/about')}
           >
-            <div className="p-1.5 rounded-md bg-[var(--glass-bg)]/50 group-hover:bg-[var(--glass-bg)] transition-colors">
-              <Icon name="Shield" size="sm" className="w-4 h-4 text-[var(--text-muted)]" />
+            <div className={`${s.iconWrap} ${s.iconWrapAbout}`}>
+              <Icon name="Shield" size="sm" />
             </div>
-            <span className="font-medium text-[var(--text-primary)] group-hover:text-[var(--text-primary)]">
-              About
-            </span>
+            <span className={s.navLabel}>About</span>
           </button>
 
           {isAdmin && (
             <button
-              className="w-full flex items-center gap-3 px-3 py-3 rounded-[var(--radius-lg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg)]/80 active:bg-[var(--glass-bg-highlight)] transition-colors group"
+              className={`${s.navItem} ${s.navItemAbout}`}
               onClick={() => handleNavigation('/admin')}
             >
-              <div className="p-1.5 rounded-md bg-[var(--glass-bg)]/50 group-hover:bg-[var(--glass-bg)] transition-colors">
-                <Icon name="Settings" size="sm" className="w-4 h-4 text-[var(--text-muted)]" />
+              <div className={`${s.iconWrap} ${s.iconWrapAbout}`}>
+                <Icon name="Settings" size="sm" />
               </div>
-              <span className="font-medium text-[var(--text-primary)] group-hover:text-[var(--text-primary)]">
-                Admin
-              </span>
+              <span className={s.navLabel}>Admin</span>
             </button>
           )}
         </div>
 
         {/* Footer - Flex item at bottom */}
-        <div className="flex-none p-4 border-t border-[var(--glass-border)] bg-[var(--glass-bg)] text-center">
-          <p className="text-[10px] text-[var(--text-muted)]">
-            v{__APP_VERSION__} • Epstein Archive
-          </p>
+        <div className={s.panelFooter}>
+          <p className={s.versionText}>v{__APP_VERSION__} &bull; Epstein Archive</p>
         </div>
       </div>
     </div>

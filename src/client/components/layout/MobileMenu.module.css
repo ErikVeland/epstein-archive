@@ -1,0 +1,328 @@
+/* src/client/components/layout/MobileMenu.module.css */
+
+/* ── Root overlay ─────────────────────────────────────────── */
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  transition: opacity 0.3s var(--easing-liquid, ease-out);
+}
+
+@media (min-width: 768px) {
+  .root {
+    display: none;
+  }
+}
+
+.rootOpen {
+  opacity: 1;
+}
+
+.rootClosed {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── Backdrop ─────────────────────────────────────────────── */
+.backdrop {
+  position: absolute;
+  inset: 0;
+  top: 60px;
+  transition: all 0.3s var(--easing-liquid, ease-out);
+}
+
+/* ── Slide panel ──────────────────────────────────────────── */
+.panel {
+  position: absolute;
+  left: 0;
+  top: 60px;
+  bottom: 0;
+  width: 80%; /* w-4/5 */
+  max-width: 24rem; /* max-w-sm */
+  background: var(--bg-surface, var(--glass-bg-strong));
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-right: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  transform: translateX(0);
+  transition: transform 0.3s ease-out;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+}
+
+.panelClosed {
+  transform: translateX(-100%);
+}
+
+/* ── Panel header ─────────────────────────────────────────── */
+.panelHeader {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+}
+
+.panelTitle {
+  color: var(--text-primary);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.panelTitleIcon {
+  color: var(--accent);
+}
+
+.closeBtn {
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.closeBtn:hover {
+  background: var(--glass-bg-strong);
+}
+
+/* ── Search section ───────────────────────────────────────── */
+.searchSection {
+  flex: none;
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.searchWrap {
+  position: relative;
+}
+
+.searchInput {
+  width: 100%;
+  background: var(--glass-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 0.75rem var(--space-4) 0.75rem 2.5rem;
+  outline: none;
+  transition: border-color var(--duration-fast) var(--easing-liquid);
+}
+
+.searchInput::placeholder {
+  color: var(--text-muted);
+}
+
+.searchInput:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+.searchIconWrap {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--text-muted);
+  transition: color var(--duration-fast) var(--easing-liquid);
+}
+
+.searchWrap:focus-within .searchIconWrap {
+  color: var(--accent);
+}
+
+/* ── Nav list ─────────────────────────────────────────────── */
+.navList {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-height: 0;
+}
+
+/* ── Section label ────────────────────────────────────────── */
+.sectionLabel {
+  padding: var(--space-2) var(--space-3);
+  font-size: 0.625rem; /* text-[10px] */
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.sectionLabelTop {
+  margin-top: var(--space-2);
+  margin-bottom: var(--space-1);
+}
+
+.sectionLabelMid {
+  padding-block: var(--space-1);
+}
+
+.divider {
+  margin-block: var(--space-2);
+  margin-inline: var(--space-3);
+  border-top: 1px solid var(--glass-border);
+}
+
+/* ── Nav item base ────────────────────────────────────────── */
+.navItem {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-3);
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+  transition: background-color var(--duration-fast) var(--easing-liquid),
+    transform 0.3s var(--easing-liquid);
+}
+
+.navItem:hover {
+  background: color-mix(in srgb, var(--glass-bg) 80%, transparent);
+}
+
+.navItem:active {
+  background: var(--glass-bg-highlight);
+}
+
+/* Items with a slide animation on hover */
+.navItemSlide:hover {
+  transform: translateX(0.25rem);
+}
+
+/* Attract state (pulsing ring) */
+.navItemAttract {
+  box-shadow: var(--nav-investigations-glow, none);
+  background: color-mix(in srgb, var(--glass-bg) 50%, transparent);
+  outline: 1px solid var(--nav-investigations-ring, transparent);
+  outline-offset: -1px;
+}
+
+/* ── Icon wrapper ─────────────────────────────────────────── */
+.iconWrap {
+  padding: 0.375rem; /* p-1.5 */
+  border-radius: 0.375rem; /* rounded-md */
+  background: var(--glass-bg);
+  color: var(--text-muted);
+  transition: background-color var(--duration-fast) var(--easing-liquid),
+    color var(--duration-fast) var(--easing-liquid);
+}
+
+/* ── Per-nav-item icon hover colors ───────────────────────── */
+.navItemHome:hover .iconWrap {
+  background: var(--glass-bg-strong);
+  color: var(--text-primary);
+}
+
+.navItemPeople:hover .iconWrap {
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  box-shadow: var(--glass-shadow-soft, none);
+}
+
+.navItemDocuments:hover .iconWrap {
+  background: var(--nav-documents-hover-bg, var(--glass-bg-highlight));
+  box-shadow: var(--glass-shadow-soft, none);
+}
+
+.navItemEmails:hover .iconWrap {
+  background: var(--nav-emails-hover-bg, var(--glass-bg-highlight));
+  box-shadow: var(--glass-shadow-soft, none);
+}
+
+.navItemMedia:hover .iconWrap {
+  background: var(--nav-media-hover-bg, var(--glass-bg-highlight));
+  box-shadow: var(--glass-shadow-soft, none);
+}
+
+/* Investigations has its own base bg + border */
+.iconWrapInvestigations {
+  background: var(--nav-investigations-bg, var(--glass-bg));
+  border: 1px solid var(--nav-investigations-border, var(--glass-border));
+}
+
+.navItemInvestigations:hover .iconWrapInvestigations {
+  background: var(--nav-investigations-bg-hover, var(--glass-bg-highlight));
+}
+
+.iconWrapBlackBook {
+  border: 1px solid var(--glass-border);
+}
+
+.navItemBlackBook:hover .iconWrapBlackBook {
+  background: var(--glass-bg-highlight);
+}
+
+.iconWrapTimeline {
+  background: var(--nav-timeline-bg, var(--glass-bg));
+  border: 1px solid var(--nav-timeline-border, var(--glass-border));
+}
+
+.navItemTimeline:hover .iconWrapTimeline {
+  background: var(--nav-timeline-bg-hover, var(--glass-bg-highlight));
+}
+
+.iconWrapFlights {
+  background: var(--nav-flights-bg, var(--glass-bg));
+  border: 1px solid var(--nav-flights-border, var(--glass-border));
+}
+
+.navItemFlights:hover .iconWrapFlights {
+  background: var(--nav-flights-bg-hover, var(--glass-bg-highlight));
+}
+
+.iconWrapAnalytics {
+  background: var(--nav-analytics-bg, var(--glass-bg));
+  border: 1px solid var(--nav-analytics-border, var(--glass-border));
+}
+
+.navItemAnalytics:hover .iconWrapAnalytics {
+  background: var(--nav-analytics-bg-hover, var(--glass-bg-highlight));
+}
+
+.iconWrapAbout {
+  background: color-mix(in srgb, var(--glass-bg) 50%, transparent);
+}
+
+.navItemAbout:hover .iconWrapAbout {
+  background: var(--glass-bg);
+}
+
+/* ── Nav icon colors ──────────────────────────────────────── */
+.iconPeople { color: var(--accent); }
+.iconDocuments { color: var(--nav-documents, var(--text-secondary)); }
+.iconEmails { color: var(--nav-emails, var(--text-secondary)); }
+.iconMedia { color: var(--nav-media, var(--text-secondary)); }
+.iconInvestigations { color: var(--nav-investigations, var(--accent)); }
+.iconTimeline { color: var(--nav-timeline, var(--text-secondary)); }
+.iconFlights { color: var(--nav-flights, var(--text-secondary)); }
+.iconAnalytics { color: var(--nav-analytics, var(--text-secondary)); }
+
+/* ── Nav label ────────────────────────────────────────────── */
+.navLabel {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.navLabelGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+/* ── Panel footer ─────────────────────────────────────────── */
+.panelFooter {
+  flex: none;
+  padding: var(--space-4);
+  border-top: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  text-align: center;
+}
+
+.versionText {
+  font-size: 0.625rem; /* text-[10px] */
+  color: var(--text-muted);
+}
