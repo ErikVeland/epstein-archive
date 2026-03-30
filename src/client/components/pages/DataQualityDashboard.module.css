@@ -1,0 +1,350 @@
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.loadingState {
+  min-height: 16rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinner {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  border: 2px solid color-mix(in srgb, var(--accent) 18%, transparent);
+  border-bottom-color: var(--accent);
+  animation: dataQualitySpin 0.9s linear infinite;
+}
+
+@keyframes dataQualitySpin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.errorBanner {
+  padding: var(--space-4);
+  border: 1px solid color-mix(in srgb, var(--accent-danger) 30%, transparent);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--accent-danger) 10%, transparent);
+  color: var(--accent-danger);
+}
+
+.errorIcon {
+  display: inline;
+  margin-right: var(--space-2);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.heading {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.updatedAt {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.metricGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+@media (min-width: 768px) {
+  .metricGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.metricCard {
+  padding: var(--space-4);
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
+  background-image: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--glass-bg) 92%, transparent),
+    color-mix(in srgb, var(--glass-bg-strong) 58%, transparent)
+  );
+}
+
+.metricCard--cyan {
+  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+  background-image: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent-info) 20%, transparent),
+    color-mix(in srgb, var(--accent-info) 5%, transparent)
+  );
+}
+
+.metricCard--green {
+  border-color: color-mix(in srgb, var(--accent-success) 30%, transparent);
+  background-image: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent-success) 20%, transparent),
+    color-mix(in srgb, var(--accent-success) 5%, transparent)
+  );
+}
+
+.metricCard--yellow {
+  border-color: color-mix(in srgb, var(--accent-warning) 30%, transparent);
+  background-image: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent-warning) 20%, transparent),
+    color-mix(in srgb, var(--accent-warning) 5%, transparent)
+  );
+}
+
+.metricCard--red {
+  border-color: color-mix(in srgb, var(--accent-danger) 30%, transparent);
+  background-image: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent-danger) 20%, transparent),
+    color-mix(in srgb, var(--accent-danger) 5%, transparent)
+  );
+}
+
+.metricCard--purple,
+.metricCard--blue {
+  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+  background-image: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent) 20%, transparent),
+    color-mix(in srgb, var(--accent) 5%, transparent)
+  );
+}
+
+.metricHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.metricTitle {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.metricValue {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.sectionCard {
+  padding: var(--space-4);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--glass-bg) 50%, transparent);
+}
+
+.sectionHeading {
+  margin: 0 0 var(--space-3) 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.collectionList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.collectionRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.collectionMeta {
+  flex: 1;
+  min-width: 0;
+}
+
+.collectionLabels {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-1);
+  font-size: 0.75rem;
+}
+
+.collectionName {
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.collectionValue {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.progressTrack {
+  height: 0.375rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--glass-bg-highlight);
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--accent-info), var(--accent));
+}
+
+.chipList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.evidenceChip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--glass-bg-highlight) 50%, transparent);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.evidenceType {
+  text-transform: capitalize;
+}
+
+.evidenceCount {
+  color: var(--text-muted);
+}
+
+.trustIndicator {
+  padding: var(--space-4);
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
+}
+
+.trustIndicator--success {
+  border-color: color-mix(in srgb, var(--accent-success) 30%, transparent);
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--accent-success) 20%, transparent),
+    color-mix(in srgb, var(--accent-success) 5%, transparent)
+  );
+}
+
+.trustIndicator--warning,
+.trustIndicator--danger {
+  border-color: color-mix(in srgb, var(--accent-warning) 30%, transparent);
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--accent-warning) 20%, transparent),
+    color-mix(in srgb, var(--accent-warning) 5%, transparent)
+  );
+}
+
+.trustRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.trustTitle {
+  margin: 0;
+  font-weight: 500;
+}
+
+.trustBody {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.integrityCard {
+  padding: var(--space-4);
+  border: 1px solid color-mix(in srgb, var(--accent-warning) 30%, transparent);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--glass-bg) 50%, transparent);
+}
+
+.integrityHeading {
+  margin: 0 0 var(--space-3) 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--accent-warning);
+}
+
+.integrityGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.integrityMetric {
+  text-align: center;
+}
+
+.integrityValue {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--accent-warning);
+}
+
+.integrityLabel {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.tone--cyan,
+.tone--blue,
+.tone--purple {
+  color: var(--accent);
+}
+
+.tone--green,
+.tone--success {
+  color: var(--accent-success);
+}
+
+.tone--yellow,
+.tone--warning {
+  color: var(--accent-warning);
+}
+
+.tone--red,
+.tone--danger {
+  color: var(--accent-danger);
+}

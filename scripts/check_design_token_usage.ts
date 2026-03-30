@@ -86,6 +86,9 @@ const moduleGovernedFiles = new Set(
     'src/client/components/pages/StatsSkeleton.tsx',
     'src/client/components/pages/StatsDashboard.tsx',
     'src/client/components/pages/StatsDisplay.tsx',
+    // Phase 9b
+    'src/client/components/pages/FAQPage.tsx',
+    'src/client/components/pages/DataQualityDashboard.tsx',
   ].map((f) => path.join(rootDir, f)),
 );
 

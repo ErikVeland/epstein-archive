@@ -2,6 +2,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Icon from '../common/Icon';
 import type { IconName } from '../common/Icon';
+import s from './DataQualityDashboard.module.css';
 
 interface DataQualityMetrics {
   totalDocuments: number;
@@ -40,16 +41,16 @@ export const DataQualityDashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent)]" />
+      <div className={s.loadingState}>
+        <div className={s.spinner} />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-[var(--accent-danger)]/10 border border-[var(--accent-danger)]/30 rounded-[var(--radius-lg)] p-4 text-[var(--accent-danger)]">
-        <Icon name="AlertTriangle" size="sm" className="inline mr-2" />
+      <div className={s.errorBanner}>
+        <Icon name="AlertTriangle" size="sm" className={s.errorIcon} />
         Error loading metrics: {error}
       </div>
     );
@@ -57,28 +58,28 @@ export const DataQualityDashboard: React.FC = () => {
 
   if (!metrics) return null;
 
-  const coverageColor =
+  const coverageTone =
     metrics.provenanceCoverage >= 90
-      ? 'text-[var(--accent-success)]'
+      ? 'success'
       : metrics.provenanceCoverage >= 70
-        ? 'text-[var(--accent-warning)]'
-        : 'text-[var(--accent-danger)]';
+        ? 'warning'
+        : 'danger';
 
   return (
-    <div className="space-y-6">
+    <div className={s.dashboard}>
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-[var(--text-primary)] flex items-center gap-2">
+      <div className={s.header}>
+        <h2 className={s.heading}>
           <Icon name="BarChart3" size="md" />
           Data Quality Dashboard
         </h2>
-        <span className="text-xs text-[var(--text-muted)]">
+        <span className={s.updatedAt}>
           Updated: {new Date(metrics.lastUpdated).toLocaleString()}
         </span>
       </div>
 
       {/* Key Metrics Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className={s.metricGrid}>
         <MetricCard
           title="Total Documents"
           value={metrics.totalDocuments.toLocaleString()}
@@ -112,28 +113,25 @@ export const DataQualityDashboard: React.FC = () => {
       </div>
 
       {/* Source Collections */}
-      <div className="bg-[var(--glass-bg)]/50 rounded-[var(--radius-lg)] p-4 border border-[var(--glass-border)]">
-        <h3 className="text-sm font-medium text-[var(--text-secondary)] mb-3 flex items-center gap-2">
+      <div className={s.sectionCard}>
+        <h3 className={s.sectionHeading}>
           <Icon name="Database" size="sm" />
           Source Collections
         </h3>
-        <div className="space-y-2">
+        <div className={s.collectionList}>
           {metrics.sourceCollections.slice(0, 8).map((src) => {
             const percentage = ((src.count / metrics.totalDocuments) * 100).toFixed(1);
             return (
-              <div key={src.name} className="flex items-center gap-3">
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between text-xs mb-1">
-                    <span className="text-[var(--text-secondary)] truncate">{src.name}</span>
-                    <span className="text-[var(--text-muted)]">
+              <div key={src.name} className={s.collectionRow}>
+                <div className={s.collectionMeta}>
+                  <div className={s.collectionLabels}>
+                    <span className={s.collectionName}>{src.name}</span>
+                    <span className={s.collectionValue}>
                       {src.count.toLocaleString()} ({percentage}%)
                     </span>
                   </div>
-                  <div className="h-1.5 bg-[var(--glass-bg-highlight)] rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-[var(--accent-info)] to-[var(--accent)] rounded-full"
-                      style={{ width: `${percentage}%` }}
-                    />
+                  <div className={s.progressTrack}>
+                    <div className={s.progressFill} style={{ width: `${percentage}%` }} />
                   </div>
                 </div>
               </div>
@@ -143,43 +141,34 @@ export const DataQualityDashboard: React.FC = () => {
       </div>
 
       {/* Evidence Types */}
-      <div className="bg-[var(--glass-bg)]/50 rounded-[var(--radius-lg)] p-4 border border-[var(--glass-border)]">
-        <h3 className="text-sm font-medium text-[var(--text-secondary)] mb-3 flex items-center gap-2">
+      <div className={s.sectionCard}>
+        <h3 className={s.sectionHeading}>
           <Icon name="Tag" size="sm" />
           Evidence Type Distribution
         </h3>
-        <div className="flex flex-wrap gap-2">
+        <div className={s.chipList}>
           {metrics.evidenceTypeDistribution.slice(0, 10).map((ev) => (
-            <span
-              key={ev.type}
-              className="px-2 py-1 bg-[var(--glass-bg-highlight)]/50 rounded text-xs text-[var(--text-secondary)] flex items-center gap-1"
-            >
-              <span className="capitalize">{ev.type.replace(/_/g, ' ')}</span>
-              <span className="text-[var(--text-muted)]">({ev.count.toLocaleString()})</span>
+            <span key={ev.type} className={s.evidenceChip}>
+              <span className={s.evidenceType}>{ev.type.replace(/_/g, ' ')}</span>
+              <span className={s.evidenceCount}>({ev.count.toLocaleString()})</span>
             </span>
           ))}
         </div>
       </div>
 
       {/* Trust Indicator */}
-      <div
-        className={`bg-gradient-to-r ${
-          metrics.provenanceCoverage >= 90
-            ? 'from-[var(--accent-success)]/20 to-[var(--accent-success)]/5 border-[var(--accent-success)]/30'
-            : 'from-[var(--accent-warning)]/20 to-[var(--accent-warning)]/5 border-[var(--accent-warning)]/30'
-        } rounded-[var(--radius-lg)] p-4 border`}
-      >
-        <div className="flex items-center gap-3">
+      <div className={`${s.trustIndicator} ${s[`trustIndicator--${coverageTone}`]}`}>
+        <div className={s.trustRow}>
           <Icon
             name={metrics.provenanceCoverage >= 90 ? 'CheckCircle' : 'AlertCircle'}
             size="lg"
-            className={coverageColor}
+            className={s[`tone--${coverageTone}`]}
           />
           <div>
-            <p className={`font-medium ${coverageColor}`}>
+            <p className={`${s.trustTitle} ${s[`tone--${coverageTone}`]}`}>
               {metrics.provenanceCoverage >= 90 ? 'High Data Quality' : 'Data Quality Notice'}
             </p>
-            <p className="text-xs text-[var(--text-muted)]">
+            <p className={s.trustBody}>
               {metrics.provenanceCoverage}% of documents have verified source attribution
             </p>
           </div>
@@ -190,23 +179,23 @@ export const DataQualityDashboard: React.FC = () => {
       {metrics.dataIntegrity &&
         (metrics.dataIntegrity.orphanedEntityMentions > 0 ||
           metrics.dataIntegrity.potentialJunkEntities > 0) && (
-          <div className="bg-[var(--glass-bg)]/50 rounded-[var(--radius-lg)] p-4 border border-[var(--accent-warning)]/30">
-            <h3 className="text-sm font-medium text-[var(--accent-warning)] mb-3 flex items-center gap-2">
+          <div className={s.integrityCard}>
+            <h3 className={s.integrityHeading}>
               <Icon name="AlertTriangle" size="sm" />
               Data Integrity Issues
             </h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="text-center">
-                <p className="text-2xl font-bold text-[var(--accent-warning)]">
+            <div className={s.integrityGrid}>
+              <div className={s.integrityMetric}>
+                <p className={s.integrityValue}>
                   {metrics.dataIntegrity.orphanedEntityMentions.toLocaleString()}
                 </p>
-                <p className="text-xs text-[var(--text-muted)]">Orphaned Entity Mentions</p>
+                <p className={s.integrityLabel}>Orphaned Entity Mentions</p>
               </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-[var(--accent-warning)]">
+              <div className={s.integrityMetric}>
+                <p className={s.integrityValue}>
                   {metrics.dataIntegrity.potentialJunkEntities.toLocaleString()}
                 </p>
-                <p className="text-xs text-[var(--text-muted)]">Potential Junk Entities</p>
+                <p className={s.integrityLabel}>Potential Junk Entities</p>
               </div>
             </div>
           </div>
@@ -222,27 +211,13 @@ const MetricCard: React.FC<{
   icon: IconName;
   color: 'cyan' | 'green' | 'yellow' | 'red' | 'purple' | 'blue';
 }> = ({ title, value, icon, color }) => {
-  const colorClasses = {
-    cyan: 'from-[var(--accent-info)]/20 to-[var(--accent-info)]/5 border-[var(--accent)]/30 text-[var(--accent)]',
-    green:
-      'from-[var(--accent-success)]/20 to-[var(--accent-success)]/5 border-[var(--accent-success)]/30 text-[var(--accent-success)]',
-    yellow:
-      'from-[var(--accent-warning)]/20 to-[var(--accent-warning)]/5 border-[var(--accent-warning)]/30 text-[var(--accent-warning)]',
-    red: 'from-[var(--accent-danger)]/20 to-[var(--accent-danger)]/5 border-[var(--accent-danger)]/30 text-[var(--accent-danger)]',
-    purple:
-      'from-[var(--accent)]/20 to-[var(--accent)]/5 border-[var(--accent)]/30 text-[var(--accent)]',
-    blue: 'from-[var(--accent)]/20 to-[var(--accent)]/5 border-[var(--accent)]/30 text-[var(--accent)]',
-  };
-
   return (
-    <div
-      className={`bg-gradient-to-br ${colorClasses[color]} rounded-[var(--radius-lg)] p-4 border`}
-    >
-      <div className="flex items-center gap-2 mb-2">
-        <Icon name={icon} size="sm" className={colorClasses[color].split(' ').pop()} />
-        <span className="text-xs text-[var(--text-muted)]">{title}</span>
+    <div className={`${s.metricCard} ${s[`metricCard--${color}`]}`}>
+      <div className={s.metricHeader}>
+        <Icon name={icon} size="sm" className={s[`tone--${color}`]} />
+        <span className={s.metricTitle}>{title}</span>
       </div>
-      <p className="text-2xl font-bold text-[var(--text-primary)]">{value}</p>
+      <p className={s.metricValue}>{value}</p>
     </div>
   );
 };
