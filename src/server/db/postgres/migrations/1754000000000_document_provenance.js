@@ -95,6 +95,8 @@ export async function down(pgm) {
       DROP COLUMN IF EXISTS source_url,
       DROP COLUMN IF EXISTS source_path,
       DROP COLUMN IF EXISTS source_original_url,
-      DROP COLUMN IF EXISTS normalized_text_sha256;
+      DROP COLUMN IF EXISTS normalized_text_sha256,
+      DROP COLUMN IF EXISTS content_sha256,
+      DROP COLUMN IF EXISTS parent_document_id;
   `);
 }
