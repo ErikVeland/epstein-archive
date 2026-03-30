@@ -26,6 +26,42 @@
   color: var(--text-muted);
 }
 
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInUp {
+  from { transform: translateY(0.5rem); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+.pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.fadeIn {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.slideInUp {
+  animation: slideInUp 0.5s ease-out forwards;
+}
+
 /* ── Error state ── */
 .errorWrapper {
   text-align: center;
@@ -106,6 +142,13 @@
   margin-top: 0.25rem;
 }
 
+.statCardValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: monospace;
+}
+
 /* ── Network section ── */
 .networkSection {
   padding: var(--space-6);
@@ -164,6 +207,10 @@
 
 .archiveBadgeIcon:hover {
   color: #f59e0b; /* amber-500 */
+}
+
+.archiveBadgeDatabaseIcon {
+  filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.3));
 }
 
 /* ── Reconciliation tooltip ── */
@@ -308,6 +355,14 @@
   color: var(--accent-success);
   min-width: 3rem;
   text-align: right;
+}
+
+.sliderInputSuccess {
+  accent-color: var(--accent-success);
+}
+
+.sliderInputDocs {
+  accent-color: var(--accent-docs);
 }
 
 .timelineControl {
@@ -717,4 +772,14 @@
 .entityFlags {
   font-size: 1.125rem;
   flex-shrink: 0;
+}
+
+.iconSuccess { color: var(--accent-success); }
+.iconDocs { color: var(--accent-docs); }
+.iconWarning { color: var(--accent-warning); }
+.iconAccent { color: var(--accent); }
+
+.neonTextCyan {
+  color: #22d3ee;
+  text-shadow: 0 0 10px rgba(34, 211, 238, 0.5);
 }

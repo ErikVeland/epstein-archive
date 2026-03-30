@@ -1280,6 +1280,7 @@
   margin: 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -1758,4 +1759,35 @@
 .articleP {
   margin: 0;
   line-height: 1.7;
+}
+/* ---------- Animations ---------- */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* ---------- Text Helpers ---------- */
+.textPrimary {
+  color: var(--text-primary);
+}
+
+.textSecondary {
+  color: var(--text-secondary) !important;
+}
+
+.notItalic {
+  font-style: normal;
+}
+
+/* ---------- Icon Helpers ---------- */
+.accentIconLowOp {
+  color: color-mix(in srgb, var(--accent) 30%, transparent);
 }

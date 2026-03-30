@@ -15,11 +15,13 @@ import {
   ShieldAlert,
   AlertCircle,
   X,
+  RotateCcw,
 } from 'lucide-react';
 import { apiClient } from '../../services/apiClient';
 import { Person } from '../../types';
 import { useScrollLock } from '../../hooks/useScrollLock';
 import { CloseButton } from '../common/CloseButton';
+import s from './GlobalSearch.module.css';
 
 interface SearchResult {
   id: string;
@@ -116,13 +118,13 @@ const GlobalSearch: React.FC = () => {
   });
 
   const categories = [
-    { id: 'all', name: 'All Categories', color: 'bg-[var(--glass-bg-highlight)]' },
-    { id: 'emails', name: 'Emails', color: 'bg-green-600' },
-    { id: 'legal_documents', name: 'Legal Documents', color: 'bg-red-600' },
-    { id: 'flight_logs', name: 'Flight Records', color: 'bg-yellow-600' },
-    { id: 'testimonies', name: 'Testimonies', color: 'bg-[var(--accent)]' },
-    { id: 'financial_records', name: 'Financial', color: 'bg-orange-600' },
-    { id: 'general_documents', name: 'General', color: 'bg-[var(--accent)]' },
+    { id: 'all', name: 'All Categories', colorClass: '' },
+    { id: 'emails', name: 'Emails', colorClass: s.resultItemDoc },
+    { id: 'legal_documents', name: 'Legal Documents', colorClass: s.resultItemInvestigation },
+    { id: 'flight_logs', name: 'Flight Records', colorClass: s.resultItemArticle },
+    { id: 'testimonies', name: 'Testimonies', colorClass: s.resultItemMedia },
+    { id: 'financial_records', name: 'Financial', colorClass: s.resultItemArticle },
+    { id: 'general_documents', name: 'General', colorClass: s.resultItemMedia },
   ];
 
   useEffect(() => {
@@ -244,11 +246,6 @@ const GlobalSearch: React.FC = () => {
     setFilteredResults(filtered);
   };
 
-  const getCategoryColor = (category: string) => {
-    const cat = categories.find((c) => c.id === category);
-    return cat?.color || 'bg-[var(--glass-bg-highlight)]';
-  };
-
   const formatWordCount = (count: number) => {
     if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`;
     if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
@@ -256,54 +253,57 @@ const GlobalSearch: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className={s.root}>
       {/* Search Header */}
-      <div className="bg-[var(--glass-bg)]/50 backdrop-blur-sm p-6 rounded-[var(--radius-xl)] border border-[var(--glass-border)]">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold text-[var(--text-primary)] flex items-center space-x-2">
-            <Search className="h-6 w-6 text-[var(--accent)]" />
+      <div className={s.header}>
+        <div className={s.headerTop}>
+          <h2 className={s.title}>
+            <Search size={24} className={s.accentIcon} />
             <span>Global Evidence Search</span>
           </h2>
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center space-x-2 px-4 py-2 bg-[var(--glass-bg-highlight)] hover:bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] text-[var(--text-primary)] transition-colors"
-          >
-            <Filter className="h-4 w-4" />
+          <button onClick={() => setShowFilters(!showFilters)} className={s.filterToggle}>
+            <Filter size={16} />
             <span>Filters</span>
             <ChevronDown
-              className={`h-4 w-4 transition-transform ${showFilters ? 'rotate-180' : ''}`}
+              size={16}
+              style={{
+                transform: showFilters ? 'rotate(180deg)' : 'none',
+                transition: 'transform 0.2s',
+              }}
             />
           </button>
         </div>
 
         {/* Search Input */}
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[var(--text-muted)]" />
+        <div className={s.inputWrapper}>
+          <Search size={20} className={s.searchIcon} />
           <input
             type="text"
             placeholder="Search across all evidence files... (e.g., Trump, Clinton, Epstein, flight logs, emails)"
-            className="w-full pl-12 pr-12 py-4 bg-[var(--glass-bg-strong)]/50 border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] placeholder-gray-400 focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent text-lg"
+            className={s.input}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
           {searchTerm && !loading && (
             <button
               onClick={() => setSearchTerm('')}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2 p-1 rounded-full hover:bg-[var(--glass-bg)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+              className={s.clearButton}
               aria-label="Clear search"
               title="Clear search"
             >
-              <X className="h-4 w-4" />
+              <X size={16} />
             </button>
           )}
           {loading && (
-            <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[var(--accent)]"></div>
+            <div className={s.loadingSpinner}>
+              <div className={`${s.spin} ${s.spinnerWrapper}`}>
+                <RotateCcw size={20} className={s.accentIcon} />
+              </div>
             </div>
           )}
         </div>
 
-        <p className="text-[var(--text-muted)] text-sm mt-2">
+        <p className={s.helperText}>
           Search across {stats?.totalDocuments?.toLocaleString() || 'thousands of'} evidence files.
           Try names, dates, document types, or key terms.
         </p>
@@ -311,16 +311,14 @@ const GlobalSearch: React.FC = () => {
 
       {/* Filters Panel */}
       {showFilters && (
-        <div className="bg-[var(--glass-bg)]/50 backdrop-blur-sm p-6 rounded-[var(--radius-xl)] border border-[var(--glass-border)]">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
-              <label className="block text-[var(--text-primary)] text-sm font-medium mb-2">
-                Category
-              </label>
+        <div className={s.filterPanel}>
+          <div className={s.filterGrid}>
+            <div className={s.filterGroup}>
+              <label className={s.filterLabel}>Category</label>
               <select
                 value={filters.category}
                 onChange={(e) => setFilters({ ...filters, category: e.target.value })}
-                className="w-full px-3 py-2 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--accent)]"
+                className={s.filterSelect}
               >
                 {categories.map((cat) => (
                   <option key={cat.id} value={cat.id}>
@@ -330,23 +328,19 @@ const GlobalSearch: React.FC = () => {
               </select>
             </div>
 
-            <div>
-              <label className="block text-[var(--text-primary)] text-sm font-medium mb-2">
-                Entity
-              </label>
+            <div className={s.filterGroup}>
+              <label className={s.filterLabel}>Entity</label>
               <input
                 type="text"
                 placeholder="e.g., Trump, Epstein, Clinton"
                 value={filters.entity}
                 onChange={(e) => setFilters({ ...filters, entity: e.target.value })}
-                className="w-full px-3 py-2 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] placeholder-gray-400 focus:ring-2 focus:ring-[var(--accent)]"
+                className={s.filterInput}
               />
             </div>
 
-            <div>
-              <label className="block text-[var(--text-primary)] text-sm font-medium mb-2">
-                Min Word Count
-              </label>
+            <div className={s.filterGroup}>
+              <label className={s.filterLabel}>Min Word Count</label>
               <input
                 type="number"
                 min="0"
@@ -354,14 +348,12 @@ const GlobalSearch: React.FC = () => {
                 onChange={(e) =>
                   setFilters({ ...filters, min_word_count: parseInt(e.target.value) || 0 })
                 }
-                className="w-full px-3 py-2 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--accent)]"
+                className={s.filterInput}
               />
             </div>
 
-            <div>
-              <label className="block text-[var(--text-primary)] text-sm font-medium mb-2">
-                Start Date
-              </label>
+            <div className={s.filterGroup}>
+              <label className={s.filterLabel}>Start Date</label>
               <input
                 type="date"
                 value={filters.date_range.start}
@@ -371,14 +363,12 @@ const GlobalSearch: React.FC = () => {
                     date_range: { ...filters.date_range, start: e.target.value },
                   })
                 }
-                className="w-full px-3 py-2 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--accent)]"
+                className={s.filterInput}
               />
             </div>
 
-            <div>
-              <label className="block text-[var(--text-primary)] text-sm font-medium mb-2">
-                End Date
-              </label>
+            <div className={s.filterGroup}>
+              <label className={s.filterLabel}>End Date</label>
               <input
                 type="date"
                 value={filters.date_range.end}
@@ -388,11 +378,11 @@ const GlobalSearch: React.FC = () => {
                     date_range: { ...filters.date_range, end: e.target.value },
                   })
                 }
-                className="w-full px-3 py-2 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--accent)]"
+                className={s.filterInput}
               />
             </div>
 
-            <div className="flex items-end md:col-span-2 lg:col-span-2">
+            <div className={s.filterGroup} style={{ justifyContent: 'flex-end' }}>
               <button
                 onClick={() =>
                   setFilters({
@@ -402,7 +392,7 @@ const GlobalSearch: React.FC = () => {
                     min_word_count: 0,
                   })
                 }
-                className="w-full px-4 py-2 bg-[var(--glass-bg-highlight)] hover:bg-[var(--glass-bg-strong)] rounded-[var(--radius-lg)] text-[var(--text-primary)] transition-colors"
+                className={s.clearFilterButton}
               >
                 Clear Filters
               </button>
@@ -413,65 +403,53 @@ const GlobalSearch: React.FC = () => {
 
       {/* Error Banner */}
       {searchError && (
-        <div
-          role="alert"
-          className="bg-red-900/30 border border-red-500/50 rounded-[var(--radius-lg)] p-4 flex items-center gap-3"
-        >
-          <AlertCircle className="h-5 w-5 text-red-400 shrink-0" />
+        <div role="alert" className={s.errorBanner}>
+          <AlertCircle size={20} style={{ color: '#f87171' }} />
           <div>
-            <p className="text-red-300 text-sm font-medium">Search failed</p>
-            <p className="text-red-400/80 text-xs mt-0.5">{searchError}</p>
+            <p className={s.errorTitle}>Search failed</p>
+            <p className={s.errorDesc}>{searchError}</p>
           </div>
           <button
             onClick={() => setSearchError(null)}
-            className="ml-auto p-1 text-red-400 hover:text-red-300 transition-colors"
+            className={s.clearButton}
+            style={{ marginLeft: 'auto' }}
             aria-label="Dismiss error"
           >
-            <X className="h-4 w-4" />
+            <X size={16} />
           </button>
         </div>
       )}
 
       {/* Entity Results */}
       {entityResults.length > 0 && (
-        <div className="bg-[var(--glass-bg)]/50 backdrop-blur-sm rounded-[var(--radius-xl)] border border-[var(--glass-border)] p-6">
-          <h3 className="text-xl font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
-            <User className="h-5 w-5 text-[var(--accent)]" />
+        <div className={s.entitySection}>
+          <h3 className={s.sectionTitle}>
+            <User size={20} className={s.accentIcon} />
             Matched Entities
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className={s.entityGrid}>
             {entityResults.map((entity) => (
-              <div
-                key={entity.id}
-                className="bg-[var(--glass-bg-highlight)]/50 p-4 rounded-[var(--radius-lg)] border border-[var(--glass-border)] hover:border-[var(--accent)] transition-colors cursor-pointer"
-              >
-                <div className="flex items-start justify-between">
+              <div key={entity.id} className={s.entityCard}>
+                <div className={s.entityHeader}>
                   <div>
-                    <h4 className="text-[var(--text-primary)] font-medium">{entity.name}</h4>
-                    <p className="text-sm text-[var(--text-muted)]">
-                      {entity.role || 'Unknown Role'}
-                    </p>
+                    <h4 className={s.entityName}>{entity.name}</h4>
+                    <p className={s.entityRole}>{entity.role || 'Unknown Role'}</p>
                   </div>
                   <div
-                    className={`px-2 py-1 rounded text-xs font-bold ${
-                      (entity.redFlagRating || 0) > 3
-                        ? 'bg-red-900 text-red-200'
-                        : 'bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)]'
-                    }`}
+                    className={s.riskBadge}
+                    data-risk={(entity.redFlagRating || 0) > 3 ? 'high' : 'low'}
                   >
-                    <span className="inline-flex items-center gap-1">
-                      <ShieldAlert className="h-3 w-3" />
-                      {entity.redFlagRating || 0}
-                    </span>
+                    <ShieldAlert size={12} />
+                    <span>{entity.redFlagRating || 0}</span>
                   </div>
                 </div>
-                <div className="mt-3 flex items-center gap-4 text-xs text-[var(--text-muted)]">
-                  <span className="flex items-center gap-1">
-                    <Eye className="h-3 w-3" />
+                <div className={s.entityStats}>
+                  <span className={s.statItem}>
+                    <Eye size={12} />
                     {entity.files || 0} docs
                   </span>
-                  <span className="flex items-center gap-1">
-                    <Building className="h-3 w-3" />
+                  <span className={s.statItem}>
+                    <Building size={12} />
                     {entity.mentions || 0} mentions
                   </span>
                 </div>
@@ -482,20 +460,16 @@ const GlobalSearch: React.FC = () => {
       )}
 
       {/* Document Results */}
-      <div className="bg-[var(--glass-bg)]/50 backdrop-blur-sm rounded-[var(--radius-xl)] border border-[var(--glass-border)]">
-        <div className="p-6 border-b border-[var(--glass-border)]">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xl font-semibold text-[var(--text-primary)]">
-              Evidence Results {searchTerm && `for "${searchTerm}"`}
-            </h3>
-            <span className="text-[var(--text-muted)]">
-              {filteredResults.length +
-                investigationResults.length +
-                articleResults.length +
-                mediaResults.length}{' '}
-              total results
-            </span>
-          </div>
+      <div className={s.resultsList}>
+        <div className={s.resultsHeader}>
+          <h3 className={s.sectionTitle}>Evidence Results {searchTerm && `for "${searchTerm}"`}</h3>
+          <span className={s.helperText}>
+            {filteredResults.length +
+              investigationResults.length +
+              articleResults.length +
+              mediaResults.length}{' '}
+            total results
+          </span>
         </div>
 
         <div className="divide-y divide-gray-700">
@@ -505,26 +479,21 @@ const GlobalSearch: React.FC = () => {
               <button
                 key={`inv-${index}`}
                 type="button"
-                className="w-full p-6 text-left bg-transparent hover:bg-cyan-900/10 transition-colors border-l-4 border-purple-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-inset"
+                className={`${s.resultItem} ${s.resultItemInvestigation}`}
                 onClick={() => navigate(`/investigations/${asString(inv.uuid)}`)}
                 aria-label={`Open investigation ${asString(inv.title)}`}
               >
-                <div className="flex items-center space-x-3 mb-2">
-                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-purple-600 text-[var(--text-primary)]">
+                <div className={s.itemMeta}>
+                  <span className={s.categoryBadge} style={{ background: '#9333ea' }}>
                     Investigation
                   </span>
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs font-medium bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] uppercase`}
-                  >
-                    {asString(inv.status)}
-                  </span>
+                  <span className={s.helperText}>{asString(inv.status)}</span>
                 </div>
-                <h4 className="text-[var(--text-primary)] font-medium text-lg mb-2">
-                  {asString(inv.title)}
-                </h4>
+                <h4 className={s.itemTitle}>{asString(inv.title)}</h4>
                 {Boolean(inv.snippet) && (
                   <div
-                    className="text-[var(--text-muted)] text-sm italic"
+                    className={s.helperText}
+                    style={{ fontStyle: 'italic' }}
                     dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(asString(inv.snippet)) }}
                   />
                 )}
@@ -537,7 +506,7 @@ const GlobalSearch: React.FC = () => {
               <button
                 key={`art-${index}`}
                 type="button"
-                className="w-full p-6 text-left bg-transparent hover:bg-orange-900/10 transition-colors border-l-4 border-orange-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-inset"
+                className={`${s.resultItem} ${s.resultItemArticle}`}
                 onClick={() =>
                   setSelectedResult({
                     id: asString(art.id, `article-${index}`),
@@ -556,25 +525,23 @@ const GlobalSearch: React.FC = () => {
                 }
                 aria-label={`Open article result ${asString(art.title)}`}
               >
-                <div className="flex items-center space-x-3 mb-2">
-                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-orange-600 text-[var(--text-primary)]">
+                <div className={s.itemMeta}>
+                  <span className={s.categoryBadge} style={{ background: '#f97316' }}>
                     Article
                   </span>
-                  <span className="text-[var(--text-muted)] text-sm">
+                  <span className={s.helperText}>
                     {asString(art.source)} by {asString(art.author)}
                   </span>
                   {Boolean(art.pubDate) && (
-                    <span className="text-[var(--text-muted)] text-xs">
+                    <span className={s.helperText}>
                       {new Date(asString(art.pubDate)).toLocaleDateString()}
                     </span>
                   )}
                 </div>
-                <h4 className="text-[var(--text-primary)] font-medium text-lg mb-2">
-                  {asString(art.title)}
-                </h4>
+                <h4 className={s.itemTitle}>{asString(art.title)}</h4>
                 {Boolean(art.snippet) && (
                   <div
-                    className="text-[var(--text-muted)] text-sm"
+                    className={s.helperText}
                     dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(asString(art.snippet)) }}
                   />
                 )}
@@ -587,7 +554,7 @@ const GlobalSearch: React.FC = () => {
               <button
                 key={`med-${index}`}
                 type="button"
-                className="w-full p-6 text-left bg-transparent hover:bg-blue-900/10 transition-colors border-l-4 border-[var(--accent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-inset"
+                className={`${s.resultItem} ${s.resultItemMedia}`}
                 onClick={() =>
                   setSelectedResult({
                     id: asString(med.id, `media-${index}`),
@@ -605,20 +572,18 @@ const GlobalSearch: React.FC = () => {
                 }
                 aria-label={`Open media result ${asString(med.title) || asString(med.filename)}`}
               >
-                <div className="flex items-center space-x-3 mb-2">
-                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-[var(--accent)] text-[var(--text-primary)]">
+                <div className={s.itemMeta}>
+                  <span className={s.categoryBadge} style={{ background: 'var(--accent)' }}>
                     Media
                   </span>
-                  <span className="text-[var(--text-muted)] text-sm font-mono">
+                  <span className={s.helperText} style={{ fontFamily: 'monospace' }}>
                     {asString(med.fileType)}
                   </span>
                 </div>
-                <h4 className="text-[var(--text-primary)] font-medium text-lg mb-2">
-                  {asString(med.title) || asString(med.filename)}
-                </h4>
+                <h4 className={s.itemTitle}>{asString(med.title) || asString(med.filename)}</h4>
                 {Boolean(med.snippet) && (
                   <div
-                    className="text-[var(--text-muted)] text-sm"
+                    className={s.helperText}
                     dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(asString(med.snippet)) }}
                   />
                 )}
@@ -627,54 +592,43 @@ const GlobalSearch: React.FC = () => {
 
           {/* Existing Document Results */}
           {filteredResults.map((result, index) => (
-            <article
-              key={`doc-${index}`}
-              className="p-6 hover:bg-[var(--glass-bg)]/30 transition-colors border-l-4 border-emerald-500"
-            >
-              <div className="flex items-start justify-between">
+            <div key={`doc-${index}`} className={`${s.resultItem} ${s.resultItemDoc}`}>
+              <div className={s.entityHeader} style={{ alignItems: 'flex-start' }}>
                 <button
                   type="button"
-                  className="flex-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-inset rounded-[var(--radius-lg)]"
+                  className={s.resultItemInner}
                   onClick={() => setSelectedResult(result)}
                   aria-label={`Open evidence result ${result.filename}`}
+                  style={{
+                    flex: 1,
+                    textAlign: 'left',
+                    background: 'none',
+                    border: 'none',
+                    padding: 0,
+                  }}
                 >
-                  <div className="flex items-center space-x-3 mb-2">
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium text-[var(--text-primary)] ${getCategoryColor(result.category)}`}
-                    >
+                  <div className={s.itemMeta}>
+                    <span className={s.categoryBadge} style={{ background: '#10b981' }}>
                       {categories.find((c) => c.id === result.category)?.name || result.category}
                     </span>
-                    <span className="text-[var(--text-muted)] text-sm">
+                    <span className={s.itemWordCount}>
                       {result.wordCount ? formatWordCount(result.wordCount) : '0'} words
                     </span>
-                    <span className="text-[var(--accent)] text-sm font-medium">
-                      Score: {result.score}
-                    </span>
+                    <span className={s.itemScore}>Score: {result.score}</span>
                   </div>
 
-                  <h4 className="text-[var(--text-primary)] font-medium text-lg mb-2">
-                    {result.filename}
-                  </h4>
-
-                  <p className="text-[var(--text-muted)] text-sm mb-3">{result.file}</p>
+                  <h4 className={s.itemTitle}>{result.filename}</h4>
+                  <p className={s.itemPath}>{result.file}</p>
 
                   {result.highlights.length > 0 && (
-                    <div className="space-y-1">
+                    <div className={s.highlightList}>
                       {result.highlights.slice(0, 3).map((highlight, idx) => (
-                        <div
-                          key={idx}
-                          className="text-[var(--text-secondary)] text-sm flex items-start space-x-2"
-                        >
-                          <span className="mt-1 text-[var(--accent)]">•</span>
+                        <div key={idx} className={s.highlightRow}>
+                          <span className={s.highlightBullet}>•</span>
                           <span
+                            className={s.highlightText}
                             dangerouslySetInnerHTML={{
-                              __html: DOMPurify.sanitize(
-                                highlight.replace(
-                                  /<mark>/g,
-                                  '<mark class="bg-yellow-500/30 text-yellow-200 rounded px-0.5">',
-                                ),
-                                { ALLOWED_TAGS: ['mark'], ALLOWED_ATTR: ['class'] },
-                              ),
+                              __html: DOMPurify.sanitize(highlight),
                             }}
                           />
                         </div>
@@ -683,32 +637,26 @@ const GlobalSearch: React.FC = () => {
                   )}
                 </button>
 
-                <div className="ml-4 flex items-center space-x-2">
+                <div className={s.itemActions}>
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/documents/${result.id}`);
-                    }}
-                    className="p-2 bg-[var(--accent)] hover:bg-cyan-700 rounded-[var(--radius-lg)] text-[var(--text-primary)] transition-colors"
+                    onClick={() => navigate(`/documents/${result.id}`)}
+                    className={s.actionButtonAccent}
                     aria-label={`View document: ${result.filename}`}
                     title="View document"
                   >
-                    <Eye className="h-4 w-4" />
+                    <Eye size={16} />
                   </button>
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDownload(result.id, result.filename);
-                    }}
-                    className="p-2 bg-[var(--glass-bg-highlight)] hover:bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] text-[var(--text-primary)] transition-colors"
+                    onClick={() => handleDownload(result.id, result.filename)}
+                    className={s.actionButtonGlass}
                     aria-label={`Download document: ${result.filename}`}
                     title="Download document"
                   >
-                    <Download className="h-4 w-4" />
+                    <Download size={16} />
                   </button>
                 </div>
               </div>
-            </article>
+            </div>
           ))}
         </div>
 
@@ -718,25 +666,22 @@ const GlobalSearch: React.FC = () => {
           articleResults.length === 0 &&
           mediaResults.length === 0 &&
           searchTerm && (
-            <div className="p-12 text-center">
-              <Search className="h-12 w-12 text-[var(--text-muted)] mx-auto mb-4" />
-              <h4 className="text-[var(--text-secondary)] font-medium mb-2">No results found</h4>
-              <p className="text-[var(--text-muted)] mb-4">
-                Try adjusting your search terms or filters
-              </p>
-              <p className="text-[var(--text-primary)] text-sm">
-                Search tips: Try different spellings, use fewer keywords, or check entity names
-              </p>
+            <div className={s.emptyState}>
+              <Search size={48} className={s.emptyIcon} />
+              <h4 className={s.sectionTitle} style={{ justifyContent: 'center' }}>
+                No results found
+              </h4>
+              <p className={s.helperText}>Try adjusting your search terms or filters</p>
             </div>
           )}
 
         {!searchTerm && (
-          <div className="p-12 text-center">
-            <Search className="h-12 w-12 text-[var(--text-muted)] mx-auto mb-4" />
-            <h4 className="text-[var(--text-secondary)] font-medium mb-2">
+          <div className={s.emptyState}>
+            <Search size={48} className={s.emptyIcon} />
+            <h4 className={s.sectionTitle} style={{ justifyContent: 'center' }}>
               Start your investigation
             </h4>
-            <p className="text-[var(--text-muted)]">
+            <p className={s.helperText}>
               Enter a search term to begin exploring the evidence archive
             </p>
           </div>
@@ -746,54 +691,44 @@ const GlobalSearch: React.FC = () => {
       {/* Result Detail Modal */}
       {selectedResult &&
         createPortal(
-          <div className="fixed inset-0 bg-[var(--glass-bg-strong)] backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
-            <div className="bg-[var(--glass-bg)] rounded-[var(--radius-xl)] max-w-4xl w-full max-h-[80vh] overflow-hidden border border-[var(--glass-border)]">
-              <div className="p-6 border-b border-[var(--glass-border)]">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <span
-                      className={`px-3 py-1 rounded-full text-sm font-medium text-[var(--text-primary)] ${getCategoryColor(selectedResult.category)}`}
-                    >
-                      {categories.find((c) => c.id === selectedResult.category)?.name}
-                    </span>
-                    <h3 className="text-xl font-semibold text-[var(--text-primary)]">
-                      {selectedResult.filename}
-                    </h3>
-                  </div>
-                  <CloseButton
-                    onClick={() => setSelectedResult(null)}
-                    size="sm"
-                    label="Close search result"
-                    className="border-[var(--glass-border)] bg-[var(--glass-bg-strong)]/70 text-[var(--text-primary)]"
-                  />
+          <div className={s.modalOverlay}>
+            <div className={s.modalContent}>
+              <div className={s.modalHeader}>
+                <div className={s.headerTop} style={{ marginBottom: 0 }}>
+                  <span className={s.categoryBadge} style={{ background: 'var(--accent)' }}>
+                    {categories.find((c) => c.id === selectedResult.category)?.name}
+                  </span>
+                  <h3 className={s.itemTitle} style={{ marginBottom: 0, marginLeft: '1rem' }}>
+                    {selectedResult.filename}
+                  </h3>
                 </div>
+                <CloseButton
+                  onClick={() => setSelectedResult(null)}
+                  size="sm"
+                  label="Close search result"
+                  className={s.actionButtonGlass}
+                />
               </div>
 
-              <div className="p-6 overflow-y-auto max-h-[60vh]">
-                <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className={s.modalBody}>
+                <div className={s.modalGrid}>
                   <div>
-                    <label className="block text-[var(--text-muted)] text-sm mb-1">File Path</label>
-                    <p className="text-[var(--text-primary)] text-sm font-mono">
-                      {selectedResult.file}
-                    </p>
+                    <label className={s.modalLabel}>File Path</label>
+                    <p className={`${s.modalValue} ${s.modalValueMono}`}>{selectedResult.file}</p>
                   </div>
                   <div>
-                    <label className="block text-[var(--text-muted)] text-sm mb-1">
-                      Word Count
-                    </label>
-                    <p className="text-[var(--text-primary)]">
+                    <label className={s.modalLabel}>Word Count</label>
+                    <p className={s.modalValue}>
                       {(selectedResult.wordCount || 0).toLocaleString()}
                     </p>
                   </div>
                   <div>
-                    <label className="block text-[var(--text-muted)] text-sm mb-1">
-                      Search Score
-                    </label>
-                    <p className="text-[var(--accent)] font-medium">{selectedResult.score}</p>
+                    <label className={s.modalLabel}>Search Score</label>
+                    <p className={s.modalValueAccent}>{selectedResult.score}</p>
                   </div>
                   <div>
-                    <label className="block text-[var(--text-muted)] text-sm mb-1">Category</label>
-                    <p className="text-[var(--text-primary)]">{selectedResult.category}</p>
+                    <label className={s.modalLabel}>Category</label>
+                    <p className={s.modalValue}>{selectedResult.category}</p>
                   </div>
                 </div>
 

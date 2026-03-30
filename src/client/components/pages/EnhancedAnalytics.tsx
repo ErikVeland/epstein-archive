@@ -185,7 +185,7 @@ const StatCard: React.FC<{
         {icon}
         <span className={s.statCardLabel}>{label}</span>
       </div>
-      <div className="data-emphasis text-[var(--text-primary)]">
+      <div className={s.statCardValue}>
         {typeof value === 'number' ? value.toLocaleString() : value}
       </div>
       {sublabel && <div className={s.statCardSublabel}>{sublabel}</div>}
@@ -518,10 +518,10 @@ export const EnhancedAnalytics: React.FC = () => {
       <div className={s.loadingWrapper}>
         <div className={s.loadingInner}>
           <div
-            className={`animate-spin ${s.loadingSpinner}`}
+            className={`${s.spin} ${s.loadingSpinner}`}
             style={{ boxShadow: '0 0 30px rgba(6, 182, 212, 0.5)' }}
           />
-          <p className={`animate-pulse ${s.loadingText}`}>Loading analytics...</p>
+          <p className={`${s.pulse} ${s.loadingText}`}>Loading analytics...</p>
         </div>
       </div>
     );
@@ -562,14 +562,14 @@ export const EnhancedAnalytics: React.FC = () => {
     totalDocumentsCount > 0 ? Math.round((evidenceFilesCount / totalDocumentsCount) * 100) : 0;
 
   return (
-    <div className={`${s.page} animate-in fade-in duration-500`}>
+    <div className={`${s.page} ${s.fadeIn}`}>
       {/* Entity Network - Full Width - MOVED TO TOP */}
       <div className={`glass-card ${s.networkSection}`}>
         {/* Archive Reconciliation Header Indicator */}
         {data && (
           <div className={s.archiveBadgeWrap}>
             <div className={s.archiveBadge} data-status={unclassifiedCount > 0 ? 'warn' : 'ok'}>
-              <Database size={12} className="shadow-[0_0_8px_rgba(251,191,36,0.3)]" />
+              <Database size={12} className={s.archiveBadgeDatabaseIcon} />
               <span>Archive Integrity: {archiveIntegrityPct}% Classified</span>
               {unclassifiedCount > 0 && (
                 <div className={s.tooltipGroup}>
@@ -606,7 +606,7 @@ export const EnhancedAnalytics: React.FC = () => {
 
         <div className={s.networkToolbar}>
           <h3 className={s.networkTitle}>
-            <Users size={20} className="text-[var(--accent-success)]" />
+            <Users size={20} className={s.iconSuccess} />
             <span className={s.networkTitleText}>Entity Connection Network</span>
           </h3>
 
@@ -620,14 +620,14 @@ export const EnhancedAnalytics: React.FC = () => {
               step="50"
               value={filters.limit}
               onChange={(e) => setFilters({ limit: Number(e.target.value) })}
-              className={`${s.sliderInput} accent-[var(--accent-success)]`}
+              className={`${s.sliderInput} ${s.sliderInputSuccess}`}
             />
             <span className={s.sliderValue}>{filters.limit}</span>
           </div>
 
           {/* Timeline Slider */}
           <div className={s.timelineControl}>
-            <TrendingUp size={16} className="text-[var(--accent-docs)]" />
+            <TrendingUp size={16} className={s.iconDocs} />
             <div className={s.timelineYears}>
               <div className={s.timelineYearRow}>
                 <span>{filters.timeRange[0]?.split('-')[0] || '1990'}</span>
@@ -645,7 +645,7 @@ export const EnhancedAnalytics: React.FC = () => {
                   const year = e.target.value;
                   setFilters({ timeRange: ['1990-01-01', `${year}-12-31`] });
                 }}
-                className={`${s.sliderInputThin} accent-[var(--accent-docs)]`}
+                className={`${s.sliderInputThin} ${s.sliderInputDocs}`}
               />
             </div>
           </div>
@@ -711,7 +711,7 @@ export const EnhancedAnalytics: React.FC = () => {
             }
           />
           {isGraphLoading && (
-            <div className={`animate-pulse ${s.graphLoadingOverlay}`}>Fetching more details...</div>
+            <div className={`${s.pulse} ${s.graphLoadingOverlay}`}>Fetching more details...</div>
           )}
 
           <EvidenceDrawer
@@ -747,7 +747,7 @@ export const EnhancedAnalytics: React.FC = () => {
 
             if (shownEntities < totalEntities && shownEntities > 0) {
               return (
-                <div className={`${s.biasIndicator} animate-in fade-in slide-in-from-bottom-2`}>
+                <div className={`${s.biasIndicator} ${s.fadeIn} ${s.slideInUp}`}>
                   <Shield size={12} className={s.biasIndicatorIcon} />
                   <span>
                     Showing {shownEntities.toLocaleString()} of {totalEntities.toLocaleString()}{' '}
@@ -807,23 +807,23 @@ export const EnhancedAnalytics: React.FC = () => {
       {/* Hero Stats Row */}
       <div className={s.heroStatsGrid}>
         <StatCard
-          icon={<FileText size={20} className="text-[var(--accent)]" />}
+          icon={<FileText size={20} className={s.iconAccent} />}
           value={data.totalCounts?.documents || redactionStats?.totalDocuments || 0}
           label="Total Documents"
         />
         <StatCard
-          icon={<Shield size={20} className="text-[var(--accent-warning)]" />}
+          icon={<Shield size={20} className={s.iconWarning} />}
           value={`${(redactionStats?.redactionPercentage || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}%`}
           label="Redacted"
           sublabel={`${(redactionStats?.redactedDocuments || 0).toLocaleString()} docs`}
         />
         <StatCard
-          icon={<Users size={20} className="text-[var(--accent-docs)]" />}
+          icon={<Users size={20} className={s.iconDocs} />}
           value={topConnectedEntities?.length || 0}
           label="Connected Entities"
         />
         <StatCard
-          icon={<Activity size={20} className="text-[var(--accent-success)]" />}
+          icon={<Activity size={20} className={s.iconSuccess} />}
           value={topRelationships?.length || 0}
           label="Relationships"
         />
@@ -834,12 +834,12 @@ export const EnhancedAnalytics: React.FC = () => {
         {/* Document Types Sunburst */}
         <div className={`glass-card ${s.vizPanel}`}>
           <div className={s.vizPanelIconDecor}>
-            <Database size={96} className="text-[var(--accent)]" />
+            <Database size={96} className={s.iconAccent} />
           </div>
 
           <h3 className={s.vizPanelTitle}>
-            <FileText size={20} className="text-[var(--accent)]" />
-            <span className="neon-text-cyan">Document Types</span>
+            <FileText size={20} className={s.iconAccent} />
+            <span className={s.neonTextCyan}>Document Types</span>
           </h3>
 
           <div className={s.vizPanelInfoHint}>
@@ -865,7 +865,7 @@ export const EnhancedAnalytics: React.FC = () => {
           </div>
 
           <h3 className={s.vizPanelTitle}>
-            <TrendingUp size={20} className="text-[var(--accent-docs)]" />
+            <TrendingUp size={20} className={s.iconDocs} />
             <span className={s.vizPanelTitlePurplePink}>
               Document Distribution &amp; Gap Analysis
             </span>

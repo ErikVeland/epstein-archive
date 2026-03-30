@@ -87,7 +87,8 @@ const faqs = [
   {
     question: 'Why are some documents redacted?',
     answer:
-      'Redactions protect the privacy of victims, innocent third parties, and ongoing investigations. Our system analyzes redaction levels to give context on what is hidden.',
+      'Redactions protect the privacy of victims, innocent third parties, and ongoing investigations. Our system analyzes redaction levels to give context on what is hid' +
+      'den.',
   },
 ];
 
@@ -614,7 +615,7 @@ export const AboutPage: React.FC = () => {
               Dataset Ingestion Dashboard
               <span
                 className={
-                  ingestionComplete ? s.statusPillComplete : `${s.statusPillLive} animate-pulse`
+                  ingestionComplete ? s.statusPillComplete : `${s.statusPillLive} ${s.pulse}`
                 }
               >
                 {ingestionComplete ? 'Milestone Reached' : 'Live Status'}
@@ -726,7 +727,7 @@ export const AboutPage: React.FC = () => {
               <div className={s.discoveryCardBody}>
                 <div className={s.discoveryCardRow}>
                   <FileText size={16} className={s.iconAccent} />
-                  <span className="text-[var(--text-secondary)]">35 prosecutorial files</span>
+                  <span className={s.textSecondary}>35 prosecutorial files</span>
                 </div>
                 <p className={s.discoveryCardText}>
                   High-value DOJ files from US Attorney SDNY with an average of 4,490 words per
@@ -745,12 +746,10 @@ export const AboutPage: React.FC = () => {
               <div className={s.discoveryCardBody}>
                 <div className={s.discoveryCardRow}>
                   <FileText size={16} className={s.iconAccent} />
-                  <span className="text-[var(--text-secondary)]">8,497 financial documents</span>
+                  <span className={s.textSecondary}>8,497 financial documents</span>
                 </div>
                 <p className={s.discoveryCardText}>
-                  <strong className="text-[var(--text-secondary)]">
-                    Deutsche Bank statements and invoices
-                  </strong>{' '}
+                  <strong className={s.textSecondary}>Deutsche Bank statements and invoices</strong>{' '}
                   with extensive mentions of Jes Staley (698 docs) and Lesley Groff (601 docs).
                   Reveals detailed financial transaction patterns and service charges across Epstein
                   properties.
@@ -767,7 +766,7 @@ export const AboutPage: React.FC = () => {
               <div className={s.discoveryCardBody}>
                 <div className={s.discoveryCardRow}>
                   <FileText size={16} className={s.iconAccent} />
-                  <span className="text-[var(--text-secondary)]">4,721 multimedia files</span>
+                  <span className={s.textSecondary}>4,721 multimedia files</span>
                 </div>
                 <p className={s.discoveryCardText}>
                   Video evidence, images, and short documents (avg 248 words). Highest redaction
@@ -785,7 +784,7 @@ export const AboutPage: React.FC = () => {
               <div className={s.discoveryCardBody}>
                 <div className={s.discoveryCardRow}>
                   <FileText size={16} className={s.iconAccent} />
-                  <span className="text-[var(--text-secondary)]">202 investigative documents</span>
+                  <span className={s.textSecondary}>202 investigative documents</span>
                 </div>
                 <p className={s.discoveryCardText}>
                   Subject referrals including "Leon Black/Additional HT Subject Referral" and DOJ
@@ -826,25 +825,25 @@ export const AboutPage: React.FC = () => {
             </h4>
             <ul className={s.learnedList}>
               <li>
-                <strong className="text-[var(--text-primary)]">Deutsche Bank connection</strong>:
-                Jes Staley's name appears in 698 documents, revealing extensive financial oversight
+                <strong className={s.textPrimary}>Deutsche Bank connection</strong>: Jes Staley's
+                name appears in 698 documents, revealing extensive financial oversight
               </li>
               <li>
-                <strong className="text-[var(--text-primary)]">Operational network</strong>: Lesley
-                Groff coordinated transactions across 601 documents
+                <strong className={s.textPrimary}>Operational network</strong>: Lesley Groff
+                coordinated transactions across 601 documents
               </li>
               <li>
-                <strong className="text-[var(--text-primary)]">Geographic footprint</strong>: 2,091
-                location references spanning Palm Beach, Little St James, Manhattan, and Paris
+                <strong className={s.textPrimary}>Geographic footprint</strong>: 2,091 location
+                references spanning Palm Beach, Little St James, Manhattan, and Paris
               </li>
               <li>
-                <strong className="text-[var(--text-primary)]">Communication patterns</strong>: Half
-                of all DOJ documents contain email, message, or call records
+                <strong className={s.textPrimary}>Communication patterns</strong>: Half of all DOJ
+                documents contain email, message, or call records
               </li>
             </ul>
             <div className={s.learnedFooter}>
               <a href="/faq" className={s.learnedLink}>
-                <Info className="h-4 w-4" />
+                <Info size={16} />
                 Read Frequently Asked Questions
               </a>
             </div>
@@ -892,7 +891,7 @@ export const AboutPage: React.FC = () => {
             </div>
 
             <p className={s.legalNote}>
-              <strong className="text-[var(--text-secondary)] not-italic">How we use this:</strong>{' '}
+              <strong className={`${s.textSecondary} ${s.notItalic}`}>How we use this:</strong>{' '}
               These legal thresholds directly inform our <strong>Red Flag Index</strong>. Entities
               with mere "Flight Log" appearances receive a low risk score (1-2), while those with
               sworn testimony alleging participation or specific knowledge are flagged with higher
@@ -1125,7 +1124,7 @@ export const AboutPage: React.FC = () => {
           >
             <div className={s.heroCard2Thumb}>
               <div className={s.heroCardIconWrap}>
-                <Scale size={64} className="text-[var(--accent)]/30" />
+                <Scale size={64} className={s.accentIconLowOp} />
               </div>
               <div className={s.heroCard2Badge}>Genesis</div>
             </div>

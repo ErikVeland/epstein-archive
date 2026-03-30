@@ -58,7 +58,7 @@ export const About: React.FC = () => {
         <p className={s.subtitle}>
           Version {__APP_VERSION__} - Lean Schema &amp; Interactive Intelligence
         </p>
-        <div className={`${s.etaBadge} animate-pulse`}>
+        <div className={`${s.etaBadge} ${s.pulse}`}>
           Estimated Time to Completion: ~{pipelineStatus?.eta_minutes || 240} minutes (Downloading
           &amp; Ingesting)
         </div>
@@ -76,7 +76,7 @@ export const About: React.FC = () => {
             </div>
             <div className={s.statDivider}></div>
             <div className={s.statCol}>
-              <span className={`${s.statLabelProgress} animate-pulse`}>Progress</span>
+              <span className={`${s.statLabelProgress} ${s.pulse}`}>Progress</span>
               <span className={s.statValuePrimary}>{percentage}%</span>
             </div>
           </div>
@@ -125,9 +125,7 @@ export const About: React.FC = () => {
                     className={s.ingestBar}
                     style={{ width: `${ingestPercent}%` }}
                   >
-                    {!isComplete && (
-                      <div className={`${s.shimmer} animate-[shimmer_2s_infinite] skew-x-12`}></div>
-                    )}
+                    {!isComplete && <div className={`${s.shimmer} ${s.skewX12}`}></div>}
                   </div>
                 </div>
               </div>
@@ -213,7 +211,7 @@ export const About: React.FC = () => {
 
       <div className={s.panel}>
         <h2 className={s.sectionTitle}>
-          <FileText size={24} className="text-[var(--accent)]" />
+          <FileText size={24} className={s.accentIcon} />
           How We Process Data
         </h2>
         <div className={s.processGrid}>
@@ -243,8 +241,8 @@ export const About: React.FC = () => {
               Analysis
             </h4>
             <p className={s.processCardBody}>
-              Our system scans for <strong>Visual Redactions</strong> (black boxes) to flag hidden
-              info, and uses AI to identify people in photos.
+              Our system scans for <strong>Visual Redactions</strong> (black boxes) to flag hid' +
+              'den info, and uses AI to identify people in photos.
             </p>
           </div>
           <div className={s.processCard}>
@@ -264,7 +262,7 @@ export const About: React.FC = () => {
       <div className={s.featuresGrid}>
         <div className={s.featureCard}>
           <div className={s.featureCardHeader}>
-            <Database size={32} className="text-[var(--accent)]" />
+            <Database size={32} className={s.accentIcon} />
             <h3 className={s.featureCardTitle}>Evidence Pipeline</h3>
           </div>
           <ul className={s.featureList}>
@@ -334,7 +332,7 @@ export const About: React.FC = () => {
 
         <div className={s.featureCard}>
           <div className={s.featureCardHeader}>
-            <TrendingUp size={32} className="text-[var(--accent)]" />
+            <TrendingUp size={32} className={s.accentIcon} />
             <h3 className={s.featureCardTitle}>Analytics Dashboard</h3>
           </div>
           <ul className={s.featureList}>
@@ -350,7 +348,7 @@ export const About: React.FC = () => {
       {/* Technical Stack */}
       <div className={s.panelGradient}>
         <h2 className={s.sectionTitle}>
-          <Shield size={24} className="text-[var(--accent)]" />
+          <Shield size={24} className={s.accentIcon} />
           Technical Architecture
         </h2>
         <div className={s.techGrid}>
@@ -606,11 +604,54 @@ export const About: React.FC = () => {
       {/* Version History */}
       <div className={s.panel}>
         <h2 className={s.sectionTitle}>
-          <Activity size={24} className="text-[var(--accent)]" />
+          <Activity size={24} className={s.accentIcon} />
           Version History
         </h2>
         <div className={s.versionStack}>
+          {/* v18.1.0 */}
           <div className={s.versionEntryActive}>
+            <h4 className={s.versionTitle}>
+              v18.1.0 <span className={s.versionBadge}>LIQUID GLASS</span>
+            </h4>
+            <p className={s.versionDate}>March 30, 2026</p>
+            <ul className={s.versionList}>
+              <li className={s.versionListItem}>
+                <span className={s.ackBullet}>•</span>
+                <span>Complete migration to CSS Modules across all major pages and modals.</span>
+              </li>
+              <li className={s.versionListItem}>
+                <span className={s.ackBullet}>•</span>
+                <span>Full enforcement of strict Design Token usage via CI automation.</span>
+              </li>
+              <li className={s.versionListItem}>
+                <span className={s.ackBullet}>•</span>
+                <span>
+                  Optimized Global Evidence Search with advanced filtering and semantic styling.
+                </span>
+              </li>
+            </ul>
+          </div>
+
+          {/* v18.0.0 */}
+          <div className={s.versionEntry}>
+            <h4 className={s.versionTitle}>
+              v18.0.0 <span className={s.versionBadgeMuted}>CORE UPDATE</span>
+            </h4>
+            <p className={s.versionDate}>March 28, 2026</p>
+            <ul className={s.versionList}>
+              <li className={s.versionListItem}>
+                <span className={s.ackBullet}>•</span>
+                <span>Major overhaul of the Evidence Repository architecture.</span>
+              </li>
+              <li className={s.versionListItem}>
+                <span className={s.ackBullet}>•</span>
+                <span>Improved ingestion pipeline for dual-script intelligence gathering.</span>
+              </li>
+            </ul>
+          </div>
+
+          {/* v13.0.1 */}
+          <div className={s.versionEntry}>
             <h4 className={s.versionTitle}>
               v13.0.1 <span className={s.versionBadge}>PARTIAL GO</span>
             </h4>

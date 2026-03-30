@@ -70,11 +70,11 @@ const MemoryDashboard: React.FC = () => {
   };
 
   return (
-    <div className={`container mx-auto ${s.root}`}>
+    <div className={s.root}>
       <h1 className={s.heading}>Memory Dashboard</h1>
 
       {/* Search and Filter Section */}
-      <div className={`surface-glass-card ${s.section}`}>
+      <div className={s.section}>
         <div className={s.filterGrid}>
           <div>
             <label className={s.label}>Memory Type</label>
@@ -86,7 +86,7 @@ const MemoryDashboard: React.FC = () => {
                   memoryType: (e.target.value as MemorySearchFilters['memoryType']) || undefined,
                 })
               }
-              className={`surface-glass shadow-sm focus:border-[var(--accent)] focus:ring-[var(--accent)] ${s.input}`}
+              className={s.input}
             >
               <option value="">All Types</option>
               <option value="declarative">Declarative</option>
@@ -106,7 +106,7 @@ const MemoryDashboard: React.FC = () => {
                   status: (e.target.value as MemorySearchFilters['status']) || undefined,
                 })
               }
-              className={`surface-glass shadow-sm focus:border-[var(--accent)] focus:ring-[var(--accent)] ${s.input}`}
+              className={s.input}
             >
               <option value="">All Status</option>
               <option value="active">Active</option>
@@ -127,15 +127,12 @@ const MemoryDashboard: React.FC = () => {
                 })
               }
               placeholder="Search memory content..."
-              className={`surface-glass shadow-sm focus:border-[var(--accent)] focus:ring-[var(--accent)] ${s.input}`}
+              className={s.input}
             />
           </div>
 
           <div className={s.filterEnd}>
-            <button
-              onClick={handleSearch}
-              className={`bg-[var(--accent)] text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:ring-offset-2 ${s.btn}`}
-            >
+            <button onClick={handleSearch} className={s.btn}>
               Search
             </button>
           </div>
@@ -143,13 +140,10 @@ const MemoryDashboard: React.FC = () => {
       </div>
 
       {/* Create New Memory Section */}
-      <div className={`surface-glass-card ${s.section}`}>
+      <div className={s.section}>
         <div className={s.sectionHeader}>
           <h2 className={s.sectionTitle}>Create New Memory</h2>
-          <button
-            onClick={() => setIsCreating(!isCreating)}
-            className={`bg-[var(--accent)] text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:ring-offset-2 ${s.toggleBtn}`}
-          >
+          <button onClick={() => setIsCreating(!isCreating)} className={s.toggleBtn}>
             {isCreating ? 'Cancel' : 'Create New'}
           </button>
         </div>
@@ -165,7 +159,7 @@ const MemoryDashboard: React.FC = () => {
                     e.target.value as 'declarative' | 'episodic' | 'working' | 'procedural',
                   )
                 }
-                className={`surface-glass shadow-sm focus:border-[var(--accent)] focus:ring-[var(--accent)] ${s.input}`}
+                className={s.input}
               >
                 <option value="declarative">Declarative</option>
                 <option value="episodic">Episodic</option>
@@ -180,7 +174,7 @@ const MemoryDashboard: React.FC = () => {
                 value={newMemoryContent}
                 onChange={(e) => setNewMemoryContent(e.target.value)}
                 rows={4}
-                className={`surface-glass shadow-sm focus:border-[var(--accent)] focus:ring-[var(--accent)] ${s.input}`}
+                className={s.input}
                 placeholder="Enter memory content..."
               />
             </div>
@@ -191,7 +185,7 @@ const MemoryDashboard: React.FC = () => {
                 type="text"
                 value={newMemoryTags}
                 onChange={(e) => setNewMemoryTags(e.target.value)}
-                className={`surface-glass shadow-sm focus:border-[var(--accent)] focus:ring-[var(--accent)] ${s.input}`}
+                className={s.input}
                 placeholder="tag1, tag2, tag3"
               />
             </div>
@@ -199,7 +193,7 @@ const MemoryDashboard: React.FC = () => {
             <button
               onClick={handleCreateMemory}
               disabled={!newMemoryContent.trim()}
-              className={`bg-[var(--accent-success)] text-[var(--text-primary)] hover:bg-[var(--accent-success)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-success)] focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${s.createBtn}`}
+              className={s.createBtn}
             >
               Create Memory
             </button>
@@ -208,21 +202,21 @@ const MemoryDashboard: React.FC = () => {
       </div>
 
       {/* Memory List */}
-      <div className={`surface-glass-card ${s.listCard}`}>
+      <div className={s.listCard}>
         <div className={s.listHeader}>
           <h2 className={s.listTitle}>Memory Entries ({state.totalEntries})</h2>
         </div>
 
         {state.loading ? (
           <div className={s.loadingBox}>
-            <div className={`animate-spin ${s.spinner}`}></div>
+            <div className={s.spinner}></div>
           </div>
         ) : state.error ? (
           <div className={s.errorBox}>Error: {state.error}</div>
         ) : state.memoryEntries.length === 0 ? (
           <div className={s.emptyBox}>No memory entries found</div>
         ) : (
-          <div className="divide-y divide-[var(--glass-border)]">
+          <div className={s.rowContainer}>
             {state.memoryEntries.map((memory) => (
               <div
                 key={memory.id}
@@ -272,7 +266,7 @@ const MemoryDashboard: React.FC = () => {
                         e.stopPropagation();
                         handleDelete(memory.id);
                       }}
-                      className="text-[var(--accent-danger)] hover:text-[var(--accent-danger)]"
+                      className={s.deleteBtn}
                     >
                       <svg
                         className={s.deleteIcon}
@@ -312,7 +306,7 @@ const MemoryDashboard: React.FC = () => {
                   loadMemoryEntries(searchFilters, Math.max(1, state.currentPage - 1), 20)
                 }
                 disabled={state.currentPage === 1}
-                className={`control hover:bg-[var(--glass-bg-highlight)] disabled:opacity-50 disabled:cursor-not-allowed ${s.pageBtn}`}
+                className={s.pageBtn}
               >
                 Previous
               </button>
@@ -325,7 +319,7 @@ const MemoryDashboard: React.FC = () => {
                   )
                 }
                 disabled={state.currentPage === state.totalPages}
-                className={`control hover:bg-[var(--glass-bg-highlight)] disabled:opacity-50 disabled:cursor-not-allowed ${s.pageBtn}`}
+                className={s.pageBtn}
               >
                 Next
               </button>
@@ -336,7 +330,7 @@ const MemoryDashboard: React.FC = () => {
 
       {/* Selected Memory Details */}
       {selectedMemory && (
-        <div className={`surface-glass-card ${s.detailCard}`}>
+        <div className={s.detailCard}>
           <div className={s.detailHeader}>
             <h2 className={s.sectionTitle}>Memory Details</h2>
             <div className={s.detailHeaderActions}>
@@ -348,7 +342,7 @@ const MemoryDashboard: React.FC = () => {
                     setEditStatus(selectedMemory.status);
                     setEditTags((selectedMemory.contextTags || []).join(', '));
                   }}
-                  className={`text-[var(--accent)] hover:text-[var(--accent)] ${s.editLink}`}
+                  className={s.editLink}
                 >
                   Edit
                 </button>
@@ -359,7 +353,7 @@ const MemoryDashboard: React.FC = () => {
                   selectMemoryEntry(null);
                   setIsEditing(false);
                 }}
-                className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                className={s.closeBtn}
               >
                 <svg className={s.closeIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path
@@ -381,7 +375,7 @@ const MemoryDashboard: React.FC = () => {
 
             <div>
               <label className={s.detailLabel}>UUID</label>
-              <p className={`${s.detailValue} break-all`}>{selectedMemory.uuid}</p>
+              <p className={`${s.detailValue} ${s.uuidText}`}>{selectedMemory.uuid}</p>
             </div>
 
             <div className={s.detailGrid}>
@@ -398,7 +392,7 @@ const MemoryDashboard: React.FC = () => {
                     onChange={(e) =>
                       setEditStatus(e.target.value as 'active' | 'archived' | 'deprecated')
                     }
-                    className={`surface-glass shadow-sm focus:border-[var(--accent)] focus:ring-[var(--accent)] ${s.editInput}`}
+                    className={s.editInput}
                   >
                     <option value="active">Active</option>
                     <option value="archived">Archived</option>
@@ -417,7 +411,7 @@ const MemoryDashboard: React.FC = () => {
                   type="text"
                   value={editTags}
                   onChange={(e) => setEditTags(e.target.value)}
-                  className={`surface-glass shadow-sm focus:border-[var(--accent)] focus:ring-[var(--accent)] ${s.editInput}`}
+                  className={s.editInput}
                   placeholder="tag1, tag2, tag3"
                 />
               ) : (
@@ -458,7 +452,7 @@ const MemoryDashboard: React.FC = () => {
                     setEditStatus(selectedMemory.status);
                     setEditTags((selectedMemory.contextTags || []).join(', '));
                   }}
-                  className={`hover:bg-[var(--app-bg)] ${s.cancelBtn}`}
+                  className={s.cancelBtn}
                 >
                   Cancel
                 </button>
@@ -478,7 +472,7 @@ const MemoryDashboard: React.FC = () => {
                     setIsEditing(false);
                   }}
                   disabled={!editContent.trim()}
-                  className={`bg-[var(--accent)] hover:bg-[var(--glass-bg-strong)] disabled:opacity-50 disabled:cursor-not-allowed ${s.saveBtn}`}
+                  className={s.saveBtn}
                 >
                   Save Changes
                 </button>

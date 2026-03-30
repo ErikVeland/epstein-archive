@@ -118,6 +118,5 @@
   "src/client/pages/LoginPage.tsx",
   "src/client/pages/PeoplePage.tsx",
   "src/client/pages/ReviewDashboard.tsx",
-  "src/client/pages/TheEpsteinFilesPage.tsx",
-  "src/client/utils/evidenceUtils.ts"
+  "src/client/pages/TheEpsteinFilesPage.tsx"
 ]
