@@ -89,6 +89,8 @@ const moduleGovernedFiles = new Set(
     // Phase 9b
     'src/client/components/pages/FAQPage.tsx',
     'src/client/components/pages/DataQualityDashboard.tsx',
+    // Phase 9c
+    'src/client/components/pages/MemoryDashboard.tsx',
   ].map((f) => path.join(rootDir, f)),
 );
 

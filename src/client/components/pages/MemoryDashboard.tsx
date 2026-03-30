@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useMemory } from '../../contexts/MemoryContext';
 import type { MemoryEntry, MemorySearchFilters } from '../../types/memory';
+import s from './MemoryDashboard.module.css';
 
 const MemoryDashboard: React.FC = () => {
   const {
@@ -69,16 +70,14 @@ const MemoryDashboard: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-[var(--text-primary)] mb-8">Memory Dashboard</h1>
+    <div className={`container mx-auto ${s.root}`}>
+      <h1 className={s.heading}>Memory Dashboard</h1>
 
       {/* Search and Filter Section */}
-      <div className="surface-glass-card p-6 mb-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className={`surface-glass-card ${s.section}`}>
+        <div className={s.filterGrid}>
           <div>
-            <label className="block text-sm font-medium text-[var(--text-primary)] mb-1">
-              Memory Type
-            </label>
+            <label className={s.label}>Memory Type</label>
             <select
               value={searchFilters.memoryType || ''}
               onChange={(e) =>
@@ -87,7 +86,7 @@ const MemoryDashboard: React.FC = () => {
                   memoryType: (e.target.value as MemorySearchFilters['memoryType']) || undefined,
                 })
               }
-              className="w-full rounded-md surface-glass shadow-sm focus:border-[var(--accent)] focus:ring-[var(--accent)] sm:text-sm"
+              className={`surface-glass shadow-sm focus:border-[var(--accent)] focus:ring-[var(--accent)] ${s.input}`}
             >
               <option value="">All Types</option>
               <option value="declarative">Declarative</option>
@@ -98,9 +97,7 @@ const MemoryDashboard: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-[var(--text-primary)] mb-1">
-              Status
-            </label>
+            <label className={s.label}>Status</label>
             <select
               value={searchFilters.status || ''}
               onChange={(e) =>
@@ -109,7 +106,7 @@ const MemoryDashboard: React.FC = () => {
                   status: (e.target.value as MemorySearchFilters['status']) || undefined,
                 })
               }
-              className="w-full rounded-md surface-glass shadow-sm focus:border-[var(--accent)] focus:ring-[var(--accent)] sm:text-sm"
+              className={`surface-glass shadow-sm focus:border-[var(--accent)] focus:ring-[var(--accent)] ${s.input}`}
             >
               <option value="">All Status</option>
               <option value="active">Active</option>
@@ -119,9 +116,7 @@ const MemoryDashboard: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-[var(--text-primary)] mb-1">
-              Search
-            </label>
+            <label className={s.label}>Search</label>
             <input
               type="text"
               value={searchFilters.searchQuery || ''}
@@ -132,14 +127,14 @@ const MemoryDashboard: React.FC = () => {
                 })
               }
               placeholder="Search memory content..."
-              className="w-full rounded-md surface-glass shadow-sm focus:border-[var(--accent)] focus:ring-[var(--accent)] sm:text-sm"
+              className={`surface-glass shadow-sm focus:border-[var(--accent)] focus:ring-[var(--accent)] ${s.input}`}
             />
           </div>
 
-          <div className="flex items-end">
+          <div className={s.filterEnd}>
             <button
               onClick={handleSearch}
-              className="w-full bg-[var(--accent)] text-[var(--text-primary)] py-2 px-4 rounded-md hover:bg-[var(--glass-bg-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:ring-offset-2"
+              className={`bg-[var(--accent)] text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:ring-offset-2 ${s.btn}`}
             >
               Search
             </button>
@@ -148,23 +143,21 @@ const MemoryDashboard: React.FC = () => {
       </div>
 
       {/* Create New Memory Section */}
-      <div className="surface-glass-card p-6 mb-8">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold text-[var(--text-primary)]">Create New Memory</h2>
+      <div className={`surface-glass-card ${s.section}`}>
+        <div className={s.sectionHeader}>
+          <h2 className={s.sectionTitle}>Create New Memory</h2>
           <button
             onClick={() => setIsCreating(!isCreating)}
-            className="bg-[var(--accent)] text-[var(--text-primary)] py-2 px-4 rounded-md hover:bg-[var(--glass-bg-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:ring-offset-2"
+            className={`bg-[var(--accent)] text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:ring-offset-2 ${s.toggleBtn}`}
           >
             {isCreating ? 'Cancel' : 'Create New'}
           </button>
         </div>
 
         {isCreating && (
-          <div className="space-y-4">
+          <div className={s.createForm}>
             <div>
-              <label className="block text-sm font-medium text-[var(--text-primary)] mb-1">
-                Memory Type
-              </label>
+              <label className={s.label}>Memory Type</label>
               <select
                 value={newMemoryType}
                 onChange={(e) =>
@@ -172,7 +165,7 @@ const MemoryDashboard: React.FC = () => {
                     e.target.value as 'declarative' | 'episodic' | 'working' | 'procedural',
                   )
                 }
-                className="w-full rounded-md surface-glass shadow-sm focus:border-[var(--accent)] focus:ring-[var(--accent)] sm:text-sm"
+                className={`surface-glass shadow-sm focus:border-[var(--accent)] focus:ring-[var(--accent)] ${s.input}`}
               >
                 <option value="declarative">Declarative</option>
                 <option value="episodic">Episodic</option>
@@ -182,27 +175,23 @@ const MemoryDashboard: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[var(--text-primary)] mb-1">
-                Content
-              </label>
+              <label className={s.label}>Content</label>
               <textarea
                 value={newMemoryContent}
                 onChange={(e) => setNewMemoryContent(e.target.value)}
                 rows={4}
-                className="w-full rounded-md surface-glass shadow-sm focus:border-[var(--accent)] focus:ring-[var(--accent)] sm:text-sm"
+                className={`surface-glass shadow-sm focus:border-[var(--accent)] focus:ring-[var(--accent)] ${s.input}`}
                 placeholder="Enter memory content..."
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[var(--text-primary)] mb-1">
-                Context Tags (comma-separated)
-              </label>
+              <label className={s.label}>Context Tags (comma-separated)</label>
               <input
                 type="text"
                 value={newMemoryTags}
                 onChange={(e) => setNewMemoryTags(e.target.value)}
-                className="w-full rounded-md surface-glass shadow-sm focus:border-[var(--accent)] focus:ring-[var(--accent)] sm:text-sm"
+                className={`surface-glass shadow-sm focus:border-[var(--accent)] focus:ring-[var(--accent)] ${s.input}`}
                 placeholder="tag1, tag2, tag3"
               />
             </div>
@@ -210,7 +199,7 @@ const MemoryDashboard: React.FC = () => {
             <button
               onClick={handleCreateMemory}
               disabled={!newMemoryContent.trim()}
-              className="bg-[var(--accent-success)] text-[var(--text-primary)] py-2 px-4 rounded-md hover:bg-[var(--accent-success)] focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`bg-[var(--accent-success)] text-[var(--text-primary)] hover:bg-[var(--accent-success)] focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${s.createBtn}`}
             >
               Create Memory
             </button>
@@ -219,92 +208,65 @@ const MemoryDashboard: React.FC = () => {
       </div>
 
       {/* Memory List */}
-      <div className="surface-glass-card overflow-hidden">
-        <div className="px-6 py-4 border-b border-[var(--glass-border)]">
-          <h2 className="text-xl font-semibold text-[var(--text-primary)]">
-            Memory Entries ({state.totalEntries})
-          </h2>
+      <div className={`surface-glass-card ${s.listCard}`}>
+        <div className={s.listHeader}>
+          <h2 className={s.listTitle}>Memory Entries ({state.totalEntries})</h2>
         </div>
 
         {state.loading ? (
-          <div className="p-6 text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent)] mx-auto"></div>
+          <div className={s.loadingBox}>
+            <div className={`animate-spin ${s.spinner}`}></div>
           </div>
         ) : state.error ? (
-          <div className="p-6 text-center text-[var(--accent-danger)]">Error: {state.error}</div>
+          <div className={s.errorBox}>Error: {state.error}</div>
         ) : state.memoryEntries.length === 0 ? (
-          <div className="p-6 text-center text-[var(--text-muted)]">No memory entries found</div>
+          <div className={s.emptyBox}>No memory entries found</div>
         ) : (
           <div className="divide-y divide-[var(--glass-border)]">
             {state.memoryEntries.map((memory) => (
               <div
                 key={memory.id}
-                className={`p-6 hover:bg-[var(--app-bg)] cursor-pointer ${
-                  selectedMemory?.id === memory.id ? 'bg-[var(--glass-bg-highlight)]' : ''
-                }`}
+                className={`${s.memoryRow}${selectedMemory?.id === memory.id ? ` ${s.memoryRowSelected}` : ''}`}
                 onClick={() => {
                   setSelectedMemory(memory);
                   selectMemoryEntry(memory);
                 }}
               >
-                <div className="flex justify-between items-start">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-2">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          memory.memoryType === 'declarative'
-                            ? 'bg-[var(--accent-info)]/20 text-[var(--accent-info)]'
-                            : memory.memoryType === 'episodic'
-                              ? 'bg-[var(--accent-success)]/20 text-[var(--accent-success)]'
-                              : memory.memoryType === 'working'
-                                ? 'bg-[var(--accent-warning)]/20 text-[var(--accent-warning)]'
-                                : 'bg-[var(--accent)]/20 text-[var(--accent)]'
-                        }`}
-                      >
+                <div className={s.memoryRowInner}>
+                  <div className={s.memoryBody}>
+                    <div className={s.badgeRow}>
+                      <span className={s.badge} data-type={memory.memoryType}>
                         {memory.memoryType}
                       </span>
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          memory.status === 'active'
-                            ? 'bg-[var(--accent-success)]/20 text-[var(--accent-success)]'
-                            : memory.status === 'archived'
-                              ? 'bg-[var(--app-bg)] text-[var(--text-primary)]'
-                              : 'bg-[var(--accent-danger)]/20 text-[var(--accent-danger)]'
-                        }`}
-                      >
+                      <span className={s.badge} data-status={memory.status}>
                         {memory.status}
                       </span>
                     </div>
 
-                    <h3 className="mt-2 text-sm font-medium text-[var(--text-primary)] truncate">
+                    <h3 className={s.memoryPreview}>
                       {memory.content.substring(0, 100)}
                       {memory.content.length > 100 ? '...' : ''}
                     </h3>
 
-                    <div className="mt-2 flex flex-wrap gap-1">
+                    <div className={s.tagList}>
                       {memory.contextTags?.slice(0, 5).map((tag, index) => (
-                        <span
-                          key={index}
-                          className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[var(--app-bg)] text-[var(--text-primary)]"
-                        >
+                        <span key={index} className={s.tag}>
                           {tag}
                         </span>
                       ))}
                       {memory.contextTags && memory.contextTags.length > 5 && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[var(--app-bg)] text-[var(--text-primary)]">
-                          +{memory.contextTags.length - 5} more
-                        </span>
+                        <span className={s.tag}>+{memory.contextTags.length - 5} more</span>
                       )}
                     </div>
 
-                    <div className="mt-2 text-xs text-[var(--text-muted)]">
+                    <div className={s.memoryMeta}>
                       Quality: {(memory.qualityScore * 100).toFixed(0)}% | Importance:{' '}
                       {(memory.importanceScore * 100).toFixed(0)}% | Created:{' '}
                       {new Date(memory.createdAt).toLocaleDateString()}
                     </div>
                   </div>
 
-                  <div className="flex space-x-2 ml-4">
+                  <div className={s.memoryActions}>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -313,7 +275,7 @@ const MemoryDashboard: React.FC = () => {
                       className="text-[var(--accent-danger)] hover:text-[var(--accent-danger)]"
                     >
                       <svg
-                        className="h-5 w-5"
+                        className={s.deleteIcon}
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
@@ -335,21 +297,22 @@ const MemoryDashboard: React.FC = () => {
 
         {/* Pagination */}
         {state.totalPages > 1 && (
-          <div className="bg-transparent px-6 py-3 border-t border-[var(--glass-border)] flex items-center justify-between">
-            <div className="text-sm text-[var(--text-primary)]">
-              Showing <span className="font-medium">{(state.currentPage - 1) * 20 + 1}</span> to{' '}
-              <span className="font-medium">
+          <div className={s.pagination}>
+            <div className={s.paginationText}>
+              Showing{' '}
+              <span className={s.paginationEmphasis}>{(state.currentPage - 1) * 20 + 1}</span> to{' '}
+              <span className={s.paginationEmphasis}>
                 {Math.min(state.currentPage * 20, state.totalEntries)}
               </span>{' '}
-              of <span className="font-medium">{state.totalEntries}</span> results
+              of <span className={s.paginationEmphasis}>{state.totalEntries}</span> results
             </div>
-            <div className="flex space-x-2">
+            <div className={s.paginationButtons}>
               <button
                 onClick={() =>
                   loadMemoryEntries(searchFilters, Math.max(1, state.currentPage - 1), 20)
                 }
                 disabled={state.currentPage === 1}
-                className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-[var(--text-primary)] control rounded-md hover:bg-[var(--glass-bg-highlight)] disabled:opacity-50 disabled:cursor-not-allowed"
+                className={`control hover:bg-[var(--glass-bg-highlight)] disabled:opacity-50 disabled:cursor-not-allowed ${s.pageBtn}`}
               >
                 Previous
               </button>
@@ -362,7 +325,7 @@ const MemoryDashboard: React.FC = () => {
                   )
                 }
                 disabled={state.currentPage === state.totalPages}
-                className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-[var(--text-primary)] control rounded-md hover:bg-[var(--glass-bg-highlight)] disabled:opacity-50 disabled:cursor-not-allowed"
+                className={`control hover:bg-[var(--glass-bg-highlight)] disabled:opacity-50 disabled:cursor-not-allowed ${s.pageBtn}`}
               >
                 Next
               </button>
@@ -373,10 +336,10 @@ const MemoryDashboard: React.FC = () => {
 
       {/* Selected Memory Details */}
       {selectedMemory && (
-        <div className="mt-8 surface-glass-card p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-[var(--text-primary)]">Memory Details</h2>
-            <div className="flex items-center gap-3">
+        <div className={`surface-glass-card ${s.detailCard}`}>
+          <div className={s.detailHeader}>
+            <h2 className={s.sectionTitle}>Memory Details</h2>
+            <div className={s.detailHeaderActions}>
               {!isEditing && (
                 <button
                   onClick={() => {
@@ -385,7 +348,7 @@ const MemoryDashboard: React.FC = () => {
                     setEditStatus(selectedMemory.status);
                     setEditTags((selectedMemory.contextTags || []).join(', '));
                   }}
-                  className="text-[var(--accent)] hover:text-[var(--accent)] text-sm font-medium"
+                  className={`text-[var(--accent)] hover:text-[var(--accent)] ${s.editLink}`}
                 >
                   Edit
                 </button>
@@ -398,7 +361,7 @@ const MemoryDashboard: React.FC = () => {
                 }}
                 className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
               >
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className={s.closeIcon} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -410,100 +373,83 @@ const MemoryDashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className="space-y-4">
+          <div className={s.detailForm}>
             <div>
-              <label className="block text-sm font-medium text-[var(--text-primary)]">ID</label>
-              <p className="mt-1 text-sm text-[var(--text-primary)]">{selectedMemory.id}</p>
+              <label className={s.detailLabel}>ID</label>
+              <p className={s.detailValue}>{selectedMemory.id}</p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[var(--text-primary)]">UUID</label>
-              <p className="mt-1 text-sm text-[var(--text-primary)] break-all">
-                {selectedMemory.uuid}
-              </p>
+              <label className={s.detailLabel}>UUID</label>
+              <p className={`${s.detailValue} break-all`}>{selectedMemory.uuid}</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className={s.detailGrid}>
               <div>
-                <label className="block text-sm font-medium text-[var(--text-primary)]">
-                  Memory Type
-                </label>
-                <p className="mt-1 text-sm text-[var(--text-primary)]">
-                  {selectedMemory.memoryType}
-                </p>
+                <label className={s.detailLabel}>Memory Type</label>
+                <p className={s.detailValue}>{selectedMemory.memoryType}</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[var(--text-primary)]">
-                  Status
-                </label>
+                <label className={s.detailLabel}>Status</label>
                 {isEditing ? (
                   <select
                     value={editStatus}
                     onChange={(e) =>
                       setEditStatus(e.target.value as 'active' | 'archived' | 'deprecated')
                     }
-                    className="mt-1 w-full rounded-md surface-glass shadow-sm focus:border-[var(--accent)] focus:ring-[var(--accent)] sm:text-sm"
+                    className={`surface-glass shadow-sm focus:border-[var(--accent)] focus:ring-[var(--accent)] ${s.editInput}`}
                   >
                     <option value="active">Active</option>
                     <option value="archived">Archived</option>
                     <option value="deprecated">Deprecated</option>
                   </select>
                 ) : (
-                  <p className="mt-1 text-sm text-[var(--text-primary)]">{selectedMemory.status}</p>
+                  <p className={s.detailValue}>{selectedMemory.status}</p>
                 )}
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[var(--text-primary)]">Tags</label>
+              <label className={s.detailLabel}>Tags</label>
               {isEditing ? (
                 <input
                   type="text"
                   value={editTags}
                   onChange={(e) => setEditTags(e.target.value)}
-                  className="mt-1 w-full rounded-md surface-glass shadow-sm focus:border-[var(--accent)] focus:ring-[var(--accent)] sm:text-sm"
+                  className={`surface-glass shadow-sm focus:border-[var(--accent)] focus:ring-[var(--accent)] ${s.editInput}`}
                   placeholder="tag1, tag2, tag3"
                 />
               ) : (
-                <div className="mt-1 flex flex-wrap gap-1">
+                <div className={s.detailTagList}>
                   {selectedMemory.contextTags?.map((tag, index) => (
-                    <span
-                      key={index}
-                      className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[var(--app-bg)] text-[var(--text-primary)]"
-                    >
+                    <span key={index} className={s.tag}>
                       {tag}
                     </span>
                   ))}
                   {!selectedMemory.contextTags || selectedMemory.contextTags.length === 0 ? (
-                    <span className="text-sm text-[var(--text-muted)]">No tags</span>
+                    <span className={s.noTags}>No tags</span>
                   ) : null}
                 </div>
               )}
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className={s.detailGrid}>
               <div>
-                <label className="block text-sm font-medium text-[var(--text-primary)]">
-                  Quality Score
-                </label>
-                <p className="mt-1 text-sm text-[var(--text-primary)]">
-                  {(selectedMemory.qualityScore * 100).toFixed(0)}%
-                </p>
+                <label className={s.detailLabel}>Quality Score</label>
+                <p className={s.detailValue}>{(selectedMemory.qualityScore * 100).toFixed(0)}%</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[var(--text-primary)]">
-                  Importance Score
-                </label>
-                <p className="mt-1 text-sm text-[var(--text-primary)]">
+                <label className={s.detailLabel}>Importance Score</label>
+                <p className={s.detailValue}>
                   {(selectedMemory.importanceScore * 100).toFixed(0)}%
                 </p>
               </div>
             </div>
 
             {isEditing && selectedMemory && (
-              <div className="pt-4 flex justify-end gap-3">
+              <div className={s.editActions}>
                 <button
                   type="button"
                   onClick={() => {
@@ -512,7 +458,7 @@ const MemoryDashboard: React.FC = () => {
                     setEditStatus(selectedMemory.status);
                     setEditTags((selectedMemory.contextTags || []).join(', '));
                   }}
-                  className="px-4 py-2 text-sm font-medium text-[var(--text-primary)] bg-[var(--app-bg)] rounded-md hover:bg-[var(--app-bg)]"
+                  className={`hover:bg-[var(--app-bg)] ${s.cancelBtn}`}
                 >
                   Cancel
                 </button>
@@ -532,28 +478,24 @@ const MemoryDashboard: React.FC = () => {
                     setIsEditing(false);
                   }}
                   disabled={!editContent.trim()}
-                  className="px-4 py-2 text-sm font-medium text-[var(--text-primary)] bg-[var(--accent)] rounded-md hover:bg-[var(--glass-bg-strong)] disabled:opacity-50 disabled:cursor-not-allowed"
+                  className={`bg-[var(--accent)] hover:bg-[var(--glass-bg-strong)] disabled:opacity-50 disabled:cursor-not-allowed ${s.saveBtn}`}
                 >
                   Save Changes
                 </button>
               </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className={s.detailGrid}>
               <div>
-                <label className="block text-sm font-medium text-[var(--text-primary)]">
-                  Created At
-                </label>
-                <p className="mt-1 text-sm text-[var(--text-primary)]">
+                <label className={s.detailLabel}>Created At</label>
+                <p className={s.detailValue}>
                   {new Date(selectedMemory.createdAt).toLocaleString()}
                 </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[var(--text-primary)]">
-                  Updated At
-                </label>
-                <p className="mt-1 text-sm text-[var(--text-primary)]">
+                <label className={s.detailLabel}>Updated At</label>
+                <p className={s.detailValue}>
                   {new Date(selectedMemory.updatedAt).toLocaleString()}
                 </p>
               </div>
@@ -561,10 +503,8 @@ const MemoryDashboard: React.FC = () => {
 
             {selectedMemory.provenance && (
               <div>
-                <label className="block text-sm font-medium text-[var(--text-primary)]">
-                  Provenance
-                </label>
-                <pre className="mt-1 text-xs bg-[var(--app-bg)] p-3 rounded-md overflow-x-auto">
+                <label className={s.detailLabel}>Provenance</label>
+                <pre className={s.provenance}>
                   {JSON.stringify(selectedMemory.provenance, null, 2)}
                 </pre>
               </div>
