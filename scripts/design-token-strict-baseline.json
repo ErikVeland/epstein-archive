@@ -96,7 +96,6 @@
   "src/client/components/media/VideoBrowser.tsx",
   "src/client/components/media/VideoPlayer.tsx",
   "src/client/components/pages/AboutPage.tsx",
-  "src/client/components/pages/EnhancedAnalytics.tsx",
   "src/client/components/properties/PropertyBrowseView.tsx",
   "src/client/components/ui/GlassButton.tsx",
   "src/client/components/ui/GlassDropdown.tsx",

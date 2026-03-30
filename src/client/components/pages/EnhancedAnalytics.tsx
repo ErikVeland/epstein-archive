@@ -10,6 +10,7 @@ import {
   Share2,
   RotateCcw,
 } from 'lucide-react';
+import s from './EnhancedAnalytics.module.css';
 import { SunburstChart } from '../visualizations/SunburstChart';
 import { DocumentBarChart } from '../visualizations/DocumentBarChart';
 import { NetworkGraph } from '../visualizations/NetworkGraph';
@@ -176,28 +177,18 @@ const StatCard: React.FC<{
   icon: React.ReactNode;
   value: number | string;
   label: string;
-  color: string;
   sublabel?: string;
-}> = ({ icon, value, label, color, sublabel }) => (
-  <div
-    className={`glass-panel p-4 rounded-[var(--radius-xl)] hover:bg-[var(--glass-bg)]/60 transition-all duration-300 group relative overflow-hidden`}
-  >
-    <div
-      className={`absolute inset-0 bg-gradient-to-br from-${color}-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity`}
-    />
-    <div className="relative z-10">
-      <div className="flex items-center gap-2 mb-2">
+}> = ({ icon, value, label, sublabel }) => (
+  <div className={`glass-panel ${s.statCard}`}>
+    <div className={s.statCardContent}>
+      <div className={s.statCardHeader}>
         {icon}
-        <span className="text-[var(--text-muted)] text-xs font-medium uppercase tracking-wide">
-          {label}
-        </span>
+        <span className={s.statCardLabel}>{label}</span>
       </div>
-      <div
-        className={`data-emphasis text-[var(--text-primary)] group-hover:text-${color}-400 transition-colors`}
-      >
+      <div className="data-emphasis text-[var(--text-primary)]">
         {typeof value === 'number' ? value.toLocaleString() : value}
       </div>
-      {sublabel && <div className="text-xs text-[var(--text-muted)] mt-1">{sublabel}</div>}
+      {sublabel && <div className={s.statCardSublabel}>{sublabel}</div>}
     </div>
   </div>
 );
@@ -524,13 +515,13 @@ export const EnhancedAnalytics: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center">
+      <div className={s.loadingWrapper}>
+        <div className={s.loadingInner}>
           <div
-            className="animate-spin rounded-full h-16 w-16 border-b-2 border-[var(--accent)] mx-auto mb-4"
+            className={`animate-spin ${s.loadingSpinner}`}
             style={{ boxShadow: '0 0 30px rgba(6, 182, 212, 0.5)' }}
           />
-          <p className="text-[var(--text-muted)] animate-pulse">Loading analytics...</p>
+          <p className={`animate-pulse ${s.loadingText}`}>Loading analytics...</p>
         </div>
       </div>
     );
@@ -538,12 +529,9 @@ export const EnhancedAnalytics: React.FC = () => {
 
   if (error || !data) {
     return (
-      <div className="text-center py-12">
-        <p className="text-red-400 mb-4">{error || 'No data available'}</p>
-        <button
-          onClick={fetchAnalytics}
-          className="px-4 py-2 bg-[var(--glass-bg-highlight)] hover:bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] transition-colors"
-        >
+      <div className={s.errorWrapper}>
+        <p className={s.errorText}>{error || 'No data available'}</p>
+        <button onClick={fetchAnalytics} className={s.retryButton}>
           Retry
         </button>
       </div>
@@ -574,47 +562,39 @@ export const EnhancedAnalytics: React.FC = () => {
     totalDocumentsCount > 0 ? Math.round((evidenceFilesCount / totalDocumentsCount) * 100) : 0;
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className={`${s.page} animate-in fade-in duration-500`}>
       {/* Entity Network - Full Width - MOVED TO TOP */}
-      <div className="glass-card p-6 rounded-[var(--radius-xl)] relative overflow-hidden max-h-[85vh] flex flex-col">
+      <div className={`glass-card ${s.networkSection}`}>
         {/* Archive Reconciliation Header Indicator */}
         {data && (
-          <div className="absolute top-0 right-1/2 translate-x-1/2 z-20">
-            <div
-              className={`px-4 py-1.5 rounded-b-xl text-[10px] font-bold tracking-widest uppercase border-x border-b flex items-center gap-2 backdrop-blur-md transition-all ${
-                unclassifiedCount > 0
-                  ? 'bg-[color-mix(in_srgb,var(--accent-warning)_10%,transparent)] border-[color-mix(in_srgb,var(--accent-warning)_30%,transparent)] text-[var(--accent-warning)]'
-                  : 'bg-[color-mix(in_srgb,var(--accent-success)_12%,transparent)] border-[color-mix(in_srgb,var(--accent-success)_30%,transparent)] text-[var(--accent-success)]'
-              }`}
-            >
-              <Database className="h-3 w-3 shadow-[0_0_8px_rgba(251,191,36,0.3)]" />
+          <div className={s.archiveBadgeWrap}>
+            <div className={s.archiveBadge} data-status={unclassifiedCount > 0 ? 'warn' : 'ok'}>
+              <Database size={12} className="shadow-[0_0_8px_rgba(251,191,36,0.3)]" />
               <span>Archive Integrity: {archiveIntegrityPct}% Classified</span>
               {unclassifiedCount > 0 && (
-                <div className="group relative">
-                  <Info className="h-3 w-3 cursor-help text-amber-500/60 hover:text-amber-500 transition-colors" />
-                  <div className="absolute left-1/2 -translate-x-1/2 top-4 w-64 p-3 bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 normal-case tracking-normal font-normal text-[var(--text-secondary)]">
-                    <p className="mb-2 font-bold text-[var(--text-primary)]">
-                      Reconciliation Report
-                    </p>
-                    <ul className="space-y-1 text-xs">
-                      <li className="flex justify-between">
+                <div className={s.tooltipGroup}>
+                  <Info size={12} className={s.archiveBadgeIcon} />
+                  <div className={s.tooltip}>
+                    <p className={s.tooltipTitle}>Reconciliation Report</p>
+                    <ul className={s.tooltipList}>
+                      <li className={s.tooltipRow}>
                         <span>Total Records:</span>
-                        <span className="text-[var(--text-primary)] font-mono">
+                        <span className={s.tooltipMono}>
                           {totalDocumentsCount.toLocaleString()}
                         </span>
                       </li>
-                      <li className="flex justify-between">
+                      <li className={s.tooltipRow}>
                         <span>Investigative Files:</span>
-                        <span className="text-[var(--accent-success)] font-mono">
+                        <span className={s.tooltipMonoSuccess}>
                           {evidenceFilesCount.toLocaleString()}
                         </span>
                       </li>
-                      <li className="flex justify-between border-t border-[var(--glass-border)] pt-1 mt-1 text-[var(--accent-warning)]">
+                      <li className={s.tooltipRowDivider}>
                         <span>Unclassified:</span>
-                        <span className="font-mono">{unclassifiedCount.toLocaleString()}</span>
+                        <span className={s.tooltipMono}>{unclassifiedCount.toLocaleString()}</span>
                       </li>
                     </ul>
-                    <p className="mt-2 text-[9px] leading-tight text-[var(--text-muted)]">
+                    <p className={s.tooltipNote}>
                       Unclassified records are being processed for OCR and entity extraction.
                     </p>
                   </div>
@@ -624,17 +604,15 @@ export const EnhancedAnalytics: React.FC = () => {
           </div>
         )}
 
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-4 shrink-0">
-          <h3 className="text-xl font-bold text-[var(--text-primary)] flex items-center gap-2">
-            <Users className="h-5 w-5 text-[var(--accent-success)]" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">
-              Entity Connection Network
-            </span>
+        <div className={s.networkToolbar}>
+          <h3 className={s.networkTitle}>
+            <Users size={20} className="text-[var(--accent-success)]" />
+            <span className={s.networkTitleText}>Entity Connection Network</span>
           </h3>
 
           {/* Entity Count Slider */}
-          <div className="flex items-center gap-4 bg-[var(--glass-bg)]/50 px-4 py-2 rounded-[var(--radius-lg)] border border-[var(--glass-border)]">
-            <label className="text-xs text-[var(--text-muted)] whitespace-nowrap">Entities:</label>
+          <div className={s.sliderControl}>
+            <label className={s.sliderLabel}>Entities:</label>
             <input
               type="range"
               min="100"
@@ -642,20 +620,18 @@ export const EnhancedAnalytics: React.FC = () => {
               step="50"
               value={filters.limit}
               onChange={(e) => setFilters({ limit: Number(e.target.value) })}
-              className="w-32 h-2 bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] appearance-none cursor-pointer accent-emerald-500"
+              className={`${s.sliderInput} accent-[var(--accent-success)]`}
             />
-            <span className="text-sm font-medium text-[var(--accent-success)] min-w-[3rem] text-right">
-              {filters.limit}
-            </span>
+            <span className={s.sliderValue}>{filters.limit}</span>
           </div>
 
           {/* Timeline Slider */}
-          <div className="flex items-center gap-4 bg-[var(--glass-bg)]/50 px-4 py-2 rounded-[var(--radius-lg)] border border-[var(--glass-border)]">
-            <TrendingUp className="h-4 w-4 text-[var(--accent-docs)]" />
-            <div className="flex flex-col gap-1">
-              <div className="flex justify-between text-[10px] text-[var(--text-muted)] font-mono">
+          <div className={s.timelineControl}>
+            <TrendingUp size={16} className="text-[var(--accent-docs)]" />
+            <div className={s.timelineYears}>
+              <div className={s.timelineYearRow}>
                 <span>{filters.timeRange[0]?.split('-')[0] || '1990'}</span>
-                <span className="text-purple-400 font-bold">
+                <span className={s.timelineEndYear}>
                   {filters.timeRange[1]?.split('-')[0] || '2025'}
                 </span>
               </div>
@@ -669,7 +645,7 @@ export const EnhancedAnalytics: React.FC = () => {
                   const year = e.target.value;
                   setFilters({ timeRange: ['1990-01-01', `${year}-12-31`] });
                 }}
-                className="w-48 h-1.5 bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] appearance-none cursor-pointer accent-purple-500"
+                className={`${s.sliderInputThin} accent-[var(--accent-docs)]`}
               />
             </div>
           </div>
@@ -681,22 +657,17 @@ export const EnhancedAnalytics: React.FC = () => {
               setPathSource(null);
               setPathTarget(null);
             }}
-            className={`flex items-center gap-2 px-3 py-2 rounded-[var(--radius-lg)] border transition-all ${
-              pathMode
-                ? 'bg-[var(--accent)]/20 border-[var(--accent)]/50 text-[var(--accent)]'
-                : 'bg-[var(--glass-bg)]/50 border-[var(--glass-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)]'
-            }`}
+            className={s.pathModeButton}
+            data-active={String(pathMode)}
             title="Find Shortest Path"
           >
-            <Share2 className="h-4 w-4" />
-            <span className="text-xs font-medium">
-              {pathMode ? 'Select Nodes...' : 'Find Path'}
-            </span>
+            <Share2 size={16} />
+            <span className={s.pathModeLabel}>{pathMode ? 'Select Nodes...' : 'Find Path'}</span>
           </button>
         </div>
 
-        <div className="text-xs text-[var(--text-muted)] mb-4 flex items-start gap-2 bg-[var(--glass-bg-strong)]/50 p-3 rounded-[var(--radius-lg)] border border-[var(--glass-border)] shrink-0">
-          <Info className="h-4 w-4 mt-0.5 flex-shrink-0 text-emerald-400" />
+        <div className={s.infoHint}>
+          <Info size={16} className={s.infoHintIconEmerald} />
           <span>
             Interactive network showing entity relationships. Node size = connections. Colors
             indicate risk level. Click to view entity details. Grouped by entity type.
@@ -704,7 +675,7 @@ export const EnhancedAnalytics: React.FC = () => {
         </div>
 
         {/* Desktop: Full Network Graph */}
-        <div className="hidden md:block flex-1 min-h-0 relative">
+        <div className={s.desktopGraph}>
           <NetworkGraph
             entities={networkEntities}
             relationships={networkRelationships}
@@ -722,31 +693,25 @@ export const EnhancedAnalytics: React.FC = () => {
               <>
                 <button
                   onClick={handleReconcileJunk}
-                  className="p-1.5 hover:bg-[var(--glass-bg-highlight)]/50 rounded-[var(--radius-lg)] text-[var(--text-muted)] hover:text-amber-400 transition-all group relative"
+                  className={`${s.nodeActionButton} ${s.nodeActionButtonAmber}`}
                   title="Reconcile Junk Entities"
                 >
-                  <Database className="h-4 w-4" />
-                  <span className="absolute bottom-full right-0 mb-2 p-2 bg-[var(--glass-bg-strong)] text-[10px] rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50">
-                    Reconcile Junk Entities
-                  </span>
+                  <Database size={16} />
+                  <span className={s.nodeActionTooltip}>Reconcile Junk Entities</span>
                 </button>
                 <button
                   onClick={handleResetJunk}
-                  className="p-1.5 hover:bg-[var(--glass-bg-highlight)]/50 rounded-[var(--radius-lg)] text-[var(--text-muted)] hover:text-red-400 transition-all group relative"
+                  className={`${s.nodeActionButton} ${s.nodeActionButtonRed}`}
                   title="Reset Junk Flags"
                 >
-                  <RotateCcw className="h-4 w-4" />
-                  <span className="absolute bottom-full right-0 mb-2 p-2 bg-[var(--glass-bg-strong)] text-[10px] rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50">
-                    Reset Junk Flags
-                  </span>
+                  <RotateCcw size={16} />
+                  <span className={s.nodeActionTooltip}>Reset Junk Flags</span>
                 </button>
               </>
             }
           />
           {isGraphLoading && (
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-[var(--glass-bg-strong)]/80 px-4 py-2 rounded-full text-xs text-[var(--accent)] border border-[var(--accent)]/30 backdrop-blur-md animate-pulse">
-              Fetching more details...
-            </div>
+            <div className={`animate-pulse ${s.graphLoadingOverlay}`}>Fetching more details...</div>
           )}
 
           <EvidenceDrawer
@@ -782,8 +747,8 @@ export const EnhancedAnalytics: React.FC = () => {
 
             if (shownEntities < totalEntities && shownEntities > 0) {
               return (
-                <div className="absolute bottom-4 right-4 z-10 bg-amber-900/90 text-amber-100 px-3 py-1.5 rounded-full text-[10px] font-medium border border-amber-700/50 flex items-center gap-2 backdrop-blur-sm shadow-[var(--glass-shadow)] animate-in fade-in slide-in-from-bottom-2">
-                  <Shield className="h-3 w-3 text-amber-400" />
+                <div className={`${s.biasIndicator} animate-in fade-in slide-in-from-bottom-2`}>
+                  <Shield size={12} className={s.biasIndicatorIcon} />
                   <span>
                     Showing {shownEntities.toLocaleString()} of {totalEntities.toLocaleString()}{' '}
                     entities
@@ -795,108 +760,97 @@ export const EnhancedAnalytics: React.FC = () => {
           })()}
 
         {/* Mobile: Simplified Entity List */}
-        <div className="md:hidden space-y-2 overflow-y-auto flex-1">
-          <p className="text-xs text-[var(--text-muted)] mb-3">
+        <div className={s.mobileList}>
+          <p className={s.mobileListNote}>
             View on larger screen for interactive network visualization.
           </p>
-          <div className="space-y-2">
+          <div className={s.mobileListStack}>
             {topConnectedEntities?.slice(0, 20).map((entity, i) => (
               <button
                 key={entity.id}
                 onClick={() => onEntitySelect?.(entity.id)}
-                className="w-full flex items-center gap-3 p-3 bg-[var(--glass-bg)]/50 hover:bg-[var(--glass-bg-highlight)]/50 rounded-[var(--radius-lg)] border border-[var(--glass-border)] transition-colors text-left"
+                className={s.mobileEntityButton}
               >
                 <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
-                    entity.riskLevel >= 4
-                      ? 'bg-red-500/20 text-red-300 border border-red-500/30'
-                      : entity.riskLevel >= 2
-                        ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                        : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                  }`}
+                  className={s.entityRankBadge}
+                  data-risk={
+                    entity.riskLevel >= 4 ? 'high' : entity.riskLevel >= 2 ? 'medium' : 'low'
+                  }
                 >
                   {i + 1}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium text-[var(--text-primary)] truncate">
-                    {entity.name}
-                  </div>
-                  <div className="text-xs text-[var(--text-muted)]">
+                <div className={s.entityInfo}>
+                  <div className={s.entityName}>{entity.name}</div>
+                  <div className={s.entityMeta}>
                     {entity.connectionCount} connections • {entity.mentions} mentions
                   </div>
                 </div>
-                <div className="text-lg shrink-0">{'🚩'.repeat(Math.min(entity.riskLevel, 5))}</div>
+                <div className={s.entityFlags}>{'🚩'.repeat(Math.min(entity.riskLevel, 5))}</div>
               </button>
             ))}
           </div>
           {topConnectedEntities?.length > 20 && (
-            <p className="text-xs text-[var(--text-muted)] text-center pt-2">
-              +{topConnectedEntities.length - 20} more entities
-            </p>
+            <p className={s.mobileListMore}>+{topConnectedEntities.length - 20} more entities</p>
           )}
         </div>
       </div>
 
       {/* Interactive Entity Map - NEW PHASE 12 */}
-      <div className="hidden md:block h-[500px]">
+      <div className={s.entityMapSection}>
         <InteractiveEntityMap
-          className="h-full w-full"
+          className={s.entityMapFull}
           onEntitySelect={onEntitySelect}
           minRiskLevel={0}
         />
       </div>
 
       {/* Hero Stats Row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className={s.heroStatsGrid}>
         <StatCard
-          icon={<FileText className="h-5 w-5 text-[var(--accent)]" />}
+          icon={<FileText size={20} className="text-[var(--accent)]" />}
           value={data.totalCounts?.documents || redactionStats?.totalDocuments || 0}
           label="Total Documents"
-          color="cyan"
         />
         <StatCard
-          icon={<Shield className="h-5 w-5 text-orange-400" />}
+          icon={<Shield size={20} className="text-[var(--accent-warning)]" />}
           value={`${(redactionStats?.redactionPercentage || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}%`}
           label="Redacted"
-          color="orange"
           sublabel={`${(redactionStats?.redactedDocuments || 0).toLocaleString()} docs`}
         />
         <StatCard
-          icon={<Users className="h-5 w-5 text-[var(--accent-docs)]" />}
+          icon={<Users size={20} className="text-[var(--accent-docs)]" />}
           value={topConnectedEntities?.length || 0}
           label="Connected Entities"
-          color="purple"
         />
         <StatCard
-          icon={<Activity className="h-5 w-5 text-[var(--accent-success)]" />}
+          icon={<Activity size={20} className="text-[var(--accent-success)]" />}
           value={topRelationships?.length || 0}
           label="Relationships"
-          color="emerald"
         />
       </div>
 
       {/* Secondary Visualizations Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className={s.vizGrid}>
         {/* Document Types Sunburst */}
-        <div className="glass-card p-6 rounded-[var(--radius-xl)] relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <Database className="h-24 w-24 text-[var(--accent)]" />
+        <div className={`glass-card ${s.vizPanel}`}>
+          <div className={s.vizPanelIconDecor}>
+            <Database size={96} className="text-[var(--accent)]" />
           </div>
 
-          <h3 className="text-xl font-bold text-[var(--text-primary)] mb-2 flex items-center gap-2 relative z-10">
-            <FileText className="h-5 w-5 text-[var(--accent)]" />
+          <h3 className={s.vizPanelTitle}>
+            <FileText size={20} className="text-[var(--accent)]" />
             <span className="neon-text-cyan">Document Types</span>
           </h3>
 
-          <div className="text-xs text-[var(--text-muted)] mb-4 flex items-start gap-2 bg-[var(--glass-bg-strong)]/50 p-3 rounded-[var(--radius-lg)] border border-[var(--glass-border)] relative z-10">
-            <Info className="h-4 w-4 mt-0.5 flex-shrink-0 text-[var(--accent)]" />
+          <div className={s.vizPanelInfoHint}>
+            <Info size={16} className={s.vizPanelInfoIcon} />
             <span>
               Breakdown of evidence by category. Click segments to filter. Hover for redaction
               stats.
             </span>
           </div>
 
-          <div className="relative z-10">
+          <div className={s.vizPanelBody}>
             <SunburstChart
               data={documentsByCategory}
               onSegmentClick={(type) => onTypeFilter?.(type)}
@@ -905,27 +859,27 @@ export const EnhancedAnalytics: React.FC = () => {
         </div>
 
         {/* Timeline */}
-        <div className="glass-card p-6 rounded-[var(--radius-xl)] relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <TrendingUp className="h-24 w-24 text-purple-500" />
+        <div className={`glass-card ${s.vizPanel}`}>
+          <div className={s.vizPanelIconDecor}>
+            <TrendingUp size={96} className={s.vizPanelIconPurple} />
           </div>
 
-          <h3 className="text-xl font-bold text-[var(--text-primary)] mb-2 flex items-center gap-2 relative z-10">
-            <TrendingUp className="h-5 w-5 text-[var(--accent-docs)]" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
-              Document Distribution & Gap Analysis
+          <h3 className={s.vizPanelTitle}>
+            <TrendingUp size={20} className="text-[var(--accent-docs)]" />
+            <span className={s.vizPanelTitlePurplePink}>
+              Document Distribution &amp; Gap Analysis
             </span>
           </h3>
 
-          <div className="text-xs text-[var(--text-muted)] mb-4 flex items-start gap-2 bg-[var(--glass-bg-strong)]/50 p-3 rounded-[var(--radius-lg)] border border-[var(--glass-border)] relative z-10">
-            <Info className="h-4 w-4 mt-0.5 flex-shrink-0 text-[var(--accent-docs)]" />
+          <div className={s.vizPanelInfoHint}>
+            <Info size={16} className={s.vizPanelInfoIconDocs} />
             <span>
               Historical document distribution plotted by original creation date. The red zone
               highlights the 2001 period where significant data gaps have been identified.
             </span>
           </div>
 
-          <div className="relative z-10">
+          <div className={s.vizPanelBody}>
             <DocumentBarChart data={data.timelineData} />
           </div>
         </div>
