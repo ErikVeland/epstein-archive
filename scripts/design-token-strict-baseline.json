@@ -98,7 +98,6 @@
   "src/client/components/pages/About.tsx",
   "src/client/components/pages/AboutPage.tsx",
   "src/client/components/pages/EnhancedAnalytics.tsx",
-  "src/client/components/pages/MemoryDashboard.tsx",
   "src/client/components/properties/PropertyBrowseView.tsx",
   "src/client/components/ui/GlassButton.tsx",
   "src/client/components/ui/GlassDropdown.tsx",

@@ -199,7 +199,7 @@ const MemoryDashboard: React.FC = () => {
             <button
               onClick={handleCreateMemory}
               disabled={!newMemoryContent.trim()}
-              className={`bg-[var(--accent-success)] text-[var(--text-primary)] hover:bg-[var(--accent-success)] focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${s.createBtn}`}
+              className={`bg-[var(--accent-success)] text-[var(--text-primary)] hover:bg-[var(--accent-success)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-success)] focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${s.createBtn}`}
             >
               Create Memory
             </button>
