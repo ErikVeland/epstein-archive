@@ -55,7 +55,7 @@ function buildPrefixQuery(phrase: string): string {
 }
 
 async function loadEntityFallbackRows(searchTerm: string, limit: number) {
-  if (!searchTerm || limit <= 0) return [];
+  if (!searchTerm || limit <= 0) return { rows: [] };
 
   const partialPattern = `%${searchTerm}%`;
   const normalizedSearchTerm = searchTerm.toLowerCase();
@@ -154,7 +154,7 @@ export const searchRepository = {
         for (const row of fallbackRows.rows) {
           const entityId = String(row.id);
           if (seenIds.has(entityId)) continue;
-          mergedEntityRows.push(row);
+          mergedEntityRows.push(row as any);
           seenIds.add(entityId);
           if (mergedEntityRows.length >= safeLimit) break;
         }
@@ -295,7 +295,7 @@ export const searchRepository = {
     const vipDisplayLookup = await buildVipDisplayLookup();
 
     return {
-      entities: mergedEntityRows.map((row: Record<string, unknown>) => {
+      entities: mergedEntityRows.map((row: any) => {
         const aliases = parseEntityAliases(typeof row.aliases === 'string' ? row.aliases : null);
         const resolvedName = resolveCanonicalVipName(String(row.fullName || ''), vipDisplayLookup);
         const stats = entityStatsById.get(Number(row.id));
@@ -326,7 +326,7 @@ export const searchRepository = {
           files: stats?.files ?? 0,
         };
       }),
-      documents: docRows.map((row: Record<string, unknown>) => {
+      documents: docRows.map((row: any) => {
         const meta = documentMetaById.get(Number(row.id));
         return {
           id: String(row.id),
@@ -343,7 +343,7 @@ export const searchRepository = {
           snippet: row.snippet,
         };
       }),
-      investigations: investigationRows.map((row: Record<string, unknown>) => ({
+      investigations: investigationRows.map((row: any) => ({
         id: String(row.id),
         uuid: row.uuid,
         title: row.title,
@@ -352,7 +352,7 @@ export const searchRepository = {
         snippet: row.snippet,
         rank: row.rank,
       })),
-      articles: articleRows.map((row: Record<string, unknown>) => ({
+      articles: articleRows.map((row: any) => ({
         id: String(row.id),
         title: row.title,
         source: row.source,
@@ -361,7 +361,7 @@ export const searchRepository = {
         snippet: row.snippet,
         rank: row.rank,
       })),
-      media: mediaRows.map((row: Record<string, unknown>) => ({
+      media: mediaRows.map((row: any) => ({
         id: String(row.id),
         filename: row.filename,
         title: row.title,
