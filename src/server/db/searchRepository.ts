@@ -109,6 +109,75 @@ async function loadEntityFallbackRows(searchTerm: string, limit: number) {
   );
 }
 
+interface ISearchEntitiesResult {
+  aliases: string | null;
+  fullName: string;
+  id: string;
+  primaryRole: string | null;
+  rank: number | null;
+  redFlagRating: number | null;
+}
+
+interface ISearchEntitiesPrefixResult {
+  aliases: string | null;
+  fullName: string;
+  id: string;
+  primaryRole: string | null;
+  rank: number | null;
+  redFlagRating: number | null;
+}
+
+interface ISearchDocumentsResult {
+  evidenceType: string | null;
+  fileName: string | null;
+  filePath: string | null;
+  id: string;
+  rank: number | null;
+  redFlagRating: number | null;
+  snippet: string | null;
+}
+
+interface ISearchDocumentsPrefixResult {
+  evidenceType: string | null;
+  fileName: string | null;
+  filePath: string | null;
+  id: string;
+  rank: number | null;
+  redFlagRating: number | null;
+  snippet: string | null;
+}
+
+interface ISearchInvestigationsResult {
+  description: string | null;
+  id: string;
+  rank: number | null;
+  snippet: string | null;
+  status: string | null;
+  title: string;
+  uuid: string | null;
+}
+
+interface ISearchArticlesResult {
+  author: string | null;
+  id: string;
+  pubDate: Date | null;
+  rank: number | null;
+  snippet: string | null;
+  source: string | null;
+  title: string;
+}
+
+interface ISearchMediaResult {
+  description: string | null;
+  filename: string;
+  filePath: string;
+  fileType: string | null;
+  id: string;
+  rank: number | null;
+  snippet: string | null;
+  title: string | null;
+}
+
 interface UnifiedSearchResult {
   entities: any[];
   documents: any[];
@@ -161,10 +230,9 @@ export const searchRepository = {
           { searchTerm: tsArg, limit: safeLimit },
           getApiPool(),
         );
-    const mergedEntityRows: (
-      | searchQueries.ISearchEntitiesResult
-      | searchQueries.ISearchEntitiesPrefixResult
-    )[] = [...entityRows];
+    const mergedEntityRows: (ISearchEntitiesResult | ISearchEntitiesPrefixResult)[] = [
+      ...(entityRows as any),
+    ];
     if (!isPrefix && mergedEntityRows.length < safeLimit) {
       try {
         const fallbackRows = await loadEntityFallbackRows(
@@ -175,7 +243,7 @@ export const searchRepository = {
         for (const row of fallbackRows.rows) {
           const entityId = String(row.id);
           if (seenIds.has(entityId)) continue;
-          mergedEntityRows.push(row as unknown as searchQueries.ISearchEntitiesResult);
+          mergedEntityRows.push(row as unknown as ISearchEntitiesResult);
           seenIds.add(entityId);
           if (mergedEntityRows.length >= safeLimit) break;
         }
@@ -347,28 +415,24 @@ export const searchRepository = {
           files: stats?.files ?? 0,
         };
       }),
-      documents: docRows.map(
-        (
-          row: searchQueries.ISearchDocumentsResult | searchQueries.ISearchDocumentsPrefixResult,
-        ) => {
-          const meta = documentMetaById.get(Number(row.id));
-          return {
-            id: String(row.id),
-            fileName: row.fileName,
-            title: row.fileName,
-            filePath: row.filePath,
-            fileType: meta?.fileType ?? null,
-            evidenceType: row.evidenceType,
-            fileSize: null,
-            dateCreated: meta?.dateCreated ?? null,
-            wordCount: null,
-            redFlagRating: row.redFlagRating,
-            createdAt: meta?.dateCreated ?? null,
-            snippet: row.snippet,
-          };
-        },
-      ),
-      investigations: investigationRows.map((row: searchQueries.ISearchInvestigationsResult) => ({
+      documents: docRows.map((row: ISearchDocumentsResult | ISearchDocumentsPrefixResult) => {
+        const meta = documentMetaById.get(Number(row.id));
+        return {
+          id: String(row.id),
+          fileName: row.fileName,
+          title: row.fileName,
+          filePath: row.filePath,
+          fileType: meta?.fileType ?? null,
+          evidenceType: row.evidenceType,
+          fileSize: null,
+          dateCreated: meta?.dateCreated ?? null,
+          wordCount: null,
+          redFlagRating: row.redFlagRating,
+          createdAt: meta?.dateCreated ?? null,
+          snippet: row.snippet,
+        };
+      }),
+      investigations: investigationRows.map((row: ISearchInvestigationsResult) => ({
         id: String(row.id),
         uuid: row.uuid,
         title: row.title,
@@ -377,7 +441,7 @@ export const searchRepository = {
         snippet: row.snippet,
         rank: row.rank,
       })),
-      articles: articleRows.map((row: searchQueries.ISearchArticlesResult) => ({
+      articles: articleRows.map((row: ISearchArticlesResult) => ({
         id: String(row.id),
         title: row.title,
         source: row.source,
@@ -386,7 +450,7 @@ export const searchRepository = {
         snippet: row.snippet,
         rank: row.rank,
       })),
-      media: mediaRows.map((row: searchQueries.ISearchMediaResult) => ({
+      media: mediaRows.map((row: ISearchMediaResult) => ({
         id: String(row.id),
         filename: row.filename,
         title: row.title,
