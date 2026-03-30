@@ -27,23 +27,42 @@
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideInUp {
-  from { transform: translateY(0.5rem); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  from {
+    transform: translateY(0.5rem);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 .spin {
@@ -99,7 +118,9 @@
 .statCard {
   padding: var(--space-4);
   border-radius: var(--radius-xl);
-  transition: background var(--duration-fast, 150ms), all 0.3s;
+  transition:
+    background var(--duration-fast, 150ms),
+    all 0.3s;
   position: relative;
   overflow: hidden;
   cursor: default;
@@ -231,7 +252,9 @@
   box-shadow: var(--glass-shadow);
   opacity: 0;
   visibility: hidden;
-  transition: opacity var(--duration-fast, 150ms), visibility var(--duration-fast, 150ms);
+  transition:
+    opacity var(--duration-fast, 150ms),
+    visibility var(--duration-fast, 150ms);
   z-index: 50;
   text-transform: none;
   letter-spacing: normal;
@@ -497,7 +520,9 @@
   border-radius: var(--radius-sm, 4px);
   opacity: 0;
   visibility: hidden;
-  transition: opacity var(--duration-fast, 150ms), visibility var(--duration-fast, 150ms);
+  transition:
+    opacity var(--duration-fast, 150ms),
+    visibility var(--duration-fast, 150ms);
   white-space: nowrap;
   z-index: 50;
 }
@@ -774,10 +799,18 @@
   flex-shrink: 0;
 }
 
-.iconSuccess { color: var(--accent-success); }
-.iconDocs { color: var(--accent-docs); }
-.iconWarning { color: var(--accent-warning); }
-.iconAccent { color: var(--accent); }
+.iconSuccess {
+  color: var(--accent-success);
+}
+.iconDocs {
+  color: var(--accent-docs);
+}
+.iconWarning {
+  color: var(--accent-warning);
+}
+.iconAccent {
+  color: var(--accent);
+}
 
 .neonTextCyan {
   color: #22d3ee;

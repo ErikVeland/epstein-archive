@@ -26,7 +26,9 @@
   height: 6rem;
   border-radius: 9999px;
   background-color: var(--bg-dark);
-  box-shadow: 0 0 0 1px var(--glass-border), var(--glass-shadow-soft);
+  box-shadow:
+    0 0 0 1px var(--glass-border),
+    var(--glass-shadow-soft);
   overflow: hidden;
   position: relative;
 }
@@ -46,8 +48,13 @@
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 .photo {
@@ -135,11 +142,21 @@
 }
 
 /* getRiskClass mappings */
-.risk-critical { composes: risk-critical from global; }
-.risk-high { composes: risk-high from global; }
-.risk-medium { composes: risk-medium from global; }
-.risk-low { composes: risk-low from global; }
-.risk-minimal { composes: risk-minimal from global; }
+.risk-critical {
+  composes: risk-critical from global;
+}
+.risk-high {
+  composes: risk-high from global;
+}
+.risk-medium {
+  composes: risk-medium from global;
+}
+.risk-low {
+  composes: risk-low from global;
+}
+.risk-minimal {
+  composes: risk-minimal from global;
+}
 
 .badgeIcon {
   opacity: 0.8;
@@ -230,7 +247,8 @@
   color: var(--text-primary);
 }
 
-.timelineBtn, .searchBtn {
+.timelineBtn,
+.searchBtn {
   font-size: var(--type-xs);
   color: var(--accent);
   display: flex;

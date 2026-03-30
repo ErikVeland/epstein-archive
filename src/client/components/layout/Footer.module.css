@@ -303,7 +303,8 @@
   color: var(--text-muted);
   cursor: pointer;
   min-height: 44px;
-  transition: color var(--duration-fast, 150ms) var(--easing-liquid, ease),
+  transition:
+    color var(--duration-fast, 150ms) var(--easing-liquid, ease),
     border-color var(--duration-fast, 150ms) var(--easing-liquid, ease);
 }
 

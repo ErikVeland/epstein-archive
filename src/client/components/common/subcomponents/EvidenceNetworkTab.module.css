@@ -5,7 +5,8 @@
   background-color: var(--glass-bg-strong);
 }
 
-.loadingState, .emptyState {
+.loadingState,
+.emptyState {
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -21,8 +22,13 @@
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 0.2; }
-  50% { opacity: 0.1; }
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.1;
+  }
 }
 
 .emptyIcon {

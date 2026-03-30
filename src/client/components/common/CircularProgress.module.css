@@ -73,10 +73,18 @@
   color: var(--text-primary);
 }
 
-.textSm { font-size: 0.75rem; }
-.textMd { font-size: 0.875rem; }
-.textLg { font-size: 1rem; }
-.textXl { font-size: 1.125rem; }
+.textSm {
+  font-size: 0.75rem;
+}
+.textMd {
+  font-size: 0.875rem;
+}
+.textLg {
+  font-size: 1rem;
+}
+.textXl {
+  font-size: 1.125rem;
+}
 
 .label {
   margin-top: var(--space-2);

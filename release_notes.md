@@ -1,5 +1,31 @@
 # Release Notes
 
+## v18.1.0 - 2026-03-30 - Liquid Glass Completion & Modular Refactor
+
+This milestone release completes the "Liquid Glass" design system migration, transitioning the entire application to a high-performance, token-compliant CSS Module architecture.
+
+### What's New for Users
+
+**Advanced Evidence Search**
+
+- **Semantic Filtering**: The Global Search interface has been fully refactored for better density and legibility.
+- **Dynamic Category Styling**: Search results now feature responsive, color-coded badges driven by the new design system.
+- **Optimized Performance**: Search result rendering and filter transitions have been tuned for zero-latency interactions.
+
+**Universal Design Language**
+
+- **Modular Styling**: 100% of major page components (`About`, `Analytics`, `Dashboard`, `GlobalSearch`) now use encapsulated CSS Modules, eliminating utility drift.
+- **Standardized Icons**: All Lucide icons have been standardized for consistent weighting and size across the repository.
+- **Liquid Glass Polishing**: Refined backdrop-blur effects and border-glass tokens have been applied to the Search and Analytics modules.
+
+### Under the Hood
+
+- **Strict Design Token Enforcement**: The CI pipeline now enforces a strict baseline for design token usage, preventing the introduction of raw Tailwind utilities in migrated files.
+- **Modernized Build Chain**: Resolved legacy lint and Prettier conflicts in the high-density analytics modules.
+- **Standardized Component Primitives**: Migrated the shared `CloseButton` and `RiskBadge` patterns to a token-driven approach.
+
+---
+
 ## v18.0.0 - 2026-03-28 - Liquid Glass UI Overhaul & Routing Stability
 
 This major release delivers the "Liquid Glass" design system, standardizing the application's aesthetic across all core modules while significantly improving navigation stability and interface performance.

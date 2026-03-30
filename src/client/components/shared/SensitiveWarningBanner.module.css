@@ -42,7 +42,8 @@
   padding: 0.375rem; /* p-1.5 */
   color: color-mix(in srgb, var(--text-danger-strong) 60%, transparent);
   border-radius: 9999px;
-  transition: color var(--duration-fast) var(--easing-liquid),
+  transition:
+    color var(--duration-fast) var(--easing-liquid),
     background-color var(--duration-fast) var(--easing-liquid);
 }
 

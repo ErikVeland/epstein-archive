@@ -96,10 +96,10 @@
   --z-toast: 300;
 
   /* Danger / warning background tokens (for non-Tailwind components) */
-  --bg-danger-deep: rgba(127, 29, 29, 0.8);   /* Tailwind red-900/80 */
-  --border-danger: #b91c1c;                    /* Tailwind red-700 */
-  --text-danger-strong: #fecaca;               /* Tailwind red-200 */
-  --text-danger: #fca5a5;                      /* Tailwind red-300 */
+  --bg-danger-deep: rgba(127, 29, 29, 0.8); /* Tailwind red-900/80 */
+  --border-danger: #b91c1c; /* Tailwind red-700 */
+  --text-danger-strong: #fecaca; /* Tailwind red-200 */
+  --text-danger: #fca5a5; /* Tailwind red-300 */
 
   --chip-accent: rgba(56, 189, 248, 1);
   --chip-accent-border: rgba(56, 189, 248, 0.25);

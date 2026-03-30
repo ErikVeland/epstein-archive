@@ -71,7 +71,8 @@
   padding: var(--space-2) var(--space-3);
   color: var(--text-primary);
   outline: none;
-  transition: border-color var(--duration-fast) var(--easing-liquid),
+  transition:
+    border-color var(--duration-fast) var(--easing-liquid),
     outline-color var(--duration-fast) var(--easing-liquid);
 }
 

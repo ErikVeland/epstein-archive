@@ -38,7 +38,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  transition: background-color var(--duration-fast) var(--easing-liquid),
+  transition:
+    background-color var(--duration-fast) var(--easing-liquid),
     color var(--duration-fast) var(--easing-liquid);
   border-left: 2px solid transparent;
   color: var(--text-muted);

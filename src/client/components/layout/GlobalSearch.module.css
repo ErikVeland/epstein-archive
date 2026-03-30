@@ -154,7 +154,8 @@
   margin-bottom: var(--space-2);
 }
 
-.filterSelect, .filterInput {
+.filterSelect,
+.filterInput {
   width: 100%;
   padding: var(--space-2) var(--space-3);
   background: var(--glass-bg-highlight);
@@ -164,7 +165,8 @@
   transition: box-shadow var(--duration-fast, 150ms);
 }
 
-.filterSelect:focus, .filterInput:focus {
+.filterSelect:focus,
+.filterInput:focus {
   outline: none;
   box-shadow: 0 0 0 2px var(--accent);
 }
@@ -283,12 +285,12 @@
   gap: var(--space-1);
 }
 
-.riskBadge[data-risk="high"] {
+.riskBadge[data-risk='high'] {
   background: #7f1d1d;
   color: #fecaca;
 }
 
-.riskBadge[data-risk="low"] {
+.riskBadge[data-risk='low'] {
   background: var(--glass-bg-highlight);
   color: var(--text-secondary);
 }
@@ -557,8 +559,12 @@
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .spin {

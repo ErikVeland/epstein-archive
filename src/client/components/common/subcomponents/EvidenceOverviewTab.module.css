@@ -75,7 +75,8 @@
   }
 }
 
-.metricsCard, .signalsCard {
+.metricsCard,
+.signalsCard {
   composes: glass-card from global;
   padding: var(--space-6);
   display: flex;
@@ -94,15 +95,26 @@
   margin-bottom: var(--space-6);
 }
 
-.riskBadge, .evidenceBadge {
+.riskBadge,
+.evidenceBadge {
   composes: semantic-chip from global;
 }
 
-.risk-critical { composes: risk-critical from global; }
-.risk-high { composes: risk-high from global; }
-.risk-medium { composes: risk-medium from global; }
-.risk-low { composes: risk-low from global; }
-.risk-minimal { composes: risk-minimal from global; }
+.risk-critical {
+  composes: risk-critical from global;
+}
+.risk-high {
+  composes: risk-high from global;
+}
+.risk-medium {
+  composes: risk-medium from global;
+}
+.risk-low {
+  composes: risk-low from global;
+}
+.risk-minimal {
+  composes: risk-minimal from global;
+}
 
 .evidence-l1 {
   color: #34d399; /* success */
@@ -156,9 +168,15 @@
   margin-bottom: var(--space-1);
 }
 
-.accent { color: var(--accent); }
-.accentEmails { color: var(--accent-emails); }
-.accentEvidence { color: var(--accent-evidence); }
+.accent {
+  color: var(--accent);
+}
+.accentEmails {
+  color: var(--accent-emails);
+}
+.accentEvidence {
+  color: var(--accent-evidence);
+}
 
 .metricLabel {
   font-size: 10px;

@@ -63,7 +63,8 @@
   padding: var(--space-1) var(--space-3); /* py-1.5 px-3 */
   border-radius: var(--radius-lg);
   font-size: 0.75rem;
-  transition: background-color var(--duration-fast) var(--easing-liquid),
+  transition:
+    background-color var(--duration-fast) var(--easing-liquid),
     color var(--duration-fast) var(--easing-liquid);
   background: var(--glass-bg);
   color: var(--text-muted);

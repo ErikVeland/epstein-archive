@@ -468,7 +468,9 @@
   background: color-mix(in srgb, var(--glass-bg-highlight) 50%, transparent);
   border-radius: var(--radius-lg);
   border: 1px solid var(--glass-border);
-  transition: background var(--duration-fast, 150ms), border-color var(--duration-fast, 150ms);
+  transition:
+    background var(--duration-fast, 150ms),
+    border-color var(--duration-fast, 150ms);
 }
 
 .sourceCard:hover {
@@ -697,7 +699,8 @@
 }
 /* ── Animations ── */
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -710,19 +713,18 @@
 }
 
 @keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 .shimmer {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.1),
-    transparent
-  );
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
   animation: shimmer 2s infinite;
 }
 

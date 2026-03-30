@@ -5,7 +5,8 @@
   border: 1px solid var(--border-subtle, var(--glass-border));
   border-radius: var(--radius-lg);
   padding: var(--space-4);
-  transition: border-color var(--duration-fast) var(--easing-liquid),
+  transition:
+    border-color var(--duration-fast) var(--easing-liquid),
     box-shadow var(--duration-fast) var(--easing-liquid),
     transform var(--duration-fast) var(--easing-liquid);
   cursor: pointer;

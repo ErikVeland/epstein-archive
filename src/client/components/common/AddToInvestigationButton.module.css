@@ -83,7 +83,9 @@
 }
 
 @keyframes addToInvSpin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -119,8 +121,14 @@
 }
 
 @keyframes addToInvFadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -266,8 +274,14 @@
 }
 
 @keyframes addToInvSlideDown {
-  from { opacity: 0; transform: translateY(-8px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -286,7 +300,8 @@
   color: var(--text-primary);
   font-size: 0.875rem;
   outline: none;
-  transition: border-color var(--duration-fast) var(--easing-liquid),
+  transition:
+    border-color var(--duration-fast) var(--easing-liquid),
     box-shadow var(--duration-fast) var(--easing-liquid);
 }
 
@@ -310,7 +325,8 @@
   font-size: 0.875rem;
   resize: none;
   outline: none;
-  transition: border-color var(--duration-fast) var(--easing-liquid),
+  transition:
+    border-color var(--duration-fast) var(--easing-liquid),
     box-shadow var(--duration-fast) var(--easing-liquid);
 }
 
@@ -334,7 +350,8 @@
   color: var(--text-primary);
   font-size: 0.875rem;
   outline: none;
-  transition: border-color var(--duration-fast) var(--easing-liquid),
+  transition:
+    border-color var(--duration-fast) var(--easing-liquid),
     box-shadow var(--duration-fast) var(--easing-liquid);
 }
 

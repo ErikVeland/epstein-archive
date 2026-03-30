@@ -56,7 +56,8 @@
   border-radius: var(--radius-lg);
   font-size: 0.75rem;
   font-weight: 500;
-  transition: background-color var(--duration-normal) var(--easing-liquid),
+  transition:
+    background-color var(--duration-normal) var(--easing-liquid),
     color var(--duration-normal) var(--easing-liquid);
 }
 
@@ -214,7 +215,9 @@
 
 /* Selected swatch ring — simulates ring-2 ring-offset-1 ring-offset-slate-800 */
 .colorSwatch.selected {
-  box-shadow: 0 0 0 1px #1e293b, 0 0 0 3px var(--glass-border);
+  box-shadow:
+    0 0 0 1px #1e293b,
+    0 0 0 3px var(--glass-border);
 }
 
 /* Create/Cancel buttons row */
@@ -261,7 +264,8 @@
   border-radius: var(--radius-sm);
   color: var(--text-secondary);
   font-size: 0.875rem;
-  transition: background-color var(--duration-normal) var(--easing-liquid),
+  transition:
+    background-color var(--duration-normal) var(--easing-liquid),
     color var(--duration-normal) var(--easing-liquid);
 }
 
