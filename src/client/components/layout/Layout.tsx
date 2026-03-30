@@ -1,4 +1,5 @@
 import React from 'react';
+import s from './Layout.module.css';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -27,15 +28,9 @@ interface SectionProps {
 
 export const Section: React.FC<SectionProps> = ({ children, title, className = '' }) => {
   return (
-    <section
-      className={`mt-[var(--space-6)] mb-[var(--space-3)] first:[margin-top:0] ${className}`}
-    >
-      {title && (
-        <h2 className="text-[var(--font-size-h2)] font-semibold text-[var(--text-primary)] mb-[var(--space-3)]">
-          {title}
-        </h2>
-      )}
-      <div className="space-y-[var(--space-4)]">{children}</div>
+    <section className={`${s.section} ${className}`}>
+      {title && <h2 className={s.sectionTitle}>{title}</h2>}
+      <div className={s.sectionBody}>{children}</div>
     </section>
   );
 };
@@ -46,23 +41,17 @@ interface CardGridProps {
   className?: string;
 }
 
-export const CardGrid: React.FC<CardGridProps> = ({ children, columns = 3, className = '' }) => {
-  const getColumnClass = () => {
-    switch (columns) {
-      case 1:
-        return 'grid-cols-1';
-      case 2:
-        return 'grid-cols-1 md:grid-cols-2';
-      case 3:
-        return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3';
-      case 4:
-        return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4';
-      default:
-        return 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3';
-    }
-  };
+const columnClass: Record<number, string> = {
+  1: s.grid1,
+  2: s.grid2,
+  3: s.grid3,
+  4: s.grid4,
+};
 
+export const CardGrid: React.FC<CardGridProps> = ({ children, columns = 3, className = '' }) => {
   return (
-    <div className={`grid ${getColumnClass()} gap-[var(--space-4)] ${className}`}>{children}</div>
+    <div className={`${s.gridWrap} ${columnClass[columns] ?? s.grid3} ${className}`}>
+      {children}
+    </div>
   );
 };

@@ -1,5 +1,6 @@
 import React from 'react';
 import Tooltip from './Tooltip';
+import s from './HelpText.module.css';
 
 interface HelpTextProps {
   text: string;
@@ -17,13 +18,10 @@ const HelpText: React.FC<HelpTextProps> = ({
   className = '',
 }) => {
   return (
-    <div className={`flex items-center gap-[var(--space-2)] ${className}`}>
+    <div className={`${s.root} ${className}`}>
       <span>{children}</span>
       <Tooltip content={text} position={position} delay={delay}>
-        <span
-          className="inline-flex items-center justify-center w-4 h-4 text-xs font-bold text-[var(--text-primary)] bg-[var(--accent)] rounded-full cursor-help"
-          aria-label={`Help: ${text}`}
-        >
+        <span className={s.badge} aria-label={`Help: ${text}`}>
           ?
         </span>
       </Tooltip>

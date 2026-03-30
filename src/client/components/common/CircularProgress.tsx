@@ -1,4 +1,5 @@
 import React from 'react';
+import s from './CircularProgress.module.css';
 
 interface CircularProgressProps {
   value: number;
@@ -9,6 +10,28 @@ interface CircularProgressProps {
   label?: string;
   className?: string;
 }
+
+const sizeContainerClass: Record<string, string> = {
+  sm: s.sizeSm,
+  md: s.sizeMd,
+  lg: s.sizeLg,
+  xl: s.sizeXl,
+};
+
+const sizeTextClass: Record<string, string> = {
+  sm: s.textSm,
+  md: s.textMd,
+  lg: s.textLg,
+  xl: s.textXl,
+};
+
+const colorClass: Record<string, string> = {
+  primary: s.colorPrimary,
+  secondary: s.colorSecondary,
+  success: s.colorSuccess,
+  warning: s.colorWarning,
+  danger: s.colorDanger,
+};
 
 const CircularProgress: React.FC<CircularProgressProps> = ({
   value,
@@ -22,30 +45,15 @@ const CircularProgress: React.FC<CircularProgressProps> = ({
   const percentage = Math.min(100, Math.max(0, (value / max) * 100));
   const strokeDashoffset = 100 - percentage;
 
-  const sizeClasses = {
-    sm: { container: 'w-12 h-12', text: 'text-xs' },
-    md: { container: 'w-16 h-16', text: 'text-sm' },
-    lg: { container: 'w-20 h-20', text: 'text-base' },
-    xl: { container: 'w-24 h-24', text: 'text-lg' },
-  };
-
-  const colorClasses = {
-    primary: 'stroke-blue-500',
-    secondary: 'stroke-purple-500',
-    success: 'stroke-green-500',
-    warning: 'stroke-yellow-500',
-    danger: 'stroke-red-500',
-  };
-
   return (
-    <div className={`flex flex-col items-center ${className}`}>
-      <div className={`relative ${sizeClasses[size].container}`}>
-        <svg className="w-full h-full" viewBox="0 0 100 100">
+    <div className={`${s.root} ${className}`}>
+      <div className={`${s.svgWrap} ${sizeContainerClass[size]}`}>
+        <svg className={s.svg} viewBox="0 0 100 100">
           {/* Background circle */}
-          <circle className="stroke-gray-700" cx="50" cy="50" r="45" fill="none" strokeWidth="8" />
+          <circle className={s.track} cx="50" cy="50" r="45" fill="none" strokeWidth="8" />
           {/* Progress circle */}
           <circle
-            className={`${colorClasses[color]} transition-all duration-300 ease-out`}
+            className={colorClass[color]}
             cx="50"
             cy="50"
             r="45"
@@ -55,21 +63,16 @@ const CircularProgress: React.FC<CircularProgressProps> = ({
             strokeDashoffset={strokeDashoffset}
             strokeLinecap="round"
             transform="rotate(-90 50 50)"
+            style={{ transition: 'stroke-dashoffset 0.3s ease-out' }}
           />
         </svg>
         {showPercentage && (
-          <div
-            className={`absolute inset-0 flex items-center justify-center ${sizeClasses[size].text} font-bold text-[var(--text-primary)]`}
-          >
+          <div className={`${s.percentageOverlay} ${sizeTextClass[size]}`}>
             {Math.round(percentage)}%
           </div>
         )}
       </div>
-      {label && (
-        <span className="mt-[var(--space-2)] text-sm font-medium text-[var(--text-secondary)]">
-          {label}
-        </span>
-      )}
+      {label && <span className={s.label}>{label}</span>}
     </div>
   );
 };

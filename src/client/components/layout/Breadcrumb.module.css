@@ -1,0 +1,62 @@
+/* src/client/components/layout/Breadcrumb.module.css */
+
+.nav {
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+}
+
+.list {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.chevron {
+  width: 1rem;
+  height: 1rem;
+  color: var(--text-muted);
+  margin-inline: var(--space-1);
+  flex-shrink: 0;
+}
+
+.homeIcon {
+  width: 0.875rem;
+  height: 0.875rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  margin-right: 0.375rem;
+}
+
+.current {
+  color: var(--text-primary);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.link {
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color var(--duration-fast) var(--easing-liquid);
+}
+
+.link:hover {
+  color: var(--accent);
+}
+
+.plain {
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

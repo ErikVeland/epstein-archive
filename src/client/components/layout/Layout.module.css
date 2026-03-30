@@ -1,0 +1,80 @@
+/* src/client/components/layout/Layout.module.css */
+
+/* ── Layout shell ─────────────────────────────────────────── */
+/* .root composes with external className prop */
+
+/* ── Section ──────────────────────────────────────────────── */
+.section {
+  margin-top: var(--space-6);
+  margin-bottom: var(--space-3);
+}
+
+.section:first-of-type {
+  margin-top: 0;
+}
+
+.sectionTitle {
+  font-size: var(--font-size-h2, 1.25rem);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--space-3);
+}
+
+.sectionBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* ── CardGrid ─────────────────────────────────────────────── */
+.gridWrap {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: 1fr;
+}
+
+.grid1 {
+  grid-template-columns: 1fr;
+}
+
+.grid2 {
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .grid2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.grid3 {
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .grid3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.grid4 {
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .grid4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}

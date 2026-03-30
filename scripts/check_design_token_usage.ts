@@ -66,6 +66,19 @@ const moduleGovernedFiles = new Set(
     'src/client/components/common/ToastProvider.tsx',
     'src/client/components/layout/SortFilter.tsx',
     'src/client/components/layout/SearchFilters.tsx',
+    // Phase 7 — small common + layout components
+    'src/client/components/layout/Layout.tsx',
+    'src/client/components/layout/Breadcrumb.tsx',
+    'src/client/components/shared/MobileAlbumDropdown.tsx',
+    'src/client/components/common/BaseCard.tsx',
+    'src/client/components/common/FormLayout.tsx',
+    'src/client/components/common/HelpText.tsx',
+    'src/client/components/common/TailoredErrorFallback.tsx',
+    'src/client/components/common/CircularProgress.tsx',
+    'src/client/components/common/LazyImage.tsx',
+    'src/client/components/common/WikiLink.tsx',
+    'src/client/components/common/CollapsibleSplitPane.tsx',
+    'src/client/components/common/ScopedErrorBoundary.tsx',
   ].map((f) => path.join(rootDir, f)),
 );
 

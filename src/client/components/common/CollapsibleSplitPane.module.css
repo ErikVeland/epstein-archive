@@ -1,0 +1,154 @@
+/* src/client/components/common/CollapsibleSplitPane.module.css */
+
+.root {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+}
+
+/* ── Left pane (split mode) ───────────────────────────────── */
+.leftPane {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* ── Right pane outer wrapper ─────────────────────────────── */
+.rightPaneOuter {
+  flex-shrink: 0;
+  position: relative;
+  min-height: 0;
+}
+
+.splitResizeHandle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 0.5rem;
+  cursor: col-resize;
+  z-index: 20;
+  background: transparent;
+  outline: none;
+  transition: background-color var(--duration-fast) var(--easing-liquid);
+}
+
+.splitResizeHandle:hover {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+.splitCollapseBtn {
+  position: absolute;
+  left: 0.5rem;
+  top: 1rem;
+  height: 2rem;
+  width: 2rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  border: 1px solid transparent;
+  z-index: 30;
+  outline: none;
+  transition: color var(--duration-fast) var(--easing-liquid),
+    background-color var(--duration-fast) var(--easing-liquid),
+    border-color var(--duration-fast) var(--easing-liquid);
+}
+
+.splitCollapseBtn:hover {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.splitRightContent {
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  border-left: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+}
+
+/* ── Single-right mode ────────────────────────────────────── */
+.singleRightPanel {
+  flex-shrink: 0;
+  display: flex;
+  align-items: stretch;
+  position: relative;
+  z-index: 20;
+}
+
+.iconRail {
+  width: 2.5rem; /* w-10 */
+  border-right: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-block: var(--space-6);
+  gap: var(--space-6);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 30;
+}
+
+.collapseBtn {
+  height: 2rem;
+  width: 2rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  border: 1px solid transparent;
+  outline: none;
+  transition: color var(--duration-fast) var(--easing-liquid),
+    background-color var(--duration-fast) var(--easing-liquid),
+    border-color var(--duration-fast) var(--easing-liquid);
+}
+
+.collapseBtn:hover {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.resizeHandle {
+  height: 3rem; /* h-12 */
+  width: 2rem; /* w-8 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  cursor: col-resize;
+  outline: none;
+}
+
+.resizeHandle:hover {
+  color: color-mix(in srgb, var(--accent) 60%, transparent);
+}
+
+.resizeBar {
+  width: 0.25rem;
+  height: 2rem;
+  border-radius: 9999px;
+  background: var(--glass-bg-strong);
+  transition: background-color var(--duration-fast) var(--easing-liquid);
+}
+
+.resizeHandle:hover .resizeBar {
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.singleRightContent {
+  min-width: 0;
+  min-height: 0;
+  flex: 1;
+  position: relative;
+  z-index: 20;
+  overflow: visible;
+  border-left: 1px solid var(--glass-border);
+  background: transparent;
+}

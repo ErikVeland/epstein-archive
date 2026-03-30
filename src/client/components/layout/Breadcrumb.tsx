@@ -1,5 +1,6 @@
 import React from 'react';
 import { ChevronRight, Home } from 'lucide-react';
+import s from './Breadcrumb.module.css';
 
 interface BreadcrumbItem {
   label: string;
@@ -14,30 +15,20 @@ interface BreadcrumbProps {
 
 export const Breadcrumb: React.FC<BreadcrumbProps> = ({ items, className = '' }) => {
   return (
-    <nav className={`flex items-center text-sm ${className}`} aria-label="Breadcrumb">
-      <ol className="flex items-center gap-[var(--space-1)]">
+    <nav className={`${s.nav} ${className}`} aria-label="Breadcrumb">
+      <ol className={s.list}>
         {items.map((item, index) => (
-          <li key={index} className="flex items-center min-w-0">
-            {index > 0 && (
-              <ChevronRight className="w-4 h-4 text-[var(--text-muted)] mx-[var(--space-1)] shrink-0" />
-            )}
-            {index === 0 && (
-              <Home
-                className="w-3.5 h-3.5 text-[var(--text-muted)] shrink-0"
-                style={{ marginRight: '0.375rem' }}
-              />
-            )}
+          <li key={index} className={s.item}>
+            {index > 0 && <ChevronRight className={s.chevron} />}
+            {index === 0 && <Home className={s.homeIcon} />}
             {index === items.length - 1 ? (
-              <span className="text-[var(--text-primary)] font-medium truncate">{item.label}</span>
+              <span className={s.current}>{item.label}</span>
             ) : item.onClick ? (
-              <button
-                onClick={item.onClick}
-                className="text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors truncate"
-              >
+              <button onClick={item.onClick} className={s.link}>
                 {item.label}
               </button>
             ) : (
-              <span className="text-[var(--text-muted)] truncate">{item.label}</span>
+              <span className={s.plain}>{item.label}</span>
             )}
           </li>
         ))}

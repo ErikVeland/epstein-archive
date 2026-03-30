@@ -1,0 +1,81 @@
+/* src/client/components/shared/MobileAlbumDropdown.module.css */
+
+.root {
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .root {
+    display: none;
+  }
+}
+
+.trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  height: 2rem;
+}
+
+.triggerLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.dropdown {
+  position: absolute;
+  left: var(--space-3);
+  right: var(--space-3);
+  margin-top: var(--space-1);
+  z-index: 30;
+  max-height: 15rem;
+  overflow-y: auto;
+}
+
+.option {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--text-secondary);
+  transition: background-color var(--duration-fast) var(--easing-liquid);
+}
+
+.option:hover {
+  background: var(--glass-bg-highlight);
+}
+
+.optionSelected {
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  color: var(--accent);
+}
+
+.optionSelected:hover {
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+}
+
+.optionDivided {
+  border-top: 1px solid var(--glass-border);
+}
+
+.badge {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.albumName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

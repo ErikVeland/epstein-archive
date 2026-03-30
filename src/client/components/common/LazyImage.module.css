@@ -1,0 +1,15 @@
+/* src/client/components/common/LazyImage.module.css */
+
+.img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.loaded {
+  opacity: 1;
+}
+
+.loading {
+  opacity: 0;
+}

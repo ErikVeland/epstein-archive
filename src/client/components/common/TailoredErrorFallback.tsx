@@ -1,5 +1,6 @@
 import React from 'react';
 import { AlertTriangle, WifiOff, Database, FileText, RefreshCw, Home } from 'lucide-react';
+import s from './TailoredErrorFallback.module.css';
 
 interface TailoredErrorFallbackProps {
   errorType: 'network' | 'database' | 'document' | 'generic';
@@ -16,7 +17,7 @@ export const TailoredErrorFallback: React.FC<TailoredErrorFallbackProps> = ({
     switch (errorType) {
       case 'network':
         return {
-          icon: <WifiOff className="h-6 w-6 text-[var(--accent-warning)]" />,
+          icon: <WifiOff size={24} style={{ color: 'var(--accent-warning)' }} />,
           title: 'Network Connection Lost',
           message: 'Unable to connect to the server. Please check your internet connection.',
           nextSteps: 'Verify your network connection and try again.',
@@ -25,7 +26,7 @@ export const TailoredErrorFallback: React.FC<TailoredErrorFallbackProps> = ({
         };
       case 'database':
         return {
-          icon: <Database className="h-6 w-6 text-[var(--accent-danger)]" />,
+          icon: <Database size={24} style={{ color: 'var(--accent-danger)' }} />,
           title: 'Database Unavailable',
           message: 'The database is temporarily unavailable. Our team has been notified.',
           nextSteps: 'Please try again in a few minutes.',
@@ -34,7 +35,7 @@ export const TailoredErrorFallback: React.FC<TailoredErrorFallbackProps> = ({
         };
       case 'document':
         return {
-          icon: <FileText className="h-6 w-6 text-[var(--accent)]" />,
+          icon: <FileText size={24} style={{ color: 'var(--accent)' }} />,
           title: 'Document Not Found',
           message: 'The requested document could not be found or is unavailable.',
           nextSteps: 'Try selecting a different document or check back later.',
@@ -43,7 +44,7 @@ export const TailoredErrorFallback: React.FC<TailoredErrorFallbackProps> = ({
         };
       default:
         return {
-          icon: <AlertTriangle className="h-6 w-6 text-[var(--accent-warning)]" />,
+          icon: <AlertTriangle size={24} style={{ color: 'var(--accent-warning)' }} />,
           title: 'Something Went Wrong',
           message: 'An unexpected error occurred while loading this content.',
           nextSteps: 'Please try again or return to the home page.',
@@ -56,32 +57,26 @@ export const TailoredErrorFallback: React.FC<TailoredErrorFallbackProps> = ({
   const { icon, title, message, nextSteps, showRetry, showHome } = getErrorDetails();
 
   return (
-    <div className="p-[var(--space-6)] bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] max-w-2xl mx-auto">
-      <div className="flex items-center gap-[var(--space-3)] mb-[var(--space-3)]">
+    <div className={s.root}>
+      <div className={s.header}>
         {icon}
-        <h3 className="text-lg font-semibold">{title}</h3>
+        <h3 className={s.title}>{title}</h3>
       </div>
 
-      <p className="text-sm mb-[var(--space-2)] text-[var(--text-secondary)]">{message}</p>
-      <p className="text-xs mb-[var(--space-4)] text-[var(--text-muted)]">{nextSteps}</p>
+      <p className={s.message}>{message}</p>
+      <p className={s.nextSteps}>{nextSteps}</p>
 
-      <div className="flex gap-[var(--space-3)]">
+      <div className={s.actions}>
         {showRetry && onRetry && (
-          <button
-            onClick={onRetry}
-            className="px-[var(--space-4)] py-[var(--space-2)] bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded text-[var(--text-primary)] transition-colors flex items-center gap-[var(--space-2)]"
-          >
-            <RefreshCw className="h-4 w-4" />
+          <button onClick={onRetry} className={s.retryBtn}>
+            <RefreshCw size={16} />
             Try Again
           </button>
         )}
 
         {showHome && onGoHome && (
-          <button
-            onClick={onGoHome}
-            className="px-[var(--space-4)] py-[var(--space-2)] bg-[var(--accent)] hover:bg-[var(--accent-hover)] rounded text-[var(--text-primary)] transition-colors flex items-center gap-[var(--space-2)]"
-          >
-            <Home className="h-4 w-4" />
+          <button onClick={onGoHome} className={s.homeBtn}>
+            <Home size={16} />
             Home
           </button>
         )}

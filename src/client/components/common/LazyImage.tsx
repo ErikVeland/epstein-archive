@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { useSharedIntersectionObserver } from '../../hooks/useSharedIntersectionObserver';
+import s from './LazyImage.module.css';
 
 // Global cache to track which images have been loaded this session
 const loadedImageCache = new Set<string>();
@@ -64,9 +65,7 @@ export const LazyImage: React.FC<LazyImageProps> = ({
       loading="lazy"
       decoding="async"
       onLoad={handleLoad}
-      className={`w-full h-full object-cover ${className || ''} ${
-        isLoaded ? 'opacity-100' : 'opacity-0'
-      }`}
+      className={`${s.img} ${isLoaded ? s.loaded : s.loading} ${className || ''}`}
       style={{
         transition: shouldAnimate ? 'opacity 0.4s ease-out' : 'none',
         backgroundColor: '#020617', // slate-950, darker background for less visual gap

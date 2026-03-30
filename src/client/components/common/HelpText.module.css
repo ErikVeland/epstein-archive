@@ -1,0 +1,22 @@
+/* src/client/components/common/HelpText.module.css */
+
+.root {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  background: var(--accent);
+  border-radius: 9999px;
+  cursor: help;
+  flex-shrink: 0;
+}

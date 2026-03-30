@@ -1,0 +1,29 @@
+/* src/client/components/common/FormLayout.module.css */
+
+.root {
+  background: var(--glass-bg);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--glass-border);
+  padding: var(--space-6);
+}
+
+.header {
+  margin-bottom: var(--space-6);
+}
+
+.title {
+  font-size: 1.25rem; /* text-xl */
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.description {
+  color: var(--text-muted);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}

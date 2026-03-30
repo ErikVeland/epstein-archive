@@ -1,4 +1,5 @@
 import React from 'react';
+import s from './FormLayout.module.css';
 
 interface FormLayoutProps {
   title?: string;
@@ -16,18 +17,14 @@ const FormLayout: React.FC<FormLayoutProps> = ({
   className = '',
 }) => {
   return (
-    <div
-      className={`bg-[var(--glass-bg)] rounded-[var(--radius-xl)] border border-[var(--glass-border)] p-[var(--space-6)] ${className}`}
-    >
+    <div className={`${s.root} ${className}`}>
       {title && (
-        <div className="mb-[var(--space-6)]">
-          <h2 className="text-xl font-bold text-[var(--text-primary)] mb-[var(--space-2)]">
-            {title}
-          </h2>
-          {description && <p className="text-[var(--text-muted)]">{description}</p>}
+        <div className={s.header}>
+          <h2 className={s.title}>{title}</h2>
+          {description && <p className={s.description}>{description}</p>}
         </div>
       )}
-      <form onSubmit={onSubmit} className="space-y-[var(--space-6)]">
+      <form onSubmit={onSubmit} className={s.form}>
         {children}
       </form>
     </div>

@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import s from './CollapsibleSplitPane.module.css';
 
 interface CollapsibleSplitPaneProps {
   mode?: 'split' | 'singleRight';
@@ -133,21 +134,17 @@ export const CollapsibleSplitPane: React.FC<CollapsibleSplitPaneProps> = ({
 
   if (mode === 'singleRight') {
     return (
-      <div ref={rootRef} className={`flex h-full min-h-0 min-w-0 ${className}`}>
-        <div className="shrink-0 flex items-stretch relative z-20" style={rightStyle}>
-          <div className="w-10 border-r border-[var(--glass-border)] bg-[var(--glass-bg)] flex flex-col items-center py-[var(--space-6)] gap-[var(--space-6)] shrink-0 relative z-30">
+      <div ref={rootRef} className={`${s.root} ${className}`}>
+        <div className={s.singleRightPanel} style={rightStyle}>
+          <div className={s.iconRail}>
             <button
               type="button"
               onClick={() => setCollapsed(!collapsed)}
-              className="h-8 w-8 rounded-full flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 hover:border-[var(--accent)]/20 border border-transparent transition-all outline-none"
+              className={s.collapseBtn}
               aria-label={collapsed ? expandAriaLabel : collapseAriaLabel}
               title={collapsed ? expandAriaLabel : collapseAriaLabel}
             >
-              {collapsed ? (
-                <ChevronRight className="w-4 h-4" />
-              ) : (
-                <ChevronLeft className="w-4 h-4" />
-              )}
+              {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
             </button>
 
             {!collapsed && (
@@ -155,34 +152,32 @@ export const CollapsibleSplitPane: React.FC<CollapsibleSplitPaneProps> = ({
                 type="button"
                 onPointerDown={startResize}
                 onKeyDown={handleDividerKeyDown}
-                className="h-12 w-8 flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--accent)]/60 cursor-col-resize outline-none group"
+                className={s.resizeHandle}
                 aria-label={dividerAriaLabel}
                 title={dividerAriaLabel}
               >
-                <div className="w-1 h-8 rounded-full bg-[var(--glass-bg-strong)] group-hover:bg-[var(--accent)]/30 transition-colors" />
+                <div className={s.resizeBar} />
               </button>
             )}
           </div>
 
-          <div className="min-w-0 min-h-0 flex-1 relative z-20 overflow-visible border-l border-[var(--glass-border)] bg-transparent">
-            {collapsed ? collapsedRight : right}
-          </div>
+          <div className={s.singleRightContent}>{collapsed ? collapsedRight : right}</div>
         </div>
       </div>
     );
   }
 
   return (
-    <div ref={rootRef} className={`flex h-full min-h-0 min-w-0 ${className}`}>
-      <div className="flex-1 min-w-0 min-h-0">{left}</div>
+    <div ref={rootRef} className={`${s.root} ${className}`}>
+      <div className={s.leftPane}>{left}</div>
 
-      <div className="shrink-0 relative min-h-0" style={rightStyle}>
+      <div className={s.rightPaneOuter} style={rightStyle}>
         {!collapsed && (
           <button
             type="button"
             onPointerDown={startResize}
             onKeyDown={handleDividerKeyDown}
-            className="absolute left-0 top-0 h-full w-2 cursor-col-resize z-20 bg-transparent hover:bg-[var(--accent)]/10 transition-colors outline-none"
+            className={s.splitResizeHandle}
             aria-label={dividerAriaLabel}
             title={dividerAriaLabel}
           />
@@ -191,16 +186,14 @@ export const CollapsibleSplitPane: React.FC<CollapsibleSplitPaneProps> = ({
         <button
           type="button"
           onClick={() => setCollapsed(!collapsed)}
-          className="absolute left-2 top-4 h-8 w-8 rounded-full flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 hover:border-[var(--accent)]/20 border border-transparent transition-all outline-none z-30"
+          className={s.splitCollapseBtn}
           aria-label={collapsed ? expandAriaLabel : collapseAriaLabel}
           title={collapsed ? expandAriaLabel : collapseAriaLabel}
         >
-          {collapsed ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+          {collapsed ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
         </button>
 
-        <div className="min-w-0 min-h-0 h-full border-l border-[var(--glass-border)] bg-[var(--glass-bg)]">
-          {collapsed ? collapsedRight : right}
-        </div>
+        <div className={s.splitRightContent}>{collapsed ? collapsedRight : right}</div>
       </div>
     </div>
   );
