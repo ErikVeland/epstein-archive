@@ -83,7 +83,6 @@
   "src/client/components/investigation/InvestigationTimelineBuilder.tsx",
   "src/client/components/investigation/InvestigationWorkspace.tsx",
   "src/client/components/investigation/MultiSourceCorrelationEngine.tsx",
-  "src/client/components/layout/Footer.tsx",
   "src/client/components/layout/GlobalSearch.tsx",
   "src/client/components/media/ArticleCard.tsx",
   "src/client/components/media/ArticleViewerModal.tsx",

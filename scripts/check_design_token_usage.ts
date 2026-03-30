@@ -81,6 +81,7 @@ const moduleGovernedFiles = new Set(
     'src/client/components/common/ScopedErrorBoundary.tsx',
     // Phase 8 — navigation + layout
     'src/client/components/layout/MobileMenu.tsx',
+    'src/client/components/layout/Footer.tsx',
   ].map((f) => path.join(rootDir, f)),
 );
 

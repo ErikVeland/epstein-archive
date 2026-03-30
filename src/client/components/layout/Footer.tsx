@@ -4,6 +4,7 @@ import { ExternalLink, Github, Eye, EyeOff, ArrowRight } from 'lucide-react';
 import { useSensitiveSettings } from '../../contexts/SensitiveSettingsContext';
 import { Link } from 'react-router-dom';
 import { apiClient } from '../../services/apiClient';
+import s from './Footer.module.css';
 
 interface FooterProps {
   onVersionClick?: () => void;
@@ -63,128 +64,89 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
     refetchInterval: 5 * 60 * 1000,
   });
 
-  const statusConfig = {
-    checking: { color: 'bg-[var(--status-checking)]', text: 'Checking Live Data' },
-    operational: { color: 'bg-[var(--status-operational)]', text: 'Live Data Available' },
-    error: { color: 'bg-[var(--status-error)]', text: 'Limited Live Data' },
+  const statusText = {
+    checking: 'Checking Live Data',
+    operational: 'Live Data Available',
+    error: 'Limited Live Data',
   };
 
   return (
-    <footer className="w-full bg-[var(--glass-bg)] backdrop-blur-xl border-t border-[var(--glass-border)] py-12 mt-auto z-10 relative">
-      <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 mb-12">
+    <footer className={s.footer}>
+      <div className={s.container}>
+        <div className={s.grid}>
           {/* Column 1: Brand & Copyright */}
-          <div className="space-y-6">
-            <h3 className="font-display text-xl font-normal text-[var(--text-primary)] tracking-tight">
-              The Epstein Files
-            </h3>
-            <p className="text-[var(--text-secondary)] text-sm leading-relaxed max-w-xs">
+          <div className={s.column}>
+            <h3 className={s.brandHeading}>The Epstein Files</h3>
+            <p className={s.bodyText}>
               A comprehensive, searchable forensic archive of documents, connections, and financial
               flows regarding the Jeffrey Epstein network.
             </p>
             <div
-              className={`pt-2 flex items-center gap-2 group relative ${systemStatus.status === 'error' ? 'cursor-help' : ''}`}
+              className={`${s.statusRow} ${systemStatus.status === 'error' ? s['statusRow--error'] : ''}`}
             >
-              <div
-                className={`w-2 h-2 rounded-full ${statusConfig[systemStatus.status].color}`}
-              ></div>
-              <p className="text-[var(--text-secondary)] text-xs font-mono">
-                {statusConfig[systemStatus.status].text}
-              </p>
+              <div className={s.statusDot} data-status={systemStatus.status} />
+              <p className={s.statusText}>{statusText[systemStatus.status]}</p>
 
               {/* Status Tooltip */}
               {systemStatus.status === 'error' && (
-                <div className="absolute bottom-full left-0 mb-2 px-3 py-2 glass-panel text-[var(--accent-danger)] rounded shadow-[var(--glass-shadow)] text-xs w-64 opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none backdrop-blur-md">
-                  <div className="font-bold mb-1">Live Data Status</div>
-                  <div className="font-mono mb-1">{systemStatus.message}</div>
+                <div className={`${s.statusTooltip} glass-panel`}>
+                  <div className={s.statusTooltipTitle}>Live Data Status</div>
+                  <div className={s.statusTooltipMessage}>{systemStatus.message}</div>
                   {systemStatus.details && (
-                    <div className="text-[10px] opacity-80 leading-tight border-t border-[var(--glass-border)] pt-1 mt-1">
-                      {systemStatus.details}
-                    </div>
+                    <div className={s.statusTooltipDetails}>{systemStatus.details}</div>
                   )}
-                  <div className="absolute -bottom-1 left-4 w-2 h-2 bg-[var(--bg-surface)] border-r border-b border-[var(--glass-border)] transform rotate-45"></div>
+                  <div className={s.statusTooltipArrow} />
                 </div>
               )}
             </div>
           </div>
 
           {/* Column 2: Mission & Transparency */}
-          <div className="space-y-6">
-            <h4 className="text-xs font-medium text-[var(--text-muted)] border-l-2 border-[var(--glass-border)] pl-3 mb-1 tracking-wide">
-              Mission
-            </h4>
-            <ul className="space-y-3 text-sm text-[var(--text-secondary)]">
+          <div className={s.column}>
+            <h4 className={s.columnHeading}>Mission</h4>
+            <ul className={s.navList}>
               <li>
-                <Link
-                  to="/about"
-                  className="hover:text-[var(--accent)] transition-colors flex items-center gap-2 group w-fit"
-                >
-                  <span className="group-hover:translate-x-1 transition-transform">
-                    Transparency Vow
-                  </span>
-                  <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Link to="/about" className={s.navLink}>
+                  <span className={s.navLinkText}>Transparency Vow</span>
+                  <ArrowRight size={12} className={s.navLinkIcon} />
                 </Link>
               </li>
               <li>
-                <Link
-                  to="/about"
-                  className="hover:text-[var(--accent)] transition-colors flex items-center gap-2 group w-fit"
-                >
-                  <span className="group-hover:translate-x-1 transition-transform">
-                    Methodology & Ethics
-                  </span>
+                <Link to="/about" className={s.navLink}>
+                  <span className={s.navLinkText}>Methodology &amp; Ethics</span>
                 </Link>
               </li>
               <li>
-                <Link
-                  to="/the-epstein-files"
-                  className="hover:text-[var(--accent)] transition-colors flex items-center gap-2 group w-fit"
-                >
-                  <span className="group-hover:translate-x-1 transition-transform">
-                    The Epstein Files
-                  </span>
+                <Link to="/the-epstein-files" className={s.navLink}>
+                  <span className={s.navLinkText}>The Epstein Files</span>
                 </Link>
               </li>
               <li>
-                <Link
-                  to="/epstein-documents"
-                  className="hover:text-[var(--accent)] transition-colors flex items-center gap-2 group w-fit"
-                >
-                  <span className="group-hover:translate-x-1 transition-transform">
-                    Epstein Documents
-                  </span>
+                <Link to="/epstein-documents" className={s.navLink}>
+                  <span className={s.navLinkText}>Epstein Documents</span>
                 </Link>
               </li>
               <li>
-                <Link
-                  to="/epstein-media"
-                  className="hover:text-[var(--accent)] transition-colors flex items-center gap-2 group w-fit"
-                >
-                  <span className="group-hover:translate-x-1 transition-transform">
-                    Epstein Media
-                  </span>
+                <Link to="/epstein-media" className={s.navLink}>
+                  <span className={s.navLinkText}>Epstein Media</span>
                 </Link>
               </li>
             </ul>
           </div>
 
           {/* Column 3: Support */}
-          <div className="space-y-6">
-            <h4 className="text-xs font-medium text-[var(--text-muted)] border-l-2 border-[var(--glass-border)] pl-3 mb-1 tracking-wide">
-              Support
-            </h4>
-            <ul className="space-y-3 text-sm text-[var(--text-secondary)]">
+          <div className={s.column}>
+            <h4 className={s.columnHeading}>Support</h4>
+            <ul className={s.navList}>
               <li>
                 <a
                   href="https://coff.ee/generik"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:text-[var(--accent)] transition-colors flex items-center gap-2 group w-fit"
+                  className={s.navLink}
                 >
-                  <span className="group-hover:translate-x-1 transition-transform">
-                    Support the Investigation
-                  </span>
-                  <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <span className={s.navLinkText}>Support the Investigation</span>
+                  <ExternalLink size={12} className={s.navLinkIcon} />
                 </a>
               </li>
               <li>
@@ -192,40 +154,34 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
                   href="https://www.gofundme.com/manage/never-stop-talking-about-the-epstein-files"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:text-[var(--accent)] transition-colors flex items-center gap-2 group w-fit"
+                  className={s.navLink}
                 >
-                  <span className="group-hover:translate-x-1 transition-transform">
-                    GoFundMe Campaign
-                  </span>
-                  <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <span className={s.navLinkText}>GoFundMe Campaign</span>
+                  <ExternalLink size={12} className={s.navLinkIcon} />
                 </a>
               </li>
               <li>
-                <p className="text-xs text-[var(--text-muted)] mt-2 italic border-l-2 border-[var(--glass-border)] pl-3">
-                  "Independent open-source intelligence requires community support."
+                <p className={s.supportQuote}>
+                  &ldquo;Independent open-source intelligence requires community support.&rdquo;
                 </p>
               </li>
             </ul>
           </div>
 
           {/* Column 4: Network */}
-          <div className="space-y-6">
-            <h4 className="text-xs font-medium text-[var(--text-muted)] border-l-2 border-[var(--glass-border)] pl-3 mb-1 tracking-wide">
-              Network
-            </h4>
-            <ul className="space-y-3 text-sm text-[var(--text-secondary)]">
+          <div className={s.column}>
+            <h4 className={s.columnHeading}>Network</h4>
+            <ul className={s.navList}>
               <li>
                 <a
                   href="https://github.com/ErikVeland/epstein-archive"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:text-[var(--accent)] transition-colors flex items-center gap-2 group w-fit"
+                  className={s.navLink}
                 >
-                  <Github className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--accent)]" />
-                  <span className="group-hover:translate-x-1 transition-transform">
-                    GitHub Repository
-                  </span>
-                  <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <Github size={16} className={s.githubIcon} />
+                  <span className={s.navLinkText}>GitHub Repository</span>
+                  <ExternalLink size={12} className={s.navLinkIcon} />
                 </a>
               </li>
               <li>
@@ -233,12 +189,10 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
                   href="https://about.glasscode.academy"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:text-[var(--accent)] transition-colors flex items-center gap-2 group w-fit"
+                  className={s.navLink}
                 >
-                  <span className="group-hover:translate-x-1 transition-transform">
-                    Glass Academy
-                  </span>
-                  <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <span className={s.navLinkText}>Glass Academy</span>
+                  <ExternalLink size={12} className={s.navLinkIcon} />
                 </a>
               </li>
               <li>
@@ -246,12 +200,10 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
                   href="https://generik.substack.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:text-[var(--accent)] transition-colors flex items-center gap-2 group w-fit"
+                  className={s.navLink}
                 >
-                  <span className="group-hover:translate-x-1 transition-transform">
-                    The End Times (Substack)
-                  </span>
-                  <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <span className={s.navLinkText}>The End Times (Substack)</span>
+                  <ExternalLink size={12} className={s.navLinkIcon} />
                 </a>
               </li>
             </ul>
@@ -259,26 +211,20 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-8 border-t border-[var(--glass-border)] flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-[var(--text-muted)]">
-          <div className="flex flex-col md:flex-row items-center gap-4">
-            <span className="text-[var(--text-secondary)]">
-              &copy; 2025 Glass Academy. All rights reserved.
-            </span>
-            <span className="hidden md:inline text-[var(--text-muted)]">|</span>
-            <button
-              onClick={onVersionClick}
-              className="hover:text-[var(--accent)] transition-colors cursor-pointer flex items-center gap-2 px-3 py-2 bg-[var(--glass-bg)] rounded-full border border-[var(--glass-border)] hover:border-[var(--accent)] min-h-[44px]"
-              title="View Release Notes"
-            >
-              <span className="font-mono text-[var(--accent)]/80">v{__APP_VERSION__}</span>
-              <span className="w-1 h-1 bg-[var(--glass-border)] rounded-full"></span>
+        <div className={s.bottomBar}>
+          <div className={s.bottomBarLeft}>
+            <span className={s.copyright}>&copy; 2025 Glass Academy. All rights reserved.</span>
+            <span className={s.divider}>|</span>
+            <button onClick={onVersionClick} className={s.versionBtn} title="View Release Notes">
+              <span className={s.versionText}>v{__APP_VERSION__}</span>
+              <span className={s.versionDot} />
               <span>Updated: {__BUILD_DATE__}</span>
             </button>
           </div>
-          <div className="flex items-center gap-6">
+          <div className={s.bottomBarRight}>
             <button
               onClick={toggleShowAllSensitive}
-              className={`flex items-center gap-2 text-xs transition-colors min-h-[44px] px-1 ${showAllSensitive ? 'text-[var(--accent-warning)] hover:opacity-80' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}
+              className={`${s.sensitiveBtn} ${showAllSensitive ? s.sensitiveBtnActive : ''}`}
               title={
                 showAllSensitive
                   ? 'Hide sensitive content by default'
@@ -286,20 +232,14 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
               }
             >
               {showAllSensitive ? <Eye size={14} /> : <EyeOff size={14} />}
-              <span className="hidden sm:inline">
+              <span className={s.sensitiveBtnLabel}>
                 {showAllSensitive ? 'Sensitive Content Visible' : 'Sensitive Content'}
               </span>
             </button>
-            <Link
-              to="/privacy"
-              className="hover:text-[var(--text-primary)] transition-colors hover:underline decoration-[var(--glass-border)] underline-offset-4"
-            >
+            <Link to="/privacy" className={s.footerLink}>
               Privacy Policy
             </Link>
-            <Link
-              to="/terms"
-              className="hover:text-[var(--text-primary)] transition-colors hover:underline decoration-[var(--glass-border)] underline-offset-4"
-            >
+            <Link to="/terms" className={s.footerLink}>
               Terms of Service
             </Link>
           </div>
