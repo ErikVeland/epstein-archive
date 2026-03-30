@@ -1,0 +1,57 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+@media (min-width: 768px) {
+  .grid {
+    gap: var(--space-3);
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.btn {
+  padding: var(--space-3);
+  text-align: left;
+  transition: color var(--duration-fast) var(--easing-liquid);
+}
+
+.btnActive {
+  /* active state augments ring classes kept in TSX */
+}
+
+.statHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+}
+
+.statLabel {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.chipIcon {
+  height: 1.5rem;
+  padding-inline: var(--space-2);
+  display: flex;
+  align-items: center;
+}
+
+.statFooter {
+  margin-top: var(--space-1);
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}

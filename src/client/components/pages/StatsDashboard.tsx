@@ -1,6 +1,7 @@
 import React from 'react';
 import { Users, AlertTriangle, FileText, TrendingUp } from 'lucide-react';
 import { Person } from '../../types';
+import s from './StatsDashboard.module.css';
 
 interface StatsDashboardProps {
   people: Person[];
@@ -51,32 +52,28 @@ const StatsDashboard: React.FC<StatsDashboardProps> = ({ people }) => {
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div className={s.grid}>
       {cards.map((card, index) => (
-        <div key={index} className="surface-glass-card p-6 group">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <p className="text-sm font-medium text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">
-                {card.title}
-              </p>
-              <h3
-                className={`data-emphasis mt-1 ${card.valueColor || 'text-[var(--text-primary)]'}`}
-              >
-                {card.value}
-              </h3>
+        <div key={index} className="surface-glass-card">
+          <div className={s.cardInner}>
+            <div className={s.cardHeader}>
+              <div>
+                <p className={s.cardTitle}>{card.title}</p>
+                <h3
+                  className={`data-emphasis ${s.cardValue} ${card.valueColor || 'text-[var(--text-primary)]'}`}
+                >
+                  {card.value}
+                </h3>
+              </div>
+              <div className={`${s.iconBox} ${card.iconColor}`}>
+                <card.icon className={`${s.icon} ${card.iconColor}`} />
+              </div>
             </div>
-            <div
-              className={`p-3 rounded-[var(--radius-lg)] bg-[var(--glass-bg-strong)] ${card.iconColor} bg-opacity-10 ring-1 ring-[var(--glass-border)]`}
-            >
-              <card.icon className={`h-6 w-6 ${card.iconColor}`} />
-            </div>
-          </div>
 
-          <div className="flex items-center justify-between pt-4 border-t border-[var(--glass-border)]">
-            <p className="text-xs text-[var(--text-muted)] font-medium">{card.description}</p>
-            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)]">
-              {card.trend}
-            </span>
+            <div className={s.cardFooter}>
+              <p className={s.description}>{card.description}</p>
+              <span className={s.trendBadge}>{card.trend}</span>
+            </div>
           </div>
         </div>
       ))}

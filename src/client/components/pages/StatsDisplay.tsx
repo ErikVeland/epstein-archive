@@ -2,6 +2,7 @@ import Icon from '../common/Icon';
 import type { IconName } from '../common/Icon';
 import { useCountUp } from '../../hooks/useCountUp';
 import { riskToneFromRating } from '../../utils/riskSemantics';
+import s from './StatsDisplay.module.css';
 
 interface StatsDisplayProps {
   stats: {
@@ -29,7 +30,7 @@ export function StatsDisplay({
   const documentsCount = useCountUp(stats.totalFiles, 1900);
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3 mb-4">
+    <div className={s.grid}>
       <RiskStat
         label="High Risk"
         icon="AlertTriangle"
@@ -49,23 +50,21 @@ export function StatsDisplay({
       <MetricStat label="Mentions" icon="MessageSquare" value={mentionsCount} />
       <button
         onClick={onResetFilters}
-        className="surface-glass p-3 text-left hover:border-[var(--accent)]/40 transition-colors"
+        className={`surface-glass ${s.btn} hover:border-[var(--accent)]/40`}
         title="Reset all filters"
       >
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-[11px] tracking-[0.12em] uppercase text-[var(--text-muted)]">
-            Documents
-          </span>
-          <span className="chip h-6 px-2 flex items-center text-[var(--chip-accent)] border-[var(--chip-accent-border)]">
+        <div className={s.statHeader}>
+          <span className={s.statLabel}>Documents</span>
+          <span
+            className={`chip ${s.chipIcon} text-[var(--chip-accent)] border-[var(--chip-accent-border)]`}
+          >
             <Icon name="FileText" size="xs" />
           </span>
         </div>
         <div className="data-emphasis text-[var(--text-primary)] tabular-nums">
           {documentsCount.toLocaleString()}
         </div>
-        <div className="mt-1 text-[11px] text-[var(--text-muted)] uppercase tracking-[0.1em]">
-          {stats.totalPeople.toLocaleString()} Subjects
-        </div>
+        <div className={s.statFooter}>{stats.totalPeople.toLocaleString()} Subjects</div>
       </button>
     </div>
   );
@@ -91,35 +90,29 @@ function RiskStat({
   return (
     <button
       onClick={onClick}
-      className={`surface-glass p-3 text-left transition-colors ${active ? 'ring-2 ring-[var(--accent)]/45' : ''}`}
+      className={`surface-glass ${s.btn} ${active ? 'ring-2 ring-[var(--accent)]/45' : ''}`}
       title={`Filter by ${label}`}
     >
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-[11px] tracking-[0.12em] uppercase text-[var(--text-muted)]">
-          {label}
-        </span>
-        <span className={`chip h-6 px-2 flex items-center ${tone.className}`}>
+      <div className={s.statHeader}>
+        <span className={s.statLabel}>{label}</span>
+        <span className={`chip ${s.chipIcon} ${tone.className}`}>
           <Icon name={icon} size="xs" />
         </span>
       </div>
       <div className="data-emphasis text-[var(--text-primary)] tabular-nums">
         {value.toLocaleString()}
       </div>
-      <div className="mt-1 text-[11px] text-[var(--text-muted)] uppercase tracking-[0.1em]">
-        {label === 'High Risk' ? 'Priority One' : 'Monitor'}
-      </div>
+      <div className={s.statFooter}>{label === 'High Risk' ? 'Priority One' : 'Monitor'}</div>
     </button>
   );
 }
 
 function MetricStat({ label, icon, value }: { label: string; icon: IconName; value: number }) {
   return (
-    <div className="surface-glass p-3 text-left">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-[11px] tracking-[0.12em] uppercase text-[var(--text-muted)]">
-          {label}
-        </span>
-        <span className="chip h-6 px-2 flex items-center text-[var(--accent)] border-[var(--accent)]/25">
+    <div className={`surface-glass ${s.btn}`}>
+      <div className={s.statHeader}>
+        <span className={s.statLabel}>{label}</span>
+        <span className={`chip ${s.chipIcon} text-[var(--accent)] border-[var(--accent)]/25`}>
           <Icon name={icon} size="xs" />
         </span>
       </div>

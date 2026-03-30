@@ -1,0 +1,90 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3);
+  margin-bottom: var(--space-8);
+}
+
+@media (min-width: 768px) {
+  .grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-6);
+  }
+}
+
+.card {
+  background: color-mix(in srgb, var(--glass-bg) 50%, transparent);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-3);
+  position: relative;
+  overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  .card {
+    padding: var(--space-6);
+  }
+}
+
+.shimmer {
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  animation: statsSkeletonShimmer 2s infinite;
+  background: linear-gradient(to right, transparent, var(--glass-highlight), transparent);
+}
+
+@keyframes statsSkeletonShimmer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.barIcon {
+  height: 0.75rem;
+  width: 0.75rem;
+  background: var(--glass-bg-highlight);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-1);
+}
+
+@media (min-width: 768px) {
+  .barIcon {
+    height: 1rem;
+    width: 1rem;
+    margin-bottom: var(--space-2);
+  }
+}
+
+.barValue {
+  height: 1.5rem;
+  width: 3rem;
+  background: var(--glass-bg-highlight);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-1);
+}
+
+@media (min-width: 768px) {
+  .barValue {
+    height: 2rem;
+    width: 4rem;
+  }
+}
+
+.barLabel {
+  height: 0.5rem;
+  width: 4rem;
+  background: var(--glass-bg-highlight);
+  border-radius: var(--radius-sm);
+}
+
+@media (min-width: 768px) {
+  .barLabel {
+    height: 0.75rem;
+    width: 6rem;
+  }
+}
