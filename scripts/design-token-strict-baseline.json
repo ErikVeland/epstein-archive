@@ -95,7 +95,6 @@
   "src/client/components/media/PhotoBrowser.tsx",
   "src/client/components/media/VideoBrowser.tsx",
   "src/client/components/media/VideoPlayer.tsx",
-  "src/client/components/pages/About.tsx",
   "src/client/components/pages/AboutPage.tsx",
   "src/client/components/pages/EnhancedAnalytics.tsx",
   "src/client/components/properties/PropertyBrowseView.tsx",
