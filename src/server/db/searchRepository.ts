@@ -109,14 +109,32 @@ async function loadEntityFallbackRows(searchTerm: string, limit: number) {
   );
 }
 
+interface UnifiedSearchResult {
+  entities: any[];
+  documents: any[];
+  investigations: any[];
+  articles: any[];
+  media: any[];
+  didYouMean: any[];
+}
+
 export const searchRepository = {
   search: async (
     query: string,
     limit: number = 50,
     filters: { evidenceType?: string; redFlagBand?: string; mode?: 'web' | 'prefix' } = {},
-  ) => {
+  ): Promise<UnifiedSearchResult> => {
     const searchTerm = query.trim();
-    if (!searchTerm) return { entities: [], documents: [] };
+    if (!searchTerm) {
+      return {
+        entities: [],
+        documents: [],
+        investigations: [],
+        articles: [],
+        media: [],
+        didYouMean: [],
+      };
+    }
 
     const safeLimit = Math.min(200, Math.max(1, limit));
     const isPrefix = filters.mode === 'prefix';
@@ -143,7 +161,10 @@ export const searchRepository = {
           { searchTerm: tsArg, limit: safeLimit },
           getApiPool(),
         );
-    const mergedEntityRows = [...entityRows];
+    const mergedEntityRows: (
+      | searchQueries.ISearchEntitiesResult
+      | searchQueries.ISearchEntitiesPrefixResult
+    )[] = [...entityRows];
     if (!isPrefix && mergedEntityRows.length < safeLimit) {
       try {
         const fallbackRows = await loadEntityFallbackRows(
@@ -154,7 +175,7 @@ export const searchRepository = {
         for (const row of fallbackRows.rows) {
           const entityId = String(row.id);
           if (seenIds.has(entityId)) continue;
-          mergedEntityRows.push(row as any);
+          mergedEntityRows.push(row as unknown as searchQueries.ISearchEntitiesResult);
           seenIds.add(entityId);
           if (mergedEntityRows.length >= safeLimit) break;
         }
@@ -295,7 +316,7 @@ export const searchRepository = {
     const vipDisplayLookup = await buildVipDisplayLookup();
 
     return {
-      entities: mergedEntityRows.map((row: any) => {
+      entities: mergedEntityRows.map((row) => {
         const aliases = parseEntityAliases(typeof row.aliases === 'string' ? row.aliases : null);
         const resolvedName = resolveCanonicalVipName(String(row.fullName || ''), vipDisplayLookup);
         const stats = entityStatsById.get(Number(row.id));
@@ -326,24 +347,28 @@ export const searchRepository = {
           files: stats?.files ?? 0,
         };
       }),
-      documents: docRows.map((row: any) => {
-        const meta = documentMetaById.get(Number(row.id));
-        return {
-          id: String(row.id),
-          fileName: row.fileName,
-          title: row.fileName,
-          filePath: row.filePath,
-          fileType: meta?.fileType ?? null,
-          evidenceType: row.evidenceType,
-          fileSize: null,
-          dateCreated: meta?.dateCreated ?? null,
-          wordCount: null,
-          redFlagRating: row.redFlagRating,
-          createdAt: meta?.dateCreated ?? null,
-          snippet: row.snippet,
-        };
-      }),
-      investigations: investigationRows.map((row: any) => ({
+      documents: docRows.map(
+        (
+          row: searchQueries.ISearchDocumentsResult | searchQueries.ISearchDocumentsPrefixResult,
+        ) => {
+          const meta = documentMetaById.get(Number(row.id));
+          return {
+            id: String(row.id),
+            fileName: row.fileName,
+            title: row.fileName,
+            filePath: row.filePath,
+            fileType: meta?.fileType ?? null,
+            evidenceType: row.evidenceType,
+            fileSize: null,
+            dateCreated: meta?.dateCreated ?? null,
+            wordCount: null,
+            redFlagRating: row.redFlagRating,
+            createdAt: meta?.dateCreated ?? null,
+            snippet: row.snippet,
+          };
+        },
+      ),
+      investigations: investigationRows.map((row: searchQueries.ISearchInvestigationsResult) => ({
         id: String(row.id),
         uuid: row.uuid,
         title: row.title,
@@ -352,7 +377,7 @@ export const searchRepository = {
         snippet: row.snippet,
         rank: row.rank,
       })),
-      articles: articleRows.map((row: any) => ({
+      articles: articleRows.map((row: searchQueries.ISearchArticlesResult) => ({
         id: String(row.id),
         title: row.title,
         source: row.source,
@@ -361,7 +386,7 @@ export const searchRepository = {
         snippet: row.snippet,
         rank: row.rank,
       })),
-      media: mediaRows.map((row: any) => ({
+      media: mediaRows.map((row: searchQueries.ISearchMediaResult) => ({
         id: String(row.id),
         filename: row.filename,
         title: row.title,
@@ -371,6 +396,7 @@ export const searchRepository = {
         snippet: row.snippet,
         rank: row.rank,
       })),
+      didYouMean: [],
     };
   },
 
