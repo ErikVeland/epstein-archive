@@ -1,28 +1,42 @@
 # Release Notes
 
-## v18.1.0 - 2026-03-30 - Liquid Glass Completion & Modular Refactor
+## v18.1.0 - 2026-03-30 - Document Provenance, Search Fixes & Liquid Glass Completion
 
-This milestone release completes the "Liquid Glass" design system migration, transitioning the entire application to a high-performance, token-compliant CSS Module architecture.
+This release ships document provenance tracking, fixes search correctness issues, and completes the Liquid Glass CSS Module migration across the remaining UI components.
 
 ### What's New for Users
 
-**Advanced Evidence Search**
+**Document Provenance**
 
-- **Semantic Filtering**: The Global Search interface has been fully refactored for better density and legibility.
-- **Dynamic Category Styling**: Search results now feature responsive, color-coded badges driven by the new design system.
-- **Optimized Performance**: Search result rendering and filter transitions have been tuned for zero-latency interactions.
+- Each document now exposes a **Provenance Panel** showing source collection, credibility score, OCR engine and quality score, acquisition method, source system, and source release.
+- A **lineage view** surfaces the full event history for a document — every ingest, enrichment, and correction step is now visible in the Evidence modal.
+- Historical records have been backfilled with provenance data via a migration and backfill pass.
+- Entity name search is now significantly faster thanks to a new trigram index (`044_entities_trigram_index`).
 
-**Universal Design Language**
+**Global Search**
 
-- **Modular Styling**: 100% of major page components (`About`, `Analytics`, `Dashboard`, `GlobalSearch`) now use encapsulated CSS Modules, eliminating utility drift.
-- **Standardized Icons**: All Lucide icons have been standardized for consistent weighting and size across the repository.
-- **Liquid Glass Polishing**: Refined backdrop-blur effects and border-glass tokens have been applied to the Search and Analytics modules.
+- Search results now feature color-coded category badges with improved density and legibility.
+- Sort and filter controls have been refactored for more consistent behavior across result types.
+
+**Visual Polish (Liquid Glass completion)**
+
+- `About`, `Analytics`, `MemoryDashboard`, `FAQPage`, `DataQualityDashboard`, `SearchFilters`, `SortFilter`, `Footer`, `MobileMenu`, `BatchToolbar`, `AddToInvestigation`, `TagSelector`, `LoadingPill`, `ErrorBoundary`, `ToastProvider`, `AlbumSidebar`, `MediaBrowserLayout`, `SensitiveWarningBanner`, `DegradedBanner`, and `LegalPage` are now fully migrated to CSS Modules.
+- Z-index scale and danger/warning colour tokens added to the design token system.
+- `AddToInvestigation` now uses React state for toast notifications instead of direct DOM manipulation.
+- `BatchToolbar` now uses React refs instead of `querySelector` for element targeting.
+
+### Bug Fixes
+
+- Fixed search repository type errors and non-uniform return structures that caused CI failures and potential runtime inconsistencies in search results.
+- Fixed provenance migration rollback: the `down` function now correctly drops all added columns.
+- Fixed `MemoryDashboard` using a hard-coded `ring-green-500` class instead of the CSS variable equivalent.
 
 ### Under the Hood
 
-- **Strict Design Token Enforcement**: The CI pipeline now enforces a strict baseline for design token usage, preventing the introduction of raw Tailwind utilities in migrated files.
-- **Modernized Build Chain**: Resolved legacy lint and Prettier conflicts in the high-density analytics modules.
-- **Standardized Component Primitives**: Migrated the shared `CloseButton` and `RiskBadge` patterns to a token-driven approach.
+- CSS Module ratchet extended to 24 governed files — raw Tailwind utilities in migrated components will now fail CI.
+- `documentProvenanceService` added alongside a new `/api/documents/:id/lineage` endpoint.
+- `dataQualityRepository` updated with provenance-aware data quality checks.
+- Search repository refactored to localise types and enforce strict return structure, resolving namespace resolution failures in CI.
 
 ---
 
