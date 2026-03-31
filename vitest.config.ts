@@ -13,6 +13,7 @@ export default defineConfig({
     },
     alias: {
       '@': path.resolve(__dirname, './src'),
+      '@epstein/db': path.resolve(__dirname, './packages/db/src/index.ts'),
     },
   },
 });
