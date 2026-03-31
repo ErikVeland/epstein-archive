@@ -213,7 +213,7 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
 
   return (
     <div className="surface-glass min-h-screen text-[var(--text-primary)] overflow-x-hidden">
-      <div className="w-full py-[var(--space-4)] md:py-[var(--space-6)]">
+      <div className="w-full px-[var(--space-6)] md:px-[var(--space-12)] py-[var(--space-4)] md:py-[var(--space-6)]">
         <DocumentBrowserHeader
           isHeaderCondensed={isHeaderCondensed}
           searchInput={searchInput}

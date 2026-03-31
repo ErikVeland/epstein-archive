@@ -127,7 +127,7 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProps> = (
   return createPortal(
     <div
       id="CreateRelationshipModal"
-      className="fixed inset-0 bg-[var(--app-bg)]/80 backdrop-blur-sm flex items-center justify-center z-[9999] p-4"
+      className="fixed inset-0 bg-[var(--app-bg)]/80 backdrop-blur-sm flex items-center justify-center z-[var(--z-modal)] p-4"
       role="dialog"
       aria-modal="true"
     >

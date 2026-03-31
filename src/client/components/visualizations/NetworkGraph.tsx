@@ -915,17 +915,17 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
               const isInferred = link.classification === 'INFERRED' || type.includes('infer');
               const isAgentic = type.includes('agentic') || type.includes('derived');
               const stroke = isAgentic ? '#a855f7' : isInferred ? '#22d3ee' : '#60a5fa';
-              // Dynamic width based on weight (0.05 to 0.3 base)
+              // Dynamic width based on weight (1.0 to 3.5 base pixels since non-scaling-stroke is active)
               // @ts-ignore - normalizedWeight added in useMemo
-              const weightBonus = (link.normalizedWeight || 0) * 0.15;
-              const baseWidth = 0.05 + weightBonus;
-              const highlightWidth = 0.3 + weightBonus;
+              const weightBonus = (link.normalizedWeight || 0) * 2.5;
+              const baseWidth = 1.0 + weightBonus;
+              const highlightWidth = 3.5 + weightBonus;
               const baseOpacity =
                 transform.k < 0.4
-                  ? 0.12
+                  ? 0.25
                   : transform.k < 0.8
-                    ? 0.18
-                    : 0.22 + (link.normalizedWeight || 0) * 0.24;
+                    ? 0.35
+                    : 0.45 + (link.normalizedWeight || 0) * 0.35;
 
               return (
                 <line

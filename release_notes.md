@@ -1,5 +1,29 @@
 # Release Notes
 
+## v18.1.1 - 2026-03-31 - Network Graph Fixes & UI Polish
+
+This patch release restores network graph edge visibility, fixes data mapping in the Evidence modal, and improves the Document Browser layout for better mobile and desktop consistency.
+
+### What's New for Users
+
+**Network Graph Improvements**
+
+- **Edge Visibility**: Restored connection lines between entities in the Network tab that were previously missing due to a data mapping error.
+- **Dynamic Lineweights**: Connection lines now feature variable thickness based on relationship strength (1px to 3.5px), providing immediate visual feedback on the significance of links.
+- **Improved Contrast**: Boosted edge opacity and refined colors for better legibility against the dark "Liquid Glass" background.
+
+**UI & Layout Polish**
+
+- **Document Browser Padding**: Added balanced horizontal margins to the Document Browser, fixing a regression where text was clipped or too close to the viewport edges on both mobile and desktop.
+- **Evidence Overview Responsive Grid**: Standardized the statistical metrics grid in the Evidence Overview tab to a responsive 4-column layout on desktop, resolving a 1x1 stacking issue.
+- **Media Tab Grid**: Optimized the Media tab's responsive grid breakpoints to ensure a professional 3-4 column layout triggers correctly on desktop displays.
+- **Virtualized List Calculation**: Fixed a height calculation issue in the Evidence modal content area, ensuring that virtualized lists (Evidence tab) correctly render their items by providing a stable flex container.
+
+### Bug Fixes
+
+- Fixed a data mapping mismatch where relationships were provided with `source`/`target` keys instead of the required `sourceId`/`targetId` for graph rendering.
+- Corrected an `items-center` CSS typo in `EvidenceModal.module.css`.
+
 ## v18.1.0 - 2026-03-30 - Document Provenance, Search Fixes & Liquid Glass Completion
 
 This release ships document provenance tracking, fixes search correctness issues, and completes the Liquid Glass CSS Module migration across the remaining UI components.

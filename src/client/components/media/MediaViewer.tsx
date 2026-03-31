@@ -138,7 +138,7 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({
 
   const content = (
     <div
-      className={`${inline ? 'relative w-full h-full' : 'fixed inset-0 bg-[var(--glass-bg-strong)] bg-opacity-90 z-[1100]'} flex flex-col`}
+      className={`${inline ? 'relative w-full h-full' : 'fixed inset-0 bg-[var(--glass-bg-strong)] bg-opacity-90 z-[var(--z-modal)]'} flex flex-col`}
     >
       {/* Header */}
       <div

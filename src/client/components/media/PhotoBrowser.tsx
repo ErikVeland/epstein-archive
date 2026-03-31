@@ -965,7 +965,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
               {/* Batch Toolbar - Rendered via Portal for true viewport positioning */}
               {isBatchMode &&
                 createPortal(
-                  <div className="fixed bottom-8 left-0 right-0 flex justify-center z-[1000] pointer-events-none">
+                  <div className="fixed bottom-8 left-0 right-0 flex justify-center z-[var(--z-modal)] pointer-events-none">
                     <div className="mx-4 max-w-[calc(100vw-2rem)] md:max-w-fit pointer-events-auto">
                       <BatchToolbar
                         selectedCount={selectedImages.size}
@@ -1031,7 +1031,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
         )}
         {previewPerson && (
           <React.Suspense fallback={null}>
-            <div className="fixed inset-0 z-[11000] pointer-events-auto">
+            <div className="fixed inset-0 z-[var(--z-modal)] pointer-events-auto">
               <EvidenceModal
                 entityId={String(previewPerson.id)}
                 isOpen={!!previewPerson}

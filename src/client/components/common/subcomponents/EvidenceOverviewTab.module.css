@@ -140,11 +140,17 @@
 
 .metricsGrid {
   display: grid;
-  grid-template-cols: repeat(2, 1fr);
+  grid-template-cols: 1fr;
   gap: var(--space-3);
 }
 
 @media (min-width: 768px) {
+  .metricsGrid {
+    grid-template-cols: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
   .metricsGrid {
     grid-template-cols: repeat(4, 1fr);
   }

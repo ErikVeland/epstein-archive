@@ -340,7 +340,7 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
   return createPortal(
     <div
       id="MediaViewerModal"
-      className="fixed inset-0 z-[2000] bg-[var(--glass-bg-strong)] backdrop-blur-md flex overflow-hidden"
+      className="fixed inset-0 z-[var(--z-modal)] bg-[var(--glass-bg-strong)] backdrop-blur-md flex overflow-hidden"
     >
       {/* Main Image Area */}
       <div

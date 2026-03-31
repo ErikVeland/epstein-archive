@@ -340,7 +340,7 @@ export const DocumentModal: React.FC<Props> = ({
 
   if (!doc && (isLoadingDoc || isFetchingDoc)) {
     return createPortal(
-      <div className="fixed inset-0 bg-[var(--glass-bg)] backdrop-blur-md z-[1050] flex items-center justify-center p-4">
+      <div className="fixed inset-0 bg-[var(--glass-bg)] backdrop-blur-md z-[var(--z-modal)] flex items-center justify-center p-4">
         <div className="surface-glass p-6 pointer-events-auto">
           <div className="text-[var(--text-primary)] font-semibold mb-2">Loading document</div>
           <div className="text-[var(--text-muted)] mb-4">
@@ -355,7 +355,7 @@ export const DocumentModal: React.FC<Props> = ({
 
   if (!doc) {
     return createPortal(
-      <div className="fixed inset-0 bg-[var(--glass-bg)] backdrop-blur-md z-[1050] flex items-center justify-center p-4">
+      <div className="fixed inset-0 bg-[var(--glass-bg)] backdrop-blur-md z-[var(--z-modal)] flex items-center justify-center p-4">
         <div className="surface-glass p-6 pointer-events-auto">
           <div className="text-[var(--text-primary)] font-semibold mb-2">
             Unable to load document
@@ -456,7 +456,7 @@ export const DocumentModal: React.FC<Props> = ({
     <div
       id="DocumentModal"
       ref={modalRef}
-      className="fixed inset-0 app-backdrop z-[10000] flex items-center justify-center p-0 md:p-6 animate-in fade-in duration-300"
+      className="fixed inset-0 app-backdrop z-[var(--z-modal)] flex items-center justify-center p-0 md:p-6 animate-in fade-in duration-300"
       role="dialog"
       aria-modal="true"
       aria-labelledby="document-modal-title"

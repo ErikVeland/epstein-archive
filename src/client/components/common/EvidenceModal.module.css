@@ -3,7 +3,7 @@
   inset: 0;
   z-index: var(--z-modal);
   display: flex;
-  items-center: center;
+  align-items: center;
   justify-content: center;
   padding: var(--space-4);
 }
@@ -39,4 +39,6 @@
   min-height: 0;
   position: relative;
   background-color: var(--glass-bg-strong);
+  display: flex;
+  flex-direction: column;
 }

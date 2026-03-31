@@ -101,6 +101,9 @@ Thumbs.db
 # Claude Code local plugins (not project code)
 skiils/
 
+# Superpowers AI planning docs (session artifacts, not project code)
+docs/superpowers/
+
 # Test results
 test-results/
 playwright-report/

@@ -355,13 +355,25 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
         qs.set('sort', docFilters.sort);
 
         const endpoint = `/entities/${entityId}/documents?${qs.toString()}`;
-        const response = (await apiClient.get(endpoint)) as {
-          data?: EvidenceDocument[];
-          total?: number;
-        };
+        const response = (await apiClient.get(endpoint)) as any;
 
-        let newDocs = Array.isArray(response.data) ? response.data : [];
-        let total = response.total || 0;
+        let newDocs: EvidenceDocument[] = [];
+        let total = 0;
+
+        if (response && typeof response === 'object') {
+          newDocs = Array.isArray(response.data)
+            ? response.data
+            : Array.isArray(response.evidence)
+              ? response.evidence
+              : Array.isArray(response.results)
+                ? response.results
+                : [];
+          total =
+            response.total ??
+            response.count ??
+            response.totalResults ??
+            (Array.isArray(response) ? response.length : 0);
+        }
 
         if (page === 1 && newDocs.length === 0) {
           const fallback = (await apiClient.get(
@@ -383,7 +395,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
           total = filteredFallbackDocs.length || Number(fallback?.stats?.totalEvidence || 0);
         }
 
-        setDocuments((prev) => [...prev, ...newDocs]);
+        setDocuments((prev) => (page === 1 ? newDocs : [...prev, ...newDocs]));
         setTotalDocs(total);
         setHasNextPage(newDocs.length > 0 && page * 50 < total);
       } catch (error) {
@@ -543,10 +555,10 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
       riskLevel: 0,
     }));
     const links = relationships.map((r) => ({
-      source: String(entity.id),
-      target: String(r.related_entity_id || r.entity_id),
+      sourceId: String(entity.id),
+      targetId: String(r.related_entity_id || r.entity_id),
       type: r.relationship_type,
-      weight: r.strength,
+      weight: r.strength || 0.1,
     }));
     return { entities: [centralNode, ...relatedNodes], relationships: links };
   }, [entity, mediaItems, relationships]);

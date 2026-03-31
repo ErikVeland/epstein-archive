@@ -61,7 +61,7 @@ const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({ isOpen,
   ];
 
   return createPortal(
-    <div className="fixed inset-0 bg-[var(--app-bg)]/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
+    <div className="fixed inset-0 bg-[var(--app-bg)]/80 backdrop-blur-sm z-[var(--z-modal)] flex items-center justify-center p-4">
       <button
         type="button"
         className="absolute inset-0"
