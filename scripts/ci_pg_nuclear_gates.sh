@@ -159,7 +159,7 @@ fi
 if command -v psql >/dev/null 2>&1; then
   log "Media file_type completeness gate"
   MISSING_MEDIA_FILETYPE="$(
-    psql "$DATABASE_URL" -Atc "SELECT COUNT(*) FROM media_items WHERE id >= 1000000 AND (file_type IS NULL OR btrim(file_type) = '') AND file_path IS NOT NULL AND btrim(file_path) <> ''" 2>/dev/null || echo '__PSQL_ERROR__'
+    psql "$DATABASE_URL" -Atc "SELECT COUNT(*) FROM media_items WHERE (file_type IS NULL OR btrim(file_type) = '') AND file_path IS NOT NULL AND btrim(file_path) <> ''" 2>/dev/null || echo '__PSQL_ERROR__'
   )"
   if [[ "$MISSING_MEDIA_FILETYPE" == "__PSQL_ERROR__" ]]; then
     if is_ci; then
