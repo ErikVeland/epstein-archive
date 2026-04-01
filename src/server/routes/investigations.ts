@@ -12,6 +12,7 @@ import { validate } from '../middleware/validate.js';
 import archiver from 'archiver';
 import fs from 'fs';
 import path from 'path';
+import { InvestigationIngestorService } from '../services/InvestigationIngestorService.js';
 
 const router = Router();
 const DATA_ROOT = path.resolve(process.cwd(), 'data');
@@ -992,6 +993,34 @@ router.get(
       await archive.finalize();
     } catch (error) {
       next(error);
+    }
+  },
+);
+
+/**
+ * POST /api/investigations/import-report
+ * Parses a Markdown investigation report and syncs it into the database.
+ * Requires auth (admin or owner).
+ */
+router.post(
+  '/import-report',
+  authenticateRequest,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const authReq = req as AuthRequest;
+      const body = req.body as { markdown?: string; ownerId?: string };
+      if (!body.markdown || typeof body.markdown !== 'string') {
+        return res.status(400).json({ error: 'Missing required field: markdown (string)' });
+      }
+      if (body.markdown.length > 500_000) {
+        return res.status(413).json({ error: 'Report too large (max 500 KB)' });
+      }
+
+      const ownerId = body.ownerId || authReq.user?.id || 'user-1';
+      const result = await InvestigationIngestorService.ingestFromMarkdown(body.markdown, ownerId);
+      return res.status(201).json(result);
+    } catch (err) {
+      next(err);
     }
   },
 );

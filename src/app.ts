@@ -44,6 +44,7 @@ import evidenceRoutes from './server/routes/evidenceRoutes.js';
 import advancedAnalyticsRoutes from './server/routes/advancedAnalytics.js';
 import entityEvidenceRoutes from './server/routes/entityEvidenceRoutes.js';
 import investigativeTasksRoutes from './server/routes/investigativeTasks.js';
+import investigationLeadsRouter from './server/routes/investigationLeads.js';
 import articlesRoutes from './server/routes/articlesRoutes.js';
 import emailRoutes from './server/routes/emailRoutes.js';
 import financialRoutes from './server/routes/financialRoutes.js';
@@ -827,6 +828,7 @@ export class App {
     router.use('/black-book', blackBookRoutes);
     router.use('/faces', faceRoutes);
     router.use('/investigations', investigationEvidenceRoutes);
+    router.use('/investigations/:id/leads', investigationLeadsRouter);
 
     this.app.use('/api', router);
 
