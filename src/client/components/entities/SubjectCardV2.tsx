@@ -11,6 +11,9 @@ import { DriverChips } from './cards/DriverChips';
 import Tooltip from '../common/Tooltip';
 import { riskToneFromRating } from '../../utils/riskSemantics';
 import { type EvidenceLadderLevel } from '../../utils/forensics';
+import { Flex } from '../../design-system/components/layout/Flex';
+import { Stack } from '../../design-system/components/layout/Stack';
+import { Grid } from '../../design-system/components/layout/Grid';
 
 interface SubjectCardV2Props {
   subject: SubjectCardDTO;
@@ -72,7 +75,7 @@ const SubjectCardV2: React.FC<SubjectCardV2Props> = React.memo(({ subject, style
           boxShadow: `inset 0 1px 0 color-mix(in srgb, var(--text-strong) 5%, transparent), 0 12px 26px color-mix(in srgb, var(--bg-dark) 36%, transparent), 0 0 0 1px color-mix(in srgb, ${riskTone.cssVar} 22%, transparent)`,
         }}
       >
-        <div className="flex items-start gap-3 mb-2">
+        <Flex align="start" gap="md" className="mb-2">
           <div className="flex-shrink-0 relative w-10 h-10 rounded-[var(--radius-md)] overflow-hidden border border-[var(--glass-border)] bg-[var(--glass-bg-strong)]">
             {avatarUrl ? (
               <img
@@ -85,14 +88,18 @@ const SubjectCardV2: React.FC<SubjectCardV2Props> = React.memo(({ subject, style
                 }}
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-[var(--text-muted)]">
+              <Flex
+                align="center"
+                justify="center"
+                className="w-full h-full text-[var(--text-muted)]"
+              >
                 {getEntityTypeIcon('Person', 'sm', subject.role)}
-              </div>
+              </Flex>
             )}
           </div>
 
           <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between">
+            <Flex align="center" justify="between">
               <h3 className="type-h2 text-[var(--text-primary)] truncate group-hover:text-[var(--accent)] transition-colors">
                 {subject.name}
               </h3>
@@ -101,12 +108,12 @@ const SubjectCardV2: React.FC<SubjectCardV2Props> = React.memo(({ subject, style
                 ratingObjective={forensics.redFlagObjective}
                 ratingSubjective={forensics.redFlagSubjective}
               />
-            </div>
+            </Flex>
             <div className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider truncate">
               {subject.role}
             </div>
           </div>
-        </div>
+        </Flex>
 
         <div className="mb-2">
           <SignalPanel metrics={forensics.signalStrength} />
@@ -125,13 +132,17 @@ const SubjectCardV2: React.FC<SubjectCardV2Props> = React.memo(({ subject, style
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-1 py-3 mt-1 shadow-[0_-1px_0_var(--glass-border)] mb-auto">
+        <Grid cols={3} gap="sm" className="py-3 mt-1 shadow-[0_-1px_0_var(--glass-border)] mb-auto">
           <Metric label="Mentions" value={stats.mentions} />
           <Metric label="Docs" value={stats.documents} />
           <Metric label="Sources" value={stats.distinctSources} />
-        </div>
+        </Grid>
 
-        <div className="mt-3 pt-3 shadow-[0_-1px_0_var(--glass-border)] flex items-center justify-between">
+        <Flex
+          align="center"
+          justify="between"
+          className="mt-3 pt-3 shadow-[0_-1px_0_var(--glass-border)]"
+        >
           <Tooltip content="Add this entity to the current investigation" position="top-end">
             <span>
               <AddToInvestigationButton
@@ -156,7 +167,7 @@ const SubjectCardV2: React.FC<SubjectCardV2Props> = React.memo(({ subject, style
               View <Icon name="ArrowRight" size="xs" />
             </button>
           </Tooltip>
-        </div>
+        </Flex>
       </article>
     </div>
   );
@@ -180,7 +191,7 @@ const Metric = ({
   const content = descriptions[label] || '';
   return (
     <Tooltip content={content} position="top">
-      <div className="flex flex-col items-center">
+      <Stack align="center" gap="xs">
         <span className="text-[8px] uppercase text-[var(--text-muted)] font-bold tracking-wider">
           {label}
         </span>
@@ -189,7 +200,7 @@ const Metric = ({
         >
           {formatNumber(value)}
         </span>
-      </div>
+      </Stack>
     </Tooltip>
   );
 };
