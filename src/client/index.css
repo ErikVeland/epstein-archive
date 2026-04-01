@@ -1,5 +1,6 @@
-@import 'tailwindcss';
-
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 :root {
   /* Core Foundation */
   --radius-sm: 4px;
