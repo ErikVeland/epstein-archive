@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { BrowseFilters, Document } from '../types/documents';
 import { apiClient } from '../services/apiClient';
@@ -138,7 +138,9 @@ export function useDocumentBrowserData({
   );
 
   // Reset to page 1 when filters change
-  useLayoutEffect(() => {
+  // This effect intentionally resets state based on prop changes
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => {
     setCurrentPage(1);
   }, [queryKey]);
 

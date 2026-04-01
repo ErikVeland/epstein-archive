@@ -1,4 +1,4 @@
-import { useCallback, useState, useLayoutEffect, useEffect } from 'react';
+import { useCallback, useState, useLayoutEffect, useEffect, useRef } from 'react';
 
 /**
  * Hook for navigating between search highlights with keyboard shortcuts
@@ -10,24 +10,32 @@ export function useHighlightNavigation(
 ) {
   const [currentHighlightIndex, setCurrentHighlightIndex] = useState(0);
   const [totalHighlights, setTotalHighlights] = useState(0);
+  const highlightCountRef = useRef(0);
 
-  // Update highlight count when search term or container changes
-  useLayoutEffect(() => {
+  const updateHighlights = useCallback(() => {
     if (!searchTerm || !containerRef.current) {
       setTotalHighlights(0);
+      highlightCountRef.current = 0;
       setCurrentHighlightIndex(0);
       return;
     }
 
-    // Count all <mark> elements (highlights) in the container
     const marks = containerRef.current.querySelectorAll('mark');
+    highlightCountRef.current = marks.length;
     setTotalHighlights(marks.length);
+    setCurrentHighlightIndex(0);
     if (marks.length > 0) {
-      setCurrentHighlightIndex(0);
-      // Scroll to first highlight
       marks[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }, [searchTerm, containerRef]);
+
+  // Update highlight count when search term or container changes
+  // This effect intentionally updates state for DOM synchronization
+  // The setState calls are necessary for tracking highlight state
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useLayoutEffect(() => {
+    updateHighlights();
+  }, [updateHighlights]);
 
   // Navigate to next highlight
   const nextHighlight = useCallback(() => {
