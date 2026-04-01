@@ -160,7 +160,18 @@ export class AIEnrichmentService {
           });
 
           if (!response.ok) {
-            throw new Error(`Exo cluster returned ${response.status}`);
+            const errorText = await response.text();
+            // Check for vision model errors
+            if (
+              errorText.includes('does not support image input') ||
+              errorText.includes('Cannot read')
+            ) {
+              logger.warn(
+                `⚠️ Exo model ${modelId} does not support image input - using text-only mode`,
+              );
+              return '';
+            }
+            throw new Error(`Exo cluster returned ${response.status}: ${errorText.slice(0, 200)}`);
           }
 
           interface ExoCompletionResponse {
@@ -186,7 +197,18 @@ export class AIEnrichmentService {
           });
 
           if (!response.ok) {
-            throw new Error(`Ollama returned ${response.status}`);
+            const errorText = await response.text();
+            // Check for vision model errors
+            if (
+              errorText.includes('does not support image input') ||
+              errorText.includes('Cannot read')
+            ) {
+              logger.warn(
+                `⚠️ Ollama model ${modelId} does not support image input - using text-only mode`,
+              );
+              return '';
+            }
+            throw new Error(`Ollama returned ${response.status}: ${errorText.slice(0, 200)}`);
           }
 
           interface OllamaGenerateResponse {
@@ -202,6 +224,19 @@ export class AIEnrichmentService {
           err.message?.includes('fetch failed') ||
           err.code === 'ECONNRESET' ||
           err.cause?.code === 'ECONNRESET';
+
+        // Handle vision model errors gracefully - text-only models don't support images
+        const isVisionError =
+          err.message?.includes('does not support image input') ||
+          (err.message?.includes('Cannot read') && err.message?.includes('image'));
+
+        if (isVisionError) {
+          logger.warn(
+            { err: e },
+            '⚠️ AI model does not support image input - falling back to text-only processing',
+          );
+          return '';
+        }
 
         if (attempt > retryCount) {
           logger.error({ err: e }, `❌ AI Enrichment failed after ${retryCount + 1} attempts`);
