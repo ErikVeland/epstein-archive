@@ -1,3 +1,5 @@
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
+import { join } from 'path';
 import { Client } from 'pg';
 import {
   computeSha256Hex,
@@ -28,6 +30,8 @@ type Row = {
 const BATCH_SIZE = Number(process.env.PROVENANCE_BACKFILL_BATCH || 200);
 const MAX_ROWS = Number(process.env.PROVENANCE_BACKFILL_MAX || 0);
 const TOOL_VERSION = '1.0.0';
+const CHECKPOINT_DIR = './pipeline_checkpoints';
+const CHECKPOINT_FILE = join(CHECKPOINT_DIR, 'provenance_backfill.json');
 
 function asObject(value: unknown): Record<string, unknown> {
   if (value && typeof value === 'object' && !Array.isArray(value)) {
@@ -81,6 +85,44 @@ function toNullableNumericId(value: unknown): number | null {
   return null;
 }
 
+function loadCheckpoint(): number {
+  if (process.argv.includes('--reset')) {
+    console.log('[document-provenance-backfill] --reset flag detected, starting from ID 0');
+    return 0;
+  }
+
+  if (existsSync(CHECKPOINT_FILE)) {
+    try {
+      const data = JSON.parse(readFileSync(CHECKPOINT_FILE, 'utf8'));
+      const lastId = typeof data.lastId === 'string' ? parseInt(data.lastId, 10) : data.lastId;
+      if (typeof lastId === 'number' && !isNaN(lastId)) {
+        console.log(`[document-provenance-backfill] Resuming from checkpoint: lastId=${lastId}`);
+        return lastId;
+      }
+    } catch (e) {
+      console.warn(
+        '[document-provenance-backfill] Failed to read checkpoint file, starting from 0',
+        e,
+      );
+    }
+  }
+  return 0;
+}
+
+function saveCheckpoint(lastId: number) {
+  try {
+    if (!existsSync(CHECKPOINT_DIR)) {
+      mkdirSync(CHECKPOINT_DIR, { recursive: true });
+    }
+    writeFileSync(
+      CHECKPOINT_FILE,
+      JSON.stringify({ lastId, updatedAt: new Date().toISOString() }, null, 2),
+    );
+  } catch (e) {
+    console.error('[document-provenance-backfill] Failed to save checkpoint', e);
+  }
+}
+
 async function main() {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) throw new Error('DATABASE_URL is required');
@@ -91,7 +133,7 @@ async function main() {
   });
   await client.connect();
 
-  let lastId = 0;
+  let lastId = loadCheckpoint();
   let processed = 0;
   let updated = 0;
 
@@ -385,6 +427,7 @@ async function main() {
       console.log(
         `[document-provenance-backfill] progress processed=${processed} updated=${updated} lastId=${lastId}`,
       );
+      saveCheckpoint(lastId);
 
       if (rows.length < limit) break;
     }
