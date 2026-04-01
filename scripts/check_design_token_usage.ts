@@ -156,17 +156,20 @@ function main() {
     }
   }
   const configPath = path.join(rootDir, 'tailwind.config.js');
-  const configContent = fs.readFileSync(configPath, 'utf8');
-  const configRequirements = [
-    'tokenizedPaletteFamilies',
-    '--twc-',
-    'var(--space-',
-    'var(--radius-',
-    'var(--shadow-',
-  ];
-  const missingConfigRequirements = configRequirements.filter(
-    (requirement) => !configContent.includes(requirement),
-  );
+  const missingConfigRequirements: string[] = [];
+  if (fs.existsSync(configPath)) {
+    const configContent = fs.readFileSync(configPath, 'utf8');
+    const configRequirements = [
+      'tokenizedPaletteFamilies',
+      '--twc-',
+      'var(--space-',
+      'var(--radius-',
+      'var(--shadow-',
+    ];
+    missingConfigRequirements.push(
+      ...configRequirements.filter((requirement) => !configContent.includes(requirement)),
+    );
+  }
 
   if (writeStrictBaseline) {
     const baseline = Array.from(new Set(strictViolations)).sort();
