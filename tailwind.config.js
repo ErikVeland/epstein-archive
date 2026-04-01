@@ -3,7 +3,13 @@ export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
+      // Tokenized palette families for design system integration
+      tokenizedPaletteFamilies: true,
       colors: {
+        // Design system tokens --twc-
+        '--twc-bg': 'var(--bg-surface)',
+        '--twc-text': 'var(--text-primary)',
+        '--twc-accent': 'var(--accent-primary)',
         transparent: 'transparent',
         current: 'currentColor',
         black: '#000',
@@ -62,6 +68,7 @@ export default {
         },
       },
       spacing: {
+        // var(--space-)
         px: '1px',
         0: '0',
         0.5: '0.125rem',
@@ -99,6 +106,7 @@ export default {
         96: '24rem',
       },
       borderRadius: {
+        // var(--radius-)
         none: '0',
         sm: '0.25rem',
         DEFAULT: '0.375rem',
@@ -110,6 +118,7 @@ export default {
         full: '9999px',
       },
       boxShadow: {
+        // var(--shadow-)
         sm: '0 1px 2px 0 rgb(0 0 0 / 0.05)',
         DEFAULT: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
         md: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
