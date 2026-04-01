@@ -12,18 +12,30 @@
 
 @media (min-width: 768px) {
   .lq-grid {
-    grid-template-columns: repeat(var(--grid-cols-md, var(--grid-cols-sm, var(--grid-cols, 1))), minmax(0, 1fr));
+    grid-template-columns: repeat(
+      var(--grid-cols-md, var(--grid-cols-sm, var(--grid-cols, 1))),
+      minmax(0, 1fr)
+    );
   }
 }
 
 @media (min-width: 1024px) {
   .lq-grid {
-    grid-template-columns: repeat(var(--grid-cols-lg, var(--grid-cols-md, var(--grid-cols-sm, var(--grid-cols, 1)))), minmax(0, 1fr));
+    grid-template-columns: repeat(
+      var(--grid-cols-lg, var(--grid-cols-md, var(--grid-cols-sm, var(--grid-cols, 1)))),
+      minmax(0, 1fr)
+    );
   }
 }
 
 @media (min-width: 1280px) {
   .lq-grid {
-    grid-template-columns: repeat(var(--grid-cols-xl, var(--grid-cols-lg, var(--grid-cols-md, var(--grid-cols-sm, var(--grid-cols, 1))))), minmax(0, 1fr));
+    grid-template-columns: repeat(
+      var(
+        --grid-cols-xl,
+        var(--grid-cols-lg, var(--grid-cols-md, var(--grid-cols-sm, var(--grid-cols, 1))))
+      ),
+      minmax(0, 1fr)
+    );
   }
 }
