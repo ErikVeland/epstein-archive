@@ -1,5 +1,15 @@
 # Release Notes
 
+## v18.2.1 - 2026-04-01 - Hotfix: Restore Tailwind CSS
+
+This patch restores Tailwind CSS which was accidentally removed in the Autumn cleanup commit, causing styling to break across the application.
+
+### Bug Fixes
+
+- Restored `tailwind.config.js` and `postcss.config.js`
+- Updated `index.css` to use Tailwind 4's `@import "tailwindcss"` syntax
+- Installed `@tailwindcss/postcss` and `@tailwindcss/vite` packages
+
 ## v18.2.0 - 2026-04-01 - Pipeline Intelligence & Telemetry
 
 This release adds comprehensive telemetry to the intelligence pipeline, fixes critical attachment extraction bugs, and implements entity blacklist enforcement during ingestion.
