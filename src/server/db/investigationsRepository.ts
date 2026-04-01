@@ -863,4 +863,128 @@ export const investigationsRepository = {
 
     return rows.map((inv) => mapInvestigation(inv));
   },
+
+  // ─── Leads ──────────────────────────────────────────────────────────────────
+
+  getLeads: async (investigationId: number, options?: { status?: string }) => {
+    const pool = getApiPool();
+    let sql = `
+      SELECT l.*, d.title AS document_title
+      FROM investigation_leads l
+      LEFT JOIN documents d ON l.source_document_id = d.id
+      WHERE l.investigation_id = $1
+    `;
+    const queryParams: unknown[] = [investigationId];
+
+    if (options?.status && options.status !== 'all') {
+      sql += ` AND l.status = $2`;
+      queryParams.push(options.status);
+    }
+
+    sql += ` ORDER BY
+      CASE l.priority WHEN 'critical' THEN 1 WHEN 'high' THEN 2 WHEN 'medium' THEN 3 ELSE 4 END,
+      l.created_at DESC`;
+
+    const result = await pool.query(sql, queryParams);
+    return result.rows;
+  },
+
+  createLead: async (
+    investigationId: number,
+    data: {
+      title: string;
+      description?: string | null;
+      status?: string;
+      priority?: string;
+      source_document_id?: number | null;
+      source_efta_ref?: string | null;
+      assigned_to?: string | null;
+      created_by?: string;
+      resolution_notes?: string | null;
+    },
+  ) => {
+    const pool = getApiPool();
+    const result = await pool.query(
+      `INSERT INTO investigation_leads
+        (investigation_id, title, description, status, priority,
+         source_document_id, source_efta_ref, assigned_to, created_by, resolution_notes)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        RETURNING *`,
+      [
+        investigationId,
+        data.title,
+        data.description ?? null,
+        data.status ?? 'open',
+        data.priority ?? 'medium',
+        data.source_document_id ?? null,
+        data.source_efta_ref ?? null,
+        data.assigned_to ?? null,
+        data.created_by ?? 'system',
+        data.resolution_notes ?? null,
+      ],
+    );
+    return result.rows[0];
+  },
+
+  updateLead: async (
+    leadId: number,
+    investigationId: number,
+    updates: {
+      title?: string;
+      description?: string | null;
+      status?: string;
+      priority?: string;
+      source_document_id?: number | null;
+      source_efta_ref?: string | null;
+      assigned_to?: string | null;
+      resolution_notes?: string | null;
+    },
+  ) => {
+    const pool = getApiPool();
+    const setClauses: string[] = ['updated_at = CURRENT_TIMESTAMP'];
+    const values: unknown[] = [];
+    let idx = 1;
+
+    const fieldMap: Record<string, string> = {
+      title: 'title',
+      description: 'description',
+      status: 'status',
+      priority: 'priority',
+      source_document_id: 'source_document_id',
+      source_efta_ref: 'source_efta_ref',
+      assigned_to: 'assigned_to',
+      resolution_notes: 'resolution_notes',
+    };
+
+    for (const [key, col] of Object.entries(fieldMap)) {
+      if (Object.prototype.hasOwnProperty.call(updates, key)) {
+        setClauses.push(`${col} = $${idx++}`);
+        values.push((updates as Record<string, unknown>)[key] ?? null);
+      }
+    }
+
+    if (updates.status === 'resolved') {
+      setClauses.push(`resolved_at = CURRENT_TIMESTAMP`);
+    }
+
+    values.push(leadId, investigationId);
+    const query = `
+      UPDATE investigation_leads
+      SET ${setClauses.join(', ')}
+      WHERE id = $${idx++} AND investigation_id = $${idx}
+      RETURNING *
+    `;
+
+    const result = await pool.query(query, values);
+    return result.rows[0] ?? null;
+  },
+
+  deleteLead: async (leadId: number, investigationId: number) => {
+    const pool = getApiPool();
+    const result = await pool.query(
+      `DELETE FROM investigation_leads WHERE id = $1 AND investigation_id = $2`,
+      [leadId, investigationId],
+    );
+    return (result.rowCount ?? 0) > 0;
+  },
 };
