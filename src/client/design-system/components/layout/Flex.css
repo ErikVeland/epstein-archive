@@ -1,0 +1,7 @@
+.lq-flex {
+  display: flex;
+  flex-direction: var(--flex-direction, row);
+  align-items: var(--flex-align, stretch);
+  justify-content: var(--flex-justify, flex-start);
+  flex-wrap: var(--flex-wrap, nowrap);
+}

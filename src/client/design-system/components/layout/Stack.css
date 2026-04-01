@@ -1,0 +1,5 @@
+.lq-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: var(--stack-align, stretch);
+}

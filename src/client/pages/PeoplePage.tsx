@@ -10,6 +10,9 @@ import PersonCardSkeleton from '../components/entities/PersonCardSkeleton';
 import { Person, SubjectCardDTO } from '../types';
 import { useSubjectsQuery } from '../hooks/useSubjectsQuery';
 import { GlassButton } from '../components/ui/GlassButton';
+import { Grid } from '../design-system/components/layout/Grid';
+import { Flex } from '../design-system/components/layout/Flex';
+import { Stack } from '../design-system/components/layout/Stack';
 
 interface DataStats {
   totalPeople: number;
@@ -121,10 +124,7 @@ export const PeoplePage: React.FC<PeoplePageProps> = ({
   return (
     <ScopedErrorBoundary>
       <Profiler id="PeoplePage" onRender={onRenderCallback}>
-        <div
-          data-testid="people-page"
-          className="surface-glass space-y-5 h-full flex flex-col p-4 md:p-5"
-        >
+        <Stack data-testid="people-page" className="surface-glass h-full px-4 py-4" gap="lg">
           {loading && !dataStats.totalPeople ? (
             <StatsSkeleton />
           ) : (
@@ -136,76 +136,99 @@ export const PeoplePage: React.FC<PeoplePageProps> = ({
             />
           )}
 
-          <div className="surface-glass-card relative z-40 p-3 md:p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3 flex-shrink-0">
-            <div className="flex items-center gap-2">
+          <Flex
+            wrap="wrap"
+            align="center"
+            justify="between"
+            gap="md"
+            className="surface-glass-card relative z-40 px-3 py-3 flex-shrink-0"
+          >
+            <Flex align="center" gap="sm">
               <Icon name="Users" size="sm" color="info" className="flex-shrink-0" />
               <p className="text-[var(--text-primary)] text-sm">
                 {total.toLocaleString()} subjects • Page {page}/{totalPagesLocal || 1}
               </p>
-            </div>
+            </Flex>
 
-            <div className="w-full md:w-auto grid grid-cols-1 sm:grid-cols-[1fr_1fr_auto] gap-2 md:flex md:items-center font-sans">
+            <Flex
+              wrap="wrap"
+              align="center"
+              gap="sm"
+              className="w-full font-sans"
+              style={{ flex: 1, justifyContent: 'flex-end', minWidth: '320px' }}
+            >
               {isAdmin && (
                 <GlassButton
                   onClick={onAddSubject}
                   variant="secondary"
                   size="sm"
-                  className="hidden md:flex items-center gap-2"
+                  className="hidden items-center gap-2"
+                  style={{ display: 'flex' }}
                 >
                   <Icon name="Plus" size="sm" />
                   <span className="hidden sm:inline">Add Subject</span>
                 </GlassButton>
               )}
 
-              <EntityTypeFilter
-                value={entityType}
-                onChange={onEntityTypeChange}
-                className="w-full md:w-auto"
-              />
+              <div style={{ flex: 1, minWidth: '150px', maxWidth: '300px' }}>
+                <EntityTypeFilter
+                  value={entityType}
+                  onChange={onEntityTypeChange}
+                  className="w-full"
+                />
+              </div>
 
-              <SortFilter
-                value={sortBy}
-                onChange={(val) => onSortByChange(val)}
-                options={[
-                  { value: 'red_flag', label: 'Red Flag', icon: <Icon name="Flag" size="sm" /> },
-                  {
-                    value: 'mentions',
-                    label: 'Mentions',
-                    icon: <Icon name="BarChart3" size="sm" />,
-                  },
-                  {
-                    value: 'risk',
-                    label: 'Risk',
-                    icon: <Icon name="AlertTriangle" size="sm" />,
-                  },
-                  { value: 'name', label: 'Name', icon: <Icon name="User" size="sm" /> },
-                ]}
-                className="w-full md:w-auto"
-              />
+              <div style={{ flex: 1, minWidth: '150px', maxWidth: '300px' }}>
+                <SortFilter
+                  value={sortBy}
+                  onChange={(val) => onSortByChange(val)}
+                  options={[
+                    { value: 'red_flag', label: 'Red Flag', icon: <Icon name="Flag" size="sm" /> },
+                    {
+                      value: 'mentions',
+                      label: 'Mentions',
+                      icon: <Icon name="BarChart3" size="sm" />,
+                    },
+                    {
+                      value: 'risk',
+                      label: 'Risk',
+                      icon: <Icon name="AlertTriangle" size="sm" />,
+                    },
+                    { value: 'name', label: 'Name', icon: <Icon name="User" size="sm" /> },
+                  ]}
+                  className="w-full"
+                />
+              </div>
 
               <GlassButton
                 onClick={onSortOrderToggle}
                 variant="ghost"
                 size="sm"
-                className="h-11 w-11 shrink-0 !px-0 !py-0"
+                className="h-11 w-11 shrink-0 px-0 py-0"
                 title={`Sort ${sortOrder === 'asc' ? 'Descending' : 'Ascending'}`}
                 aria-label={`Sort ${sortOrder === 'asc' ? 'Descending' : 'Ascending'}`}
               >
                 {sortOrder === 'asc' ? '↑' : '↓'}
               </GlassButton>
-            </div>
-            <div className="text-xs text-[var(--text-muted)] uppercase tracking-[0.12em]">
+            </Flex>
+            <div
+              className="text-xs text-[var(--text-muted)] uppercase tracking-[0.12em] w-full mt-1"
+              style={{ textAlign: 'right' }}
+            >
               Sort: {sortBy.replace('_', ' ')} ({sortOrder})
             </div>
-          </div>
+          </Flex>
 
-          <div className="surface-glass-card flex-1 min-h-[600px] w-full p-4 md:p-5">
+          <div
+            className="surface-glass-card flex-1 min-h-[600px] w-full px-4 py-4"
+            style={{ height: '100%' }}
+          >
             {loading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              <Grid cols={{ base: 1, md: 2, xl: 3 }} gap="md">
                 {[...Array(6)].map((_, i) => (
                   <PersonCardSkeleton key={i} />
                 ))}
-              </div>
+              </Grid>
             ) : subjects.length === 0 ? (
               <div className="surface-glass-card text-center py-12 px-4">
                 <Icon name="Users" size="xl" color="gray" className="mx-auto mb-4" />
@@ -217,7 +240,7 @@ export const PeoplePage: React.FC<PeoplePageProps> = ({
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-4">
+              <Grid cols={{ base: 1, md: 2, xl: 3 }} gap="md">
                 {subjects.map((subject) => (
                   <SubjectCardV2
                     key={subject.id}
@@ -225,16 +248,17 @@ export const PeoplePage: React.FC<PeoplePageProps> = ({
                     onClick={() => handleSubjectClick(subject)}
                   />
                 ))}
-              </div>
+              </Grid>
             )}
           </div>
 
           {totalPagesLocal > 1 && (
-            <div className="flex items-center justify-center gap-3 mt-4 flex-shrink-0 pb-4">
+            <Flex justify="center" align="center" gap="md" className="mt-4 flex-shrink-0 pb-4">
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
                 className="control px-4 text-[var(--text-primary)] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--glass-bg-highlight)] flex items-center gap-2"
+                style={{ display: 'flex', alignItems: 'center' }}
               >
                 <Icon name="ChevronLeft" size="sm" />
                 <span>Previous</span>
@@ -251,13 +275,14 @@ export const PeoplePage: React.FC<PeoplePageProps> = ({
                 onClick={() => setPage((p) => Math.min(totalPagesLocal, p + 1))}
                 disabled={page === totalPagesLocal}
                 className="control px-4 text-[var(--text-primary)] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--glass-bg-highlight)] flex items-center gap-2"
+                style={{ display: 'flex', alignItems: 'center' }}
               >
                 <span>Next</span>
                 <Icon name="ChevronRight" size="sm" />
               </button>
-            </div>
+            </Flex>
           )}
-        </div>
+        </Stack>
       </Profiler>
     </ScopedErrorBoundary>
   );
