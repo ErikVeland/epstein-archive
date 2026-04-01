@@ -136,3 +136,5 @@ local_prod_*.gz
 test-promotion.db
 server.log
 api-server.log
+.vercel
+.env*.local

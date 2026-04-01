@@ -177,7 +177,7 @@ export class CompetitiveOCRService {
     const scoredResults = results.map((r) => {
       // 1. Word Density: What % of tokens are common English words?
       // This helps detect "high confidence gibberish" (e.g. "x8#k9!a")
-      const tokens = r.text.toLowerCase().split(/[\s\n.,;!?()\[\]"'-]+/);
+      const tokens = r.text.toLowerCase().split(/[\s\n.,;!?()[\]"'-]+/);
       const validTokens = tokens.filter((t) => t.length > 1); // Ignore single chars
       const commonCount = validTokens.filter((t) => this.commonWords.has(t)).length;
       const wordDensity = validTokens.length > 0 ? commonCount / validTokens.length : 0;

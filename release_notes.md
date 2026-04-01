@@ -1,5 +1,44 @@
 # Release Notes
 
+## v18.2.0 - 2026-04-01 - Pipeline Intelligence & Telemetry
+
+This release adds comprehensive telemetry to the intelligence pipeline, fixes critical attachment extraction bugs, and implements entity blacklist enforcement during ingestion.
+
+### What's New for Users
+
+**Pipeline Telemetry**
+
+- Real-time metrics collection for entity extraction including total mentions, unique entities, and entities by type
+- Blocked entity tracking to monitor junk entity filtering effectiveness
+- Credentials and contacts extracted count displayed in pipeline summary
+- Live status file enriched with full metrics for monitoring dashboards
+
+**Blacklist Enforcement**
+
+- Integrated `ENTITY_BLACKLIST_PATTERNS` and `ENTITY_PARTIAL_BLOCKLIST` into the intelligence pipeline
+- Entities matching blocklist patterns are now filtered during extraction, not after
+- Blocked entity counts tracked for quality monitoring
+
+**Attachment Pipeline Fixes**
+
+- Email attachments are now properly extracted and stored during ingestion
+- Attachments are recursively processed as separate documents with proper parent linkage
+- Attachment directory organization using SHA256 hashing for deduplication
+- `data/attachments/{sha256-hash}/` structure enables duplicate detection
+
+### Bug Fixes
+
+- Fixed attachment extraction never running due to `_attachments` never being assigned
+- Fixed attachment directories using `undefined` as path due to missing `_emailSha256` assignment
+- Fixed multiple catch blocks silently ignoring errors without any logging
+
+### Under the Hood
+
+- Added `PipelineAudit` class for comprehensive error aggregation
+- Error categorization enables targeted troubleshooting (overlay_inference, email_metadata_parse, etc.)
+- pHash failure tracking for image quality monitoring
+- All catch blocks now record errors to the audit log
+
 ## v18.1.1 - 2026-03-31 - Network Graph Fixes & UI Polish
 
 This patch release restores network graph edge visibility, fixes data mapping in the Evidence modal, and improves the Document Browser layout for better mobile and desktop consistency.

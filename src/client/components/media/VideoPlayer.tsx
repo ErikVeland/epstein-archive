@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react';
 import {
   Play,
   Pause,
@@ -69,7 +69,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [showFullTranscriptOverlay, setShowFullTranscriptOverlay] = useState(false);
   const overlayRef = useRef<HTMLDivElement>(null);
-  const lastInteractionRef = useRef<number>(Date.now());
+  const lastInteractionRef = useRef<number>(0);
   const [showCopied, setShowCopied] = useState(false);
   const sidebarSearchInputRef = useRef<HTMLInputElement | null>(null);
   const overlaySearchInputRef = useRef<HTMLInputElement | null>(null);
@@ -95,7 +95,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       .map(({ index }) => index);
   }, [transcript, normalizedTranscriptQuery]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     setCurrentMatchIndex(0);
   }, [normalizedTranscriptQuery, transcriptMatches.length]);
 
@@ -134,7 +134,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   };
 
   // Reset hasRevealed if isSensitive changes
-  useEffect(() => {
+  useLayoutEffect(() => {
     setHasRevealed(!isSensitive);
   }, [isSensitive]);
 

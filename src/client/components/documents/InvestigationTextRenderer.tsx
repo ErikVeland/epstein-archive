@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Sparkles, AlertCircle, ChevronRight, ChevronLeft, FileText } from 'lucide-react';
 import { prettifyOCRText } from '../../utils/prettifyOCR';
 
@@ -74,7 +74,7 @@ const applySearchHighlight = (html: string, term?: string): string => {
 
 const parseSections = (text: string): ParsedSection[] => {
   const lines = text.split('\n');
-  const headingRegex = /^[A-Z][A-Z0-9\s\-\/:&]{5,}$/;
+  const headingRegex = /^[A-Z][A-Z0-9\s\-/:&]{5,}$/;
   const headingIndices: Array<{ index: number; title: string }> = [];
 
   lines.forEach((line, index) => {
@@ -273,7 +273,7 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
     if (typeof ocrConf === 'number' && ocrConf < 0.6) return true;
     const text = String(document?.content || '');
     if (text.length > 500) {
-      const gibberishMatch = text.match(/[^a-zA-Z0-9\s\.,\-\n]/g);
+      const gibberishMatch = text.match(/[^a-zA-Z0-9\s.,\-\n]/g);
       if (gibberishMatch && gibberishMatch.length / text.length > 0.15) return true;
     }
     return false;
@@ -346,23 +346,31 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
   );
 
   const processedSections = useMemo(() => {
-    let remaining = lineLimit;
-    return sectionLinesRaw
-      .map((section) => {
-        if (remaining <= 0) return null;
-        const take = Math.min(section.lines.length, remaining);
-        remaining -= take;
+    return sectionLinesRaw.reduce<{
+      sections: (ParsedSection & { lines: string[] })[];
+      used: number;
+    }>(
+      (acc, section) => {
+        if (acc.used >= lineLimit) return acc;
+        const take = Math.min(section.lines.length, lineLimit - acc.used);
         return {
-          ...section,
-          lines: section.lines.slice(0, take).map((line) => renderLineHtml(line)),
+          sections: [
+            ...acc.sections,
+            {
+              ...section,
+              lines: section.lines.slice(0, take).map((line) => renderLineHtml(line)),
+            },
+          ],
+          used: acc.used + take,
         };
-      })
-      .filter((section): section is ParsedSection & { lines: string[] } => Boolean(section));
+      },
+      { sections: [], used: 0 },
+    ).sections;
   }, [lineLimit, renderLineHtml, sectionLinesRaw]);
 
   const hasMoreLines = lineLimit < totalLineCount;
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     setLineLimit(1400);
   }, [baseText]);
 
@@ -380,12 +388,15 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
     return () => observer.disconnect();
   }, [hasMoreLines, totalLineCount]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!searchTerm) {
       setMatchCount(0);
       setCurrentMatchIndex(0);
-      return;
     }
+  }, [searchTerm]);
+
+  useEffect(() => {
+    if (!searchTerm) return;
     const matches = containerRef.current?.querySelectorAll('.search-match');
     const count = matches?.length || 0;
     setMatchCount(count);

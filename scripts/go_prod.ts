@@ -124,9 +124,9 @@ async function main() {
     for (const table of HOT_TABLES) {
       try {
         await client.query(`VACUUM ANALYZE ${table}`);
-      } catch (err: any) {
+      } catch (_e) {
         // Non-fatal: table may not exist or shm limit hit
-        console.warn(`\n     ⚠️  ${table}: ${err.message}`);
+        console.warn(`\n     ⚠️  ${table}: ${_e instanceof Error ? _e.message : 'unknown error'}`);
       }
     }
     await client.end();
@@ -137,7 +137,7 @@ async function main() {
     for (const view of VIEWS) {
       try {
         await pool.query(`REFRESH MATERIALIZED VIEW CONCURRENTLY ${view}`);
-      } catch (concErr: any) {
+      } catch (_concErr: any) {
         // Fallback if unique index missing
         await pool.query(`REFRESH MATERIALIZED VIEW ${view}`);
       }

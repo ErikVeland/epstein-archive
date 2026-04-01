@@ -1,4 +1,4 @@
-import { useState, useCallback, ReactNode, useEffect } from 'react';
+import { useState, useCallback, ReactNode, useLayoutEffect } from 'react';
 import { ToastCtx, Toast } from './toastContext';
 import { CloseButton } from './CloseButton';
 import s from './ToastProvider.module.css';
@@ -20,7 +20,7 @@ export default function ToastProvider({ children }: { children: ReactNode }) {
     setToasts((prev) => prev.filter((x) => x.id !== id));
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (toasts.length > 6) setToasts((prev) => prev.slice(-6));
   }, [toasts]);
 

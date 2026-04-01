@@ -44,7 +44,7 @@ export function prettifyOCRText(rawText: string): string {
     .replace(/\(\s*\)/g, '') // Empty parentheses
     .replace(/\[\s*\]/g, '') // Empty brackets
     .replace(/^\s*[-–—]\s*$/gm, '') // Lines that are just dashes
-    .replace(/^[\.,:;]+$/gm, ''); // Lines that are just punctuation
+    .replace(/^[.,:;]+$/gm, ''); // Lines that are just punctuation
 
   // Step 3: Remove OCR artifacts (common noise patterns)
   // Note: Control characters range includes \n (0x0A), so we must be careful not to strip it
@@ -83,7 +83,7 @@ export function prettifyOCRText(rawText: string): string {
 
     // Strict list detection (must start with pattern)
     // Anchored regex to avoid matching digits/parens mid-sentence
-    const isList = /^[•\-\*]/.test(line) || /^\d+\./.test(line) || /^\([a-z]\)/.test(line);
+    const isList = /^[•\-*]/.test(line) || /^\d+\./.test(line) || /^\([a-z]\)/.test(line);
     const isHeader = /^[A-Z][A-Z\s\d:.]{4,}$/.test(line); // Heuristic for headers
 
     if (currentPara === '') {
@@ -119,10 +119,10 @@ export function prettifyOCRText(rawText: string): string {
 
   // Step 5: Format phone numbers more cleanly
   // Do this AFTER paragraphs to allow patterns to span if needed (though we merged newlines)
-  text = text.replace(/(\d{3})[\s\.\-]*(\d{3})[\s\.\-]*(\d{4})/g, '$1-$2-$3');
+  text = text.replace(/(\d{3})[\s.-]*(\d{3})[\s.-]*(\d{4})/g, '$1-$2-$3');
 
   // UK phone formatting
-  text = text.replace(/(0\d{3,4})[\s\.\-]*(\d{3,4})[\s\.\-]*(\d{3,4})/g, '$1 $2 $3');
+  text = text.replace(/(0\d{3,4})[\s.-]*(\d{3,4})[\s.-]*(\d{3,4})/g, '$1 $2 $3');
 
   // Step 6: Labels and Annotations
   const labels = [
@@ -167,7 +167,7 @@ export function extractCleanName(rawText: string): string {
 
   return (
     firstLine
-      .replace(/[^a-zA-Z\s,&'.\-]/g, '') // Remove non-name characters
+      .replace(/[^a-zA-Z\s,&'.-]/g, '') // Remove non-name characters
       .replace(/\s+/g, ' ') // Normalize spaces
       .replace(/,\s*$/, '') // Remove trailing comma
       .trim() || 'Unknown'

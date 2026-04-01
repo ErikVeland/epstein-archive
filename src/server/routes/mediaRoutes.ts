@@ -527,8 +527,9 @@ const avListQuerySchema = z.object({
     page: z.coerce.number().int().min(1).default(1),
     limit: z.coerce.number().int().min(1).max(500).default(24),
     albumId: z.coerce.number().int().positive().optional(),
-    sortBy: z.enum(['title', 'date', 'rating']).optional(),
+    sortBy: z.enum(['title', 'date', 'rating', 'date_taken']).optional(),
     transcriptQuery: z.string().optional(),
+    hasPeople: z.preprocess((v) => v === 'true' || v === true, z.boolean()).optional(),
   }),
 });
 
@@ -536,15 +537,16 @@ const makeAvListHandler =
   (fileType: 'audio' | 'video') => async (req: Request, res: Response, next: NextFunction) => {
     try {
       const query = req.query as Record<string, string | undefined>;
-      const { page, limit, albumId, sortBy, transcriptQuery } = query;
+      const { page, limit, albumId, sortBy, transcriptQuery, hasPeople } = query;
       const result = await mediaRepository.getMediaItemsPaginated(
         Number(page || 1),
         Number(limit || 24),
         {
           fileType,
           albumId: albumId ? Number(albumId) : undefined,
-          sortBy: (sortBy as 'title' | 'date' | 'rating') ?? 'title',
+          sortBy: (sortBy as 'title' | 'date' | 'rating' | 'date_taken') ?? 'title',
           transcriptQuery: transcriptQuery || undefined,
+          hasPeople: hasPeople === 'true',
         },
       );
       res.json(result);

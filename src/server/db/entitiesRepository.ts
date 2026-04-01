@@ -1014,13 +1014,15 @@ export const entitiesRepository = {
     };
     const orderBy = ALLOWED_SORTS[filters?.sort ?? ''] ?? ALLOWED_SORTS['date'];
 
-    params.push(safeLimit, offset);
-    const limitIdx = params.length - 1;
-    const offsetIdx = params.length;
-
     const result = await pool.query(
-      `SELECT DISTINCT ON (em.document_id)
-         em.document_id                          AS id,
+      `WITH entity_docs AS (
+         SELECT DISTINCT ON (em.document_id)
+           em.document_id
+         FROM entity_mentions em
+         WHERE em.entity_id = $1::bigint
+       )
+       SELECT
+         ed.document_id                          AS id,
          COALESCE(d.title, d.file_name)          AS title,
          d.file_name                             AS file_name,
          d.file_path                             AS file_path,
@@ -1033,29 +1035,45 @@ export const entitiesRepository = {
          LEFT(d.content, 500)                    AS content,
          d.content_refined                       AS content_refined,
          d.metadata_json                         AS metadata_json
-       FROM entity_mentions em
-       JOIN documents d ON d.id = em.document_id
-       WHERE ${whereParts.join(' AND ')}
-       ORDER BY em.document_id, ${orderBy}
-       LIMIT $${limitIdx}::int OFFSET $${offsetIdx}::int`,
-      params,
+       FROM entity_docs ed
+       JOIN documents d ON d.id = ed.document_id
+       WHERE 1=1
+         ${
+           filters?.search?.trim()
+             ? `AND (d.file_name ILIKE $2 OR d.title ILIKE $2 OR d.content_preview ILIKE $2)`
+             : ''
+         }
+         ${
+           filters?.source && filters.source !== 'all'
+             ? `AND LOWER(COALESCE(d.evidence_type, '')) = LOWER($${filters?.search?.trim() ? 3 : 2})`
+             : ''
+         }
+       ORDER BY ${orderBy}
+       LIMIT $${
+         (filters?.search?.trim() ? 1 : 0) +
+         (filters?.source && filters.source !== 'all' ? 1 : 0) +
+         2
+       }::int
+       OFFSET $${
+         (filters?.search?.trim() ? 1 : 0) +
+         (filters?.source && filters.source !== 'all' ? 1 : 0) +
+         3
+       }::int`,
+      params.concat([safeLimit, offset]),
     );
 
     return result.rows.map((row) => ({
       id: String(row.id),
       title: row.title ?? row.file_name ?? null,
       fileName: row.file_name ?? null,
-      file_path: row.file_path ?? null,
-      file_type: row.file_type ?? null,
-      evidence_type: row.evidence_type ?? null,
+      filePath: row.file_path ?? null,
+      fileType: row.file_type ?? null,
+      evidenceType: row.evidence_type ?? null,
       dateCreated: row.date_created ?? null,
-      date_created: row.date_created ?? null,
-      red_flag_rating: Number(row.red_flag_rating ?? 0),
-      word_count: Number(row.word_count ?? 0),
-      content_preview: row.content_preview ?? null,
-      content: row.content ?? null,
-      content_refined: row.content_refined ?? null,
-      metadata_json: row.metadata_json ?? null,
+      redFlagRating: Number(row.red_flag_rating ?? 0),
+      wordCount: Number(row.word_count ?? 0),
+      contentPreview: row.content_preview ?? null,
+      content: row.content ?? row.content_refined ?? null,
       source_collection: row.file_path ?? null,
     }));
   },

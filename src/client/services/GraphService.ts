@@ -114,9 +114,7 @@ export const GraphService = {
 
         layoutNodes.push({
           ...node,
-          // @ts-ignore - x/y added here
           x: center.x + r * Math.cos(theta) * intraClusterScale,
-          // @ts-ignore
           y: center.y + r * Math.sin(theta) * intraClusterScale,
           vx: 0,
           vy: 0,

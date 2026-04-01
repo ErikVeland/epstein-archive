@@ -149,6 +149,8 @@ export const documentsRepository = {
       sortBy?: string;
       sortOrder?: 'asc' | 'desc';
       collectionId?: string;
+      includeMedia?: boolean;
+      excludedFileTypes?: string[];
     } = {},
   ) => {
     const offset = (page - 1) * limit;
@@ -212,6 +214,16 @@ export const documentsRepository = {
         AND (COALESCE(extracted_date, date_created) <= $6::timestamp OR $6::timestamp IS NULL)
         AND (red_flag_rating >= $7::int OR $7::int IS NULL)
         AND (red_flag_rating <= $8::int OR $8::int IS NULL)
+        AND (
+          $12::boolean = true
+          OR (
+            COALESCE(evidence_type, '') != 'media'
+            AND file_type NOT ILIKE 'image/%'
+            AND file_type NOT ILIKE 'video/%'
+            AND file_type NOT ILIKE 'audio/%'
+          )
+        )
+        AND (file_type != ALL($13::text[]) OR $13::text[] IS NULL)
       ORDER BY ${orderByClause}
       LIMIT $9::int OFFSET $10::int
     `;
@@ -232,6 +244,16 @@ export const documentsRepository = {
         AND (COALESCE(extracted_date, date_created) <= $6::timestamp OR $6::timestamp IS NULL)
         AND (red_flag_rating >= $7::int OR $7::int IS NULL)
         AND (red_flag_rating <= $8::int OR $8::int IS NULL)
+        AND (
+          $10::boolean = true
+          OR (
+            COALESCE(evidence_type, '') != 'media'
+            AND file_type NOT ILIKE 'image/%'
+            AND file_type NOT ILIKE 'video/%'
+            AND file_type NOT ILIKE 'audio/%'
+          )
+        )
+        AND (file_type != ALL($11::text[]) OR $11::text[] IS NULL)
     `;
     const docsRes = await getApiPool().query(docsSql, [
       search ? `%${search}%` : null,
@@ -245,6 +267,8 @@ export const documentsRepository = {
       limit,
       offset,
       fullTextSearch,
+      !!filters.includeMedia,
+      filters.excludedFileTypes || null,
     ]);
     const docs = docsRes.rows as Array<Record<string, unknown>>;
     let total = Number((docs[0] as { totalCount?: string | number } | undefined)?.totalCount ?? 0);
@@ -259,6 +283,8 @@ export const documentsRepository = {
         filters.minRedFlag ?? null,
         filters.maxRedFlag ?? null,
         fullTextSearch,
+        !!filters.includeMedia,
+        filters.excludedFileTypes || null,
       ]);
       total = Number(countRes.rows[0]?.total ?? 0);
     }

@@ -1,21 +1,21 @@
-# Ignore artifacts:
+# Artifacts & Build
 dist
 build
 coverage
 
-# Ignore dependencies:
+# Dependencies
 node_modules
 .venv
 venv
 
-# Ignore data and assets:
-data
-public/data
-uploads
-assets
-
-# Ignore docs archive:
-docs_archive
-
-# Ignore binary/large files:
+# Data & Binary Assets
+data/
+public/data/
+uploads/
+assets/
 *.dump
+*.sqlite
+*.db
+
+# Docs Archive (Static/Historical)
+docs_archive/

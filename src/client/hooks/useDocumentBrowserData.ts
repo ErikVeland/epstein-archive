@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { BrowseFilters, Document } from '../types/documents';
 import { apiClient } from '../services/apiClient';
@@ -117,6 +117,8 @@ export function useDocumentBrowserData({
         redFlagLevel: filters.redFlagLevel,
         globalTimeRange,
         itemsPerPage,
+        includeMedia: filters.includeMedia,
+        excludedFileTypes: filters.excludedFileTypes,
       }),
     [
       effectiveSearchTerm,
@@ -130,11 +132,13 @@ export function useDocumentBrowserData({
       filters.redFlagLevel,
       globalTimeRange,
       itemsPerPage,
+      filters.includeMedia,
+      filters.excludedFileTypes,
     ],
   );
 
   // Reset to page 1 when filters change
-  useEffect(() => {
+  useLayoutEffect(() => {
     setCurrentPage(1);
   }, [queryKey]);
 
@@ -161,6 +165,8 @@ export function useDocumentBrowserData({
           redFlagLevel: filters.redFlagLevel,
           collectionId: filters.collectionId,
           fileType: filters.fileType,
+          includeMedia: filters.includeMedia,
+          excludedFileTypes: filters.excludedFileTypes,
         },
         currentPage,
         itemsPerPage,

@@ -251,9 +251,9 @@ class PerformanceCacheV2 {
    */
   async cacheSearchResults(
     query: string,
-    computeFn: () => Promise<any[]>,
+    computeFn: () => Promise<unknown[]>,
     ttl = 30,
-  ): Promise<any[]> {
+  ): Promise<unknown[]> {
     const normalizedQuery = query.toLowerCase().trim();
     return this.getOrCompute(`search:${normalizedQuery}`, computeFn, ttl);
   }

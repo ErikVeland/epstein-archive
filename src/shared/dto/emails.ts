@@ -9,6 +9,8 @@ export interface EmailMailboxDto {
   lastActivityAt: string | null;
   riskSummary: EmailRiskSummary;
   isJunkSuppressed: boolean;
+  isVip: boolean;
+  isVerified: boolean;
 }
 
 export interface EmailMailboxesResponseDto {

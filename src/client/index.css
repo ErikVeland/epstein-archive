@@ -1,6 +1,3 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
 :root {
   /* Core Foundation */
@@ -378,33 +375,79 @@ body {
 
 /* Maintain compatibility for existing classes during transition */
 .surface-glass {
-  @apply glass-panel rounded-[var(--radius-lg)];
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(148, 163, 184, 0.012)),
+    color-mix(in srgb, var(--glass-bg) 94%, transparent);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid color-mix(in srgb, var(--glass-border) 80%, transparent);
+  position: relative;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 10px 24px rgba(2, 6, 23, 0.22);
+  border-radius: var(--radius-lg);
 }
 
 .surface-glass-header {
-  @apply glass-panel rounded-[var(--radius-lg)];
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(148, 163, 184, 0.018)),
     color-mix(in srgb, var(--glass-bg-strong) 96%, transparent);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid color-mix(in srgb, var(--glass-border) 80%, transparent);
+  position: relative;
+  border-radius: var(--radius-lg);
   box-shadow: var(--glass-shadow);
 }
 
 .surface-glass-strong {
-  @apply glass-panel rounded-[var(--radius-lg)];
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(148, 163, 184, 0.018)),
     color-mix(in srgb, var(--glass-bg-strong) 96%, transparent);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid color-mix(in srgb, var(--glass-border) 80%, transparent);
+  position: relative;
+  border-radius: var(--radius-lg);
   box-shadow: var(--glass-shadow);
 }
 
 .surface-glass-card {
-  @apply glass-card rounded-[var(--radius-lg)];
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(148, 163, 184, 0.014)),
+    color-mix(in srgb, var(--glass-bg) 94%, transparent);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid color-mix(in srgb, var(--glass-border) 80%, transparent);
+  border-radius: var(--radius-lg);
+  transition: all var(--duration-normal) var(--easing-liquid);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 10px 24px rgba(2, 6, 23, 0.22);
 }
 .surface-quiet {
-  @apply glass-surface;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(148, 163, 184, 0.01)),
+    color-mix(in srgb, var(--glass-bg) 92%, transparent);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+  border-radius: var(--radius-lg);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 78%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 8px 20px rgba(2, 6, 23, 0.18);
 }
 .control {
-  @apply glass-panel rounded-[var(--radius-md)] px-4 py-2 transition-all;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(148, 163, 184, 0.012)),
+    color-mix(in srgb, var(--glass-bg) 94%, transparent);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid color-mix(in srgb, var(--glass-border) 80%, transparent);
+  position: relative;
+  border-radius: var(--radius-md);
+  padding: 0.5rem 1rem;
+  transition: all var(--duration-normal) var(--easing-liquid);
   min-height: 44px;
   box-shadow: var(--glass-shadow-soft);
   will-change: background-color, border-color;
@@ -430,7 +473,14 @@ body {
 
 .chip,
 .semantic-chip {
-  @apply inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  padding: 0.125rem 0.625rem;
+  font-size: 11px;
+  font-weight: 600;
   min-height: 24px;
   backdrop-filter: blur(6px);
 }
@@ -472,7 +522,9 @@ body {
 }
 
 .app-header-glass {
-  @apply sticky top-0 z-40;
+  position: sticky;
+  top: 0;
+  z-index: 40;
   background:
     linear-gradient(to bottom, rgba(248, 250, 252, 0.08), rgba(15, 23, 42, 0.05)),
     color-mix(in srgb, var(--glass-bg-strong) 96%, transparent);
@@ -482,7 +534,11 @@ body {
 }
 
 .header-search-pill {
-  @apply relative flex items-center rounded-full overflow-hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  border-radius: 9999px;
+  overflow: hidden;
   min-height: 44px;
   background:
     linear-gradient(to bottom, rgba(248, 250, 252, 0.06), rgba(15, 23, 42, 0.02)),
@@ -555,7 +611,12 @@ body {
 }
 
 .header-search-button {
-  @apply inline-flex items-center justify-center rounded-full text-white transition-all;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  color: white;
+  transition: all var(--duration-normal) var(--easing-liquid);
   width: 38px;
   height: 38px;
   margin: 3px;
@@ -570,12 +631,16 @@ body {
 }
 
 .main-nav-track {
-  @apply w-full [scrollbar-width:none] [&::-webkit-scrollbar]:hidden;
-  overflow-x: hidden;
+  width: 100%;
+  scrollbar-width: none;
+}
+.main-nav-track::-webkit-scrollbar {
+  display: none;
 }
 
 .main-nav-pill {
-  @apply rounded-full overflow-hidden;
+  border-radius: 9999px;
+  overflow: hidden;
   width: 100%;
   border: 1px solid color-mix(in srgb, var(--glass-border) 58%, transparent);
   background:
@@ -857,4 +922,260 @@ body {
 .react-pdf__Page__canvas {
   max-width: 100%;
   height: auto !important;
+}
+
+/* Legacy Utility Layer - Compatibility for components still using utility classes */
+.flex {
+  display: flex;
+}
+.inline-flex {
+  display: inline-flex;
+}
+.flex-col {
+  flex-direction: column;
+}
+.items-center {
+  align-items: center;
+}
+.items-start {
+  align-items: flex-start;
+}
+.justify-between {
+  justify-content: space-between;
+}
+.justify-center {
+  justify-content: center;
+}
+.gap-1 {
+  gap: 0.25rem;
+}
+.gap-1\.5 {
+  gap: 0.375rem;
+}
+.gap-2 {
+  gap: 0.5rem;
+}
+.gap-3 {
+  gap: 1rem;
+}
+.gap-4 {
+  gap: 1.5rem;
+}
+.mb-1 {
+  margin-bottom: 0.25rem;
+}
+.mb-2 {
+  margin-bottom: 0.5rem;
+}
+.mb-3 {
+  margin-bottom: 0.75rem;
+}
+.mb-4 {
+  margin-bottom: 1rem;
+}
+.mt-1 {
+  margin-top: 0.25rem;
+}
+.mx-auto {
+  margin-left: auto;
+  margin-right: auto;
+}
+.px-1 {
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
+}
+.px-2 {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+.px-3 {
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+}
+.px-4 {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+.py-0 {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+.py-0\.5 {
+  padding-top: 0.125rem;
+  padding-bottom: 0.125rem;
+}
+.py-1 {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+.py-2 {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+.py-3 {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+.py-4 {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+.rounded {
+  border-radius: var(--radius-sm);
+}
+.rounded-full {
+  border-radius: 9999px;
+}
+.text-xs {
+  font-size: var(--type-xs);
+}
+.text-sm {
+  font-size: var(--type-small);
+}
+.text-lg {
+  font-size: var(--type-h3);
+}
+.text-xl {
+  font-size: var(--type-h2);
+}
+.text-2xl {
+  font-size: var(--type-h1);
+}
+.font-bold {
+  font-weight: var(--weight-bold);
+}
+.font-semibold {
+  font-weight: var(--weight-medium);
+}
+.font-medium {
+  font-weight: var(--weight-medium);
+}
+.uppercase {
+  text-transform: uppercase;
+}
+.underline {
+  text-decoration: underline;
+}
+.hidden {
+  display: none;
+}
+.sticky {
+  position: sticky;
+}
+.top-0 {
+  top: 0;
+}
+.z-40 {
+  z-index: 40;
+}
+.relative {
+  position: relative;
+}
+.overflow-hidden {
+  overflow: hidden;
+}
+.w-3 {
+  width: 0.75rem;
+}
+.w-4 {
+  width: 1rem;
+}
+.h-3 {
+  height: 0.75rem;
+}
+.h-4 {
+  height: 1rem;
+}
+.transition-colors {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Typography / Prose compatibility */
+.prose {
+  line-height: 1.6;
+}
+.prose-invert {
+  color: var(--text-default);
+}
+.prose p {
+  margin-bottom: 1rem;
+}
+
+/* Specific semantics used in strings */
+.bg-yellow-500 {
+  background-color: #f59e0b;
+}
+.bg-emerald-800\/40 {
+  background-color: rgba(6, 78, 59, 0.4);
+}
+.border-emerald-500\/40 {
+  border-color: rgba(16, 185, 129, 0.4);
+}
+.text-emerald-100 {
+  color: #d1fae5;
+}
+.bg-purple-900\/40 {
+  background-color: rgba(88, 28, 135, 0.4);
+}
+.text-purple-300 {
+  color: #d8b4fe;
+}
+.border-purple-500\/40 {
+  border-color: rgba(168, 85, 247, 0.4);
+}
+.bg-yellow-500\/40 {
+  background-color: rgba(245, 158, 11, 0.4);
+}
+.bg-emerald-900\/40 {
+  background-color: rgba(6, 78, 59, 0.4);
+}
+.bg-emerald-900\/60 {
+  background-color: rgba(6, 78, 59, 0.6);
+}
+.bg-blue-900\/20 {
+  background-color: rgba(30, 58, 138, 0.2);
+}
+.bg-green-900\/20 {
+  background-color: rgba(20, 83, 45, 0.2);
+}
+.border-l-4 {
+  border-left-width: 4px;
+}
+.border-green-500 {
+  border-color: #22c55e;
+}
+.text-green-400 {
+  color: #4ade80;
+}
+.text-emerald-200-80 {
+  color: rgba(167, 243, 208, 0.8);
+}
+.text-emerald-100-70 {
+  color: rgba(209, 250, 229, 0.7);
+}
+.bg-yellow-500-40 {
+  background-color: rgba(245, 158, 11, 0.4);
+}
+.bg-emerald-800-40 {
+  background-color: rgba(6, 78, 59, 0.4);
+}
+.border-emerald-500-40 {
+  border-color: rgba(16, 185, 129, 0.4);
+}
+.bg-emerald-900-40 {
+  background-color: rgba(6, 78, 59, 0.4);
+}
+.bg-emerald-900-60 {
+  background-color: rgba(6, 78, 59, 0.6);
+}
+.bg-blue-900-20 {
+  background-color: rgba(30, 58, 138, 0.2);
+}
+.bg-green-900-20 {
+  background-color: rgba(20, 83, 45, 0.2);
+}
+.border-amber-500-40 {
+  border-color: rgba(245, 158, 11, 0.4);
 }

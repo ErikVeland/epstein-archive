@@ -22,7 +22,7 @@ async function testStampedePrevention(): Promise<void> {
   // Simulate 50 concurrent requests on cache miss
   console.log('Simulating 50 concurrent requests on cache miss...\n');
 
-  const promises = Array.from({ length: 50 }, (_, i) => cache.getOrCompute('test-key', computeFn));
+  const promises = Array.from({ length: 50 }, () => cache.getOrCompute('test-key', computeFn));
 
   const results = await Promise.all(promises);
 

@@ -3,6 +3,7 @@ import { ArrowRight, Filter, Search, FileText, CheckCircle } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion';
 import { CloseButton } from '../common/CloseButton';
 import { useScrollLock } from '../../hooks/useScrollLock';
+import { Link } from 'react-router-dom';
 
 interface InvestigationOnboardingProps {
   onComplete: () => void;
@@ -151,14 +152,12 @@ export const InvestigationOnboarding: React.FC<InvestigationOnboardingProps> = (
             )}
           </motion.button>
 
-          <a
-            href="https://github.com/ErikVeland/epstein-archive/blob/main/INVESTIGATION_GUIDE.md"
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            to="/guide"
             className="text-xs text-[var(--accent)] hover:text-[var(--accent)] text-center py-1 transition-colors"
           >
             Read the Full Guide
-          </a>
+          </Link>
 
           <button
             onClick={onSkip}

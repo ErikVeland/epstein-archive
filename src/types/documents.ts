@@ -192,6 +192,8 @@ export interface BrowseFilters {
   source?: string[];
   collections?: string[];
   collectionId?: string;
+  includeMedia?: boolean;
+  excludedFileTypes?: string[];
 }
 
 export interface BrowseOptions {

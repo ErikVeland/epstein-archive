@@ -9,11 +9,16 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { formatMetaDate, isVisualMediaItem, getRiskClass } from '../../../utils/evidenceUtils';
+import { EntityPhoto } from '../EvidenceModal';
 import s from './EvidenceMediaTab.module.css';
 
+interface EvidenceEntity {
+  photos?: EntityPhoto[];
+}
+
 interface EvidenceMediaTabProps {
-  entity: any;
-  mediaItems: any[];
+  entity: EvidenceEntity | null;
+  mediaItems: EntityPhoto[];
   isMediaLoading: boolean;
   brokenMediaIds: Record<string, boolean>;
   setBrokenMediaIds: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
@@ -37,7 +42,7 @@ export const EvidenceMediaTab: React.FC<EvidenceMediaTabProps> = ({
         </div>
       ) : displayItems.length > 0 ? (
         <div className={s.grid}>
-          {displayItems.map((photo: any, i: number) => {
+          {displayItems.map((photo: EntityPhoto, i: number) => {
             const title = photo.title || photo.caption || photo.filename || `Media item ${i + 1}`;
             const sourceType = photo.sourceType || photo.type || 'Media';
             const date = formatMetaDate(photo.date || photo.createdAt || photo.timestamp);

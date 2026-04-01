@@ -64,7 +64,7 @@ export class TextCleaner {
     ) {
       try {
         cleaned = quotedPrintable.decode(cleaned);
-      } catch (e) {
+      } catch (_e) {
         // If standard decode fails, try to fix common softness
         cleaned = cleaned.replace(/=\r?\n/g, '');
       }

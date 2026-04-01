@@ -55,7 +55,6 @@ const MapController: React.FC<{ entities: MapEntity[] }> = ({ entities }) => {
       [-90, -180],
       [90, 180],
     ]);
-    map.options.maxBoundsViscosity = 1.0;
 
     if (entities.length > 0) {
       const bounds = L.latLngBounds(entities.map((e) => [e.lat, e.lng]));
@@ -179,6 +178,7 @@ export const InteractiveEntityMap: React.FC<InteractiveEntityMapProps> = ({
         <MapContainer
           center={[20, 0]}
           zoom={2}
+          maxBoundsViscosity={1.0}
           className="h-full w-full z-0 bg-[var(--glass-bg-strong)]"
           style={{ height: '100%', width: '100%', minHeight: '300px' }}
         >

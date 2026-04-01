@@ -7,7 +7,11 @@ import pg from 'pg';
 import 'dotenv/config';
 
 // Monkey patch for Node.js environment
-faceapi.env.monkeyPatch({ Canvas, Image, ImageData });
+faceapi.env.monkeyPatch({
+  Canvas: Canvas as any,
+  Image: Image as any,
+  ImageData: ImageData as any,
+});
 
 const { Pool } = pg;
 const pool = new Pool({
@@ -20,9 +24,10 @@ async function main() {
   console.log('🚀 Starting Face Recognition Scanner (CPU Mode)...');
 
   // Initialize TensorFlow Backend via face-api's bundled TF
-  await faceapi.tf.setBackend('cpu');
-  await faceapi.tf.ready();
-  console.log('   ✅ TensorFlow Backend Initialized:', faceapi.tf.getBackend());
+  const tf = faceapi.tf as any;
+  await tf.setBackend('cpu');
+  await tf.ready();
+  console.log('   ✅ TensorFlow Backend Initialized:', tf.getBackend());
 
   // 1. Load Models
   console.log('   Loading AI models...');

@@ -1,3 +1,5 @@
+import { isVisualMediaItem } from '../../utils/evidenceUtils';
+
 export const normalizeList = (candidate: unknown): string[] => {
   if (!candidate) return [];
   if (Array.isArray(candidate)) {
@@ -52,6 +54,10 @@ export const deriveSummary = (
   const extractedBullets = toSentenceBullets(extractedText, 5);
   if (extractedBullets.length > 0) {
     return { bullets: extractedBullets, sourceLabel: 'Derived from extracted text' };
+  }
+
+  if (isVisualMediaItem(doc)) {
+    return { bullets: [], sourceLabel: 'Processed visual media: No extracted text.' };
   }
 
   return { bullets: [], sourceLabel: 'No summary available for this document.' };

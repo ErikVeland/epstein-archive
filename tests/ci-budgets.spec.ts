@@ -35,7 +35,7 @@ test.describe('CI Performance Budgets', () => {
 
     page.on('response', async (response) => {
       if (response.url().includes('/api/')) {
-        const timing = response.timing();
+        const timing = (response as any).timing();
         if (timing) {
           apiTimes.push(timing.responseEnd);
         }
@@ -62,7 +62,7 @@ test.describe('CI Performance Budgets', () => {
 
     page.on('response', async (response) => {
       if (response.url().includes('/api/')) {
-        const timing = response.timing();
+        const timing = (response as any).timing();
         if (timing) {
           apiTimes.push(timing.responseEnd);
         }
@@ -143,7 +143,7 @@ test.describe('CI Performance Budgets', () => {
               break;
             }
           }
-        } catch (e) {
+        } catch (_e) {
           // Not JSON, skip
         }
       }

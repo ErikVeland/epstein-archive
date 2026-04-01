@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useLayoutEffect, useState, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -73,7 +73,17 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
     }
   };
 
-  useEffect(() => {
+  // Local rotation state (for immediate feedback)
+  // Using a ref to persist rotation value across component re-renders
+  const rotationRef = useRef(0);
+  const [rotation, setRotation] = useState(0);
+  // Flag to prevent re-initialization after successful rotation
+  const justRotatedRef = useRef(false);
+  const [imageLoading, setImageLoading] = useState(true);
+  // Cache-buster version to force image refresh after rotation
+  const [imageVersion, setImageVersion] = useState(0);
+
+  useLayoutEffect(() => {
     if (currentImage) {
       setImageLoading(true);
       setEditTitle(currentImage.title || '');
@@ -90,16 +100,6 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
       rotationRef.current = initialRotation;
     }
   }, [currentImage]);
-
-  // Local rotation state (for immediate feedback)
-  // Using a ref to persist rotation value across component re-renders
-  const rotationRef = useRef(0);
-  const [rotation, setRotation] = useState(0);
-  // Flag to prevent re-initialization after successful rotation
-  const justRotatedRef = useRef(false);
-  const [imageLoading, setImageLoading] = useState(true);
-  // Cache-buster version to force image refresh after rotation
-  const [imageVersion, setImageVersion] = useState(0);
 
   // Touch gesture support
   const touchStartRef = useRef<number | null>(null);
@@ -132,8 +132,11 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
   const [imageTags, setImageTags] = useState<TagData[]>([]);
   const [imagePeople, setImagePeople] = useState<PersonData[]>([]);
 
-  // Fetch tags and people when image changes
   // Handle screen resize to auto-manage sidebar visibility
+  useLayoutEffect(() => {
+    if (window.innerWidth < 768) setShowSidebar(false);
+  }, []);
+
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 768) {
@@ -142,11 +145,6 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
         setShowSidebar(true);
       }
     };
-
-    // Set initial state (redundant but safe)
-    if (window.innerWidth < 768) {
-      setShowSidebar(false);
-    }
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -242,14 +240,11 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
       });
 
       if (res.ok) {
-        // Optimistic update
-        currentImage.title = editTitle;
-        currentImage.description = editDesc;
         setIsEditing(false);
 
-        // Notify parent
+        // Notify parent with updated image (don't mutate prop)
         if (onImageUpdate) {
-          onImageUpdate({ ...currentImage });
+          onImageUpdate({ ...currentImage, title: editTitle, description: editDesc });
         }
       } else {
         console.error('Failed to save');

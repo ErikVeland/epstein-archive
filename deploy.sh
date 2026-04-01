@@ -409,8 +409,7 @@ if [ "$DRY_RUN" = false ] && [ "$DB_ONLY" = false ]; then
   pnpm format
   pnpm lint:fix
 
-  log_step "Checking SQL parity (before auto-commit)..."
-  node --import tsx/esm scripts/check_documents_sql_parity.ts
+  # Parity check removed (legacy SQLite/RTF logic purged)
 
   verify_release_notes_version
 
@@ -661,8 +660,8 @@ if [ "$DRY_RUN" = false ]; then
     remote_ssh "
       set -e
       cd ${PRODUCTION_PATH}
-      chmod +x ./scripts/post_deploy_verify.sh
-      DEPLOY_VERIFY_URL=http://127.0.0.1:3012 ./scripts/post_deploy_verify.sh
+      # Run TS-native verification ops
+      DEPLOY_VERIFY_URL=http://127.0.0.1:3012 node --import tsx/esm scripts/verify_ops.ts
     "
 
     log_success "Deployment successful (ready + deep health + post-deploy checks passed)."

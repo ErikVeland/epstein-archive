@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
+    "target": "ES2021",
     "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "lib": ["ES2021", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
     "typeRoots": ["./node_modules/@types"],
@@ -29,12 +29,13 @@
     "noFallthroughCasesInSwitch": true
   },
   "include": [
-    "src/client",
-    "src/shared",
-    "src/utils",
-    "src/types",
-    "src/config",
-    "src/vite-env.d.ts"
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "scripts/**/*.ts",
+    "scripts/**/*.tsx",
+    "vitest.config.ts",
+    "playwright.config.ts",
+    "tests/**/*.ts"
   ],
   "exclude": ["node_modules", "dist", "**/*.test.tsx", "**/*.test.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]

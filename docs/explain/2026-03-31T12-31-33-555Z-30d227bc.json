@@ -1,0 +1,20 @@
+{
+  "graph_neighbors": {
+    "error": "getaddrinfo ENOTFOUND HOST"
+  },
+  "entity_fts_websearch": {
+    "error": "getaddrinfo ENOTFOUND HOST"
+  },
+  "document_fts_websearch": {
+    "error": "getaddrinfo ENOTFOUND HOST"
+  },
+  "analytics_top_connected": {
+    "error": "getaddrinfo ENOTFOUND HOST"
+  },
+  "map_entities": {
+    "error": "getaddrinfo ENOTFOUND HOST"
+  },
+  "media_batch_by_entity": {
+    "error": "getaddrinfo ENOTFOUND HOST"
+  }
+}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect } from 'react';
 import s from './MobileMenu.module.css';
 import Icon from '../common/Icon';
 import { CloseButton } from '../common/CloseButton';
@@ -26,7 +26,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
   const { isAdmin } = useAuth();
   useScrollLock(open);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const shown =
       typeof window !== 'undefined' && localStorage.getItem('investigate_attract_shown') === 'true';
     const firstRunCompleted = localStorage.getItem('firstRunOnboardingCompleted') === 'true';

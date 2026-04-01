@@ -1,1 +1,0 @@
-../safe_rm_aliases.sh

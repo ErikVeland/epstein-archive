@@ -17,13 +17,13 @@
 
 .loadingGrid {
   display: grid;
-  grid-template-cols: 1fr;
+  grid-template-columns: 1fr;
   gap: var(--space-6);
 }
 
 @media (min-width: 1024px) {
   .loadingGrid {
-    grid-template-cols: 1fr 1fr;
+    grid-template-columns: 1fr 1fr;
   }
 }
 
@@ -59,7 +59,7 @@
 
 .forensicGrid {
   display: grid;
-  grid-template-cols: 1fr;
+  grid-template-columns: 1fr;
   gap: var(--space-6);
 }
 
@@ -69,9 +69,9 @@
   }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   .forensicGrid {
-    grid-template-cols: 1fr 1fr;
+    grid-template-columns: 1fr 1fr;
   }
 }
 
@@ -96,8 +96,15 @@
 }
 
 .riskBadge,
-.evidenceBadge {
+.evidenceBadge,
+.provenanceBadge {
   composes: semantic-chip from global;
+}
+
+.provenanceBadge {
+  color: var(--accent-info);
+  border-color: color-mix(in srgb, var(--accent-info) 30%, transparent);
+  background: color-mix(in srgb, var(--accent-info) 10%, transparent);
 }
 
 .risk-critical {
@@ -140,19 +147,13 @@
 
 .metricsGrid {
   display: grid;
-  grid-template-cols: 1fr;
+  grid-template-columns: repeat(4, 1fr);
   gap: var(--space-3);
 }
 
-@media (min-width: 768px) {
+@media (max-width: 767px) {
   .metricsGrid {
-    grid-template-cols: repeat(2, 1fr);
-  }
-}
-
-@media (min-width: 1024px) {
-  .metricsGrid {
-    grid-template-cols: repeat(4, 1fr);
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
@@ -387,4 +388,22 @@
   font-size: 0.875rem;
   line-height: 1.625;
   max-width: 56rem; /* max-w-4xl */
+}
+.emptyEvidence {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-12) var(--space-6);
+  background: var(--glass-bg-muted);
+  border: 1px dashed var(--glass-border);
+  border-radius: var(--radius-lg);
+  text-align: center;
+  color: var(--text-secondary);
+  gap: var(--space-2);
+}
+
+.emptySubtext {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
 }

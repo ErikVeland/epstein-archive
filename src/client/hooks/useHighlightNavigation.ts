@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useState, useLayoutEffect, useEffect } from 'react';
 
 /**
  * Hook for navigating between search highlights with keyboard shortcuts
@@ -12,7 +12,7 @@ export function useHighlightNavigation(
   const [totalHighlights, setTotalHighlights] = useState(0);
 
   // Update highlight count when search term or container changes
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!searchTerm || !containerRef.current) {
       setTotalHighlights(0);
       setCurrentHighlightIndex(0);

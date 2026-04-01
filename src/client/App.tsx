@@ -1,4 +1,13 @@
-import { useState, useEffect, useCallback, useMemo, Suspense, lazy, useRef } from 'react';
+import {
+  useState,
+  useLayoutEffect,
+  useEffect,
+  useCallback,
+  useMemo,
+  Suspense,
+  lazy,
+  useRef,
+} from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { preloader } from './utils/ResourcePreloader';
 import { runDevAffordanceAudit } from './utils/devAffordanceAudit';
@@ -88,6 +97,9 @@ const FAQPage = lazy(() =>
 );
 const LegalPage = lazy(() =>
   import('./components/pages/LegalPage').then((module) => ({ default: module.LegalPage })),
+);
+const GuidePage = lazy(() =>
+  import('./components/pages/GuidePage').then((module) => ({ default: module.default })),
 );
 const TheEpsteinFilesPage = lazy(() =>
   import('./pages/TheEpsteinFilesPage').then((module) => ({ default: module.TheEpsteinFilesPage })),
@@ -225,6 +237,7 @@ function App() {
     | 'login'
     | 'evidence'
     | 'faq'
+    | 'guide'
     | 'review'
     | 'admin'
     | 'landing';
@@ -251,6 +264,7 @@ function App() {
   const matchReview = useMatch({ path: '/review', end: false });
   const matchEvidence = useMatch({ path: '/evidence/:id', end: false });
   const matchFaq = useMatch({ path: '/faq', end: false });
+  const matchGuide = useMatch({ path: '/guide', end: false });
   const matchLanding1 = useMatch({ path: '/the-epstein-files', end: false });
   const matchLanding2 = useMatch({ path: '/epstein-documents', end: false });
   const matchLanding3 = useMatch({ path: '/epstein-people', end: false });
@@ -282,6 +296,7 @@ function App() {
     if (matchReview) return 'review';
     if (matchEvidence) return 'evidence';
     if (matchFaq) return 'faq';
+    if (matchGuide) return 'guide';
     if (matchLanding) return 'landing';
     if (matchEntity || matchPeople || location.pathname === '/') return 'people';
     return 'people';
@@ -302,6 +317,7 @@ function App() {
     login: 'Login',
     evidence: 'Evidence',
     faq: 'FAQ',
+    guide: 'Guide',
     review: 'Review',
     admin: 'Admin',
     landing: 'The Epstein Files',
@@ -531,6 +547,17 @@ function App() {
         keywords: [...commonKeywords, 'investigations', 'evidence chaining', 'case workspace'],
       };
     }
+    if (location.pathname.startsWith('/guide')) {
+      return {
+        title: 'Investigation System Guide',
+        description:
+          'Learn how to use the Epstein Archive workspace to organize evidence and build cases.',
+        url: canonical,
+        canonical,
+        type: 'article',
+        keywords: [...commonKeywords, 'guide', 'tutorial', 'investigation manual'],
+      };
+    }
 
     return {
       title: 'Epstein Files Archive',
@@ -558,7 +585,6 @@ function App() {
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
   const [previousPath, setPreviousPath] = useState<string>('/people');
 
-  // Document Viewing
   const [, setSelectedDocumentId] = useState<string | null>(null);
   const [selectedDocumentSearchTerm, setSelectedDocumentSearchTerm] = useState<string>('');
   const [documentModalId, setDocumentModalId] = useState<string | null>(null);
@@ -674,9 +700,9 @@ function App() {
   const { shouldShowOnboarding, completeOnboarding, skipOnboarding } = useFirstRunOnboarding();
 
   // Clear selected document when switching tabs
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (activeTab !== 'documents') {
-      setSelectedDocumentId('');
+      setSelectedDocumentId(null);
     }
   }, [activeTab]);
 
@@ -699,8 +725,9 @@ function App() {
 
   useEffect(() => {
     if (!urlEntityData || !urlEntityData.id) return;
-    setDocumentModalId('');
-    setDocumentModalInitial(null);
+    // Reset document modal state when an entity is selected via URL
+    if (documentModalId) setDocumentModalId('');
+    if (documentModalInitial) setDocumentModalInitial(null);
     const person: Person = {
       id: urlEntityData.id,
       name: urlEntityData.fullName || 'Unknown',
@@ -771,20 +798,13 @@ function App() {
         setSelectedPerson(null);
 
         setDocumentModalId(docId);
-        setSelectedDocumentId(docId);
       }
     } else if (documentModalId) {
       // Clear document modal if we are no longer on a document route
       setDocumentModalId('');
       setDocumentModalInitial(null);
     }
-  }, [
-    location.pathname,
-    location.search,
-    documentModalId,
-    setSelectedPerson,
-    setSelectedDocumentId,
-  ]);
+  }, [location.pathname, location.search, documentModalId, setSelectedPerson]);
 
   // Safety net for legacy justice.gov path swaps when edge proxy serves SPA shell.
   // Example: /epstein/files/DataSet%209/EFTA01188336.pdf
@@ -988,8 +1008,8 @@ function App() {
       }));
       try {
         sessionStorage.setItem('epstein_archive_people_page1_v13_14_1', JSON.stringify(normalized));
-      } catch (e) {
-        console.error('Error caching people data:', e);
+      } catch (err) {
+        console.error('Error caching people data:', err);
       }
       return true;
     },
@@ -1232,7 +1252,6 @@ function App() {
       setSelectedPerson(null);
       setDocumentModalInitial(null);
       setDocumentModalId(documentId);
-      setSelectedDocumentId(documentId);
       navigate(`/documents/${documentId}`);
     },
     [location.pathname, location.search, navigate],
@@ -2075,6 +2094,7 @@ function App() {
                       <Route path="/privacy" element={<LegalPage mode="privacy" />} />
                       <Route path="/terms" element={<LegalPage mode="terms" />} />
                       <Route path="/faq" element={<FAQPage />} />
+                      <Route path="/guide" element={<GuidePage />} />
                       <Route
                         path="/the-epstein-files"
                         element={<TheEpsteinFilesPage variant="overview" />}

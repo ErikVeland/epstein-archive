@@ -110,7 +110,7 @@ const SubjectCardV2: React.FC<SubjectCardV2Props> = React.memo(({ subject, style
 
         <div className="mb-2">
           <SignalPanel metrics={forensics.signalStrength} />
-          <div className="mt-2 text-[10px] text-[var(--text-muted)] flex flex-wrap gap-1">
+          <div className="mt-2 text-[10px] text-[var(--text-muted)]">
             <DriverChips
               chips={(forensics.driverLabels || []).map((label) => {
                 let type: 'critical' | 'verified' | 'context' | 'unverified' = 'context';

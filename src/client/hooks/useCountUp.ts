@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 
 /**
  * Custom hook for count-up animation
@@ -7,11 +7,15 @@ import { useEffect, useState } from 'react';
 export function useCountUp(target: number, duration: number = 1500, enabled: boolean = true) {
   const [count, setCount] = useState(0);
 
-  useEffect(() => {
+  // Synchronous reset when disabled or target is 0
+  useLayoutEffect(() => {
     if (!enabled || target === 0) {
       setCount(target);
-      return;
     }
+  }, [enabled, target]);
+
+  useEffect(() => {
+    if (!enabled || target === 0) return;
 
     let startTime: number | null = null;
     let animationFrame: number;

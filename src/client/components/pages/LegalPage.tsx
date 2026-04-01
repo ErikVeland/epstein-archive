@@ -33,6 +33,10 @@ const TERMS_SECTIONS = [
     heading: 'Availability',
     body: 'We may update, remove, or restrict features in order to protect data integrity, platform stability, legal obligations, or the privacy and safety of affected individuals.',
   },
+  {
+    heading: 'Document Provenance & Custody Chain',
+    body: 'Every record in the archive is subject to a rigorous provenance protocol. This includes SHA-256 cryptographic hashing to ensure source integrity, automated tracking from government release directories, and granular mapping back to original page and sentence coordinates. This verifiable chain of custody ensures that all research and analysis is based on authenticated source material.',
+  },
 ];
 
 export const LegalPage: React.FC<LegalPageProps> = ({ mode }) => {

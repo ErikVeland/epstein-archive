@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useLayoutEffect } from 'react';
 import { useSharedIntersectionObserver } from '../../hooks/useSharedIntersectionObserver';
 import s from './LazyImage.module.css';
 
@@ -50,7 +50,7 @@ export const LazyImage: React.FC<LazyImageProps> = ({
   // If src changes and it's already cached, immediately show it
   const [shouldAnimate] = useState(!wasAlreadyLoaded);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (src && loadedImageCache.has(src)) {
       setIsLoaded(true);
       setIsInView(true);

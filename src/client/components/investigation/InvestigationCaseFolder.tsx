@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import Icon, { type IconName } from '../common/Icon';
 import { Link } from 'react-router-dom';
 import type {
@@ -187,7 +187,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
     );
   };
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!deepLinkedEvidenceId || !evidence?.all?.length) return;
     const linked = String(deepLinkedEvidenceId);
     const match = evidence.all.find(

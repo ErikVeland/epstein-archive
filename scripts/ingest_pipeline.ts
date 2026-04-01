@@ -47,6 +47,84 @@ import {
 } from '../src/server/services/documentProvenanceService.js';
 
 // ============================================================================
+// PIPELINE AUDIT & ERROR AGGREGATION
+// ============================================================================
+interface ErrorSummary {
+  type: string;
+  count: number;
+  lastMessage: string;
+  lastTimestamp: number;
+}
+
+interface IngestAuditLog {
+  documentId?: number;
+  documentPath?: string;
+  action: string;
+  outcome: 'success' | 'warning' | 'error';
+  details?: string;
+  timestamp: number;
+}
+
+class PipelineAudit {
+  private errors: Map<string, ErrorSummary> = new Map();
+  private auditLog: IngestAuditLog[] = [];
+  private maxLogSize = 1000;
+  private maxErrorSize = 100;
+
+  recordError(type: string, message: string) {
+    const existing = this.errors.get(type);
+    if (existing) {
+      existing.count++;
+      existing.lastMessage = message;
+      existing.lastTimestamp = Date.now();
+    } else {
+      if (this.errors.size < this.maxErrorSize) {
+        this.errors.set(type, {
+          type,
+          count: 1,
+          lastMessage: message,
+          lastTimestamp: Date.now(),
+        });
+      }
+    }
+  }
+
+  log(action: IngestAuditLog) {
+    this.auditLog.push(action);
+    if (this.auditLog.length > this.maxLogSize) {
+      this.auditLog.shift();
+    }
+  }
+
+  printErrorSummary() {
+    if (this.errors.size === 0) {
+      console.log('\n✅ No errors recorded during pipeline run.');
+      return;
+    }
+
+    console.log('\n⚠️  Pipeline Error Summary:');
+    const sorted = Array.from(this.errors.values()).sort((a, b) => b.count - a.count);
+    for (const err of sorted) {
+      console.log(`   [${err.type}] ${err.count}x - Last: ${err.lastMessage.slice(0, 80)}`);
+    }
+  }
+
+  getErrorCounts(): Record<string, number> {
+    const counts: Record<string, number> = {};
+    for (const [type, summary] of this.errors) {
+      counts[type] = summary.count;
+    }
+    return counts;
+  }
+
+  getRecentLogs(count = 10): IngestAuditLog[] {
+    return this.auditLog.slice(-count);
+  }
+}
+
+const pipelineAudit = new PipelineAudit();
+
+// ============================================================================
 // CONFIGURATION & VERSIONING
 // ============================================================================
 
@@ -64,7 +142,7 @@ const STEP_VERSIONS = {
 // and fall back to Tesseract page rendering.
 const OCR_FALLBACK_WORD_THRESHOLD = 50;
 
-const DB_PATH = process.env.DB_PATH || 'epstein-archive.db';
+// Pipeline metadata
 
 // Default AI integration to Exo cluster unless explicitly disabled
 if (!process.env.ENABLE_AI_ENRICHMENT) {
@@ -209,7 +287,8 @@ const COLLECTIONS: CollectionConfig[] = [
 // ============================================================================
 
 // Database instance placeholder
-let db: any;
+import type { Pool } from 'pg';
+let db: Pool;
 
 async function initDb() {
   db = getIngestPool();
@@ -217,7 +296,6 @@ async function initDb() {
 }
 
 import { PipelineService, PipelineRun } from '../src/server/services/pipelineService.js';
-import { jobsRepository } from '../src/server/db/jobsRepository.js';
 import { AssetService } from '../src/server/services/assetService.js';
 import { JobManager } from '../src/server/services/JobManager.js';
 
@@ -773,11 +851,7 @@ async function applyWatermark(
 // DOCUMENT INGESTION
 // ============================================================================
 
-interface ProcessedDocument {
-  success: boolean;
-  documentId?: number;
-  error?: string;
-}
+// Document ingestion status placeholder removed (legacy)
 
 async function estimateTextCoverage(text: string, pageCount: number): Promise<number> {
   if (!text || pageCount <= 0) return 0;
@@ -951,7 +1025,7 @@ async function storeRedactions(documentId: number, content: string, unredactedSp
               };
             }
           } catch (_e) {
-            // fall back to deterministic inference
+            pipelineAudit.recordError('overlay_inference', (_e as Error).message);
           }
 
           await db.query(insertSpanSql, [
@@ -1063,6 +1137,8 @@ async function processEmail(filePath: string): Promise<{
   content: string;
   metadata: any;
   date?: string;
+  attachments?: Array<{ filename: string; content: Buffer; contentType: string }>;
+  emailSha256?: string;
 }> {
   try {
     const rawContent = await fs.promises.readFile(filePath);
@@ -1093,8 +1169,8 @@ async function processEmail(filePath: string): Promise<{
           metadata,
           date: metadata.date,
         };
-      } catch (e) {
-        // ignore
+      } catch (_e) {
+        pipelineAudit.recordError('email_metadata_parse', (_e as Error).message);
       }
     }
 
@@ -1133,6 +1209,20 @@ async function processEmail(filePath: string): Promise<{
       inReplyTo: parsed.inReplyTo || '',
     };
 
+    // Extract attachments for later processing
+    const attachments: Array<{ filename: string; content: Buffer; contentType: string }> = [];
+    if (parsed.attachments && Array.isArray(parsed.attachments)) {
+      for (const att of parsed.attachments) {
+        if (att.content && typeof att.filename === 'string') {
+          attachments.push({
+            filename: att.filename,
+            content: Buffer.isBuffer(att.content) ? att.content : Buffer.from(att.content),
+            contentType: att.contentType || 'application/octet-stream',
+          });
+        }
+      }
+    }
+
     // Apply Redaction Resolver
     const resolution = RedactionResolver.resolve(cleanText, {
       sender: metadata.from,
@@ -1141,10 +1231,15 @@ async function processEmail(filePath: string): Promise<{
       date: metadata.date,
     });
 
+    // Compute email SHA256 for attachment directory organization
+    const emailSha256 = crypto.createHash('sha256').update(rawContent).digest('hex');
+
     return {
       content: resolution.resolvedText,
       metadata,
       date: metadata.date,
+      attachments,
+      emailSha256,
     };
   } catch (error) {
     console.warn(`  ⚠️  Email parsing failed for ${path.basename(filePath)}:`, error);
@@ -1267,8 +1362,8 @@ async function processDocument(
             )
           ).rows[0] ?? null;
         existingDoc = result;
-      } catch (e) {
-        // ... (rest as before but async)
+      } catch (_e) {
+        pipelineAudit.recordError('doc_lookup_fallback', (_e as Error).message);
         existingDoc =
           (
             await db.query(
@@ -1354,7 +1449,7 @@ async function processDocument(
     const mimeType = await detectMimeType(filePath);
     const stats = statSync(filePath);
     const ext = extname(filePath).toLowerCase();
-    const existingAsset = await AssetService.findBySha256(sha256);
+    // stats read for mime-type and size below
 
     let content = '';
     let pageCount = 0;
@@ -1493,8 +1588,8 @@ async function processDocument(
       try {
         const parsed = JSON.parse(meta.metadata_json);
         metadataObj = { ...metadataObj, ...parsed };
-      } catch (e) {
-        // ignore invalid json
+      } catch (_e) {
+        pipelineAudit.recordError('metadata_json_parse', (_e as Error).message);
       }
     }
 
@@ -1618,6 +1713,14 @@ async function processDocument(
       if (result.date) {
         meta.date_created = result.date;
       }
+      // Store attachments for later processing
+      if (result.attachments && result.attachments.length > 0) {
+        (meta as any)._attachments = result.attachments;
+      }
+      // Store email SHA256 for attachment directory organization
+      if (result.emailSha256) {
+        (meta as any)._emailSha256 = result.emailSha256;
+      }
       evidenceType = 'email'; // Explicitly set type
     } else if (
       mimeType.startsWith('video/') ||
@@ -1661,6 +1764,7 @@ async function processDocument(
         subject: metadataObj.subject,
       });
     } catch (_e) {
+      pipelineAudit.recordError('ai_enrichment', (_e as Error).message);
       aiSummary = null;
     }
     if (aiSummary) {
@@ -1943,6 +2047,7 @@ async function generatePhash(filePath: string): Promise<string> {
     return hex;
   } catch (err) {
     console.warn(`  ⚠️ pHash generation failed for ${basename(filePath)}:`, err);
+    pipelineAudit.recordError('phash_generation', (err as Error).message);
     return '';
   }
 }
@@ -1968,9 +2073,9 @@ async function generatePagePhash(filePath: string, pageIndex: number): Promise<s
       hex += parseInt(hash.substring(i, i + 4), 2).toString(16);
     }
     return hex;
-  } catch (err) {
-    // console.warn(`  ⚠️ Page ${pageIndex} pHash failed:`, err);
-    return ''; // specific page might fail or be blank
+  } catch (_err) {
+    pipelineAudit.recordError('page_phash_generation', (_err as Error).message);
+    return '';
   }
 }
 
@@ -2274,11 +2379,12 @@ async function enrichCompleted() {
           [summary, row.id],
         );
       }
-    } catch (e) {
-      // Non-fatal — skip silently, will be retried on next run
+    } catch (_e) {
+      pipelineAudit.recordError('ocr_enrichment_retry', (_e as Error).message);
     }
   };
 
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     const { rows } = await db.query(
       `
@@ -2341,6 +2447,7 @@ async function ocrCleanCompleted() {
   let lastId = 0;
   const BATCH = 100;
 
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     const { rows } = await db.query(
       `SELECT id, file_path, content FROM documents
@@ -2481,10 +2588,10 @@ async function processQueue() {
   // the big multi-day sets get any slots.
   const DEPRIORITIZED = new Set(['DOJ Data Set 9', 'DOJ Data Set 10', 'DOJ Data Set 11']);
 
-  const normal = priorityRows.filter((r) => !DEPRIORITIZED.has(r.source_collection));
-  const deprio = priorityRows.filter((r) => DEPRIORITIZED.has(r.source_collection));
+  const normal = priorityRows.filter((r: any) => !DEPRIORITIZED.has(r.source_collection));
+  const deprio = priorityRows.filter((r: any) => DEPRIORITIZED.has(r.source_collection));
   // Within deprioritized, still process the further-along one first
-  deprio.sort((a, b) => parseFloat(b.pct_done) - parseFloat(a.pct_done));
+  deprio.sort((a: any, b: any) => parseFloat(b.pct_done) - parseFloat(a.pct_done));
 
   const collectionPriority = [...normal, ...deprio].map((r) => r.source_collection);
   console.log('   📊 Collection priority (closest to done first; large sets deprioritized):');
@@ -2605,6 +2712,8 @@ async function processQueue() {
     markViewsDirty();
     console.log(`\n\n   ✅ Processed ${processedCount} queued jobs reliably.`);
   }
+
+  pipelineAudit.printErrorSummary();
 }
 
 // Run the pipeline

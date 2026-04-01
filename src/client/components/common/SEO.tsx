@@ -10,7 +10,7 @@ interface SEOProps {
   url?: string;
   canonical?: string;
   keywords?: string[];
-  schema?: Record<string, any> | Array<Record<string, any>>;
+  schema?: Record<string, unknown> | Array<Record<string, unknown>>;
   twitterCard?: 'summary' | 'summary_large_image';
   noindex?: boolean;
 }

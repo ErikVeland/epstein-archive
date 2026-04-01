@@ -13,7 +13,7 @@ interface PreloadOptions {
 
 class ResourcePreloader {
   private preloadedUrls = new Set<string>();
-  private cache = new Map<string, any>();
+  private cache = new Map<string, unknown>();
 
   /**
    * Pre-fetches a JSON resource and caches it

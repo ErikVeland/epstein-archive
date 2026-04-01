@@ -5,7 +5,7 @@
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
-import { spawnSync } from 'child_process';
+import { spawn, spawnSync } from 'child_process';
 import { Client } from 'pg';
 import 'dotenv/config';
 import { AIEnrichmentService } from '../src/server/services/AIEnrichmentService.js';
@@ -124,12 +124,20 @@ function writeLiveStatus(fields: Record<string, unknown>) {
     let current: Record<string, unknown> = {};
     try {
       current = JSON.parse(readFileSync(LIVE_STATUS_FILE, 'utf8'));
-    } catch {}
-    writeFileSync(
-      LIVE_STATUS_FILE,
-      JSON.stringify({ ...current, pid: process.pid, ...fields }, null, 2),
-    );
-  } catch {}
+    } catch (_e) {
+      // Non-fatal if file missing or corrupt
+    }
+    try {
+      writeFileSync(
+        LIVE_STATUS_FILE,
+        JSON.stringify({ ...current, pid: process.pid, ...fields }, null, 2),
+      );
+    } catch (_e) {
+      // Non-fatal log failure
+    }
+  } catch (e) {
+    console.error('Failed to write live status', e);
+  }
 }
 
 function recordExit(reason: string, details: Record<string, unknown> = {}) {
@@ -384,7 +392,6 @@ interface PipelineStats {
  * Run a subprocess and stream its output
  */
 function runScript(scriptPath: string, args: string[] = []): Promise<number> {
-  const { spawn } = require('child_process');
   return new Promise((resolve, reject) => {
     console.log(`\n📜 Running: npx tsx ${scriptPath} ${args.join(' ')}`);
     const child = spawn('npx', ['tsx', scriptPath, ...args], {

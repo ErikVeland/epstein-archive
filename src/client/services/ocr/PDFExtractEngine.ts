@@ -1,5 +1,4 @@
 import fs from 'fs';
-// @ts-ignore - pdf-parse has typing issues
 import { PDFParse } from 'pdf-parse';
 import { OCREngine, OCRResult } from './types.js';
 

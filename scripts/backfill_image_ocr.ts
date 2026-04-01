@@ -1,5 +1,5 @@
-import { readFileSync, existsSync } from 'fs';
-import { join, basename, extname } from 'path';
+import { existsSync } from 'fs';
+import { join } from 'path';
 import { createWorker } from 'tesseract.js';
 import { getIngestPool } from '../src/server/db/connection.js';
 import { TextCleaner } from './utils/text_cleaner.js';

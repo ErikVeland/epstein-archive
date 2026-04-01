@@ -72,7 +72,7 @@ router.get('/enhanced', analyticsRateLimiter, cacheResponse(60), async (_req, re
       riskDistributionPromise,
     ]);
 
-    const topConnectedMap = new Map<string, any>();
+    const topConnectedMap = new Map<string, Record<string, unknown>>();
     for (const row of topConnectedRowsRaw || []) {
       const normalizedName = normalizeTopConnectedName(String(row?.name || ''));
       if (!normalizedName || isLikelyJunkTopConnectedName(normalizedName)) continue;

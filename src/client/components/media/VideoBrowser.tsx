@@ -22,12 +22,14 @@ interface VideoItem {
   isSensitive: boolean;
   albumId?: number;
   albumName?: string;
+  dateTaken?: string | null;
   metadata: {
     duration?: number;
     thumbnailPath?: string;
     transcript?: Record<string, unknown>[];
     chapters?: Record<string, unknown>[];
     documentId?: string | number;
+    recordingTime?: string;
     [key: string]: unknown;
   };
   createdAt: string;
@@ -183,8 +185,14 @@ const VideoCell = React.memo(({ columnIndex, rowIndex, style, data }: GridChildC
           <div className="flex items-center gap-3 mt-1.5">
             <div className="text-[10px] text-[var(--text-muted)] flex items-center gap-1">
               <Calendar className="h-3 w-3" />
-              {formatDate(video.createdAt)}
+              {video.dateTaken ? formatDate(video.dateTaken) : formatDate(video.createdAt)}
             </div>
+            {video.people && video.people.length > 0 && (
+              <div className="text-[10px] text-[var(--accent)] flex items-center gap-1">
+                <span>👤</span>
+                {video.people.length === 1 ? video.people[0].name : `${video.people.length} people`}
+              </div>
+            )}
           </div>
         </div>
       </button>
@@ -194,15 +202,18 @@ const VideoCell = React.memo(({ columnIndex, rowIndex, style, data }: GridChildC
 
 export const VideoBrowser: React.FC = () => {
   const initialAlbumId = useMemo(() => getInitialAlbumIdFromUrl(), []);
+  const [hasPeopleOnly, setHasPeopleOnly] = useState(false);
+
   const buildVideoQuery = useCallback(
     (
       params: URLSearchParams,
       { searchQuery }: { selectedAlbum: number | null; searchQuery: string },
     ) => {
       if (searchQuery.trim()) params.append('transcriptQuery', searchQuery.trim());
-      params.append('sortBy', 'title');
+      if (hasPeopleOnly) params.append('hasPeople', 'true');
+      params.append('sortBy', 'date_taken');
     },
-    [],
+    [hasPeopleOnly],
   );
   const [selectedItem, setSelectedItem] = useState<VideoItem | null>(null);
   const [showAlbumDropdown, setShowAlbumDropdown] = useState(false);
@@ -235,6 +246,17 @@ export const VideoBrowser: React.FC = () => {
     transformItems: sortVideosInDisplayOrder,
     syncAlbumToUrl: true,
   });
+
+  // Re-fetch when hasPeopleOnly changes
+  const isFirstRender = React.useRef(true);
+  React.useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    void refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasPeopleOnly]);
 
   const currentAlbum = useMemo(
     () => albums.find((a) => a.id === selectedAlbum),
@@ -372,6 +394,13 @@ export const VideoBrowser: React.FC = () => {
                 title="Reload"
               >
                 Reload
+              </button>
+              <button
+                onClick={() => setHasPeopleOnly((v) => !v)}
+                className={`px-3 py-1 rounded-[var(--radius-lg)] text-xs border transition-colors ${hasPeopleOnly ? 'bg-[var(--accent)] text-[var(--text-primary)] border-[var(--accent)]' : 'bg-[var(--glass-bg)] text-[var(--text-muted)] hover:text-[var(--text-primary)] border-[var(--glass-border)]'}`}
+                title="Show only videos with identified people"
+              >
+                👤 People in Frame
               </button>
             </div>
             <button

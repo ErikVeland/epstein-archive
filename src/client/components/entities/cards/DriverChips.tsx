@@ -4,13 +4,14 @@ import Tooltip from '../../common/Tooltip';
 
 interface DriverChipsProps {
   chips: DriverChip[];
+  className?: string;
 }
 
-export const DriverChips: React.FC<DriverChipsProps> = ({ chips }) => {
+export const DriverChips: React.FC<DriverChipsProps> = ({ chips, className = '' }) => {
   if (!chips || chips.length === 0) return null;
 
   return (
-    <div className="flex flex-wrap gap-[var(--space-1)] mt-[var(--space-2)]">
+    <div className={`flex flex-wrap items-center gap-[var(--space-1)] ${className}`}>
       {chips.map((chip, idx) => {
         const style =
           chip.type === 'critical'

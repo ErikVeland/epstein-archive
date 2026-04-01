@@ -134,6 +134,7 @@ export interface EmailClassificationResult {
 }
 
 /**
+ * /**
  * Classify an email based on sender, subject, and content
  */
 export function classifyEmail(
@@ -220,28 +221,39 @@ export function classifyEmail(
     reasons.push('Newsletter body pattern');
   }
 
-  // 7. Check for personal email indicators
-  const hasPersonalGreeting = /^(hi|hello|dear|hey)\s+[a-z]/i.test(contentLower.slice(0, 100));
-  const hasPersonalSign = /(regards|best|thanks|cheers|sincerely),?\s*\n/i.test(contentLower);
-  const isShortEmail = (content || '').length < 2000;
-  const noHtml = !/<html|<div|<table|<style/i.test(content || '');
+  // 7. Refine "Primary" - Only if it looks like a real person
+  const personalDomains = [
+    'gmail.com',
+    'me.com',
+    'icloud.com',
+    'mac.com',
+    'aol.com',
+    'hotmail.com',
+    'yahoo.com',
+    'outlook.com',
+    'msn.com',
+  ];
+  const isPersonalDomain = personalDomains.some((d) => senderDomain === d);
 
-  if (hasPersonalGreeting && hasPersonalSign && isShortEmail && noHtml) {
-    if (category !== 'primary') {
-      // Override to primary if it looks personal
-      category = 'primary';
-      confidence = 0.7;
-      reasons.push('Personal email indicators');
+  if (category === 'primary') {
+    if (!isPersonalDomain && !isFromKnownEntity) {
+      // Broaden the "catch-all" to something else if it doesn't look personal
+      // we'll keep it as 'primary' for now but with low confidence if it doesn't look like a person
+      confidence = 0.3;
+      reasons.push('Unrecognized sender domain (non-personal)');
     }
   }
 
-  // 8. Gmail-style "from a person" heuristic
-  // If sender looks like a real name (not a company), boost primary
-  const senderName = sender.replace(/<.*>/, '').trim();
-  const looksLikePersonName = /^[A-Z][a-z]+(\s+[A-Z][a-z]+)?$/.test(senderName);
-  if (looksLikePersonName && category === 'primary') {
-    confidence = Math.min(0.85, confidence + 0.2);
-    reasons.push('Sender looks like personal name');
+  // 8. Check for personal email indicators
+  const hasPersonalGreeting = /^(hi|hello|dear|hey)\s+[a-z]/i.test(contentLower.slice(0, 100));
+  const hasPersonalSign = /(regards|best|thanks|cheers|sincerely),?\s*\n/i.test(contentLower);
+  const isShortEmail = (content || '').length < 4000;
+  const noHtmlFlags = !/<html|<div|<table|<style/i.test(content || '');
+
+  if ((hasPersonalGreeting || hasPersonalSign) && isShortEmail && noHtmlFlags) {
+    category = 'primary';
+    confidence = Math.max(confidence, 0.8);
+    reasons.push('Personal email indicators');
   }
 
   return { category, confidence, isFromKnownEntity, knownEntityName, reasons };
@@ -308,89 +320,44 @@ export async function getEntitiesInEmail(content: string): Promise<LinkedEntity[
 }
 
 /**
- * Build SQL WHERE clause for email category filtering
+ * Build SQL WHERE clause for email category filtering (PostgreSQL version)
  */
 export function buildCategoryWhereClause(category: string): { clause: string; isComplex: boolean } {
+  const meta = '(metadata_json::jsonb)';
   switch (category) {
     case 'primary':
-      // Emails from known entities or that look personal
       return {
         clause: `
           AND (
-            -- Known entity senders
-            json_extract(metadata_json, '$.from') IN (${Object.keys(KNOWN_ENTITY_SENDERS)
+            ${meta} ->> 'from' ILIKE ANY (ARRAY[${Object.keys(KNOWN_ENTITY_SENDERS)
               .map((e) => `'${e}'`)
-              .join(',')})
-            OR json_extract(metadata_json, '$.from') LIKE '%ehbarak1@gmail.com%'
-            OR json_extract(metadata_json, '$.from') LIKE '%jeevacation@gmail.com%'
-            -- Exclude obvious newsletters
-            AND json_extract(metadata_json, '$.from') NOT LIKE '%@houzz.com%'
-            AND json_extract(metadata_json, '$.from') NOT LIKE '%@response.cnbc.com%'
-            AND json_extract(metadata_json, '$.from') NOT LIKE '%@washingtonpost.com%'
-            AND json_extract(metadata_json, '$.from') NOT LIKE '%@amazon.com%'
-            AND json_extract(metadata_json, '$.from') NOT LIKE '%noreply@%'
-            AND json_extract(metadata_json, '$.from') NOT LIKE '%no-reply@%'
-            AND json_extract(metadata_json, '$.from') NOT LIKE '%donotreply@%'
-            AND content NOT LIKE '%unsubscribe%'
+              .join(',')}])
+            OR ${meta} ->> 'from' ILIKE ANY (ARRAY['%gmail.com%', '%me.com%', '%icloud.com%', '%mac.com%', '%aol.com%', '%hotmail.com%', '%yahoo.com%'])
+            -- Exclude common junk
+            AND ${meta} ->> 'from' NOT ILIKE '%noreply%'
+            AND (COALESCE(content_refined, '')) NOT ILIKE '%unsubscribe%'
           )
         `,
         isComplex: true,
       };
 
     case 'updates':
-      // Transaction emails, confirmations, notifications
       return {
         clause: `
           AND (
-            json_extract(metadata_json, '$.from') LIKE '%amazon.com%'
-            OR json_extract(metadata_json, '$.from') LIKE '%shipment%'
-            OR json_extract(metadata_json, '$.from') LIKE '%order%'
-            OR json_extract(metadata_json, '$.from') LIKE '%noreply@%'
-            OR json_extract(metadata_json, '$.from') LIKE '%no-reply@%'
-            OR json_extract(metadata_json, '$.from') LIKE '%confirmation@%'
-            OR json_extract(metadata_json, '$.from') LIKE '%alerts@%'
-            OR file_name LIKE '%verification%'
-            OR file_name LIKE '%order%'
-            OR file_name LIKE '%shipping%'
+            ${meta} ->> 'from' ILIKE ANY (ARRAY['%amazon.com%', '%shipment%', '%order%', '%noreply%', '%confirmation%', '%alerts%'])
+            OR file_name ILIKE ANY (ARRAY['%verification%', '%order%', '%shipping%'])
           )
         `,
         isComplex: true,
       };
 
     case 'promotions':
-      // Marketing, newsletters, sales
       return {
         clause: `
           AND (
-            json_extract(metadata_json, '$.from') LIKE '%@houzz.com%'
-            OR json_extract(metadata_json, '$.from') LIKE '%@response.cnbc.com%'
-            OR json_extract(metadata_json, '$.from') LIKE '%fab.com%'
-            OR json_extract(metadata_json, '$.from') LIKE '%conciergeauctions%'
-            OR json_extract(metadata_json, '$.from') LIKE '%washingtonpost.com%'
-            OR json_extract(metadata_json, '$.from') LIKE '%newyorktimes%'
-            OR json_extract(metadata_json, '$.from') LIKE '%dailynews%'
-            OR json_extract(metadata_json, '$.from') LIKE '%newsletter%'
-            OR json_extract(metadata_json, '$.from') LIKE '%mymms%'
-            OR json_extract(metadata_json, '$.from') LIKE '%firmoo%'
-            OR json_extract(metadata_json, '$.from') LIKE '%spotify%'
-            OR json_extract(metadata_json, '$.from') LIKE '%coursera%'
-            OR json_extract(metadata_json, '$.from') LIKE '%goodreads%'
-            OR json_extract(metadata_json, '$.from') LIKE '%23andme%'
-            OR json_extract(metadata_json, '$.from') LIKE '%ditto.com%'
-            OR content LIKE '%unsubscribe%'
-          )
-        `,
-        isComplex: true,
-      };
-
-    case 'social':
-      return {
-        clause: `
-          AND (
-            json_extract(metadata_json, '$.from') LIKE '%facebook%'
-            OR json_extract(metadata_json, '$.from') LIKE '%twitter%'
-            OR json_extract(metadata_json, '$.from') LIKE '%linkedin%'
-            OR json_extract(metadata_json, '$.from') LIKE '%instagram%'
+            ${meta} ->> 'from' ILIKE ANY (ARRAY['%newsletter%', '%marketing%', '%mailchimp%', '%constantcontact%', '%.cnbc.com%', '%houzz.com%', '%newyorktimes%', '%spotify%'])
+            OR (COALESCE(content_refined, '')) ILIKE '%unsubscribe%'
           )
         `,
         isComplex: true,

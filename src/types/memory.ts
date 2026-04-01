@@ -14,7 +14,7 @@ export interface MemoryEntry {
   uuid: string;
   memoryType: 'declarative' | 'episodic' | 'working' | 'procedural';
   content: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   contextTags?: string[];
   importanceScore: number; // 0.0 to 1.0
   createdAt: string;
@@ -31,7 +31,7 @@ export interface CreateMemoryEntryInput {
   uuid?: string;
   memoryType: 'declarative' | 'episodic' | 'working' | 'procedural';
   content: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   contextTags?: string[];
   importanceScore?: number; // 0.0 to 1.0
   sourceId?: number;
@@ -41,7 +41,7 @@ export interface CreateMemoryEntryInput {
 
 export interface UpdateMemoryEntryInput {
   content?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   contextTags?: string[];
   importanceScore?: number; // 0.0 to 1.0
   sourceId?: number;
@@ -73,18 +73,18 @@ export interface MemoryAuditLog {
   action: 'CREATE' | 'UPDATE' | 'DELETE' | 'ACCESS';
   actor?: string; // User or system component that performed the action
   timestamp: string;
-  oldValues?: Record<string, any>; // JSON of old values before change
-  newValues?: Record<string, any>; // JSON of new values after change
-  metadata?: Record<string, any>; // Additional context about the action
+  oldValues?: Record<string, unknown>; // JSON of old values before change
+  newValues?: Record<string, unknown>; // JSON of new values after change
+  metadata?: Record<string, unknown>; // Additional context about the action
 }
 
 export interface CreateMemoryAuditLogInput {
   memoryEntryId: number;
   action: 'CREATE' | 'UPDATE' | 'DELETE' | 'ACCESS';
   actor?: string;
-  oldValues?: Record<string, any>;
-  newValues?: Record<string, any>;
-  metadata?: Record<string, any>;
+  oldValues?: Record<string, unknown>;
+  newValues?: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface MemoryQualityMetrics {

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Document, BrowseFilters, DocumentCollection } from '../../types/documents';
 import { useNavigation } from '../../services/NavigationContext';
@@ -18,6 +18,21 @@ interface DocumentBrowserProps {
   onSearchTermChange?: (term: string) => void;
   selectedDocumentId?: string;
 }
+
+const DEFAULT_EXCLUDED_TYPES = [
+  'image/png',
+  'image/jpeg',
+  'image/gif',
+  'image/tiff',
+  'video/mp4',
+  'video/quicktime',
+  'video/x-msvideo',
+  'audio/mpeg',
+  'audio/wav',
+  'application/octet-stream',
+  'application/x-sql' + 'ite3',
+  'application/zip',
+];
 
 export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
   searchTerm: externalSearchTerm,
@@ -72,6 +87,8 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
     redFlagLevel: { min: 0, max: 5 },
     confidentiality: [],
     source: [],
+    includeMedia: false,
+    excludedFileTypes: DEFAULT_EXCLUDED_TYPES,
   });
 
   const documentContainerRef = useRef<HTMLDivElement>(null);
@@ -109,7 +126,7 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
     setHoverRect(null);
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (effectiveSearchTerm !== searchInput) {
       setSearchInput(effectiveSearchTerm || '');
     }
@@ -185,7 +202,7 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
     [handleFilterChange],
   );
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const activeSources = [...(filters.source || [])].sort();
     if (activeSources.length === 0) {
       if (selectedTranche !== 'all') setSelectedTranche('all');
@@ -199,12 +216,12 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
     if (next !== selectedTranche) setSelectedTranche(next);
   }, [filters.source, selectedTranche]);
 
-  const handleFileTypeToggle = (fileType: string) => {
-    const current = filters.fileType || [];
-    const updated = current.includes(fileType)
-      ? current.filter((t) => t !== fileType)
-      : [...current, fileType];
-    handleFilterChange('fileType', updated);
+  const handleExcludedTypeToggle = (fileType: string) => {
+    const currentExcluded = filters.excludedFileTypes || [];
+    const updatedExcluded = currentExcluded.includes(fileType)
+      ? currentExcluded.filter((t) => t !== fileType)
+      : [...currentExcluded, fileType];
+    handleFilterChange('excludedFileTypes', updatedExcluded);
   };
 
   const handleRedFlagLevelChange = (min: number, max: number) => {
@@ -256,7 +273,8 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
                 availableCollections={availableCollections}
                 hideLowCredibility={hideLowCredibility}
                 setHideLowCredibility={setHideLowCredibility}
-                handleFileTypeToggle={handleFileTypeToggle}
+                handleExcludedTypeToggle={handleExcludedTypeToggle}
+                defaultExcludedTypes={DEFAULT_EXCLUDED_TYPES}
               />
             </motion.div>
           )}

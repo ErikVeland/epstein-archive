@@ -644,6 +644,70 @@ export async function getEmailBodyById(id: string): Promise<{ body: string } | u
   return rows[0] as { body: string } | undefined;
 }
 
+const buildCategoryCaseSql = `
+CASE
+  WHEN
+    (COALESCE(metadata_json::jsonb ->> 'from', '')) ILIKE '%noreply@%'
+    OR (COALESCE(metadata_json::jsonb ->> 'from', '')) ILIKE '%no-reply@%'
+    OR (COALESCE(metadata_json::jsonb ->> 'from', '')) ILIKE '%do-not-reply@%'
+    OR (COALESCE(metadata_json::jsonb ->> 'from', '')) ILIKE '%donotreply@%'
+    OR (COALESCE(metadata_json::jsonb ->> 'from', '')) ILIKE '%notifications@%'
+    OR (COALESCE(metadata_json::jsonb ->> 'from', '')) ILIKE '%notification@%'
+    OR (COALESCE(metadata_json::jsonb ->> 'from', '')) ILIKE '%support@%'
+    OR (COALESCE(metadata_json::jsonb ->> 'from', '')) ILIKE '%auto%reply%'
+    OR (COALESCE(metadata_json::jsonb ->> 'from', '')) ILIKE '%mailer-daemon%'
+    OR (COALESCE(metadata_json::jsonb ->> 'from', '')) ILIKE '%bounce%'
+    OR (COALESCE(metadata_json::jsonb ->> 'from', '')) ILIKE '%amazon.com%'
+    OR (COALESCE(metadata_json::jsonb ->> 'subject', d.file_name, d.title, '')) ILIKE '%order %'
+    OR (COALESCE(metadata_json::jsonb ->> 'subject', d.file_name, d.title, '')) ILIKE '%shipping%'
+    OR (COALESCE(metadata_json::jsonb ->> 'subject', d.file_name, d.title, '')) ILIKE '%delivered%'
+    OR (COALESCE(metadata_json::jsonb ->> 'subject', d.file_name, d.title, '')) ILIKE '%receipt%'
+    OR (COALESCE(metadata_json::jsonb ->> 'subject', d.file_name, d.title, '')) ILIKE '%invoice%'
+    OR (COALESCE(metadata_json::jsonb ->> 'subject', d.file_name, d.title, '')) ILIKE '%statement%'
+    OR (COALESCE(metadata_json::jsonb ->> 'subject', d.file_name, d.title, '')) ILIKE '%verification code%'
+    OR (COALESCE(metadata_json::jsonb ->> 'subject', d.file_name, d.title, '')) ILIKE '%password reset%'
+    OR (COALESCE(content_refined, '')) ILIKE '%tracking number%'
+    OR (COALESCE(content_refined, '')) ILIKE '%shipment%'
+  THEN 'updates'
+  WHEN
+    (COALESCE(metadata_json::jsonb ->> 'from', '')) ILIKE '%newsletter%'
+    OR (COALESCE(metadata_json::jsonb ->> 'from', '')) ILIKE '%marketing%'
+    OR (COALESCE(metadata_json::jsonb ->> 'from', '')) ILIKE '%mailchimp%'
+    OR (COALESCE(metadata_json::jsonb ->> 'from', '')) ILIKE '%constantcontact%'
+    OR (COALESCE(metadata_json::jsonb ->> 'from', '')) ILIKE '%@response.cnbc.com%'
+    OR (COALESCE(metadata_json::jsonb ->> 'from', '')) ILIKE '%@houzz.com%'
+    OR (COALESCE(metadata_json::jsonb ->> 'subject', d.file_name, d.title, '')) ILIKE '%newsletter%'
+    OR (COALESCE(metadata_json::jsonb ->> 'subject', d.file_name, d.title, '')) ILIKE '%sale%'
+    OR (COALESCE(metadata_json::jsonb ->> 'subject', d.file_name, d.title, '')) ILIKE '%offer%'
+    OR (COALESCE(metadata_json::jsonb ->> 'subject', d.file_name, d.title, '')) ILIKE '%promotion%'
+    OR (COALESCE(metadata_json::jsonb ->> 'subject', d.file_name, d.title, '')) ILIKE '%special%'
+    OR (COALESCE(metadata_json::jsonb ->> 'subject', d.file_name, d.title, '')) ILIKE '%discount%'
+    OR (COALESCE(content_refined, '')) ILIKE '%unsubscribe%'
+    OR (COALESCE(content_refined, '')) ILIKE '%newsletter%'
+    OR (COALESCE(content_refined, '')) ILIKE '%manage preferences%'
+    OR (COALESCE(content_refined, '')) ILIKE '%opt out%'
+  THEN 'promotions'
+  WHEN
+    (
+      (COALESCE(metadata_json::jsonb ->> 'from', '')) ILIKE '%gmail.com%'
+      OR (COALESCE(metadata_json::jsonb ->> 'from', '')) ILIKE '%me.com%'
+      OR (COALESCE(metadata_json::jsonb ->> 'from', '')) ILIKE '%icloud.com%'
+      OR (COALESCE(metadata_json::jsonb ->> 'from', '')) ILIKE '%mac.com%'
+      OR (COALESCE(metadata_json::jsonb ->> 'from', '')) ILIKE '%aol.com%'
+      OR (COALESCE(metadata_json::jsonb ->> 'from', '')) ILIKE '%hotmail.com%'
+      OR (COALESCE(metadata_json::jsonb ->> 'from', '')) ILIKE '%yahoo.com%'
+      OR (COALESCE(metadata_json::jsonb ->> 'from', '')) ILIKE '%outlook.com%'
+      OR (COALESCE(metadata_json::jsonb ->> 'from', '')) ILIKE '%msn.com%'
+      OR (COALESCE(metadata_json::jsonb ->> 'from', '')) ILIKE '%ehbarak1@gmail.com%'
+      OR (COALESCE(metadata_json::jsonb ->> 'from', '')) ILIKE '%jeevacation@gmail.com%'
+    )
+    AND (COALESCE(content_refined, '')) NOT ILIKE '%unsubscribe%'
+    AND (COALESCE(content_refined, '')) NOT ILIKE '%manage preferences%'
+  THEN 'primary'
+  ELSE 'all'
+END
+`;
+
 export async function getEmailCategoriesCounts(): Promise<EmailCategoriesCounts> {
   const query = `
       SELECT
@@ -672,53 +736,6 @@ export async function getEmailCategoriesCounts(): Promise<EmailCategoriesCounts>
   }
   return counts;
 }
-
-const buildCategoryCaseSql = `
-CASE
-  WHEN
-    lower(coalesce(metadata_json ->> 'from', '')) LIKE '%noreply@%'
-    OR lower(coalesce(metadata_json ->> 'from', '')) LIKE '%no-reply@%'
-    OR lower(coalesce(metadata_json ->> 'from', '')) LIKE '%do-not-reply@%'
-    OR lower(coalesce(metadata_json ->> 'from', '')) LIKE '%donotreply@%'
-    OR lower(coalesce(metadata_json ->> 'from', '')) LIKE '%notifications@%'
-    OR lower(coalesce(metadata_json ->> 'from', '')) LIKE '%notification@%'
-    OR lower(coalesce(metadata_json ->> 'from', '')) LIKE '%support@%'
-    OR lower(coalesce(metadata_json ->> 'from', '')) LIKE '%auto%reply%'
-    OR lower(coalesce(metadata_json ->> 'from', '')) LIKE '%mailer-daemon%'
-    OR lower(coalesce(metadata_json ->> 'from', '')) LIKE '%bounce%'
-    OR lower(coalesce(metadata_json ->> 'from', '')) LIKE '%amazon.com%'
-    OR lower(coalesce(metadata_json ->> 'subject', d.file_name, d.title, '')) LIKE '%order %'
-    OR lower(coalesce(metadata_json ->> 'subject', d.file_name, d.title, '')) LIKE '%shipping%'
-    OR lower(coalesce(metadata_json ->> 'subject', d.file_name, d.title, '')) LIKE '%delivered%'
-    OR lower(coalesce(metadata_json ->> 'subject', d.file_name, d.title, '')) LIKE '%receipt%'
-    OR lower(coalesce(metadata_json ->> 'subject', d.file_name, d.title, '')) LIKE '%invoice%'
-    OR lower(coalesce(metadata_json ->> 'subject', d.file_name, d.title, '')) LIKE '%statement%'
-    OR lower(coalesce(metadata_json ->> 'subject', d.file_name, d.title, '')) LIKE '%verification code%'
-    OR lower(coalesce(metadata_json ->> 'subject', d.file_name, d.title, '')) LIKE '%password reset%'
-    OR lower(coalesce(content_refined, '')) LIKE '%tracking number%'
-    OR lower(coalesce(content_refined, '')) LIKE '%shipment%'
-  THEN 'updates'
-  WHEN
-    lower(coalesce(metadata_json ->> 'from', '')) LIKE '%newsletter%'
-    OR lower(coalesce(metadata_json ->> 'from', '')) LIKE '%marketing%'
-    OR lower(coalesce(metadata_json ->> 'from', '')) LIKE '%mailchimp%'
-    OR lower(coalesce(metadata_json ->> 'from', '')) LIKE '%constantcontact%'
-    OR lower(coalesce(metadata_json ->> 'from', '')) LIKE '%@response.cnbc.com%'
-    OR lower(coalesce(metadata_json ->> 'from', '')) LIKE '%@houzz.com%'
-    OR lower(coalesce(metadata_json ->> 'subject', d.file_name, d.title, '')) LIKE '%newsletter%'
-    OR lower(coalesce(metadata_json ->> 'subject', d.file_name, d.title, '')) LIKE '%sale%'
-    OR lower(coalesce(metadata_json ->> 'subject', d.file_name, d.title, '')) LIKE '%offer%'
-    OR lower(coalesce(metadata_json ->> 'subject', d.file_name, d.title, '')) LIKE '%promotion%'
-    OR lower(coalesce(metadata_json ->> 'subject', d.file_name, d.title, '')) LIKE '%special%'
-    OR lower(coalesce(metadata_json ->> 'subject', d.file_name, d.title, '')) LIKE '%discount%'
-    OR lower(coalesce(content_refined, '')) LIKE '%unsubscribe%'
-    OR lower(coalesce(content_refined, '')) LIKE '%newsletter%'
-    OR lower(coalesce(content_refined, '')) LIKE '%manage preferences%'
-    OR lower(coalesce(content_refined, '')) LIKE '%opt out%'
-  THEN 'promotions'
-  ELSE 'primary'
-END
-`;
 
 const buildThreadBaseSql = (where: string) => `
 WITH email_docs AS (
@@ -908,14 +925,22 @@ export async function getEmailMailboxes(showSuppressedJunk: boolean) {
             COUNT(DISTINCT ed."threadId") AS "totalThreads",
             COUNT(DISTINCT ed.id) AS "totalMessages",
             MAX(ed."dateCreated") AS "lastActivityAt",
-            MAX(ed."redFlagRating") AS "topRisk"
+            MAX(ed."redFlagRating") AS "topRisk",
+            COALESCE(e.is_vip, 0) AS "isVip",
+            COALESCE(e.manually_reviewed, 0) AS "isVerified"
           FROM email_docs ed
           JOIN entity_mentions em ON em.document_id = ed.id
           JOIN entities e ON e.id = em.entity_id
-          WHERE COALESCE(e.type, '') = 'Person'
-            ${showSuppressedJunk ? '' : "AND COALESCE(e.junk_tier, 'clean') = 'clean'"}
+          WHERE COALESCE(e.entity_type, 'Person') = 'Person'
+            AND COALESCE(e.junk_tier, 'clean') <> 'junk'
             AND COALESCE(e.full_name, '') <> ''
-          GROUP BY em.entity_id, e.full_name
+            -- Prioritize VIPs, otherwise requires at least 2 threads or manual review to be a 'mailbox'
+            AND (e.is_vip = 1 OR e.manually_reviewed = 1 OR (
+                SELECT COUNT(DISTINCT document_id) 
+                FROM entity_mentions 
+                WHERE entity_id = e.id
+            ) > 2)
+          GROUP BY em.entity_id, e.full_name, e.is_vip, e.manually_reviewed
         )
         SELECT
           "entityId",
@@ -923,11 +948,13 @@ export async function getEmailMailboxes(showSuppressedJunk: boolean) {
           "totalThreads",
           "totalMessages",
           "lastActivityAt",
-          "topRisk"
+          "topRisk",
+          "isVip",
+          "isVerified"
         FROM mailbox_entity_stats
         WHERE "totalThreads" >= 1
-        ORDER BY "totalThreads" DESC, "totalMessages" DESC, "displayName" ASC
-        LIMIT 60
+        ORDER BY "isVip" DESC, "isVerified" DESC, "totalThreads" DESC, "displayName" ASC
+        LIMIT 300
       `,
       [mailboxScanLimit],
     );

@@ -732,6 +732,18 @@ const BASE_VIP_RULES: VipRule[] = [
     },
   },
   {
+    canonicalName: 'Vladislav Doronin',
+    type: 'Person',
+    aliases: ['dvycut', 'DV', 'Vladislav', 'Doronin', 'Vlad Doronin'],
+    patterns: [/Vladislav\s+Doronin/i, /dvycut/i, /\bDV\b/, /Vlad\s+Doronin/i],
+    metadata: {
+      category: 'Associate',
+      riskLevel: 'medium',
+      birthDate: '1962-11-07',
+      bio: 'Russian-born Swiss billionaire, real estate developer, and art collector. Founder of Capital Group and owner of Aman Resorts. Documents show he invited Epstein to Moscow in 2009 and advised him on Russian visas.',
+    },
+  },
+  {
     canonicalName: 'Mark Salling',
     type: 'Person',
     aliases: [],

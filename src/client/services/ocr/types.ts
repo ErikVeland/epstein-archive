@@ -8,7 +8,7 @@ export interface OCRResult {
   text: string;
   confidence: number; // 0 to 100
   engine: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   durationMs: number;
   hasRedactions?: boolean;
   redactionRatio?: number; // 0 to 1, percentage of text that is redacted

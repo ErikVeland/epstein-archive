@@ -96,7 +96,7 @@ const JUNK_PATTERNS = [
   /\bKimber(?:y|ly)\s+Meder\b/i,
   /\bDechiqu\b/i,
   /^\.+$/,
-  /^[_\-]+$/,
+  /^[-_]+$/,
 ];
 
 /**

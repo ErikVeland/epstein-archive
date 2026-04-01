@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type APIRequestContext } from '@playwright/test';
 import { ZodSchema } from 'zod';
 import {
   documentsListResponseSchema,
@@ -25,11 +25,7 @@ const assertSchema = <T>(schema: ZodSchema<T>, payload: unknown, label: string):
   throw new Error(`[DTO contract] ${label} failed schema validation: ${details}`);
 };
 
-const waitForOk = async (
-  request: Parameters<Parameters<typeof test.beforeAll>[0]>[0]['request'],
-  url: string,
-  attempts = 4,
-) => {
+const waitForOk = async (request: APIRequestContext, url: string, attempts = 4) => {
   let lastStatus: number | null = null;
   for (let index = 0; index < attempts; index += 1) {
     const response = await request.get(url, { timeout: 15000 });

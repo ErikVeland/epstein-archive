@@ -15,7 +15,7 @@
     "ecmaVersion": "latest",
     "sourceType": "module"
   },
-  "plugins": ["react-refresh", "prettier"],
+  "plugins": ["react-refresh", "prettier", "react-hooks"],
   "overrides": [
     {
       "files": ["src/client/**/*.{ts,tsx,js,jsx}"],
@@ -33,28 +33,36 @@
           }
         ]
       }
+    },
+    {
+      "files": ["tests/**/*.ts", "**/*.test.{ts,tsx}"],
+      "env": {
+        "jest": true
+      }
     }
   ],
   "rules": {
     "react-refresh/only-export-components": "warn",
-    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-explicit-any": "warn",
     "@typescript-eslint/no-unused-vars": [
-      "warn",
+      "error",
       {
         "argsIgnorePattern": "^_",
         "varsIgnorePattern": "^_",
         "caughtErrorsIgnorePattern": "^_"
       }
     ],
-    "@typescript-eslint/no-var-requires": "off",
+    "@typescript-eslint/no-var-requires": "error",
     "no-undef": "off",
     "no-control-regex": "off",
-    "no-useless-escape": "off",
-    "@typescript-eslint/ban-ts-comment": "off",
+    "no-useless-escape": "warn",
+    "@typescript-eslint/ban-ts-comment": "warn",
     "prettier/prettier": "error",
-    "react-hooks/set-state-in-effect": "off",
-    "react-hooks/purity": "off",
-    "react-hooks/preserve-manual-memoization": "off",
-    "react-hooks/immutability": "off"
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn",
+    "react-hooks/set-state-in-effect": "warn",
+    "react-hooks/preserve-manual-memoization": "warn",
+    "react-hooks/purity": "warn",
+    "react-hooks/immutability": "warn"
   }
 }

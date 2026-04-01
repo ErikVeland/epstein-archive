@@ -79,7 +79,12 @@ export const getRiskClass = (rating: number): string => {
 /**
  * Determines if a media item is a visual media type (image/video).
  */
-export const isVisualMediaItem = (photo: any): boolean => {
+export const isVisualMediaItem = (
+  photo:
+    | { sourceType?: string; type?: string; url?: string; fullUrl?: string; imageUrl?: string }
+    | null
+    | undefined,
+): boolean => {
   if (!photo) return false;
   const type = String(photo.sourceType || photo.type || '').toLowerCase();
   if (
@@ -104,7 +109,25 @@ export const isVisualMediaItem = (photo: any): boolean => {
 /**
  * Safely resolves a URL for an entity photo.
  */
-export const resolveEntityPhotoUrl = (photo: any, preferThumbnail = false): string | null => {
+export const resolveEntityPhotoUrl = (
+  photo:
+    | {
+        url?: string;
+        fullUrl?: string;
+        imageUrl?: string;
+        image_url?: string;
+        src?: string;
+        filePath?: string;
+        thumbnailUrl?: string;
+        thumbnail_url?: string;
+        thumbUrl?: string;
+        thumb_url?: string;
+        thumbnailPath?: string;
+      }
+    | null
+    | undefined,
+  preferThumbnail = false,
+): string | null => {
   if (!photo) return null;
   if (preferThumbnail) {
     const thumb =
@@ -113,30 +136,26 @@ export const resolveEntityPhotoUrl = (photo: any, preferThumbnail = false): stri
       photo.thumbUrl ||
       photo.thumb_url ||
       photo.thumbnailPath;
-    if (thumb) return thumb;
+    if (thumb) return String(thumb);
   }
-  return (
-    photo.url ||
-    photo.fullUrl ||
-    photo.imageUrl ||
-    photo.image_url ||
-    photo.src ||
-    photo.filePath ||
-    null
-  );
+  const url =
+    photo.url || photo.fullUrl || photo.imageUrl || photo.image_url || photo.src || photo.filePath;
+  return url ? String(url) : null;
 };
 
 /**
  * Normalize evidence document from various backend shapes.
  */
-export const normalizeEvidenceDocument = (item: any): any => {
+export const normalizeEvidenceDocument = (
+  item: Record<string, unknown>,
+): Record<string, unknown> => {
   return {
     id: item.id || item.document_id,
     title: item.title || item.fileName || item.filename,
     fileName: item.fileName || item.filename,
     contentPreview: item.contentPreview || item.context_snippet || item.description,
     evidenceType: item.evidenceType || item.evidence_type || 'Document',
-    redFlagRating: item.redFlagRating || item.risk_score || 0,
+    redFlagRating: item.redFlagRating ?? item.red_flag_rating ?? item.risk_score ?? 0,
     source_collection: item.source_collection || item.collection,
     dateCreated: item.dateCreated || item.created_at,
   };
@@ -145,7 +164,10 @@ export const normalizeEvidenceDocument = (item: any): any => {
 /**
  * Normalize media item from various backend shapes.
  */
-export const normalizeEntityMediaItem = (item: any, index: number): any => {
+export const normalizeEntityMediaItem = (
+  item: Record<string, unknown>,
+  index: number,
+): Record<string, unknown> => {
   return {
     ...item,
     id: item.id || `media-${index}`,

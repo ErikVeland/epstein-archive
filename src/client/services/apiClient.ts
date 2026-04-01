@@ -1226,6 +1226,8 @@ class ApiClient {
       startDate?: string;
       endDate?: string;
       collectionId?: string;
+      includeMedia?: boolean;
+      excludedFileTypes?: string[];
     } = {},
     page: number = 1,
     limit: number = 50,
@@ -1244,6 +1246,9 @@ class ApiClient {
     if (filters.startDate) params.append('startDate', filters.startDate);
     if (filters.endDate) params.append('endDate', filters.endDate);
     if (filters.collectionId) params.append('collectionId', filters.collectionId);
+    if (filters.includeMedia) params.append('includeMedia', 'true');
+    if (filters.excludedFileTypes && filters.excludedFileTypes.length > 0)
+      params.append('excludedFileTypes', filters.excludedFileTypes.join(','));
     if (filters.fileType && filters.fileType.length > 0)
       params.append('fileType', filters.fileType.join(','));
     if (filters.redFlagLevel?.min !== undefined)

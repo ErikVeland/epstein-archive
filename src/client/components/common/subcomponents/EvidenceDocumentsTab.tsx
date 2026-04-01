@@ -26,12 +26,20 @@ const TypedInfiniteLoader = InfiniteLoader as unknown as React.ComponentType<{
   }) => React.ReactNode;
 }>;
 
+import { EvidenceDocument } from '../EvidenceModal';
+
+interface DocFilterUpdates {
+  search?: string;
+  source?: string;
+  sort?: string;
+}
+
 interface EvidenceDocumentsTabProps {
   docFilters: { search: string; source: string; sort: string };
-  handleFilterChange: (updates: any) => void;
+  handleFilterChange: (updates: DocFilterUpdates) => void;
   isDocsLoading: boolean;
   totalDocs: number;
-  documents: any[];
+  documents: EvidenceDocument[];
   loadNextPage: (startIndex: number) => Promise<void>;
   hasNextPage: boolean;
   isItemLoaded: (index: number) => boolean;
@@ -129,11 +137,14 @@ export const EvidenceDocumentsTab: React.FC<EvidenceDocumentsTabProps> = ({
               </div>
             ) : (
               <TypedAutoSizer>
-                {({ height, width }: { height: number; width: number }) =>
-                  !Number.isFinite(height) ||
-                  !Number.isFinite(width) ||
-                  height < 120 ||
-                  width < 200 ? (
+                {({ height, width }: { height: number; width: number }) => {
+                  const effectiveHeight = height > 0 ? height : 400; // Fallback if height is 0
+                  const effectiveWidth = width > 0 ? width : 800;
+
+                  return !Number.isFinite(height) ||
+                    !Number.isFinite(width) ||
+                    height < 120 ||
+                    width < 200 ? (
                     <div className={s.plainList} data-testid="entity-evidence-fallback-list">
                       {documents.slice(0, 20).map((doc) => (
                         <div key={String(doc.id)} className={s.itemWrapper}>
@@ -155,11 +166,12 @@ export const EvidenceDocumentsTab: React.FC<EvidenceDocumentsTabProps> = ({
                         <List
                           className={s.virtualList}
                           data-testid="entity-evidence-virtual-list"
-                          height={height}
+                          height={effectiveHeight}
                           itemCount={totalDocs}
                           itemSize={180}
-                          width={width}
+                          width={effectiveWidth}
                           onItemsRendered={onItemsRendered}
+                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
                           ref={ref as any}
                         >
                           {({ index, style }) => {
@@ -184,8 +196,8 @@ export const EvidenceDocumentsTab: React.FC<EvidenceDocumentsTabProps> = ({
                         </List>
                       )}
                     </TypedInfiniteLoader>
-                  )
-                }
+                  );
+                }}
               </TypedAutoSizer>
             )}
           </div>

@@ -462,7 +462,7 @@ export const investigationsRepository = {
       startOffset?: number;
       endOffset?: number;
       createdBy?: string;
-      metadata?: Record<string, any>;
+      metadata?: Record<string, unknown>;
     },
   ) => {
     const result = await getApiPool().query<InvestigationEvidenceAnnotationRow>(
@@ -531,7 +531,7 @@ export const investigationsRepository = {
       color?: string | null;
       startOffset?: number | null;
       endOffset?: number | null;
-      metadata?: Record<string, any>;
+      metadata?: Record<string, unknown>;
     },
   ) => {
     const result = await getApiPool().query<InvestigationEvidenceAnnotationRow>(
@@ -597,26 +597,39 @@ export const investigationsRepository = {
       getApiPool(),
     );
 
-    const enriched = await Promise.all(
-      hypotheses.map(async (hyp) => {
-        const evidenceLinks = await (investigationsQueries.getHypothesisEvidence as RunQuery).run(
-          { hypothesisId: Number(hyp.id) },
-          getApiPool(),
-        );
-        return {
-          ...hyp,
-          id: Number(hyp.id),
-          investigation_id: Number(hyp.investigation_id),
-          evidenceLinks: evidenceLinks.map((e) => ({
-            ...e,
-            id: Number(e.id),
-            hypothesis_id: Number(e.hypothesis_id),
-            evidence_id: Number(e.evidence_id),
-          })),
-        };
-      }),
+    if (hypotheses.length === 0) return [];
+
+    // Fetch ALL evidence links for all these hypotheses in one go to avoid N+1
+    const hypothesisIds = hypotheses.map((h) => Number(h.id));
+    const allEvidenceLinks = await getApiPool().query(
+      `SELECT he.*, e.title as evidence_title, e.evidence_type 
+       FROM hypothesis_evidence he
+       JOIN evidence e ON he.evidence_id = e.id
+       WHERE he.hypothesis_id = ANY($1::int[])`,
+      [hypothesisIds],
     );
-    return enriched;
+
+    const linksByHypId = allEvidenceLinks.rows.reduce(
+      (acc: Record<number, Record<string, unknown>[]>, link) => {
+        const hid = Number(link.hypothesis_id);
+        if (!acc[hid]) acc[hid] = [];
+        acc[hid].push({
+          ...link,
+          id: Number(link.id),
+          hypothesis_id: hid,
+          evidence_id: Number(link.evidence_id),
+        });
+        return acc;
+      },
+      {} as Record<number, Record<string, unknown>[]>,
+    );
+
+    return hypotheses.map((hyp) => ({
+      ...hyp,
+      id: Number(hyp.id),
+      investigation_id: Number(hyp.investigation_id),
+      evidenceLinks: linksByHypId[Number(hyp.id)] || [],
+    }));
   },
 
   addHypothesis: async (investigationId: number, data: { title: string; description?: string }) => {
@@ -714,13 +727,41 @@ export const investigationsRepository = {
   },
 
   // Enhanced evidence retrieval with type breakdown
-  getEvidenceByType: async (investigationId: number) => {
-    const evidence = await (investigationsQueries.getDetailedEvidence as RunQuery).run(
-      { investigationId },
-      getApiPool(),
+  getEvidenceByType: async (
+    investigationId: number,
+    options?: { limit?: number; offset?: number },
+  ) => {
+    const limit = options?.limit ?? 500;
+    const offset = options?.offset ?? 0;
+
+    // We use a raw query here to easily apply limit/offset to the joint view
+    const result = await getApiPool().query(
+      `SELECT 
+        e.id, 
+        e.evidence_type as type, 
+        e.title, 
+        e.description, 
+        e.source_path,
+        e.metadata_json,
+        ie.id as investigation_evidence_id,
+        d.id as document_id,
+        m.id as media_item_id,
+        e.red_flag_rating,
+        ie.relevance, 
+        ie.added_at, 
+        ie.added_by,
+        ie.notes
+      FROM investigation_evidence ie
+      JOIN evidence e ON ie.evidence_id = e.id
+      LEFT JOIN documents d ON d.file_path = e.source_path
+      LEFT JOIN media_items m ON m.file_path = e.source_path
+      WHERE ie.investigation_id = $1 
+      ORDER BY ie.added_at DESC
+      LIMIT $2 OFFSET $3`,
+      [investigationId, limit, offset],
     );
 
-    const enrichedEvidence = evidence.map((row) => {
+    const enrichedEvidence = result.rows.map((row) => {
       const metadata = (() => {
         try {
           return row.metadata_json

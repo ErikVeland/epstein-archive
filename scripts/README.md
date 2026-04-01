@@ -1,103 +1,71 @@
 # Epstein Archive Scripts
 
-> **SINGLE SOURCE OF TRUTH** - All operations are consolidated into canonical scripts.
+> [!IMPORTANT]
+> **SYSTEM SOURCE OF TRUTH** — All operations are consolidated into the `unified_pipeline.ts` and `deploy.sh`. Legacy SQLite/RTF scripts have been purged.
 
-## Deployment & Sync
+## Primary Pipelines
 
-### `deploy.sh` - **THE ONLY DEPLOY COMMAND**
+### `unified_pipeline.ts` — **The Evidence Orchestrator**
+
+Continuous processing engine that runs ingestion, intelligence, and AI enrichment in a loop.
 
 ```bash
-./scripts/deploy.sh              # Full deploy (sync + code + restart)
-./scripts/deploy.sh --sync-only  # Database sync only
-./scripts/deploy.sh --dry-run    # Preview without changes
+npx tsx scripts/unified_pipeline.ts --mode ingest  # New data only
+npx tsx scripts/unified_pipeline.ts --mode full    # Full re-scan
 ```
 
-**Pipeline:**
+### `deploy.sh` — **Canonical Production Deployer**
 
-1. Pre-flight checks (SSH, DB)
-2. Local backup with timestamp
-3. Pull production DB snapshot
-4. Bidirectional merge (prod → local)
-5. Push merged DB to production (atomic swap)
-6. Code deploy (build + git + pm2)
-7. Health check with auto-rollback
-
-### `sync-db.ts` - Schema & Data Synchronization
+Handles pre-flight QA, database migration, code build, and zero-downtime restart.
 
 ```bash
-npx tsx scripts/sync-db.ts --source=prod.db --target=local.db [--dry-run]
-```
-
-- Automatically syncs schema (adds missing columns)
-- Merges documents, entities, relationships, mentions
-- Used internally by `deploy.sh`
-
----
-
-## Ingestion Pipeline
-
-### `ingest_pipeline.ts` - **PRIMARY INGESTION**
-
-```bash
-npx tsx scripts/ingest_pipeline.ts
-```
-
-Processes all documents: OCR, metadata extraction, entity detection.
-
-### `ingest_intelligence.ts` - **ENTITY INTELLIGENCE**
-
-```bash
-npx tsx scripts/ingest_intelligence.ts
-```
-
-Entity resolution, VIP consolidation, junk filtering, relationship mapping.
-
-### `reprocess_emails.ts` - Email Reprocessing
-
-```bash
-npx tsx scripts/reprocess_emails.ts
+./deploy.sh              # Full deploy
+./deploy.sh --dry-run    # Preview flight
 ```
 
 ---
 
-## Utilities
+## Technical Audit & Hardening
 
-| Script                       | Purpose                   |
-| ---------------------------- | ------------------------- |
-| `migrate.ts`                 | Database migrations       |
-| `maintenance.ts`             | Routine maintenance tasks |
-| `verify_deployment.ts`       | Post-deploy verification  |
-| `watermark_fakes.ts`         | Mark fake/AI images       |
-| `generate_transcripts.ts`    | Audio transcription       |
-| `populate-evidence-types.ts` | Evidence classification   |
-| `ensure_structure.ts`        | Directory structure setup |
+Run the full suite to verify repository health and database performance.
 
----
-
-## Python Utilities (DOJ Scraping)
-
-| Script                 | Purpose               |
-| ---------------------- | --------------------- |
-| `download_doj_pdfs.py` | Download DOJ PDFs     |
-| `scrape_doj_links.py`  | Extract DOJ links     |
-| `fetch_links.py`       | General link fetching |
+| Script               | Purpose                                                  |
+| :------------------- | :------------------------------------------------------- |
+| `run_audit_suite.sh` | Orchestrates all audits (Lint, Types, PG, Ingest).       |
+| `pg_system_audit.ts` | Checks Postgres extensions, configurations, and health.  |
+| `pg_explain.ts`      | Verifies query plan integrity and index utilization.     |
+| `stress_check.ts`    | Validates database pool safety and plan regressions.     |
+| `ingest_audit.ts`    | Reports on document coverage and OCR quality.            |
+| `verify_ops.ts`      | Post-deployment verification for backups and API health. |
 
 ---
 
-## Migrations
+## Specialized Processing
 
-All database schema changes live in `scripts/migrations/`.
+| Script                   | Category     | Purpose                                                  |
+| :----------------------- | :----------- | :------------------------------------------------------- |
+| `ingest_pipeline.ts`     | Ingestion    | Phase 1: OCR, Text Extraction, and Parsing.              |
+| `ingest_intelligence.ts` | Intelligence | Phase 2: Entity Resolution and Relationship Mapping.     |
+| `unredact.py`            | Forensic     | Removes standard redaction layers from complex PDFs.     |
+| `scan_faces_deepface.py` | Forensic     | Local Deepface clustering for biometric identification.  |
+| `backfill_thumbnails.ts` | Assets       | Generates standard-res previews for all visual evidence. |
 
 ---
 
-## ⚠️ Deprecated Scripts
+## Database Operations
 
-The following have been **permanently removed** to prevent confusion:
+- `pg_migrate.ts`: Executes migrations in `scripts/migrations/`.
+- `pg_schema_hash.ts`: Verifies production schema matches local expectation.
+- `pg_analyze_after_migrate.ts`: Refreshes query planner statistics.
+- `pg_fix_mentions.ts`: Corrects overlapping entity mention spans.
 
-- `deploy_safe.sh`, `deploy-to-production.sh`
-- `sync_down_safe.sh`, `sync_prod_to_local.sh`
-- `emergency_rollback.sh`, `post_deploy_verify.sh`
-- `backup_db.sh`, `clean_server.sh`
-- All one-off debug/test scripts
+---
 
-**Use `deploy.sh` for ALL deployment operations.**
+## ⚠️ Deprecated (Purged)
+
+The following legacy systems are no longer supported:
+
+- `sync-db.ts` (SQLite/PG parity is deprecated)
+- `post_deploy_verify.sh` (Replaced by `verify_ops.ts`)
+- `tech_debt_scan.sh` (Debt addressed/purged)
+- All RTF-specific one-off extraction scripts.

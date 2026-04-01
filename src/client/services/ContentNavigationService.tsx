@@ -3,23 +3,19 @@ import { NavigationContext } from './NavigationContext';
 
 // Internal provider implementation
 const NavigationProviderImpl = ({ children }: { children: ReactNode }) => {
-  const [searchTerm, setSearchTerm] = useState<string>('');
-  const [filters, setFilters] = useState<Record<string, any>>({});
-  const [selectedEntity, setSelectedEntity] = useState<string | null>(null);
-  const [selectedDocument, setSelectedDocument] = useState<string | null>(null);
-
-  // Load state from localStorage on initial render
-  useEffect(() => {
-    const savedSearchTerm = localStorage.getItem('navigationSearchTerm');
-    const savedFilters = localStorage.getItem('navigationFilters');
-    const savedEntity = localStorage.getItem('navigationSelectedEntity');
-    const savedDocument = localStorage.getItem('navigationSelectedDocument');
-
-    if (savedSearchTerm) setSearchTerm(savedSearchTerm);
-    if (savedFilters) setFilters(JSON.parse(savedFilters));
-    if (savedEntity) setSelectedEntity(savedEntity);
-    if (savedDocument) setSelectedDocument(savedDocument);
-  }, []);
+  const [searchTerm, setSearchTerm] = useState<string>(
+    () => localStorage.getItem('navigationSearchTerm') || '',
+  );
+  const [filters, setFilters] = useState<Record<string, unknown>>(() => {
+    const saved = localStorage.getItem('navigationFilters');
+    return saved ? JSON.parse(saved) : {};
+  });
+  const [selectedEntity, setSelectedEntity] = useState<string | null>(() =>
+    localStorage.getItem('navigationSelectedEntity'),
+  );
+  const [selectedDocument, setSelectedDocument] = useState<string | null>(() =>
+    localStorage.getItem('navigationSelectedDocument'),
+  );
 
   // Save state to localStorage whenever it changes
   useEffect(() => {

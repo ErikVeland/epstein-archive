@@ -1,14 +1,85 @@
 import * as crypto from 'crypto';
 import { execSync } from 'child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
-import { extractEvidence, scoreCategoryMatch } from './utils/evidence_extractor.js';
-import { recalculateRisk } from './recalculate_entity_risk.js';
-import { JobManager } from '../src/server/services/JobManager.js';
-import os from 'os';
 import { getIngestPool } from '../src/server/db/connection.js';
 
 const CHECKPOINT_DIR = './pipeline_checkpoints';
 const LIVE_STATUS_FILE = './pipeline_checkpoints/live_status.json';
+
+// ============================================================
+// PIPELINE TELEMETRY - Real-time metrics collection
+// ============================================================
+interface PipelineMetrics {
+  totalMentions: number;
+  uniqueEntities: number;
+  entitiesByType: Record<string, number>;
+  blockedEntities: number;
+  credentialsExtracted: number;
+  contactsHarvested: number;
+  startTime: number;
+  errors: Array<{ type: string; message: string; timestamp: number }>;
+}
+
+const metrics: PipelineMetrics = {
+  totalMentions: 0,
+  uniqueEntities: 0,
+  entitiesByType: {},
+  blockedEntities: 0,
+  credentialsExtracted: 0,
+  contactsHarvested: 0,
+  startTime: Date.now(),
+  errors: [],
+};
+
+function addMetricError(type: string, message: string) {
+  metrics.errors.push({ type, message, timestamp: Date.now() });
+  if (metrics.errors.length > 100) {
+    metrics.errors.shift();
+  }
+}
+
+function recordMention(entityType: string) {
+  metrics.totalMentions++;
+  metrics.entitiesByType[entityType] = (metrics.entitiesByType[entityType] || 0) + 1;
+}
+
+function recordBlockedEntity() {
+  metrics.blockedEntities++;
+}
+
+function recordCredential() {
+  metrics.credentialsExtracted++;
+}
+
+function recordContact() {
+  metrics.contactsHarvested++;
+}
+
+function printMetricsSummary() {
+  const duration = ((Date.now() - metrics.startTime) / 1000).toFixed(1);
+
+  console.log('\n📊 Pipeline Telemetry Summary:');
+  console.log(`   Duration: ${duration}s`);
+  console.log(`   Total Mentions: ${metrics.totalMentions}`);
+  console.log(`   Blocked Entities: ${metrics.blockedEntities}`);
+  console.log(`   Credentials Extracted: ${metrics.credentialsExtracted}`);
+  console.log(`   Contacts Harvested: ${metrics.contactsHarvested}`);
+  console.log('   Entities by Type:');
+  for (const [type, count] of Object.entries(metrics.entitiesByType)) {
+    console.log(`      ${type}: ${count}`);
+  }
+  if (metrics.errors.length > 0) {
+    console.log(`   Errors (${metrics.errors.length}):`);
+    const errorCounts: Record<string, number> = {};
+    for (const err of metrics.errors) {
+      errorCounts[err.type] = (errorCounts[err.type] || 0) + 1;
+    }
+    for (const [type, count] of Object.entries(errorCounts)) {
+      console.log(`      ${type}: ${count}`);
+    }
+  }
+  console.log('');
+}
 
 function writeLiveStatus(fields: Record<string, unknown>) {
   try {
@@ -16,24 +87,23 @@ function writeLiveStatus(fields: Record<string, unknown>) {
     let current: Record<string, unknown> = {};
     try {
       current = JSON.parse(readFileSync(LIVE_STATUS_FILE, 'utf8'));
-    } catch {}
+    } catch (_e) {
+      // ignore parse errors
+    }
     writeFileSync(
       LIVE_STATUS_FILE,
-      JSON.stringify({ ...current, pid: process.pid, ...fields }, null, 2),
+      JSON.stringify({ ...current, pid: process.pid, ...fields, metrics }, null, 2),
     );
-  } catch {}
+  } catch (_e) {
+    // ignore write errors
+  }
 }
 
 let db: any;
-let currentResolverRunId: string;
-
-// CONFIGURATION
-const BATCH_SIZE = 100;
 
 // Patterns (same as original)
 const LOCATION_PATTERN =
   /\b(House|Street|Road|Avenue|Park|Beach|Islands|Drive|Place|Apartment|Mansion|Ranch|Island|Airport|Courthouse|Building|Plaza|Center|Terminal|Hangar|Dock)\b/i;
-const HOUSEKEEPER_PATTERN = /Housekeeper/i;
 const ORG_PATTERN =
   /\b(Inc\.?|LLC|Corp\.?|Ltd\.?|Group|Trust|Foundation|University|College|School|Academy|Department|Bureau|Agency|Police|Sheriff|FBI|CIA|Secret Service|Bank|Association|Club|Holdings|Limited|Fund|Service|Office|Registry|Commission|Board)\b/i;
 const MEDIA_PATTERN =
@@ -42,22 +112,6 @@ const FINANCIAL_PATTERN =
   /\b(Bank|Financial|Transfer|Payment|Account|Trust|LLC|Inc|Corp|Investment|Capital|Securities|Fund|Equity)\b/i;
 const PERSON_TITLE_PATTERN =
   /\b(Judge|Officer|Agent|Senator|Representative|Justice|Professor|Doctor|Advocate|Counsel|Attorney|Lawyer|Pilot|Detective|Marshal|Sheriff|Foreman|Owner)\b/i;
-
-const ROLE_PATTERNS = [
-  { role: 'Pilot', regex: /\bpilot|aviation|flight|cockpit\b/i },
-  { role: 'Survivor', regex: /\bsurvivor|victim|accuser|whistleblower\b/i },
-  { role: 'Butler', regex: /\bbutler|housekeeper|maid|staff|employee\b/i },
-  { role: 'Lawyer', regex: /\blawyer|attorney|counsel|legal|prosecutor|defense\b/i },
-  { role: 'Associate', regex: /\bassociate|partner|colleague|friend|confidant\b/i },
-  { role: 'Political', regex: /\bsenator|representative|congress|governor|president|mayor\b/i },
-  { role: 'Judicial', regex: /\bjudge|justice|magistrate|court\b/i },
-  { role: 'Security', regex: /\bsecurity|guard|officer|agent|police|fbi|cia\b/i },
-];
-
-const INTEREST_PATTERNS = [
-  { regex: /explicit|child|illegal/i, reason: 'Potentially sensitive keywords' },
-  { regex: /password|secret|key/i, reason: 'Potentially leaked credentials' },
-];
 
 const CREDENTIAL_PATTERNS = [
   { type: 'Password', regex: /password[:=]\s*([a-zA-Z0-9!@#$%^&*()_+]{4,})/i },
@@ -75,16 +129,19 @@ const UNRESOLVED_WRAPPER_ENTITY_PATTERN =
   /^(?:dear|dearest|defendant|defendants|plaintiff|plaintiffs|watch|watching|philanthropy)\b|\b(?:to|from)\s*$/i;
 
 import {
-  ENTITY_BLACKLIST as _ENTITY_BLACKLIST,
-  ENTITY_BLACKLIST_REGEX,
+  ENTITY_BLACKLIST_PATTERNS,
   ENTITY_PARTIAL_BLOCKLIST,
 } from '../src/config/entityBlacklist.js';
 import { isJunkEntity } from './filters/entityFilters.js';
-import { resolveAmbiguity } from './filters/contextRules.js';
-import { resolveVip, VIP_RULES } from './filters/vipRules.js';
-import { fileURLToPath } from 'url';
-import { BoilerplateService } from '../src/server/services/BoilerplateService.js';
-import { TextCleaner } from './utils/text_cleaner.js';
+import { resolveVip } from './filters/vipRules.js';
+
+function isBlacklisted(name: string): boolean {
+  const lower = name.toLowerCase();
+  if (ENTITY_PARTIAL_BLOCKLIST.some((p) => lower.includes(p.toLowerCase()))) {
+    return true;
+  }
+  return ENTITY_BLACKLIST_PATTERNS.includes(name);
+}
 
 function normalizeName(name: string): string {
   return name
@@ -110,6 +167,7 @@ async function extractCredentials(doc: any, content: string) {
             doc.id,
           ],
         );
+        recordCredential();
       }
     }
   }
@@ -145,6 +203,7 @@ async function harvestContacts(doc: any, content: string, entitiesFound: any[]) 
               doc.id,
             ],
           );
+          recordContact();
         }
       }
       for (const phoneMatch of phones) {
@@ -166,6 +225,7 @@ async function harvestContacts(doc: any, content: string, entitiesFound: any[]) 
               doc.id,
             ],
           );
+          recordContact();
         }
       }
     }
@@ -180,10 +240,7 @@ export async function runIntelligencePipeline() {
   console.log('🚀 Starting ULTIMATE Evidentiary Ingestion Pipeline (PG NATIVE)...');
   db = getIngestPool();
 
-  let totalEntities = 0;
-  let totalMentions = 0;
   const ingestRunId = makeId();
-  currentResolverRunId = ingestRunId;
 
   try {
     const gitCommit = execSync('git rev-parse HEAD').toString().trim();
@@ -200,7 +257,7 @@ export async function runIntelligencePipeline() {
         ['UltimateIngestionPipeline', '2.0.0-pg'],
       )
     ).rows[0];
-    const currentResolverRunTableId = res.id;
+    await res.id; // Mark as read if needed, or just remove if truly unused
 
     // SQL strings for high-throughput loops
     const insertEntitySql = `
@@ -269,7 +326,14 @@ export async function runIntelligencePipeline() {
       while ((match = nameRegex.exec(content)) !== null) {
         const name = match[1];
         if (name.length < 4) continue;
-        if (isJunkEntity(name)) continue;
+        if (isJunkEntity(name)) {
+          recordBlockedEntity();
+          continue;
+        }
+        if (isBlacklisted(name)) {
+          recordBlockedEntity();
+          continue;
+        }
 
         // Basic classification heuristic
         let type = 'Person'; // Default
@@ -297,7 +361,7 @@ export async function runIntelligencePipeline() {
       while ((match = titleRegex.exec(content)) !== null) {
         const title = match[1];
         const name = match[2];
-        if (!isJunkEntity(name)) {
+        if (!isJunkEntity(name) && !isBlacklisted(name)) {
           entitiesFound.push({
             name: normalizeName(name),
             type: 'Person',
@@ -305,11 +369,13 @@ export async function runIntelligencePipeline() {
             original: match[0],
             notes: `Title: ${title}`,
           });
+        } else {
+          recordBlockedEntity();
         }
       }
 
       for (const ent of entitiesFound) {
-        let finalEnt = ent;
+        const finalEnt = ent;
 
         // Resolve VIPs
         // resolveVip returns string | null (the canonical name)
@@ -323,7 +389,14 @@ export async function runIntelligencePipeline() {
 
         // Apply filters after VIP consolidation so recoverable wrappers collapse
         // into the correct canonical entity instead of being stored as junk.
-        if (isJunkEntity(finalEnt.name)) continue;
+        if (isJunkEntity(finalEnt.name)) {
+          recordBlockedEntity();
+          continue;
+        }
+        if (isBlacklisted(finalEnt.name)) {
+          recordBlockedEntity();
+          continue;
+        }
 
         // Insert/Find Entity
         let entityId: number;
@@ -364,7 +437,7 @@ export async function runIntelligencePipeline() {
           ingestRunId,
         ]);
 
-        totalMentions++;
+        recordMention(finalEnt.type);
         ent.entityId = entityId;
       }
 
@@ -391,14 +464,25 @@ export async function runIntelligencePipeline() {
       currentCollection: null,
       intelProcessed: totalDocs,
       intelTotal: totalDocs,
+      running: false,
+      phase: 'completed',
     });
+    printMetricsSummary();
     console.log('✅ Intelligence Pipeline complete.');
   } catch (error) {
+    addMetricError('pipeline_error', (error as Error).message);
+    printMetricsSummary();
     console.error('❌ Intelligence Pipeline failed:', error);
     await db.query("UPDATE ingest_runs SET status = 'failed', error_message = $1 WHERE id = $2", [
       (error as Error).message,
       ingestRunId,
     ]);
+    writeLiveStatus({
+      running: false,
+      phase: 'failed',
+      crashed: true,
+      error: (error as Error).message,
+    });
     throw error;
   }
 }

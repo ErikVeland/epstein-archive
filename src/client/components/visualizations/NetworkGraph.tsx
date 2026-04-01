@@ -238,7 +238,6 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
     // 2. Compute Layout (Deterministic)
     // Use 100x100 space to match SVG viewBox
     const layoutNodes = GraphService.computeSpiralLayout(uniqueNodes, 100, 100).map((n) => {
-      // @ts-ignore - computeSpiralLayout adds x/y but typescript doesn't see it on ServiceGraphNode yet
       return {
         ...n,
         x: n.x || 0,
@@ -916,7 +915,6 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
               const isAgentic = type.includes('agentic') || type.includes('derived');
               const stroke = isAgentic ? '#a855f7' : isInferred ? '#22d3ee' : '#60a5fa';
               // Dynamic width based on weight (1.0 to 3.5 base pixels since non-scaling-stroke is active)
-              // @ts-ignore - normalizedWeight added in useMemo
               const weightBonus = (link.normalizedWeight || 0) * 2.5;
               const baseWidth = 1.0 + weightBonus;
               const highlightWidth = 3.5 + weightBonus;

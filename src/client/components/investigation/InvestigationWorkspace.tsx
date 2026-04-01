@@ -775,9 +775,9 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
         }
 
         // Fetch a broader graph slice to make the "Hops" filter useful
-        // We'll fetch the graph for Epstein up to 2-3 hops if possible
+        // We'll fetch the graph for Epstein up to 1 hop by default (depth=1)
         try {
-          const graphResp = await fetch(`/api/entities/${epsteinId}/graph?depth=2`);
+          const graphResp = await fetch(`/api/entities/${epsteinId}/graph?depth=1`);
           if (graphResp.ok) {
             const graphData = (await graphResp.json()) as {
               nodes: RawGraphNode[];

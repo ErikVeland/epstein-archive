@@ -111,15 +111,15 @@
 }
 
 .statValueAccent {
-  color: var(--accent);
+  color: var(--text-strong);
 }
 
 .statValueSuccess {
-  color: var(--accent-success);
+  color: var(--text-strong);
 }
 
 .statValueWarning {
-  color: var(--accent-warning);
+  color: var(--text-strong);
 }
 
 .statDescription {
@@ -312,7 +312,7 @@
 .tdCount {
   padding: var(--space-3) var(--space-4);
   text-align: right;
-  color: var(--accent);
+  color: var(--text-primary);
   font-family: var(--font-mono, monospace);
 }
 
@@ -534,7 +534,7 @@
 }
 
 .datasetIngestStat {
-  color: var(--accent);
+  color: var(--text-strong);
   font-family: var(--font-mono, monospace);
   font-size: 0.75rem;
   display: block;
@@ -1466,6 +1466,7 @@
   line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   margin: 0;

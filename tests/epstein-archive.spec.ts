@@ -187,7 +187,6 @@ test.describe('Epstein Archive - UI and Navigation', () => {
     test('should open a document and show viewer', async ({ page }) => {
       await navigateTo(page, 'Documents');
       // Click first document card and expect modal viewer header
-      const firstDocCard = page.locator('text=Document Browser').locator('..').locator('..');
       await page.click('text=Document Browser'); // ensure section is visible
       const anyCard = page.locator('.bg-gray-900').first();
       if (await anyCard.isVisible()) {

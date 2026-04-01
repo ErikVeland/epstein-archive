@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 import type { Location } from 'react-router-dom';
 import { investigationActions } from '../investigations.actions';
 import type {
@@ -30,6 +30,17 @@ export const useEvidenceNavigation = ({
 }: UseEvidenceNavigationArgs) => {
   const [deepLinkedEvidenceId, setDeepLinkedEvidenceId] = useState<string | null>(null);
 
+  useLayoutEffect(() => {
+    if (!selectedInvestigationId) return;
+    const pathMatch =
+      location.pathname.match(/^\/investigate\/case\/([^/]+)\/evidence\/([^/?#]+)/) ||
+      location.pathname.match(/^\/investigations\/([^/]+)\/evidence\/([^/?#]+)/);
+    const queryEvidenceId = new URLSearchParams(location.search).get('evidenceId');
+    if (!pathMatch && !queryEvidenceId) {
+      setDeepLinkedEvidenceId(null);
+    }
+  }, [selectedInvestigationId, location.pathname, location.search]);
+
   useEffect(() => {
     if (!selectedInvestigationId) return;
 
@@ -39,7 +50,6 @@ export const useEvidenceNavigation = ({
     const queryEvidenceId = new URLSearchParams(location.search).get('evidenceId');
 
     if (!pathMatch && !queryEvidenceId) {
-      setDeepLinkedEvidenceId(null);
       return;
     }
 

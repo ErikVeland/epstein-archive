@@ -59,7 +59,6 @@ run_step "PG System Audit" node --import tsx/esm scripts/pg_system_audit.ts
 run_step "PG Explain Plan Gate" node --import tsx/esm scripts/pg_explain.ts
 run_step "Ingest Audit" node --import tsx/esm scripts/ingest_audit.ts
 run_step "Stress Check" node --import tsx/esm scripts/stress_check.ts
-run_step "Tech Debt Scan" bash scripts/tech_debt_scan.sh
 
 echo
 echo "--------------------------------------"

@@ -39,6 +39,18 @@ const documentsListQuerySchema = z.object({
     sortBy: z.enum(['date', 'title', 'red_flag', 'size', 'relevance', 'fileType']).optional(),
     sortOrder: z.enum(['asc', 'desc']).optional(),
     collectionId: z.string().optional(),
+    includeMedia: z
+      .preprocess(
+        (val) =>
+          typeof val === 'string'
+            ? val.toLowerCase() === 'true'
+            : typeof val === 'boolean'
+              ? val
+              : undefined,
+        z.boolean().optional(),
+      )
+      .default(false),
+    excludedFileTypes: z.string().optional(),
   }),
 });
 
@@ -111,6 +123,10 @@ router.get('/', validate(documentsListQuerySchema), async (req, res, next) => {
       sortBy: query.sortBy as string | undefined,
       sortOrder,
       collectionId: query.collectionId as string | undefined,
+      includeMedia: (query.includeMedia as unknown as boolean) ?? false,
+      excludedFileTypes: query.excludedFileTypes
+        ? (query.excludedFileTypes as string).split(',').filter(Boolean)
+        : undefined,
     });
     res.json(mapDocumentsListResponseDto(result));
   } catch (error) {

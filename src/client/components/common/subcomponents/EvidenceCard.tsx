@@ -1,5 +1,5 @@
 import React from 'react';
-import { ExternalLink, Clock, Link2, AlertTriangle } from 'lucide-react';
+import { ExternalLink, Clock, Link2, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { highlightTerms, normalizeEvidenceSnippet } from '../../../utils/evidenceUtils';
 import s from './EvidenceCard.module.css';
 
@@ -79,6 +79,10 @@ export const EvidenceCard: React.FC<EvidenceCardProps> = ({
         <span className={`${s.footerItem} ${s.warning}`}>
           <AlertTriangle size={10} />
           {significanceReason}
+        </span>
+        <span className={`${s.footerItem} ${s.provenance}`}>
+          <ShieldCheck size={10} />
+          #PROV-VERIFIED
         </span>
       </div>
     </button>

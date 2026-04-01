@@ -130,7 +130,7 @@ const encodeCursor = (lastMessageAt: string, threadId: string): string =>
   Buffer.from(`${lastMessageAt}|${threadId}`, 'utf8').toString('base64');
 
 const threadRowField = <T = unknown>(
-  row: Record<string, any>,
+  row: Record<string, unknown>,
   camel: string,
   snakeish?: string,
 ): T => {
@@ -308,7 +308,7 @@ router.get('/threads', validate(threadsSchema), async (req, res, next) => {
 
     const hasMore = rows.length > limit;
     const pageRows = hasMore ? rows.slice(0, limit) : rows;
-    const lastRow = pageRows[pageRows.length - 1] as Record<string, any> | undefined;
+    const lastRow = pageRows[pageRows.length - 1] as Record<string, unknown> | undefined;
     const nextCursor = hasMore
       ? encodeCursor(
           String(threadRowField(lastRow || {}, 'lastMessageAt') || ''),
@@ -318,23 +318,28 @@ router.get('/threads', validate(threadsSchema), async (req, res, next) => {
 
     const payload = {
       data: pageRows.map((row) => ({
-        threadId: String(threadRowField(row as Record<string, any>, 'threadId') || ''),
-        subject: String(row.subject || 'No Subject'),
+        threadId: String(threadRowField(row as Record<string, unknown>, 'threadId') || ''),
+        subject: String((row as Record<string, unknown>).subject || 'No Subject'),
         participants: normalizeList(
-          threadRowField(row as Record<string, any>, 'participantsRaw') || '',
+          threadRowField(row as Record<string, unknown>, 'participantsRaw') || '',
         ),
-        participantCount: threadRowField(row as Record<string, any>, 'participantCount') || 0,
-        lastMessageAt: threadRowField(row as Record<string, any>, 'lastMessageAt') || '',
-        snippet: String(row.snippet || ''),
-        messageCount: threadRowField(row as Record<string, any>, 'messageCount') || 0,
+        participantCount: threadRowField(row as Record<string, unknown>, 'participantCount') || 0,
+        lastMessageAt: threadRowField(row as Record<string, unknown>, 'lastMessageAt') || '',
+        snippet: String((row as Record<string, unknown>).snippet || ''),
+        messageCount: threadRowField(row as Record<string, unknown>, 'messageCount') || 0,
         hasAttachments:
-          Number(threadRowField(row as Record<string, any>, 'hasAttachments') || 0) === 1,
+          Number(threadRowField(row as Record<string, unknown>, 'hasAttachments') || 0) === 1,
         linkedEntityIds: parseEntityIds(
-          threadRowField(row as Record<string, any>, 'linkedEntityIdsRaw') || '',
+          threadRowField(row as Record<string, unknown>, 'linkedEntityIdsRaw') || '',
         ),
-        risk: row.risk == null ? null : typeof row.risk === 'number' ? row.risk : Number(row.risk),
-        ladder: readString(row.ladder) || null,
-        confidence: readOptionalNumber(row.confidence) ?? null,
+        risk:
+          (row as Record<string, unknown>).risk == null
+            ? null
+            : typeof (row as Record<string, unknown>).risk === 'number'
+              ? (row as Record<string, unknown>).risk
+              : Number((row as Record<string, unknown>).risk),
+        ladder: readString((row as Record<string, unknown>).ladder) || null,
+        confidence: readOptionalNumber((row as Record<string, unknown>).confidence) ?? null,
       })),
       meta: {
         total: countRow.total || 0,

@@ -53,7 +53,10 @@ async function resolveFirstDocumentId(request: APIRequestContext): Promise<strin
 test.describe('Golden Path A: People → Entity → Documents → DocumentModal', () => {
   test('opens entity, shows evidence, opens source document route', async ({ page, request }) => {
     const resolved = await resolveEntityWithEvidence(request);
-    test.skip(!resolved, 'No entity with linked evidence found');
+    if (!resolved) {
+      test.skip(true, 'No entity with linked evidence found');
+      return;
+    }
     const { entityId, documentId } = resolved;
 
     await page.goto(`/entity/${entityId}?entityTab=evidence`);

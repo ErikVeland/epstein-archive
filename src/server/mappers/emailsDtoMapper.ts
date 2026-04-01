@@ -10,7 +10,7 @@ import type {
 } from '@shared/dto/emails';
 
 export const mapEmailMailboxDto = (row: Record<string, unknown>): EmailMailboxDto => ({
-  mailboxId: String(row.mailboxId || 'all'),
+  mailboxId: String(row.mailboxId || (row.entityId ? `entity:${row.entityId}` : 'all')),
   entityId: row.entityId == null ? null : Number(row.entityId),
   displayName: String(row.displayName || 'Unknown'),
   totalThreads: Number(row.totalThreads || 0),
@@ -21,6 +21,8 @@ export const mapEmailMailboxDto = (row: Record<string, unknown>): EmailMailboxDt
       ? (row.riskSummary as unknown as EmailMailboxDto['riskSummary'])
       : null,
   isJunkSuppressed: Boolean(row.isJunkSuppressed),
+  isVip: Boolean(row.isVip),
+  isVerified: Boolean(row.isVerified),
 });
 
 export const mapEmailMailboxesResponseDto = (

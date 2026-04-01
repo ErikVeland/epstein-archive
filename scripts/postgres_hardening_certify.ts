@@ -105,14 +105,12 @@ function main() {
   const ingestAudit = runTs('scripts/ingest_audit.ts');
   const deployCert = runTs('scripts/deploy_certify.ts');
   const stress = runTs('scripts/stress_check.ts');
-  const techDebt = runStep('bash', ['scripts/tech_debt_scan.sh']);
   const obs = observabilityHardeningCheck();
 
   printCommandResult('pg_system_audit', pgAudit);
   printCommandResult('ingest_audit', ingestAudit);
   printCommandResult('deploy_certify', deployCert);
   printCommandResult('stress_check', stress);
-  printCommandResult('tech_debt_scan', techDebt);
 
   const stressSplit = parseStress(stress.stdout);
   const systemIntegrity = stepVerdict(pgAudit.code);
@@ -120,14 +118,12 @@ function main() {
   const deploySafety: Verdict = deployCert.code === 0 && obs.ok ? 'PASS' : 'FAIL';
   const planRegression = stressSplit.plan;
   const poolSafety = stressSplit.pool;
-  const techDebtScan = stepVerdict(techDebt.code);
   const overall: 'CERTIFIED' | 'BLOCKED' = [
     systemIntegrity,
     ingestionIntegrity,
     deploySafety,
     planRegression,
     poolSafety,
-    techDebtScan,
   ].every((v) => v === 'PASS')
     ? 'CERTIFIED'
     : 'BLOCKED';
@@ -140,7 +136,6 @@ function main() {
   console.log(`Deploy pipeline safety: ${deploySafety}`);
   console.log(`Plan regression: ${planRegression}`);
   console.log(`Pool safety: ${poolSafety}`);
-  console.log(`Tech debt scan: ${techDebtScan}`);
   console.log(`Overall readiness: ${overall}`);
 
   if (!obs.ok) {

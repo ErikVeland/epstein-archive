@@ -4,7 +4,7 @@
  * Displays text-based evidence with formatting preserved
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { Search, Copy, Check, Download, ChevronLeft, ChevronRight, Bookmark } from 'lucide-react';
 import { prettifyOCRText } from '../../utils/prettifyOCR';
 import { RedactionPlaceholder } from './RedactionPlaceholder';
@@ -84,12 +84,15 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
     );
   }, [evidenceExtended]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!searchTerm) {
       setTotalMatches(0);
       setCurrentMatch(0);
-      return;
     }
+  }, [searchTerm]);
+
+  useEffect(() => {
+    if (!searchTerm) return;
     const matches = contentRef.current?.querySelectorAll('mark');
     setTotalMatches(matches?.length || 0);
     if (matches && matches.length > 0) {

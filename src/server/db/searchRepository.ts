@@ -179,12 +179,12 @@ interface ISearchMediaResult {
 }
 
 interface UnifiedSearchResult {
-  entities: any[];
-  documents: any[];
-  investigations: any[];
-  articles: any[];
-  media: any[];
-  didYouMean: any[];
+  entities: Record<string, unknown>[];
+  documents: Record<string, unknown>[];
+  investigations: Record<string, unknown>[];
+  articles: Record<string, unknown>[];
+  media: Record<string, unknown>[];
+  didYouMean: Record<string, unknown>[];
 }
 
 export const searchRepository = {
@@ -231,7 +231,7 @@ export const searchRepository = {
           getApiPool(),
         );
     const mergedEntityRows: (ISearchEntitiesResult | ISearchEntitiesPrefixResult)[] = [
-      ...(entityRows as any),
+      ...(entityRows as (ISearchEntitiesResult | ISearchEntitiesPrefixResult)[]),
     ];
     if (!isPrefix && mergedEntityRows.length < safeLimit) {
       try {

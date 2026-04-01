@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import './EmailClient.css';
 import { FixedSizeList as List, ListChildComponentProps } from 'react-window';
@@ -141,23 +141,41 @@ const MailboxRow = React.memo(
   }>) => {
     const mailbox = data.rows[index];
     const active = mailbox.mailboxId === data.selectedMailboxId;
+    const isVip = mailbox.isVip;
+
     return (
       <button
         style={style}
         onClick={() => data.onSelect(mailbox.mailboxId)}
-        className={`w-full text-left email-row py-3 px-4 focus:outline-none ${active ? 'active' : ''}`}
+        className={`w-full text-left email-row py-3 px-4 focus:outline-none ${active ? 'active' : ''} ${isVip ? 'vip-mailbox' : ''}`}
       >
         <div className="flex items-center justify-between gap-3 relative z-10">
           <div className="min-w-0 flex-1">
-            <div className="text-[13px] font-bold text-[var(--text-primary)] truncate tracking-tight">
-              {mailbox.displayName}
+            <div className="flex items-center gap-1.5 min-w-0">
+              <div className="text-[13px] font-bold text-[var(--text-primary)] truncate tracking-tight">
+                {mailbox.displayName}
+              </div>
+              {isVip && (
+                <span
+                  className="flex-shrink-0 flex items-center justify-center w-3.5 h-3.5 rounded-full bg-amber-500/20 text-amber-500"
+                  title="VIP"
+                >
+                  <Sparkles className="w-2.5 h-2.5" />
+                </span>
+              )}
+              {mailbox.isVerified && !isVip && (
+                <span className="flex items-center shrink-0" title="Verified">
+                  <ShieldCheck className="w-3 h-3 text-emerald-500" />
+                </span>
+              )}
             </div>
             <div className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-wider mt-0.5">
               {mailbox.totalThreads.toLocaleString()} THREADS
             </div>
           </div>
-          <div className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-tighter shrink-0">
-            {formatTime(mailbox.lastActivityAt)}
+          <div className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-tighter shrink-0 text-right">
+            <div>{formatTime(mailbox.lastActivityAt)}</div>
+            {isVip && <div className="text-[9px] text-amber-500/80 mt-1">PRIORITY VIP</div>}
           </div>
         </div>
       </button>
@@ -235,7 +253,7 @@ export const EmailClient: React.FC = () => {
   const globalTimeEnd = globalFilters.timeRange[1];
   const lastSyncedFromRef = useRef<string | null | undefined>(undefined);
   const lastSyncedToRef = useRef<string | null | undefined>(undefined);
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!searchParams.get('dateFrom') && globalTimeStart !== lastSyncedFromRef.current) {
       lastSyncedFromRef.current = globalTimeStart;
       if (globalTimeStart) setDateFrom(globalTimeStart);
@@ -371,7 +389,7 @@ export const EmailClient: React.FC = () => {
     [mailboxWidth, threadWidth, clampWidths],
   );
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (window.innerWidth < 768) return;
     const { mailbox, thread } = clampWidths(mailboxWidth, threadWidth);
     if (mailbox !== mailboxWidth) setMailboxWidth(mailbox);

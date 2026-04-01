@@ -20,7 +20,7 @@ const ENFORCED_FILES = [
   'src/client/components/documents/DocumentBrowser.tsx',
 ];
 
-const emojiRegex = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE0F}]/gu;
+const emojiRegex = /[\u{1F300}-\u{1FAFF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{FE0F}]/gu;
 const rawColorRegex = /#[0-9a-fA-F]{3,8}|\brgba?\(|\bhsla?\(/g;
 const radiusClassRegex = /rounded-(none|sm|md|lg|xl|2xl|3xl)\b/g;
 

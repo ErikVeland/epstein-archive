@@ -197,6 +197,10 @@ const getSignificanceColor = (significance: string) => {
   }
 };
 
+const YEARS_COVERED = Math.round(
+  (Date.now() - new Date('1997-01-01').getTime()) / (1000 * 60 * 60 * 24 * 365),
+);
+
 export const TimelineVisualization: React.FC<TimelineVisualizationProps> = ({
   people: _people,
 }) => {
@@ -235,11 +239,7 @@ export const TimelineVisualization: React.FC<TimelineVisualizationProps> = ({
             <div className="text-purple-200">People Involved</div>
           </div>
           <div className="bg-gradient-to-br from-green-900/50 to-green-700/50 p-6 rounded-[var(--radius-xl)] border border-green-500/20">
-            <div className="text-3xl font-bold text-[var(--text-primary)]">
-              {Math.round(
-                (Date.now() - new Date('1997-01-01').getTime()) / (1000 * 60 * 60 * 24 * 365),
-              )}
-            </div>
+            <div className="text-3xl font-bold text-[var(--text-primary)]">{YEARS_COVERED}</div>
             <div className="text-green-200">Years Covered</div>
           </div>
         </div>

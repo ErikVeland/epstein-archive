@@ -3,8 +3,8 @@ import { createContext, useContext } from 'react';
 export interface NavigationContextType {
   searchTerm: string;
   setSearchTerm: (term: string) => void;
-  filters: Record<string, any>;
-  setFilters: (filters: Record<string, any>) => void;
+  filters: Record<string, unknown>;
+  setFilters: (filters: Record<string, unknown>) => void;
   selectedEntity: string | null;
   setSelectedEntity: (entity: string | null) => void;
   selectedDocument: string | null;

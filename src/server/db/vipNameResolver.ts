@@ -22,6 +22,8 @@ const VIP_DISPLAY_FALLBACKS = new Map<string, string>([
   ['sir mick jagger', 'Mick Jagger'],
   ['epstein jeffrey epstein', 'Jeffrey Epstein'],
   ['did jeffrey epstein', 'Jeffrey Epstein'],
+  ['dvycut', 'Vladislav Doronin'],
+  ['dv', 'Vladislav Doronin'],
 ]);
 
 const VIP_LOOKUP_TTL_MS = 5 * 60 * 1000;

@@ -13,7 +13,11 @@ import { EvidenceModalHeader } from './subcomponents/EvidenceModalHeader';
 import { EvidenceOverviewTab } from './subcomponents/EvidenceOverviewTab';
 import { EvidenceDocumentsTab } from './subcomponents/EvidenceDocumentsTab';
 import { EvidenceMediaTab } from './subcomponents/EvidenceMediaTab';
-import { EvidenceNetworkTab } from './subcomponents/EvidenceNetworkTab';
+import {
+  EvidenceNetworkTab,
+  GraphNode,
+  GraphRelationship,
+} from './subcomponents/EvidenceNetworkTab';
 import { EvidenceInvestigationsTab } from './subcomponents/EvidenceInvestigationsTab';
 
 // Utilities
@@ -345,8 +349,8 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
       if (isNextPageLoading) return;
       setIsNextPageLoading(true);
 
+      const page = Math.floor(startIndex / 50) + 1;
       try {
-        const page = Math.floor(startIndex / 50) + 1;
         const qs = new URLSearchParams();
         if (docFilters.search.trim()) qs.set('search', docFilters.search.trim());
         qs.set('page', String(page));
@@ -355,51 +359,71 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
         qs.set('sort', docFilters.sort);
 
         const endpoint = `/entities/${entityId}/documents?${qs.toString()}`;
-        const response = (await apiClient.get(endpoint)) as any;
 
         let newDocs: EvidenceDocument[] = [];
         let total = 0;
 
-        if (response && typeof response === 'object') {
-          newDocs = Array.isArray(response.data)
-            ? response.data
-            : Array.isArray(response.evidence)
-              ? response.evidence
-              : Array.isArray(response.results)
-                ? response.results
-                : [];
-          total =
-            response.total ??
-            response.count ??
-            response.totalResults ??
-            (Array.isArray(response) ? response.length : 0);
+        try {
+          const response = (await apiClient.get(endpoint)) as Record<string, unknown>;
+          if (response && typeof response === 'object') {
+            newDocs = Array.isArray(response.data)
+              ? response.data
+              : Array.isArray(response.evidence)
+                ? response.evidence
+                : Array.isArray(response.results)
+                  ? response.results
+                  : Array.isArray(response)
+                    ? response
+                    : [];
+            total = Number(
+              response.total ??
+                response.count ??
+                response.totalResults ??
+                (Array.isArray(response) ? response.length : 0),
+            );
+          }
+          // Validate items have IDs
+          newDocs = newDocs.filter(
+            (d) =>
+              d && (d.id !== undefined || (d as Record<string, unknown>).document_id !== undefined),
+          );
+        } catch (primaryError) {
+          console.warn('Primary documents endpoint failed, trying fallback:', primaryError);
         }
 
         if (page === 1 && newDocs.length === 0) {
-          const fallback = (await apiClient.get(
-            `/entities/${entityId}/evidence`,
-          )) as EntityEvidenceFallbackResponse;
-          const fallbackDocs = Array.isArray(fallback?.evidence)
-            ? fallback.evidence.map((item) => normalizeEvidenceDocument(item))
-            : [];
+          try {
+            const fallback = (await apiClient.get(
+              `/entities/${entityId}/evidence`,
+            )) as EntityEvidenceFallbackResponse;
+            const fallbackDocs = Array.isArray(fallback?.evidence)
+              ? fallback.evidence.map((item) => normalizeEvidenceDocument(item))
+              : [];
 
-          const filteredFallbackDocs = fallbackDocs.filter((doc) => {
-            const search = docFilters.search.trim().toLowerCase();
-            if (!search) return true;
-            return [doc.title, doc.fileName, doc.contentPreview, doc.content, doc.evidenceType]
-              .filter(Boolean)
-              .some((value) => String(value).toLowerCase().includes(search));
-          });
+            const filteredFallbackDocs = fallbackDocs.filter((doc) => {
+              const search = docFilters.search.trim().toLowerCase();
+              if (!search) return true;
+              return [doc.title, doc.fileName, doc.contentPreview, doc.content, doc.evidenceType]
+                .filter(Boolean)
+                .some((value) => String(value).toLowerCase().includes(search));
+            });
 
-          newDocs = filteredFallbackDocs;
-          total = filteredFallbackDocs.length || Number(fallback?.stats?.totalEvidence || 0);
+            newDocs = filteredFallbackDocs;
+            total = filteredFallbackDocs.length || Number(fallback?.stats?.totalEvidence || 0);
+          } catch (fallbackError) {
+            console.warn('Fallback evidence endpoint also failed:', fallbackError);
+          }
         }
 
         setDocuments((prev) => (page === 1 ? newDocs : [...prev, ...newDocs]));
         setTotalDocs(total);
         setHasNextPage(newDocs.length > 0 && page * 50 < total);
       } catch (error) {
-        console.error('Error loading next page of evidence', error);
+        console.error('Error loading evidence page', error);
+        if (page === 1) {
+          setDocuments([]);
+          setTotalDocs(0);
+        }
       } finally {
         setIsNextPageLoading(false);
         setDocsInitialized(true);
@@ -425,10 +449,13 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
     loadNextPage,
   ]);
 
-  const { data: relationshipSummary = [] } = useQuery<any[]>({
+  const { data: relationshipSummary = [] } = useQuery<Record<string, unknown>[]>({
     queryKey: ['relationships-summary', entityId],
     queryFn: async () => {
-      const resp = (await apiClient.get(`/relationships?entityId=${entityId}`)) as any;
+      const resp = (await apiClient.get(`/relationships?entityId=${entityId}`)) as Record<
+        string,
+        unknown
+      >;
       return Array.isArray(resp.relationships) ? resp.relationships : [];
     },
     enabled: isOpen && !!entityId,
@@ -437,15 +464,25 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
 
   const networkEnabled =
     isOpen && !!entityId && activeTab === 'network' && tabsLoaded.has('network');
-  const { data: relationships = [], isLoading: networkLoading } = useQuery<any[]>({
+  const { data: relationships = [], isLoading: networkLoading } = useQuery<
+    Record<string, unknown>[]
+  >({
     queryKey: ['relationships', entityId],
     queryFn: async () => {
-      const resp = (await apiClient.get(`/relationships?entityId=${entityId}`)) as any;
-      let rels = resp.relationships || [];
+      const resp = (await apiClient.get(`/relationships?entityId=${entityId}`)) as Record<
+        string,
+        unknown
+      >;
+      let rels = (resp.relationships as Record<string, unknown>[]) || [];
       if (!rels.length) {
-        const graphResp = (await apiClient.get(`/entities/${entityId}/graph?depth=2`)) as any;
-        const graphEdges = Array.isArray(graphResp?.edges) ? graphResp.edges : [];
-        rels = graphEdges.slice(0, 80).map((edge: any) => ({
+        const graphResp = (await apiClient.get(`/entities/${entityId}/graph?depth=2`)) as Record<
+          string,
+          unknown
+        >;
+        const graphEdges = Array.isArray(graphResp?.edges)
+          ? (graphResp.edges as Record<string, unknown>[])
+          : [];
+        rels = graphEdges.slice(0, 80).map((edge) => ({
           entity_id:
             String(edge.source_id) === String(entityId)
               ? String(edge.target_id)
@@ -458,10 +495,13 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
 
       const top = rels.slice(0, 20);
       return Promise.all(
-        top.map(async (r: any) => {
+        top.map(async (r) => {
           const relatedEntityId = r.related_entity_id || r.entity_id;
           try {
-            const e = (await apiClient.get(`/entities/${relatedEntityId}`)) as any;
+            const e = (await apiClient.get(`/entities/${relatedEntityId}`)) as Record<
+              string,
+              unknown
+            >;
             return { ...r, name: e.fullName || e.name || relatedEntityId };
           } catch {
             return { ...r, name: relatedEntityId };
@@ -489,13 +529,16 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
       if (primary.length > 0 || !isHighProfileEntity) {
         return primary;
       }
-      const fallbackResp = (await apiClient.get('/investigations?status=open&limit=6')) as any;
+      const fallbackResp = (await apiClient.get('/investigations?status=open&limit=6')) as Record<
+        string,
+        unknown
+      >;
       const fallbackItems = Array.isArray(fallbackResp?.data)
-        ? fallbackResp.data
+        ? (fallbackResp.data as Record<string, unknown>[])
         : Array.isArray(fallbackResp)
-          ? fallbackResp
+          ? (fallbackResp as Record<string, unknown>[])
           : [];
-      return fallbackItems.map((item: any) => ({
+      return fallbackItems.map((item) => ({
         ...item,
         _fallbackReason: 'Suggested open case',
       }));
@@ -510,7 +553,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
     queryFn: async () => {
       const response = await fetch(`/api/entities/${entityId}/media`, { credentials: 'include' });
       if (response.status === 204) return [];
-      const payload = (await response.json()) as any[];
+      const payload = (await response.json()) as Record<string, unknown>[];
       return Array.isArray(payload)
         ? payload.map((item, index) => normalizeEntityMediaItem(item, index))
         : [];
@@ -640,19 +683,22 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
 
   useScrollLock(isOpen);
 
-  const onRenderCallback = useCallback((id: string, phase: any, actualDuration: number) => {
-    if (actualDuration > 16) {
-      import('../../utils/performanceMonitor.js')
-        .then(({ PerformanceMonitor }) => {
-          PerformanceMonitor.logRender(
-            `EvidenceModal-${id}`,
-            actualDuration,
-            phase === 'nested-update' ? 'update' : phase,
-          );
-        })
-        .catch(() => {});
-    }
-  }, []);
+  const onRenderCallback = useCallback(
+    (id: string, phase: 'mount' | 'update' | 'nested-update', actualDuration: number) => {
+      if (actualDuration > 16) {
+        import('../../utils/performanceMonitor.js')
+          .then(({ PerformanceMonitor }) => {
+            PerformanceMonitor.logRender(
+              `EvidenceModal-${id}`,
+              actualDuration,
+              phase === 'nested-update' ? 'update' : phase,
+            );
+          })
+          .catch(() => {});
+      }
+    },
+    [],
+  );
 
   if (!isOpen) return null;
 
@@ -680,7 +726,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
             className={s.modal}
           >
             <EvidenceModalHeader
-              entity={entity}
+              entity={entity ?? null}
               loading={loading}
               headerPhotoUrl={headerPhotoUrl}
               brokenMediaIds={brokenMediaIds}
@@ -695,13 +741,13 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
               getRiskClass={getRiskClass}
               resolveEntityPhotoUrl={resolveEntityPhotoUrl}
               isVisualMediaItem={isVisualMediaItem}
-              headerPhoto={headerPhoto}
+              headerPhoto={headerPhoto ?? null}
             />
 
             <div className={s.contentArea}>
               {activeTab === 'overview' && (
                 <EvidenceOverviewTab
-                  entity={entity}
+                  entity={entity ?? null}
                   loading={loading}
                   forensicData={forensicData}
                   totalDocs={totalDocs}
@@ -733,7 +779,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
 
               {activeTab === 'media' && (
                 <EvidenceMediaTab
-                  entity={entity}
+                  entity={entity ?? null}
                   mediaItems={mediaItems}
                   isMediaLoading={isMediaLoading}
                   brokenMediaIds={brokenMediaIds}
@@ -744,9 +790,11 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
               {activeTab === 'network' && (
                 <EvidenceNetworkTab
                   networkLoading={networkLoading}
-                  relationships={relationships}
-                  graphData={graphData}
-                  entity={entity}
+                  relationships={relationships as GraphRelationship[]}
+                  graphData={
+                    graphData as { entities: GraphNode[]; relationships: GraphRelationship[] }
+                  }
+                  entity={entity ?? null}
                 />
               )}
 

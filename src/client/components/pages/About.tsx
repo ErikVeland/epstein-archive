@@ -357,7 +357,7 @@ export const About: React.FC = () => {
             <ul className={s.techList}>
               <li>• React 18 with TypeScript</li>
               <li>• Vite build system</li>
-              <li>• TailwindCSS styling</li>
+              <li>• Vanilla CSS Modules</li>
               <li>• Recharts visualizations</li>
               <li>• Lucide icons</li>
             </ul>
@@ -608,10 +608,85 @@ export const About: React.FC = () => {
           Version History
         </h2>
         <div className={s.versionStack}>
-          {/* v18.1.0 */}
+          {/* v18.2.0 */}
           <div className={s.versionEntryActive}>
             <h4 className={s.versionTitle}>
-              v18.1.0 <span className={s.versionBadge}>LIQUID GLASS</span>
+              v18.2.0 <span className={s.versionBadge}>LIQUID GLASS</span>
+            </h4>
+            <p className={s.versionDate}>April 1, 2026</p>
+            <ul className={s.versionList}>
+              <li className={s.versionListItem}>
+                <span className={s.ackBullet}>•</span>
+                <span>
+                  <strong>Liquid Glass Core:</strong> Complete architectural shift to a unified,
+                  bespoke design system for superior clarity and responsiveness across all devices.
+                </span>
+              </li>
+              <li className={s.versionListItem}>
+                <span className={s.ackBullet}>•</span>
+                <span>
+                  <strong>VIP Network Expansion:</strong> Integrated forensic intelligence for
+                  high-profile identities (Doronin/DV) with advanced name-resolution mapping.
+                </span>
+              </li>
+              <li className={s.versionListItem}>
+                <span className={s.ackBullet}>•</span>
+                <span>
+                  <strong>Performance Optimization:</strong> Significant reduction in client-side
+                  overhead through technical debt purge and optimized document rendering pipelines.
+                </span>
+              </li>
+              <li className={s.versionListItem}>
+                <span className={s.ackBullet}>•</span>
+                <span>
+                  <strong>Production Hardening:</strong> Finalized structural audit of high-density
+                  DOJ media collections with enhanced video and document stability.
+                </span>
+              </li>
+            </ul>
+          </div>
+
+          {/* v18.1.2 */}
+          <div className={s.versionEntry}>
+            <h4 className={s.versionTitle}>
+              v18.1.2 <span className={s.versionBadge}>PATCH</span>
+            </h4>
+            <p className={s.versionDate}>March 31, 2026</p>
+            <ul className={s.versionList}>
+              <li className={s.versionListItem}>
+                <span className={s.ackBullet}>•</span>
+                <span>
+                  DOJ Prison Surveillance album: all 419 DOJ VOL8 videos now grouped under a
+                  dedicated album in the video browser.
+                </span>
+              </li>
+              <li className={s.versionListItem}>
+                <span className={s.ackBullet}>•</span>
+                <span>
+                  Video titles updated to include recording timestamp extracted from file metadata
+                  (e.g. EFTA00010707 — Nov 16, 2021 8:50 PM UTC).
+                </span>
+              </li>
+              <li className={s.versionListItem}>
+                <span className={s.ackBullet}>•</span>
+                <span>
+                  Added "People in Frame" filter to the video browser — surfaces only videos with
+                  identified individuals linked.
+                </span>
+              </li>
+              <li className={s.versionListItem}>
+                <span className={s.ackBullet}>•</span>
+                <span>
+                  Video cards now display recording date and linked people's names inline.
+                </span>
+              </li>
+            </ul>
+          </div>
+
+          {/* v18.1.0 */}
+          <div className={s.versionEntry}>
+            <h4 className={s.versionTitle}>
+              v18.1.0 <span className={s.versionBadgeMuted}>LIQUID GLASS</span>
             </h4>
             <p className={s.versionDate}>March 30, 2026</p>
             <ul className={s.versionList}>

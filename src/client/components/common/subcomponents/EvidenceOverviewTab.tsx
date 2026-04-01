@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   ShieldAlert,
+  ShieldCheck,
   Sparkles,
   Activity,
   AlertTriangle,
@@ -13,16 +14,47 @@ import { DriverChips } from '../../entities/cards/DriverChips';
 import { EvidenceCard } from './EvidenceCard';
 import Icon from '../Icon';
 import { getRiskClass } from '../../../utils/evidenceUtils';
+import { EntityPhoto } from '../EvidenceModal';
+import { SignalMetrics, DriverChip } from '../../../../utils/forensics';
 import s from './EvidenceOverviewTab.module.css';
 
+interface EvidenceEntity {
+  id?: string | number;
+  fullName?: string;
+  mentions?: number;
+  redFlagRating?: number;
+  photos?: EntityPhoto[];
+  blackBookEntries?: Array<{
+    id: number;
+    phoneNumbers?: string[];
+    notes?: string;
+  }>;
+  bio?: string;
+  description?: string;
+}
+
+interface ForensicData {
+  ladder: { level?: string; description?: string };
+  drivers: DriverChip[];
+  signals: SignalMetrics;
+}
+
+interface SignificantPassage {
+  documentId?: string | number;
+  filename?: string;
+  passage?: string;
+  source?: string;
+  keyword?: string;
+}
+
 interface EvidenceOverviewTabProps {
-  entity: any;
+  entity: EvidenceEntity | null;
   loading: boolean;
-  forensicData: any;
+  forensicData: ForensicData | null;
   totalDocs: number;
-  mediaItems: any[];
+  mediaItems: EntityPhoto[];
   overviewEvidenceTypesCount: number;
-  overviewSignificantPassages: any[];
+  overviewSignificantPassages: SignificantPassage[];
   openDocumentFromEvidence: (
     id: string | number | undefined,
     options?: { newTab?: boolean },
@@ -83,6 +115,10 @@ export const EvidenceOverviewTab: React.FC<EvidenceOverviewTabProps> = ({
                     ? 'Agentic Evidence'
                     : 'Evidence Unspecified'}
             </span>
+            <span className={s.provenanceBadge}>
+              <ShieldCheck size={12} className={s.badgeIcon} />
+              EXO-PROVENANCE v2
+            </span>
           </div>
 
           <div className={s.metricsGrid}>
@@ -133,11 +169,11 @@ export const EvidenceOverviewTab: React.FC<EvidenceOverviewTabProps> = ({
       </div>
 
       {/* HIGH SIGNIFICANCE EVIDENCE */}
-      {overviewSignificantPassages.length > 0 && (
-        <div className={s.evidenceSection}>
-          <h3 className={s.tabTitle}>
-            <AlertTriangle size={16} className={s.criticalIcon} /> High Significance Evidence
-          </h3>
+      <div className={s.evidenceSection}>
+        <h3 className={s.tabTitle}>
+          <AlertTriangle size={16} className={s.criticalIcon} /> High Significance Evidence
+        </h3>
+        {overviewSignificantPassages.length > 0 ? (
           <div className={s.evidenceGrid}>
             {overviewSignificantPassages.map((passage, idx) => (
               <EvidenceCard
@@ -154,8 +190,15 @@ export const EvidenceOverviewTab: React.FC<EvidenceOverviewTabProps> = ({
               />
             ))}
           </div>
-        </div>
-      )}
+        ) : (
+          <div className={s.emptyEvidence}>
+            <p>No high-significance evidence passages currently extracted for this entity.</p>
+            <p className={s.emptySubtext}>
+              Full document mentions are available in the Documents tab.
+            </p>
+          </div>
+        )}
+      </div>
 
       {/* BLACK BOOK ENTRY */}
       {entity.blackBookEntries && entity.blackBookEntries.length > 0 && (
@@ -166,7 +209,7 @@ export const EvidenceOverviewTab: React.FC<EvidenceOverviewTabProps> = ({
             </h3>
             <button
               onClick={() =>
-                navigateFromModal(`/blackbook?search=${encodeURIComponent(entity.fullName)}`)
+                navigateFromModal(`/blackbook?search=${encodeURIComponent(entity.fullName || '')}`)
               }
               className={s.viewFullLink}
             >
@@ -175,7 +218,7 @@ export const EvidenceOverviewTab: React.FC<EvidenceOverviewTabProps> = ({
           </div>
 
           <div className={s.blackbookContent}>
-            {entity.blackBookEntries.map((entry: any, idx: number) => (
+            {entity.blackBookEntries.map((entry, idx: number) => (
               <div key={idx} className={s.entryGroup}>
                 {entry.phoneNumbers && entry.phoneNumbers.length > 0 && (
                   <div className={s.phoneList}>

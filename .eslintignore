@@ -1,10 +1,18 @@
+# Artifacts & Build
 dist
+build
+coverage
+
+# Dependencies
 node_modules
 .venv
 venv
-src/scripts
-src/test
-tests
-src/services
-scripts
-data
+
+# Data & Binary Assets
+data/
+public/data/
+uploads/
+assets/
+*.dump
+*.sqlite
+*.db

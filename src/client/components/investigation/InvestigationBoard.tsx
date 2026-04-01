@@ -1,4 +1,4 @@
-import React, { Profiler, useEffect, useMemo, useRef, useState } from 'react';
+import React, { Profiler, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { Target, FileText, BookOpen, GripVertical, Plus } from 'lucide-react';
 import { EvidenceItem, Hypothesis } from '../../types/investigation';
@@ -70,7 +70,7 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
   const evidenceVirtual = useVirtualWindow(evidence.length, 88);
   const hypothesesVirtual = useVirtualWindow(hypotheses.length, 134);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const seen = localStorage.getItem('board_onboarding_seen');
     const investigationOnboardingSeen =
       localStorage.getItem('hasSeenInvestigationOnboarding') === 'true';

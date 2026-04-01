@@ -2,10 +2,20 @@ import React from 'react';
 import { ShieldAlert, FileText, Search, BookOpen, Calendar } from 'lucide-react';
 import { CloseButton } from '../CloseButton';
 import { Tabs, TabItem } from '../Tabs';
+import { EntityPhoto } from '../EvidenceModal';
 import s from './EvidenceModalHeader.module.css';
 
+interface EvidenceEntity {
+  id?: string | number;
+  fullName?: string;
+  primaryRole?: string;
+  birthDate?: string | null;
+  deathDate?: string | null;
+  redFlagRating?: number;
+}
+
 interface EvidenceModalHeaderProps {
-  entity: any;
+  entity: EvidenceEntity | null;
   loading: boolean;
   headerPhotoUrl: string | null;
   brokenMediaIds: Record<string, boolean>;
@@ -14,13 +24,13 @@ interface EvidenceModalHeaderProps {
   activeQuickAction: 'blackbook' | 'timeline' | 'search' | null;
   tabs: TabItem[];
   activeTab: string;
-  onTabChange: (tab: any) => void;
+  onTabChange: (tab: string) => void;
   onClose: () => void;
   forensicSummary: string;
   getRiskClass: (rating: number) => string;
-  resolveEntityPhotoUrl: (photo: any, preferThumbnail?: boolean) => string | null;
-  isVisualMediaItem: (photo: any) => boolean;
-  headerPhoto: any;
+  resolveEntityPhotoUrl: (photo: EntityPhoto | null, preferThumbnail?: boolean) => string | null;
+  isVisualMediaItem: (photo: EntityPhoto | null) => boolean;
+  headerPhoto: EntityPhoto | null;
 }
 
 export const EvidenceModalHeader: React.FC<EvidenceModalHeaderProps> = ({

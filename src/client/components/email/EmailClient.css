@@ -57,6 +57,21 @@
   border-left-color: var(--accent);
 }
 
+.email-row.vip-mailbox {
+  background: linear-gradient(90deg, rgba(245, 158, 11, 0.05) 0%, transparent 100%);
+  border-left-width: 4px;
+}
+
+.email-row.active.vip-mailbox {
+  background: linear-gradient(90deg, rgba(245, 158, 11, 0.12) 0%, var(--glass-bg-active) 100%);
+  border-left-color: #f59e0b;
+  box-shadow: inset 4px 0 10px -4px rgba(245, 158, 11, 0.3);
+}
+
+.email-row.vip-mailbox:hover:not(.active) {
+  background: linear-gradient(90deg, rgba(245, 158, 11, 0.08) 0%, var(--glass-bg-highlight) 100%);
+}
+
 .email-row:hover:not(.active) {
   background: var(--glass-bg-highlight);
 }

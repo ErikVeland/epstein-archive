@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Sparkles, Users, Link2, Calendar } from 'lucide-react';
@@ -17,6 +17,7 @@ import { DocumentMetadataRail } from './subcomponents/DocumentMetadataRail';
 import { DocumentPDFTab } from './subcomponents/DocumentPDFTab';
 import { DocumentAnalysisTab } from './subcomponents/DocumentAnalysisTab';
 import { deriveSummary, normalizeList } from './DocumentModalUtils';
+import { isVisualMediaItem } from '../../utils/evidenceUtils';
 
 interface DocEntityRecord {
   id?: string | number;
@@ -81,7 +82,7 @@ export const DocumentModal: React.FC<Props> = ({
   const contentRef = useRef<HTMLDivElement>(null);
   const scrollPositions = useRef<Record<string, number>>({});
 
-  const urlParams = new URLSearchParams(location.search);
+  const urlParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const caseIdFromQuery = urlParams.get('caseId');
   const canReturnToCase =
     location.pathname.startsWith('/investigations') ||
@@ -96,15 +97,13 @@ export const DocumentModal: React.FC<Props> = ({
     onClose();
   };
 
-  const readTab = (): ViewerTab => {
+  const activeTab = useMemo((): ViewerTab => {
     const current = urlParams.get('modalTab');
     if (current && BASE_VIEWER_TABS.some((tab) => tab.key === current)) {
       return current as ViewerTab;
     }
     return 'analysis';
-  };
-
-  const activeTab = readTab();
+  }, [urlParams]);
 
   const setActiveTab = useCallback(
     (tab: ViewerTab) => {
@@ -182,19 +181,23 @@ export const DocumentModal: React.FC<Props> = ({
     () =>
       BASE_VIEWER_TABS.map((tab) => {
         if (tab.key !== 'pdf' || hasAnyText) return tab;
+
+        const isVisual = isVisualMediaItem(doc as Parameters<typeof isVisualMediaItem>[0]);
+        const badgeLabel = isVisual ? 'Processed Photo' : 'No text extracted';
+
         return {
           ...tab,
           label: (
             <span className="inline-flex items-center gap-2">
               <span>Original Document</span>
               <span className="rounded-full border border-amber-500/40 bg-amber-500/15 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-amber-200">
-                No OCR yet
+                {badgeLabel}
               </span>
             </span>
           ),
         };
       }),
-    [hasAnyText],
+    [hasAnyText, doc],
   );
 
   const { modalRef } = useModalFocusTrap(true);
@@ -242,7 +245,7 @@ export const DocumentModal: React.FC<Props> = ({
     return () => clearTimeout(timeout);
   }, [activeTab, textSubview, localSearchTerm, doc?.content, doc?.contentRefined]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const modeFromUrl = new URLSearchParams(location.search).get('textMode') as TextSubview;
     if (modeFromUrl && modeFromUrl !== textSubview) {
       setTextSubviewState(modeFromUrl);
