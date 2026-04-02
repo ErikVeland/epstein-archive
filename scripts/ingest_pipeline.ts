@@ -1125,17 +1125,28 @@ async function processArchive(filePath: string): Promise<{
     }
 
     return { members, isEncrypted: false };
-  } catch (error: any) {
-    if (error.message && error.message.includes('encrypted')) {
+  } catch (error: unknown) {
+    const err = error instanceof Error ? error : new Error(String(error));
+    if (err.message && err.message.includes('encrypted')) {
       return { members: [], isEncrypted: true };
     }
     throw error;
   }
 }
 
+interface EmailMetadata {
+  from?: string;
+  to?: string;
+  subject?: string;
+  date?: string;
+  messageId?: string;
+  error?: string;
+  [key: string]: unknown;
+}
+
 async function processEmail(filePath: string): Promise<{
   content: string;
-  metadata: any;
+  metadata: EmailMetadata;
   date?: string;
   attachments?: Array<{ filename: string; content: Buffer; contentType: string }>;
   emailSha256?: string;
@@ -2315,11 +2326,15 @@ async function main() {
 
   // Collection breakdown
   console.log('\nBy Collection:');
+  interface CollectionCount {
+    source_collection: string;
+    count: string;
+  }
   const collections = (
-    await db.query(
+    await db.query<CollectionCount>(
       'SELECT source_collection, COUNT(*) as count FROM documents GROUP BY source_collection ORDER BY count DESC',
     )
-  ).rows as any[];
+  ).rows;
   for (const coll of collections) {
     console.log(`  • ${coll.source_collection}: ${coll.count}`);
   }
@@ -2403,7 +2418,7 @@ async function enrichCompleted() {
 
     for (let i = 0; i < rows.length; i += CONCURRENCY) {
       const chunk = rows.slice(i, i + CONCURRENCY);
-      await Promise.allSettled(chunk.map((row: any) => processRow(row)));
+      await Promise.allSettled(chunk.map((row) => processRow(row)));
       processed += chunk.length;
       if (processed % 100 === 0 || processed === total) {
         const pct = ((processed / total) * 100).toFixed(1);
@@ -2464,7 +2479,7 @@ async function ocrCleanCompleted() {
     for (let i = 0; i < rows.length; i += CONCURRENCY) {
       const chunk = rows.slice(i, i + CONCURRENCY);
       await Promise.allSettled(
-        chunk.map(async (row: any) => {
+        chunk.map(async (row) => {
           try {
             const cleaned = await AIEnrichmentService.cleanOCRText(row.content as string);
             if (cleaned && cleaned !== row.content) {
@@ -2588,10 +2603,10 @@ async function processQueue() {
   // the big multi-day sets get any slots.
   const DEPRIORITIZED = new Set(['DOJ Data Set 9', 'DOJ Data Set 10', 'DOJ Data Set 11']);
 
-  const normal = priorityRows.filter((r: any) => !DEPRIORITIZED.has(r.source_collection));
-  const deprio = priorityRows.filter((r: any) => DEPRIORITIZED.has(r.source_collection));
+  const normal = priorityRows.filter((r) => !DEPRIORITIZED.has(r.source_collection));
+  const deprio = priorityRows.filter((r) => DEPRIORITIZED.has(r.source_collection));
   // Within deprioritized, still process the further-along one first
-  deprio.sort((a: any, b: any) => parseFloat(b.pct_done) - parseFloat(a.pct_done));
+  deprio.sort((a, b) => parseFloat(b.pct_done) - parseFloat(a.pct_done));
 
   const collectionPriority = [...normal, ...deprio].map((r) => r.source_collection);
   console.log('   📊 Collection priority (closest to done first; large sets deprioritized):');

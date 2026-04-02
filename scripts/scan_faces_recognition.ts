@@ -1,4 +1,3 @@
-// @ts-ignore
 import * as faceapi from '@vladmandic/face-api/dist/face-api.js';
 import { Canvas, Image, ImageData, loadImage } from 'canvas';
 import fs from 'fs';

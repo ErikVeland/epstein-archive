@@ -24,6 +24,40 @@ export interface MediaItem {
   people?: Array<{ id: number; name: string }>;
 }
 
+interface AlbumRow {
+  id: number;
+  name: string;
+  itemCount: string | number;
+  sensitiveCount: string | number;
+}
+
+interface MediaItemRow {
+  id: number;
+  entityId: string | null;
+  documentId: string | null;
+  filePath: string;
+  thumbnailPath: string | null;
+  fileType: string | null;
+  fileSize: string | number;
+  width: number | null;
+  height: number | null;
+  title: string | null;
+  description: string | null;
+  isSensitive: boolean | null;
+  verificationStatus: string | null;
+  redFlagRating: string | number | null;
+  redFlagRatingRaw: string | number | null;
+  metadataJson: unknown;
+  dateTaken: Date | null;
+  createdAt: Date | null;
+  entityName?: string | null;
+  relatedEntities?: string | null;
+}
+
+interface SingleMediaItemRow extends MediaItemRow {
+  metadataJson: unknown;
+}
+
 export const mediaRepository = {
   // Get all albums with counts for a specific media type
   getAlbumsByMediaType: async (fileType: 'audio' | 'video') => {
@@ -34,8 +68,11 @@ export const mediaRepository = {
       likePattern = `${fileType}/%`;
     }
 
-    const result = await mediaQueries.getAlbumsByMediaType.run({ likePattern }, getApiPool());
-    return result.map((row: any) => ({
+    const result = (await mediaQueries.getAlbumsByMediaType.run(
+      { likePattern },
+      getApiPool(),
+    )) as AlbumRow[];
+    return result.map((row: AlbumRow) => ({
       ...row,
       itemCount: Number(row.itemCount || 0),
       sensitiveCount: Number(row.sensitiveCount || 0),
@@ -44,9 +81,12 @@ export const mediaRepository = {
 
   // Get media items for an entity
   getMediaItems: async (entityId: string) => {
-    const mediaItems = await mediaQueries.getMediaItemsByEntity.run({ entityId }, getApiPool());
+    const mediaItems = (await mediaQueries.getMediaItemsByEntity.run(
+      { entityId },
+      getApiPool(),
+    )) as MediaItemRow[];
 
-    return mediaItems.map((item: any) => {
+    return mediaItems.map((item: MediaItemRow) => {
       let metadata: Record<string, unknown> = {};
       try {
         if (item.metadataJson) {
@@ -71,9 +111,12 @@ export const mediaRepository = {
 
   // Get all media items (for Evidence Media tab)
   getAllMediaItems: async () => {
-    const mediaItems = await mediaQueries.getAllMediaItems.run(undefined, getApiPool());
+    const mediaItems = (await mediaQueries.getAllMediaItems.run(
+      undefined,
+      getApiPool(),
+    )) as MediaItemRow[];
 
-    return mediaItems.map((item: any) => {
+    return mediaItems.map((item: MediaItemRow) => {
       let metadata: Record<string, unknown> = {};
       try {
         if (item.metadataJson) {
@@ -106,8 +149,11 @@ export const mediaRepository = {
 
   // Get single media item by ID
   getMediaItemById: async (id: number): Promise<MediaItem | undefined> => {
-    const rows = await mediaQueries.getMediaItemById.run({ id: String(id) }, getApiPool());
-    const item = rows[0] as any;
+    const rows = (await mediaQueries.getMediaItemById.run(
+      { id: String(id) },
+      getApiPool(),
+    )) as SingleMediaItemRow[];
+    const item = rows[0];
     if (!item) return undefined;
 
     let metadata: Record<string, unknown> = {};

@@ -15,7 +15,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const QUERIES: Array<{ name: string; sql: string; params: any[] }> = [
+const QUERIES: Array<{ name: string; sql: string; params: unknown[] }> = [
   {
     name: 'graph_neighbors',
     sql: `SELECT target_entity_id FROM entity_relationships
@@ -76,7 +76,7 @@ async function main() {
   const outDir = path.resolve(__dirname, '..', 'docs', 'explain');
   fs.mkdirSync(outDir, { recursive: true });
 
-  const results: Record<string, any> = {};
+  const results: Record<string, unknown> = {};
   const regressions: string[] = [];
   const failures: string[] = [];
 
@@ -102,10 +102,11 @@ async function main() {
       }
 
       console.log(`  → OK`);
-    } catch (err: any) {
-      results[name] = { error: err.message };
-      failures.push(`${name}: ${err.message}`);
-      console.warn(`  → FAILED: ${err.message}`);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      results[name] = { error: message };
+      failures.push(`${name}: ${message}`);
+      console.warn(`  → FAILED: ${message}`);
     }
   }
 

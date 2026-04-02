@@ -55,7 +55,7 @@ async function step(label: string, fn: () => Promise<void>): Promise<void> {
   try {
     await fn();
     console.log(` ✅  (${Date.now() - t}ms)`);
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.log(` ❌`);
     throw err;
   }
@@ -137,7 +137,7 @@ async function main() {
     for (const view of VIEWS) {
       try {
         await pool.query(`REFRESH MATERIALIZED VIEW CONCURRENTLY ${view}`);
-      } catch (_concErr: any) {
+      } catch (_concErr: unknown) {
         // Fallback if unique index missing
         await pool.query(`REFRESH MATERIALIZED VIEW ${view}`);
       }
@@ -177,8 +177,9 @@ async function main() {
         stdio: 'pipe',
       });
       console.log(`\n     Tagged v${VERSION}`);
-    } catch (e: any) {
-      if (e.stderr?.toString().includes('already exists')) {
+    } catch (e: unknown) {
+      const error = e as { stderr?: { toString: () => string } };
+      if (error.stderr?.toString().includes('already exists')) {
         console.log(`\n     Tag v${VERSION} already exists — skipping`);
       } else {
         throw e;
@@ -192,7 +193,8 @@ async function main() {
   console.log(`🌟  v${VERSION} — GO\n`);
 }
 
-main().catch((err) => {
-  console.error('\n❌ DEPLOYMENT FAILED:', err.message);
+main().catch((err: unknown) => {
+  const message = err instanceof Error ? err.message : String(err);
+  console.error('\n❌ DEPLOYMENT FAILED:', message);
   process.exit(1);
 });
