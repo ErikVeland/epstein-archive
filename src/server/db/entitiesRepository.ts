@@ -421,19 +421,8 @@ export const entitiesRepository = {
 
     const orderByTerms: string[] = [];
     orderByTerms.push(`${inferredRankExpr} ASC`);
-    const documentCountExpr = `(
-      SELECT COUNT(DISTINCT em.document_id)
-      FROM entity_mentions em
-      WHERE em.entity_id = e.id
-    )`;
-    // Use a live subquery for mention counts so sort order reflects the current
-    // entity_mentions table rather than the denormalized (and potentially stale)
-    // entities.mentions column.
-    const mentionCountExpr = `(
-      SELECT COUNT(*)
-      FROM entity_mentions em
-      WHERE em.entity_id = e.id
-    )`;
+    const documentCountExpr = `e.evidence_count`;
+    const mentionCountExpr = `e.mentions`;
 
     if (sortKey === 'red_flag' || sortKey === 'rfi' || sortKey === 'default') {
       // Canonical ordering for subject cards:

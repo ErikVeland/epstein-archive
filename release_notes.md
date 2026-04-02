@@ -1,5 +1,21 @@
 # Release Notes
 
+## v18.3.1 - 2026-04-02 - Performance & Visibility Hotfix
+
+This patch resolves "archived" investigations not appearing on the site and optimizes subject listing performance on the production database.
+
+### Bug Fixes
+
+- Fixed status mapping mismatch (now handles `active` status correctly)
+- Populated missing `uuid` field for existing investigations
+- Optimized subject listing from **1.3s** to **<50ms** by denormalizing mention/evidence counts
+
+### Performance
+
+- Added indexes on `investigations(owner_id, status)` and `investigations(updated_at)`
+- Added index on `investigation_leads(investigation_id)`
+- Refreshed Postgres statistics on 1.3M+ record tables
+
 ## v18.3.0 - 2026-04-02 - Investigator-Grade Case Management
 
 This release formalizes the investigation system into a professional-grade case management platform, with the Vladislav Doronin investigation as the inaugural litmus test.

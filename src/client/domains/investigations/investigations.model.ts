@@ -42,7 +42,7 @@ export const mapApiInvestigation = (
     description: String(r.description || ''),
     hypothesis: String(r.scope || ''),
     status:
-      r.status === 'open'
+      r.status === 'open' || r.status === 'active'
         ? 'active'
         : r.status === 'in_review'
           ? 'review'
