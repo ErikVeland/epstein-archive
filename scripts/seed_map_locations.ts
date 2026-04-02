@@ -32,7 +32,12 @@ async function main() {
     'SELECT id, full_name as name FROM entities WHERE location_lat IS NULL ORDER BY mentions DESC LIMIT 20',
   );
 
-  for (const entity of topEntitiesResult.rows as any[]) {
+  interface EntityRow {
+    id: number;
+    name: string;
+  }
+
+  for (const entity of topEntitiesResult.rows as EntityRow[]) {
     const hub = hubs[Math.floor(Math.random() * hubs.length)];
     const lat = hub.baseLat + (Math.random() - 0.5) * 0.1;
     const lng = hub.baseLng + (Math.random() - 0.5) * 0.1;

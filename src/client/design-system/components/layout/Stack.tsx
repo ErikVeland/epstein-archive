@@ -16,7 +16,7 @@ export const Stack: React.FC<StackProps> = ({
   style,
   ...props
 }) => {
-  const styles: Record<string, any> = {};
+  const styles: Record<string, string | number> = {};
 
   const alignMap = { start: 'flex-start', center: 'center', end: 'flex-end', stretch: 'stretch' };
   styles['--stack-align'] = alignMap[align] || 'stretch';

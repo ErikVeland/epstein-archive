@@ -24,7 +24,7 @@ export const Grid: React.FC<GridProps> = ({
   style,
   ...props
 }) => {
-  const gridStyles: Record<string, any> = {};
+  const gridStyles: Record<string, string | number> = {};
 
   if (typeof cols === 'number') {
     gridStyles['--grid-cols'] = cols;

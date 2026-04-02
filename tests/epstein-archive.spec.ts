@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 
 test.skip(true, 'Legacy UI suite is outdated and superseded by targeted route/golden-path tests');
 
-async function navigateTo(page: any, label: string) {
+async function navigateTo(page: import('@playwright/test').Page, label: string) {
   const desktopBtn = page.locator(`button:has-text("${label}")`).first();
   if (await desktopBtn.isVisible()) {
     await desktopBtn.click();

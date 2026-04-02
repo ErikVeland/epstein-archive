@@ -1,6 +1,7 @@
 import * as crypto from 'crypto';
 import { execSync } from 'child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import pg from 'pg';
 import { getIngestPool } from '../src/server/db/connection.js';
 
 const CHECKPOINT_DIR = './pipeline_checkpoints';
@@ -99,7 +100,7 @@ function writeLiveStatus(fields: Record<string, unknown>) {
   }
 }
 
-let db: any;
+let db: pg.Pool;
 
 // Patterns (same as original)
 const LOCATION_PATTERN =
@@ -152,7 +153,7 @@ function normalizeName(name: string): string {
     .trim();
 }
 
-async function extractCredentials(doc: any, content: string) {
+async function extractCredentials(doc: { id: number; file_name: string }, content: string) {
   for (const pattern of CREDENTIAL_PATTERNS) {
     const regex = new RegExp(pattern.regex, 'gi');
     const matches = [...content.matchAll(regex)];
@@ -173,7 +174,20 @@ async function extractCredentials(doc: any, content: string) {
   }
 }
 
-async function harvestContacts(doc: any, content: string, entitiesFound: any[]) {
+interface ExtractedEntity {
+  name: string;
+  type: string;
+  offset: number;
+  original: string;
+  notes?: string;
+  entityId?: number;
+}
+
+async function harvestContacts(
+  doc: { id: number; file_name: string },
+  content: string,
+  entitiesFound: ExtractedEntity[],
+) {
   for (const entity of entitiesFound) {
     if (entity.type !== 'Person') continue;
     const nameRegex = new RegExp(entity.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
@@ -287,7 +301,9 @@ export async function runIntelligencePipeline() {
     // Always skip documents that already have entity mentions — prevents re-processing on any restart.
     const processedDocIds = new Set<number>();
     const processed = await db.query(`SELECT DISTINCT document_id FROM entity_mentions`);
-    processed.rows.forEach((r: any) => processedDocIds.add(Number(r.document_id)));
+    processed.rows.forEach((r: { document_id: number }) =>
+      processedDocIds.add(Number(r.document_id)),
+    );
     console.log(`   Skipping ${processedDocIds.size} already-processed documents.`);
 
     const docs = (
@@ -298,7 +314,7 @@ export async function runIntelligencePipeline() {
         AND (processing_status = 'succeeded' OR processing_status = 'completed')
       ORDER BY id ASC
     `)
-    ).rows.filter((d: any) => !processedDocIds.has(Number(d.id)));
+    ).rows.filter((d: { id: number }) => !processedDocIds.has(Number(d.id)));
 
     const totalDocs = docs.length;
     console.log(`   Found ${totalDocs} documents for intelligence extraction.`);
@@ -316,7 +332,7 @@ export async function runIntelligencePipeline() {
       const content = doc.content;
       if (!content || content.length < 10) continue;
 
-      const entitiesFound: any[] = [];
+      const entitiesFound: ExtractedEntity[] = [];
 
       // 1. Extract Potential Names (Capitalized Words Sequence)
       // e.g. "Donald Trump", "Jeffrey Epstein", "Ghislaine Maxwell"

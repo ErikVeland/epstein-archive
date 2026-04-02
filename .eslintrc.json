@@ -35,6 +35,24 @@
       }
     },
     {
+      "files": ["packages/db/src/queries/__generated__/**/*.{ts,tsx}"],
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "off"
+      }
+    },
+    {
+      "files": ["packages/db/src/index.ts"],
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "off"
+      }
+    },
+    {
+      "files": ["scripts/ingest_pipeline.ts"],
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "off"
+      }
+    },
+    {
       "files": ["tests/**/*.ts", "**/*.test.{ts,tsx}"],
       "env": {
         "jest": true

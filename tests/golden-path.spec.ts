@@ -33,7 +33,7 @@ async function resolveEntityWithEvidence(
         ? docsPayload
         : [];
     if (docs.length > 0) {
-      const firstDoc = docs.find((doc: any) => doc?.id != null);
+      const firstDoc = docs.find((doc: Record<string, unknown>) => doc?.id != null);
       if (firstDoc) return { entityId, documentId: String(firstDoc.id) };
     }
   }
@@ -46,7 +46,7 @@ async function resolveFirstDocumentId(request: APIRequestContext): Promise<strin
   if (!resp.ok()) return null;
   const payload = await resp.json();
   const items = Array.isArray(payload?.data) ? payload.data : [];
-  const first = items.find((item: any) => Number.isFinite(Number(item?.id)));
+  const first = items.find((item: Record<string, unknown>) => Number.isFinite(Number(item?.id)));
   return first ? String(first.id) : null;
 }
 

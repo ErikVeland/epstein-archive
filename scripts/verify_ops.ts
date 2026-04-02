@@ -11,8 +11,9 @@ async function verifyOps() {
     console.log('✅ Backup created successfully at:', backupPath);
     const backups = BackupService.listBackups();
     console.log('✅ Backup list retrieved:', backups.length, 'backups found.');
-  } catch (e: any) {
-    console.error('❌ BackupService test failed:', e.message);
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : String(e);
+    console.error('❌ BackupService test failed:', message);
   }
 
   // 2. Test IngestRunsRepository
@@ -23,8 +24,9 @@ async function verifyOps() {
     if (runs.length > 0) {
       console.log('Latest Run ID:', runs[0].id, 'Status:', runs[0].status);
     }
-  } catch (e: any) {
-    console.error('❌ IngestRunsRepository test failed:', e.message);
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : String(e);
+    console.error('❌ IngestRunsRepository test failed:', message);
   }
 
   // 3. Test FTS Integrity (Skipped - Handled by Postgres Triggers)

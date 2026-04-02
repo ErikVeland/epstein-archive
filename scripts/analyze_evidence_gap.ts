@@ -1,6 +1,14 @@
 import { getApiPool } from '../src/server/db/connection.js';
 import 'dotenv/config';
 
+interface PersonRow {
+  id: number;
+  full_name: string;
+  mentions: string;
+  mention_count: string;
+  photo_count: string;
+}
+
 const junkPatterns = [
   '%House%',
   '%Office%',
@@ -70,10 +78,10 @@ async function main() {
   const topPeople = result.rows;
 
   console.log(`\nFound ${topPeople.length} Top People.`);
-  const needsFix = topPeople.filter((p: any) => Number(p.photo_count) === 0);
+  const needsFix = topPeople.filter((p: PersonRow) => Number(p.photo_count) === 0);
 
   console.table(
-    topPeople.slice(0, 20).map((p: any) => ({
+    topPeople.slice(0, 20).map((p: PersonRow) => ({
       id: p.id,
       name: p.full_name.substring(0, 20),
       mentions: p.mentions,
@@ -88,7 +96,7 @@ async function main() {
     console.log(
       needsFix
         .slice(0, 10)
-        .map((p: any) => p.full_name)
+        .map((p: PersonRow) => p.full_name)
         .join(', '),
     );
   }

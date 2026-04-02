@@ -4,6 +4,7 @@
  */
 
 import { test, expect } from '@playwright/test';
+import type { PerformanceMetrics } from '../src/utils/performanceMonitor';
 
 test.describe('Performance Regression Tests', () => {
   test.beforeEach(async ({ page }) => {
@@ -116,8 +117,15 @@ test.describe('Performance Regression Tests', () => {
 
     // Enable performance monitoring
     await page.evaluate(() => {
-      (window as any).PerformanceMonitor?.setEnabled(true);
-      (window as any).PerformanceMonitor?.clear?.();
+      const win = window as Window & {
+        PerformanceMonitor?: {
+          setEnabled: (enabled: boolean) => void;
+          clear?: () => void;
+          getMetrics?: () => PerformanceMetrics;
+        };
+      };
+      win.PerformanceMonitor?.setEnabled(true);
+      win.PerformanceMonitor?.clear?.();
     });
 
     // Trigger re-render by changing filters
@@ -126,10 +134,13 @@ test.describe('Performance Regression Tests', () => {
 
     // Check render metrics
     const slowRenders = await page.evaluate(() => {
-      const metrics = (window as any).PerformanceMonitor?.getMetrics();
+      const win = window as Window & {
+        PerformanceMonitor?: { getMetrics: () => PerformanceMetrics };
+      };
+      const metrics = win.PerformanceMonitor?.getMetrics();
       if (!metrics) return 0;
 
-      return metrics.renders.filter((r: any) => r.duration > 16).length;
+      return metrics.renders.filter((r: { duration: number }) => r.duration > 16).length;
     });
 
     expect(slowRenders).toBe(0);

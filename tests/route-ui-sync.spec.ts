@@ -13,7 +13,7 @@ const resolveFirstEntityId = async (request: APIRequestContext): Promise<string 
   if (!response.ok()) return null;
   const payload = await response.json();
   const items = Array.isArray(payload?.data) ? payload.data : Array.isArray(payload) ? payload : [];
-  const first = items.find((item: any) => Number.isFinite(Number(item?.id)));
+  const first = items.find((item: Record<string, unknown>) => Number.isFinite(Number(item?.id)));
   if (!first) return null;
   return String(first.id);
 };
@@ -23,7 +23,7 @@ const resolveFirstDocumentId = async (request: APIRequestContext): Promise<strin
   if (!response.ok()) return null;
   const payload = await response.json();
   const items = Array.isArray(payload?.data) ? payload.data : [];
-  const first = items.find((item: any) => Number.isFinite(Number(item?.id)));
+  const first = items.find((item: Record<string, unknown>) => Number.isFinite(Number(item?.id)));
   if (!first) return null;
   return String(first.id);
 };
@@ -35,7 +35,7 @@ const resolveInvestigationAndEvidence = async (
   if (!response.ok()) return null;
   const payload = await response.json();
   const first = Array.isArray(payload?.data)
-    ? payload.data.find((item: any) => Number.isFinite(Number(item?.id)))
+    ? payload.data.find((item: Record<string, unknown>) => Number.isFinite(Number(item?.id)))
     : null;
   if (!first) return null;
 

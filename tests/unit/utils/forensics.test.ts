@@ -1,44 +1,48 @@
 import { describe, it, expect } from 'vitest';
-import { calculateEvidenceLadder } from '../../../src/utils/forensics';
+import { calculateEvidenceLadder, type PersonAdapter } from '../../../src/utils/forensics';
 
 describe('calculateEvidenceLadder', () => {
   it('should return L1 for black book entries', () => {
-    const result = calculateEvidenceLadder({
+    const input: PersonAdapter = {
       id: 1,
       name: 'Test Person',
       mentions: 10,
       blackBookEntries: ['some entry'],
-    } as any);
+    };
+    const result = calculateEvidenceLadder(input);
     expect(result.level).toBe('L1');
   });
 
   it('should return L1 for flight logs', () => {
-    const result = calculateEvidenceLadder({
+    const input: PersonAdapter = {
       id: 2,
       name: 'Flyer',
       mentions: 10,
       evidenceTypes: ['flight_log'],
-    } as any);
+    };
+    const result = calculateEvidenceLadder(input);
     expect(result.level).toBe('L1');
   });
 
   it('should return L2 for high mentions', () => {
-    const result = calculateEvidenceLadder({
+    const input: PersonAdapter = {
       id: 3,
       name: 'Popular',
       mentions: 100,
       connections: '2',
-    } as any);
+    };
+    const result = calculateEvidenceLadder(input);
     expect(result.level).toBe('L2');
   });
 
   it('should return L3 for low signal', () => {
-    const result = calculateEvidenceLadder({
+    const input: PersonAdapter = {
       id: 4,
       name: 'Unknown',
       mentions: 1,
       connections: '0',
-    } as any);
+    };
+    const result = calculateEvidenceLadder(input);
     expect(result.level).toBe('L3');
   });
 });

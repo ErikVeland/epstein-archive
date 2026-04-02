@@ -57,10 +57,11 @@ async function main() {
         console.log('[PASS] connectivity');
         details.forEach((d) => console.log(`  ${d}`));
         results.push({ name, ok: true, details });
-      } catch (err: any) {
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
         hardFail = true;
-        console.error(`[FAIL] ${name}: ${err.message}`);
-        results.push({ name, ok: false, details: [err.message] });
+        console.error(`[FAIL] ${name}: ${message}`);
+        results.push({ name, ok: false, details: [message] });
       }
     }
 
@@ -78,10 +79,11 @@ async function main() {
         console.log(`  installed=${names.join(', ')}`);
         if (!ok) console.log('  missing=pg_stat_statements');
         results.push({ name, ok, details: names });
-      } catch (err: any) {
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
         hardFail = true;
-        console.error(`[FAIL] ${name}: ${err.message}`);
-        results.push({ name, ok: false, details: [err.message] });
+        console.error(`[FAIL] ${name}: ${message}`);
+        results.push({ name, ok: false, details: [message] });
       }
     }
 
@@ -103,10 +105,11 @@ async function main() {
             `SELECT COUNT(*)::text AS count FROM ${qident(table)}`,
           );
           details.push(`${table}=${rows[0]?.count ?? '0'}`);
-        } catch (err: any) {
+        } catch (err: unknown) {
+          const message = err instanceof Error ? err.message : String(err);
           ok = false;
           hardFail = true;
-          details.push(`${table}=ERROR:${err.message}`);
+          details.push(`${table}=ERROR:${message}`);
         }
       }
       console.log(ok ? '[PASS] table counts' : '[FAIL] table counts');
@@ -203,10 +206,11 @@ async function main() {
         if (details.length === 0) console.log('  0 violations across all FK constraints');
         else details.forEach((d) => console.log(`  ${d}`));
         results.push({ name, ok, details });
-      } catch (err: any) {
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
         hardFail = true;
-        console.error(`[FAIL] ${name}: ${err.message}`);
-        results.push({ name, ok: false, details: [err.message] });
+        console.error(`[FAIL] ${name}: ${message}`);
+        results.push({ name, ok: false, details: [message] });
       }
     }
 
@@ -242,10 +246,11 @@ async function main() {
           warnings,
           details: rows.slice(0, 15).map((r) => r.index_name),
         });
-      } catch (err: any) {
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
         hardFail = true;
-        console.error(`[FAIL] ${name}: ${err.message}`);
-        results.push({ name, ok: false, details: [err.message] });
+        console.error(`[FAIL] ${name}: ${message}`);
+        results.push({ name, ok: false, details: [message] });
       }
     }
 
@@ -283,10 +288,11 @@ async function main() {
           warnings,
           details: rows.slice(0, 15).map((r) => r.relname),
         });
-      } catch (err: any) {
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
         hardFail = true;
-        console.error(`[FAIL] ${name}: ${err.message}`);
-        results.push({ name, ok: false, details: [err.message] });
+        console.error(`[FAIL] ${name}: ${message}`);
+        results.push({ name, ok: false, details: [message] });
       }
     }
 
@@ -324,10 +330,11 @@ async function main() {
           ),
         );
         results.push({ name, ok, details: rows.map((r) => `${r.pid}:${r.duration}`) });
-      } catch (err: any) {
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
         hardFail = true;
-        console.error(`[FAIL] ${name}: ${err.message}`);
-        results.push({ name, ok: false, details: [err.message] });
+        console.error(`[FAIL] ${name}: ${message}`);
+        results.push({ name, ok: false, details: [message] });
       }
     }
 

@@ -9,8 +9,6 @@
 import { decode } from 'html-entities';
 import quotedPrintable from 'quoted-printable';
 
-declare const process: any;
-
 import { AIEnrichmentService } from '../../src/server/services/AIEnrichmentService.js';
 
 export class TextCleaner {

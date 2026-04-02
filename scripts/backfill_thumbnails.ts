@@ -2,6 +2,13 @@ import path from 'path';
 import fs from 'fs';
 import { MediaService } from '../src/server/services/MediaService';
 
+interface MediaImageLegacy {
+  thumbnail_path?: string;
+  thumbnailPath?: string;
+  orientation?: number;
+  [key: string]: unknown;
+}
+
 async function main() {
   const media = new MediaService(null);
 
@@ -52,7 +59,8 @@ async function main() {
         const thumbnailDir = path.join(path.dirname(originalAbsPath), 'thumbnails');
 
         // If image already has a thumbnail path and the file exists, reuse
-        const existingThumb = (image as any).thumbnail_path || (image as any).thumbnailPath || '';
+        const legacy = image as unknown as MediaImageLegacy;
+        const existingThumb = legacy.thumbnail_path || legacy.thumbnailPath || '';
         if (existingThumb) {
           const thumbCandidates: string[] = [];
           const tp = existingThumb.toString();
@@ -81,7 +89,7 @@ async function main() {
 
         // Generate thumbnail
         const generatedPath = await media.generateThumbnail(originalAbsPath, thumbnailDir, {
-          orientation: (image as any).orientation || 1,
+          orientation: legacy.orientation || 1,
           force: true,
         });
 

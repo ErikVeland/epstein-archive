@@ -104,10 +104,11 @@ async function runQueue() {
               `\r✅ Processed=${processed.toLocaleString()} Failed=${failed.toLocaleString()} Active=${active.size} Rate=${rate.toFixed(2)} docs/s Remaining=${Number(remaining).toLocaleString()} ETA=${etaMin.toFixed(1)}m`,
             );
           }
-        } catch (e: any) {
+        } catch (e: unknown) {
+          const message = e instanceof Error ? e.message : String(e);
           failed++;
-          await jobManager.failJob(docId, e?.message || 'unknown error');
-          process.stdout.write(`\n❌ Doc ${docId} failed: ${e?.message || 'unknown error'}\n`);
+          await jobManager.failJob(docId, message || 'unknown error');
+          process.stdout.write(`\n❌ Doc ${docId} failed: ${message || 'unknown error'}\n`);
         }
       })();
 

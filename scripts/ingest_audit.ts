@@ -81,14 +81,15 @@ async function main() {
       details: ['control transaction + ON CONFLICT simulation passed (ROLLBACK)'],
     });
     console.log('[PASS] transaction control simulation');
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
     hardFail = true;
     checks.push({
       name: 'Simulate ingest batch in transaction',
       ok: false,
-      details: [err.message],
+      details: [message],
     });
-    console.error(`[FAIL] transaction control simulation: ${err.message}`);
+    console.error(`[FAIL] transaction control simulation: ${message}`);
   }
 
   // 2) Duplicate row checks + upsert patterns
@@ -126,8 +127,9 @@ async function main() {
           } else {
             details.push(`no duplicates on ${q.label}`);
           }
-        } catch (err: any) {
-          details.push(`skipped ${q.label}: ${err.message}`);
+        } catch (err: unknown) {
+          const message = err instanceof Error ? err.message : String(err);
+          details.push(`skipped ${q.label}: ${message}`);
         }
       }
 
@@ -149,8 +151,9 @@ async function main() {
         } else {
           details.push('no duplicates on entities.full_name heuristic');
         }
-      } catch (err: any) {
-        details.push(`skipped entities duplicate heuristic: ${err.message}`);
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        details.push(`skipped entities duplicate heuristic: ${message}`);
       }
     });
 
@@ -166,10 +169,11 @@ async function main() {
     checks.push({ name: 'Duplicate row + upsert audit', ok, details });
     console.log(ok ? '[PASS] duplicates/upserts' : '[FAIL] duplicates/upserts');
     details.forEach((d) => console.log(`  ${d}`));
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
     hardFail = true;
-    checks.push({ name: 'Duplicate row + upsert audit', ok: false, details: [err.message] });
-    console.error(`[FAIL] duplicates/upserts: ${err.message}`);
+    checks.push({ name: 'Duplicate row + upsert audit', ok: false, details: [message] });
+    console.error(`[FAIL] duplicates/upserts: ${message}`);
   }
 
   // 3) Pool usage / max / maintenance bypass (static + runtime)
@@ -223,9 +227,10 @@ async function main() {
         ok = false;
         details.push(`ingest sessions exceed configured max (${runtime} > ${configuredMax})`);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
       ok = false;
-      details.push(`runtime ingest pool check failed: ${err.message}`);
+      details.push(`runtime ingest pool check failed: ${message}`);
     }
 
     if (!ok) hardFail = true;
@@ -262,9 +267,10 @@ async function main() {
       } else {
         details.push('0 idle-in-transaction sessions');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
       ok = false;
-      details.push(err.message);
+      details.push(message);
     }
     if (!ok) hardFail = true;
     checks.push({ name: 'Idle in transaction check', ok, details });

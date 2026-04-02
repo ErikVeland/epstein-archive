@@ -145,7 +145,7 @@ test.describe('Data Validation Tests (API-Based)', () => {
     expect(response.ok()).toBeTruthy();
 
     const body = await response.json();
-    const ids = body.data.map((e: any) => e.id);
+    const ids = body.data.map((e: Record<string, unknown>) => e.id);
     const uniqueIds = new Set(ids);
 
     expect(ids.length).toBe(uniqueIds.size);

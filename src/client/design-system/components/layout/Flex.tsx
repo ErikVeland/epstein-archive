@@ -22,7 +22,7 @@ export const Flex: React.FC<FlexProps> = ({
   style,
   ...props
 }) => {
-  const styles: Record<string, any> = {};
+  const styles: Record<string, string | number> = {};
 
   styles['--flex-direction'] = direction;
 

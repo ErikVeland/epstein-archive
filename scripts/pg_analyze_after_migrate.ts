@@ -35,12 +35,13 @@ async function main() {
       // VACUUM must run outside a transaction; pg.Client does not auto-wrap
       await client.query(`VACUUM ANALYZE ${table}`);
       console.log(`[analyze] ${table} — ${Date.now() - start}ms`);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
       // Table may not exist yet (e.g. document_sentences)
-      if (err.code === '42P01') {
+      if ((err as pg.DatabaseError)?.code === '42P01') {
         console.warn(`[analyze] ${table} does not exist yet — skipping`);
       } else {
-        console.error(`[analyze] ${table} failed:`, err.message);
+        console.error(`[analyze] ${table} failed:`, message);
       }
     }
   }
