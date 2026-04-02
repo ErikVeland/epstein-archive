@@ -1,5 +1,14 @@
 # Release Notes
 
+## v18.3.3 - 2026-04-02 - Subject Dossier Patch
+
+This patch fixes the Subject Dossier Panel (Investigator view) being clipped by the site header and adds Escape key support for easier dismissal.
+
+### Bug Fixes
+
+- **Subject Dossier**: Fixed `z-index` layering (`z-40` → `var(--z-modal)`) to correctly overlay the global header.
+- **Accessibility**: Added Escape key support to the investigation dossiers using `useModalFocusTrap`.
+
 ## v18.3.2 - 2026-04-02 - UI Layering & Accessibility Hotfix
 
 This hotfix ensures all overlays and modals correctly appear above the site header and adds global "Escape" key support for dismissing dialogs.

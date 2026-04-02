@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { apiClient } from '../../services/apiClient';
 import { useToasts } from '../common/useToasts';
 import { CloseButton } from '../common/CloseButton';
+import { useModalFocusTrap } from '../../hooks/useModalFocusTrap';
 import {
   AlertTriangle,
   ExternalLink,
@@ -46,6 +47,7 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
   const [loadingDocs, setLoadingDocs] = useState(false);
   const [searching, setSearching] = useState(false);
   const { addToast } = useToasts();
+  const { modalRef } = useModalFocusTrap({ isActive: true, onEscape: onClose });
 
   const loadEntity = useCallback(
     async (entityId: string) => {
@@ -118,8 +120,12 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
   const rfiColor = rfi >= 4 ? 'text-rose-400' : rfi >= 2 ? 'text-amber-400' : 'text-emerald-400';
 
   return (
-    <div className="fixed inset-0 z-40 flex items-stretch justify-end bg-[var(--glass-bg)] backdrop-blur-sm">
-      <div className="w-full max-w-md bg-[var(--glass-bg-strong)] border-l border-[var(--glass-border)] shadow-[var(--glass-shadow)] flex flex-col">
+    <div className="fixed inset-0 z-[var(--z-modal)] flex items-stretch justify-end bg-[var(--glass-bg)]/20 backdrop-blur-sm">
+      <div
+        ref={modalRef}
+        tabIndex={-1}
+        className="w-full max-w-md bg-[var(--glass-bg-strong)] border-l border-[var(--glass-border)] shadow-[var(--glass-shadow)] flex flex-col focus:outline-none"
+      >
         {/* Header */}
         <div className="px-5 py-4 border-b border-[var(--glass-border)] flex items-start justify-between gap-4">
           <div>
