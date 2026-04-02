@@ -1,8 +1,49 @@
 # Release Notes
 
+## v18.3.0 - 2026-04-02 - Investigator-Grade Case Management
+
+This release formalizes the investigation system into a professional-grade case management platform, with the Vladislav Doronin investigation as the inaugural litmus test.
+
+### What's New for Users
+
+**Leads Tracker**
+
+- New **Leads** panel in the investigation workspace for tracking open investigative threads
+- Status workflow: `open → pursued → resolved` (or `dead end`) with one-click cycling
+- Priority levels: `critical / high / medium / low` with colour-coded badges
+- EFTA document cross-references link directly to source DOJ records
+- Leads auto-populated on report import
+
+**Subject Dossier Panel**
+
+- New **Subject** panel for entity-centric investigation views
+- Shows Red Flag Index score, mention count, known aliases, and linked documents
+- Pin any entity as a primary subject of the investigation
+- Search the full entity database directly from the panel
+
+**Import Report (Universal Ingestor)**
+
+- New **Import Report** button and modal in the investigation workspace header
+- Paste any standardised Markdown report to auto-populate: evidence (EFTA resolution), timeline events, hypotheses, and leads
+- Idempotent — safe to re-import updated reports without creating duplicates
+- CLI: `npx tsx scripts/ingest-investigation.ts <file.md>`
+- API: `POST /api/investigations/import-report`
+
+**Vladislav Doronin Investigation**
+
+- Fully formalised investigation now live in the archive
+- 11 DOJ source documents linked, 23 timeline events populated
+- Thesis: Doronin as the Epstein–Trump Russian bridge, via Capital Group, Aman Resorts, and shared Kremlin-adjacent networks
+
+### Technical
+
+- New `investigation_leads` table with full CRUD API (`GET/POST/PATCH/DELETE /api/investigations/:id/leads`)
+- `InvestigationIngestorService` — universal Markdown parser with EFTA auto-resolution
+- `docs/investigation-report-format.md` — canonical specification for investigation reports
+
 ## v18.2.1 - 2026-04-01 - Hotfix: Restore Tailwind CSS
 
-This patch restores Tailwind CSS which was accidentally removed in the Autumn cleanup commit, causing styling to break across the application.
+This patch restores Tailwind CSS which was accidentally removed in the Autumn cleanup commit.
 
 ### Bug Fixes
 
