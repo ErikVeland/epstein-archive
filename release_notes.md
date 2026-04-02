@@ -1,5 +1,15 @@
 # Release Notes
 
+## v18.3.2 - 2026-04-02 - UI Layering & Accessibility Hotfix
+
+This hotfix ensures all overlays and modals correctly appear above the site header and adds global "Escape" key support for dismissing dialogs.
+
+### UI / UX
+
+- **Layering Fix**: Standardised `z-index` scale; overlays (search, date pickers, modals) now consistently cover the sticky header.
+- **Escape Dismissal**: Added keyboard support to `DocumentModal`, `EvidenceModal`, `MobileMenu`, and global search popovers.
+- **Standardised Tokens**: Refactored hardcoded z-indices to use theme variables (`--z-header`, `--z-dropdown`, etc.).
+
 ## v18.3.1 - 2026-04-02 - Performance & Visibility Hotfix
 
 This patch resolves "archived" investigations not appearing on the site and optimizes subject listing performance on the production database.

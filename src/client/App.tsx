@@ -1344,12 +1344,12 @@ function App() {
 
             {/* Skip links for accessibility */}
             <div className="sr-only">
-              <a className="sr-only focus:not-sr-only focus:absolute focus:p-4 focus:bg-[var(--glass-bg-strong)] focus:text-[var(--text-primary)] z-50">
+              <a className="sr-only focus:not-sr-only focus:absolute focus:p-4 focus:bg-[var(--glass-bg-strong)] focus:text-[var(--text-primary)] z-[var(--z-modal)]">
                 Skip to main content
               </a>
               <a
                 href="#navigation"
-                className="sr-only focus:not-sr-only focus:absolute focus:p-4 focus:bg-[var(--glass-bg-strong)] focus:text-[var(--text-primary)] z-50 mt-10"
+                className="sr-only focus:not-sr-only focus:absolute focus:p-4 focus:bg-[var(--glass-bg-strong)] focus:text-[var(--text-primary)] z-[var(--z-modal)] mt-10"
               >
                 Skip to navigation
               </a>
@@ -1483,6 +1483,9 @@ function App() {
                             onKeyDown={(e) => {
                               if (e.key === 'Enter' && searchTerm.trim()) {
                                 navigate(`/search?q=${encodeURIComponent(searchTerm)}`);
+                              } else if (e.key === 'Escape') {
+                                setSearchTerm('');
+                                e.currentTarget.blur();
                               }
                             }}
                           />
@@ -1512,7 +1515,7 @@ function App() {
                         </button>
                       </div>
                       {searchTerm.trim().length >= 2 && (
-                        <div className="absolute top-full right-0 mt-2 w-full md:w-96 glass-panel z-50 max-h-96 overflow-y-auto">
+                        <div className="absolute top-full right-0 mt-2 w-full md:w-96 glass-panel z-[var(--z-dropdown)] max-h-96 overflow-y-auto">
                           <div className="p-2 text-xs text-[var(--text-secondary)] border-b border-[var(--glass-border)]">
                             Search results for "{searchTerm}"
                           </div>
@@ -1605,9 +1608,14 @@ function App() {
                       </button>
                       {showDateRangePicker && (
                         <div
-                          className="absolute top-full right-0 mt-2 z-50 glass-panel p-4 w-72"
+                          className="absolute top-full right-0 mt-2 z-[var(--z-dropdown)] glass-panel p-4 w-72"
                           role="dialog"
                           aria-label="Global date range filter"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Escape') {
+                              setShowDateRangePicker(false);
+                            }
+                          }}
                         >
                           <div className="text-xs font-semibold text-[var(--text-secondary)] mb-3 uppercase tracking-wider">
                             Global Date Filter

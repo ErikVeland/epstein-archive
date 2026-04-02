@@ -12,7 +12,7 @@ export const DialogOverlay = React.forwardRef<
 >(({ className = '', ...props }, ref) => (
   <DialogPrimitive.Overlay
     ref={ref}
-    className={`fixed inset-0 z-50 bg-[var(--glass-bg-strong)] backdrop-blur-sm transition-all duration-300 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=open]:fade-in ${className}`}
+    className={`fixed inset-0 z-[var(--z-modal)] bg-[var(--glass-bg-strong)] backdrop-blur-sm transition-all duration-300 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=open]:fade-in ${className}`}
     {...props}
   />
 ));
@@ -26,7 +26,7 @@ export const DialogContent = React.forwardRef<
     <DialogOverlay />
     <DialogPrimitive.Content
       ref={ref}
-      className={`fixed left-[50%] top-[50%] z-50 w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-[var(--space-4)] rounded-xl bg-bg-surface/90 border border-border-subtle p-[var(--space-6)] shadow-2xl backdrop-blur-xl transition-all duration-300 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=open]:fade-in data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] ${className}`}
+      className={`fixed left-[50%] top-[50%] z-[var(--z-modal)] w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-[var(--space-4)] rounded-xl bg-bg-surface/90 border border-border-subtle p-[var(--space-6)] shadow-2xl backdrop-blur-xl transition-all duration-300 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out data-[state=open]:fade-in data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] ${className}`}
       {...props}
     >
       <div className="absolute inset-0 z-0 bg-[var(--glass-border)] rounded-xl pointer-events-none opacity-50" />

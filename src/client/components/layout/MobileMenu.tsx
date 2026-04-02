@@ -53,6 +53,16 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
     return () => window.removeEventListener('resize', closeOnDesktop);
   }, [open, onClose]);
 
+  // Handle Escape key to close menu
+  useEffect(() => {
+    if (!open) return;
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [open, onClose]);
+
   // Handle navigation without closing on content click
   const handleNavigation = (path: string) => {
     onNavigate(path);

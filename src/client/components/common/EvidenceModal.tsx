@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 import { apiClient } from '../../services/apiClient';
 import { useScrollLock } from '../../hooks/useScrollLock';
+import { useModalFocusTrap } from '../../hooks/useModalFocusTrap';
 import { TabItem } from './Tabs';
 
 // Subcomponents
@@ -682,6 +683,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
   }, [entity, entityEvidence]);
 
   useScrollLock(isOpen);
+  const { modalRef } = useModalFocusTrap({ isActive: isOpen, onEscape: onClose });
 
   const onRenderCallback = useCallback(
     (id: string, phase: 'mount' | 'update' | 'nested-update', actualDuration: number) => {
@@ -719,11 +721,13 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
             onClick={onClose}
           />
           <motion.div
+            ref={modalRef}
             initial={{ scale: 0.95, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 20 }}
             data-testid="evidence-modal"
             className={s.modal}
+            tabIndex={-1}
           >
             <EvidenceModalHeader
               entity={entity ?? null}

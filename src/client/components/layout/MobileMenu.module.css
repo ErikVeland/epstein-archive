@@ -4,7 +4,7 @@
 .root {
   position: fixed;
   inset: 0;
-  z-index: 60;
+  z-index: var(--z-overlay);
   transition: opacity 0.3s var(--easing-liquid, ease-out);
 }
 
@@ -46,7 +46,7 @@
   box-shadow: var(--glass-shadow);
   transform: translateX(0);
   transition: transform 0.3s ease-out;
-  z-index: 10;
+  z-index: var(--z-dropdown);
   display: flex;
   flex-direction: column;
 }

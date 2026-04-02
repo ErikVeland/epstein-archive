@@ -200,7 +200,7 @@ export const DocumentModal: React.FC<Props> = ({
     [hasAnyText, doc],
   );
 
-  const { modalRef } = useModalFocusTrap(true);
+  const { modalRef } = useModalFocusTrap({ isActive: true, onEscape: onClose });
   useScrollLock(true);
 
   useEffect(() => {
