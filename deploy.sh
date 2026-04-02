@@ -660,6 +660,17 @@ if [ "$DRY_RUN" = false ]; then
     remote_ssh "
       set -e
       cd ${PRODUCTION_PATH}
+
+      export PNPM_HOME=\"${REMOTE_HOME}/.local/share/pnpm\"
+      export PATH=\"\$PNPM_HOME:\$PATH\"
+      export NODE_ENV=production
+
+      if [ -f .env ]; then
+        set -a
+        source .env
+        set +a
+      fi
+
       # Run TS-native verification ops
       DEPLOY_VERIFY_URL=http://127.0.0.1:3012 node --import tsx/esm scripts/verify_ops.ts
     "
