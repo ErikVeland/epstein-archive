@@ -129,7 +129,7 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
         <div className={styles.header}>
           <div>
             <h2 className={styles.headerTitle}>
-              <User className="w-4 h-4 text-[var(--accent)]" />
+              <User className={`${styles.iconMd} text-[var(--accent)]`} />
               Subject Dossier
             </h2>
             <p className={styles.headerSubtitle}>Entity profile and linked documents</p>
@@ -148,7 +148,7 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
               onChange={(e) => setSearchQuery(e.target.value)}
               className={styles.searchInput}
             />
-            {searching && <Loader2 className={`${styles.searchLoader} animate-spin`} />}
+            {searching && <Loader2 className={`${styles.searchLoader} ${styles.spin}`} />}
           </div>
         </form>
 
@@ -178,7 +178,7 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
         <div className={styles.dossierContent}>
           {loadingEntity && (
             <div className={styles.loaderWrapper}>
-              <Loader2 className="w-6 h-6 animate-spin text-[var(--text-muted)]" />
+              <Loader2 className={`${styles.iconMd} ${styles.spin} text-[var(--text-muted)]`} />
             </div>
           )}
 
@@ -210,7 +210,7 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
                     className={styles.externalLink}
                     title="Open full profile"
                   >
-                    <ExternalLink className="w-4 h-4" />
+                    <ExternalLink className={styles.iconMd} />
                   </a>
                 </div>
                 <div className={styles.badgeStack}>
@@ -266,7 +266,7 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
                 rel="noopener noreferrer"
                 className={styles.actionLink}
               >
-                <FileText className="w-4 h-4" />
+                <FileText className={styles.iconMd} />
                 View all documents mentioning {selectedEntity.fullName.split(' ')[0]}
               </a>
 
@@ -275,12 +275,14 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
                 <h4 className={styles.sectionHeader}>Recent Documents</h4>
                 {loadingDocs && (
                   <div className="flex justify-center py-4">
-                    <Loader2 className="w-4 h-4 animate-spin text-[var(--text-muted)]" />
+                    <Loader2
+                      className={`${styles.iconSm} ${styles.spin} text-[var(--text-muted)]`}
+                    />
                   </div>
                 )}
                 {!loadingDocs && recentDocs.length === 0 && (
                   <div className="flex items-center gap-2 text-xs text-[var(--text-muted)] py-2">
-                    <AlertTriangle className="w-3.5 h-3.5" />
+                    <AlertTriangle className={styles.iconSm} />
                     No documents indexed for this entity yet
                   </div>
                 )}

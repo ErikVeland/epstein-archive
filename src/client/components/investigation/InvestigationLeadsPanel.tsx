@@ -197,7 +197,7 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
         <div className={styles.header}>
           <div>
             <h2 className={styles.headerTitle}>
-              <Flag className={`w-4 h-4 ${styles.iconAmber}`} />
+              <Flag className={`${styles.iconMd} ${styles.iconAmber}`} />
               Investigation Leads
             </h2>
             <p className={styles.headerSubtitle}>Track, pursue, and resolve investigative leads</p>
@@ -234,7 +234,7 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
             <option value="resolved">Resolved</option>
           </select>
           <button onClick={() => setShowNewForm((v) => !v)} className={styles.addButton}>
-            <PlusCircle className="w-3.5 h-3.5" />
+            <PlusCircle className={styles.iconSm} />
             New Lead
           </button>
         </div>
@@ -291,7 +291,7 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
                 disabled={!newLead.title.trim() || creating}
                 className={styles.submitButton}
               >
-                {creating && <Loader2 className="w-3 h-3 animate-spin" />}
+                {creating && <Loader2 className={`${styles.iconSm} ${styles.spin}`} />}
                 Add Lead
               </button>
             </div>
@@ -302,7 +302,7 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
         <div className={styles.leadsList}>
           {loading && (
             <div className="flex justify-center py-10">
-              <Loader2 className="w-5 h-5 animate-spin text-[var(--text-muted)]" />
+              <Loader2 className={`${styles.iconMd} ${styles.spin} text-[var(--text-muted)]`} />
             </div>
           )}
 
@@ -327,7 +327,7 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
                     title={`Status: ${label} — click to advance`}
                     className="mt-0.5 flex-shrink-0"
                   >
-                    <Icon className={`w-4 h-4 ${style.split(' ')[0]}`} />
+                    <Icon className={`${styles.iconMd} ${style.split(' ')[0]}`} />
                   </button>
                   <div className="flex-1 min-w-0">
                     <p className={styles.leadTitle}>{lead.title}</p>
@@ -351,7 +351,7 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
                       className={styles.eftaLink}
                     >
                       {lead.sourceEftaRef}
-                      <ExternalLink className="w-2.5 h-2.5" />
+                      <ExternalLink className={styles.iconXs} />
                     </a>
                   )}
                 </div>
@@ -361,7 +361,7 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
                   {lead.status !== 'dead_end' && (
                     <button
                       onClick={() => handleMarkDeadEnd(lead)}
-                      className={`${styles.actionButton} text-rose-400/70 hover:text-rose-400`}
+                      className={styles.actionButtonDanger}
                     >
                       Mark dead end
                     </button>
@@ -369,7 +369,7 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
                   {onConvertToTask && (
                     <button
                       onClick={() => onConvertToTask(lead)}
-                      className={`${styles.actionButton} hover:text-[var(--accent)]`}
+                      className={styles.actionButtonAccent}
                     >
                       → Task
                     </button>
@@ -377,7 +377,7 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
                   {onConvertToHypothesis && (
                     <button
                       onClick={() => onConvertToHypothesis(lead)}
-                      className={`${styles.actionButton} hover:text-[var(--accent)]`}
+                      className={styles.actionButtonAccent}
                     >
                       → Hypothesis
                     </button>
@@ -387,7 +387,7 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
                     className={styles.deleteButton}
                     title="Delete lead"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <Trash2 className={styles.iconSm} />
                   </button>
                 </div>
               </div>

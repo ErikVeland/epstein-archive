@@ -57,9 +57,18 @@
   font-size: var(--type-xs);
 }
 
-.statValueEmerald { color: #34d399; font-weight: 600; }
-.statValueBlue { color: #60a5fa; font-weight: 600; }
-.statLabel { color: var(--text-muted); margin-left: var(--space-1); }
+.statValueEmerald {
+  color: #34d399;
+  font-weight: 600;
+}
+.statValueBlue {
+  color: #60a5fa;
+  font-weight: 600;
+}
+.statLabel {
+  color: var(--text-muted);
+  margin-left: var(--space-1);
+}
 
 .controlsBar {
   padding: var(--space-2-5) var(--space-5);
@@ -265,13 +274,85 @@
 }
 
 /* Status variants */
-.statusOpen { color: #34d399; border-color: rgba(16, 185, 129, 0.4); background-color: rgba(16, 185, 129, 0.1); }
-.statusPursued { color: #60a5fa; border-color: rgba(59, 130, 246, 0.4); background-color: rgba(59, 130, 246, 0.1); }
-.statusDeadEnd { color: #fb7185; border-color: rgba(244, 63, 94, 0.4); background-color: rgba(244, 63, 94, 0.1); }
-.statusResolved { color: #c084fc; border-color: rgba(168, 85, 247, 0.4); background-color: rgba(168, 85, 247, 0.1); }
+.statusOpen {
+  color: #34d399;
+  border-color: rgba(16, 185, 129, 0.4);
+  background-color: rgba(16, 185, 129, 0.1);
+}
+.statusPursued {
+  color: #60a5fa;
+  border-color: rgba(59, 130, 246, 0.4);
+  background-color: rgba(59, 130, 246, 0.1);
+}
+.statusDeadEnd {
+  color: #fb7185;
+  border-color: rgba(244, 63, 94, 0.4);
+  background-color: rgba(244, 63, 94, 0.1);
+}
+.statusResolved {
+  color: #c084fc;
+  border-color: rgba(168, 85, 247, 0.4);
+  background-color: rgba(168, 85, 247, 0.1);
+}
 
 /* Priority variants */
-.priorityCritical { color: #fb7185; border-color: rgba(244, 63, 94, 0.4); background-color: rgba(244, 63, 94, 0.1); }
-.priorityHigh { color: #fbbf24; border-color: rgba(245, 158, 11, 0.4); background-color: rgba(245, 158, 11, 0.1); }
-.priorityMedium { color: #60a5fa; border-color: rgba(59, 130, 246, 0.4); background-color: rgba(59, 130, 246, 0.1); }
-.priorityLow { color: var(--text-muted); border-color: var(--glass-border); }
+.priorityCritical {
+  color: #fb7185;
+  border-color: rgba(244, 63, 94, 0.4);
+  background-color: rgba(244, 63, 94, 0.1);
+}
+.priorityHigh {
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.4);
+  background-color: rgba(245, 158, 11, 0.1);
+}
+.priorityMedium {
+  color: #60a5fa;
+  border-color: rgba(59, 130, 246, 0.4);
+  background-color: rgba(59, 130, 246, 0.1);
+}
+.priorityLow {
+  color: var(--text-muted);
+  border-color: var(--glass-border);
+}
+
+/* Icon and Animation Utilities */
+.iconSm {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+.iconMd {
+  width: 1rem;
+  height: 1rem;
+}
+.iconXs {
+  width: 0.625rem;
+  height: 0.625rem;
+}
+
+.spin {
+  animation: spin var(--duration-slow) linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.actionButtonDanger {
+  composes: actionButton;
+  color: color-mix(in srgb, var(--danger) 70%, transparent);
+}
+
+.actionButtonDanger:hover {
+  color: var(--danger);
+}
+
+.actionButtonAccent:hover {
+  composes: actionButton;
+  color: var(--accent);
+}
