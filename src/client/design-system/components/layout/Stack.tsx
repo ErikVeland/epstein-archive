@@ -1,4 +1,5 @@
 import React from 'react';
+import { cn } from '../../lib';
 import { buildSpacingStyles, type SpacingProps, type SizingProps } from '../../lib/resolveSpace';
 import './Stack.css';
 
@@ -17,7 +18,7 @@ const alignMap: Record<string, string> = {
 
 export const Stack: React.FC<StackProps> = ({
   align = 'stretch',
-  className = '',
+  className,
   children,
   style,
   p,
@@ -69,7 +70,7 @@ export const Stack: React.FC<StackProps> = ({
 
   return (
     <div
-      className={`lq-stack ${className}`}
+      className={cn('lq-stack', className)}
       style={
         {
           '--stack-align': alignMap[align] ?? 'stretch',

@@ -1,4 +1,5 @@
 import React from 'react';
+import { cn } from '../../lib';
 import { buildSpacingStyles, type SpacingProps, type SizingProps } from '../../lib/resolveSpace';
 import './Flex.css';
 
@@ -32,10 +33,9 @@ export const Flex: React.FC<FlexProps> = ({
   align = 'stretch',
   justify = 'start',
   wrap = 'nowrap',
-  className = '',
+  className,
   children,
   style,
-  // spacing/sizing props
   p,
   px,
   py,
@@ -85,7 +85,7 @@ export const Flex: React.FC<FlexProps> = ({
 
   return (
     <div
-      className={`lq-flex ${className}`}
+      className={cn('lq-flex', className)}
       style={
         {
           '--flex-direction': direction,

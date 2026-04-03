@@ -1,4 +1,5 @@
 import React from 'react';
+import { cn } from '../../lib';
 import { buildSpacingStyles, type SpacingProps, type SizingProps } from '../../lib/resolveSpace';
 import './Grid.css';
 
@@ -17,7 +18,7 @@ export interface GridProps extends React.HTMLAttributes<HTMLDivElement>, Spacing
 
 export const Grid: React.FC<GridProps> = ({
   cols = 1,
-  className = '',
+  className,
   children,
   style,
   p,
@@ -80,7 +81,7 @@ export const Grid: React.FC<GridProps> = ({
 
   return (
     <div
-      className={`lq-grid ${className}`}
+      className={cn('lq-grid', className)}
       style={{ ...colStyles, ...spacingStyle, ...style } as React.CSSProperties}
       {...props}
     >
