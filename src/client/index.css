@@ -15,13 +15,11 @@
   --space-4: 16px;
   --space-5: 20px;
   --space-6: 24px;
+  --space-7: 28px;
   --space-8: 32px;
+  --space-9: 36px;
   --space-10: 40px;
   --space-12: 48px;
-
-  /* Spacing gaps */
-  --space-7: 28px;
-  --space-9: 36px;
 
   /* Size scale (for w, h, maxW, maxH props) */
   --size-xs: 320px;
