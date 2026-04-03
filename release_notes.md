@@ -1,5 +1,21 @@
 # Release Notes
 
+## v18.3.4 - 2026-04-03 - Liquid Glass Stabilization
+
+This maintenance release achieves a 100% clean, zero-warning codebase for the "Liquid Glass" architecture, ensuring full compatibility with the React Compiler and strengthening core type safety.
+
+### Architecture & Type Safety
+
+- **Zero-Warning Compliance**: Resolved all residual `any` type warnings and manual memoization failures across the entire repository.
+- **Hook Optimization**: Standardized `useCallback` dependency arrays in `VideoPlayer.tsx` and `App.tsx` to satisfy strict React Compiler requirements.
+- **Interface Hardening**: Replaced all `any` casts with concrete interfaces (`ReportEntity`, `ReportSection`, etc.) in `ForensicReportGenerator.tsx` and `EvidenceAnnotation.tsx`.
+- **Script Stabilization**: Modernized all utility and ingestion scripts with typed error handling and removed legacy `@ts-ignore` suppressions.
+
+### Release Quality
+
+- **Production Health**: Verified with a complete audit of the Postgres storage engine and automated smoke tests.
+- **UI Performance**: Eliminated layout flicker and state-sync regressions in the Document modal and global search popover.
+
 ## v18.3.3 - 2026-04-02 - Subject Dossier Patch
 
 This patch fixes the Subject Dossier Panel (Investigator view) being clipped by the site header and adds Escape key support for easier dismissal.

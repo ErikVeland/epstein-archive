@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { LqText } from '../../design-system/components/typography/Text';
+import styles from './WikiLink.module.css';
 
 interface WikiLinkProps {
   text: string;
@@ -65,12 +66,7 @@ export const WikiLink: React.FC<WikiLinkProps> = React.memo(({ text, entities })
           className="inline group"
           title={`View profile for ${seg.content}`}
         >
-          <LqText
-            as="span"
-            variant="body"
-            color="accent"
-            className="inline font-medium underline underline-offset-4 decoration-[color:color-mix(in_srgb,var(--accent)_30%,transparent)] group-hover:decoration-[var(--accent)] transition-all duration-200"
-          >
+          <LqText as="span" variant="body" className={styles.link}>
             {seg.content}
           </LqText>
         </Link>

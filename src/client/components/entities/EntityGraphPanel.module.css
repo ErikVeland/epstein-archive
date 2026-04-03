@@ -1,0 +1,23 @@
+/* src/client/components/entities/EntityGraphPanel.module.css */
+
+.container {
+  padding: var(--space-4);
+}
+
+.loading {
+  padding-top: var(--space-12);
+  padding-bottom: var(--space-12);
+}
+
+.error {
+  padding: var(--space-4);
+  border: 1px solid color-mix(in srgb, var(--danger) 20%, transparent);
+  background-color: color-mix(in srgb, var(--danger) 5%, transparent);
+}
+
+.renderError {
+  padding: var(--space-4);
+  background-color: color-mix(in srgb, var(--danger) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--danger) 20%, transparent);
+  border-radius: var(--radius-lg);
+}

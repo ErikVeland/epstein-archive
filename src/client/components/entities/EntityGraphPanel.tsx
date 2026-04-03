@@ -9,6 +9,8 @@ import { Box } from '../../design-system/components/layout/Box';
 import { Flex } from '../../design-system/components/layout/Flex';
 import { LqText } from '../../design-system/components/typography/Text';
 
+import styles from './EntityGraphPanel.module.css';
+
 interface EntityGraphPanelProps {
   entityId: string | number;
 }
@@ -63,7 +65,7 @@ export const EntityGraphPanel: React.FC<EntityGraphPanelProps> = ({ entityId }) 
 
   if (loading) {
     return (
-      <Flex align="center" justify="center" className="py-12">
+      <Flex align="center" justify="center" className={styles.loading}>
         <LqText color="muted" variant="small">
           Loading entity graph...
         </LqText>
@@ -73,7 +75,7 @@ export const EntityGraphPanel: React.FC<EntityGraphPanelProps> = ({ entityId }) 
 
   if (error) {
     return (
-      <Surface variant="glass" className="p-4 border-red-500/20 bg-red-500/5">
+      <Surface variant="glass" className={styles.error}>
         <LqText color="danger" variant="small">
           Failed to load graph: {error}
         </LqText>
@@ -83,7 +85,7 @@ export const EntityGraphPanel: React.FC<EntityGraphPanelProps> = ({ entityId }) 
 
   if (!mapperEntities.length || !mapperRelationships.length) {
     return (
-      <Surface variant="glass" className="p-4">
+      <Surface variant="glass" className={styles.container}>
         <LqText color="secondary" variant="small">
           No graph data available yet for this entity.
         </LqText>
@@ -92,10 +94,10 @@ export const EntityGraphPanel: React.FC<EntityGraphPanelProps> = ({ entityId }) 
   }
 
   return (
-    <Surface variant="glass" className="p-4">
+    <Surface variant="glass" className={styles.container}>
       <ScopedErrorBoundary
         fallback={
-          <Box className="p-4 bg-red-500/5 border border-red-500/20 rounded-[var(--radius-lg)]">
+          <Box className={styles.renderError}>
             <LqText color="danger" variant="small">
               A rendering error occurred in the entity graph. The data might be malformed.
             </LqText>

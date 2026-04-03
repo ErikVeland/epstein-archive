@@ -1,0 +1,277 @@
+/* src/client/components/investigation/InvestigationLeadsPanel.module.css */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-end;
+  background-color: var(--glass-bg);
+  backdrop-filter: blur(8px);
+}
+
+.panel {
+  width: 100%;
+  max-width: 28rem;
+  background-color: var(--glass-bg-strong);
+  border-left: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--glass-border);
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.headerTitle {
+  font-size: var(--type-base);
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.headerSubtitle {
+  font-size: var(--type-xs);
+  color: var(--text-muted);
+  margin-top: 0.125rem;
+}
+
+.iconAmber {
+  color: #fbbf24; /* amber-400 equivalent for investigation specific branding */
+}
+
+.statsBar {
+  padding: var(--space-2-5) var(--space-5);
+  border-bottom: 1px solid var(--glass-border);
+  display: flex;
+  gap: var(--space-4);
+  font-size: var(--type-xs);
+}
+
+.statValueEmerald { color: #34d399; font-weight: 600; }
+.statValueBlue { color: #60a5fa; font-weight: 600; }
+.statLabel { color: var(--text-muted); margin-left: var(--space-1); }
+
+.controlsBar {
+  padding: var(--space-2-5) var(--space-5);
+  border-bottom: 1px solid var(--glass-border);
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.select {
+  flex: 1;
+  background-color: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-1-5) var(--space-2);
+  font-size: var(--type-xs);
+  color: var(--text-primary);
+  outline: none;
+}
+
+.select:focus {
+  border-color: var(--accent);
+}
+
+.addButton {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  padding: var(--space-1-5) var(--space-3);
+  border-radius: var(--radius-lg);
+  background-color: color-mix(in srgb, var(--accent) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  color: var(--accent);
+  font-size: var(--type-xs);
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.addButton:hover {
+  background-color: color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.form {
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--glass-border);
+  background-color: var(--glass-bg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.input {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-lg);
+  background-color: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
+  font-size: var(--type-sm);
+  color: var(--text-primary);
+  outline: none;
+}
+
+.input:focus {
+  border-color: var(--accent);
+}
+
+.input::placeholder {
+  color: var(--text-muted);
+}
+
+.textarea {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-lg);
+  background-color: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
+  font-size: var(--type-sm);
+  color: var(--text-primary);
+  outline: none;
+  resize: none;
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.cancelButton {
+  padding: var(--space-1-5) var(--space-3);
+  border-radius: var(--radius-lg);
+  font-size: var(--type-xs);
+  color: var(--text-muted);
+}
+
+.submitButton {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1-5);
+  padding: var(--space-1-5) var(--space-3);
+  border-radius: var(--radius-lg);
+  background-color: var(--accent);
+  color: white;
+  font-size: var(--type-xs);
+  font-weight: 500;
+}
+
+.leadsList {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-4) var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.emptyState {
+  border: 1px dashed var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-8);
+  text-align: center;
+}
+
+.emptyIcon {
+  width: var(--space-8);
+  height: var(--space-8);
+  color: var(--text-muted);
+  margin-inline: auto;
+  margin-bottom: var(--space-2);
+  opacity: 0.4;
+}
+
+.leadCard {
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  background-color: color-mix(in srgb, var(--glass-bg-strong) 60%, transparent);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.leadTitleRow {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.leadTitle {
+  font-size: var(--type-sm);
+  font-weight: 500;
+  color: var(--text-primary);
+  line-height: var(--leading-snug);
+}
+
+.leadDescription {
+  margin-top: var(--space-1);
+  font-size: var(--type-xs);
+  color: var(--text-secondary);
+}
+
+.badgeRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1-5);
+  align-items: center;
+  font-size: 10px;
+}
+
+.badge {
+  padding: 0.125rem var(--space-2);
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  font-weight: 500;
+}
+
+.eftaLink {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+  padding: 0.125rem var(--space-2);
+  border-radius: 9999px;
+  border: 1px solid var(--glass-border);
+  color: var(--accent);
+  transition: background-color 0.2s;
+}
+
+.actionsRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.actionButton {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.deleteButton {
+  margin-left: auto;
+  color: var(--text-muted);
+}
+
+/* Status variants */
+.statusOpen { color: #34d399; border-color: rgba(16, 185, 129, 0.4); background-color: rgba(16, 185, 129, 0.1); }
+.statusPursued { color: #60a5fa; border-color: rgba(59, 130, 246, 0.4); background-color: rgba(59, 130, 246, 0.1); }
+.statusDeadEnd { color: #fb7185; border-color: rgba(244, 63, 94, 0.4); background-color: rgba(244, 63, 94, 0.1); }
+.statusResolved { color: #c084fc; border-color: rgba(168, 85, 247, 0.4); background-color: rgba(168, 85, 247, 0.1); }
+
+/* Priority variants */
+.priorityCritical { color: #fb7185; border-color: rgba(244, 63, 94, 0.4); background-color: rgba(244, 63, 94, 0.1); }
+.priorityHigh { color: #fbbf24; border-color: rgba(245, 158, 11, 0.4); background-color: rgba(245, 158, 11, 0.1); }
+.priorityMedium { color: #60a5fa; border-color: rgba(59, 130, 246, 0.4); background-color: rgba(59, 130, 246, 0.1); }
+.priorityLow { color: var(--text-muted); border-color: var(--glass-border); }

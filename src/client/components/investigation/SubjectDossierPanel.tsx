@@ -13,6 +13,8 @@ import {
   User,
 } from 'lucide-react';
 
+import styles from './SubjectDossierPanel.module.css';
+
 interface EntitySummary {
   id: string | number;
   fullName: string;
@@ -117,49 +119,42 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
   };
 
   const rfi = selectedEntity?.redFlagRating ?? 0;
-  const rfiColor = rfi >= 4 ? 'text-rose-400' : rfi >= 2 ? 'text-amber-400' : 'text-emerald-400';
+  const rfiClassName =
+    rfi >= 4 ? styles.statValueRose : rfi >= 2 ? styles.statValueAmber : styles.statValueEmerald;
 
   return (
-    <div className="fixed inset-0 z-[var(--z-modal)] flex items-stretch justify-end bg-[var(--glass-bg)]/20 backdrop-blur-sm">
-      <div
-        ref={modalRef}
-        tabIndex={-1}
-        className="w-full max-w-md bg-[var(--glass-bg-strong)] border-l border-[var(--glass-border)] shadow-[var(--glass-shadow)] flex flex-col focus:outline-none"
-      >
+    <div className={styles.overlay}>
+      <div ref={modalRef} tabIndex={-1} className={styles.panel}>
         {/* Header */}
-        <div className="px-5 py-4 border-b border-[var(--glass-border)] flex items-start justify-between gap-4">
+        <div className={styles.header}>
           <div>
-            <h2 className="text-base font-semibold text-[var(--text-primary)] flex items-center gap-2">
+            <h2 className={styles.headerTitle}>
               <User className="w-4 h-4 text-[var(--accent)]" />
               Subject Dossier
             </h2>
-            <p className="text-xs text-[var(--text-muted)] mt-0.5">
-              Entity profile and linked documents
-            </p>
+            <p className={styles.headerSubtitle}>Entity profile and linked documents</p>
           </div>
           <CloseButton onClick={onClose} size="sm" label="Close dossier panel" />
         </div>
 
         {/* Search */}
-        <form onSubmit={handleSearch} className="px-5 py-3 border-b border-[var(--glass-border)]">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)]" />
+        <form onSubmit={handleSearch} className={styles.searchForm}>
+          <div className={styles.searchWrapper}>
+            <Search className={styles.searchIcon} />
             <input
               type="text"
               placeholder="Search subject by name…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 rounded-[var(--radius-lg)] bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+              className={styles.searchInput}
             />
-            {searching && (
-              <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 animate-spin text-[var(--text-muted)]" />
-            )}
+            {searching && <Loader2 className={`${styles.searchLoader} animate-spin`} />}
           </div>
         </form>
 
         {/* Search results */}
         {searchResults.length > 0 && !selectedEntity && (
-          <div className="px-5 py-2 border-b border-[var(--glass-border)] space-y-1 max-h-48 overflow-y-auto">
+          <div className={styles.searchResults}>
             {searchResults.map((entity) => (
               <button
                 key={String(entity.id)}
@@ -168,15 +163,11 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
                   setSearchQuery('');
                   void loadEntity(String(entity.id));
                 }}
-                className="w-full text-left px-3 py-2 rounded-[var(--radius-lg)] hover:bg-[var(--glass-bg-highlight)] transition-colors"
+                className={styles.resultButton}
               >
-                <span className="text-sm font-medium text-[var(--text-primary)]">
-                  {entity.fullName}
-                </span>
+                <span className={styles.resultName}>{entity.fullName}</span>
                 {entity.primaryRole && (
-                  <span className="ml-2 text-xs text-[var(--text-muted)]">
-                    {entity.primaryRole}
-                  </span>
+                  <span className={styles.resultRole}>{entity.primaryRole}</span>
                 )}
               </button>
             ))}
@@ -184,74 +175,66 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
         )}
 
         {/* Entity dossier */}
-        <div className="flex-1 overflow-y-auto">
+        <div className={styles.dossierContent}>
           {loadingEntity && (
-            <div className="flex justify-center py-12">
+            <div className={styles.loaderWrapper}>
               <Loader2 className="w-6 h-6 animate-spin text-[var(--text-muted)]" />
             </div>
           )}
 
           {!loadingEntity && !selectedEntity && (
-            <div className="px-5 py-10 text-center">
-              <User className="w-10 h-10 text-[var(--text-muted)] mx-auto mb-3 opacity-30" />
-              <p className="text-sm text-[var(--text-muted)]">Search for a subject above</p>
-              <p className="text-xs text-[var(--text-muted)] mt-1">
+            <div className={styles.emptyState}>
+              <User className={styles.emptyIcon} />
+              <p className={styles.emptyTextPrimary}>Search for a subject above</p>
+              <p className={styles.emptyTextSecondary}>
                 Or open directly from entity cards on the archive
               </p>
             </div>
           )}
 
           {selectedEntity && (
-            <div className="px-5 py-4 space-y-5">
+            <div className={styles.dossierBody}>
               {/* Name + type */}
               <div>
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <h3 className="text-lg font-bold text-[var(--text-primary)]">
-                      {selectedEntity.fullName}
-                    </h3>
+                    <h3 className={styles.profileTitle}>{selectedEntity.fullName}</h3>
                     {selectedEntity.primaryRole && (
-                      <p className="text-sm text-[var(--text-secondary)] mt-0.5">
-                        {selectedEntity.primaryRole}
-                      </p>
+                      <p className={styles.profileSubtitle}>{selectedEntity.primaryRole}</p>
                     )}
                   </div>
                   <a
                     href={`/subjects/${selectedEntity.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-shrink-0 p-1.5 rounded-lg border border-[var(--glass-border)] text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors"
+                    className={styles.externalLink}
                     title="Open full profile"
                   >
                     <ExternalLink className="w-4 h-4" />
                   </a>
                 </div>
-                <div className="mt-2 flex flex-wrap gap-1.5 text-xs">
-                  <span className="px-2 py-0.5 rounded-full border border-[var(--glass-border)] text-[var(--text-muted)]">
-                    {selectedEntity.entityType}
-                  </span>
-                  <span className="px-2 py-0.5 rounded-full border border-[var(--glass-border)] text-[var(--text-muted)]">
-                    ID #{selectedEntity.id}
-                  </span>
+                <div className={styles.badgeStack}>
+                  <span className={styles.badge}>{selectedEntity.entityType}</span>
+                  <span className={styles.badge}>ID #{selectedEntity.id}</span>
                 </div>
               </div>
 
               {/* Risk + mentions */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-3">
-                  <div className="flex items-center gap-2 mb-1">
-                    <ShieldAlert className="w-3.5 h-3.5 text-[var(--text-muted)]" />
-                    <span className="text-xs text-[var(--text-muted)]">Red Flag Index</span>
+              <div className={styles.statsGrid}>
+                <div className={styles.statCard}>
+                  <div className={styles.statHeader}>
+                    <ShieldAlert className={styles.statIcon} />
+                    <span className={styles.statLabel}>Red Flag Index</span>
                   </div>
-                  <span className={`text-2xl font-bold ${rfiColor}`}>{rfi.toFixed(1)}</span>
-                  <span className="text-xs text-[var(--text-muted)] ml-1">/ 5</span>
+                  <span className={`${styles.statValue} ${rfiClassName}`}>{rfi.toFixed(1)}</span>
+                  <span className={styles.statUnit}>/ 5</span>
                 </div>
-                <div className="border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-3">
-                  <div className="flex items-center gap-2 mb-1">
-                    <FileText className="w-3.5 h-3.5 text-[var(--text-muted)]" />
-                    <span className="text-xs text-[var(--text-muted)]">Mentions</span>
+                <div className={styles.statCard}>
+                  <div className={styles.statHeader}>
+                    <FileText className={styles.statIcon} />
+                    <span className={styles.statLabel}>Mentions</span>
                   </div>
-                  <span className="text-2xl font-bold text-[var(--text-primary)]">
+                  <span className={`${styles.statValue} ${styles.statValuePrimary}`}>
                     {(selectedEntity.mentions ?? 0).toLocaleString()}
                   </span>
                 </div>
@@ -260,15 +243,10 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
               {/* Aliases */}
               {selectedEntity.aliases && selectedEntity.aliases.length > 0 && (
                 <div>
-                  <h4 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2">
-                    Known Aliases
-                  </h4>
-                  <div className="flex flex-wrap gap-1.5">
+                  <h4 className={styles.sectionHeader}>Known Aliases</h4>
+                  <div className={styles.aliasStack}>
                     {selectedEntity.aliases.map((alias) => (
-                      <span
-                        key={alias}
-                        className="px-2 py-0.5 rounded border border-[var(--glass-border)] text-xs text-[var(--text-secondary)] font-mono"
-                      >
+                      <span key={alias} className={styles.aliasBadge}>
                         {alias}
                       </span>
                     ))}
@@ -277,10 +255,7 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
               )}
 
               {/* Pin button */}
-              <button
-                onClick={handlePin}
-                className="w-full py-2 rounded-[var(--radius-lg)] border border-[var(--accent)]/40 text-[var(--accent)] text-sm font-medium hover:bg-[var(--accent)]/10 transition-colors"
-              >
+              <button onClick={handlePin} className={styles.pinButton}>
                 📌 Pin as Primary Subject
               </button>
 
@@ -289,7 +264,7 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
                 href={`/documents?entityId=${selectedEntity.id}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full flex items-center justify-center gap-2 py-2 rounded-[var(--radius-lg)] border border-[var(--glass-border)] text-[var(--text-secondary)] text-sm hover:border-[var(--accent)]/40 hover:text-[var(--accent)] transition-colors"
+                className={styles.actionLink}
               >
                 <FileText className="w-4 h-4" />
                 View all documents mentioning {selectedEntity.fullName.split(' ')[0]}
@@ -297,9 +272,7 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
 
               {/* Recent documents */}
               <div>
-                <h4 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider mb-2">
-                  Recent Documents
-                </h4>
+                <h4 className={styles.sectionHeader}>Recent Documents</h4>
                 {loadingDocs && (
                   <div className="flex justify-center py-4">
                     <Loader2 className="w-4 h-4 animate-spin text-[var(--text-muted)]" />
@@ -312,14 +285,14 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
                   </div>
                 )}
                 {!loadingDocs && recentDocs.length > 0 && (
-                  <div className="space-y-1">
+                  <div className={styles.documentList}>
                     {recentDocs.map((doc) => (
                       <button
                         key={doc.id}
                         onClick={() => onOpenDocument?.(doc.id)}
-                        className="w-full text-left px-3 py-2 rounded-[var(--radius-lg)] border border-transparent hover:border-[var(--glass-border)] hover:bg-[var(--glass-bg)] transition-colors"
+                        className={styles.documentButton}
                       >
-                        <span className="text-xs text-[var(--text-primary)] line-clamp-2 font-mono">
+                        <span className={styles.documentTitle}>
                           {doc.title || doc.file_path?.split('/').pop() || `Document ${doc.id}`}
                         </span>
                       </button>
