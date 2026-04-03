@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { FileText, Printer, Calendar, CheckCircle, FileJson } from 'lucide-react';
 
@@ -72,19 +72,80 @@ interface ForensicReportGeneratorProps {
   investigationId?: number;
 }
 
+const DEFAULT_TEMPLATES: ReportTemplate[] = [
+  {
+    id: 'legal-prosecution',
+    name: 'Legal Prosecution Report',
+    description: 'Comprehensive report for legal proceedings with evidence chain documentation',
+    sections: [
+      'executive_summary',
+      'methodology',
+      'findings',
+      'evidence',
+      'analysis',
+      'conclusions',
+      'recommendations',
+    ],
+    targetAudience: 'legal',
+    classification: 'restricted',
+  },
+  {
+    id: 'journalism-investigation',
+    name: 'Journalism Investigation Report',
+    description: 'Narrative-driven report suitable for publication with source attribution',
+    sections: ['executive_summary', 'findings', 'analysis', 'conclusions'],
+    targetAudience: 'journalism',
+    classification: 'unclassified',
+  },
+  {
+    id: 'internal-analysis',
+    name: 'Internal Analysis Report',
+    description: 'Detailed technical analysis for internal team review',
+    sections: ['methodology', 'findings', 'analysis', 'recommendations'],
+    targetAudience: 'internal',
+    classification: 'confidential',
+  },
+  {
+    id: 'public-summary',
+    name: 'Public Summary Report',
+    description: 'High-level summary appropriate for public release',
+    sections: ['executive_summary', 'findings', 'conclusions'],
+    targetAudience: 'public',
+    classification: 'unclassified',
+  },
+  {
+    id: 'financial-forensics',
+    name: 'Financial Forensics Report',
+    description: 'Specialized report focusing on financial crimes and money laundering',
+    sections: [
+      'executive_summary',
+      'methodology',
+      'findings',
+      'analysis',
+      'conclusions',
+      'recommendations',
+    ],
+    targetAudience: 'legal',
+    classification: 'restricted',
+  },
+];
+
 export default function ForensicReportGenerator({
   investigationId,
 }: ForensicReportGeneratorProps = {}) {
-  const [templates, setTemplates] = useState<ReportTemplate[]>([]);
-  const [selectedTemplate, setSelectedTemplate] = useState<string>('');
+  const [templates] = useState<ReportTemplate[]>(DEFAULT_TEMPLATES);
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('legal-prosecution');
   const [generatedReport, setGeneratedReport] = useState<GeneratedReport | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationProgress, setGenerationProgress] = useState(0);
-  const [reportTitle, setReportTitle] = useState('');
+  const [reportTitle, setReportTitle] = useState(
+    'Epstein Network Forensic Analysis - Prosecution Report',
+  );
   const [includeEvidence, setIncludeEvidence] = useState(true);
   const [includeCharts, setIncludeCharts] = useState(true);
   const [classification, setClassification] = useState<string>('confidential');
   const [targetAudience, setTargetAudience] = useState<string>('legal');
+
   const { data: realData = { stats: null, entities: [], transactions: [], timeline: [] } } =
     useQuery({
       queryKey: ['forensic-report-real-data', investigationId || 'global'],
@@ -123,13 +184,13 @@ export default function ForensicReportGenerator({
         if (investigationId) {
           const evidence = (await entitiesRes.json()) as ReportEntity[];
           entities = evidence
-            .filter((e) => e.type === 'entity')
-            .map((e) => ({
+            .filter((e: any) => e.type === 'entity')
+            .map((e: any) => ({
               name: e.title,
               redFlagRating: 0,
               id: e.source_id,
             }));
-          timeline = timeline.map((e) => ({
+          timeline = timeline.map((e: any) => ({
             ...e,
             date: e.start_date || e.date,
           }));
@@ -147,70 +208,6 @@ export default function ForensicReportGenerator({
       },
     });
 
-  useEffect(() => {
-    const reportTemplates: ReportTemplate[] = [
-      {
-        id: 'legal-prosecution',
-        name: 'Legal Prosecution Report',
-        description: 'Comprehensive report for legal proceedings with evidence chain documentation',
-        sections: [
-          'executive_summary',
-          'methodology',
-          'findings',
-          'evidence',
-          'analysis',
-          'conclusions',
-          'recommendations',
-        ],
-        targetAudience: 'legal',
-        classification: 'restricted',
-      },
-      {
-        id: 'journalism-investigation',
-        name: 'Journalism Investigation Report',
-        description: 'Narrative-driven report suitable for publication with source attribution',
-        sections: ['executive_summary', 'findings', 'analysis', 'conclusions'],
-        targetAudience: 'journalism',
-        classification: 'unclassified',
-      },
-      {
-        id: 'internal-analysis',
-        name: 'Internal Analysis Report',
-        description: 'Detailed technical analysis for internal team review',
-        sections: ['methodology', 'findings', 'analysis', 'recommendations'],
-        targetAudience: 'internal',
-        classification: 'confidential',
-      },
-      {
-        id: 'public-summary',
-        name: 'Public Summary Report',
-        description: 'High-level summary appropriate for public release',
-        sections: ['executive_summary', 'findings', 'conclusions'],
-        targetAudience: 'public',
-        classification: 'unclassified',
-      },
-      {
-        id: 'financial-forensics',
-        name: 'Financial Forensics Report',
-        description: 'Specialized report focusing on financial crimes and money laundering',
-        sections: [
-          'executive_summary',
-          'methodology',
-          'findings',
-          'analysis',
-          'conclusions',
-          'recommendations',
-        ],
-        targetAudience: 'legal',
-        classification: 'restricted',
-      },
-    ];
-
-    setTemplates(reportTemplates);
-    setSelectedTemplate('legal-prosecution');
-    setReportTitle('Epstein Network Forensic Analysis - Prosecution Report');
-  }, []);
-
   const generateReportContent = (
     template: ReportTemplate,
     options: { includeEvidence: boolean; includeCharts: boolean },
@@ -221,19 +218,19 @@ export default function ForensicReportGenerator({
 
     // Dynamic Metrics
     const totalTransactionAmount = transactions.reduce(
-      (sum: number, t) => sum + (Number(t.amount) || 0),
+      (sum: number, t: any) => sum + (Number(t.amount) || 0),
       0,
     );
     const suspiciousTransactions = transactions.filter(
-      (t) => t.risk_level === 'high' || t.risk_level === 'critical',
+      (t: any) => t.risk_level === 'high' || t.risk_level === 'critical',
     );
     const topEntitiesList = entities
       .slice(0, 5)
-      .map((e) => e.name)
+      .map((e: any) => e.name)
       .join(', ');
     const entityCount = stats?.totalEntities || entities.length;
     const documentCount = stats?.totalDocuments || 0;
-    const highRiskEntities = entities.filter((e) => (e.redFlagRating ?? 0) >= 4).length;
+    const highRiskEntities = entities.filter((e: any) => (e.redFlagRating ?? 0) >= 4).length;
 
     const currencyFormatter = new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -278,7 +275,7 @@ Risk Assessment:
 Entities were assigned a "Red Flag Rating" based on keyword analysis, proximity to known risk factors, and network centrality. ${highRiskEntities} entities were flagged for elevated risk.
 
 Financial Analysis:
-Transaction data was normalised and analysed for patterns indicative of layering or structuring. ${suspiciousTransactions.length} transactions were flagged as high-risk based on amount, frequency, or counterparties.`,
+Transaction data was normalised and analysed for patterns indicative of layering or specialising. ${suspiciousTransactions.length} transactions were flagged as high-risk based on amount, frequency, or counterparties.`,
         evidence: options.includeEvidence
           ? ['System logs', 'Processing metrics', 'Risk scoring mechanisms']
           : [],
@@ -303,7 +300,7 @@ ${
   suspiciousTransactions.length > 0
     ? `Notable high-risk transactions include transfers involving ${suspiciousTransactions
         .slice(0, 3)
-        .map((t) => t.to_entity || 'unknown')
+        .map((t: any) => t.to_entity || 'unknown')
         .join(', ')}.`
     : ''
 }
@@ -798,44 +795,29 @@ It is concluded that the identified patterns are consistent with complex organis
         {generatedReport && (
           <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] p-6">
             <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
-              Report Sections
+              Report Content Preview
             </h3>
-            <div className="space-y-4">
+            <div className="space-y-8">
               {generatedReport.sections.map((section) => (
-                <div
-                  key={section.id}
-                  className="border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-4"
-                >
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <h4 className="font-semibold text-[var(--text-primary)]">{section.title}</h4>
-                      <p className="text-sm text-[var(--text-muted)] capitalize">
-                        {section.type.replace('_', ' ')}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`px-2 py-1 rounded text-xs font-medium ${
-                          section.confidence >= 90
-                            ? 'bg-green-900 text-green-200'
-                            : section.confidence >= 80
-                              ? 'bg-yellow-900 text-yellow-200'
-                              : 'bg-red-900 text-red-200'
-                        }`}
-                      >
-                        {section.confidence}% Confidence
-                      </span>
-                    </div>
+                <div key={section.id} className="border-l-2 border-red-500 pl-4 py-2">
+                  <h4 className="text-md font-bold text-[var(--text-primary)] mb-3 capitalize">
+                    {section.title}
+                  </h4>
+                  <div className="text-[var(--text-secondary)] whitespace-pre-wrap leading-relaxed">
+                    {section.content}
                   </div>
-
-                  <p className="text-[var(--text-secondary)] text-sm mb-3 line-clamp-3">
-                    {section.content.substring(0, 300)}...
-                  </p>
-
-                  <div className="flex items-center gap-4 text-xs text-[var(--text-muted)]">
-                    {includeEvidence && <span>{section.evidence.length} evidence items</span>}
-                    {includeCharts && <span>{section.sources.length} sources</span>}
-                  </div>
+                  {section.evidence.length > 0 && (
+                    <div className="mt-4 pt-4 border-t border-[var(--glass-border)] flex flex-wrap gap-2">
+                      {section.evidence.map((ev, i) => (
+                        <span
+                          key={i}
+                          className="px-2 py-1 bg-[var(--glass-bg-highlight)] text-[var(--accent)] text-xs rounded border border-[var(--glass-border)]"
+                        >
+                          {ev}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

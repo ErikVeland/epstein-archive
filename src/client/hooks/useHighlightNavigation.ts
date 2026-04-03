@@ -32,8 +32,8 @@ export function useHighlightNavigation(
   // Update highlight count when search term or container changes
   // This effect intentionally updates state for DOM synchronization
   // The setState calls are necessary for tracking highlight state
-  // eslint-disable-next-line react-hooks/set-state-in-effect
   useLayoutEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     updateHighlights();
   }, [updateHighlights]);
 

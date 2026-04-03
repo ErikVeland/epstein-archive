@@ -10,6 +10,7 @@ interface DocumentEntity {
   entityType?: string;
   type?: string;
   role?: string;
+  [key: string]: unknown;
 }
 
 interface DocumentRecord {
@@ -56,20 +57,27 @@ const escapeHtml = (value: string): string =>
 
 const escapeRegExp = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-const applySearchHighlight = (html: string, term?: string): string => {
-  if (!term || term.trim().length < 2) return html;
+const applySearchHighlight = (
+  html: string,
+  term?: string,
+  startIndex: number = 0,
+): { html: string; count: number } => {
+  if (!term || term.trim().length < 2) return { html, count: 0 };
   const tokens = term
     .split(/\s+/)
     .map((token) => token.trim())
     .filter((token) => token.length > 2)
     .map(escapeRegExp);
-  if (tokens.length === 0) return html;
+  if (tokens.length === 0) return { html, count: 0 };
 
   const regex = new RegExp(`(${tokens.join('|')})`, 'gi');
-  return html.replace(
-    regex,
-    '<mark class="search-match bg-[var(--accent)]/20 text-cyan-50 px-0.5 rounded border-b-2 border-[var(--accent)]/80 shadow-[0_0_15px_rgba(34,211,238,0.2)]">$1</mark>',
-  );
+  let count = 0;
+  const result = html.replace(regex, (match) => {
+    count += 1;
+    const globalIndex = startIndex + count;
+    return `<mark id="search-match-${globalIndex}" class="search-match bg-[var(--accent)]/20 text-cyan-50 px-0.5 rounded border-b-2 border-[var(--accent)]/80 shadow-[0_0_15px_rgba(34,211,238,0.2)]">${match}</mark>`;
+  });
+  return { html: result, count };
 };
 
 const parseSections = (text: string): ParsedSection[] => {
@@ -219,7 +227,6 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
   const [hover, setHover] = useState<{ x: number; y: number; entity: DocumentEntity } | null>(null);
   const [highlightDensity, setHighlightDensity] = useState<'off' | 'subtle' | 'strong'>('subtle');
   const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
-  const [matchCount, setMatchCount] = useState(0);
   const [lineLimit, setLineLimit] = useState(1400);
 
   const entityList = useMemo(() => getEntityList(document), [document]);
@@ -300,7 +307,7 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
   }, [entityList]);
 
   const renderLineHtml = useCallback(
-    (line: string): string => {
+    (line: string, matchStartIndex: number = 0): { html: string; count: number } => {
       let html = escapeHtml(line);
 
       if (
@@ -331,8 +338,8 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
         });
       }
 
-      html = applySearchHighlight(html, searchTerm);
-      return html;
+      const { html: finalHtml, count } = applySearchHighlight(html, searchTerm, matchStartIndex);
+      return { html: finalHtml, count };
     },
     [
       baselineTokens,
@@ -345,20 +352,27 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
     ],
   );
 
-  const processedSections = useMemo(() => {
-    return sectionLinesRaw.reduce<{
+  const { processedSections, matchCount } = useMemo(() => {
+    let totalMatches = 0;
+    const sections = sectionLinesRaw.reduce<{
       sections: (ParsedSection & { lines: string[] })[];
       used: number;
     }>(
       (acc, section) => {
         if (acc.used >= lineLimit) return acc;
         const take = Math.min(section.lines.length, lineLimit - acc.used);
+        const processedLines: string[] = [];
+        section.lines.slice(0, take).forEach((line) => {
+          const { html, count } = renderLineHtml(line, totalMatches);
+          totalMatches += count;
+          processedLines.push(html);
+        });
         return {
           sections: [
             ...acc.sections,
             {
               ...section,
-              lines: section.lines.slice(0, take).map((line) => renderLineHtml(line)),
+              lines: processedLines,
             },
           ],
           used: acc.used + take,
@@ -366,13 +380,16 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
       },
       { sections: [], used: 0 },
     ).sections;
+    return { processedSections: sections, matchCount: totalMatches };
   }, [lineLimit, renderLineHtml, sectionLinesRaw]);
 
   const hasMoreLines = lineLimit < totalLineCount;
 
-  useLayoutEffect(() => {
+  const [prevBaseText, setPrevBaseText] = useState(baseText);
+  if (baseText !== prevBaseText) {
+    setPrevBaseText(baseText);
     setLineLimit(1400);
-  }, [baseText]);
+  }
 
   useEffect(() => {
     if (!hasMoreLines || !loadMoreRef.current) return;
@@ -388,39 +405,39 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
     return () => observer.disconnect();
   }, [hasMoreLines, totalLineCount]);
 
-  useLayoutEffect(() => {
-    if (!searchTerm) {
-      setMatchCount(0);
-      setCurrentMatchIndex(0);
-    }
-  }, [searchTerm]);
-
   useEffect(() => {
-    if (!searchTerm) return;
-    const matches = containerRef.current?.querySelectorAll('.search-match');
-    const count = matches?.length || 0;
-    setMatchCount(count);
-    if (count > 0) {
+    if (!searchTerm) {
+      setCurrentMatchIndex(0);
+    } else if (matchCount > 0 && currentMatchIndex === 0) {
       setCurrentMatchIndex(1);
-      matches?.[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
-      matches?.[0].classList.add('ring-2', 'ring-amber-400');
     }
-  }, [searchTerm, processedSections]);
+  }, [searchTerm, matchCount, currentMatchIndex]);
+
+  useLayoutEffect(() => {
+    if (!searchTerm || matchCount === 0) return;
+    const firstMatch = window.document.getElementById('search-match-1');
+    if (firstMatch) {
+      firstMatch.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      firstMatch.classList.add('ring-2', 'ring-amber-400');
+    }
+  }, [searchTerm, matchCount]);
 
   const navigateMatch = (direction: 'next' | 'prev') => {
-    const matches = containerRef.current?.querySelectorAll('.search-match');
-    if (!matches || matches.length === 0) return;
+    if (matchCount === 0) return;
 
-    matches[currentMatchIndex - 1]?.classList.remove('ring-2', 'ring-amber-400');
+    const prevMatch = window.document.getElementById(`search-match-${currentMatchIndex}`);
+    prevMatch?.classList.remove('ring-2', 'ring-amber-400');
 
     let nextIndex = direction === 'next' ? currentMatchIndex + 1 : currentMatchIndex - 1;
-    if (nextIndex > matches.length) nextIndex = 1;
-    if (nextIndex < 1) nextIndex = matches.length;
+    if (nextIndex > matchCount) nextIndex = 1;
+    if (nextIndex < 1) nextIndex = matchCount;
 
     setCurrentMatchIndex(nextIndex);
-    const target = matches[nextIndex - 1];
-    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    target.classList.add('ring-2', 'ring-amber-400');
+    const target = window.document.getElementById(`search-match-${nextIndex}`);
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      target.classList.add('ring-2', 'ring-amber-400');
+    }
   };
 
   useEffect(() => {

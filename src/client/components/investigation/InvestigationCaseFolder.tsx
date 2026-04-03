@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Icon, { type IconName } from '../common/Icon';
 import { Link } from 'react-router-dom';
 import type {
@@ -187,7 +187,24 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
     );
   };
 
-  useLayoutEffect(() => {
+  const [prevDeepLinkedId, setPrevDeepLinkedId] = useState<string | null>(null);
+  if (deepLinkedEvidenceId && deepLinkedEvidenceId !== prevDeepLinkedId && evidence?.all?.length) {
+    setPrevDeepLinkedId(String(deepLinkedEvidenceId));
+    const linked = String(deepLinkedEvidenceId);
+    const match = evidence.all.find(
+      (item) =>
+        String(item.id) === linked ||
+        String(item.investigationEvidenceId || '') === linked ||
+        resolveEvidenceKey(item) === linked,
+    );
+    if (match) {
+      if (searchTerm) setSearchTerm('');
+      if (relevanceFilter) setRelevanceFilter(null);
+      if (selectedType !== match.type) setSelectedType(match.type || null);
+    }
+  }
+
+  useEffect(() => {
     if (!deepLinkedEvidenceId || !evidence?.all?.length) return;
     const linked = String(deepLinkedEvidenceId);
     const match = evidence.all.find(
@@ -197,9 +214,6 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
         resolveEvidenceKey(item) === linked,
     );
     if (!match) return;
-    if (searchTerm) setSearchTerm('');
-    if (relevanceFilter) setRelevanceFilter(null);
-    if (selectedType !== match.type) setSelectedType(match.type || null);
 
     window.requestAnimationFrame(() => {
       const key = String(match.investigationEvidenceId || match.id);
@@ -209,7 +223,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
         rowButton.focus();
       }
     });
-  }, [deepLinkedEvidenceId, evidence, relevanceFilter, searchTerm, selectedType]);
+  }, [deepLinkedEvidenceId, evidence]);
 
   if (loading) {
     return (

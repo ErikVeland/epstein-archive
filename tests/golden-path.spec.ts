@@ -63,7 +63,7 @@ test.describe('Golden Path A: People → Entity → Documents → DocumentModal'
     await page.waitForSelector('[data-testid="evidence-modal"]', { timeout: 10000 });
     await page.waitForSelector('[data-testid="entity-modal-tab-evidence"]');
     await expect(page.locator('[data-testid="entity-evidence-count"]')).toBeVisible();
-    await expect(page.locator('input[placeholder=\"Search relevant documents...\"]')).toBeVisible();
+    await expect(page.locator('input[placeholder="Search relevant documents..."]')).toBeVisible();
     await expect(page.locator('[data-testid="entity-evidence-row"]').first()).toBeVisible({
       timeout: 15000,
     });

@@ -1,0 +1,89 @@
+.lq-text {
+  margin: 0;
+  padding: 0;
+  line-height: 1.5;
+  transition: color 0.3s ease;
+}
+
+/* Variant styles */
+.lq-text--display {
+  font-size: var(--font-size-4xl);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+.lq-text--h1 {
+  font-size: var(--font-size-3xl);
+  line-height: 1.2;
+}
+.lq-text--h2 {
+  font-size: var(--font-size-2xl);
+  line-height: 1.3;
+}
+.lq-text--h3 {
+  font-size: var(--font-size-xl);
+  line-height: 1.4;
+}
+.lq-text--h4 {
+  font-size: var(--font-size-lg);
+  line-height: 1.4;
+}
+.lq-text--body {
+  font-size: var(--font-size-base);
+}
+.lq-text--small {
+  font-size: var(--font-size-sm);
+}
+.lq-text--xs {
+  font-size: var(--font-size-xs);
+}
+
+/* Color modifiers */
+.lq-text--color-primary {
+  color: var(--text-primary);
+}
+.lq-text--color-secondary {
+  color: var(--text-secondary);
+}
+.lq-text--color-muted {
+  color: var(--text-muted);
+}
+.lq-text--color-accent {
+  color: var(--accent);
+}
+.lq-text--color-danger {
+  color: #f43f5e;
+}
+
+/* Weight modifiers */
+.lq-text--weight-light {
+  font-weight: 300;
+}
+.lq-text--weight-normal {
+  font-weight: 400;
+}
+.lq-text--weight-medium {
+  font-weight: 500;
+}
+.lq-text--weight-semibold {
+  font-weight: 600;
+}
+.lq-text--weight-bold {
+  font-weight: 700;
+}
+.lq-text--weight-black {
+  font-weight: 900;
+}
+
+/* Alignment modifiers */
+.lq-text--align-left {
+  text-align: left;
+}
+.lq-text--align-center {
+  text-align: center;
+}
+.lq-text--align-right {
+  text-align: right;
+}
+.lq-text--align-justify {
+  text-align: justify;
+}

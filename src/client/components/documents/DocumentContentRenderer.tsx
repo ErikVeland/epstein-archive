@@ -13,9 +13,61 @@ import {
 import { DocumentAnnotationSystem } from './DocumentAnnotationSystem';
 import { prettifyOCRText } from '../../utils/prettifyOCR';
 import DOMPurify from 'isomorphic-dompurify';
+import { Surface, Box, Flex, LqText } from '../../design-system/lib';
+
+interface EntityRecord {
+  id?: string | number;
+  name?: string;
+  fullName?: string;
+  entityType?: string;
+  [key: string]: unknown;
+}
+
+interface UnredactionMetrics {
+  unredactedTextGain?: number;
+  baselineVocab?: string | null;
+}
+
+interface EmailHeaders {
+  from?: string;
+  to?: string;
+  cc?: string;
+  subject?: string;
+  sentDate?: string;
+}
+
+interface DocMetadata {
+  emailHeaders?: EmailHeaders;
+  temporal?: {
+    primary?: string;
+    min?: string;
+    max?: string;
+  };
+  linguistics?: {
+    readingLevel?: number;
+    sentiment?: string;
+  };
+  [key: string]: unknown;
+}
+
+interface DocRecord {
+  id: string | number;
+  title?: string;
+  content: string;
+  contentRefined?: string;
+  evidenceType?: string;
+  fileType?: string;
+  originalFileUrl?: string;
+  page_number?: number;
+  metadata?: DocMetadata;
+  entities?: EntityRecord[];
+  mentionedEntities?: EntityRecord[];
+  unredaction_metrics?: UnredactionMetrics;
+  [key: string]: unknown;
+}
 
 interface DocumentContentRendererProps {
-  document: Record<string, any>;
+  document: DocRecord;
   searchTerm?: string;
   showRaw?: boolean;
 }
@@ -25,17 +77,16 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
   searchTerm,
   showRaw = false,
 }) => {
-  const getEntityName = (entity: Record<string, unknown>): string =>
+  const getEntityName = (entity: EntityRecord): string =>
     String(entity?.fullName || entity?.name || '').trim();
 
   const [showAnnotations, setShowAnnotations] = useState(false);
-  // Optimize entity lookup map
-  const [entityMap, setEntityMap] = useState<Map<string, Record<string, unknown>>>(new Map());
-  const [entities, setEntities] = useState<Array<Record<string, unknown>>>([]);
+  const [entityMap, setEntityMap] = useState<Map<string, EntityRecord>>(new Map());
+  const [entities, setEntities] = useState<EntityRecord[]>([]);
   const [entityRegexes, setEntityRegexes] = useState<RegExp[]>([]);
   const [showUnredactedHighlights, setShowUnredactedHighlights] = useState(true);
 
-  // Process entities from the document object - instead of fetching all global entities
+  // Process entities from the document object
   useEffect(() => {
     const entityData = doc.entities || doc.mentionedEntities || [];
     if (entityData.length === 0) {
@@ -47,9 +98,7 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
 
     setEntities(entityData);
 
-    // Create lookup map and giant regex for single-pass replacement
-    const map = new Map();
-    // Sort by length desc to match longest names first
+    const map = new Map<string, EntityRecord>();
     const sorted = [...entityData].sort((a, b) => {
       const nameA = getEntityName(a);
       const nameB = getEntityName(b);
@@ -60,7 +109,6 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
     sorted.forEach((e) => {
       const name = getEntityName(e);
       if (name && name.length > 3) {
-        // Skip very short names to avoid noise
         map.set(name.toLowerCase(), e);
         terms.push(name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
       }
@@ -68,8 +116,7 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
 
     setEntityMap(map);
 
-    // chunk regex if too large
-    const CHUNK_SIZE = 200; // Smaller chunks for better performance with targeted entities
+    const CHUNK_SIZE = 200;
     const chunks: RegExp[] = [];
     for (let i = 0; i < terms.length; i += CHUNK_SIZE) {
       const chunk = terms.slice(i, i + CHUNK_SIZE);
@@ -80,13 +127,11 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
     setEntityRegexes(chunks);
   }, [doc.entities, doc.mentionedEntities]);
 
-  // Helper to highlight text
   const highlightText = useCallback((text: string, term?: string) => {
     if (!term || !text || typeof text !== 'string') return text;
 
     try {
       const escapeRegExp = (str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      // Only highlight words > 2 chars
       const terms = term.split(/\s+/).filter((t) => t.length > 2);
 
       if (terms.length === 0) {
@@ -94,7 +139,7 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
           const regex = new RegExp(`(${escapeRegExp(term)})`, 'gi');
           return text.replace(
             regex,
-            '<mark class="bg-yellow-500 text-[var(--bg-dark)] px-1 rounded">$1</mark>',
+            '<mark class="bg-amber-500/40 text-[var(--text-primary)] px-1 rounded border border-amber-500/30">$1</mark>',
           );
         }
         return text;
@@ -104,7 +149,7 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
       const regex = new RegExp(pattern, 'gi');
       return text.replace(
         regex,
-        '<mark class="bg-yellow-500 text-[var(--bg-dark)] px-1 rounded">$1</mark>',
+        '<mark class="bg-amber-500/40 text-[var(--text-primary)] px-1 rounded border border-amber-500/30">$1</mark>',
       );
     } catch (e) {
       console.warn('Error highlighting text:', e);
@@ -125,7 +170,10 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
         <span>
           {parts.map((part, i) =>
             regex.test(part) ? (
-              <mark key={i} className="bg-yellow-500 text-[var(--bg-dark)] px-1 rounded">
+              <mark
+                key={i}
+                className="bg-amber-500/40 text-[var(--text-primary)] px-1 rounded border border-amber-500/30"
+              >
                 {part}
               </mark>
             ) : (
@@ -139,13 +187,11 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
     }
   }, []);
 
-  // Optimized Helper function to link entities in text
   const linkEntitiesInText = useCallback(
     (text: string) => {
       if (!text || entityRegexes.length === 0 || entityMap.size === 0) return text;
 
       let processedText = text;
-      // Apply each chunk sequentially
       entityRegexes.forEach((regex) => {
         processedText = processedText.replace(regex, (match) => {
           const entity = entityMap.get(match.toLowerCase());
@@ -161,11 +207,9 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
     [entityRegexes, entityMap],
   );
 
-  // Add event listener for entity links
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      // Handle clicks on spans within the dangerous HTML
       const link = target.closest('.entity-link');
       if (link) {
         e.preventDefault();
@@ -183,22 +227,18 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
       }
     };
 
-    const container = document.body; // or specific container if ref available
+    const container = document.body;
     container.addEventListener('click', handleClick);
     return () => container.removeEventListener('click', handleClick);
   }, []);
 
-  // Memoize processed content to avoid re-computation on every render
   const processedContent = useMemo(() => {
-    // Use contentRefined if available and not showing raw, otherwise use content
     const rawText = doc.contentRefined && !showRaw ? doc.contentRefined : doc.content;
-    // Apply prettifyOCRText unless showRaw is true
     const baseContent = showRaw ? rawText : prettifyOCRText(rawText);
 
-    // Step 1: Apply unredaction token highlighting (baseline diff)
     let content = baseContent as string;
     try {
-      const baselineVocab: string | null | undefined = doc.unredaction_metrics?.baselineVocab;
+      const baselineVocab = doc.unredaction_metrics?.baselineVocab;
       if (
         showUnredactedHighlights &&
         baselineVocab &&
@@ -212,7 +252,6 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
           baselineTokens.add(token);
         }
 
-        // Tokenize content and wrap tokens not present in baseline
         const parts: string[] = [];
         const tokenRegex = /([A-Za-z0-9']+|[^A-Za-z0-9']+)/g;
         let match: RegExpExecArray | null;
@@ -221,7 +260,6 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
           if (/^[A-Za-z0-9']+$/.test(fragment)) {
             const key = fragment.toLowerCase();
             if (!baselineTokens.has(key)) {
-              // Newly-unredacted token; wrap in subtle highlight
               const escaped = fragment
                 .replace(/&/g, '&amp;')
                 .replace(/</g, '&lt;')
@@ -242,16 +280,12 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
       console.warn('Error applying unredaction baseline highlighting:', e);
     }
 
-    // Step 2: Apply entity linking (now optimized single-pass)
-    // Only run linking if we have the regex ready
     const contentWithEntities = entityRegexes.length > 0 ? linkEntitiesInText(content) : content;
 
-    // Step 3: Apply search term highlighting on top
     const finalHtml = searchTerm
       ? highlightText(contentWithEntities, searchTerm)
       : contentWithEntities;
 
-    // SANITIZE: Ensure no XSS from source content while allowing our annotations
     return DOMPurify.sanitize(finalHtml, {
       USE_PROFILES: { html: true },
       ADD_TAGS: ['mark', 'span'],
@@ -270,10 +304,10 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
   ]);
 
   return (
-    <div className="prose prose-invert max-w-none">
-      <div className="mb-1 flex items-center justify-between">
-        <div className="text-sm text-[var(--text-muted)] flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5">
+    <Box className="prose prose-invert max-w-none">
+      <Flex align="center" justify="between" className="mb-4">
+        <Flex align="center" gap="md">
+          <Flex align="center" gap="sm">
             {doc.evidenceType === 'email' ? (
               <Mail className="w-4 h-4 text-[var(--accent)]" />
             ) : doc.evidenceType === 'legal' ? (
@@ -287,87 +321,96 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
             ) : doc.fileType?.match(/csv|xls/i) ? (
               <FileSpreadsheet className="w-4 h-4 text-[var(--accent)]" />
             ) : null}
-            {doc.evidenceType === 'email'
-              ? 'Email Message'
-              : doc.evidenceType === 'legal'
-                ? 'Legal Document'
-                : doc.evidenceType === 'deposition'
-                  ? 'Deposition'
-                  : doc.evidenceType === 'financial'
-                    ? 'Financial Record'
-                    : doc.fileType?.match(/jpe?g|png|gif|bmp|webp/i)
-                      ? 'Image'
-                      : doc.fileType?.match(/csv|xls/i)
-                        ? 'Spreadsheet'
-                        : 'Select text to add annotations and evidence'}
-          </span>
+            <LqText variant="small" color="muted" weight="medium">
+              {doc.evidenceType === 'email'
+                ? 'Email Message'
+                : doc.evidenceType === 'legal'
+                  ? 'Legal Document'
+                  : doc.evidenceType === 'deposition'
+                    ? 'Deposition'
+                    : doc.evidenceType === 'financial'
+                      ? 'Financial Record'
+                      : doc.fileType?.match(/jpe?g|png|gif|bmp|webp/i)
+                        ? 'Image'
+                        : doc.fileType?.match(/csv|xls/i)
+                          ? 'Spreadsheet'
+                          : 'Document Content'}
+            </LqText>
+          </Flex>
           {doc.contentRefined && !showRaw && (
-            <span className="px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider bg-purple-900/40 text-purple-300 border border-purple-500/40">
-              <Bot className="w-3 h-3 inline mr-1" />
-              AI Refined
-            </span>
+            <Box className="px-2 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider bg-purple-900/40 text-purple-300 border border-purple-500/40">
+              <Flex align="center" gap="xs">
+                <Bot className="w-3 h-3" />
+                <span>AI Refined</span>
+              </Flex>
+            </Box>
           )}
-        </div>
+        </Flex>
+
         {!doc.fileType?.match(/jpe?g|png|gif|bmp|webp|csv|xls/i) && (
-          <div className="flex items-center gap-3">
+          <Flex align="center" gap="lg">
             {typeof doc.unredaction_metrics?.unredactedTextGain === 'number' && (
-              <div className="text-xs text-emerald-400 flex items-center gap-2">
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-900/40 border border-emerald-500/40">
+              <Flex align="center" gap="md">
+                <LqText
+                  variant="xs"
+                  weight="bold"
+                  className="text-emerald-400 bg-emerald-900/40 border border-emerald-500/40 px-2 py-0.5 rounded-full"
+                >
                   Unredacted gain:{' '}
                   {Math.round((doc.unredaction_metrics.unredactedTextGain || 0) * 100)}%
-                </span>
-                <label className="inline-flex items-center gap-1 text-emerald-200/80 cursor-pointer select-none">
+                </LqText>
+                <label className="flex items-center gap-2 text-emerald-200/80 cursor-pointer select-none">
                   <input
                     type="checkbox"
                     className="h-3 w-3 rounded border-emerald-500/60 bg-[var(--glass-bg-strong)]/60 text-emerald-400 focus:ring-emerald-500/60"
                     checked={showUnredactedHighlights}
                     onChange={(e) => setShowUnredactedHighlights(e.target.checked)}
                   />
-                  <span className="text-[11px]">Highlight newly unredacted text</span>
+                  <LqText variant="xs">Highlight newly unredacted text</LqText>
                 </label>
-              </div>
+              </Flex>
             )}
             <button
               onClick={() => setShowAnnotations(!showAnnotations)}
-              className={`px-3 py-1 text-xs rounded transition-colors ${
+              className={`px-3 py-1 text-xs rounded font-bold uppercase tracking-wider transition-all duration-300 ${
                 showAnnotations
-                  ? 'bg-[var(--accent)] text-[var(--text-primary)]'
-                  : 'bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)]'
+                  ? 'bg-[var(--accent)] text-[var(--bg-dark)] shadow-[0_0_15px_rgba(212,168,75,0.4)]'
+                  : 'bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] border border-[var(--glass-border)] hover:bg-[var(--glass-border)]'
               }`}
             >
               {showAnnotations ? 'Hide Annotations' : 'Show Annotations'}
             </button>
-          </div>
+          </Flex>
         )}
-      </div>
+      </Flex>
 
       {/* Legend for unredacted highlighting */}
       {doc.unredaction_metrics?.baselineVocab && (
-        <div className="mb-3 text-[11px] text-emerald-200/80 flex items-center gap-2">
-          <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-emerald-900/60 border border-emerald-500/50 text-emerald-100">
-            Newly unredacted
-          </span>
-          <span className="text-emerald-100/70">
-            Words highlighted in emerald were recovered during automated unredaction compared with
-            the original OCR text.
-          </span>
-        </div>
+        <Box className="mb-4">
+          <Flex align="center" gap="sm">
+            <Box className="px-1.5 py-0.5 rounded bg-emerald-900/60 border border-emerald-500/50">
+              <LqText variant="xs" weight="bold" className="text-emerald-100 uppercase">
+                Newly unredacted
+              </LqText>
+            </Box>
+            <LqText variant="xs" color="muted">
+              Words highlighted in emerald were recovered during automated unredaction.
+            </LqText>
+          </Flex>
+        </Box>
       )}
 
       {/* Email Headers Display */}
       {doc.evidenceType === 'email' &&
         (() => {
-          // Try to get email headers from metadata, or parse from content
           let emailHeaders = doc.metadata?.emailHeaders;
           let emailBody = doc.content || '';
 
-          // If no emailHeaders in metadata, try to parse from content
           if (!emailHeaders || (!emailHeaders.from && !emailHeaders.to && !emailHeaders.subject)) {
             const content = doc.content || '';
             const lines = content.split('\n').slice(0, 40);
             const headerText = lines.join('\n');
 
-            // Parse common email header patterns
             const fromMatch = headerText.match(/^(?:from|sender):\s*(.+)$/im);
             const toMatch = headerText.match(/^to:\s*(.+)$/im);
             const ccMatch = headerText.match(/^cc:\s*(.+)$/im);
@@ -383,8 +426,6 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
                 sentDate: dateMatch?.[1]?.trim(),
               };
 
-              // Extract email body (everything after headers)
-              // Find the first blank line after headers or after the date line
               let bodyStartIndex = 0;
               const contentLines = content.split('\n');
               for (let i = 0; i < Math.min(contentLines.length, 50); i++) {
@@ -393,7 +434,6 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
                   bodyStartIndex = i + 1;
                   break;
                 }
-                // Also stop at common body start patterns
                 if (
                   i > 5 &&
                   !line.match(
@@ -410,74 +450,106 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
             }
           }
 
-          // If we have email headers, show the email client UI
           if (emailHeaders && (emailHeaders.from || emailHeaders.to || emailHeaders.subject)) {
             return (
-              <>
-                {/* Email client header */}
-                <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] border border-[var(--glass-border)] mb-4 overflow-hidden">
-                  {/* Email toolbar */}
-                  <div className="flex items-center gap-2 px-4 py-2 bg-[var(--glass-bg-highlight)] border-b border-[var(--glass-border)]">
+              <Box className="space-y-4 mb-6">
+                <Surface variant="glass-strong" className="overflow-hidden">
+                  <Flex
+                    align="center"
+                    gap="sm"
+                    className="px-4 py-2 bg-[var(--glass-bg-highlight)] border-b border-[var(--glass-border)]"
+                  >
                     <Mail className="w-4 h-4 text-[var(--accent)]" />
-                    <span className="text-sm text-[var(--text-secondary)] font-medium">
+                    <LqText
+                      variant="xs"
+                      weight="bold"
+                      color="secondary"
+                      className="uppercase tracking-widest"
+                    >
                       Email Message
-                    </span>
-                  </div>
+                    </LqText>
+                  </Flex>
 
-                  {/* Headers */}
-                  <div className="p-4 space-y-2">
+                  <Box className="p-4 space-y-3">
                     {emailHeaders.subject && (
-                      <div className="text-lg font-semibold text-[var(--text-primary)] mb-3">
+                      <LqText variant="h2" weight="bold" color="primary" className="mb-4">
                         {emailHeaders.subject}
-                      </div>
+                      </LqText>
                     )}
 
-                    {emailHeaders.from && (
-                      <div className="flex items-start gap-2">
-                        <span className="text-[var(--text-muted)] text-sm w-14 shrink-0">
-                          From:
-                        </span>
-                        <span className="text-[var(--text-primary)] text-sm">
-                          {emailHeaders.from}
-                        </span>
-                      </div>
-                    )}
-                    {emailHeaders.to && (
-                      <div className="flex items-start gap-2">
-                        <span className="text-[var(--text-muted)] text-sm w-14 shrink-0">To:</span>
-                        <span className="text-[var(--text-secondary)] text-sm">
-                          {emailHeaders.to}
-                        </span>
-                      </div>
-                    )}
-                    {emailHeaders.cc && (
-                      <div className="flex items-start gap-2">
-                        <span className="text-[var(--text-muted)] text-sm w-14 shrink-0">Cc:</span>
-                        <span className="text-[var(--text-muted)] text-sm">{emailHeaders.cc}</span>
-                      </div>
-                    )}
-                    {emailHeaders.sentDate && (
-                      <div className="flex items-start gap-2">
-                        <span className="text-[var(--text-muted)] text-sm w-14 shrink-0">
-                          Date:
-                        </span>
-                        <span className="text-[var(--text-muted)] text-sm">
-                          {emailHeaders.sentDate}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                    <Box className="space-y-2">
+                      {emailHeaders.from && (
+                        <Flex gap="md" align="start">
+                          <LqText
+                            variant="xs"
+                            weight="bold"
+                            color="muted"
+                            className="w-14 uppercase"
+                          >
+                            From:
+                          </LqText>
+                          <LqText variant="small" color="primary">
+                            {emailHeaders.from}
+                          </LqText>
+                        </Flex>
+                      )}
+                      {emailHeaders.to && (
+                        <Flex gap="md" align="start">
+                          <LqText
+                            variant="xs"
+                            weight="bold"
+                            color="muted"
+                            className="w-14 uppercase"
+                          >
+                            To:
+                          </LqText>
+                          <LqText variant="small" color="secondary">
+                            {emailHeaders.to}
+                          </LqText>
+                        </Flex>
+                      )}
+                      {emailHeaders.cc && (
+                        <Flex gap="md" align="start">
+                          <LqText
+                            variant="xs"
+                            weight="bold"
+                            color="muted"
+                            className="w-14 uppercase"
+                          >
+                            Cc:
+                          </LqText>
+                          <LqText variant="small" color="muted">
+                            {emailHeaders.cc}
+                          </LqText>
+                        </Flex>
+                      )}
+                      {emailHeaders.sentDate && (
+                        <Flex gap="md" align="start">
+                          <LqText
+                            variant="xs"
+                            weight="bold"
+                            color="muted"
+                            className="w-14 uppercase"
+                          >
+                            Date:
+                          </LqText>
+                          <LqText variant="small" color="muted">
+                            {emailHeaders.sentDate}
+                          </LqText>
+                        </Flex>
+                      )}
+                    </Box>
+                  </Box>
+                </Surface>
 
-                {/* Email Body - show separated from headers */}
                 {emailBody && emailBody !== doc.content && (
-                  <div className="bg-[var(--glass-bg)]/50 rounded-[var(--radius-lg)] p-4 border border-[var(--glass-border)]">
-                    <pre className="whitespace-pre-wrap text-sm text-[var(--text-secondary)] font-sans leading-relaxed break-words">
+                  <Surface variant="glass" className="p-5">
+                    <pre className="whitespace-pre-wrap text-sm text-[var(--text-secondary)] font-sans leading-relaxed break-words outline-none">
                       {showRaw ? emailBody : prettifyOCRText(emailBody)}
                     </pre>
-                  </div>
+                  </Surface>
                 )}
-              </>
+              </Box>
             );
           }
 
@@ -489,16 +561,15 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
         (() => {
           const content = doc.content || '';
 
-          // Parse legal document patterns
           const caseNumberMatch = content.match(/Case\s*No\.?\s*:?\s*([\w\d\-:]+)/i);
           const courtMatch = content.match(
             /(?:IN THE|UNITED STATES)\s+(?:CIRCUIT COURT|DISTRICT COURT|COURT)[^\n]*/i,
           );
           const plaintiffMatch = content.match(
-            /([A-Z][A-Z\s\.\,]+)\s*,?\s*(?:Plaintiff|Petitioner)/i,
+            /([A-Z][A-Z\s.,]+)\s*,?\s*(?:Plaintiff|Petitioner)/i,
           );
           const defendantMatch = content.match(
-            /(?:v\.?s?\.?|versus)\s*\n?\s*([A-Z][A-Z\s\.\,]+)\s*,?\s*(?:Defendant|Respondent)?/i,
+            /(?:v\.?s?\.?|versus)\s*\n?\s*([A-Z][A-Z\s.,]+)\s*,?\s*(?:Defendant|Respondent)?/i,
           );
           const filingDateMatch = content.match(/(?:E-Filed|Filed)\s*(\d{1,2}\/\d{1,2}\/\d{2,4})/i);
           const documentTypeMatch = content.match(
@@ -509,79 +580,91 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
 
           if (hasParsedData) {
             return (
-              <>
-                {/* Legal Document Header */}
-                <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] border border-amber-700/50 mb-4 overflow-hidden">
-                  {/* Court banner */}
-                  <div className="bg-gradient-to-r from-amber-900/50 to-slate-800 px-4 py-3 border-b border-amber-700/30">
-                    <div className="flex items-start gap-3">
+              <Box className="space-y-4 mb-6">
+                <Surface
+                  variant="glass-strong"
+                  className="overflow-hidden border-amber-700/50 shadow-[0_0_20px_rgba(180,130,50,0.1)]"
+                >
+                  <Box className="bg-gradient-to-r from-amber-900/40 to-slate-800/80 px-4 py-3 border-b border-amber-700/30">
+                    <Flex align="start" gap="md">
                       <Scale className="w-6 h-6 shrink-0 text-amber-300" />
-                      <div className="min-w-0 flex-1">
-                        <div className="text-amber-200 font-semibold text-sm break-words">
+                      <Box className="flex-1">
+                        <LqText variant="h3" weight="bold" className="text-amber-200">
                           {courtMatch?.[0]?.trim() || 'Legal Document'}
-                        </div>
+                        </LqText>
                         {caseNumberMatch && (
-                          <div className="text-amber-400/70 text-xs font-mono mt-1">
-                            Case {caseNumberMatch[1]}
-                          </div>
+                          <LqText variant="xs" className="text-amber-400/80 font-mono block mt-1">
+                            CASE {caseNumberMatch[1]}
+                          </LqText>
                         )}
-                      </div>
-                    </div>
-                  </div>
+                      </Box>
+                    </Flex>
+                  </Box>
 
-                  {/* Parties */}
                   {(plaintiffMatch || defendantMatch) && (
-                    <div className="p-4 border-t border-[var(--glass-border)]">
-                      <div className="flex flex-col md:flex-row gap-4 items-stretch">
+                    <Box className="p-4 border-t border-[var(--glass-border)] bg-amber-500/5">
+                      <Flex gap="lg" align="stretch" className="flex-col md:flex-row">
                         {plaintiffMatch && (
-                          <div className="flex-1 bg-[var(--glass-bg-strong)]/50 p-4 rounded border border-[var(--glass-border)]">
-                            <div className="text-xs text-amber-400 uppercase mb-2 font-semibold">
+                          <Box className="flex-1 bg-amber-900/10 p-4 rounded border border-amber-700/20">
+                            <LqText
+                              variant="xs"
+                              weight="bold"
+                              className="text-amber-400 uppercase block mb-1"
+                            >
                               Plaintiff
-                            </div>
-                            <div className="text-[var(--text-primary)] font-medium">
+                            </LqText>
+                            <LqText variant="small" weight="bold" color="primary">
                               {plaintiffMatch[1].trim()}
-                            </div>
-                          </div>
+                            </LqText>
+                          </Box>
                         )}
-                        <div className="flex items-center justify-center px-4">
-                          <span className="text-[var(--text-muted)] text-xl font-light">vs.</span>
-                        </div>
+                        <Flex align="center" justify="center" className="px-2">
+                          <LqText variant="h3" weight="light" color="muted">
+                            vs.
+                          </LqText>
+                        </Flex>
                         {defendantMatch && (
-                          <div className="flex-1 bg-[var(--glass-bg-strong)]/50 p-4 rounded border border-[var(--glass-border)]">
-                            <div className="text-xs text-amber-400 uppercase mb-2 font-semibold">
+                          <Box className="flex-1 bg-amber-900/10 p-4 rounded border border-amber-700/20">
+                            <LqText
+                              variant="xs"
+                              weight="bold"
+                              className="text-amber-400 uppercase block mb-1"
+                            >
                               Defendant
-                            </div>
-                            <div className="text-[var(--text-primary)] font-medium">
+                            </LqText>
+                            <LqText variant="small" weight="bold" color="primary">
                               {defendantMatch[1].trim()}
-                            </div>
-                          </div>
+                            </LqText>
+                          </Box>
                         )}
-                      </div>
-                    </div>
+                      </Flex>
+                    </Box>
                   )}
 
-                  {/* Document type and date */}
-                  <div className="px-4 pb-3 flex flex-wrap gap-2">
+                  <Flex gap="md" className="px-4 pb-3">
                     {documentTypeMatch && (
-                      <span className="px-2 py-1 bg-amber-900/30 text-amber-200 text-xs rounded">
-                        {documentTypeMatch[1]}
-                      </span>
+                      <Box className="px-2 py-0.5 bg-amber-900/30 text-amber-200 border border-amber-700/30 rounded">
+                        <LqText variant="xs" weight="bold">
+                          {documentTypeMatch[1]}
+                        </LqText>
+                      </Box>
                     )}
                     {filingDateMatch && (
-                      <span className="px-2 py-1 bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] text-xs rounded">
-                        Filed: {filingDateMatch[1]}
-                      </span>
+                      <Box className="px-2 py-0.5 bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] border border-[var(--glass-border)] rounded">
+                        <LqText variant="xs" weight="bold">
+                          FILED: {filingDateMatch[1]}
+                        </LqText>
+                      </Box>
                     )}
-                  </div>
-                </div>
+                  </Flex>
+                </Surface>
 
-                {/* Document Body */}
-                <div className="bg-[var(--glass-bg)]/30 rounded-[var(--radius-lg)] p-4 border border-[var(--glass-border)]">
-                  <pre className="whitespace-pre-wrap text-sm text-[var(--text-secondary)] font-serif leading-relaxed break-words">
+                <Surface variant="glass" className="p-5">
+                  <pre className="whitespace-pre-wrap text-sm text-[var(--text-secondary)] font-serif leading-relaxed break-words outline-none">
                     {showRaw ? content : prettifyOCRText(content)}
                   </pre>
-                </div>
-              </>
+                </Surface>
+              </Box>
             );
           }
           return null;
@@ -592,7 +675,6 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
         (() => {
           const content = doc.content || '';
 
-          // Parse deposition patterns
           const caseMatch = content.match(/Case\s*(?:No\.?)?\s*:?\s*([\w\d\-:]+)/i);
           const witnessMatch = content.match(
             /(?:DEPOSITION OF|EXAMINATION OF|TESTIMONY OF)\s+([A-Z][A-Za-z\s\.]+)/i,
@@ -601,7 +683,6 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
             /(?:taken on|dated?)\s*:?\s*([A-Za-z]+\s+\d{1,2},?\s+\d{4}|\d{1,2}\/\d{1,2}\/\d{2,4})/i,
           );
 
-          // Parse Q&A content
           const lines = content.split('\n');
           const qaContent: { type: 'q' | 'a' | 'text'; content: string }[] = [];
           let currentBlock = { type: 'text' as 'q' | 'a' | 'text', content: '' };
@@ -625,72 +706,80 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
           const hasQA = qaContent.some((b) => b.type === 'q' || b.type === 'a');
 
           return (
-            <>
-              {/* Deposition Header */}
-              <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] border border-purple-700/50 mb-4 overflow-hidden">
-                <div className="bg-gradient-to-r from-purple-900/50 to-slate-800 px-4 py-3 border-b border-purple-700/30">
-                  <div className="flex items-center gap-2">
+            <Box className="space-y-4 mb-6">
+              <Surface variant="glass-strong" className="overflow-hidden border-purple-700/50">
+                <Box className="bg-gradient-to-r from-purple-900/40 to-slate-800/80 px-4 py-3 border-b border-purple-700/30">
+                  <Flex align="center" gap="md">
                     <ScrollText className="w-6 h-6 text-purple-300" />
-                    <div>
-                      <div className="text-purple-200 font-semibold text-sm">
+                    <Box>
+                      <LqText variant="h3" weight="bold" className="text-purple-200">
                         {witnessMatch
                           ? `Deposition of ${witnessMatch[1].trim()}`
                           : 'Deposition Transcript'}
-                      </div>
+                      </LqText>
                       {caseMatch && (
-                        <div className="text-purple-400/70 text-xs font-mono">
-                          Case {caseMatch[1]}
-                        </div>
+                        <LqText variant="xs" className="text-purple-400/80 font-mono block mt-1">
+                          CASE {caseMatch[1]}
+                        </LqText>
                       )}
-                    </div>
-                  </div>
-                </div>
+                    </Box>
+                  </Flex>
+                </Box>
 
                 {dateMatch && (
-                  <div className="px-4 py-2 text-xs text-[var(--text-muted)] inline-flex items-center gap-1">
-                    <Calendar className="w-3.5 h-3.5" />
-                    {dateMatch[1]}
-                  </div>
+                  <Box className="px-4 py-2 bg-purple-500/5">
+                    <Flex align="center" gap="xs">
+                      <Calendar className="w-3.5 h-3.5 text-purple-400" />
+                      <LqText variant="xs" weight="bold" color="muted">
+                        {dateMatch[1]}
+                      </LqText>
+                    </Flex>
+                  </Box>
                 )}
-              </div>
+              </Surface>
 
-              {/* Q&A Content */}
               {hasQA ? (
-                <div className="space-y-3">
+                <Box className="space-y-3">
                   {qaContent.map((block, idx) => (
-                    <div
+                    <Box
                       key={idx}
-                      className={`rounded-[var(--radius-lg)] p-3 ${
+                      className={`rounded-[var(--radius-lg)] p-4 border ${
                         block.type === 'q'
-                          ? 'bg-blue-900/20 border-l-4 border-[var(--accent)]'
+                          ? 'bg-blue-900/10 border-l-4 border-l-[var(--accent)] border-blue-900/30'
                           : block.type === 'a'
-                            ? 'bg-green-900/20 border-l-4 border-green-500 ml-4'
-                            : 'bg-[var(--glass-bg)]/50'
+                            ? 'bg-emerald-900/10 border-l-4 border-l-emerald-500 border-emerald-900/30 ml-6'
+                            : 'bg-[var(--glass-bg)]/30 border-[var(--glass-border)]'
                       }`}
                     >
                       {block.type !== 'text' && (
-                        <div
-                          className={`text-xs font-semibold mb-1 ${
-                            block.type === 'q' ? 'text-[var(--accent)]' : 'text-green-400'
+                        <LqText
+                          variant="xs"
+                          weight="bold"
+                          className={`mb-2 block tracking-widest ${
+                            block.type === 'q' ? 'text-[var(--accent)]' : 'text-emerald-400'
                           }`}
                         >
                           {block.type === 'q' ? 'QUESTION' : 'ANSWER'}
-                        </div>
+                        </LqText>
                       )}
-                      <div className="text-sm text-[var(--text-secondary)] whitespace-pre-wrap break-words">
+                      <LqText
+                        variant="body"
+                        color="secondary"
+                        className="whitespace-pre-wrap leading-relaxed"
+                      >
                         {block.content.trim()}
-                      </div>
-                    </div>
+                      </LqText>
+                    </Box>
                   ))}
-                </div>
+                </Box>
               ) : (
-                <div className="bg-[var(--glass-bg)]/30 rounded-[var(--radius-lg)] p-4 border border-[var(--glass-border)]">
-                  <pre className="whitespace-pre-wrap text-sm text-[var(--text-secondary)] font-mono leading-relaxed break-words">
+                <Surface variant="glass" className="p-5">
+                  <pre className="whitespace-pre-wrap text-sm text-[var(--text-secondary)] font-mono leading-relaxed break-words outline-none">
                     {showRaw ? content : prettifyOCRText(content)}
                   </pre>
-                </div>
+                </Surface>
               )}
-            </>
+            </Box>
           );
         })()}
 
@@ -700,127 +789,162 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
           const content = doc.content || '';
           const lines = content.split('\n').filter((l: string) => l.trim());
 
-          // Try to extract article metadata
           const dateMatch = content.match(
             /(\d{1,2}\/\d{1,2}\/\d{2,4})|([A-Z][a-z]+\s+\d{1,2},?\s+\d{4})/,
           );
-          const bylineMatch = content.match(/(?:By|BY)\s+([A-Za-z\s\.]+?)(?:\n|$)/);
+          const bylineMatch = content.match(/(?:By|BY)\s+([A-Za-z\s.]+?)(?:\n|$)/);
           const sourceMatch = content.match(
             /(U\.?S\.?\s*News|New York|Daily News|Times|Post|Journal|Magazine|AVENUE|Tribune)/i,
           );
 
-          // First substantial line is likely headline
           const headline = lines.find(
             (l: string) => l.length > 20 && l.length < 200 && !/^\d|^http|^www/i.test(l),
           );
           const headlineIdx = headline ? lines.indexOf(headline) : -1;
 
-          // Body starts after headline
           const bodyLines = headlineIdx >= 0 ? lines.slice(headlineIdx + 1) : lines;
           const body = bodyLines.join('\n\n');
 
           return (
-            <>
-              {/* Article Header */}
-              <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] border border-cyan-700/50 mb-4 overflow-hidden">
-                {/* Source bar */}
-                <div className="bg-gradient-to-r from-cyan-900/50 to-slate-800 px-4 py-2 border-b border-cyan-700/30 flex items-center gap-3">
-                  <Newspaper className="w-5 h-5 text-[var(--accent)]" />
-                  {sourceMatch && (
-                    <span className="text-[var(--accent)] font-medium text-sm">
-                      {sourceMatch[1]}
-                    </span>
-                  )}
-                  {dateMatch && (
-                    <span className="text-[var(--text-muted)] text-xs">• {dateMatch[0]}</span>
-                  )}
-                </div>
+            <Box className="space-y-6 mb-6">
+              <Surface variant="glass-strong" className="overflow-hidden border-cyan-700/50">
+                <Box className="bg-gradient-to-r from-cyan-900/40 to-slate-800/80 px-4 py-3 border-b border-cyan-700/30">
+                  <Flex align="center" gap="md">
+                    <Newspaper className="w-5 h-5 text-[var(--accent)]" />
+                    <Flex align="center" gap="md">
+                      {sourceMatch && (
+                        <LqText
+                          variant="small"
+                          weight="bold"
+                          className="text-cyan-200 uppercase tracking-widest"
+                        >
+                          {sourceMatch[1]}
+                        </LqText>
+                      )}
+                      {dateMatch && (
+                        <LqText variant="xs" weight="medium" color="muted">
+                          • {dateMatch[0]}
+                        </LqText>
+                      )}
+                    </Flex>
+                  </Flex>
+                </Box>
 
-                {/* Headline */}
                 {headline && (
-                  <div className="p-4">
-                    <h2 className="text-xl md:text-2xl font-bold text-[var(--text-primary)] leading-tight mb-2">
+                  <Box className="p-5">
+                    <LqText
+                      variant="display"
+                      weight="bold"
+                      color="primary"
+                      className="mb-2 block leading-snug"
+                    >
                       {headline}
-                    </h2>
+                    </LqText>
                     {bylineMatch && (
-                      <div className="text-[var(--accent)] text-sm">By {bylineMatch[1].trim()}</div>
+                      <LqText variant="small" weight="bold" color="accent" className="italic">
+                        By {bylineMatch[1].trim()}
+                      </LqText>
                     )}
-                  </div>
+                  </Box>
                 )}
-              </div>
+              </Surface>
 
-              {/* Article Body */}
-              <div className="bg-[var(--glass-bg)]/30 rounded-[var(--radius-lg)] p-6 border border-[var(--glass-border)]">
+              <Surface variant="glass" className="p-8">
                 <div className="prose prose-invert prose-lg max-w-none break-words">
                   {body.split('\n\n').map((para: string, idx: number) => (
                     <p
                       key={idx}
-                      className="text-[var(--text-secondary)] leading-relaxed mb-4 first-letter:text-2xl first-letter:font-bold first-letter:text-[var(--accent)]"
+                      className="text-[var(--text-secondary)] leading-relaxed mb-6 first-letter:text-3xl first-letter:font-black first-letter:text-[var(--accent)] first-letter:mr-1"
                     >
                       {para.trim()}
                     </p>
                   ))}
                 </div>
-              </div>
-            </>
+              </Surface>
+            </Box>
           );
         })()}
 
       {/* Image Viewer for image files */}
       {doc.fileType?.match(/jpe?g|png|gif|bmp|webp/i) ? (
-        <div className="flex flex-col items-center">
-          <img
-            src={`/api/documents/${doc.id}/file`}
-            alt={doc.title}
-            className="max-w-full max-h-[70vh] object-contain rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)]"
-            onError={(e) => {
-              // Fallback to showing OCR text if image fails to load
-              (e.target as HTMLImageElement).style.display = 'none';
-              const parent = (e.target as HTMLImageElement).parentElement;
-              if (parent) {
-                const pre = document.createElement('pre');
-                pre.className =
-                  'whitespace-pre-wrap text-sm text-[var(--text-secondary)] font-mono leading-relaxed break-words';
-                pre.textContent = doc.content || 'No content available';
-                parent.appendChild(pre);
-              }
-            }}
-          />
+        <Flex direction="column" align="center" gap="lg" className="mb-6">
+          <Surface variant="glass-strong" className="p-2 inline-block">
+            <img
+              src={`/api/documents/${doc.id}/file`}
+              alt={doc.title}
+              className="max-w-full max-h-[70vh] object-contain rounded-[var(--radius-lg)]"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                const parent = target.parentElement;
+                if (parent) {
+                  const errorMsg = document.createElement('div');
+                  errorMsg.className = 'p-12 text-center text-[var(--text-muted)] italic';
+                  errorMsg.innerHTML =
+                    '<span class="block mb-2">Image unavailable</span><pre class="text-xs">' +
+                    (doc.content || '') +
+                    '</pre>';
+                  parent.appendChild(errorMsg);
+                }
+              }}
+            />
+          </Surface>
           {doc.content && doc.content.trim() && (
-            <div className="mt-4 w-full">
-              <details className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] p-4 border border-[var(--glass-border)]">
-                <summary className="cursor-pointer text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)]">
-                  OCR Extracted Text ({doc.content.split(/\s+/).length} words)
+            <Surface variant="glass" className="w-full">
+              <details className="group">
+                <summary className="cursor-pointer p-4 flex items-center justify-between text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
+                  <Flex align="center" gap="sm">
+                    <Bot className="w-4 h-4" />
+                    <LqText variant="small" weight="bold">
+                      OCR EXTRACTED TEXT
+                    </LqText>
+                  </Flex>
+                  <LqText variant="xs" color="muted">
+                    ({doc.content.split(/\s+/).length} words)
+                  </LqText>
                 </summary>
-                <pre className="mt-4 whitespace-pre-wrap text-xs text-[var(--text-muted)] font-mono leading-relaxed max-h-48 overflow-y-auto break-words">
-                  {showRaw ? doc.content : prettifyOCRText(doc.content)}
-                </pre>
+                <Box className="p-4 pt-0 border-t border-[var(--glass-border)]">
+                  <pre className="mt-4 whitespace-pre-wrap text-xs text-[var(--text-muted)] font-mono leading-relaxed max-h-64 overflow-y-auto break-words outline-none">
+                    {showRaw ? doc.content : prettifyOCRText(doc.content)}
+                  </pre>
+                </Box>
               </details>
-            </div>
+            </Surface>
           )}
-        </div>
+        </Flex>
       ) : doc.fileType?.match(/csv|xls/i) || doc.evidenceType === 'financial' ? (
         /* CSV/Financial Table Viewer */
-        <div className="overflow-x-auto">
-          <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] p-4 border border-[var(--glass-border)] mb-4">
-            <div className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
-              <Landmark className="w-4 h-4" />
-              <span>Financial Data / Spreadsheet</span>
-            </div>
-          </div>
+        <Box className="overflow-x-auto mb-6">
+          <Surface variant="glass" className="p-4 mb-4">
+            <Flex align="center" gap="sm">
+              <Landmark className="w-4 h-4 text-emerald-400" />
+              <LqText
+                variant="xs"
+                weight="bold"
+                color="muted"
+                className="uppercase tracking-widest"
+              >
+                Financial Data / Spreadsheet
+              </LqText>
+            </Flex>
+          </Surface>
+
           {(() => {
             const lines = (doc.content || '').split('\n').filter((l: string) => l.trim());
             if (lines.length === 0)
-              return <p className="text-[var(--text-muted)]">No data available</p>;
+              return (
+                <LqText variant="body" color="muted" className="p-4 italic">
+                  No data available
+                </LqText>
+              );
 
-            // Try to parse as CSV
             const rows = lines.map((line: string) => line.split(/[,\t]/));
             const hasHeader = rows.length > 1;
 
             return (
-              <table className="w-full text-sm text-left border-collapse">
+              <table className="w-full text-sm text-left border-collapse bg-[var(--glass-bg)] rounded-[var(--radius-lg)] overflow-hidden">
                 {hasHeader && (
-                  <thead className="bg-[var(--glass-bg)] text-[var(--text-secondary)] uppercase text-xs">
+                  <thead className="bg-[var(--glass-bg-strong)] text-[var(--text-secondary)] uppercase text-xs font-black tracking-widest">
                     <tr>
                       {rows[0].map((cell: string, i: number) => (
                         <th
@@ -833,13 +957,11 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
                     </tr>
                   </thead>
                 )}
-                <tbody>
+                <tbody className="divide-y divide-[var(--glass-border)]">
                   {rows.slice(hasHeader ? 1 : 0).map((row: string[], rowIdx: number) => (
                     <tr
                       key={rowIdx}
-                      className={
-                        rowIdx % 2 === 0 ? 'bg-[var(--glass-bg-strong)]' : 'bg-[var(--glass-bg)]'
-                      }
+                      className="hover:bg-[var(--glass-bg-highlight)] transition-colors"
                     >
                       {row.map((cell, cellIdx) => (
                         <td
@@ -855,84 +977,107 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
               </table>
             );
           })()}
-        </div>
+        </Box>
       ) : showAnnotations ? (
         <DocumentAnnotationSystem
-          documentId={doc.id}
+          documentId={String(doc.id)}
           content={doc.content}
           searchTerm={searchTerm}
           renderHighlightedText={renderHighlightedText}
         />
       ) : (
-        <div className={`grid gap-6 ${doc.originalFileUrl ? 'lg:grid-cols-2' : 'grid-cols-1'}`}>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-medium text-[var(--text-muted)]">Extracted Text</h3>
+        <Box
+          className={`grid gap-6 ${doc.originalFileUrl ? 'lg:grid-cols-2' : 'grid-cols-1'} mb-6`}
+        >
+          <Box className="space-y-4">
+            <Flex align="center" justify="between">
+              <LqText
+                variant="xs"
+                weight="bold"
+                color="muted"
+                className="uppercase tracking-widest"
+              >
+                Extracted Text
+              </LqText>
               {doc.page_number && (
-                <span className="text-xs bg-[var(--glass-bg-highlight)] px-2 py-0.5 rounded text-[var(--text-secondary)]">
-                  Page {doc.page_number}
-                </span>
+                <Box className="bg-[var(--glass-bg-highlight)] px-2 py-0.5 rounded border border-[var(--glass-border)]">
+                  <LqText variant="xs" weight="bold" color="secondary">
+                    PAGE {doc.page_number}
+                  </LqText>
+                </Box>
               )}
-            </div>
-            <pre
-              className="whitespace-pre-wrap text-sm text-[var(--text-secondary)] font-mono leading-relaxed break-words bg-[var(--glass-bg-strong)]/50 p-4 rounded-[var(--radius-lg)] border border-[var(--glass-border)] min-h-[600px] overflow-y-auto max-h-[80vh]"
-              dangerouslySetInnerHTML={{
-                __html: processedContent,
-              }}
-            />
-          </div>
+            </Flex>
+            <Surface variant="glass-strong" className="p-0 overflow-hidden relative group">
+              <pre
+                className="whitespace-pre-wrap text-sm text-[var(--text-secondary)] font-mono leading-relaxed break-words p-6 min-h-[600px] overflow-y-auto max-h-[80vh] outline-none"
+                dangerouslySetInnerHTML={{
+                  __html: processedContent,
+                }}
+              />
+            </Surface>
+          </Box>
 
           {doc.originalFileUrl && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium text-[var(--text-muted)]">Original Document</h3>
+            <Box className="space-y-4">
+              <Flex align="center" justify="between">
+                <LqText
+                  variant="xs"
+                  weight="bold"
+                  color="muted"
+                  className="uppercase tracking-widest"
+                >
+                  Original Document
+                </LqText>
                 <a
                   href={doc.originalFileUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs text-[var(--accent)] hover:text-[var(--accent)] flex items-center gap-1"
+                  className="text-xs text-[var(--accent)] hover:underline flex items-center gap-1 font-bold uppercase"
                 >
-                  Open in New Tab ↗
+                  Open Original ↗
                 </a>
-              </div>
-              <div className="bg-[var(--text-primary)] rounded-[var(--radius-lg)] border border-[var(--glass-border)] overflow-hidden h-full min-h-[600px] max-h-[80vh]">
+              </Flex>
+              <Surface
+                variant="glass-strong"
+                className="h-[600px] max-h-[80vh] p-0 bg-white shadow-xl"
+              >
                 <iframe
                   src={`${doc.originalFileUrl}${doc.page_number ? `#page=${doc.page_number}` : ''}`}
                   className="w-full h-full border-none"
                   title="Original Document Content"
                 />
-              </div>
-            </div>
+              </Surface>
+            </Box>
           )}
-        </div>
+        </Box>
       )}
 
-      {/* Related Entities Section (Surfaced Feature) */}
+      {/* Related Entities Section */}
       {entities.length > 0 && (
-        <div className="mt-8 pt-6 border-t border-[var(--glass-border)]">
-          <h3 className="text-sm font-semibold text-[var(--text-muted)] uppercase tracking-widest mb-4">
-            Mentions & Related Entities
-          </h3>
-          <div className="flex flex-wrap gap-2">
+        <Box className="mt-12 pt-8 border-t border-[var(--glass-border)]">
+          <LqText
+            variant="xs"
+            weight="bold"
+            color="muted"
+            className="uppercase tracking-[0.2em] mb-6 block"
+          >
+            MENTIONS & RELATED ENTITIES
+          </LqText>
+          <Flex wrap="wrap" gap="sm">
             {(() => {
-              // Optimization: Only regex match if we have entities
               if (!entities.length || entityRegexes.length === 0)
                 return (
-                  <span className="text-[var(--text-muted)] text-xs">
+                  <LqText variant="small" color="muted" className="italic">
                     No entities detected yet.
-                  </span>
+                  </LqText>
                 );
 
-              // Find unique entities present in content
-              // We use the same regex used for highlighting/linking
               const text = doc.content || '';
               const matches = new Set<string>();
 
-              // Iterate over all chunks
               for (const regex of entityRegexes) {
                 let match;
                 regex.lastIndex = 0;
-                // We limit to first 50 unique matches to avoid perf kill on huge docs
                 while ((match = regex.exec(text)) !== null) {
                   matches.add(match[0].toLowerCase());
                   if (matches.size > 50) break;
@@ -947,16 +1092,15 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
 
               if (found.length === 0)
                 return (
-                  <span className="text-[var(--text-muted)] text-xs">
+                  <LqText variant="small" color="muted" className="italic">
                     No entities detected in this text.
-                  </span>
+                  </LqText>
                 );
 
               return found.map((e) => (
-                <span
+                <Box
                   key={String(e.id)}
-                  className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-900/30 text-blue-200 border border-[var(--accent)]/30 cursor-pointer hover:bg-blue-800 transition-colors"
-                  onClick={(evt) => {
+                  onClick={(evt: React.MouseEvent) => {
                     evt.preventDefault();
                     const entityName = getEntityName(e);
                     const event = new CustomEvent('entityClick', {
@@ -964,19 +1108,25 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
                     });
                     window.dispatchEvent(event);
                   }}
+                  className="inline-flex items-center px-3 py-1 rounded-full bg-blue-900/20 text-blue-200 border border-[var(--accent)]/30 cursor-pointer hover:bg-blue-800/40 hover:border-[var(--accent)] hover:scale-105 transition-all duration-300 group"
                 >
-                  {getEntityName(e)}
+                  <LqText variant="xs" weight="bold" className="group-hover:text-white">
+                    {getEntityName(e)}
+                  </LqText>
                   {Boolean(e.entityType) && (
-                    <span className="ml-1.5 opacity-50 text-[10px] uppercase">
+                    <LqText
+                      variant="xs"
+                      className="ml-2 opacity-50 uppercase tracking-tighter scale-90"
+                    >
                       {String(e.entityType)}
-                    </span>
+                    </LqText>
                   )}
-                </span>
+                </Box>
               ));
             })()}
-          </div>
-        </div>
+          </Flex>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 };

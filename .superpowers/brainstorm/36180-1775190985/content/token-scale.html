@@ -1,0 +1,334 @@
+<h2>Section 2 — Token Scale &amp; Prop API</h2>
+<p class="subtitle">The spacing scale that all layout props resolve to, and how props map to it</p>
+
+<div class="section">
+  <h3>Spacing Scale — <code>--space-*</code></h3>
+  <p style="font-size: 0.85em; color: var(--text-muted, #888); margin-bottom: 16px">
+    9 steps on a 4px base. Prop values are the step number (1–9) or a named alias.
+  </p>
+  <div
+    style="
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-family: var(--font-mono, monospace);
+      font-size: 0.82em;
+    "
+  >
+    <div
+      style="
+        display: grid;
+        grid-template-columns: 80px 80px 80px 1fr;
+        gap: 12px;
+        align-items: center;
+        padding: 6px 10px;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.03);
+      "
+    >
+      <span style="color: var(--text-muted, #888)">Prop</span>
+      <span style="color: var(--text-muted, #888)">Token</span>
+      <span style="color: var(--text-muted, #888)">Value</span>
+      <span style="color: var(--text-muted, #888)">Visual</span>
+    </div>
+    <div
+      style="
+        display: grid;
+        grid-template-columns: 80px 80px 80px 1fr;
+        gap: 12px;
+        align-items: center;
+        padding: 6px 10px;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.03);
+      "
+    >
+      <span style="color: #e8dcc8">1</span><span style="color: #a78bfa">--space-1</span
+      ><span>4px</span>
+      <div
+        style="height: 4px; width: 4px; background: rgba(212, 168, 75, 0.7); border-radius: 2px"
+      ></div>
+    </div>
+    <div
+      style="
+        display: grid;
+        grid-template-columns: 80px 80px 80px 1fr;
+        gap: 12px;
+        align-items: center;
+        padding: 6px 10px;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.03);
+      "
+    >
+      <span style="color: #e8dcc8">2</span><span style="color: #a78bfa">--space-2</span
+      ><span>8px</span>
+      <div
+        style="height: 4px; width: 8px; background: rgba(212, 168, 75, 0.7); border-radius: 2px"
+      ></div>
+    </div>
+    <div
+      style="
+        display: grid;
+        grid-template-columns: 80px 80px 80px 1fr;
+        gap: 12px;
+        align-items: center;
+        padding: 6px 10px;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.03);
+      "
+    >
+      <span style="color: #e8dcc8">3</span><span style="color: #a78bfa">--space-3</span
+      ><span>12px</span>
+      <div
+        style="height: 4px; width: 12px; background: rgba(212, 168, 75, 0.7); border-radius: 2px"
+      ></div>
+    </div>
+    <div
+      style="
+        display: grid;
+        grid-template-columns: 80px 80px 80px 1fr;
+        gap: 12px;
+        align-items: center;
+        padding: 6px 10px;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.03);
+      "
+    >
+      <span style="color: #e8dcc8">4</span><span style="color: #a78bfa">--space-4</span
+      ><span>16px</span>
+      <div
+        style="height: 4px; width: 16px; background: rgba(212, 168, 75, 0.7); border-radius: 2px"
+      ></div>
+    </div>
+    <div
+      style="
+        display: grid;
+        grid-template-columns: 80px 80px 80px 1fr;
+        gap: 12px;
+        align-items: center;
+        padding: 6px 10px;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.03);
+      "
+    >
+      <span style="color: #e8dcc8">5</span><span style="color: #a78bfa">--space-5</span
+      ><span>20px</span>
+      <div
+        style="height: 4px; width: 20px; background: rgba(212, 168, 75, 0.7); border-radius: 2px"
+      ></div>
+    </div>
+    <div
+      style="
+        display: grid;
+        grid-template-columns: 80px 80px 80px 1fr;
+        gap: 12px;
+        align-items: center;
+        padding: 6px 10px;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.03);
+      "
+    >
+      <span style="color: #e8dcc8">6</span><span style="color: #a78bfa">--space-6</span
+      ><span>24px</span>
+      <div
+        style="height: 4px; width: 24px; background: rgba(212, 168, 75, 0.7); border-radius: 2px"
+      ></div>
+    </div>
+    <div
+      style="
+        display: grid;
+        grid-template-columns: 80px 80px 80px 1fr;
+        gap: 12px;
+        align-items: center;
+        padding: 6px 10px;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.03);
+      "
+    >
+      <span style="color: #e8dcc8">7</span><span style="color: #a78bfa">--space-7</span
+      ><span>32px</span>
+      <div
+        style="height: 4px; width: 32px; background: rgba(212, 168, 75, 0.7); border-radius: 2px"
+      ></div>
+    </div>
+    <div
+      style="
+        display: grid;
+        grid-template-columns: 80px 80px 80px 1fr;
+        gap: 12px;
+        align-items: center;
+        padding: 6px 10px;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.03);
+      "
+    >
+      <span style="color: #e8dcc8">8</span><span style="color: #a78bfa">--space-8</span
+      ><span>48px</span>
+      <div
+        style="height: 4px; width: 48px; background: rgba(212, 168, 75, 0.7); border-radius: 2px"
+      ></div>
+    </div>
+    <div
+      style="
+        display: grid;
+        grid-template-columns: 80px 80px 80px 1fr;
+        gap: 12px;
+        align-items: center;
+        padding: 6px 10px;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.03);
+      "
+    >
+      <span style="color: #e8dcc8">9</span><span style="color: #a78bfa">--space-9</span
+      ><span>64px</span>
+      <div
+        style="height: 4px; width: 64px; background: rgba(212, 168, 75, 0.7); border-radius: 2px"
+      ></div>
+    </div>
+  </div>
+  <p style="font-size: 0.8em; color: var(--text-muted, #888); margin-top: 10px">
+    Also accepts: <code>"none"</code> → 0, <code>"auto"</code> → auto, or raw px string
+    <code>"40px"</code> for one-offs.
+  </p>
+</div>
+
+<div class="section">
+  <h3>Prop API — Box, Flex, Stack, Grid</h3>
+  <p style="font-size: 0.85em; color: var(--text-muted, #888); margin-bottom: 12px">
+    All layout primitives share this prop set. Props resolve to inline styles at runtime via a
+    shared <code>resolveSpace()</code> utility.
+  </p>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px">
+    <div
+      style="
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 8px;
+        padding: 14px;
+      "
+    >
+      <div
+        style="
+          font-size: 0.7em;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          color: var(--text-muted, #888);
+          margin-bottom: 10px;
+        "
+      >
+        Spacing Props
+      </div>
+      <div style="font-family: var(--font-mono, monospace); font-size: 0.8em; line-height: 2">
+        <div>
+          <span style="color: #a78bfa">p</span> <span style="color: #888">— padding all sides</span>
+        </div>
+        <div>
+          <span style="color: #a78bfa">px</span> <span style="color: #888">— padding x-axis</span>
+        </div>
+        <div>
+          <span style="color: #a78bfa">py</span> <span style="color: #888">— padding y-axis</span>
+        </div>
+        <div>
+          <span style="color: #a78bfa">pt pb pl pr</span>
+          <span style="color: #888">— individual sides</span>
+        </div>
+        <div>
+          <span style="color: #a78bfa">m mx my mt mb ml mr</span>
+          <span style="color: #888">— margin equivalents</span>
+        </div>
+        <div>
+          <span style="color: #a78bfa">gap</span>
+          <span style="color: #888">— gap (Flex/Grid/Stack)</span>
+        </div>
+      </div>
+    </div>
+    <div
+      style="
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 8px;
+        padding: 14px;
+      "
+    >
+      <div
+        style="
+          font-size: 0.7em;
+          text-transform: uppercase;
+          letter-spacing: 0.1em;
+          color: var(--text-muted, #888);
+          margin-bottom: 10px;
+        "
+      >
+        Sizing Props
+      </div>
+      <div style="font-family: var(--font-mono, monospace); font-size: 0.8em; line-height: 2">
+        <div>
+          <span style="color: #22d3ee">w</span>
+          <span style="color: #888">— width (token or "full", "auto")</span>
+        </div>
+        <div><span style="color: #22d3ee">h</span> <span style="color: #888">— height</span></div>
+        <div>
+          <span style="color: #22d3ee">minW minH</span> <span style="color: #888">— minimums</span>
+        </div>
+        <div>
+          <span style="color: #22d3ee">maxW maxH</span> <span style="color: #888">— maximums</span>
+        </div>
+        <div style="margin-top: 8px; color: #888; font-size: 0.9em">
+          Size scale: <span style="color: #22d3ee">--size-*</span> from xs→2xl<br />or raw values:
+          "100%", "400px"
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Usage</h3>
+  <div
+    style="
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 14px;
+      font-family: var(--font-mono, monospace);
+      font-size: 0.82em;
+      line-height: 1.8;
+    "
+  >
+    <div style="color: #888">
+      <span style="color: #f472b6">&lt;Surface</span>
+      <span style="color: #a78bfa">variant</span>=<span style="color: #86efac">"glass"</span>
+      <span style="color: #a78bfa">p</span>=<span style="color: #86efac">{6}</span>
+      <span style="color: #a78bfa">maxW</span>=<span style="color: #86efac">"sm"</span
+      ><span style="color: #f472b6">&gt;</span>
+    </div>
+    <div style="color: #888; padding-left: 16px">
+      <span style="color: #f472b6">&lt;Flex</span>
+      <span style="color: #a78bfa">direction</span>=<span style="color: #86efac">"column"</span>
+      <span style="color: #a78bfa">gap</span>=<span style="color: #86efac">{4}</span
+      ><span style="color: #f472b6">&gt;</span>
+    </div>
+    <div style="color: #888; padding-left: 32px">
+      <span style="color: #f472b6">&lt;LqText</span>
+      <span style="color: #a78bfa">variant</span>=<span style="color: #86efac">"h3"</span
+      ><span style="color: #f472b6">&gt;</span>Admin Login<span style="color: #f472b6"
+        >&lt;/LqText&gt;</span
+      >
+    </div>
+    <div style="color: #888; padding-left: 32px">
+      <span style="color: #f472b6">&lt;Box</span> <span style="color: #a78bfa">py</span>=<span
+        style="color: #86efac"
+        >{2}</span
+      ><span style="color: #f472b6">&gt;</span>...<span style="color: #f472b6">&lt;/Box&gt;</span>
+    </div>
+    <div style="color: #888; padding-left: 16px">
+      <span style="color: #f472b6">&lt;/Flex&gt;</span>
+    </div>
+    <div style="color: #888"><span style="color: #f472b6">&lt;/Surface&gt;</span></div>
+    <div style="margin-top: 10px; color: #666; font-size: 0.85em">
+      ↑ replaces: className="p-8 max-w-md space-y-4"
+    </div>
+  </div>
+</div>
+
+<p style="margin-top: 8px; font-size: 0.9em">Does this token scale and prop API look right?</p>

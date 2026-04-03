@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import './EmailClient.css';
 import { FixedSizeList as List, ListChildComponentProps } from 'react-window';
@@ -251,18 +251,17 @@ export const EmailClient: React.FC = () => {
   // re-populated on the next render.
   const globalTimeStart = globalFilters.timeRange[0];
   const globalTimeEnd = globalFilters.timeRange[1];
-  const lastSyncedFromRef = useRef<string | null | undefined>(undefined);
-  const lastSyncedToRef = useRef<string | null | undefined>(undefined);
-  useLayoutEffect(() => {
-    if (!searchParams.get('dateFrom') && globalTimeStart !== lastSyncedFromRef.current) {
-      lastSyncedFromRef.current = globalTimeStart;
-      if (globalTimeStart) setDateFrom(globalTimeStart);
-    }
-    if (!searchParams.get('dateTo') && globalTimeEnd !== lastSyncedToRef.current) {
-      lastSyncedToRef.current = globalTimeEnd;
-      if (globalTimeEnd) setDateTo(globalTimeEnd);
-    }
-  }, [globalTimeStart, globalTimeEnd, searchParams]);
+  const [prevGlobalTimeStart, setPrevGlobalTimeStart] = useState(globalTimeStart);
+  const [prevGlobalTimeEnd, setPrevGlobalTimeEnd] = useState(globalTimeEnd);
+
+  if (!searchParams.get('dateFrom') && globalTimeStart !== prevGlobalTimeStart) {
+    setPrevGlobalTimeStart(globalTimeStart);
+    if (globalTimeStart) setDateFrom(globalTimeStart);
+  }
+  if (!searchParams.get('dateTo') && globalTimeEnd !== prevGlobalTimeEnd) {
+    setPrevGlobalTimeEnd(globalTimeEnd);
+    if (globalTimeEnd) setDateTo(globalTimeEnd);
+  }
 
   const {
     mailboxes,
@@ -348,16 +347,18 @@ export const EmailClient: React.FC = () => {
   const canLoadMore = threadsHasMore && !!threadsNextCursor;
   const threadRowHeight = density === 'compact' ? 72 : 94;
 
-  const clampWidths = useCallback((nextMailbox: number, nextThread: number) => {
-    const containerWidth = desktopLayoutRef.current?.clientWidth || window.innerWidth;
-    const contentMin = 480;
-    const handles = 20;
-    const maxMailbox = Math.max(240, containerWidth - nextThread - contentMin - handles);
-    const mailbox = Math.min(Math.max(nextMailbox, 240), maxMailbox);
-    const maxThread = Math.max(320, containerWidth - mailbox - contentMin - handles);
-    const thread = Math.min(Math.max(nextThread, 320), maxThread);
-    return { mailbox, thread };
-  }, []);
+  const clampWidths = useCallback(
+    (nextMailbox: number, nextThread: number, containerWidth: number) => {
+      const contentMin = 480;
+      const handles = 20;
+      const maxMailbox = Math.max(240, containerWidth - nextThread - contentMin - handles);
+      const mailbox = Math.min(Math.max(nextMailbox, 240), maxMailbox);
+      const maxThread = Math.max(320, containerWidth - mailbox - contentMin - handles);
+      const thread = Math.min(Math.max(nextThread, 320), maxThread);
+      return { mailbox, thread };
+    },
+    [],
+  );
 
   const startResize = useCallback(
     (target: 'mailbox' | 'thread') => (event: React.MouseEvent<HTMLDivElement>) => {
@@ -369,11 +370,12 @@ export const EmailClient: React.FC = () => {
 
       const onMove = (moveEvent: MouseEvent) => {
         const delta = moveEvent.clientX - startX;
+        const containerWidth = desktopLayoutRef.current?.clientWidth || window.innerWidth;
         if (target === 'mailbox') {
-          const { mailbox } = clampWidths(startMailbox + delta, startThread);
+          const { mailbox } = clampWidths(startMailbox + delta, startThread, containerWidth);
           setMailboxWidth(mailbox);
         } else {
-          const { thread } = clampWidths(startMailbox, startThread + delta);
+          const { thread } = clampWidths(startMailbox, startThread + delta, containerWidth);
           setThreadWidth(thread);
         }
       };
@@ -389,12 +391,14 @@ export const EmailClient: React.FC = () => {
     [mailboxWidth, threadWidth, clampWidths],
   );
 
-  useLayoutEffect(() => {
-    if (window.innerWidth < 768) return;
-    const { mailbox, thread } = clampWidths(mailboxWidth, threadWidth);
+  // Layout clamping at render-time to avoid useEffect cascading
+  // We use window.innerWidth as a stable proxy during render to avoid Ref access warnings.
+  if (typeof window !== 'undefined' && window.innerWidth >= 768) {
+    const containerWidth = window.innerWidth;
+    const { mailbox, thread } = clampWidths(mailboxWidth, threadWidth, containerWidth);
     if (mailbox !== mailboxWidth) setMailboxWidth(mailbox);
     if (thread !== threadWidth) setThreadWidth(thread);
-  }, [clampWidths, mailboxWidth, threadWidth]);
+  }
 
   useEffect(() => {
     window.localStorage.setItem('email-pane-mailbox-width', String(Math.round(mailboxWidth)));

@@ -1,5 +1,7 @@
-import React, { useEffect, useLayoutEffect, useMemo, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { Surface } from '../../design-system/components/surfaces/Surface';
+import { Box } from '../../design-system/components/layout/Box';
 import { Document, BrowseFilters, DocumentCollection } from '../../types/documents';
 import { useNavigation } from '../../services/NavigationContext';
 import { useHighlightNavigation } from '../../hooks/useHighlightNavigation';
@@ -74,9 +76,14 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
     return saved === 'comfortable' ? 'comfortable' : 'compact';
   });
   const [searchInput, setSearchInput] = useState(effectiveSearchTerm || '');
-  const [selectedTranche, setSelectedTranche] = useState<string>('all');
   const [isHeaderCondensed, setIsHeaderCondensed] = useState(false);
   const [jumpToPage, setJumpToPage] = useState('');
+
+  const [prevEffectiveSearchTerm, setPrevEffectiveSearchTerm] = useState(effectiveSearchTerm);
+  if (effectiveSearchTerm !== prevEffectiveSearchTerm) {
+    setPrevEffectiveSearchTerm(effectiveSearchTerm);
+    setSearchInput(effectiveSearchTerm || '');
+  }
   const availableCollections = useMemo<Array<{ id: string; name: string }>>(() => [], []);
 
   const [filters, setFilters] = useState<BrowseFilters>({
@@ -125,12 +132,6 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
     setHoveredDoc(null);
     setHoverRect(null);
   }, []);
-
-  useLayoutEffect(() => {
-    if (effectiveSearchTerm !== searchInput) {
-      setSearchInput(effectiveSearchTerm || '');
-    }
-  }, [effectiveSearchTerm, searchInput]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -193,28 +194,24 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
     [],
   );
 
-  const applyTrancheFilter = useCallback(
-    (trancheValue: string) => {
-      const option = DOJ_TRANCHE_OPTIONS.find((entry) => entry.value === trancheValue);
-      setSelectedTranche(trancheValue);
-      handleFilterChange('source', option ? option.sources : []);
-    },
-    [handleFilterChange],
-  );
-
-  useLayoutEffect(() => {
+  const selectedTranche = useMemo(() => {
     const activeSources = [...(filters.source || [])].sort();
-    if (activeSources.length === 0) {
-      if (selectedTranche !== 'all') setSelectedTranche('all');
-      return;
-    }
+    if (activeSources.length === 0) return 'all';
+
     const matching = DOJ_TRANCHE_OPTIONS.find((entry) => {
       if (entry.sources.length !== activeSources.length) return false;
       return [...entry.sources].sort().every((source, idx) => source === activeSources[idx]);
     });
-    const next = matching?.value || 'all';
-    if (next !== selectedTranche) setSelectedTranche(next);
-  }, [filters.source, selectedTranche]);
+    return matching?.value || 'all';
+  }, [filters.source]);
+
+  const applyTrancheFilter = useCallback(
+    (trancheValue: string) => {
+      const option = DOJ_TRANCHE_OPTIONS.find((entry) => entry.value === trancheValue);
+      handleFilterChange('source', option ? option.sources : []);
+    },
+    [handleFilterChange],
+  );
 
   const handleExcludedTypeToggle = (fileType: string) => {
     const currentExcluded = filters.excludedFileTypes || [];
@@ -229,8 +226,8 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
   };
 
   return (
-    <div className="surface-glass min-h-screen text-[var(--text-primary)] overflow-x-hidden">
-      <div className="w-full px-[var(--space-6)] md:px-[var(--space-12)] py-[var(--space-4)] md:py-[var(--space-6)]">
+    <Surface variant="glass" className="min-h-screen overflow-x-hidden">
+      <Box className="w-full px-[var(--space-6)] md:px-[var(--space-12)] py-[var(--space-4)] md:py-[var(--space-6)]">
         <DocumentBrowserHeader
           isHeaderCondensed={isHeaderCondensed}
           searchInput={searchInput}
@@ -314,7 +311,7 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
         <AnimatePresence>
           {hoveredDoc && hoverRect && <DocumentHoverPreview doc={hoveredDoc} rect={hoverRect} />}
         </AnimatePresence>
-      </div>
-    </div>
+      </Box>
+    </Surface>
   );
 };

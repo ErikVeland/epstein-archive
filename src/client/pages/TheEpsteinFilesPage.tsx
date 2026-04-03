@@ -1,5 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { Surface } from '../design-system/components/surfaces/Surface';
+import { Flex } from '../design-system/components/layout/Flex';
+import { Box } from '../design-system/components/layout/Box';
+import { Grid } from '../design-system/components/layout/Grid';
+import { LqText } from '../design-system/components/typography/Text';
 
 type LandingVariant = 'overview' | 'documents' | 'people' | 'media' | 'timeline' | 'flights';
 
@@ -98,49 +103,65 @@ export const TheEpsteinFilesPage: React.FC<TheEpsteinFilesPageProps> = ({ varian
   const copy = copyByVariant[variant];
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-12 space-y-8">
-      <header className="space-y-4">
-        <h1 className="text-4xl font-bold text-[var(--text-primary)]">{copy.title}</h1>
-        <p className="text-lg text-[var(--text-primary)] max-w-4xl">{copy.description}</p>
-      </header>
+    <Box className="max-w-5xl mx-auto px-6 py-12">
+      <Flex direction="column" gap={8}>
+        <header>
+          <Flex direction="column" gap={4}>
+            <LqText as="h1" variant="h1" color="primary">
+              {copy.title}
+            </LqText>
+            <LqText as="p" variant="body" color="primary" className="max-w-4xl text-lg">
+              {copy.description}
+            </LqText>
+          </Flex>
+        </header>
 
-      <section className="rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] p-6">
-        <h2 className="text-xl font-semibold text-cyan-300 mb-4">What You Can Do Here</h2>
-        <ul className="space-y-3 text-[var(--text-primary)]">
-          {copy.points.map((point) => (
-            <li key={point} className="list-disc ml-6">
-              {point}
-            </li>
-          ))}
-        </ul>
-      </section>
+        <Surface variant="glass" className="p-6">
+          <LqText as="h2" variant="h3" color="primary" className="mb-4 text-cyan-300 font-semibold">
+            What You Can Do Here
+          </LqText>
+          <Box as="ul" className="space-y-3">
+            {copy.points.map((point) => (
+              <LqText key={point} as="li" variant="body" color="primary" className="list-disc ml-6">
+                {point}
+              </LqText>
+            ))}
+          </Box>
+        </Surface>
 
-      <section className="rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] p-6">
-        <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-4">
-          Explore Archive Sections
-        </h2>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {discoveryLinks.map((item) => (
-            <Link
-              key={item.href}
-              to={item.href}
-              className="rounded-lg border border-[var(--glass-border)] bg-[var(--glass-bg)] px-4 py-3 text-[var(--text-primary)] hover:border-cyan-500/60 hover:text-cyan-200 transition-colors"
-            >
-              {item.label}
-            </Link>
-          ))}
-        </div>
-      </section>
+        <Surface variant="glass" className="p-6">
+          <LqText as="h2" variant="h3" color="primary" className="mb-4 font-semibold">
+            Explore Archive Sections
+          </LqText>
+          <Grid cols={{ base: 1, sm: 2 }} gap={3}>
+            {discoveryLinks.map((item) => (
+              <Surface
+                key={item.href}
+                variant="glass"
+                className="hover:border-cyan-500/60 transition-colors"
+                style={{ padding: 0 }}
+              >
+                <Link
+                  to={item.href}
+                  className="block w-full h-full px-4 py-3 text-[var(--text-primary)] hover:text-cyan-200"
+                >
+                  {item.label}
+                </Link>
+              </Surface>
+            ))}
+          </Grid>
+        </Surface>
 
-      <section className="pt-2">
-        <Link
-          to={copy.ctaHref}
-          className="inline-flex items-center rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-5 py-3 text-cyan-200 hover:bg-cyan-500/20 transition-colors"
-        >
-          {copy.ctaLabel}
-        </Link>
-      </section>
-    </div>
+        <Box className="pt-2">
+          <Link
+            to={copy.ctaHref}
+            className="inline-flex items-center rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-5 py-3 text-cyan-200 hover:bg-cyan-500/20 transition-colors"
+          >
+            {copy.ctaLabel}
+          </Link>
+        </Box>
+      </Flex>
+    </Box>
   );
 };
 

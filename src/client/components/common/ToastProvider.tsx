@@ -1,4 +1,4 @@
-import { useState, useCallback, ReactNode, useLayoutEffect } from 'react';
+import { useState, useCallback, ReactNode } from 'react';
 import { ToastCtx, Toast } from './toastContext';
 import { CloseButton } from './CloseButton';
 import s from './ToastProvider.module.css';
@@ -8,7 +8,10 @@ export default function ToastProvider({ children }: { children: ReactNode }) {
   const addToast = useCallback((t: Omit<Toast, 'id'>) => {
     const id = Math.random().toString(36).slice(2);
     const toast: Toast = { id, text: t.text, type: t.type || 'info', action: t.action };
-    setToasts((prev) => [...prev, toast]);
+    setToasts((prev) => {
+      const next = [...prev, toast];
+      return next.length > 6 ? next.slice(-6) : next;
+    });
 
     // Auto-dismiss logic - don't auto-dismiss loading toasts
     if (t.type !== 'loading') {
@@ -19,10 +22,6 @@ export default function ToastProvider({ children }: { children: ReactNode }) {
   const removeToast = useCallback((id: string) => {
     setToasts((prev) => prev.filter((x) => x.id !== id));
   }, []);
-
-  useLayoutEffect(() => {
-    if (toasts.length > 6) setToasts((prev) => prev.slice(-6));
-  }, [toasts]);
 
   const toastTypeClass: Record<string, string> = {
     success: 'toast-success',

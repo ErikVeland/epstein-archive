@@ -346,7 +346,7 @@ const JUNK_REGEX = [
   /^.{0,3}$/, // Very short strings (Ag, Ed, Al are exceptions but usually better to strict filter in automated runs)
   /\d{3,}/, // Contains 3+ consecutive numbers (often phone numbers or zip codes)
   /^[a-z]/, // Starts with lowercase (names are Capitalized)
-  /[\[\]\(\)\{\}]/, // Contains brackets/parentheses
+  /[[\](){}]/, // Contains brackets/parentheses
   /http|www|\.com|\.net|\.org/, // URLs/Emails
   /page \d+/i, // Page numbers
   /exhibit \w+/i, // Exhibit labels

@@ -1,6 +1,10 @@
 import React from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { FileText, ArrowRight } from 'lucide-react';
+import { FileText, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Surface } from '../../design-system/components/surfaces/Surface';
+import { Box } from '../../design-system/components/layout/Box';
+import { Flex } from '../../design-system/components/layout/Flex';
+import { LqText } from '../../design-system/components/typography/Text';
 import { Document } from '../../types/documents';
 import { DocumentCard } from './DocumentCard';
 import DocumentSkeleton from './DocumentSkeleton';
@@ -44,13 +48,13 @@ export const DocumentList: React.FC<DocumentListProps> = ({
 }) => {
   if (isFetching && documents.length === 0) {
     return (
-      <div
+      <Box
         className={
           viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4' : 'space-y-3'
         }
       >
         <DocumentSkeleton count={itemsPerPage} />
-      </div>
+      </Box>
     );
   }
 
@@ -58,43 +62,64 @@ export const DocumentList: React.FC<DocumentListProps> = ({
 
   if (filteredDocuments.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 glass-panel border-dashed rounded-[var(--radius-xl)]">
-        <div className="w-16 h-16 bg-[var(--glass-bg-strong)] rounded-full flex items-center justify-center mb-4">
-          <FileText className="w-8 h-8 text-[var(--text-muted)]" />
-        </div>
-        <h3 className="text-xl font-bold text-[var(--text-primary)] mb-2">No documents found</h3>
-        <p className="text-[var(--text-secondary)] text-center max-w-md px-6">
+      <Flex
+        direction="column"
+        align="center"
+        justify="center"
+        className="py-20 glass-panel border-dashed rounded-[var(--radius-xl)]"
+      >
+        <Box className="w-16 h-16 bg-[var(--glass-bg-strong)] rounded-full flex items-center justify-center mb-4 border border-[var(--glass-border)]">
+          <FileText className="w-8 h-8 text-[var(--accent)]" />
+        </Box>
+        <LqText variant="h3" weight="bold" className="mb-2">
+          No documents found
+        </LqText>
+        <LqText variant="body" color="secondary" className="text-center max-w-md px-6">
           {searchTerm ? (
             <>No documents match your search for "{searchTerm}"</>
           ) : (
             <>Try adjusting your search terms or filters to find what you're looking for.</>
           )}
-        </p>
-      </div>
+        </LqText>
+      </Flex>
     );
   }
 
   return (
-    <div className="space-y-8">
+    <Box className="space-y-8">
       {/* Results status row */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 text-sm text-[var(--text-secondary)]">
-        <div className="flex flex-wrap items-center gap-2">
-          <span>
+      <Flex
+        direction="column"
+        align="stretch"
+        justify="between"
+        gap="md"
+        className="md:flex-row md:items-center text-sm"
+      >
+        <Flex wrap="wrap" align="center" gap="sm">
+          <LqText variant="body" color="secondary">
             Showing {(currentPage - 1) * itemsPerPage + 1}-
             {Math.min(currentPage * itemsPerPage, totalDocuments)} of{' '}
             {totalDocuments.toLocaleString()}
-          </span>
+          </LqText>
           {searchTerm && (
-            <span className="semantic-chip border-[var(--glass-border)] bg-[var(--glass-bg-strong)] text-[var(--text-primary)]">
-              Query: "{searchTerm}"
-            </span>
+            <Surface
+              variant="glass-highlight"
+              className="px-2 py-0.5 rounded-full border-[var(--glass-border)]"
+            >
+              <LqText variant="xs" weight="medium">
+                Query: "{searchTerm}"
+              </LqText>
+            </Surface>
           )}
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="inline-flex items-center h-10 rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg-strong)] overflow-hidden">
-            <label className="text-xs text-[var(--text-muted)] pl-3 pr-2 whitespace-nowrap">
+        </Flex>
+        <Flex align="center" gap="sm">
+          <Flex
+            align="center"
+            className="h-10 rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg-strong)] overflow-hidden"
+          >
+            <LqText variant="xs" color="muted" className="pl-3 pr-2 whitespace-nowrap">
               Jump to
-            </label>
+            </LqText>
             <input
               type="number"
               min={1}
@@ -114,11 +139,11 @@ export const DocumentList: React.FC<DocumentListProps> = ({
             >
               <ArrowRight className="w-4 h-4 stroke-[2.75]" />
             </button>
-          </div>
-        </div>
-      </div>
+          </Flex>
+        </Flex>
+      </Flex>
 
-      <div
+      <Box
         ref={documentContainerRef}
         className={
           viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4' : 'space-y-3'
@@ -137,33 +162,46 @@ export const DocumentList: React.FC<DocumentListProps> = ({
             />
           ))}
         </AnimatePresence>
-      </div>
+      </Box>
 
       {/* Pagination Controls */}
       {totalDocuments > itemsPerPage && (
-        <div className="flex items-center justify-center gap-4 py-8 border-t border-[var(--glass-border)] mt-8">
+        <Flex
+          align="center"
+          justify="center"
+          gap="lg"
+          className="py-8 border-t border-[var(--glass-border)] mt-8"
+        >
           <button
             onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
             disabled={currentPage === 1 || isFetching}
-            className="px-4 py-2 bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--glass-bg-highlight)] transition-colors"
+            className="px-4 py-2 bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--glass-bg-highlight)] transition-colors inline-flex items-center gap-2"
           >
+            <ChevronLeft className="w-4 h-4" />
             Previous
           </button>
-          <div className="text-sm text-[var(--text-secondary)] text-center">
-            <div>
-              Page <span className="text-[var(--text-primary)] font-medium">{currentPage}</span> of{' '}
-              <span className="text-[var(--text-primary)] font-medium">{totalPages}</span>
-            </div>
-          </div>
+          <Box className="text-sm text-[var(--text-secondary)] text-center">
+            <Box>
+              Page{' '}
+              <LqText as="span" weight="medium" color="primary">
+                {currentPage}
+              </LqText>{' '}
+              of{' '}
+              <LqText as="span" weight="medium" color="primary">
+                {totalPages}
+              </LqText>
+            </Box>
+          </Box>
           <button
             onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
             disabled={currentPage === totalPages || isFetching}
-            className="px-4 py-2 bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--glass-bg-highlight)] transition-colors"
+            className="px-4 py-2 bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--glass-bg-highlight)] transition-colors inline-flex items-center gap-2"
           >
             Next
+            <ChevronRight className="w-4 h-4" />
           </button>
-        </div>
+        </Flex>
       )}
-    </div>
+    </Box>
   );
 };

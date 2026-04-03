@@ -1,7 +1,7 @@
 import {
   useState,
-  useLayoutEffect,
   useEffect,
+  useLayoutEffect,
   useCallback,
   useMemo,
   Suspense,
@@ -699,12 +699,32 @@ function App() {
   // First  // Onboarding
   const { shouldShowOnboarding, completeOnboarding, skipOnboarding } = useFirstRunOnboarding();
 
-  // Clear selected document when switching tabs
-  useLayoutEffect(() => {
+  const [prevActiveTab, setPrevActiveTab] = useState(activeTab);
+  if (activeTab !== prevActiveTab) {
+    setPrevActiveTab(activeTab);
     if (activeTab !== 'documents') {
       setSelectedDocumentId(null);
     }
-  }, [activeTab]);
+  }
+
+  const pathMatch = location.pathname.match(/^\/documents\/([^/?#]+)/);
+  const params = new URLSearchParams(location.search);
+  const queryDocId = params.get('id') || params.get('docId') || params.get('documentId');
+  const docId = pathMatch?.[1] || queryDocId;
+
+  const [prevDocIdForModal, setPrevDocIdForModal] = useState<string | null>(docId);
+  if (docId !== prevDocIdForModal) {
+    setPrevDocIdForModal(docId);
+    if (docId) {
+      if (documentModalId !== docId) {
+        if (selectedPerson) setSelectedPerson(null);
+        setDocumentModalId(docId);
+      }
+    } else if (documentModalId) {
+      setDocumentModalId('');
+      setDocumentModalInitial(null);
+    }
+  }
 
   // Load entity from URL on page load (for shareable links)
 
@@ -723,11 +743,19 @@ function App() {
     staleTime: 60_000,
   });
 
-  useEffect(() => {
-    if (!urlEntityData || !urlEntityData.id) return;
-    // Reset document modal state when an entity is selected via URL
-    if (documentModalId) setDocumentModalId('');
-    if (documentModalInitial) setDocumentModalInitial(null);
+  const [prevUrlEntityId, setPrevUrlEntityId] = useState<number | null>(null);
+  if (urlEntityId !== prevUrlEntityId) {
+    setPrevUrlEntityId(urlEntityId);
+    if (urlEntityId) {
+      if (documentModalId) setDocumentModalId('');
+      if (documentModalInitial) setDocumentModalInitial(null);
+    }
+  }
+
+  const [prevUrlEntityDataId, setPrevUrlEntityDataId] = useState<number | null>(null);
+
+  if (urlEntityData?.id && urlEntityData.id !== prevUrlEntityDataId) {
+    setPrevUrlEntityDataId(urlEntityData.id);
     const person: Person = {
       id: urlEntityData.id,
       name: urlEntityData.fullName || 'Unknown',
@@ -750,14 +778,15 @@ function App() {
       redFlagDescription: urlEntityData.redFlagDescription,
     };
     setSelectedPerson(person);
-  }, [urlEntityData]); // eslint-disable-line react-hooks/exhaustive-deps
+  }
 
-  useEffect(() => {
+  const [prevPathname, setPrevPathname] = useState(location.pathname);
+  if (location.pathname !== prevPathname) {
+    setPrevPathname(location.pathname);
     if (!urlEntityId && selectedPerson && !location.pathname.startsWith('/blackbook')) {
-      // Clear selected person if we are not on an entity route anymore
       setSelectedPerson(null);
     }
-  }, [location.pathname, selectedPerson, urlEntityId]);
+  }
 
   // Handle global entity click events (e.g. from DocumentMetadataPanel or MediaViewerModal)
   useEffect(() => {
@@ -785,26 +814,7 @@ function App() {
     };
   }, []);
 
-  // Load document from URL on page load (for shareable links)
-  useEffect(() => {
-    const pathMatch = location.pathname.match(/^\/documents\/([^/?#]+)/);
-    const params = new URLSearchParams(location.search);
-    const queryDocId = params.get('id') || params.get('docId') || params.get('documentId');
-    const docId = pathMatch?.[1] || queryDocId;
-
-    if (docId) {
-      if (documentModalId !== docId) {
-        // Clear conflicting modals
-        setSelectedPerson(null);
-
-        setDocumentModalId(docId);
-      }
-    } else if (documentModalId) {
-      // Clear document modal if we are no longer on a document route
-      setDocumentModalId('');
-      setDocumentModalInitial(null);
-    }
-  }, [location.pathname, location.search, documentModalId, setSelectedPerson]);
+  // Document modal state is now synchronized during render above.
 
   // Safety net for legacy justice.gov path swaps when edge proxy serves SPA shell.
   // Example: /epstein/files/DataSet%209/EFTA01188336.pdf
@@ -1065,21 +1075,45 @@ function App() {
 
   const loadingProgress = isInitializing ? 'Loading subjects...' : 'Ready';
 
-  useEffect(() => {
+  const [attractShown, setAttractShown] = useState(false);
+  const canShowAttract = useMemo(() => {
     try {
       const shown = localStorage.getItem('investigate_attract_shown') === 'true';
       const hasSeenInvestigationOnboarding =
         localStorage.getItem('hasSeenInvestigationOnboarding') === 'true';
       const hasSeenBoardOnboarding = localStorage.getItem('board_onboarding_seen') === 'true';
-      const canShowAttract =
-        !shown && !shouldShowOnboarding && hasSeenInvestigationOnboarding && hasSeenBoardOnboarding;
-      setInvestigateAttract(canShowAttract);
+      return (
+        !shown &&
+        !attractShown &&
+        !shouldShowOnboarding &&
+        hasSeenInvestigationOnboarding &&
+        hasSeenBoardOnboarding
+      );
+    } catch {
+      return false;
+    }
+  }, [shouldShowOnboarding, attractShown]);
+
+  const [prevCanShowAttract, setPrevCanShowAttract] = useState(false);
+  if (canShowAttract !== prevCanShowAttract) {
+    setPrevCanShowAttract(canShowAttract);
+    if (canShowAttract) {
+      setInvestigateAttract(true);
+      setAttractShown(true);
+      try {
+        localStorage.setItem('investigate_attract_shown', 'true');
+      } catch (e) {
+        void e;
+      }
+    }
+  }
+
+  useEffect(() => {
+    if (investigateAttract) {
       const t = setTimeout(() => setInvestigateAttract(false), 8000);
       return () => clearTimeout(t);
-    } catch (e) {
-      void e;
     }
-  }, [shouldShowOnboarding]);
+  }, [investigateAttract]);
 
   useEffect(() => {
     try {
@@ -1105,7 +1139,7 @@ function App() {
     }
   }, [activeTab, shouldShowOnboarding]);
 
-  useEffect(() => {
+  const updatePopoverPos = useCallback(() => {
     if (!investigatePopoverOpen) return;
     const anchor =
       (document.querySelector('[data-investigation-nav-top]') as HTMLElement) ||
@@ -1122,33 +1156,24 @@ function App() {
     }
   }, [investigatePopoverOpen]);
 
+  // Update popover position with layout stability
+  useLayoutEffect(() => {
+    // We call updatePopoverPos within a microtask or ensure it only runs if open
+    if (investigatePopoverOpen) {
+      updatePopoverPos();
+    }
+  }, [investigatePopoverOpen, updatePopoverPos]);
+
   useEffect(() => {
-    const reposition = () => {
-      if (investigatePopoverOpen) {
-        const anchor =
-          (document.querySelector('[data-investigation-nav-top]') as HTMLElement) ||
-          (document.querySelector('[data-investigation-nav]') as HTMLElement) ||
-          investigateBtnRef.current;
-        if (anchor) {
-          const rect = anchor.getBoundingClientRect();
-          const x = Math.round(rect.left + window.scrollX);
-          const y = Math.round(rect.bottom + 8 + window.scrollY);
-          setInvestigatePopoverPos({ x, y });
-          const centerX = rect.left + rect.width / 2 + window.scrollX;
-          const arrowX = Math.max(12, Math.min(300 - 12, centerX - x - 8));
-          setInvestigateArrowLeft(arrowX);
-        }
-      }
-    };
-    window.addEventListener('resize', reposition);
-    window.addEventListener('scroll', reposition, { passive: true });
-    const id = setInterval(reposition, 300); // defensive update in dynamic layouts
+    window.addEventListener('resize', updatePopoverPos);
+    window.addEventListener('scroll', updatePopoverPos, { passive: true });
+    const id = setInterval(updatePopoverPos, 300); // defensive update in dynamic layouts
     return () => {
-      window.removeEventListener('resize', reposition);
-      window.removeEventListener('scroll', reposition);
+      window.removeEventListener('resize', updatePopoverPos);
+      window.removeEventListener('scroll', updatePopoverPos);
       clearInterval(id);
     };
-  }, [investigatePopoverOpen]);
+  }, [updatePopoverPos]);
 
   // Handler for risk level click clicks
   const handleRiskLevelClick = useCallback((level: 'HIGH' | 'MEDIUM' | 'LOW') => {

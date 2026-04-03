@@ -24,6 +24,11 @@ import { ReviewQueuePanel } from '../components/admin/ReviewQueuePanel';
 import { ShieldCheck } from 'lucide-react';
 import { CloseButton } from '../components/common/CloseButton';
 import { useScrollLock } from '../hooks/useScrollLock';
+import { Surface } from '../design-system/components/surfaces/Surface';
+import { Flex } from '../design-system/components/layout/Flex';
+import { Box } from '../design-system/components/layout/Box';
+import { LqText } from '../design-system/components/typography/Text';
+import { Grid } from '../design-system/components/layout/Grid';
 
 interface User {
   id: string;
@@ -306,16 +311,20 @@ export const AdminDashboard: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen app-backdrop text-[var(--text-primary)]">
-      <div className="w-full max-w-7xl mx-auto px-4 py-8 space-y-8">
+    <Box className="min-h-screen app-backdrop text-[var(--text-primary)]">
+      <Box className="w-full max-w-7xl mx-auto px-4 py-8 space-y-8">
         {/* Header */}
         {error && (
-          <div className="mb-4 flex items-start gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+          <Flex
+            align="start"
+            gap={2}
+            className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200"
+          >
             <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0" />
-            <div className="flex-1">
+            <Box className="flex-1">
               <p className="font-medium">An error occurred while loading admin data.</p>
               <p className="mt-1 text-red-200/80 break-all">{error}</p>
-            </div>
+            </Box>
             <CloseButton
               type="button"
               onClick={() => setError('')}
@@ -323,20 +332,30 @@ export const AdminDashboard: React.FC = () => {
               label="Dismiss error"
               className="ml-2 border-red-700/60 bg-red-950/60 text-red-200 hover:bg-red-900/70 hover:text-[var(--text-primary)]"
             />
-          </div>
+          </Flex>
         )}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-[2.5rem] leading-none font-display font-light tracking-tight text-[var(--accent)] flex items-center gap-4 mb-3">
+        <Flex direction="column" className="md:flex-row md:items-center justify-between gap-4">
+          <Box>
+            <LqText
+              as="h1"
+              variant="h1"
+              color="accent"
+              className="leading-none font-display font-light tracking-tight flex items-center gap-4 mb-3"
+            >
               <Shield className="w-8 h-8 text-[var(--accent)] opacity-80" strokeWidth={1} />
               Admin Dashboard
-            </h1>
-            <p className="text-lg text-[var(--text-muted)] font-light tracking-wide">
+            </LqText>
+            <LqText
+              as="p"
+              variant="body"
+              color="muted"
+              className="text-lg font-light tracking-wide"
+            >
               Manage users, permissions, and system access
-            </p>
-          </div>
+            </LqText>
+          </Box>
 
-          <div className="flex items-center gap-3">
+          <Flex align="center" gap={3}>
             <button
               onClick={handleLogout}
               className="flex items-center gap-2 px-4 py-2 bg-[var(--glass-bg-strong)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-lg transition-colors border border-[var(--glass-border)]"
@@ -344,11 +363,14 @@ export const AdminDashboard: React.FC = () => {
               <LogOut size={18} />
               <span>Log Out</span>
             </button>
-          </div>
-        </div>
+          </Flex>
+        </Flex>
 
         {/* Tab Navigation */}
-        <div className="flex space-x-1 bg-[var(--glass-bg)]/40 p-1.5 rounded-2xl shadow-[var(--glass-shadow-soft)] w-fit backdrop-blur-md">
+        <Flex
+          gap={1}
+          className="bg-[var(--glass-bg)]/40 p-1.5 rounded-2xl shadow-[var(--glass-shadow-soft)] w-fit backdrop-blur-md"
+        >
           <button
             onClick={() => setActiveTab('users')}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
@@ -415,43 +437,52 @@ export const AdminDashboard: React.FC = () => {
             <Database size={18} />
             Backups
           </button>
-        </div>
+        </Flex>
 
         {/* --- USERS TAB --- */}
         {activeTab === 'users' && (
-          <div className="space-y-6 animate-in fade-in duration-300">
+          <Box className="space-y-6 animate-in fade-in duration-300">
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="p-6 rounded-2xl bg-[var(--glass-bg)]/30 border border-[var(--glass-border)]/50 backdrop-blur-xl shadow-[var(--glass-shadow-soft)] hover:-translate-y-1 hover:shadow-[var(--glass-shadow)] transition-all duration-300 group">
-                <div className="flex items-center justify-between mb-4">
+            <Grid cols={{ base: 1, md: 3 }} gap="lg">
+              <Surface
+                variant="glass"
+                className="p-6 hover:-translate-y-1 transition-all duration-300 group"
+              >
+                <Flex align="center" justify="between" className="mb-4">
                   <h3 className="text-[10px] uppercase tracking-[0.2em] font-bold text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors">
                     Total Users
                   </h3>
                   <Users className="text-[var(--accent)] w-5 h-5 opacity-70 group-hover:opacity-100 transition-opacity" />
-                </div>
-                <div className="text-5xl font-light tracking-tighter text-[var(--text-primary)] font-mono">
+                </Flex>
+                <LqText as="div" variant="h1" className="text-5xl font-mono tracking-tighter">
                   {users.length}
-                </div>
-              </div>
-              <div className="p-6 rounded-2xl bg-[var(--glass-bg)]/30 border border-[var(--glass-border)]/50 backdrop-blur-xl shadow-[var(--glass-shadow-soft)] hover:-translate-y-1 hover:shadow-[var(--glass-shadow)] transition-all duration-300 group">
-                <div className="flex items-center justify-between mb-4">
+                </LqText>
+              </Surface>
+              <Surface
+                variant="glass"
+                className="p-6 hover:-translate-y-1 transition-all duration-300 group"
+              >
+                <Flex align="center" justify="between" className="mb-4">
                   <h3 className="text-[10px] uppercase tracking-[0.2em] font-bold text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors">
                     Admins
                   </h3>
                   <Shield className="text-purple-400 w-5 h-5 opacity-70 group-hover:opacity-100 transition-opacity" />
-                </div>
-                <div className="text-5xl font-light tracking-tighter text-[var(--text-primary)] font-mono">
+                </Flex>
+                <LqText as="div" variant="h1" className="text-5xl font-mono tracking-tighter">
                   {users.filter((u) => u.role === 'admin').length}
-                </div>
-              </div>
-              <div className="p-6 rounded-2xl bg-[var(--glass-bg)]/30 border border-[var(--glass-border)]/50 backdrop-blur-xl shadow-[var(--glass-shadow-soft)] hover:-translate-y-1 hover:shadow-[var(--glass-shadow)] transition-all duration-300 group">
-                <div className="flex items-center justify-between mb-4">
+                </LqText>
+              </Surface>
+              <Surface
+                variant="glass"
+                className="p-6 hover:-translate-y-1 transition-all duration-300 group"
+              >
+                <Flex align="center" justify="between" className="mb-4">
                   <h3 className="text-[10px] uppercase tracking-[0.2em] font-bold text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors">
                     Active (24h)
                   </h3>
                   <Check className="text-green-400 w-5 h-5 opacity-70 group-hover:opacity-100 transition-opacity" />
-                </div>
-                <div className="text-5xl font-light tracking-tighter text-[var(--text-primary)] font-mono">
+                </Flex>
+                <LqText as="div" variant="h1" className="text-5xl font-mono tracking-tighter">
                   {
                     users.filter((u) => {
                       if (!u.last_active) return false;
@@ -459,15 +490,22 @@ export const AdminDashboard: React.FC = () => {
                       return new Date().getTime() - date.getTime() < 24 * 60 * 60 * 1000;
                     }).length
                   }
-                </div>
-              </div>
-            </div>
+                </LqText>
+              </Surface>
+            </Grid>
 
-            <div className="glass-panel rounded-xl overflow-hidden">
-              <div className="p-4 border-b border-[var(--glass-border)] flex items-center justify-between gap-4">
-                <h2 className="text-lg font-semibold text-[var(--text-primary)]">Users</h2>
-                <div className="flex items-center gap-3 w-full max-w-xl justify-end">
-                  <div className="relative max-w-md w-full">
+            <Surface variant="panel" className="overflow-hidden">
+              <Flex
+                align="center"
+                justify="between"
+                gap={4}
+                className="p-4 border-b border-[var(--glass-border)]"
+              >
+                <LqText as="h2" variant="h3" color="primary" className="font-semibold">
+                  Users
+                </LqText>
+                <Flex align="center" gap={3} className="w-full max-w-xl justify-end">
+                  <Box className="relative max-w-md w-full">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                     <input
                       type="text"
@@ -476,7 +514,7 @@ export const AdminDashboard: React.FC = () => {
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="w-full bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-lg pl-9 pr-4 py-2 text-sm text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--accent)] outline-none transition-all"
                     />
-                  </div>
+                  </Box>
                   <button
                     onClick={openCreateModal}
                     className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] hover:brightness-110 text-[var(--text-primary)] rounded-lg transition-colors shadow-lg shadow-[var(--accent)]/20 whitespace-nowrap"
@@ -484,10 +522,10 @@ export const AdminDashboard: React.FC = () => {
                     <UserPlus size={18} />
                     <span>Add User</span>
                   </button>
-                </div>
-              </div>
+                </Flex>
+              </Flex>
 
-              <div className="overflow-x-auto">
+              <Box className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-[var(--glass-bg-strong)] text-[var(--text-secondary)] text-sm border-b border-[var(--glass-border)]">
@@ -518,14 +556,18 @@ export const AdminDashboard: React.FC = () => {
                           className="hover:bg-[var(--glass-bg-strong)] transition-colors group"
                         >
                           <td className="px-6 py-4">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center font-medium text-sm">
+                            <Flex align="center" gap={3}>
+                              <Flex
+                                align="center"
+                                justify="center"
+                                className="w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 font-medium text-sm"
+                              >
                                 {user.username.charAt(0).toUpperCase()}
-                              </div>
-                              <div className="font-medium text-[var(--text-primary)]">
+                              </Flex>
+                              <Box className="font-medium text-[var(--text-primary)]">
                                 {user.username}
-                              </div>
-                            </div>
+                              </Box>
+                            </Flex>
                           </td>
                           <td className="px-6 py-4">
                             <span
@@ -550,7 +592,12 @@ export const AdminDashboard: React.FC = () => {
                               : 'Never'}
                           </td>
                           <td className="px-6 py-4 text-right">
-                            <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Flex
+                              align="center"
+                              justify="end"
+                              gap={2}
+                              className="opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
                               <button
                                 onClick={() => openEditModal(user)}
                                 className="p-1.5 text-[var(--text-muted)] hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
@@ -567,26 +614,35 @@ export const AdminDashboard: React.FC = () => {
                                   <Trash2 size={16} />
                                 </button>
                               )}
-                            </div>
+                            </Flex>
                           </td>
                         </tr>
                       ))
                     )}
                   </tbody>
                 </table>
-              </div>
-            </div>
-          </div>
+              </Box>
+            </Surface>
+          </Box>
         )}
 
         {/* --- AUDIT TAB --- */}
         {activeTab === 'audit' && (
-          <div className="glass-panel rounded-xl overflow-hidden animate-in fade-in duration-300">
-            <div className="p-4 border-b border-[var(--glass-border)] flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-[var(--text-primary)] flex items-center gap-2">
+          <Surface variant="panel" className="overflow-hidden animate-in fade-in duration-300">
+            <Flex
+              align="center"
+              justify="between"
+              className="p-4 border-b border-[var(--glass-border)]"
+            >
+              <LqText
+                as="h2"
+                variant="h3"
+                color="primary"
+                className="font-semibold flex items-center gap-2"
+              >
                 <Activity className="text-blue-400 w-5 h-5" />
                 Audit Logs
-              </h2>
+              </LqText>
               <button
                 onClick={() => void refetchAuditLogs()}
                 className="p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)] rounded-lg transition-colors"
@@ -594,8 +650,8 @@ export const AdminDashboard: React.FC = () => {
               >
                 <RefreshCw size={18} className={auditLoading ? 'animate-spin' : ''} />
               </button>
-            </div>
-            <div className="overflow-x-auto max-h-[70vh]">
+            </Flex>
+            <Box className="overflow-x-auto max-h-[70vh]">
               <table className="w-full text-left border-collapse">
                 <thead className="sticky top-0 z-10">
                   <tr className="bg-[var(--glass-bg-strong)] text-[var(--text-secondary)] text-sm border-b border-[var(--glass-border)]">
@@ -652,94 +708,137 @@ export const AdminDashboard: React.FC = () => {
                   )}
                 </tbody>
               </table>
-            </div>
-          </div>
+            </Box>
+          </Surface>
         )}
 
         {/* --- SYSTEM TAB --- */}
         {activeTab === 'system' && (
-          <div className="space-y-6 animate-in fade-in duration-300">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="p-6 rounded-2xl bg-[var(--glass-bg)]/30 border border-[var(--glass-border)]/50 backdrop-blur-xl shadow-[var(--glass-shadow-soft)] hover:-translate-y-1 hover:shadow-[var(--glass-shadow)] transition-all duration-300 group">
-                <div className="flex items-center gap-3 mb-4">
+          <Box className="space-y-6 animate-in fade-in duration-300">
+            <Grid cols={{ base: 1, md: 2, lg: 4 }} gap="lg">
+              <Surface
+                variant="glass"
+                className="p-6 hover:-translate-y-1 transition-all duration-300 group"
+              >
+                <Flex align="center" gap={3} className="mb-4">
                   <Activity className="text-green-400 opacity-70 group-hover:opacity-100 transition-opacity" />
                   <h3 className="text-[10px] uppercase tracking-[0.2em] font-bold text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors">
                     Status
                   </h3>
-                </div>
-                <div className="text-4xl font-light tracking-tighter text-[var(--text-primary)] font-mono uppercase">
+                </Flex>
+                <LqText
+                  as="div"
+                  variant="h1"
+                  className="text-4xl font-mono uppercase tracking-tighter"
+                >
                   {health?.status || 'Unknown'}
-                </div>
-                <p className="text-xs text-[var(--text-muted)] mt-2 font-mono uppercase tracking-wider">
+                </LqText>
+                <LqText
+                  as="p"
+                  variant="small"
+                  color="muted"
+                  className="mt-2 font-mono uppercase tracking-wider"
+                >
                   Uptime: {health ? (health.uptime / 3600).toFixed(1) : 0} hrs
-                </p>
-              </div>
+                </LqText>
+              </Surface>
 
-              <div className="p-6 rounded-2xl bg-[var(--glass-bg)]/30 border border-[var(--glass-border)]/50 backdrop-blur-xl shadow-[var(--glass-shadow-soft)] hover:-translate-y-1 hover:shadow-[var(--glass-shadow)] transition-all duration-300 group">
-                <div className="flex items-center gap-3 mb-4">
+              <Surface
+                variant="glass"
+                className="p-6 hover:-translate-y-1 transition-all duration-300 group"
+              >
+                <Flex align="center" gap={3} className="mb-4">
                   <Database className="text-blue-400 opacity-70 group-hover:opacity-100 transition-opacity" />
                   <h3 className="text-[10px] uppercase tracking-[0.2em] font-bold text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors">
                     Database
                   </h3>
-                </div>
-                <div className="text-4xl font-light tracking-tighter text-[var(--text-primary)] font-mono uppercase">
+                </Flex>
+                <LqText
+                  as="div"
+                  variant="h1"
+                  className="text-4xl font-mono uppercase tracking-tighter"
+                >
                   {health?.database || 'Unknown'}
-                </div>
-                <p className="text-xs text-[var(--text-muted)] mt-2 font-mono uppercase tracking-wider">
+                </LqText>
+                <LqText
+                  as="p"
+                  variant="small"
+                  color="muted"
+                  className="mt-2 font-mono uppercase tracking-wider"
+                >
                   Entities: {health?.data?.entities?.toLocaleString()}
-                </p>
-              </div>
+                </LqText>
+              </Surface>
 
-              <div className="p-6 rounded-2xl bg-[var(--glass-bg)]/30 border border-[var(--glass-border)]/50 backdrop-blur-xl shadow-[var(--glass-shadow-soft)] hover:-translate-y-1 hover:shadow-[var(--glass-shadow)] transition-all duration-300 group">
-                <div className="flex items-center gap-3 mb-4">
+              <Surface
+                variant="glass"
+                className="p-6 hover:-translate-y-1 transition-all duration-300 group"
+              >
+                <Flex align="center" gap={3} className="mb-4">
                   <FileText className="text-orange-400 opacity-70 group-hover:opacity-100 transition-opacity" />
                   <h3 className="text-[10px] uppercase tracking-[0.2em] font-bold text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors">
                     Documents
                   </h3>
-                </div>
-                <div className="text-4xl font-light tracking-tighter text-[var(--text-primary)] font-mono">
+                </Flex>
+                <LqText as="div" variant="h1" className="text-4xl font-mono tracking-tighter">
                   {health?.data?.documents?.toLocaleString() || 0}
-                </div>
-              </div>
+                </LqText>
+              </Surface>
 
-              <div className="p-6 rounded-2xl bg-[var(--glass-bg)]/30 border border-[var(--glass-border)]/50 backdrop-blur-xl shadow-[var(--glass-shadow-soft)] hover:-translate-y-1 hover:shadow-[var(--glass-shadow)] transition-all duration-300 group">
-                <div className="flex items-center gap-3 mb-4">
+              <Surface
+                variant="glass"
+                className="p-6 hover:-translate-y-1 transition-all duration-300 group"
+              >
+                <Flex align="center" gap={3} className="mb-4">
                   <Cpu className="text-purple-400 opacity-70 group-hover:opacity-100 transition-opacity" />
                   <h3 className="text-[10px] uppercase tracking-[0.2em] font-bold text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors">
                     Environment
                   </h3>
-                </div>
-                <div className="text-sm font-mono tracking-wider text-[var(--text-primary)] bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] p-2 rounded-lg">
+                </Flex>
+                <Box className="text-sm font-mono tracking-wider text-[var(--text-primary)] bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] p-2 rounded-lg">
                   {health?.environment || 'unknown'}
-                </div>
-              </div>
-            </div>
+                </Box>
+              </Surface>
+            </Grid>
 
             {/* Add more system controls here later */}
-            <div className="bg-amber-500/10 border border-amber-500/30 p-4 rounded-xl flex items-start gap-3">
+            <Flex
+              align="start"
+              gap={3}
+              className="bg-amber-500/10 border border-amber-500/30 p-4 rounded-xl"
+            >
               <AlertTriangle className="text-amber-500 mt-0.5" />
-              <div>
+              <Box>
                 <h4 className="text-amber-400 font-medium">System Maintenance</h4>
                 <p className="text-amber-400/80 text-sm mt-1">
                   Advanced system operations (re-indexing, cache clearing) are currently handled via
                   CLI scripts. Do not attempt to modify production database directly while server is
                   running.
                 </p>
-              </div>
-            </div>
-          </div>
+              </Box>
+            </Flex>
+          </Box>
         )}
 
         {/* --- INGESTION TAB --- */}
         {activeTab === 'ingestion' && (
-          <div className="glass-panel rounded-xl overflow-hidden animate-in fade-in duration-300">
-            <div className="p-4 border-b border-[var(--glass-border)] flex items-center justify-between font-bold">
-              <h2 className="text-lg font-semibold text-[var(--text-primary)] flex items-center gap-2">
+          <Surface variant="panel" className="overflow-hidden animate-in fade-in duration-300">
+            <Flex
+              align="center"
+              justify="between"
+              className="p-4 border-b border-[var(--glass-border)] font-bold"
+            >
+              <LqText
+                as="h2"
+                variant="h3"
+                color="primary"
+                className="font-semibold flex items-center gap-2"
+              >
                 <RefreshCw className="text-orange-400 w-5 h-5" />
                 Ingestion History
-              </h2>
-            </div>
-            <div className="overflow-x-auto">
+              </LqText>
+            </Flex>
+            <Box className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-[var(--glass-bg-strong)] text-[var(--text-secondary)] text-sm border-b border-[var(--glass-border)]">
@@ -779,7 +878,7 @@ export const AdminDashboard: React.FC = () => {
                         {run.gitCommit?.substring(0, 7) || 'N/A'}
                       </td>
                       <td className="px-6 py-4">
-                        <div className="flex flex-col gap-1">
+                        <Flex direction="column" gap={1}>
                           <span className="text-[10px] text-[var(--text-secondary)]">
                             {run.agenticModelId || 'Legacy'}
                           </span>
@@ -788,7 +887,7 @@ export const AdminDashboard: React.FC = () => {
                               AGENTIC
                             </span>
                           )}
-                        </div>
+                        </Flex>
                       </td>
                     </tr>
                   ))}
@@ -804,20 +903,22 @@ export const AdminDashboard: React.FC = () => {
                   )}
                 </tbody>
               </table>
-            </div>
-          </div>
+            </Box>
+          </Surface>
         )}
 
         {/* --- BACKUPS TAB --- */}
         {activeTab === 'backups' && (
-          <div className="space-y-6 animate-in fade-in duration-300">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-bold text-[var(--text-primary)]">Database Backups</h2>
-                <p className="text-[var(--text-secondary)] text-sm">
+          <Box className="space-y-6 animate-in fade-in duration-300">
+            <Flex align="center" justify="between">
+              <Box>
+                <LqText as="h2" variant="h3" color="primary" className="font-bold cursor-text">
+                  Database Backups
+                </LqText>
+                <LqText as="p" variant="small" color="secondary">
                   Compressed database snapshots (Last 7 days retained)
-                </p>
-              </div>
+                </LqText>
+              </Box>
               <button
                 onClick={triggerBackup}
                 className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] hover:brightness-110 text-[var(--text-primary)] rounded-lg transition-colors shadow-lg shadow-[var(--accent)]/20"
@@ -825,9 +926,9 @@ export const AdminDashboard: React.FC = () => {
                 <RefreshCw size={18} />
                 Snapshot Now
               </button>
-            </div>
+            </Flex>
 
-            <div className="glass-panel rounded-xl overflow-hidden">
+            <Surface variant="panel" className="overflow-hidden">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-[var(--glass-bg-strong)] text-[var(--text-secondary)] text-sm border-b border-[var(--glass-border)]">
@@ -866,28 +967,39 @@ export const AdminDashboard: React.FC = () => {
                   )}
                 </tbody>
               </table>
-            </div>
-          </div>
+            </Surface>
+          </Box>
         )}
 
         {/* --- REVIEW TAB --- */}
         {activeTab === 'review' && (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <Box className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <ReviewQueuePanel />
-          </div>
+          </Box>
         )}
-      </div>
+      </Box>
 
       {/* Create/Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[var(--glass-bg-strong)] backdrop-blur-sm">
-          <div className="w-full max-w-md glass-panel shadow-2xl rounded-xl animate-in fade-in zoom-in duration-200">
-            <div className="flex items-center justify-between p-6 border-b border-[var(--glass-border)]">
-              <h3 className="text-xl font-semibold text-[var(--text-primary)]">
+        <Flex
+          align="center"
+          justify="center"
+          className="fixed inset-0 z-50 p-4 bg-[var(--glass-bg-strong)] backdrop-blur-sm"
+        >
+          <Surface
+            variant="panel"
+            className="w-full max-w-md shadow-2xl animate-in fade-in zoom-in duration-200"
+          >
+            <Flex
+              align="center"
+              justify="between"
+              className="p-6 border-b border-[var(--glass-border)]"
+            >
+              <LqText as="h3" variant="h3" color="primary" className="font-semibold">
                 {editingUser ? 'Edit User' : 'Add New User'}
-              </h3>
+              </LqText>
               <CloseButton onClick={closeModal} size="sm" label="Close user modal" />
-            </div>
+            </Flex>
 
             <form onSubmit={editingUser ? handleUpdate : handleCreate} className="p-6 space-y-4">
               <div>
@@ -975,10 +1087,10 @@ export const AdminDashboard: React.FC = () => {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
+          </Surface>
+        </Flex>
       )}
-    </div>
+    </Box>
   );
 };
 

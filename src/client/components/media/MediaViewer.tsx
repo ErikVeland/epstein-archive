@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Download, ZoomIn, ZoomOut, RotateCw } from 'lucide-react';
 import { CloseButton } from '../common/CloseButton';
@@ -51,19 +51,18 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({
     (ext) => fileType === ext || fileName.toLowerCase().endsWith('.' + ext),
   );
 
-  useEffect(() => {
-    // Reset zoom and rotation when file changes
+  const [prevFilePath, setPrevFilePath] = useState(filePath);
+  if (filePath !== prevFilePath) {
+    setPrevFilePath(filePath);
     setZoom(1);
     setRotation(0);
-
-    // If not supported (fallback view), we won't get an onLoad event, so stop loading immediately
     const isSupported = isPdf || isImage;
     if (!isSupported) {
       setIsLoading(false);
     } else {
       setIsLoading(true);
     }
-  }, [filePath, isPdf, isImage]);
+  }
 
   const renderMedia = () => {
     if (isPdf) {

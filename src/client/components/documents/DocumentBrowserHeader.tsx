@@ -8,6 +8,9 @@ import {
   ChevronDown,
   ChevronRight,
 } from 'lucide-react';
+import { Box } from '../../design-system/components/layout/Box';
+import { Flex } from '../../design-system/components/layout/Flex';
+import { LqText } from '../../design-system/components/typography/Text';
 import { DOJ_TRANCHE_OPTIONS } from './documentTrancheOptions';
 
 interface DocumentBrowserHeaderProps {
@@ -58,32 +61,32 @@ export const DocumentBrowserHeader: React.FC<DocumentBrowserHeaderProps> = ({
   totalDocuments,
 }) => {
   return (
-    <div
+    <Box
       className={`sticky top-0 z-30 transition-all ${
-        isHeaderCondensed ? 'py-2 mb-3' : 'py-3 mb-4'
+        isHeaderCondensed
+          ? 'py-2 mb-3 bg-[var(--glass-bg-strong)]/80 backdrop-blur-md'
+          : 'py-3 mb-4'
       }`}
     >
-      <div className="flex items-center justify-between gap-3 mb-2">
-        <div className="min-w-0">
-          <h1
-            className={`font-bold text-[var(--text-primary)] ${isHeaderCondensed ? 'text-lg' : 'text-2xl'}`}
-          >
+      <Flex align="center" justify="between" gap="md" className="mb-2">
+        <Box className="min-w-0">
+          <LqText variant={isHeaderCondensed ? 'h3' : 'h1'} weight="bold" className="leading-tight">
             Document Browser
-          </h1>
+          </LqText>
           {!isHeaderCondensed && (
-            <p className="text-sm text-[var(--text-secondary)]">
+            <LqText variant="xs" color="secondary" className="mt-1">
               High-signal evidence previews, risk context, and fast navigation at scale
-            </p>
+            </LqText>
           )}
-        </div>
-        <div className="text-xs text-[var(--text-muted)] shrink-0">
+        </Box>
+        <LqText variant="xs" color="muted" className="shrink-0">
           {isFetching ? 'Updating results: ' : ''}
           Showing {filteredCount} of {totalDocuments.toLocaleString()}
-        </div>
-      </div>
+        </LqText>
+      </Flex>
 
-      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_auto] gap-2 xl:items-center">
-        <div className="relative flex-1">
+      <Box className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_auto] gap-2 xl:items-center">
+        <Box className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
           <input
             type="text"
@@ -106,9 +109,9 @@ export const DocumentBrowserHeader: React.FC<DocumentBrowserHeaderProps> = ({
               <X className="w-4 h-4" />
             </button>
           )}
-        </div>
+        </Box>
 
-        <div className="flex items-center gap-2 flex-wrap xl:justify-end">
+        <Flex align="center" gap="sm" className="flex-wrap xl:justify-end">
           <select
             value={selectedTranche}
             onChange={(e) => applyTrancheFilter(e.target.value)}
@@ -172,9 +175,9 @@ export const DocumentBrowserHeader: React.FC<DocumentBrowserHeaderProps> = ({
             ) : (
               <ListIcon className="w-4 h-4" />
             )}
-            <span className="text-xs uppercase tracking-wider font-semibold">
+            <LqText variant="xs" weight="semibold" className="uppercase tracking-wider">
               {viewMode === 'grid' ? 'List' : 'Grid'}
-            </span>
+            </LqText>
           </button>
           <button
             onClick={() => setShowFilters(!showFilters)}
@@ -188,8 +191,8 @@ export const DocumentBrowserHeader: React.FC<DocumentBrowserHeaderProps> = ({
               <ChevronRight className="w-3 h-3" />
             )}
           </button>
-        </div>
-      </div>
-    </div>
+        </Flex>
+      </Box>
+    </Box>
   );
 };

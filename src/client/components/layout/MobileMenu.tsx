@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import s from './MobileMenu.module.css';
 import Icon from '../common/Icon';
 import { CloseButton } from '../common/CloseButton';
@@ -22,23 +22,31 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
   onClose,
   onSearch,
 }) => {
-  const [attract, setAttract] = useState<boolean>(false);
-  const { isAdmin } = useAuth();
-  useScrollLock(open);
-
-  useLayoutEffect(() => {
-    const shown =
-      typeof window !== 'undefined' && localStorage.getItem('investigate_attract_shown') === 'true';
+  const [attract, setAttract] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const shown = localStorage.getItem('investigate_attract_shown') === 'true';
     const firstRunCompleted = localStorage.getItem('firstRunOnboardingCompleted') === 'true';
     const investigationOnboardingSeen =
       localStorage.getItem('hasSeenInvestigationOnboarding') === 'true';
     const boardOnboardingSeen = localStorage.getItem('board_onboarding_seen') === 'true';
-    const canAttract =
-      !shown && firstRunCompleted && investigationOnboardingSeen && boardOnboardingSeen;
-    setAttract(canAttract);
-    const timer = setTimeout(() => setAttract(false), 8000);
-    return () => clearTimeout(timer);
-  }, []);
+
+    return !shown && firstRunCompleted && investigationOnboardingSeen && boardOnboardingSeen;
+  });
+
+  const { isAdmin } = useAuth();
+  useScrollLock(open);
+
+  useEffect(() => {
+    if (attract) {
+      try {
+        localStorage.setItem('investigate_attract_shown', 'true');
+      } catch {
+        // ignore
+      }
+      const timer = setTimeout(() => setAttract(false), 8000);
+      return () => clearTimeout(timer);
+    }
+  }, [attract]);
 
   // Ensure mobile menu doesn't linger when viewport switches to desktop.
   useEffect(() => {

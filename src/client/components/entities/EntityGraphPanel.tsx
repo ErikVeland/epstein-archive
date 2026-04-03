@@ -4,6 +4,10 @@ import EntityRelationshipMapper, { Entity, Relationship } from './EntityRelation
 import { type GraphNode, type GraphEdge } from '../../services/GraphService';
 import { apiClient } from '../../services/apiClient';
 import ScopedErrorBoundary from '../common/ScopedErrorBoundary';
+import { Surface } from '../../design-system/components/surfaces/Surface';
+import { Box } from '../../design-system/components/layout/Box';
+import { Flex } from '../../design-system/components/layout/Flex';
+import { LqText } from '../../design-system/components/typography/Text';
 
 interface EntityGraphPanelProps {
   entityId: string | number;
@@ -59,40 +63,48 @@ export const EntityGraphPanel: React.FC<EntityGraphPanelProps> = ({ entityId }) 
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-[var(--space-8)]">
-        <div className="text-sm text-[var(--text-muted)]">Loading entity graph...</div>
-      </div>
+      <Flex align="center" justify="center" className="py-12">
+        <LqText color="muted" variant="small">
+          Loading entity graph...
+        </LqText>
+      </Flex>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-[var(--accent-danger)]/10 border border-[var(--accent-danger)]/20 text-[var(--accent-danger)] text-sm rounded-[var(--radius-lg)] p-[var(--space-4)]">
-        Failed to load graph: {error}
-      </div>
+      <Surface variant="glass" className="p-4 border-red-500/20 bg-red-500/5">
+        <LqText color="danger" variant="small">
+          Failed to load graph: {error}
+        </LqText>
+      </Surface>
     );
   }
 
   if (!mapperEntities.length || !mapperRelationships.length) {
     return (
-      <div className="bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-[var(--space-4)] text-sm text-[var(--text-secondary)]">
-        No graph data available yet for this entity.
-      </div>
+      <Surface variant="glass" className="p-4">
+        <LqText color="secondary" variant="small">
+          No graph data available yet for this entity.
+        </LqText>
+      </Surface>
     );
   }
 
   return (
-    <div className="bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-[var(--space-4)]">
+    <Surface variant="glass" className="p-4">
       <ScopedErrorBoundary
         fallback={
-          <div className="bg-[var(--accent-danger)]/10 border border-[var(--accent-danger)]/20 text-[var(--accent-danger)] text-sm rounded-[var(--radius-lg)] p-[var(--space-4)]">
-            A rendering error occurred in the entity graph. The data might be malformed.
-          </div>
+          <Box className="p-4 bg-red-500/5 border border-red-500/20 rounded-[var(--radius-lg)]">
+            <LqText color="danger" variant="small">
+              A rendering error occurred in the entity graph. The data might be malformed.
+            </LqText>
+          </Box>
         }
       >
         <EntityRelationshipMapper entities={mapperEntities} relationships={mapperRelationships} />
       </ScopedErrorBoundary>
-    </div>
+    </Surface>
   );
 };
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -51,8 +51,6 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
 
   const { isAdmin } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
-  const [editTitle, setEditTitle] = useState('');
-  const [editDesc, setEditDesc] = useState('');
   const [showCopied, setShowCopied] = useState(false);
 
   useScrollLock(true);
@@ -73,33 +71,33 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
     }
   };
 
-  // Local rotation state (for immediate feedback)
-  // Using a ref to persist rotation value across component re-renders
-  const rotationRef = useRef(0);
-  const [rotation, setRotation] = useState(0);
-  // Flag to prevent re-initialization after successful rotation
-  const justRotatedRef = useRef(false);
+  // Local state
+  const [rotation, setRotation] = useState(() =>
+    getRotationFromOrientation(currentImage?.orientation),
+  );
+  const [justRotated, setJustRotated] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
-  // Cache-buster version to force image refresh after rotation
   const [imageVersion, setImageVersion] = useState(0);
 
-  useLayoutEffect(() => {
-    if (currentImage) {
-      setImageLoading(true);
-      setEditTitle(currentImage.title || '');
-      setEditDesc(currentImage.description || '');
-      setIsEditing(false);
-      // Skip rotation initialization if we just finished rotating
-      if (justRotatedRef.current) {
-        justRotatedRef.current = false;
-        return;
-      }
-      // Initialize rotation from saved orientation
-      const initialRotation = getRotationFromOrientation(currentImage.orientation);
-      setRotation(initialRotation);
-      rotationRef.current = initialRotation;
+  const [prevImageId, setPrevImageId] = useState(currentImage?.id);
+  const [editTitle, setEditTitle] = useState(currentImage?.title || '');
+  const [editDesc, setEditDesc] = useState(currentImage?.description || '');
+
+  // Deriving state from props during render (avoids useEffect cascading)
+  if (currentImage && currentImage.id !== prevImageId) {
+    setPrevImageId(currentImage.id);
+    setImageLoading(true);
+    setEditTitle(currentImage.title || '');
+    setEditDesc(currentImage.description || '');
+    setIsEditing(false);
+
+    // Skip rotation initialization if we just finished rotating
+    if (!justRotated) {
+      setRotation(getRotationFromOrientation(currentImage.orientation));
+    } else {
+      setJustRotated(false);
     }
-  }, [currentImage]);
+  }
 
   // Touch gesture support
   const touchStartRef = useRef<number | null>(null);
@@ -131,11 +129,6 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
   // Tags and people state
   const [imageTags, setImageTags] = useState<TagData[]>([]);
   const [imagePeople, setImagePeople] = useState<PersonData[]>([]);
-
-  // Handle screen resize to auto-manage sidebar visibility
-  useLayoutEffect(() => {
-    if (window.innerWidth < 768) setShowSidebar(false);
-  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -178,9 +171,7 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
 
     try {
       // Optimistic update
-      const newRotation = (rotationRef.current + (direction === 'right' ? 90 : -90)) % 360;
-      setRotation(newRotation);
-      rotationRef.current = newRotation;
+      setRotation((prev) => (prev + (direction === 'right' ? 90 : -90)) % 360);
 
       const res = await fetch(`/api/media/images/${currentImage.id}/rotate`, {
         method: 'PUT',
@@ -190,21 +181,16 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
 
       if (!res.ok) {
         // Revert on failure
-        const revertedRotation = (rotationRef.current - (direction === 'right' ? 90 : -90)) % 360;
-        setRotation(revertedRotation);
-        rotationRef.current = revertedRotation;
+        setRotation((prev) => (prev - (direction === 'right' ? 90 : -90)) % 360);
         console.error('Failed to rotate image');
       } else {
         const updatedImage = await res.json();
-        // Mark that we just rotated to prevent useEffect re-initialization
-        justRotatedRef.current = true;
-
-        // Create updated image with new data from server
-        const newImage = { ...currentImage, ...updatedImage };
+        // Mark that we just rotated to prevent render-time re-initialization
+        setJustRotated(true);
 
         // Notify parent of update to refresh grid/thumbnails
         if (onImageUpdate) {
-          onImageUpdate(newImage);
+          onImageUpdate({ ...currentImage, ...updatedImage });
         }
 
         // Set loading state to hide the transition
@@ -215,13 +201,10 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
 
         // Reset CSS rotation since the new image source is physically rotated
         setRotation(0);
-        rotationRef.current = 0;
       }
     } catch (e) {
       console.error('Error rotating image:', e);
-      const revertedRotation = (rotationRef.current - (direction === 'right' ? 90 : -90)) % 360;
-      setRotation(revertedRotation);
-      rotationRef.current = revertedRotation;
+      setRotation((prev) => (prev - (direction === 'right' ? 90 : -90)) % 360);
     }
   };
 

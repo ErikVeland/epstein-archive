@@ -1,0 +1,101 @@
+<h2>Migration Approaches</h2>
+<p class="subtitle">Three paths to full Tailwind removal with a prop-based Radix design system</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Extend &amp; Harden the Current System</h3>
+      <p>
+        Keep the BEM CSS + <code>lq-</code> prefix convention already established. Add a typed
+        spacing/sizing prop system to Box, Flex, Stack (via CSS custom properties). Build all
+        Radix-backed primitives (Dialog, Dropdown, Tooltip, Switch, Select) styled with the existing
+        token variables. Migrate components in phases.
+      </p>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Low architectural risk — extends what's already working</li>
+            <li>Existing Surface, LqText, Flex CSS stays unchanged</li>
+            <li>Incremental — ship phase by phase without breaking anything</li>
+            <li>Button already follows this pattern</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>Spacing prop API must be hand-built (mapping to CSS vars)</li>
+            <li>Flex's inline-style approach is inconsistent — needs fixing</li>
+            <li>Barrel exports need cleanup (Grid, Stack, Button missing from index.ts)</li>
+          </ul>
+        </div>
+      </div>
+      <p style="margin-top: 12px; font-size: 0.85em; color: var(--accent, #d4a84b)">
+        ⭐ Recommended
+      </p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Adopt Radix Themes as the Foundation</h3>
+      <p>
+        Install <code>@radix-ui/themes</code>, which ships a complete prop-based system (Box, Flex,
+        Grid, Text, Button, Dialog, Select, etc.) out of the box. Theme it to match the glass
+        aesthetic using Radix's CSS token overrides. Replace the custom design-system/ components
+        with the Radix Themes equivalents.
+      </p>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Massive reduction in custom code to write and maintain</li>
+            <li>Accessibility and keyboard nav come free with every component</li>
+            <li>Prop-based spacing/sizing/typography already done</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>Radix Themes opinionated defaults fight the glass aesthetic</li>
+            <li>Custom Surface/glass effects need significant CSS overrides</li>
+            <li>Throws away existing Surface, LqText, Flex work already done</li>
+            <li>Harder to customize deeply without fighting the library</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Token-First, Components-Second (Big-Bang)</h3>
+      <p>
+        Freeze component work. First establish the complete token system (spacing scale, sizing
+        scale, typography, color) as CSS custom properties. Then systematically rebuild every
+        component category in strict order: tokens → layout → surfaces → typography → interactive →
+        domain. No partial migrations.
+      </p>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Cleanest architectural result — zero drift or legacy</li>
+            <li>Token system informs everything downstream</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>Long feedback loop — nothing ships until the full system exists</li>
+            <li>High coordination cost across 100+ components</li>
+            <li>Risk: token choices prove wrong after you've built on them</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

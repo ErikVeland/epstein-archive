@@ -1,0 +1,255 @@
+<h2>Section 3 — Radix Interactive Primitives</h2>
+<p class="subtitle">
+  What gets replaced, what Radix package backs it, and what the new file looks like
+</p>
+
+<div class="section">
+  <h3>Replacement Map</h3>
+  <div
+    style="
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 0.85em;
+      font-family: var(--font-mono, monospace);
+    "
+  >
+    <div
+      style="
+        display: grid;
+        grid-template-columns: 180px 40px 200px 1fr;
+        gap: 10px;
+        align-items: center;
+        padding: 6px 10px;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.02);
+        color: var(--text-muted, #888);
+        font-size: 0.8em;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      "
+    >
+      <span>Remove</span><span></span><span>New DS component</span><span>Radix package</span>
+    </div>
+
+    <div
+      style="
+        display: grid;
+        grid-template-columns: 180px 40px 200px 1fr;
+        gap: 10px;
+        align-items: center;
+        padding: 10px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+      "
+    >
+      <span style="color: #f87171; text-decoration: line-through">GlassButton</span>
+      <span style="color: var(--text-muted, #888); text-align: center">→</span>
+      <span style="color: #86efac">Button ✓ done</span>
+      <span style="color: #888">@radix-ui/react-slot</span>
+    </div>
+
+    <div
+      style="
+        display: grid;
+        grid-template-columns: 180px 40px 200px 1fr;
+        gap: 10px;
+        align-items: center;
+        padding: 10px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+      "
+    >
+      <span style="color: #f87171; text-decoration: line-through">GlassModal</span>
+      <span style="color: var(--text-muted, #888); text-align: center">→</span>
+      <span style="color: #a78bfa">Dialog</span>
+      <span style="color: #888">@radix-ui/react-dialog</span>
+    </div>
+
+    <div
+      style="
+        display: grid;
+        grid-template-columns: 180px 40px 200px 1fr;
+        gap: 10px;
+        align-items: center;
+        padding: 10px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+      "
+    >
+      <span style="color: #f87171; text-decoration: line-through">GlassDropdown</span>
+      <span style="color: var(--text-muted, #888); text-align: center">→</span>
+      <span style="color: #a78bfa">DropdownMenu</span>
+      <span style="color: #888">@radix-ui/react-dropdown-menu</span>
+    </div>
+
+    <div
+      style="
+        display: grid;
+        grid-template-columns: 180px 40px 200px 1fr;
+        gap: 10px;
+        align-items: center;
+        padding: 10px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+      "
+    >
+      <span style="color: #f87171; text-decoration: line-through">GlassTooltip</span>
+      <span style="color: var(--text-muted, #888); text-align: center">→</span>
+      <span style="color: #a78bfa">Tooltip</span>
+      <span style="color: #888">@radix-ui/react-tooltip</span>
+    </div>
+
+    <div
+      style="
+        display: grid;
+        grid-template-columns: 180px 40px 200px 1fr;
+        gap: 10px;
+        align-items: center;
+        padding: 10px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+      "
+    >
+      <span style="color: #f87171; text-decoration: line-through">GlassSwitch</span>
+      <span style="color: var(--text-muted, #888); text-align: center">→</span>
+      <span style="color: #a78bfa">Switch</span>
+      <span style="color: #888">@radix-ui/react-switch</span>
+    </div>
+
+    <div
+      style="
+        display: grid;
+        grid-template-columns: 180px 40px 200px 1fr;
+        gap: 10px;
+        align-items: center;
+        padding: 10px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+      "
+    >
+      <span style="color: #f87171; text-decoration: line-through">common/Select</span>
+      <span style="color: var(--text-muted, #888); text-align: center">→</span>
+      <span style="color: #a78bfa">Select</span>
+      <span style="color: #888">@radix-ui/react-select</span>
+    </div>
+
+    <div
+      style="
+        display: grid;
+        grid-template-columns: 180px 40px 200px 1fr;
+        gap: 10px;
+        align-items: center;
+        padding: 10px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+      "
+    >
+      <span style="color: #f87171; text-decoration: line-through">common/Tooltip</span>
+      <span style="color: var(--text-muted, #888); text-align: center">→</span>
+      <span style="color: #a78bfa">Tooltip</span>
+      <span style="color: #888">(same component, two consumers)</span>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>File Structure</h3>
+  <div
+    style="
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 14px;
+      font-family: var(--font-mono, monospace);
+      font-size: 0.82em;
+      line-height: 1.9;
+      color: #c4b89a;
+    "
+  >
+    <div>design-system/</div>
+    <div style="padding-left: 16px">components/</div>
+    <div style="padding-left: 32px; color: #86efac">layout/ Box, Flex, Grid, Stack</div>
+    <div style="padding-left: 32px; color: #86efac">surfaces/ Surface</div>
+    <div style="padding-left: 32px; color: #86efac">typography/ Text (LqText)</div>
+    <div style="padding-left: 32px; color: #86efac">Button.tsx</div>
+    <div style="padding-left: 32px; color: #a78bfa">
+      interactive/ <span style="color: #888">← new</span>
+    </div>
+    <div style="padding-left: 48px; color: #a78bfa">Dialog.tsx + Dialog.css</div>
+    <div style="padding-left: 48px; color: #a78bfa">DropdownMenu.tsx + DropdownMenu.css</div>
+    <div style="padding-left: 48px; color: #a78bfa">Tooltip.tsx + Tooltip.css</div>
+    <div style="padding-left: 48px; color: #a78bfa">Switch.tsx + Switch.css</div>
+    <div style="padding-left: 48px; color: #a78bfa">Select.tsx + Select.css</div>
+    <div style="padding-left: 16px; margin-top: 4px">lib/</div>
+    <div style="padding-left: 32px; color: #22d3ee">
+      index.ts <span style="color: #888">← barrel: exports everything above</span>
+    </div>
+    <div style="padding-left: 32px; color: #22d3ee">
+      tokens.css <span style="color: #888">← --space-*, --size-* additions</span>
+    </div>
+    <div style="padding-left: 32px; color: #22d3ee">
+      resolveSpace.ts <span style="color: #888">← shared prop→style utility</span>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Styling Pattern for Radix Primitives</h3>
+  <p style="font-size: 0.85em; color: var(--text-muted, #888); margin-bottom: 10px">
+    Each Radix component wraps the primitive, applies <code>lq-*</code> BEM classes, and accepts no
+    Tailwind. Animations use CSS keyframes, not Tailwind animate-*.
+  </p>
+  <div
+    style="
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 14px;
+      font-family: var(--font-mono, monospace);
+      font-size: 0.8em;
+      line-height: 1.8;
+    "
+  >
+    <div style="color: #888">
+      <span style="color: #7dd3fc">import</span> *
+      <span style="color: #7dd3fc">as</span> RadixDialog <span style="color: #7dd3fc">from</span>
+      <span style="color: #86efac">'@radix-ui/react-dialog'</span>;
+    </div>
+    <div style="color: #888">
+      <span style="color: #7dd3fc">import</span> { cn } <span style="color: #7dd3fc">from</span>
+      <span style="color: #86efac">'../../lib'</span>;
+    </div>
+    <div style="color: #888">
+      <span style="color: #7dd3fc">import</span> <span style="color: #86efac">'./Dialog.css'</span>;
+    </div>
+    <div style="margin-top: 8px; color: #888">
+      <span style="color: #7dd3fc">export const</span> DialogContent = ({ className, ...props })
+      =&gt; (
+    </div>
+    <div style="color: #888; padding-left: 16px">
+      &lt;<span style="color: #f472b6">RadixDialog.Content</span>
+    </div>
+    <div style="color: #888; padding-left: 32px">
+      <span style="color: #a78bfa">className</span>={cn(<span style="color: #86efac"
+        >'lq-dialog__content'</span
+      >, className)}
+    </div>
+    <div style="color: #888; padding-left: 32px">{...props} /&gt;</div>
+    <div style="color: #888">);</div>
+    <div style="margin-top: 6px; color: #666; font-size: 0.85em">
+      <span style="color: #666"
+        >/* Dialog.css uses var(--glass-bg), var(--radius-xl), etc. — zero Tailwind */</span
+      >
+    </div>
+  </div>
+</div>
+
+<p style="margin-top: 8px; font-size: 0.9em">Does the interactive layer structure look right?</p>

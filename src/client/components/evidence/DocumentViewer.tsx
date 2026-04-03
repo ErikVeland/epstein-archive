@@ -4,7 +4,7 @@
  * Displays text-based evidence with formatting preserved
  */
 
-import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Search, Copy, Check, Download, ChevronLeft, ChevronRight, Bookmark } from 'lucide-react';
 import { prettifyOCRText } from '../../utils/prettifyOCR';
 import { RedactionPlaceholder } from './RedactionPlaceholder';
@@ -39,6 +39,8 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
   const [hideBoilerplate, setHideBoilerplate] = useState(false);
   const [currentMatch, setCurrentMatch] = useState(0);
   const [totalMatches, setTotalMatches] = useState(0);
+
+  const escapeRegExp = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -84,17 +86,14 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
     );
   }, [evidenceExtended]);
 
-  useLayoutEffect(() => {
-    if (!searchTerm) {
-      setTotalMatches(0);
-      setCurrentMatch(0);
-    }
-  }, [searchTerm]);
+  if (!searchTerm && totalMatches !== 0) {
+    setTotalMatches(0);
+    setCurrentMatch(0);
+  }
 
   useEffect(() => {
-    if (!searchTerm) return;
+    if (!searchTerm || totalMatches === 0) return;
     const matches = contentRef.current?.querySelectorAll('mark');
-    setTotalMatches(matches?.length || 0);
     if (matches && matches.length > 0) {
       setCurrentMatch(1);
       matches[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -105,7 +104,7 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
         'ring-offset-slate-900',
       );
     }
-  }, [searchTerm, showRaw, hideBoilerplate]);
+  }, [searchTerm, totalMatches]);
 
   const navigateMatch = (direction: 'next' | 'prev') => {
     const matches = contentRef.current?.querySelectorAll('mark');
@@ -137,22 +136,81 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
   const docEvidence = evidence as typeof evidence & { sentences?: Sentence[] };
   const hasSentences = docEvidence.sentences && docEvidence.sentences.length > 0;
 
-  const highlightText = (text: string, search: string) => {
-    if (!search.trim()) return text;
-    const parts = text.split(new RegExp(`(${search})`, 'gi'));
-    return parts.map((part, index) =>
-      part.toLowerCase() === search.toLowerCase() ? (
-        <mark
-          key={index}
-          className="bg-amber-500/40 text-[var(--text-primary)] px-0.5 rounded transition-all duration-300"
-        >
-          {part}
-        </mark>
-      ) : (
-        part
-      ),
-    );
-  };
+  const { renderedContent, derivedTotalMatches } = React.useMemo(() => {
+    let matchCount = 0;
+
+    const highlight = (text: string, search: string) => {
+      if (!search.trim()) return text;
+      const regex = new RegExp(`(${escapeRegExp(search)})`, 'gi');
+      const parts = text.split(regex);
+      return parts.map((part, index) => {
+        if (part.toLowerCase() === search.toLowerCase()) {
+          matchCount++;
+          return (
+            <mark
+              key={index}
+              className="bg-amber-500/40 text-[var(--text-primary)] px-0.5 rounded transition-all duration-300"
+            >
+              {part}
+            </mark>
+          );
+        }
+        return part;
+      });
+    };
+
+    let content: React.ReactNode;
+    if (hasSentences && !showRaw) {
+      content = (
+        <div className="space-y-1">
+          {docEvidence.sentences!.map((sent) => {
+            if (hideBoilerplate && sent.is_boilerplate) return null;
+            return (
+              <span
+                key={sent.id}
+                className={`transition-colors ${
+                  sent.is_boilerplate ? 'text-[var(--text-muted)] text-xs' : ''
+                } ${sent.signal_score > 0.8 ? 'bg-violet-500/10 border-b border-violet-500/30' : ''}`}
+                title={`Signal: ${(sent.signal_score * 100).toFixed(0)}% ${
+                  sent.is_boilerplate ? '(Boilerplate)' : ''
+                }`}
+              >
+                {searchTerm ? highlight(sent.sentence_text, searchTerm) : sent.sentence_text}{' '}
+              </span>
+            );
+          })}
+        </div>
+      );
+    } else {
+      const rawText = evidence.extractedText;
+      const cleanText = evidence.contentRefined || prettifyOCRText(rawText);
+      const targetText = showRaw ? rawText : cleanText;
+
+      content = (
+        <div className={showRaw ? 'font-mono' : 'font-sans'}>
+          {searchTerm ? (
+            highlight(targetText, searchTerm)
+          ) : (
+            <WikiLink text={targetText} entities={entitiesList} />
+          )}
+        </div>
+      );
+    }
+
+    return { renderedContent: content, derivedTotalMatches: matchCount };
+  }, [
+    searchTerm,
+    showRaw,
+    hideBoilerplate,
+    evidence,
+    docEvidence.sentences,
+    hasSentences,
+    entitiesList,
+  ]);
+
+  if (searchTerm && totalMatches !== derivedTotalMatches) {
+    setTotalMatches(derivedTotalMatches);
+  }
 
   const copyText = () => {
     navigator.clipboard
@@ -166,46 +224,7 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
       });
   };
 
-  const renderContent = () => {
-    if (hasSentences && !showRaw) {
-      return (
-        <div className="space-y-1">
-          {docEvidence.sentences!.map((sent) => {
-            if (hideBoilerplate && sent.is_boilerplate) return null;
-
-            return (
-              <span
-                key={sent.id}
-                className={`transition-colors ${
-                  sent.is_boilerplate ? 'text-[var(--text-muted)] text-xs' : ''
-                } ${sent.signal_score > 0.8 ? 'bg-violet-500/10 border-b border-violet-500/30' : ''}`}
-                title={`Signal: ${(sent.signal_score * 100).toFixed(0)}% ${
-                  sent.is_boilerplate ? '(Boilerplate)' : ''
-                }`}
-              >
-                {searchTerm
-                  ? highlightText(sent.sentence_text, searchTerm)
-                  : sent.sentence_text}{' '}
-              </span>
-            );
-          })}
-        </div>
-      );
-    }
-
-    const rawText = evidence.extractedText;
-    const cleanText = evidence.contentRefined || prettifyOCRText(rawText);
-
-    return (
-      <div className={showRaw ? 'font-mono' : 'font-sans'}>
-        {searchTerm ? (
-          highlightText(showRaw ? rawText : cleanText, searchTerm)
-        ) : (
-          <WikiLink text={showRaw ? rawText : cleanText} entities={entitiesList} />
-        )}
-      </div>
-    );
-  };
+  const renderContent = () => renderedContent;
 
   return (
     <div className="h-full flex flex-col animate-in fade-in duration-700">

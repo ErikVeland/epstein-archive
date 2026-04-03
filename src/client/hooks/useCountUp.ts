@@ -10,6 +10,7 @@ export function useCountUp(target: number, duration: number = 1500, enabled: boo
   // Synchronous reset when disabled or target is 0
   useLayoutEffect(() => {
     if (!enabled || target === 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCount(target);
     }
   }, [enabled, target]);

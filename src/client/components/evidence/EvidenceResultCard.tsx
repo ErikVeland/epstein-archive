@@ -1,7 +1,11 @@
+import { User, FileText, Calendar, AlertTriangle } from 'lucide-react';
 import { Person } from '../../types';
 import { RedFlagIndex } from '../visualizations/RedFlagIndex';
-import Icon from '../common/Icon';
 import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
+import { Surface } from '../../design-system/components/surfaces/Surface';
+import { Box } from '../../design-system/components/layout/Box';
+import { Flex } from '../../design-system/components/layout/Flex';
+import { LqText } from '../../design-system/components/typography/Text';
 
 interface SearchResult {
   person: Person;
@@ -17,34 +21,42 @@ interface EvidenceResultCardProps {
 
 export function EvidenceResultCard({ result, onPersonClick }: EvidenceResultCardProps) {
   return (
-    <div className="bg-[var(--glass-bg)] rounded-[var(--radius-xl)] border border-[var(--glass-border)] overflow-hidden">
-      {/* Person Header - Mobile-optimized with stacked layout */}
-      <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-4 py-3 border-b border-[var(--glass-border)]">
-        {/* Entity Name - Always prominent at top */}
+    <Surface
+      variant="glass"
+      className="overflow-hidden border-white/5 transition-all hover:border-white/20"
+    >
+      {/* Person Header */}
+      <Box className="bg-gradient-to-r from-white/5 to-transparent px-4 py-3 border-b border-white/5">
         <button
           onClick={() => onPersonClick(result.person)}
-          className="text-lg md:text-base font-bold text-[var(--text-primary)] hover:text-[var(--accent)] transition-colors mb-2 md:mb-0 block text-left w-full truncate"
+          className="group block text-left w-full mb-2"
           title="Click to view full profile"
         >
-          {result.person.name}
+          <LqText
+            variant="h3"
+            weight="bold"
+            className="group-hover:text-[var(--accent)] transition-colors truncate"
+          >
+            {result.person.name}
+          </LqText>
         </button>
 
-        {/* Metadata - Stacked on mobile, inline on desktop */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-          {/* Tags row */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <Icon name="User" size="sm" color="primary" className="shrink-0 hidden md:block" />
-            <span
-              className={`px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase shrink-0 ${
+        <Flex direction="column" justify="between" gap={8} className="md:flex-row md:items-center">
+          <Flex align="center" gap={8} className="flex-wrap">
+            <User size={16} className="text-[var(--accent)] hidden md:block" />
+            <Box
+              className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${
                 result.person.likelihoodScore === 'HIGH'
-                  ? 'bg-red-900/80 text-red-200'
+                  ? 'bg-red-500/20 text-red-400 border border-red-500/30'
                   : result.person.likelihoodScore === 'MEDIUM'
-                    ? 'bg-yellow-900/80 text-yellow-200'
-                    : 'bg-green-900/80 text-green-200'
+                    ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
+                    : 'bg-green-500/20 text-green-400 border border-green-500/30'
               }`}
             >
-              {result.person.likelihoodScore}
-            </span>
+              <LqText variant="xs" weight="bold">
+                {result.person.likelihoodScore}
+              </LqText>
+            </Box>
             {result.person.redFlagRating !== undefined && (
               <RedFlagIndex
                 value={result.person.redFlagRating}
@@ -53,15 +65,18 @@ export function EvidenceResultCard({ result, onPersonClick }: EvidenceResultCard
                 showTextLabel={false}
               />
             )}
-          </div>
+          </Flex>
 
-          {/* Stats and actions - stacked text on mobile */}
-          <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
-            <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2 text-xs text-[var(--text-muted)]">
-              <span>{result.person.mentions?.toLocaleString()} mentions</span>
-              <span className="hidden md:inline text-[var(--text-primary)]">•</span>
-              <span>{result.person.files} files</span>
-            </div>
+          <Flex align="center" gap={12}>
+            <Flex align="center" gap={4} className="text-white/40">
+              <LqText variant="xs" color="muted">
+                {result.person.mentions?.toLocaleString()} mentions
+              </LqText>
+              <Box className="w-1 h-1 rounded-full bg-white/20" />
+              <LqText variant="xs" color="muted">
+                {result.person.files} files
+              </LqText>
+            </Flex>
             <AddToInvestigationButton
               item={{
                 id: result.person.id?.toString() || '',
@@ -71,93 +86,99 @@ export function EvidenceResultCard({ result, onPersonClick }: EvidenceResultCard
                 sourceId: result.person.id?.toString() || '',
               }}
               variant="quick"
-              className="hover:bg-[var(--glass-bg-highlight)] self-start md:self-auto"
+              className="hover:bg-white/10"
             />
-          </div>
-        </div>
-      </div>
+          </Flex>
+        </Flex>
+      </Box>
 
       {/* Evidence Types */}
-      <div className="p-4 border-b border-[var(--glass-border)]">
-        <div className="flex flex-wrap gap-2">
+      <Box className="p-4 border-b border-white/5">
+        <Flex gap={8} className="flex-wrap">
           {result.person.evidenceTypes.map((type, i) => (
-            <span key={i} className="px-2 py-1 bg-blue-900 text-blue-200 rounded text-xs">
-              {type.replace('_', ' ').toUpperCase()}
-            </span>
+            <Box
+              key={i}
+              className="px-2 py-1 bg-white/5 border border-white/5 rounded text-[10px] text-white/60 font-medium uppercase tracking-wider"
+            >
+              {type.replace('_', ' ')}
+            </Box>
           ))}
-        </div>
-      </div>
+        </Flex>
+      </Box>
 
       {/* Matching Contexts */}
       {result.matchingContexts.length > 0 && (
-        <div className="p-4 border-b border-[var(--glass-border)]">
-          <h4
-            className="text-sm font-medium text-[var(--text-secondary)] mb-3 flex items-center gap-2"
-            aria-level={3}
-          >
-            <Icon name="FileText" size="sm" />
-            Contexts ({result.matchingContexts.length})
-          </h4>
-          {/* Microcopy for Contexts */}
-          <div className="text-xs text-[var(--text-muted)] mb-3 flex items-start gap-1">
-            <Icon name="Info" size="xs" className="mt-0.5 flex-shrink-0" />
-            <span>Relevant excerpts from documents mentioning this subject</span>
-          </div>
-          <div className="space-y-3">
+        <Box className="p-4 border-b border-white/5 bg-white/[0.01]">
+          <Flex align="center" gap={8} className="mb-3">
+            <FileText size={14} className="text-white/40" />
+            <LqText variant="small" weight="bold" color="muted">
+              CONTEXTS ({result.matchingContexts.length})
+            </LqText>
+          </Flex>
+
+          <Box className="space-y-3">
             {result.matchingContexts.map((context, i) => (
-              <div key={i} className="bg-[var(--glass-bg-strong)] p-3 rounded-[var(--radius-lg)]">
-                <div className="text-sm text-[var(--text-secondary)] mb-2">{context.context}</div>
-                <div className="flex items-center gap-2 text-xs text-[var(--text-muted)] overflow-hidden">
-                  <Icon name="FileText" size="xs" className="shrink-0" />
-                  <span className="truncate">{context.file}</span>
+              <Surface key={i} variant="glass" className="p-3 bg-white/2 space-y-2">
+                <LqText
+                  variant="small"
+                  color="primary"
+                  className="leading-relaxed italic opacity-90"
+                >
+                  &quot;{context.context}&quot;
+                </LqText>
+                <Flex align="center" gap={8} className="opacity-40">
+                  <FileText size={12} className="shrink-0" />
+                  <LqText variant="xs" className="truncate">
+                    {context.file}
+                  </LqText>
                   {context.date !== 'Unknown' && (
                     <>
-                      <span>•</span>
-                      <Icon name="Calendar" size="xs" />
-                      <span>{context.date}</span>
+                      <Box className="w-1 h-1 rounded-full bg-white/40" />
+                      <Calendar size={12} />
+                      <LqText variant="xs">{context.date}</LqText>
                     </>
                   )}
-                </div>
-              </div>
+                </Flex>
+              </Surface>
             ))}
-          </div>
-        </div>
+          </Box>
+        </Box>
       )}
 
       {/* Matching Red Flag Passages */}
       {result.matchingPassages.length > 0 && (
-        <div className="p-4 bg-red-900 bg-opacity-20">
-          <h4
-            className="text-sm font-medium text-red-300 mb-3 flex items-center gap-2"
-            aria-level={3}
-          >
-            <Icon name="AlertTriangle" size="sm" color="danger" />
-            Key Passages ({result.matchingPassages.length})
-          </h4>
-          {/* Microcopy for Key Passages */}
-          <div className="text-xs text-red-200 mb-3 flex items-start gap-1">
-            <Icon name="Info" size="xs" className="mt-0.5 flex-shrink-0" />
-            <span>Excerpts containing flagged keywords or significant mentions</span>
-          </div>
-          <div className="space-y-3">
+        <Box className="p-4 bg-red-500/[0.03]">
+          <Flex align="center" gap={8} className="mb-3">
+            <AlertTriangle size={14} className="text-red-400" />
+            <LqText variant="small" weight="bold" className="text-red-400 uppercase tracking-wider">
+              KEY PASSAGES ({result.matchingPassages.length})
+            </LqText>
+          </Flex>
+
+          <Box className="space-y-3">
             {result.matchingPassages.map((passage, i) => (
-              <div
+              <Surface
                 key={i}
-                className="bg-red-900 bg-opacity-30 p-3 rounded-[var(--radius-lg)] border border-red-700"
+                variant="glass"
+                className="p-3 bg-red-500/5 border-red-500/10 space-y-2"
               >
-                <div className="text-sm text-red-200 mb-2">{passage.passage}</div>
-                <div className="flex items-center gap-2 text-xs text-red-400">
-                  <span className="px-2 py-1 bg-red-800 rounded">
-                    {passage.keyword.toUpperCase()}
-                  </span>
-                  <span>•</span>
-                  <span>{passage.filename}</span>
-                </div>
-              </div>
+                <LqText variant="small" className="text-red-100 leading-relaxed font-medium">
+                  &quot;{passage.passage}&quot;
+                </LqText>
+                <Flex align="center" gap={8}>
+                  <Box className="px-1.5 py-0.5 bg-red-500/20 border border-red-500/20 rounded text-[9px] font-bold text-red-300 uppercase">
+                    {passage.keyword}
+                  </Box>
+                  <Box className="w-1 h-1 rounded-full bg-red-500/20" />
+                  <LqText variant="xs" className="text-red-400/60 truncate">
+                    {passage.filename}
+                  </LqText>
+                </Flex>
+              </Surface>
             ))}
-          </div>
-        </div>
+          </Box>
+        </Box>
       )}
-    </div>
+    </Surface>
   );
 }

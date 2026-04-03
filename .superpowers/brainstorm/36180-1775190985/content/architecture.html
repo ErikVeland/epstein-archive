@@ -1,0 +1,348 @@
+<h2>Section 1 — System Architecture</h2>
+<p class="subtitle">Five layers, each built on the one below. No layer imports Tailwind.</p>
+
+<div
+  style="
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 24px;
+    font-family: var(--font-mono, monospace);
+  "
+>
+  <div
+    style="
+      background: rgba(212, 168, 75, 0.12);
+      border: 1px solid rgba(212, 168, 75, 0.35);
+      border-radius: 10px;
+      padding: 16px 20px;
+    "
+  >
+    <div
+      style="
+        font-size: 0.7em;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(212, 168, 75, 0.8);
+        margin-bottom: 6px;
+      "
+    >
+      Layer 5 — Migration Sweeps
+    </div>
+    <div style="font-size: 0.9em; color: var(--text-primary, #e8dcc8)">
+      Domain components (flights/, investigation/, properties/, visualizations/) + all pages/common/
+      — consume design system only, zero Tailwind
+    </div>
+  </div>
+
+  <div style="text-align: center; font-size: 0.75em; color: var(--text-muted, #888)">
+    ↑ consumes
+  </div>
+
+  <div
+    style="
+      background: rgba(168, 85, 247, 0.1);
+      border: 1px solid rgba(168, 85, 247, 0.3);
+      border-radius: 10px;
+      padding: 16px 20px;
+    "
+  >
+    <div
+      style="
+        font-size: 0.7em;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(168, 85, 247, 0.8);
+        margin-bottom: 6px;
+      "
+    >
+      Layer 4 — Radix Interactive Primitives
+      <span style="font-size: 0.8em; opacity: 0.6">(new)</span>
+    </div>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px">
+      <span
+        style="
+          background: rgba(168, 85, 247, 0.15);
+          border: 1px solid rgba(168, 85, 247, 0.25);
+          border-radius: 6px;
+          padding: 4px 10px;
+          font-size: 0.82em;
+        "
+        >Button ✓</span
+      >
+      <span
+        style="
+          background: rgba(168, 85, 247, 0.15);
+          border: 1px solid rgba(168, 85, 247, 0.25);
+          border-radius: 6px;
+          padding: 4px 10px;
+          font-size: 0.82em;
+        "
+        >Dialog</span
+      >
+      <span
+        style="
+          background: rgba(168, 85, 247, 0.15);
+          border: 1px solid rgba(168, 85, 247, 0.25);
+          border-radius: 6px;
+          padding: 4px 10px;
+          font-size: 0.82em;
+        "
+        >DropdownMenu</span
+      >
+      <span
+        style="
+          background: rgba(168, 85, 247, 0.15);
+          border: 1px solid rgba(168, 85, 247, 0.25);
+          border-radius: 6px;
+          padding: 4px 10px;
+          font-size: 0.82em;
+        "
+        >Tooltip</span
+      >
+      <span
+        style="
+          background: rgba(168, 85, 247, 0.15);
+          border: 1px solid rgba(168, 85, 247, 0.25);
+          border-radius: 6px;
+          padding: 4px 10px;
+          font-size: 0.82em;
+        "
+        >Switch</span
+      >
+      <span
+        style="
+          background: rgba(168, 85, 247, 0.15);
+          border: 1px solid rgba(168, 85, 247, 0.25);
+          border-radius: 6px;
+          padding: 4px 10px;
+          font-size: 0.82em;
+        "
+        >Select</span
+      >
+    </div>
+    <div style="font-size: 0.8em; color: var(--text-muted, #888); margin-top: 8px">
+      Each lives in design-system/components/interactive/ with a paired .css file using token vars.
+      Replaces Glass* + common/ counterparts.
+    </div>
+  </div>
+
+  <div style="text-align: center; font-size: 0.75em; color: var(--text-muted, #888)">
+    ↑ consumes
+  </div>
+
+  <div
+    style="
+      background: rgba(34, 211, 238, 0.08);
+      border: 1px solid rgba(34, 211, 238, 0.25);
+      border-radius: 10px;
+      padding: 16px 20px;
+    "
+  >
+    <div
+      style="
+        font-size: 0.7em;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(34, 211, 238, 0.7);
+        margin-bottom: 6px;
+      "
+    >
+      Layer 3 — Surface &amp; Typography
+      <span style="font-size: 0.8em; opacity: 0.6">(fix Surface bug, complete exports)</span>
+    </div>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px">
+      <span
+        style="
+          background: rgba(34, 211, 238, 0.1);
+          border: 1px solid rgba(34, 211, 238, 0.2);
+          border-radius: 6px;
+          padding: 4px 10px;
+          font-size: 0.82em;
+        "
+        >Surface ✓</span
+      >
+      <span
+        style="
+          background: rgba(34, 211, 238, 0.1);
+          border: 1px solid rgba(34, 211, 238, 0.2);
+          border-radius: 6px;
+          padding: 4px 10px;
+          font-size: 0.82em;
+        "
+        >LqText ✓</span
+      >
+    </div>
+  </div>
+
+  <div style="text-align: center; font-size: 0.75em; color: var(--text-muted, #888)">
+    ↑ consumes
+  </div>
+
+  <div
+    style="
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      border-radius: 10px;
+      padding: 16px 20px;
+    "
+  >
+    <div
+      style="
+        font-size: 0.7em;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(16, 185, 129, 0.7);
+        margin-bottom: 6px;
+      "
+    >
+      Layer 2 — Layout Primitives
+      <span style="font-size: 0.8em; opacity: 0.6">(add spacing prop API)</span>
+    </div>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px">
+      <span
+        style="
+          background: rgba(16, 185, 129, 0.1);
+          border: 1px solid rgba(16, 185, 129, 0.2);
+          border-radius: 6px;
+          padding: 4px 10px;
+          font-size: 0.82em;
+        "
+        >Box ✓</span
+      >
+      <span
+        style="
+          background: rgba(16, 185, 129, 0.1);
+          border: 1px solid rgba(16, 185, 129, 0.2);
+          border-radius: 6px;
+          padding: 4px 10px;
+          font-size: 0.82em;
+        "
+        >Flex → refactor</span
+      >
+      <span
+        style="
+          background: rgba(16, 185, 129, 0.1);
+          border: 1px solid rgba(16, 185, 129, 0.2);
+          border-radius: 6px;
+          padding: 4px 10px;
+          font-size: 0.82em;
+        "
+        >Stack ✓</span
+      >
+      <span
+        style="
+          background: rgba(16, 185, 129, 0.1);
+          border: 1px solid rgba(16, 185, 129, 0.2);
+          border-radius: 6px;
+          padding: 4px 10px;
+          font-size: 0.82em;
+        "
+        >Grid ✓</span
+      >
+    </div>
+    <div style="font-size: 0.8em; color: var(--text-muted, #888); margin-top: 8px">
+      All primitives gain: p, px, py, pt, pb, m, mx, my, gap, w, h, maxW, minH props → inline styles
+      using token scale values
+    </div>
+  </div>
+
+  <div style="text-align: center; font-size: 0.75em; color: var(--text-muted, #888)">
+    ↑ consumes
+  </div>
+
+  <div
+    style="
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px;
+      padding: 16px 20px;
+    "
+  >
+    <div
+      style="
+        font-size: 0.7em;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.5);
+        margin-bottom: 6px;
+      "
+    >
+      Layer 1 — Token System
+      <span style="font-size: 0.8em; opacity: 0.6">(extend existing CSS vars)</span>
+    </div>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px">
+      <span
+        style="
+          background: rgba(255, 255, 255, 0.06);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 6px;
+          padding: 4px 10px;
+          font-size: 0.82em;
+        "
+        >Colors ✓</span
+      >
+      <span
+        style="
+          background: rgba(255, 255, 255, 0.06);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 6px;
+          padding: 4px 10px;
+          font-size: 0.82em;
+        "
+        >Radii ✓</span
+      >
+      <span
+        style="
+          background: rgba(255, 255, 255, 0.06);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 6px;
+          padding: 4px 10px;
+          font-size: 0.82em;
+        "
+        >Font sizes ✓</span
+      >
+      <span
+        style="
+          background: rgba(255, 255, 255, 0.06);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 6px;
+          padding: 4px 10px;
+          font-size: 0.82em;
+        "
+        >--space-* scale → new</span
+      >
+      <span
+        style="
+          background: rgba(255, 255, 255, 0.06);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 6px;
+          padding: 4px 10px;
+          font-size: 0.82em;
+        "
+        >--size-* scale → new</span
+      >
+    </div>
+  </div>
+</div>
+
+<div
+  style="
+    margin-top: 24px;
+    padding: 14px 18px;
+    background: rgba(212, 168, 75, 0.06);
+    border: 1px solid rgba(212, 168, 75, 0.2);
+    border-radius: 8px;
+    font-size: 0.85em;
+    color: var(--text-secondary, #c4b89a);
+  "
+>
+  <strong style="color: rgba(212, 168, 75, 0.9)">Key rule:</strong> Components only import from
+  design-system/. No Tailwind class strings anywhere in the codebase. The existing
+  <code>check:boundaries</code> script is joined by a new lint rule that bans Tailwind class
+  patterns from .tsx files.
+</div>
+
+<p style="margin-top: 20px; font-size: 0.9em">
+  Does this architecture look right? Anything missing or misplaced?
+</p>

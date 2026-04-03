@@ -1,6 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { FileText } from 'lucide-react';
+import { Surface } from '../../design-system/components/surfaces/Surface';
+import { Box } from '../../design-system/components/layout/Box';
+import { Flex } from '../../design-system/components/layout/Flex';
+import { LqText } from '../../design-system/components/typography/Text';
 import { Document } from '../../types/documents';
 import { getSafePreviewText, getSourceLabel, formatDate } from '../../utils/documentUtils';
 
@@ -24,53 +28,88 @@ export const DocumentHoverPreview: React.FC<DocumentHoverPreviewProps> = ({ doc,
       animate={{ opacity: 1, scale: 1, x: 0 }}
       exit={{ opacity: 0, scale: 0.95, x: x < rect.left ? 10 : -10 }}
       style={{ left: x, top: y }}
-      className="hover-preview-overlay"
+      className="fixed z-[100] w-[420px] pointer-events-none"
     >
-      <div className="preview-glow" />
-      <div className="preview-content">
-        <div className="flex items-center gap-2 mb-4">
+      <Surface
+        variant="glass"
+        className="p-6 relative overflow-hidden shadow-2xl ring-1 ring-[var(--accent)]/30"
+      >
+        <Box className="absolute top-0 right-0 w-32 h-32 bg-[var(--accent)]/5 blur-[40px] rounded-full -mr-16 -mt-16" />
+
+        <Flex align="center" gap="sm" className="mb-4">
           <FileText className="w-5 h-5 text-[var(--accent)]" />
-          <span className="text-[10px] font-black uppercase tracking-widest text-[var(--accent)]/80">
+          <LqText
+            variant="xs"
+            weight="black"
+            color="accent"
+            className="uppercase tracking-widest opacity-80"
+          >
             Document Preview
-          </span>
-        </div>
+          </LqText>
+        </Flex>
 
-        <h3 className="text-xl font-bold text-[var(--text-primary)] mb-3 leading-tight">
+        <LqText variant="h3" weight="bold" className="mb-3 leading-tight">
           {displayTitle}
-        </h3>
+        </LqText>
 
-        <div className="flex flex-wrap gap-2 mb-6">
-          <span className="semantic-chip border-[var(--glass-border)] bg-[var(--glass-bg)]/50 text-[var(--text-secondary)]">
-            {doc.evidenceType || doc.fileType}
-          </span>
-          <span className="semantic-chip border-[var(--glass-border)] bg-[var(--glass-bg)]/50 text-[var(--text-secondary)]">
-            {formatDate(doc.dateCreated)}
-          </span>
-          <span className="semantic-chip border-[var(--glass-border)] bg-[var(--glass-bg)]/50 text-[var(--text-secondary)]">
-            {getSourceLabel(doc)}
-          </span>
-        </div>
+        <Flex wrap="wrap" gap="xs" className="mb-6">
+          <Surface
+            variant="glass-highlight"
+            className="px-2.5 py-1 rounded-full border-[var(--glass-border)]"
+          >
+            <LqText variant="xs" color="secondary" weight="medium">
+              {doc.evidenceType || doc.fileType}
+            </LqText>
+          </Surface>
+          <Surface
+            variant="glass-highlight"
+            className="px-2.5 py-1 rounded-full border-[var(--glass-border)]"
+          >
+            <LqText variant="xs" color="secondary" weight="medium">
+              {formatDate(doc.dateCreated)}
+            </LqText>
+          </Surface>
+          <Surface
+            variant="glass-highlight"
+            className="px-2.5 py-1 rounded-full border-[var(--glass-border)]"
+          >
+            <LqText variant="xs" color="secondary" weight="medium">
+              {getSourceLabel(doc)}
+            </LqText>
+          </Surface>
+        </Flex>
 
-        <div className="preview-ocr-snippet">{previewText}</div>
+        <Box className="bg-[var(--glass-bg-strong)]/50 border border-[var(--glass-border)]/50 rounded-[var(--radius-lg)] p-4 font-mono text-[11px] leading-relaxed text-[var(--text-secondary)] mb-6 max-h-[160px] overflow-hidden relative">
+          {previewText}
+          <Box className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-[var(--glass-bg-strong)] to-transparent" />
+        </Box>
 
         {doc.keyEntities && doc.keyEntities.length > 0 && (
-          <div className="mt-6">
-            <div className="text-[10px] font-bold uppercase text-[var(--text-muted)] mb-2 tracking-widest">
+          <Box>
+            <LqText
+              variant="xs"
+              weight="bold"
+              color="muted"
+              className="uppercase mb-3 tracking-widest text-[10px]"
+            >
               Key Detected Entities
-            </div>
-            <div className="flex flex-wrap gap-2">
+            </LqText>
+            <Flex wrap="wrap" gap="xs">
               {doc.keyEntities.slice(0, 8).map((entity, i) => (
-                <span
+                <Surface
                   key={i}
-                  className="px-2 py-1 bg-[var(--accent)]/10 border border-[var(--accent)]/20 rounded text-[11px] text-[var(--accent)]"
+                  variant="glass-highlight"
+                  className="px-2 py-0.5 border-[var(--accent)]/30 bg-[var(--accent)]/5 rounded text-[var(--accent)]"
                 >
-                  {entity}
-                </span>
+                  <LqText variant="xs" color="accent" weight="medium">
+                    {entity}
+                  </LqText>
+                </Surface>
               ))}
-            </div>
-          </div>
+            </Flex>
+          </Box>
         )}
-      </div>
+      </Surface>
     </motion.div>
   );
 };

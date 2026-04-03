@@ -9,6 +9,10 @@ import { useAbortableRequest } from '../hooks/useAbortableRequest';
 import { DegradedBanner } from '../components/shared/DegradedBanner';
 import { Person } from '../types';
 import { AnalyticsProvider } from '../contexts/AnalyticsContext';
+import { Surface } from '../design-system/components/surfaces/Surface';
+import { Flex } from '../design-system/components/layout/Flex';
+import { Box } from '../design-system/components/layout/Box';
+import { LqText } from '../design-system/components/typography/Text';
 
 interface AnalyticsPageProps {
   filteredPeople?: Person[];
@@ -52,25 +56,33 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({
   return (
     <AnalyticsProvider value={contextValue}>
       <ScopedErrorBoundary>
-        <div className="space-y-8">
+        <Flex direction="column" gap={8}>
           <DegradedBanner />
-          <div className="mb-12">
-            <h2 className="text-[2.5rem] leading-none font-display font-light tracking-tight text-[var(--accent)] mb-3">
+          <Box className="mb-12">
+            <LqText as="h2" variant="h2" color="accent" className="mb-3">
               Enhanced Analytics
-            </h2>
-            <p className="text-lg text-[var(--text-muted)] font-light tracking-wide">
+            </LqText>
+            <LqText
+              as="p"
+              variant="body"
+              color="muted"
+              weight="light"
+              className="tracking-wide text-lg"
+            >
               Interactive visualizations of the Epstein Investigation dataset
-            </p>
-          </div>
+            </LqText>
+          </Box>
           <EnhancedAnalytics />
 
-          <div className="p-8 mt-12 mb-8 bg-[var(--glass-bg)]/30 backdrop-blur-xl rounded-[var(--radius-2xl)] shadow-[var(--glass-shadow-soft)] border border-[var(--glass-border)]/50">
-            <h3 className="text-2xl font-display font-light text-[var(--accent)] mb-8 flex items-center gap-3">
-              Classic Analytics
-            </h3>
+          <Surface variant="glass" className="p-8 mt-12 mb-8">
+            <Flex align="center" gap={3} className="mb-8">
+              <LqText as="h3" variant="h3" color="accent">
+                Classic Analytics
+              </LqText>
+            </Flex>
             <DataVisualization />
-          </div>
-        </div>
+          </Surface>
+        </Flex>
       </ScopedErrorBoundary>
     </AnalyticsProvider>
   );

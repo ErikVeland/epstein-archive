@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import s from './WikiLink.module.css';
+import { LqText } from '../../design-system/components/typography/Text';
 
 interface WikiLinkProps {
   text: string;
@@ -62,15 +62,17 @@ export const WikiLink: React.FC<WikiLinkProps> = React.memo(({ text, entities })
         <Link
           key={`${seg.entityId}-${i}`}
           to={`/entities/${seg.entityId}`}
-          className={s.link}
+          className="inline group"
           title={`View profile for ${seg.content}`}
-          onClick={() => {
-            // If this is inside a modal or special view, we might want to stop propagation
-            // or handle it via a custom event.
-            // For now, standard navigation.
-          }}
         >
-          {seg.content}
+          <LqText
+            as="span"
+            variant="body"
+            color="accent"
+            className="inline font-medium underline underline-offset-4 decoration-[color:color-mix(in_srgb,var(--accent)_30%,transparent)] group-hover:decoration-[var(--accent)] transition-all duration-200"
+          >
+            {seg.content}
+          </LqText>
         </Link>
       ) : (
         seg.content

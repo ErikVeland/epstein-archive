@@ -22,6 +22,7 @@ interface DocEntity {
   unredaction_metrics?: Record<string, unknown>;
   content?: string;
   contentRefined?: string;
+  [key: string]: unknown;
 }
 
 interface RelatedDoc {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Users, Plus, X, Search } from 'lucide-react';
 
 export interface PersonData {
@@ -44,11 +44,9 @@ export const PeopleSelector: React.FC<PeopleSelectorProps> = ({
   }, []);
 
   // Debounced entity search
-  useLayoutEffect(() => {
-    if (!searchTerm.trim()) {
-      setSearchResults([]);
-    }
-  }, [searchTerm]);
+  if (!searchTerm.trim() && searchResults.length !== 0) {
+    setSearchResults([]);
+  }
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);

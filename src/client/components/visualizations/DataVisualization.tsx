@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Info, Users, AlertTriangle, Activity, ShieldAlert } from 'lucide-react';
 import { Tooltip, PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { Person } from '../../types';
@@ -89,26 +89,18 @@ export const DataVisualization: React.FC = () => {
     onPersonSelect,
   } = useAnalytics();
 
-  const [stats, setStats] = useState({
-    totalPeople: 0,
-    highRisk: 0,
-    totalMentions: 0,
-    avgRedFlag: 0,
-    uniqueRoles: 0,
-    activeInvestigations: 0,
-  });
-
-  useEffect(() => {
+  const stats = useMemo(() => {
     if (analyticsData) {
-      setStats({
+      return {
         totalPeople: analyticsData.totalEntities || 0,
         highRisk: analyticsData.likelihoodDistribution?.find((d) => d.level === 'HIGH')?.count || 0,
         totalMentions: analyticsData.totalMentions || 0,
         avgRedFlag: analyticsData.averageRedFlagRating || 0,
         uniqueRoles: analyticsData.totalUniqueRoles || analyticsData.roleDistribution?.length || 0,
         activeInvestigations: analyticsData.activeInvestigations || 0,
-      });
-    } else if (people.length > 0) {
+      };
+    }
+    if (people.length > 0) {
       const highRisk = people.filter((p) => (p.redFlagRating ?? 0) >= 4).length;
       const totalMentions = people.reduce((acc, p) => acc + (p.mentions || 0), 0);
       const avgRedFlag = people.reduce((acc, p) => acc + (p.redFlagRating || 0), 0) / people.length;
@@ -122,15 +114,23 @@ export const DataVisualization: React.FC = () => {
         }
       });
 
-      setStats({
+      return {
         totalPeople: people.length,
         highRisk,
         totalMentions,
         avgRedFlag,
         uniqueRoles: uniqueRoles.size,
         activeInvestigations: 0,
-      });
+      };
     }
+    return {
+      totalPeople: 0,
+      highRisk: 0,
+      totalMentions: 0,
+      avgRedFlag: 0,
+      uniqueRoles: 0,
+      activeInvestigations: 0,
+    };
   }, [people, analyticsData]);
 
   // Filter people to only Person types, excluding junk

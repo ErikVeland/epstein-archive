@@ -1,0 +1,339 @@
+<h2>Section 4 — Migration Phases</h2>
+<p class="subtitle">
+  Six sequential phases. Each leaves the app fully functional. Phase 6 is the hard gate.
+</p>
+
+<div style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px">
+  <!-- Phase 0 -->
+  <div style="border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 10px; overflow: hidden">
+    <div
+      style="
+        background: rgba(255, 255, 255, 0.06);
+        padding: 10px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      "
+    >
+      <span
+        style="
+          font-family: var(--font-mono, monospace);
+          font-size: 0.75em;
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 4px;
+          padding: 2px 8px;
+        "
+        >Phase 0</span
+      >
+      <strong>Foundation — harden the existing system</strong>
+      <span style="margin-left: auto; font-size: 0.78em; color: var(--text-muted, #888)"
+        >~1 day</span
+      >
+    </div>
+    <div
+      style="
+        padding: 12px 16px;
+        font-size: 0.83em;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        color: var(--text-secondary, #c4b89a);
+      "
+    >
+      <div>
+        • Add <code>--space-1…9</code> + <code>--size-xs…2xl</code> to
+        <code>design-system/lib/tokens.css</code>
+      </div>
+      <div>
+        • Write <code>resolveSpace()</code> utility + add spacing/sizing props to Box, Flex, Stack,
+        Grid
+      </div>
+      <div>
+        • Refactor Flex to use BEM classes (not inline CSS vars) — consistency with Surface/Text
+      </div>
+      <div>
+        • Fix Surface CSS bug: <code>.lq-surface--glass</code> class name must match
+        <code>.lq-surface--glass-base</code> rule
+      </div>
+      <div>• Complete barrel: export Grid, Stack, Button from <code>lib/index.ts</code></div>
+      <div>
+        • Add ESLint rule banning Tailwind class patterns from <code>.tsx</code> files (starts as
+        warn, becomes error in Phase 6)
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 1 -->
+  <div style="border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 10px; overflow: hidden">
+    <div
+      style="
+        background: rgba(168, 85, 247, 0.1);
+        padding: 10px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      "
+    >
+      <span
+        style="
+          font-family: var(--font-mono, monospace);
+          font-size: 0.75em;
+          background: rgba(168, 85, 247, 0.2);
+          border-radius: 4px;
+          padding: 2px 8px;
+          color: #a78bfa;
+        "
+        >Phase 1</span
+      >
+      <strong>Build Radix interactive primitives</strong>
+      <span style="margin-left: auto; font-size: 0.78em; color: var(--text-muted, #888)"
+        >~2 days</span
+      >
+    </div>
+    <div
+      style="
+        padding: 12px 16px;
+        font-size: 0.83em;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        color: var(--text-secondary, #c4b89a);
+      "
+    >
+      <div>
+        • <code>Dialog</code>, <code>DropdownMenu</code>, <code>Tooltip</code>, <code>Switch</code>,
+        <code>Select</code> in <code>interactive/</code>
+      </div>
+      <div>
+        • Each: Radix primitive + <code>lq-*</code> BEM CSS + token vars + forwardRef + displayName
+      </div>
+      <div>• TooltipProvider added to app root (required by Radix Tooltip)</div>
+      <div>• Export all from barrel. Components coexist with Glass* until Phase 3.</div>
+    </div>
+  </div>
+
+  <!-- Phase 2 -->
+  <div style="border: 1px solid rgba(34, 211, 238, 0.25); border-radius: 10px; overflow: hidden">
+    <div
+      style="
+        background: rgba(34, 211, 238, 0.08);
+        padding: 10px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      "
+    >
+      <span
+        style="
+          font-family: var(--font-mono, monospace);
+          font-size: 0.75em;
+          background: rgba(34, 211, 238, 0.15);
+          border-radius: 4px;
+          padding: 2px 8px;
+          color: #22d3ee;
+        "
+        >Phase 2</span
+      >
+      <strong>Finish migrating the 26 already-started files</strong>
+      <span style="margin-left: auto; font-size: 0.78em; color: var(--text-muted, #888)"
+        >~2 days</span
+      >
+    </div>
+    <div
+      style="
+        padding: 12px 16px;
+        font-size: 0.83em;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        color: var(--text-secondary, #c4b89a);
+      "
+    >
+      <div>• All 7 pages + 19 core components that already import design-system</div>
+      <div>
+        • Replace remaining Tailwind (spacing, sizing, colors) with prop-based API + CSS token
+        references
+      </div>
+      <div>• Swap GlassButton/GlassModal/GlassDropdown usages to new DS components</div>
+      <div>• These files are highest-traffic — getting them clean first validates the system</div>
+    </div>
+  </div>
+
+  <!-- Phase 3 -->
+  <div style="border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 10px; overflow: hidden">
+    <div
+      style="
+        background: rgba(16, 185, 129, 0.08);
+        padding: 10px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      "
+    >
+      <span
+        style="
+          font-family: var(--font-mono, monospace);
+          font-size: 0.75em;
+          background: rgba(16, 185, 129, 0.15);
+          border-radius: 4px;
+          padding: 2px 8px;
+          color: #34d399;
+        "
+        >Phase 3</span
+      >
+      <strong>Common &amp; shared components</strong>
+      <span style="margin-left: auto; font-size: 0.78em; color: var(--text-muted, #888)"
+        >~1 day</span
+      >
+    </div>
+    <div
+      style="
+        padding: 12px 16px;
+        font-size: 0.83em;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        color: var(--text-secondary, #c4b89a);
+      "
+    >
+      <div>
+        • <code>FormField</code>, <code>Skeleton</code>, <code>ProgressBar</code>,
+        <code>common/Select</code>, <code>common/Tooltip</code>
+      </div>
+      <div>
+        • <code>SensitiveContent</code>, <code>Icon</code>, <code>WikiLink</code>,
+        <code>SignalAnalysis</code>, <code>VirtualList</code>
+      </div>
+      <div>• Migrate before domain sweeps — these are imported everywhere</div>
+    </div>
+  </div>
+
+  <!-- Phase 4 -->
+  <div style="border: 1px solid rgba(251, 191, 36, 0.25); border-radius: 10px; overflow: hidden">
+    <div
+      style="
+        background: rgba(251, 191, 36, 0.07);
+        padding: 10px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      "
+    >
+      <span
+        style="
+          font-family: var(--font-mono, monospace);
+          font-size: 0.75em;
+          background: rgba(251, 191, 36, 0.15);
+          border-radius: 4px;
+          padding: 2px 8px;
+          color: #fbbf24;
+        "
+        >Phase 4</span
+      >
+      <strong>Domain sweeps (4 parallel sub-groups)</strong>
+      <span style="margin-left: auto; font-size: 0.78em; color: var(--text-muted, #888)"
+        >~3–4 days</span
+      >
+    </div>
+    <div style="padding: 12px 16px; font-size: 0.83em; color: var(--text-secondary, #c4b89a)">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px">
+        <div style="background: rgba(255, 255, 255, 0.03); border-radius: 6px; padding: 8px 10px">
+          <div style="color: #fbbf24; margin-bottom: 4px">A — Documents &amp; Evidence</div>
+          <div style="color: #888; font-size: 0.9em">
+            subcomponents/, EmailViewer, DepositionViewer, PDFViewer, ImageViewer, TableViewer
+          </div>
+        </div>
+        <div style="background: rgba(255, 255, 255, 0.03); border-radius: 6px; padding: 8px 10px">
+          <div style="color: #fbbf24; margin-bottom: 4px">B — Entities &amp; Investigation</div>
+          <div style="color: #888; font-size: 0.9em">
+            EntityRelationshipMapper, EntityEvidencePanel, EntityConfidenceDisplay + 10
+            investigation/ components
+          </div>
+        </div>
+        <div style="background: rgba(255, 255, 255, 0.03); border-radius: 6px; padding: 8px 10px">
+          <div style="color: #fbbf24; margin-bottom: 4px">C — Flights &amp; Properties</div>
+          <div style="color: #888; font-size: 0.9em">
+            FlightCard, FlightTracker, FlightMapView + PropertyCard, PropertyBrowseView,
+            PropertyAnalyticsView
+          </div>
+        </div>
+        <div style="background: rgba(255, 255, 255, 0.03); border-radius: 6px; padding: 8px 10px">
+          <div style="color: #fbbf24; margin-bottom: 4px">D — Media &amp; Visualizations</div>
+          <div style="color: #888; font-size: 0.9em">
+            AudioBrowser, MediaCard + Timeline, AreaTimeline, RouteMap, NetworkVisualization (outer
+            shells only — chart internals stay as-is)
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phase 5 -->
+  <div style="border: 1px solid rgba(244, 63, 94, 0.3); border-radius: 10px; overflow: hidden">
+    <div
+      style="
+        background: rgba(244, 63, 94, 0.08);
+        padding: 10px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      "
+    >
+      <span
+        style="
+          font-family: var(--font-mono, monospace);
+          font-size: 0.75em;
+          background: rgba(244, 63, 94, 0.2);
+          border-radius: 4px;
+          padding: 2px 8px;
+          color: #f43f5e;
+        "
+        >Phase 5</span
+      >
+      <strong>Hard removal — Tailwind deleted from the build</strong>
+      <span style="margin-left: auto; font-size: 0.78em; color: var(--text-muted, #888)"
+        >~0.5 day</span
+      >
+    </div>
+    <div
+      style="
+        padding: 12px 16px;
+        font-size: 0.83em;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        color: var(--text-secondary, #c4b89a);
+      "
+    >
+      <div>
+        • Escalate ESLint rule from <code>warn</code> → <code>error</code> — fix any remaining
+        violations
+      </div>
+      <div>
+        • Remove <code>tailwindcss</code> from <code>package.json</code> + delete
+        <code>tailwind.config.*</code>
+      </div>
+      <div>• Remove <code>@tailwind</code> directives from the CSS entry point</div>
+      <div>• Delete <code>components/ui/</code> (Glass* are all replaced)</div>
+      <div>• Run <code>pnpm build:prod</code> — no broken classes, no missing styles = done ✓</div>
+    </div>
+  </div>
+</div>
+
+<div
+  style="
+    margin-top: 16px;
+    padding: 12px 16px;
+    background: rgba(212, 168, 75, 0.06);
+    border: 1px solid rgba(212, 168, 75, 0.2);
+    border-radius: 8px;
+    font-size: 0.82em;
+    color: var(--text-secondary, #c4b89a);
+  "
+>
+  <strong style="color: rgba(212, 168, 75, 0.9)">Visualization carve-out:</strong> Chart internals
+  (canvas, SVG, recharts/d3) are exempt — they don't use Tailwind className anyway. Only the outer
+  shell components (wrappers, headers, legends) get migrated.
+</div>
+
+<p style="margin-top: 16px; font-size: 0.9em">Does this phasing look right?</p>

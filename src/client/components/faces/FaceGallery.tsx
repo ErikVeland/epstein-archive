@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Icon from '../common/Icon';
 import { useToasts } from '../common/useToasts';
@@ -52,9 +52,9 @@ const EntitySearch: React.FC<{
     return () => document.removeEventListener('mousedown', close);
   }, []);
 
-  useLayoutEffect(() => {
-    if (!query.trim()) setResults([]);
-  }, [query]);
+  if (!query.trim() && results.length !== 0) {
+    setResults([]);
+  }
 
   useEffect(() => {
     if (debounce.current) clearTimeout(debounce.current);

@@ -1,15 +1,20 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { Search } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { optimizedDataService } from '../services/OptimizedDataService';
 import type { SearchFilters } from '../services/optimizedDataLoader';
 import { Person } from '../types';
 import { useNavigation } from '../services/NavigationContext';
 import { useUndo } from './useUndo';
-import Icon from './common/Icon';
 import { EvidenceFilters } from './evidence/EvidenceFilters';
 import { EvidenceResultCard } from './evidence/EvidenceResultCard';
 import { EvidenceDocSnippets } from './evidence/EvidenceDocSnippets';
+import { Surface } from '../design-system/components/surfaces/Surface';
+import { Box } from '../design-system/components/layout/Box';
+import { Flex } from '../design-system/components/layout/Flex';
+import { Grid } from '../design-system/components/layout/Grid';
+import { LqText } from '../design-system/components/typography/Text';
 
 interface EvidenceSearchProps {
   onPersonClick?: (person: Person, searchTerm: string) => void;
@@ -25,21 +30,16 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
   const [sortBy, setSortBy] = useState<
     'relevance' | 'mentions' | 'redflag_asc' | 'redflag_desc' | 'name'
   >('relevance');
-  const [showFilters, setShowFilters] = useState(false); // Mobile filter toggle
+  const [showFilters, setShowFilters] = useState(false);
 
-  // Use undo functionality
   const { addUndoAction } = useUndo();
-
-  // Use navigation context for shared state
   const navigation = useNavigation();
   const { searchTerm, setSearchTerm } = navigation;
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
 
-  // Extract query parameter from URL
   const urlParams = new URLSearchParams(location.search);
   const queryParam = urlParams.get('q') || '';
 
-  // Sync URL query to search term on mount or URL change
   useEffect(() => {
     if (queryParam && queryParam !== searchTerm) {
       setSearchTerm(queryParam);
@@ -117,12 +117,9 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
   const handlePersonClick = (person: Person) => {
     if (onPersonClick) {
       onPersonClick(person, searchTerm);
-    } else {
-      console.log('No onPersonClick handler provided, person clicked:', person.name);
     }
   };
 
-  // Enhanced filter setters with undo functionality
   const setSelectedRiskLevelWithUndo = (value: string) => {
     const previousValue = selectedRiskLevel;
     setSelectedRiskLevel(value);
@@ -199,18 +196,10 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
     placeholderData: (previousData) => previousData,
   });
 
-  // Memoize document snippets to avoid recomputing on every render
-  const docSnippets = useMemo(() => {
-    return docSnippetsState;
-  }, [docSnippetsState]);
+  const docSnippets = useMemo(() => docSnippetsState, [docSnippetsState]);
 
-  // Memoize search results to avoid recomputing on every render
   const searchResults = useMemo(() => {
-    if (loading) {
-      return [];
-    }
-
-    // Since filtering is now done server-side, we just need to format the results
+    if (loading && people.length === 0) return [];
     return people.map((person) => ({
       person,
       matchingContexts: person.contexts.slice(0, 3),
@@ -219,7 +208,6 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
     }));
   }, [people, loading]);
 
-  // Memoize filter options to avoid recomputing
   const filterOptions = useMemo(
     () => ({
       riskLevels: [
@@ -248,8 +236,7 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
   );
 
   return (
-    <div className="space-y-6">
-      {/* Search Header + Filters */}
+    <Box className="space-y-6">
       <EvidenceFilters
         searchTerm={searchTerm}
         onSearchTermChange={setSearchTerm}
@@ -275,81 +262,71 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
         resultCount={searchResults.length}
       />
 
-      {/* Search Results */}
-      <div className="space-y-4">
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <Box className="space-y-4">
+        {loading && people.length === 0 ? (
+          <Grid cols={{ base: 1, md: 2 }} gap={24}>
             {[...Array(6)].map((_, i) => (
-              <div
-                key={i}
-                className="bg-[var(--glass-bg)]/50 border border-[var(--glass-border)] rounded-[var(--radius-xl)] p-5 relative overflow-hidden"
-                aria-label="Loading search result"
-              >
-                <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-[var(--glass-highlight)] to-transparent"></div>
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] w-10 h-10 animate-pulse"></div>
-                    <div>
-                      <div className="h-4 w-32 bg-[var(--glass-bg-highlight)] rounded mb-2 animate-pulse"></div>
-                      <div className="h-3 w-24 bg-[var(--glass-bg-highlight)] rounded animate-pulse"></div>
-                    </div>
-                  </div>
-                  <div className="h-6 w-16 bg-[var(--glass-bg-highlight)] rounded-full animate-pulse"></div>
-                </div>
-                <div className="space-y-2 mb-4">
-                  <div className="h-3 w-full bg-[var(--glass-bg-highlight)] rounded animate-pulse"></div>
-                  <div className="h-3 w-5/6 bg-[var(--glass-bg-highlight)] rounded animate-pulse"></div>
-                  <div className="h-3 w-4/6 bg-[var(--glass-bg-highlight)] rounded animate-pulse"></div>
-                </div>
-                <div className="flex items-center justify-between pt-3 border-t border-[var(--glass-border)]">
-                  <div className="flex items-center space-x-2">
-                    <div className="h-3 w-16 bg-[var(--glass-bg-highlight)] rounded animate-pulse"></div>
-                    <div className="h-3 w-12 bg-[var(--glass-bg-highlight)] rounded animate-pulse"></div>
-                  </div>
-                  <div className="h-3 w-20 bg-[var(--glass-bg-highlight)] rounded animate-pulse"></div>
-                </div>
-              </div>
+              <Surface key={i} variant="glass" className="p-5 relative overflow-hidden">
+                <Box className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+                <Flex align="start" justify="between" className="mb-4">
+                  <Flex align="center" gap={12}>
+                    <Box className="bg-white/5 rounded-lg w-10 h-10" />
+                    <Box>
+                      <Box className="h-4 w-32 bg-white/5 rounded mb-2" />
+                      <Box className="h-3 w-24 bg-white/5 rounded" />
+                    </Box>
+                  </Flex>
+                  <Box className="h-6 w-16 bg-white/5 rounded-full" />
+                </Flex>
+                <Box className="space-y-2 mb-4">
+                  <Box className="h-3 w-full bg-white/5 rounded" />
+                  <Box className="h-3 w-5/6 bg-white/5 rounded" />
+                  <Box className="h-3 w-4/6 bg-white/5 rounded" />
+                </Box>
+                <Flex align="center" justify="between" className="pt-3 border-t border-white/5">
+                  <Flex align="center" gap={8}>
+                    <Box className="h-3 w-16 bg-white/5 rounded" />
+                    <Box className="h-3 w-12 bg-white/5 rounded" />
+                  </Flex>
+                  <Box className="h-3 w-20 bg-white/5 rounded" />
+                </Flex>
+              </Surface>
             ))}
-          </div>
+          </Grid>
         ) : (
           <>
             {searchResults.length === 0 && docSnippets.length === 0 && searchTerm.trim() && (
-              <div className="text-center py-12">
-                <Icon name="Search" size="xl" color="gray" className="mx-auto mb-4" />
-                <p className="text-[var(--text-muted)] text-lg">
+              <Flex direction="column" align="center" className="py-24 text-center">
+                <Search size={48} className="text-white/20 mb-4" />
+                <LqText variant="h3" color="muted">
                   No results found for &quot;{searchTerm}&quot;
-                </p>
-                <p className="text-[var(--text-muted)] text-sm mt-2">
+                </LqText>
+                <LqText variant="small" color="muted" className="mt-2">
                   Try adjusting your search terms or filters
-                </p>
-              </div>
+                </LqText>
+              </Flex>
             )}
 
-            {searchResults.length === 0 &&
-              !searchTerm.trim() &&
-              selectedRiskLevel === 'ALL' &&
-              selectedEvidenceType === 'ALL' &&
-              !showRedFlagOnly && (
-                <div className="text-center py-12">
-                  <Icon name="Search" size="xl" color="gray" className="mx-auto mb-4" />
-                  <p className="text-[var(--text-muted)] text-lg">
-                    Start searching to find evidence
-                  </p>
-                  <p className="text-[var(--text-muted)] text-sm mt-2">
-                    Search for names, keywords, or apply filters
-                  </p>
-                </div>
-              )}
+            {!loading && searchResults.length === 0 && !searchTerm.trim() && !showRedFlagOnly && (
+              <Flex direction="column" align="center" className="py-24 text-center">
+                <Search size={48} className="text-white/20 mb-4" />
+                <LqText variant="h3" color="muted">
+                  Start searching to find evidence
+                </LqText>
+                <LqText variant="small" color="muted" className="mt-2">
+                  Search for names, keywords, or apply filters
+                </LqText>
+              </Flex>
+            )}
 
             {searchResults.map((result, index) => (
               <EvidenceResultCard key={index} result={result} onPersonClick={handlePersonClick} />
             ))}
 
-            {/* Matching Documents Section - Displayed independently of person results */}
             <EvidenceDocSnippets snippets={docSnippets} searchTerm={searchTerm} />
           </>
         )}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 };

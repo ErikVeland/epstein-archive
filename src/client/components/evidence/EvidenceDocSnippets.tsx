@@ -1,5 +1,9 @@
 import DOMPurify from 'isomorphic-dompurify';
-import Icon from '../common/Icon';
+import { FileText, Info, File } from 'lucide-react';
+import { Surface } from '../../design-system/components/surfaces/Surface';
+import { Box } from '../../design-system/components/layout/Box';
+import { Flex } from '../../design-system/components/layout/Flex';
+import { LqText } from '../../design-system/components/typography/Text';
 
 interface DocSnippet {
   id: number;
@@ -19,44 +23,51 @@ export function EvidenceDocSnippets({ snippets, searchTerm }: EvidenceDocSnippet
   }
 
   return (
-    <div className="bg-[var(--glass-bg)] rounded-[var(--radius-xl)] border border-[var(--glass-border)] overflow-hidden">
-      <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-4 py-3 border-b border-[var(--glass-border)]">
-        <h3 className="text-lg font-bold text-[var(--text-primary)] flex items-center gap-2">
-          <Icon name="FileText" size="sm" />
-          Matched Documents
-          <span className="text-sm font-normal text-[var(--text-muted)] ml-2">
+    <Surface variant="glass" className="overflow-hidden border-white/5">
+      <Box className="bg-gradient-to-r from-white/5 to-transparent px-4 py-3 border-b border-white/5">
+        <Flex align="center" gap={8}>
+          <FileText size={18} className="text-[var(--accent)]" />
+          <LqText variant="h3" weight="bold">
+            Matched Documents
+          </LqText>
+          <LqText variant="small" color="muted" className="ml-1 opacity-50">
             ({snippets.length})
-          </span>
-        </h3>
-      </div>
-      <div className="p-4 space-y-3">
-        <div className="text-xs text-[var(--text-muted)] mb-2 flex items-start gap-1">
-          <Icon name="Info" size="xs" className="mt-0.5 flex-shrink-0" />
-          <span>Documents containing &quot;{searchTerm}&quot;</span>
-        </div>
+          </LqText>
+        </Flex>
+      </Box>
+
+      <Box className="p-4 space-y-4">
+        <Flex align="start" gap={8} className="opacity-50 mb-2">
+          <Info size={14} className="mt-0.5 shrink-0" />
+          <LqText variant="xs">Documents containing &quot;{searchTerm}&quot;</LqText>
+        </Flex>
+
         {snippets.map((d) => (
-          <div
+          <Surface
             key={d.id}
-            className="bg-[var(--glass-bg-strong)] p-4 rounded-[var(--radius-lg)] border border-[var(--glass-border)] hover:border-[var(--glass-border)] transition-colors"
+            variant="glass"
+            className="p-4 bg-white/[0.02] border-white/5 transition-all hover:border-white/10"
           >
-            <div className="flex justify-between items-start mb-2">
-              <div className="font-medium text-[var(--accent)] truncate pr-4">{d.title}</div>
-              <div
-                className={`text-xs px-2 py-0.5 rounded ${
+            <Flex justify="between" align="start" className="mb-3">
+              <LqText variant="small" weight="bold" color="accent" className="truncate pr-4">
+                {d.title}
+              </LqText>
+              <Box
+                className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
                   d.redFlagRating >= 4
-                    ? 'bg-red-900/50 text-red-200'
+                    ? 'bg-red-500/20 text-red-400 border border-red-500/30'
                     : d.redFlagRating >= 2
-                      ? 'bg-yellow-900/50 text-yellow-200'
-                      : 'bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)]'
+                      ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
+                      : 'bg-white/5 text-white/40 border border-white/10'
                 }`}
               >
-                Risk: {d.redFlagRating}
-              </div>
-            </div>
+                RISK: {d.redFlagRating}
+              </Box>
+            </Flex>
+
             {d.snippet && (
-              <div
-                className="text-sm text-[var(--text-secondary)] font-mono bg-[var(--glass-bg-strong)] p-2 rounded mb-2 border-l-2 border-[var(--accent)]/30"
-                // DOMPurify sanitizes the snippet before rendering — safe against XSS
+              <Box
+                className="text-xs p-3 rounded bg-black/20 border-l-2 border-[var(--accent)]/50 mb-3 font-mono leading-relaxed"
                 dangerouslySetInnerHTML={{
                   __html: DOMPurify.sanitize(d.snippet, {
                     ALLOWED_TAGS: ['mark'],
@@ -65,16 +76,18 @@ export function EvidenceDocSnippets({ snippets, searchTerm }: EvidenceDocSnippet
                 }}
               />
             )}
-            <div className="flex items-center gap-4 text-xs text-[var(--text-muted)]">
-              <span className="flex items-center gap-1">
-                <Icon name="File" size="xs" />
-                {(d.title || '').split('.').pop()?.toUpperCase() || 'FILE'}
-              </span>
-              {/* <span>{d.dateCreated ? new Date(d.dateCreated).toLocaleDateString() : 'Unknown Date'}</span> */}
-            </div>
-          </div>
+
+            <Flex align="center" gap={12} className="opacity-40">
+              <Flex align="center" gap={6}>
+                <File size={12} />
+                <LqText variant="xs" weight="medium">
+                  {(d.title || '').split('.').pop()?.toUpperCase() || 'FILE'}
+                </LqText>
+              </Flex>
+            </Flex>
+          </Surface>
         ))}
-      </div>
-    </div>
+      </Box>
+    </Surface>
   );
 }

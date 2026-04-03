@@ -14,6 +14,9 @@ import {
   AlertTriangle,
   Flag,
 } from 'lucide-react';
+
+// Design System
+import { Surface, Box, Flex, LqText } from '../../design-system/lib';
 import { CloseButton } from '../common/CloseButton';
 import { Tabs } from '../common/Tabs';
 
@@ -49,16 +52,16 @@ const HIGHLIGHT_COLORS = [
 ];
 
 const CLASSIFICATION_OPTIONS = [
-  { label: 'Direct Evidence', value: 'direct', icon: CheckCircle, color: 'text-green-400' },
+  { label: 'Direct Evidence', value: 'direct', icon: CheckCircle, color: 'emerald' as const },
   {
     label: 'Circumstantial',
     value: 'circumstantial',
     icon: AlertTriangle,
-    color: 'text-yellow-400',
+    color: 'amber' as const,
   },
-  { label: 'Corroborating', value: 'corroborating', icon: Flag, color: 'text-[var(--accent)]' },
-  { label: 'Contradicting', value: 'contradicting', icon: X, color: 'text-red-400' },
-  { label: 'Needs Review', value: 'needs_review', icon: Clock, color: 'text-orange-400' },
+  { label: 'Corroborating', value: 'corroborating', icon: Flag, color: 'cyan' as const },
+  { label: 'Contradicting', value: 'contradicting', icon: X, color: 'rose' as const },
+  { label: 'Needs Review', value: 'needs_review', icon: Clock, color: 'purple' as const },
 ];
 
 const COMMON_TAGS = [
@@ -312,43 +315,50 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
 
   if (loading) {
     return (
-      <div className="fixed inset-0 bg-[var(--glass-bg-strong)] flex items-center justify-center z-50">
-        <div className="bg-[var(--glass-bg)] rounded-[var(--radius-xl)] p-8 max-w-md">
-          <div className="animate-pulse flex flex-col items-center">
-            <div className="h-8 w-48 bg-[var(--glass-bg-highlight)] rounded mb-4"></div>
-            <div className="h-4 w-32 bg-[var(--glass-bg-highlight)] rounded"></div>
-          </div>
-        </div>
-      </div>
+      <Box className="fixed inset-0 backdrop-blur-md z-50 flex items-center justify-center bg-black/40">
+        <Surface variant="glass-strong" className="p-8 flex flex-col items-center gap-4">
+          <LqText variant="h4" weight="bold">
+            Loading annotations
+          </LqText>
+          <Box className="w-8 h-8 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin" />
+        </Surface>
+      </Box>
     );
   }
 
   return (
-    <div className="fixed inset-0 bg-[var(--glass-bg-strong)] flex items-center justify-center z-50 p-4">
-      <div className="bg-[var(--glass-bg)] rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] w-full max-w-3xl max-h-[90vh] flex flex-col border border-[var(--glass-border)]">
+    <Box
+      className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4 bg-black/40"
+      onClick={onClose}
+    >
+      <Surface
+        variant="glass-strong"
+        className="w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden pointer-events-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
-        <div className="border-b border-[var(--glass-border)] p-6">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1 min-w-0">
-              <h2 className="text-xl font-semibold text-[var(--text-primary)] truncate">
+        <Box className="border-b border-[var(--glass-border)] p-6">
+          <Flex align="start" justify="between" gap="md" className="mb-4">
+            <Box className="flex-1 min-w-0">
+              <LqText variant="h3" weight="semibold" className="truncate">
                 {evidenceTitle}
-              </h2>
-              <p className="text-sm text-[var(--text-muted)] mt-1">
+              </LqText>
+              <LqText variant="small" color="muted" className="mt-1">
                 Annotate and classify this evidence
-              </p>
+              </LqText>
               {evidenceDescription && (
-                <p className="text-sm text-[var(--text-muted)] mt-2 line-clamp-2">
+                <LqText variant="xs" color="muted" className="mt-2 line-clamp-2">
                   {evidenceDescription}
-                </p>
+                </LqText>
               )}
-            </div>
+            </Box>
             <CloseButton
               onClick={onClose}
               size="md"
               label="Close evidence annotation"
               className="bg-transparent hover:bg-[var(--glass-bg-highlight)] border-[var(--glass-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)] shrink-0"
             />
-          </div>
+          </Flex>
 
           {/* Tabs */}
           <Tabs
@@ -391,84 +401,97 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
             }}
             className="!bg-transparent !border-none !px-0"
           />
-        </div>
+        </Box>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <Box className="flex-1 overflow-y-auto p-6 scrollbar-premium">
           {/* Notes Tab */}
           {activeTab === 'notes' && (
-            <div className="space-y-4">
+            <Box className="space-y-4">
               {/* Add Note Form */}
-              <div className="bg-[var(--glass-bg-strong)] rounded-[var(--radius-lg)] p-4 border border-[var(--glass-border)]">
-                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+              <Surface
+                variant="glass-highlight"
+                className="p-4 border border-[var(--glass-border)]"
+              >
+                <LqText
+                  variant="xs"
+                  weight="medium"
+                  color="secondary"
+                  className="mb-2 block uppercase tracking-wider"
+                >
                   Add a Note
-                </label>
+                </LqText>
                 <textarea
                   value={newNote}
                   onChange={(e) => setNewNote(e.target.value)}
                   placeholder="Write your observations, analysis, or comments..."
-                  className="w-full px-3 py-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] placeholder-slate-500 focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent resize-none"
+                  className="w-full px-3 py-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-[var(--accent)] resize-none"
                   rows={3}
                 />
-                <div className="flex justify-end mt-3">
+                <Flex justify="end" className="mt-3">
                   <button
                     onClick={handleAddNote}
                     disabled={!newNote.trim() || saving}
-                    className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] text-[var(--text-primary)] rounded-[var(--radius-lg)] hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] text-black font-bold uppercase tracking-wider text-[10px] rounded-[var(--radius-lg)] hover:bg-[var(--accent)]/90 disabled:opacity-50 transition-colors"
                   >
-                    <Plus className="w-4 h-4" />
+                    <Plus className="w-3 h-3" />
                     Add Note
                   </button>
-                </div>
-              </div>
+                </Flex>
+              </Surface>
 
               {/* Notes List */}
-              <div className="space-y-3">
+              <Box className="space-y-3">
                 {noteAnnotations.length === 0 ? (
-                  <p className="text-[var(--text-muted)] text-center py-8">
+                  <LqText color="muted" align="center" className="py-8 block">
                     No notes yet. Add your first note above.
-                  </p>
+                  </LqText>
                 ) : (
                   noteAnnotations.map((note) => (
-                    <div
+                    <Surface
                       key={note.id}
-                      className="bg-[var(--glass-bg-strong)] rounded-[var(--radius-lg)] p-4 border border-[var(--glass-border)]"
+                      variant="glass-highlight"
+                      className="p-4 border border-[var(--glass-border)]"
                     >
                       {editingNote === note.id ? (
-                        <div>
+                        <Box>
                           <textarea
                             value={editNoteContent}
                             onChange={(e) => setEditNoteContent(e.target.value)}
-                            className="w-full px-3 py-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--accent)] resize-none"
+                            className="w-full px-3 py-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)] resize-none"
                             rows={3}
                           />
-                          <div className="flex justify-end gap-2 mt-2">
+                          <Flex justify="end" gap="sm" className="mt-2">
                             <button
                               onClick={() => setEditingNote(null)}
-                              className="px-3 py-1.5 text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+                              className="px-3 py-1.5 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
                             >
                               Cancel
                             </button>
                             <button
                               onClick={handleUpdateNoteEdit}
-                              className="flex items-center gap-1 px-3 py-1.5 text-sm bg-[var(--accent)] text-[var(--text-primary)] rounded hover:bg-blue-700 transition-colors"
+                              className="flex items-center gap-1 px-3 py-1.5 text-xs bg-[var(--accent)] text-black font-bold rounded transition-colors"
                             >
                               <Save className="w-3 h-3" />
                               Save
                             </button>
-                          </div>
-                        </div>
+                          </Flex>
+                        </Box>
                       ) : (
                         <>
-                          <p className="text-[var(--text-primary)] whitespace-pre-wrap">
+                          <LqText variant="body" color="primary" className="whitespace-pre-wrap">
                             {note.content}
-                          </p>
-                          <div className="flex items-center justify-between mt-3 pt-3 border-t border-[var(--glass-border)]">
-                            <span className="text-xs text-[var(--text-muted)]">
-                              <Clock className="w-3 h-3 inline mr-1" />
+                          </LqText>
+                          <Flex
+                            align="center"
+                            justify="between"
+                            className="mt-3 pt-3 border-t border-[var(--glass-border)]"
+                          >
+                            <LqText variant="xs" color="muted">
+                              <Clock className="w-3 h-3 inline mr-1 opacity-60" />
                               {new Date(note.createdAt).toLocaleString()}
-                            </span>
-                            <div className="flex gap-2">
+                            </LqText>
+                            <Flex gap="xs">
                               <button
                                 onClick={() => {
                                   setEditingNote(note.id);
@@ -481,229 +504,280 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                               </button>
                               <button
                                 onClick={() => deleteAnnotation(note.id)}
-                                className="p-1.5 text-[var(--text-muted)] hover:text-red-400 hover:bg-[var(--glass-bg-highlight)] rounded transition-colors"
+                                className="p-1.5 text-[var(--text-muted)] hover:text-rose-400 hover:bg-[var(--glass-bg-highlight)] rounded transition-colors"
                                 title="Delete"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </button>
-                            </div>
-                          </div>
+                            </Flex>
+                          </Flex>
                         </>
                       )}
-                    </div>
+                    </Surface>
                   ))
                 )}
-              </div>
-            </div>
+              </Box>
+            </Box>
           )}
 
           {/* Highlights Tab */}
           {activeTab === 'highlights' && (
-            <div className="space-y-4">
+            <Box className="space-y-4">
               {/* Add Highlight Form */}
-              <div className="bg-[var(--glass-bg-strong)] rounded-[var(--radius-lg)] p-4 border border-[var(--glass-border)]">
-                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+              <Surface
+                variant="glass-highlight"
+                className="p-4 border border-[var(--glass-border)]"
+              >
+                <LqText
+                  variant="xs"
+                  weight="medium"
+                  color="secondary"
+                  className="mb-2 block uppercase tracking-wider"
+                >
                   Add a Highlight
-                </label>
+                </LqText>
                 <textarea
                   value={newHighlight.text}
                   onChange={(e) => setNewHighlight({ ...newHighlight, text: e.target.value })}
                   placeholder="Paste or type the text you want to highlight..."
-                  className="w-full px-3 py-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] placeholder-slate-500 focus:ring-2 focus:ring-[var(--accent)] resize-none"
+                  className="w-full px-3 py-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-[var(--accent)] resize-none"
                   rows={2}
                 />
-                <div className="flex items-center justify-between mt-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-[var(--text-muted)]">Color:</span>
+                <Flex align="center" justify="between" className="mt-4">
+                  <Flex align="center" gap="sm">
+                    <LqText variant="xs" color="muted">
+                      Color:
+                    </LqText>
                     {HIGHLIGHT_COLORS.map((color) => (
                       <button
                         key={color.value}
                         onClick={() => setNewHighlight({ ...newHighlight, color: color.value })}
-                        className={`w-6 h-6 rounded ${color.class} ${
+                        className={`w-6 h-6 rounded border border-white/10 transition-transform hover:scale-110 ${color.class} ${
                           newHighlight.color === color.value
-                            ? 'ring-2 ring-[var(--glass-border)] ring-offset-2 ring-offset-slate-900'
+                            ? 'ring-2 ring-[var(--accent)] ring-offset-2 ring-offset-black/50'
                             : ''
                         }`}
                         title={color.name}
                       />
                     ))}
-                  </div>
+                  </Flex>
                   <button
                     onClick={handleAddHighlight}
                     disabled={!newHighlight.text.trim() || saving}
-                    className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] text-[var(--text-primary)] rounded-[var(--radius-lg)] hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] text-black font-bold uppercase tracking-wider text-[10px] rounded-[var(--radius-lg)] hover:bg-[var(--accent)]/90 disabled:opacity-50 transition-colors"
                   >
-                    <Highlighter className="w-4 h-4" />
+                    <Highlighter className="w-3 h-3" />
                     Add Highlight
                   </button>
-                </div>
-              </div>
+                </Flex>
+              </Surface>
 
               {/* Highlights List */}
-              <div className="space-y-3">
+              <Box className="space-y-3">
                 {highlightAnnotations.length === 0 ? (
-                  <p className="text-[var(--text-muted)] text-center py-8">
+                  <LqText color="muted" align="center" className="py-8 block">
                     No highlights yet. Add key passages above.
-                  </p>
+                  </LqText>
                 ) : (
                   highlightAnnotations.map((highlight) => (
-                    <div
+                    <Surface
                       key={highlight.id}
-                      className="bg-[var(--glass-bg-strong)] rounded-[var(--radius-lg)] p-4 border border-[var(--glass-border)]"
+                      variant="glass-highlight"
+                      className="p-4 border border-[var(--glass-border)]"
                     >
-                      <div className="flex items-start gap-3">
-                        <div
-                          className="w-4 h-4 rounded shrink-0 mt-0.5"
+                      <Flex align="start" gap="md">
+                        <Box
+                          className="w-4 h-4 rounded shrink-0 mt-1 border border-white/10"
                           style={{ backgroundColor: highlight.color }}
                         />
-                        <div className="flex-1">
-                          <p
-                            className="text-[var(--text-primary)] px-2 py-1 rounded"
-                            style={{ backgroundColor: highlight.color + '40' }}
+                        <Box className="flex-1">
+                          <LqText
+                            variant="body"
+                            className="px-2 py-1 rounded inline-block"
+                            style={{ backgroundColor: highlight.color + '30' }}
                           >
                             {highlight.content}
-                          </p>
-                          <div className="flex items-center justify-between mt-2">
-                            <span className="text-xs text-[var(--text-muted)]">
+                          </LqText>
+                          <Flex align="center" justify="between" className="mt-3">
+                            <LqText variant="xs" color="muted">
                               {new Date(highlight.createdAt).toLocaleString()}
-                            </span>
+                            </LqText>
                             <button
                               onClick={() => deleteAnnotation(highlight.id)}
-                              className="p-1.5 text-[var(--text-muted)] hover:text-red-400 hover:bg-[var(--glass-bg-highlight)] rounded transition-colors"
+                              className="p-1.5 text-[var(--text-muted)] hover:text-rose-400 hover:bg-[var(--glass-bg-highlight)] rounded transition-colors"
                               title="Delete"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                          </Flex>
+                        </Box>
+                      </Flex>
+                    </Surface>
                   ))
                 )}
-              </div>
-            </div>
+              </Box>
+            </Box>
           )}
 
           {/* Tags Tab */}
           {activeTab === 'tags' && (
-            <div className="space-y-6">
+            <Box className="space-y-8">
               {/* Common Tags */}
-              <div>
-                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-3">
+              <Box>
+                <LqText
+                  variant="xs"
+                  weight="bold"
+                  color="secondary"
+                  className="mb-4 block uppercase tracking-widest"
+                >
                   Common Tags
-                </label>
-                <div className="flex flex-wrap gap-2">
+                </LqText>
+                <Flex wrap="wrap" gap="sm">
                   {COMMON_TAGS.map((tag) => (
                     <button
                       key={tag}
                       onClick={() => handleToggleTag(tag)}
-                      className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                      className={`px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all border ${
                         selectedTags.includes(tag)
-                          ? 'bg-[var(--accent)] text-[var(--text-primary)]'
-                          : 'bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)]'
+                          ? 'bg-[var(--accent)]/20 border-[var(--accent)]/60 text-[var(--accent)]'
+                          : 'bg-[var(--glass-bg-highlight)] border-[var(--glass-border)] text-[var(--text-secondary)] hover:border-[var(--accent)]/40'
                       }`}
                     >
-                      {selectedTags.includes(tag) && <span className="mr-1">✓</span>}
+                      {selectedTags.includes(tag) && <span className="mr-1.5 opacity-80">✓</span>}
                       {tag}
                     </button>
                   ))}
-                </div>
-              </div>
+                </Flex>
+              </Box>
 
               {/* Custom Tag */}
-              <div>
-                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
+              <Box>
+                <LqText
+                  variant="xs"
+                  weight="bold"
+                  color="secondary"
+                  className="mb-3 block uppercase tracking-widest"
+                >
                   Add Custom Tag
-                </label>
-                <div className="flex gap-2">
+                </LqText>
+                <Flex gap="sm">
                   <input
                     type="text"
                     value={customTag}
                     onChange={(e) => setCustomTag(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleAddCustomTag()}
                     placeholder="Enter custom tag..."
-                    className="flex-1 px-3 py-2 bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] placeholder-slate-500 focus:ring-2 focus:ring-[var(--accent)]"
+                    className="flex-1 px-4 py-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-sm text-[var(--text-primary)] placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
                   />
                   <button
                     onClick={handleAddCustomTag}
                     disabled={!customTag.trim() || saving}
-                    className="px-4 py-2 bg-[var(--accent)] text-[var(--text-primary)] rounded-[var(--radius-lg)] hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                    className="px-6 py-2 bg-[var(--accent)] text-black font-bold uppercase tracking-wider text-[10px] rounded-[var(--radius-lg)] hover:bg-[var(--accent)]/90 disabled:opacity-50 transition-colors"
                   >
                     Add
                   </button>
-                </div>
-              </div>
+                </Flex>
+              </Box>
 
               {/* Selected Tags */}
               {selectedTags.length > 0 && (
-                <div>
-                  <label className="block text-sm font-medium text-[var(--text-secondary)] mb-3">
+                <Box>
+                  <LqText
+                    variant="xs"
+                    weight="bold"
+                    color="secondary"
+                    className="mb-4 block uppercase tracking-widest"
+                  >
                     Applied Tags ({selectedTags.length})
-                  </label>
-                  <div className="flex flex-wrap gap-2">
+                  </LqText>
+                  <Flex wrap="wrap" gap="sm">
                     {selectedTags.map((tag) => (
-                      <span
+                      <Surface
                         key={tag}
-                        className="flex items-center gap-1 px-3 py-1.5 bg-blue-900/50 text-[var(--accent)] rounded-full text-sm border border-blue-700"
+                        variant="glass-highlight"
+                        className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-cyan-500/30"
                       >
-                        <Tag className="w-3 h-3" />
-                        {tag}
+                        <Tag className="w-3 h-3 text-[var(--accent)] opacity-80" />
+                        <LqText
+                          variant="xs"
+                          weight="medium"
+                          color="accent"
+                          className="tracking-wide"
+                        >
+                          {tag}
+                        </LqText>
                         <button
                           onClick={() => handleToggleTag(tag)}
-                          className="ml-1 hover:text-[var(--text-primary)]"
+                          className="ml-1 text-[var(--text-muted)] hover:text-rose-400 transition-colors"
+                          aria-label={`Remove tag ${tag}`}
                         >
                           <X className="w-3 h-3" />
                         </button>
-                      </span>
+                      </Surface>
                     ))}
-                  </div>
-                </div>
+                  </Flex>
+                </Box>
               )}
-            </div>
+            </Box>
           )}
 
           {/* Classification Tab */}
           {activeTab === 'classification' && (
-            <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-3">
+            <Box className="space-y-8">
+              <Box>
+                <LqText
+                  variant="xs"
+                  weight="bold"
+                  color="secondary"
+                  className="mb-4 block uppercase tracking-widest"
+                >
                   Evidence Classification
-                </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                </LqText>
+                <Box className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {CLASSIFICATION_OPTIONS.map((option) => (
-                    <button
+                    <Surface
+                      as="button"
                       key={option.value}
+                      variant={classification === option.value ? 'glass-strong' : 'glass-highlight'}
+                      accent={classification === option.value ? option.color : undefined}
                       onClick={() => handleSetClassification(option.value)}
-                      className={`flex items-center gap-3 p-4 rounded-[var(--radius-lg)] border transition-colors ${
+                      className={`flex items-center gap-4 p-4 border text-left transition-all ${
                         classification === option.value
-                          ? 'bg-[var(--glass-bg-highlight)] border-[var(--accent)]'
-                          : 'bg-[var(--glass-bg-strong)] border-[var(--glass-border)] hover:bg-[var(--glass-bg)]'
+                          ? 'border-[var(--accent)]/60'
+                          : 'opacity-80 hover:opacity-100 hover:border-[var(--glass-border)]'
                       }`}
                     >
-                      <option.icon className={`w-5 h-5 ${option.color}`} />
-                      <span className="text-[var(--text-primary)] font-medium">{option.label}</span>
+                      <option.icon className="w-5 h-5 text-[var(--accent)]" />
+                      <LqText variant="small" weight="medium" className="flex-1">
+                        {option.label}
+                      </LqText>
                       {classification === option.value && (
-                        <CheckCircle className="w-5 h-5 text-[var(--accent)] ml-auto" />
+                        <CheckCircle className="w-5 h-5 text-[var(--accent)]" />
                       )}
-                    </button>
+                    </Surface>
                   ))}
-                </div>
-              </div>
+                </Box>
+              </Box>
 
               {/* Classification Notes */}
-              <div>
-                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                  Classification Notes
-                </label>
+              <Box>
+                <LqText
+                  variant="xs"
+                  weight="bold"
+                  color="secondary"
+                  className="mb-3 block uppercase tracking-widest"
+                >
+                  Classification Rationale
+                </LqText>
                 <textarea
                   value={classificationNotes}
                   onChange={(e) => setClassificationNotes(e.target.value)}
                   placeholder="Explain why you classified this evidence this way..."
-                  className="w-full px-3 py-2 bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] placeholder-slate-500 focus:ring-2 focus:ring-[var(--accent)] resize-none"
+                  className="w-full px-4 py-3 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-sm text-[var(--text-primary)] placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-[var(--accent)] resize-none"
                   rows={4}
                 />
                 {classification && (
-                  <div className="flex justify-end mt-3">
+                  <Flex justify="end" className="mt-3">
                     <button
                       onClick={() => {
                         const existing = annotations.find((a) => a.type === 'classification');
@@ -715,58 +789,69 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                         }
                       }}
                       disabled={saving}
-                      className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] text-[var(--text-primary)] rounded-[var(--radius-lg)] hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                      className="flex items-center gap-2 px-5 py-2.5 bg-[var(--accent)] text-black font-bold uppercase tracking-wider text-[10px] rounded-[var(--radius-lg)] hover:bg-[var(--accent)]/90 disabled:opacity-50 transition-colors"
                     >
                       <Save className="w-4 h-4" />
-                      Save Notes
+                      Save Rationale
                     </button>
-                  </div>
+                  </Flex>
                 )}
-              </div>
+              </Box>
 
               {/* Current Classification Display */}
               {classificationAnnotation && (
-                <div className="bg-[var(--glass-bg-strong)] rounded-[var(--radius-lg)] p-4 border border-[var(--glass-border)]">
-                  <div className="flex items-center gap-2 mb-2">
+                <Surface
+                  variant="glass-strong"
+                  className="p-5 border border-[var(--glass-border)] bg-[var(--glass-bg-strong)]/40"
+                >
+                  <Flex align="center" gap="sm" className="mb-3 opacity-60">
                     <FolderOpen className="w-4 h-4 text-[var(--accent)]" />
-                    <span className="text-sm font-medium text-[var(--text-secondary)]">
-                      Current Classification
-                    </span>
-                  </div>
-                  <p className="text-[var(--text-primary)] font-medium">
+                    <LqText variant="xs" weight="bold" className="uppercase tracking-widest">
+                      Active State
+                    </LqText>
+                  </Flex>
+                  <LqText variant="h4" weight="semibold" color="accent" className="mb-2">
                     {
                       CLASSIFICATION_OPTIONS.find(
                         (o) => o.value === classificationAnnotation.content,
                       )?.label
                     }
-                  </p>
+                  </LqText>
                   {classificationAnnotation.metadata?.notes && (
-                    <p className="text-[var(--text-muted)] text-sm mt-2">
+                    <LqText variant="small" color="secondary" className="mb-4 block italic">
                       {classificationAnnotation.metadata.notes}
-                    </p>
+                    </LqText>
                   )}
-                  <p className="text-xs text-[var(--text-muted)] mt-2">
-                    Last updated: {new Date(classificationAnnotation.updatedAt).toLocaleString()}
-                  </p>
-                </div>
+                  <LqText
+                    variant="xs"
+                    color="muted"
+                    align="right"
+                    className="block pt-3 border-t border-[var(--glass-border)]"
+                  >
+                    Managed by Intelligence Engine •{' '}
+                    {new Date(classificationAnnotation.updatedAt).toLocaleString()}
+                  </LqText>
+                </Surface>
               )}
-            </div>
+            </Box>
           )}
-        </div>
+        </Box>
 
         {/* Footer */}
-        <div className="border-t border-[var(--glass-border)] p-4 flex items-center justify-between">
-          <div className="text-sm text-[var(--text-muted)]">
-            {annotations.length} annotation{annotations.length !== 1 ? 's' : ''} on this evidence
-          </div>
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] rounded-[var(--radius-lg)] hover:bg-[var(--glass-bg-highlight)] transition-colors"
-          >
-            Close
-          </button>
-        </div>
-      </div>
-    </div>
+        <Box className="border-t border-[var(--glass-border)] p-4">
+          <Flex align="center" justify="between">
+            <LqText variant="xs" color="muted">
+              {annotations.length} observation{annotations.length !== 1 ? 's' : ''} recorded
+            </LqText>
+            <button
+              onClick={onClose}
+              className="px-6 py-2 bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] font-semibold text-xs rounded-[var(--radius-lg)] border border-[var(--glass-border)] hover:bg-[var(--glass-bg-highlight)]/15 transition-colors"
+            >
+              Close Panel
+            </button>
+          </Flex>
+        </Box>
+      </Surface>
+    </Box>
   );
 };

@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useState } from 'react';
+import { useEffect } from 'react';
 import type { Location } from 'react-router-dom';
 import { investigationActions } from '../investigations.actions';
 import type {
@@ -28,38 +28,23 @@ export const useEvidenceNavigation = ({
   openEvidence,
   addToast,
 }: UseEvidenceNavigationArgs) => {
-  const [deepLinkedEvidenceId, setDeepLinkedEvidenceId] = useState<string | null>(null);
+  const pathMatch =
+    location.pathname.match(/^\/investigate\/case\/([^/]+)\/evidence\/([^/?#]+)/) ||
+    location.pathname.match(/^\/investigations\/([^/]+)\/evidence\/([^/?#]+)/);
+  const queryEvidenceId = new URLSearchParams(location.search).get('evidenceId');
 
-  useLayoutEffect(() => {
-    if (!selectedInvestigationId) return;
-    const pathMatch =
-      location.pathname.match(/^\/investigate\/case\/([^/]+)\/evidence\/([^/?#]+)/) ||
-      location.pathname.match(/^\/investigations\/([^/]+)\/evidence\/([^/?#]+)/);
-    const queryEvidenceId = new URLSearchParams(location.search).get('evidenceId');
-    if (!pathMatch && !queryEvidenceId) {
-      setDeepLinkedEvidenceId(null);
-    }
-  }, [selectedInvestigationId, location.pathname, location.search]);
+  const routeInvestigationId = pathMatch?.[1] || selectedInvestigationId;
+  const routeEvidenceId = pathMatch?.[2] || queryEvidenceId;
+
+  const deepLinkedEvidenceId =
+    selectedInvestigationId &&
+    routeEvidenceId &&
+    String(routeInvestigationId) === String(selectedInvestigationId)
+      ? String(routeEvidenceId)
+      : null;
 
   useEffect(() => {
-    if (!selectedInvestigationId) return;
-
-    const pathMatch =
-      location.pathname.match(/^\/investigate\/case\/([^/]+)\/evidence\/([^/?#]+)/) ||
-      location.pathname.match(/^\/investigations\/([^/]+)\/evidence\/([^/?#]+)/);
-    const queryEvidenceId = new URLSearchParams(location.search).get('evidenceId');
-
-    if (!pathMatch && !queryEvidenceId) {
-      return;
-    }
-
-    const routeInvestigationId = pathMatch?.[1] || selectedInvestigationId;
-    const routeEvidenceId = pathMatch?.[2] || queryEvidenceId;
-
-    if (!routeEvidenceId) return;
-    if (String(routeInvestigationId) !== String(selectedInvestigationId)) return;
-
-    setDeepLinkedEvidenceId(String(routeEvidenceId));
+    if (!deepLinkedEvidenceId) return;
 
     const openEvidenceFromRoute = async () => {
       if (activeTab !== 'casefolder') navigateToTab('casefolder');
@@ -88,12 +73,11 @@ export const useEvidenceNavigation = ({
   }, [
     activeTab,
     addToast,
+    deepLinkedEvidenceId,
     loadCaseFolder,
-    location.pathname,
-    location.search,
     navigateToTab,
     openEvidence,
-    selectedInvestigationId,
+    routeEvidenceId,
   ]);
 
   return { deepLinkedEvidenceId };

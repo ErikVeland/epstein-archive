@@ -2,8 +2,42 @@ import React from 'react';
 import { Database, Shield, AlertTriangle, Globe, Bot, Flag, Sparkles } from 'lucide-react';
 import { format } from 'date-fns';
 
+interface DocumentMetadata {
+  ai_summary?: string;
+  ai_provider?: string;
+  ai_enriched_at?: string;
+  ai_error?: string;
+  temporal?: {
+    primary?: string;
+    min?: string;
+    max?: string;
+  };
+  linguistics?: {
+    readingLevel?: number;
+    sentiment?: string;
+  };
+  source_collection?: string;
+  source_original_url?: string;
+  tags?: string[];
+  [key: string]: unknown;
+}
+
 interface DocumentMetadataPanelProps {
-  document: Record<string, any>;
+  document: {
+    id?: string | number;
+    metadata?: DocumentMetadata;
+    redFlagRating?: number | string;
+    red_flag_rating?: number | string;
+    extractedDate?: string;
+    fileType?: string;
+    file_type?: string;
+    fileSize?: number;
+    file_size?: number;
+    contentHash?: string;
+    content_hash?: string;
+    tags?: string[];
+    [key: string]: unknown;
+  };
   analysis?: Record<string, unknown>;
   className?: string;
 }
@@ -14,18 +48,10 @@ export const DocumentMetadataPanel: React.FC<DocumentMetadataPanelProps> = ({
 }) => {
   if (!document) return null;
 
-  const metadata =
-    typeof document.metadata === 'object' &&
-    document.metadata !== null &&
-    !Array.isArray(document.metadata)
-      ? (document.metadata as Record<string, any>)
-      : {};
-  const linguistics =
-    typeof metadata.linguistics === 'object' && metadata.linguistics !== null
-      ? (metadata.linguistics as Record<string, any>)
-      : {};
+  const metadata = (document.metadata || {}) as DocumentMetadata;
+  const linguistics = metadata.linguistics || {};
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString?: string) => {
     if (!dateString) return 'Unknown';
     try {
       return format(new Date(dateString), 'PP pp');
@@ -226,7 +252,7 @@ export const DocumentMetadataPanel: React.FC<DocumentMetadataPanelProps> = ({
               Data Weight
             </dt>
             <dd className="text-xs text-[var(--text-primary)] font-medium">
-              {formatSize(document.fileSize || document.file_size)}
+              {formatSize((document.fileSize || document.file_size) ?? 0)}
             </dd>
           </div>
           <div className="group">
@@ -273,7 +299,7 @@ export const DocumentMetadataPanel: React.FC<DocumentMetadataPanelProps> = ({
             </div>
           )}
 
-          {(metadata.tags?.length > 0 || document.tags?.length > 0) && (
+          {((metadata.tags?.length ?? 0) > 0 || (document.tags?.length ?? 0) > 0) && (
             <div className="pt-2">
               <span className="text-[10px] text-[var(--text-muted)] block mb-2 uppercase font-black tracking-widest">
                 Semantic Tags

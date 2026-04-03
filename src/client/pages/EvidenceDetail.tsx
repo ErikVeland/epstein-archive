@@ -30,6 +30,11 @@ import { getEntityCategoryIcon } from '../../config/entityIcons';
 import { ClaimsList } from '../components/evidence/ClaimsList';
 import { SEO } from '../components/common/SEO';
 import { apiClient } from '../services/apiClient';
+import { Surface } from '../design-system/components/surfaces/Surface';
+import { Flex } from '../design-system/components/layout/Flex';
+import { Box } from '../design-system/components/layout/Box';
+import { Grid } from '../design-system/components/layout/Grid';
+import { LqText } from '../design-system/components/typography/Text';
 
 interface Evidence {
   id: number;
@@ -186,31 +191,35 @@ export function EvidenceDetail() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[var(--glass-bg)]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-[var(--text-primary)]">Loading evidence...</p>
-        </div>
-      </div>
+      <Flex align="center" justify="center" className="min-h-screen bg-[var(--glass-bg)]">
+        <Box className="text-center">
+          <Box className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></Box>
+          <LqText as="p" variant="body" color="primary" className="mt-4">
+            Loading evidence...
+          </LqText>
+        </Box>
+      </Flex>
     );
   }
 
   if (error || !evidence) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[var(--glass-bg)]">
-        <div className="text-center">
+      <Flex align="center" justify="center" className="min-h-screen bg-[var(--glass-bg)]">
+        <Box className="text-center">
           <AlertTriangle className="h-12 w-12 text-red-600 mx-auto" />
-          <p className="mt-4 text-[var(--text-primary)]">{error || 'Evidence not found'}</p>
+          <LqText as="p" variant="body" color="primary" className="mt-4">
+            {error || 'Evidence not found'}
+          </LqText>
           <Link to="/evidence" className="mt-4 inline-block text-cyan-400 hover:underline">
             ← Back to Evidence List
           </Link>
-        </div>
-      </div>
+        </Box>
+      </Flex>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[var(--glass-bg)] text-[var(--text-primary)]">
+    <Box className="min-h-screen bg-[var(--glass-bg)] text-[var(--text-primary)]">
       <SEO
         title={evidence.title}
         description={
@@ -219,10 +228,10 @@ export function EvidenceDetail() {
         type="article"
       />
       {/* Header */}
-      <div className="bg-[var(--glass-bg)] border-b border-[var(--glass-border)]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+      <Box className="bg-[var(--glass-bg)] border-b border-[var(--glass-border)]">
+        <Box className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <Flex align="center" justify="between">
+            <Flex align="center" gap={4}>
               <Link
                 to="/evidence"
                 className="text-[var(--text-primary)] hover:text-[var(--text-primary)] flex items-center"
@@ -230,15 +239,22 @@ export function EvidenceDetail() {
                 <ChevronLeft className="h-5 w-5" />
                 <span className="ml-1">Back</span>
               </Link>
-              <div>
-                <h1 className="text-2xl font-bold text-[var(--text-primary)]">{evidence.title}</h1>
-                <p className="text-xs font-light text-[var(--text-muted)] mt-1 truncate">
+              <Box>
+                <LqText as="h1" variant="h3" color="primary" className="font-bold">
+                  {evidence.title}
+                </LqText>
+                <LqText
+                  as="p"
+                  variant="body"
+                  color="muted"
+                  className="text-xs font-light mt-1 truncate"
+                >
                   {evidence.originalFilename}
-                </p>
-              </div>
-            </div>
+                </LqText>
+              </Box>
+            </Flex>
 
-            <div className="flex items-center space-x-2">
+            <Flex align="center" gap={2}>
               <button
                 onClick={handleShare}
                 className="p-2 text-[var(--text-primary)] hover:bg-[var(--glass-bg)] rounded"
@@ -260,17 +276,21 @@ export function EvidenceDetail() {
               >
                 <Download className="h-5 w-5" />
               </button>
-            </div>
-          </div>
-          {actionNotice && <p className="mt-2 text-xs text-[var(--text-muted)]">{actionNotice}</p>}
-        </div>
-      </div>
+            </Flex>
+          </Flex>
+          {actionNotice && (
+            <LqText as="p" variant="small" color="muted" className="mt-2 text-xs">
+              {actionNotice}
+            </LqText>
+          )}
+        </Box>
+      </Box>
 
       {/* Metadata Bar */}
-      <div className="bg-[var(--glass-bg)] border-b border-[var(--glass-border)]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div className="flex items-center space-x-4">
+      <Surface variant="glass" className="border-b border-[var(--glass-border)] rounded-none">
+        <Box className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <Flex align="center" justify="between" className="flex-wrap gap-4">
+            <Flex align="center" gap={4}>
               <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
                 <FileText className="h-4 w-4 mr-1" />
                 {getEvidenceTypeLabel(evidence.evidenceType)}
@@ -319,18 +339,18 @@ export function EvidenceDetail() {
                   {formatDate(evidence.createdAt)}
                 </span>
               )}
-            </div>
+            </Flex>
 
-            <div className="flex items-center space-x-4 text-sm text-[var(--text-primary)]">
+            <Flex align="center" gap={4} className="text-sm text-[var(--text-primary)]">
               <span>{evidence.wordCount?.toLocaleString()} words</span>
               <span>{formatFileSize(evidence.fileSize)}</span>
-            </div>
-          </div>
+            </Flex>
+          </Flex>
 
           {evidence.tags && evidence.tags.length > 0 && (
-            <div className="mt-3 flex items-center space-x-2">
+            <Flex align="center" gap={2} className="mt-3">
               <Tag className="h-4 w-4 text-[var(--text-muted)]" />
-              <div className="flex flex-wrap gap-2">
+              <Flex gap={2} className="flex-wrap">
                 {evidence.tags.map((tag, index) => (
                   <span
                     key={index}
@@ -339,23 +359,23 @@ export function EvidenceDetail() {
                     {tag}
                   </span>
                 ))}
-              </div>
-            </div>
+              </Flex>
+            </Flex>
           )}
-        </div>
-      </div>
+        </Box>
+      </Surface>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <Box className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <Grid cols={{ base: 1, lg: 4 }} gap="lg">
           {/* Main Content */}
-          <div className="lg:col-span-3">
-            <div className="bg-[var(--glass-bg)] rounded-lg shadow border border-[var(--glass-border)]">
+          <Box className="lg:col-span-3">
+            <Surface variant="glass" className="h-full">
               {renderViewer()}
-            </div>
-          </div>
+            </Surface>
+          </Box>
 
           {/* Sidebar */}
-          <div className="lg:col-span-1 space-y-6">
+          <Flex direction="column" gap={6} className="lg:col-span-1">
             {/* Claims & Facts */}
             {evidence.claims && evidence.claims.length > 0 && (
               <ClaimsList
@@ -365,64 +385,71 @@ export function EvidenceDetail() {
 
             {/* Linked Entities */}
             {evidence.entities && evidence.entities.length > 0 && (
-              <div className="bg-[var(--glass-bg)] rounded-lg shadow border border-[var(--glass-border)] p-4">
-                <h3 className="font-semibold text-[var(--text-primary)] mb-4 flex items-center">
+              <Surface variant="glass" className="p-4">
+                <LqText as="h3" variant="h3" color="primary" className="mb-4 flex items-center">
                   <Users className="h-5 w-5 mr-2" />
                   Linked Entities ({evidence.entities.length})
-                </h3>
-                <div className="space-y-3">
+                </LqText>
+                <Flex direction="column" gap={3}>
                   {evidence.entities.map((entity) => {
                     const iconConfig = getEntityCategoryIcon(entity.category || 'person_associate');
                     return (
                       <Link
                         key={entity.id}
                         to={`/entities/${entity.id}`}
-                        className="block p-3 border border-[var(--glass-border)] rounded-lg hover:border-cyan-500 hover:shadow-sm transition"
+                        className="block p-3 border border-[var(--glass-border)] rounded-lg hover:border-cyan-500 hover:shadow-[var(--glass-shadow-soft)] transition"
                       >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-[var(--text-primary)] truncate">
+                        <Flex align="start" justify="between">
+                          <Box className="flex-1 min-w-0">
+                            <LqText
+                              as="p"
+                              variant="body"
+                              color="primary"
+                              className="font-medium truncate"
+                            >
                               {entity.name}
-                            </p>
-                            <p className="text-xs text-[var(--text-muted)] mt-1">
+                            </LqText>
+                            <LqText as="p" variant="small" color="muted" className="mt-1">
                               Role: {entity.role}
-                            </p>
+                            </LqText>
                             {entity.confidence < 1 && (
-                              <p className="text-xs text-[var(--text-muted)] mt-1">
+                              <LqText as="p" variant="small" color="muted" className="mt-1">
                                 Confidence: {(entity.confidence * 100).toFixed(0)}%
-                              </p>
+                              </LqText>
                             )}
-                          </div>
+                          </Box>
                           <span className={`text-sm ${iconConfig.color}`}>{iconConfig.icon}</span>
-                        </div>
+                        </Flex>
                       </Link>
                     );
                   })}
-                </div>
-              </div>
+                </Flex>
+              </Surface>
             )}
 
             {/* Metadata */}
             {evidence.metadata && Object.keys(evidence.metadata).length > 0 && (
-              <div className="bg-[var(--text-primary)] rounded-lg shadow p-4">
-                <h3 className="font-semibold text-[var(--text-primary)] mb-4">Metadata</h3>
+              <Surface variant="solid" className="p-4 bg-[var(--text-primary)]">
+                <LqText as="h3" variant="h3" className="mb-4 text-[var(--bg-primary)]">
+                  Metadata
+                </LqText>
                 <dl className="space-y-2 text-sm">
                   {Object.entries(evidence.metadata).map(([key, value]) => (
-                    <div key={key}>
-                      <dt className="text-[var(--text-primary)] font-medium">
+                    <Box key={key}>
+                      <dt className="text-[var(--bg-primary)] font-medium">
                         {key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}
                       </dt>
-                      <dd className="text-[var(--text-primary)] mt-1">
+                      <dd className="text-[var(--bg-primary)] mt-1 opacity-80">
                         {typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)}
                       </dd>
-                    </div>
+                    </Box>
                   ))}
                 </dl>
-              </div>
+              </Surface>
             )}
-          </div>
-        </div>
-      </div>
-    </div>
+          </Flex>
+        </Grid>
+      </Box>
+    </Box>
   );
 }

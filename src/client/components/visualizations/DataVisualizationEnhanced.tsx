@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useLayoutEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   BarChart,
   Bar,
@@ -184,10 +184,11 @@ const TreemapCellContent: React.FC<TreemapContentProps> = ({
 
 export const DataVisualization: React.FC<DataVisualizationProps> = ({ people }) => {
   const [animationKey, setAnimationKey] = useState(0);
-
-  useLayoutEffect(() => {
+  const [prevPeople, setPrevPeople] = useState(people);
+  if (people !== prevPeople) {
+    setPrevPeople(people);
     setAnimationKey((prev) => prev + 1);
-  }, [people]);
+  }
 
   // Enhanced data preparation with more insights
   const likelihoodData = [

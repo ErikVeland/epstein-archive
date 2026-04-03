@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   Play,
   Pause,
@@ -95,9 +95,16 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       .map(({ index }) => index);
   }, [transcript, normalizedTranscriptQuery]);
 
-  useLayoutEffect(() => {
+  const [prevNormalizedQuery, setPrevNormalizedQuery] = useState(normalizedTranscriptQuery);
+  const [prevMatchesLength, setPrevMatchesLength] = useState(transcriptMatches.length);
+  if (
+    normalizedTranscriptQuery !== prevNormalizedQuery ||
+    transcriptMatches.length !== prevMatchesLength
+  ) {
+    setPrevNormalizedQuery(normalizedTranscriptQuery);
+    setPrevMatchesLength(transcriptMatches.length);
     setCurrentMatchIndex(0);
-  }, [normalizedTranscriptQuery, transcriptMatches.length]);
+  }
 
   const [hasRevealed, setHasRevealed] = useState(!isSensitive);
 
@@ -133,10 +140,11 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     }
   };
 
-  // Reset hasRevealed if isSensitive changes
-  useLayoutEffect(() => {
+  const [prevIsSensitive, setPrevIsSensitive] = useState(isSensitive);
+  if (isSensitive !== prevIsSensitive) {
+    setPrevIsSensitive(isSensitive);
     setHasRevealed(!isSensitive);
-  }, [isSensitive]);
+  }
 
   useEffect(() => {
     if (videoRef.current) {
@@ -222,7 +230,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       scrollToSegment(segIndex);
       scrollOverlayToSegment(segIndex);
     },
-    [transcriptMatches, transcript, seek],
+    [transcriptMatches, transcript, seek, scrollOverlayToSegment],
   );
 
   const goToNextTranscriptMatch = useCallback(

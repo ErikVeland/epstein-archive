@@ -1,7 +1,12 @@
+import { Search, Info, Filter, ChevronUp, ChevronDown, Flag, X } from 'lucide-react';
 import FormField from '../common/FormField';
 import Tooltip from '../common/Tooltip';
-import Icon from '../common/Icon';
 import ProgressBar from '../common/ProgressBar';
+import { Surface } from '../../design-system/components/surfaces/Surface';
+import { Box } from '../../design-system/components/layout/Box';
+import { Flex } from '../../design-system/components/layout/Flex';
+import { Grid } from '../../design-system/components/layout/Grid';
+import { LqText } from '../../design-system/components/typography/Text';
 
 type SortBy = 'relevance' | 'mentions' | 'redflag_asc' | 'redflag_desc' | 'name';
 
@@ -61,27 +66,27 @@ export function EvidenceFilters({
   resultCount,
 }: EvidenceFiltersProps) {
   return (
-    <div className="surface-glass p-6">
-      <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
-        <Icon name="Search" size="lg" />
-        Evidence Search
-      </h2>
+    <Surface variant="glass" className="p-6">
+      <Flex align="center" gap={8} className="mb-4">
+        <Search className="text-[var(--accent)]" size={24} />
+        <LqText variant="h2" weight="bold">
+          Evidence Search
+        </LqText>
+      </Flex>
 
-      {/* Microcopy for Evidence Search */}
-      <div className="text-sm text-[var(--text-muted)] mb-4 flex items-start gap-2">
-        <Icon name="Info" size="sm" className="mt-0.5 flex-shrink-0" />
-        <span>
-          Search across all documents, entities, and evidence to find connections and patterns
-        </span>
-      </div>
+      <Flex align="start" gap={8} className="mb-6 opacity-70">
+        <Info size={16} className="mt-1 flex-shrink-0" />
+        <LqText variant="small">
+          Search across all documents, entities, and evidence to find connections and patterns.
+        </LqText>
+      </Flex>
 
-      {/* Loading State */}
       {loading && (
-        <div className="mb-6 p-4 surface-glass">
-          <div className="text-center">
-            <div className="text-[var(--accent)] text-sm mb-3" role="status">
+        <Surface variant="glass" className="mb-6 p-4 border-[var(--accent)]/20">
+          <Box className="text-center">
+            <LqText color="accent" variant="small" className="mb-3">
               {loadingProgress}
-            </div>
+            </LqText>
             <ProgressBar
               value={loadingProgressValue}
               max={100}
@@ -90,111 +95,106 @@ export function EvidenceFilters({
               size="md"
               label="Search progress"
             />
-            <div className="text-xs text-[var(--text-muted)] mt-2">
+            <LqText variant="xs" color="muted" className="mt-2 text-center">
               Searching subjects and documents...
-            </div>
-          </div>
-        </div>
+            </LqText>
+          </Box>
+        </Surface>
       )}
 
-      {/* Search Input */}
       <FormField
         label={
-          <div className="flex items-center gap-2">
-            Search
+          <Flex align="center" gap={8}>
+            <LqText variant="small" weight="medium">
+              Search
+            </LqText>
             <Tooltip content="Search by names, contexts, or evidence">
-              <Icon name="Info" size="sm" color="gray" className="cursor-help" />
+              <Info size={14} className="text-white/40 cursor-help" />
             </Tooltip>
-          </div>
+          </Flex>
         }
         id="search-query"
       >
-        <div className="relative">
+        <Box className="relative">
           <input
             type="text"
             id="search-query"
             placeholder="Search names, contexts, or evidence..."
             value={searchTerm}
             onChange={(e) => onSearchTermChange(e.target.value)}
-            className="w-full pl-10 pr-10 h-10 surface-glass text-[var(--text-primary)] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent disabled:opacity-50 form-input"
+            className="w-full pl-10 pr-10 h-10 bg-white/5 border border-white/10 rounded-[var(--radius-lg)] text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent disabled:opacity-50 transition-all"
             aria-label="Search for evidence by names, contexts, or keywords"
           />
           {searchTerm && (
             <button
               onClick={() => onSearchTermChange('')}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded-full hover:bg-[var(--glass-bg-highlight)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-white/10 text-white/40 hover:text-white transition-colors"
               title="Clear search"
             >
-              <Icon name="X" size="sm" />
+              <X size={16} />
             </button>
           )}
-          <Icon
-            name="Search"
-            size="sm"
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none"
-            color="gray"
+          <Search
+            size={18}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none"
             aria-hidden="true"
           />
-        </div>
+        </Box>
       </FormField>
 
-      {/* Filters - Collapsible on mobile */}
-      <div className="md:hidden mb-4">
+      <Box className="md:hidden mt-4">
         <button
           onClick={onShowFiltersToggle}
-          className="w-full flex items-center justify-between px-4 py-3 surface-glass text-[var(--text-primary)]"
+          className="w-full flex items-center justify-between px-4 py-3 bg-white/5 border border-white/10 rounded-[var(--radius-lg)] text-white"
         >
-          <span className="flex items-center gap-2">
-            <Icon name="Filter" size="sm" />
-            Filters
-          </span>
-          <Icon name={showFilters ? 'ChevronUp' : 'ChevronDown'} size="sm" />
+          <Flex align="center" gap={8}>
+            <Filter size={16} />
+            <LqText weight="medium">Filters</LqText>
+          </Flex>
+          {showFilters ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
         </button>
-      </div>
+      </Box>
 
-      {/* Filters Grid - Hidden on mobile unless expanded */}
-      <div className={`${showFilters ? 'block' : 'hidden'} md:block`}>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-6">
+      <Box className={`${showFilters ? 'block' : 'hidden'} md:block mt-6`}>
+        <Grid cols={{ base: 1, md: 2, lg: 3, xl: 6 }} gap={16}>
           <FormField
             label={
-              <div className="flex items-center gap-2">
-                Risk Level
-                <Tooltip content="Filter results by subject risk assessment. Risk levels are determined by algorithmic analysis of evidence connections and document mentions.">
-                  <Icon name="Info" size="sm" color="gray" className="cursor-help" />
+              <Flex align="center" gap={8}>
+                <LqText variant="small" weight="medium">
+                  Risk Level
+                </LqText>
+                <Tooltip content="Filter results by subject risk assessment.">
+                  <Info size={14} className="text-white/40 cursor-help" />
                 </Tooltip>
-              </div>
+              </Flex>
             }
             id="risk-level"
           >
-            <div className="relative">
-              <select
-                id="risk-level"
-                value={selectedRiskLevel}
-                onChange={(e) => onRiskLevelChange(e.target.value)}
-                disabled={loading}
-                aria-describedby="risk-level-description"
-                className="w-full surface-glass px-3 h-10 text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] disabled:opacity-50 form-select"
-              >
-                {filterOptions.riskLevels.map((level) => (
-                  <option key={level.value} value={level.value}>
-                    {level.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <p id="risk-level-description" className="sr-only">
-              Filter search results by risk level
-            </p>
+            <select
+              id="risk-level"
+              value={selectedRiskLevel}
+              onChange={(e) => onRiskLevelChange(e.target.value)}
+              disabled={loading}
+              className="w-full bg-white/5 border border-white/10 rounded-[var(--radius-lg)] px-3 h-10 text-white focus:outline-none focus:ring-2 focus:ring-[var(--accent)] disabled:opacity-50 transition-all"
+            >
+              {filterOptions.riskLevels.map((level) => (
+                <option key={level.value} value={level.value} className="bg-[#1a1a1a]">
+                  {level.label}
+                </option>
+              ))}
+            </select>
           </FormField>
 
           <FormField
             label={
-              <div className="flex items-center gap-2">
-                Evidence Type
-                <Tooltip content="Evidence types categorize the nature of documents and references associated with subjects.">
-                  <Icon name="Info" size="sm" color="gray" className="cursor-help" />
+              <Flex align="center" gap={8}>
+                <LqText variant="small" weight="medium">
+                  Evidence Type
+                </LqText>
+                <Tooltip content="Evidence types categorize the nature of documents.">
+                  <Info size={14} className="text-white/40 cursor-help" />
                 </Tooltip>
-              </div>
+              </Flex>
             }
             id="evidence-type"
           >
@@ -203,150 +203,139 @@ export function EvidenceFilters({
               value={selectedEvidenceType}
               onChange={(e) => onEvidenceTypeChange(e.target.value)}
               disabled={loading}
-              aria-describedby="evidence-type-description"
-              className="w-full surface-glass px-3 h-10 text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] disabled:opacity-50 form-select"
+              className="w-full bg-white/5 border border-white/10 rounded-[var(--radius-lg)] px-3 h-10 text-white focus:outline-none focus:ring-2 focus:ring-[var(--accent)] disabled:opacity-50 transition-all"
             >
-              <option value="ALL">All Types</option>
+              <option value="ALL" className="bg-[#1a1a1a]">
+                All Types
+              </option>
               {allEvidenceTypes.map((type) => (
-                <option key={type} value={type}>
+                <option key={type} value={type} className="bg-[#1a1a1a]">
                   {type.replace('_', ' ').toUpperCase()}
                 </option>
               ))}
             </select>
-            <p id="evidence-type-description" className="sr-only">
-              Filter search results by evidence type
-            </p>
           </FormField>
 
           <FormField
             label={
-              <div className="flex items-center gap-2">
-                Min Red Flag Rating
-                <Tooltip content="Set minimum red flag severity threshold. Red Flag Index measures the strength of evidence connections and potential significance of a subject.">
-                  <Icon name="Info" size="sm" color="gray" className="cursor-help" />
+              <Flex align="center" gap={8}>
+                <LqText variant="small" weight="medium">
+                  Min Red Flag
+                </LqText>
+                <Tooltip content="Set minimum severity threshold.">
+                  <Info size={14} className="text-white/40 cursor-help" />
                 </Tooltip>
-              </div>
+              </Flex>
             }
             id="min-rating"
           >
-            <div className="relative">
-              <select
-                id="min-rating"
-                value={minRedFlagRating}
-                onChange={(e) => onMinRedFlagRatingChange(Number(e.target.value))}
-                disabled={loading}
-                aria-describedby="min-rating-description"
-                className="w-full surface-glass px-3 h-10 text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] disabled:opacity-50 form-select"
-              >
-                {filterOptions.redFlagRatings.map((rating) => (
-                  <option key={rating.value} value={rating.value}>
-                    {rating.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <p id="min-rating-description" className="sr-only">
-              Filter search results by minimum red flag rating
-            </p>
+            <select
+              id="min-rating"
+              value={minRedFlagRating}
+              onChange={(e) => onMinRedFlagRatingChange(Number(e.target.value))}
+              disabled={loading}
+              className="w-full bg-white/5 border border-white/10 rounded-[var(--radius-lg)] px-3 h-10 text-white focus:outline-none focus:ring-2 focus:ring-[var(--accent)] disabled:opacity-50 transition-all"
+            >
+              {filterOptions.redFlagRatings.map((rating) => (
+                <option key={rating.value} value={rating.value} className="bg-[#1a1a1a]">
+                  {rating.label}
+                </option>
+              ))}
+            </select>
           </FormField>
 
           <FormField
             label={
-              <div className="flex items-center gap-2">
-                Max Red Flag Rating
-                <Tooltip content="Set maximum red flag severity threshold. Red Flag Index measures the strength of evidence connections and potential significance of a subject.">
-                  <Icon name="Info" size="sm" color="gray" className="cursor-help" />
+              <Flex align="center" gap={8}>
+                <LqText variant="small" weight="medium">
+                  Max Red Flag
+                </LqText>
+                <Tooltip content="Set maximum severity threshold.">
+                  <Info size={14} className="text-white/40 cursor-help" />
                 </Tooltip>
-              </div>
+              </Flex>
             }
             id="max-rating"
           >
-            <div className="relative">
-              <select
-                id="max-rating"
-                value={maxRedFlagRating}
-                onChange={(e) => onMaxRedFlagRatingChange(Number(e.target.value))}
-                disabled={loading}
-                aria-describedby="max-rating-description"
-                className="w-full surface-glass px-3 h-10 text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] disabled:opacity-50 form-select"
-              >
-                {filterOptions.redFlagRatings.map((rating) => (
-                  <option key={rating.value} value={rating.value}>
-                    {rating.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <p id="max-rating-description" className="sr-only">
-              Filter search results by maximum red flag rating
-            </p>
+            <select
+              id="max-rating"
+              value={maxRedFlagRating}
+              onChange={(e) => onMaxRedFlagRatingChange(Number(e.target.value))}
+              disabled={loading}
+              className="w-full bg-white/5 border border-white/10 rounded-[var(--radius-lg)] px-3 h-10 text-white focus:outline-none focus:ring-2 focus:ring-[var(--accent)] disabled:opacity-50 transition-all"
+            >
+              {filterOptions.redFlagRatings.map((rating) => (
+                <option key={rating.value} value={rating.value} className="bg-[#1a1a1a]">
+                  {rating.label}
+                </option>
+              ))}
+            </select>
           </FormField>
 
           <FormField
             label={
-              <div className="flex items-center gap-2">
-                Sort By
-                <Tooltip content="Order results by selected criteria. Sorting affects how results are ordered, with relevance using algorithmic matching.">
-                  <Icon name="Info" size="sm" color="gray" className="cursor-help" />
+              <Flex align="center" gap={8}>
+                <LqText variant="small" weight="medium">
+                  Sort By
+                </LqText>
+                <Tooltip content="Order results by selected criteria.">
+                  <Info size={14} className="text-white/40 cursor-help" />
                 </Tooltip>
-              </div>
+              </Flex>
             }
             id="sort-by"
           >
-            <div className="relative">
-              <select
-                id="sort-by"
-                value={sortBy}
-                onChange={(e) => onSortByChange(e.target.value as SortBy)}
-                disabled={loading}
-                aria-describedby="sort-by-description"
-                className="w-full surface-glass px-3 h-10 text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] disabled:opacity-50 form-select"
-              >
-                {filterOptions.sortByOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <p id="sort-by-description" className="sr-only">
-              Sort search results by selected criteria
-            </p>
+            <select
+              id="sort-by"
+              value={sortBy}
+              onChange={(e) => onSortByChange(e.target.value as SortBy)}
+              disabled={loading}
+              className="w-full bg-white/5 border border-white/10 rounded-[var(--radius-lg)] px-3 h-10 text-white focus:outline-none focus:ring-2 focus:ring-[var(--accent)] disabled:opacity-50 transition-all"
+            >
+              {filterOptions.sortByOptions.map((option) => (
+                <option key={option.value} value={option.value} className="bg-[#1a1a1a]">
+                  {option.label}
+                </option>
+              ))}
+            </select>
           </FormField>
 
           <FormField
             label={
-              <div className="flex items-center gap-2">
-                Red Flag Only
-                <Tooltip content="Show only results with red flags. Filter to show only subjects with flagged evidence.">
-                  <Icon name="Info" size="sm" color="gray" className="cursor-help" />
+              <Flex align="center" gap={8}>
+                <LqText variant="small" weight="medium">
+                  Red Flag Only
+                </LqText>
+                <Tooltip content="Show only flagged results.">
+                  <Info size={14} className="text-white/40 cursor-help" />
                 </Tooltip>
-              </div>
+              </Flex>
             }
             id="red-flag-only"
           >
-            <div className="flex items-center space-x-2">
+            <Flex align="center" gap={8} className="h-10">
               <input
                 type="checkbox"
                 id="red-flag-only"
                 checked={showRedFlagOnly}
                 onChange={(e) => onShowRedFlagOnlyChange(e.target.checked)}
                 disabled={loading}
-                className="w-4 h-4 text-[var(--accent)] bg-[var(--glass-bg)] border-[var(--glass-border)] rounded focus:ring-[var(--accent)] disabled:opacity-50 form-checkbox"
-                aria-label="Show only subjects with red flags"
+                className="w-4 h-4 rounded border-white/20 bg-white/5 text-[var(--accent)] focus:ring-[var(--accent)] transition-all cursor-pointer"
               />
-              <Icon name="Flag" size="sm" color="danger" aria-hidden="true" />
-            </div>
+              <Flag size={16} className="text-red-500" />
+            </Flex>
           </FormField>
-        </div>
-      </div>
+        </Grid>
+      </Box>
 
-      <div className="flex justify-between items-center">
-        <div className="text-sm text-[var(--text-muted)]">{resultCount} results found</div>
-        <div className="text-xs text-[var(--text-muted)]">
-          Red Flag Range: {minRedFlagRating} - {maxRedFlagRating}
-        </div>
-      </div>
-    </div>
+      <Flex justify="between" align="center" className="mt-6 pt-4 border-t border-white/10">
+        <LqText variant="xs" color="muted">
+          {resultCount} results found
+        </LqText>
+        <LqText variant="xs" color="muted">
+          Range: {minRedFlagRating} - {maxRedFlagRating}
+        </LqText>
+      </Flex>
+    </Surface>
   );
 }

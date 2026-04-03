@@ -1,0 +1,62 @@
+.lq-surface {
+  position: relative;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.lq-surface--glass-base {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.lq-surface--glass-strong {
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border-strong);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+}
+
+.lq-surface--glass-highlight {
+  background: var(--glass-bg-highlight);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--glass-border);
+}
+
+.lq-surface--outline {
+  background: transparent;
+  border: 1px solid var(--glass-border);
+}
+
+/* Accent modifiers */
+.lq-surface--accent-amber {
+  border-color: rgba(212, 168, 75, 0.3);
+}
+.lq-surface--accent-cyan {
+  border-color: rgba(34, 211, 238, 0.3);
+}
+.lq-surface--accent-purple {
+  border-color: rgba(168, 85, 247, 0.3);
+}
+.lq-surface--accent-rose {
+  border-color: rgba(244, 63, 94, 0.3);
+}
+.lq-surface--accent-emerald {
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.lq-surface--accent-amber::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0.5;
+}
