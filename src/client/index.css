@@ -15,9 +15,19 @@
   --space-4: 16px;
   --space-5: 20px;
   --space-6: 24px;
+  --space-7: 28px;
   --space-8: 32px;
+  --space-9: 36px;
   --space-10: 40px;
   --space-12: 48px;
+
+  /* Size scale (for w, h, maxW, maxH props) */
+  --size-xs: 320px;
+  --size-sm: 384px;
+  --size-md: 448px;
+  --size-lg: 512px;
+  --size-xl: 672px;
+  --size-2xl: 896px;
 
   /* Typography */
   --font-display: 'DM Serif Display', Georgia, serif;

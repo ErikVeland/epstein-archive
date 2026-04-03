@@ -1,37 +1,83 @@
-import React, { CSSProperties } from 'react';
+import React from 'react';
+import { cn } from '../../lib';
+import { buildSpacingStyles, type SpacingProps, type SizingProps } from '../../lib/resolveSpace';
 import './Stack.css';
 
-export interface StackProps extends React.HTMLAttributes<HTMLDivElement> {
-  gap?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'none' | number;
+export interface StackProps
+  extends React.HTMLAttributes<HTMLDivElement>, SpacingProps, SizingProps {
   align?: 'start' | 'center' | 'end' | 'stretch';
-  className?: string;
   children: React.ReactNode;
 }
 
+const alignMap: Record<string, string> = {
+  start: 'flex-start',
+  center: 'center',
+  end: 'flex-end',
+  stretch: 'stretch',
+};
+
 export const Stack: React.FC<StackProps> = ({
-  gap = 'md',
   align = 'stretch',
-  className = '',
+  className,
   children,
   style,
+  p,
+  px,
+  py,
+  pt,
+  pb,
+  pl,
+  pr,
+  m,
+  mx,
+  my,
+  mt,
+  mb,
+  ml,
+  mr,
+  gap,
+  w,
+  h,
+  minW,
+  minH,
+  maxW,
+  maxH,
   ...props
 }) => {
-  const styles: Record<string, string | number> = {};
-
-  const alignMap = { start: 'flex-start', center: 'center', end: 'flex-end', stretch: 'stretch' };
-  styles['--stack-align'] = alignMap[align] || 'stretch';
-
-  if (typeof gap === 'number') {
-    styles.gap = `${gap}px`;
-  } else if (gap !== 'none') {
-    const gapMap = { xs: '0.25rem', sm: '0.5rem', md: '1rem', lg: '1.5rem', xl: '2rem' };
-    styles.gap = gapMap[gap] || gapMap.md;
-  }
+  const spacingStyle = buildSpacingStyles({
+    p,
+    px,
+    py,
+    pt,
+    pb,
+    pl,
+    pr,
+    m,
+    mx,
+    my,
+    mt,
+    mb,
+    ml,
+    mr,
+    gap,
+    w,
+    h,
+    minW,
+    minH,
+    maxW,
+    maxH,
+  });
 
   return (
     <div
-      className={`lq-stack ${className}`}
-      style={{ ...styles, ...style } as CSSProperties}
+      className={cn('lq-stack', className)}
+      style={
+        {
+          '--stack-align': alignMap[align] ?? 'stretch',
+          ...spacingStyle,
+          ...style,
+        } as React.CSSProperties
+      }
       {...props}
     >
       {children}
