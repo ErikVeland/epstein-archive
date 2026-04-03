@@ -103,6 +103,7 @@ skiils/
 
 # Superpowers AI planning docs (session artifacts, not project code)
 docs/superpowers/
+.superpowers/
 
 # Test results
 test-results/
