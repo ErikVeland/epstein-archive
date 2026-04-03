@@ -1,0 +1,40 @@
+
+> epstein-archive@18.3.3 lint
+> eslint . --ext .ts,.tsx
+
+
+/Volumes/Media/Epstein Files/epstein-archive/scripts/download_face_models.ts
+  36:3  warning  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+  64:9  warning  Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+
+/Volumes/Media/Epstein Files/epstein-archive/scripts/scan_faces_recognition.ts
+  10:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  11:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  12:38  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  26:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Volumes/Media/Epstein Files/epstein-archive/scripts/stress_check.ts
+  143:46  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Volumes/Media/Epstein Files/epstein-archive/scripts/unified_pipeline.ts
+  530:16  error    Replace `·id:·number;·content:·string·|·null;·metadata_json:·any;·file_name:·string·|·null` with `⏎······id:·number;⏎······content:·string·|·null;⏎······metadata_json:·any;⏎······file_name:·string·|·null;⏎···`  prettier/prettier
+  530:68  warning  Unexpected any. Specify a different type                                                                                                                                                                           @typescript-eslint/no-explicit-any
+  575:38  error    Replace `⏎··········(meta.title·as·string)·||⏎··········doc.file_name·||⏎·········` with `·(meta.title·as·string)·||·doc.file_name·||`                                                                             prettier/prettier
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/App.tsx
+  2331:55  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/documents/DocumentModal.tsx
+  427:39  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  434:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  444:53  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  446:35  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  447:49  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  448:83  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Volumes/Media/Epstein Files/epstein-archive/src/client/components/documents/EvidenceAnnotation.tsx
+  34:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+✖ 18 problems (2 errors, 16 warnings)
+  2 errors and 0 warnings potentially fixable with the `--fix` option.
+

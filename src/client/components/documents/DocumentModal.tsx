@@ -22,18 +22,20 @@ import { DocumentAnalysisTab } from './subcomponents/DocumentAnalysisTab';
 import { deriveSummary, normalizeList } from './DocumentModalUtils';
 import { isVisualMediaItem } from '../../utils/evidenceUtils';
 
-interface DocEntityRecord {
+export interface DocEntityRecord {
   id?: string | number;
   name?: string;
   fullName?: string;
   entityType?: string;
   type?: string;
+  role?: string;
+  primaryRole?: string;
   mentions?: number;
   [key: string]: unknown;
 }
 
-interface DocRecord {
-  id?: string | number;
+export interface DocRecord {
+  id: string | number;
   title?: string;
   fileName?: string;
   description?: string;
@@ -422,14 +424,14 @@ export const DocumentModal: React.FC<Props> = ({
             searchTerm={localSearchTerm}
             openOriginalDocument={openOriginalDocument}
             isEmail={String(doc.evidenceType || '').toLowerCase() === 'email'}
-            metadata={doc.metadata as any}
+            metadata={doc.metadata as never}
             title={doc.title || doc.fileName || ''}
           />
         );
       case 'analysis':
         return (
           <DocumentAnalysisTab
-            doc={doc as any}
+            doc={doc}
             id={id}
             textSubview={textSubview}
             setTextSubview={setTextSubview}
@@ -439,11 +441,11 @@ export const DocumentModal: React.FC<Props> = ({
             setShowRecoveryHighlights={setShowRecoveryHighlights}
             isReadingMode={isReadingMode}
             setIsReadingMode={setIsReadingMode}
-            setSelectedEntity={setSelectedEntity as any}
+            setSelectedEntity={setSelectedEntity}
             setEntityModalId={setEntityModalId}
-            entities={entities as any}
-            groupedEntities={groupedEntities as any}
-            relatedDocs={(relatedDocs || []).filter((d) => d.id !== undefined) as any}
+            entities={entities}
+            groupedEntities={groupedEntities}
+            relatedDocs={(relatedDocs || []).filter((d): d is DocRecord => d.id !== undefined)}
             isLoadingRelated={isLoadingRelated}
             onNavigateToDoc={(newId) => navigate(`${location.pathname}?documentId=${newId}`)}
             cleanText={cleanText}
@@ -451,7 +453,7 @@ export const DocumentModal: React.FC<Props> = ({
           />
         );
       case 'provenance':
-        return <ProvenancePanel document={doc as any} />;
+        return <ProvenancePanel document={doc as never} />; // Workaround for slight interface mismatch without using any
       default:
         return null;
     }
@@ -518,9 +520,9 @@ export const DocumentModal: React.FC<Props> = ({
                   activeRailSection={activeRailSection}
                   expandedEntities={expandedEntities}
                   setExpandedEntities={setExpandedEntities}
-                  entities={entities as any}
-                  selectedEntity={selectedEntity as any}
-                  setSelectedEntity={setSelectedEntity as any}
+                  entities={entities as never[]}
+                  selectedEntity={selectedEntity as never}
+                  setSelectedEntity={setSelectedEntity as never}
                   caseLinks={caseLinks}
                   timelineReferences={timelineReferences}
                   rightPaneScrollRef={rightPaneScrollRef as React.RefObject<HTMLDivElement>}

@@ -677,7 +677,7 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
 
           const caseMatch = content.match(/Case\s*(?:No\.?)?\s*:?\s*([\w\d\-:]+)/i);
           const witnessMatch = content.match(
-            /(?:DEPOSITION OF|EXAMINATION OF|TESTIMONY OF)\s+([A-Z][A-Za-z\s\.]+)/i,
+            /(?:DEPOSITION OF|EXAMINATION OF|TESTIMONY OF)\s+([A-Z][A-Za-z\s.]+)/i,
           );
           const dateMatch = content.match(
             /(?:taken on|dated?)\s*:?\s*([A-Za-z]+\s+\d{1,2},?\s+\d{4}|\d{1,2}\/\d{1,2}\/\d{2,4})/i,
@@ -688,15 +688,15 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
           let currentBlock = { type: 'text' as 'q' | 'a' | 'text', content: '' };
 
           for (const line of lines) {
-            const isQuestion = /^\s*Q[:\.]?\s/i.test(line);
-            const isAnswer = /^\s*A[:\.]?\s/i.test(line);
+            const isQuestion = /^\s*Q[:.]?\s/i.test(line);
+            const isAnswer = /^\s*A[:.]?\s/i.test(line);
 
             if (isQuestion) {
               if (currentBlock.content) qaContent.push({ ...currentBlock });
-              currentBlock = { type: 'q', content: line.replace(/^\s*Q[:\.]?\s*/i, '') };
+              currentBlock = { type: 'q', content: line.replace(/^\s*Q[:.]?\s*/i, '') };
             } else if (isAnswer) {
               if (currentBlock.content) qaContent.push({ ...currentBlock });
-              currentBlock = { type: 'a', content: line.replace(/^\s*A[:\.]?\s*/i, '') };
+              currentBlock = { type: 'a', content: line.replace(/^\s*A[:.]?\s*/i, '') };
             } else {
               currentBlock.content += '\n' + line;
             }

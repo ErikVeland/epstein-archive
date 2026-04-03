@@ -165,23 +165,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
-  // Handle time update
-  const handleTimeUpdate = () => {
-    if (videoRef.current) {
-      const time = videoRef.current.currentTime;
-      setCurrentTime(time);
-
-      if (transcript.length > 0) {
-        const index = transcript.findIndex((seg) => time >= seg.start && time < seg.end);
-        if (index !== -1 && index !== activeSegmentIndex) {
-          setActiveSegmentIndex(index);
-          scrollToSegment(index);
-        }
-      }
-    }
-  };
-
-  const scrollToSegment = (index: number) => {
+  const scrollToSegment = useCallback((index: number) => {
     if (transcriptRef.current && transcriptRef.current.parentElement) {
       const container = transcriptRef.current.parentElement;
       const element = transcriptRef.current.children[index] as HTMLElement;
@@ -195,9 +179,9 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         });
       }
     }
-  };
+  }, []);
 
-  const scrollOverlayToSegment = (index: number) => {
+  const scrollOverlayToSegment = useCallback((index: number) => {
     if (!overlayRef.current) return;
     const element = overlayRef.current.children[index] as HTMLElement;
     if (element) {
@@ -206,7 +190,23 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         behavior: 'smooth',
       });
     }
-  };
+  }, []);
+
+  // Handle time update
+  const handleTimeUpdate = useCallback(() => {
+    if (videoRef.current) {
+      const time = videoRef.current.currentTime;
+      setCurrentTime(time);
+
+      if (transcript.length > 0) {
+        const index = transcript.findIndex((seg) => time >= seg.start && time < seg.end);
+        if (index !== -1 && index !== activeSegmentIndex) {
+          setActiveSegmentIndex(index);
+          scrollToSegment(index);
+        }
+      }
+    }
+  }, [transcript, activeSegmentIndex, scrollToSegment]);
 
   const seek = useCallback(
     (time: number) => {
@@ -230,7 +230,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       scrollToSegment(segIndex);
       scrollOverlayToSegment(segIndex);
     },
-    [transcriptMatches, transcript, seek, scrollOverlayToSegment],
+    [transcriptMatches, transcript, seek, scrollToSegment, scrollOverlayToSegment],
   );
 
   const goToNextTranscriptMatch = useCallback(
@@ -461,7 +461,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
             ref={videoRef}
             src={src}
             className="w-full h-full object-contain"
-            onTimeUpdate={handleTimeUpdate}
+            onTimeUpdate={() => handleTimeUpdate()}
             onLoadedMetadata={() => setDuration(videoRef.current?.duration || 0)}
             onEnded={() => {
               setIsPlaying(false);

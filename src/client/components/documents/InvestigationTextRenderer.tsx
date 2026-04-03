@@ -405,13 +405,11 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
     return () => observer.disconnect();
   }, [hasMoreLines, totalLineCount]);
 
-  useEffect(() => {
-    if (!searchTerm) {
-      setCurrentMatchIndex(0);
-    } else if (matchCount > 0 && currentMatchIndex === 0) {
-      setCurrentMatchIndex(1);
-    }
-  }, [searchTerm, matchCount, currentMatchIndex]);
+  if (!searchTerm && currentMatchIndex !== 0) {
+    setCurrentMatchIndex(0);
+  } else if (searchTerm && matchCount > 0 && currentMatchIndex === 0) {
+    setCurrentMatchIndex(1);
+  }
 
   useLayoutEffect(() => {
     if (!searchTerm || matchCount === 0) return;

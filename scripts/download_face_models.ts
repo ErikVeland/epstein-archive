@@ -33,8 +33,7 @@ async function downloadFile(filename: string) {
   if (!response.body) throw new Error('No body');
 
   const file = fs.createWriteStream(dest);
-  // @ts-ignore
-  await pipeline(response.body, file);
+  await pipeline(response.body as unknown as NodeJS.ReadableStream, file);
   console.log(`✅ Downloaded ${filename}`);
   return dest;
 }
@@ -55,14 +54,14 @@ async function main() {
       // or just an object with 'weights' and 'paths'
       let paths: string[] = [];
       if (Array.isArray(manifest)) {
-        for (const item of manifest) {
-          if (item.paths) {
-            paths.push(...item.paths);
+        for (const item of manifest as Record<string, unknown>[]) {
+          if (item.paths && Array.isArray(item.paths)) {
+            paths.push(...(item.paths as string[]));
           }
         }
       } else {
-        // @ts-ignore
-        if (manifest.paths) paths = manifest.paths;
+        const m = manifest as { paths?: string[] };
+        if (m.paths) paths = m.paths;
       }
 
       // Unique paths

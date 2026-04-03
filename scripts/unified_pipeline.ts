@@ -527,7 +527,12 @@ async function runEnrichPhase(
     `,
         [BATCH_SIZE],
       )
-    ).rows as any[];
+    ).rows as {
+      id: number;
+      content: string | null;
+      metadata_json: Record<string, unknown> | null;
+      file_name: string | null;
+    }[];
 
     if (docs.length === 0) break;
 
@@ -556,11 +561,11 @@ async function runEnrichPhase(
         });
 
         // node-postgres auto-parses jsonb into objects; handle both cases
-        let meta: Record<string, any> = {};
+        let meta: Record<string, unknown> = {};
         if (doc.metadata_json) {
-          if (typeof doc.metadata_json === 'object') {
-            meta = doc.metadata_json;
-          } else {
+          if (typeof doc.metadata_json === 'object' && doc.metadata_json !== null) {
+            meta = doc.metadata_json as Record<string, unknown>;
+          } else if (typeof doc.metadata_json === 'string') {
             try {
               meta = JSON.parse(doc.metadata_json);
             } catch {
@@ -571,25 +576,26 @@ async function runEnrichPhase(
         // Release metadata_json from the row object immediately after parsing
         doc.metadata_json = null;
 
-        const subject = meta.subject || meta.title || doc.file_name || 'Unknown Document';
+        const subject =
+          (meta.subject as string) || (meta.title as string) || doc.file_name || 'Unknown Document';
 
         // Skip expensive MIME repair during backfill — it generates hundreds
         // of LLM calls per large doc and overwhelms the inference backend.
         // Use deterministic decode only; summarizer truncates to 2000 chars anyway.
-        const refinedText = AIEnrichmentService.decodeHtmlAndUnicode(doc.content);
+        const refinedText = AIEnrichmentService.decodeHtmlAndUnicode(doc.content || '');
         // Release raw content from row object — refinedText is the only copy we need
         doc.content = null;
 
         let summary = await withTimeout(
           AIEnrichmentService.summarizeDocument(refinedText, {
-            fileName: doc.file_name,
+            fileName: doc.file_name || undefined,
             subject,
           }),
           DOC_PROCESSING_TIMEOUT_MS,
           async () => {
             await attemptRecovery(
               'exo',
-              `AI enrichment timed out after ${Math.round(DOC_PROCESSING_TIMEOUT_MS / 1000)}s on ${doc.file_name}`,
+              `AI enrichment timed out after ${Math.round(DOC_PROCESSING_TIMEOUT_MS / 1000)}s on ${doc.file_name || 'unknown'}`,
             );
           },
           `AI enrichment timed out for document ${doc.id} (${doc.file_name})`,

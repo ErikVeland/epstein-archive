@@ -31,7 +31,7 @@ export interface EvidenceAnnotation {
   createdAt: string;
   updatedAt: string;
   createdBy?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 interface EvidenceAnnotationPanelProps {
@@ -144,7 +144,7 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
         );
         if (existingClassification) {
           setClassification(existingClassification.content);
-          setClassificationNotes(existingClassification.metadata?.notes || '');
+          setClassificationNotes((existingClassification.metadata?.notes as string) || '');
         }
       } else {
         throw new Error(`Failed to load annotations (${response.status})`);
@@ -817,9 +817,9 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                       )?.label
                     }
                   </LqText>
-                  {classificationAnnotation.metadata?.notes && (
+                  {!!classificationAnnotation.metadata?.notes && (
                     <LqText variant="small" color="secondary" className="mb-4 block italic">
-                      {classificationAnnotation.metadata.notes}
+                      {classificationAnnotation.metadata.notes as string}
                     </LqText>
                   )}
                   <LqText

@@ -98,6 +98,7 @@ const FAQPage = lazy(() =>
 const LegalPage = lazy(() =>
   import('./components/pages/LegalPage').then((module) => ({ default: module.LegalPage })),
 );
+import type { DocRecord } from './components/documents/DocumentModal';
 const GuidePage = lazy(() =>
   import('./components/pages/GuidePage').then((module) => ({ default: module.default })),
 );
@@ -1149,18 +1150,25 @@ function App() {
       const rect = anchor.getBoundingClientRect();
       const x = Math.round(rect.left + window.scrollX);
       const y = Math.round(rect.bottom + 8 + window.scrollY);
-      setInvestigatePopoverPos({ x, y });
+
+      setInvestigatePopoverPos((prev) => {
+        if (prev.x === x && prev.y === y) return prev;
+        return { x, y };
+      });
+
       const centerX = rect.left + rect.width / 2 + window.scrollX;
       const arrowX = Math.max(12, Math.min(300 - 12, centerX - x - 8));
-      setInvestigateArrowLeft(arrowX);
+      setInvestigateArrowLeft((prev) => {
+        if (prev === arrowX) return prev;
+        return arrowX;
+      });
     }
   }, [investigatePopoverOpen]);
 
-  // Update popover position with layout stability
   useLayoutEffect(() => {
-    // We call updatePopoverPos within a microtask or ensure it only runs if open
     if (investigatePopoverOpen) {
-      updatePopoverPos();
+      const handle = requestAnimationFrame(updatePopoverPos);
+      return () => cancelAnimationFrame(handle);
     }
   }, [investigatePopoverOpen, updatePopoverPos]);
 
@@ -2321,10 +2329,7 @@ function App() {
                 <DocumentModal
                   id={documentModalId}
                   searchTerm={selectedDocumentSearchTerm}
-                  initialDoc={
-                    (documentModalInitial as unknown as { [key: string]: unknown } | undefined) ??
-                    undefined
-                  }
+                  initialDoc={documentModalInitial as DocRecord}
                   onClose={() => {
                     setDocumentModalId('');
                     setDocumentModalInitial(null);

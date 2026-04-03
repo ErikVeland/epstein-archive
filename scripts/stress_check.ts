@@ -27,15 +27,15 @@ async function fetchOnce(url: string) {
     const res = await fetch(url, { signal: AbortSignal.timeout(20_000) });
     await res.text().catch(() => '');
     return { ok: true, status: res.status };
-  } catch (err: any) {
-    return { ok: false, status: -1, error: err?.message || String(err) };
+  } catch (err: unknown) {
+    return { ok: false, status: -1, error: (err as Error)?.message || String(err) };
   }
 }
 
 async function getMeta() {
   const res = await fetch(`${API_BASE_URL}/api/_meta/db`, { signal: AbortSignal.timeout(10_000) });
   if (!res.ok) throw new Error(`_meta/db status=${res.status}`);
-  return (await res.json()) as any;
+  return (await res.json()) as Record<string, unknown>;
 }
 
 async function getHealth(url = `${API_BASE_URL}/api/health`) {
@@ -115,7 +115,7 @@ async function main() {
   const endpointCounts: StressSummary['endpointCounts'] = {};
   ENDPOINTS.forEach((e) => (endpointCounts[e] = { total: 0, ok: 0, s503: 0, other: 0 }));
 
-  const tasks: Promise<any>[] = [];
+  const tasks: Promise<{ ok: boolean; status: number; error?: string }>[] = [];
   for (const endpoint of ENDPOINTS) {
     for (let i = 0; i < CONCURRENCY_PER_ENDPOINT; i++) {
       tasks.push(
@@ -140,9 +140,10 @@ async function main() {
   let noProcessCrash = recovered;
   try {
     const meta = await getMeta();
-    poolWaitingZero = Number(meta?.pools?.api?.waiting ?? -1) === 0;
-  } catch (err: any) {
-    console.error(`[WARN] meta check failed: ${err.message}`);
+    const pools = (meta?.pools || {}) as Record<string, Record<string, { waiting?: number }>>;
+    poolWaitingZero = Number(pools.api?.waiting ?? -1) === 0;
+  } catch (err: unknown) {
+    console.error(`[WARN] meta check failed: ${(err as Error)?.message}`);
     noProcessCrash = false;
   }
 
@@ -152,8 +153,8 @@ async function main() {
     const pgChecks = await queryPgChecks();
     idleInTransactionZero = pgChecks.idleInTransactionZero;
     hotQueryMeanUnder300 = pgChecks.hotQueryMeanUnder300;
-  } catch (err: any) {
-    console.error(`[FAIL] postgres post-stress checks: ${err.message}`);
+  } catch (err: unknown) {
+    console.error(`[FAIL] postgres post-stress checks: ${(err as Error)?.message}`);
   }
 
   // "No unhandled promise rejection" cannot be directly proven externally; infer from process survival + recovery.

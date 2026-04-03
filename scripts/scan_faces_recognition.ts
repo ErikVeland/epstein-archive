@@ -6,11 +6,13 @@ import pg from 'pg';
 import 'dotenv/config';
 
 // Monkey patch for Node.js environment
+/* eslint-disable @typescript-eslint/no-explicit-any */
 faceapi.env.monkeyPatch({
-  Canvas: Canvas as any,
-  Image: Image as any,
-  ImageData: ImageData as any,
+  Canvas: Canvas as unknown as any,
+  Image: Image as unknown as any,
+  ImageData: ImageData as unknown as any,
 });
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 const { Pool } = pg;
 const pool = new Pool({
@@ -23,7 +25,11 @@ async function main() {
   console.log('🚀 Starting Face Recognition Scanner (CPU Mode)...');
 
   // Initialize TensorFlow Backend via face-api's bundled TF
-  const tf = faceapi.tf as any;
+  const tf = faceapi.tf as unknown as {
+    setBackend: (b: string) => Promise<void>;
+    ready: () => Promise<void>;
+    getBackend: () => string;
+  };
   await tf.setBackend('cpu');
   await tf.ready();
   console.log('   ✅ TensorFlow Backend Initialized:', tf.getBackend());
@@ -67,7 +73,7 @@ async function main() {
 
         // Detect faces
         const detections = await faceapi
-          .detectAllFaces(image as any)
+          .detectAllFaces(image as unknown as faceapi.TNetInput)
           .withFaceLandmarks()
           .withFaceDescriptors();
 

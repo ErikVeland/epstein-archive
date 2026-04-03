@@ -50,7 +50,10 @@ async function backfill() {
   console.log(`\nBackfill complete! Total processed: ${processedCount}`);
 }
 
-async function processDocumentBackfill(pool: pg.Pool, doc: any) {
+async function processDocumentBackfill(
+  pool: pg.Pool,
+  doc: { id: number; content: string; evidence_type: string },
+) {
   const raw = doc.content;
   const content =
     doc.evidence_type === 'email' ? TextCleaner.cleanEmailText(raw) : TextCleaner.cleanOcrText(raw);
@@ -151,7 +154,7 @@ async function rollupScores(client: pg.PoolClient, docId: number) {
     [docId],
   );
 
-  const avgScore = (statsResult.rows[0] as any)?.avg_score ?? 0.0;
+  const avgScore = (statsResult.rows[0] as { avg_score: number | null })?.avg_score ?? 0.0;
 
   await client.query('UPDATE documents SET signal_score = $1, analyzed_at = NOW() WHERE id = $2', [
     avgScore,

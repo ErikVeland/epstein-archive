@@ -3,18 +3,21 @@ import { useQuery } from '@tanstack/react-query';
 import { FileText, Printer, Calendar, CheckCircle, FileJson } from 'lucide-react';
 
 interface ReportEntity {
-  name?: string;
-  redFlagRating?: number;
   id?: string | number;
-  type?: string;
-  title?: string;
-  source_id?: string | number;
+  name?: string;
+  fullName?: string;
+  entityType?: string;
+  redFlagRating?: number;
+  mentions?: number;
+  [key: string]: unknown;
 }
 
 interface ReportTransaction {
+  id?: string | number;
   amount?: number | string;
   risk_level?: string;
   to_entity?: string;
+  [key: string]: unknown;
 }
 
 interface ReportStats {
@@ -184,15 +187,15 @@ export default function ForensicReportGenerator({
         if (investigationId) {
           const evidence = (await entitiesRes.json()) as ReportEntity[];
           entities = evidence
-            .filter((e: any) => e.type === 'entity')
-            .map((e: any) => ({
-              name: e.title,
+            .filter((e) => e.type === 'entity')
+            .map((e) => ({
+              name: (e.title as string) || (e.name as string),
               redFlagRating: 0,
-              id: e.source_id,
+              id: e.source_id as string | number,
             }));
-          timeline = timeline.map((e: any) => ({
+          timeline = timeline.map((e) => ({
             ...e,
-            date: e.start_date || e.date,
+            date: (e.start_date as string) || (e.date as string),
           }));
         } else {
           const entitiesData = (await entitiesRes.json()) as { data?: ReportEntity[] };
@@ -218,19 +221,19 @@ export default function ForensicReportGenerator({
 
     // Dynamic Metrics
     const totalTransactionAmount = transactions.reduce(
-      (sum: number, t: any) => sum + (Number(t.amount) || 0),
+      (sum: number, t) => sum + (Number(t.amount) || 0),
       0,
     );
     const suspiciousTransactions = transactions.filter(
-      (t: any) => t.risk_level === 'high' || t.risk_level === 'critical',
+      (t) => t.risk_level === 'high' || t.risk_level === 'critical',
     );
     const topEntitiesList = entities
       .slice(0, 5)
-      .map((e: any) => e.name)
+      .map((e) => e.name)
       .join(', ');
     const entityCount = stats?.totalEntities || entities.length;
     const documentCount = stats?.totalDocuments || 0;
-    const highRiskEntities = entities.filter((e: any) => (e.redFlagRating ?? 0) >= 4).length;
+    const highRiskEntities = entities.filter((e) => (Number(e.redFlagRating) ?? 0) >= 4).length;
 
     const currencyFormatter = new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -300,7 +303,7 @@ ${
   suspiciousTransactions.length > 0
     ? `Notable high-risk transactions include transfers involving ${suspiciousTransactions
         .slice(0, 3)
-        .map((t: any) => t.to_entity || 'unknown')
+        .map((t: ReportTransaction) => t.to_entity || 'unknown')
         .join(', ')}.`
     : ''
 }
