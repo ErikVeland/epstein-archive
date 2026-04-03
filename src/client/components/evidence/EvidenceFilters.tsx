@@ -7,6 +7,7 @@ import { Box } from '../../design-system/components/layout/Box';
 import { Flex } from '../../design-system/components/layout/Flex';
 import { Grid } from '../../design-system/components/layout/Grid';
 import { LqText } from '../../design-system/components/typography/Text';
+import type { SpaceValue } from '../../design-system/lib/resolveSpace';
 
 type SortBy = 'relevance' | 'mentions' | 'redflag_asc' | 'redflag_desc' | 'name';
 
@@ -156,7 +157,7 @@ export function EvidenceFilters({
       </Box>
 
       <Box className={`${showFilters ? 'block' : 'hidden'} md:block mt-6`}>
-        <Grid cols={{ base: 1, md: 2, lg: 3, xl: 6 }} gap={16}>
+        <Grid cols={{ base: 1, md: 2, lg: 3, xl: 6 }} gap={16 as SpaceValue}>
           <FormField
             label={
               <Flex align="center" gap={8}>

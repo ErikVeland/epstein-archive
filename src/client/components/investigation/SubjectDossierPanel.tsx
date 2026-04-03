@@ -196,7 +196,7 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
             <div className={styles.dossierBody}>
               {/* Name + type */}
               <div>
-                <div className="flex items-start justify-between gap-3">
+                <div className={styles.profileHeader}>
                   <div>
                     <h3 className={styles.profileTitle}>{selectedEntity.fullName}</h3>
                     {selectedEntity.primaryRole && (
@@ -274,14 +274,14 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
               <div>
                 <h4 className={styles.sectionHeader}>Recent Documents</h4>
                 {loadingDocs && (
-                  <div className="flex justify-center py-4">
+                  <div className={styles.loaderCentered}>
                     <Loader2
                       className={`${styles.iconSm} ${styles.spin} text-[var(--text-muted)]`}
                     />
                   </div>
                 )}
                 {!loadingDocs && recentDocs.length === 0 && (
-                  <div className="flex items-center gap-2 text-xs text-[var(--text-muted)] py-2">
+                  <div className={styles.emptyInfo}>
                     <AlertTriangle className={styles.iconSm} />
                     No documents indexed for this entity yet
                   </div>

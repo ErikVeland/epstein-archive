@@ -5,6 +5,7 @@ import { Surface } from '../design-system/components/surfaces/Surface';
 import { Flex } from '../design-system/components/layout/Flex';
 import { Box } from '../design-system/components/layout/Box';
 import { LqText } from '../design-system/components/typography/Text';
+import type { SpaceValue } from '../design-system/lib/resolveSpace';
 
 interface MentionQueueItem {
   id: number;
@@ -169,7 +170,7 @@ export function ReviewDashboard() {
                       </LqText>
                       <Flex
                         align="center"
-                        gap={1.5}
+                        gap={1.5 as SpaceValue}
                         className="text-xs text-[var(--text-muted)] font-medium tracking-wide"
                       >
                         Source:{' '}
@@ -242,7 +243,7 @@ export function ReviewDashboard() {
                       </LqText>
                       <Flex
                         align="center"
-                        gap={1.5}
+                        gap={1.5 as SpaceValue}
                         className="text-xs text-[var(--text-muted)] font-medium tracking-wide"
                       >
                         Source:{' '}

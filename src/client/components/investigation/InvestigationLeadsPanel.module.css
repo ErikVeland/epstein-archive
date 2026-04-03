@@ -30,6 +30,12 @@
   gap: var(--space-4);
 }
 
+.headerGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
 .headerTitle {
   font-size: var(--type-base);
   font-weight: 600;
@@ -54,7 +60,18 @@
   border-bottom: 1px solid var(--glass-border);
   display: flex;
   gap: var(--space-4);
+  align-items: center;
   font-size: var(--type-xs);
+}
+
+.statItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.statItemRight {
+  margin-left: auto;
 }
 
 .statValueEmerald {
@@ -139,6 +156,11 @@
   color: var(--text-muted);
 }
 
+.formRow {
+  display: flex;
+  gap: var(--space-2);
+}
+
 .textarea {
   width: 100%;
   padding: var(--space-2) var(--space-3);
@@ -185,6 +207,13 @@
   gap: var(--space-3);
 }
 
+.loaderCentered {
+  display: flex;
+  justify-content: center;
+  padding-top: var(--space-10);
+  padding-bottom: var(--space-10);
+}
+
 .emptyState {
   border: 1px dashed var(--glass-border);
   border-radius: var(--radius-lg);
@@ -199,6 +228,12 @@
   margin-inline: auto;
   margin-bottom: var(--space-2);
   opacity: 0.4;
+}
+
+.emptySubtext {
+  font-size: var(--type-xs);
+  color: var(--text-muted);
+  margin-top: var(--space-1);
 }
 
 .leadCard {
@@ -217,11 +252,21 @@
   gap: var(--space-3);
 }
 
+.statusIconWrapper {
+  margin-top: 0.125rem;
+  flex-shrink: 0;
+}
+
 .leadTitle {
   font-size: var(--type-sm);
   font-weight: 500;
   color: var(--text-primary);
   line-height: var(--leading-snug);
+}
+
+.leadBody {
+  flex: 1;
+  min-width: 0;
 }
 
 .leadDescription {

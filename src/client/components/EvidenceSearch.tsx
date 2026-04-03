@@ -15,6 +15,7 @@ import { Box } from '../design-system/components/layout/Box';
 import { Flex } from '../design-system/components/layout/Flex';
 import { Grid } from '../design-system/components/layout/Grid';
 import { LqText } from '../design-system/components/typography/Text';
+import type { SpaceValue } from '../design-system/lib/resolveSpace';
 
 interface EvidenceSearchProps {
   onPersonClick?: (person: Person, searchTerm: string) => void;
@@ -264,7 +265,7 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
 
       <Box className="space-y-4">
         {loading && people.length === 0 ? (
-          <Grid cols={{ base: 1, md: 2 }} gap={24}>
+          <Grid cols={{ base: 1, md: 2 }} gap={24 as SpaceValue}>
             {[...Array(6)].map((_, i) => (
               <Surface key={i} variant="glass" className="p-5 relative overflow-hidden">
                 <Box className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/5 to-transparent" />

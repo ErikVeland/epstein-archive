@@ -207,16 +207,16 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
 
         {/* Stats bar */}
         <div className={styles.statsBar}>
-          <div>
+          <div className={styles.statItem}>
             <span className={styles.statValueEmerald}>{openCount}</span>
             <span className={styles.statLabel}>open</span>
           </div>
-          <div>
+          <div className={styles.statItem}>
             <span className={styles.statValueBlue}>{pursuedCount}</span>
             <span className={styles.statLabel}>active</span>
           </div>
-          <div className="ml-auto">
-            <span className={styles.statLabel}>{leads.length} total</span>
+          <div className={`${styles.statLabel} ${styles.statItemRight}`}>
+            <span>{leads.length} total</span>
           </div>
         </div>
 
@@ -257,7 +257,7 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
               onChange={(e) => setNewLead((p) => ({ ...p, description: e.target.value }))}
               className={styles.textarea}
             />
-            <div className="flex gap-2">
+            <div className={styles.formRow}>
               <select
                 value={newLead.priority}
                 onChange={(e) =>
@@ -301,7 +301,7 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
         {/* Leads list */}
         <div className={styles.leadsList}>
           {loading && (
-            <div className="flex justify-center py-10">
+            <div className={styles.loaderCentered}>
               <Loader2 className={`${styles.iconMd} ${styles.spin} text-[var(--text-muted)]`} />
             </div>
           )}
@@ -309,10 +309,8 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
           {!loading && leads.length === 0 && (
             <div className={styles.emptyState}>
               <Flag className={styles.emptyIcon} />
-              <p className="text-sm text-[var(--text-muted)]">No leads yet.</p>
-              <p className="text-xs text-[var(--text-muted)] mt-1">
-                Import a report or add leads manually.
-              </p>
+              <p className={styles.emptyTextPrimary}>No leads yet.</p>
+              <p className={styles.emptySubtext}>Import a report or add leads manually.</p>
             </div>
           )}
 
@@ -325,11 +323,11 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
                   <button
                     onClick={() => handleStatusCycle(lead)}
                     title={`Status: ${label} — click to advance`}
-                    className="mt-0.5 flex-shrink-0"
+                    className={styles.statusIconWrapper}
                   >
                     <Icon className={`${styles.iconMd} ${style.split(' ')[0]}`} />
                   </button>
-                  <div className="flex-1 min-w-0">
+                  <div className={styles.leadBody}>
                     <p className={styles.leadTitle}>{lead.title}</p>
                     {lead.description && (
                       <p className={styles.leadDescription}>{lead.description}</p>

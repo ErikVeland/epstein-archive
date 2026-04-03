@@ -13,7 +13,10 @@ import {
 import { DocumentAnnotationSystem } from './DocumentAnnotationSystem';
 import { prettifyOCRText } from '../../utils/prettifyOCR';
 import DOMPurify from 'isomorphic-dompurify';
-import { Surface, Box, Flex, LqText } from '../../design-system/lib';
+import { LqText } from '../../design-system/components/typography/Text';
+import { Flex } from '../../design-system/components/layout/Flex';
+import { Surface } from '../../design-system/components/surfaces/Surface';
+import { Box } from '../../design-system/components/layout/Box';
 
 interface EntityRecord {
   id?: string | number;

@@ -12,7 +12,10 @@ import { ViewerShell } from '../viewer/ViewerShell';
 import { ProvenancePanel } from './ProvenancePanel';
 
 // Design System
-import { Surface, Box, Flex, LqText } from '../../design-system/lib';
+import { LqText } from '../../design-system/components/typography/Text';
+import { Flex } from '../../design-system/components/layout/Flex';
+import { Surface } from '../../design-system/components/surfaces/Surface';
+import { Box } from '../../design-system/components/layout/Box';
 
 // Sub-components
 import { DocumentHeader } from './subcomponents/DocumentHeader';
