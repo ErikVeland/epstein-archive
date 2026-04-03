@@ -36,6 +36,18 @@
       }
     },
     {
+      "files": ["src/client/**/*.tsx"],
+      "rules": {
+        "no-restricted-syntax": [
+          "warn",
+          {
+            "selector": "JSXAttribute[name.name='className'] Literal[value=/\\b(p|px|py|pt|pb|pl|pr|m|mx|my|mt|mb|ml|mr|gap|w|h|min-w|min-h|max-w|max-h|flex|grid|text|bg|border|rounded|space|overflow|truncate|leading|tracking|font|items|justify|self|col|row)-[\\w\\[]/]",
+            "message": "Tailwind utility class detected. Use design system props or CSS token vars instead."
+          }
+        ]
+      }
+    },
+    {
       "files": ["packages/db/src/queries/__generated__/**/*.{ts,tsx}"],
       "rules": {
         "@typescript-eslint/no-explicit-any": "off"
