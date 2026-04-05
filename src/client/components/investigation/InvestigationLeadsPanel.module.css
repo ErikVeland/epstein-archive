@@ -389,7 +389,6 @@
 }
 
 .actionButtonDanger {
-  composes: actionButton;
   color: color-mix(in srgb, var(--danger) 70%, transparent);
 }
 
@@ -398,6 +397,5 @@
 }
 
 .actionButtonAccent:hover {
-  composes: actionButton;
   color: var(--accent);
 }

@@ -359,7 +359,7 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
                   {lead.status !== 'dead_end' && (
                     <button
                       onClick={() => handleMarkDeadEnd(lead)}
-                      className={styles.actionButtonDanger}
+                      className={`${styles.actionButton} ${styles.actionButtonDanger}`}
                     >
                       Mark dead end
                     </button>
@@ -367,7 +367,7 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
                   {onConvertToTask && (
                     <button
                       onClick={() => onConvertToTask(lead)}
-                      className={styles.actionButtonAccent}
+                      className={`${styles.actionButton} ${styles.actionButtonAccent}`}
                     >
                       → Task
                     </button>
@@ -375,7 +375,7 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
                   {onConvertToHypothesis && (
                     <button
                       onClick={() => onConvertToHypothesis(lead)}
-                      className={styles.actionButtonAccent}
+                      className={`${styles.actionButton} ${styles.actionButtonAccent}`}
                     >
                       → Hypothesis
                     </button>
