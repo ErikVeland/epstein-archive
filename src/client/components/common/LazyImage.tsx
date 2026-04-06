@@ -47,26 +47,20 @@ export const LazyImage: React.FC<LazyImageProps> = ({
     });
   }, [src]);
 
-  const [prevSrc, setPrevSrc] = useState(src);
-  if (src !== prevSrc) {
-    setPrevSrc(src);
-    const cached = src ? loadedImageCache.has(src) : false;
-    setIsLoaded(cached);
-    setIsInView(cached);
-  }
-
   // If src changes and it's already cached, immediately show it
   const [shouldAnimate] = useState(!wasAlreadyLoaded);
+  const resolvedSrc = isInView || wasAlreadyLoaded ? src : placeholderSrc;
+  const resolvedLoaded = isLoaded || wasAlreadyLoaded;
 
   return (
     <img
       ref={imgRef}
-      src={isInView ? src : placeholderSrc}
+      src={resolvedSrc}
       alt={alt}
       loading="lazy"
       decoding="async"
       onLoad={handleLoad}
-      className={`${s.img} ${isLoaded ? s.loaded : s.loading} ${className || ''}`}
+      className={`${s.img} ${resolvedLoaded ? s.loaded : s.loading} ${className || ''}`}
       style={{
         transition: shouldAnimate ? 'opacity 0.4s ease-out' : 'none',
         backgroundColor: '#020617', // slate-950, darker background for less visual gap

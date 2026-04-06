@@ -2,6 +2,7 @@ import React from 'react';
 import { Calendar, Download, FileText, Search, ArrowLeft } from 'lucide-react';
 import { CloseButton } from '../../common/CloseButton';
 import { formatDate } from '../DocumentModalUtils';
+import styles from './DocumentHeader.module.css';
 
 interface DocumentHeaderProps {
   doc: {
@@ -30,21 +31,18 @@ export const DocumentHeader: React.FC<DocumentHeaderProps> = ({
   onClose,
 }) => {
   return (
-    <div className="surface-glass-header flex flex-col lg:flex-row lg:items-center gap-5 py-6 px-8 min-w-0 border-b border-[var(--glass-border)] bg-transparent relative z-10">
-      <div className="flex items-start lg:items-center gap-5 w-full lg:w-auto min-w-0">
-        <div className="w-14 h-14 surface-glass flex items-center justify-center shrink-0 shadow-[var(--glass-shadow)] backdrop-blur-md">
-          <FileText className="w-7 h-7 text-[var(--accent)] opacity-90 block" />
+    <div className={`surface-glass-header bg-transparent ${styles.header}`}>
+      <div className={styles.titleGroup}>
+        <div className={`surface-glass ${styles.iconBox}`}>
+          <FileText size={28} className={styles.fileIcon} />
         </div>
-        <div className="min-w-0 flex-1 pl-1">
-          <h2
-            id="document-modal-title"
-            className="text-2xl md:text-3xl font-display font-medium text-text-strong tracking-tight truncate leading-tight group"
-          >
+        <div className={styles.titleMeta}>
+          <h2 id="document-modal-title" className={styles.docTitle}>
             {doc.title || doc.fileName}
           </h2>
-          <div className="flex flex-wrap items-center gap-4 mt-2">
+          <div className={styles.badgeRow}>
             <span
-              className={`px-3 py-1 rounded-[var(--radius-sm)] text-[10px] font-bold uppercase tracking-widest border ${
+              className={`${styles.typeBadge} ${
                 doc.evidenceType === 'email'
                   ? 'surface-glass text-[var(--accent-emails)] border-[var(--accent-emails)]/20 shadow-sm shadow-[var(--accent-emails)]/10'
                   : 'surface-glass text-text-dim'
@@ -52,17 +50,17 @@ export const DocumentHeader: React.FC<DocumentHeaderProps> = ({
             >
               {doc.evidenceType || doc.fileType || 'Unclassified Record'}
             </span>
-            <span className="text-[10px] uppercase font-bold text-text-muted tracking-widest flex items-center gap-2 font-mono">
-              <Calendar className="w-3.5 h-3.5 opacity-70" />
+            <span className={styles.dateBadge}>
+              <Calendar size={14} className={styles.calendarIcon} />
               {formatDate(doc.dateModified || doc.updatedAt || doc.dateModified)}
             </span>
           </div>
         </div>
       </div>
 
-      <div className="ml-auto flex flex-wrap lg:flex-nowrap items-center gap-3 w-full lg:w-auto mt-4 lg:mt-0 lg:pl-6 border-t border-[var(--glass-border)] lg:border-t-0 lg:border-l pt-4 lg:pt-0">
-        <div className="relative group w-full lg:w-72">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted group-focus-within:text-[var(--accent)] transition-colors block leading-none" />
+      <div className={styles.controls}>
+        <div className={`${styles.searchWrapper} group`}>
+          <Search size={16} className={styles.searchIcon} />
           <input
             type="text"
             placeholder="Find in record..."
@@ -82,7 +80,10 @@ export const DocumentHeader: React.FC<DocumentHeaderProps> = ({
             onClick={handleBackToCase}
             className="control !h-12 px-5 flex items-center gap-2 text-text-muted hover:text-text-strong group whitespace-nowrap"
           >
-            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform block" />
+            <ArrowLeft
+              size={16}
+              className="group-hover:-translate-x-1 transition-transform block"
+            />
             <span className="text-[10px] font-bold uppercase tracking-widest leading-none">
               Case
             </span>
@@ -93,7 +94,7 @@ export const DocumentHeader: React.FC<DocumentHeaderProps> = ({
           className="control !h-12 w-12 flex items-center justify-center text-text-muted hover:text-[var(--accent)]"
           title="Download Original Document"
         >
-          <Download className="w-5 h-5 block" />
+          <Download size={20} />
         </button>
         <CloseButton
           onClick={onClose}

@@ -1,6 +1,7 @@
 import React from 'react';
 import Icon from '../common/Icon';
 import type { Flight } from './types';
+import styles from './FlightCard.module.css';
 
 interface FlightCardProps {
   flight: Flight;
@@ -11,7 +12,7 @@ interface FlightCardProps {
 export const FlightCard: React.FC<FlightCardProps> = ({ flight, onSelect, formatDate }) => (
   <button
     type="button"
-    className="flight-card bg-transparent text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-inset w-full m-[0] h-full"
+    className={`flight-card ${styles.buttonRoot}`}
     onClick={() => onSelect(flight)}
     aria-label={`Open flight details for ${flight.departure_airport} to ${flight.arrival_airport} on ${formatDate(flight.date)}`}
   >
@@ -52,7 +53,7 @@ export const FlightCard: React.FC<FlightCardProps> = ({ flight, onSelect, format
       </div>
     </div>
 
-    <div className="flight-aircraft flex flex-col items-end">
+    <div className={`flight-aircraft ${styles.aircraftInfo}`}>
       <span className="tail-number">{flight.aircraft_tail}</span>
       <span className="aircraft-type">{flight.aircraft_type}</span>
     </div>

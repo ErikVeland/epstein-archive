@@ -6,6 +6,7 @@ import { GlassButton } from '../ui/GlassButton';
 import ScopedErrorBoundary from '../common/ScopedErrorBoundary';
 
 import '../FlightTracker.css';
+import styles from './FlightTracker.module.css';
 
 import { FlightTimelineView } from './FlightTimelineView';
 import { FlightMapView } from './FlightMapView';
@@ -163,7 +164,7 @@ export const FlightTracker: React.FC = () => {
         </div>
 
         <div className="filters">
-          <div className="flex flex-wrap gap-4">
+          <div className={styles.filterRow}>
             <Select
               containerClassName="min-w-[200px]"
               value={selectedPassenger}
@@ -177,21 +178,21 @@ export const FlightTracker: React.FC = () => {
               ]}
             />
 
-            <div className="flex items-center gap-2 bg-[var(--glass-bg-strong)]/50 border border-[var(--glass-border)] rounded-[var(--radius-lg)] px-3 py-2">
-              <Icon name="Calendar" size="sm" className="text-[var(--text-muted)]" />
+            <div className={styles.dateRangeWrapper}>
+              <Icon name="Calendar" size="sm" className={styles.dateSeparator} />
               <input
                 type="date"
                 value={dateRange.start}
                 onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-                className="bg-transparent border-none text-[var(--text-primary)] text-sm focus:outline-none"
+                className={styles.dateInput}
                 placeholder="Start Date"
               />
-              <span className="text-[var(--text-muted)]">-</span>
+              <span className={styles.dateSeparator}>-</span>
               <input
                 type="date"
                 value={dateRange.end}
                 onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-                className="bg-transparent border-none text-[var(--text-primary)] text-sm focus:outline-none"
+                className={styles.dateInput}
                 placeholder="End Date"
               />
             </div>
@@ -202,8 +203,8 @@ export const FlightTracker: React.FC = () => {
       <div className="tracker-content">
         <ScopedErrorBoundary
           fallback={
-            <div className="bg-[var(--accent-danger)]/10 border border-[var(--accent-danger)]/20 text-[var(--accent-danger)] text-sm rounded-[var(--radius-lg)] p-8 text-center mt-4">
-              <p className="font-bold mb-2">Visualization Error</p>
+            <div className={styles.errorFallback}>
+              <p className={styles.errorFallbackTitle}>Visualization Error</p>
               <p>
                 A rendering error occurred in this view. The data might be malformed or incomplete.
               </p>

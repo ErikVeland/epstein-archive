@@ -1,0 +1,24 @@
+/* src/client/components/entities/cards/DriverChips.module.css */
+
+.container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.chip {
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: 10px;
+  text-transform: uppercase;
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.05em;
+  border: 1px solid;
+}
+
+.chipContext {
+  background-color: color-mix(in srgb, var(--glass-bg) 60%, transparent);
+  color: var(--text-muted);
+  border-color: var(--glass-border);
+}

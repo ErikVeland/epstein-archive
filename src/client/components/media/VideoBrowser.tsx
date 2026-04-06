@@ -525,6 +525,7 @@ export const VideoBrowser: React.FC = () => {
             <div className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center bg-[var(--glass-bg-strong)] backdrop-blur-sm p-4 md:p-8">
               <div className="w-full max-w-6xl h-[90vh] max-h-[90vh]">
                 <VideoPlayer
+                  key={selectedItem.id}
                   src={`/api/media/video/${selectedItem.id}/stream`}
                   title={selectedItem.title}
                   transcript={

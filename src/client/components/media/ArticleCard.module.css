@@ -1,0 +1,243 @@
+/* src/client/components/media/ArticleCard.module.css */
+
+.card {
+  position: relative;
+  height: 400px;
+  width: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--glass-border);
+  background-color: var(--glass-bg-strong);
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+  cursor: pointer;
+}
+
+.card:hover {
+  transform: scale(1.01);
+  box-shadow: var(--glass-shadow);
+}
+
+/* Hero image area */
+.heroImage {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  width: 100%;
+}
+
+.heroImg {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  transition:
+    transform 700ms,
+    opacity 700ms;
+  opacity: 0.8;
+}
+
+.card:hover .heroImg {
+  transform: scale(1.05);
+  opacity: 0.6;
+}
+
+/* Gradient overlay */
+.gradientOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, #020617, rgba(15, 23, 42, 0.6), transparent);
+  opacity: 0.9;
+  transition: opacity 0.3s;
+}
+
+.card:hover .gradientOverlay {
+  opacity: 0.8;
+}
+
+/* Content area */
+.content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: var(--space-6);
+}
+
+/* Publication badge row */
+.badgeRow {
+  margin-bottom: var(--space-3);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--type-xs);
+  font-weight: var(--weight-medium);
+  color: var(--accent);
+}
+
+.publicationBadge {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background-color: rgba(8, 47, 73, 0.5);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  backdrop-filter: blur(8px);
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.dateChip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--text-secondary);
+}
+
+/* Headline */
+.headline {
+  margin-bottom: var(--space-2);
+  font-size: 1.5rem;
+  font-weight: var(--weight-bold);
+  line-height: 1.25;
+  color: var(--text-primary);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+  transition: color 0.2s;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.card:hover .headline {
+  color: var(--accent);
+}
+
+/* Summary */
+.summary {
+  margin-bottom: var(--space-4);
+  font-size: var(--type-small);
+  color: var(--text-secondary);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  opacity: 0;
+  transform: translateY(var(--space-4));
+  transition:
+    opacity 0.3s,
+    transform 0.3s;
+}
+
+.card:hover .summary {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Footer */
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--glass-border);
+  padding-top: var(--space-4);
+}
+
+.authorInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.avatarImg {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  border: 1px solid var(--glass-border);
+}
+
+.avatarFallback {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  background-color: var(--glass-bg-highlight);
+  border: 1px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--type-xs);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+}
+
+.authorMeta {
+  display: flex;
+  flex-direction: column;
+}
+
+.authorName {
+  font-size: var(--type-small);
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+}
+
+.readTime {
+  font-size: var(--type-xs);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* Arrow button */
+.arrowButton {
+  border-radius: 9999px;
+  background-color: var(--glass-bg-highlight);
+  padding: var(--space-2);
+  color: var(--text-primary);
+  backdrop-filter: blur(4px);
+  transition:
+    background-color 0.2s,
+    color 0.2s;
+}
+
+.card:hover .arrowButton {
+  background-color: var(--accent);
+  color: var(--text-primary);
+}
+
+/* Red flag badge */
+.redFlagBadge {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  background-color: rgba(239, 68, 68, 0.2);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  padding: var(--space-1) var(--space-3);
+  border-radius: 9999px;
+  font-size: var(--type-xs);
+  font-weight: var(--weight-bold);
+  color: #fecaca;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  box-shadow: var(--glass-shadow);
+  z-index: var(--z-content);
+}
+
+/* Placeholder gradient variants */
+.gradientBlue {
+  background-image: linear-gradient(135deg, #1e3a5f, #0f172a, #000000);
+}
+.gradientPurple {
+  background-image: linear-gradient(135deg, #3b0764, #0f172a, #000000);
+}
+.gradientCyan {
+  background-image: linear-gradient(135deg, #083344, #0f172a, #000000);
+}
+.gradientEmerald {
+  background-image: linear-gradient(135deg, #064e3b, #0f172a, #000000);
+}
+.gradientRed {
+  background-image: linear-gradient(135deg, #450a0a, #0f172a, #000000);
+}

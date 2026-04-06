@@ -3,6 +3,7 @@ import { FixedSizeList as List } from 'react-window';
 import AutoSizer from '../common/AutoSizer';
 import { FlightCard } from './FlightCard';
 import type { Flight } from './types';
+import styles from './FlightTimelineView.module.css';
 
 interface FlightTimelineViewProps {
   flights: Flight[];
@@ -20,9 +21,7 @@ export const FlightTimelineView: React.FC<FlightTimelineViewProps> = ({
     style={{ flex: 1, minHeight: '600px', height: '800px', width: '100%' }}
   >
     {flights.length === 0 ? (
-      <div className="no-flights text-[var(--text-muted)] p-[var(--space-8)] text-center bg-[var(--glass-bg)]/50 rounded-[var(--radius-lg)]">
-        No flights found
-      </div>
+      <div className={`no-flights ${styles.noFlights}`}>No flights found</div>
     ) : (
       <AutoSizer>
         {({ height, width }: { height: number; width: number }) => (

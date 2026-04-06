@@ -1,0 +1,111 @@
+/* EmailViewer.module.css */
+
+.container {
+  padding: var(--space-6);
+}
+
+.emailHeader {
+  border-bottom: 1px solid var(--glass-border);
+  padding-bottom: var(--space-6);
+  margin-bottom: var(--space-6);
+}
+
+.subjectRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.subject {
+  font-size: var(--type-h2);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+}
+
+.downloadLink {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  font-size: var(--type-small);
+  font-weight: var(--weight-medium);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  background-color: var(--glass-bg);
+  margin-left: var(--space-4);
+  flex-shrink: 0;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+  gap: var(--space-2);
+}
+
+.downloadLink:hover {
+  background-color: var(--glass-bg-highlight);
+  color: var(--text-primary);
+}
+
+.downloadLink:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.metaStack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.metaRow {
+  display: flex;
+  align-items: flex-start;
+}
+
+.metaIcon {
+  color: var(--text-muted);
+  margin-right: var(--space-3);
+  margin-top: 0.125rem;
+  flex-shrink: 0;
+}
+
+.metaContent {
+  flex: 1;
+}
+
+.metaLabel {
+  font-size: var(--type-small);
+  color: var(--text-muted);
+}
+
+.metaValueRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.metaValue {
+  color: var(--text-primary);
+}
+
+.copyButton {
+  color: var(--text-muted);
+  transition: color 0.2s ease;
+}
+
+.copyButton:hover {
+  color: var(--text-secondary);
+}
+
+/* Email body */
+.emailBody {
+  max-width: none;
+}
+
+.bodyText {
+  white-space: pre-wrap;
+  color: var(--text-primary);
+  font-family: sans-serif;
+  line-height: 1.625;
+}

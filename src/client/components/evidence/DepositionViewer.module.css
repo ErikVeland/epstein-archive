@@ -1,0 +1,128 @@
+/* DepositionViewer.module.css */
+
+.container {
+  padding: var(--space-6);
+}
+
+.depositionHeader {
+  background-color: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  margin-bottom: var(--space-6);
+}
+
+.headerRow {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+}
+
+.scaleIcon {
+  color: var(--text-primary);
+  margin-top: var(--space-1);
+  flex-shrink: 0;
+}
+
+.headerContent {
+  flex: 1;
+}
+
+.depositionTitle {
+  font-size: var(--type-h3);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-4);
+}
+
+.metaGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+
+@media (min-width: 768px) {
+  .metaGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.metaLabel {
+  font-size: var(--type-small);
+  color: var(--text-primary);
+}
+
+.metaValue {
+  color: var(--text-primary);
+  font-weight: var(--weight-medium);
+}
+
+/* Search */
+.searchSection {
+  margin-bottom: var(--space-6);
+}
+
+.searchWrapper {
+  position: relative;
+  max-width: 28rem;
+}
+
+.searchIcon {
+  position: absolute;
+  left: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+}
+
+.searchInput {
+  width: 100%;
+  padding: var(--space-2) var(--space-4) var(--space-2) 2.5rem;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  background-color: var(--glass-bg);
+  color: var(--text-primary);
+  font-size: var(--type-body);
+  outline: none;
+}
+
+.searchInput:focus {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+/* Text content */
+.textPanel {
+  background-color: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+}
+
+.textPanelInner {
+  padding: var(--space-6);
+}
+
+.textLine {
+  display: flex;
+  font-size: var(--type-small);
+  line-height: 1.625;
+  margin-bottom: var(--space-2);
+}
+
+.lineNumber {
+  width: 3rem;
+  text-align: right;
+  color: var(--text-muted);
+  margin-right: var(--space-4);
+  flex-shrink: 0;
+}
+
+.lineContent {
+  flex: 1;
+  color: var(--text-primary);
+  font-family: monospace;
+}
+
+.highlight {
+  background-color: color-mix(in srgb, #eab308 20%, transparent);
+  color: var(--text-primary);
+}

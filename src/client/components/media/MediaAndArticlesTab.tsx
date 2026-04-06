@@ -102,10 +102,27 @@ export const MediaAndArticlesTab: React.FC = () => {
         }
 
         if (albumId) {
+          if (location.pathname === '/media/video') {
+            const firstVideoRes = await fetch(`/api/media/video?albumId=${albumId}&page=1&limit=1`);
+            if (firstVideoRes.ok) {
+              const payload = await firstVideoRes.json();
+              const firstVideoId = payload?.mediaItems?.[0]?.id;
+              if (firstVideoId) {
+                setShareMetadata({
+                  title: `Epstein Video Album ${albumId}`,
+                  description: 'Shared video album from the Epstein Files archive.',
+                  image: `https://epstein.academy/api/media/video/${firstVideoId}/thumbnail`,
+                  imageAlt: `Video album ${albumId} preview`,
+                });
+                return;
+              }
+            }
+          }
+
           const firstImageRes = await fetch(`/api/media/images?albumId=${albumId}&page=1&limit=1`);
           if (firstImageRes.ok) {
             const payload = await firstImageRes.json();
-            const firstImageId = payload?.data?.[0]?.id;
+            const firstImageId = Array.isArray(payload) ? payload[0]?.id : payload?.data?.[0]?.id;
             if (firstImageId) {
               setShareMetadata({
                 title: `Epstein Media Album ${albumId}`,
@@ -158,7 +175,7 @@ export const MediaAndArticlesTab: React.FC = () => {
         }}
       />
       {/* Sub-tab Navigation */}
-      <div className="flex-none flex gap-2 border-b border-[var(--glass-border)] bg-[var(--glass-bg-strong)] px-4 pt-2 z-20 overflow-x-auto scrollbar-thin scrollbar-thumb-slate-700/60 scrollbar-track-transparent -mx-4 sm:mx-0">
+      <div className="flex-none flex gap-2 bg-[var(--glass-bg-strong)] px-4 pt-2 z-20 overflow-x-auto scrollbar-thin scrollbar-thumb-slate-700/60 scrollbar-track-transparent -mx-4 sm:mx-0">
         <button
           onClick={() => navigateToTab('photos')}
           className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-all ${

@@ -42,6 +42,7 @@ const strictSpacingPattern =
 
 const moduleGovernedFiles = new Set(
   [
+    // Design-system barrel and shared/common foundations
     'src/client/design-system/components/Button.tsx',
     'src/client/components/common/CloseButton.tsx',
     'src/client/components/common/ProgressBar.tsx',
@@ -66,7 +67,7 @@ const moduleGovernedFiles = new Set(
     'src/client/components/common/ToastProvider.tsx',
     'src/client/components/layout/SortFilter.tsx',
     'src/client/components/layout/SearchFilters.tsx',
-    // Phase 7 — small common + layout components
+    // Foundation cleanup and shared/common UI migration
     'src/client/components/layout/Layout.tsx',
     'src/client/components/layout/Breadcrumb.tsx',
     'src/client/components/shared/MobileAlbumDropdown.tsx',
@@ -79,23 +80,18 @@ const moduleGovernedFiles = new Set(
     'src/client/components/common/WikiLink.tsx',
     'src/client/components/common/CollapsibleSplitPane.tsx',
     'src/client/components/common/ScopedErrorBoundary.tsx',
-    // Phase 8 — navigation + layout
+    // Navigation and app shell migration
     'src/client/components/layout/MobileMenu.tsx',
     'src/client/components/layout/Footer.tsx',
-    // Phase 9a — page components
+    // Page and top-level shell migration
     'src/client/components/pages/StatsSkeleton.tsx',
     'src/client/components/pages/StatsDashboard.tsx',
     'src/client/components/pages/StatsDisplay.tsx',
-    // Phase 9b
     'src/client/components/pages/FAQPage.tsx',
     'src/client/components/pages/DataQualityDashboard.tsx',
-    // Phase 9c
     'src/client/components/pages/MemoryDashboard.tsx',
-    // Phase 9d
     'src/client/components/pages/About.tsx',
-    // Phase 9e
     'src/client/components/pages/EnhancedAnalytics.tsx',
-    // Phase 9f
     'src/client/components/pages/AboutPage.tsx',
   ].map((f) => path.join(rootDir, f)),
 );

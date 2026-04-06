@@ -5,6 +5,7 @@
  */
 
 import { Mail, Paperclip, Copy, Download, User, Calendar } from 'lucide-react';
+import styles from './EmailViewer.module.css';
 
 interface EmailViewerProps {
   evidence: {
@@ -47,42 +48,40 @@ export function EmailViewer({ evidence }: EmailViewerProps) {
   const emailBody = getEmailBody();
 
   return (
-    <div className="p-6">
+    <div className={styles.container}>
       {/* Email Header */}
-      <div className="border-b border-[var(--glass-border)] pb-6 mb-6">
-        <div className="flex items-start justify-between mb-4">
-          <h2 className="text-2xl font-bold text-[var(--text-primary)]">
-            {metadata.subject || 'No Subject'}
-          </h2>
+      <div className={styles.emailHeader}>
+        <div className={styles.subjectRow}>
+          <h2 className={styles.subject}>{metadata.subject || 'No Subject'}</h2>
           {metadata.source_original_url && (
             <a
               href={metadata.source_original_url}
               download
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center px-3 py-1.5 border border-[var(--glass-border)] shadow-sm text-sm font-medium rounded-[var(--radius-md)] text-[var(--text-secondary)] bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] hover:text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--accent)] ml-4 shrink-0 transition-colors"
+              className={styles.downloadLink}
               title="Download original email"
             >
-              <Download className="h-4 w-4 mr-2" />
+              <Download size={16} />
               Original
             </a>
           )}
         </div>
 
-        <div className="space-y-3">
+        <div className={styles.metaStack}>
           {metadata.from && (
-            <div className="flex items-start">
-              <User className="h-5 w-5 text-[var(--text-muted)] mr-3 mt-0.5" />
-              <div className="flex-1">
-                <div className="text-sm text-[var(--text-muted)]">From</div>
-                <div className="flex items-center justify-between">
-                  <div className="text-[var(--text-primary)]">{metadata.from}</div>
+            <div className={styles.metaRow}>
+              <User size={20} className={styles.metaIcon} />
+              <div className={styles.metaContent}>
+                <div className={styles.metaLabel}>From</div>
+                <div className={styles.metaValueRow}>
+                  <div className={styles.metaValue}>{metadata.from}</div>
                   <button
                     onClick={() => copyToClipboard(metadata.from!)}
-                    className="text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+                    className={styles.copyButton}
                     title="Copy email"
                   >
-                    <Copy className="h-4 w-4" />
+                    <Copy size={16} />
                   </button>
                 </div>
               </div>
@@ -90,18 +89,18 @@ export function EmailViewer({ evidence }: EmailViewerProps) {
           )}
 
           {metadata.to && (
-            <div className="flex items-start">
-              <Mail className="h-5 w-5 text-[var(--text-muted)] mr-3 mt-0.5" />
-              <div className="flex-1">
-                <div className="text-sm text-[var(--text-muted)]">To</div>
-                <div className="flex items-center justify-between">
-                  <div className="text-[var(--text-primary)]">{metadata.to}</div>
+            <div className={styles.metaRow}>
+              <Mail size={20} className={styles.metaIcon} />
+              <div className={styles.metaContent}>
+                <div className={styles.metaLabel}>To</div>
+                <div className={styles.metaValueRow}>
+                  <div className={styles.metaValue}>{metadata.to}</div>
                   <button
                     onClick={() => copyToClipboard(metadata.to!)}
-                    className="text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+                    className={styles.copyButton}
                     title="Copy email"
                   >
-                    <Copy className="h-4 w-4" />
+                    <Copy size={16} />
                   </button>
                 </div>
               </div>
@@ -109,31 +108,31 @@ export function EmailViewer({ evidence }: EmailViewerProps) {
           )}
 
           {metadata.cc && (
-            <div className="flex items-start">
-              <Mail className="h-5 w-5 text-[var(--text-muted)] mr-3 mt-0.5" />
-              <div className="flex-1">
-                <div className="text-sm text-[var(--text-muted)]">CC</div>
-                <div className="text-[var(--text-primary)]">{metadata.cc}</div>
+            <div className={styles.metaRow}>
+              <Mail size={20} className={styles.metaIcon} />
+              <div className={styles.metaContent}>
+                <div className={styles.metaLabel}>CC</div>
+                <div className={styles.metaValue}>{metadata.cc}</div>
               </div>
             </div>
           )}
 
           {metadata.sentDate && (
-            <div className="flex items-start">
-              <Calendar className="h-5 w-5 text-[var(--text-muted)] mr-3 mt-0.5" />
-              <div className="flex-1">
-                <div className="text-sm text-[var(--text-muted)]">Date</div>
-                <div className="text-[var(--text-primary)]">{metadata.sentDate}</div>
+            <div className={styles.metaRow}>
+              <Calendar size={20} className={styles.metaIcon} />
+              <div className={styles.metaContent}>
+                <div className={styles.metaLabel}>Date</div>
+                <div className={styles.metaValue}>{metadata.sentDate}</div>
               </div>
             </div>
           )}
 
           {metadata.attachmentCount && metadata.attachmentCount > 0 && (
-            <div className="flex items-start">
-              <Paperclip className="h-5 w-5 text-[var(--text-muted)] mr-3 mt-0.5" />
-              <div className="flex-1">
-                <div className="text-sm text-[var(--text-muted)]">Attachments</div>
-                <div className="text-[var(--text-primary)]">{metadata.attachmentCount} file(s)</div>
+            <div className={styles.metaRow}>
+              <Paperclip size={20} className={styles.metaIcon} />
+              <div className={styles.metaContent}>
+                <div className={styles.metaLabel}>Attachments</div>
+                <div className={styles.metaValue}>{metadata.attachmentCount} file(s)</div>
               </div>
             </div>
           )}
@@ -141,10 +140,8 @@ export function EmailViewer({ evidence }: EmailViewerProps) {
       </div>
 
       {/* Email Body */}
-      <div className="prose max-w-none">
-        <div className="whitespace-pre-wrap text-[var(--text-primary)] font-sans leading-relaxed">
-          {emailBody || extractedText}
-        </div>
+      <div className={styles.emailBody}>
+        <div className={styles.bodyText}>{emailBody || extractedText}</div>
       </div>
     </div>
   );

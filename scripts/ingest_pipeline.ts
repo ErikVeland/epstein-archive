@@ -46,6 +46,162 @@ import {
   inferSourceSystem,
 } from '../src/server/services/documentProvenanceService.js';
 
+function deriveMediaTitle(filePath: string, collectionName: string): string {
+  const filename = basename(filePath, extname(filePath));
+  const normalizedCollection = collectionName.trim().toLowerCase();
+
+  if (normalizedCollection === 'sascha riley tiktok q&a') {
+    return 'Sascha Riley TikTok Q&A';
+  }
+
+  return filename.replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim() || basename(filePath);
+}
+
+async function getOrCreateMediaAlbumId(name: string, description?: string): Promise<number> {
+  const existing =
+    (await db.query<{ id: string | number }>('SELECT id FROM media_albums WHERE name = $1', [name]))
+      .rows[0] ?? null;
+
+  if (existing) {
+    return Number(existing.id);
+  }
+
+  const inserted =
+    (
+      await db.query<{ id: string | number }>(
+        `INSERT INTO media_albums (name, description)
+         VALUES ($1, $2)
+         RETURNING id`,
+        [name, description || null],
+      )
+    ).rows[0] ?? null;
+
+  if (!inserted) {
+    throw new Error(`Failed to create media album for ${name}`);
+  }
+
+  return Number(inserted.id);
+}
+
+async function syncMediaItemFromDocument(params: {
+  documentId: number;
+  filePath: string;
+  mimeType: string;
+  fileSize: number;
+  collectionName: string;
+  collectionDescription?: string;
+  title: string;
+  metadata: Record<string, unknown>;
+  dateTaken?: string | Date | null;
+}): Promise<void> {
+  const {
+    documentId,
+    filePath,
+    mimeType,
+    fileSize,
+    collectionName,
+    collectionDescription,
+    title,
+    metadata,
+    dateTaken,
+  } = params;
+
+  if (!mimeType.startsWith('audio/') && !mimeType.startsWith('video/')) {
+    return;
+  }
+
+  const albumId = await getOrCreateMediaAlbumId(collectionName, collectionDescription);
+  const existing =
+    (
+      await db.query<{ id: string }>(
+        `SELECT id
+         FROM media_items
+         WHERE document_id = $1 OR file_path = $2
+         LIMIT 1`,
+        [documentId, filePath],
+      )
+    ).rows[0] ?? null;
+
+  const dateTakenValue =
+    dateTaken instanceof Date
+      ? dateTaken.toISOString()
+      : typeof dateTaken === 'string' && dateTaken.trim().length > 0
+        ? dateTaken
+        : null;
+  const metadataJson = JSON.stringify({
+    ...metadata,
+    documentId,
+    sourceCollection: collectionName,
+  });
+
+  if (existing) {
+    await db.query(
+      `UPDATE media_items
+       SET document_id = $1,
+           album_id = $2,
+           file_type = $3,
+           file_path = $4,
+           title = $5,
+           metadata_json = $6::jsonb,
+           file_size = $7,
+           date_taken = COALESCE($8::timestamp, date_taken)
+       WHERE id = $9`,
+      [
+        documentId,
+        albumId,
+        mimeType,
+        filePath,
+        title,
+        metadataJson,
+        fileSize,
+        dateTakenValue,
+        existing.id,
+      ],
+    );
+    return;
+  }
+
+  const nextIdResult =
+    (
+      await db.query<{ next_id: string }>(
+        `SELECT COALESCE(MAX(CASE WHEN id ~ '^[0-9]+$' THEN id::bigint END), 0) + 1 AS next_id
+         FROM media_items`,
+      )
+    ).rows[0] ?? null;
+  const nextId = String(nextIdResult?.next_id ?? '1');
+
+  await db.query(
+    `INSERT INTO media_items (
+       id,
+       document_id,
+       album_id,
+       file_type,
+       file_path,
+       title,
+       verification_status,
+       red_flag_rating,
+       is_sensitive,
+       metadata_json,
+       created_at,
+       file_size,
+       date_taken
+     ) VALUES (
+       $1, $2, $3, $4, $5, $6, 'unverified', 0, false, $7::jsonb, CURRENT_TIMESTAMP, $8, $9
+     )`,
+    [
+      nextId,
+      documentId,
+      albumId,
+      mimeType,
+      filePath,
+      title,
+      metadataJson,
+      fileSize,
+      dateTakenValue,
+    ],
+  );
+}
+
 // ============================================================================
 // PIPELINE AUDIT & ERROR AGGREGATION
 // ============================================================================
@@ -275,9 +431,9 @@ const COLLECTIONS: CollectionConfig[] = [
     enabled: false,
   },
   {
-    name: 'Sasha Riley TikTok Q&A',
+    name: 'Sascha Riley TikTok Q&A',
     rootPath: 'data/media/videos/Sasha Riley TikTok Q&A',
-    description: 'Sasha Riley TikTok Q&A video',
+    description: 'Sascha Riley TikTok Q&A video',
     enabled: true,
   },
   {
@@ -1516,6 +1672,31 @@ async function processDocument(
     });
 
     if (documentId) {
+      await syncMediaItemFromDocument({
+        documentId,
+        filePath,
+        mimeType,
+        fileSize: stats.size,
+        collectionName: collection.name,
+        collectionDescription: collection.description,
+        title: deriveMediaTitle(filePath, collection.name),
+        metadata: {
+          duration:
+            typeof (meta as { durationSeconds?: unknown }).durationSeconds === 'number'
+              ? (meta as { durationSeconds: number }).durationSeconds
+              : undefined,
+          durationFormatted:
+            typeof (meta as { durationFormatted?: unknown }).durationFormatted === 'string'
+              ? (meta as { durationFormatted: string }).durationFormatted
+              : undefined,
+          transcribedBy:
+            typeof (meta as { transcribedBy?: unknown }).transcribedBy === 'string'
+              ? (meta as { transcribedBy: string }).transcribedBy
+              : undefined,
+        },
+        dateTaken: meta.date_created || null,
+      });
+
       await documentProvenanceService.upsertEvent(
         {
           documentId,

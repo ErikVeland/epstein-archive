@@ -1,0 +1,112 @@
+/* src/client/components/entities/EntityRelationshipMapper.module.css */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.title {
+  font-size: var(--type-h3);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+}
+
+.controls {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.zoomButton {
+  padding: var(--space-1) var(--space-3);
+  background-color: var(--glass-bg-highlight);
+  color: var(--text-primary);
+  border-radius: var(--radius-sm);
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.zoomButton:hover {
+  background-color: var(--glass-bg-highlight);
+}
+
+.exportButton {
+  padding: var(--space-1) var(--space-3);
+  background-color: var(--accent);
+  color: var(--text-strong);
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+}
+
+.exportButton:hover {
+  filter: brightness(1.1);
+}
+
+.exportButton:disabled {
+  opacity: 0.5;
+}
+
+.graphContainer {
+  width: 100%;
+  height: 600px;
+  background-color: var(--glass-bg-strong);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--glass-border);
+  overflow: hidden;
+  position: relative;
+}
+
+.svgCanvas {
+  width: 100%;
+  height: 100%;
+}
+
+.simulatingBadge {
+  position: absolute;
+  top: var(--space-4);
+  left: var(--space-4);
+  background-color: color-mix(in srgb, var(--glass-bg) 80%, transparent);
+  color: var(--text-primary);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+  font-size: var(--type-small);
+}
+
+.selectedCard {
+  background-color: var(--glass-bg);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--glass-border);
+}
+
+.selectedTitle {
+  font-size: var(--type-h3);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.selectedType {
+  color: var(--text-secondary);
+}
+
+.selectedProperties {
+  margin-top: var(--space-2);
+}
+
+.selectedPropertyItem {
+  color: var(--text-muted);
+  font-size: var(--type-small);
+}
+
+.selectedPropertyKey {
+  font-weight: var(--weight-medium);
+}

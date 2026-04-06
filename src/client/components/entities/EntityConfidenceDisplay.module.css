@@ -1,0 +1,160 @@
+/* src/client/components/entities/EntityConfidenceDisplay.module.css */
+
+/* Skeleton loader */
+.skeleton {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  background-color: var(--glass-bg-highlight);
+  border-radius: var(--radius-sm);
+  height: 1.25rem;
+  width: 4rem;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Badge button (collapsed) */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  transition: opacity 0.2s ease;
+}
+
+.badge:hover {
+  opacity: 0.8;
+}
+
+/* Size variants */
+.sizeSm {
+  font-size: var(--type-xs);
+  padding: 0.125rem 0.375rem;
+}
+
+.sizeMd {
+  font-size: var(--type-small);
+  padding: var(--space-1) var(--space-2);
+}
+
+.sizeLg {
+  font-size: var(--type-body);
+  padding: 0.375rem var(--space-3);
+}
+
+/* Level color variants (badge + expanded) */
+.levelHigh {
+  color: var(--accent-success);
+  background-color: color-mix(in srgb, var(--accent-success) 20%, transparent);
+  border-color: color-mix(in srgb, var(--accent-success) 30%, transparent);
+}
+
+.levelMedium {
+  color: var(--accent-warning);
+  background-color: color-mix(in srgb, var(--accent-warning) 20%, transparent);
+  border-color: color-mix(in srgb, var(--accent-warning) 30%, transparent);
+}
+
+.levelLow {
+  color: var(--accent-danger);
+  background-color: color-mix(in srgb, var(--accent-danger) 20%, transparent);
+  border-color: color-mix(in srgb, var(--accent-danger) 30%, transparent);
+}
+
+.levelDefault {
+  color: var(--text-muted);
+  background-color: color-mix(in srgb, var(--glass-bg-highlight) 20%, transparent);
+  border-color: var(--glass-border);
+}
+
+/* Expanded panel */
+.expanded {
+  border-radius: var(--radius-lg);
+  border: 1px solid transparent;
+  overflow: hidden;
+}
+
+.expandedHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  background-color: color-mix(in srgb, var(--glass-bg) 50%, transparent);
+}
+
+.expandedHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.expandedLabel {
+  font-weight: var(--weight-medium);
+}
+
+.expandedScore {
+  opacity: 0.6;
+}
+
+.collapseButton {
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.collapseButton:hover {
+  opacity: 1;
+}
+
+.expandedBody {
+  padding: var(--space-3);
+  background-color: color-mix(in srgb, var(--glass-bg-strong) 50%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.mentionCount {
+  font-size: var(--type-xs);
+  color: var(--text-muted);
+}
+
+/* Evidence breakdown */
+.breakdownSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.breakdownLabel {
+  font-size: var(--type-xs);
+  color: var(--text-muted);
+}
+
+.breakdownChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.breakdownChip {
+  font-size: var(--type-xs);
+  padding: 0.125rem var(--space-2);
+  background-color: color-mix(in srgb, var(--glass-bg-highlight) 50%, transparent);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+}
+
+/* Footer note */
+.footerNote {
+  font-size: var(--type-xs);
+  color: var(--text-muted);
+  border-top: 1px solid var(--glass-border);
+  padding-top: var(--space-2);
+}

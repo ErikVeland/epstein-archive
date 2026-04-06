@@ -1,0 +1,9 @@
+/* FlightTimelineView.module.css */
+
+.noFlights {
+  color: var(--text-muted);
+  padding: var(--space-8);
+  text-align: center;
+  background-color: color-mix(in srgb, var(--glass-bg) 50%, transparent);
+  border-radius: var(--radius-lg);
+}

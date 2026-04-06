@@ -6,6 +6,7 @@
 
 import { useState } from 'react';
 import { Scale, Search } from 'lucide-react';
+import styles from './DepositionViewer.module.css';
 
 interface DepositionViewerProps {
   evidence: {
@@ -33,7 +34,7 @@ export function DepositionViewer({ evidence }: DepositionViewerProps) {
       const parts = text.split(new RegExp(`(${escapedSearch})`, 'gi'));
       return parts.map((part, index) =>
         part.toLowerCase() === search.toLowerCase() ? (
-          <mark key={index} className="bg-yellow-200">
+          <mark key={index} className={styles.highlight}>
             {part}
           </mark>
         ) : (
@@ -47,32 +48,28 @@ export function DepositionViewer({ evidence }: DepositionViewerProps) {
   };
 
   return (
-    <div className="p-6">
+    <div className={styles.container}>
       {/* Deposition Header */}
-      <div className="bg-gradient-to-r from-gray-50 to-gray-100 border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-6 mb-6">
-        <div className="flex items-start space-x-4">
-          <Scale className="h-8 w-8 text-[var(--text-primary)] mt-1" />
-          <div className="flex-1">
-            <h2 className="text-xl font-bold text-[var(--text-primary)] mb-4">
+      <div className={styles.depositionHeader}>
+        <div className={styles.headerRow}>
+          <Scale size={32} className={styles.scaleIcon} />
+          <div className={styles.headerContent}>
+            <h2 className={styles.depositionTitle}>
               Deposition of {metadata.deponent || 'Unknown'}
             </h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className={styles.metaGrid}>
               {metadata.caseIdentifier && (
                 <div>
-                  <div className="text-sm text-[var(--text-primary)]">Case</div>
-                  <div className="text-[var(--text-primary)] font-medium">
-                    {metadata.caseIdentifier}
-                  </div>
+                  <div className={styles.metaLabel}>Case</div>
+                  <div className={styles.metaValue}>{metadata.caseIdentifier}</div>
                 </div>
               )}
 
               {metadata.depositionDate && (
                 <div>
-                  <div className="text-sm text-[var(--text-primary)]">Date</div>
-                  <div className="text-[var(--text-primary)] font-medium">
-                    {metadata.depositionDate}
-                  </div>
+                  <div className={styles.metaLabel}>Date</div>
+                  <div className={styles.metaValue}>{metadata.depositionDate}</div>
                 </div>
               )}
             </div>
@@ -81,28 +78,26 @@ export function DepositionViewer({ evidence }: DepositionViewerProps) {
       </div>
 
       {/* Search */}
-      <div className="mb-6">
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[var(--text-muted)]" />
+      <div className={styles.searchSection}>
+        <div className={styles.searchWrapper}>
+          <Search size={20} className={styles.searchIcon} />
           <input
             type="text"
             placeholder="Search deposition..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-[var(--glass-border)] rounded-[var(--radius-lg)] focus:ring-2 focus:ring-[var(--accent)]"
+            className={styles.searchInput}
           />
         </div>
       </div>
 
       {/* Deposition Text */}
-      <div className="bg-[var(--text-primary)] border border-[var(--glass-border)] rounded-[var(--radius-lg)]">
-        <div className="p-6">
+      <div className={styles.textPanel}>
+        <div className={styles.textPanelInner}>
           {lines.map((line, index) => (
-            <div key={index} className="flex text-sm leading-relaxed mb-2">
-              <div className="w-12 text-right text-[var(--text-muted)] mr-4 flex-shrink-0">
-                {index + 1}
-              </div>
-              <div className="flex-1 text-[var(--text-primary)] font-mono">
+            <div key={index} className={styles.textLine}>
+              <div className={styles.lineNumber}>{index + 1}</div>
+              <div className={styles.lineContent}>
                 {searchTerm ? highlightText(line, searchTerm) : line}
               </div>
             </div>

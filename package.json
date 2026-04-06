@@ -1,7 +1,7 @@
 {
   "name": "epstein-archive",
   "private": true,
-  "version": "18.3.4",
+  "version": "18.4.0",
   "description": "Epstein Archive Analyzer",
   "type": "module",
   "engines": {
@@ -29,6 +29,7 @@
     "pipeline:backfill": "BATCH_SIZE=3 tsx scripts/unified_pipeline.ts --mode backfill",
     "pipeline:backfill:protected": "./scripts/run_protected.sh pipeline:backfill",
     "media:thumbnails:backfill:protected": "./scripts/run_protected.sh media:thumbnails:backfill",
+    "media:sascha-tiktok:backfill": "tsx scripts/backfill_sascha_tiktok_video.ts",
     "black-book:enrich": "tsx scripts/enrich_black_book.ts",
     "media:thumbnails:backfill": "tsx scripts/backfill_thumbnails.ts",
     "lint": "eslint . --ext .ts,.tsx",

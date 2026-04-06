@@ -1,0 +1,100 @@
+/* PropertyBrowseView.module.css */
+
+.filtersBar {
+  background-color: color-mix(in srgb, var(--glass-bg) 50%, transparent);
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--glass-border);
+  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-above);
+}
+
+.filtersInner {
+  max-width: 80rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+@media (min-width: 768px) {
+  .filtersInner {
+    flex-direction: row;
+  }
+}
+
+.searchWrapper {
+  flex: 1;
+  position: relative;
+}
+
+.searchIcon {
+  position: absolute;
+  left: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+}
+
+.searchInput {
+  width: 100%;
+  background-color: color-mix(in srgb, var(--glass-bg-strong) 50%, transparent);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-2) var(--space-4) var(--space-2) 2.5rem;
+  color: var(--text-primary);
+}
+
+.searchInput::placeholder {
+  color: var(--text-muted);
+}
+
+.searchInput:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 50%, transparent);
+}
+
+.filterControls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.checkboxWrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background-color: color-mix(in srgb, var(--glass-bg-strong) 50%, transparent);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 0 var(--space-4);
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  font-size: var(--type-small);
+  font-weight: var(--weight-medium);
+  color: var(--text-secondary);
+  user-select: none;
+}
+
+.checkbox {
+  width: var(--space-4);
+  height: var(--space-4);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--glass-border);
+  accent-color: var(--accent);
+  background-color: var(--glass-bg);
+}
+
+.viewToggle {
+  display: flex;
+  background-color: color-mix(in srgb, var(--glass-bg-strong) 50%, transparent);
+  border-radius: var(--radius-lg);
+  padding: var(--space-1);
+  border: 1px solid var(--glass-border);
+}

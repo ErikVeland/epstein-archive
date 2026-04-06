@@ -1,5 +1,24 @@
 # Release Notes
 
+## v18.4.0 - 2026-04-06 - Media Browser Stability & Sascha Album Release
+
+This minor release fixes the media browser tab chrome, hardens image and video thumbnail handling, and promotes the Sascha TikTok into its own browsable video album while restoring a clean lint, typecheck, and formatting baseline across the repository.
+
+### Media Browser
+
+- **Tab Chrome Cleanup**: Removed the stray white divider under the media browser tabs for a cleaner gallery header.
+- **Thumbnail Reliability**: Corrected media route MIME handling so thumbnails are served with their real file types instead of inheriting the source media MIME.
+- **Video Memory Stability**: Stopped video thumbnail fallbacks from serving full video files to image tags and tightened client video teardown to release timers and media resources when switching items.
+
+### Sascha TikTok Album
+
+- **Dedicated Video Album**: Created and backfilled a standalone `Sascha Riley TikTok Q&A` video album so the TikTok appears as its own media collection in the browser.
+- **Future Ingest Support**: Updated the ingestion pipeline to create and sync media album entries for audio and video documents automatically, including the Sascha TikTok source collection naming.
+
+### Release Quality
+
+- **Repo Cleanliness**: Verified the repository is passing ESLint, Prettier, and TypeScript checks with the current release state.
+
 ## v18.3.4 - 2026-04-03 - Liquid Glass Stabilization
 
 This maintenance release achieves a 100% clean, zero-warning codebase for the "Liquid Glass" architecture, ensuring full compatibility with the React Compiler and strengthening core type safety.

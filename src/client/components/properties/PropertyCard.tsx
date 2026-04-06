@@ -4,6 +4,7 @@ import Icon from '../common/Icon';
 import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
 import { formatCurrency, formatNumber } from '@client/utils/formatters';
 import type { Property } from './types';
+import styles from './PropertyCard.module.css';
 
 interface PropertyCardProps {
   property: Property;
@@ -96,7 +97,7 @@ export function PropertyCard({ property }: PropertyCardProps): React.ReactElemen
             },
           }}
           variant="quick"
-          className="w-full justify-center"
+          className={styles.addButtonFull}
         />
       </div>
     </div>

@@ -6,6 +6,7 @@ import path from 'path';
 import { z } from 'zod';
 import { validate } from '../middleware/validate.js';
 import { MediaService } from '../services/MediaService.js';
+import { ThumbnailService } from '../services/ThumbnailService.js';
 import { authenticateRequest } from '../auth/middleware.js';
 import { findFirstExistingPath } from '../utils/pathResolver.js';
 
@@ -233,9 +234,7 @@ const sendImageFile = async (id: number, res: Response, preferThumbnail: boolean
     return res.status(404).json({ error: 'Media file not found on disk' });
   }
 
-  if (item.fileType) {
-    res.type(String(item.fileType));
-  }
+  res.type(path.extname(resolvedPath) || 'application/octet-stream');
   return res.sendFile(resolvedPath);
 };
 
@@ -618,7 +617,23 @@ router.get('/video/:id', validate(mediaIdParamSchema), async (req, res, next) =>
 
 router.get('/video/:id/thumbnail', validate(mediaIdParamSchema), async (req, res, next) => {
   try {
-    await sendImageFile(Number(req.params.id), res, true);
+    const id = Number(req.params.id);
+    const item = await mediaRepository.getMediaItemById(id);
+    if (!item) return res.status(404).json({ error: 'Video item not found' });
+
+    let thumbnailPath = findFirstExistingPath([String(item.thumbnailPath || '')]);
+    if (!thumbnailPath) {
+      const videoPath = findFirstExistingPath([String(item.filePath || '')]);
+      if (!videoPath) return res.status(404).json({ error: 'Video file not found on disk' });
+      thumbnailPath = await ThumbnailService.generateVideoThumbnail(videoPath, id);
+    }
+
+    if (!thumbnailPath) {
+      return res.status(404).json({ error: 'Video thumbnail not available' });
+    }
+
+    res.type(path.extname(thumbnailPath) || 'application/octet-stream');
+    return res.sendFile(thumbnailPath);
   } catch (error) {
     next(error);
   }

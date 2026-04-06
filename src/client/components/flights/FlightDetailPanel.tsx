@@ -7,6 +7,7 @@ import { CloseButton } from '../common/CloseButton';
 import { RouteMap } from '../visualizations/RouteMap';
 import { useScrollLock } from '../../hooks/useScrollLock';
 import type { Flight, AirportCoords } from './types';
+import styles from './FlightDetailPanel.module.css';
 
 interface FlightDetailPanelProps {
   flight: Flight | null;
@@ -32,7 +33,7 @@ export const FlightDetailPanel: React.FC<FlightDetailPanelProps> = ({
     <div className="flight-modal-overlay">
       <button
         type="button"
-        className="absolute inset-0"
+        className={styles.backdropButton}
         aria-label="Close flight details"
         onClick={onClose}
       />
@@ -47,7 +48,7 @@ export const FlightDetailPanel: React.FC<FlightDetailPanelProps> = ({
           onClick={onClose}
           size="sm"
           label="Close flight details"
-          className="modal-close-btn border-[var(--glass-border)] bg-[var(--glass-bg-strong)]/80 text-[var(--text-primary)]"
+          className={`modal-close-btn ${styles.closeBtn}`}
         />
 
         <div className="modal-header" style={{ paddingRight: '3rem' }}>
@@ -56,38 +57,30 @@ export const FlightDetailPanel: React.FC<FlightDetailPanelProps> = ({
         </div>
 
         {/* Flight Route Map & Info */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <div className="bg-[var(--glass-bg)]/50 p-4 rounded-[var(--radius-lg)] border border-[var(--glass-border)]">
-            <div className="flex items-center gap-2 mb-2">
-              <Icon name="ArrowUpRight" className="text-[var(--accent)]" size="sm" />
-              <span className="text-sm font-medium text-[var(--text-muted)]">Departure</span>
+        <div className={styles.routeGrid}>
+          <div className={styles.infoCard}>
+            <div className={styles.infoCardHeader}>
+              <Icon name="ArrowUpRight" className={styles.infoCardIconAccent} size="sm" />
+              <span className={styles.infoCardLabel}>Departure</span>
             </div>
-            <div className="text-lg font-bold text-[var(--text-primary)] mb-1">
-              {flight.departure_airport}
-            </div>
-            <div className="text-sm text-[var(--text-muted)]">
-              {new Date(flight.date).toLocaleString()}
-            </div>
+            <div className={styles.infoCardAirport}>{flight.departure_airport}</div>
+            <div className={styles.infoCardDate}>{new Date(flight.date).toLocaleString()}</div>
           </div>
 
-          <div className="bg-[var(--glass-bg)]/50 p-4 rounded-[var(--radius-lg)] border border-[var(--glass-border)]">
-            <div className="flex items-center gap-2 mb-2">
-              <Icon name="ArrowDown" className="text-emerald-400" size="sm" />
-              <span className="text-sm font-medium text-[var(--text-muted)]">Arrival</span>
+          <div className={styles.infoCard}>
+            <div className={styles.infoCardHeader}>
+              <Icon name="ArrowDown" className={styles.infoCardIconEmerald} size="sm" />
+              <span className={styles.infoCardLabel}>Arrival</span>
             </div>
-            <div className="text-lg font-bold text-[var(--text-primary)] mb-1">
-              {flight.arrival_airport}
-            </div>
-            <div className="text-sm text-[var(--text-muted)]">
-              {new Date(flight.date).toLocaleString()}
-            </div>
+            <div className={styles.infoCardAirport}>{flight.arrival_airport}</div>
+            <div className={styles.infoCardDate}>{new Date(flight.date).toLocaleString()}</div>
           </div>
         </div>
 
         {/* Flight Route Map */}
         {(departureCoords || arrivalCoords) && (
-          <div className="mb-6">
-            <h4 className="text-sm font-medium text-[var(--text-muted)] mb-3 flex items-center gap-2">
+          <div className={styles.mapSection}>
+            <h4 className={styles.mapSectionTitle}>
               <Icon name="Globe" size="sm" />
               Flight Path Visualization
             </h4>
@@ -107,9 +100,9 @@ export const FlightDetailPanel: React.FC<FlightDetailPanelProps> = ({
                 }}
               />
             ) : (
-              <div className="bg-[var(--glass-bg)]/50 p-8 rounded-[var(--radius-lg)] border border-[var(--glass-border)] text-center">
-                <Icon name="MapPin" size="lg" className="text-[var(--text-primary)] mb-2 mx-auto" />
-                <p className="text-[var(--text-muted)]">
+              <div className={styles.mapUnavailable}>
+                <Icon name="MapPin" size="lg" className={styles.mapUnavailableIcon} />
+                <p className={styles.mapUnavailableText}>
                   Complete route data unavailable for map visualization
                 </p>
               </div>

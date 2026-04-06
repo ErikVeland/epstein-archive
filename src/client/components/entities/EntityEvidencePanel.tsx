@@ -19,6 +19,7 @@ import { EvidenceLadder } from '../evidence/EvidenceLadder';
 
 import { NetworkVisualization } from '../visualizations/NetworkVisualization';
 import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
+import styles from './EntityEvidencePanel.module.css';
 
 interface Evidence {
   id: string | number;
@@ -161,14 +162,14 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
 
   const getRoleColor = (role: string) => {
     const colors: Record<string, string> = {
-      sender: 'bg-[var(--accent-info)]/20 text-[var(--accent-info)]',
-      recipient: 'bg-[var(--accent-success)]/20 text-[var(--accent-success)]',
-      mentioned: 'bg-[var(--accent-warning)]/20 text-[var(--accent-warning)]',
-      passenger: 'bg-[var(--accent)]/20 text-[var(--accent)]',
-      deponent: 'bg-[var(--accent-danger)]/20 text-[var(--accent-danger)]',
-      subject: 'bg-[var(--accent-warning)]/20 text-[var(--accent-warning)]',
+      sender: styles.roleChipSender,
+      recipient: styles.roleChipRecipient,
+      mentioned: styles.roleChipMentioned,
+      passenger: styles.roleChipPassenger,
+      deponent: styles.roleChipDeponent,
+      subject: styles.roleChipSubject,
     };
-    return colors[role.toLowerCase()] || 'bg-[var(--app-bg)] text-[var(--text-primary)]';
+    return colors[role.toLowerCase()] || styles.roleChipDefault;
   };
 
   const filteredEvidence = evidence.filter((e) => {
@@ -200,281 +201,258 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-[var(--text-muted)]">Loading evidence...</div>
+      <div className={styles.loadingState}>
+        <div className={styles.loadingText}>Loading evidence...</div>
       </div>
     );
   }
 
   if (!stats || evidence.length === 0) {
     return (
-      <div className="bg-[var(--glass-bg-strong)]/50 rounded-[var(--radius-lg)] p-8 text-center border border-[var(--glass-border)]">
-        <FileText className="w-12 h-12 text-[var(--text-primary)] mx-auto mb-3" />
-        <h3 className="text-lg font-medium text-[var(--text-primary)] mb-2">No Evidence Found</h3>
-        <p className="text-[var(--text-muted)]">No evidence has been linked to {entityName} yet.</p>
+      <div className={styles.emptyState}>
+        <FileText className={styles.emptyIcon} />
+        <h3 className={styles.emptyTitle}>No Evidence Found</h3>
+        <p className={styles.emptySubtext}>No evidence has been linked to {entityName} yet.</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className={styles.root}>
       {/* Stats Overview */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-[var(--accent-info)]/10 border border-[var(--accent)]/30 rounded-[var(--radius-lg)] p-4">
-          <div className="text-sm text-[var(--accent)] mb-1">Total Evidence</div>
-          <div className="text-2xl font-bold text-[var(--accent)]">{stats.totalEvidence}</div>
+      <div className={styles.statsGrid}>
+        <div className={styles.statCardInfo}>
+          <div className={`${styles.statLabel} ${styles.statLabelInfo}`}>Total Evidence</div>
+          <div className={`${styles.statValue} ${styles.statValueInfo}`}>{stats.totalEvidence}</div>
         </div>
-        <div className="bg-[var(--accent-danger)]/10 border border-[var(--accent-danger)]/30 rounded-[var(--radius-lg)] p-4">
-          <div className="text-sm text-[var(--accent-danger)] mb-1">High Risk Items</div>
-          <div className="text-2xl font-bold text-[var(--accent-danger)]">
+        <div className={styles.statCardDanger}>
+          <div className={`${styles.statLabel} ${styles.statLabelDanger}`}>High Risk Items</div>
+          <div className={`${styles.statValue} ${styles.statValueDanger}`}>
             {stats.highRiskCount}
           </div>
         </div>
-        <div className="bg-[var(--accent)]/10 border border-[var(--accent)]/30 rounded-[var(--radius-lg)] p-4">
-          <div className="text-sm text-[var(--accent)] mb-1">Avg Confidence</div>
-          <div className="text-2xl font-bold text-[var(--accent)]">
+        <div className={styles.statCardAccent}>
+          <div className={`${styles.statLabel} ${styles.statLabelInfo}`}>Avg Confidence</div>
+          <div className={`${styles.statValue} ${styles.statValueInfo}`}>
             {Math.round(stats.averageConfidence * 100)}%
           </div>
         </div>
-        <div className="bg-[var(--accent-success)]/10 border border-[var(--accent-success)]/30 rounded-[var(--radius-lg)] p-4">
-          <div className="text-sm text-[var(--accent-success)] mb-1">Evidence Types</div>
-          <div className="text-2xl font-bold text-[var(--accent-success)]">
+        <div className={styles.statCardSuccess}>
+          <div className={`${styles.statLabel} ${styles.statLabelSuccess}`}>Evidence Types</div>
+          <div className={`${styles.statValue} ${styles.statValueSuccess}`}>
             {stats.typeBreakdown.length}
           </div>
         </div>
       </div>
 
       {/* Type Breakdown */}
-      <div className="surface-glass-card p-5">
-        <div className="flex items-center space-x-2 mb-4">
-          <BarChart3 className="w-5 h-5 text-[var(--text-muted)]" />
-          <h3 className="text-lg font-semibold text-[var(--text-primary)]">
-            Evidence Type Distribution
-          </h3>
-        </div>
-        <div className="space-y-2">
-          {stats.typeBreakdown.map((item) => (
-            <div key={item.evidenceType} className="flex items-center justify-between">
-              <span className="text-sm text-[var(--text-secondary)]">
-                {getEvidenceTypeLabel(item.evidenceType)}
-              </span>
-              <div className="flex items-center space-x-3">
-                <div className="w-32 bg-[var(--glass-bg-highlight)] rounded-full h-2">
-                  <div
-                    className="bg-[var(--accent)] h-2 rounded-full"
-                    style={{ width: `${(item.count / stats.totalEvidence) * 100}%` }}
-                  />
+      <div className="surface-glass-card">
+        <div className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <BarChart3 className={styles.sectionIcon} />
+            <h3 className={styles.sectionTitle}>Evidence Type Distribution</h3>
+          </div>
+          <div className={styles.innerList}>
+            {stats.typeBreakdown.map((item) => (
+              <div key={item.evidenceType} className={styles.typeRow}>
+                <span className={styles.typeLabel}>{getEvidenceTypeLabel(item.evidenceType)}</span>
+                <div className={styles.typeBarGroup}>
+                  <div className={styles.typeBarTrack}>
+                    <div
+                      className={styles.typeBarFill}
+                      style={{ width: `${(item.count / stats.totalEvidence) * 100}%` }}
+                    />
+                  </div>
+                  <span className={styles.typeCount}>{item.count}</span>
                 </div>
-                <span className="text-sm font-semibold text-[var(--text-secondary)] w-8 text-right">
-                  {item.count}
-                </span>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Role Breakdown */}
       {stats.roleBreakdown.length > 0 && (
-        <div className="surface-glass-card p-5">
-          <div className="flex items-center space-x-2 mb-4">
-            <User className="w-5 h-5 text-[var(--text-muted)]" />
-            <h3 className="text-lg font-semibold text-[var(--text-primary)]">Role Distribution</h3>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {stats.roleBreakdown.map((item) => (
-              <span
-                key={item.role}
-                className={`px-3 py-1 text-sm rounded-full ${getRoleColor(item.role)}`}
-              >
-                {item.role}: {item.count}
-              </span>
-            ))}
+        <div className="surface-glass-card">
+          <div className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <User className={styles.sectionIcon} />
+              <h3 className={styles.sectionTitle}>Role Distribution</h3>
+            </div>
+            <div className={styles.roleList}>
+              {stats.roleBreakdown.map((item) => (
+                <span
+                  key={item.role}
+                  className={`${styles.roleChipBase} ${getRoleColor(item.role)}`}
+                >
+                  {item.role}: {item.count}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
       )}
 
       {/* Related Entities */}
       {stats.relatedEntities.length > 0 && (
-        <div className="surface-glass-card p-5">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-2">
-              <Network className="w-5 h-5 text-[var(--text-muted)]" />
-              <h3 className="text-lg font-semibold text-[var(--text-primary)]">
-                Frequently Co-appears With
-              </h3>
-            </div>
-            <div className="flex bg-[var(--glass-bg-strong)]/50 rounded-[var(--radius-lg)] p-0.5 border border-[var(--glass-border)]">
-              <button
-                onClick={() => setViewMode('list')}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                  viewMode === 'list'
-                    ? 'bg-[var(--accent)] text-[var(--text-primary)] shadow-sm'
-                    : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
-                }`}
-              >
-                List
-              </button>
-              <button
-                onClick={() => setViewMode('graph')}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                  viewMode === 'graph'
-                    ? 'bg-[var(--accent)] text-[var(--text-primary)] shadow-sm'
-                    : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
-                }`}
-              >
-                Graph
-              </button>
-            </div>
-          </div>
-
-          {viewMode === 'list' ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {stats.relatedEntities.slice(0, 10).map((entity: RelatedEntity) => (
-                <Link
-                  key={entity.id}
-                  to={`/entity/${entity.id}`}
-                  className="flex items-center justify-between p-3 bg-[var(--glass-bg-strong)]/50 rounded-[var(--radius-lg)] hover:bg-[var(--glass-bg-highlight)] transition border border-[var(--glass-border)]"
+        <div className="surface-glass-card">
+          <div className={styles.section}>
+            <div className={styles.relatedHeader}>
+              <div className={styles.sectionHeader} style={{ marginBottom: 0 }}>
+                <Network className={styles.sectionIcon} />
+                <h3 className={styles.sectionTitle}>Frequently Co-appears With</h3>
+              </div>
+              <div className={styles.viewToggle}>
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`${styles.viewToggleBtn} ${viewMode === 'list' ? styles.viewToggleBtnActive : styles.viewToggleBtnInactive}`}
                 >
-                  <span className="text-sm font-medium text-[var(--text-primary)]">
-                    {entity.fullName}
-                  </span>
-                  <span className="text-xs font-semibold text-[var(--accent)]">
-                    {entity.sharedEvidenceCount} shared
-                  </span>
-                </Link>
-              ))}
+                  List
+                </button>
+                <button
+                  onClick={() => setViewMode('graph')}
+                  className={`${styles.viewToggleBtn} ${viewMode === 'graph' ? styles.viewToggleBtnActive : styles.viewToggleBtnInactive}`}
+                >
+                  Graph
+                </button>
+              </div>
             </div>
-          ) : (
-            <div className="h-[400px] bg-[var(--glass-bg-strong)]/50 rounded-[var(--radius-lg)] border border-[var(--glass-border)] overflow-hidden">
-              <NetworkVisualization
-                nodes={[
-                  {
-                    id: entityId,
-                    label: entityName,
-                    type: 'person',
-                    importance: 5,
-                    metadata: { category: 'target' },
-                  },
-                  ...stats.relatedEntities.slice(0, 15).map((e: RelatedEntity) => ({
-                    id: String(e.id),
-                    label: e.fullName,
-                    type: 'person' as const,
-                    importance: Math.min(
-                      5,
-                      Math.max(1, Math.ceil(Math.log(e.sharedEvidenceCount) * 1.5)),
+
+            {viewMode === 'list' ? (
+              <div className={styles.relatedGrid}>
+                {stats.relatedEntities.slice(0, 10).map((entity: RelatedEntity) => (
+                  <Link key={entity.id} to={`/entity/${entity.id}`} className={styles.relatedLink}>
+                    <span className={styles.relatedName}>{entity.fullName}</span>
+                    <span className={styles.relatedShared}>
+                      {entity.sharedEvidenceCount} shared
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className={styles.graphContainer}>
+                <NetworkVisualization
+                  nodes={[
+                    {
+                      id: entityId,
+                      label: entityName,
+                      type: 'person',
+                      importance: 5,
+                      metadata: { category: 'target' },
+                    },
+                    ...stats.relatedEntities.slice(0, 15).map((e: RelatedEntity) => ({
+                      id: String(e.id),
+                      label: e.fullName,
+                      type: 'person' as const,
+                      importance: Math.min(
+                        5,
+                        Math.max(1, Math.ceil(Math.log(e.sharedEvidenceCount) * 1.5)),
+                      ),
+                      metadata: {
+                        connections: [entityId],
+                        category: e.entityCategory,
+                      },
+                    })),
+                  ]}
+                  edges={stats.relatedEntities.slice(0, 15).map((e: RelatedEntity) => ({
+                    id: `${entityId}-${e.id}`,
+                    source: entityId,
+                    target: String(e.id),
+                    type: 'connection',
+                    strength: Math.min(
+                      10,
+                      Math.max(1, Math.ceil(Math.log(e.sharedEvidenceCount) * 2)),
                     ),
                     metadata: {
-                      connections: [entityId],
-                      category: e.entityCategory,
+                      frequency: e.sharedEvidenceCount,
                     },
-                  })),
-                ]}
-                edges={stats.relatedEntities.slice(0, 15).map((e: RelatedEntity) => ({
-                  id: `${entityId}-${e.id}`,
-                  source: entityId,
-                  target: String(e.id),
-                  type: 'connection',
-                  strength: Math.min(
-                    10,
-                    Math.max(1, Math.ceil(Math.log(e.sharedEvidenceCount) * 2)),
-                  ),
-                  metadata: {
-                    frequency: e.sharedEvidenceCount,
-                  },
-                }))}
-                height={400}
-                interactive={true}
-                onNodeClick={(node) => {
-                  if (node.id !== entityId && accessToNavigate) {
-                    accessToNavigate(`/entity/${node.id}`);
-                  }
-                }}
-              />
-            </div>
-          )}
+                  }))}
+                  height={400}
+                  interactive={true}
+                  onNodeClick={(node) => {
+                    if (node.id !== entityId && accessToNavigate) {
+                      accessToNavigate(`/entity/${node.id}`);
+                    }
+                  }}
+                />
+              </div>
+            )}
+          </div>
         </div>
       )}
 
       {/* Email / Communications Activity */}
       {communications.length > 0 && (
-        <div className="surface-glass-card p-5">
-          <div className="flex items-center space-x-2 mb-4">
-            <Mail className="w-5 h-5 text-[var(--text-muted)]" />
-            <h3 className="text-lg font-semibold text-[var(--text-primary)]">
-              Email Communications
-            </h3>
-          </div>
-          <p className="text-sm text-[var(--text-muted)] mb-3">
-            Recent email threads where{' '}
-            <span className="font-semibold text-[var(--text-primary)]">{entityName}</span> appears.
-            Topics are heuristic but stable labels to help you scan conspiracies at a glance.
-          </p>
-          <div className="space-y-3 max-h-72 overflow-y-auto scrollbar-thin scrollbar-thumb-[var(--glass-border-highlight)]">
-            {communications.slice(0, 25).map((c) => (
-              <div
-                key={`${c.threadId}-${c.documentId}`}
-                className="border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-3 hover:bg-[var(--glass-bg-highlight)]/50 transition"
-              >
-                <div className="flex items-start justify-between gap-3 mb-1">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <MessageCircle className="w-4 h-4 text-[var(--text-muted)]" />
-                      <span className="text-sm font-semibold text-[var(--text-primary)] truncate max-w-xs">
-                        {c.subject || 'No subject'}
-                      </span>
-                    </div>
-                    <div className="text-xs text-[var(--text-muted)] flex flex-wrap gap-1">
-                      <span className="font-medium text-[var(--text-secondary)]">{c.from}</span>
-                      <span>→</span>
-                      <span className="truncate max-w-[10rem]">
-                        {c.to && c.to.length > 0 ? c.to.join(', ') : 'Unknown recipients'}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-end gap-1 text-xs">
-                    {c.date && (
-                      <div className="flex items-center gap-1 text-[var(--text-muted)]">
-                        <Clock3 className="w-3 h-3" />
-                        <span>{c.date}</span>
+        <div className="surface-glass-card">
+          <div className={styles.section}>
+            <div className={styles.sectionHeader}>
+              <Mail className={styles.sectionIcon} />
+              <h3 className={styles.sectionTitle}>Email Communications</h3>
+            </div>
+            <p className={styles.commsIntro}>
+              Recent email threads where <span className={styles.commsHighlight}>{entityName}</span>{' '}
+              appears. Topics are heuristic but stable labels to help you scan conspiracies at a
+              glance.
+            </p>
+            <div className={styles.commsScroll}>
+              {communications.slice(0, 25).map((c) => (
+                <div key={`${c.threadId}-${c.documentId}`} className={styles.commCard}>
+                  <div className={styles.commTopRow}>
+                    <div>
+                      <div className={styles.commSubjectRow}>
+                        <MessageCircle className={styles.commIcon} />
+                        <span className={styles.commSubject}>{c.subject || 'No subject'}</span>
                       </div>
-                    )}
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-[var(--accent-info)]/20 text-[var(--accent)] border border-[var(--accent)]/30 capitalize text-[11px]">
-                      <Tag className="w-3 h-3 mr-1" />
-                      {c.topic.replace('_', ' ')}
-                    </span>
-                    <div className="flex items-center gap-1">
-                      <Link
-                        to={`/emails?search=${encodeURIComponent(c.subject)}`}
-                        className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
-                        title="View Thread"
-                      >
-                        <ExternalLink className="w-4 h-4" />
-                      </Link>
-                      <AddToInvestigationButton
-                        item={{
-                          id: `email-${c.documentId}`,
-                          title: `Email: ${c.subject}`,
-                          description: `Communication from ${c.from}`,
-                          type: 'evidence',
-                          sourceId: c.documentId,
-                          metadata: {
-                            threadId: c.threadId,
-                            from: c.from,
-                            to: c.to,
-                          },
-                        }}
-                        variant="icon"
-                        className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                      />
+                      <div className={styles.commMeta}>
+                        <span className={styles.commFrom}>{c.from}</span>
+                        <span>→</span>
+                        <span className={styles.commTo}>
+                          {c.to && c.to.length > 0 ? c.to.join(', ') : 'Unknown recipients'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className={styles.commRight}>
+                      {c.date && (
+                        <div className={styles.commDate}>
+                          <Clock3 className={styles.commDateIcon} />
+                          <span>{c.date}</span>
+                        </div>
+                      )}
+                      <span className={styles.commTopicBadge}>
+                        <Tag className={styles.commTopicIcon} />
+                        {c.topic.replace('_', ' ')}
+                      </span>
+                      <div className={styles.commActions}>
+                        <Link
+                          to={`/emails?search=${encodeURIComponent(c.subject)}`}
+                          className={styles.commActionLink}
+                          title="View Thread"
+                        >
+                          <ExternalLink className={styles.commActionIcon} />
+                        </Link>
+                        <AddToInvestigationButton
+                          item={{
+                            id: `email-${c.documentId}`,
+                            title: `Email: ${c.subject}`,
+                            description: `Communication from ${c.from}`,
+                            type: 'evidence',
+                            sourceId: c.documentId,
+                            metadata: {
+                              threadId: c.threadId,
+                              from: c.from,
+                              to: c.to,
+                            },
+                          }}
+                          variant="icon"
+                          className={styles.commActionLink}
+                        />
+                      </div>
                     </div>
                   </div>
+                  {c.snippet && <p className={styles.commSnippet}>{c.snippet}</p>}
                 </div>
-                {c.snippet && (
-                  <p className="mt-1 text-xs text-[var(--text-muted)] line-clamp-2">{c.snippet}</p>
-                )}
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       )}

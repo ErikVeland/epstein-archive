@@ -1,0 +1,48 @@
+/* src/client/components/entities/EntityTypeFilter.module.css */
+
+.wrapper {
+  position: relative;
+}
+
+.wrapperOpen {
+  z-index: 1200;
+}
+
+.wrapperClosed {
+  z-index: var(--z-content);
+}
+
+.dropdown {
+  position: absolute;
+  z-index: 1210;
+  margin-top: var(--space-1);
+  width: 100%;
+  min-width: 220px;
+}
+
+.optionItem {
+  padding: 0 var(--space-3);
+  height: 2.5rem;
+  font-size: var(--type-small);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  border-radius: var(--radius-sm);
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.optionItem:hover {
+  background-color: color-mix(in srgb, var(--glass-bg-highlight) 55%, transparent);
+}
+
+.optionSelected {
+  background-color: color-mix(in srgb, var(--glass-bg-highlight) 65%, transparent);
+  color: var(--text-primary);
+}
+
+.optionUnselected {
+  color: var(--text-secondary);
+}

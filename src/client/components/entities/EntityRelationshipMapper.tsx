@@ -3,6 +3,7 @@ import * as d3Selection from 'd3-selection';
 import * as d3Quadtree from 'd3-quadtree';
 
 import { EntityType } from '../../services/GraphService';
+import styles from './EntityRelationshipMapper.module.css';
 
 export interface Entity {
   id: string;
@@ -445,29 +446,21 @@ export const EntityRelationshipMapper: React.FC<EntityRelationshipMapperProps> =
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-bold text-[var(--text-primary)]">Entity Relationship Map</h2>
-        <div className="flex space-x-2">
-          <button
-            onClick={() => handleZoom(1)}
-            className="px-3 py-1 bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] rounded hover:bg-[var(--glass-bg-highlight)] transition-colors"
-            aria-label="Zoom in"
-          >
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <h2 className={styles.title}>Entity Relationship Map</h2>
+        <div className={styles.controls}>
+          <button onClick={() => handleZoom(1)} className={styles.zoomButton} aria-label="Zoom in">
             +
           </button>
           <button
             onClick={() => handleZoom(-1)}
-            className="px-3 py-1 bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] rounded hover:bg-[var(--glass-bg-highlight)] transition-colors"
+            className={styles.zoomButton}
             aria-label="Zoom out"
           >
             -
           </button>
-          <button
-            onClick={exportAsPNG}
-            disabled={exporting}
-            className="px-3 py-1 bg-[var(--accent)] text-[var(--text-strong)] rounded hover:brightness-110 disabled:opacity-50 transition-all"
-          >
+          <button onClick={exportAsPNG} disabled={exporting} className={styles.exportButton}>
             {exporting ? 'Exporting...' : 'Export PNG'}
           </button>
         </div>
@@ -475,7 +468,7 @@ export const EntityRelationshipMapper: React.FC<EntityRelationshipMapperProps> =
 
       <div
         ref={containerRef}
-        className="w-full h-[600px] bg-[var(--glass-bg-strong)] rounded-[var(--radius-lg)] border border-[var(--glass-border)] overflow-hidden relative"
+        className={styles.graphContainer}
         onMouseDown={(e) => {
           const startX = e.clientX;
           const startY = e.clientY;
@@ -495,26 +488,20 @@ export const EntityRelationshipMapper: React.FC<EntityRelationshipMapperProps> =
           document.addEventListener('mouseup', handleMouseUp);
         }}
       >
-        <svg ref={svgRef} className="w-full h-full" viewBox="0 0 800 600" />
+        <svg ref={svgRef} className={styles.svgCanvas} viewBox="0 0 800 600" />
 
-        {simulationRunning && (
-          <div className="absolute top-4 left-4 bg-[var(--glass-bg)]/80 text-[var(--text-primary)] px-3 py-1 rounded text-sm">
-            Simulating...
-          </div>
-        )}
+        {simulationRunning && <div className={styles.simulatingBadge}>Simulating...</div>}
       </div>
 
       {selectedEntity && (
-        <div className="bg-[var(--glass-bg)] p-4 rounded-[var(--radius-lg)] border border-[var(--glass-border)]">
-          <h3 className="text-lg font-bold text-[var(--text-primary)] mb-2">
-            {selectedEntity.label}
-          </h3>
-          <p className="text-[var(--text-secondary)]">Type: {selectedEntity.type}</p>
+        <div className={styles.selectedCard}>
+          <h3 className={styles.selectedTitle}>{selectedEntity.label}</h3>
+          <p className={styles.selectedType}>Type: {selectedEntity.type}</p>
           {selectedEntity.properties && (
-            <div className="mt-2">
+            <div className={styles.selectedProperties}>
               {Object.entries(selectedEntity.properties).map(([key, value]) => (
-                <p key={key} className="text-[var(--text-muted)] text-sm">
-                  <span className="font-medium">{key}:</span> {String(value)}
+                <p key={key} className={styles.selectedPropertyItem}>
+                  <span className={styles.selectedPropertyKey}>{key}:</span> {String(value)}
                 </p>
               ))}
             </div>

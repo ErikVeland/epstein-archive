@@ -1,0 +1,97 @@
+/* FlightDetailPanel.module.css */
+
+.backdropButton {
+  position: absolute;
+  inset: 0;
+}
+
+.closeBtn {
+  border: 1px solid var(--glass-border);
+  background-color: color-mix(in srgb, var(--glass-bg-strong) 80%, transparent);
+  color: var(--text-primary);
+}
+
+.routeGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+@media (min-width: 768px) {
+  .routeGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.infoCard {
+  background-color: color-mix(in srgb, var(--glass-bg) 50%, transparent);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--glass-border);
+}
+
+.infoCardHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.infoCardIconAccent {
+  color: var(--accent);
+}
+
+.infoCardIconEmerald {
+  color: #34d399;
+}
+
+.infoCardLabel {
+  font-size: var(--type-small);
+  font-weight: var(--weight-medium);
+  color: var(--text-muted);
+}
+
+.infoCardAirport {
+  font-size: 1.125rem;
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-1);
+}
+
+.infoCardDate {
+  font-size: var(--type-small);
+  color: var(--text-muted);
+}
+
+.mapSection {
+  margin-bottom: var(--space-6);
+}
+
+.mapSectionTitle {
+  font-size: var(--type-small);
+  font-weight: var(--weight-medium);
+  color: var(--text-muted);
+  margin-bottom: var(--space-3);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.mapUnavailable {
+  background-color: color-mix(in srgb, var(--glass-bg) 50%, transparent);
+  padding: var(--space-8);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--glass-border);
+  text-align: center;
+}
+
+.mapUnavailableIcon {
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+  margin-inline: auto;
+}
+
+.mapUnavailableText {
+  color: var(--text-muted);
+}

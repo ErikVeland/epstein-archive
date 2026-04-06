@@ -1,0 +1,33 @@
+/* src/client/components/entities/cards/EvidenceBadge.module.css */
+
+.flagContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+.flagIcon {
+  display: inline-flex;
+}
+
+.ratingBadge {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0.125rem var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--glass-border);
+  background-color: color-mix(in srgb, var(--glass-bg) 40%, transparent);
+}
+
+.ratingSection {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.levelLabel {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}

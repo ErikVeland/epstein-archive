@@ -67,6 +67,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const copyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const overlayScrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [showFullTranscriptOverlay, setShowFullTranscriptOverlay] = useState(false);
   const overlayRef = useRef<HTMLDivElement>(null);
   const lastInteractionRef = useRef<number>(0);
@@ -95,17 +97,6 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       .map(({ index }) => index);
   }, [transcript, normalizedTranscriptQuery]);
 
-  const [prevNormalizedQuery, setPrevNormalizedQuery] = useState(normalizedTranscriptQuery);
-  const [prevMatchesLength, setPrevMatchesLength] = useState(transcriptMatches.length);
-  if (
-    normalizedTranscriptQuery !== prevNormalizedQuery ||
-    transcriptMatches.length !== prevMatchesLength
-  ) {
-    setPrevNormalizedQuery(normalizedTranscriptQuery);
-    setPrevMatchesLength(transcriptMatches.length);
-    setCurrentMatchIndex(0);
-  }
-
   const [hasRevealed, setHasRevealed] = useState(!isSensitive);
 
   // Toggle transcript visibility and persist preference
@@ -133,18 +124,13 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       }
       navigator.clipboard.writeText(url.toString()).then(() => {
         setShowCopied(true);
-        setTimeout(() => setShowCopied(false), 2000);
+        if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+        copyTimeoutRef.current = setTimeout(() => setShowCopied(false), 2000);
       });
     } catch (e) {
       console.error('Failed to copy link', e);
     }
   };
-
-  const [prevIsSensitive, setPrevIsSensitive] = useState(isSensitive);
-  if (isSensitive !== prevIsSensitive) {
-    setPrevIsSensitive(isSensitive);
-    setHasRevealed(!isSensitive);
-  }
 
   useEffect(() => {
     if (videoRef.current) {
@@ -230,7 +216,14 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       scrollToSegment(segIndex);
       scrollOverlayToSegment(segIndex);
     },
-    [transcriptMatches, transcript, seek, scrollToSegment, scrollOverlayToSegment],
+    [
+      transcriptMatches,
+      transcript,
+      seek,
+      scrollToSegment,
+      scrollOverlayToSegment,
+      setCurrentMatchIndex,
+    ],
   );
 
   const goToNextTranscriptMatch = useCallback(
@@ -334,6 +327,20 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     }, 3000);
   };
 
+  useEffect(() => {
+    const video = videoRef.current;
+    return () => {
+      if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+      if (overlayScrollTimeoutRef.current) clearTimeout(overlayScrollTimeoutRef.current);
+      if (video) {
+        video.pause();
+        video.removeAttribute('src');
+        video.load();
+      }
+    };
+  }, []);
+
   return (
     <div className="flex flex-col h-full surface-glass shadow-[var(--glass-shadow)] overflow-hidden">
       {/* Header */}
@@ -364,7 +371,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
               onClick={() => {
                 setShowFullTranscriptOverlay(true);
                 lastInteractionRef.current = Date.now();
-                setTimeout(() => {
+                if (overlayScrollTimeoutRef.current) clearTimeout(overlayScrollTimeoutRef.current);
+                overlayScrollTimeoutRef.current = setTimeout(() => {
                   if (!overlayRef.current) return;
                   const idx = transcript.findIndex(
                     (seg) => currentTime >= seg.start && currentTime < seg.end,
@@ -627,6 +635,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                         value={transcriptSearch}
                         onChange={(e) => {
                           setTranscriptSearch(e.target.value);
+                          setCurrentMatchIndex(0);
                           lastInteractionRef.current = Date.now();
                         }}
                         placeholder="Search in transcript…"
@@ -766,6 +775,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                   value={transcriptSearch}
                   onChange={(e) => {
                     setTranscriptSearch(e.target.value);
+                    setCurrentMatchIndex(0);
                     lastInteractionRef.current = Date.now();
                   }}
                   placeholder="Search in transcript…"

@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { CloseButton } from '../common/CloseButton';
 import { useScrollLock } from '../../hooks/useScrollLock';
 
+import styles from './BoardOnboarding.module.css';
+
 interface BoardOnboardingProps {
   onComplete: () => void;
   onSkip: () => void;
@@ -29,10 +31,8 @@ export const BoardOnboarding: React.FC<BoardOnboardingProps> = ({ onComplete, on
       description:
         'Start on the left. create theories or questions you want to answer. These act as the "buckets" for your evidence.',
       icon: Target,
-      color: 'text-purple-400',
-      bg: 'bg-purple-500/10',
-      border: 'border-purple-500/20',
-      glow: 'shadow-purple-500/20',
+      containerClass: styles.iconContainerPurple,
+      iconClass: styles.iconPurple,
     },
     {
       id: 2,
@@ -40,10 +40,8 @@ export const BoardOnboarding: React.FC<BoardOnboardingProps> = ({ onComplete, on
       description:
         'Items you "Add to Investigation" from around the app appear in the middle Evidence Pool. Drag them onto Hypotheses to prove or disprove them.',
       icon: FileText,
-      color: 'text-[var(--accent)]',
-      bg: 'bg-[var(--accent)]/10',
-      border: 'border-[var(--accent)]/20',
-      glow: 'shadow-blue-500/20',
+      containerClass: styles.iconContainerAccent,
+      iconClass: styles.iconAccent,
     },
     {
       id: 3,
@@ -51,10 +49,8 @@ export const BoardOnboarding: React.FC<BoardOnboardingProps> = ({ onComplete, on
       description:
         'Finally, drag your proven points into the Case Narrative on the right. This organizes your findings into a coherent story ready for export.',
       icon: BookOpen,
-      color: 'text-amber-400',
-      bg: 'bg-amber-500/10',
-      border: 'border-amber-500/20',
-      glow: 'shadow-amber-500/20',
+      containerClass: styles.iconContainerAmber,
+      iconClass: styles.iconAmber,
     },
   ];
 
@@ -66,18 +62,20 @@ export const BoardOnboarding: React.FC<BoardOnboardingProps> = ({ onComplete, on
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-[var(--glass-bg)] backdrop-blur-md flex items-center justify-center z-50 p-4"
+      className={styles.overlay}
     >
       <motion.div
         initial={{ scale: 0.95, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         transition={{ type: 'spring', duration: 0.5, bounce: 0.3 }}
-        className="relative surface-glass shadow-[var(--glass-shadow)] w-full max-w-md overflow-hidden"
+        className={`relative surface-glass shadow-[var(--glass-shadow)] ${styles.modal}`}
       >
         {/* Progress Bar */}
-        <div className="absolute top-0 left-0 right-0 h-1 surface-glass">
+        <div
+          className={`absolute top-0 left-0 right-0 h-1 surface-glass ${styles.progressBarTrack}`}
+        >
           <motion.div
-            className="h-full bg-[var(--accent)]"
+            className={styles.progressBarFill}
             initial={{ width: '0%' }}
             animate={{ width: `${(step / totalSteps) * 100}%` }}
             transition={{ duration: 0.3 }}
@@ -85,8 +83,8 @@ export const BoardOnboarding: React.FC<BoardOnboardingProps> = ({ onComplete, on
         </div>
 
         {/* Content Area */}
-        <div className="p-8 pb-6 flex flex-col items-center text-center">
-          <div className="absolute top-4 right-4">
+        <div className={styles.content}>
+          <div className={styles.closeButtonWrapper}>
             <CloseButton
               onClick={onSkip}
               size="sm"
@@ -102,40 +100,31 @@ export const BoardOnboarding: React.FC<BoardOnboardingProps> = ({ onComplete, on
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.2 }}
-              className="flex flex-col items-center"
+              className={styles.stepContent}
             >
-              <div
-                className={`mb-6 p-4 rounded-[var(--radius-xl)] ${currentStep.bg} ${currentStep.border} border shadow-[var(--glass-shadow)] ${currentStep.glow} ring-1 ring-[var(--glass-border)]`}
-              >
-                <Icon className={`h-8 w-8 ${currentStep.color}`} />
+              <div className={`${styles.iconContainer} ${currentStep.containerClass}`}>
+                <Icon className={currentStep.iconClass} />
               </div>
 
-              <h2 className="text-xl font-bold text-[var(--text-primary)] mb-3">
-                {currentStep.title}
-              </h2>
-              <p className="text-[var(--text-muted)] text-sm leading-relaxed">
-                {currentStep.description}
-              </p>
+              <h2 className={styles.stepTitle}>{currentStep.title}</h2>
+              <p className={styles.stepDescription}>{currentStep.description}</p>
             </motion.div>
           </AnimatePresence>
         </div>
 
         {/* Footer */}
-        <div className="p-6 pt-2 flex flex-col gap-3">
-          <button
-            onClick={handleNext}
-            className="w-full py-3 bg-[var(--accent)] hover:bg-[var(--accent)] text-[var(--text-primary)] rounded-[var(--radius-lg)] font-medium shadow-[var(--glass-shadow)] shadow-indigo-900/20 flex items-center justify-center gap-2 transition-all"
-          >
+        <div className={styles.footer}>
+          <button onClick={handleNext} className={styles.nextButton}>
             <span>{step === totalSteps ? 'Start Investigating' : 'Next'}</span>
             {step === totalSteps ? (
-              <CheckCircle className="w-4 h-4" />
+              <CheckCircle className={styles.iconSm} />
             ) : (
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className={styles.iconSm} />
             )}
           </button>
 
-          <div className="text-center">
-            <span className="text-xs text-[var(--text-primary)]">
+          <div className={styles.stepCounter}>
+            <span className={styles.stepCounterText}>
               Step {step} of {totalSteps}
             </span>
           </div>
