@@ -1,6 +1,13 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Icon from '../common/Icon';
+import styles from './DocumentProvenance.module.css';
+
+// Design System
+import { Box } from '../../design-system/components/layout/Box';
+import { Flex } from '../../design-system/components/layout/Flex';
+import { Surface } from '../../design-system/components/surfaces/Surface';
+import { LqText } from '../../design-system/components/typography/Text';
 
 interface ProvenanceDocument {
   id?: string | number;
@@ -174,160 +181,203 @@ export const ProvenancePanel: React.FC<ProvenancePanelProps> = ({ document }) =>
   );
 
   return (
-    <div className="space-y-4 text-sm text-[var(--text-primary)]">
-      <section className="surface-quiet p-4">
-        <h3 className="text-xs uppercase tracking-wide text-[var(--text-muted)] mb-3">
+    <Box className={styles.panelRoot}>
+      <Surface variant="glass" className={styles.section}>
+        <LqText variant="xs" weight="black" className={styles.sectionTitle}>
           Durable provenance
-        </h3>
+        </LqText>
         {isLoadingLineage ? (
-          <div className="flex items-center gap-2 text-[var(--text-secondary)]">
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[var(--accent)]" />
-            Loading provenance ledger...
-          </div>
+          <Flex align="center" gap="sm">
+            <Box className={styles.spinnerSmall} />
+            <LqText variant="small" color="secondary">
+              Loading provenance ledger...
+            </LqText>
+          </Flex>
         ) : (
           <>
-            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <dt className="text-xs text-[var(--text-muted)] mb-1">Status</dt>
-                <dd className="font-medium capitalize">{durableStatus.replace(/_/g, ' ')}</dd>
-              </div>
-              <div>
-                <dt className="text-xs text-[var(--text-muted)] mb-1">Score</dt>
-                <dd>{durableScore === null ? 'N/A' : `${Math.round(durableScore)} / 100`}</dd>
-              </div>
-              <div>
-                <dt className="text-xs text-[var(--text-muted)] mb-1">Source system</dt>
-                <dd className="font-mono text-xs break-all">{durableSourceSystem}</dd>
-              </div>
-              <div>
-                <dt className="text-xs text-[var(--text-muted)] mb-1">Acquisition method</dt>
-                <dd className="font-mono text-xs break-all">{durableAcquisitionMethod}</dd>
-              </div>
-              <div>
-                <dt className="text-xs text-[var(--text-muted)] mb-1">Source release</dt>
-                <dd className="font-mono text-xs break-all">{durableSourceRelease}</dd>
-              </div>
-              <div>
-                <dt className="text-xs text-[var(--text-muted)] mb-1">Ledger events</dt>
-                <dd>{eventCount}</dd>
-              </div>
-              <div className="sm:col-span-2">
-                <dt className="text-xs text-[var(--text-muted)] mb-1">Source path</dt>
-                <dd className="font-mono text-xs break-all">{durableSourcePath}</dd>
-              </div>
-              <div className="sm:col-span-2">
-                <dt className="text-xs text-[var(--text-muted)] mb-1">Source URL</dt>
-                <dd className="font-mono text-xs break-all">{durableSourceUrl}</dd>
-              </div>
-            </dl>
+            <Box className={styles.sourceDetailList}>
+              <Box>
+                <LqText variant="xs" color="muted" className={styles.marginBottom1}>
+                  Status
+                </LqText>
+                <LqText variant="body" weight="medium" className={styles.textCapitalize}>
+                  {durableStatus.replace(/_/g, ' ')}
+                </LqText>
+              </Box>
+              <Box>
+                <LqText variant="xs" color="muted" className={styles.marginBottom1}>
+                  Score
+                </LqText>
+                <LqText variant="body">
+                  {durableScore === null ? 'N/A' : `${Math.round(durableScore)} / 100`}
+                </LqText>
+              </Box>
+              <Box>
+                <LqText variant="xs" color="muted" className={styles.marginBottom1}>
+                  Source system
+                </LqText>
+                <LqText className={styles.monoValue}>{durableSourceSystem}</LqText>
+              </Box>
+              <Box>
+                <LqText variant="xs" color="muted" className={styles.marginBottom1}>
+                  Acquisition method
+                </LqText>
+                <LqText className={styles.monoValue}>{durableAcquisitionMethod}</LqText>
+              </Box>
+              <Box>
+                <LqText variant="xs" color="muted" className={styles.marginBottom1}>
+                  Source release
+                </LqText>
+                <LqText className={styles.monoValue}>{durableSourceRelease}</LqText>
+              </Box>
+              <Box>
+                <LqText variant="xs" color="muted" className={styles.marginBottom1}>
+                  Ledger events
+                </LqText>
+                <LqText variant="body">{eventCount}</LqText>
+              </Box>
+              <Box className={styles.fullWidth}>
+                <LqText variant="xs" color="muted" className={styles.marginBottom1}>
+                  Source path
+                </LqText>
+                <LqText className={styles.monoValue}>{durableSourcePath}</LqText>
+              </Box>
+              <Box className={styles.fullWidth}>
+                <LqText variant="xs" color="muted" className={styles.marginBottom1}>
+                  Source URL
+                </LqText>
+                <LqText className={styles.monoValue}>{durableSourceUrl}</LqText>
+              </Box>
+            </Box>
 
             {recentEvents.length > 0 && (
-              <div className="mt-4">
-                <h4 className="text-xs uppercase tracking-wide text-[var(--text-muted)] mb-2">
+              <Box className={styles.recentEvents}>
+                <LqText variant="xs" weight="black" className={styles.sectionTitle}>
                   Recent events
-                </h4>
-                <div className="space-y-2">
+                </LqText>
+                <Box className={styles.stackSmall}>
                   {recentEvents.map((event) => (
-                    <div
-                      key={event.id}
-                      className="rounded-md border border-[var(--glass-border)] bg-[var(--glass-bg)]/50 px-3 py-2"
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="font-medium">{event.event_type.replace(/_/g, ' ')}</span>
-                        <span className="text-xs text-[var(--text-muted)]">
+                    <Box key={event.id} className={styles.eventCard}>
+                      <Box className={styles.eventHeader}>
+                        <LqText variant="body" weight="medium" className={styles.eventType}>
+                          {event.event_type.replace(/_/g, ' ')}
+                        </LqText>
+                        <LqText className={styles.eventTime}>
                           {formatTimestamp(event.occurred_at)}
-                        </span>
-                      </div>
-                      <div className="mt-1 text-xs text-[var(--text-secondary)]">
+                        </LqText>
+                      </Box>
+                      <LqText color="secondary" className={styles.eventTool}>
                         {event.tool_name || 'system'}
                         {event.tool_version ? ` • ${event.tool_version}` : ''}
-                      </div>
-                    </div>
+                      </LqText>
+                    </Box>
                   ))}
-                </div>
-              </div>
+                </Box>
+              </Box>
             )}
           </>
         )}
-      </section>
+      </Surface>
 
-      <section className="surface-quiet p-4">
-        <h3 className="text-xs uppercase tracking-wide text-[var(--text-muted)] mb-3">
+      <Surface variant="glass" className={styles.section}>
+        <LqText variant="xs" weight="black" className={styles.sectionTitle}>
           Pipeline provenance
-        </h3>
-        <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <dt className="text-xs text-[var(--text-muted)] mb-1">Ingest run id</dt>
-            <dd className="font-mono text-xs break-all">{ingestRunId}</dd>
-          </div>
-          <div>
-            <dt className="text-xs text-[var(--text-muted)] mb-1">Ruleset version</dt>
-            <dd className="font-mono text-xs break-all">{rulesetVersion}</dd>
-          </div>
-          <div>
-            <dt className="text-xs text-[var(--text-muted)] mb-1">Model id</dt>
-            <dd className="font-mono text-xs break-all">{modelId}</dd>
-          </div>
-          <div>
-            <dt className="text-xs text-[var(--text-muted)] mb-1">Recovery model</dt>
-            <dd className="font-mono text-xs break-all">{recoveryModel}</dd>
-          </div>
-          <div className="sm:col-span-2">
-            <dt className="text-xs text-[var(--text-muted)] mb-1">Processed timestamp</dt>
-            <dd className="font-mono text-xs break-all">{timestamp}</dd>
-          </div>
-        </dl>
-      </section>
+        </LqText>
+        <Box className={styles.sourceDetailList}>
+          <Box>
+            <LqText variant="xs" color="muted" className={styles.marginBottom1}>
+              Ingest run id
+            </LqText>
+            <LqText className={styles.monoValue}>{ingestRunId}</LqText>
+          </Box>
+          <Box>
+            <LqText variant="xs" color="muted" className={styles.marginBottom1}>
+              Ruleset version
+            </LqText>
+            <LqText className={styles.monoValue}>{rulesetVersion}</LqText>
+          </Box>
+          <Box>
+            <LqText variant="xs" color="muted" className={styles.marginBottom1}>
+              Model id
+            </LqText>
+            <LqText className={styles.monoValue}>{modelId}</LqText>
+          </Box>
+          <Box>
+            <LqText variant="xs" color="muted" className={styles.marginBottom1}>
+              Recovery model
+            </LqText>
+            <LqText className={styles.monoValue}>{recoveryModel}</LqText>
+          </Box>
+          <Box className={styles.fullWidth}>
+            <LqText variant="xs" color="muted" className={styles.marginBottom1}>
+              Processed timestamp
+            </LqText>
+            <LqText className={styles.monoValue}>{timestamp}</LqText>
+          </Box>
+        </Box>
+      </Surface>
 
-      <section className="surface-quiet p-4">
-        <h3 className="text-xs uppercase tracking-wide text-[var(--text-muted)] mb-3">
+      <Surface variant="glass" className={styles.section}>
+        <LqText variant="xs" weight="black" className={styles.sectionTitle}>
           Confidence breakdown
-        </h3>
-        <dl className="grid grid-cols-2 md:grid-cols-5 gap-3">
-          <div>
-            <dt className="text-xs text-[var(--text-muted)] mb-1">Coverage</dt>
-            <dd>{confidence.coverage}</dd>
-          </div>
-          <div>
-            <dt className="text-xs text-[var(--text-muted)] mb-1">Signal</dt>
-            <dd>{confidence.signal}</dd>
-          </div>
-          <div>
-            <dt className="text-xs text-[var(--text-muted)] mb-1">Corroboration</dt>
-            <dd>{confidence.corroboration}</dd>
-          </div>
-          <div>
-            <dt className="text-xs text-[var(--text-muted)] mb-1">Model certainty</dt>
-            <dd>{confidence.model}</dd>
-          </div>
-          <div>
-            <dt className="text-xs text-[var(--text-muted)] mb-1">Final</dt>
-            <dd>{confidence.final}</dd>
-          </div>
-        </dl>
-      </section>
+        </LqText>
+        <Box className={styles.confidenceGrid}>
+          <Box>
+            <LqText variant="xs" color="muted" className={styles.marginBottom1}>
+              Coverage
+            </LqText>
+            <LqText variant="body">{confidence.coverage}</LqText>
+          </Box>
+          <Box>
+            <LqText variant="xs" color="muted" className={styles.marginBottom1}>
+              Signal
+            </LqText>
+            <LqText variant="body">{confidence.signal}</LqText>
+          </Box>
+          <Box>
+            <LqText variant="xs" color="muted" className={styles.marginBottom1}>
+              Corroboration
+            </LqText>
+            <LqText variant="body">{confidence.corroboration}</LqText>
+          </Box>
+          <Box>
+            <LqText variant="xs" color="muted" className={styles.marginBottom1}>
+              Model certainty
+            </LqText>
+            <LqText variant="body">{confidence.model}</LqText>
+          </Box>
+          <Box>
+            <LqText variant="xs" color="muted" className={styles.marginBottom1}>
+              Final
+            </LqText>
+            <LqText variant="body">{confidence.final}</LqText>
+          </Box>
+        </Box>
+      </Surface>
 
-      <section className="surface-quiet p-4">
-        <h3 className="text-xs uppercase tracking-wide text-[var(--text-muted)] mb-2">
+      <Surface variant="glass" className={styles.section}>
+        <LqText variant="xs" weight="black" className={styles.sectionTitle}>
           Determinism
-        </h3>
-        <p className="text-[var(--text-secondary)] text-sm leading-relaxed">
+        </LqText>
+        <LqText variant="body" color="secondary" className={styles.leadingRelaxed}>
           This view reflects persisted extraction outputs for this document and ingest run.
           Re-running the same ruleset and model against the same source should reproduce materially
           equivalent results; differences indicate upstream source, ruleset, or model-version
           changes.
-        </p>
+        </LqText>
         {lineage?.processingInfo?.ocrEngine && (
-          <div className="mt-3 flex items-center gap-2 text-xs text-[var(--text-secondary)]">
+          <Box className={styles.determinismBlock}>
             <Icon name="FileSearch" size="xs" />
-            OCR engine {lineage.processingInfo.ocrEngine}
-            {typeof lineage.processingInfo.ocrQualityScore === 'number'
-              ? ` • quality ${Math.round(lineage.processingInfo.ocrQualityScore * 100)}%`
-              : ''}
-          </div>
+            <LqText variant="xs">
+              OCR engine {lineage.processingInfo.ocrEngine}
+              {typeof lineage.processingInfo.ocrQualityScore === 'number'
+                ? ` • quality ${Math.round(lineage.processingInfo.ocrQualityScore * 100)}%`
+                : ''}
+            </LqText>
+          </Box>
         )}
-      </section>
-    </div>
+      </Surface>
+    </Box>
   );
 };
 

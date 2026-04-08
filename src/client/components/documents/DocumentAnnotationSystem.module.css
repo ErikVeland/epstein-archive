@@ -1,0 +1,271 @@
+/* DocumentAnnotationSystem.module.css */
+
+.root {
+  position: relative;
+}
+
+.rootFull {
+  height: 100%;
+  display: flex;
+}
+
+.mainPanel {
+  width: 100%;
+}
+
+.mainPanelFull {
+  flex: 1;
+  padding-right: var(--space-4);
+}
+
+.headerRow {
+  margin-bottom: var(--space-3);
+}
+
+.contentBody {
+  color: var(--text-secondary);
+  line-height: var(--tracking-relaxed, 1.625);
+  white-space: pre-wrap;
+  user-select: text;
+  min-height: 300px;
+}
+
+.instruction {
+  margin-top: var(--space-3);
+}
+
+/* Annotation Types */
+.type_highlight { background-color: rgba(212, 168, 75, 0.2); } /* var(--accent) approx */
+.type_note { background-color: rgba(6, 182, 212, 0.2); } /* cyan approx */
+.type_evidence { background-color: rgba(52, 211, 153, 0.2); } /* emerald approx */
+.type_question { background-color: rgba(167, 139, 250, 0.2); } /* purple approx */
+.type_contradiction { background-color: rgba(239, 68, 68, 0.2); } /* rose approx */
+.type_tag { background-color: rgba(6, 182, 212, 0.2); }
+
+.searchMark {
+  background-color: rgba(6, 182, 212, 0.3);
+  color: #cffafe;
+  border-radius: var(--radius-sm);
+  padding: 0 0.125rem;
+}
+
+.annotationTrigger {
+  border-radius: var(--radius-sm);
+  padding: 0 0.125rem;
+  text-align: left;
+  vertical-align: baseline;
+  transition: all var(--duration-normal) var(--easing-liquid);
+  cursor: pointer;
+}
+
+.annotationTriggerActive {
+  box-shadow: 0 0 0 1px rgba(6, 182, 212, 0.8);
+}
+
+.annotationTriggerHover:hover {
+  box-shadow: 0 0 0 1px var(--glass-border);
+}
+
+/* Floating Menu */
+.floatingMenu {
+  position: absolute;
+  z-index: 50;
+  width: 340px;
+  padding: var(--space-3);
+  box-shadow: var(--glass-shadow);
+}
+
+.selectionPreview {
+  margin-bottom: var(--space-2);
+  display: block;
+}
+
+.typeGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.25rem;
+  margin-bottom: var(--space-2);
+}
+
+.typeOption {
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: var(--type-xs);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  justify-content: center;
+  border: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+  transition: all var(--duration-fast) var(--easing-swift);
+}
+
+.typeOption:hover {
+  background-color: var(--glass-bg-highlight);
+}
+
+.typeOptionActive {
+  border-color: rgba(212, 168, 75, 0.6);
+  background-color: rgba(212, 168, 75, 0.1);
+  color: #cffafe;
+}
+
+.inputField {
+  width: 100%;
+  margin-bottom: var(--space-2);
+  padding: 0.375rem 0.5rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  font-size: var(--type-xs);
+  color: var(--text-primary);
+  transition: border-color var(--duration-fast);
+}
+
+.inputField:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.formFooter {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.secondaryButton {
+  padding: 0.25rem 0.75rem;
+  font-size: var(--type-xs);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+  background: transparent;
+  transition: background-color 0.2s;
+}
+
+.secondaryButton:hover {
+  background-color: var(--glass-bg-highlight);
+}
+
+.primaryButton {
+  padding: 0.25rem 0.75rem;
+  font-size: var(--type-xs);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(212, 168, 75, 0.6);
+  background-color: rgba(212, 168, 75, 0.1);
+  color: #cffafe;
+  transition: all 0.2s;
+}
+
+.primaryButton:hover {
+  background-color: rgba(212, 168, 75, 0.2);
+}
+
+/* Sidebar */
+.sidebar {
+  width: 20rem; /* 80 equivalent */
+  background-color: rgba(15, 23, 42, 0.7);
+  border-left: 1px solid var(--glass-border);
+  padding: var(--space-4);
+  overflow-y: auto;
+}
+
+.sidebarHeader {
+  margin-bottom: var(--space-4);
+}
+
+.annotationList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.annotationCard {
+  width: 100%;
+  text-align: left;
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+  transition: all var(--duration-normal);
+}
+
+.annotationCardActive {
+  border-color: rgba(212, 168, 75, 0.6);
+}
+
+.annotationCardInactive {
+  opacity: 0.8;
+}
+
+.annotationCardInactive:hover {
+  opacity: 1;
+}
+
+.cardHeader {
+  margin-bottom: var(--space-1);
+}
+
+.cardSelectedText {
+  margin-bottom: var(--space-2);
+  font-style: italic;
+}
+
+.cardNote {
+  margin-bottom: var(--space-2);
+}
+
+.cardFooter {
+  margin-top: var(--space-2);
+  display: flex;
+  justify-content: space-between;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 3rem 0;
+}
+
+.emptyIcon {
+  width: var(--space-8);
+  height: var(--space-8);
+  margin: 0 auto var(--space-3);
+  opacity: 0.2;
+}
+
+.activeDetail {
+  margin-top: 1.5rem;
+  padding: var(--space-3);
+  background-color: rgba(15, 23, 42, 0.4);
+}
+
+.activeDetailLabel {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: var(--space-2);
+  display: block;
+}
+
+.activeDetailText {
+  font-weight: var(--weight-medium);
+  margin-bottom: var(--space-2);
+}
+
+.activeDetailNote {
+  white-space: pre-wrap;
+}
+
+.iconMicro {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.cardHeaderIcon {
+  width: 1rem;
+  height: 1rem;
+  color: var(--accent);
+}
+
+.errorSurface {
+  margin-top: var(--space-3);
+  border: 1px solid rgba(248, 113, 113, 0.3); /* rose-400 equivalent */
+  padding: 0.5rem 0.75rem;
+}

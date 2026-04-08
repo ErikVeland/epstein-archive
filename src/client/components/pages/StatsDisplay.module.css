@@ -24,7 +24,11 @@
 }
 
 .btnActive {
-  /* active state augments ring classes kept in TSX */
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+.btnHoverAccentBorder:hover {
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
 }
 
 .statHeader {
@@ -54,4 +58,21 @@
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.1em;
+}
+
+/* Stat value: primary text color + tabular nums */
+.statValue {
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Chip color variants */
+.chipFile {
+  color: var(--chip-accent);
+  border-color: var(--chip-accent-border);
+}
+
+.chipInfo {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 25%, transparent);
 }

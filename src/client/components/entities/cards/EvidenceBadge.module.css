@@ -8,6 +8,12 @@
 
 .flagIcon {
   display: inline-flex;
+  /* color is applied via the risk-* global semantic class passed alongside this class */
+}
+
+.flagSvg {
+  width: 0.75rem;
+  height: 0.75rem;
 }
 
 .ratingBadge {

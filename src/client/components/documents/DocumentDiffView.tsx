@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import styles from './DocumentDiffView.module.css';
 
 interface DocumentDiffViewProps {
   cleanText: string;
@@ -39,10 +40,10 @@ export const DocumentDiffView: React.FC<DocumentDiffViewProps> = ({ cleanText, o
   }, [rows, onlyChanged]);
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium text-[var(--text-primary)]">Diff View</h3>
-        <label className="inline-flex items-center gap-2 text-xs text-[var(--text-secondary)]">
+    <div className={styles.root}>
+      <div className={styles.header}>
+        <h3 className={styles.title}>Diff View</h3>
+        <label className={styles.toggleLabel}>
           <input
             type="checkbox"
             checked={onlyChanged}
@@ -52,32 +53,26 @@ export const DocumentDiffView: React.FC<DocumentDiffViewProps> = ({ cleanText, o
         </label>
       </div>
 
-      <div className="grid grid-cols-2 text-xs text-[var(--text-muted)] px-3">
+      <div className={styles.columnLabels}>
         <span>Clean Text</span>
         <span>Original OCR</span>
       </div>
 
-      <div className="surface-quiet divide-y divide-slate-800/80">
+      <div className={`surface-quiet ${styles.rows}`}>
         {visibleRows.length === 0 && (
-          <div className="p-4 text-sm text-[var(--text-muted)]">
-            No textual differences detected.
-          </div>
+          <div className={styles.emptyState}>No textual differences detected.</div>
         )}
         {visibleRows.map((row) => (
-          <div key={row.line} className="grid grid-cols-2 gap-0 text-sm">
+          <div key={row.line} className={styles.row}>
             <div
-              className={`p-3 border-r border-[var(--glass-border)] ${row.changed ? 'bg-emerald-900/10' : ''}`}
+              className={`${styles.cell} ${styles.cleanCell} ${row.changed ? styles.changedClean : ''}`}
             >
-              <div className="text-[10px] text-[var(--text-muted)] mb-1">L{row.line}</div>
-              <pre className="whitespace-pre-wrap font-sans text-[var(--text-primary)] leading-relaxed">
-                {row.clean || ' '}
-              </pre>
+              <div className={styles.lineNumber}>L{row.line}</div>
+              <pre className={styles.cleanText}>{row.clean || ' '}</pre>
             </div>
-            <div className={`p-3 ${row.changed ? 'bg-rose-900/10' : ''}`}>
-              <div className="text-[10px] text-[var(--text-muted)] mb-1">L{row.line}</div>
-              <pre className="whitespace-pre-wrap font-sans text-[var(--text-secondary)] leading-relaxed">
-                {row.original || ' '}
-              </pre>
+            <div className={`${styles.cell} ${row.changed ? styles.changedOriginal : ''}`}>
+              <div className={styles.lineNumber}>L{row.line}</div>
+              <pre className={styles.originalText}>{row.original || ' '}</pre>
             </div>
           </div>
         ))}

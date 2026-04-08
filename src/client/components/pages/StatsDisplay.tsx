@@ -50,20 +50,16 @@ export function StatsDisplay({
       <MetricStat label="Mentions" icon="MessageSquare" value={mentionsCount} />
       <button
         onClick={onResetFilters}
-        className={`surface-glass ${s.btn} hover:border-[var(--accent)]/40`}
+        className={`surface-glass ${s.btn} ${s.btnHoverAccentBorder}`}
         title="Reset all filters"
       >
         <div className={s.statHeader}>
           <span className={s.statLabel}>Documents</span>
-          <span
-            className={`chip ${s.chipIcon} text-[var(--chip-accent)] border-[var(--chip-accent-border)]`}
-          >
+          <span className={`chip ${s.chipIcon} ${s.chipFile}`}>
             <Icon name="FileText" size="xs" />
           </span>
         </div>
-        <div className="data-emphasis text-[var(--text-primary)] tabular-nums">
-          {documentsCount.toLocaleString()}
-        </div>
+        <div className={`data-emphasis ${s.statValue}`}>{documentsCount.toLocaleString()}</div>
         <div className={s.statFooter}>{stats.totalPeople.toLocaleString()} Subjects</div>
       </button>
     </div>
@@ -90,7 +86,7 @@ function RiskStat({
   return (
     <button
       onClick={onClick}
-      className={`surface-glass ${s.btn} ${active ? 'ring-2 ring-[var(--accent)]/45' : ''}`}
+      className={`surface-glass ${s.btn} ${active ? s.btnActive : ''}`}
       title={`Filter by ${label}`}
     >
       <div className={s.statHeader}>
@@ -99,9 +95,7 @@ function RiskStat({
           <Icon name={icon} size="xs" />
         </span>
       </div>
-      <div className="data-emphasis text-[var(--text-primary)] tabular-nums">
-        {value.toLocaleString()}
-      </div>
+      <div className={`data-emphasis ${s.statValue}`}>{value.toLocaleString()}</div>
       <div className={s.statFooter}>{label === 'High Risk' ? 'Priority One' : 'Monitor'}</div>
     </button>
   );
@@ -112,13 +106,11 @@ function MetricStat({ label, icon, value }: { label: string; icon: IconName; val
     <div className={`surface-glass ${s.btn}`}>
       <div className={s.statHeader}>
         <span className={s.statLabel}>{label}</span>
-        <span className={`chip ${s.chipIcon} text-[var(--accent)] border-[var(--accent)]/25`}>
+        <span className={`chip ${s.chipIcon} ${s.chipInfo}`}>
           <Icon name={icon} size="xs" />
         </span>
       </div>
-      <div className="data-emphasis text-[var(--text-primary)] tabular-nums">
-        {value.toLocaleString()}
-      </div>
+      <div className={`data-emphasis ${s.statValue}`}>{value.toLocaleString()}</div>
     </div>
   );
 }

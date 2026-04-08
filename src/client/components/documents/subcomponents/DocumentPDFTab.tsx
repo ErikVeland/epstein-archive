@@ -1,6 +1,12 @@
 import React from 'react';
 import { PDFVariantViewer } from '../PDFVariantViewer';
 import { DocumentAnnotationSystem } from '../DocumentAnnotationSystem';
+import styles from './DocumentPDFTab.module.css';
+
+// Design System
+import { LqText } from '../../../design-system/components/typography/Text';
+import { Surface } from '../../../design-system/components/surfaces/Surface';
+import { Box } from '../../../design-system/components/layout/Box';
 
 interface DocumentPDFTabProps {
   documentId: string;
@@ -33,58 +39,62 @@ export const DocumentPDFTab: React.FC<DocumentPDFTabProps> = ({
 }) => {
   if (isEmail) {
     return (
-      <div className="space-y-5">
-        <div className="surface-quiet p-5">
-          <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Email Viewer</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-            <div>
-              <div className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] mb-1">
+      <Box className={styles.container}>
+        <Surface variant="glass-highlight" className={styles.sectionPad}>
+          <LqText variant="xs" weight="semibold" className={styles.sectionTitle}>
+            Email Viewer
+          </LqText>
+          <Box className={styles.metaGrid}>
+            <Box>
+              <LqText variant="xs" weight="bold" className={styles.label}>
                 From
-              </div>
-              <div className="text-[var(--text-primary)] break-all">{metadata?.from || 'N/A'}</div>
-            </div>
-            <div>
-              <div className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] mb-1">
+              </LqText>
+              <LqText variant="body" className={`${styles.value} ${styles.breakAll}`}>
+                {metadata?.from || 'N/A'}
+              </LqText>
+            </Box>
+            <Box>
+              <LqText variant="xs" weight="bold" className={styles.label}>
                 To
-              </div>
-              <div className="text-[var(--text-primary)] break-all">{metadata?.to || 'N/A'}</div>
-            </div>
-            <div className="md:col-span-2">
-              <div className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] mb-1">
+              </LqText>
+              <LqText variant="body" className={`${styles.value} ${styles.breakAll}`}>
+                {metadata?.to || 'N/A'}
+              </LqText>
+            </Box>
+            <Box className={styles.colSpan2}>
+              <LqText variant="xs" weight="bold" className={styles.label}>
                 Subject
-              </div>
-              <div className="text-[var(--text-primary)]">
+              </LqText>
+              <LqText variant="body" className={styles.value}>
                 {metadata?.subject || title || 'No subject'}
-              </div>
-            </div>
-          </div>
-          <div className="mt-4">
-            <button
-              type="button"
-              onClick={openOriginalDocument}
-              className="control h-10 px-4 text-xs font-semibold"
-            >
+              </LqText>
+            </Box>
+          </Box>
+          <Box mt="md">
+            <button type="button" onClick={openOriginalDocument} className={styles.controlButton}>
               Open Original Email Source
             </button>
-          </div>
-        </div>
-      </div>
+          </Box>
+        </Surface>
+      </Box>
     );
   }
 
   return (
-    <div className="space-y-5">
-      <PDFVariantViewer documentId={documentId} className="h-[calc(100vh-360px)] min-h-[520px]" />
-      <section className="surface-quiet p-5">
-        <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Annotations</h3>
+    <Box className={styles.container}>
+      <PDFVariantViewer documentId={documentId} className={styles.viewer} />
+      <Surface variant="glass-highlight" className={styles.sectionPad}>
+        <LqText variant="xs" weight="semibold" className={styles.sectionTitle}>
+          Annotations
+        </LqText>
         <DocumentAnnotationSystem
           documentId={String(docId || documentId)}
           content={content}
           searchTerm={searchTerm}
           mode="inline"
         />
-      </section>
-    </div>
+      </Surface>
+    </Box>
   );
 };
 

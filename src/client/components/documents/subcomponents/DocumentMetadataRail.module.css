@@ -1,6 +1,7 @@
 /* DocumentMetadataRail.module.css */
 
 .railContainer {
+  composes: custom-scrollbar from global;
   height: 100%;
   overflow-y: auto;
   padding: var(--space-6) var(--space-6) var(--space-8) var(--space-6);
@@ -21,6 +22,10 @@
 .sectionActive {
   border-left-color: var(--accent);
   background-color: var(--glass-bg-strong);
+}
+
+.sectionCard {
+  padding: var(--space-6);
 }
 
 /* Section heading */
@@ -243,6 +248,21 @@
   margin-bottom: var(--space-3);
 }
 
+.deepLinkButton {
+  height: 2.5rem !important;
+  width: 100%;
+  background-color: color-mix(in srgb, var(--accent) 10%, transparent) !important;
+  border-color: color-mix(in srgb, var(--accent) 20%, transparent) !important;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.2em;
+}
+
+.deepLinkButton:hover {
+  background-color: color-mix(in srgb, var(--accent) 20%, transparent) !important;
+}
+
 /* Tag chips */
 .tagRow {
   display: flex;
@@ -267,6 +287,22 @@
 .addSection {
   padding-top: var(--space-6);
   border-top: 1px solid var(--glass-border);
+}
+
+.addToInvestigationButton {
+  width: 100%;
+  background-color: color-mix(in srgb, var(--accent-investigate) 10%, transparent) !important;
+  border-color: color-mix(in srgb, var(--accent-investigate) 30%, transparent) !important;
+  color: var(--accent-investigate);
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 11px;
+  font-weight: var(--weight-bold);
+  box-shadow: none !important;
+}
+
+.addToInvestigationButton:hover {
+  background-color: color-mix(in srgb, var(--accent-investigate) 20%, transparent) !important;
 }
 
 .emptyText {

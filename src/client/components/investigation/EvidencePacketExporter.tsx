@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Download, FileJson, FileArchive } from 'lucide-react';
+import styles from './EvidencePacketExporter.module.css';
 
 interface ExportMeta {
   investigationId: string;
@@ -21,6 +22,11 @@ export const EvidencePacketExporter: React.FC<EvidencePacketExporterProps> = ({
   const [selectedFormat, setSelectedFormat] = useState<'json' | 'zip'>('zip');
   const [isExporting, setIsExporting] = useState(false);
 
+  const getFormatButtonClassName = (format: 'json' | 'zip') =>
+    `${styles.formatButton} ${
+      selectedFormat === format ? styles.formatButtonActive : styles.formatButtonInactive
+    }`;
+
   const handleExport = async () => {
     setIsExporting(true);
     try {
@@ -35,66 +41,43 @@ export const EvidencePacketExporter: React.FC<EvidencePacketExporterProps> = ({
   };
 
   return (
-    <div className="bg-[var(--glass-bg)]/60 backdrop-blur-sm border border-[var(--glass-border)] rounded-[var(--radius-xl)] p-5 shadow-[var(--glass-shadow)]">
-      <h3 className="text-base font-semibold text-[var(--text-primary)] mb-3">
-        Export Evidence Packet
-      </h3>
+    <div className={styles.panel}>
+      <h3 className={styles.title}>Export Evidence Packet</h3>
 
-      <p className="text-sm text-[var(--text-secondary)] mb-5">
+      <p className={styles.description}>
         Export this investigation as a comprehensive evidence packet containing entities, documents,
         metadata, and Red Flag Index scores.
       </p>
 
-      <div className="space-y-4">
+      <div className={styles.content}>
         <div>
-          <label className="block text-sm font-medium text-[var(--text-primary)] mb-2">
-            Export Format
-          </label>
-          <div className="flex gap-3">
+          <label className={styles.label}>Export Format</label>
+          <div className={styles.formatButtons}>
             <button
               onClick={() => setSelectedFormat('json')}
-              className={`
-                flex-1 flex items-center justify-center p-3 rounded-[var(--radius-lg)] border-2 transition-all duration-200
-                ${
-                  selectedFormat === 'json'
-                    ? 'border-[var(--accent)] bg-[var(--accent)]/20 text-[var(--accent)]'
-                    : 'border-[var(--glass-border)] bg-[var(--glass-bg-highlight)]/50 text-[var(--text-secondary)] hover:border-[var(--glass-border)] hover:bg-[var(--glass-bg-highlight)]'
-                }
-              `}
+              className={getFormatButtonClassName('json')}
             >
-              <FileJson className="h-5 w-5 mr-2" />
-              <span className="font-medium">JSON</span>
+              <FileJson className={styles.formatIcon} />
+              <span className={styles.formatText}>JSON</span>
             </button>
 
             <button
               onClick={() => setSelectedFormat('zip')}
-              className={`
-                flex-1 flex items-center justify-center p-3 rounded-[var(--radius-lg)] border-2 transition-all duration-200
-                ${
-                  selectedFormat === 'zip'
-                    ? 'border-[var(--accent)] bg-[var(--accent)]/20 text-[var(--accent)]'
-                    : 'border-[var(--glass-border)] bg-[var(--glass-bg-highlight)]/50 text-[var(--text-secondary)] hover:border-[var(--glass-border)] hover:bg-[var(--glass-bg-highlight)]'
-                }
-              `}
+              className={getFormatButtonClassName('zip')}
             >
-              <FileArchive className="h-5 w-5 mr-2" />
-              <span className="font-medium">ZIP</span>
+              <FileArchive className={styles.formatIcon} />
+              <span className={styles.formatText}>ZIP</span>
             </button>
           </div>
         </div>
 
-        <div className="pt-4 border-t border-[var(--glass-border)]">
+        <div className={styles.footer}>
           <button
             onClick={handleExport}
             disabled={isExporting}
-            className={`
-              w-full flex items-center justify-center px-4 py-3 
-              bg-[var(--accent)] text-[var(--text-primary)] rounded-[var(--radius-lg)] font-medium
-              hover:bg-[var(--accent)] transition-colors shadow-[var(--glass-shadow)] shadow-blue-900/30
-              ${isExporting ? 'opacity-70 cursor-not-allowed' : ''}
-            `}
+            className={`${styles.exportButton} ${isExporting ? styles.exportButtonDisabled : ''}`}
           >
-            <Download className="h-5 w-5 mr-2" />
+            <Download className={styles.exportIcon} />
             {isExporting ? 'Exporting...' : `Export as ${selectedFormat.toUpperCase()}`}
           </button>
         </div>

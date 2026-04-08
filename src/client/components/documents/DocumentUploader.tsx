@@ -1,5 +1,12 @@
 import React, { useState, useRef } from 'react';
 import { Upload, AlertCircle, CheckCircle, FileText } from 'lucide-react';
+import styles from './DocumentUploader.module.css';
+
+// Design System
+import { Box } from '../../design-system/components/layout/Box';
+import { Flex } from '../../design-system/components/layout/Flex';
+import { LqText } from '../../design-system/components/typography/Text';
+
 import { DocumentProcessor } from '../../services/documentProcessor';
 
 interface DocumentUploaderProps {
@@ -100,94 +107,103 @@ export const DocumentUploader: React.FC<DocumentUploaderProps> = ({
   };
 
   return (
-    <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-[var(--radius-xl)] border border-[var(--glass-border)] p-6">
-      <h3 className="text-xl font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
-        <Upload className="w-5 h-5" />
-        Upload Real Documents
-      </h3>
+    <Box className={styles.root}>
+      <Flex align="center" gap="sm" className={styles.marginBottomMedium}>
+        <Upload size={20} className={styles.iconAccent} />
+        <LqText variant="h3" weight="bold">
+          Document Ingestion
+        </LqText>
+      </Flex>
 
       {!showUpload && (
-        <div className="bg-yellow-900/30 border border-yellow-700 rounded-[var(--radius-lg)] p-4 mb-4">
-          <p className="text-yellow-200 text-sm">
-            Document upload is restricted to administrators. Please contact an admin if you need to
-            upload documents.
-          </p>
-        </div>
+        <Box className={styles.warningBox}>
+          <LqText variant="xs" color="accent" weight="bold">
+            Ingestion restricted to administrators. Contact auth-svc if you need to upload.
+          </LqText>
+        </Box>
       )}
 
       {uploadStatus === 'idle' && showUpload && (
-        <div>
+        <Box>
           <div
-            className={`border-2 border-dashed rounded-[var(--radius-lg)] p-8 text-center transition-colors ${
-              isDragging
-                ? 'border-[var(--accent)] bg-blue-900 bg-opacity-20'
-                : 'border-[var(--glass-border)] hover:border-[var(--glass-border)]'
-            }`}
+            className={`${styles.uploadZone} ${isDragging ? styles.uploadZoneHover : ''}`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
           >
-            <FileText className="w-12 h-12 text-[var(--text-muted)] mx-auto mb-4" />
-            <p className="text-[var(--text-primary)] mb-2">Drag and drop text files here</p>
-            <p className="text-[var(--text-muted)] text-sm mb-4">or click to browse</p>
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="bg-[var(--accent)] hover:bg-blue-700 text-[var(--text-primary)] px-4 py-2 rounded-[var(--radius-lg)] transition-colors"
-            >
-              Choose Files
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              accept=".txt,.md"
-              onChange={handleFileSelect}
-              className="hidden"
-            />
+            <Box className={styles.uploadIconContainer}>
+              <FileText size={32} />
+            </Box>
+            <LqText variant="body" weight="bold" className={styles.uploadTitle}>
+              Drag and drop forensic text archives
+            </LqText>
+            <LqText variant="xs" color="muted" className={styles.uploadHint}>
+              Supported formats: .txt, .md. Files will be parsed and enriched via the intelligence
+              pipeline.
+            </LqText>
           </div>
-          <p className="text-[var(--text-muted)] text-sm mt-3">
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept=".txt,.md"
+            onChange={handleFileSelect}
+            className={styles.hidden}
+          />
+          <LqText variant="xs" color="muted" className={styles.marginTop2}>
             Supported formats: .txt, .md files. Upload actual Epstein documents to analyse them.
-          </p>
-        </div>
+          </LqText>
+        </Box>
       )}
 
       {uploadStatus === 'processing' && showUpload && (
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent)] mx-auto mb-4"></div>
-          <p className="text-[var(--text-primary)]">Processing documents...</p>
-          <p className="text-[var(--text-muted)] text-sm">
-            Analyzing content and extracting entities
-          </p>
-        </div>
+        <Box className={styles.statusContainer}>
+          <Box className={styles.spinner} />
+          <LqText variant="body" weight="bold" className={styles.animatePulse}>
+            Processing Documents...
+          </LqText>
+          <LqText
+            variant="xs"
+            color="muted"
+            className={`${styles.marginTop2} ${styles.textCenter}`}
+          >
+            Analyzing content and extracting entity signatures
+          </LqText>
+        </Box>
       )}
 
       {uploadStatus === 'success' && showUpload && (
-        <div className="text-center">
-          <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
-          <p className="text-[var(--text-primary)] text-lg font-semibold">Success!</p>
-          <p className="text-[var(--text-muted)]">Processed {processedCount} documents</p>
-          <button
-            onClick={resetUploader}
-            className="mt-4 bg-[var(--accent)] hover:bg-blue-700 text-[var(--text-primary)] px-4 py-2 rounded-[var(--radius-lg)] transition-colors"
-          >
+        <Box className={styles.statusContainer}>
+          <CheckCircle size={48} className={`text-[var(--accent-success)] ${styles.statusIcon}`} />
+          <LqText variant="h3" weight="bold">
+            Ingestion Successful
+          </LqText>
+          <LqText variant="body" color="secondary" className={styles.marginTop1}>
+            Processed {processedCount} documents
+          </LqText>
+          <button onClick={resetUploader} className={styles.uploadButton}>
             Upload More
           </button>
-        </div>
+        </Box>
       )}
 
       {uploadStatus === 'error' && showUpload && (
-        <div className="text-center">
-          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <p className="text-red-400 text-lg font-semibold">Error</p>
-          <p className="text-[var(--text-muted)]">{error}</p>
-          <button
-            onClick={resetUploader}
-            className="mt-4 bg-[var(--accent)] hover:bg-blue-700 text-[var(--text-primary)] px-4 py-2 rounded-[var(--radius-lg)] transition-colors"
-          >
+        <Box className={styles.statusContainer}>
+          <AlertCircle size={48} className={`text-[var(--accent-danger)] ${styles.statusIcon}`} />
+          <LqText variant="h3" weight="bold" color="accent">
+            Ingestion Error
+          </LqText>
+          <LqText variant="xs" color="muted" className={styles.marginTop1}>
+            {error}
+          </LqText>
+          <button onClick={resetUploader} className={styles.uploadButton}>
             Try Again
           </button>
-        </div>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 };
+
+export default DocumentUploader;

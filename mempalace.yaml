@@ -1,0 +1,30 @@
+wing: epstein_archive
+rooms:
+  - name: configuration
+    description: Files from config/
+  - name: testing
+    description: Files from tests/
+  - name: pipeline_checkpoints
+    description: Files from pipeline_checkpoints/
+  - name: uploads
+    description: Files from uploads/
+  - name: documentation
+    description: Files from docs/
+  - name: public
+    description: Files from public/
+  - name: scripts
+    description: Files from scripts/
+  - name: packages
+    description: Files from packages/
+  - name: data
+    description: Files from data/
+  - name: backups
+    description: Files from backups/
+  - name: src
+    description: Files from src/
+  - name: backend
+    description: Files from db/
+  - name: frontend
+    description: Files from client/
+  - name: general
+    description: Files that don't fit other rooms

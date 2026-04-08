@@ -1,5 +1,6 @@
 import React from 'react';
 import { X, FileText, ArrowRight, ShieldAlert } from 'lucide-react';
+import styles from './EvidenceDrawer.module.css';
 
 export interface Evidence {
   id: string;
@@ -37,106 +38,90 @@ export const EvidenceDrawer: React.FC<EvidenceDrawerProps> = ({
 }) => {
   if (!isOpen) return null;
 
+  const getDocumentIconClassName = (risk: number) => {
+    if (risk >= 4) return `${styles.documentIconWrap} ${styles.documentIconHighRisk}`;
+    if (risk >= 2) return `${styles.documentIconWrap} ${styles.documentIconMediumRisk}`;
+    return `${styles.documentIconWrap} ${styles.documentIconLowRisk}`;
+  };
+
+  const getRiskTextClassName = (risk: number) =>
+    `${styles.riskText} ${risk >= 4 ? styles.riskTextHigh : styles.riskTextMedium}`;
+
   return (
-    <div className="fixed inset-y-0 right-0 w-96 bg-[var(--glass-bg-strong)] border-l border-[var(--glass-border)] shadow-[var(--glass-shadow)] transform transition-transform duration-300 ease-in-out z-50 flex flex-col">
+    <div className={styles.drawer}>
       {/* Header */}
-      <div className="p-4 border-b border-[var(--glass-border)] flex justify-between items-start bg-[var(--glass-bg)]/50">
+      <div className={styles.header}>
         <div>
-          <h3 className="text-sm text-[var(--text-muted)] font-medium mb-1">Connection Evidence</h3>
-          <div className="flex items-center gap-2 text-[var(--text-primary)] font-bold">
-            <span className="truncate max-w-[120px]">{sourceLabel}</span>
-            <ArrowRight className="h-4 w-4 text-[var(--text-muted)]" />
-            <span className="truncate max-w-[120px]">{targetLabel}</span>
+          <h3 className={styles.headerLabel}>Connection Evidence</h3>
+          <div className={styles.headerTitle}>
+            <span className={styles.headerEntity}>{sourceLabel}</span>
+            <ArrowRight className={styles.headerArrow} />
+            <span className={styles.headerEntity}>{targetLabel}</span>
           </div>
           {relationshipType && (
-            <div className="mt-1 inline-block px-2 py-0.5 rounded text-[10px] bg-cyan-900/50 text-[var(--accent)] border border-cyan-800 capitalize">
-              {relationshipType.replace(/_/g, ' ')}
-            </div>
+            <div className={styles.relationshipBadge}>{relationshipType.replace(/_/g, ' ')}</div>
           )}
         </div>
-        <button
-          onClick={onClose}
-          className="p-1 hover:bg-[var(--glass-bg-highlight)] rounded text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
-        >
-          <X className="h-5 w-5" />
+        <button onClick={onClose} className={styles.closeButton}>
+          <X className={styles.closeIcon} />
         </button>
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className={styles.content}>
         {loading ? (
-          <div className="flex flex-col items-center justify-center h-40 space-y-3">
-            <div className="w-8 h-8 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin" />
-            <p className="text-xs text-[var(--text-muted)]">Locating intersection documents...</p>
+          <div className={styles.loadingState}>
+            <div className={styles.spinner} />
+            <p className={styles.loadingText}>Locating intersection documents...</p>
           </div>
         ) : documents.length === 0 ? (
-          <div className="text-center py-8 text-[var(--text-muted)]">
-            <ShieldAlert className="h-10 w-10 mx-auto mb-3 opacity-20" />
-            <p className="text-sm">No direct co-occurrence documents found.</p>
-            <p className="text-xs mt-1">
+          <div className={styles.emptyState}>
+            <ShieldAlert className={styles.emptyIcon} />
+            <p className={styles.emptyTitle}>No direct co-occurrence documents found.</p>
+            <p className={styles.emptyText}>
               Link may be inferred from metadata or secondary connections.
             </p>
           </div>
         ) : (
-          <div className="space-y-3">
-            <p className="text-xs text-[var(--text-muted)] uppercase tracking-wider font-bold">
-              Found {documents.length} Shared Documents
-            </p>
+          <div className={styles.documentList}>
+            <p className={styles.documentCount}>Found {documents.length} Shared Documents</p>
             {documents.map((doc) => (
               <button
                 key={doc.id}
                 type="button"
                 onClick={() => onDocumentClick?.(doc.documentId)}
-                className="w-full bg-[var(--glass-bg)]/40 hover:bg-[var(--glass-bg-highlight)]/60 border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-3 text-left transition-all group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                className={styles.documentButton}
                 aria-label={`Open shared document ${doc.title}`}
               >
-                <div className="flex items-start gap-3">
-                  <div
-                    className={`mt-1 p-1.5 rounded bg-[var(--glass-bg)] ${
-                      (doc.risk || 0) >= 4
-                        ? 'text-red-400'
-                        : (doc.risk || 0) >= 2
-                          ? 'text-amber-400'
-                          : 'text-[var(--text-muted)]'
-                    }`}
-                  >
-                    <FileText className="h-4 w-4" />
+                <div className={styles.documentRow}>
+                  <div className={getDocumentIconClassName(doc.risk || 0)}>
+                    <FileText className={styles.documentIcon} />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="text-sm font-medium text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors truncate">
-                      {doc.title}
-                    </h4>
+                  <div className={styles.documentBody}>
+                    <h4 className={styles.documentTitle}>{doc.title}</h4>
 
                     {/* Snippet Context */}
                     {doc.snippet && doc.snippet !== 'No snippet available' && (
-                      <div className="mt-2 text-xs text-[var(--text-muted)] bg-[var(--glass-bg-strong)]/50 p-2 rounded border-l-2 border-[var(--glass-border)] italic">
+                      <div className={styles.documentSnippet}>
                         "{doc.snippet.substring(0, 150)}
                         {doc.snippet.length > 150 ? '...' : ''}"
                       </div>
                     )}
 
-                    <div className="flex items-center gap-2 mt-2 text-[10px] text-[var(--text-muted)]">
-                      <span className="capitalize bg-[var(--glass-bg)] px-1.5 py-0.5 rounded">
+                    <div className={styles.metaRow}>
+                      <span className={styles.sourceTypeChip}>
                         {doc.sourceType.replace('_', ' ')}
                       </span>
                       {doc.date && <span>• {new Date(doc.date).toLocaleDateString()}</span>}
                       {doc.risk > 0 && (
-                        <span
-                          className={`flex items-center gap-1 ${doc.risk >= 4 ? 'text-red-400' : 'text-amber-500/80'}`}
-                        >
-                          • Risk {doc.risk}
-                        </span>
+                        <span className={getRiskTextClassName(doc.risk)}>• Risk {doc.risk}</span>
                       )}
 
                       {/* Provenance Lineage */}
                       {doc.extractionMethod && (
-                        <div className="flex items-center gap-1 ml-auto text-[var(--accent)]/60 font-mono scale-90">
+                        <div className={styles.traceLine}>
                           <span>Trace: {doc.extractionMethod}</span>
-                          {doc.model && (
-                            <span className="text-[8px] bg-[var(--glass-bg)] px-1 rounded">
-                              ({doc.model})
-                            </span>
-                          )}
+                          {doc.model && <span className={styles.modelTag}>({doc.model})</span>}
                         </div>
                       )}
                     </div>
@@ -149,8 +134,8 @@ export const EvidenceDrawer: React.FC<EvidenceDrawerProps> = ({
       </div>
 
       {/* Footer hint */}
-      <div className="p-3 bg-[var(--glass-bg-strong)] border-t border-[var(--glass-border)] text-[10px] text-center text-[var(--text-muted)]">
-        Press <span className="font-mono bg-[var(--glass-bg)] px-1 rounded">ESC</span> to close
+      <div className={styles.footerHint}>
+        Press <span className={styles.keyTag}>ESC</span> to close
       </div>
     </div>
   );

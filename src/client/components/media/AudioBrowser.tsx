@@ -13,6 +13,8 @@ import { usePaginatedMediaCollection } from '../../hooks/usePaginatedMediaCollec
 import { AlbumSidebar } from '../shared/AlbumSidebar';
 import { MobileAlbumDropdown } from '../shared/MobileAlbumDropdown';
 import { SEO } from '../common/SEO';
+import { cn } from '@client/utils/cn';
+import styles from './AudioBrowser.module.css';
 
 interface AudioItem {
   id: number;
@@ -279,8 +281,8 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
     // similar to the video browser grid. Use a smaller min card width
     // to keep cards reasonably compact while still accommodating
     // multi-line transcript previews.
-    const gap = 24; // gap-6
-    const padding = 48; // px-6 * 2
+    const gap = 24; // 1.5rem between columns
+    const padding = 48; // 1.5rem × 2 for horizontal container padding
     const minCardWidth = 260;
     const available = containerWidth - padding;
     const rawCols = Math.floor((available + gap) / (minCardWidth + gap));
@@ -301,7 +303,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
       const startIdx = index * columns;
       const rowItems = items.slice(startIdx, startIdx + columns);
 
-      // Manual padding offset: Shift top down by 24px (py-6 top)
+      // Manual padding offset: Shift top down by 24px to account for container top padding
       const adjustedStyle = {
         ...style,
         top: (typeof style.top === 'number' ? style.top : parseFloat(style.top as string)) + 24,
@@ -310,9 +312,9 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
       };
 
       return (
-        <div style={adjustedStyle} className="px-6">
+        <div style={adjustedStyle} className={styles.rowPadded}>
           <div
-            className="grid gap-6 pb-6"
+            className={styles.rowGrid}
             style={{
               gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
             }}
@@ -335,7 +337,11 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
               return (
                 <div
                   key={item.id}
-                  className={`surface-glass-card overflow-hidden transition-all group cursor-pointer flex flex-col min-h-[260px] ${isSelected ? 'border-[var(--accent)] ring-1 ring-[var(--accent)]' : 'hover:border-[var(--accent)]/30'}`}
+                  className={cn(
+                    'surface-glass-card',
+                    styles.card,
+                    isSelected ? styles.cardSelected : styles.cardHover,
+                  )}
                   onClick={(_e) => {
                     if (isBatchMode) {
                       toggleSelection(item.id);
@@ -344,8 +350,8 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                     }
                   }}
                 >
-                  <SensitiveContent isSensitive={false} className="relative shrink-0">
-                    <div className="absolute top-2 right-2 z-30 flex items-center gap-2">
+                  <SensitiveContent isSensitive={false} className={styles.cardMedia}>
+                    <div className={styles.cardTopRight}>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -364,12 +370,12 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                               .catch(() => {});
                           }
                         }}
-                        className="w-6 h-6 flex items-center justify-center rounded bg-amber-700 text-[var(--text-primary)] text-[11px] font-bold border border-amber-500"
+                        className={styles.addButton}
                       >
                         +
                       </button>
                       {pickerOpenId === item.id && (
-                        <div className="bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded p-2 shadow-[var(--glass-shadow)]">
+                        <div className={styles.pickerDropdown}>
                           <select
                             onChange={async (e) => {
                               const invId = parseInt(e.target.value);
@@ -393,7 +399,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                                 setAddingId(null);
                               }
                             }}
-                            className="text-xs bg-[var(--glass-bg)] text-[var(--text-primary)] border border-[var(--glass-border)] rounded px-2 py-1"
+                            className={styles.pickerSelect}
                           >
                             <option value="">Select investigation</option>
                             <option value={investigationId || ''}>
@@ -407,27 +413,23 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                           </select>
                         </div>
                       )}
-                      {addingId === item.id && (
-                        <div className="text-[10px] text-[var(--text-primary)] bg-[var(--glass-bg-strong)] px-2 py-0.5 rounded">
-                          …
-                        </div>
-                      )}
+                      {addingId === item.id && <div className={styles.addingIndicator}>…</div>}
                     </div>
                     {isBatchMode && (
-                      <div className="absolute top-2 left-2 z-20">
+                      <div className={styles.batchCheckbox}>
                         {isSelected ? (
-                          <CheckSquare className="text-[var(--accent)] fill-cyan-950" />
+                          <CheckSquare className={styles.batchCheckboxSelected} />
                         ) : (
-                          <Square className="text-[var(--text-primary)]/70" />
+                          <Square className={styles.batchCheckboxIdle} />
                         )}
                       </div>
                     )}
-                    <div className="aspect-video bg-[var(--glass-bg-strong)] relative flex items-center justify-center group-hover:bg-[var(--glass-bg)] transition-colors overflow-hidden">
+                    <div className={styles.cardImageArea}>
                       {displayImage ? (
                         <img
                           src={displayImage}
                           alt="Album Art"
-                          className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
+                          className={styles.cardImage}
                           onError={(e) => {
                             const t = e.currentTarget;
                             const tried = t.getAttribute('data-fb') === '1';
@@ -445,13 +447,13 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                           }}
                         />
                       ) : (
-                        <div className="w-16 h-16 rounded-full bg-[var(--glass-bg)] flex items-center justify-center border border-[var(--glass-border)] group-hover:scale-110 transition-transform shadow-[var(--glass-shadow)]">
-                          <Music size={32} className="text-[var(--accent)]" />
+                        <div className={styles.musicIcon}>
+                          <Music size={32} className={styles.musicGlyph} />
                         </div>
                       )}
 
                       {(item.metadata?.duration || 0) > 0 && (
-                        <div className="absolute bottom-2 right-2 px-2 py-1 bg-[var(--glass-bg-strong)] text-[var(--text-primary)] text-xs rounded-full font-mono flex items-center gap-1">
+                        <div className={styles.durationBadge}>
                           <Clock size={10} />
                           {Math.floor((item.metadata?.duration || 0) / 60)}:
                           {((item.metadata?.duration || 0) % 60).toString().padStart(2, '0')}
@@ -460,46 +462,35 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                     </div>
                   </SensitiveContent>
 
-                  <div className="p-4 flex-1 flex flex-col">
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <h3
-                        className="font-medium text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors line-clamp-2"
-                        title={item.title}
-                      >
+                  <div className={styles.cardBody}>
+                    <div className={styles.cardTitleRow}>
+                      <h3 className={styles.cardTitle} title={item.title}>
                         {item.title}
                       </h3>
                     </div>
 
-                    <div className="flex flex-wrap gap-1 mb-2">
+                    <div className={styles.tagList}>
                       {item.tags &&
                         item.tags.map((t) => (
-                          <span
-                            key={t.id}
-                            className="text-[10px] bg-[var(--glass-bg)] text-[var(--accent)] px-1.5 py-0.5 rounded-full"
-                          >
+                          <span key={t.id} className={styles.tagChip}>
                             {t.name}
                           </span>
                         ))}
                       {item.people &&
                         item.people.map((p) => (
-                          <span
-                            key={p.id}
-                            className="text-[10px] bg-[var(--glass-bg)] text-amber-400 px-1.5 py-0.5 rounded-full"
-                          >
+                          <span key={p.id} className={styles.personChip}>
                             {p.name}
                           </span>
                         ))}
                     </div>
 
-                    <div className="mt-auto space-y-2">
-                      <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
+                    <div className={styles.cardMeta}>
+                      <div className={styles.cardDate}>
                         <Calendar size={12} />
                         <span>{formatDate(item.createdAt)}</span>
                       </div>
                       {item.description && (
-                        <p className="text-xs text-[var(--text-secondary)] line-clamp-6">
-                          {item.description}
-                        </p>
+                        <p className={styles.cardDescription}>{item.description}</p>
                       )}
 
                       {/* When transcriptSearch is active, surface matching transcript
@@ -508,10 +499,8 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                       {transcriptSearch.trim() &&
                         Array.isArray(item.metadata?.transcript) &&
                         item.metadata.transcript.length > 0 && (
-                          <div className="mt-3 border-t border-[var(--glass-border)] pt-2 space-y-1 min-h-[60px]">
-                            <p className="text-[10px] uppercase tracking-wide text-[var(--text-muted)]">
-                              Transcript matches
-                            </p>
+                          <div className={styles.transcriptMatches}>
+                            <p className={styles.transcriptMatchLabel}>Transcript matches</p>
                             {item.metadata.transcript
                               .map((seg: TranscriptSegment, idx: number) => ({ seg, idx }))
                               .filter(({ seg }) =>
@@ -534,7 +523,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                                   preview = (
                                     <>
                                       {before}
-                                      <mark className="bg-amber-500/40 text-inherit px-0.5 rounded-sm">
+                                      <mark className={styles.transcriptMatchHighlight}>
                                         {matchText}
                                       </mark>
                                       {after}
@@ -545,7 +534,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                                   <button
                                     key={matchIdx}
                                     type="button"
-                                    className="w-full text-left text-[11px] text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--glass-bg)]/60 rounded px-2 py-1 flex items-start gap-2"
+                                    className={styles.transcriptMatchButton}
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       // Open this item at the segment start time.
@@ -559,13 +548,13 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                                       window.history.pushState({}, '', url.toString());
                                     }}
                                   >
-                                    <span className="font-mono text-[10px] text-[var(--text-muted)] min-w-[40px]">
+                                    <span className={styles.transcriptMatchTime}>
                                       {Math.floor((seg.start || 0) / 60)}:
                                       {Math.floor((seg.start || 0) % 60)
                                         .toString()
                                         .padStart(2, '0')}
                                     </span>
-                                    <span className="flex-1 line-clamp-2">{preview}</span>
+                                    <span className={styles.transcriptMatchText}>{preview}</span>
                                   </button>
                                 );
                               })}
@@ -625,9 +614,9 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
         title={currentAlbum ? `${currentAlbum.name} — Audio` : 'Audio Recordings'}
         description="Forensic audio evidence and transcripts from the Epstein files."
       />
-      <div className="surface-glass flex flex-col h-full min-h-[500px] overflow-hidden">
+      <div className={cn('surface-glass', styles.wrapper)}>
         {/* Header */}
-        <div className="app-header-glass px-6 py-4 flex flex-col gap-4 md:flex-row md:items-center md:justify-between shrink-0 z-10">
+        <div className={cn('app-header-glass', styles.header)}>
           <MobileAlbumDropdown
             albums={albums}
             selectedAlbum={selectedAlbum}
@@ -638,28 +627,24 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
             allLabel="All Audio"
             currentAlbumName={currentAlbum?.name}
           />
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-[var(--radius-lg)] bg-[var(--accent)]/10 border border-[var(--accent)]/20 flex items-center justify-center text-[var(--accent)]">
+          <div className={styles.titleGroup}>
+            <div className={styles.titleRow}>
+              <div className={styles.iconBox}>
                 <Music size={20} />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-[var(--text-primary)] tracking-tight">
-                  Audio Recordings
-                </h2>
-                <p className="text-[var(--text-muted)] text-xs font-medium">
-                  Forensic audio evidence and transcripts
-                </p>
+                <h2 className={styles.title}>Audio Recordings</h2>
+                <p className={styles.subtitle}>Forensic audio evidence and transcripts</p>
               </div>
             </div>
 
             {investigationSummary && (
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-amber-900/30 text-amber-300 border border-amber-500/30 text-[11px] font-bold uppercase tracking-wider">
+              <div className={styles.evidenceBadges}>
+                <div className={cn(styles.evidenceBadge, styles.evidenceBadgeAmber)}>
                   <Icon name="Database" size="xs" />
                   <span>Evidence {investigationSummary.totalEvidence}</span>
                 </div>
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-green-900/30 text-green-300 border border-green-500/30 text-[11px] font-bold uppercase tracking-wider">
+                <div className={cn(styles.evidenceBadge, styles.evidenceBadgeGreen)}>
                   <Icon name="Shield" size="xs" />
                   <span>
                     High{' '}
@@ -670,7 +655,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                     }
                   </span>
                 </div>
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-blue-900/30 text-[var(--accent)] border border-[var(--accent)]/30 text-[11px] font-bold uppercase tracking-wider">
+                <div className={cn(styles.evidenceBadge, styles.evidenceBadgeBlue)}>
                   <Icon name="Check" size="xs" />
                   <span>
                     Medium{' '}
@@ -681,7 +666,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                     }
                   </span>
                 </div>
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-[var(--glass-bg)]/60 text-[var(--text-muted)] border border-[var(--glass-border)] text-[11px] font-bold uppercase tracking-wider">
+                <div className={cn(styles.evidenceBadge, styles.evidenceBadgeMuted)}>
                   <Icon name="Info" size="xs" />
                   <span>
                     Low{' '}
@@ -696,14 +681,10 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
             )}
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className={styles.controls}>
             {/* Transcript search */}
-            <div className="relative w-64">
-              <Icon
-                name="Search"
-                size="sm"
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none"
-              />
+            <div className={styles.searchWrapper}>
+              <Icon name="Search" size="sm" className={styles.searchIcon} />
               <input
                 type="text"
                 value={transcriptSearch}
@@ -711,19 +692,18 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                 placeholder={
                   selectedAlbum ? 'Search transcripts in this album…' : 'Search transcripts…'
                 }
-                className="w-full bg-[var(--app-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/50 placeholder-[var(--text-muted)] transition-all border-hover-[var(--glass-border-highlight)]"
+                className={styles.searchInput}
               />
             </div>
 
-            <div className="h-8 w-[1px] bg-[var(--glass-border)] mx-1 hidden md:block"></div>
+            <div className={styles.divider}></div>
 
             <button
               onClick={() => setIsBatchMode(!isBatchMode)}
-              className={`px-4 py-2 rounded-[var(--radius-lg)] text-xs font-bold uppercase tracking-wider transition-all shadow-[var(--glass-shadow)] ${
-                isBatchMode
-                  ? 'bg-[var(--accent)] text-[var(--text-primary)] ring-2 ring-[var(--accent)]/30'
-                  : 'bg-[var(--glass-bg)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)]'
-              }`}
+              className={cn(
+                styles.batchButton,
+                isBatchMode ? styles.batchButtonActive : styles.batchButtonInactive,
+              )}
             >
               {isBatchMode ? 'Exit Batch' : 'Batch Edit'}
             </button>
@@ -742,7 +722,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                   void 0;
                 }
               }}
-              className="px-4 py-2 rounded-[var(--radius-lg)] text-xs font-bold uppercase tracking-wider bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-[var(--text-primary)] border border-amber-500/50 shadow-[var(--glass-shadow)] shadow-amber-900/20 active:scale-95 transition-all flex items-center gap-2"
+              className={styles.investigationButton}
             >
               <Icon name="ExternalLink" size="xs" />
               <span>Open Investigation</span>
@@ -750,7 +730,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
           </div>
         </div>
 
-        <div className="flex flex-1 overflow-hidden relative">
+        <div className={styles.body}>
           <AlbumSidebar
             albums={albums}
             selectedAlbum={selectedAlbum}
@@ -760,37 +740,32 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
           />
 
           {/* Main Content */}
-          <div className="flex-1 bg-transparent flex flex-col overflow-hidden">
+          <div className={styles.mainContent}>
             {loading && items.length === 0 ? (
-              <div className="absolute inset-0 flex items-center justify-center z-20 bg-[var(--app-bg)]/50 backdrop-blur-sm">
-                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[var(--accent)]"></div>
+              <div className={styles.loadingOverlay}>
+                <div className={styles.spinner}></div>
               </div>
             ) : null}
 
             {/* Sensitive Content Warning Banner */}
             {showSensitiveWarning && <SensitiveWarningBanner mediaType="audio" />}
 
-            {error && (
-              <div className="bg-red-900/20 border border-red-500/50 text-red-200 p-4 mx-6 mt-6 rounded-[var(--radius-lg)]">
-                {error}
-              </div>
-            )}
+            {error && <div className={styles.errorBanner}>{error}</div>}
 
-            <div ref={containerRef} className="flex-1 overflow-hidden">
+            <div ref={containerRef} className={styles.virtualContainer}>
               {items.length === 0 && !loading ? (
-                <div className="flex flex-col items-center justify-center h-full text-[var(--text-muted)]">
-                  <Icon name="Music" size="lg" className="mb-2 opacity-50" />
-                  <p>No audio recordings found</p>
+                <div className={styles.emptyState}>
+                  <Icon name="Music" size="lg" className={styles.emptyIcon} />
+                  <p className={styles.emptyText}>No audio recordings found</p>
                 </div>
               ) : containerWidth > 0 ? (
-                <div className="h-full flex flex-col">
+                <div className={styles.virtualListWrapper}>
                   <List
                     height={containerRef.current?.clientHeight || 600}
                     itemCount={rowCount}
                     itemSize={440}
                     width="100%"
                     overscanCount={2}
-                    className="scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent"
                     innerElementType={React.forwardRef<
                       HTMLDivElement,
                       React.HTMLAttributes<HTMLDivElement>
@@ -820,8 +795,8 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
                     {Row}
                   </List>
                   {loading && (
-                    <div className="py-4 flex items-center justify-center">
-                      <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-[var(--accent)]"></div>
+                    <div className={styles.loadingMore}>
+                      <div className={styles.spinnerSm}></div>
                     </div>
                   )}
                 </div>
@@ -831,14 +806,14 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
         </div>
 
         {/* Footer Status Bar */}
-        <div className="h-6 bg-[var(--glass-bg-strong)] border-t border-[var(--glass-border)] flex items-center justify-between px-3 text-[10px] text-[var(--text-muted)] select-none shrink-0">
+        <div className={styles.footer}>
           <div>{items.length} items</div>
           <div>{selectedAlbum ? currentAlbum?.name : 'All Audio'}</div>
         </div>
 
         {/* Batch Toolbar */}
         {isBatchMode && selectedItems.size > 0 && (
-          <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-4xl px-4">
+          <div className={styles.batchToolbarWrapper}>
             <BatchToolbar
               selectedCount={selectedItems.size}
               onRotate={() => {}}
@@ -855,8 +830,9 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
         {/* Audio Player Modal */}
         {selectedItem &&
           createPortal(
-            <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-[var(--app-backdrop)] p-4 md:p-8 animate-in fade-in duration-200">
-              <div className="w-full max-w-5xl h-[90vh] max-h-[90vh] shadow-[var(--glass-shadow)] ring-1 ring-[var(--glass-border-highlight)] rounded-[var(--radius-lg)] overflow-hidden">
+            <div className={styles.playerModal}>
+              <div className={styles.playerModalBackdrop}></div>
+              <div className={styles.playerModalInner}>
                 <AudioPlayer
                   key={selectedItem.id}
                   src={`/api/media/audio/${selectedItem.id}/stream`}

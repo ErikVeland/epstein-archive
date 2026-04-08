@@ -2,6 +2,8 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Newspaper, Search, ChevronDown, ChevronUp, Clock } from 'lucide-react';
 import ArticleViewerModal from './ArticleViewerModal';
 import { Article } from './ArticleCard';
+import { cn } from '@client/utils/cn';
+import styles from './ArticlesTab.module.css';
 
 interface PublicationStats {
   name: string;
@@ -150,49 +152,62 @@ export const ArticlesTab: React.FC = () => {
     }
   };
 
+  const mobilePublicationClassName = (isActive: boolean, isFirst = false) =>
+    cn(
+      styles.mobilePublicationOption,
+      isActive ? styles.mobilePublicationOptionActive : styles.mobilePublicationOptionInactive,
+      !isFirst && styles.mobilePublicationOptionBordered,
+    );
+
+  const sidebarPublicationClassName = (isActive: boolean) =>
+    cn(
+      styles.sidebarPublicationButton,
+      isActive ? styles.sidebarPublicationButtonActive : styles.sidebarPublicationButtonInactive,
+    );
+
   return (
-    <div className="flex flex-col h-full min-h-[500px] bg-[var(--glass-bg)] border border-[var(--glass-border)] shadow-[var(--glass-shadow)] overflow-hidden rounded-[var(--radius-lg)]">
+    <div className={styles.container}>
       {/* Header with controls */}
-      <div className="bg-[var(--glass-bg-strong)] border-b border-[var(--glass-border)] flex flex-col md:flex-row md:items-center justify-between px-3 py-2 md:px-4 md:h-14 shrink-0 z-10 gap-2">
+      <div className={styles.header}>
         {/* Mobile Publication Dropdown */}
-        <div className="md:hidden">
+        <div className={styles.mobileOnly}>
           <button
             onClick={() => setShowPublicationDropdown(!showPublicationDropdown)}
-            className="w-full flex items-center justify-between px-3 py-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] text-sm h-8"
+            className={styles.mobileDropdownButton}
           >
-            <span className="flex items-center gap-2">
-              <Newspaper className="w-4 h-4" />
+            <span className={styles.mobileDropdownLabel}>
+              <Newspaper className={styles.smallIcon} />
               {selectedPublication || 'All Publications'}
             </span>
             {showPublicationDropdown ? (
-              <ChevronUp className="w-4 h-4" />
+              <ChevronUp className={styles.smallIcon} />
             ) : (
-              <ChevronDown className="w-4 h-4" />
+              <ChevronDown className={styles.smallIcon} />
             )}
           </button>
           {showPublicationDropdown && (
-            <div className="absolute left-3 right-3 mt-1 dropdown-surface z-30 max-h-60 overflow-y-auto">
+            <div className={styles.mobileDropdownMenu}>
               <button
-                className={`w-full px-4 py-3 text-left text-sm flex items-center justify-between ${!selectedPublication ? 'bg-cyan-900/20 text-[var(--accent)]' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)]'}`}
+                className={mobilePublicationClassName(!selectedPublication, true)}
                 onClick={() => {
                   setSelectedPublication(null);
                   setShowPublicationDropdown(false);
                 }}
               >
                 <span>All Publications</span>
-                <span className="text-xs opacity-70">{articles.length}</span>
+                <span className={styles.optionCount}>{articles.length}</span>
               </button>
               {publications.map((pub) => (
                 <button
                   key={pub.name}
-                  className={`w-full px-4 py-3 text-left text-sm flex items-center justify-between border-t border-[var(--glass-border)] ${selectedPublication === pub.name ? 'bg-cyan-900/20 text-[var(--accent)]' : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)]'}`}
+                  className={mobilePublicationClassName(selectedPublication === pub.name)}
                   onClick={() => {
                     setSelectedPublication(pub.name);
                     setShowPublicationDropdown(false);
                   }}
                 >
-                  <span className="truncate">{pub.name}</span>
-                  <span className="text-xs opacity-70">{pub.count}</span>
+                  <span className={styles.truncate}>{pub.name}</span>
+                  <span className={styles.optionCount}>{pub.count}</span>
                 </button>
               ))}
             </div>
@@ -200,137 +215,127 @@ export const ArticlesTab: React.FC = () => {
         </div>
 
         {/* Search */}
-        <div className="w-full md:w-64 flex gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)] pointer-events-none" />
+        <div className={styles.searchShell}>
+          <div className={styles.searchField}>
+            <Search className={styles.searchIcon} />
             <input
               type="text"
               placeholder="Search articles..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] pl-9 pr-3 py-2 md:py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--accent)] placeholder-slate-500 transition-all h-8"
+              className={styles.searchInput}
             />
           </div>
         </div>
 
         {/* Desktop Sort Controls */}
-        <div className="hidden md:flex items-center gap-3">
-          <span className="text-xs text-[var(--text-muted)] font-medium">Sort by:</span>
+        <div className={styles.desktopControls}>
+          <span className={styles.sortLabel}>Sort by:</span>
           <select
             value={sortOrder}
             onChange={(e) => setSortOrder(e.target.value as 'date' | 'redFlag')}
-            className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded text-[var(--text-secondary)] text-xs px-2 py-1 focus:outline-none focus:border-[var(--accent)] h-8"
+            className={styles.sortSelect}
           >
             <option value="redFlag">Red Flag Rating</option>
             <option value="date">Date Published</option>
           </select>
 
-          <div className="text-xs text-[var(--text-muted)]">
+          <div className={styles.articleCount}>
             {filteredArticles.length} of {articles.length} articles
           </div>
         </div>
       </div>
 
-      <div className="flex flex-1 overflow-hidden relative">
+      <div className={styles.content}>
         {/* Publications sidebar - Hidden on mobile */}
-        <aside className="hidden md:flex w-60 bg-[var(--glass-bg-strong)] border-r border-[var(--glass-border)] flex-col shrink-0">
-          <h3 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wider px-4 py-3">
-            Publications
-          </h3>
-          <div className="flex-1 overflow-y-auto">
+        <aside className={styles.sidebar}>
+          <h3 className={styles.sidebarTitle}>Publications</h3>
+          <div className={styles.sidebarList}>
             <button
-              className={`w-full px-4 py-2 text-left text-sm flex items-center justify-between transition-colors ${!selectedPublication ? 'bg-cyan-900/20 text-[var(--accent)] border-l-2 border-[var(--accent)]' : 'text-[var(--text-muted)] hover:bg-[var(--glass-bg)] hover:text-[var(--text-primary)] border-l-2 border-transparent'}`}
+              className={sidebarPublicationClassName(!selectedPublication)}
               onClick={() => setSelectedPublication(null)}
             >
-              <span className="truncate">All Publications</span>
-              <span className="text-xs opacity-70 bg-[var(--glass-bg)] px-1.5 py-0.5 rounded-full">
-                {articles.length}
-              </span>
+              <span className={styles.truncate}>All Publications</span>
+              <span className={styles.sidebarCountPill}>{articles.length}</span>
             </button>
             {publications.map((pub) => (
               <button
                 key={pub.name}
-                className={`w-full px-4 py-2 text-left text-sm flex items-center justify-between transition-colors ${selectedPublication === pub.name ? 'bg-cyan-900/20 text-[var(--accent)] border-l-2 border-[var(--accent)]' : 'text-[var(--text-muted)] hover:bg-[var(--glass-bg)] hover:text-[var(--text-primary)] border-l-2 border-transparent'}`}
+                className={sidebarPublicationClassName(selectedPublication === pub.name)}
                 onClick={() => setSelectedPublication(pub.name)}
                 title={pub.name}
               >
-                <span className="truncate">{pub.name}</span>
-                <span className="text-xs opacity-70 bg-[var(--glass-bg)] px-1.5 py-0.5 rounded-full">
-                  {pub.count}
-                </span>
+                <span className={styles.truncate}>{pub.name}</span>
+                <span className={styles.sidebarCountPill}>{pub.count}</span>
               </button>
             ))}
           </div>
         </aside>
 
         {/* Main Content */}
-        <div className="flex-1 bg-[var(--glass-bg)] flex flex-col overflow-hidden relative">
+        <div className={styles.main}>
           {loading ? (
-            <div className="absolute inset-0 flex items-center justify-center z-20 bg-[var(--glass-bg)] backdrop-blur-sm">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[var(--accent)]"></div>
+            <div className={styles.loadingOverlay}>
+              <div className={styles.loadingSpinner} />
             </div>
           ) : null}
 
           {/* Articles Grid */}
-          <div className="flex-1 overflow-y-auto p-4 md:p-6">
+          <div className={styles.gridScroller}>
             {filteredArticles.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-[var(--text-muted)]">
-                <Newspaper className="w-12 h-12 mb-2 opacity-50" />
+              <div className={styles.emptyState}>
+                <Newspaper className={styles.emptyIcon} />
                 <p>No articles found</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              <div className={styles.articleGrid}>
                 {filteredArticles.map((article) => (
                   <a
                     key={article.id}
                     href={article.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="group block bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-xl)] overflow-hidden hover:border-[var(--accent)]/50 hover:shadow-[var(--glass-shadow)] hover:shadow-cyan-500/10 transition-all duration-300"
+                    className={styles.articleCard}
                   >
                     {/* Hero Image */}
-                    <div className="aspect-[16/9] relative overflow-hidden bg-gradient-to-br from-slate-800 to-slate-900">
+                    <div className={styles.hero}>
                       {article.imageUrl ? (
                         <img
                           src={article.imageUrl}
                           alt={article.title}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          className={styles.heroImage}
                           loading="lazy"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Newspaper className="w-16 h-16 text-[var(--text-primary)]" />
+                        <div className={styles.heroFallback}>
+                          <Newspaper className={styles.heroFallbackIcon} />
                         </div>
                       )}
                       {/* Gradient overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-60" />
+                      <div className={styles.heroOverlay} />
                       {/* Red flag badge */}
                       {article.redFlagRating > 0 && (
-                        <div className="absolute top-3 right-3 bg-red-500/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-bold text-[var(--text-primary)] flex items-center gap-1">
+                        <div className={styles.redFlagBadge}>
                           {'🚩'.repeat(Math.min(article.redFlagRating, 5))}
                         </div>
                       )}
                       {/* Publication badge */}
-                      <div className="absolute bottom-3 left-3">
-                        <span className="px-2.5 py-1 bg-[var(--glass-bg-strong)]/80 backdrop-blur-sm text-[var(--accent)] text-xs font-semibold rounded-full border border-[var(--accent)]/30">
-                          {article.publication}
-                        </span>
+                      <div className={styles.publicationBadgeWrap}>
+                        <span className={styles.publicationBadge}>{article.publication}</span>
                       </div>
                     </div>
 
                     {/* Card Content */}
-                    <div className="p-5">
-                      <h3 className="text-[var(--text-primary)] font-bold text-lg leading-tight group-hover:text-[var(--accent)] transition-colors mb-2 line-clamp-2">
-                        {article.title}
-                      </h3>
-                      <p className="text-[var(--text-muted)] text-sm line-clamp-2 mb-4">
+                    <div className={styles.cardContent}>
+                      <h3 className={styles.cardTitle}>{article.title}</h3>
+                      <p className={styles.cardSummary}>
                         {article.summary || 'No summary available.'}
                       </p>
 
                       {/* Author and meta */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-[var(--text-primary)] text-xs font-bold">
+                      <div className={styles.cardMeta}>
+                        <div className={styles.authorBlock}>
+                          <div className={styles.authorAvatar}>
                             {article.author
                               ?.split(' ')
                               .map((n) => n[0])
@@ -338,17 +343,15 @@ export const ArticlesTab: React.FC = () => {
                               .slice(0, 2) || '?'}
                           </div>
                           <div>
-                            <div className="text-sm text-[var(--text-primary)] font-medium">
-                              {article.author || 'Unknown'}
-                            </div>
-                            <div className="text-xs text-[var(--text-muted)]">
+                            <div className={styles.authorName}>{article.author || 'Unknown'}</div>
+                            <div className={styles.publishedDate}>
                               {formatDate(article.published_date)}
                             </div>
                           </div>
                         </div>
                         {article.reading_time && (
-                          <div className="flex items-center gap-1 text-xs text-[var(--text-muted)]">
-                            <Clock className="w-3 h-3" />
+                          <div className={styles.readingTime}>
+                            <Clock className={styles.readingTimeIcon} />
                             {article.reading_time}
                           </div>
                         )}
@@ -356,15 +359,12 @@ export const ArticlesTab: React.FC = () => {
 
                       {/* Tags */}
                       {article.tags && (
-                        <div className="flex flex-wrap gap-1.5 mt-4 pt-4 border-t border-[var(--glass-border)]">
+                        <div className={styles.tagList}>
                           {article.tags
                             .split(',')
                             .slice(0, 4)
                             .map((tag, i) => (
-                              <span
-                                key={i}
-                                className="text-xs px-2 py-0.5 bg-[var(--glass-bg)] text-[var(--text-muted)] rounded-full hover:bg-[var(--glass-bg-highlight)] transition-colors"
-                              >
+                              <span key={i} className={styles.tag}>
                                 {tag.trim()}
                               </span>
                             ))}
@@ -380,15 +380,11 @@ export const ArticlesTab: React.FC = () => {
       </div>
 
       {hasMore && (
-        <div className="p-4 flex justify-center border-t border-[var(--glass-border)] bg-[var(--glass-bg-strong)]/50">
-          <button
-            onClick={handleLoadMore}
-            disabled={loading}
-            className="px-6 py-2 bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] rounded-[var(--radius-lg)] transition-colors border border-[var(--glass-border)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-          >
+        <div className={styles.loadMoreFooter}>
+          <button onClick={handleLoadMore} disabled={loading} className={styles.loadMoreButton}>
             {loading ? (
               <>
-                <div className="w-4 h-4 border-2 border-[var(--glass-border)] border-t-transparent rounded-full animate-spin" />
+                <div className={styles.buttonSpinner} />
                 Loading...
               </>
             ) : (

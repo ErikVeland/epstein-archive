@@ -8,9 +8,9 @@ const StatsSkeleton: React.FC = () => {
         <div key={i} className={s.card}>
           {/* Shimmer effect */}
           <div className={s.shimmer}></div>
-          <div className={`${s.barIcon} animate-pulse`}></div>
-          <div className={`${s.barValue} animate-pulse`}></div>
-          <div className={`${s.barLabel} animate-pulse`}></div>
+          <div className={`${s.barIcon} ${s.pulse}`}></div>
+          <div className={`${s.barValue} ${s.pulse}`}></div>
+          <div className={`${s.barLabel} ${s.pulse}`}></div>
         </div>
       ))}
     </div>

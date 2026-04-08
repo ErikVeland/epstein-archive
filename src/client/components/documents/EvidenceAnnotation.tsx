@@ -22,6 +22,7 @@ import { Surface } from '../../design-system/components/surfaces/Surface';
 import { Box } from '../../design-system/components/layout/Box';
 import { CloseButton } from '../common/CloseButton';
 import { Tabs } from '../common/Tabs';
+import styles from './EvidenceAnnotation.module.css';
 
 export interface EvidenceAnnotation {
   id: string;
@@ -47,11 +48,11 @@ interface EvidenceAnnotationPanelProps {
 }
 
 const HIGHLIGHT_COLORS = [
-  { name: 'Yellow', value: '#fef08a', class: 'bg-yellow-200' },
-  { name: 'Green', value: '#bbf7d0', class: 'bg-green-200' },
-  { name: 'Blue', value: '#bfdbfe', class: 'bg-blue-200' },
-  { name: 'Pink', value: '#fbcfe8', class: 'bg-pink-200' },
-  { name: 'Orange', value: '#fed7aa', class: 'bg-orange-200' },
+  { name: 'Yellow', value: '#fef08a' },
+  { name: 'Green', value: '#bbf7d0' },
+  { name: 'Blue', value: '#bfdbfe' },
+  { name: 'Pink', value: '#fbcfe8' },
+  { name: 'Orange', value: '#fed7aa' },
 ];
 
 const CLASSIFICATION_OPTIONS = [
@@ -318,39 +319,32 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
 
   if (loading) {
     return (
-      <Box className="fixed inset-0 backdrop-blur-md z-50 flex items-center justify-center bg-black/40">
-        <Surface variant="glass-strong" className="p-8 flex flex-col items-center gap-4">
+      <Box className={styles.loadingOverlay}>
+        <Surface variant="glass-strong" className={styles.loadingCard}>
           <LqText variant="h4" weight="bold">
             Loading annotations
           </LqText>
-          <Box className="w-8 h-8 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin" />
+          <Box className={styles.spinner} />
         </Surface>
       </Box>
     );
   }
 
   return (
-    <Box
-      className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4 bg-black/40"
-      onClick={onClose}
-    >
-      <Surface
-        variant="glass-strong"
-        className="w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden pointer-events-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <Box className={styles.overlay} onClick={onClose}>
+      <Surface variant="glass-strong" className={styles.modal} onClick={(e) => e.stopPropagation()}>
         {/* Header */}
-        <Box className="border-b border-[var(--glass-border)] p-6">
-          <Flex align="start" justify="between" gap="md" className="mb-4">
-            <Box className="flex-1 min-w-0">
-              <LqText variant="h3" weight="semibold" className="truncate">
+        <Box className={styles.header}>
+          <Flex align="start" justify="between" gap="md" className={styles.headerMain}>
+            <Box className={styles.headerTitleArea}>
+              <LqText variant="h3" weight="semibold" className={styles.truncate}>
                 {evidenceTitle}
               </LqText>
-              <LqText variant="small" color="muted" className="mt-1">
+              <LqText variant="small" color="muted" className={styles.headerSubtitle}>
                 Annotate and classify this evidence
               </LqText>
               {evidenceDescription && (
-                <LqText variant="xs" color="muted" className="mt-2 line-clamp-2">
+                <LqText variant="xs" color="muted" className={styles.headerDescription}>
                   {evidenceDescription}
                 </LqText>
               )}
@@ -359,7 +353,7 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
               onClick={onClose}
               size="md"
               label="Close evidence annotation"
-              className="bg-transparent hover:bg-[var(--glass-bg-highlight)] border-[var(--glass-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)] shrink-0"
+              className={styles.closeButton}
             />
           </Flex>
 
@@ -369,25 +363,25 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
               {
                 key: 'notes',
                 label: 'Notes',
-                icon: <MessageSquare className="w-4 h-4" />,
+                icon: <MessageSquare className={styles.iconTiny} />,
                 count: noteAnnotations.length,
               },
               {
                 key: 'highlights',
                 label: 'Highlights',
-                icon: <Highlighter className="w-4 h-4" />,
+                icon: <Highlighter className={styles.iconTiny} />,
                 count: highlightAnnotations.length,
               },
               {
                 key: 'tags',
                 label: 'Tags',
-                icon: <Tag className="w-4 h-4" />,
+                icon: <Tag className={styles.iconTiny} />,
                 count: selectedTags.length,
               },
               {
                 key: 'classification',
                 label: 'Classification',
-                icon: <FolderOpen className="w-4 h-4" />,
+                icon: <FolderOpen className={styles.iconTiny} />,
                 count: classificationAnnotation ? 1 : 0,
               },
             ]}
@@ -402,115 +396,96 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                 setActiveTab(key);
               }
             }}
-            className="!bg-transparent !border-none !px-0"
+            className={styles.tabsOverride}
           />
         </Box>
 
         {/* Content */}
-        <Box className="flex-1 overflow-y-auto p-6 scrollbar-premium">
+        <Box className={styles.content}>
           {/* Notes Tab */}
           {activeTab === 'notes' && (
-            <Box className="space-y-4">
+            <Flex direction="column" gap="md">
               {/* Add Note Form */}
-              <Surface
-                variant="glass-highlight"
-                className="p-4 border border-[var(--glass-border)]"
-              >
-                <LqText
-                  variant="xs"
-                  weight="medium"
-                  color="secondary"
-                  className="mb-2 block uppercase tracking-wider"
-                >
+              <Surface variant="glass-highlight" className={styles.formSection}>
+                <LqText variant="xs" weight="medium" color="secondary" className={styles.formLabel}>
                   Add a Note
                 </LqText>
                 <textarea
                   value={newNote}
                   onChange={(e) => setNewNote(e.target.value)}
                   placeholder="Write your observations, analysis, or comments..."
-                  className="w-full px-3 py-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-[var(--accent)] resize-none"
+                  className={styles.textarea}
                   rows={3}
                 />
-                <Flex justify="end" className="mt-3">
+                <Flex justify="end" className={styles.formActions}>
                   <button
                     onClick={handleAddNote}
                     disabled={!newNote.trim() || saving}
-                    className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] text-black font-bold uppercase tracking-wider text-[10px] rounded-[var(--radius-lg)] hover:bg-[var(--accent)]/90 disabled:opacity-50 transition-colors"
+                    className={styles.addButton}
                   >
-                    <Plus className="w-3 h-3" />
+                    <Plus className={styles.iconMicro} />
                     Add Note
                   </button>
                 </Flex>
               </Surface>
 
               {/* Notes List */}
-              <Box className="space-y-3">
+              <Flex direction="column" gap="sm">
                 {noteAnnotations.length === 0 ? (
-                  <LqText color="muted" align="center" className="py-8 block">
+                  <LqText color="muted" align="center" className={styles.emptyState}>
                     No notes yet. Add your first note above.
                   </LqText>
                 ) : (
                   noteAnnotations.map((note) => (
-                    <Surface
-                      key={note.id}
-                      variant="glass-highlight"
-                      className="p-4 border border-[var(--glass-border)]"
-                    >
+                    <Surface key={note.id} variant="glass-highlight" className={styles.listItem}>
                       {editingNote === note.id ? (
                         <Box>
                           <textarea
                             value={editNoteContent}
                             onChange={(e) => setEditNoteContent(e.target.value)}
-                            className="w-full px-3 py-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)] resize-none"
+                            className={styles.textarea}
                             rows={3}
                           />
-                          <Flex justify="end" gap="sm" className="mt-2">
+                          <Box className={styles.editActions}>
                             <button
                               onClick={() => setEditingNote(null)}
-                              className="px-3 py-1.5 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+                              className={styles.cancelTextButton}
                             >
                               Cancel
                             </button>
-                            <button
-                              onClick={handleUpdateNoteEdit}
-                              className="flex items-center gap-1 px-3 py-1.5 text-xs bg-[var(--accent)] text-black font-bold rounded transition-colors"
-                            >
-                              <Save className="w-3 h-3" />
+                            <button onClick={handleUpdateNoteEdit} className={styles.saveButton}>
+                              <Save className={styles.iconMicro} />
                               Save
                             </button>
-                          </Flex>
+                          </Box>
                         </Box>
                       ) : (
                         <>
-                          <LqText variant="body" color="primary" className="whitespace-pre-wrap">
+                          <LqText variant="body" color="primary" className={styles.noteContent}>
                             {note.content}
                           </LqText>
-                          <Flex
-                            align="center"
-                            justify="between"
-                            className="mt-3 pt-3 border-t border-[var(--glass-border)]"
-                          >
+                          <Flex align="center" justify="between" className={styles.listItemFooter}>
                             <LqText variant="xs" color="muted">
-                              <Clock className="w-3 h-3 inline mr-1 opacity-60" />
+                              <Clock className={styles.timestampIcon} />
                               {new Date(note.createdAt).toLocaleString()}
                             </LqText>
-                            <Flex gap="xs">
+                            <Flex gap="xs" className={styles.itemActions}>
                               <button
                                 onClick={() => {
                                   setEditingNote(note.id);
                                   setEditNoteContent(note.content);
                                 }}
-                                className="p-1.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)] rounded transition-colors"
+                                className={styles.actionIcon}
                                 title="Edit"
                               >
-                                <Edit3 className="w-4 h-4" />
+                                <Edit3 className={styles.iconTiny} />
                               </button>
                               <button
                                 onClick={() => deleteAnnotation(note.id)}
-                                className="p-1.5 text-[var(--text-muted)] hover:text-rose-400 hover:bg-[var(--glass-bg-highlight)] rounded transition-colors"
+                                className={`${styles.actionIcon} ${styles.deleteIcon}`}
                                 title="Delete"
                               >
-                                <Trash2 className="w-4 h-4" />
+                                <Trash2 className={styles.iconTiny} />
                               </button>
                             </Flex>
                           </Flex>
@@ -519,35 +494,27 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                     </Surface>
                   ))
                 )}
-              </Box>
-            </Box>
+              </Flex>
+            </Flex>
           )}
 
           {/* Highlights Tab */}
           {activeTab === 'highlights' && (
-            <Box className="space-y-4">
+            <Flex direction="column" gap="md">
               {/* Add Highlight Form */}
-              <Surface
-                variant="glass-highlight"
-                className="p-4 border border-[var(--glass-border)]"
-              >
-                <LqText
-                  variant="xs"
-                  weight="medium"
-                  color="secondary"
-                  className="mb-2 block uppercase tracking-wider"
-                >
+              <Surface variant="glass-highlight" className={styles.formSection}>
+                <LqText variant="xs" weight="medium" color="secondary" className={styles.formLabel}>
                   Add a Highlight
                 </LqText>
                 <textarea
                   value={newHighlight.text}
                   onChange={(e) => setNewHighlight({ ...newHighlight, text: e.target.value })}
                   placeholder="Paste or type the text you want to highlight..."
-                  className="w-full px-3 py-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-[var(--accent)] resize-none"
+                  className={styles.textarea}
                   rows={2}
                 />
-                <Flex align="center" justify="between" className="mt-4">
-                  <Flex align="center" gap="sm">
+                <Flex align="center" justify="between" className={styles.formActions}>
+                  <Flex align="center" gap="sm" className={styles.colorPicker}>
                     <LqText variant="xs" color="muted">
                       Color:
                     </LqText>
@@ -555,11 +522,12 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                       <button
                         key={color.value}
                         onClick={() => setNewHighlight({ ...newHighlight, color: color.value })}
-                        className={`w-6 h-6 rounded border border-white/10 transition-transform hover:scale-110 ${color.class} ${
+                        className={
                           newHighlight.color === color.value
-                            ? 'ring-2 ring-[var(--accent)] ring-offset-2 ring-offset-black/50'
-                            : ''
-                        }`}
+                            ? styles.colorSwatchSelected
+                            : styles.colorSwatch
+                        }
+                        style={{ backgroundColor: color.value }}
                         title={color.name}
                       />
                     ))}
@@ -567,18 +535,18 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                   <button
                     onClick={handleAddHighlight}
                     disabled={!newHighlight.text.trim() || saving}
-                    className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] text-black font-bold uppercase tracking-wider text-[10px] rounded-[var(--radius-lg)] hover:bg-[var(--accent)]/90 disabled:opacity-50 transition-colors"
+                    className={styles.addButton}
                   >
-                    <Highlighter className="w-3 h-3" />
+                    <Highlighter className={styles.iconMicro} />
                     Add Highlight
                   </button>
                 </Flex>
               </Surface>
 
               {/* Highlights List */}
-              <Box className="space-y-3">
+              <Flex direction="column" gap="sm">
                 {highlightAnnotations.length === 0 ? (
-                  <LqText color="muted" align="center" className="py-8 block">
+                  <LqText color="muted" align="center" className={styles.emptyState}>
                     No highlights yet. Add key passages above.
                   </LqText>
                 ) : (
@@ -586,80 +554,78 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                     <Surface
                       key={highlight.id}
                       variant="glass-highlight"
-                      className="p-4 border border-[var(--glass-border)]"
+                      className={styles.listItem}
                     >
                       <Flex align="start" gap="md">
                         <Box
-                          className="w-4 h-4 rounded shrink-0 mt-1 border border-white/10"
+                          className={styles.colorSwatch}
                           style={{ backgroundColor: highlight.color }}
                         />
-                        <Box className="flex-1">
+                        <Box className={styles.highlightContent}>
                           <LqText
                             variant="body"
-                            className="px-2 py-1 rounded inline-block"
+                            className={styles.highlightText}
                             style={{ backgroundColor: highlight.color + '30' }}
                           >
                             {highlight.content}
                           </LqText>
-                          <Flex align="center" justify="between" className="mt-3">
+                          <Box className={styles.listItemFooter}>
                             <LqText variant="xs" color="muted">
                               {new Date(highlight.createdAt).toLocaleString()}
                             </LqText>
                             <button
                               onClick={() => deleteAnnotation(highlight.id)}
-                              className="p-1.5 text-[var(--text-muted)] hover:text-rose-400 hover:bg-[var(--glass-bg-highlight)] rounded transition-colors"
+                              className={`${styles.actionIcon} ${styles.deleteIcon}`}
                               title="Delete"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className={styles.iconTiny} />
                             </button>
-                          </Flex>
+                          </Box>
                         </Box>
                       </Flex>
                     </Surface>
                   ))
                 )}
-              </Box>
-            </Box>
+              </Flex>
+            </Flex>
           )}
 
           {/* Tags Tab */}
           {activeTab === 'tags' && (
-            <Box className="space-y-8">
+            <Flex direction="column" gap="xl">
               {/* Common Tags */}
-              <Box>
+              <Box className={styles.tagGroup}>
                 <LqText
                   variant="xs"
                   weight="bold"
                   color="secondary"
-                  className="mb-4 block uppercase tracking-widest"
+                  className={styles.tagGroupHeader}
                 >
                   Common Tags
                 </LqText>
-                <Flex wrap="wrap" gap="sm">
+                <Box className={styles.tagList}>
                   {COMMON_TAGS.map((tag) => (
                     <button
                       key={tag}
                       onClick={() => handleToggleTag(tag)}
-                      className={`px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide transition-all border ${
-                        selectedTags.includes(tag)
-                          ? 'bg-[var(--accent)]/20 border-[var(--accent)]/60 text-[var(--accent)]'
-                          : 'bg-[var(--glass-bg-highlight)] border-[var(--glass-border)] text-[var(--text-secondary)] hover:border-[var(--accent)]/40'
-                      }`}
+                      className={
+                        selectedTags.includes(tag) ? styles.tagButtonActive : styles.tagButton
+                      }
                     >
-                      {selectedTags.includes(tag) && <span className="mr-1.5 opacity-80">✓</span>}
+                      {selectedTags.includes(tag) && <span className={styles.tagCheck}>✓</span>}
                       {tag}
                     </button>
                   ))}
-                </Flex>
+                </Box>
               </Box>
 
               {/* Custom Tag */}
-              <Box>
+              <Box className={styles.customTagSection}>
                 <LqText
                   variant="xs"
                   weight="bold"
                   color="secondary"
-                  className="mb-3 block uppercase tracking-widest"
+                  className={styles.tagGroupHeader}
                 >
                   Add Custom Tag
                 </LqText>
@@ -670,12 +636,12 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                     onChange={(e) => setCustomTag(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleAddCustomTag()}
                     placeholder="Enter custom tag..."
-                    className="flex-1 px-4 py-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-sm text-[var(--text-primary)] placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+                    className={styles.customTagInput}
                   />
                   <button
                     onClick={handleAddCustomTag}
                     disabled={!customTag.trim() || saving}
-                    className="px-6 py-2 bg-[var(--accent)] text-black font-bold uppercase tracking-wider text-[10px] rounded-[var(--radius-lg)] hover:bg-[var(--accent)]/90 disabled:opacity-50 transition-colors"
+                    className={styles.addButton}
                   >
                     Add
                   </button>
@@ -689,54 +655,50 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                     variant="xs"
                     weight="bold"
                     color="secondary"
-                    className="mb-4 block uppercase tracking-widest"
+                    className={styles.tagGroupHeader}
                   >
                     Applied Tags ({selectedTags.length})
                   </LqText>
-                  <Flex wrap="wrap" gap="sm">
+                  <Box className={styles.tagList}>
                     {selectedTags.map((tag) => (
-                      <Surface
-                        key={tag}
-                        variant="glass-highlight"
-                        className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-cyan-500/30"
-                      >
-                        <Tag className="w-3 h-3 text-[var(--accent)] opacity-80" />
+                      <Surface key={tag} variant="glass-highlight" className={styles.appliedTag}>
+                        <Tag className={styles.appliedTagIcon} />
                         <LqText
                           variant="xs"
                           weight="medium"
                           color="accent"
-                          className="tracking-wide"
+                          className={styles.appliedTagText}
                         >
                           {tag}
                         </LqText>
                         <button
                           onClick={() => handleToggleTag(tag)}
-                          className="ml-1 text-[var(--text-muted)] hover:text-rose-400 transition-colors"
+                          className={styles.tagRemove}
                           aria-label={`Remove tag ${tag}`}
                         >
-                          <X className="w-3 h-3" />
+                          <X className={styles.iconMicro} />
                         </button>
                       </Surface>
                     ))}
-                  </Flex>
+                  </Box>
                 </Box>
               )}
-            </Box>
+            </Flex>
           )}
 
           {/* Classification Tab */}
           {activeTab === 'classification' && (
-            <Box className="space-y-8">
+            <Flex direction="column" gap="xl">
               <Box>
                 <LqText
                   variant="xs"
                   weight="bold"
                   color="secondary"
-                  className="mb-4 block uppercase tracking-widest"
+                  className={styles.tagGroupHeader}
                 >
                   Evidence Classification
                 </LqText>
-                <Box className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Box className={styles.classificationGrid}>
                   {CLASSIFICATION_OPTIONS.map((option) => (
                     <Surface
                       as="button"
@@ -744,18 +706,18 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                       variant={classification === option.value ? 'glass-strong' : 'glass-highlight'}
                       accent={classification === option.value ? option.color : undefined}
                       onClick={() => handleSetClassification(option.value)}
-                      className={`flex items-center gap-4 p-4 border text-left transition-all ${
+                      className={
                         classification === option.value
-                          ? 'border-[var(--accent)]/60'
-                          : 'opacity-80 hover:opacity-100 hover:border-[var(--glass-border)]'
-                      }`}
+                          ? styles.classificationOptionActive
+                          : styles.classificationOption
+                      }
                     >
-                      <option.icon className="w-5 h-5 text-[var(--accent)]" />
-                      <LqText variant="small" weight="medium" className="flex-1">
+                      <option.icon className={styles.classificationIcon} />
+                      <LqText variant="small" weight="medium" className={styles.flex1}>
                         {option.label}
                       </LqText>
                       {classification === option.value && (
-                        <CheckCircle className="w-5 h-5 text-[var(--accent)]" />
+                        <CheckCircle className={styles.classificationIcon} />
                       )}
                     </Surface>
                   ))}
@@ -768,7 +730,7 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                   variant="xs"
                   weight="bold"
                   color="secondary"
-                  className="mb-3 block uppercase tracking-widest"
+                  className={styles.tagGroupHeader}
                 >
                   Classification Rationale
                 </LqText>
@@ -776,11 +738,11 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                   value={classificationNotes}
                   onChange={(e) => setClassificationNotes(e.target.value)}
                   placeholder="Explain why you classified this evidence this way..."
-                  className="w-full px-4 py-3 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-sm text-[var(--text-primary)] placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-[var(--accent)] resize-none"
+                  className={styles.textarea}
                   rows={4}
                 />
                 {classification && (
-                  <Flex justify="end" className="mt-3">
+                  <Flex justify="end" className={styles.formActions}>
                     <button
                       onClick={() => {
                         const existing = annotations.find((a) => a.type === 'classification');
@@ -792,9 +754,9 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                         }
                       }}
                       disabled={saving}
-                      className="flex items-center gap-2 px-5 py-2.5 bg-[var(--accent)] text-black font-bold uppercase tracking-wider text-[10px] rounded-[var(--radius-lg)] hover:bg-[var(--accent)]/90 disabled:opacity-50 transition-colors"
+                      className={styles.addButton}
                     >
-                      <Save className="w-4 h-4" />
+                      <Save className={styles.iconTiny} />
                       Save Rationale
                     </button>
                   </Flex>
@@ -803,17 +765,19 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
 
               {/* Current Classification Display */}
               {classificationAnnotation && (
-                <Surface
-                  variant="glass-strong"
-                  className="p-5 border border-[var(--glass-border)] bg-[var(--glass-bg-strong)]/40"
-                >
-                  <Flex align="center" gap="sm" className="mb-3 opacity-60">
-                    <FolderOpen className="w-4 h-4 text-[var(--accent)]" />
+                <Surface variant="glass-strong" className={styles.listItem}>
+                  <Flex align="center" gap="sm" className={styles.headerMain}>
+                    <FolderOpen className={styles.appliedTagIcon} />
                     <LqText variant="xs" weight="bold" className="uppercase tracking-widest">
                       Active State
                     </LqText>
                   </Flex>
-                  <LqText variant="h4" weight="semibold" color="accent" className="mb-2">
+                  <LqText
+                    variant="h4"
+                    weight="semibold"
+                    color="accent"
+                    className={styles.activeStateTitle}
+                  >
                     {
                       CLASSIFICATION_OPTIONS.find(
                         (o) => o.value === classificationAnnotation.content,
@@ -821,7 +785,7 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                     }
                   </LqText>
                   {!!classificationAnnotation.metadata?.notes && (
-                    <LqText variant="small" color="secondary" className="mb-4 block italic">
+                    <LqText variant="small" color="secondary" className={styles.activeStateNote}>
                       {classificationAnnotation.metadata.notes as string}
                     </LqText>
                   )}
@@ -829,27 +793,24 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                     variant="xs"
                     color="muted"
                     align="right"
-                    className="block pt-3 border-t border-[var(--glass-border)]"
+                    className={styles.listItemFooter}
                   >
                     Managed by Intelligence Engine •{' '}
                     {new Date(classificationAnnotation.updatedAt).toLocaleString()}
                   </LqText>
                 </Surface>
               )}
-            </Box>
+            </Flex>
           )}
         </Box>
 
         {/* Footer */}
-        <Box className="border-t border-[var(--glass-border)] p-4">
+        <Box className={styles.listItemFooter}>
           <Flex align="center" justify="between">
             <LqText variant="xs" color="muted">
               {annotations.length} observation{annotations.length !== 1 ? 's' : ''} recorded
             </LqText>
-            <button
-              onClick={onClose}
-              className="px-6 py-2 bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] font-semibold text-xs rounded-[var(--radius-lg)] border border-[var(--glass-border)] hover:bg-[var(--glass-bg-highlight)]/15 transition-colors"
-            >
+            <button onClick={onClose} className={styles.closeButton}>
               Close Panel
             </button>
           </Flex>

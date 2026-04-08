@@ -42,6 +42,8 @@ import { FirstRunOnboarding } from './components/FirstRunOnboarding';
 import { useFirstRunOnboarding } from './hooks/useFirstRunOnboarding';
 import { InvestigationsProvider } from './contexts/InvestigationsContext';
 import { useAuth } from './contexts/AuthContext';
+import { cn } from './utils/cn';
+import { Flex, Box, Grid, Surface, LqText } from './design-system/lib';
 import { useFilters } from './contexts/useFilters';
 import { LoginPage } from './pages/LoginPage';
 import { SEO } from './components/common/SEO';
@@ -117,6 +119,7 @@ const ReviewDashboard = lazy(() =>
 );
 
 import releaseNotesRaw from '../../release_notes.md?raw';
+import styles from './App.module.css';
 
 interface ParsedReleaseNote {
   version: string;
@@ -1377,13 +1380,8 @@ function App() {
 
             {/* Skip links for accessibility */}
             <div className="sr-only">
-              <a className="sr-only focus:not-sr-only focus:absolute focus:p-4 focus:bg-[var(--glass-bg-strong)] focus:text-[var(--text-primary)] z-[var(--z-modal)]">
-                Skip to main content
-              </a>
-              <a
-                href="#navigation"
-                className="sr-only focus:not-sr-only focus:absolute focus:p-4 focus:bg-[var(--glass-bg-strong)] focus:text-[var(--text-primary)] z-[var(--z-modal)] mt-10"
-              >
+              <a className={styles.skipLink}>Skip to main content</a>
+              <a href="#navigation" className={cn(styles.skipLink, styles.skipNavigation)}>
                 Skip to navigation
               </a>
             </div>
@@ -1396,19 +1394,16 @@ function App() {
             {/* Header */}
             <header className="app-header-glass transition-all duration-300">
               <div className="content-shell">
-                <div className="flex flex-col md:flex-row items-center justify-between py-1.5 min-h-[52px] gap-3">
+                <div className={styles.header}>
                   {/* LEFT: Logo and Stats */}
-                  <div className="flex items-center gap-6">
+                  <div className={styles.logoArea}>
                     {/* Logo */}
-                    <Link
-                      to="/"
-                      className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
-                    >
+                    <Link to="/" className={styles.logoArea}>
                       <RedactedLogo text="THE EPSTEIN FILES" />
                     </Link>
 
                     {/* Stats - Desktop only, single-line */}
-                    <div className="hidden lg:flex items-center gap-5 ml-6 pl-6 border-l border-[var(--glass-border)]">
+                    <div className={styles.statsArea}>
                       <span
                         className="text-sm font-mono font-light tracking-tight text-[var(--accent)]"
                         title="Subjects"
@@ -1431,66 +1426,58 @@ function App() {
                   </div>
 
                   {/* RIGHT: Actions and Search */}
-                  <div className="flex items-center gap-3 w-full md:w-auto">
+                  <div className={styles.actionsArea}>
                     {/* Button Group */}
-                    <div className="hidden md:flex items-center gap-2 mr-2">
+                    <div className={styles.buttonGroup}>
                       {/* New Investigation */}
                       <button
                         onClick={() => navigate('/investigations')}
-                        className="group control flex items-center rounded-full h-11 pl-2.5 pr-2.5 hover:pr-4 transition-all duration-300"
+                        className={styles.controlButton}
                         title="New Investigation"
                       >
                         <Icon name="Plus" size="sm" color="white" />
-                        <span className="max-w-0 group-hover:max-w-xs overflow-hidden transition-all duration-300 opacity-0 group-hover:opacity-100 whitespace-nowrap text-sm text-[var(--text-primary)] ml-0 group-hover:ml-2">
-                          New
-                        </span>
+                        <span className={styles.buttonText}>New</span>
                       </button>
 
                       {/* Shortcuts */}
                       <button
                         onClick={() => setShowKeyboardShortcuts(true)}
-                        className="group control flex items-center rounded-full h-11 pl-2.5 pr-2.5 hover:pr-4 transition-all duration-300"
+                        className={styles.controlButton}
                         title="Keyboard Shortcuts"
                       >
                         <Icon name="Command" size="sm" color="info" />
-                        <span className="max-w-0 group-hover:max-w-xs overflow-hidden transition-all duration-300 opacity-0 group-hover:opacity-100 whitespace-nowrap text-sm text-[var(--text-primary)] ml-0 group-hover:ml-2">
-                          Shortcuts
-                        </span>
+                        <span className={styles.buttonText}>Shortcuts</span>
                       </button>
 
                       {/* Sources */}
                       <button
                         onClick={() => navigate('/about')}
-                        className="group control flex items-center rounded-full h-11 pl-2.5 pr-2.5 hover:pr-4 transition-all duration-300"
+                        className={styles.controlButton}
                         title="Verified Sources"
                       >
                         <Icon name="Shield" size="sm" color="success" />
-                        <span className="max-w-0 group-hover:max-w-xs overflow-hidden transition-all duration-300 opacity-0 group-hover:opacity-100 whitespace-nowrap text-sm text-[var(--text-primary)] ml-0 group-hover:ml-2">
-                          Sources
-                        </span>
+                        <span className={styles.buttonText}>Sources</span>
                       </button>
 
                       {/* What's New */}
                       <button
                         onClick={() => setShowReleaseNotes(true)}
-                        className="group control flex items-center rounded-full h-11 pl-2.5 pr-2.5 hover:pr-4 transition-all duration-300"
+                        className={styles.controlButton}
                         title="What's New"
                       >
                         <Icon name="Book" size="sm" color="info" />
-                        <span className="max-w-0 group-hover:max-w-xs overflow-hidden transition-all duration-300 opacity-0 group-hover:opacity-100 whitespace-nowrap text-sm text-[var(--text-primary)] ml-0 group-hover:ml-2">
-                          What's New
-                        </span>
+                        <span className={styles.buttonText}>What's New</span>
                       </button>
 
                       {/* Admin Dashboard */}
                       {isAdmin && (
                         <button
                           onClick={() => navigate('/admin')}
-                          className="group control flex items-center rounded-full h-11 pl-2.5 pr-2.5 hover:pr-4 transition-all duration-300"
+                          className={styles.controlButton}
                           title="Admin Dashboard"
                         >
                           <Icon name="Shield" size="sm" className="text-[var(--accent-info)]" />
-                          <span className="max-w-0 group-hover:max-w-xs overflow-hidden transition-all duration-300 opacity-0 group-hover:opacity-100 whitespace-nowrap text-sm text-[var(--text-default)] ml-0 group-hover:ml-2">
+                          <span className={cn(styles.buttonText, 'text-[var(--text-default)]')}>
                             Admin
                           </span>
                         </button>
@@ -1498,9 +1485,9 @@ function App() {
                     </div>
 
                     {/* Search Bar */}
-                    <div className="relative flex-1 md:flex-none max-w-md">
+                    <div className={styles.searchWrapper}>
                       <div className="header-search-pill">
-                        <div className="relative flex-1 min-w-0 pl-2">
+                        <div className={cn('relative flex-1 min-w-0', styles.searchInner)}>
                           <Icon
                             name="Search"
                             size="sm"
@@ -1711,7 +1698,8 @@ function App() {
                     {/* Mobile Menu Toggle */}
                     <button
                       onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                      className="md:hidden p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                      className="md:hidden text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                      style={{ padding: 'var(--space-2)' }}
                     >
                       {isMobileMenuOpen ? (
                         <Icon name="X" size="sm" />
@@ -1726,10 +1714,18 @@ function App() {
 
             <div className="content-shell flex-grow">
               {/* Mobile Stats Row */}
-              <div className="md:hidden grid grid-cols-3 gap-2 mb-6 text-center">
-                <button
+              <Grid cols={3} gap={2} mb={6} className="md:hidden text-center">
+                <Surface
+                  variant="glass"
+                  data-card
                   onClick={() => navigate('/search')}
-                  className="surface-glass-card rounded-lg p-2 hover:bg-[var(--glass-bg-strong)] transition-colors cursor-pointer"
+                  p={2}
+                  style={{
+                    borderRadius: 'var(--radius-lg)',
+                    cursor: 'pointer',
+                    textAlign: 'center',
+                  }}
+                  className="hover:bg-[var(--glass-bg-strong)] transition-colors"
                 >
                   <div className="text-xs text-[var(--text-secondary)] uppercase tracking-wider">
                     People
@@ -1737,10 +1733,18 @@ function App() {
                   <div className="text-lg font-bold text-[var(--accent)]">
                     {headerTotalPeople.toLocaleString()}
                   </div>
-                </button>
-                <button
+                </Surface>
+                <Surface
+                  variant="glass"
+                  data-card
                   onClick={() => navigate('/search')}
-                  className="surface-glass-card rounded-lg p-2 hover:bg-[var(--glass-bg-strong)] transition-colors cursor-pointer"
+                  p={2}
+                  style={{
+                    borderRadius: 'var(--radius-lg)',
+                    cursor: 'pointer',
+                    textAlign: 'center',
+                  }}
+                  className="hover:bg-[var(--glass-bg-strong)] transition-colors"
                 >
                   <div className="text-xs text-[var(--text-secondary)] uppercase tracking-wider">
                     Mentions
@@ -1748,10 +1752,18 @@ function App() {
                   <div className="text-lg font-bold text-[var(--accent-info)]">
                     {headerTotalMentions.toLocaleString()}
                   </div>
-                </button>
-                <button
+                </Surface>
+                <Surface
+                  variant="glass"
+                  data-card
                   onClick={() => navigate('/documents')}
-                  className="surface-glass-card rounded-lg p-2 hover:bg-[var(--glass-bg-strong)] transition-colors cursor-pointer"
+                  p={2}
+                  style={{
+                    borderRadius: 'var(--radius-lg)',
+                    cursor: 'pointer',
+                    textAlign: 'center',
+                  }}
+                  className="hover:bg-[var(--glass-bg-strong)] transition-colors"
                 >
                   <div className="text-xs text-[var(--text-secondary)] uppercase tracking-wider">
                     Files
@@ -1759,15 +1771,15 @@ function App() {
                   <div className="text-lg font-bold text-[var(--accent-docs)]">
                     {headerTotalFiles.toLocaleString()}
                   </div>
-                </button>
-              </div>
+                </Surface>
+              </Grid>
               {/* Simple loading indicator - no text labels */}
               <LoadingIndicator
                 isLoading={isInitializing || analyticsLoading}
                 label={isInitializing ? loadingProgress : undefined}
               />
               {/* Navigation Tabs - segmented pill with responsive horizontal track */}
-              <div id="navigation" className="hidden md:block mb-6 text-sm font-medium">
+              <Box id="navigation" mb={6} className="hidden md:block text-sm font-medium">
                 <div className="relative">
                   <div ref={navTrackRef} className="main-nav-track">
                     <div className={`main-nav-pill ${navPillClass}`}>
@@ -1821,13 +1833,17 @@ function App() {
                           activeTab !== 'investigations' &&
                           investigatePopoverPos.x !== 0 &&
                           createPortal(
-                            <div
-                              className="fixed w-[320px] bg-[var(--glass-bg-strong)] border border-[var(--glass-border-highlight)] rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] backdrop-blur-md p-4 pointer-events-auto"
+                            <Surface
+                              variant="glass-strong"
+                              p={4}
                               style={{
+                                position: 'fixed',
+                                width: '320px',
                                 left: investigatePopoverPos.x,
                                 top: investigatePopoverPos.y,
                                 zIndex: 50,
                               }}
+                              className="pointer-events-auto"
                             >
                               <div
                                 className="absolute -top-2"
@@ -1835,16 +1851,18 @@ function App() {
                               >
                                 <div className="w-4 h-4 bg-[var(--bg-dark)] border border-[var(--glass-border-highlight)] rotate-45"></div>
                               </div>
-                              <div className="text-[var(--text-primary)] font-semibold mb-1">
-                                Investigations
-                              </div>
-                              <div className="text-[var(--text-secondary)] text-sm mb-3">
-                                Create and manage deep-dive investigations, link evidence, and track
-                                findings.
-                              </div>
-                              <div className="flex items-center gap-2">
+                              <Box mb={1}>
+                                <LqText weight="semibold">Investigations</LqText>
+                              </Box>
+                              <Box mb={3}>
+                                <LqText variant="small" color="secondary">
+                                  Create and manage deep-dive investigations, link evidence, and
+                                  track findings.
+                                </LqText>
+                              </Box>
+                              <Flex align="center" gap={2}>
                                 <button
-                                  className="px-3 py-2 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-md)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)] transition-colors"
+                                  className={styles.popoverButton}
                                   onClick={() => {
                                     try {
                                       localStorage.setItem('investigate_popover_dismissed', 'true');
@@ -1858,7 +1876,7 @@ function App() {
                                   Got it
                                 </button>
                                 <button
-                                  className="px-3 py-2 bg-[var(--accent)] hover:brightness-110 text-[var(--text-strong)] rounded-[var(--radius-md)] transition-all"
+                                  className={cn(styles.popoverButton, styles.popoverButtonPrimary)}
                                   onClick={() => {
                                     try {
                                       localStorage.setItem('investigate_popover_dismissed', 'true');
@@ -1873,8 +1891,8 @@ function App() {
                                 >
                                   Try it
                                 </button>
-                              </div>
-                            </div>,
+                              </Flex>
+                            </Surface>,
                             document.body,
                           )}
                       </div>
@@ -1968,7 +1986,7 @@ function App() {
                     <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-[var(--bg-dark)] via-[var(--bg-dark)]/70 to-transparent" />
                   )}
                 </div>
-              </div>
+              </Box>
               <MobileMenu
                 open={isMobileMenuOpen}
                 searchTerm={searchTerm}
@@ -1984,7 +2002,7 @@ function App() {
               {/* Tab Content */}
               <div id="main-content" className="flex-grow">
                 {/* Breadcrumb navigation */}
-                <div className="mb-4 px-4 md:px-0">
+                <div className={styles.breadcrumbContainer}>
                   <Breadcrumb
                     items={[
                       { label: 'Home', href: '/' },
@@ -2244,7 +2262,7 @@ function App() {
                       <Route
                         path="/blackbook/*"
                         element={
-                          <div className="mt-6">
+                          <Box mt={6}>
                             <Suspense
                               fallback={
                                 <div className="flex items-center justify-center h-64">
@@ -2254,7 +2272,7 @@ function App() {
                             >
                               <BlackBookViewer />
                             </Suspense>
-                          </div>
+                          </Box>
                         }
                       />
                       {/* Fallback — default to people */}

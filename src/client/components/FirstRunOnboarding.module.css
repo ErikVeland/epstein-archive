@@ -1,0 +1,238 @@
+.stepIconBase {
+  width: 2rem;
+  height: 2rem;
+  color: var(--accent);
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(8px);
+  animation: fadeIn 0.3s ease;
+}
+
+.modal {
+  width: 100%;
+  max-width: 42rem;
+  overflow: hidden;
+  box-shadow:
+    var(--glass-shadow),
+    0 12px 30px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-6);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  font-weight: var(--weight-bold);
+}
+
+.titleAccent {
+  width: 0.5rem;
+  height: 2rem;
+  border-radius: var(--radius-full, 9999px);
+  background: var(--accent);
+}
+
+.closeButton {
+  border-color: var(--glass-border);
+  background: transparent;
+}
+
+.closeButton:hover {
+  background: var(--glass-bg);
+}
+
+.progressSection {
+  padding: var(--space-4) var(--space-6);
+  background: color-mix(in srgb, var(--glass-bg-strong) 30%, transparent);
+}
+
+.progressHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+  color: var(--text-muted);
+  font-size: var(--type-xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.progressValue {
+  color: var(--accent);
+}
+
+.progressTrack {
+  width: 100%;
+  height: 0.375rem;
+  overflow: hidden;
+  background: var(--glass-bg);
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: var(--radius-full, 9999px);
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--accent) 80%, white),
+    color-mix(in srgb, var(--accent) 55%, blue)
+  );
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 50%, transparent);
+  transition: width 0.5s ease;
+}
+
+.content {
+  min-height: 18.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8);
+  text-align: center;
+}
+
+.iconShell {
+  position: relative;
+  margin-bottom: var(--space-8);
+}
+
+.iconGlow {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  filter: blur(24px);
+  transition: background 0.5s ease;
+}
+
+.iconFrame {
+  position: relative;
+  padding: var(--space-6);
+  transition: transform 0.3s ease;
+}
+
+.iconShell:hover .iconGlow {
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.iconShell:hover .iconFrame {
+  transform: scale(1.1);
+}
+
+.contentIcon {
+  width: 3rem;
+  height: 3rem;
+  color: var(--accent);
+}
+
+.contentTitle {
+  margin: 0 0 var(--space-4);
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  font-weight: var(--weight-bold);
+}
+
+.contentDescription {
+  max-width: 32rem;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 1.125rem;
+  line-height: 1.6;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-6);
+  border-top: 1px solid var(--glass-border);
+  background: color-mix(in srgb, var(--glass-bg-strong) 50%, transparent);
+}
+
+.footerActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.textButton {
+  padding: var(--space-2) var(--space-4);
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font-size: var(--type-small);
+  font-weight: var(--weight-medium);
+  transition: color var(--duration-fast, 150ms);
+  cursor: pointer;
+}
+
+.textButton:hover {
+  color: var(--text-primary);
+}
+
+.primaryButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0.625rem var(--space-6);
+  border: none;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--accent) 85%, blue),
+    color-mix(in srgb, var(--accent) 55%, blue)
+  );
+  color: var(--text-primary);
+  font-weight: var(--weight-medium);
+  box-shadow:
+    var(--glass-shadow),
+    0 10px 24px color-mix(in srgb, var(--accent) 20%, transparent);
+  transition:
+    transform 0.15s ease,
+    filter var(--duration-fast, 150ms);
+  cursor: pointer;
+}
+
+.primaryButton:hover {
+  filter: brightness(1.08);
+  transform: scale(1.05);
+}
+
+.primaryButton:active {
+  transform: scale(0.95);
+}
+
+.primaryButtonIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}

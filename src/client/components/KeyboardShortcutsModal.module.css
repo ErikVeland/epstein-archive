@@ -1,0 +1,160 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  background: color-mix(in srgb, var(--app-bg) 80%, transparent);
+  backdrop-filter: blur(8px);
+}
+.dismissLayer {
+  position: absolute;
+  inset: 0;
+}
+.dialog {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 42rem;
+  max-height: 90vh;
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  background: var(--glass-bg-strong);
+}
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+}
+.title {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: var(--type-large);
+  font-weight: var(--weight-semibold);
+}
+.closeButton {
+  border-color: var(--glass-border);
+  background: transparent;
+  color: var(--text-secondary);
+}
+.closeButton:hover {
+  background: var(--glass-bg-highlight);
+  color: var(--text-primary);
+}
+.body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: var(--space-6);
+}
+.sectionStack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+.sectionTitle {
+  margin: 0 0 var(--space-4);
+  padding-bottom: var(--space-2);
+  color: var(--accent);
+  font-size: var(--type-body);
+  font-weight: var(--weight-semibold);
+  border-bottom: 1px solid var(--glass-border);
+}
+.shortcutGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+}
+.shortcutCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+}
+.shortcutDescription {
+  color: var(--text-secondary);
+  font-size: var(--type-small);
+  font-weight: var(--weight-medium);
+}
+.keyRow {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.keycap,
+.inlineKeycap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  background: var(--glass-bg-strong);
+  color: var(--text-primary);
+  font-size: var(--type-micro);
+  font-family: var(--font-mono, monospace);
+  font-weight: var(--weight-bold);
+}
+.noteBlock {
+  margin-top: var(--space-8);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--glass-border);
+}
+.noteText {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--type-small);
+}
+.footer {
+  padding: var(--space-4);
+  border-top: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+}
+.footerButton {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg-strong);
+  color: var(--text-primary);
+  transition: background-color 0.2s ease;
+}
+.footerButton:hover {
+  background: var(--glass-bg-highlight);
+}
+
+@media (min-width: 768px) {
+  .shortcutGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .backdrop {
+    padding: 0;
+  }
+  .dialog {
+    max-height: 100vh;
+    height: 100%;
+    border-radius: 0;
+  }
+  .shortcutCard {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .keyRow {
+    justify-content: flex-start;
+  }
+}

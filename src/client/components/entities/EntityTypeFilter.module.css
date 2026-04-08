@@ -4,6 +4,38 @@
   position: relative;
 }
 
+.triggerButton {
+  padding-left: var(--space-3);
+  padding-right: var(--space-3);
+  font-size: var(--type-small);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  justify-content: space-between;
+  width: 100%;
+  min-width: 180px;
+}
+
+.triggerContent {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.triggerLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.list {
+  padding-top: var(--space-1);
+  padding-bottom: var(--space-1);
+}
+
 .wrapperOpen {
   z-index: 1200;
 }

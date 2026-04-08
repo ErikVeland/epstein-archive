@@ -1,0 +1,209 @@
+.loadingGrid {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.loadingTile {
+  aspect-ratio: 1;
+  border-radius: var(--radius-lg);
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding-block: var(--space-12);
+  border-style: dashed;
+}
+
+.emptyStateIcon {
+  width: 3rem;
+  height: 3rem;
+  margin-bottom: var(--space-3);
+  opacity: 0.5;
+  color: var(--text-muted);
+}
+
+.gallery {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.mediaTile {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  cursor: pointer;
+  transition:
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.mediaTile:hover {
+  box-shadow:
+    var(--glass-shadow),
+    0 0 0 1px color-mix(in srgb, var(--accent) 50%, transparent);
+}
+
+.mediaImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.mediaTile:hover .mediaImage {
+  transform: scale(1.1);
+}
+
+.mediaOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgb(0 0 0 / 0.4);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.mediaTile:hover .mediaOverlay {
+  opacity: 1;
+}
+
+.zoomIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: #fff;
+  transform: scale(0.75);
+  transition: transform 0.2s ease;
+}
+
+.mediaTile:hover .zoomIcon {
+  transform: scale(1);
+}
+
+.videoBadge {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: rgb(0 0 0 / 0.6);
+  backdrop-filter: blur(8px);
+}
+
+.videoIcon {
+  width: 0.75rem;
+  height: 0.75rem;
+  color: #fff;
+  transform: translateX(0.125rem);
+}
+
+.caption {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: var(--space-2);
+  padding-top: var(--space-6);
+  background: linear-gradient(to top, rgb(0 0 0 / 0.8), transparent);
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+}
+
+.mediaTile:hover .caption {
+  transform: translateY(0);
+}
+
+.captionText {
+  color: #fff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lightboxBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  background: rgb(0 0 0 / 0.8);
+  backdrop-filter: blur(8px);
+  animation: fadeIn 0.2s ease;
+}
+
+.lightboxShell {
+  position: relative;
+  width: 100%;
+  max-width: 80rem;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.closeButton {
+  position: absolute;
+  top: calc(-1 * var(--space-12));
+  right: 0;
+  border-color: rgb(255 255 255 / 0.2);
+  background: transparent;
+  color: rgb(255 255 255 / 0.6);
+}
+
+.closeButton:hover {
+  color: #fff;
+}
+
+.lightboxMediaFrame {
+  position: relative;
+  overflow: hidden;
+  border-color: rgb(255 255 255 / 0.2);
+}
+
+.lightboxImage {
+  width: auto;
+  max-height: 80vh;
+  object-fit: contain;
+}
+
+.lightboxCaption {
+  margin-top: var(--space-4);
+  text-align: center;
+}
+
+.redFlagBadge {
+  margin-top: var(--space-2);
+  padding: 0.125rem var(--space-2);
+  border: 1px solid color-mix(in srgb, var(--accent-danger) 30%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--accent-danger) 10%, transparent);
+  box-shadow: var(--glass-shadow-soft);
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}

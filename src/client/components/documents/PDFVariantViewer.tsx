@@ -11,6 +11,10 @@ import {
   Fingerprint,
   Info,
 } from 'lucide-react';
+import styles from './PDFVariantViewer.module.css';
+
+// Design System
+import { LqText } from '../../design-system/components/typography/Text';
 
 // Set up PDF.js worker
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
@@ -126,124 +130,144 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
   const assetType = inferAssetType();
 
   return (
-    <div
-      className={`flex flex-col h-full bg-[var(--glass-bg-strong)] overflow-hidden ${className}`}
-    >
+    <div className={`${styles.root} ${className}`}>
       {showToolbar && (
-        <div className="bg-[var(--glass-bg)] border-b border-[var(--glass-border)] px-4 py-2 flex flex-wrap items-center justify-between gap-4 shrink-0">
-          <div className="flex items-center gap-2">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)]" />
+        <div className={styles.toolbar}>
+          <div className={styles.toolGroup}>
+            <div className={styles.searchContainer}>
+              <Search size={14} className={styles.searchIcon} />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Find in page..."
-                className="pl-9 pr-3 py-1.5 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-md text-xs text-[var(--text-primary)] placeholder-slate-500 focus:outline-none focus:border-[var(--accent)]/50 w-40"
+                className={styles.searchInput}
               />
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1 border-r border-[var(--glass-border)] pr-3 mr-1">
-              <button
-                onClick={zoomOut}
-                className="p-1.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
-                title="Zoom Out"
-              >
-                <ZoomOut className="w-4 h-4" />
+          <div className={styles.toolGroup}>
+            <div className={styles.zoomControls}>
+              <button onClick={zoomOut} className={styles.toolButton} title="Zoom Out">
+                <ZoomOut size={16} />
               </button>
-              <span className="text-[10px] font-mono text-[var(--text-muted)] w-10 text-center">
-                {Math.round(scale * 100)}%
-              </span>
-              <button
-                onClick={zoomIn}
-                className="p-1.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
-                title="Zoom In"
-              >
-                <ZoomIn className="w-4 h-4" />
+              <span className={styles.zoomLabel}>{Math.round(scale * 100)}%</span>
+              <button onClick={zoomIn} className={styles.toolButton} title="Zoom In">
+                <ZoomIn size={16} />
               </button>
             </div>
-            <button
-              onClick={rotateClockwise}
-              className="p-1.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
-              title="Rotate"
-            >
-              <RotateCw className="w-4 h-4" />
+            <button onClick={rotateClockwise} className={styles.toolButton} title="Rotate">
+              <RotateCw size={16} />
             </button>
           </div>
         </div>
       )}
 
-      <div
-        ref={viewerRef}
-        className="flex-1 overflow-auto bg-[var(--glass-bg-strong)] custom-scrollbar relative"
-      >
+      <div ref={viewerRef} className={styles.viewerPane}>
         {isLoading ? (
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-[var(--text-muted)]">
-            <div className="w-8 h-8 border-2 border-[var(--accent)]/20 border-t-cyan-500 rounded-full animate-spin mb-4" />
-            <p className="text-sm font-medium animate-pulse">Initializing Viewer...</p>
+          <div className={styles.statusOverlay}>
+            <div className={styles.spinner} />
+            <LqText variant="body" weight="medium" className={styles.animatePulse}>
+              Initializing Viewer...
+            </LqText>
           </div>
         ) : error ? (
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-rose-400 p-8 text-center">
-            <Fingerprint className="w-12 h-12 mb-4 opacity-50" />
-            <p className="font-bold mb-2">Access Error</p>
-            <p className="text-xs text-rose-300/60 max-w-xs">{error}</p>
+          <div className={styles.statusOverlay}>
+            <Fingerprint
+              size={48}
+              className={`${styles.errorText} ${styles.marginBottomMedium} ${styles.opacityStatic}`}
+            />
+            <LqText
+              variant="h3"
+              weight="bold"
+              className={`${styles.errorText} ${styles.marginBottomSmall}`}
+            >
+              Access Error
+            </LqText>
+            <LqText
+              variant="xs"
+              color="secondary"
+              className={`${styles.maxWSmall} ${styles.opacityHigh}`}
+            >
+              {error}
+            </LqText>
           </div>
         ) : !currentUrl ? (
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-[var(--text-muted)] p-8 text-center">
-            <Info className="w-12 h-12 mb-4 opacity-20" />
-            <p className="font-bold mb-2 text-[var(--text-secondary)]">No Asset Linked</p>
-            <p className="text-xs text-[var(--text-muted)] max-w-xs">
+          <div className={styles.statusOverlay}>
+            <Info size={48} className={`${styles.marginBottomMedium} ${styles.opacityLow}`} />
+            <LqText
+              variant="h3"
+              weight="bold"
+              color="secondary"
+              className={styles.marginBottomSmall}
+            >
+              No Asset Linked
+            </LqText>
+            <LqText variant="xs" color="muted" className={styles.maxWSmall}>
               This record exists in the index but no PDF asset has been processed for the selected
               variant.
-            </p>
+            </LqText>
           </div>
         ) : assetType === 'image' ? (
-          <div className="flex items-center justify-center p-6">
+          <div className={styles.imageContainer}>
             <img
               src={currentUrl}
               alt={docMeta?.fileName || `Document ${documentId}`}
-              className="max-w-full max-h-[calc(100vh-380px)] object-contain rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)] ring-1 ring-[var(--glass-border)]"
+              className={styles.previewImage}
             />
           </div>
         ) : assetType !== 'pdf' ? (
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-[var(--text-muted)] p-8 text-center">
-            <Info className="w-12 h-12 mb-4 opacity-20" />
-            <p className="font-bold mb-2 text-[var(--text-secondary)]">Preview unavailable</p>
-            <p className="text-xs text-[var(--text-muted)] max-w-xs">
+          <div className={styles.statusOverlay}>
+            <Info size={48} className={`${styles.marginBottomMedium} ${styles.opacityLow}`} />
+            <LqText
+              variant="h3"
+              weight="bold"
+              color="secondary"
+              className={styles.marginBottomSmall}
+            >
+              Preview unavailable
+            </LqText>
+            <LqText variant="xs" color="muted" className={styles.maxWSmall}>
               This asset is not a PDF. Open the original file from the document actions.
-            </p>
+            </LqText>
           </div>
         ) : (
           <Document
             file={currentUrl}
             onLoadSuccess={onDocumentLoadSuccess}
             loading={
-              <div className="flex flex-col items-center justify-center py-20 text-[var(--text-muted)]">
-                <div className="w-6 h-6 border-2 border-[var(--accent)]/10 border-t-cyan-500 rounded-full animate-spin mb-3" />
-                <span className="text-xs font-medium">Loading document...</span>
+              <div className={styles.statusOverlay}>
+                <div className={styles.spinner} />
+                <LqText variant="xs" weight="medium">
+                  Loading document...
+                </LqText>
               </div>
             }
             error={
-              <div className="flex flex-col items-center justify-center py-20 text-rose-400">
-                <Fingerprint className="w-10 h-10 mb-3 opacity-30" />
-                <span className="text-sm font-bold text-rose-300">PDF Rendering Failed</span>
-                <span className="text-[10px] text-rose-400/60 mt-1">
+              <div className={styles.statusOverlay}>
+                <Fingerprint
+                  size={40}
+                  className={`${styles.errorText} ${styles.marginBottomSmall} ${styles.opacityMedium}`}
+                />
+                <LqText variant="body" weight="bold" className={styles.errorText}>
+                  PDF Rendering Failed
+                </LqText>
+                <LqText
+                  variant="xs"
+                  className={`${styles.errorText} ${styles.marginTopSmall} ${styles.opacityHigh}`}
+                >
                   Resource may be temporarily unavailable
-                </span>
+                </LqText>
               </div>
             }
           >
-            <div className="flex justify-center p-8">
+            <div className={styles.pdfDocument}>
               <Page
                 pageNumber={pageNumber}
                 width={viewerWidth ? Math.floor((viewerWidth - 64) * scale) : undefined}
                 rotate={rotation}
-                loading={
-                  <div className="h-[800px] w-full bg-[var(--glass-bg)]/20 animate-pulse rounded-[var(--radius-lg)]" />
-                }
-                className="shadow-[var(--glass-shadow)] ring-1 ring-[var(--glass-border)]"
+                loading={<div className={`${styles.pdfPage} ${styles.animatePulse}`} />}
+                className={styles.pdfPage}
                 renderTextLayer={true}
                 renderAnnotationLayer={true}
               />
@@ -253,23 +277,20 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
       </div>
 
       {numPages > 0 && (
-        <div className="bg-[var(--glass-bg)]/80 backdrop-blur-md border-t border-[var(--glass-border)] px-6 py-3 flex items-center justify-between shrink-0">
-          <button
-            onClick={goToPrevPage}
-            disabled={pageNumber <= 1}
-            className="flex items-center gap-2 px-4 py-1.5 bg-[var(--glass-bg-highlight)] hover:bg-[var(--glass-bg-highlight)] disabled:opacity-30 disabled:hover:bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] rounded-[var(--radius-lg)] transition-all text-xs font-bold uppercase tracking-wider"
-          >
-            <ChevronLeft className="w-4 h-4" />
+        <div className={styles.pagination}>
+          <button onClick={goToPrevPage} disabled={pageNumber <= 1} className={styles.navButton}>
+            <ChevronLeft size={16} />
             Previous
           </button>
 
-          <div className="flex flex-col items-center">
-            <span className="text-xs font-bold text-[var(--text-primary)]">
-              {pageNumber} <span className="text-[var(--text-muted)] mx-1">/</span> {numPages}
-            </span>
-            <div className="w-32 h-1 bg-[var(--glass-bg-highlight)] rounded-full mt-2 overflow-hidden">
+          <div className={styles.pageInfo}>
+            <LqText className={styles.pageNumber}>
+              {pageNumber}{' '}
+              <span className={`${styles.opacityMedium} ${styles.marginXSmall}`}>/</span> {numPages}
+            </LqText>
+            <div className={styles.progressBar}>
               <div
-                className="h-full bg-[var(--accent)] transition-all duration-300"
+                className={styles.progressFill}
                 style={{ width: `${(pageNumber / numPages) * 100}%` }}
               />
             </div>
@@ -278,13 +299,15 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
           <button
             onClick={goToNextPage}
             disabled={pageNumber >= numPages}
-            className="flex items-center gap-2 px-4 py-1.5 bg-[var(--glass-bg-highlight)] hover:bg-[var(--glass-bg-highlight)] disabled:opacity-30 disabled:hover:bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] rounded-[var(--radius-lg)] transition-all text-xs font-bold uppercase tracking-wider"
+            className={styles.navButton}
           >
             Next
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight size={16} />
           </button>
         </div>
       )}
     </div>
   );
 };
+
+export default PDFVariantViewer;

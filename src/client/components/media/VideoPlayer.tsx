@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import {
   Play,
   Pause,
@@ -10,9 +10,11 @@ import {
   Share2,
   Check,
 } from 'lucide-react';
-import { TranscriptSegment, Chapter } from './AudioPlayer'; // Reuse types
+import { TranscriptSegment, Chapter } from './AudioPlayer';
 import { CloseButton } from '../common/CloseButton';
 import { useScrollLock } from '../../hooks/useScrollLock';
+import { cn } from '@client/utils/cn';
+import styles from './VideoPlayer.module.css';
 
 interface VideoPlayerProps {
   src: string;
@@ -40,7 +42,12 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const videoRef = useRef<HTMLVideoElement>(null);
   const transcriptRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  // const _navigate = useNavigate();
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const controlsTimeoutRef = useRef<number | null>(null);
+  const copyTimeoutRef = useRef<number | null>(null);
+  const overlayScrollTimeoutRef = useRef<number | null>(null);
+  const sidebarSearchInputRef = useRef<HTMLInputElement | null>(null);
+  const overlaySearchInputRef = useRef<HTMLInputElement | null>(null);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
@@ -55,7 +62,6 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           ? window.localStorage.getItem('video-player-show-transcript')
           : null;
       if (saved !== null) return saved === 'true';
-      // Default closed on mobile where sidebar can crowd controls
       if (typeof window !== 'undefined' && window.innerWidth < 768) return false;
       return true;
     } catch {
@@ -66,27 +72,20 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [showChapters, setShowChapters] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
-  const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const copyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const overlayScrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [showFullTranscriptOverlay, setShowFullTranscriptOverlay] = useState(false);
-  const overlayRef = useRef<HTMLDivElement>(null);
-  const lastInteractionRef = useRef<number>(0);
   const [showCopied, setShowCopied] = useState(false);
-  const sidebarSearchInputRef = useRef<HTMLInputElement | null>(null);
-  const overlaySearchInputRef = useRef<HTMLInputElement | null>(null);
-  useScrollLock(showFullTranscriptOverlay);
-
-  // In-player transcript search state
   const [transcriptSearch, setTranscriptSearch] = useState('');
   const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
+  const [revealedSources, setRevealedSources] = useState<Record<string, boolean>>({});
 
-  const normalizedTranscriptQuery = React.useMemo(
+  useScrollLock(showFullTranscriptOverlay);
+
+  const normalizedTranscriptQuery = useMemo(
     () => transcriptSearch.trim().toLowerCase(),
     [transcriptSearch],
   );
 
-  const transcriptMatches = React.useMemo(() => {
+  const transcriptMatches = useMemo(() => {
     if (!normalizedTranscriptQuery || !Array.isArray(transcript)) return [] as number[];
     return transcript
       .map((seg, index) => ({
@@ -97,35 +96,35 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       .map(({ index }) => index);
   }, [transcript, normalizedTranscriptQuery]);
 
-  const [hasRevealed, setHasRevealed] = useState(!isSensitive);
+  const hasRevealed = !isSensitive || !!revealedSources[src];
 
-  // Toggle transcript visibility and persist preference
   const toggleTranscript = () => {
     setShowTranscript((prev) => {
-      const newValue = !prev;
+      const next = !prev;
       try {
         if (typeof window !== 'undefined') {
-          window.localStorage.setItem('video-player-show-transcript', String(newValue));
+          window.localStorage.setItem('video-player-show-transcript', String(next));
         }
       } catch {
-        // ignore storage errors
+        // Ignore storage failures so the player still works in restricted browsers.
       }
-      return newValue;
+      return next;
     });
   };
 
   const handleShare = () => {
     try {
       const url = new URL(window.location.href);
-      // Encode current playback position so shared links restore time.
       url.searchParams.set('t', Math.floor(currentTime).toString());
       if (documentId != null) {
         url.searchParams.set('id', String(documentId));
       }
       navigator.clipboard.writeText(url.toString()).then(() => {
         setShowCopied(true);
-        if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
-        copyTimeoutRef.current = setTimeout(() => setShowCopied(false), 2000);
+        if (copyTimeoutRef.current !== null) {
+          window.clearTimeout(copyTimeoutRef.current);
+        }
+        copyTimeoutRef.current = window.setTimeout(() => setShowCopied(false), 2000);
       });
     } catch (e) {
       console.error('Failed to copy link', e);
@@ -133,16 +132,14 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   };
 
   useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.volume = volume;
-      videoRef.current.playbackRate = playbackRate;
-      if (autoPlay && !isSensitive) {
-        videoRef.current.play().catch((e) => console.warn('Autoplay failed:', e));
-      }
+    if (!videoRef.current) return;
+    videoRef.current.volume = volume;
+    videoRef.current.playbackRate = playbackRate;
+    if (autoPlay && !isSensitive) {
+      videoRef.current.play().catch((e) => console.warn('Autoplay failed:', e));
     }
   }, [autoPlay, isSensitive, playbackRate, volume]);
 
-  // Handle fullscreen change
   useEffect(() => {
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
@@ -152,54 +149,44 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   }, []);
 
   const scrollToSegment = useCallback((index: number) => {
-    if (transcriptRef.current && transcriptRef.current.parentElement) {
-      const container = transcriptRef.current.parentElement;
-      const element = transcriptRef.current.children[index] as HTMLElement;
-
-      if (element) {
-        const offset = element.offsetTop - container.offsetTop;
-
-        container.scrollTo({
-          top: offset - container.clientHeight / 2 + element.clientHeight / 2,
-          behavior: 'smooth',
-        });
-      }
-    }
+    if (!transcriptRef.current?.parentElement) return;
+    const container = transcriptRef.current.parentElement;
+    const element = transcriptRef.current.children[index] as HTMLElement;
+    if (!element) return;
+    const offset = element.offsetTop - container.offsetTop;
+    container.scrollTo({
+      top: offset - container.clientHeight / 2 + element.clientHeight / 2,
+      behavior: 'smooth',
+    });
   }, []);
 
   const scrollOverlayToSegment = useCallback((index: number) => {
     if (!overlayRef.current) return;
     const element = overlayRef.current.children[index] as HTMLElement;
-    if (element) {
-      overlayRef.current.scrollTo({
-        top: element.offsetTop - overlayRef.current.clientHeight / 2 + element.clientHeight / 2,
-        behavior: 'smooth',
-      });
-    }
+    if (!element) return;
+    overlayRef.current.scrollTo({
+      top: element.offsetTop - overlayRef.current.clientHeight / 2 + element.clientHeight / 2,
+      behavior: 'smooth',
+    });
   }, []);
 
-  // Handle time update
   const handleTimeUpdate = useCallback(() => {
-    if (videoRef.current) {
-      const time = videoRef.current.currentTime;
-      setCurrentTime(time);
-
-      if (transcript.length > 0) {
-        const index = transcript.findIndex((seg) => time >= seg.start && time < seg.end);
-        if (index !== -1 && index !== activeSegmentIndex) {
-          setActiveSegmentIndex(index);
-          scrollToSegment(index);
-        }
-      }
+    if (!videoRef.current) return;
+    const time = videoRef.current.currentTime;
+    setCurrentTime(time);
+    if (transcript.length === 0) return;
+    const index = transcript.findIndex((seg) => time >= seg.start && time < seg.end);
+    if (index !== -1 && index !== activeSegmentIndex) {
+      setActiveSegmentIndex(index);
+      scrollToSegment(index);
     }
   }, [transcript, activeSegmentIndex, scrollToSegment]);
 
   const seek = useCallback(
     (time: number) => {
-      if (videoRef.current) {
-        videoRef.current.currentTime = Math.max(0, Math.min(time, duration));
-        setCurrentTime(videoRef.current.currentTime);
-      }
+      if (!videoRef.current) return;
+      videoRef.current.currentTime = Math.max(0, Math.min(time, duration));
+      setCurrentTime(videoRef.current.currentTime);
     },
     [duration],
   );
@@ -235,13 +222,10 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     [currentMatchIndex, jumpToTranscriptMatch],
   );
 
-  // Keyboard shortcuts for transcript navigation
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
-      if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
-        return;
-      }
+      if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) return;
       if (!showTranscript && !showFullTranscriptOverlay) return;
 
       if (e.key === '/') {
@@ -253,7 +237,6 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         }
         return;
       }
-
       if (e.key === 'n' && !e.shiftKey) {
         e.preventDefault();
         goToNextTranscriptMatch();
@@ -262,7 +245,6 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         goToPrevTranscriptMatch();
       }
     };
-
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [showTranscript, showFullTranscriptOverlay, goToNextTranscriptMatch, goToPrevTranscriptMatch]);
@@ -274,25 +256,22 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   };
 
   const togglePlay = () => {
-    if (videoRef.current) {
-      if (isPlaying) videoRef.current.pause();
-      else videoRef.current.play();
-      setIsPlaying(!isPlaying);
-    }
+    if (!videoRef.current) return;
+    if (isPlaying) videoRef.current.pause();
+    else videoRef.current.play();
+    setIsPlaying(!isPlaying);
   };
 
   const handleReveal = () => {
-    setHasRevealed(true);
-    if (videoRef.current) {
-      videoRef.current.play().catch(console.error);
-      setIsPlaying(true);
-    }
+    setRevealedSources((prev) => ({ ...prev, [src]: true }));
+    if (!videoRef.current) return;
+    videoRef.current.play().catch(console.error);
+    setIsPlaying(true);
   };
 
   const toggleFullscreen = () => {
     if (!containerRef.current) return;
 
-    // Standard Request Method
     type VendorFullscreenElement = HTMLElement & {
       webkitRequestFullscreen?: () => Promise<void>;
       mozRequestFullScreen?: () => Promise<void>;
@@ -301,15 +280,16 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     type VendorFullscreenDocument = Document & {
       webkitExitFullscreen?: () => Promise<void>;
     };
+
     const el = containerRef.current as VendorFullscreenElement;
-    const req =
-      el.requestFullscreen.bind(el) ||
+    const requestFullscreen =
+      el.requestFullscreen?.bind(el) ||
       el.webkitRequestFullscreen ||
       el.mozRequestFullScreen ||
       el.msRequestFullscreen;
 
-    if (!document.fullscreenElement && req) {
-      req.call(containerRef.current).catch((err: Error) => {
+    if (!document.fullscreenElement && requestFullscreen) {
+      requestFullscreen.call(containerRef.current).catch((err: Error) => {
         console.error(`Error attempting to enable fullscreen mode: ${err.message}`);
       });
     } else if (document.exitFullscreen) {
@@ -321,18 +301,41 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
   const handleMouseMove = () => {
     setShowControls(true);
-    if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
-    controlsTimeoutRef.current = setTimeout(() => {
+    if (controlsTimeoutRef.current !== null) {
+      window.clearTimeout(controlsTimeoutRef.current);
+    }
+    controlsTimeoutRef.current = window.setTimeout(() => {
       if (isPlaying) setShowControls(false);
     }, 3000);
+  };
+
+  const openFullTranscript = () => {
+    setShowFullTranscriptOverlay(true);
+    if (overlayScrollTimeoutRef.current !== null) {
+      window.clearTimeout(overlayScrollTimeoutRef.current);
+    }
+    overlayScrollTimeoutRef.current = window.setTimeout(() => {
+      if (!overlayRef.current) return;
+      const index = transcript.findIndex(
+        (seg) => currentTime >= seg.start && currentTime < seg.end,
+      );
+      const element = overlayRef.current.children[index] as HTMLElement;
+      if (!element) return;
+      overlayRef.current.scrollTo({
+        top: element.offsetTop - overlayRef.current.clientHeight / 2 + element.clientHeight / 2,
+        behavior: 'smooth',
+      });
+    }, 50);
   };
 
   useEffect(() => {
     const video = videoRef.current;
     return () => {
-      if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
-      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
-      if (overlayScrollTimeoutRef.current) clearTimeout(overlayScrollTimeoutRef.current);
+      if (controlsTimeoutRef.current !== null) window.clearTimeout(controlsTimeoutRef.current);
+      if (copyTimeoutRef.current !== null) window.clearTimeout(copyTimeoutRef.current);
+      if (overlayScrollTimeoutRef.current !== null) {
+        window.clearTimeout(overlayScrollTimeoutRef.current);
+      }
       if (video) {
         video.pause();
         video.removeAttribute('src');
@@ -341,54 +344,50 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     };
   }, []);
 
+  const currentChapterTitle =
+    chapters.length > 0
+      ? chapters
+          .slice()
+          .reverse()
+          .find((chapter) => currentTime >= chapter.startTime)?.title
+      : null;
+
   return (
-    <div className="flex flex-col h-full surface-glass shadow-[var(--glass-shadow)] overflow-hidden">
-      {/* Header */}
-      <div className="px-4 py-3 bg-[var(--glass-bg-strong)] border-b border-[var(--glass-border)] shrink-0">
-        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-3 overflow-hidden">
-            <div className="w-8 h-8 rounded bg-cyan-900/30 flex items-center justify-center text-[var(--accent)]">
+    <div className={cn('surface-glass', styles.root)}>
+      <div className={styles.header}>
+        <div className={styles.headerBar}>
+          <div className={styles.headerInfo}>
+            <div className={styles.headerIconBox}>
               <Play size={16} />
             </div>
-            <div className="min-w-0">
-              <h3 className="text-sm font-medium text-[var(--text-primary)] truncate" title={title}>
+            <div className={styles.headerText}>
+              <h3 className={styles.title} title={title}>
                 {title}
               </h3>
-              <p className="text-xs text-[var(--text-muted)]">
+              <p className={styles.subtitle}>
                 {chapters.length > 0 ? `${chapters.length} chapters` : 'Video Recording'}
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2 flex-wrap justify-start md:justify-end">
-            <button
-              onClick={handleShare}
-              className="p-2 hover:bg-[var(--glass-bg)] rounded-full text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
-              title="Copy link"
-            >
-              {showCopied ? <Check size={16} className="text-green-400" /> : <Share2 size={16} />}
+          <div className={styles.headerActions}>
+            <button onClick={handleShare} className={styles.iconButton} title="Copy link">
+              {showCopied ? (
+                <Check size={16} className={styles.successIcon} />
+              ) : (
+                <Share2 size={16} />
+              )}
             </button>
             <button
-              onClick={() => {
-                setShowFullTranscriptOverlay(true);
-                lastInteractionRef.current = Date.now();
-                if (overlayScrollTimeoutRef.current) clearTimeout(overlayScrollTimeoutRef.current);
-                overlayScrollTimeoutRef.current = setTimeout(() => {
-                  if (!overlayRef.current) return;
-                  const idx = transcript.findIndex(
-                    (seg) => currentTime >= seg.start && currentTime < seg.end,
-                  );
-                  const el = overlayRef.current.children[idx] as HTMLElement;
-                  if (el)
-                    overlayRef.current.scrollTo({
-                      top: el.offsetTop - overlayRef.current.clientHeight / 2 + el.clientHeight / 2,
-                      behavior: 'smooth',
-                    });
-                }, 50);
-              }}
-              className="px-3 py-1.5 surface-glass hover:bg-[var(--glass-bg-highlight)] text-xs text-[var(--accent)] rounded-full transition-colors flex items-center gap-2"
+              onClick={openFullTranscript}
+              className={cn('surface-glass', styles.readButton)}
               title="Read full transcript overlay"
             >
-              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg
+                className={styles.readIconSmall}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -401,10 +400,15 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
             {(transcript.length > 0 || chapters.length > 0) && (
               <button
                 onClick={toggleTranscript}
-                className="p-2 hover:bg-[var(--glass-bg)] rounded-full text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+                className={styles.iconButton}
                 title={showTranscript ? 'Hide transcript' : 'Show transcript'}
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className={styles.readIcon}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -419,199 +423,182 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                 onClick={onClose}
                 size="sm"
                 label="Close video player"
-                className="bg-transparent hover:bg-[var(--glass-bg)] border-[var(--glass-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                className={styles.closeButton}
               />
             )}
           </div>
         </div>
       </div>
 
-      <div className="flex flex-1 min-h-0 overflow-hidden flex-col md:flex-row">
-        {/* Main Content (Video) */}
+      <div className={styles.content}>
         <div
           ref={containerRef}
-          className="flex-1 bg-[var(--glass-bg-strong)] relative flex items-center justify-center overflow-hidden group"
+          className={styles.playerShell}
           onMouseMove={handleMouseMove}
           onMouseLeave={() => isPlaying && setShowControls(false)}
         >
-          {/* Sensitive Content Warning Overlay */}
           {!hasRevealed && (
-            <div className="absolute inset-0 z-50 bg-[var(--glass-bg)] flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-300">
-              <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-6 ring-1 ring-red-500/30">
-                <Shield className="h-8 w-8 text-red-500" />
+            <div className={styles.warningOverlay}>
+              <div className={styles.warningIconCircle}>
+                <Shield className={styles.warningIcon} />
               </div>
-              <h3 className="text-xl font-bold text-[var(--text-primary)] mb-2">
-                Graphic Content Warning
-              </h3>
-              <p className="text-[var(--text-muted)] max-w-md mb-8 leading-relaxed">
-                {warningText}
-              </p>
-              <div className="flex gap-4">
+              <h3 className={styles.warningTitle}>Graphic Content Warning</h3>
+              <p className={styles.warningBody}>{warningText}</p>
+              <div className={styles.warningActions}>
                 {onClose && (
-                  <button
-                    onClick={onClose}
-                    className="px-6 py-2 rounded-[var(--radius-lg)] border border-[var(--glass-border)] hover:bg-[var(--glass-bg)] text-[var(--text-secondary)] transition-colors font-medium"
-                  >
+                  <button onClick={onClose} className={styles.warningCancel}>
                     Cancel
                   </button>
                 )}
-                <button
-                  onClick={handleReveal}
-                  className="px-6 py-2 rounded-[var(--radius-lg)] bg-red-600 hover:bg-red-500 text-[var(--text-primary)] font-medium shadow-[var(--glass-shadow)] shadow-red-900/20 transition-all hover:scale-105"
-                >
-                  Reveal & Play
+                <button onClick={handleReveal} className={styles.warningReveal}>
+                  Reveal &amp; Play
                 </button>
               </div>
             </div>
           )}
 
-          <video
-            ref={videoRef}
-            src={src}
-            className="w-full h-full object-contain"
-            onTimeUpdate={() => handleTimeUpdate()}
-            onLoadedMetadata={() => setDuration(videoRef.current?.duration || 0)}
-            onEnded={() => {
-              setIsPlaying(false);
-              setShowControls(true);
-            }}
-            onPlay={() => setIsPlaying(true)}
-            onPause={() => {
-              setIsPlaying(false);
-              setShowControls(true);
-            }}
-            onClick={togglePlay}
-          />
+          <div className={styles.playerFrame}>
+            <video
+              ref={videoRef}
+              src={src}
+              className={styles.video}
+              onTimeUpdate={handleTimeUpdate}
+              onLoadedMetadata={() => setDuration(videoRef.current?.duration || 0)}
+              onEnded={() => {
+                setIsPlaying(false);
+                setShowControls(true);
+              }}
+              onPlay={() => setIsPlaying(true)}
+              onPause={() => {
+                setIsPlaying(false);
+                setShowControls(true);
+              }}
+              onClick={togglePlay}
+            />
 
-          {/* Video Controls Overlay */}
-          <div
-            className={`absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-4 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}
-          >
-            {/* Progress Bar with Chapters */}
-            <div className="mb-4 relative group/progress">
-              <input
-                type="range"
-                min="0"
-                max={duration || 100}
-                value={currentTime}
-                onChange={(e) => seek(parseFloat(e.target.value))}
-                className="w-full h-1.5 bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] appearance-none cursor-pointer accent-cyan-500 hover:h-2 transition-all"
-              />
-              {/* Chapter Markers */}
-              {chapters.map((chapter, i) => (
-                <div
-                  key={i}
-                  className="absolute top-0 w-0.5 h-1.5 bg-yellow-500 hover:bg-[var(--text-primary)] cursor-pointer z-10 transition-colors"
-                  style={{ left: `${(chapter.startTime / duration) * 100}%` }}
-                  title={chapter.title}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    seek(chapter.startTime);
-                  }}
+            <div
+              className={cn(
+                styles.controlsOverlay,
+                showControls ? styles.controlsVisible : styles.controlsHidden,
+              )}
+            >
+              <div className={styles.progressGroup}>
+                <input
+                  type="range"
+                  min="0"
+                  max={duration || 100}
+                  value={currentTime}
+                  onChange={(e) => seek(parseFloat(e.target.value))}
+                  className={styles.progressInput}
                 />
-              ))}
-              <div className="flex justify-between text-xs text-[var(--text-secondary)] font-mono mt-1">
-                <span>{formatTime(currentTime)}</span>
-                <span>{formatTime(duration)}</span>
-              </div>
-            </div>
-
-            {/* Bottom Controls Row */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <button
-                  onClick={togglePlay}
-                  className="text-[var(--text-primary)] hover:text-[var(--accent)] transition-colors"
-                >
-                  {isPlaying ? (
-                    <Pause size={24} fill="currentColor" />
-                  ) : (
-                    <Play size={24} fill="currentColor" />
-                  )}
-                </button>
-
-                <div className="flex items-center gap-2 group/vol">
-                  <button
-                    onClick={() => {
-                      setIsMuted(!isMuted);
-                      if (videoRef.current) videoRef.current.muted = !isMuted;
+                {chapters.map((chapter, index) => (
+                  <div
+                    key={index}
+                    className={styles.chapterMarker}
+                    style={{ left: `${duration ? (chapter.startTime / duration) * 100 : 0}%` }}
+                    title={chapter.title}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      seek(chapter.startTime);
                     }}
-                    className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                  >
-                    {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
-                  </button>
-                  <input
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.05"
-                    value={volume}
-                    onChange={(e) => {
-                      setVolume(parseFloat(e.target.value));
-                      if (videoRef.current) videoRef.current.volume = parseFloat(e.target.value);
-                    }}
-                    className="w-0 overflow-hidden group-hover/vol:w-20 transition-all h-1 bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] appearance-none cursor-pointer accent-white"
                   />
-                </div>
-
-                <div className="text-sm text-[var(--text-primary)] truncate max-w-[200px]">
-                  {/* Current Chapter Display */}
-                  {chapters.length > 0 && (
-                    <span className="opacity-80">
-                      {
-                        chapters
-                          .slice()
-                          .reverse()
-                          .find((c) => currentTime >= c.startTime)?.title
-                      }
-                    </span>
-                  )}
+                ))}
+                <div className={styles.timeRow}>
+                  <span>{formatTime(currentTime)}</span>
+                  <span>{formatTime(duration)}</span>
                 </div>
               </div>
 
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-1 bg-[var(--glass-bg-highlight)] rounded px-1">
-                  {[0.5, 1, 1.5, 2].map((rate) => (
+              <div className={styles.bottomControls}>
+                <div className={styles.transportCluster}>
+                  <button onClick={togglePlay} className={styles.transportButton}>
+                    {isPlaying ? (
+                      <Pause size={24} fill="currentColor" />
+                    ) : (
+                      <Play size={24} fill="currentColor" />
+                    )}
+                  </button>
+
+                  <div className={styles.volumeCluster}>
                     <button
-                      key={rate}
                       onClick={() => {
-                        setPlaybackRate(rate);
-                        if (videoRef.current) videoRef.current.playbackRate = rate;
+                        setIsMuted(!isMuted);
+                        if (videoRef.current) videoRef.current.muted = !isMuted;
                       }}
-                      className={`px-2 py-0.5 text-xs rounded ${playbackRate === rate ? 'bg-[var(--glass-bg-highlight)] text-[var(--text-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}
+                      className={styles.volumeButton}
                     >
-                      {rate}x
+                      {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
                     </button>
-                  ))}
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.05"
+                      value={volume}
+                      onChange={(e) => {
+                        const nextVolume = parseFloat(e.target.value);
+                        setVolume(nextVolume);
+                        if (videoRef.current) videoRef.current.volume = nextVolume;
+                      }}
+                      className={styles.volumeSlider}
+                    />
+                  </div>
+
+                  <div className={styles.chapterLabel}>{currentChapterTitle}</div>
                 </div>
 
-                <button
-                  onClick={toggleFullscreen}
-                  className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                >
-                  {isFullscreen ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
-                </button>
+                <div className={styles.rightControls}>
+                  <div className={styles.rateGroup}>
+                    {[0.5, 1, 1.5, 2].map((rate) => (
+                      <button
+                        key={rate}
+                        onClick={() => {
+                          setPlaybackRate(rate);
+                          if (videoRef.current) videoRef.current.playbackRate = rate;
+                        }}
+                        className={cn(
+                          styles.rateButton,
+                          playbackRate === rate ? styles.rateButtonActive : styles.rateButtonIdle,
+                        )}
+                      >
+                        {rate}x
+                      </button>
+                    ))}
+                  </div>
+
+                  <button onClick={toggleFullscreen} className={styles.fullscreenButton}>
+                    {isFullscreen ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Sidebar (Transcript/Chapters) */}
         {(transcript.length > 0 || chapters.length > 0) && (
           <div
-            className={`fixed md:relative inset-0 md:inset-auto z-40 md:z-0 md:w-80 border-l border-[var(--glass-border)] bg-[var(--glass-bg-strong)] md:bg-[var(--glass-bg-strong)]/30 flex flex-col transition-transform duration-300 ${showTranscript ? 'translate-x-0' : 'translate-x-full md:hidden'} md:translate-x-0 shrink-0`}
+            className={cn(
+              styles.sidebar,
+              showTranscript ? styles.sidebarOpen : styles.sidebarClosed,
+            )}
           >
-            <div className="flex border-b border-[var(--glass-border)] shrink-0">
+            <div className={styles.tabRow}>
               <button
                 onClick={() => setShowChapters(false)}
-                className={`flex-1 py-3 text-xs font-medium uppercase tracking-wider ${!showChapters ? 'text-[var(--accent)] border-b-2 border-[var(--accent)] bg-[var(--glass-bg)]/50' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}
+                className={cn(
+                  styles.sidebarTab,
+                  !showChapters ? styles.sidebarTabActive : styles.sidebarTabIdle,
+                )}
               >
                 Transcript
               </button>
               {chapters.length > 0 && (
                 <button
                   onClick={() => setShowChapters(true)}
-                  className={`flex-1 py-3 text-xs font-medium uppercase tracking-wider ${showChapters ? 'text-[var(--accent)] border-b-2 border-[var(--accent)] bg-[var(--glass-bg)]/50' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}
+                  className={cn(
+                    styles.sidebarTab,
+                    showChapters ? styles.sidebarTabActive : styles.sidebarTabIdle,
+                  )}
                 >
                   Chapters
                 </button>
@@ -620,15 +607,15 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                 onClick={() => setShowTranscript(false)}
                 size="sm"
                 label="Close transcript panel"
-                className="md:hidden mr-2 bg-transparent border-[var(--glass-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                className={styles.sidebarClose}
               />
             </div>
 
-            <div className="flex-1 overflow-y-auto p-0 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent max-h-[40vh] md:max-h-none">
+            <div className={styles.sidebarBody}>
               {!showChapters ? (
                 <>
                   {transcript.length > 0 && (
-                    <div className="sticky top-0 z-10 bg-[var(--glass-bg-strong)]/95 px-3 py-2 border-b border-[var(--glass-border)] flex items-center gap-2">
+                    <div className={styles.searchSticky}>
                       <input
                         ref={sidebarSearchInputRef}
                         type="text"
@@ -636,13 +623,12 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                         onChange={(e) => {
                           setTranscriptSearch(e.target.value);
                           setCurrentMatchIndex(0);
-                          lastInteractionRef.current = Date.now();
                         }}
                         placeholder="Search in transcript…"
-                        className="flex-1 surface-glass rounded text-[var(--text-primary)] text-xs px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[var(--accent)] placeholder-slate-500"
+                        className={cn('surface-glass', styles.searchInput)}
                       />
                       {normalizedTranscriptQuery && (
-                        <div className="flex items-center gap-1 text-[10px] text-[var(--text-muted)]">
+                        <div className={styles.searchMeta}>
                           <span>
                             {transcriptMatches.length
                               ? `${currentMatchIndex + 1}/${transcriptMatches.length}`
@@ -652,7 +638,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                             type="button"
                             onClick={goToPrevTranscriptMatch}
                             disabled={!transcriptMatches.length}
-                            className="px-1 py-0.5 rounded bg-[var(--glass-bg)] border border-[var(--glass-border)] disabled:opacity-40"
+                            className={styles.navMiniButton}
                           >
                             ↑
                           </button>
@@ -660,7 +646,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                             type="button"
                             onClick={goToNextTranscriptMatch}
                             disabled={!transcriptMatches.length}
-                            className="px-1 py-0.5 rounded bg-[var(--glass-bg)] border border-[var(--glass-border)] disabled:opacity-40"
+                            className={styles.navMiniButton}
                           >
                             ↓
                           </button>
@@ -668,38 +654,34 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                       )}
                     </div>
                   )}
-                  <div ref={transcriptRef} className="flex flex-col">
+                  <div ref={transcriptRef} className={styles.transcriptList}>
                     {transcript.length > 0 ? (
-                      transcript.map((seg, i) => {
+                      transcript.map((seg, index) => {
                         const isMatch =
-                          !!normalizedTranscriptQuery && transcriptMatches.includes(i);
-                        const isCurrent = isMatch && transcriptMatches[currentMatchIndex] === i;
+                          !!normalizedTranscriptQuery && transcriptMatches.includes(index);
+                        const isCurrent = isMatch && transcriptMatches[currentMatchIndex] === index;
                         return (
                           <button
-                            key={i}
+                            key={index}
                             onClick={() => seek(seg.start)}
-                            className={`p-4 text-left border-b border-[var(--glass-border)] transition-colors hover:bg-[var(--glass-bg)]/50 ${
-                              activeSegmentIndex === i ? 'bg-cyan-900/20' : ''
-                            } ${isCurrent ? 'ring-1 ring-amber-400 border-amber-400' : ''} ${
-                              !isCurrent && isMatch ? 'border-amber-500/60' : ''
-                            }`}
+                            className={cn(
+                              styles.segmentButton,
+                              activeSegmentIndex === index && styles.segmentActive,
+                              isCurrent && styles.segmentCurrentMatch,
+                              !isCurrent && isMatch && styles.segmentMatch,
+                            )}
                           >
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="text-xs font-mono text-[var(--text-muted)]">
-                                {formatTime(seg.start)}
-                              </span>
+                            <div className={styles.segmentHeader}>
+                              <span className={styles.segmentTime}>{formatTime(seg.start)}</span>
                               {seg.speaker && (
-                                <span className="text-xs font-bold text-[var(--text-secondary)]">
-                                  {seg.speaker}
-                                </span>
+                                <span className={styles.segmentSpeaker}>{seg.speaker}</span>
                               )}
                             </div>
                             <p
-                              className={`text-sm leading-relaxed ${
-                                activeSegmentIndex === i
-                                  ? 'text-[var(--text-primary)]'
-                                  : 'text-[var(--text-muted)]'
-                              }`}
+                              className={cn(
+                                styles.segmentText,
+                                activeSegmentIndex === index && styles.segmentTextActive,
+                              )}
                             >
                               {seg.text}
                             </p>
@@ -707,30 +689,23 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                         );
                       })
                     ) : (
-                      <div className="p-8 text-center text-[var(--text-muted)] text-sm">
-                        No transcript available.
-                      </div>
+                      <div className={styles.emptyState}>No transcript available.</div>
                     )}
                   </div>
                 </>
               ) : (
-                <div className="flex flex-col">
-                  {chapters.map((chapter, i) => (
+                <div className={styles.chapterList}>
+                  {chapters.map((chapter, index) => (
                     <button
-                      key={i}
+                      key={index}
                       onClick={() => seek(chapter.startTime)}
-                      className={`p-4 text-left border-b border-[var(--glass-border)] flex items-center gap-3 hover:bg-[var(--glass-bg)]/50 group`}
+                      className={styles.chapterButton}
                     >
-                      <div className="text-xs font-mono text-[var(--text-muted)] w-12">
+                      <div className={styles.chapterButtonTime}>
                         {formatTime(chapter.startTime)}
                       </div>
-                      <div className="flex-1 text-sm text-[var(--text-secondary)] group-hover:text-[var(--accent)] transition-colors">
-                        {chapter.title}
-                      </div>
-                      <Play
-                        size={12}
-                        className="opacity-0 group-hover:opacity-100 text-[var(--accent)]"
-                      />
+                      <div className={styles.chapterButtonTitle}>{chapter.title}</div>
+                      <Play size={12} className={styles.chapterButtonIcon} />
                     </button>
                   ))}
                 </div>
@@ -739,15 +714,13 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           </div>
         )}
       </div>
+
       {showFullTranscriptOverlay && (
-        <div className="fixed inset-0 z-[1300] bg-[var(--glass-bg-strong)] backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-5xl h-[90vh] max-h-[90vh] surface-glass shadow-[var(--glass-shadow)] overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between p-3 bg-[var(--glass-bg-strong)] border-b border-[var(--glass-border)]">
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={togglePlay}
-                  className="px-3 py-1 rounded bg-[var(--accent)] hover:bg-[var(--accent)] text-[var(--text-primary)] text-xs"
-                >
+        <div className={styles.overlayBackdrop}>
+          <div className={cn('surface-glass', styles.overlayPanel)}>
+            <div className={styles.overlayHeader}>
+              <div className={styles.overlayActions}>
+                <button onClick={togglePlay} className={styles.overlayActionPrimary}>
                   {isPlaying ? 'Pause' : 'Play'}
                 </button>
                 <button
@@ -755,7 +728,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                     setIsMuted(!isMuted);
                     if (videoRef.current) videoRef.current.muted = !isMuted;
                   }}
-                  className="px-3 py-1 rounded bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] text-xs"
+                  className={styles.overlayActionSecondary}
                 >
                   {isMuted ? 'Unmute' : 'Mute'}
                 </button>
@@ -764,11 +737,11 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                 onClick={() => setShowFullTranscriptOverlay(false)}
                 size="sm"
                 label="Close full transcript"
-                className="bg-transparent border-[var(--glass-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                className={styles.closeButton}
               />
             </div>
-            <div className="flex-1 flex flex-col">
-              <div className="px-4 py-2 bg-[var(--glass-bg-strong)]/80 border-b border-[var(--glass-border)] flex items-center gap-2">
+            <div className={styles.overlayContent}>
+              <div className={styles.overlaySearchBar}>
                 <input
                   ref={overlaySearchInputRef}
                   type="text"
@@ -776,13 +749,12 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                   onChange={(e) => {
                     setTranscriptSearch(e.target.value);
                     setCurrentMatchIndex(0);
-                    lastInteractionRef.current = Date.now();
                   }}
                   placeholder="Search in transcript…"
-                  className="flex-1 surface-glass rounded text-[var(--text-primary)] text-xs px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[var(--accent)] placeholder-slate-500"
+                  className={cn('surface-glass', styles.searchInput)}
                 />
                 {normalizedTranscriptQuery && (
-                  <div className="flex items-center gap-1 text-[10px] text-[var(--text-muted)]">
+                  <div className={styles.searchMeta}>
                     <span>
                       {transcriptMatches.length
                         ? `${currentMatchIndex + 1}/${transcriptMatches.length}`
@@ -792,7 +764,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                       type="button"
                       onClick={goToPrevTranscriptMatch}
                       disabled={!transcriptMatches.length}
-                      className="px-1 py-0.5 rounded bg-[var(--glass-bg)] border border-[var(--glass-border)] disabled:opacity-40"
+                      className={styles.navMiniButton}
                     >
                       ↑
                     </button>
@@ -800,50 +772,37 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                       type="button"
                       onClick={goToNextTranscriptMatch}
                       disabled={!transcriptMatches.length}
-                      className="px-1 py-0.5 rounded bg-[var(--glass-bg)] border border-[var(--glass-border)] disabled:opacity-40"
+                      className={styles.navMiniButton}
                     >
                       ↓
                     </button>
                   </div>
                 )}
               </div>
-              <div
-                ref={overlayRef}
-                className="flex-1 overflow-y-auto p-4 space-y-2 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent"
-                onScroll={() => {
-                  lastInteractionRef.current = Date.now();
-                }}
-                onWheel={() => {
-                  lastInteractionRef.current = Date.now();
-                }}
-                onTouchMove={() => {
-                  lastInteractionRef.current = Date.now();
-                }}
-              >
-                {transcript.map((seg, i) => {
-                  const isMatch = !!normalizedTranscriptQuery && transcriptMatches.includes(i);
-                  const isCurrent = isMatch && transcriptMatches[currentMatchIndex] === i;
+              <div ref={overlayRef} className={styles.overlayTranscriptList}>
+                {transcript.map((seg, index) => {
+                  const isMatch = !!normalizedTranscriptQuery && transcriptMatches.includes(index);
+                  const isCurrent = isMatch && transcriptMatches[currentMatchIndex] === index;
                   return (
                     <button
-                      key={i}
+                      key={index}
                       onClick={() => seek(seg.start)}
-                      className={`w-full text-left p-3 rounded border border-[var(--glass-border)] hover:bg-[var(--glass-bg)]/50 transition-colors ${
-                        currentTime >= seg.start && currentTime < seg.end ? 'bg-cyan-900/20' : ''
-                      } ${isCurrent ? 'ring-1 ring-amber-400 border-amber-400' : ''} ${
-                        !isCurrent && isMatch ? 'border-amber-500/60' : ''
-                      }`}
+                      className={cn(
+                        styles.overlaySegmentButton,
+                        currentTime >= seg.start &&
+                          currentTime < seg.end &&
+                          styles.overlaySegmentActive,
+                        isCurrent && styles.overlaySegmentCurrentMatch,
+                        !isCurrent && isMatch && styles.overlaySegmentMatch,
+                      )}
                     >
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-mono text-[var(--text-muted)]">
-                          {formatTime(seg.start)}
-                        </span>
+                      <div className={styles.segmentHeader}>
+                        <span className={styles.segmentTime}>{formatTime(seg.start)}</span>
                         {seg.speaker && (
-                          <span className="text-xs font-bold text-[var(--text-secondary)]">
-                            {seg.speaker}
-                          </span>
+                          <span className={styles.segmentSpeaker}>{seg.speaker}</span>
                         )}
                       </div>
-                      <p className="text-sm text-[var(--text-secondary)]">{seg.text}</p>
+                      <p className={styles.overlaySegmentText}>{seg.text}</p>
                     </button>
                   );
                 })}

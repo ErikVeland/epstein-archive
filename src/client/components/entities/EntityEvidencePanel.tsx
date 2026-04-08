@@ -459,36 +459,27 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
 
       {/* Relation Evidence (graph edges with quotes) */}
       {relationEdges.length > 0 && (
-        <div className="surface-glass-card p-5">
-          <div className="flex items-center space-x-2 mb-4">
-            <Network className="w-5 h-5 text-[var(--text-muted)]" />
-            <h3 className="text-lg font-semibold text-[var(--text-primary)]">Relation Evidence</h3>
+        <div className={`surface-glass-card ${styles.sectionCard}`}>
+          <div className={styles.sectionHeader}>
+            <Network className={styles.sectionIcon} />
+            <h3 className={styles.sectionTitle}>Relation Evidence</h3>
           </div>
-          <div className="space-y-3 max-h-72 overflow-y-auto scrollbar-thin scrollbar-thumb-[var(--glass-border-highlight)]">
+          <div className={styles.relationList}>
             {relationEdges.slice(0, 25).map((rel) => (
-              <div
-                key={rel.id}
-                className="border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-3"
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-semibold text-[var(--text-primary)]">
-                    {rel.predicate || 'related_to'}
-                  </span>
-                  <span className="text-xs text-[var(--text-muted)]">weight {rel.weight ?? 1}</span>
+              <div key={rel.id} className={styles.relationCard}>
+                <div className={styles.relationHeader}>
+                  <span className={styles.relationPredicate}>{rel.predicate || 'related_to'}</span>
+                  <span className={styles.relationWeight}>weight {rel.weight ?? 1}</span>
                 </div>
                 {rel.evidence && rel.evidence.length > 0 && (
-                  <ul className="mt-1 space-y-1">
+                  <ul className={styles.relationEvidenceList}>
                     {rel.evidence.slice(0, 3).map((ev) => (
-                      <li key={ev.id} className="text-xs text-[var(--text-muted)]">
+                      <li key={ev.id} className={styles.relationEvidenceItem}>
                         {ev.documentTitle && (
-                          <span className="font-medium text-[var(--text-secondary)]">
-                            {ev.documentTitle}
-                          </span>
+                          <span className={styles.relationEvidenceTitle}>{ev.documentTitle}</span>
                         )}
                         {ev.quoteText && (
-                          <span className="block text-[var(--text-muted)] italic truncate">
-                            “{ev.quoteText}”
-                          </span>
+                          <span className={styles.relationEvidenceQuote}>“{ev.quoteText}”</span>
                         )}
                       </li>
                     ))}
@@ -501,29 +492,29 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
       )}
 
       {/* Filters & Search */}
-      <div className="surface-glass-card p-5">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-3">
-            <h3 className="text-lg font-semibold text-[var(--text-primary)]">Evidence Items</h3>
-            <span className="text-sm text-[var(--text-muted)]">({filteredEvidence.length})</span>
+      <div className={`surface-glass-card ${styles.sectionCard}`}>
+        <div className={styles.evidenceHeader}>
+          <div className={styles.evidenceHeaderTitleGroup}>
+            <h3 className={styles.sectionTitle}>Evidence Items</h3>
+            <span className={styles.evidenceCount}>({filteredEvidence.length})</span>
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-3 mb-4">
-          <div className="flex-1">
+        <div className={styles.filterRow}>
+          <div className={styles.filterSearchWrap}>
             <input
               type="text"
               placeholder="Filter evidence..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full border border-[var(--glass-border)] bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] rounded-[var(--radius-lg)] px-3 py-2 text-sm focus:ring-[var(--accent)] focus:border-[var(--accent)] placeholder-[var(--text-muted)]"
+              className={styles.filterInput}
             />
           </div>
-          <div className="flex gap-3">
+          <div className={styles.filterSelectGroup}>
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="border border-[var(--glass-border)] bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] rounded-[var(--radius-lg)] px-3 py-2 text-sm focus:ring-[var(--accent)] focus:border-[var(--accent)]"
+              className={styles.filterSelect}
             >
               <option value="all">All Types</option>
               {stats.typeBreakdown.map((item) => (
@@ -535,7 +526,7 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
             <select
               value={filterRole}
               onChange={(e) => setFilterRole(e.target.value)}
-              className="border border-[var(--glass-border)] bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] rounded-[var(--radius-lg)] px-3 py-2 text-sm focus:ring-[var(--accent)] focus:border-[var(--accent)]"
+              className={styles.filterSelect}
             >
               <option value="all">All Roles</option>
               {stats.roleBreakdown.map((item) => (
@@ -548,55 +539,46 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
         </div>
 
         {/* Evidence List */}
-        <div className="space-y-3">
+        <div className={styles.evidenceList}>
           {visibleEvidence.map((item) => {
             const documentId = resolveDocumentId(item);
             return (
-              <div
-                key={item.id}
-                className="border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-4 hover:bg-[var(--glass-bg-highlight)]/50 transition bg-[var(--glass-bg)]/50"
-              >
-                <div className="flex items-start justify-between mb-2">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-1">
-                      <FileText className="w-4 h-4 text-[var(--text-muted)]" />
-                      <h4 className="font-semibold text-[var(--text-primary)]">
-                        {item.title || 'Untitled'}
-                      </h4>
+              <div key={item.id} className={styles.evidenceCard}>
+                <div className={styles.evidenceCardHeader}>
+                  <div className={styles.evidenceCardMain}>
+                    <div className={styles.evidenceTitleRow}>
+                      <FileText className={styles.evidenceTitleIcon} />
+                      <h4 className={styles.evidenceTitle}>{item.title || 'Untitled'}</h4>
                     </div>
                     {item.description && (
-                      <p className="text-sm text-[var(--text-muted)] line-clamp-2 mb-2">
-                        {item.description}
-                      </p>
+                      <p className={styles.evidenceDescription}>{item.description}</p>
                     )}
                     {item.contextSnippet && (
-                      <p className="text-xs text-[var(--text-muted)] italic bg-yellow-900/20 p-2 rounded border-l-2 border-yellow-600/50 text-yellow-200/90 break-words">
-                        "{item.contextSnippet}"
-                      </p>
+                      <p className={styles.contextSnippet}>"{item.contextSnippet}"</p>
                     )}
                   </div>
-                  <div className="flex flex-col items-end space-y-1 ml-4">
+                  <div className={styles.evidenceBadgeColumn}>
                     {item.role && (
-                      <span className={`text-xs px-2 py-1 rounded ${getRoleColor(item.role)}`}>
+                      <span
+                        className={`${styles.roleChipBase} ${styles.itemRoleChip} ${getRoleColor(item.role)}`}
+                      >
                         {item.role}
                       </span>
                     )}
                     {item.redFlagRating > 0 && (
-                      <div className="flex items-center space-x-1">
-                        <AlertTriangle className="w-4 h-4 text-red-500" />
-                        <span className="text-xs font-semibold text-[var(--accent-danger)]">
-                          {item.redFlagRating}
-                        </span>
+                      <div className={styles.redFlagBadge}>
+                        <AlertTriangle className={styles.redFlagIcon} />
+                        <span className={styles.redFlagValue}>{item.redFlagRating}</span>
                       </div>
                     )}
                     {item.wasAgentic && (
-                      <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[var(--accent)]/10 border border-purple-500/20 text-[var(--accent)] text-[10px] uppercase font-bold">
+                      <div className={styles.agenticBadge}>
                         <Fingerprint size={10} />
                         Agentic
                       </div>
                     )}
                     {item.confidence && (
-                      <span className="text-xs text-[var(--text-muted)]">
+                      <span className={styles.confidenceText}>
                         {Math.round(item.confidence * 100)}% conf
                       </span>
                     )}
@@ -604,7 +586,7 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
                 </div>
 
                 {/* Forensic Details (Hidden by default, toggle or tooltip could be here) */}
-                <div className="mt-3 overflow-hidden">
+                <div className={styles.evidenceLadderWrap}>
                   <EvidenceLadder
                     level={
                       item.evidenceType === 'entity_creation' ? 3 : item.confidence > 0.8 ? 1 : 2
@@ -612,31 +594,28 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
                     confidence={item.confidence}
                     ingestRunId={item.ingestRunId}
                     wasAgentic={item.wasAgentic}
-                    className="bg-[var(--glass-bg)] p-3 rounded-[var(--radius-lg)] border border-[var(--glass-border)]"
+                    className={styles.evidenceLadder}
                   />
                 </div>
 
-                <div className="flex items-center justify-between text-xs text-[var(--text-muted)] pt-2 border-t border-[var(--glass-border)] mt-3">
-                  <div className="flex items-center space-x-3">
-                    <span className="flex items-center space-x-1">
-                      <Tag className="w-3 h-3" />
+                <div className={styles.evidenceFooter}>
+                  <div className={styles.evidenceFooterMeta}>
+                    <span className={styles.evidenceFooterItem}>
+                      <Tag className={styles.evidenceFooterIcon} />
                       <span>{getEvidenceTypeLabel(item.evidenceType)}</span>
                     </span>
-                    <span className="flex items-center space-x-1">
-                      <Calendar className="w-3 h-3" />
+                    <span className={styles.evidenceFooterItem}>
+                      <Calendar className={styles.evidenceFooterIcon} />
                       <span>{new Date(item.createdAt).toLocaleDateString()}</span>
                     </span>
                   </div>
                   {documentId ? (
-                    <Link
-                      to={`/documents?id=${documentId}`}
-                      className="flex items-center space-x-1 text-[var(--accent)] hover:text-[var(--accent)]"
-                    >
+                    <Link to={`/documents?id=${documentId}`} className={styles.viewLink}>
                       <span>View</span>
-                      <ExternalLink className="w-3 h-3" />
+                      <ExternalLink className={styles.viewLinkIcon} />
                     </Link>
                   ) : (
-                    <span className="text-[var(--text-primary)]">No document link</span>
+                    <span className={styles.noDocumentLink}>No document link</span>
                   )}
                 </div>
               </div>
@@ -646,10 +625,10 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
 
         {/* Load More Check */}
         {hasMore && (
-          <div className="mt-4 text-center">
+          <div className={styles.loadMoreWrap}>
             <button
               onClick={() => setItemsToShow((prev) => prev + ITEMS_INCREMENT)}
-              className="px-4 py-2 bg-[var(--glass-bg-highlight)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] rounded-[var(--radius-lg)] text-sm font-medium transition-colors"
+              className={styles.loadMoreButton}
             >
               Show More ({filteredEvidence.length - itemsToShow} remaining)
             </button>

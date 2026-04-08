@@ -1,5 +1,6 @@
 import * as React from 'react';
 import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu';
+import styles from './GlassDropdown.module.css';
 
 export const DropdownMenu = DropdownMenuPrimitive.Root;
 export const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger;
@@ -16,11 +17,11 @@ export const DropdownMenuContent = React.forwardRef<
     <DropdownMenuPrimitive.Content
       ref={ref}
       sideOffset={sideOffset}
-      className={`z-[1000] min-w-[8rem] overflow-hidden rounded-md border border-border-subtle bg-bg-elevated/95 p-1 text-text-primary shadow-lg backdrop-blur-md animate-in data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 ${className}`}
+      className={`${styles.content} ${className}`}
       {...props}
     >
-      <div className="absolute inset-0 z-0 bg-[var(--glass-shine)] pointer-events-none opacity-20" />
-      <div className="relative z-10">{props.children}</div>
+      <div className={styles.contentShine} />
+      <div className={styles.contentInner}>{props.children}</div>
     </DropdownMenuPrimitive.Content>
   </DropdownMenuPrimitive.Portal>
 ));
@@ -30,11 +31,7 @@ export const DropdownMenuItem = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Item>
 >(({ className = '', ...props }, ref) => (
-  <DropdownMenuPrimitive.Item
-    ref={ref}
-    className={`relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent-primary focus:text-[var(--text-primary)] data-[disabled]:pointer-events-none data-[disabled]:opacity-50 ${className}`}
-    {...props}
-  />
+  <DropdownMenuPrimitive.Item ref={ref} className={`${styles.item} ${className}`} {...props} />
 ));
 DropdownMenuItem.displayName = DropdownMenuPrimitive.Item.displayName;
 
@@ -42,11 +39,7 @@ export const DropdownMenuLabel = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.Label>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Label>
 >(({ className = '', ...props }, ref) => (
-  <DropdownMenuPrimitive.Label
-    ref={ref}
-    className={`px-2 py-1.5 text-sm font-semibold text-text-secondary ${className}`}
-    {...props}
-  />
+  <DropdownMenuPrimitive.Label ref={ref} className={`${styles.label} ${className}`} {...props} />
 ));
 DropdownMenuLabel.displayName = DropdownMenuPrimitive.Label.displayName;
 
@@ -56,7 +49,7 @@ export const DropdownMenuSeparator = React.forwardRef<
 >(({ className = '', ...props }, ref) => (
   <DropdownMenuPrimitive.Separator
     ref={ref}
-    className={`-mx-1 my-1 h-px bg-border-subtle ${className}`}
+    className={`${styles.separator} ${className}`}
     {...props}
   />
 ));

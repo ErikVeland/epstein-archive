@@ -1,0 +1,266 @@
+/* DocumentModal.module.css */
+
+/* Overlay / backdrop */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  animation: fadeIn 300ms ease;
+}
+
+@media (min-width: 768px) {
+  .overlay {
+    padding: var(--space-6);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Modal surface */
+.modal {
+  border-radius: 0;
+  display: flex;
+  flex-direction: column;
+  border: 0;
+  pointer-events: auto;
+  overflow: hidden;
+  width: clamp(960px, 94vw, 1500px);
+  height: clamp(600px, 90vh, 1000px);
+  box-shadow: 0 0 0 1px var(--glass-border), var(--glass-shadow);
+}
+
+@media (min-width: 768px) {
+  .modal {
+    border-radius: var(--radius-xl);
+  }
+}
+
+/* Tabs bar */
+.tabsBar {
+  padding: 0 var(--space-4);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+@media (min-width: 768px) {
+  .tabsBar {
+    padding: 0 var(--space-8);
+  }
+}
+
+/* Body selection colour */
+.bodyContent {
+  /* selection highlight handled via ::selection pseudo */
+}
+
+.bodyContent ::selection {
+  background-color: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+/* Tab content pane (left scrollable column) */
+.contentPane {
+  height: 100%;
+  overflow-y: auto;
+  padding: var(--space-8) var(--space-5);
+}
+
+@media (min-width: 768px) {
+  .contentPane {
+    padding: var(--space-10) var(--space-12);
+  }
+}
+
+.contentInner {
+  max-width: 56rem; /* ~max-w-4xl */
+  margin: 0 auto;
+}
+
+/* Right metadata aside */
+.metadataAside {
+  height: 100%;
+  background-color: var(--glass-bg);
+  overflow-y: auto;
+  border-left: 1px solid var(--glass-border);
+}
+
+/* Collapsed right pane (icon rail) */
+.collapsedPane {
+  height: 100%;
+  padding-top: 3.5rem;
+  padding-bottom: var(--space-8);
+  background: transparent;
+  overflow: visible;
+}
+
+.collapsedIcons {
+  border-radius: 9999px;
+  padding: var(--space-6) var(--space-2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-6);
+  border-color: var(--glass-border);
+  backdrop-filter: blur(12px);
+}
+
+/* Primary rail icon button */
+.railIconPrimary {
+  position: relative;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  transition: background-color 0.2s ease;
+}
+
+.railIconPrimary:hover {
+  background-color: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+/* Divider inside the collapsed rail */
+.railDivider {
+  width: 1.5rem;
+  height: 1px;
+  background-color: var(--glass-border);
+}
+
+/* Secondary rail icon button */
+.railIcon {
+  position: relative;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.railIcon:hover {
+  color: var(--accent);
+  background-color: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+.railIconGlyph {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* Rail tooltip (appears on hover via group) */
+.railTooltip {
+  pointer-events: none;
+  position: absolute;
+  right: 3.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  padding: var(--space-1) var(--space-3);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 50;
+}
+
+.railIcon:hover .railTooltip {
+  opacity: 1;
+}
+
+.railTooltipLabel {
+  font-size: var(--type-xs);
+  font-weight: var(--weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+}
+
+/* Loading state overlay */
+.loadingOverlay {
+  position: fixed;
+  inset: 0;
+  backdrop-filter: blur(12px);
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+.loadingCard {
+  padding: var(--space-8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.loadingText {
+  text-align: center;
+}
+
+.spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 2px solid var(--accent);
+  border-top-color: transparent;
+  border-radius: 9999px;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Error state */
+.errorOverlay {
+  position: fixed;
+  inset: 0;
+  backdrop-filter: blur(12px);
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+.errorCard {
+  padding: var(--space-8);
+}
+
+.errorCloseButton {
+  width: 100%;
+  padding: var(--space-2) 0;
+  border-radius: var(--radius-lg);
+  background-color: var(--accent);
+  color: #000;
+  font-weight: var(--weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: var(--type-xs);
+  transition: opacity 0.2s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.errorCloseButton:hover {
+  opacity: 0.9;
+}
+
+/* No-text PDF badge */
+.pdfBadge {
+  border-radius: 9999px;
+  padding: var(--space-1) var(--space-2);
+  border-color: color-mix(in srgb, #f59e0b 40%, transparent);
+  background-color: color-mix(in srgb, #f59e0b 15%, transparent);
+}

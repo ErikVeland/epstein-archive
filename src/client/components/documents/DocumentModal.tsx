@@ -10,6 +10,7 @@ import { EvidenceModal } from '../common/EvidenceModal';
 import { CollapsibleSplitPane } from '../common/CollapsibleSplitPane';
 import { ViewerShell } from '../viewer/ViewerShell';
 import { ProvenancePanel } from './ProvenancePanel';
+import styles from './DocumentModal.module.css';
 
 // Design System
 import { LqText } from '../../design-system/components/typography/Text';
@@ -198,16 +199,8 @@ export const DocumentModal: React.FC<Props> = ({
               <LqText variant="small" as="span">
                 Original Document
               </LqText>
-              <Surface
-                variant="glass-highlight"
-                className="rounded-full px-2 py-0.5 border-amber-500/40 bg-amber-500/15"
-              >
-                <LqText
-                  variant="xs"
-                  color="accent"
-                  weight="bold"
-                  className="uppercase tracking-wider"
-                >
+              <Surface variant="glass-highlight" className={styles.pdfBadge}>
+                <LqText variant="xs" color="accent" weight="bold">
                   {badgeLabel}
                 </LqText>
               </Surface>
@@ -359,17 +352,17 @@ export const DocumentModal: React.FC<Props> = ({
 
   if (!doc && (isLoadingDoc || isFetchingDoc)) {
     return createPortal(
-      <Box className="fixed inset-0 backdrop-blur-md z-[var(--z-modal)] flex items-center justify-center p-4 bg-black/60">
-        <Surface variant="glass-strong" className="p-8 flex flex-col items-center gap-4">
-          <Box className="text-center">
-            <LqText variant="h3" weight="bold" className="mb-1">
+      <Box className={styles.loadingOverlay}>
+        <Surface variant="glass-strong" className={styles.loadingCard}>
+          <Box className={styles.loadingText}>
+            <LqText variant="h3" weight="bold">
               Loading document
             </LqText>
             <LqText variant="small" color="muted">
               Fetching the linked record and related evidence.
             </LqText>
           </Box>
-          <div className="w-8 h-8 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin" />
+          <div className={styles.spinner} />
         </Surface>
       </Box>,
       document.body,
@@ -378,18 +371,15 @@ export const DocumentModal: React.FC<Props> = ({
 
   if (!doc) {
     return createPortal(
-      <Box className="fixed inset-0 backdrop-blur-md z-[var(--z-modal)] flex items-center justify-center p-4 bg-black/60">
-        <Surface variant="glass-strong" className="p-8">
-          <LqText variant="h3" weight="bold" className="mb-2">
+      <Box className={styles.errorOverlay}>
+        <Surface variant="glass-strong" className={styles.errorCard}>
+          <LqText variant="h3" weight="bold">
             Unable to load document
           </LqText>
-          <LqText variant="body" color="muted" className="mb-6">
+          <LqText variant="body" color="muted">
             Please try again or open in the Document Browser.
           </LqText>
-          <button
-            onClick={onClose}
-            className="w-full py-2 rounded-[var(--radius-lg)] bg-[var(--accent)] text-black font-bold uppercase tracking-wider text-xs hover:bg-[var(--accent)]/90 transition-colors"
-          >
+          <button onClick={onClose} className={styles.errorCloseButton}>
             Close
           </button>
         </Surface>
@@ -466,22 +456,13 @@ export const DocumentModal: React.FC<Props> = ({
     <Box
       id="DocumentModal"
       ref={modalRef}
-      className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center p-0 md:p-6 animate-in fade-in duration-300 backdrop-blur-sm bg-black/40"
+      className={styles.overlay}
       role="dialog"
       aria-modal="true"
       aria-labelledby="document-modal-title"
       onClick={onClose}
     >
-      <Surface
-        variant="glass-strong"
-        className="rounded-none md:rounded-[var(--radius-xl)] flex flex-col border-0 pointer-events-auto overflow-hidden"
-        style={{
-          width: 'clamp(960px, 94vw, 1500px)',
-          height: 'clamp(600px, 90vh, 1000px)',
-          boxShadow: '0 0 0 1px var(--glass-border), var(--glass-shadow)',
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
+      <Surface variant="glass-strong" className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <ViewerShell
           header={
             <DocumentHeader
@@ -497,26 +478,26 @@ export const DocumentModal: React.FC<Props> = ({
           tabs={viewerTabs}
           activeTab={activeTab}
           onTabChange={(key) => setActiveTab(key as ViewerTab)}
-          tabsClassName="px-4 md:px-8 border-b border-[var(--glass-border)]"
+          tabsClassName={styles.tabsBar}
           bodyRef={contentRef}
-          bodyClassName="selection:bg-[var(--accent)]/30"
+          bodyClassName={styles.bodyContent}
           bodyScrollable={false}
           bodyTestId="document-modal-scroll-region"
         >
           <CollapsibleSplitPane
             left={
               <Box
-                className="h-full overflow-y-auto custom-scrollbar px-5 md:px-12 py-8 md:py-10"
+                className={`custom-scrollbar ${styles.contentPane}`}
                 role="tabpanel"
                 id={`panel-${activeTab}`}
                 aria-labelledby={`tab-${activeTab}`}
                 data-testid={`document-modal-tabpanel-${activeTab}`}
               >
-                <Box className="max-w-4xl mx-auto">{renderTabContent()}</Box>
+                <Box className={styles.contentInner}>{renderTabContent()}</Box>
               </Box>
             }
             right={
-              <aside className="h-full bg-[var(--glass-bg)] overflow-y-auto custom-scrollbar border-l border-[var(--glass-border)]">
+              <aside className={`custom-scrollbar ${styles.metadataAside}`}>
                 <DocumentMetadataRail
                   doc={doc}
                   id={id}
@@ -535,42 +516,32 @@ export const DocumentModal: React.FC<Props> = ({
               </aside>
             }
             collapsedRight={
-              <Flex
-                direction="column"
-                align="center"
-                className="h-full pt-14 pb-8 bg-transparent overflow-visible"
-              >
-                <Surface
-                  variant="glass-highlight"
-                  className="rounded-full py-6 px-2 flex flex-col items-center gap-6 border-[var(--glass-border)] backdrop-blur-md"
-                >
+              <Flex direction="column" align="center" className={styles.collapsedPane}>
+                <Surface variant="glass-highlight" className={styles.collapsedIcons}>
                   <button
                     type="button"
                     onClick={() => {
                       setActiveRailSection('metadata');
                       setRightPaneCollapsed(false);
                     }}
-                    className="relative group w-12 h-12 rounded-full flex items-center justify-center text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-colors"
+                    className={styles.railIconPrimary}
                     title="Core metadata"
                   >
-                    <Sparkles className="w-5 h-5" />
+                    <Sparkles className={styles.railIconGlyph} />
                   </button>
-                  <Box className="w-6 h-px bg-[var(--glass-border)]" />
+                  <Box className={styles.railDivider} />
                   <button
                     type="button"
                     onClick={() => {
                       setActiveRailSection('entities');
                       setRightPaneCollapsed(false);
                     }}
-                    className="relative group w-10 h-10 rounded-full inline-flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-colors"
+                    className={styles.railIcon}
                     aria-label="Live entities"
                   >
-                    <Users className="w-5 h-5" />
-                    <Surface
-                      variant="glass-strong"
-                      className="pointer-events-none absolute right-14 top-1/2 -translate-y-1/2 whitespace-nowrap px-3 py-1.5 opacity-0 group-hover:opacity-100 transition-opacity z-50"
-                    >
-                      <LqText variant="xs" weight="bold" className="uppercase tracking-widest">
+                    <Users className={styles.railIconGlyph} />
+                    <Surface variant="glass-strong" className={styles.railTooltip}>
+                      <LqText variant="xs" weight="bold" className={styles.railTooltipLabel}>
                         Live Entities
                       </LqText>
                     </Surface>
@@ -581,15 +552,12 @@ export const DocumentModal: React.FC<Props> = ({
                       setActiveRailSection('case');
                       setRightPaneCollapsed(false);
                     }}
-                    className="relative group w-10 h-10 rounded-full inline-flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-colors"
+                    className={styles.railIcon}
                     aria-label="Case references"
                   >
-                    <Link2 className="w-5 h-5" />
-                    <Surface
-                      variant="glass-strong"
-                      className="pointer-events-none absolute right-14 top-1/2 -translate-y-1/2 whitespace-nowrap px-3 py-1.5 opacity-0 group-hover:opacity-100 transition-opacity z-50"
-                    >
-                      <LqText variant="xs" weight="bold" className="uppercase tracking-widest">
+                    <Link2 className={styles.railIconGlyph} />
+                    <Surface variant="glass-strong" className={styles.railTooltip}>
+                      <LqText variant="xs" weight="bold" className={styles.railTooltipLabel}>
                         Case References
                       </LqText>
                     </Surface>
@@ -600,15 +568,12 @@ export const DocumentModal: React.FC<Props> = ({
                       setActiveRailSection('timeline');
                       setRightPaneCollapsed(false);
                     }}
-                    className="relative group w-10 h-10 rounded-full inline-flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 transition-colors"
+                    className={styles.railIcon}
                     aria-label="Timeline hooks"
                   >
-                    <Calendar className="w-5 h-5" />
-                    <Surface
-                      variant="glass-strong"
-                      className="pointer-events-none absolute right-14 top-1/2 -translate-y-1/2 whitespace-nowrap px-3 py-1.5 opacity-0 group-hover:opacity-100 transition-opacity z-50"
-                    >
-                      <LqText variant="xs" weight="bold" className="uppercase tracking-widest">
+                    <Calendar className={styles.railIconGlyph} />
+                    <Surface variant="glass-strong" className={styles.railTooltip}>
+                      <LqText variant="xs" weight="bold" className={styles.railTooltipLabel}>
                         Timeline Hooks
                       </LqText>
                     </Surface>

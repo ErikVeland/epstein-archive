@@ -4,6 +4,7 @@ import { Select } from '../common/Select';
 import { GlassButton } from '../ui/GlassButton';
 import { PropertyCard } from './PropertyCard';
 import type { Property, PropertyStats } from './types';
+import styles from './PropertyBrowseView.module.css';
 
 type ViewMode = 'browse' | 'associates' | 'analytics';
 
@@ -45,16 +46,12 @@ export function PropertyBrowseView({
   onViewModeChange,
 }: PropertyBrowseViewProps): React.ReactElement {
   return (
-    <div className="property-browse">
+    <div className={styles.browser}>
       {/* Filters Bar */}
-      <div className="bg-[var(--glass-bg)]/50 p-4 border-b border-[var(--glass-border)] backdrop-blur-md sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-4">
-          <div className="flex-1 relative">
-            <Icon
-              name="Search"
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
-              size="sm"
-            />
+      <div className={styles.filtersBar}>
+        <div className={styles.filtersInner}>
+          <div className={styles.searchWrapper}>
+            <Icon name="Search" className={styles.searchIcon} size="sm" />
             <input
               type="text"
               placeholder="Search properties, owners, addresses..."
@@ -63,12 +60,12 @@ export function PropertyBrowseView({
                 onSearchChange(e.target.value);
                 onPageChange(1);
               }}
-              className="w-full bg-[var(--glass-bg-strong)]/50 border border-[var(--glass-border)] rounded-[var(--radius-lg)] pl-10 pr-4 py-2 text-[var(--text-primary)] placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/50"
+              className={styles.searchInput}
             />
           </div>
-          <div className="flex flex-wrap gap-4">
+          <div className={styles.filterControls}>
             <Select
-              containerClassName="min-w-[180px]"
+              containerClassName={styles.propertyTypeSelect}
               value={propertyType}
               onChange={(e) => {
                 onPropertyTypeChange(e.target.value);
@@ -81,7 +78,7 @@ export function PropertyBrowseView({
             />
 
             <Select
-              containerClassName="min-w-[160px]"
+              containerClassName={styles.minValueSelect}
               value={minValue}
               onChange={(e) => {
                 onMinValueChange(e.target.value);
@@ -96,8 +93,8 @@ export function PropertyBrowseView({
               ]}
             />
 
-            <div className="flex items-center gap-2 bg-[var(--glass-bg-strong)]/50 border border-[var(--glass-border)] rounded-[var(--radius-lg)] px-4">
-              <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-[var(--text-secondary)] select-none">
+            <div className={styles.checkboxWrapper}>
+              <label className={styles.checkboxLabel}>
                 <input
                   type="checkbox"
                   checked={showAssociatesOnly}
@@ -105,19 +102,19 @@ export function PropertyBrowseView({
                     onShowAssociatesOnlyChange(e.target.checked);
                     onPageChange(1);
                   }}
-                  className="w-4 h-4 rounded border-[var(--glass-border)] text-[var(--accent)] focus:ring-[var(--accent)]/50 bg-[var(--glass-bg)]"
+                  className={styles.checkbox}
                 />
                 Known Associates Only
               </label>
             </div>
 
             {/* View Toggle */}
-            <div className="flex bg-[var(--glass-bg-strong)]/50 rounded-[var(--radius-lg)] p-1 border border-[var(--glass-border)]">
+            <div className={styles.viewToggle}>
               <GlassButton
                 onClick={() => onViewModeChange('browse')}
                 variant={viewMode === 'browse' ? 'primary' : 'ghost'}
                 size="sm"
-                className="!px-2 !py-2"
+                className={styles.viewToggleButton}
                 title="Browse List"
               >
                 <Icon name="List" size="sm" />
@@ -126,7 +123,7 @@ export function PropertyBrowseView({
                 onClick={() => onViewModeChange('associates')}
                 variant={viewMode === 'associates' ? 'primary' : 'ghost'}
                 size="sm"
-                className="!px-2 !py-2"
+                className={styles.viewToggleButton}
                 title="Known Associates"
               >
                 <Icon name="Users" size="sm" />
@@ -135,7 +132,7 @@ export function PropertyBrowseView({
                 onClick={() => onViewModeChange('analytics')}
                 variant={viewMode === 'analytics' ? 'primary' : 'ghost'}
                 size="sm"
-                className="!px-2 !py-2"
+                className={styles.viewToggleButton}
                 title="Analytics"
               >
                 <Icon name="BarChart3" size="sm" />
@@ -146,35 +143,35 @@ export function PropertyBrowseView({
       </div>
 
       {/* Property List */}
-      <div className="property-list-section">
+      <div className={styles.listSection}>
         {loading ? (
-          <div className="loading-state">
-            <Icon name="Loader2" className="spin" size="sm" /> Loading properties...
+          <div className={styles.loadingState}>
+            <Icon name="Loader2" className={styles.spin} size="sm" /> Loading properties...
           </div>
         ) : (
           <>
-            <div className="property-grid">
+            <div className={styles.propertyGrid}>
               {properties.map((property) => (
                 <PropertyCard key={property.id} property={property} />
               ))}
             </div>
 
             {/* Pagination */}
-            <div className="pagination">
+            <div className={styles.pagination}>
               <button
                 onClick={() => onPageChange(Math.max(1, page - 1))}
                 disabled={page === 1}
-                className="page-btn"
+                className={styles.pageButton}
               >
                 <Icon name="ChevronLeft" size="sm" />
               </button>
-              <span className="page-info">
+              <span className={styles.pageInfo}>
                 Page {page} of {totalPages}
               </span>
               <button
                 onClick={() => onPageChange(Math.min(totalPages, page + 1))}
                 disabled={page === totalPages}
-                className="page-btn"
+                className={styles.pageButton}
               >
                 <Icon name="ChevronRight" size="sm" />
               </button>

@@ -68,12 +68,10 @@ export const BoardOnboarding: React.FC<BoardOnboardingProps> = ({ onComplete, on
         initial={{ scale: 0.95, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         transition={{ type: 'spring', duration: 0.5, bounce: 0.3 }}
-        className={`relative surface-glass shadow-[var(--glass-shadow)] ${styles.modal}`}
+        className={`surface-glass ${styles.modalShell} ${styles.modal}`}
       >
         {/* Progress Bar */}
-        <div
-          className={`absolute top-0 left-0 right-0 h-1 surface-glass ${styles.progressBarTrack}`}
-        >
+        <div className={`surface-glass ${styles.progressBarTrack}`}>
           <motion.div
             className={styles.progressBarFill}
             initial={{ width: '0%' }}
@@ -89,7 +87,7 @@ export const BoardOnboarding: React.FC<BoardOnboardingProps> = ({ onComplete, on
               onClick={onSkip}
               size="sm"
               label="Close board onboarding"
-              className="bg-transparent hover:bg-[var(--glass-bg)] border-[var(--glass-border)]"
+              className={styles.closeButton}
             />
           </div>
 

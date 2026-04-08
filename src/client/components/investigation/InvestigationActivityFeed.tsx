@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Icon, { type IconName } from '../common/Icon';
+import styles from './InvestigationActivityFeed.module.css';
 // import { Link } from 'react-router-dom';
 
 interface ActivityItem {
@@ -59,11 +60,11 @@ const getActionIcon = (actionType: string): string => {
 };
 
 const getActionColor = (actionType: string): string => {
-  if (actionType.includes('added') || actionType.includes('created')) return 'text-emerald-400';
-  if (actionType.includes('removed') || actionType.includes('deleted')) return 'text-red-400';
-  if (actionType.includes('updated') || actionType.includes('changed'))
-    return 'text-[var(--accent)]';
-  return 'text-[var(--text-muted)]';
+  if (actionType.includes('added') || actionType.includes('created')) return styles.actionPositive;
+  if (actionType.includes('removed') || actionType.includes('deleted'))
+    return styles.actionNegative;
+  if (actionType.includes('updated') || actionType.includes('changed')) return styles.actionNeutral;
+  return styles.actionMuted;
 };
 
 const formatTimeAgo = (dateString: string): string => {
@@ -135,67 +136,78 @@ export const InvestigationActivityFeed: React.FC<InvestigationActivityFeedProps>
         ? 'Failed to load activity'
         : null;
 
+  const getActivityItemClassName = (isCompact: boolean) =>
+    `${styles.activityItem} ${isCompact ? styles.activityItemCompact : styles.activityItemExpanded}`;
+
+  const getContentTextClassName = (isCompact: boolean) =>
+    `${styles.contentText} ${isCompact ? styles.contentTextCompact : styles.contentTextRegular}`;
+
+  const getTimestampClassName = (isCompact: boolean) =>
+    `${styles.timestamp} ${isCompact ? styles.timestampCompact : styles.timestampRegular}`;
+
+  const getRelevanceClassName = (relevance: 'high' | 'medium' | 'low') =>
+    `${styles.relevanceBadge} ${
+      relevance === 'high'
+        ? styles.relevanceHigh
+        : relevance === 'medium'
+          ? styles.relevanceMedium
+          : styles.relevanceLow
+    }`;
+
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[var(--accent)]" />
+      <div className={styles.loadingWrap}>
+        <div className={styles.spinner} />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="text-center py-4 text-red-400">
-        <Icon name="AlertCircle" size="md" className="mx-auto mb-2" />
-        <p className="text-sm">{error}</p>
+      <div className={styles.errorState}>
+        <Icon name="AlertCircle" size="md" className={styles.errorIcon} />
+        <p className={styles.errorText}>{error}</p>
       </div>
     );
   }
 
   if (activities.length === 0) {
     return (
-      <div className="text-center py-8 text-[var(--text-muted)]">
-        <Icon name="Activity" size="lg" className="mx-auto mb-2 opacity-50" />
-        <p className="text-sm">No activity yet</p>
-        <p className="text-xs text-[var(--text-muted)] mt-1">
-          Actions will appear here as the team works
-        </p>
+      <div className={styles.emptyState}>
+        <Icon name="Activity" size="lg" className={styles.emptyIcon} />
+        <p className={styles.emptyTitle}>No activity yet</p>
+        <p className={styles.emptyText}>Actions will appear here as the team works</p>
       </div>
     );
   }
 
   return (
-    <div className={`activity-feed ${compact ? 'space-y-2' : 'space-y-3'}`}>
+    <div className={`${styles.feed} ${compact ? styles.feedCompact : styles.feedRegular}`}>
       {activities.map((activity) => {
         const relevance = readRelevance(activity.metadata?.relevance);
         return (
-          <div
-            key={activity.id}
-            className={`flex items-start gap-3 ${compact ? 'py-1' : 'py-2 px-3 bg-[var(--glass-bg)]/30 rounded-[var(--radius-lg)]'}`}
-          >
+          <div key={activity.id} className={getActivityItemClassName(compact)}>
             {/* Action icon */}
-            <div
-              className={`flex-shrink-0 w-8 h-8 rounded-full bg-[var(--glass-bg-highlight)]/50 flex items-center justify-center ${getActionColor(activity.actionType)}`}
-            >
+            <div className={`${styles.actionIconWrap} ${getActionColor(activity.actionType)}`}>
               <Icon name={getActionIcon(activity.actionType) as IconName} size="sm" />
             </div>
 
             {/* Content */}
-            <div className="flex-1 min-w-0">
-              <div className={`${compact ? 'text-xs' : 'text-sm'} text-[var(--text-primary)]`}>
-                <span className="font-medium text-[var(--accent)]">{activity.userName}</span>{' '}
-                <span className="text-[var(--text-muted)]">
+            <div className={styles.content}>
+              <div className={getContentTextClassName(compact)}>
+                <span className={styles.userName}>{activity.userName}</span>{' '}
+                <span className={styles.actionText}>
                   {actionLabels[activity.actionType] || activity.actionType.replace(/_/g, ' ')}
                 </span>
                 {activity.targetTitle && (
                   <>
                     {' '}
-                    <span className="text-[var(--text-primary)] font-medium">
+                    <span className={styles.targetTitle}>
                       {activity.targetType && (
                         <Icon
                           name={(targetTypeIcons[activity.targetType] || 'File') as IconName}
                           size="xs"
-                          className="inline mr-1 opacity-60"
+                          className={styles.targetIcon}
                         />
                       )}
                       {activity.targetTitle}
@@ -206,27 +218,15 @@ export const InvestigationActivityFeed: React.FC<InvestigationActivityFeedProps>
 
               {/* Metadata details */}
               {!compact && activity.metadata && (
-                <div className="mt-1 text-xs text-[var(--text-muted)]">
+                <div className={styles.metadataRow}>
                   {relevance && (
-                    <span
-                      className={`inline-block px-1.5 py-0.5 rounded mr-2 ${
-                        relevance === 'high'
-                          ? 'bg-red-900/30 text-red-300'
-                          : relevance === 'medium'
-                            ? 'bg-yellow-900/30 text-yellow-300'
-                            : 'bg-green-900/30 text-green-300'
-                      }`}
-                    >
-                      {relevance} relevance
-                    </span>
+                    <span className={getRelevanceClassName(relevance)}>{relevance} relevance</span>
                   )}
                 </div>
               )}
 
               {/* Timestamp */}
-              <div
-                className={`${compact ? 'text-[10px]' : 'text-xs'} text-[var(--text-muted)] mt-0.5`}
-              >
+              <div className={getTimestampClassName(compact)}>
                 {formatTimeAgo(activity.createdAt)}
               </div>
             </div>
@@ -236,8 +236,8 @@ export const InvestigationActivityFeed: React.FC<InvestigationActivityFeedProps>
 
       {/* Refresh indicator */}
       {refreshInterval > 0 && (
-        <div className="text-center text-xs text-[var(--text-primary)] py-2">
-          <Icon name="RefreshCw" size="xs" className="inline mr-1" />
+        <div className={styles.refreshIndicator}>
+          <Icon name="RefreshCw" size="xs" className={styles.refreshIcon} />
           Auto-refreshes every {Math.floor(refreshInterval / 1000)}s
         </div>
       )}

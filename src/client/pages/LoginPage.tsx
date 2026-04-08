@@ -5,6 +5,7 @@ import { Surface } from '../design-system/components/surfaces/Surface';
 import { Flex } from '../design-system/components/layout/Flex';
 import { Box } from '../design-system/components/layout/Box';
 import { LqText } from '../design-system/components/typography/Text';
+import styles from './LoginPage.module.css';
 
 export const LoginPage: React.FC = () => {
   const [username, setUsername] = useState('');
@@ -47,50 +48,42 @@ export const LoginPage: React.FC = () => {
   };
 
   return (
-    <Flex align="center" justify="center" className="min-h-[calc(100vh-200px)] p-4">
-      <Surface variant="glass" className="w-full max-w-md p-8 shadow-xl">
-        <LqText as="h2" variant="h3" color="primary" className="mb-6 text-center font-bold">
+    <Flex align="center" justify="center" className={styles.page}>
+      <Surface variant="glass" className={styles.card}>
+        <LqText as="h2" variant="h3" color="primary" className={styles.title}>
           Admin Login
         </LqText>
 
-        {error && (
-          <Box className="bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded mb-4 text-sm">
-            {error}
-          </Box>
-        )}
+        {error && <Box className={styles.errorBanner}>{error}</Box>}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className={styles.form}>
           <Box>
-            <LqText as="label" variant="small" color="muted" className="block mb-1 font-medium">
+            <LqText as="label" variant="small" color="muted" className={styles.label}>
               Username
             </LqText>
             <input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] text-[var(--text-primary)] rounded px-3 py-2 focus:ring-2 focus:ring-[var(--accent)] focus:outline-none"
+              className={styles.input}
               required
             />
           </Box>
 
           <Box>
-            <LqText as="label" variant="small" color="muted" className="block mb-1 font-medium">
+            <LqText as="label" variant="small" color="muted" className={styles.label}>
               Password
             </LqText>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] text-[var(--text-primary)] rounded px-3 py-2 focus:ring-2 focus:ring-[var(--accent)] focus:outline-none"
+              className={styles.input}
               required
             />
           </Box>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-[var(--accent)] hover:brightness-110 text-[var(--text-primary)] font-medium py-2 px-4 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-[var(--accent)]/20"
-          >
+          <button type="submit" disabled={loading} className={styles.submitButton}>
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>

@@ -1,0 +1,99 @@
+.container {
+  overflow: hidden;
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+.header {
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.05), transparent);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.infoRow {
+  opacity: 0.5;
+  margin-bottom: var(--space-2);
+}
+
+.infoIcon {
+  margin-top: 0.125rem;
+  flex-shrink: 0;
+}
+
+.body {
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.docCard {
+  padding: var(--space-4);
+  background: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.05);
+  transition: border-color 0.2s;
+}
+
+.docCard:hover {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.docCardHeader {
+  margin-bottom: var(--space-3);
+}
+
+.docTitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-right: var(--space-4);
+}
+
+/* Risk badge variants */
+.riskBadge {
+  padding: 0.125rem var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: 10px;
+  font-weight: var(--weight-bold);
+  text-transform: uppercase;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.riskBadgeHigh {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.riskBadgeMedium {
+  background: rgba(234, 179, 8, 0.2);
+  color: #facc15;
+  border-color: rgba(234, 179, 8, 0.3);
+}
+
+.riskBadgeLow {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.4);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.snippet {
+  font-size: var(--type-xs);
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.2);
+  border-left: 2px solid color-mix(in srgb, var(--accent) 50%, transparent);
+  margin-bottom: var(--space-3);
+  font-family: monospace;
+  line-height: 1.6;
+}
+
+.docMeta {
+  opacity: 0.4;
+}
+
+.countLabel {
+  margin-left: var(--space-1);
+  opacity: 0.5;
+}

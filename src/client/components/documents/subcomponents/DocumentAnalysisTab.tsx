@@ -4,6 +4,12 @@ import { InvestigationTextRenderer } from '../InvestigationTextRenderer';
 import { DocumentDiffView } from '../DocumentDiffView';
 import { DocumentAnnotationSystem } from '../DocumentAnnotationSystem';
 import { formatDate } from '../DocumentModalUtils';
+import styles from './DocumentAnalysisTab.module.css';
+
+import { Surface } from '../../../design-system/components/surfaces/Surface';
+import { Box } from '../../../design-system/components/layout/Box';
+import { Flex } from '../../../design-system/components/layout/Flex';
+import { LqText } from '../../../design-system/components/typography/Text';
 
 type TextSubview = 'clean' | 'ocr' | 'diff';
 
@@ -76,61 +82,61 @@ export const DocumentAnalysisTab: React.FC<DocumentAnalysisTabProps> = ({
   cleanText,
   ocrText,
 }) => {
+  const hasAnyText = cleanText.trim() || ocrText.trim();
+
   return (
-    <div className="space-y-8">
+    <Box className={styles.root}>
       {textSubview === 'clean' && (
-        <section className="surface-quiet p-4 border-l-4 border-violet-500/50 mb-6 group hover:border-violet-400 transition-colors">
-          <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-2 flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-violet-300" />
-            Key Insights
-          </h3>
+        <Surface variant="glass-highlight" className={styles.insightsCard}>
+          <Flex align="center" gap="sm" className={styles.insightsTitle}>
+            <Sparkles className={styles.sparklesIcon} />
+            <LqText variant="h3" weight="semibold">
+              Key Insights
+            </LqText>
+          </Flex>
           {summary.bullets.length > 0 ? (
-            <ul className="list-disc pl-5 space-y-2 text-[var(--text-primary)] text-sm leading-relaxed">
+            <ul className={styles.insightList}>
               {summary.bullets.slice(0, 5).map((bullet, index) => (
                 <li key={`summary-${index}`}>{bullet}</li>
               ))}
             </ul>
           ) : (
-            <p className="text-[var(--text-muted)] text-sm italic">
+            <LqText variant="body" color="muted" className={styles.mutedItalic}>
               No summary insights available for this document.
-            </p>
+            </LqText>
           )}
-          <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] mt-4 flex items-center gap-1">
-            <div className="w-1 h-1 rounded-full bg-violet-500" />
+          <Box className={styles.sourceMeta}>
+            <Box className={styles.sourceDot} />
             {summary.sourceLabel}
-          </div>
-        </section>
+          </Box>
+        </Surface>
       )}
 
-      {(cleanText.trim() || ocrText.trim()) && (
-        <div className="flex flex-wrap items-center gap-2">
+      {hasAnyText && (
+        <Flex gap="sm" className={styles.textModeTabs}>
           {(['clean', 'ocr', 'diff'] as TextSubview[]).map((mode) => (
             <button
               key={mode}
               type="button"
               onClick={() => setTextSubview(mode)}
-              className={`px-3 py-1.5 rounded-md text-xs uppercase tracking-wider border transition-colors ${
-                textSubview === mode
-                  ? 'bg-[var(--accent)]/20 border-[var(--accent)]/40 text-cyan-200'
-                  : 'bg-[var(--glass-bg-strong)]/40 border-[var(--glass-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)]'
-              }`}
+              className={`${styles.modeButton} ${textSubview === mode ? styles.modeButtonActive : ''}`}
             >
               {mode === 'clean' ? 'Clean Text' : mode === 'ocr' ? 'Raw OCR' : 'Diff View'}
             </button>
           ))}
-        </div>
+        </Flex>
       )}
 
-      {!cleanText.trim() && !ocrText.trim() ? (
-        <div className="space-y-4">
-          <div className="surface-quiet p-4 border-l-4 border-[var(--glass-border)] flex items-center gap-3">
-            <FileText className="w-4 h-4 text-[var(--text-muted)] shrink-0" />
-            <p className="text-xs text-[var(--text-muted)]">
+      {!hasAnyText ? (
+        <Box className={styles.emptyStateWrap}>
+          <Surface variant="glass-highlight" className={styles.emptyState}>
+            <FileText className={styles.emptyIcon} />
+            <LqText color="muted" className={styles.emptyText}>
               Text extraction is pending for this record. Open the Original Document tab for the
               source asset.
-            </p>
-          </div>
-        </div>
+            </LqText>
+          </Surface>
+        </Box>
       ) : textSubview === 'diff' ? (
         <DocumentDiffView cleanText={cleanText} originalText={ocrText} />
       ) : (
@@ -147,138 +153,146 @@ export const DocumentAnalysisTab: React.FC<DocumentAnalysisTabProps> = ({
       )}
 
       {textSubview === 'clean' && (
-        <div className="pt-12 border-t border-[var(--glass-border)] space-y-12">
-          <section className="surface-quiet p-5">
-            <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-3">Annotations</h3>
+        <Box className={styles.cleanSection}>
+          <Surface variant="glass-highlight" className={styles.surfacePad}>
+            <LqText variant="h3" weight="bold" className={styles.sectionTitle}>
+              Annotations
+            </LqText>
             <DocumentAnnotationSystem
               documentId={String(doc.id || id)}
               content={cleanText || ocrText}
               searchTerm={localSearchTerm}
               mode="inline"
             />
-          </section>
+          </Surface>
 
-          <div className="space-y-8">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-[var(--text-primary)]">
+          <Box className={styles.sectionStack}>
+            <Flex align="center" justify="between" className={styles.sectionHeader}>
+              <LqText variant="h3" weight="semibold" className={styles.headingLg}>
                 Extracted Entities
-              </h3>
-              <span className="text-xs text-[var(--text-muted)] uppercase tracking-widest">
+              </LqText>
+              <LqText variant="xs" weight="bold" className={styles.metaCaps}>
                 {entities.length} TOTAL
-              </span>
-            </div>
+              </LqText>
+            </Flex>
             {entities.length === 0 ? (
-              <div className="surface-quiet p-12 text-center">
-                <p className="text-sm text-[var(--text-muted)]">
+              <Surface variant="glass-highlight" className={styles.centeredState}>
+                <LqText color="muted" className={styles.mutedItalic}>
                   No extracted entities available in this record.
-                </p>
-              </div>
+                </LqText>
+              </Surface>
             ) : (
-              <div className="space-y-8">
+              <Box className={styles.entityGroups}>
                 {groupedEntities.map(([groupName, groupItems]) => (
-                  <section key={groupName} className="space-y-4">
-                    <h4 className="text-[10px] uppercase tracking-[0.2em] text-[var(--accent)]/70 font-black flex items-center gap-3">
-                      {groupName}
-                      <div className="h-px flex-1 bg-cyan-900/30" />
-                      <span className="text-[var(--text-primary)]">{groupItems.length}</span>
-                    </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Box as="section" key={groupName} className={styles.entityGroup}>
+                    <Flex align="center" gap="sm" className={styles.groupTitle}>
+                      <LqText variant="h4" weight="semibold">
+                        {groupName}
+                      </LqText>
+                      <Box className={styles.groupRule} />
+                      <LqText variant="xs" weight="bold" className={styles.groupCount}>
+                        {groupItems.length}
+                      </LqText>
+                    </Flex>
+                    <Box className={styles.entityGrid}>
                       {groupItems.map((entity, index) => (
-                        <div
+                        <Surface
                           key={`${entity.id || entity.name}-${index}`}
-                          className="surface-quiet p-4 hover:border-[var(--accent)]/40 transition-all group relative overflow-hidden flex flex-col justify-between"
+                          variant="glass-highlight"
+                          className={styles.entityCard}
                         >
-                          <div className="flex items-start justify-between gap-3 min-w-0">
-                            <div className="min-w-0 flex-1">
+                          <Box className={styles.entityCardTop}>
+                            <Flex direction="column" className={styles.entityCardBody}>
                               <button
                                 type="button"
-                                className="text-left font-medium text-[var(--accent)] hover:text-cyan-100 truncate block w-full"
+                                className={styles.entityButton}
                                 onClick={() => setSelectedEntity(entity)}
                               >
                                 {entity.name}
                               </button>
-                              <span className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] font-semibold">
+                              <LqText variant="xs" className={styles.entityRole}>
                                 {entity.primaryRole || entity.role || entity.entityType || 'ENTITY'}
-                              </span>
-                            </div>
-                          </div>
+                              </LqText>
+                            </Flex>
+                          </Box>
                           {(entity.mentions ?? 0) > 0 && (
-                            <div className="mt-3 pt-3 border-t border-[var(--glass-border)] flex items-center justify-between">
-                              <span className="text-[9px] text-[var(--text-muted)] uppercase font-bold">
+                            <Flex align="center" justify="between" className={styles.entityFooter}>
+                              <LqText variant="xs" className={styles.entityMentions}>
                                 {entity.mentions} Mentions
-                              </span>
+                              </LqText>
                               <button
                                 onClick={() => setEntityModalId(String(entity.id))}
-                                className="text-[9px] text-[var(--accent)]/60 hover:text-[var(--accent)] uppercase font-black tracking-widest"
+                                className={styles.entityAction}
                               >
                                 View Dossier
                               </button>
-                            </div>
+                            </Flex>
                           )}
-                        </div>
+                        </Surface>
                       ))}
-                    </div>
-                  </section>
+                    </Box>
+                  </Box>
                 ))}
-              </div>
+              </Box>
             )}
-          </div>
+          </Box>
 
-          <div className="space-y-8">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-[var(--text-primary)]">
+          <Box className={styles.sectionStack}>
+            <Flex align="center" justify="between" className={styles.sectionHeader}>
+              <LqText variant="h3" weight="semibold" className={styles.headingLg}>
                 Related Documents
-              </h3>
-              <span className="text-xs text-[var(--text-muted)] uppercase tracking-widest">
+              </LqText>
+              <LqText variant="xs" weight="bold" className={styles.metaCaps}>
                 SHARED ENTITY LINKS
-              </span>
-            </div>
+              </LqText>
+            </Flex>
             {isLoadingRelated ? (
-              <div className="p-12 text-center">
-                <div className="w-8 h-8 border-2 border-[var(--accent)]/30 border-t-cyan-500 rounded-full animate-spin mx-auto mb-4" />
-                <p className="text-sm text-[var(--text-muted)] italic">
+              <Box className={styles.spinnerWrap}>
+                <Box className={styles.spinner} />
+                <LqText variant="small" color="muted" className={styles.mutedItalic}>
                   Analyzing cross-references...
-                </p>
-              </div>
+                </LqText>
+              </Box>
             ) : relatedDocs.length === 0 ? (
-              <div className="surface-quiet p-12 text-center">
-                <p className="text-sm text-[var(--text-muted)]">
+              <Surface variant="glass-highlight" className={styles.centeredState}>
+                <LqText color="muted" className={styles.mutedItalic}>
                   No related documents identified through shared entities.
-                </p>
-              </div>
+                </LqText>
+              </Surface>
             ) : (
-              <div className="grid grid-cols-1 gap-4">
+              <Box className={styles.relatedList}>
                 {relatedDocs.map((relatedDoc) => (
-                  <button
+                  <Surface
+                    as="button"
                     key={relatedDoc.id}
-                    type="button"
-                    className="surface-quiet p-5 hover:border-[var(--accent)]/40 transition-all group border-l-4 border-l-slate-800 hover:border-l-cyan-500 w-full text-left bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-inset"
+                    variant="glass-highlight"
+                    className={styles.relatedButton}
                     onClick={() => onNavigateToDoc(String(relatedDoc.id))}
                   >
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                      <div className="min-w-0 flex-1">
-                        <span className="text-left font-bold text-[var(--text-primary)] group-hover:text-[var(--accent)] truncate text-base block">
+                    <Box className={styles.relatedButtonRow}>
+                      <Flex direction="column" className={styles.entityCardBody}>
+                        <LqText weight="medium" className={styles.relatedTitle}>
                           {relatedDoc.title || relatedDoc.fileName}
-                        </span>
-                        <div className="flex flex-wrap items-center gap-3 mt-1">
-                          <span className="text-[10px] uppercase font-bold text-[var(--text-muted)]">
+                        </LqText>
+                        <Flex align="center" gap="sm" className={styles.relatedMeta}>
+                          <LqText variant="xs" className={styles.relatedType}>
                             {relatedDoc.evidenceType}
-                          </span>
-                          <div className="w-1 h-1 rounded-full bg-[var(--glass-bg-highlight)]" />
-                          <span className="text-[10px] text-[var(--text-muted)] font-mono">
+                          </LqText>
+                          <Box className={styles.relatedDot} />
+                          <LqText variant="xs" className={styles.relatedDate}>
                             {formatDate(relatedDoc.dateCreated)}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </button>
+                          </LqText>
+                        </Flex>
+                      </Flex>
+                    </Box>
+                  </Surface>
                 ))}
-              </div>
+              </Box>
             )}
-          </div>
-        </div>
+          </Box>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 };
 

@@ -12,13 +12,12 @@ SELECT
   (SELECT COUNT(*) FROM entity_mentions em JOIN documents d ON d.id = em.document_id WHERE em.entity_id = e.id AND d.evidence_type = 'media') as "mediaCount",
   (SELECT COUNT(*) FROM black_book_entries WHERE person_id = e.id) as "blackBookCount",
   (
-    SELECT d.id
-    FROM entity_mentions em 
-    JOIN documents d ON d.id = em.document_id 
-    WHERE em.entity_id = e.id
-    AND d.evidence_type = 'media'
-    AND (d.file_type ILIKE 'image/%' OR d.file_type IS NULL)
-    ORDER BY d.red_flag_rating DESC, d.id DESC
+    SELECT mi.id
+    FROM media_items mi
+    LEFT JOIN media_item_people mip ON mi.id::text = mip.media_item_id
+    WHERE (mi.entity_id = e.id OR mip.entity_id = e.id)
+      AND mi.file_type ILIKE 'image/%'
+    ORDER BY mi.red_flag_rating DESC NULLS LAST, mi.id DESC
     LIMIT 1
   ) as "topPhotoId"
 FROM entities e
@@ -61,10 +60,11 @@ WHERE er.source_entity_id = :entityId!
 ORDER BY er.confidence DESC;
 
 /* @name getEntityMentions */
-SELECT 
+SELECT
   em.*,
   d.file_name as "documentTitle",
-  d.date_created as "documentDate"
+  d.date_created as "documentDate",
+  d.file_path as "documentPath"
 FROM entity_mentions em
 JOIN documents d ON em.document_id = d.id
 WHERE em.entity_id = :entityId!

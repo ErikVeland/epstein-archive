@@ -1,0 +1,341 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  animation: viewerFadeIn 0.7s ease;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--glass-border);
+  background: color-mix(in srgb, var(--glass-bg-strong) 40%, transparent);
+  flex-shrink: 0;
+}
+
+.searchGroup {
+  position: relative;
+  flex: 1;
+  min-width: 240px;
+  max-width: 32rem;
+}
+
+.searchIcon {
+  position: absolute;
+  left: var(--space-3);
+  top: 50%;
+  width: 1rem;
+  height: 1rem;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  transition: color 0.2s ease;
+  pointer-events: none;
+}
+
+.searchGroup:focus-within .searchIcon {
+  color: var(--accent);
+}
+
+.searchInput {
+  width: 100%;
+  padding-block: var(--space-2);
+  padding-left: calc(var(--space-10) + var(--space-1));
+  padding-right: 5.5rem;
+}
+
+.matchCounter {
+  position: absolute;
+  right: var(--space-2);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.matchLabel {
+  font-size: 10px;
+  font-weight: var(--weight-black);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.matchActions {
+  display: flex;
+  gap: var(--space-1);
+  padding-left: var(--space-2);
+  border-left: 1px solid var(--glass-border);
+}
+
+.matchButton {
+  color: var(--text-muted);
+  transition: color 0.2s ease;
+}
+
+.matchButton:hover {
+  color: var(--text-primary);
+}
+
+.matchButtonIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.segmentedControl {
+  display: flex;
+  gap: var(--space-1);
+  padding: var(--space-1);
+}
+
+.segmentedButton {
+  padding: var(--space-1-5) var(--space-3);
+  border-radius: var(--radius-lg);
+  font-size: 10px;
+  font-weight: var(--weight-black);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.segmentedButton:hover {
+  color: var(--text-muted);
+}
+
+.segmentedButtonActive {
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  color: var(--accent);
+}
+
+.segmentedButtonActive:hover {
+  color: var(--accent);
+}
+
+.segmentedButtonRawActive {
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  background: rgba(245, 158, 11, 0.2);
+  color: #fcd34d;
+}
+
+.segmentedButtonRawActive:hover {
+  color: #fcd34d;
+}
+
+.toggleButton {
+  padding: var(--space-1-5) var(--space-3);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  font-size: 10px;
+  font-weight: var(--weight-black);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.toggleButton:hover {
+  color: var(--text-primary);
+}
+
+.toggleButtonActive {
+  background: color-mix(in srgb, var(--glass-bg-highlight) 60%, transparent);
+  color: var(--text-primary);
+}
+
+.copyButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-inline: var(--space-4);
+  font-size: var(--type-small);
+  font-weight: var(--weight-bold);
+}
+
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  color: var(--text-muted);
+  transition: color 0.2s ease;
+}
+
+.iconButton:hover {
+  color: var(--text-primary);
+}
+
+.buttonIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.copiedIcon {
+  color: #10b981;
+}
+
+.redactionGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-left: var(--space-3);
+  border-left: 1px solid var(--glass-border);
+  flex-wrap: wrap;
+}
+
+.redactionLabel {
+  font-size: 10px;
+  font-weight: var(--weight-black);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.contentArea {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-6);
+  background: var(--glass-bg);
+  transition: all 0.5s ease;
+}
+
+.contentInner {
+  max-width: 56rem;
+  margin: 0 auto;
+}
+
+.highlightsPanel {
+  margin-bottom: var(--space-12);
+  padding: var(--space-2) var(--space-6);
+  border-left: 4px solid rgba(139, 92, 246, 0.4);
+  border-radius: 0 var(--radius-2xl) var(--radius-2xl) 0;
+  background: rgba(139, 92, 246, 0.05);
+}
+
+.highlightsHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.highlightsIcon {
+  width: 1rem;
+  height: 1rem;
+  color: #a78bfa;
+}
+
+.highlightsLabel {
+  font-size: 10px;
+  font-weight: var(--weight-black);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #c4b5fd;
+}
+
+.excerpt {
+  margin: 0 0 var(--space-4);
+  font-size: var(--type-small);
+  font-style: italic;
+  line-height: 1.625;
+  color: var(--text-secondary);
+}
+
+.excerpt:last-child {
+  margin-bottom: 0;
+}
+
+.prose {
+  max-width: none;
+}
+
+.contentText {
+  white-space: pre-wrap;
+  line-height: 1.625;
+  color: var(--text-primary);
+}
+
+.contentTextRaw {
+  font-family: var(--font-mono, 'SFMono-Regular', ui-monospace, monospace);
+  font-size: var(--type-xs);
+  opacity: 0.7;
+}
+
+.contentTextClean {
+  font-family: var(--font-sans, inherit);
+  font-size: var(--type-body);
+}
+
+.sentenceList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.sentence {
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.sentenceBoilerplate {
+  font-size: var(--type-xs);
+  color: var(--text-muted);
+}
+
+.sentenceHighSignal {
+  background: rgba(139, 92, 246, 0.1);
+  border-bottom: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.highlight {
+  padding-inline: 0.125rem;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: var(--radius-sm);
+  background: rgba(245, 158, 11, 0.4);
+  color: var(--text-primary);
+  transition: all 0.3s ease;
+}
+
+.highlightActive {
+  box-shadow: 0 0 0 2px #fbbf24, 0 0 0 4px rgba(15, 23, 42, 0.9);
+}
+
+@media (min-width: 768px) {
+  .toolbar {
+    padding: var(--space-6);
+  }
+
+  .contentArea {
+    padding: var(--space-12);
+  }
+}
+
+@keyframes viewerFadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}

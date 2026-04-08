@@ -164,6 +164,32 @@ async function loadAggregateStatsForSubjects(
   return aggregateStatsByEntity;
 }
 
+async function loadTopPhotosByEntity(
+  pool: ReturnType<typeof getApiPool>,
+  entityIds: number[],
+): Promise<Map<number, number>> {
+  if (entityIds.length === 0) return new Map();
+  const result = await pool.query<{ id: number; entityId: string }>({
+    text: `
+      SELECT id, "entityId" FROM (
+        SELECT
+          m.id,
+          COALESCE(mip.entity_id::bigint, m.entity_id::bigint)::text AS "entityId",
+          ROW_NUMBER() OVER (
+            PARTITION BY COALESCE(mip.entity_id::bigint, m.entity_id::bigint)
+            ORDER BY m.red_flag_rating DESC NULLS LAST, m.id DESC
+          ) AS rn
+        FROM media_items m
+        LEFT JOIN media_item_people mip ON m.id::text = mip.media_item_id
+        WHERE (mip.entity_id::bigint = ANY($1::bigint[]) OR m.entity_id = ANY($1::bigint[]))
+          AND m.file_type ILIKE 'image/%'
+      ) t WHERE rn = 1
+    `,
+    values: [entityIds],
+  });
+  return new Map(result.rows.map((r) => [Number(r.entityId), r.id]));
+}
+
 async function getSubjectCardsFallback(
   page: number,
   limit: number,
@@ -226,14 +252,18 @@ async function getSubjectCardsFallback(
       },
       pool,
     ),
-    runQuery<{ searchTerm: string | null; riskLevels: string[] | null }, { total?: number }>(
-      entitiesQueries.countSubjectCards,
-      {
-        searchTerm,
-        riskLevels,
-      },
-      pool,
-    ),
+    pool.query<{ total: string }>({
+      text: `
+        SELECT COUNT(*) as total
+        FROM entities e
+        WHERE ($1::text IS NULL OR e.full_name ILIKE $1 OR e.primary_role ILIKE $1 OR e.aliases ILIKE $1)
+          AND ($2::text[] IS NULL OR e.risk_level = ANY($2::text[]))
+          AND ($3::numeric IS NULL OR e.red_flag_rating >= $3::numeric)
+          AND ($4::numeric IS NULL OR e.red_flag_rating <= $4::numeric)
+          AND ($5::text IS NULL OR e.primary_role = $5)
+      `,
+      values: [searchTerm, riskLevels, minRedFlag, maxRedFlag, role],
+    }),
     runQuery<undefined, { maxConn?: number }>(entitiesQueries.getMaxConnectivity, undefined, pool),
     buildVipDisplayLookup(),
   ]);
@@ -281,7 +311,6 @@ async function getSubjectCardsFallback(
         driverLabels: drivers,
       },
       topPreview: undefined,
-      ...(row.topPhotoId ? { topPhotoId: String(row.topPhotoId) } : {}),
     };
   });
 
@@ -289,12 +318,17 @@ async function getSubjectCardsFallback(
     const subjectIds = subjects
       .map((subject) => Number(subject.id))
       .filter((id) => Number.isFinite(id) && id > 0);
-    const aggregateStatsByEntity =
+    const [aggregateStatsByEntity, topPhotoByEntity] = await Promise.all([
       subjectIds.length <= SUBJECT_AGGREGATE_ENRICHMENT_LIMIT
-        ? await loadAggregateStatsForSubjects(pool, subjectIds)
-        : new Map<number, { documents: number; distinctSources: number; verifiedMedia: number }>();
+        ? loadAggregateStatsForSubjects(pool, subjectIds)
+        : new Map<number, { documents: number; distinctSources: number; verifiedMedia: number }>(),
+      loadTopPhotosByEntity(pool, subjectIds),
+    ]);
 
     for (const subject of subjects) {
+      const photoId = topPhotoByEntity.get(Number(subject.id));
+      if (photoId) subject.topPhotoId = String(photoId);
+
       const aggregateStats = aggregateStatsByEntity.get(Number(subject.id));
       if (!aggregateStats) continue;
       subject.stats.documents = aggregateStats.documents;
@@ -320,7 +354,7 @@ async function getSubjectCardsFallback(
 
   return {
     subjects,
-    total: Number(countRows?.[0]?.total || 0),
+    total: Number(countRows?.rows?.[0]?.total || 0),
   };
 }
 
@@ -513,13 +547,15 @@ export const entitiesRepository = {
         .map((row) => Number(row.id))
         .filter((id) => Number.isFinite(id) && id > 0);
 
-      const aggregateStatsByEntity =
+      const [aggregateStatsByEntity, topPhotoByEntity] = await Promise.all([
         subjectIds.length <= SUBJECT_AGGREGATE_ENRICHMENT_LIMIT
-          ? await loadAggregateStatsForSubjects(pool, subjectIds)
+          ? loadAggregateStatsForSubjects(pool, subjectIds)
           : new Map<
               number,
               { documents: number; distinctSources: number; verifiedMedia: number }
-            >();
+            >(),
+        loadTopPhotosByEntity(pool, subjectIds),
+      ]);
 
       const subjects: SubjectCardListItemDto[] = entitiesForPageMerge.map((e) => {
         const entityId = Number(e.id || 0);
@@ -569,7 +605,9 @@ export const entitiesRepository = {
             driverLabels: drivers.slice(0, 4),
           },
           topPreview: undefined,
-          ...(e.topPhotoId ? { topPhotoId: String(e.topPhotoId) } : {}),
+          ...(topPhotoByEntity.has(entityId)
+            ? { topPhotoId: String(topPhotoByEntity.get(entityId)) }
+            : {}),
         };
       });
 
@@ -716,8 +754,6 @@ export const entitiesRepository = {
           if (aMentions !== bMentions) return bMentions - aMentions;
         }
 
-        const vipCmp = 0;
-        if (vipCmp !== 0) return vipCmp;
         return a.name.localeCompare(b.name);
       });
 
@@ -860,7 +896,7 @@ export const entitiesRepository = {
       fileReferences: mentions.map((m) => ({
         id: String(m.document_id),
         filename: String(m.documentTitle || ''),
-        filePath: String(m.documentTitle || ''),
+        filePath: String(m.documentPath || ''),
         contentPreview: String(m.mention_context || ''),
       })),
       significantPassages: mentions.slice(0, 5).map((m) => ({

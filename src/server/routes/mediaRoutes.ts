@@ -112,7 +112,7 @@ router.get(
         const etag = crypto.createHash('md5').update(key).digest('hex');
         return {
           entityId: String(m.entityId),
-          url: `/api/entities/${m.entityId}/media`,
+          url: `/api/media/images/${m.id}/thumbnail`,
           etag,
         };
       });
@@ -158,7 +158,7 @@ router.get('/images', validate(mediaImagesQuerySchema), async (req, res, next) =
     const limit = Number(query.limit || 24);
     const sortField = String(query.sortField || 'date_added').toLowerCase();
     const sortOrder = String(query.sortOrder || 'desc').toLowerCase() === 'asc' ? 'asc' : 'desc';
-    const slim = Boolean(query.slim);
+    const slim = query.slim === 'true';
 
     const { mediaItems, total } = await mediaRepository.getMediaItemsPaginated(page, limit, {
       albumId: query.albumId ? Number(query.albumId) : undefined,

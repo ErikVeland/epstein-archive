@@ -13,6 +13,9 @@ import {
   FileSpreadsheet,
 } from 'lucide-react';
 import { CloseButton } from './common/CloseButton';
+import { cn } from '../utils/cn';
+import styles from './FileBrowser.module.css';
+import { Flex, Surface, Stack, Grid, Box, LqText } from '../design-system/lib';
 
 interface FileItem {
   name: string;
@@ -34,13 +37,23 @@ const FileBrowser: React.FC = () => {
   const [loadError, setLoadError] = useState<string | null>(null);
 
   const categories = [
-    { id: 'all', name: 'All Files', icon: Folder, color: 'text-[var(--accent)]' },
-    { id: 'emails', name: 'Emails & Communications', icon: Mail, color: 'text-green-400' },
-    { id: 'documents', name: 'Legal Documents', icon: FileText, color: 'text-red-400' },
-    { id: 'images', name: 'Images & Photos', icon: Image, color: 'text-purple-400' },
-    { id: 'flight_logs', name: 'Flight Records', icon: FileSpreadsheet, color: 'text-yellow-400' },
-    { id: 'testimonies', name: 'Testimonies', icon: User, color: 'text-[var(--accent)]' },
-    { id: 'financial', name: 'Financial Records', icon: FileSpreadsheet, color: 'text-orange-400' },
+    { id: 'all', name: 'All Files', icon: Folder, colorClass: styles.iconDefault },
+    { id: 'emails', name: 'Emails & Communications', icon: Mail, colorClass: styles.iconEmails },
+    { id: 'documents', name: 'Legal Documents', icon: FileText, colorClass: styles.iconDocuments },
+    { id: 'images', name: 'Images & Photos', icon: Image, colorClass: styles.iconImages },
+    {
+      id: 'flight_logs',
+      name: 'Flight Records',
+      icon: FileSpreadsheet,
+      colorClass: styles.iconFlights,
+    },
+    { id: 'testimonies', name: 'Testimonies', icon: User, colorClass: styles.iconDefault },
+    {
+      id: 'financial',
+      name: 'Financial Records',
+      icon: FileSpreadsheet,
+      colorClass: styles.iconFinancial,
+    },
   ];
 
   useEffect(() => {
@@ -151,63 +164,64 @@ const FileBrowser: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <Flex align="center" justify="center" p={12}>
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent)]"></div>
-      </div>
+      </Flex>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <Stack gap={6}>
       {/* Category Filter */}
-      <div className="bg-[var(--glass-bg)] p-4 rounded-[var(--radius-xl)]">
-        <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
-          Browse by Category
-        </h3>
-        {loadError && (
-          <div className="mb-4 text-sm text-rose-300 bg-rose-900/30 border border-rose-400/30 rounded px-3 py-2">
-            {loadError}
-          </div>
-        )}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+      <Surface variant="glass" p={4}>
+        <Box mb={4}>
+          <LqText variant="h3" weight="semibold">
+            Browse by Category
+          </LqText>
+        </Box>
+        {loadError && <div className={styles.errorBanner}>{loadError}</div>}
+        <div className={styles.categoryGrid}>
           {categories.map((category) => {
             const Icon = category.icon;
             return (
               <button
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
-                className={`flex flex-col items-center p-3 rounded-[var(--radius-lg)] transition-all duration-200 ${
-                  selectedCategory === category.id
-                    ? 'bg-gradient-to-br from-cyan-600 to-blue-600 text-[var(--text-primary)] shadow-[var(--glass-shadow)]'
-                    : 'bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)]'
-                }`}
+                className={cn(
+                  styles.categoryButton,
+                  selectedCategory === category.id && styles.categoryButtonActive,
+                )}
               >
-                <Icon className="h-6 w-6 mb-2" />
+                <Icon
+                  className={cn('h-6 w-6', category.colorClass)}
+                  style={{ marginBottom: 'var(--space-2)' }}
+                />
                 <span className="text-xs text-center font-medium">{category.name}</span>
               </button>
             );
           })}
         </div>
-      </div>
+      </Surface>
 
       {/* Search */}
-      <div className="bg-[var(--glass-bg)] p-4 rounded-[var(--radius-xl)]">
+      <Surface variant="glass" p={4}>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[var(--text-muted)]" />
           <input
             type="text"
             placeholder="Search files by name or content..."
-            className="w-full pl-10 pr-4 py-3 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] placeholder-gray-400 focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent"
+            style={{ padding: 'var(--space-3) var(--space-4) var(--space-3) var(--space-10)' }}
+            className="w-full bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] placeholder-gray-400 focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-      </div>
+      </Surface>
 
       {/* File List */}
       <div className="bg-[var(--glass-bg)] rounded-[var(--radius-xl)] overflow-hidden">
-        <div className="p-4 border-b border-[var(--glass-border)]">
-          <div className="flex items-center justify-between">
+        <Surface variant="glass" p={4} style={{ borderBottom: '1px solid var(--glass-border)' }}>
+          <Flex align="center" justify="between">
             <h3 className="text-lg font-semibold text-[var(--text-primary)]">
               {selectedCategory === 'all'
                 ? 'All Files'
@@ -216,10 +230,10 @@ const FileBrowser: React.FC = () => {
             <span className="text-[var(--text-muted)] text-sm">
               {filteredFiles.length} {filteredFiles.length === 1 ? 'item' : 'items'}
             </span>
-          </div>
-        </div>
+          </Flex>
+        </Surface>
 
-        <div className="divide-y divide-gray-700">
+        <div className={styles.fileList}>
           {filteredFiles.map((file, index) => {
             const Icon = getFileIcon(file);
             return (
@@ -227,54 +241,90 @@ const FileBrowser: React.FC = () => {
                 key={index}
                 type="button"
                 onClick={() => handleFileClick(file)}
-                className="w-full p-4 text-left bg-transparent hover:bg-[var(--glass-bg-highlight)] transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-inset"
+                className={styles.fileItem}
                 aria-label={`Preview file ${file.name}`}
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
+                <Flex align="center" justify="between">
+                  <Flex align="center" gap={3}>
                     <Icon className="h-5 w-5 text-[var(--accent)]" />
                     <div>
-                      <h4 className="text-[var(--text-primary)] font-medium">{file.name}</h4>
-                      <p className="text-[var(--text-muted)] text-sm">{file.path}</p>
+                      <LqText weight="medium">{file.name}</LqText>
+                      <LqText color="muted" variant="small">
+                        {file.path}
+                      </LqText>
                     </div>
-                  </div>
-                  <div className="flex items-center space-x-4 text-sm text-[var(--text-muted)]">
-                    {file.size && <span>{formatFileSize(file.size)}</span>}
-                    {file.modified && <span>{file.modified}</span>}
-                    <Eye className="h-4 w-4" />
-                  </div>
-                </div>
+                  </Flex>
+                  <Flex align="center" gap={4}>
+                    {file.size && (
+                      <LqText color="muted" variant="small">
+                        {formatFileSize(file.size)}
+                      </LqText>
+                    )}
+                    {file.modified && (
+                      <LqText color="muted" variant="small">
+                        {file.modified}
+                      </LqText>
+                    )}
+                    <Eye className="h-4 w-4 text-[var(--text-muted)]" />
+                  </Flex>
+                </Flex>
               </button>
             );
           })}
         </div>
 
         {filteredFiles.length === 0 && (
-          <div className="p-8 text-center">
-            <File className="h-12 w-12 text-[var(--text-muted)] mx-auto mb-4" />
-            <h4 className="text-[var(--text-secondary)] font-medium mb-2">No files found</h4>
-            <p className="text-[var(--text-muted)]">Try adjusting your search or category filter</p>
-          </div>
+          <Surface p={8} style={{ textAlign: 'center' }}>
+            <File
+              className="h-12 w-12 text-[var(--text-muted)] mx-auto"
+              style={{ marginBottom: 'var(--space-4)' }}
+            />
+            <Box mb={2}>
+              <LqText variant="h4" weight="medium" color="secondary">
+                No files found
+              </LqText>
+            </Box>
+            <LqText color="muted">Try adjusting your search or category filter</LqText>
+          </Surface>
         )}
       </div>
 
       {/* File Preview Modal */}
       {selectedFile &&
         createPortal(
-          <div className="fixed inset-0 bg-[var(--glass-bg-strong)] backdrop-blur-sm flex items-center justify-center z-[var(--z-modal)] p-4">
-            <div className="bg-[var(--glass-bg)] rounded-[var(--radius-xl)] max-w-4xl w-full max-h-[80vh] overflow-hidden border border-[var(--glass-border)]">
-              <div className="p-6 border-b border-[var(--glass-border)]">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
+          <Box
+            style={{
+              position: 'fixed',
+              inset: 0,
+              backgroundColor: 'var(--glass-bg-strong)',
+              backdropFilter: 'blur(8px)',
+            }}
+            className="flex items-center justify-center z-[var(--z-modal)]"
+            p={4}
+          >
+            <Surface variant="glass" w="full" maxW="lg" maxH="80vh" style={{ overflow: 'hidden' }}>
+              <Surface
+                variant="glass"
+                p={6}
+                style={{ borderBottom: '1px solid var(--glass-border)' }}
+              >
+                <Flex align="center" justify="between">
+                  <Flex align="center" gap={3}>
                     <File className="h-6 w-6 text-[var(--accent)]" />
                     <h3 className="text-xl font-semibold text-[var(--text-primary)]">
                       {selectedFile.name}
                     </h3>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <button className="flex items-center space-x-2 px-4 py-2 bg-[var(--accent)] hover:bg-cyan-700 rounded-[var(--radius-lg)] text-[var(--text-primary)] transition-colors">
+                  </Flex>
+                  <Flex align="center" gap={3}>
+                    <button
+                      className={cn(
+                        styles.controlButton,
+                        'bg-[var(--accent)] hover:brightness-110 h-auto',
+                      )}
+                      style={{ padding: 'var(--space-2) var(--space-4)' }}
+                    >
                       <Download className="h-4 w-4" />
-                      <span>Download</span>
+                      <LqText weight="medium">Download</LqText>
                     </button>
                     <CloseButton
                       onClick={() => setSelectedFile(null)}
@@ -282,25 +332,25 @@ const FileBrowser: React.FC = () => {
                       label="Close file preview"
                       className="border-[var(--glass-border)] bg-[var(--glass-bg-strong)]/70 text-[var(--text-primary)]"
                     />
-                  </div>
-                </div>
-              </div>
-              <div className="p-6 overflow-y-auto max-h-[60vh]">
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4 text-sm">
+                  </Flex>
+                </Flex>
+              </Surface>
+              <Box p={6} style={{ overflowY: 'auto', maxHeight: '60vh' }}>
+                <Stack gap={4}>
+                  <Grid cols={2} gap={4}>
                     <div>
-                      <span className="text-[var(--text-muted)]">Path:</span>
+                      <span className="text-[var(--text-muted)] text-sm">Path:</span>
                       <p className="text-[var(--text-primary)]">{selectedFile.path}</p>
                     </div>
                     <div>
-                      <span className="text-[var(--text-muted)]">Category:</span>
+                      <span className="text-[var(--text-muted)] text-sm">Category:</span>
                       <p className="text-[var(--text-primary)] capitalize">
                         {selectedFile.category}
                       </p>
                     </div>
                     {selectedFile.size && (
                       <div>
-                        <span className="text-[var(--text-muted)]">Size:</span>
+                        <span className="text-[var(--text-muted)] text-sm">Size:</span>
                         <p className="text-[var(--text-primary)]">
                           {formatFileSize(selectedFile.size)}
                         </p>
@@ -308,24 +358,32 @@ const FileBrowser: React.FC = () => {
                     )}
                     {selectedFile.modified && (
                       <div>
-                        <span className="text-[var(--text-muted)]">Modified:</span>
+                        <span className="text-[var(--text-muted)] text-sm">Modified:</span>
                         <p className="text-[var(--text-primary)]">{selectedFile.modified}</p>
                       </div>
                     )}
-                  </div>
-                  <div className="border-t border-[var(--glass-border)] pt-4">
-                    <h4 className="text-[var(--text-primary)] font-medium mb-2">Content Preview</h4>
-                    <div className="bg-[var(--glass-bg-strong)] p-4 rounded-[var(--radius-lg)] text-[var(--text-secondary)] font-mono text-sm max-h-64 overflow-y-auto">
-                      {selectedFile.content || 'File content would be displayed here...'}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>,
+                  </Grid>
+                  <Box pt={4} style={{ borderTop: '1px solid var(--glass-border)' }}>
+                    <Box mb={2}>
+                      <LqText weight="medium">Content Preview</LqText>
+                    </Box>
+                    <Surface
+                      variant="glass-strong"
+                      p={4}
+                      style={{ maxHeight: '16rem', overflowY: 'auto' }}
+                    >
+                      <pre className="text-[var(--text-secondary)] font-mono text-sm whitespace-pre-wrap">
+                        {selectedFile.content || 'File content would be displayed here...'}
+                      </pre>
+                    </Surface>
+                  </Box>
+                </Stack>
+              </Box>
+            </Surface>
+          </Box>,
           document.body,
         )}
-    </div>
+    </Stack>
   );
 };
 

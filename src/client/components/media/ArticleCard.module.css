@@ -93,6 +93,11 @@
   color: var(--text-secondary);
 }
 
+.metaIcon {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
 /* Headline */
 .headline {
   margin-bottom: var(--space-2);
@@ -169,6 +174,11 @@
   color: var(--text-primary);
 }
 
+.avatarIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
 .authorMeta {
   display: flex;
   flex-direction: column;
@@ -198,6 +208,11 @@
   transition:
     background-color 0.2s,
     color 0.2s;
+}
+
+.arrowIcon {
+  width: 1.25rem;
+  height: 1.25rem;
 }
 
 .card:hover .arrowButton {

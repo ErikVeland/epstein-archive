@@ -1,0 +1,138 @@
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  padding: var(--space-4);
+  background: transparent;
+  text-align: left;
+  transition:
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.card:hover {
+  border-color: var(--glass-border-highlight);
+}
+
+.card:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+.headerRow {
+  margin-bottom: var(--space-2);
+}
+
+.avatarShell {
+  position: relative;
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  background: var(--glass-bg-strong);
+}
+
+.avatarImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.8;
+  transition: opacity var(--duration-fast, 150ms);
+}
+
+.card:hover .avatarImage {
+  opacity: 1;
+}
+
+.avatarFallback {
+  width: 100%;
+  height: 100%;
+  color: var(--text-muted);
+}
+
+.subjectMeta {
+  flex: 1;
+  min-width: 0;
+}
+
+.subjectName {
+  overflow: hidden;
+  color: var(--text-primary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color var(--duration-fast, 150ms);
+}
+
+.card:hover .subjectName {
+  color: var(--accent);
+}
+
+.subjectRole {
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.signalBlock {
+  margin-bottom: var(--space-2);
+}
+
+.driverBlock {
+  margin-top: var(--space-2);
+  color: var(--text-muted);
+  font-size: 0.625rem;
+}
+
+.metricGrid {
+  margin-top: 0.25rem;
+  margin-bottom: auto;
+  padding-block: var(--space-3);
+  box-shadow: 0 -1px 0 var(--glass-border);
+}
+
+.footerRow {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  box-shadow: 0 -1px 0 var(--glass-border);
+}
+
+.viewButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--accent);
+  font-size: 0.625rem;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: filter var(--duration-fast, 150ms);
+}
+
+.viewButton:hover {
+  filter: brightness(1.1);
+}
+
+.metricLabel {
+  color: var(--text-muted);
+  font-size: 0.5rem;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.metricValue {
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+}
+
+.metricValueHighlight {
+  color: color-mix(in srgb, var(--accent-warning) 85%, white);
+}

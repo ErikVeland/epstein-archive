@@ -1,6 +1,7 @@
 import React from 'react';
 import { formatCurrency, formatNumber } from '@client/utils/formatters';
 import type { PropertyStats, ValueDistribution, TopOwner } from './types';
+import styles from './PropertyAnalyticsView.module.css';
 
 interface PropertyAnalyticsViewProps {
   stats: PropertyStats;
@@ -19,22 +20,22 @@ export function PropertyAnalyticsView({
     valueDistribution.length > 0 ? Math.max(...valueDistribution.map((v) => v.count)) : 1;
 
   return (
-    <div className="analytics-view">
+    <div className={styles.analyticsView}>
       {/* Value Distribution */}
-      <div className="analytics-section">
-        <h3>Property Value Distribution</h3>
-        <div className="value-chart">
+      <div className={styles.section}>
+        <h3 className={styles.sectionTitle}>Property Value Distribution</h3>
+        <div className={styles.valueChart}>
           {valueDistribution.map((bucket, i) => {
             const height = (bucket.count / maxCount) * 100;
             return (
-              <div key={i} className="chart-bar">
+              <div key={i} className={styles.chartBar}>
                 <div
-                  className="bar-fill"
+                  className={styles.barFill}
                   style={{ height: `${height}%` }}
                   title={`${bucket.count} properties`}
                 />
-                <span className="bar-label">{bucket.range}</span>
-                <span className="bar-count">{formatNumber(bucket.count)}</span>
+                <span className={styles.barLabel}>{bucket.range}</span>
+                <span className={styles.barCount}>{formatNumber(bucket.count)}</span>
               </div>
             );
           })}
@@ -42,36 +43,36 @@ export function PropertyAnalyticsView({
       </div>
 
       {/* Top Owners */}
-      <div className="analytics-section">
-        <h3>Top Property Owners</h3>
-        <div className="top-owners-list">
+      <div className={styles.section}>
+        <h3 className={styles.sectionTitle}>Top Property Owners</h3>
+        <div className={styles.topOwnersList}>
           {topOwners.slice(0, 20).map((owner, i) => (
-            <div key={i} className="owner-row">
-              <span className="rank">#{i + 1}</span>
-              <span className="owner-name">{owner.owner_name}</span>
-              <span className="property-count">{owner.property_count} properties</span>
-              <span className="total-value">{formatCurrency(owner.total_value)}</span>
+            <div key={i} className={styles.ownerRow}>
+              <span className={styles.rank}>#{i + 1}</span>
+              <span className={styles.ownerName}>{owner.owner_name}</span>
+              <span className={styles.propertyCount}>{owner.property_count} properties</span>
+              <span className={styles.totalValue}>{formatCurrency(owner.total_value)}</span>
             </div>
           ))}
         </div>
       </div>
 
       {/* Property Types */}
-      <div className="analytics-section">
-        <h3>Property Types</h3>
-        <div className="type-breakdown">
+      <div className={styles.section}>
+        <h3 className={styles.sectionTitle}>Property Types</h3>
+        <div className={styles.typeBreakdown}>
           {propertyTypes.slice(0, 10).map((pt) => (
-            <div key={pt.type} className="type-item">
-              <span className="type-name">{pt.type || 'Unknown'}</span>
-              <div className="type-bar">
+            <div key={pt.type} className={styles.typeItem}>
+              <span className={styles.typeName}>{pt.type || 'Unknown'}</span>
+              <div className={styles.typeBar}>
                 <div
-                  className="type-fill"
+                  className={styles.typeFill}
                   style={{
                     width: `${(pt.count / (stats.totalProperties || 1)) * 100}%`,
                   }}
                 />
               </div>
-              <span className="type-count">{formatNumber(pt.count)}</span>
+              <span className={styles.typeCount}>{formatNumber(pt.count)}</span>
             </div>
           ))}
         </div>

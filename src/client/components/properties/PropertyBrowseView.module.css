@@ -1,5 +1,11 @@
 /* PropertyBrowseView.module.css */
 
+.browser {
+  padding: var(--space-5);
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
 .filtersBar {
   background-color: color-mix(in srgb, var(--glass-bg) 50%, transparent);
   padding: var(--space-4);
@@ -61,6 +67,14 @@
   gap: var(--space-4);
 }
 
+.propertyTypeSelect {
+  min-width: 180px;
+}
+
+.minValueSelect {
+  min-width: 160px;
+}
+
 .checkboxWrapper {
   display: flex;
   align-items: center;
@@ -97,4 +111,73 @@
   border-radius: var(--radius-lg);
   padding: var(--space-1);
   border: 1px solid var(--glass-border);
+}
+
+.viewToggleButton {
+  padding: var(--space-2) !important;
+}
+
+.listSection {
+  padding-top: var(--space-3);
+}
+
+.loadingState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: 60px;
+  color: var(--text-secondary);
+}
+
+.spin {
+  animation: property-browse-spin 1s linear infinite;
+}
+
+.propertyGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--space-4);
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-4);
+  margin-top: var(--space-6);
+}
+
+.pageButton {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.pageButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pageInfo {
+  color: var(--text-secondary);
+}
+
+@keyframes property-browse-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 768px) {
+  .propertyGrid {
+    grid-template-columns: 1fr;
+  }
 }

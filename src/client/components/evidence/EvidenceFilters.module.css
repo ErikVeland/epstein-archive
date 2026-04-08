@@ -1,0 +1,198 @@
+.container {
+  padding: var(--space-6);
+}
+
+.searchHeader {
+  margin-bottom: var(--space-4);
+}
+
+.infoRow {
+  margin-bottom: var(--space-6);
+  opacity: 0.7;
+}
+
+.infoIcon {
+  margin-top: var(--space-1);
+  flex-shrink: 0;
+}
+
+/* Loading panel */
+.loadingPanel {
+  margin-bottom: var(--space-6);
+  padding: var(--space-4);
+  border-color: color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.loadingInner {
+  text-align: center;
+}
+
+.loadingLabel {
+  margin-bottom: var(--space-3);
+}
+
+.loadingSubLabel {
+  margin-top: var(--space-2);
+  text-align: center;
+}
+
+/* Search input wrapper */
+.searchInputWrapper {
+  position: relative;
+}
+
+.searchInput {
+  width: 100%;
+  padding-left: 2.5rem;
+  padding-right: 2.5rem;
+  height: 2.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+
+.searchInput::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.searchInput:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--accent);
+  border-color: transparent;
+}
+
+.searchInput:disabled {
+  opacity: 0.5;
+}
+
+.searchIconLeft {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255, 255, 255, 0.3);
+  pointer-events: none;
+}
+
+.clearBtn {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: var(--space-1);
+  border-radius: 9999px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.4);
+  transition: background-color 0.15s, color 0.15s;
+  line-height: 0;
+}
+
+.clearBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
+
+/* Mobile filter toggle */
+.mobileFilterToggle {
+  margin-top: var(--space-4);
+}
+
+@media (min-width: 768px) {
+  .mobileFilterToggle {
+    display: none;
+  }
+}
+
+.mobileFilterBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+/* Filter grid */
+.filtersGrid {
+  margin-top: var(--space-6);
+}
+
+.filtersGridHidden {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .filtersGridHidden {
+    display: block;
+  }
+}
+
+/* Select controls */
+.select {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-lg);
+  padding: 0 var(--space-3);
+  height: 2.5rem;
+  color: var(--text-primary);
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+
+.select:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.select:disabled {
+  opacity: 0.5;
+}
+
+.selectOption {
+  background: #1a1a1a;
+}
+
+/* Checkbox row */
+.checkboxRow {
+  height: 2.5rem;
+}
+
+.checkbox {
+  width: 1rem;
+  height: 1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  accent-color: var(--accent);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.checkbox:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.flagIcon {
+  color: var(--accent-danger);
+}
+
+.tooltipIcon {
+  color: rgba(255, 255, 255, 0.4);
+  cursor: help;
+}
+
+/* Footer */
+.footer {
+  margin-top: var(--space-6);
+  padding-top: var(--space-4);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}

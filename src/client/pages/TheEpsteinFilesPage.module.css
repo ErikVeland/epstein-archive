@@ -1,0 +1,77 @@
+.page {
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: var(--space-12) var(--space-6);
+}
+
+.description {
+  max-width: 64rem;
+  font-size: 1.125rem;
+}
+
+.section {
+  padding: var(--space-6);
+}
+
+.sectionTitle,
+.sectionTitleAccent {
+  margin-bottom: var(--space-4);
+  font-weight: var(--weight-semibold);
+}
+
+.sectionTitleAccent {
+  color: color-mix(in srgb, var(--accent) 75%, white);
+}
+
+.pointList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.pointItem {
+  margin-left: var(--space-6);
+  list-style: disc;
+}
+
+.discoveryCard {
+  transition:
+    border-color var(--duration-fast, 150ms),
+    color var(--duration-fast, 150ms);
+}
+
+.discoveryCard:hover {
+  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+}
+
+.discoveryLink {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: var(--space-3) var(--space-4);
+  color: var(--text-primary);
+  transition: color var(--duration-fast, 150ms);
+}
+
+.discoveryLink:hover {
+  color: color-mix(in srgb, var(--accent) 55%, white);
+}
+
+.ctaWrap {
+  padding-top: var(--space-2);
+}
+
+.ctaLink {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-3) var(--space-5);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: color-mix(in srgb, var(--accent) 55%, white);
+  transition: background var(--duration-fast, 150ms);
+}
+
+.ctaLink:hover {
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+}

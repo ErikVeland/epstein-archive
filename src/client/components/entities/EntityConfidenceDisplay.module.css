@@ -153,6 +153,9 @@
 
 /* Footer note */
 .footerNote {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
   font-size: var(--type-xs);
   color: var(--text-muted);
   border-top: 1px solid var(--glass-border);

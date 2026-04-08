@@ -6,6 +6,7 @@ import { Box } from '../../design-system/components/layout/Box';
 import { Flex } from '../../design-system/components/layout/Flex';
 import { LqText } from '../../design-system/components/typography/Text';
 import { DOJ_TRANCHE_OPTIONS } from './documentTrancheOptions';
+import styles from './DocumentBrowserFilters.module.css';
 
 interface DocumentBrowserFiltersProps {
   localFilters: BrowseFilters;
@@ -34,34 +35,28 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
   handleExcludedTypeToggle,
   defaultExcludedTypes,
 }) => {
+  const cx = (...classNames: Array<string | false | null | undefined>) =>
+    classNames.filter(Boolean).join(' ');
+
   return (
-    <Box className="mb-4 space-y-3">
-      <Flex
-        direction="column"
-        align="stretch"
-        justify="between"
-        gap="md"
-        className="md:flex-row md:items-center"
-      >
-        <Box className="overflow-x-auto pb-1 min-w-0 flex-1">
-          <Flex
-            align="center"
-            className="inline-flex min-w-max rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg-strong)] overflow-hidden divide-x divide-[var(--glass-border)]"
-          >
+    <Box className={styles.wrapper}>
+      <Flex direction="column" align="stretch" justify="between" gap="md" className={styles.topBar}>
+        <Box className={styles.categoryScroll}>
+          <Flex align="center" className={styles.categoryStrip}>
             {[
-              { type: 'all', label: 'All', icon: <Folder className="w-3.5 h-3.5" /> },
-              { type: 'legal', label: 'Legal', icon: <Scale className="w-3.5 h-3.5" /> },
-              { type: 'email', label: 'Email', icon: <Mail className="w-3.5 h-3.5" /> },
+              { type: 'all', label: 'All', icon: <Folder size={14} /> },
+              { type: 'legal', label: 'Legal', icon: <Scale size={14} /> },
+              { type: 'email', label: 'Email', icon: <Mail size={14} /> },
               {
                 type: 'deposition',
                 label: 'Deposition',
-                icon: <ScrollText className="w-3.5 h-3.5" />,
+                icon: <ScrollText size={14} />,
               },
-              { type: 'photo', label: 'Photo', icon: <ImageIcon className="w-3.5 h-3.5" /> },
+              { type: 'photo', label: 'Photo', icon: <ImageIcon size={14} /> },
               {
                 type: 'financial',
                 label: 'Financial',
-                icon: <Landmark className="w-3.5 h-3.5" />,
+                icon: <Landmark size={14} />,
               },
             ].map(({ type, label, icon }) => (
               <button
@@ -76,13 +71,14 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
                     }
                   }
                 }}
-                className={`inline-flex items-center gap-2 h-11 px-4 text-sm font-medium transition-colors shrink-0 ${
+                className={cx(
+                  styles.categoryTab,
                   (type === 'all' &&
                     (!localFilters.categories || localFilters.categories.length === 0)) ||
-                  localFilters.categories?.includes(type)
-                    ? 'bg-[var(--accent)]/90 text-[var(--text-primary)]'
-                    : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)] hover:text-[var(--text-primary)]'
-                }`}
+                    localFilters.categories?.includes(type)
+                    ? styles.categoryTabActive
+                    : styles.categoryTabInactive,
+                )}
               >
                 <span>{icon}</span>
                 <span>{label}</span>
@@ -91,40 +87,36 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
           </Flex>
         </Box>
 
-        <Flex wrap="wrap" align="center" gap="sm" className="md:justify-end md:shrink-0">
+        <Flex wrap="wrap" align="center" gap="sm" className={styles.rightControls}>
           {selectedTranche !== 'all' && (
-            <Surface
-              variant="glass-highlight"
-              className="px-3 py-1.5 rounded-full border border-[var(--accent)]/40"
-            >
+            <Surface variant="glass-highlight" className={styles.trancheBadge}>
               <LqText variant="xs" weight="medium">
                 Tranche:{' '}
                 {DOJ_TRANCHE_OPTIONS.find((entry) => entry.value === selectedTranche)?.label}
               </LqText>
             </Surface>
           )}
-          <Flex
-            align="center"
-            className="inline-flex min-w-max rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg-strong)] overflow-hidden divide-x divide-[var(--glass-border)]"
-          >
+          <Flex align="center" className={styles.riskStrip}>
             <button
               onClick={() => {
                 const isActive =
                   localFilters.redFlagLevel?.min === 4 && localFilters.redFlagLevel?.max === 5;
                 handleRedFlagLevelChange(isActive ? 0 : 4, isActive ? 5 : 5);
               }}
-              className={`inline-flex items-center gap-2 h-11 px-4 text-sm font-medium transition-colors shrink-0 ${
+              className={cx(
+                styles.riskTab,
                 localFilters.redFlagLevel?.min === 4 && localFilters.redFlagLevel?.max === 5
-                  ? 'bg-red-500/20 text-[var(--text-primary)]'
-                  : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)] hover:text-[var(--text-primary)]'
-              }`}
+                  ? styles.riskTabHighActive
+                  : undefined,
+              )}
             >
               <Box
-                className={`w-2 h-2 rounded-full ${
+                className={cx(
+                  styles.riskDot,
                   localFilters.redFlagLevel?.min === 4 && localFilters.redFlagLevel?.max === 5
-                    ? 'bg-red-400'
-                    : 'bg-red-600'
-                }`}
+                    ? styles.riskDotHighActive
+                    : styles.riskDotHighInactive,
+                )}
               />
               <LqText variant="xs">High Significance</LqText>
             </button>
@@ -134,18 +126,20 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
                   localFilters.redFlagLevel?.min === 2 && localFilters.redFlagLevel?.max === 3;
                 handleRedFlagLevelChange(isActive ? 0 : 2, isActive ? 5 : 3);
               }}
-              className={`inline-flex items-center gap-2 h-11 px-4 text-sm font-medium transition-colors shrink-0 ${
+              className={cx(
+                styles.riskTab,
                 localFilters.redFlagLevel?.min === 2 && localFilters.redFlagLevel?.max === 3
-                  ? 'bg-amber-500/20 text-[var(--text-primary)]'
-                  : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)] hover:text-[var(--text-primary)]'
-              }`}
+                  ? styles.riskTabMedActive
+                  : undefined,
+              )}
             >
               <Box
-                className={`w-2 h-2 rounded-full ${
+                className={cx(
+                  styles.riskDot,
                   localFilters.redFlagLevel?.min === 2 && localFilters.redFlagLevel?.max === 3
-                    ? 'bg-amber-400'
-                    : 'bg-amber-600'
-                }`}
+                    ? styles.riskDotMedActive
+                    : styles.riskDotMedInactive,
+                )}
               />
               <LqText variant="xs">Medium</LqText>
             </button>
@@ -155,18 +149,20 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
                   localFilters.redFlagLevel?.min === 0 && localFilters.redFlagLevel?.max === 1;
                 handleRedFlagLevelChange(isActive ? 0 : 0, isActive ? 5 : 1);
               }}
-              className={`inline-flex items-center gap-2 h-11 px-4 text-sm font-medium transition-colors shrink-0 ${
+              className={cx(
+                styles.riskTab,
                 localFilters.redFlagLevel?.min === 0 && localFilters.redFlagLevel?.max === 1
-                  ? 'bg-emerald-500/20 text-[var(--text-primary)]'
-                  : 'text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)] hover:text-[var(--text-primary)]'
-              }`}
+                  ? styles.riskTabLowActive
+                  : undefined,
+              )}
             >
               <Box
-                className={`w-2 h-2 rounded-full ${
+                className={cx(
+                  styles.riskDot,
                   localFilters.redFlagLevel?.min === 0 && localFilters.redFlagLevel?.max === 1
-                    ? 'bg-emerald-400'
-                    : 'bg-emerald-600'
-                }`}
+                    ? styles.riskDotLowActive
+                    : styles.riskDotLowInactive,
+                )}
               />
               <LqText variant="xs">Low Risk</LqText>
             </button>
@@ -175,14 +171,9 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
       </Flex>
 
       {/* Quick Focus / Presets row */}
-      <Surface variant="glass" className="p-3 border-b-0 rounded-b-none mb-0">
+      <Surface variant="glass" className={styles.presetsSurface}>
         <Flex align="center" gap="sm" wrap="wrap">
-          <LqText
-            variant="xs"
-            weight="bold"
-            color="muted"
-            className="uppercase tracking-wider ml-2 mr-1"
-          >
+          <LqText variant="xs" weight="bold" color="muted" className={styles.presetsLabel}>
             Content Focus:
           </LqText>
           {[
@@ -219,11 +210,10 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
             <button
               key={preset.label}
               onClick={preset.onClick}
-              className={`px-3 py-1 rounded-full text-[11px] font-medium transition-all ${
-                preset.isActive
-                  ? 'bg-[var(--accent)] text-[var(--text-primary)] shadow-sm'
-                  : 'bg-[var(--glass-bg-strong)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)]'
-              }`}
+              className={cx(
+                styles.presetBtn,
+                preset.isActive ? styles.presetBtnActive : styles.presetBtnInactive,
+              )}
             >
               {preset.label}
             </button>
@@ -232,23 +222,18 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
       </Surface>
 
       {/* Desktop inline detailed filters */}
-      <Surface variant="glass" className="p-6 mt-0 rounded-t-none">
-        <Box className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      <Surface variant="glass" className={styles.detailsPanel}>
+        <Box className={styles.detailGrid}>
           {/* File Type Filter */}
           <Box>
-            <Flex align="center" justify="between" className="mb-4">
-              <LqText
-                variant="xs"
-                weight="bold"
-                color="muted"
-                className="uppercase tracking-widest"
-              >
+            <Flex align="center" justify="between" className={styles.fileTypeHeader}>
+              <LqText variant="xs" weight="bold" color="muted" className={styles.sectionLabel}>
                 File Formats
               </LqText>
               <Flex gap="sm">
                 <button
                   onClick={() => handleFilterChange('excludedFileTypes', [])}
-                  className="text-[10px] text-[var(--accent)] hover:underline"
+                  className={styles.linkAccent}
                 >
                   Show All
                 </button>
@@ -259,45 +244,44 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
                       fileTypeOptions.map((o) => o.value),
                     )
                   }
-                  className="text-[10px] text-[var(--text-muted)] hover:underline"
+                  className={styles.linkMuted}
                 >
                   Hide All
                 </button>
               </Flex>
             </Flex>
             {fileTypeOptions.length === 0 ? (
-              <LqText variant="xs" color="muted" className="italic">
+              <LqText variant="xs" color="muted" className={styles.emptyStateText}>
                 No file-type facets available.
               </LqText>
             ) : (
-              <Box className="grid grid-cols-1 gap-1 max-h-48 overflow-y-auto scrollbar-thin pr-2">
+              <Box className={styles.fileTypeList}>
                 {fileTypeOptions.map((option) => {
                   const isVisible = !localFilters.excludedFileTypes?.includes(option.value);
                   return (
                     <label
                       key={option.value}
-                      className={`flex items-center justify-between p-1.5 rounded-[var(--radius-sm)] cursor-pointer group transition-colors ${
-                        isVisible
-                          ? 'hover:bg-[var(--glass-bg-highlight)]'
-                          : 'opacity-50 hover:bg-[var(--glass-bg-strong)]'
-                      }`}
+                      className={cx(
+                        styles.fileTypeRow,
+                        isVisible ? styles.fileTypeRowVisible : styles.fileTypeRowHidden,
+                      )}
                     >
                       <Flex align="center" gap="sm">
                         <input
                           type="checkbox"
                           checked={isVisible}
                           onChange={() => handleExcludedTypeToggle(option.value)}
-                          className="w-3.5 h-3.5 rounded-[var(--radius-sm)] border-[var(--glass-border)] bg-[var(--glass-bg-strong)] text-[var(--accent)] focus:ring-[var(--accent)]/20"
+                          className={styles.checkbox}
                         />
                         <LqText
                           variant="xs"
                           color={isVisible ? 'secondary' : 'muted'}
-                          className="transition-colors"
+                          className={styles.fileTypeLabel}
                         >
                           {option.label.split(' (')[0]}
                         </LqText>
                       </Flex>
-                      <LqText variant="xs" color="muted" className="font-mono">
+                      <LqText variant="xs" color="muted" className={styles.fileTypeCount}>
                         {option.label.match(/\((\d+)\)/)?.[1] || ''}
                       </LqText>
                     </label>
@@ -309,16 +293,11 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
 
           {/* Source Filter */}
           <Box>
-            <LqText
-              variant="xs"
-              weight="bold"
-              color="muted"
-              className="uppercase tracking-widest mb-4 block"
-            >
+            <LqText variant="xs" weight="bold" color="muted" className={styles.sectionLabel}>
               Archive Source
             </LqText>
             {sourceOptions.length === 0 ? (
-              <LqText variant="xs" color="muted" className="italic">
+              <LqText variant="xs" color="muted" className={styles.emptyStateText}>
                 No source facets available.
               </LqText>
             ) : (
@@ -331,10 +310,10 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
                     Array.from(e.target.selectedOptions, (opt) => opt.value),
                   )
                 }
-                className="w-full h-32 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-md)] p-2 text-xs text-[var(--text-secondary)] focus:ring-1 focus:ring-[var(--accent)]/50 outline-none scrollbar-thin"
+                className={styles.sourceSelect}
               >
                 {sourceOptions.map((opt) => (
-                  <option key={opt.value} value={opt.value} className="py-1 px-1">
+                  <option key={opt.value} value={opt.value}>
                     {opt.label}
                   </option>
                 ))}
@@ -344,16 +323,11 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
 
           {/* Date range */}
           <Box>
-            <LqText
-              variant="xs"
-              weight="bold"
-              color="muted"
-              className="uppercase tracking-widest mb-4 block"
-            >
+            <LqText variant="xs" weight="bold" color="muted" className={styles.sectionLabel}>
               Temporal Window
             </LqText>
-            <Box className="space-y-3">
-              <Box className="relative">
+            <Box className={styles.dateStack}>
+              <Box className={styles.dateInputWrapper}>
                 <input
                   type="date"
                   value={localFilters.dateRange?.start || ''}
@@ -363,16 +337,13 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
                       start: e.target.value,
                     })
                   }
-                  className="w-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-md)] px-3 py-2 text-xs text-[var(--text-secondary)] outline-none focus:border-[var(--accent)]/50"
+                  className={styles.dateInput}
                 />
-                <Box
-                  as="span"
-                  className="absolute -top-2 left-2 px-1 bg-[var(--glass-bg-strong)] text-[10px] text-[var(--text-muted)]"
-                >
+                <Box as="span" className={styles.dateInputFloatLabel}>
                   From
                 </Box>
               </Box>
-              <Box className="relative">
+              <Box className={styles.dateInputWrapper}>
                 <input
                   type="date"
                   value={localFilters.dateRange?.end || ''}
@@ -382,12 +353,9 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
                       end: e.target.value,
                     })
                   }
-                  className="w-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-md)] px-3 py-2 text-xs text-[var(--text-secondary)] outline-none focus:border-[var(--accent)]/50"
+                  className={styles.dateInput}
                 />
-                <Box
-                  as="span"
-                  className="absolute -top-2 left-2 px-1 bg-[var(--glass-bg-strong)] text-[10px] text-[var(--text-muted)]"
-                >
+                <Box as="span" className={styles.dateInputFloatLabel}>
                   To
                 </Box>
               </Box>
@@ -395,49 +363,36 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
           </Box>
 
           {/* Reliability & Collections */}
-          <Box className="space-y-6">
+          <Box className={styles.reliabilityStack}>
             <Box>
-              <LqText
-                variant="xs"
-                weight="bold"
-                color="muted"
-                className="uppercase tracking-widest mb-4 block"
-              >
+              <LqText variant="xs" weight="bold" color="muted" className={styles.sectionLabel}>
                 Trust & Integrity
               </LqText>
-              <Box className="space-y-2">
-                <Surface
-                  as="label"
-                  variant="glass"
-                  className="flex items-center gap-3 p-3 cursor-pointer hover:bg-[var(--glass-bg-highlight)] transition-colors"
-                >
+              <Box className={styles.checkboxGroup}>
+                <Surface as="label" variant="glass" className={styles.checkboxLabel}>
                   <input
                     type="checkbox"
                     checked={hideLowCredibility}
                     onChange={(e) => setHideLowCredibility(e.target.checked)}
-                    className="w-4 h-4 rounded border-[var(--glass-border)] bg-[var(--glass-bg-strong)] text-[var(--accent)] focus:ring-[var(--accent)]/20"
+                    className={styles.checkboxControl}
                   />
                   <LqText variant="xs" color="secondary">
                     Exclude low-reliability items
                   </LqText>
                 </Surface>
 
-                <Surface
-                  as="label"
-                  variant="glass"
-                  className="flex items-start gap-3 p-3 cursor-pointer hover:bg-[var(--glass-bg-highlight)] transition-colors"
-                >
+                <Surface as="label" variant="glass" className={styles.checkboxLabelStart}>
                   <input
                     type="checkbox"
                     checked={localFilters.includeMedia || false}
                     onChange={(e) => handleFilterChange('includeMedia', e.target.checked)}
-                    className="w-4 h-4 mt-0.5 rounded border-[var(--glass-border)] bg-[var(--glass-bg-strong)] text-[var(--accent)] focus:ring-[var(--accent)]/20"
+                    className={styles.checkboxControlTop}
                   />
                   <Flex direction="column" gap="none">
                     <LqText variant="xs" color="secondary">
                       Include Media Content
                     </LqText>
-                    <LqText variant="xs" color="muted" className="text-[10px] leading-tight">
+                    <LqText variant="xs" color="muted" className={styles.mediaSubtext}>
                       Show photos, videos, and audio (Off by default)
                     </LqText>
                   </Flex>
@@ -451,12 +406,12 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
                   variant="xs"
                   weight="bold"
                   color="muted"
-                  className="uppercase tracking-widest mb-2 block"
+                  className={styles.collectionsSectionLabel}
                 >
                   Logical Collections
                 </LqText>
                 <select
-                  className="w-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-md)] p-2 text-xs text-[var(--text-secondary)] outline-none"
+                  className={styles.collectionsSelect}
                   value={localFilters.collectionId || ''}
                   onChange={(e) => handleFilterChange('collectionId', e.target.value || undefined)}
                 >

@@ -6,8 +6,9 @@ import { PropertyBrowseView } from './properties/PropertyBrowseView';
 import { PropertyAssociatesView } from './properties/PropertyAssociatesView';
 import { PropertyAnalyticsView } from './properties/PropertyAnalyticsView';
 import { PropertyStatsHeader } from './properties/PropertyStatsHeader';
-import { PropertyBrowserStyles } from './properties/PropertyBrowserStyles';
+import { cn } from '@client/utils/cn';
 import type { Property, PropertyStats, ValueDistribution, TopOwner } from './properties/types';
+import styles from './PropertyBrowser.module.css';
 
 export type { Property, PropertyStats, ValueDistribution, TopOwner };
 
@@ -102,11 +103,10 @@ export function PropertyBrowser(): React.ReactElement {
 
   if (statsLoading) {
     return (
-      <div className="property-browser">
-        <PropertyBrowserStyles />
-        <div className="flex flex-col items-center justify-center py-[var(--space-16)] text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent)] mb-[var(--space-4)]" />
-          <p className="text-[var(--text-muted)]">Loading property records...</p>
+      <div className={styles.browser}>
+        <div className={styles.centeredState}>
+          <div className={styles.spinner} />
+          <p className={styles.stateText}>Loading property records...</p>
         </div>
       </div>
     );
@@ -114,23 +114,22 @@ export function PropertyBrowser(): React.ReactElement {
 
   if (statsError) {
     return (
-      <div className="property-browser">
-        <PropertyBrowserStyles />
-        <div className="property-header">
-          <h1>
+      <div className={styles.browser}>
+        <div className={styles.fallbackHeader}>
+          <h1 className={styles.fallbackTitle}>
             <Icon name="Building" size="lg" />
             Palm Beach Property Records
           </h1>
-          <p className="subtitle">Explore properties from Palm Beach County public records</p>
+          <p className={styles.fallbackSubtitle}>
+            Explore properties from Palm Beach County public records
+          </p>
         </div>
-        <div className="flex flex-col items-center justify-center py-[var(--space-16)] text-center">
-          <div className="w-24 h-24 bg-[color:color-mix(in_srgb,var(--accent-danger)_20%,transparent)] rounded-full flex items-center justify-center mb-[var(--space-6)]">
-            <Icon name="AlertCircle" size="xl" className="text-[var(--accent-danger)]" />
+        <div className={styles.centeredState}>
+          <div className={cn(styles.stateIconCircle, styles.errorCircle)}>
+            <Icon name="AlertCircle" size="xl" className={styles.errorIcon} />
           </div>
-          <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-[var(--space-3)]">
-            Property Data Unavailable
-          </h2>
-          <p className="text-[var(--text-muted)] max-w-md">
+          <h2 className={styles.stateTitle}>Property Data Unavailable</h2>
+          <p className={styles.stateDescription}>
             The property records could not be loaded. This may be a temporary issue — try refreshing
             the page.
           </p>
@@ -141,23 +140,22 @@ export function PropertyBrowser(): React.ReactElement {
 
   if (!stats) {
     return (
-      <div className="property-browser">
-        <PropertyBrowserStyles />
-        <div className="property-header">
-          <h1>
+      <div className={styles.browser}>
+        <div className={styles.fallbackHeader}>
+          <h1 className={styles.fallbackTitle}>
             <Icon name="Building" size="lg" />
             Palm Beach Property Records
           </h1>
-          <p className="subtitle">Explore properties from Palm Beach County public records</p>
+          <p className={styles.fallbackSubtitle}>
+            Explore properties from Palm Beach County public records
+          </p>
         </div>
-        <div className="flex flex-col items-center justify-center py-[var(--space-16)] text-center">
-          <div className="w-24 h-24 bg-[color:color-mix(in_srgb,var(--text-muted)_12%,transparent)] rounded-full flex items-center justify-center mb-[var(--space-6)]">
-            <Icon name="Building" size="xl" className="text-[var(--text-muted)]" />
+        <div className={styles.centeredState}>
+          <div className={cn(styles.stateIconCircle, styles.emptyCircle)}>
+            <Icon name="Building" size="xl" className={styles.emptyIcon} />
           </div>
-          <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-[var(--space-3)]">
-            No Property Records
-          </h2>
-          <p className="text-[var(--text-muted)] max-w-md">
+          <h2 className={styles.stateTitle}>No Property Records</h2>
+          <p className={styles.stateDescription}>
             No Palm Beach County property records have been loaded yet. Run the property ingestion
             pipeline to populate this section.
           </p>
@@ -167,16 +165,15 @@ export function PropertyBrowser(): React.ReactElement {
   }
 
   return (
-    <div className="property-browser">
-      <PropertyBrowserStyles />
+    <div className={styles.browser}>
       <PropertyStatsHeader stats={stats} />
 
       {/* View Tabs */}
-      <div className="view-tabs">
+      <div className={styles.viewTabs}>
         <GlassButton
           variant={viewMode === 'browse' ? 'primary' : 'ghost'}
           size="sm"
-          className={`tab ${viewMode === 'browse' ? 'active' : ''}`}
+          className={cn(styles.tab, viewMode === 'browse' && styles.tabActive)}
           onClick={() => setViewMode('browse')}
         >
           <Icon name="Grid" size="sm" />
@@ -185,7 +182,7 @@ export function PropertyBrowser(): React.ReactElement {
         <GlassButton
           variant={viewMode === 'associates' ? 'primary' : 'ghost'}
           size="sm"
-          className={`tab ${viewMode === 'associates' ? 'active' : ''}`}
+          className={cn(styles.tab, viewMode === 'associates' && styles.tabActive)}
           onClick={() => setViewMode('associates')}
         >
           <Icon name="AlertTriangle" size="sm" />
@@ -194,7 +191,7 @@ export function PropertyBrowser(): React.ReactElement {
         <GlassButton
           variant={viewMode === 'analytics' ? 'primary' : 'ghost'}
           size="sm"
-          className={`tab ${viewMode === 'analytics' ? 'active' : ''}`}
+          className={cn(styles.tab, viewMode === 'analytics' && styles.tabActive)}
           onClick={() => setViewMode('analytics')}
         >
           <Icon name="BarChart3" size="sm" />
@@ -203,7 +200,7 @@ export function PropertyBrowser(): React.ReactElement {
       </div>
 
       {/* Content */}
-      <div className="browser-content">
+      <div className={styles.browserContent}>
         {viewMode === 'browse' && (
           <PropertyBrowseView
             properties={properties}

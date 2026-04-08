@@ -5,6 +5,7 @@ import { Flex } from '../design-system/components/layout/Flex';
 import { Box } from '../design-system/components/layout/Box';
 import { Grid } from '../design-system/components/layout/Grid';
 import { LqText } from '../design-system/components/typography/Text';
+import styles from './TheEpsteinFilesPage.module.css';
 
 type LandingVariant = 'overview' | 'documents' | 'people' | 'media' | 'timeline' | 'flights';
 
@@ -103,34 +104,40 @@ export const TheEpsteinFilesPage: React.FC<TheEpsteinFilesPageProps> = ({ varian
   const copy = copyByVariant[variant];
 
   return (
-    <Box className="max-w-5xl mx-auto px-6 py-12">
+    <Box className={styles.page}>
       <Flex direction="column" gap={8}>
         <header>
           <Flex direction="column" gap={4}>
             <LqText as="h1" variant="h1" color="primary">
               {copy.title}
             </LqText>
-            <LqText as="p" variant="body" color="primary" className="max-w-4xl text-lg">
+            <LqText as="p" variant="body" color="primary" className={styles.description}>
               {copy.description}
             </LqText>
           </Flex>
         </header>
 
-        <Surface variant="glass" className="p-6">
-          <LqText as="h2" variant="h3" color="primary" className="mb-4 text-cyan-300 font-semibold">
+        <Surface variant="glass" className={styles.section}>
+          <LqText as="h2" variant="h3" color="primary" className={styles.sectionTitleAccent}>
             What You Can Do Here
           </LqText>
-          <Box as="ul" className="space-y-3">
+          <Box as="ul" className={styles.pointList}>
             {copy.points.map((point) => (
-              <LqText key={point} as="li" variant="body" color="primary" className="list-disc ml-6">
+              <LqText
+                key={point}
+                as="li"
+                variant="body"
+                color="primary"
+                className={styles.pointItem}
+              >
                 {point}
               </LqText>
             ))}
           </Box>
         </Surface>
 
-        <Surface variant="glass" className="p-6">
-          <LqText as="h2" variant="h3" color="primary" className="mb-4 font-semibold">
+        <Surface variant="glass" className={styles.section}>
+          <LqText as="h2" variant="h3" color="primary" className={styles.sectionTitle}>
             Explore Archive Sections
           </LqText>
           <Grid cols={{ base: 1, sm: 2 }} gap={3}>
@@ -138,13 +145,10 @@ export const TheEpsteinFilesPage: React.FC<TheEpsteinFilesPageProps> = ({ varian
               <Surface
                 key={item.href}
                 variant="glass"
-                className="hover:border-cyan-500/60 transition-colors"
+                className={styles.discoveryCard}
                 style={{ padding: 0 }}
               >
-                <Link
-                  to={item.href}
-                  className="block w-full h-full px-4 py-3 text-[var(--text-primary)] hover:text-cyan-200"
-                >
+                <Link to={item.href} className={styles.discoveryLink}>
                   {item.label}
                 </Link>
               </Surface>
@@ -152,11 +156,8 @@ export const TheEpsteinFilesPage: React.FC<TheEpsteinFilesPageProps> = ({ varian
           </Grid>
         </Surface>
 
-        <Box className="pt-2">
-          <Link
-            to={copy.ctaHref}
-            className="inline-flex items-center rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-5 py-3 text-cyan-200 hover:bg-cyan-500/20 transition-colors"
-          >
+        <Box className={styles.ctaWrap}>
+          <Link to={copy.ctaHref} className={styles.ctaLink}>
             {copy.ctaLabel}
           </Link>
         </Box>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Database, Shield, AlertTriangle, Globe, Bot, Flag, Sparkles } from 'lucide-react';
 import { format } from 'date-fns';
+import styles from './DocumentMetadataPanel.module.css';
 
 interface DocumentMetadata {
   ai_summary?: string;
@@ -46,6 +47,9 @@ export const DocumentMetadataPanel: React.FC<DocumentMetadataPanelProps> = ({
   document,
   className = '',
 }) => {
+  const cx = (...classNames: Array<string | false | null | undefined>) =>
+    classNames.filter(Boolean).join(' ');
+
   if (!document) return null;
 
   const metadata = (document.metadata || {}) as DocumentMetadata;
@@ -78,42 +82,36 @@ export const DocumentMetadataPanel: React.FC<DocumentMetadataPanelProps> = ({
           : 'risk-low';
 
   return (
-    <div className={`space-y-6 animate-in fade-in duration-500 ${className}`}>
+    <div className={cx(styles.container, className)}>
       {/* AI Analysis - Premium Card */}
       {metadata.ai_summary && (
-        <section className="bg-gradient-to-br from-violet-500/5 to-cyan-500/5 rounded-[var(--radius-xl)] p-5 border border-[color:color-mix(in_srgb,var(--glass-border)_42%,transparent)] shadow-[var(--glass-shadow)] overflow-hidden relative group">
-          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <Bot className="w-16 h-16 text-violet-400" />
+        <section className={styles.aiCard}>
+          <div className={styles.aiCardDecoration}>
+            <Bot size={64} color="#a78bfa" />
           </div>
-          <h3 className="text-[10px] font-black text-violet-300 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-            <Sparkles className="w-3 h-3" />
+          <h3 className={styles.aiCardHeading}>
+            <Sparkles size={12} />
             AI Intelligence Summary
           </h3>
-          <div className="space-y-4 relative z-10">
-            <p className="text-[var(--text-primary)] text-sm leading-relaxed font-medium">
-              {metadata.ai_summary}
-            </p>
-            <div className="flex items-center gap-4 text-[10px]">
+          <div className={styles.aiCardBody}>
+            <p className={styles.aiSummaryText}>{metadata.ai_summary}</p>
+            <div className={styles.aiMetaRow}>
               {metadata.ai_provider && (
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[var(--text-muted)] uppercase font-bold">Model</span>
-                  <span className="text-violet-300 font-black uppercase bg-violet-500/10 px-1.5 py-0.5 rounded">
-                    {metadata.ai_provider}
-                  </span>
+                <div className={styles.aiMetaItem}>
+                  <span className={styles.aiMetaLabel}>Model</span>
+                  <span className={styles.aiProviderBadge}>{metadata.ai_provider}</span>
                 </div>
               )}
               {metadata.ai_enriched_at && (
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[var(--text-muted)] uppercase font-bold">Analyzed</span>
-                  <span className="text-[var(--text-secondary)]">
-                    {formatDate(metadata.ai_enriched_at)}
-                  </span>
+                <div className={styles.aiMetaItem}>
+                  <span className={styles.aiMetaLabel}>Analyzed</span>
+                  <span className={styles.aiMetaDate}>{formatDate(metadata.ai_enriched_at)}</span>
                 </div>
               )}
             </div>
             {metadata.ai_error && (
-              <div className="mt-2 p-3 bg-red-950/20 border border-red-500/30 rounded-[var(--radius-xl)] text-xs text-red-300 flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 shrink-0" />
+              <div className={styles.aiError}>
+                <AlertTriangle size={16} />
                 <span>{metadata.ai_error}</span>
               </div>
             )}
@@ -123,36 +121,30 @@ export const DocumentMetadataPanel: React.FC<DocumentMetadataPanelProps> = ({
 
       {/* Temporal Analysis - NEW */}
       {(document.extractedDate || metadata.temporal) && (
-        <section className="surface-quiet p-5 rounded-[var(--radius-xl)] border border-violet-500/20 bg-violet-500/5">
-          <h3 className="text-[10px] font-black text-violet-400 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-            <Database className="w-3 h-3" />
+        <section className={styles.temporalSection}>
+          <h3 className={styles.temporalHeading}>
+            <Database size={12} />
             Temporal Intelligence
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-1">
-              <span className="text-[10px] text-[var(--text-muted)] uppercase font-bold tracking-wider block">
-                Extracted Primary Date
-              </span>
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-black text-[var(--text-primary)]">
+          <div className={styles.temporalGrid}>
+            <div className={styles.temporalField}>
+              <span className={styles.temporalLabel}>Extracted Primary Date</span>
+              <div className={styles.temporalValueRow}>
+                <span className={styles.temporalValue}>
                   {formatDate(document.extractedDate || metadata.temporal?.primary)}
                 </span>
-                <span className="px-1.5 py-0.5 bg-violet-500/20 text-[8px] font-black text-violet-300 rounded border border-violet-500/30 uppercase tracking-tighter">
-                  Heuristic
-                </span>
+                <span className={styles.heuristicBadge}>Heuristic</span>
               </div>
             </div>
 
             {metadata.temporal?.min &&
               metadata.temporal?.max &&
               metadata.temporal.min !== metadata.temporal.max && (
-                <div className="space-y-1">
-                  <span className="text-[10px] text-[var(--text-muted)] uppercase font-bold tracking-wider block">
-                    Document Date Range
-                  </span>
-                  <div className="flex items-center gap-2 text-xs font-medium text-[var(--text-secondary)]">
+                <div className={styles.temporalField}>
+                  <span className={styles.temporalLabel}>Document Date Range</span>
+                  <div className={styles.dateRangeValue}>
                     <span>{format(new Date(metadata.temporal.min), 'MMM yyyy')}</span>
-                    <span className="text-[var(--text-primary)]">—</span>
+                    <span className={styles.dateRangeSeparator}>-</span>
                     <span>{format(new Date(metadata.temporal.max), 'MMM yyyy')}</span>
                   </div>
                 </div>
@@ -162,60 +154,53 @@ export const DocumentMetadataPanel: React.FC<DocumentMetadataPanelProps> = ({
       )}
 
       {/* Analysis & Forensics Grid */}
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="surface-quiet p-4 rounded-[var(--radius-xl)] border border-[color:color-mix(in_srgb,var(--glass-border)_42%,transparent)] flex flex-col justify-between overflow-hidden relative">
-          <div className="absolute top-0 right-0 p-3 opacity-5">
-            <Flag className="w-12 h-12" />
+      <section className={styles.forensicsGrid}>
+        <div className={styles.forensicIndexCard}>
+          <div className={styles.forensicCardDecoration}>
+            <Flag size={48} />
           </div>
-          <div className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-3 relative z-10">
-            Forensic Index
+          <div className={styles.forensicLabel}>Forensic Index</div>
+          <div className={styles.forensicRatingRow}>
+            <span className={styles.forensicRating}>{riskRating.toFixed(1)}</span>
+            <span className={styles.forensicRatingMax}>/ 5.0</span>
           </div>
-          <div className="flex items-end gap-2 relative z-10">
-            <span className="text-3xl font-black text-[var(--text-primary)] tracking-tighter">
-              {riskRating.toFixed(1)}
-            </span>
-            <span className="text-xs text-[var(--text-muted)] mb-1 font-bold">/ 5.0</span>
-          </div>
-          <div className={`semantic-chip ${riskClass} mt-3 w-fit !h-6 relative z-10`}>
-            <Shield className="w-3 h-3" />
-            <span className="uppercase tracking-widest font-black text-[8px]">
-              {riskRating >= 4
-                ? 'CRITICAL'
-                : riskRating >= 3
-                  ? 'HIGH'
-                  : riskRating >= 2
-                    ? 'MEDIUM'
-                    : 'LOW'}{' '}
-              PRIORITY
-            </span>
+          <div className={styles.forensicChipWrapper}>
+            <div className={`semantic-chip ${riskClass}`}>
+              <Shield size={12} />
+              <span className={styles.chipLabel}>
+                {riskRating >= 4
+                  ? 'CRITICAL'
+                  : riskRating >= 3
+                    ? 'HIGH'
+                    : riskRating >= 2
+                      ? 'MEDIUM'
+                      : 'LOW'}{' '}
+                PRIORITY
+              </span>
+            </div>
           </div>
         </div>
 
-        <div className="surface-quiet p-4 rounded-[var(--radius-xl)] border border-[color:color-mix(in_srgb,var(--glass-border)_42%,transparent)]">
-          <div className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest mb-3">
-            Signal Integrity
-          </div>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between group">
-              <span className="text-xs text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">
-                Complexity
-              </span>
-              <span className="text-xs font-black text-[var(--text-primary)] uppercase tracking-widest">
+        <div className={styles.signalCard}>
+          <div className={styles.signalLabel}>Signal Integrity</div>
+          <div className={styles.signalFields}>
+            <div className={styles.signalRow}>
+              <span className={styles.signalRowLabel}>Complexity</span>
+              <span className={styles.signalValue}>
                 {linguistics.readingLevel?.toFixed(1) || 'N/A'} (GRADE)
               </span>
             </div>
-            <div className="flex items-center justify-between group">
-              <span className="text-xs text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors">
-                Forensic Tone
-              </span>
+            <div className={styles.signalRow}>
+              <span className={styles.signalRowLabel}>Forensic Tone</span>
               <span
-                className={`text-xs font-black uppercase tracking-widest ${
+                className={cx(
+                  styles.signalValue,
                   linguistics.sentiment === 'negative'
-                    ? 'text-rose-400'
+                    ? styles.sentimentNegative
                     : linguistics.sentiment === 'positive'
-                      ? 'text-emerald-400'
-                      : 'text-[var(--text-muted)]'
-                }`}
+                      ? styles.sentimentPositive
+                      : styles.sentimentNeutral,
+                )}
               >
                 {linguistics.sentiment || 'OBJECTIVE'}
               </span>
@@ -225,41 +210,31 @@ export const DocumentMetadataPanel: React.FC<DocumentMetadataPanelProps> = ({
       </section>
 
       {/* File Information - Stable List */}
-      <section className="surface-quiet p-5 rounded-[var(--radius-xl)] border border-[color:color-mix(in_srgb,var(--glass-border)_42%,transparent)]">
-        <h3 className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-          <Database className="w-3 h-3" />
+      <section className={styles.verificationSection}>
+        <h3 className={styles.sectionHeading}>
+          <Database size={12} />
           Forensic Verification (SHA-256)
         </h3>
-        <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-          <div className="group">
-            <dt className="text-[10px] text-[var(--text-muted)] uppercase font-black tracking-widest group-hover:text-[var(--text-secondary)] transition-colors mb-1">
-              Entry ID
-            </dt>
-            <dd className="text-xs text-[var(--accent)]/80 font-mono break-all leading-tight">
-              {document.id}
-            </dd>
+        <dl className={styles.verificationGrid}>
+          <div className={styles.verificationField}>
+            <dt className={styles.verificationLabel}>Entry ID</dt>
+            <dd className={styles.verificationIdValue}>{document.id}</dd>
           </div>
-          <div className="group">
-            <dt className="text-[10px] text-[var(--text-muted)] uppercase font-black tracking-widest group-hover:text-[var(--text-secondary)] transition-colors mb-1">
-              MIME Class
-            </dt>
-            <dd className="text-xs text-[var(--text-primary)] font-bold uppercase tracking-widest">
+          <div className={styles.verificationField}>
+            <dt className={styles.verificationLabel}>MIME Class</dt>
+            <dd className={styles.verificationTextValue}>
               {document.fileType || document.file_type || 'RAW_DATA'}
             </dd>
           </div>
-          <div className="group">
-            <dt className="text-[10px] text-[var(--text-muted)] uppercase font-black tracking-widest group-hover:text-[var(--text-secondary)] transition-colors mb-1">
-              Data Weight
-            </dt>
-            <dd className="text-xs text-[var(--text-primary)] font-medium">
+          <div className={styles.verificationField}>
+            <dt className={styles.verificationLabel}>Data Weight</dt>
+            <dd className={styles.verificationSizeValue}>
               {formatSize((document.fileSize || document.file_size) ?? 0)}
             </dd>
           </div>
-          <div className="group">
-            <dt className="text-[10px] text-[var(--text-muted)] uppercase font-black tracking-widest group-hover:text-[var(--text-secondary)] transition-colors mb-1">
-              Checksum
-            </dt>
-            <dd className="text-[10px] text-[var(--text-muted)] font-mono break-all leading-tight">
+          <div className={styles.verificationField}>
+            <dt className={styles.verificationLabel}>Checksum</dt>
+            <dd className={styles.verificationHashValue}>
               {document.contentHash || document.content_hash || 'NON_DETERMINISTIC_HASH'}
             </dd>
           </div>
@@ -267,32 +242,28 @@ export const DocumentMetadataPanel: React.FC<DocumentMetadataPanelProps> = ({
       </section>
 
       {/* Sources & Classification */}
-      <section className="surface-quiet p-5 rounded-[var(--radius-xl)] border border-[color:color-mix(in_srgb,var(--glass-border)_42%,transparent)]">
-        <h3 className="text-[10px] font-black text-[var(--text-muted)] uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-          <Globe className="w-3 h-3" />
+      <section className={styles.originSection}>
+        <h3 className={styles.sectionHeading}>
+          <Globe size={12} />
           Data Origin
         </h3>
-        <div className="space-y-4">
-          <div className="bg-[var(--glass-bg-strong)] p-3 rounded-[var(--radius-lg)] border border-[var(--glass-border)]">
-            <span className="text-[10px] text-[var(--text-muted)] block mb-1 uppercase font-black tracking-widest">
-              Source Collection
-            </span>
-            <div className="flex items-center gap-2 text-[var(--text-primary)] text-xs font-bold uppercase tracking-wider">
-              <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] shadow-[0_0_8px_rgba(34,211,238,0.4)]" />
+        <div className={styles.originFields}>
+          <div className={styles.sourceCollectionBox}>
+            <span className={styles.sourceCollectionMiniLabel}>Source Collection</span>
+            <div className={styles.sourceCollectionValue}>
+              <div className={styles.sourceCollectionDot} />
               {metadata.source_collection || 'UNCLASSIFIED_LEAK'}
             </div>
           </div>
 
           {metadata.source_original_url && (
             <div>
-              <span className="text-[10px] text-[var(--text-muted)] block mb-1 uppercase font-black tracking-widest">
-                Raw Source URL
-              </span>
+              <span className={styles.urlMiniLabel}>Raw Source URL</span>
               <a
                 href={metadata.source_original_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[var(--accent)]/70 hover:text-[var(--accent)] text-[10px] font-mono truncate block underline decoration-cyan-500/20"
+                className={styles.sourceUrl}
               >
                 {metadata.source_original_url}
               </a>
@@ -300,17 +271,12 @@ export const DocumentMetadataPanel: React.FC<DocumentMetadataPanelProps> = ({
           )}
 
           {((metadata.tags?.length ?? 0) > 0 || (document.tags?.length ?? 0) > 0) && (
-            <div className="pt-2">
-              <span className="text-[10px] text-[var(--text-muted)] block mb-2 uppercase font-black tracking-widest">
-                Semantic Tags
-              </span>
-              <div className="flex flex-wrap gap-2">
+            <div className={styles.tagsSection}>
+              <span className={styles.tagsMiniLabel}>Semantic Tags</span>
+              <div className={styles.tagsRow}>
                 {[...(metadata.tags || []), ...(document.tags || [])].map(
                   (tag: string, i: number) => (
-                    <span
-                      key={i}
-                      className="px-2 py-1 bg-[var(--glass-bg-highlight)] text-[10px] font-bold text-[var(--text-secondary)] rounded-md border border-[var(--glass-border)] uppercase tracking-wider"
-                    >
+                    <span key={i} className={styles.tagChip}>
                       {tag}
                     </span>
                   ),

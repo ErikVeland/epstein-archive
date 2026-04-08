@@ -1,0 +1,77 @@
+.page {
+  min-height: calc(100vh - 200px);
+  padding: var(--space-4);
+}
+
+.card {
+  width: 100%;
+  max-width: 28rem;
+  padding: var(--space-8);
+  box-shadow: var(--glass-shadow);
+}
+
+.title {
+  margin-bottom: var(--space-6);
+  text-align: center;
+  font-weight: var(--weight-bold);
+}
+
+.errorBanner {
+  margin-bottom: var(--space-4);
+  padding: var(--space-3);
+  border: 1px solid color-mix(in srgb, var(--accent-danger) 20%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--accent-danger) 10%, transparent);
+  color: color-mix(in srgb, var(--accent-danger) 80%, white);
+  font-size: 0.875rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.label {
+  display: block;
+  margin-bottom: var(--space-1);
+  font-weight: var(--weight-medium);
+}
+
+.input {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  background: var(--glass-bg-strong);
+  color: var(--text-primary);
+}
+
+.input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.submitButton {
+  width: 100%;
+  padding: var(--space-2) var(--space-4);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--text-primary);
+  font-weight: var(--weight-medium);
+  transition:
+    filter var(--duration-fast, 150ms),
+    opacity var(--duration-fast, 150ms);
+  cursor: pointer;
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.submitButton:hover {
+  filter: brightness(1.1);
+}
+
+.submitButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

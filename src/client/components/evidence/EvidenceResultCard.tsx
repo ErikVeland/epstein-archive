@@ -6,6 +6,7 @@ import { Surface } from '../../design-system/components/surfaces/Surface';
 import { Box } from '../../design-system/components/layout/Box';
 import { Flex } from '../../design-system/components/layout/Flex';
 import { LqText } from '../../design-system/components/typography/Text';
+import styles from './EvidenceResultCard.module.css';
 
 interface SearchResult {
   person: Person;
@@ -19,39 +20,32 @@ interface EvidenceResultCardProps {
   onPersonClick: (person: Person) => void;
 }
 
+function getLikelihoodClass(score: string | undefined): string {
+  if (score === 'HIGH') return styles.likelihoodHigh;
+  if (score === 'MEDIUM') return styles.likelihoodMedium;
+  return styles.likelihoodLow;
+}
+
 export function EvidenceResultCard({ result, onPersonClick }: EvidenceResultCardProps) {
   return (
-    <Surface
-      variant="glass"
-      className="overflow-hidden border-white/5 transition-all hover:border-white/20"
-    >
+    <Surface variant="glass" className={styles.card}>
       {/* Person Header */}
-      <Box className="bg-gradient-to-r from-white/5 to-transparent px-4 py-3 border-b border-white/5">
+      <Box className={styles.personHeader}>
         <button
           onClick={() => onPersonClick(result.person)}
-          className="group block text-left w-full mb-2"
+          className={styles.nameButton}
           title="Click to view full profile"
         >
-          <LqText
-            variant="h3"
-            weight="bold"
-            className="group-hover:text-[var(--accent)] transition-colors truncate"
-          >
+          <LqText variant="h3" weight="bold" className={styles.personName}>
             {result.person.name}
           </LqText>
         </button>
 
-        <Flex direction="column" justify="between" gap={8} className="md:flex-row md:items-center">
-          <Flex align="center" gap={8} className="flex-wrap">
-            <User size={16} className="text-[var(--accent)] hidden md:block" />
+        <Flex direction="column" justify="between" gap={8} className={styles.flexRowMd}>
+          <Flex align="center" gap={8} className={styles.flexWrap}>
+            <User size={16} className={styles.userIconDesktop} />
             <Box
-              className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${
-                result.person.likelihoodScore === 'HIGH'
-                  ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                  : result.person.likelihoodScore === 'MEDIUM'
-                    ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
-                    : 'bg-green-500/20 text-green-400 border border-green-500/30'
-              }`}
+              className={`${styles.likelihoodBadge} ${getLikelihoodClass(result.person.likelihoodScore)}`}
             >
               <LqText variant="xs" weight="bold">
                 {result.person.likelihoodScore}
@@ -68,11 +62,11 @@ export function EvidenceResultCard({ result, onPersonClick }: EvidenceResultCard
           </Flex>
 
           <Flex align="center" gap={12}>
-            <Flex align="center" gap={4} className="text-white/40">
+            <Flex align="center" gap={4} className={styles.statsRow}>
               <LqText variant="xs" color="muted">
                 {result.person.mentions?.toLocaleString()} mentions
               </LqText>
-              <Box className="w-1 h-1 rounded-full bg-white/20" />
+              <Box className={styles.dotDivider} />
               <LqText variant="xs" color="muted">
                 {result.person.files} files
               </LqText>
@@ -86,20 +80,17 @@ export function EvidenceResultCard({ result, onPersonClick }: EvidenceResultCard
                 sourceId: result.person.id?.toString() || '',
               }}
               variant="quick"
-              className="hover:bg-white/10"
+              className={styles.addButtonHover}
             />
           </Flex>
         </Flex>
       </Box>
 
       {/* Evidence Types */}
-      <Box className="p-4 border-b border-white/5">
-        <Flex gap={8} className="flex-wrap">
+      <Box className={styles.evidenceTypesSection}>
+        <Flex gap={8} className={styles.flexWrap}>
           {result.person.evidenceTypes.map((type, i) => (
-            <Box
-              key={i}
-              className="px-2 py-1 bg-white/5 border border-white/5 rounded text-[10px] text-white/60 font-medium uppercase tracking-wider"
-            >
+            <Box key={i} className={styles.evidenceTypeTag}>
               {type.replace('_', ' ')}
             </Box>
           ))}
@@ -108,32 +99,28 @@ export function EvidenceResultCard({ result, onPersonClick }: EvidenceResultCard
 
       {/* Matching Contexts */}
       {result.matchingContexts.length > 0 && (
-        <Box className="p-4 border-b border-white/5 bg-white/[0.01]">
-          <Flex align="center" gap={8} className="mb-3">
-            <FileText size={14} className="text-white/40" />
+        <Box className={styles.contextsSection}>
+          <Flex align="center" gap={8} className={styles.contextsSectionHeader}>
+            <FileText size={14} className={styles.sectionIcon} />
             <LqText variant="small" weight="bold" color="muted">
               CONTEXTS ({result.matchingContexts.length})
             </LqText>
           </Flex>
 
-          <Box className="space-y-3">
+          <Box className={styles.contextsList}>
             {result.matchingContexts.map((context, i) => (
-              <Surface key={i} variant="glass" className="p-3 bg-white/2 space-y-2">
-                <LqText
-                  variant="small"
-                  color="primary"
-                  className="leading-relaxed italic opacity-90"
-                >
+              <Surface key={i} variant="glass" className={styles.contextItem}>
+                <LqText variant="small" color="primary" className={styles.contextQuote}>
                   &quot;{context.context}&quot;
                 </LqText>
-                <Flex align="center" gap={8} className="opacity-40">
-                  <FileText size={12} className="shrink-0" />
-                  <LqText variant="xs" className="truncate">
+                <Flex align="center" gap={8} className={styles.contextMeta}>
+                  <FileText size={12} className={styles.shrink0} />
+                  <LqText variant="xs" className={styles.filenameTruncate}>
                     {context.file}
                   </LqText>
                   {context.date !== 'Unknown' && (
                     <>
-                      <Box className="w-1 h-1 rounded-full bg-white/40" />
+                      <Box className={styles.contextMetaDot} />
                       <Calendar size={12} />
                       <LqText variant="xs">{context.date}</LqText>
                     </>
@@ -147,30 +134,24 @@ export function EvidenceResultCard({ result, onPersonClick }: EvidenceResultCard
 
       {/* Matching Red Flag Passages */}
       {result.matchingPassages.length > 0 && (
-        <Box className="p-4 bg-red-500/[0.03]">
-          <Flex align="center" gap={8} className="mb-3">
-            <AlertTriangle size={14} className="text-red-400" />
-            <LqText variant="small" weight="bold" className="text-red-400 uppercase tracking-wider">
+        <Box className={styles.passagesSection}>
+          <Flex align="center" gap={8} className={styles.passagesSectionHeader}>
+            <AlertTriangle size={14} className={styles.passagesIcon} />
+            <LqText variant="small" weight="bold" className={styles.passagesSectionTitle}>
               KEY PASSAGES ({result.matchingPassages.length})
             </LqText>
           </Flex>
 
-          <Box className="space-y-3">
+          <Box className={styles.passagesList}>
             {result.matchingPassages.map((passage, i) => (
-              <Surface
-                key={i}
-                variant="glass"
-                className="p-3 bg-red-500/5 border-red-500/10 space-y-2"
-              >
-                <LqText variant="small" className="text-red-100 leading-relaxed font-medium">
+              <Surface key={i} variant="glass" className={styles.passageItem}>
+                <LqText variant="small" className={styles.passageQuote}>
                   &quot;{passage.passage}&quot;
                 </LqText>
                 <Flex align="center" gap={8}>
-                  <Box className="px-1.5 py-0.5 bg-red-500/20 border border-red-500/20 rounded text-[9px] font-bold text-red-300 uppercase">
-                    {passage.keyword}
-                  </Box>
-                  <Box className="w-1 h-1 rounded-full bg-red-500/20" />
-                  <LqText variant="xs" className="text-red-400/60 truncate">
+                  <Box className={styles.passageKeyword}>{passage.keyword}</Box>
+                  <Box className={styles.passageDot} />
+                  <LqText variant="xs" className={styles.passageFilename}>
                     {passage.filename}
                   </LqText>
                 </Flex>

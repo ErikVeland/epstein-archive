@@ -60,20 +60,20 @@ export const entityEvidenceRepository = {
       getApiPool(),
     );
 
-    // Normalize evidence shape to match EntityEvidencePanel expectations
+    // Normalize evidence shape to match EntityEvidencePanel expectations (camelCase)
     const evidence = (evidenceRows as MentionEvidenceRow[]).map((row) => ({
       id: row.evidence_id,
-      document_id: row.document_id,
-      evidence_type: row.evidence_type || 'document_context',
+      documentId: row.document_id,
+      evidenceType: row.evidence_type || 'document_context',
       title: row.title || `Document ${row.document_id}`,
       description: '',
-      source_path: row.file_path || '',
-      cleaned_path: null,
-      red_flag_rating: row.red_flag_rating ?? 0,
-      created_at: row.date_created || null,
+      sourcePath: row.file_path || '',
+      cleanedPath: null,
+      redFlagRating: row.red_flag_rating ?? 0,
+      createdAt: row.date_created || null,
       role: 'mentioned',
       confidence: typeof row.score === 'number' ? row.score : 0.0,
-      context_snippet: row.mention_context || '',
+      contextSnippet: row.mention_context || '',
       flags: row.flag_type
         ? [
             {
@@ -87,14 +87,14 @@ export const entityEvidenceRepository = {
     // Stats
     const totalEvidence = evidence.length;
 
-    // Type breakdown by evidence_type
+    // Type breakdown by evidenceType
     const typeMap = new Map<string, number>();
     for (const e of evidence) {
-      const key = e.evidence_type || 'unknown';
+      const key = e.evidenceType || 'unknown';
       typeMap.set(key, (typeMap.get(key) || 0) + 1);
     }
-    const typeBreakdown = Array.from(typeMap.entries()).map(([evidence_type, count]) => ({
-      evidence_type,
+    const typeBreakdown = Array.from(typeMap.entries()).map(([evidenceType, count]) => ({
+      evidenceType,
       count,
     }));
 
@@ -115,11 +115,13 @@ export const entityEvidenceRepository = {
       getApiPool(),
     );
     const relatedEntities = (relatedEntitiesRaw as RelatedEntityRow[]).map((r) => ({
-      ...r,
-      shared_evidence_count: Number(r.shared_evidence_count),
+      id: Number((r as Record<string, unknown>).id),
+      fullName: String((r as Record<string, unknown>).full_name || ''),
+      entityCategory: String((r as Record<string, unknown>).entity_category || ''),
+      sharedEvidenceCount: Number(r.shared_evidence_count),
     }));
 
-    const highRiskCount = evidence.filter((e) => (e.red_flag_rating || 0) >= 4).length;
+    const highRiskCount = evidence.filter((e) => (e.redFlagRating || 0) >= 4).length;
     const averageConfidence =
       evidence.reduce((sum: number, e) => sum + (e.confidence || 0), 0) / (evidence.length || 1);
 

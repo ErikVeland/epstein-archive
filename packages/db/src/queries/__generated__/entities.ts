@@ -395,6 +395,7 @@ export interface IGetEntityMentionsResult {
   doc_red_flag_rating: number | null;
   document_id: string | null;
   documentDate: Date | null;
+  documentPath: string | null;
   documentTitle: string | null;
   end_offset: number | null;
   entity_id: string | null;
@@ -425,11 +426,11 @@ export interface IGetEntityMentionsQuery {
 const getEntityMentionsIR: any = {
   usedParamSet: { entityId: true, limit: true },
   params: [
-    { name: 'entityId', required: true, transform: { type: 'scalar' }, locs: [{ a: 172, b: 181 }] },
-    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 218, b: 224 }] },
+    { name: 'entityId', required: true, transform: { type: 'scalar' }, locs: [{ a: 204, b: 213 }] },
+    { name: 'limit', required: true, transform: { type: 'scalar' }, locs: [{ a: 250, b: 256 }] },
   ],
   statement:
-    'SELECT \n  em.*,\n  d.file_name as "documentTitle",\n  d.date_created as "documentDate"\nFROM entity_mentions em\nJOIN documents d ON em.document_id = d.id\nWHERE em.entity_id = :entityId!\nORDER BY d.date_created DESC\nLIMIT :limit!',
+    'SELECT\n  em.*,\n  d.file_name as "documentTitle",\n  d.date_created as "documentDate",\n  d.file_path as "documentPath"\nFROM entity_mentions em\nJOIN documents d ON em.document_id = d.id\nWHERE em.entity_id = :entityId!\nORDER BY d.date_created DESC\nLIMIT :limit!',
 };
 
 /**
@@ -438,7 +439,8 @@ const getEntityMentionsIR: any = {
  * SELECT
  *   em.*,
  *   d.file_name as "documentTitle",
- *   d.date_created as "documentDate"
+ *   d.date_created as "documentDate",
+ *   d.file_path as "documentPath"
  * FROM entity_mentions em
  * JOIN documents d ON em.document_id = d.id
  * WHERE em.entity_id = :entityId!

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { CloseButton } from '../common/CloseButton';
 import { useScrollLock } from '../../hooks/useScrollLock';
 import { Link } from 'react-router-dom';
+import styles from './InvestigationOnboarding.module.css';
 
 interface InvestigationOnboardingProps {
   onComplete: () => void;
@@ -33,10 +34,7 @@ export const InvestigationOnboarding: React.FC<InvestigationOnboardingProps> = (
       description:
         'Begin by creating a new investigation. Give it a meaningful name and description to help you stay organized.',
       icon: Search,
-      color: 'text-[var(--accent)]',
-      bg: 'bg-[var(--accent)]/10',
-      border: 'border-[var(--accent)]/20',
-      glow: 'shadow-blue-500/20',
+      tone: 'primary',
     },
     {
       id: 2,
@@ -44,10 +42,7 @@ export const InvestigationOnboarding: React.FC<InvestigationOnboardingProps> = (
       description:
         'Cut through noise using the Red Flag Index to focus on the most significant entities and documents.',
       icon: Filter,
-      color: 'text-red-400',
-      bg: 'bg-red-500/10',
-      border: 'border-red-500/20',
-      glow: 'shadow-red-500/20',
+      tone: 'danger',
     },
     {
       id: 3,
@@ -55,46 +50,49 @@ export const InvestigationOnboarding: React.FC<InvestigationOnboardingProps> = (
       description:
         'Every insight is linked to its source. Trace connections back to original documents for complete auditability.',
       icon: FileText,
-      color: 'text-emerald-400',
-      bg: 'bg-emerald-500/10',
-      border: 'border-emerald-500/20',
-      glow: 'shadow-emerald-500/20',
+      tone: 'success',
     },
   ];
 
   const currentStep = steps[step - 1];
   const Icon = currentStep.icon;
+  const toneClassName =
+    currentStep.tone === 'danger'
+      ? styles.toneDanger
+      : currentStep.tone === 'success'
+        ? styles.toneSuccess
+        : styles.tonePrimary;
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-[var(--glass-bg)] backdrop-blur-md flex items-center justify-center z-50 p-4"
+      className={styles.overlay}
     >
       <motion.div
         initial={{ scale: 0.95, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         transition={{ type: 'spring', duration: 0.5, bounce: 0.3 }}
-        className="relative bg-[var(--glass-bg-strong)]/90 border border-[var(--glass-border)] rounded-3xl shadow-[var(--glass-shadow)] w-full max-w-lg overflow-hidden backdrop-blur-xl"
+        className={styles.modal}
       >
         {/* Decorative Background Gradients */}
-        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-[var(--accent)]/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className={styles.topGlow} />
+        <div className={styles.bottomGlow} />
 
         {/* Header */}
-        <div className="relative flex items-center justify-between p-6 pb-2">
+        <div className={styles.header}>
           {/* Progress Indicators */}
-          <div className="flex gap-1.5">
+          <div className={styles.progressDots}>
             {steps.map((s) => (
               <div
                 key={s.id}
-                className={`h-1.5 rounded-full transition-all duration-500 ${
+                className={`${styles.progressDot} ${
                   s.id === step
-                    ? 'w-8 bg-[var(--accent)]'
+                    ? styles.progressDotActive
                     : s.id < step
-                      ? 'w-1.5 bg-[var(--accent)]/50'
-                      : 'w-1.5 bg-[var(--glass-bg-highlight)]'
+                      ? styles.progressDotCompleted
+                      : styles.progressDotPending
                 }`}
               />
             ))}
@@ -104,12 +102,12 @@ export const InvestigationOnboarding: React.FC<InvestigationOnboardingProps> = (
             onClick={onSkip}
             size="md"
             label="Close investigation onboarding"
-            className="bg-transparent hover:bg-[var(--glass-bg-highlight)] border-[var(--glass-border)]"
+            className={styles.closeButton}
           />
         </div>
 
         {/* Content Area */}
-        <div className="relative px-8 py-8 min-h-[320px] flex flex-col items-center justify-center text-center">
+        <div className={styles.content}>
           <AnimatePresence mode="wait">
             <motion.div
               key={step}
@@ -117,52 +115,40 @@ export const InvestigationOnboarding: React.FC<InvestigationOnboardingProps> = (
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.3 }}
-              className="flex flex-col items-center"
+              className={styles.contentInner}
             >
               {/* Icon Container */}
-              <div
-                className={`mb-8 p-6 rounded-[var(--radius-xl)] ${currentStep.bg} ${currentStep.border} border shadow-[0_0_30px_-5px] ${currentStep.glow} ring-1 ring-[var(--glass-border)]`}
-              >
-                <Icon className={`h-10 w-10 ${currentStep.color}`} />
+              <div className={`${styles.iconContainer} ${toneClassName}`}>
+                <Icon className={styles.icon} />
               </div>
 
-              <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-3">
-                {currentStep.title}
-              </h2>
-              <p className="text-[var(--text-muted)] text-lg leading-relaxed max-w-xs mx-auto">
-                {currentStep.description}
-              </p>
+              <h2 className={styles.title}>{currentStep.title}</h2>
+              <p className={styles.description}>{currentStep.description}</p>
             </motion.div>
           </AnimatePresence>
         </div>
 
         {/* Footer */}
-        <div className="relative p-6 pt-0 flex flex-col gap-3">
+        <div className={styles.footer}>
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={handleNext}
-            className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-[var(--text-primary)] rounded-[var(--radius-xl)] font-medium shadow-[var(--glass-shadow)] shadow-blue-900/20 border border-t-white/10 flex items-center justify-center gap-2 transition-all group"
+            className={styles.primaryButton}
           >
             <span>{step === totalSteps ? 'Get Started' : 'Continue'}</span>
             {step === totalSteps ? (
-              <CheckCircle className="w-4 h-4 text-[var(--text-primary)]/90" />
+              <CheckCircle className={styles.primaryButtonIconDone} />
             ) : (
-              <ArrowRight className="w-4 h-4 text-[var(--text-primary)]/80 group-hover:translate-x-0.5 transition-transform" />
+              <ArrowRight className={styles.primaryButtonIcon} />
             )}
           </motion.button>
 
-          <Link
-            to="/guide"
-            className="text-xs text-[var(--accent)] hover:text-[var(--accent)] text-center py-1 transition-colors"
-          >
+          <Link to="/guide" className={styles.guideLink}>
             Read the Full Guide
           </Link>
 
-          <button
-            onClick={onSkip}
-            className="text-sm text-[var(--text-muted)] hover:text-[var(--text-muted)] py-2 transition-colors"
-          >
+          <button onClick={onSkip} className={styles.skipButton}>
             Skip Introduction
           </button>
         </div>

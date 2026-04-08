@@ -1,0 +1,301 @@
+.viewer {
+  display: flex;
+  flex-direction: column;
+}
+
+.viewerInline {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.viewerOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  background: color-mix(in srgb, var(--glass-bg-strong) 90%, transparent);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4);
+  z-index: var(--z-above);
+}
+
+.headerInline {
+  padding: var(--space-2) var(--space-4);
+}
+
+.headerMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.fileIconBox {
+  background: var(--glass-bg);
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+}
+
+.fileIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.fileIconPdf {
+  color: #ef4444;
+}
+
+.fileIconImage {
+  color: var(--accent);
+}
+
+.fileIconGeneric {
+  color: var(--text-muted);
+}
+
+.fileName {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: min(32rem, 60vw);
+}
+
+.fileType {
+  margin: 0;
+  font-size: var(--type-small);
+  color: var(--text-secondary);
+  text-transform: capitalize;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.iconButton {
+  padding: var(--space-2);
+  color: var(--text-secondary);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-md);
+  transition:
+    color 0.2s,
+    background-color 0.2s;
+}
+
+.iconButton:hover:not(:disabled) {
+  color: var(--text-primary);
+  background: var(--glass-bg-highlight);
+}
+
+.iconButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.controlIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.zoomValue {
+  margin: 0 var(--space-1);
+  font-size: var(--type-small);
+  color: var(--text-muted);
+}
+
+.closeButton {
+  background: transparent;
+  border-color: var(--glass-border);
+}
+
+.closeButton:hover {
+  background: var(--glass-bg-highlight);
+}
+
+.body {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-dark);
+}
+
+.loadingOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-dark);
+  z-index: var(--z-content);
+}
+
+.loadingContent {
+  text-align: center;
+}
+
+.spinner {
+  display: inline-block;
+  width: 3rem;
+  height: 3rem;
+  margin-bottom: var(--space-4);
+  border-radius: 9999px;
+  border-top: 2px solid var(--accent);
+  border-bottom: 2px solid var(--accent);
+  border-left: 2px solid transparent;
+  border-right: 2px solid transparent;
+  animation: media-viewer-spin 1s linear infinite;
+}
+
+.loadingText {
+  color: var(--text-muted);
+}
+
+.mediaContent {
+  width: 100%;
+  height: 100%;
+  transition: opacity 0.2s ease;
+}
+
+.mediaContentHidden {
+  opacity: 0;
+}
+
+.mediaContentVisible {
+  opacity: 1;
+}
+
+.mediaContentPadded {
+  padding: var(--space-4);
+}
+
+.pdfFrame {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.imageStage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background: var(--glass-bg-strong);
+}
+
+.image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.unavailable {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  padding: var(--space-8);
+}
+
+.unavailableBody {
+  color: var(--text-muted);
+  margin-bottom: var(--space-4);
+}
+
+.stateIcon {
+  width: 4rem;
+  height: 4rem;
+  margin: 0 auto var(--space-4);
+}
+
+.stateTitle {
+  margin: 0 0 var(--space-2);
+  font-size: 1.25rem;
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+}
+
+.stateMessage {
+  margin: 0 0 var(--space-4);
+  color: var(--text-secondary);
+}
+
+.downloadLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background: var(--accent);
+  color: var(--text-primary);
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  transition: filter 0.2s ease;
+}
+
+.downloadLink:hover {
+  filter: brightness(1.08);
+}
+
+.buttonIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.errorState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.errorBody {
+  text-align: center;
+  color: #f87171;
+}
+
+.errorIcon {
+  color: #f87171;
+}
+
+.secondaryButton {
+  padding: var(--space-2) var(--space-4);
+  background: var(--glass-bg-highlight);
+  color: var(--text-primary);
+  border: 0;
+  border-radius: var(--radius-lg);
+  transition: background-color 0.2s ease;
+}
+
+.secondaryButton:hover {
+  background: var(--glass-highlight);
+}
+
+.footer {
+  padding: var(--space-3);
+  background: var(--glass-bg-strong);
+  border-top: 1px solid var(--glass-border);
+  text-align: center;
+  font-size: var(--type-small);
+  color: var(--text-muted);
+}
+
+@keyframes media-viewer-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

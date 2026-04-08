@@ -20,7 +20,7 @@ const StatsDashboard: React.FC<StatsDashboardProps> = ({ people }) => {
       title: 'Total People',
       value: stats.total.toLocaleString(),
       icon: Users,
-      iconColor: 'text-[var(--accent)]',
+      iconColor: s.colorAccent,
       description: 'Individuals tracked in the archive',
       trend: 'Updated daily',
     },
@@ -28,8 +28,8 @@ const StatsDashboard: React.FC<StatsDashboardProps> = ({ people }) => {
       title: 'High Risk Targets',
       value: stats.highRisk.toLocaleString(),
       icon: AlertTriangle,
-      iconColor: 'text-[var(--accent-danger)]',
-      valueColor: 'text-[var(--accent-danger)]',
+      iconColor: s.colorDanger,
+      valueColor: s.colorDanger,
       description: 'Red Flag Index 4+',
       trend: `${Math.round((stats.highRisk / stats.total) * 100)}% of total`,
     },
@@ -37,7 +37,7 @@ const StatsDashboard: React.FC<StatsDashboardProps> = ({ people }) => {
       title: 'Total Mentions',
       value: stats.totalMentions.toLocaleString(),
       icon: FileText,
-      iconColor: 'text-[var(--accent-success)]',
+      iconColor: s.colorSuccess,
       description: 'Cross-referenced citations',
       trend: 'Across 2,000+ docs',
     },
@@ -45,7 +45,7 @@ const StatsDashboard: React.FC<StatsDashboardProps> = ({ people }) => {
       title: 'Avg. Mentions',
       value: stats.avgMentions.toLocaleString(),
       icon: TrendingUp,
-      iconColor: 'text-[var(--accent-warning)]',
+      iconColor: s.colorWarning,
       description: 'Per individual entity',
       trend: 'Relevance metric',
     },
@@ -59,9 +59,7 @@ const StatsDashboard: React.FC<StatsDashboardProps> = ({ people }) => {
             <div className={s.cardHeader}>
               <div>
                 <p className={s.cardTitle}>{card.title}</p>
-                <h3
-                  className={`data-emphasis ${s.cardValue} ${card.valueColor || 'text-[var(--text-primary)]'}`}
-                >
+                <h3 className={`data-emphasis ${s.cardValue} ${card.valueColor || s.colorPrimary}`}>
                   {card.value}
                 </h3>
               </div>

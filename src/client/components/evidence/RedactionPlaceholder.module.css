@@ -1,0 +1,94 @@
+.root {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0.125rem 0.375rem;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono, monospace);
+  font-size: var(--type-xs);
+  cursor: help;
+  user-select: none;
+}
+
+.icon {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.stateDefault {
+  background: var(--app-bg);
+  color: var(--text-primary);
+}
+
+.stateMuted {
+  background: var(--app-bg);
+  color: var(--text-muted);
+}
+
+.statePerson {
+  background: #dbeafe;
+  border-color: #bfdbfe;
+  color: #1e40af;
+}
+
+.stateLawyer {
+  background: #f3e8ff;
+  border-color: #e9d5ff;
+  color: #6b21a8;
+}
+
+.stateOrg {
+  background: #d1fae5;
+  border-color: #a7f3d0;
+  color: #065f46;
+}
+
+.stateContact {
+  background: #fef3c7;
+  border-color: #fde68a;
+  color: #92400e;
+}
+
+.tooltip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + var(--space-2));
+  z-index: 50;
+  transform: translateX(-50%);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--glass-bg-strong);
+  box-shadow: var(--glass-shadow);
+  white-space: nowrap;
+  color: var(--text-primary);
+  font-size: var(--type-xs);
+}
+
+.tooltipTitle {
+  font-weight: var(--weight-semibold);
+}
+
+.tooltipMeta {
+  color: var(--text-secondary);
+  font-size: 10px;
+}
+
+.tooltipSource {
+  color: var(--text-muted);
+  font-size: 10px;
+  font-style: italic;
+}
+
+.tooltipArrow {
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 4px solid #111827;
+}

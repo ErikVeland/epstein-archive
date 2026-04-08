@@ -1,6 +1,13 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Sparkles, AlertCircle, ChevronRight, ChevronLeft, FileText } from 'lucide-react';
 import { prettifyOCRText } from '../../utils/prettifyOCR';
+import styles from './InvestigationTextRenderer.module.css';
+
+// Design System
+import { Box } from '../../design-system/components/layout/Box';
+import { Flex } from '../../design-system/components/layout/Flex';
+import { Surface } from '../../design-system/components/surfaces/Surface';
+import { LqText } from '../../design-system/components/typography/Text';
 
 interface DocumentEntity {
   id?: string | number;
@@ -75,7 +82,8 @@ const applySearchHighlight = (
   const result = html.replace(regex, (match) => {
     count += 1;
     const globalIndex = startIndex + count;
-    return `<mark id="search-match-${globalIndex}" class="search-match bg-[var(--accent)]/20 text-cyan-50 px-0.5 rounded border-b-2 border-[var(--accent)]/80 shadow-[0_0_15px_rgba(34,211,238,0.2)]">${match}</mark>`;
+    // Note: Using global class for search highlight to keep it simple with dangerouslySetInnerHTML
+    return `<mark id="search-match-${globalIndex}" class="search-highlight">${match}</mark>`;
   });
   return { html: result, count };
 };
@@ -320,11 +328,9 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
           const normalized = token.toLowerCase();
           if (baselineTokens.has(normalized)) return token;
 
-          const style =
-            highlightDensity === 'strong'
-              ? 'bg-emerald-500/10 border-b border-emerald-500/60 shadow-[0_0_8px_rgba(16,185,129,0.1)]'
-              : 'border-b border-emerald-500/30';
-          return `<span class="${style} rounded-sm transition-all duration-300" data-recovery="true">${token}</span>`;
+          const variantClass =
+            highlightDensity === 'strong' ? 'recovery-strong' : 'recovery-subtle';
+          return `<span class="recovery-token ${variantClass}" data-recovery="true">${token}</span>`;
         });
       }
 
@@ -334,7 +340,7 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
           if (!entity) return match;
           const id = String(entity.id ?? entity.entity_id ?? '');
           const safeName = escapeHtml(match);
-          return `<button type="button" class="entity-inline text-[var(--accent)] hover:text-cyan-100 underline decoration-cyan-500/40 underline-offset-2 transition-colors" data-entity-id="${id}" data-entity-name="${safeName}">${safeName}</button>`;
+          return `<button type="button" class="entity-trigger" data-entity-id="${id}" data-entity-name="${safeName}">${safeName}</button>`;
         });
       }
 
@@ -416,7 +422,7 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
     const firstMatch = window.document.getElementById('search-match-1');
     if (firstMatch) {
       firstMatch.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      firstMatch.classList.add('ring-2', 'ring-amber-400');
+      firstMatch.classList.add('search-match-active');
     }
   }, [searchTerm, matchCount]);
 
@@ -424,7 +430,7 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
     if (matchCount === 0) return;
 
     const prevMatch = window.document.getElementById(`search-match-${currentMatchIndex}`);
-    prevMatch?.classList.remove('ring-2', 'ring-amber-400');
+    prevMatch?.classList.remove('search-match-active');
 
     let nextIndex = direction === 'next' ? currentMatchIndex + 1 : currentMatchIndex - 1;
     if (nextIndex > matchCount) nextIndex = 1;
@@ -434,7 +440,7 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
     const target = window.document.getElementById(`search-match-${nextIndex}`);
     if (target) {
       target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      target.classList.add('ring-2', 'ring-amber-400');
+      target.classList.add('search-match-active');
     }
   };
 
@@ -444,7 +450,7 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
 
     const handlePointer = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
-      const entityButton = target.closest('.entity-inline') as HTMLElement | null;
+      const entityButton = target.closest('.entity-trigger') as HTMLElement | null;
       if (!entityButton) {
         setHover((previous) => (previous ? null : previous));
         return;
@@ -460,7 +466,7 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
 
     const handleClick = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
-      const entityButton = target.closest('.entity-inline') as HTMLElement | null;
+      const entityButton = target.closest('.entity-trigger') as HTMLElement | null;
       if (!entityButton || !onEntitySelect) return;
       event.preventDefault();
       const entityName = entityButton.getAttribute('data-entity-name') || '';
@@ -481,203 +487,189 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
   }, [entityByName, entityList, onEntitySelect]);
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <Box className={styles.root}>
       {lowLegibility && (
-        <div className="bg-amber-500/10 border border-amber-500/30 p-4 rounded-[var(--radius-xl)] flex items-start gap-4">
-          <div className="w-10 h-10 rounded-[var(--radius-lg)] bg-amber-500/20 flex items-center justify-center shrink-0">
-            <AlertCircle className="w-6 h-6 text-amber-500" />
-          </div>
-          <div className="flex-1">
-            <h4 className="text-sm font-bold text-amber-200 uppercase tracking-widest mb-1">
+        <Box className={styles.warningBox}>
+          <Box className={styles.warningIconContainer}>
+            <AlertCircle className={styles.warningIcon} />
+          </Box>
+          <Box>
+            <LqText variant="xs" weight="bold" color="accent" className={styles.warningTitle}>
               Low Legibility Warning
-            </h4>
-            <div className="text-xs text-[var(--text-secondary)] leading-relaxed max-w-2xl">
+            </LqText>
+            <LqText variant="xs" color="secondary" className={styles.warningText}>
               OCR data quality is below forensic confidence threshold. Some entities or text may be
               missing. Recommendation: Switch to <strong>Raw</strong> view or open{' '}
               <strong>Original PDF</strong> for confirmation.
-            </div>
-          </div>
-        </div>
+            </LqText>
+          </Box>
+        </Box>
       )}
 
       {excerpts.length > 0 && (
-        <section className="glass-surface border-violet-500/20 rounded-[var(--radius-xl)] overflow-hidden shadow-[var(--glass-shadow)] shadow-violet-950/20">
-          <div className="bg-violet-500/10 px-6 py-3 border-b border-violet-500/20 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-violet-400" />
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-violet-300">
+        <Surface variant="glass" className={styles.significanceSection}>
+          <Box className={styles.significanceHeader}>
+            <Flex align="center" gap="sm">
+              <Sparkles className={styles.significanceIcon} />
+              <LqText variant="xs" weight="black" className={styles.significanceLabel}>
                 AI Intelligence: Key Excerpts
-              </span>
-            </div>
-          </div>
-          <div className="p-6 space-y-6">
+              </LqText>
+            </Flex>
+          </Box>
+          <Box className={styles.significanceContent}>
             {excerpts.map((excerpt, i) => (
-              <div
-                key={i}
-                className="group relative pl-6 border-l-2 border-violet-500/30 hover:border-violet-400 transition-colors"
-              >
-                <div className="absolute -left-1 top-0 w-2 h-2 rounded-full bg-violet-500/40 scale-0 group-hover:scale-100 transition-transform" />
-                <blockquote className="italic text-base md:text-lg text-[var(--text-primary)] leading-relaxed font-serif selection:bg-violet-500/30">
+              <Box key={i} className={styles.excerptGroup}>
+                <Box className={styles.excerptIndicator} />
+                <LqText variant="body" color="primary" className={styles.excerptText}>
                   "{excerpt.text}"
-                </blockquote>
-                <div className="mt-3 flex flex-wrap gap-1.5">
+                </LqText>
+                <Box className={styles.reasonList}>
                   {excerpt.reasons.map((reason) => (
-                    <span
-                      key={`${i}-${reason}`}
-                      className="px-2 py-0.5 rounded-full border border-violet-500/30 bg-violet-500/10 text-[10px] uppercase tracking-wide text-violet-200"
-                    >
+                    <span key={`${i}-${reason}`} className={styles.reasonTag}>
                       {reason}
                     </span>
                   ))}
-                </div>
-              </div>
+                </Box>
+              </Box>
             ))}
-          </div>
-        </section>
+          </Box>
+        </Surface>
       )}
 
-      <div className="flex items-center justify-between gap-4 py-2 border-b border-[color:color-mix(in_srgb,var(--glass-border)_42%,transparent)]">
-        <div className="flex items-center gap-4">
-          <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)] flex items-center gap-3">
+      <Box className={styles.controlsBar}>
+        <Flex align="center" gap="md">
+          <LqText variant="xs" weight="black" color="muted" className={styles.modeLabel}>
             {mode === 'clean' ? 'Refined Content' : 'Original OCR Stream'}
-            <button
-              onClick={onToggleReadingMode}
-              className={`p-1 rounded-md transition-all ${
-                isReadingMode
-                  ? 'bg-[var(--accent)]/20 text-[var(--accent)] shadow-[0_0_10px_rgba(34,211,238,0.2)]'
-                  : 'text-[var(--text-primary)] hover:text-[var(--text-muted)]'
-              }`}
-              title={isReadingMode ? 'Disable Reading Mode' : 'Enable Reading Mode'}
-            >
-              <FileText className="w-3.5 h-3.5" />
-            </button>
-          </div>
+          </LqText>
+          <button
+            onClick={onToggleReadingMode}
+            className={`${styles.iconButton} ${isReadingMode ? styles.iconButtonActive : ''}`}
+            title={isReadingMode ? 'Disable Reading Mode' : 'Enable Reading Mode'}
+          >
+            <FileText className={styles.iconMedium} />
+          </button>
+
           {searchTerm && matchCount > 0 && (
-            <div className="flex items-center gap-2 bg-amber-500/10 px-2 py-1 rounded text-[10px] font-bold text-amber-300 border border-amber-500/20">
-              <span className="opacity-60">
+            <Box className={styles.matchCounter}>
+              <LqText variant="xs" weight="bold" className={styles.matchLabel}>
                 {currentMatchIndex} OF {matchCount} MATCHES
-              </span>
-              <div className="flex gap-1 ml-1">
+              </LqText>
+              <Box className={styles.navGroup}>
                 <button
                   onClick={() => navigateMatch('prev')}
-                  className="hover:text-[var(--text-primary)] transition-colors"
+                  className={styles.iconButton}
+                  title="Previous match"
                 >
-                  <ChevronLeft className="w-3 h-3" />
+                  <ChevronLeft className={styles.iconSmall} />
                 </button>
                 <button
                   onClick={() => navigateMatch('next')}
-                  className="hover:text-[var(--text-primary)] transition-colors"
+                  className={styles.iconButton}
+                  title="Next match"
                 >
-                  <ChevronRight className="w-3 h-3" />
+                  <ChevronRight className={styles.iconSmall} />
                 </button>
-              </div>
-            </div>
+              </Box>
+            </Box>
           )}
-        </div>
+        </Flex>
 
         {mode === 'clean' && baselineTokens && (
-          <div className="flex items-center gap-3">
-            <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
+          <Box className={styles.densityContainer}>
+            <LqText variant="xs" weight="bold" color="muted" className={styles.densityLabel}>
               Highlight Density
-            </span>
-            <div className="flex p-0.5 bg-[var(--glass-bg-strong)]/60 rounded-[var(--radius-lg)] border border-[color:color-mix(in_srgb,var(--glass-border)_42%,transparent)]">
+            </LqText>
+            <Box className={styles.densityToggleGroup}>
               {(['off', 'subtle', 'strong'] as const).map((d) => (
                 <button
                   key={d}
                   onClick={() => setHighlightDensity(d)}
-                  className={`px-2 py-1 rounded text-[8px] font-black uppercase transition-all ${
-                    highlightDensity === d
-                      ? 'bg-emerald-500/20 text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.2)]'
-                      : 'text-[var(--text-primary)] hover:text-[var(--text-muted)]'
+                  className={`${styles.densityButton} ${
+                    highlightDensity === d ? styles.densityButtonActive : ''
                   }`}
                 >
                   {d}
                 </button>
               ))}
-            </div>
+            </Box>
             <button
               type="button"
               onClick={() => onToggleRecoveryHighlights(!showRecoveryHighlights)}
-              className={`px-2 py-1 rounded text-[8px] font-black uppercase tracking-widest border transition-all ${
-                showRecoveryHighlights
-                  ? 'bg-emerald-500/15 border-emerald-500/50 text-emerald-300'
-                  : 'border-[var(--glass-border)] text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+              className={`${styles.recoveryToggle} ${
+                showRecoveryHighlights ? styles.recoveryToggleActive : ''
               }`}
             >
               {showRecoveryHighlights ? 'Recovery On' : 'Recovery Off'}
             </button>
-          </div>
+          </Box>
         )}
-      </div>
+      </Box>
 
       <div
         ref={containerRef}
-        className={`text-[var(--text-primary)] selection:bg-[var(--accent)]/30 transition-all duration-500 ${
-          isReadingMode
-            ? 'font-serif text-xl lg:text-2xl leading-[2] max-w-3xl mx-auto'
-            : 'font-sans text-base lg:text-lg leading-[1.8] tracking-tight'
+        className={`${styles.textContainer} ${
+          isReadingMode ? styles.readingMode : styles.standardMode
         }`}
       >
-        <div className="space-y-8">
+        <div className={styles.sectionsStack}>
           {processedSections.map((section) => (
-            <div key={section.id} className="group relative">
+            <Box key={section.id} className={styles.sectionGroup}>
               {section.id !== 'full' && (
-                <div className="flex items-center gap-4 mb-4">
-                  <h3 className="text-xs font-black uppercase tracking-[0.2em] text-[var(--accent)]/70">
+                <Box className={styles.sectionHeader}>
+                  <LqText variant="xs" weight="black" className={styles.sectionTitle}>
                     {section.title}
-                  </h3>
-                  <div className="flex-1 h-px bg-[var(--accent)]/10" />
-                </div>
+                  </LqText>
+                  <Box className={styles.sectionDivider} />
+                </Box>
               )}
-              <div className="space-y-1">
+              <div className={styles.lineStack}>
                 {section.lines.map((line, lineIndex) => (
                   <div
                     key={`${section.id}-line-${lineIndex}`}
-                    className="min-h-[24px]"
+                    className={styles.line}
                     dangerouslySetInnerHTML={{ __html: line || '&nbsp;' }}
                   />
                 ))}
               </div>
-            </div>
+            </Box>
           ))}
         </div>
         {hasMoreLines && (
-          <div className="mt-8 border-t border-[color:color-mix(in_srgb,var(--glass-border)_42%,transparent)] pt-6">
+          <Box className={styles.loadMoreContainer}>
             <button
               type="button"
               onClick={() => setLineLimit((prev) => Math.min(totalLineCount, prev + 1200))}
-              className="control h-10 px-4 text-xs font-semibold"
+              className={styles.loadMoreButton}
             >
               Load more text ({(totalLineCount - lineLimit).toLocaleString()} lines remaining)
             </button>
-            <div ref={loadMoreRef} className="h-1 w-full" aria-hidden="true" />
-          </div>
+            <div ref={loadMoreRef} className={styles.loadMoreSentinel} aria-hidden="true" />
+          </Box>
         )}
       </div>
 
       {hover && (
-        <div
-          className="fixed z-[11000] pointer-events-none rounded-[var(--radius-xl)] border border-[color:color-mix(in_srgb,var(--glass-border)_52%,transparent)] bg-[var(--glass-bg-strong)]/95 backdrop-blur-md p-4 text-xs shadow-[var(--glass-shadow)] animate-in zoom-in-95 duration-200"
-          style={{ left: hover.x, top: hover.y }}
-        >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[8px] font-black uppercase text-[var(--accent)] tracking-widest">
+        <Box className={styles.tooltip} style={{ left: hover.x, top: hover.y }}>
+          <Box className={styles.tooltipHeader}>
+            <LqText variant="xs" weight="black" color="accent" className={styles.tooltipLabel}>
               Entity Signature
-            </span>
-            <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] animate-pulse" />
-          </div>
-          <div className="font-bold text-sm text-[var(--text-primary)] mb-1">
+            </LqText>
+            <Box className={styles.tooltipIndicator} />
+          </Box>
+          <LqText variant="h3" weight="bold" color="primary" className={styles.tooltipTitle}>
             {hover.entity.name || hover.entity.fullName}
-          </div>
-          <div className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-semibold">
+          </LqText>
+          <LqText variant="xs" weight="semibold" color="muted" className={styles.tooltipSubtitle}>
             {hover.entity.entityType || hover.entity.type || 'IDENTIFIED ENTITY'}
-          </div>
+          </LqText>
           {hover.entity.role && (
-            <div className="mt-2 text-[var(--text-muted)] italic">"{hover.entity.role}"</div>
+            <LqText variant="small" className={styles.tooltipRole}>
+              "{hover.entity.role}"
+            </LqText>
           )}
-        </div>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 };
 

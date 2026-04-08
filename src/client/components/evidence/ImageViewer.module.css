@@ -1,0 +1,156 @@
+.root {
+  padding: var(--space-6);
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-6);
+  gap: var(--space-4);
+}
+
+.toolbarGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.iconButton {
+  padding: var(--space-2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  background: var(--text-primary);
+  color: var(--text-primary);
+  transition: background-color 0.2s ease;
+}
+
+.iconButton:hover {
+  background: var(--app-bg);
+}
+
+.icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.downloadButton {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  background: var(--text-primary);
+  color: var(--text-primary);
+  font-size: var(--type-small);
+  font-weight: var(--weight-medium);
+  transition: background-color 0.2s ease;
+}
+
+.downloadButton:hover {
+  background: var(--app-bg);
+}
+
+.downloadIcon {
+  width: 1rem;
+  height: 1rem;
+  margin-right: var(--space-2);
+}
+
+.zoomBadge {
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  background: var(--app-bg);
+  color: var(--text-primary);
+  font-size: var(--type-small);
+  font-weight: var(--weight-medium);
+}
+
+.imageViewport {
+  overflow: auto;
+  border-radius: var(--radius-lg);
+  background: var(--app-bg);
+}
+
+.imageViewportFullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  max-height: none;
+  padding: var(--space-8);
+}
+
+.imageViewportWindowed {
+  max-height: 600px;
+}
+
+.imageCenter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  padding: var(--space-4);
+}
+
+.scaledImageWrap {
+  transform-origin: center;
+}
+
+.image {
+  max-width: 100%;
+  height: auto;
+  box-shadow: var(--glass-shadow);
+}
+
+.metadataSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-top: var(--space-6);
+}
+
+.infoCard {
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--app-bg);
+}
+
+.ocrCard {
+  padding: var(--space-4);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  background: var(--text-primary);
+}
+
+.cardTitle {
+  margin-bottom: var(--space-2);
+  color: var(--text-primary);
+  font-size: var(--type-small);
+  font-weight: var(--weight-semibold);
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+  font-size: var(--type-small);
+}
+
+.infoLabel {
+  color: var(--text-primary);
+}
+
+.infoValue {
+  color: var(--text-primary);
+}
+
+.formatValue {
+  text-transform: uppercase;
+}
+
+.ocrText {
+  white-space: pre-wrap;
+  color: var(--text-primary);
+  font-size: var(--type-small);
+}

@@ -12,6 +12,7 @@ import { Box } from '../../design-system/components/layout/Box';
 import { Flex } from '../../design-system/components/layout/Flex';
 import { LqText } from '../../design-system/components/typography/Text';
 import { DOJ_TRANCHE_OPTIONS } from './documentTrancheOptions';
+import styles from './DocumentBrowserHeader.module.css';
 
 interface DocumentBrowserHeaderProps {
   isHeaderCondensed: boolean;
@@ -62,38 +63,34 @@ export const DocumentBrowserHeader: React.FC<DocumentBrowserHeaderProps> = ({
 }) => {
   return (
     <Box
-      className={`sticky top-0 z-30 transition-all ${
-        isHeaderCondensed
-          ? 'py-2 mb-3 bg-[var(--glass-bg-strong)]/80 backdrop-blur-md'
-          : 'py-3 mb-4'
-      }`}
+      className={`${styles.header} ${isHeaderCondensed ? styles.headerCondensed : styles.headerDefault}`}
     >
-      <Flex align="center" justify="between" gap="md" className="mb-2">
-        <Box className="min-w-0">
-          <LqText variant={isHeaderCondensed ? 'h3' : 'h1'} weight="bold" className="leading-tight">
+      <Flex align="center" justify="between" gap="md" className={styles.titleRow}>
+        <Box className={styles.titleBlock}>
+          <LqText variant={isHeaderCondensed ? 'h3' : 'h1'} weight="bold">
             Document Browser
           </LqText>
           {!isHeaderCondensed && (
-            <LqText variant="xs" color="secondary" className="mt-1">
+            <LqText variant="xs" color="secondary" className={styles.subtitle}>
               High-signal evidence previews, risk context, and fast navigation at scale
             </LqText>
           )}
         </Box>
-        <LqText variant="xs" color="muted" className="shrink-0">
+        <LqText variant="xs" color="muted" className={styles.countLabel}>
           {isFetching ? 'Updating results: ' : ''}
           Showing {filteredCount} of {totalDocuments.toLocaleString()}
         </LqText>
       </Flex>
 
-      <Box className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_auto] gap-2 xl:items-center">
-        <Box className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
+      <Box className={styles.controlsGrid}>
+        <Box className={styles.searchWrapper}>
+          <Search className={styles.searchIcon} />
           <input
             type="text"
             placeholder="Search by name, document ID, phrase, or source…"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            className="control w-full h-11 pl-10 pr-10 text-sm bg-[var(--glass-bg-strong)] border-[var(--glass-border)] focus:outline-none focus:border-[var(--accent)]"
+            className={`control ${styles.searchInput}`}
             autoComplete="off"
             autoCorrect="off"
             autoCapitalize="off"
@@ -103,19 +100,19 @@ export const DocumentBrowserHeader: React.FC<DocumentBrowserHeaderProps> = ({
           {searchInput && (
             <button
               onClick={() => setSearchInput('')}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 inline-flex h-7 w-7 items-center justify-center rounded-full hover:bg-[var(--glass-bg-highlight)] text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+              className={styles.clearBtn}
               title="Clear search"
             >
-              <X className="w-4 h-4" />
+              <X className={styles.actionIcon} />
             </button>
           )}
         </Box>
 
-        <Flex align="center" gap="sm" className="flex-wrap xl:justify-end">
+        <Flex align="center" gap="sm" className={styles.toolbar}>
           <select
             value={selectedTranche}
             onChange={(e) => applyTrancheFilter(e.target.value)}
-            className="control h-11 px-3 text-sm leading-none bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-md)]"
+            className={`control ${styles.selectControl}`}
             aria-label="Filter by tranche"
             title="Filter documents by tranche/source collection"
           >
@@ -130,7 +127,7 @@ export const DocumentBrowserHeader: React.FC<DocumentBrowserHeaderProps> = ({
             onChange={(e) =>
               setSortBy(e.target.value as 'relevance' | 'date' | 'red_flag' | 'fileType' | 'size')
             }
-            className="control h-11 px-3 text-sm leading-none bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-md)]"
+            className={`control ${styles.selectControl}`}
             aria-label="Sort field"
           >
             <option value="red_flag">Risk</option>
@@ -140,7 +137,7 @@ export const DocumentBrowserHeader: React.FC<DocumentBrowserHeaderProps> = ({
           </select>
           <button
             onClick={() => setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')}
-            className="control h-11 px-3 text-sm inline-flex items-center justify-center"
+            className={`control ${styles.btnControl}`}
           >
             {sortOrder === 'desc' ? 'Desc' : 'Asc'}
           </button>
@@ -150,7 +147,7 @@ export const DocumentBrowserHeader: React.FC<DocumentBrowserHeaderProps> = ({
               setItemsPerPage(Number(e.target.value));
               setCurrentPage(1);
             }}
-            className="control h-11 px-3 text-sm leading-none bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-md)]"
+            className={`control ${styles.selectControl}`}
             aria-label="Results per page"
           >
             <option value={25}>25</option>
@@ -159,36 +156,36 @@ export const DocumentBrowserHeader: React.FC<DocumentBrowserHeaderProps> = ({
           </select>
           <button
             onClick={() => setDensityMode(densityMode === 'compact' ? 'comfortable' : 'compact')}
-            className="control h-11 px-3 text-sm inline-flex items-center justify-center"
+            className={`control ${styles.btnControl}`}
             aria-label="Toggle density mode"
           >
             {densityMode === 'compact' ? 'Compact' : 'Comfortable'}
           </button>
           <button
             onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-            className="control h-11 px-3 inline-flex items-center gap-2 text-sm"
+            className={`control ${styles.btnControlGap}`}
             aria-label={`Switch to ${viewMode === 'grid' ? 'list' : 'grid'} view`}
             title={`Switch to ${viewMode === 'grid' ? 'list' : 'grid'} view`}
           >
             {viewMode === 'grid' ? (
-              <LayoutGrid className="w-4 h-4" />
+              <LayoutGrid className={styles.actionIcon} />
             ) : (
-              <ListIcon className="w-4 h-4" />
+              <ListIcon className={styles.actionIcon} />
             )}
-            <LqText variant="xs" weight="semibold" className="uppercase tracking-wider">
+            <LqText variant="xs" weight="semibold" className={styles.viewToggleLabel}>
               {viewMode === 'grid' ? 'List' : 'Grid'}
             </LqText>
           </button>
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="control h-11 px-3 text-sm inline-flex items-center gap-1.5"
+            className={`control ${styles.btnFilterGap}`}
           >
-            <Filter className="w-4 h-4" />
+            <Filter className={styles.actionIcon} />
             Filters
             {showFilters ? (
-              <ChevronDown className="w-3 h-3" />
+              <ChevronDown className={styles.smallIcon} />
             ) : (
-              <ChevronRight className="w-3 h-3" />
+              <ChevronRight className={styles.smallIcon} />
             )}
           </button>
         </Flex>

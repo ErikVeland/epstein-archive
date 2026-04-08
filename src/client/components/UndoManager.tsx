@@ -1,6 +1,7 @@
 import React, { useReducer, useCallback, useEffect } from 'react';
 import { UndoAction, UndoActionType, UndoContext, UndoState } from './undoContext';
 import { CloseButton } from './common/CloseButton';
+import styles from './UndoManager.module.css';
 
 // Create reducer for undo state
 const undoReducer = (state: UndoState, action: UndoActionType): UndoState => {
@@ -110,13 +111,13 @@ export const UndoProvider: React.FC<{ children: React.ReactNode }> = ({ children
     <UndoContext.Provider value={value}>
       {children}
       {state.notification?.visible && (
-        <div className="fixed bottom-4 right-4 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-4 shadow-[var(--glass-shadow)] z-50 max-w-md">
-          <div className="flex items-center justify-between">
-            <p className="text-[var(--text-primary)] text-sm">{state.notification.message}</p>
+        <div className={styles.notification}>
+          <div className={styles.notificationContent}>
+            <p className={styles.notificationMessage}>{state.notification.message}</p>
             {state.notification.action && (
               <button
                 onClick={() => performUndo(state.notification!.action!.id)}
-                className="ml-4 px-3 py-1 bg-[var(--accent)] hover:bg-blue-700 text-[var(--text-primary)] text-sm rounded transition-colors"
+                className={styles.undoButton}
               >
                 Undo
               </button>
@@ -125,7 +126,7 @@ export const UndoProvider: React.FC<{ children: React.ReactNode }> = ({ children
               onClick={hideNotification}
               size="sm"
               label="Close notification"
-              className="ml-2 bg-transparent border-[var(--glass-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+              className={styles.closeButton}
             />
           </div>
         </div>

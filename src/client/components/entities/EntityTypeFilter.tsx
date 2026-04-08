@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Icon from '../common/Icon';
 import { getEntityTypeIcon } from '../../utils/entityTypeIcons';
+import styles from './EntityTypeFilter.module.css';
 
 interface EntityTypeOption {
   value: string;
@@ -42,34 +43,40 @@ const EntityTypeFilter: React.FC<EntityTypeFilterProps> = ({ value, onChange, cl
   const selectedOption = options.find((option) => option.value === value) || options[0];
 
   return (
-    <div className={`relative ${isOpen ? 'z-[1200]' : 'z-10'} ${className}`} ref={dropdownRef}>
+    <div
+      className={[
+        styles.wrapper,
+        isOpen ? styles.wrapperOpen : styles.wrapperClosed,
+        className,
+      ].join(' ')}
+      ref={dropdownRef}
+    >
       <button
         type="button"
         onClick={() => setIsOpen((open) => !open)}
-        className="control px-3 text-sm flex items-center gap-2 justify-between w-full min-w-[180px]"
+        className={`control ${styles.triggerButton}`}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
       >
-        <div className="flex items-center gap-2 truncate">
+        <div className={styles.triggerContent}>
           {getEntityTypeIcon(selectedOption.value, 'sm')}
-          <span className="truncate">{selectedOption.label}</span>
+          <span className={styles.triggerLabel}>{selectedOption.label}</span>
         </div>
         <Icon name="ChevronDown" size="sm" />
       </button>
 
       {isOpen && (
-        <div className="absolute z-[1210] mt-1 w-full min-w-[220px] dropdown-surface p-1">
-          <ul role="listbox" className="py-1">
+        <div className={`dropdown-surface ${styles.dropdown}`}>
+          <ul role="listbox" className={styles.list}>
             {options.map((option) => (
               <li
                 key={option.value}
                 role="option"
                 aria-selected={option.value === value}
-                className={`px-3 h-10 text-sm cursor-pointer flex items-center gap-2 rounded-[var(--radius-sm)] hover:bg-[var(--glass-bg-highlight)]/55 ${
-                  option.value === value
-                    ? 'bg-[var(--glass-bg-highlight)]/65 text-[var(--text-primary)]'
-                    : 'text-[var(--text-secondary)]'
-                }`}
+                className={[
+                  styles.optionItem,
+                  option.value === value ? styles.optionSelected : styles.optionUnselected,
+                ].join(' ')}
                 onClick={() => {
                   onChange(option.value);
                   setIsOpen(false);

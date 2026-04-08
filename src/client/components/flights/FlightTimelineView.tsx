@@ -16,12 +16,9 @@ export const FlightTimelineView: React.FC<FlightTimelineViewProps> = ({
   onSelectFlight,
   formatDate,
 }) => (
-  <div
-    className="flight-timeline-container"
-    style={{ flex: 1, minHeight: '600px', height: '800px', width: '100%' }}
-  >
+  <div className={styles.container}>
     {flights.length === 0 ? (
-      <div className={`no-flights ${styles.noFlights}`}>No flights found</div>
+      <div className={styles.noFlights}>No flights found</div>
     ) : (
       <AutoSizer>
         {({ height, width }: { height: number; width: number }) => (
@@ -30,12 +27,12 @@ export const FlightTimelineView: React.FC<FlightTimelineViewProps> = ({
             itemCount={flights.length}
             itemSize={window.innerWidth <= 1024 ? 240 : 130}
             width={width ?? '100%'}
-            className="flight-timeline-list"
           >
             {({ index, style }) => {
               const flight = flights[index];
               return (
-                <div style={{ ...style, paddingBottom: '1rem', paddingRight: '0.5rem' }}>
+                // style prop required by react-window for virtual positioning
+                <div style={style} className={styles.itemWrapper}>
                   <FlightCard flight={flight} onSelect={onSelectFlight} formatDate={formatDate} />
                 </div>
               );

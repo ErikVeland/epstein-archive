@@ -1,0 +1,201 @@
+.fullscreenOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  background: var(--glass-bg-strong);
+}
+
+.fullscreenHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--glass-border);
+  background: color-mix(in srgb, var(--glass-bg-strong) 95%, transparent);
+}
+
+.fullscreenTitleGroup,
+.fullscreenActions,
+.cardHeaderLabel,
+.linkRow {
+  display: flex;
+  align-items: center;
+}
+
+.fullscreenTitleGroup {
+  gap: var(--space-3);
+}
+
+.fullscreenActions {
+  gap: var(--space-2);
+}
+
+.fullscreenTitleIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--accent);
+}
+
+.fullscreenTitle {
+  margin: 0;
+  color: var(--text-primary);
+  font-weight: var(--weight-semibold);
+}
+
+.fullscreenCoordinates {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--type-small);
+}
+
+.openMapsButton,
+.collapseButton,
+.expandButton,
+.mapLink {
+  transition:
+    background var(--duration-fast, 150ms),
+    color var(--duration-fast, 150ms),
+    filter var(--duration-fast, 150ms);
+}
+
+.openMapsButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-lg);
+  background: var(--accent);
+  color: var(--text-primary);
+  font-size: var(--type-small);
+  font-weight: var(--weight-medium);
+}
+
+.openMapsButton:hover {
+  filter: brightness(1.05);
+}
+
+.buttonIcon,
+.cardHeaderIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.collapseButton,
+.expandButton {
+  padding: var(--space-2);
+  border: none;
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.collapseButton:hover,
+.expandButton:hover {
+  background: var(--glass-bg-highlight);
+}
+
+.fullscreenMap {
+  flex: 1;
+}
+
+.mapFrame,
+.miniMapFrame {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.mapCard {
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  background: color-mix(in srgb, var(--glass-bg) 60%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.cardHeaderLabel {
+  gap: var(--space-2);
+}
+
+.cardHeaderText {
+  color: var(--text-primary);
+  font-size: var(--type-small);
+  font-weight: var(--weight-medium);
+}
+
+.miniMapButton {
+  position: relative;
+  width: 100%;
+  height: 8rem;
+  border: none;
+  background: transparent;
+  text-align: left;
+}
+
+.miniMapButton:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+.miniMapFrame {
+  pointer-events: none;
+}
+
+.miniMapOverlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(to top, rgb(15 23 42 / 0.6), transparent);
+}
+
+.footer {
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.coordinates {
+  color: var(--text-muted);
+  font-size: var(--type-xs);
+  font-family: var(--font-mono);
+}
+
+.linkRow {
+  gap: var(--space-2);
+}
+
+.mapLink {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  padding: 0.375rem var(--space-2);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--glass-bg-highlight) 50%, transparent);
+  color: var(--text-secondary);
+  font-size: var(--type-xs);
+  font-weight: var(--weight-medium);
+}
+
+.mapLink:hover {
+  background: var(--glass-bg-highlight);
+  color: var(--text-primary);
+}
+
+.linkIcon {
+  width: 0.75rem;
+  height: 0.75rem;
+}

@@ -8,6 +8,7 @@ import { Flex } from '../../design-system/components/layout/Flex';
 import { Grid } from '../../design-system/components/layout/Grid';
 import { LqText } from '../../design-system/components/typography/Text';
 import type { SpaceValue } from '../../design-system/lib/resolveSpace';
+import styles from './EvidenceFilters.module.css';
 
 type SortBy = 'relevance' | 'mentions' | 'redflag_asc' | 'redflag_desc' | 'name';
 
@@ -67,25 +68,25 @@ export function EvidenceFilters({
   resultCount,
 }: EvidenceFiltersProps) {
   return (
-    <Surface variant="glass" className="p-6">
-      <Flex align="center" gap={8} className="mb-4">
+    <Surface variant="glass" className={styles.container}>
+      <Flex align="center" gap={8} className={styles.searchHeader}>
         <Search className="text-[var(--accent)]" size={24} />
         <LqText variant="h2" weight="bold">
           Evidence Search
         </LqText>
       </Flex>
 
-      <Flex align="start" gap={8} className="mb-6 opacity-70">
-        <Info size={16} className="mt-1 flex-shrink-0" />
+      <Flex align="start" gap={8} className={styles.infoRow}>
+        <Info size={16} className={styles.infoIcon} />
         <LqText variant="small">
           Search across all documents, entities, and evidence to find connections and patterns.
         </LqText>
       </Flex>
 
       {loading && (
-        <Surface variant="glass" className="mb-6 p-4 border-[var(--accent)]/20">
-          <Box className="text-center">
-            <LqText color="accent" variant="small" className="mb-3">
+        <Surface variant="glass" className={styles.loadingPanel}>
+          <Box className={styles.loadingInner}>
+            <LqText color="accent" variant="small" className={styles.loadingLabel}>
               {loadingProgress}
             </LqText>
             <ProgressBar
@@ -96,7 +97,7 @@ export function EvidenceFilters({
               size="md"
               label="Search progress"
             />
-            <LqText variant="xs" color="muted" className="mt-2 text-center">
+            <LqText variant="xs" color="muted" className={styles.loadingSubLabel}>
               Searching subjects and documents...
             </LqText>
           </Box>
@@ -110,44 +111,37 @@ export function EvidenceFilters({
               Search
             </LqText>
             <Tooltip content="Search by names, contexts, or evidence">
-              <Info size={14} className="text-white/40 cursor-help" />
+              <Info size={14} className={styles.tooltipIcon} />
             </Tooltip>
           </Flex>
         }
         id="search-query"
       >
-        <Box className="relative">
+        <Box className={styles.searchInputWrapper}>
           <input
             type="text"
             id="search-query"
             placeholder="Search names, contexts, or evidence..."
             value={searchTerm}
             onChange={(e) => onSearchTermChange(e.target.value)}
-            className="w-full pl-10 pr-10 h-10 bg-white/5 border border-white/10 rounded-[var(--radius-lg)] text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent disabled:opacity-50 transition-all"
+            className={styles.searchInput}
             aria-label="Search for evidence by names, contexts, or keywords"
           />
           {searchTerm && (
             <button
               onClick={() => onSearchTermChange('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-white/10 text-white/40 hover:text-white transition-colors"
+              className={styles.clearBtn}
               title="Clear search"
             >
               <X size={16} />
             </button>
           )}
-          <Search
-            size={18}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none"
-            aria-hidden="true"
-          />
+          <Search size={18} className={styles.searchIconLeft} aria-hidden="true" />
         </Box>
       </FormField>
 
-      <Box className="md:hidden mt-4">
-        <button
-          onClick={onShowFiltersToggle}
-          className="w-full flex items-center justify-between px-4 py-3 bg-white/5 border border-white/10 rounded-[var(--radius-lg)] text-white"
-        >
+      <Box className={styles.mobileFilterToggle}>
+        <button onClick={onShowFiltersToggle} className={styles.mobileFilterBtn}>
           <Flex align="center" gap={8}>
             <Filter size={16} />
             <LqText weight="medium">Filters</LqText>
@@ -156,7 +150,7 @@ export function EvidenceFilters({
         </button>
       </Box>
 
-      <Box className={`${showFilters ? 'block' : 'hidden'} md:block mt-6`}>
+      <Box className={showFilters ? styles.filtersGrid : styles.filtersGridHidden}>
         <Grid cols={{ base: 1, md: 2, lg: 3, xl: 6 }} gap={16 as SpaceValue}>
           <FormField
             label={
@@ -165,7 +159,7 @@ export function EvidenceFilters({
                   Risk Level
                 </LqText>
                 <Tooltip content="Filter results by subject risk assessment.">
-                  <Info size={14} className="text-white/40 cursor-help" />
+                  <Info size={14} className={styles.tooltipIcon} />
                 </Tooltip>
               </Flex>
             }
@@ -176,10 +170,10 @@ export function EvidenceFilters({
               value={selectedRiskLevel}
               onChange={(e) => onRiskLevelChange(e.target.value)}
               disabled={loading}
-              className="w-full bg-white/5 border border-white/10 rounded-[var(--radius-lg)] px-3 h-10 text-white focus:outline-none focus:ring-2 focus:ring-[var(--accent)] disabled:opacity-50 transition-all"
+              className={styles.select}
             >
               {filterOptions.riskLevels.map((level) => (
-                <option key={level.value} value={level.value} className="bg-[#1a1a1a]">
+                <option key={level.value} value={level.value} className={styles.selectOption}>
                   {level.label}
                 </option>
               ))}
@@ -193,7 +187,7 @@ export function EvidenceFilters({
                   Evidence Type
                 </LqText>
                 <Tooltip content="Evidence types categorize the nature of documents.">
-                  <Info size={14} className="text-white/40 cursor-help" />
+                  <Info size={14} className={styles.tooltipIcon} />
                 </Tooltip>
               </Flex>
             }
@@ -204,13 +198,13 @@ export function EvidenceFilters({
               value={selectedEvidenceType}
               onChange={(e) => onEvidenceTypeChange(e.target.value)}
               disabled={loading}
-              className="w-full bg-white/5 border border-white/10 rounded-[var(--radius-lg)] px-3 h-10 text-white focus:outline-none focus:ring-2 focus:ring-[var(--accent)] disabled:opacity-50 transition-all"
+              className={styles.select}
             >
-              <option value="ALL" className="bg-[#1a1a1a]">
+              <option value="ALL" className={styles.selectOption}>
                 All Types
               </option>
               {allEvidenceTypes.map((type) => (
-                <option key={type} value={type} className="bg-[#1a1a1a]">
+                <option key={type} value={type} className={styles.selectOption}>
                   {type.replace('_', ' ').toUpperCase()}
                 </option>
               ))}
@@ -224,7 +218,7 @@ export function EvidenceFilters({
                   Min Red Flag
                 </LqText>
                 <Tooltip content="Set minimum severity threshold.">
-                  <Info size={14} className="text-white/40 cursor-help" />
+                  <Info size={14} className={styles.tooltipIcon} />
                 </Tooltip>
               </Flex>
             }
@@ -235,10 +229,10 @@ export function EvidenceFilters({
               value={minRedFlagRating}
               onChange={(e) => onMinRedFlagRatingChange(Number(e.target.value))}
               disabled={loading}
-              className="w-full bg-white/5 border border-white/10 rounded-[var(--radius-lg)] px-3 h-10 text-white focus:outline-none focus:ring-2 focus:ring-[var(--accent)] disabled:opacity-50 transition-all"
+              className={styles.select}
             >
               {filterOptions.redFlagRatings.map((rating) => (
-                <option key={rating.value} value={rating.value} className="bg-[#1a1a1a]">
+                <option key={rating.value} value={rating.value} className={styles.selectOption}>
                   {rating.label}
                 </option>
               ))}
@@ -252,7 +246,7 @@ export function EvidenceFilters({
                   Max Red Flag
                 </LqText>
                 <Tooltip content="Set maximum severity threshold.">
-                  <Info size={14} className="text-white/40 cursor-help" />
+                  <Info size={14} className={styles.tooltipIcon} />
                 </Tooltip>
               </Flex>
             }
@@ -263,10 +257,10 @@ export function EvidenceFilters({
               value={maxRedFlagRating}
               onChange={(e) => onMaxRedFlagRatingChange(Number(e.target.value))}
               disabled={loading}
-              className="w-full bg-white/5 border border-white/10 rounded-[var(--radius-lg)] px-3 h-10 text-white focus:outline-none focus:ring-2 focus:ring-[var(--accent)] disabled:opacity-50 transition-all"
+              className={styles.select}
             >
               {filterOptions.redFlagRatings.map((rating) => (
-                <option key={rating.value} value={rating.value} className="bg-[#1a1a1a]">
+                <option key={rating.value} value={rating.value} className={styles.selectOption}>
                   {rating.label}
                 </option>
               ))}
@@ -280,7 +274,7 @@ export function EvidenceFilters({
                   Sort By
                 </LqText>
                 <Tooltip content="Order results by selected criteria.">
-                  <Info size={14} className="text-white/40 cursor-help" />
+                  <Info size={14} className={styles.tooltipIcon} />
                 </Tooltip>
               </Flex>
             }
@@ -291,10 +285,10 @@ export function EvidenceFilters({
               value={sortBy}
               onChange={(e) => onSortByChange(e.target.value as SortBy)}
               disabled={loading}
-              className="w-full bg-white/5 border border-white/10 rounded-[var(--radius-lg)] px-3 h-10 text-white focus:outline-none focus:ring-2 focus:ring-[var(--accent)] disabled:opacity-50 transition-all"
+              className={styles.select}
             >
               {filterOptions.sortByOptions.map((option) => (
-                <option key={option.value} value={option.value} className="bg-[#1a1a1a]">
+                <option key={option.value} value={option.value} className={styles.selectOption}>
                   {option.label}
                 </option>
               ))}
@@ -308,28 +302,28 @@ export function EvidenceFilters({
                   Red Flag Only
                 </LqText>
                 <Tooltip content="Show only flagged results.">
-                  <Info size={14} className="text-white/40 cursor-help" />
+                  <Info size={14} className={styles.tooltipIcon} />
                 </Tooltip>
               </Flex>
             }
             id="red-flag-only"
           >
-            <Flex align="center" gap={8} className="h-10">
+            <Flex align="center" gap={8} className={styles.checkboxRow}>
               <input
                 type="checkbox"
                 id="red-flag-only"
                 checked={showRedFlagOnly}
                 onChange={(e) => onShowRedFlagOnlyChange(e.target.checked)}
                 disabled={loading}
-                className="w-4 h-4 rounded border-white/20 bg-white/5 text-[var(--accent)] focus:ring-[var(--accent)] transition-all cursor-pointer"
+                className={styles.checkbox}
               />
-              <Flag size={16} className="text-red-500" />
+              <Flag size={16} className={styles.flagIcon} />
             </Flex>
           </FormField>
         </Grid>
       </Box>
 
-      <Flex justify="between" align="center" className="mt-6 pt-4 border-t border-white/10">
+      <Flex justify="between" align="center" className={styles.footer}>
         <LqText variant="xs" color="muted">
           {resultCount} results found
         </LqText>

@@ -472,7 +472,7 @@ const GlobalSearch: React.FC = () => {
           </span>
         </div>
 
-        <div className="divide-y divide-gray-700">
+        <div className={s.resultsDivider}>
           {/* Investigations Section */}
           {investigationResults.length > 0 &&
             investigationResults.map((inv, index) => (
@@ -733,16 +733,11 @@ const GlobalSearch: React.FC = () => {
                 </div>
 
                 {selectedResult.entities.length > 0 && (
-                  <div className="mb-6">
-                    <label className="block text-[var(--text-muted)] text-sm mb-2">
-                      Entities Mentioned
-                    </label>
-                    <div className="flex flex-wrap gap-2">
+                  <div className={s.modalSection}>
+                    <label className={s.modalSectionLabel}>Entities Mentioned</label>
+                    <div className={s.modalChipList}>
                       {selectedResult.entities.map((entity, idx) => (
-                        <span
-                          key={idx}
-                          className="px-3 py-1 bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] rounded-full text-sm"
-                        >
+                        <span key={idx} className={s.modalChip}>
                           {entity}
                         </span>
                       ))}
@@ -751,17 +746,12 @@ const GlobalSearch: React.FC = () => {
                 )}
 
                 {selectedResult.dates.length > 0 && (
-                  <div className="mb-6">
-                    <label className="block text-[var(--text-muted)] text-sm mb-2">
-                      Dates Mentioned
-                    </label>
-                    <div className="flex flex-wrap gap-2">
+                  <div className={s.modalSection}>
+                    <label className={s.modalSectionLabel}>Dates Mentioned</label>
+                    <div className={s.modalChipList}>
                       {selectedResult.dates.map((date, idx) => (
-                        <span
-                          key={idx}
-                          className="px-3 py-1 bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] rounded-full text-sm flex items-center space-x-2"
-                        >
-                          <Calendar className="h-3 w-3" />
+                        <span key={idx} className={`${s.modalChip} ${s.modalDateChip}`}>
+                          <Calendar className={s.modalDateIcon} />
                           <span>{date}</span>
                         </span>
                       ))}
@@ -771,16 +761,11 @@ const GlobalSearch: React.FC = () => {
 
                 {selectedResult.highlights.length > 0 && (
                   <div>
-                    <label className="block text-[var(--text-muted)] text-sm mb-2">
-                      Search Highlights
-                    </label>
-                    <div className="space-y-2">
+                    <label className={s.modalSectionLabel}>Search Highlights</label>
+                    <div className={s.modalHighlightList}>
                       {selectedResult.highlights.map((highlight, idx) => (
-                        <div
-                          key={idx}
-                          className="p-3 bg-[var(--glass-bg-strong)] rounded-[var(--radius-lg)]"
-                        >
-                          <p className="text-[var(--accent)] text-sm">{highlight}</p>
+                        <div key={idx} className={s.modalHighlightCard}>
+                          <p className={s.modalHighlightText}>{highlight}</p>
                         </div>
                       ))}
                     </div>
@@ -788,11 +773,8 @@ const GlobalSearch: React.FC = () => {
                 )}
               </div>
 
-              <div className="p-6 border-t border-[var(--glass-border)] flex justify-end space-x-3">
-                <button
-                  onClick={() => setSelectedResult(null)}
-                  className="px-4 py-2 bg-[var(--glass-bg-highlight)] hover:bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] text-[var(--text-primary)] transition-colors"
-                >
+              <div className={s.modalFooter}>
+                <button onClick={() => setSelectedResult(null)} className={s.modalSecondaryButton}>
                   Close
                 </button>
                 <button
@@ -800,9 +782,9 @@ const GlobalSearch: React.FC = () => {
                     setSelectedResult(null);
                     navigate(`/documents/${selectedResult.id}`);
                   }}
-                  className="px-4 py-2 bg-[var(--accent)] hover:bg-cyan-700 rounded-[var(--radius-lg)] text-[var(--text-primary)] transition-colors flex items-center space-x-2"
+                  className={s.modalPrimaryButton}
                 >
-                  <Eye className="h-4 w-4" />
+                  <Eye className={s.modalButtonIcon} />
                   <span>View File</span>
                 </button>
               </div>

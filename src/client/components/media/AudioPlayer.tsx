@@ -12,6 +12,8 @@ import {
 } from 'lucide-react';
 import { CloseButton } from '../common/CloseButton';
 import { useScrollLock } from '../../hooks/useScrollLock';
+import { cn } from '@client/utils/cn';
+import styles from './AudioPlayer.module.css';
 
 export interface TranscriptSegment {
   start: number;
@@ -55,7 +57,6 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   const audioRef = useRef<HTMLAudioElement>(null);
   const transcriptRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
-  // const _navigate = useNavigate();
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
@@ -66,19 +67,16 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   const initialSeekDone = useRef(false);
 
   useEffect(() => {
-    // Reset initial seek state when src changes
     initialSeekDone.current = false;
-    setCurrentTime(initialTime);
   }, [src, initialTime]);
+
   const [showTranscript, setShowTranscript] = useState(() => {
-    // Load transcript preference from localStorage
     try {
       const saved =
         typeof window !== 'undefined'
           ? window.localStorage.getItem('audio-player-show-transcript')
           : null;
       if (saved !== null) return saved === 'true';
-      // Default: closed on small screens (mobile), open on desktop
       if (typeof window !== 'undefined' && window.innerWidth < 768) return false;
       return true;
     } catch {
@@ -88,10 +86,9 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   const [activeSegmentIndex, setActiveSegmentIndex] = useState<number>(-1);
   const [showChapters, setShowChapters] = useState(false);
   const [showFullTranscriptOverlay, setShowFullTranscriptOverlay] = useState(false);
-  const lastInteractionRef = useRef<number>(Date.now());
+  const interactionLockRef = useRef(false);
+  const interactionTimeoutRef = useRef<number | null>(null);
   const [barHeights, setBarHeights] = useState<number[]>(Array.from({ length: 24 }).map(() => 20));
-
-  // In-player transcript search state
   const [transcriptSearch, setTranscriptSearch] = useState('');
   const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
 
@@ -111,9 +108,6 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
       .map(({ index }) => index);
   }, [transcript, normalizedTranscriptQuery]);
 
-  useEffect(() => {
-    setCurrentMatchIndex(0);
-  }, [normalizedTranscriptQuery, transcriptMatches.length]);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const sourceRef = useRef<MediaElementAudioSourceNode | null>(null);
@@ -126,30 +120,36 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   const overlaySearchInputRef = useRef<HTMLInputElement | null>(null);
   useScrollLock(showFullTranscriptOverlay);
 
-  // Toggle transcript visibility and persist preference
   const toggleTranscript = () => {
     setShowTranscript((prev) => {
-      const newValue = !prev;
+      const next = !prev;
       try {
         if (typeof window !== 'undefined') {
-          window.localStorage.setItem('audio-player-show-transcript', String(newValue));
+          window.localStorage.setItem('audio-player-show-transcript', String(next));
         }
       } catch {
-        // ignore storage errors
+        // Ignore storage failures so the player still works in restricted browsers.
       }
-      return newValue;
+      return next;
     });
   };
+
+  const markInteraction = useCallback(() => {
+    interactionLockRef.current = true;
+    if (interactionTimeoutRef.current !== null) {
+      window.clearTimeout(interactionTimeoutRef.current);
+    }
+    interactionTimeoutRef.current = window.setTimeout(() => {
+      interactionLockRef.current = false;
+      interactionTimeoutRef.current = null;
+    }, 5000);
+  }, []);
 
   const handleShare = () => {
     try {
       const url = new URL(window.location.href);
-      // Preserve existing params but always include current timecode so
-      // links can reopen at the same moment.
       url.searchParams.set('t', Math.floor(currentTime).toString());
-      if (documentId != null) {
-        url.searchParams.set('id', String(documentId));
-      }
+      if (documentId != null) url.searchParams.set('id', String(documentId));
       navigator.clipboard.writeText(url.toString()).then(() => {
         setShowCopied(true);
         setTimeout(() => setShowCopied(false), 2000);
@@ -159,128 +159,128 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
     }
   };
 
-  // Initialize / update audio element with current volume & rate
   useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = volume;
-      audioRef.current.playbackRate = playbackRate;
-      // Only autoplay if not sensitive (wait for reveal otherwise)
-      if (autoPlay && !isSensitive) {
-        audioRef.current.play().catch((e) => console.warn('Autoplay failed:', e));
-      }
-      if (!audioContextRef.current) {
-        const audioWindow = window as Window & {
-          AudioContext?: typeof AudioContext;
-          webkitAudioContext?: typeof AudioContext;
-        };
-        const Ctor = audioWindow.AudioContext || audioWindow.webkitAudioContext;
-        if (Ctor) {
-          const ctx = new Ctor();
-          audioContextRef.current = ctx;
-          const source = ctx.createMediaElementSource(audioRef.current);
-          const analyser = ctx.createAnalyser();
-          analyser.fftSize = 128;
-          analyser.smoothingTimeConstant = 0.6;
-          source.connect(analyser);
-          analyser.connect(ctx.destination);
-          analyserRef.current = analyser;
-          sourceRef.current = source;
-          const bufferLength = analyser.frequencyBinCount;
-          const dataArray = new Uint8Array(bufferLength);
-          const animate = () => {
-            if (!analyserRef.current) return;
-            analyserRef.current.getByteFrequencyData(dataArray);
-            const bars = 24;
-            const step = Math.max(1, Math.floor(bufferLength / bars));
-            const targetHeights: number[] = [];
-            for (let i = 0; i < bars; i++) {
-              const start = i * step;
-              const end = Math.min(bufferLength, (i + 1) * step);
-              let sum = 0;
-              for (let j = start; j < end; j++) sum += dataArray[j];
-              const avg = sum / (end - start);
-              const norm = Math.min(100, Math.max(5, (avg / 255) * 100));
-              targetHeights.push(norm);
-            }
-            setBarHeights((prev) => {
-              const decay = 0.8;
-              return prev.map((p, i) => {
-                const t = targetHeights[i] ?? p;
-                return t > p ? t : Math.max(0, p - decay);
-              });
-            });
-            requestAnimationFrame(animate);
-          };
-          requestAnimationFrame(animate);
-        }
-      }
+    if (!audioRef.current) return;
+    audioRef.current.volume = volume;
+    audioRef.current.playbackRate = playbackRate;
+    if (autoPlay && !isSensitive) {
+      audioRef.current.play().catch((e) => console.warn('Autoplay failed:', e));
     }
-  }, [autoPlay, isSensitive, volume, playbackRate]);
+    if (audioContextRef.current) return;
+
+    const audioWindow = window as Window & {
+      AudioContext?: typeof AudioContext;
+      webkitAudioContext?: typeof AudioContext;
+    };
+    const Ctor = audioWindow.AudioContext || audioWindow.webkitAudioContext;
+    if (!Ctor) return;
+
+    const ctx = new Ctor();
+    audioContextRef.current = ctx;
+    const source = ctx.createMediaElementSource(audioRef.current);
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 128;
+    analyser.smoothingTimeConstant = 0.6;
+    source.connect(analyser);
+    analyser.connect(ctx.destination);
+    analyserRef.current = analyser;
+    sourceRef.current = source;
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+
+    const animate = () => {
+      if (!analyserRef.current) return;
+      analyserRef.current.getByteFrequencyData(dataArray);
+      const bars = 24;
+      const step = Math.max(1, Math.floor(bufferLength / bars));
+      const targets: number[] = [];
+      for (let i = 0; i < bars; i++) {
+        const start = i * step;
+        const end = Math.min(bufferLength, (i + 1) * step);
+        let sum = 0;
+        for (let j = start; j < end; j++) sum += dataArray[j];
+        const avg = sum / (end - start);
+        targets.push(Math.min(100, Math.max(5, (avg / 255) * 100)));
+      }
+      setBarHeights((prev) =>
+        prev.map((p, i) => {
+          const t = targets[i] ?? p;
+          return t > p ? t : Math.max(0, p - 0.8);
+        }),
+      );
+      requestAnimationFrame(animate);
+    };
+
+    requestAnimationFrame(animate);
+  }, [autoPlay, isSensitive, playbackRate, volume]);
+
+  useEffect(() => {
+    return () => {
+      if (interactionTimeoutRef.current !== null) {
+        window.clearTimeout(interactionTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  // Slideshow effect
   useEffect(() => {
     if (!albumImages || albumImages.length <= 1) return;
-
     const interval = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % albumImages.length);
-    }, 15000); // 15 seconds
-
+    }, 15000);
     return () => clearInterval(interval);
   }, [albumImages]);
 
-  // Handle time update
   const handleTimeUpdate = () => {
-    if (audioRef.current) {
-      const time = audioRef.current.currentTime;
-      setCurrentTime(time);
-
-      // Find active segment
-      if (transcript.length > 0) {
-        const index = transcript.findIndex((seg) => time >= seg.start && time < seg.end);
-        if (index !== -1 && index !== activeSegmentIndex) {
-          setActiveSegmentIndex(index);
-          // When a transcript search is active, pause automatic scrolling so
-          // investigators can stay anchored on their search context. Auto-scroll
-          // resumes only once the search is cleared.
-          if (!normalizedTranscriptQuery && Date.now() - lastInteractionRef.current > 5000) {
-            scrollToSegment(index);
-          }
-          const start = Math.max(0, index - 50);
-          const end = Math.min(transcript.length, index + 150);
-          setRenderWindow({ start, end });
-        }
+    if (!audioRef.current) return;
+    const time = audioRef.current.currentTime;
+    setCurrentTime(time);
+    if (transcript.length === 0) return;
+    const index = transcript.findIndex((seg) => time >= seg.start && time < seg.end);
+    if (index !== -1 && index !== activeSegmentIndex) {
+      setActiveSegmentIndex(index);
+      if (!normalizedTranscriptQuery && !interactionLockRef.current) {
+        scrollToSegment(index);
       }
+      setRenderWindow({
+        start: Math.max(0, index - 50),
+        end: Math.min(transcript.length, index + 150),
+      });
     }
   };
 
   const scrollToSegment = useCallback((index: number) => {
-    if (transcriptRef.current && transcriptRef.current.parentElement) {
-      const container = transcriptRef.current.parentElement;
-      const element = transcriptRef.current.children[index] as HTMLElement;
-
-      if (element) {
-        const offset = element.offsetTop - container.offsetTop;
-
-        container.scrollTo({
-          top: offset - container.clientHeight / 2 + element.clientHeight / 2,
-          behavior: 'smooth',
-        });
-      }
-    }
+    if (!transcriptRef.current?.parentElement) return;
+    const container = transcriptRef.current.parentElement;
+    const element = transcriptRef.current.children[index] as HTMLElement;
+    if (!element) return;
+    const offset = element.offsetTop - container.offsetTop;
+    container.scrollTo({
+      top: offset - container.clientHeight / 2 + element.clientHeight / 2,
+      behavior: 'smooth',
+    });
   }, []);
 
   const scrollOverlayToSegment = useCallback((index: number) => {
     if (!overlayRef.current) return;
     const element = overlayRef.current.children[index] as HTMLElement;
-    if (element) {
-      overlayRef.current.scrollTo({
-        top: element.offsetTop - overlayRef.current.clientHeight / 2 + element.clientHeight / 2,
-        behavior: 'smooth',
-      });
-    }
+    if (!element) return;
+    overlayRef.current.scrollTo({
+      top: element.offsetTop - overlayRef.current.clientHeight / 2 + element.clientHeight / 2,
+      behavior: 'smooth',
+    });
   }, []);
+
+  const seek = useCallback(
+    (time: number) => {
+      if (!audioRef.current) return;
+      audioRef.current.currentTime = Math.max(0, Math.min(time, duration));
+      setCurrentTime(audioRef.current.currentTime);
+      markInteraction();
+    },
+    [duration, markInteraction],
+  );
 
   const jumpToTranscriptMatch = useCallback(
     (nextIndex: number) => {
@@ -294,9 +294,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
       scrollToSegment(segIndex);
       scrollOverlayToSegment(segIndex);
     },
-    // seek is stable and declared below; intentionally omitted from deps
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [transcriptMatches, transcript, scrollToSegment, scrollOverlayToSegment],
+    [transcriptMatches, transcript, seek, scrollToSegment, scrollOverlayToSegment],
   );
 
   const goToNextTranscriptMatch = useCallback(
@@ -308,16 +306,12 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
     [currentMatchIndex, jumpToTranscriptMatch],
   );
 
-  // Keyboard shortcuts for transcript navigation
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
-      if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
-        return; // respect typing
-      }
+      if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) return;
       if (!showTranscript && !showFullTranscriptOverlay) return;
 
-      // Focus transcript search with '/'
       if (e.key === '/') {
         e.preventDefault();
         if (showFullTranscriptOverlay && overlaySearchInputRef.current) {
@@ -327,7 +321,6 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
         }
         return;
       }
-
       if (e.key === 'n' && !e.shiftKey) {
         e.preventDefault();
         goToNextTranscriptMatch();
@@ -336,7 +329,6 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
         goToPrevTranscriptMatch();
       }
     };
-
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [showTranscript, showFullTranscriptOverlay, goToNextTranscriptMatch, goToPrevTranscriptMatch]);
@@ -359,12 +351,10 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
         parts.push(text.slice(index));
         break;
       }
-      if (matchIndex > index) {
-        parts.push(text.slice(index, matchIndex));
-      }
+      if (matchIndex > index) parts.push(text.slice(index, matchIndex));
       const matchText = text.slice(matchIndex, matchIndex + q.length);
       parts.push(
-        <mark key={parts.length} className="bg-amber-500/40 text-inherit px-0.5 rounded-sm">
+        <mark key={parts.length} className={styles.highlightMark}>
           {matchText}
         </mark>,
       );
@@ -374,23 +364,11 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   };
 
   const togglePlay = () => {
-    if (audioRef.current) {
-      if (isPlaying) audioRef.current.pause();
-      else audioRef.current.play();
-      setIsPlaying(!isPlaying);
-    }
+    if (!audioRef.current) return;
+    if (isPlaying) audioRef.current.pause();
+    else audioRef.current.play();
+    setIsPlaying(!isPlaying);
   };
-
-  const seek = useCallback(
-    (time: number) => {
-      if (audioRef.current) {
-        audioRef.current.currentTime = Math.max(0, Math.min(time, duration));
-        setCurrentTime(audioRef.current.currentTime);
-        lastInteractionRef.current = Date.now();
-      }
-    },
-    [duration],
-  );
 
   const computedChapters: Chapter[] = useMemo(() => {
     if (Array.isArray(chapters) && chapters.length > 0) return chapters;
@@ -399,9 +377,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
     for (let i = 1; i < transcript.length; i++) {
       const prev = transcript[i - 1];
       const curr = transcript[i];
-      if (curr.start - prev.end > 30 || curr.speaker !== prev.speaker) {
-        starts.push(curr.start);
-      }
+      if (curr.start - prev.end > 30 || curr.speaker !== prev.speaker) starts.push(curr.start);
     }
     return starts.map((start) => {
       const seg = transcript.find((s) => s.start === start) || transcript[0];
@@ -447,90 +423,86 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
         .sort((a, b) => b[1] - a[1])
         .slice(0, 2)
         .map(([w]) => w);
-      const title = top.length
-        ? top.map((t) => t[0].toUpperCase() + t.slice(1)).join(' • ')
-        : 'Chapter';
-      return { startTime: start, title };
+      return {
+        startTime: start,
+        title: top.length ? top.map((t) => t[0].toUpperCase() + t.slice(1)).join(' • ') : 'Chapter',
+      };
     });
   }, [chapters, transcript]);
-  // Pre-compute visualizer bar heights with deterministic values
-  const visualizerBars = useMemo(() => {
-    // Use deterministic pattern based on index for predictable rendering
-    return Array.from({ length: 20 }, (_, i) => ({
-      height: 20 + ((i * 37) % 80), // Deterministic pattern using modulo
-      delay: i * 0.05,
-    }));
-  }, []);
 
-  const [hasRevealed, setHasRevealed] = useState(!isSensitive);
+  const visualizerBars = useMemo(
+    () => Array.from({ length: 20 }, (_, i) => ({ height: 20 + ((i * 37) % 80), delay: i * 0.05 })),
+    [],
+  );
 
-  // Reset hasRevealed if isSensitive changes (though key prop in parent should handle full reset)
-  useEffect(() => {
-    setHasRevealed(!isSensitive);
-  }, [isSensitive]);
+  const [revealedSources, setRevealedSources] = useState<Record<string, boolean>>({});
+  const hasRevealed = !isSensitive || !!revealedSources[src];
 
   const handleReveal = () => {
-    setHasRevealed(true);
-    if (audioRef.current) {
-      audioRef.current.play().catch(console.error);
-      setIsPlaying(true);
-    }
+    setRevealedSources((prev) => ({ ...prev, [src]: true }));
+    if (!audioRef.current) return;
+    audioRef.current.play().catch(console.error);
+    setIsPlaying(true);
   };
 
   return (
-    <div className="flex flex-col h-full surface-glass shadow-[var(--glass-shadow)] overflow-hidden">
-      {/* Header */}
-      <div className="px-4 py-3 bg-[var(--glass-bg-strong)] border-b border-[var(--glass-border)]">
-        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-3 overflow-hidden">
-            <div className="w-8 h-8 rounded bg-cyan-900/30 flex items-center justify-center text-[var(--accent)]">
+    <div className={cn('surface-glass', styles.root)}>
+      <div className={styles.header}>
+        <div className={styles.headerBar}>
+          <div className={styles.headerInfo}>
+            <div className={styles.headerIconBox}>
               <Volume2 size={16} />
             </div>
-            <div className="min-w-0">
-              <h3 className="text-sm font-medium text-[var(--text-primary)] truncate" title={title}>
+            <div className={styles.headerText}>
+              <h3 className={styles.title} title={title}>
                 {title}
               </h3>
-              <p className="text-xs text-[var(--text-muted)]">
+              <p className={styles.subtitle}>
                 {Array.isArray(chapters) && chapters.length > 0
                   ? `${chapters.length} chapters`
                   : 'Audio Recording'}
               </p>
               {title.includes('Sascha') && (
-                <p className="text-[10px] text-[var(--text-muted)] mt-0.5">
+                <p className={styles.metaNote}>
                   Interview: Sascha Riley • Investigation: Lisa Noelle Volding
                 </p>
               )}
             </div>
           </div>
-          <div className="flex items-center gap-2 flex-wrap justify-start md:justify-end">
-            <button
-              onClick={handleShare}
-              className="p-2 hover:bg-[var(--glass-bg)] rounded-full text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
-              title="Copy link"
-            >
-              {showCopied ? <Check size={16} className="text-green-400" /> : <Share2 size={16} />}
+          <div className={styles.headerActions}>
+            <button onClick={handleShare} className={styles.iconButton} title="Copy link">
+              {showCopied ? (
+                <Check size={16} className={styles.successIcon} />
+              ) : (
+                <Share2 size={16} />
+              )}
             </button>
             <button
               onClick={() => {
                 setShowFullTranscriptOverlay(true);
-                lastInteractionRef.current = Date.now();
+                markInteraction();
                 setTimeout(() => {
                   if (!overlayRef.current) return;
                   const idx = transcript.findIndex(
                     (seg) => currentTime >= seg.start && currentTime < seg.end,
                   );
                   const el = overlayRef.current.children[idx] as HTMLElement;
-                  if (el)
-                    overlayRef.current.scrollTo({
-                      top: el.offsetTop - overlayRef.current.clientHeight / 2 + el.clientHeight / 2,
-                      behavior: 'smooth',
-                    });
+                  if (!el) return;
+                  overlayRef.current.scrollTo({
+                    top: el.offsetTop - overlayRef.current.clientHeight / 2 + el.clientHeight / 2,
+                    behavior: 'smooth',
+                  });
                 }, 50);
               }}
-              className="px-3 py-1.5 surface-glass hover:bg-[var(--glass-bg-highlight)] text-xs text-[var(--accent)] rounded-full transition-colors flex items-center gap-2"
+              className={cn('surface-glass', styles.readButton)}
               title="Read full transcript overlay"
             >
-              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg
+                className={styles.readIconSmall}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -543,10 +515,15 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
             {(transcript.length > 0 || chapters.length > 0) && (
               <button
                 onClick={toggleTranscript}
-                className="p-2 hover:bg-[var(--glass-bg)] rounded-full text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+                className={styles.iconButton}
                 title={showTranscript ? 'Hide transcript' : 'Show transcript'}
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className={styles.readIcon}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -561,56 +538,47 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                 onClick={onClose}
                 size="sm"
                 label="Close audio player"
-                className="bg-transparent hover:bg-[var(--glass-bg)] border-[var(--glass-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                className={styles.closeButton}
               />
             )}
           </div>
         </div>
       </div>
 
-      <div className="flex flex-1 min-h-0 overflow-hidden relative">
-        {/* Sensitive Content Warning Overlay */}
+      <div className={styles.content}>
         {!hasRevealed && (
-          <div className="absolute inset-0 z-50 bg-[var(--glass-bg)] backdrop-blur-md flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-300">
-            <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-6 ring-1 ring-red-500/30">
-              <Shield className="h-8 w-8 text-red-500" />
+          <div className={styles.warningOverlay}>
+            <div className={styles.warningIconCircle}>
+              <Shield className={styles.warningIcon} />
             </div>
-            <h3 className="text-xl font-bold text-[var(--text-primary)] mb-2">
-              Graphic Content Warning
-            </h3>
-            <p className="text-[var(--text-muted)] max-w-md mb-8 leading-relaxed">{warningText}</p>
-            <div className="flex gap-4">
+            <h3 className={styles.warningTitle}>Graphic Content Warning</h3>
+            <p className={styles.warningBody}>{warningText}</p>
+            <div className={styles.warningActions}>
               {onClose && (
-                <button
-                  onClick={onClose}
-                  className="px-6 py-2 rounded-[var(--radius-lg)] border border-[var(--glass-border)] hover:bg-[var(--glass-bg)] text-[var(--text-secondary)] transition-colors font-medium"
-                >
+                <button onClick={onClose} className={styles.cancelButton}>
                   Cancel
                 </button>
               )}
-              <button
-                onClick={handleReveal}
-                className="px-6 py-2 rounded-[var(--radius-lg)] bg-red-600 hover:bg-red-500 text-[var(--text-primary)] font-medium shadow-[var(--glass-shadow)] shadow-red-900/20 transition-all hover:scale-105"
-              >
+              <button onClick={handleReveal} className={styles.revealButton}>
                 Reveal & Play
               </button>
             </div>
           </div>
         )}
 
-        {/* Main Content (Visuals + Controls) */}
-        <div className="flex-1 flex flex-col p-4 md:p-6 overflow-y-auto">
-          {/* Visualizer / Slideshow Area */}
-          <div className="flex-1 min-h-[100px] surface-glass mb-6 flex items-center justify-center relative overflow-hidden group">
+        <div className={styles.mainColumn}>
+          <div className={cn('surface-glass', styles.visualizer)}>
             {albumImages && albumImages.length > 0 ? (
-              // Slideshow Mode
-              <div className="absolute inset-0 w-full h-full">
+              <div className={styles.slideshow}>
                 {albumImages.map((img, i) => (
                   <img
                     key={i}
                     src={`/api/static?path=${encodeURIComponent(img)}`}
                     alt="Album Art"
-                    className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${i === currentImageIndex ? 'opacity-50' : 'opacity-0'}`}
+                    className={cn(
+                      styles.slideImage,
+                      i === currentImageIndex ? styles.slideImageActive : styles.slideImageInactive,
+                    )}
                     data-fb="0"
                     onError={(e) => {
                       const t = e.currentTarget;
@@ -629,13 +597,14 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                     }}
                   />
                 ))}
-
-                {/* Visualizer overlay on top of images */}
-                <div className="absolute bottom-0 left-0 right-0 h-1/2 flex items-end justify-center gap-1 px-10 pb-4 opacity-70 z-10">
+                <div className={styles.visualizerOverlay}>
                   {visualizerBars.map((bar, i) => (
                     <div
                       key={i}
-                      className={`w-2 bg-gradient-to-t from-cyan-400 to-transparent rounded-t transition-all duration-300 ${isPlaying ? 'animate-pulse' : ''}`}
+                      className={cn(
+                        styles.visualizerBar,
+                        isPlaying && styles.visualizerBarAnimating,
+                      )}
                       style={{
                         height: `${(barHeights[i] ?? bar.height) * 0.6}%`,
                         animationDelay: `${bar.delay}s`,
@@ -645,12 +614,14 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                 </div>
               </div>
             ) : (
-              // Default Visualizer Mode
-              <div className="flex items-end justify-center gap-1 h-1/3 w-full px-10 opacity-30">
+              <div className={styles.visualizerBars}>
                 {visualizerBars.map((bar, i) => (
                   <div
                     key={i}
-                    className={`w-2 bg-gradient-to-t from-cyan-500 to-blue-500 rounded-t transition-all duration-300 ${isPlaying ? 'animate-pulse' : ''}`}
+                    className={cn(
+                      styles.visualizerBarDefault,
+                      isPlaying && styles.visualizerBarAnimating,
+                    )}
                     style={{
                       height: `${barHeights[i] ?? bar.height}%`,
                       animationDelay: `${bar.delay}s`,
@@ -660,13 +631,10 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
               </div>
             )}
 
-            {/* Active Chapter Display */}
             {computedChapters.length > 0 && (
-              <div className="absolute top-4 left-4 right-4 text-center z-20">
-                <span className="text-xs font-mono text-[var(--accent)] uppercase tracking-widest bg-[var(--glass-bg-strong)] px-2 py-1 rounded">
-                  Current Chapter
-                </span>
-                <h4 className="text-lg text-[var(--text-primary)] font-light drop-shadow-[var(--glass-shadow)] mt-1">
+              <div className={styles.chapterBanner}>
+                <span className={styles.chapterEyebrow}>Current Chapter</span>
+                <h4 className={styles.chapterTitle}>
                   {computedChapters
                     .slice()
                     .reverse()
@@ -678,21 +646,19 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
             )}
           </div>
 
-          {/* Progress Bar with Chapters */}
-          <div className="mb-4 relative group">
+          <div className={styles.progressSection}>
             <input
               type="range"
               min="0"
               max={duration || 100}
               value={currentTime}
               onChange={(e) => seek(parseFloat(e.target.value))}
-              className="w-full h-2 bg-[var(--glass-bg)] rounded-[var(--radius-lg)] appearance-none cursor-pointer accent-cyan-500 hover:bg-[var(--glass-bg-highlight)] transition-colors"
+              className={styles.progressInput}
             />
-            {/* Chapter Markers */}
             {computedChapters.map((chapter, i) => (
               <div
                 key={i}
-                className="absolute top-0 w-0.5 h-2 bg-[var(--glass-bg-highlight)] hover:bg-[var(--text-primary)] cursor-pointer z-10 transition-colors"
+                className={styles.chapterMarker}
                 style={{ left: `${(chapter.startTime / duration) * 100}%` }}
                 title={chapter.title}
                 onClick={(e) => {
@@ -701,48 +667,36 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                 }}
               />
             ))}
-            <div className="flex justify-between text-xs text-[var(--text-muted)] font-mono mt-1">
+            <div className={styles.progressTimes}>
               <span>{formatTime(currentTime)}</span>
               <span>{formatTime(duration)}</span>
             </div>
           </div>
 
-          {/* Controls */}
-          <div className="flex items-center justify-center gap-6">
-            <button
-              onClick={() => seek(currentTime - 10)}
-              className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
-            >
+          <div className={styles.transport}>
+            <button onClick={() => seek(currentTime - 10)} className={styles.transportButton}>
               <SkipBack size={24} />
             </button>
-
-            <button
-              onClick={togglePlay}
-              className="w-14 h-14 rounded-full bg-[var(--accent)] hover:bg-[var(--accent)] text-[var(--bg-dark)] flex items-center justify-center shadow-[var(--glass-shadow)] shadow-cyan-900/20 transition-all hover:scale-105"
-            >
+            <button onClick={togglePlay} className={styles.playButtonMain}>
               {isPlaying ? (
                 <Pause size={24} fill="currentColor" />
               ) : (
-                <Play size={24} fill="currentColor" className="ml-1" />
+                <Play size={24} fill="currentColor" className={styles.playGlyph} />
               )}
             </button>
-
-            <button
-              onClick={() => seek(currentTime + 10)}
-              className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
-            >
+            <button onClick={() => seek(currentTime + 10)} className={styles.transportButton}>
               <SkipForward size={24} />
             </button>
           </div>
 
-          <div className="flex items-center justify-between mt-6">
-            <div className="flex items-center gap-2">
+          <div className={styles.bottomControls}>
+            <div className={styles.volumeControl}>
               <button
                 onClick={() => {
                   setIsMuted(!isMuted);
                   if (audioRef.current) audioRef.current.muted = !isMuted;
                 }}
-                className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                className={styles.transportButton}
               >
                 {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
               </button>
@@ -753,14 +707,15 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                 step="0.05"
                 value={volume}
                 onChange={(e) => {
-                  setVolume(parseFloat(e.target.value));
-                  if (audioRef.current) audioRef.current.volume = parseFloat(e.target.value);
+                  const next = parseFloat(e.target.value);
+                  setVolume(next);
+                  if (audioRef.current) audioRef.current.volume = next;
                 }}
-                className="w-20 h-1 bg-[var(--glass-bg)] rounded-[var(--radius-lg)] appearance-none cursor-pointer accent-slate-400"
+                className={styles.volumeSlider}
               />
             </div>
 
-            <div className="flex items-center gap-2 surface-glass p-1">
+            <div className={cn('surface-glass', styles.rateControl)}>
               {[0.5, 1, 1.5, 2].map((rate) => (
                 <button
                   key={rate}
@@ -768,7 +723,10 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                     setPlaybackRate(rate);
                     if (audioRef.current) audioRef.current.playbackRate = rate;
                   }}
-                  className={`px-2 py-1 text-xs rounded ${playbackRate === rate ? 'bg-[var(--glass-bg-highlight)] text-[var(--text-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}
+                  className={cn(
+                    styles.rateButton,
+                    playbackRate === rate ? styles.rateButtonActive : styles.rateButtonIdle,
+                  )}
                 >
                   {rate}x
                 </button>
@@ -777,22 +735,30 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
           </div>
         </div>
 
-        {/* Sidebar (Transcript/Chapters) */}
         {(transcript.length > 0 || chapters.length > 0) && (
           <div
-            className={`fixed md:relative inset-0 md:inset-auto z-40 md:z-0 md:w-80 border-l border-[var(--glass-border)] bg-[var(--glass-bg-strong)] md:bg-[var(--glass-bg-strong)]/30 flex flex-col transition-transform duration-300 ${showTranscript ? 'translate-x-0' : 'translate-x-full md:hidden'} md:translate-x-0`}
+            className={cn(
+              styles.sidebar,
+              showTranscript ? styles.sidebarVisible : styles.sidebarHidden,
+            )}
           >
-            <div className="flex border-b border-[var(--glass-border)] shrink-0">
+            <div className={styles.sidebarTabs}>
               <button
                 onClick={() => setShowChapters(false)}
-                className={`flex-1 py-3 text-xs font-medium uppercase tracking-wider ${!showChapters ? 'text-[var(--accent)] border-b-2 border-[var(--accent)] bg-[var(--glass-bg)]/50' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}
+                className={cn(
+                  styles.sidebarTab,
+                  !showChapters ? styles.sidebarTabActive : styles.sidebarTabIdle,
+                )}
               >
                 Transcript
               </button>
               {computedChapters.length > 0 && (
                 <button
                   onClick={() => setShowChapters(true)}
-                  className={`flex-1 py-3 text-xs font-medium uppercase tracking-wider ${showChapters ? 'text-[var(--accent)] border-b-2 border-[var(--accent)] bg-[var(--glass-bg)]/50' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}
+                  className={cn(
+                    styles.sidebarTab,
+                    showChapters ? styles.sidebarTabActive : styles.sidebarTabIdle,
+                  )}
                 >
                   Chapters
                 </button>
@@ -801,39 +767,40 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                 onClick={() => setShowTranscript(false)}
                 size="sm"
                 label="Close transcript panel"
-                className="md:hidden mr-2 bg-transparent border-[var(--glass-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                className={styles.sidebarClose}
               />
             </div>
 
             <div
-              className="flex-1 overflow-y-auto p-0 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent"
+              className={styles.sidebarBody}
               onScroll={() => {
-                lastInteractionRef.current = Date.now();
+                markInteraction();
               }}
               onWheel={() => {
-                lastInteractionRef.current = Date.now();
+                markInteraction();
               }}
               onTouchMove={() => {
-                lastInteractionRef.current = Date.now();
+                markInteraction();
               }}
             >
               {!showChapters ? (
                 <>
                   {transcript.length > 0 && (
-                    <div className="sticky top-0 z-10 bg-[var(--glass-bg-strong)]/95 px-3 py-2 border-b border-[var(--glass-border)] flex items-center gap-2">
+                    <div className={styles.searchSticky}>
                       <input
                         ref={sidebarSearchInputRef}
                         type="text"
                         value={transcriptSearch}
                         onChange={(e) => {
                           setTranscriptSearch(e.target.value);
-                          lastInteractionRef.current = Date.now();
+                          setCurrentMatchIndex(0);
+                          markInteraction();
                         }}
                         placeholder="Search in transcript…"
-                        className="flex-1 surface-glass rounded text-[var(--text-primary)] text-xs px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[var(--accent)] placeholder-slate-500"
+                        className={cn('surface-glass', styles.searchInput)}
                       />
                       {normalizedTranscriptQuery && (
-                        <div className="flex items-center gap-1 text-[10px] text-[var(--text-muted)]">
+                        <div className={styles.searchMeta}>
                           <span>
                             {transcriptMatches.length
                               ? `${currentMatchIndex + 1}/${transcriptMatches.length}`
@@ -843,7 +810,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                             type="button"
                             onClick={goToPrevTranscriptMatch}
                             disabled={!transcriptMatches.length}
-                            className="px-1 py-0.5 rounded bg-[var(--glass-bg)] border border-[var(--glass-border)] disabled:opacity-40"
+                            className={styles.navMiniButton}
                           >
                             ↑
                           </button>
@@ -851,7 +818,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                             type="button"
                             onClick={goToNextTranscriptMatch}
                             disabled={!transcriptMatches.length}
-                            className="px-1 py-0.5 rounded bg-[var(--glass-bg)] border border-[var(--glass-border)] disabled:opacity-40"
+                            className={styles.navMiniButton}
                           >
                             ↓
                           </button>
@@ -859,7 +826,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                       )}
                     </div>
                   )}
-                  <div ref={transcriptRef} className="flex flex-col">
+                  <div ref={transcriptRef} className={styles.segmentList}>
                     {transcript.length > 0 ? (
                       transcript.slice(renderWindow.start, renderWindow.end).map((seg, i) => {
                         const idx = renderWindow.start + i;
@@ -870,28 +837,26 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                           <button
                             key={idx}
                             onClick={() => seek(seg.start)}
-                            className={`p-4 text-left border-b border-[var(--glass-border)] transition-colors hover:bg-[var(--glass-bg)]/50 ${
-                              activeSegmentIndex === idx ? 'bg-cyan-900/20' : ''
-                            } ${isCurrent ? 'ring-1 ring-amber-400 border-amber-400' : ''} ${
-                              !isCurrent && isMatch ? 'border-amber-500/60' : ''
-                            }`}
+                            className={cn(
+                              styles.segmentButton,
+                              activeSegmentIndex === idx && styles.segmentActive,
+                              isCurrent && styles.segmentCurrentMatch,
+                              !isCurrent && isMatch && styles.segmentMatch,
+                            )}
                           >
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="text-xs font-mono text-[var(--text-muted)]">
-                                {formatTime(seg.start)}
-                              </span>
+                            <div className={styles.segmentMeta}>
+                              <span className={styles.segmentTime}>{formatTime(seg.start)}</span>
                               {seg.speaker && (
-                                <span className="text-xs font-bold text-[var(--text-secondary)]">
-                                  {seg.speaker}
-                                </span>
+                                <span className={styles.segmentSpeaker}>{seg.speaker}</span>
                               )}
                             </div>
                             <p
-                              className={`text-sm leading-relaxed ${
+                              className={cn(
+                                styles.segmentText,
                                 activeSegmentIndex === idx
-                                  ? 'text-[var(--text-primary)]'
-                                  : 'text-[var(--text-muted)]'
-                              }`}
+                                  ? styles.segmentTextActive
+                                  : styles.segmentTextIdle,
+                              )}
                             >
                               {renderHighlightedText(seg.text || '', normalizedTranscriptQuery)}
                             </p>
@@ -899,30 +864,23 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                         );
                       })
                     ) : (
-                      <div className="p-8 text-center text-[var(--text-muted)] text-sm">
-                        No transcript available.
-                      </div>
+                      <div className={styles.emptyState}>No transcript available.</div>
                     )}
                   </div>
                 </>
               ) : (
-                <div className="flex flex-col">
+                <div className={styles.segmentList}>
                   {computedChapters.map((chapter, i) => (
                     <button
                       key={i}
                       onClick={() => seek(chapter.startTime)}
-                      className={`p-4 text-left border-b border-[var(--glass-border)] flex items-center gap-3 hover:bg-[var(--glass-bg)]/50 group`}
+                      className={styles.chapterButton}
                     >
-                      <div className="text-xs font-mono text-[var(--text-muted)] w-12">
+                      <div className={styles.chapterButtonTime}>
                         {formatTime(chapter.startTime)}
                       </div>
-                      <div className="flex-1 text-sm text-[var(--text-secondary)] group-hover:text-[var(--accent)] transition-colors">
-                        {chapter.title}
-                      </div>
-                      <Play
-                        size={12}
-                        className="opacity-0 group-hover:opacity-100 text-[var(--accent)]"
-                      />
+                      <div className={styles.chapterButtonTitle}>{chapter.title}</div>
+                      <Play size={12} className={styles.chapterButtonIcon} />
                     </button>
                   ))}
                 </div>
@@ -933,14 +891,11 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
       </div>
 
       {showFullTranscriptOverlay && (
-        <div className="fixed inset-0 z-[1300] bg-[var(--glass-bg-strong)] backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-5xl h-[90vh] max-h-[90vh] surface-glass shadow-[var(--glass-shadow)] overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between p-3 bg-[var(--glass-bg-strong)] border-b border-[var(--glass-border)]">
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={togglePlay}
-                  className="px-3 py-1 rounded bg-[var(--accent)] hover:bg-[var(--accent)] text-[var(--text-primary)] text-xs"
-                >
+        <div className={styles.overlayBackdrop}>
+          <div className={cn('surface-glass', styles.overlayPanel)}>
+            <div className={styles.overlayHeader}>
+              <div className={styles.overlayActions}>
+                <button onClick={togglePlay} className={styles.overlayActionPrimary}>
                   {isPlaying ? 'Pause' : 'Play'}
                 </button>
                 <button
@@ -948,7 +903,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                     setIsMuted(!isMuted);
                     if (audioRef.current) audioRef.current.muted = !isMuted;
                   }}
-                  className="px-3 py-1 rounded bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] text-xs"
+                  className={styles.overlayActionSecondary}
                 >
                   {isMuted ? 'Unmute' : 'Mute'}
                 </button>
@@ -957,24 +912,25 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                 onClick={() => setShowFullTranscriptOverlay(false)}
                 size="sm"
                 label="Close full transcript"
-                className="bg-transparent border-[var(--glass-border)] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                className={styles.closeButton}
               />
             </div>
-            <div className="flex-1 flex flex-col">
-              <div className="px-4 py-2 bg-[var(--glass-bg-strong)]/80 border-b border-[var(--glass-border)] flex items-center gap-2">
+            <div className={styles.overlayContent}>
+              <div className={styles.overlaySearchBar}>
                 <input
                   ref={overlaySearchInputRef}
                   type="text"
                   value={transcriptSearch}
                   onChange={(e) => {
                     setTranscriptSearch(e.target.value);
-                    lastInteractionRef.current = Date.now();
+                    setCurrentMatchIndex(0);
+                    markInteraction();
                   }}
                   placeholder="Search in transcript…"
-                  className="flex-1 surface-glass rounded text-[var(--text-primary)] text-xs px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[var(--accent)] placeholder-slate-500"
+                  className={cn('surface-glass', styles.searchInput)}
                 />
                 {normalizedTranscriptQuery && (
-                  <div className="flex items-center gap-1 text-[10px] text-[var(--text-muted)]">
+                  <div className={styles.searchMeta}>
                     <span>
                       {transcriptMatches.length
                         ? `${currentMatchIndex + 1}/${transcriptMatches.length}`
@@ -984,7 +940,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                       type="button"
                       onClick={goToPrevTranscriptMatch}
                       disabled={!transcriptMatches.length}
-                      className="px-1 py-0.5 rounded bg-[var(--glass-bg)] border border-[var(--glass-border)] disabled:opacity-40"
+                      className={styles.navMiniButton}
                     >
                       ↑
                     </button>
@@ -992,7 +948,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                       type="button"
                       onClick={goToNextTranscriptMatch}
                       disabled={!transcriptMatches.length}
-                      className="px-1 py-0.5 rounded bg-[var(--glass-bg)] border border-[var(--glass-border)] disabled:opacity-40"
+                      className={styles.navMiniButton}
                     >
                       ↓
                     </button>
@@ -1001,15 +957,15 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
               </div>
               <div
                 ref={overlayRef}
-                className="flex-1 overflow-y-auto p-4 space-y-2 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent"
+                className={styles.overlayTranscriptList}
                 onScroll={() => {
-                  lastInteractionRef.current = Date.now();
+                  markInteraction();
                 }}
                 onWheel={() => {
-                  lastInteractionRef.current = Date.now();
+                  markInteraction();
                 }}
                 onTouchMove={() => {
-                  lastInteractionRef.current = Date.now();
+                  markInteraction();
                 }}
               >
                 {transcript.map((seg, i) => {
@@ -1019,23 +975,20 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                     <button
                       key={i}
                       onClick={() => seek(seg.start)}
-                      className={`w-full text-left p-3 rounded border border-[var(--glass-border)] hover:bg-[var(--glass-bg)]/50 transition-colors ${
-                        currentTime >= seg.start && currentTime < seg.end ? 'bg-cyan-900/20' : ''
-                      } ${isCurrent ? 'ring-1 ring-amber-400 border-amber-400' : ''} ${
-                        !isCurrent && isMatch ? 'border-amber-500/60' : ''
-                      }`}
+                      className={cn(
+                        styles.overlaySegmentButton,
+                        currentTime >= seg.start && currentTime < seg.end && styles.segmentActive,
+                        isCurrent && styles.segmentCurrentMatch,
+                        !isCurrent && isMatch && styles.segmentMatch,
+                      )}
                     >
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-mono text-[var(--text-muted)]">
-                          {formatTime(seg.start)}
-                        </span>
+                      <div className={styles.segmentMeta}>
+                        <span className={styles.segmentTime}>{formatTime(seg.start)}</span>
                         {seg.speaker && (
-                          <span className="text-xs font-bold text-[var(--text-secondary)]">
-                            {seg.speaker}
-                          </span>
+                          <span className={styles.segmentSpeaker}>{seg.speaker}</span>
                         )}
                       </div>
-                      <p className="text-sm text-[var(--text-secondary)]">
+                      <p className={styles.overlaySegmentText}>
                         {renderHighlightedText(seg.text || '', normalizedTranscriptQuery)}
                       </p>
                     </button>
@@ -1066,3 +1019,5 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
     </div>
   );
 };
+
+export default AudioPlayer;

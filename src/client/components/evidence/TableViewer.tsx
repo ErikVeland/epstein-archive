@@ -7,6 +7,7 @@
 import React, { useMemo } from 'react';
 import { Download, Info } from 'lucide-react';
 import { FixedSizeList as List } from 'react-window';
+import styles from './TableViewer.module.css';
 
 interface TableViewerProps {
   evidence: {
@@ -46,19 +47,10 @@ export function TableViewer({ evidence }: TableViewerProps) {
   const Row = ({ index, style }: { index: number; style: React.CSSProperties }) => {
     const row = rows[index];
     return (
-      <div
-        style={style}
-        className="flex border-b border-[var(--glass-border)] hover:bg-[var(--app-bg)]"
-      >
-        <div className="w-16 flex-shrink-0 px-4 py-3 text-sm text-[var(--text-muted)] border-r">
-          {index + 1}
-        </div>
+      <div style={style} className={styles.row}>
+        <div className={styles.indexCell}>{index + 1}</div>
         {row.map((cell, cellIndex) => (
-          <div
-            key={cellIndex}
-            className="flex-1 px-4 py-3 text-sm text-[var(--text-primary)] border-r last:border-r-0"
-            style={{ minWidth: '150px' }}
-          >
+          <div key={cellIndex} className={styles.cell}>
             {cell}
           </div>
         ))}
@@ -67,47 +59,38 @@ export function TableViewer({ evidence }: TableViewerProps) {
   };
 
   return (
-    <div className="p-6">
+    <div className={styles.root}>
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className={styles.header}>
         <div>
-          <h3 className="text-lg font-semibold text-[var(--text-primary)]">Data Table</h3>
-          <p className="text-sm text-[var(--text-primary)] mt-1">
+          <h3 className={styles.title}>Data Table</h3>
+          <p className={styles.subtitle}>
             {rows.length.toLocaleString()} rows × {headers.length} columns
           </p>
         </div>
 
-        <button
-          onClick={downloadCSV}
-          className="flex items-center px-4 py-2 text-sm font-medium text-[var(--text-primary)] bg-[var(--text-primary)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] hover:bg-[var(--app-bg)]"
-        >
-          <Download className="h-4 w-4 mr-2" />
+        <button onClick={downloadCSV} className={styles.downloadButton}>
+          <Download className={styles.downloadIcon} />
           Download CSV
         </button>
       </div>
 
       {rows.length > 100 && (
-        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-[var(--radius-lg)] flex items-start">
-          <Info className="h-5 w-5 text-[var(--accent)] mr-2 flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-blue-800">
+        <div className={styles.notice}>
+          <Info className={styles.noticeIcon} />
+          <p className={styles.noticeText}>
             Showing all {rows.length.toLocaleString()} rows using virtual scrolling for performance.
           </p>
         </div>
       )}
 
       {/* Table */}
-      <div className="border border-[var(--glass-border)] rounded-[var(--radius-lg)] overflow-hidden">
+      <div className={styles.tableShell}>
         {/* Column Headers */}
-        <div className="bg-[var(--app-bg)] border-b border-[var(--glass-border)] flex sticky top-0 z-10">
-          <div className="w-16 flex-shrink-0 px-4 py-3 text-sm font-semibold text-[var(--text-primary)] border-r">
-            #
-          </div>
+        <div className={styles.headerRow}>
+          <div className={`${styles.indexCell} ${styles.indexHeaderCell}`}>#</div>
           {headers.map((header, index) => (
-            <div
-              key={index}
-              className="flex-1 px-4 py-3 text-sm font-semibold text-[var(--text-primary)] border-r last:border-r-0"
-              style={{ minWidth: '150px' }}
-            >
+            <div key={index} className={`${styles.cell} ${styles.headerCell}`}>
               {header}
             </div>
           ))}

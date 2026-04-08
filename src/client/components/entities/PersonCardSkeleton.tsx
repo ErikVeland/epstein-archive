@@ -1,51 +1,52 @@
 import React from 'react';
+import styles from './PersonCardSkeleton.module.css';
 
 const PersonCardSkeleton: React.FC = () => {
   return (
-    <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-xl)] p-6 relative overflow-hidden shadow-[var(--glass-shadow)]">
+    <div className={styles.card}>
       {/* Shimmer effect */}
-      <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-[var(--glass-highlight)] to-transparent"></div>
+      <div className={styles.shimmer} />
 
       {/* Mention intensity bar */}
-      <div className="mb-4 h-1 bg-[var(--glass-border)] rounded-full overflow-hidden animate-pulse"></div>
+      <div className={styles.mentionBar} />
 
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center space-x-3 w-full">
+      <div className={styles.header}>
+        <div className={styles.identityRow}>
           {/* Icon placeholder */}
-          <div className="bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-xl)] p-3 h-12 w-12 shrink-0"></div>
-          <div className="flex-1">
+          <div className={styles.iconPlaceholder} />
+          <div className={styles.nameBlock}>
             {/* Name placeholder */}
-            <div className="h-6 bg-[var(--glass-bg-strong)] rounded w-3/4 mb-2"></div>
+            <div className={styles.nameLine} />
             {/* Role placeholder */}
-            <div className="h-4 bg-[var(--glass-bg-strong)] rounded w-1/2"></div>
+            <div className={styles.roleLine} />
           </div>
         </div>
-        <div className="text-right shrink-0 ml-2">
+        <div className={styles.scoreBlock}>
           {/* Likelihood score placeholder */}
-          <div className="h-6 w-16 bg-[var(--glass-bg-strong)] rounded-full mb-2 ml-auto"></div>
+          <div className={styles.scoreLine} />
           {/* Mentions placeholder */}
-          <div className="h-3 w-12 bg-[var(--glass-bg-strong)] rounded ml-auto"></div>
+          <div className={styles.mentionsLine} />
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className={styles.bodyStack}>
         {/* Status placeholder */}
-        <div className="bg-[var(--glass-bg-strong)] rounded-[var(--radius-lg)] p-3 h-10"></div>
+        <div className={styles.statusPlaceholder} />
 
         {/* Key Evidence placeholder */}
-        <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-4 h-24">
-          <div className="space-y-2">
-            <div className="h-2 bg-[var(--glass-bg-strong)] rounded w-full"></div>
-            <div className="h-2 bg-[var(--glass-bg-strong)] rounded w-5/6"></div>
-            <div className="h-2 bg-[var(--glass-bg-strong)] rounded w-4/6"></div>
+        <div className={styles.evidencePlaceholder}>
+          <div className={styles.evidenceLines}>
+            <div className={`${styles.evidenceLine} ${styles.evidenceLineFull}`} />
+            <div className={`${styles.evidenceLine} ${styles.evidenceLineMost}`} />
+            <div className={`${styles.evidenceLine} ${styles.evidenceLineHalf}`} />
           </div>
         </div>
       </div>
 
       {/* Footer placeholder */}
-      <div className="mt-6 pt-4 border-t border-[var(--glass-border)] flex justify-between">
-        <div className="h-3 w-20 bg-[var(--glass-bg-strong)] rounded"></div>
-        <div className="h-3 w-24 bg-[var(--glass-bg-strong)] rounded"></div>
+      <div className={styles.footer}>
+        <div className={styles.footerLineShort} />
+        <div className={styles.footerLineLong} />
       </div>
     </div>
   );

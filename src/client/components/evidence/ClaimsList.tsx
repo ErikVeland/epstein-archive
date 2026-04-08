@@ -1,5 +1,6 @@
 import React from 'react';
 import { ShieldCheck, ShieldAlert, BadgeCheck, HelpCircle } from 'lucide-react';
+import styles from './ClaimsList.module.css';
 
 interface Claim {
   id: number;
@@ -50,116 +51,111 @@ export function ClaimsList({ claims }: ClaimsListProps) {
       case 'documented':
         return (
           <span title="High Reliability">
-            <ShieldCheck className="w-4 h-4 text-green-600" />
+            <ShieldCheck className={`${styles.iconSm} ${styles.iconGreen}`} />
           </span>
         );
       case 'alleged':
       case 'denied':
         return (
           <span title="Disputed/Alleged">
-            <ShieldAlert className="w-4 h-4 text-orange-600" />
+            <ShieldAlert className={`${styles.iconSm} ${styles.iconOrange}`} />
           </span>
         );
       case 'inferred':
         return (
           <span title="Inferred by System">
-            <HelpCircle className="w-4 h-4 text-[var(--accent)]" />
+            <HelpCircle className={`${styles.iconSm} ${styles.iconAccent}`} />
           </span>
         );
       default:
         return (
           <span title="Fact">
-            <BadgeCheck className="w-4 h-4 text-[var(--text-muted)]" />
+            <BadgeCheck className={`${styles.iconSm} ${styles.iconMuted}`} />
           </span>
         );
     }
   };
 
+  const modalityClassMap: Record<string, string> = {
+    testified: styles.modalityTestified,
+    documented: styles.modalityDocumented,
+    alleged: styles.modalityAlleged,
+    denied: styles.modalityDenied,
+    inferred: styles.modalityInferred,
+    quoted: styles.modalityQuoted,
+    unknown: styles.modalityUnknown,
+  };
+
   const ModalityBadge = ({ modality }: { modality: string }) => {
-    const colors: Record<string, string> = {
-      testified: 'bg-green-100 text-green-800',
-      documented: 'bg-green-100 text-green-800',
-      alleged: 'bg-orange-100 text-orange-800',
-      denied: 'bg-red-100 text-red-800',
-      inferred: 'bg-blue-100 text-blue-800',
-      quoted: 'bg-[var(--app-bg)] text-[var(--text-primary)]',
-      unknown: 'bg-[var(--app-bg)] text-[var(--text-primary)]',
-    };
-    return (
-      <span
-        className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium uppercase tracking-wide ${
-          colors[modality] || colors.unknown
-        }`}
-      >
-        {modality}
-      </span>
-    );
+    const variantClass = modalityClassMap[modality] ?? styles.modalityUnknown;
+    return <span className={`${styles.modalityBadge} ${variantClass}`}>{modality}</span>;
   };
 
   return (
-    <div className="bg-[var(--text-primary)] rounded-[var(--radius-lg)] shadow overflow-hidden">
-      <div className="px-4 py-3 border-b border-[var(--glass-border)] bg-[var(--app-bg)] flex justify-between items-center">
-        <h3 className="text-sm font-semibold text-[var(--text-primary)] uppercase tracking-wider flex items-center gap-2">
-          <BadgeCheck className="w-5 h-5 text-[var(--accent)]" />
-          Extracted Facts & Claims
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <h3 className={styles.headerTitle}>
+          <BadgeCheck className={`${styles.iconMd} ${styles.iconAccent}`} />
+          Extracted Facts &amp; Claims
         </h3>
-        <span className="text-xs text-[var(--text-muted)]">{claims.length} items</span>
+        <span className={styles.headerCount}>{claims.length} items</span>
       </div>
-      <ul className="divide-y divide-gray-200">
+      <ul className={styles.list}>
         {claims.map((claim) => {
           const status = feedback[claim.id];
+          const itemClass = [
+            styles.listItem,
+            status === 'rejected'
+              ? styles.listItemRejected
+              : status === 'verified'
+                ? styles.listItemVerified
+                : '',
+          ]
+            .filter(Boolean)
+            .join(' ');
           return (
-            <li
-              key={claim.id}
-              className={`p-4 transition-colors group ${
-                status === 'rejected'
-                  ? 'bg-red-50 opacity-60'
-                  : status === 'verified'
-                    ? 'bg-green-50'
-                    : 'hover:bg-[var(--app-bg)]'
-              }`}
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex-1 space-y-1">
-                  <div className="flex items-center gap-2">
+            <li key={claim.id} className={itemClass}>
+              <div className={styles.listItemInner}>
+                <div className={styles.claimContent}>
+                  <div className={styles.claimMeta}>
                     <ModalityBadge modality={claim.modality} />
                     {getModalityIcon(claim.modality)}
-                    <span className="text-xs text-[var(--text-muted)] font-mono">
+                    <span className={styles.confidenceText}>
                       {(claim.confidence * 100).toFixed(0)}% Conf.
                     </span>
                     {status && (
                       <span
-                        className={`text-xs font-bold uppercase ${
-                          status === 'verified' ? 'text-green-600' : 'text-red-600'
-                        }`}
+                        className={
+                          status === 'verified' ? styles.statusVerified : styles.statusRejected
+                        }
                       >
-                        • {status}
+                        &bull; {status}
                       </span>
                     )}
                   </div>
-                  <p className="text-[var(--text-primary)] text-sm mt-1">
-                    <span className="font-semibold text-blue-900">{claim.subject_name}</span>{' '}
-                    <span className="text-[var(--text-primary)] px-1 italic">
+                  <p className={styles.claimText}>
+                    <span className={styles.claimSubject}>{claim.subject_name}</span>{' '}
+                    <span className={styles.claimPredicate}>
                       {claim.predicate.replace(/_/g, ' ')}
                     </span>{' '}
-                    <span className="font-semibold text-blue-900">{claim.object_name}</span>
+                    <span className={styles.claimObject}>{claim.object_name}</span>
                   </p>
                 </div>
                 {!status && (
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className={styles.feedbackGroup}>
                     <button
                       onClick={() => handleFeedback(claim.id, 'verify')}
-                      className="p-1 text-[var(--text-muted)] hover:text-green-600 transition-colors"
+                      className={`${styles.feedbackBtn} ${styles.feedbackBtnVerify}`}
                       title="Verify this fact"
                     >
-                      <BadgeCheck className="w-5 h-5" />
+                      <BadgeCheck className={styles.iconMd} />
                     </button>
                     <button
                       onClick={() => handleFeedback(claim.id, 'reject')}
-                      className="p-1 text-[var(--text-muted)] hover:text-red-600 transition-colors"
+                      className={`${styles.feedbackBtn} ${styles.feedbackBtnReject}`}
                       title="Reject this fact"
                     >
-                      <ShieldAlert className="w-5 h-5" />
+                      <ShieldAlert className={styles.iconMd} />
                     </button>
                   </div>
                 )}

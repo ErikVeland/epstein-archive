@@ -1,0 +1,317 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+}
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--app-bg) 90%, transparent);
+}
+
+.heroBlur {
+  position: absolute;
+  inset: 0;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  opacity: 0.3;
+  filter: blur(32px);
+}
+
+.modal {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 64rem;
+  height: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(24px);
+}
+
+.scrollFrame {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll-thumb) transparent;
+}
+
+.heroSection {
+  position: relative;
+  width: 100%;
+  height: 16rem;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.heroImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.7s ease;
+}
+
+.heroSection:hover .heroImage {
+  transform: scale(1.05);
+}
+
+.heroFallback {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, var(--glass-bg-strong), var(--app-bg));
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.heroOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    var(--glass-bg-strong),
+    color-mix(in srgb, var(--glass-bg-strong) 60%, transparent),
+    transparent
+  );
+}
+
+.heroContent {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: var(--space-6);
+}
+
+.heroMetaRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.publicationBadge {
+  display: inline-flex;
+  padding: 0.125rem 0.625rem;
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  color: var(--accent);
+  font-size: var(--type-micro);
+  font-weight: var(--weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+.publishedDate {
+  color: var(--text-secondary);
+  font-size: var(--type-small);
+  font-weight: var(--weight-medium);
+  filter: drop-shadow(var(--glass-shadow));
+}
+
+.title {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: clamp(1.875rem, 4vw, 3rem);
+  font-weight: var(--weight-bold);
+  line-height: 1.1;
+  text-wrap: balance;
+  filter: drop-shadow(var(--glass-shadow));
+}
+
+.closeButton {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  z-index: 1;
+  background: color-mix(in srgb, var(--app-bg) 40%, transparent);
+  color: var(--text-primary);
+  border-color: var(--glass-border);
+}
+
+.closeButton:hover {
+  background: color-mix(in srgb, var(--app-bg) 60%, transparent);
+}
+
+.body {
+  padding: var(--space-6);
+}
+
+.authorSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding-bottom: var(--space-8);
+  margin-bottom: var(--space-8);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.authorRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.authorAvatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 9999px;
+  border: 1px solid var(--glass-border);
+  background: linear-gradient(135deg, var(--glass-bg), var(--glass-bg-strong));
+  color: var(--text-primary);
+  font-size: 1.125rem;
+  font-weight: var(--weight-bold);
+}
+
+.authorName {
+  color: var(--text-primary);
+  font-size: 1.125rem;
+  font-weight: var(--weight-bold);
+}
+
+.authorRole {
+  color: var(--accent);
+  font-size: var(--type-small);
+}
+
+.actionRow {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.investigationButton {
+  background: var(--accent);
+  color: var(--app-bg);
+  font-weight: var(--weight-medium);
+  border-color: var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow);
+}
+
+.investigationButton:hover {
+  background: color-mix(in srgb, var(--accent) 90%, transparent);
+}
+
+.sourceLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: 0.625rem 1.25rem;
+  background: var(--glass-bg);
+  color: var(--text-primary);
+  font-weight: var(--weight-medium);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow);
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.sourceLink:hover {
+  background: var(--glass-bg-highlight);
+}
+
+.sourceLink:hover .sourceLinkIcon {
+  transform: translateX(2px);
+}
+
+.sourceLinkIcon {
+  transition: transform 0.2s ease;
+}
+
+.articleContent {
+  max-width: none;
+  color: var(--text-secondary);
+  font-size: 1.125rem;
+  line-height: 1.75;
+}
+
+.articleContent :global(p) {
+  margin: 0 0 var(--space-4);
+  color: var(--text-secondary);
+}
+
+.articleContent :global(h1),
+.articleContent :global(h2),
+.articleContent :global(h3),
+.articleContent :global(h4) {
+  margin: var(--space-8) 0 var(--space-3);
+  color: var(--text-primary);
+}
+
+.articleContent :global(a) {
+  color: var(--accent);
+}
+
+.articleContent :global(a:hover) {
+  color: color-mix(in srgb, var(--accent) 80%, white);
+}
+
+.articleContent :global(strong) {
+  color: var(--text-primary);
+}
+
+.articleContent :global(blockquote) {
+  margin: var(--space-6) 0;
+  padding: var(--space-2) var(--space-4);
+  border-left: 3px solid var(--accent);
+  background: var(--glass-bg);
+}
+
+.articleContent :global(img) {
+  max-width: 100%;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--glass-shadow);
+}
+
+.highlightMark {
+  padding: 0 0.125rem;
+  color: var(--text-primary);
+  background: rgba(234, 179, 8, 0.4);
+}
+
+.bottomSpacer {
+  height: 5rem;
+}
+
+@media (min-width: 768px) {
+  .overlay {
+    padding: var(--space-8);
+  }
+
+  .heroSection {
+    height: 20rem;
+  }
+
+  .heroContent {
+    padding: var(--space-8);
+  }
+
+  .body {
+    padding: var(--space-10);
+  }
+
+  .authorSection {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}

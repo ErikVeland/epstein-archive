@@ -8,6 +8,11 @@
   overflow: hidden;
 }
 
+.cardMedia {
+  position: relative;
+  flex-shrink: 0;
+}
+
 .header {
   padding: var(--space-4) var(--space-6);
   display: flex;
@@ -303,6 +308,11 @@
   margin-top: var(--space-2);
 }
 
+.emptyIcon {
+  margin-bottom: var(--space-2);
+  opacity: 0.5;
+}
+
 .virtualContainer {
   flex: 1;
   overflow: hidden;
@@ -386,6 +396,10 @@
   transition: transform 0.2s;
 }
 
+.musicGlyph {
+  color: var(--accent);
+}
+
 .card:hover .musicIcon {
   transform: scale(1.1);
 }
@@ -427,6 +441,15 @@
   font-size: 11px;
   font-weight: var(--weight-bold);
   border: 1px solid #f59e0b;
+}
+
+.batchCheckboxSelected {
+  color: var(--accent);
+  fill: color-mix(in srgb, var(--accent) 30%, #082f49);
+}
+
+.batchCheckboxIdle {
+  color: color-mix(in srgb, var(--text-primary) 70%, transparent);
 }
 
 .pickerDropdown {
@@ -589,6 +612,13 @@
   -webkit-box-orient: vertical;
 }
 
+.transcriptMatchHighlight {
+  background-color: rgba(245, 158, 11, 0.4);
+  color: inherit;
+  padding: 0 0.125rem;
+  border-radius: var(--radius-sm);
+}
+
 /* Footer */
 .footer {
   height: 1.5rem;
@@ -636,12 +666,30 @@
 }
 
 .playerModalInner {
+  position: relative;
   width: 100%;
   max-width: 64rem;
   height: 90vh;
   max-height: 90vh;
   box-shadow: var(--glass-shadow);
+  border: 1px solid var(--glass-border-highlight);
   border-radius: var(--radius-lg);
   overflow: hidden;
-  ring: 1px solid var(--glass-border);
+}
+
+.playerModalBackdrop {
+  position: absolute;
+  inset: 0;
+  background: var(--app-backdrop);
+  animation: fade-in 200ms ease-out;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }

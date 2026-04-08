@@ -1,0 +1,118 @@
+.panel {
+  padding: var(--space-5);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  background: color-mix(in srgb, var(--glass-bg) 60%, transparent);
+  backdrop-filter: blur(8px);
+  box-shadow: var(--glass-shadow);
+}
+
+.title {
+  margin: 0 0 var(--space-3);
+  color: var(--text-primary);
+  font-size: var(--type-body);
+  font-weight: var(--weight-semibold);
+}
+
+.description {
+  margin: 0 0 var(--space-5);
+  color: var(--text-secondary);
+  font-size: var(--type-small);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.label {
+  display: block;
+  margin-bottom: var(--space-2);
+  color: var(--text-primary);
+  font-size: var(--type-small);
+  font-weight: var(--weight-medium);
+}
+
+.formatButtons {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.formatButton {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3);
+  border: 2px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  transition:
+    border-color var(--duration-fast, 150ms),
+    background var(--duration-fast, 150ms),
+    color var(--duration-fast, 150ms);
+  cursor: pointer;
+}
+
+.formatButtonActive {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  color: var(--accent);
+}
+
+.formatButtonInactive {
+  background: color-mix(in srgb, var(--glass-bg-highlight) 50%, transparent);
+  color: var(--text-secondary);
+}
+
+.formatButtonInactive:hover {
+  background: var(--glass-bg-highlight);
+}
+
+.formatIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-right: var(--space-2);
+}
+
+.formatText {
+  font-weight: var(--weight-medium);
+}
+
+.footer {
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--glass-border);
+}
+
+.exportButton {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3) var(--space-4);
+  border: none;
+  border-radius: var(--radius-lg);
+  background: var(--accent);
+  color: var(--text-primary);
+  font-weight: var(--weight-medium);
+  transition:
+    filter var(--duration-fast, 150ms),
+    opacity var(--duration-fast, 150ms);
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--accent) 30%, transparent);
+  cursor: pointer;
+}
+
+.exportButton:hover {
+  filter: brightness(1.05);
+}
+
+.exportButtonDisabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.exportIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-right: var(--space-2);
+}

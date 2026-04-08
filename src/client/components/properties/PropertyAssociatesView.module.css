@@ -1,0 +1,97 @@
+.associatesView {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.header {
+  margin-bottom: var(--space-2);
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #f59e0b;
+  margin: 0 0 var(--space-3);
+}
+
+.description {
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: var(--space-4);
+}
+
+.card {
+  background: var(--glass-bg);
+  border: 1px solid #f59e0b;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+}
+
+.associateInfo {
+  background: rgba(245, 158, 11, 0.15);
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.associateName {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 600;
+  color: #f59e0b;
+}
+
+.viewProfile {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.viewProfile:hover {
+  color: var(--accent);
+}
+
+.propertyInfo {
+  padding: var(--space-4);
+}
+
+.ownerHeading {
+  margin: 0 0 var(--space-2);
+}
+
+.address {
+  color: var(--text-secondary);
+  margin: 0 0 var(--space-3);
+  font-size: 0.9rem;
+}
+
+.valueRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.totalValue {
+  font-size: 1.25rem;
+  font-weight: var(--weight-bold);
+  color: #10b981;
+}
+
+.propertyType {
+  background: color-mix(in srgb, var(--glass-bg) 70%, transparent);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+}

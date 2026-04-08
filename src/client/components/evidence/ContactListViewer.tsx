@@ -6,6 +6,7 @@
 
 import { useState, useMemo } from 'react';
 import { Search, Phone, Mail, MapPin, User } from 'lucide-react';
+import styles from './ContactListViewer.module.css';
 
 interface ContactListViewerProps {
   evidence: {
@@ -78,60 +79,55 @@ export function ContactListViewer({ evidence }: ContactListViewerProps) {
   }, [contacts, searchTerm]);
 
   return (
-    <div className="p-6">
+    <div className={styles.container}>
       {/* Header */}
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold text-[var(--text-primary)]">{evidence.title}</h3>
-        <p className="text-sm text-[var(--text-primary)] mt-1">{contacts.length} contacts found</p>
+      <div className={styles.header}>
+        <h3 className={styles.title}>{evidence.title}</h3>
+        <p className={styles.subtitle}>{contacts.length} contacts found</p>
       </div>
 
       {/* Search */}
-      <div className="mb-6">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[var(--text-muted)]" />
+      <div className={styles.searchWrapper}>
+        <div className={styles.searchInputWrapper}>
+          <Search className={styles.searchIcon} />
           <input
             type="text"
             placeholder="Search contacts..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-[var(--glass-border)] rounded-[var(--radius-lg)] focus:ring-2 focus:ring-[var(--accent)]"
+            className={styles.searchInput}
           />
         </div>
       </div>
 
       {/* Contacts Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className={styles.grid}>
         {filteredContacts.map((contact, index) => (
-          <div
-            key={index}
-            className="p-4 bg-[var(--text-primary)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] hover:border-[var(--accent)] hover:shadow-sm transition"
-          >
-            <div className="flex items-start">
-              <User className="h-5 w-5 text-[var(--text-muted)] mr-3 mt-0.5 flex-shrink-0" />
-              <div className="flex-1 min-w-0">
-                <h4 className="text-sm font-semibold text-[var(--text-primary)] truncate">
-                  {contact.name}
-                </h4>
+          <div key={index} className={styles.card}>
+            <div className={styles.cardInner}>
+              <User className={styles.userIcon} />
+              <div className={styles.cardContent}>
+                <h4 className={styles.contactName}>{contact.name}</h4>
 
-                <div className="mt-2 space-y-1">
+                <div className={styles.contactDetails}>
                   {contact.phone && (
-                    <div className="flex items-center text-xs text-[var(--text-primary)]">
-                      <Phone className="h-3 w-3 mr-1.5" />
+                    <div className={styles.contactDetailRow}>
+                      <Phone className={styles.detailIcon} />
                       {contact.phone}
                     </div>
                   )}
 
                   {contact.email && (
-                    <div className="flex items-center text-xs text-[var(--text-primary)]">
-                      <Mail className="h-3 w-3 mr-1.5" />
+                    <div className={styles.contactDetailRow}>
+                      <Mail className={styles.detailIcon} />
                       {contact.email}
                     </div>
                   )}
 
                   {contact.address && (
-                    <div className="flex items-start text-xs text-[var(--text-primary)]">
-                      <MapPin className="h-3 w-3 mr-1.5 mt-0.5 flex-shrink-0" />
-                      <span className="line-clamp-2">{contact.address}</span>
+                    <div className={styles.contactDetailRowAddress}>
+                      <MapPin className={styles.detailIconAddress} />
+                      <span className={styles.addressText}>{contact.address}</span>
                     </div>
                   )}
                 </div>
@@ -142,8 +138,8 @@ export function ContactListViewer({ evidence }: ContactListViewerProps) {
       </div>
 
       {filteredContacts.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-[var(--text-muted)]">No contacts found matching "{searchTerm}"</p>
+        <div className={styles.emptyState}>
+          <p className={styles.emptyText}>No contacts found matching &quot;{searchTerm}&quot;</p>
         </div>
       )}
     </div>

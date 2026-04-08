@@ -1,0 +1,124 @@
+.analyticsView {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.section {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5);
+}
+
+.sectionTitle {
+  margin: 0 0 var(--space-4);
+}
+
+.valueChart {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);
+  height: 200px;
+  padding-top: var(--space-5);
+}
+
+.chartBar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+}
+
+.barFill {
+  width: 100%;
+  background: linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent) 65%, white));
+  border-radius: 4px 4px 0 0;
+  min-height: 4px;
+  margin-top: auto;
+}
+
+.barLabel {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  margin-top: var(--space-2);
+  text-align: center;
+}
+
+.barCount {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.topOwnersList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.ownerRow {
+  display: grid;
+  grid-template-columns: 40px 1fr auto auto;
+  gap: var(--space-4);
+  align-items: center;
+  padding: var(--space-3);
+  background: color-mix(in srgb, var(--glass-bg) 70%, transparent);
+  border-radius: var(--radius-lg);
+}
+
+.rank {
+  font-weight: var(--weight-bold);
+  color: var(--accent);
+}
+
+.ownerName {
+  font-weight: var(--weight-medium);
+}
+
+.propertyCount {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.totalValue {
+  font-size: 1.25rem;
+  font-weight: var(--weight-bold);
+  color: #10b981;
+}
+
+.typeBreakdown {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.typeItem {
+  display: grid;
+  grid-template-columns: 150px 1fr 80px;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.typeName {
+  font-size: 0.9rem;
+}
+
+.typeBar {
+  height: 8px;
+  background: color-mix(in srgb, var(--glass-bg) 70%, transparent);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.typeFill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 4px;
+}
+
+.typeCount {
+  text-align: right;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}

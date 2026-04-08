@@ -14,6 +14,7 @@ import { type EvidenceLadderLevel } from '../../utils/forensics';
 import { Flex } from '../../design-system/components/layout/Flex';
 import { Stack } from '../../design-system/components/layout/Stack';
 import { Grid } from '../../design-system/components/layout/Grid';
+import styles from './SubjectCardV2.module.css';
 
 interface SubjectCardV2Props {
   subject: SubjectCardDTO;
@@ -70,54 +71,46 @@ const SubjectCardV2: React.FC<SubjectCardV2Props> = React.memo(({ subject, style
         onKeyDown={handleKeyDown}
         role="button"
         tabIndex={0}
-        className="group relative surface-glass-card p-4 bg-transparent text-left transition-all duration-300 hover:border-[var(--glass-border-highlight)] flex flex-col h-full w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-inset"
+        className={styles.card}
         style={{
           boxShadow: `inset 0 1px 0 color-mix(in srgb, var(--text-strong) 5%, transparent), 0 12px 26px color-mix(in srgb, var(--bg-dark) 36%, transparent), 0 0 0 1px color-mix(in srgb, ${riskTone.cssVar} 22%, transparent)`,
         }}
       >
-        <Flex align="start" gap="md" className="mb-2">
-          <div className="flex-shrink-0 relative w-10 h-10 rounded-[var(--radius-md)] overflow-hidden border border-[var(--glass-border)] bg-[var(--glass-bg-strong)]">
+        <Flex align="start" gap="md" className={styles.headerRow}>
+          <div className={styles.avatarShell}>
             {avatarUrl ? (
               <img
                 src={avatarUrl}
                 alt={subject.name}
-                className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                className={styles.avatarImage}
                 loading="lazy"
                 onError={(e) => {
                   (e.target as HTMLImageElement).style.display = 'none';
                 }}
               />
             ) : (
-              <Flex
-                align="center"
-                justify="center"
-                className="w-full h-full text-[var(--text-muted)]"
-              >
+              <Flex align="center" justify="center" className={styles.avatarFallback}>
                 {getEntityTypeIcon('Person', 'sm', subject.role)}
               </Flex>
             )}
           </div>
 
-          <div className="flex-1 min-w-0">
+          <div className={styles.subjectMeta}>
             <Flex align="center" justify="between">
-              <h3 className="type-h2 text-[var(--text-primary)] truncate group-hover:text-[var(--accent)] transition-colors">
-                {subject.name}
-              </h3>
+              <h3 className={styles.subjectName}>{subject.name}</h3>
               <EvidenceBadge
                 level={forensics.evidenceLadder as EvidenceLadderLevel}
                 ratingObjective={forensics.redFlagObjective}
                 ratingSubjective={forensics.redFlagSubjective}
               />
             </Flex>
-            <div className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wider truncate">
-              {subject.role}
-            </div>
+            <div className={styles.subjectRole}>{subject.role}</div>
           </div>
         </Flex>
 
-        <div className="mb-2">
+        <div className={styles.signalBlock}>
           <SignalPanel metrics={forensics.signalStrength} />
-          <div className="mt-2 text-[10px] text-[var(--text-muted)]">
+          <div className={styles.driverBlock}>
             <DriverChips
               chips={(forensics.driverLabels || []).map((label) => {
                 let type: 'critical' | 'verified' | 'context' | 'unverified' = 'context';
@@ -132,17 +125,13 @@ const SubjectCardV2: React.FC<SubjectCardV2Props> = React.memo(({ subject, style
           </div>
         </div>
 
-        <Grid cols={3} gap="sm" className="py-3 mt-1 shadow-[0_-1px_0_var(--glass-border)] mb-auto">
+        <Grid cols={3} gap="sm" className={styles.metricGrid}>
           <Metric label="Mentions" value={stats.mentions} />
           <Metric label="Docs" value={stats.documents} />
           <Metric label="Sources" value={stats.distinctSources} />
         </Grid>
 
-        <Flex
-          align="center"
-          justify="between"
-          className="mt-3 pt-3 shadow-[0_-1px_0_var(--glass-border)]"
-        >
+        <Flex align="center" justify="between" className={styles.footerRow}>
           <Tooltip content="Add this entity to the current investigation" position="top-end">
             <span>
               <AddToInvestigationButton
@@ -159,11 +148,7 @@ const SubjectCardV2: React.FC<SubjectCardV2Props> = React.memo(({ subject, style
             </span>
           </Tooltip>
           <Tooltip content="Open full profile for this entity" position="top-end">
-            <button
-              type="button"
-              onClick={handleProfileClick}
-              className="text-[10px] font-bold uppercase tracking-wider text-[var(--accent)] hover:brightness-110 flex items-center gap-1"
-            >
+            <button type="button" onClick={handleProfileClick} className={styles.viewButton}>
               View <Icon name="ArrowRight" size="xs" />
             </button>
           </Tooltip>
@@ -192,11 +177,9 @@ const Metric = ({
   return (
     <Tooltip content={content} position="top">
       <Stack align="center" gap="xs">
-        <span className="text-[8px] uppercase text-[var(--text-muted)] font-bold tracking-wider">
-          {label}
-        </span>
+        <span className={styles.metricLabel}>{label}</span>
         <span
-          className={`font-mono ${highlight ? 'text-amber-400' : 'text-[var(--text-primary)]'} data-emphasis`}
+          className={`${styles.metricValue} ${highlight ? styles.metricValueHighlight : ''} data-emphasis`}
         >
           {formatNumber(value)}
         </span>

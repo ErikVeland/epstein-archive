@@ -1,0 +1,256 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  padding: 0;
+  background: var(--glass-bg-strong);
+}
+
+.dismissButton {
+  position: absolute;
+  inset: 0;
+}
+
+@media (min-width: 768px) {
+  .overlay {
+    padding: var(--space-4);
+  }
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 28rem;
+  height: 100%;
+  overflow: hidden;
+  border-left: 1px solid var(--glass-border);
+}
+
+@media (min-width: 768px) {
+  .panel {
+    max-height: 90vh;
+    height: auto;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+  }
+}
+
+.header,
+.footer {
+  position: sticky;
+  z-index: 10;
+  width: 100%;
+  padding: var(--space-4);
+  background: color-mix(in srgb, var(--glass-bg-strong) 80%, transparent);
+}
+
+.header {
+  top: 0;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.footer {
+  bottom: 0;
+  border-top: 1px solid var(--glass-border);
+  text-align: center;
+}
+
+.headerTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: var(--weight-bold);
+}
+
+.headerIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--accent);
+}
+
+.closeButton {
+  color: var(--text-primary);
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  width: 100%;
+  padding: var(--space-4);
+  background: var(--glass-bg-strong);
+}
+
+.fullHeight {
+  height: 100%;
+}
+
+.loadingState {
+  color: var(--text-muted);
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.errorWrap {
+  height: 100%;
+  padding: var(--space-4);
+}
+
+.errorCard {
+  padding: var(--space-4);
+  border: 1px solid color-mix(in srgb, var(--accent-danger) 40%, transparent);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--accent-danger) 15%, transparent);
+  color: color-mix(in srgb, var(--accent-danger) 85%, white);
+  text-align: center;
+}
+
+.errorTitle {
+  margin-bottom: var(--space-2);
+  font-weight: var(--weight-medium);
+}
+
+.errorText {
+  font-size: var(--type-small);
+  opacity: 0.8;
+}
+
+.emptyState {
+  color: var(--text-muted);
+  text-align: center;
+  font-style: italic;
+}
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  padding-bottom: var(--space-8);
+}
+
+.timelineItem {
+  position: relative;
+  padding-left: var(--space-4);
+  border-left: 2px solid var(--glass-border);
+}
+
+.timelineItem:last-child {
+  border-left: 0;
+}
+
+.timelineDot {
+  position: absolute;
+  top: 0;
+  left: -10px;
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.timelineDotActive {
+  color: var(--accent);
+}
+
+.timelineDotInactive {
+  color: var(--text-muted);
+}
+
+.timelineDotIcon {
+  width: 0.875rem;
+  height: 0.875rem;
+  fill: currentColor;
+}
+
+.releaseHeader {
+  margin-bottom: var(--space-4);
+}
+
+.releaseMetaRow {
+  margin-bottom: 0.25rem;
+}
+
+.versionTag {
+  font-size: var(--type-small);
+  font-family: var(--font-mono);
+  font-weight: var(--weight-bold);
+}
+
+.versionTagActive {
+  color: var(--accent);
+}
+
+.versionTagInactive {
+  color: var(--text-muted);
+}
+
+.dateChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.125rem var(--space-2);
+  border: 1px solid var(--glass-border);
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--glass-bg) 50%, transparent);
+  color: var(--text-muted);
+  font-size: var(--type-xs);
+}
+
+.dateChipIcon {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.releaseTitle {
+  font-size: 1.125rem;
+  font-weight: var(--weight-semibold);
+  line-height: 1.2;
+}
+
+.notesCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--glass-bg) 30%, transparent);
+}
+
+.sectionHeader {
+  margin-top: var(--space-4);
+  margin-bottom: var(--space-2);
+  color: var(--accent);
+  font-size: var(--type-body);
+  font-weight: var(--weight-semibold);
+}
+
+.sectionHeader:first-child {
+  margin-top: 0;
+}
+
+.noteBullet {
+  margin-top: 0.375rem;
+  color: color-mix(in srgb, var(--accent) 80%, transparent);
+  font-size: 0.625rem;
+}
+
+.noteBulletIcon {
+  width: 0.625rem;
+  height: 0.625rem;
+  fill: currentColor;
+}
+
+.noteText {
+  color: var(--text-secondary);
+  font-size: var(--type-small);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.noteStrong {
+  color: #cffafe;
+  font-weight: var(--weight-semibold);
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}

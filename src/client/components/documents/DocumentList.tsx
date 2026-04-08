@@ -8,6 +8,7 @@ import { LqText } from '../../design-system/components/typography/Text';
 import { Document } from '../../types/documents';
 import { DocumentCard } from './DocumentCard';
 import DocumentSkeleton from './DocumentSkeleton';
+import styles from './DocumentList.module.css';
 
 interface DocumentListProps {
   documents: Document[];
@@ -48,11 +49,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
 }) => {
   if (isFetching && documents.length === 0) {
     return (
-      <Box
-        className={
-          viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4' : 'space-y-3'
-        }
-      >
+      <Box className={viewMode === 'grid' ? styles.gridLayout : styles.listLayout}>
         <DocumentSkeleton count={itemsPerPage} />
       </Box>
     );
@@ -66,15 +63,15 @@ export const DocumentList: React.FC<DocumentListProps> = ({
         direction="column"
         align="center"
         justify="center"
-        className="py-20 glass-panel border-dashed rounded-[var(--radius-xl)]"
+        className={`glass-panel ${styles.emptyState}`}
       >
-        <Box className="w-16 h-16 bg-[var(--glass-bg-strong)] rounded-full flex items-center justify-center mb-4 border border-[var(--glass-border)]">
-          <FileText className="w-8 h-8 text-[var(--accent)]" />
+        <Box className={styles.emptyIconBox}>
+          <FileText className={styles.emptyIcon} />
         </Box>
-        <LqText variant="h3" weight="bold" className="mb-2">
+        <LqText variant="h3" weight="bold" className={styles.emptyTitle}>
           No documents found
         </LqText>
-        <LqText variant="body" color="secondary" className="text-center max-w-md px-6">
+        <LqText variant="body" color="secondary" className={styles.emptyBody}>
           {searchTerm ? (
             <>No documents match your search for "{searchTerm}"</>
           ) : (
@@ -86,14 +83,14 @@ export const DocumentList: React.FC<DocumentListProps> = ({
   }
 
   return (
-    <Box className="space-y-8">
+    <Box className={styles.wrapper}>
       {/* Results status row */}
       <Flex
         direction="column"
         align="stretch"
         justify="between"
         gap="md"
-        className="md:flex-row md:items-center text-sm"
+        className={styles.statusRow}
       >
         <Flex wrap="wrap" align="center" gap="sm">
           <LqText variant="body" color="secondary">
@@ -102,10 +99,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
             {totalDocuments.toLocaleString()}
           </LqText>
           {searchTerm && (
-            <Surface
-              variant="glass-highlight"
-              className="px-2 py-0.5 rounded-full border-[var(--glass-border)]"
-            >
+            <Surface variant="glass-highlight" className={styles.searchBadge}>
               <LqText variant="xs" weight="medium">
                 Query: "{searchTerm}"
               </LqText>
@@ -113,11 +107,8 @@ export const DocumentList: React.FC<DocumentListProps> = ({
           )}
         </Flex>
         <Flex align="center" gap="sm">
-          <Flex
-            align="center"
-            className="h-10 rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg-strong)] overflow-hidden"
-          >
-            <LqText variant="xs" color="muted" className="pl-3 pr-2 whitespace-nowrap">
+          <div className={styles.jumpToRow}>
+            <LqText variant="xs" color="muted" className={styles.jumpToLabel}>
               Jump to
             </LqText>
             <input
@@ -126,7 +117,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
               max={totalPages}
               value={jumpToPage}
               onChange={(e) => setJumpToPage(e.target.value)}
-              className="w-20 h-full px-2 bg-transparent border-0 text-[var(--text-primary)] text-xs focus:outline-none"
+              className={styles.jumpToInput}
             />
             <button
               onClick={() => {
@@ -134,20 +125,18 @@ export const DocumentList: React.FC<DocumentListProps> = ({
                 if (!Number.isFinite(page)) return;
                 setCurrentPage(Math.min(totalPages, Math.max(1, page)));
               }}
-              className="mx-1 inline-flex h-8 w-8 items-center justify-center rounded-full bg-[var(--accent)] text-[var(--text-primary)] transition-colors hover:brightness-110"
+              className={styles.jumpToBtn}
               title="Go to page"
             >
-              <ArrowRight className="w-4 h-4 stroke-[2.75]" />
+              <ArrowRight className={styles.actionIcon} strokeWidth={2.75} />
             </button>
-          </Flex>
+          </div>
         </Flex>
       </Flex>
 
       <Box
         ref={documentContainerRef}
-        className={
-          viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4' : 'space-y-3'
-        }
+        className={viewMode === 'grid' ? styles.gridLayout : styles.listLayout}
       >
         <AnimatePresence mode="popLayout">
           {filteredDocuments.map((doc) => (
@@ -166,21 +155,16 @@ export const DocumentList: React.FC<DocumentListProps> = ({
 
       {/* Pagination Controls */}
       {totalDocuments > itemsPerPage && (
-        <Flex
-          align="center"
-          justify="center"
-          gap="lg"
-          className="py-8 border-t border-[var(--glass-border)] mt-8"
-        >
+        <Flex align="center" justify="center" gap="lg" className={styles.pagination}>
           <button
             onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
             disabled={currentPage === 1 || isFetching}
-            className="px-4 py-2 bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--glass-bg-highlight)] transition-colors inline-flex items-center gap-2"
+            className={styles.pageBtn}
           >
-            <ChevronLeft className="w-4 h-4" />
+            <ChevronLeft className={styles.actionIcon} />
             Previous
           </button>
-          <Box className="text-sm text-[var(--text-secondary)] text-center">
+          <Box className={styles.pageInfo}>
             <Box>
               Page{' '}
               <LqText as="span" weight="medium" color="primary">
@@ -195,10 +179,10 @@ export const DocumentList: React.FC<DocumentListProps> = ({
           <button
             onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
             disabled={currentPage === totalPages || isFetching}
-            className="px-4 py-2 bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--glass-bg-highlight)] transition-colors inline-flex items-center gap-2"
+            className={styles.pageBtn}
           >
             Next
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className={styles.actionIcon} />
           </button>
         </Flex>
       )}

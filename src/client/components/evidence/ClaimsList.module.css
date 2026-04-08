@@ -1,0 +1,218 @@
+.container {
+  background: var(--glass-bg-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow);
+  overflow: hidden;
+}
+
+.header {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--glass-border);
+  background: var(--app-bg);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.headerTitle {
+  font-size: var(--type-small);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.headerCount {
+  font-size: var(--type-xs);
+  color: var(--text-muted);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  divide-color: var(--glass-border);
+}
+
+.listItem {
+  padding: var(--space-4);
+  transition: background-color 0.15s;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.listItem:last-child {
+  border-bottom: none;
+}
+
+.listItem:hover {
+  background: var(--app-bg);
+}
+
+.listItemRejected {
+  background: rgba(239, 68, 68, 0.05);
+  opacity: 0.6;
+}
+
+.listItemVerified {
+  background: rgba(34, 197, 94, 0.05);
+}
+
+.listItemInner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.claimContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.claimMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.confidenceText {
+  font-size: var(--type-xs);
+  color: var(--text-muted);
+  font-family: monospace;
+}
+
+.statusVerified {
+  font-size: var(--type-xs);
+  font-weight: var(--weight-bold);
+  text-transform: uppercase;
+  color: #16a34a;
+}
+
+.statusRejected {
+  font-size: var(--type-xs);
+  font-weight: var(--weight-bold);
+  text-transform: uppercase;
+  color: #dc2626;
+}
+
+.claimText {
+  color: var(--text-primary);
+  font-size: var(--type-small);
+  margin-top: var(--space-1);
+}
+
+.claimSubject {
+  font-weight: var(--weight-bold);
+  color: #1e3a8a;
+}
+
+.claimPredicate {
+  color: var(--text-primary);
+  padding: 0 var(--space-1);
+  font-style: italic;
+}
+
+.claimObject {
+  font-weight: var(--weight-bold);
+  color: #1e3a8a;
+}
+
+/* Feedback buttons */
+.feedbackGroup {
+  display: flex;
+  gap: var(--space-1);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.listItem:hover .feedbackGroup {
+  opacity: 1;
+}
+
+.feedbackBtn {
+  padding: var(--space-1);
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.15s;
+  line-height: 0;
+}
+
+.feedbackBtnVerify:hover {
+  color: #16a34a;
+}
+
+.feedbackBtnReject:hover {
+  color: #dc2626;
+}
+
+/* Modality badge variants */
+.modalityBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--type-xs);
+  font-weight: var(--weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.modalityTestified,
+.modalityDocumented {
+  background: rgba(187, 247, 208, 0.15);
+  color: #166534;
+}
+
+.modalityAlleged {
+  background: rgba(254, 215, 170, 0.15);
+  color: #9a3412;
+}
+
+.modalityDenied {
+  background: rgba(254, 202, 202, 0.15);
+  color: #991b1b;
+}
+
+.modalityInferred {
+  background: rgba(191, 219, 254, 0.15);
+  color: #1e40af;
+}
+
+.modalityQuoted,
+.modalityUnknown {
+  background: var(--app-bg);
+  color: var(--text-primary);
+}
+
+/* Icon sizes */
+.iconSm {
+  width: 1rem;
+  height: 1rem;
+}
+
+.iconMd {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.iconGreen {
+  color: #16a34a;
+}
+
+.iconOrange {
+  color: #ea580c;
+}
+
+.iconAccent {
+  color: var(--accent);
+}
+
+.iconMuted {
+  color: var(--text-muted);
+}

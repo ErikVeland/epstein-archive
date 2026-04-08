@@ -1,0 +1,190 @@
+/* DocumentList — CSS Module */
+
+/* Grid / list layout containers */
+.gridLayout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+
+@media (min-width: 768px) {
+  .gridLayout {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1280px) {
+  .gridLayout {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.listLayout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* Outer wrapper with vertical rhythm */
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+/* Empty state */
+.emptyState {
+  padding-top: 5rem;
+  padding-bottom: 5rem;
+  border-style: dashed;
+  border-radius: var(--radius-xl);
+}
+
+.emptyIconBox {
+  width: 4rem;
+  height: 4rem;
+  background: var(--glass-bg-strong);
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-4);
+  border: 1px solid var(--glass-border);
+}
+
+.emptyIcon {
+  width: 2rem;
+  height: 2rem;
+  color: var(--accent);
+}
+
+.emptyTitle {
+  margin-bottom: var(--space-2);
+}
+
+.emptyBody {
+  text-align: center;
+  max-width: 28rem;
+  padding-left: var(--space-6);
+  padding-right: var(--space-6);
+}
+
+/* Results status row */
+.statusRow {
+  font-size: var(--type-small);
+}
+
+@media (min-width: 768px) {
+  .statusRow {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+/* Search term badge */
+.searchBadge {
+  padding: 0.125rem var(--space-2);
+  border-radius: 9999px;
+  border-color: var(--glass-border);
+}
+
+/* Jump-to input row */
+.jumpToRow {
+  height: 2.5rem;
+  border-radius: 9999px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg-strong);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+
+.jumpToLabel {
+  padding-left: var(--space-3);
+  padding-right: var(--space-2);
+  white-space: nowrap;
+}
+
+.jumpToInput {
+  width: 5rem;
+  height: 100%;
+  padding-left: var(--space-2);
+  padding-right: var(--space-2);
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: var(--type-xs);
+  outline: none;
+}
+
+.jumpToInput::-webkit-outer-spin-button,
+.jumpToInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.jumpToInput[type='number'] {
+  -moz-appearance: textfield;
+}
+
+.jumpToBtn {
+  margin-left: var(--space-1);
+  margin-right: var(--space-1);
+  display: inline-flex;
+  height: 2rem;
+  width: 2rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: var(--accent);
+  color: var(--text-primary);
+  border: none;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.jumpToBtn:hover {
+  filter: brightness(1.1);
+}
+
+.actionIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Pagination */
+.pagination {
+  padding-top: var(--space-8);
+  padding-bottom: var(--space-8);
+  border-top: 1px solid var(--glass-border);
+  margin-top: var(--space-8);
+}
+
+.pageInfo {
+  font-size: var(--type-small);
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.pageBtn {
+  padding: var(--space-2) var(--space-4);
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  transition: background 0.15s ease;
+  font-size: var(--type-small);
+}
+
+.pageBtn:hover {
+  background: var(--glass-bg-highlight);
+}
+
+.pageBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

@@ -9,6 +9,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
+import styles from './AreaTimeline.module.css';
 
 interface TimelineDataPoint {
   period: string;
@@ -50,36 +51,25 @@ const CustomTooltip = ({
     const total = payload.reduce((sum: number, p: AreaTooltipEntry) => sum + (p.value || 0), 0);
 
     return (
-      <div className="bg-[var(--glass-bg-strong)] backdrop-blur-md p-4 rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] border border-[var(--glass-border)] min-w-[180px]">
-        <p className="text-[var(--text-primary)] font-bold text-sm mb-3 border-b border-[var(--glass-border)] pb-2">
-          {label}
-        </p>
-        <div className="space-y-2">
+      <div className={styles.tooltip}>
+        <p className={styles.tooltipTitle}>{label}</p>
+        <div className={styles.tooltipBody}>
           {payload.map(
             (entry: AreaTooltipEntry, index: number) =>
               entry.value > 0 && (
-                <div key={index} className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-2 h-2 rounded-full"
-                      style={{ backgroundColor: entry.color }}
-                    />
-                    <span className="text-[var(--text-secondary)] text-xs capitalize">
-                      {entry.name}
-                    </span>
+                <div key={index} className={styles.tooltipRow}>
+                  <div className={styles.tooltipLabelWrap}>
+                    <div className={styles.tooltipDot} style={{ backgroundColor: entry.color }} />
+                    <span className={styles.tooltipLabel}>{entry.name}</span>
                   </div>
-                  <span className="text-[var(--text-primary)] font-mono text-xs font-bold">
-                    {entry.value.toLocaleString()}
-                  </span>
+                  <span className={styles.tooltipValue}>{entry.value.toLocaleString()}</span>
                 </div>
               ),
           )}
         </div>
-        <div className="mt-3 pt-2 border-t border-[var(--glass-border)] flex justify-between">
-          <span className="text-[var(--text-muted)] text-xs">Total</span>
-          <span className="text-[var(--accent)] font-mono text-sm font-bold">
-            {total.toLocaleString()}
-          </span>
+        <div className={styles.tooltipFooter}>
+          <span className={styles.tooltipFooterLabel}>Total</span>
+          <span className={styles.tooltipFooterValue}>{total.toLocaleString()}</span>
         </div>
       </div>
     );
@@ -105,15 +95,11 @@ export const AreaTimeline: React.FC<AreaTimelineProps> = ({ data, onPeriodClick 
   }, [data]);
 
   if (chartData.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-[300px] text-[var(--text-muted)]">
-        No timeline data available
-      </div>
-    );
+    return <div className={styles.emptyState}>No timeline data available</div>;
   }
 
   return (
-    <div className="w-full h-[350px]">
+    <div className={styles.chartWrap}>
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart
           data={chartData}
@@ -158,9 +144,7 @@ export const AreaTimeline: React.FC<AreaTimelineProps> = ({ data, onPeriodClick 
           <Tooltip content={<CustomTooltip />} />
           <Legend
             wrapperStyle={{ paddingTop: '20px' }}
-            formatter={(value) => (
-              <span className="text-[var(--text-secondary)] text-xs capitalize">{value}</span>
-            )}
+            formatter={(value) => <span className={styles.legendLabel}>{value}</span>}
           />
           <Area
             type="monotone"

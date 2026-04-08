@@ -4,6 +4,7 @@ import DOMPurify from 'isomorphic-dompurify';
 import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
 import { useScrollLock } from '../../hooks/useScrollLock';
 import { CloseButton } from '../common/CloseButton';
+import styles from './ArticleViewerModal.module.css';
 
 interface ArticleContent {
   id: number;
@@ -27,7 +28,7 @@ function highlightText(text: string, term?: string) {
   if (!term || !term.trim()) return text;
   try {
     const rx = new RegExp(`(${term.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')})`, 'gi');
-    return text.replace(rx, '<mark class="bg-yellow-500/40 text-[var(--text-primary)]">$1</mark>');
+    return text.replace(rx, `<mark class="${styles.highlightMark}">$1</mark>`);
   } catch {
     return text;
   }
@@ -64,43 +65,28 @@ export const ArticleViewerModal: React.FC<Props> = ({ article, highlight, onClos
   );
 
   return createPortal(
-    <div
-      id="ArticleViewerModal"
-      className="fixed inset-0 z-[10000] flex items-center justify-center p-4 md:p-8"
-    >
+    <div id="ArticleViewerModal" className={styles.overlay}>
       {/* Background Backdrop with Hero Image Blur */}
-      <div
-        className="absolute inset-0 bg-[var(--app-bg)]/90 header-blur-backdrop"
-        onClick={onClose}
-      />
+      <div className={styles.backdrop} onClick={onClose} />
       {article.imageUrl && (
-        <div
-          className="absolute inset-0 bg-cover bg-center opacity-30 blur-2xl"
-          style={{ backgroundImage: `url(${article.imageUrl})` }}
-        />
+        <div className={styles.heroBlur} style={{ backgroundImage: `url(${article.imageUrl})` }} />
       )}
 
-      <div className="relative w-full max-w-4xl h-full max-h-[90vh] overflow-hidden bg-[var(--glass-bg-strong)] backdrop-blur-xl border border-[var(--glass-border)] rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] flex flex-col animate-in fade-in zoom-in-95 duration-200">
-        <div className="overflow-y-auto flex-1 scrollbar-thin scrollbar-thumb-[var(--scroll-thumb)] scrollbar-track-transparent">
+      <div className={styles.modal}>
+        <div className={styles.scrollFrame}>
           {/* Hero Header */}
-          <div className="relative h-64 md:h-80 shrink-0 w-full group">
+          <div className={styles.heroSection}>
             {article.imageUrl ? (
-              <img
-                src={article.imageUrl}
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                alt={article.title}
-              />
+              <img src={article.imageUrl} className={styles.heroImage} alt={article.title} />
             ) : (
-              <div className="w-full h-full bg-gradient-to-br from-[var(--glass-bg-strong)] to-[var(--app-bg)] border-b border-[var(--glass-border)]" />
+              <div className={styles.heroFallback} />
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-[var(--glass-bg-strong)] via-[var(--glass-bg-strong)]/60 to-transparent" />
+            <div className={styles.heroOverlay} />
 
-            <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="px-2.5 py-0.5 bg-[var(--accent)]/20 text-[var(--accent)] text-xs font-bold uppercase tracking-wider rounded-[var(--radius-sm)] border border-[var(--accent)]/30 backdrop-blur-sm">
-                  {article.publication}
-                </span>
-                <span className="text-[var(--text-secondary)] text-sm font-medium drop-shadow-[var(--glass-shadow)]">
+            <div className={styles.heroContent}>
+              <div className={styles.heroMetaRow}>
+                <span className={styles.publicationBadge}>{article.publication}</span>
+                <span className={styles.publishedDate}>
                   {new Date(article.published_date).toLocaleDateString(undefined, {
                     year: 'numeric',
                     month: 'long',
@@ -108,36 +94,30 @@ export const ArticleViewerModal: React.FC<Props> = ({ article, highlight, onClos
                   })}
                 </span>
               </div>
-              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[var(--text-primary)] leading-tight drop-shadow-[var(--glass-shadow)] text-balance">
-                {article.title}
-              </h2>
+              <h2 className={styles.title}>{article.title}</h2>
             </div>
 
             <CloseButton
               onClick={onClose}
               size="md"
               label="Close article viewer"
-              className="absolute top-4 right-4 bg-[var(--app-bg)]/40 hover:bg-[var(--app-bg)]/60 text-[var(--text-primary)] border border-[var(--glass-border)] z-10"
+              className={styles.closeButton}
             />
           </div>
 
-          <div className="p-6 md:p-10">
+          <div className={styles.body}>
             {/* Author & Actions */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 pb-8 border-b border-[var(--glass-border)]">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[var(--glass-bg)] to-[var(--glass-bg-strong)] flex items-center justify-center text-[var(--text-primary)] font-bold text-lg border border-[var(--glass-border)] shadow-inner">
-                  {article.author.charAt(0)}
-                </div>
+            <div className={styles.authorSection}>
+              <div className={styles.authorRow}>
+                <div className={styles.authorAvatar}>{article.author.charAt(0)}</div>
                 <div>
-                  <div className="text-[var(--text-primary)] font-bold text-lg">
-                    {article.author}
-                  </div>
-                  <div className="text-[var(--accent)] text-sm">Investigative Journalist</div>
+                  <div className={styles.authorName}>{article.author}</div>
+                  <div className={styles.authorRole}>Investigative Journalist</div>
                 </div>
               </div>
             </div>
 
-            <div className="flex gap-2">
+            <div className={styles.actionRow}>
               {/* Add to Investigation Button */}
               <AddToInvestigationButton
                 item={{
@@ -148,7 +128,7 @@ export const ArticleViewerModal: React.FC<Props> = ({ article, highlight, onClos
                   sourceId: String(article.id),
                 }}
                 variant="button"
-                className="bg-[var(--accent)] hover:bg-[var(--accent)]/90 text-[var(--app-bg)] font-medium rounded-[var(--radius-lg)] border-[var(--glass-border)] shadow-[var(--glass-shadow)]"
+                className={styles.investigationButton}
               />
 
               {article.url && (
@@ -156,25 +136,19 @@ export const ArticleViewerModal: React.FC<Props> = ({ article, highlight, onClos
                   href={article.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] rounded-[var(--radius-lg)] transition-all shadow-[var(--glass-shadow)] border border-[var(--glass-border)] font-medium group"
+                  className={styles.sourceLink}
                 >
                   Read Original Source
-                  <ExternalLink
-                    size={16}
-                    className="group-hover:translate-x-0.5 transition-transform"
-                  />
+                  <ExternalLink size={16} className={styles.sourceLinkIcon} />
                 </a>
               )}
             </div>
 
             {/* Content */}
-            <div
-              className="prose prose-invert prose-lg max-w-none prose-p:text-[var(--text-secondary)] prose-headings:text-[var(--text-primary)] prose-a:text-[var(--accent)] hover:prose-a:text-[var(--accent)]/80 prose-strong:text-[var(--text-primary)] prose-blockquote:border-l-[var(--accent)] prose-blockquote:bg-[var(--glass-bg)] prose-blockquote:py-1 prose-blockquote:px-4 prose-img:rounded-[var(--radius-xl)] prose-img:shadow-[var(--glass-shadow)]"
-              dangerouslySetInnerHTML={{ __html: content }}
-            />
+            <div className={styles.articleContent} dangerouslySetInnerHTML={{ __html: content }} />
 
             {/* Fallback for short content/layout */}
-            <div className="h-20" />
+            <div className={styles.bottomSpacer} />
           </div>
         </div>
       </div>

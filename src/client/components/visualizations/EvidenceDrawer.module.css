@@ -1,0 +1,315 @@
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  width: 24rem;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--glass-border);
+  background: var(--glass-bg-strong);
+  box-shadow: var(--glass-shadow);
+  transition: transform 0.3s ease-in-out;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--glass-border);
+  background: color-mix(in srgb, var(--glass-bg) 50%, transparent);
+}
+
+.headerLabel {
+  margin: 0 0 var(--space-1);
+  color: var(--text-muted);
+  font-size: var(--type-small);
+  font-weight: var(--weight-medium);
+}
+
+.headerTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-primary);
+  font-weight: var(--weight-bold);
+}
+
+.headerEntity {
+  max-width: 7.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.headerArrow {
+  width: 1rem;
+  height: 1rem;
+  color: var(--text-muted);
+}
+
+.relationshipBadge {
+  display: inline-block;
+  margin-top: var(--space-1);
+  padding: 0.125rem var(--space-2);
+  border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  color: var(--accent);
+  font-size: 0.625rem;
+  text-transform: capitalize;
+}
+
+.closeButton {
+  padding: var(--space-1);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  transition:
+    background var(--duration-fast, 150ms),
+    color var(--duration-fast, 150ms);
+  cursor: pointer;
+}
+
+.closeButton:hover {
+  background: var(--glass-bg-highlight);
+  color: var(--text-primary);
+}
+
+.closeIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.loadingState {
+  height: 10rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+}
+
+.spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 2px solid var(--accent);
+  border-top-color: transparent;
+  border-radius: 9999px;
+  animation: spin 1s linear infinite;
+}
+
+.loadingText,
+.emptyText,
+.footerHint {
+  color: var(--text-muted);
+}
+
+.loadingText {
+  font-size: var(--type-xs);
+}
+
+.emptyState {
+  padding: var(--space-8) 0;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.emptyIcon {
+  width: 2.5rem;
+  height: 2.5rem;
+  margin: 0 auto var(--space-3);
+  opacity: 0.2;
+}
+
+.emptyTitle {
+  margin: 0;
+  font-size: var(--type-small);
+}
+
+.emptyText {
+  margin: var(--space-1) 0 0;
+  font-size: var(--type-xs);
+}
+
+.documentList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.documentCount {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--type-xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.documentButton {
+  width: 100%;
+  padding: var(--space-3);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--glass-bg) 40%, transparent);
+  text-align: left;
+  transition:
+    background var(--duration-fast, 150ms),
+    border-color var(--duration-fast, 150ms),
+    color var(--duration-fast, 150ms);
+}
+
+.documentButton:hover {
+  background: color-mix(in srgb, var(--glass-bg-highlight) 60%, transparent);
+}
+
+.documentButton:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+.documentRow {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.documentIconWrap {
+  margin-top: var(--space-1);
+  padding: 0.375rem;
+  border-radius: var(--radius-sm);
+  background: var(--glass-bg);
+}
+
+.documentIconHighRisk {
+  color: color-mix(in srgb, var(--accent-danger) 85%, white);
+}
+
+.documentIconMediumRisk {
+  color: color-mix(in srgb, var(--accent-warning) 85%, white);
+}
+
+.documentIconLowRisk {
+  color: var(--text-muted);
+}
+
+.documentIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.documentBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.documentTitle {
+  margin: 0;
+  overflow: hidden;
+  color: var(--text-primary);
+  font-size: var(--type-small);
+  font-weight: var(--weight-medium);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.documentButton:hover .documentTitle {
+  color: var(--accent);
+}
+
+.documentSnippet {
+  margin-top: var(--space-2);
+  padding: var(--space-2);
+  border-left: 2px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--glass-bg-strong) 50%, transparent);
+  color: var(--text-muted);
+  font-size: var(--type-xs);
+  font-style: italic;
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  color: var(--text-muted);
+  font-size: 0.625rem;
+}
+
+.sourceTypeChip {
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--radius-sm);
+  background: var(--glass-bg);
+  text-transform: capitalize;
+}
+
+.riskText {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.riskTextHigh {
+  color: color-mix(in srgb, var(--accent-danger) 85%, white);
+}
+
+.riskTextMedium {
+  color: color-mix(in srgb, var(--accent-warning) 75%, white);
+}
+
+.traceLine {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: color-mix(in srgb, var(--accent) 60%, transparent);
+  font-family: var(--font-mono);
+  transform: scale(0.9);
+  transform-origin: right center;
+}
+
+.modelTag {
+  padding: 0 0.25rem;
+  border-radius: var(--radius-sm);
+  background: var(--glass-bg);
+  font-size: 0.5rem;
+}
+
+.footerHint {
+  padding: var(--space-3);
+  border-top: 1px solid var(--glass-border);
+  background: var(--glass-bg-strong);
+  font-size: 0.625rem;
+  text-align: center;
+}
+
+.keyTag {
+  padding: 0 0.25rem;
+  border-radius: var(--radius-sm);
+  background: var(--glass-bg);
+  font-family: var(--font-mono);
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}

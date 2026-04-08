@@ -1,0 +1,658 @@
+.browser {
+  display: flex;
+  flex-direction: column;
+  min-height: 500px;
+  height: 100%;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  z-index: var(--z-raised);
+  flex-shrink: 0;
+}
+
+.searchShell {
+  display: flex;
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.searchField {
+  position: relative;
+  flex: 1 1 auto;
+}
+
+.searchIcon {
+  position: absolute;
+  top: 50%;
+  left: var(--space-3);
+  color: var(--text-muted);
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.searchInput {
+  width: 100%;
+  height: 2rem;
+  padding: var(--space-2) var(--space-3) var(--space-2) 2.25rem;
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  font-size: var(--type-small);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.searchInput::placeholder {
+  color: var(--text-muted);
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.mobileShareButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2rem;
+  border: 1px solid var(--glass-border);
+  color: var(--text-muted);
+}
+
+.mobileShareButton:hover {
+  color: var(--text-primary);
+}
+
+.shareSuccessIcon {
+  color: #22c55e;
+}
+
+.desktopControls {
+  display: none;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.shareButton,
+.peopleFilterButton,
+.batchToggleButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 2rem;
+  padding: 0.375rem var(--space-3);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--glass-border);
+  font-size: var(--type-micro);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.shareButton,
+.peopleFilterButton,
+.batchToggleButton {
+  color: var(--text-secondary);
+}
+
+.shareButton:hover,
+.peopleFilterButton:hover,
+.batchToggleButton:hover {
+  background: var(--glass-bg-highlight);
+  color: var(--text-primary);
+}
+
+.filterControls,
+.sortControls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.filterSelect,
+.sortSelect {
+  height: 2rem;
+  max-width: 100px;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  font-size: var(--type-micro);
+}
+
+.sortSelect {
+  max-width: none;
+}
+
+.filterSelect:focus,
+.sortSelect:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.peopleFilterButtonActive {
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.controlsDivider {
+  width: 1px;
+  height: 1.5rem;
+  margin-inline: 0.25rem;
+  background: var(--glass-bg-highlight);
+}
+
+.sortLabel {
+  color: var(--text-muted);
+  font-size: var(--type-micro);
+  font-weight: var(--weight-medium);
+}
+
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.iconButton:hover {
+  background: var(--glass-bg-highlight);
+  color: var(--text-primary);
+}
+
+.viewToggle {
+  display: flex;
+  align-items: center;
+  height: 2rem;
+  padding: 0.125rem;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+}
+
+.viewToggleButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 100%;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.viewToggleButtonActive {
+  background: var(--glass-bg-highlight);
+  color: var(--text-primary);
+}
+
+.viewToggleButtonIdle {
+  color: var(--text-muted);
+}
+
+.viewToggleButtonIdle:hover {
+  color: var(--text-primary);
+}
+
+.batchToggleButton {
+  font-weight: var(--weight-medium);
+}
+
+.batchToggleButtonActive {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--text-primary);
+}
+
+.contentLayout {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+
+.mainContent {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  overflow: hidden;
+  background: transparent;
+}
+
+.loadingOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-raised);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--bg-dark) 50%, transparent);
+  backdrop-filter: blur(6px);
+  pointer-events: none;
+}
+
+.loadingSpinner,
+.inlineLoader {
+  border-radius: 9999px;
+  border-top: 2px solid var(--accent);
+  border-bottom: 2px solid var(--accent);
+  border-left: 2px solid transparent;
+  border-right: 2px solid transparent;
+  animation: photo-browser-spin 1s linear infinite;
+}
+
+.loadingSpinner {
+  width: 2rem;
+  height: 2rem;
+}
+
+.inlineLoaderWrap {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  z-index: var(--z-raised);
+}
+
+.inlineLoader {
+  width: 1.25rem;
+  height: 1.25rem;
+  filter: drop-shadow(var(--glass-shadow));
+}
+
+.warningBanner {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: rgba(127, 29, 29, 0.8);
+  border-bottom: 1px solid #b91c1c;
+}
+
+.warningIcon {
+  color: #f87171;
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.warningTitle {
+  margin: 0;
+  color: #fecaca;
+  font-size: var(--type-small);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.warningBody {
+  margin: var(--space-1) 0 0;
+  color: rgba(252, 165, 165, 0.9);
+  font-size: var(--type-small);
+}
+
+.activeFilters {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-3) var(--space-3) 0;
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.activeFiltersLabel {
+  color: var(--text-muted);
+  font-size: var(--type-micro);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.filterPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.125rem 0.5rem;
+  border: 0;
+  border-radius: 9999px;
+  background: var(--glass-bg);
+  color: var(--text-secondary);
+  font-size: var(--type-micro);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.filterPill:hover {
+  background: var(--glass-bg-highlight);
+}
+
+.filterPillIcon {
+  color: var(--text-muted);
+}
+
+.filterPill:hover .filterPillIcon {
+  color: var(--text-primary);
+}
+
+.clearFiltersButton {
+  margin-left: auto;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: var(--type-micro);
+}
+
+.browserViewport {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 360px;
+  overflow: hidden;
+  background: transparent;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-muted);
+}
+
+.emptyStateIcon {
+  margin-bottom: var(--space-2);
+  opacity: 0.5;
+}
+
+.virtualScroller {
+  padding: var(--space-6);
+  scrollbar-width: thin;
+  scrollbar-color: #334155 transparent;
+}
+
+.gridScroller {
+  overflow-x: hidden !important;
+}
+
+.gridCard {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--glass-border);
+  background: var(--app-bg);
+  box-shadow: var(--glass-shadow);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.gridCardIdle:hover {
+  border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+  box-shadow:
+    var(--glass-shadow),
+    0 0 18px color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.gridCardSelected {
+  border-color: var(--accent);
+  box-shadow:
+    var(--glass-shadow),
+    0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+.selectionBadge {
+  position: absolute;
+  top: var(--space-2);
+  left: var(--space-2);
+  z-index: var(--z-content);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 9999px;
+  background: var(--accent);
+  color: var(--text-primary);
+  font-size: var(--type-micro);
+  font-weight: var(--weight-bold);
+}
+
+.listSelectionBadge {
+  position: static;
+  margin-right: var(--space-2);
+}
+
+.mediaSurface {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.gridImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: color-mix(in srgb, var(--glass-bg-strong) 50%, transparent);
+}
+
+.titleOverlay {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: var(--space-3);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent);
+  opacity: 1;
+  transition: opacity 0.2s ease;
+}
+
+.overlayTitle {
+  overflow: hidden;
+  color: var(--text-primary);
+  font-size: var(--type-micro);
+  font-weight: var(--weight-medium);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.overlayMeta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: var(--space-1);
+  color: var(--text-muted);
+  font-size: 10px;
+}
+
+.listRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  height: 100%;
+  padding: var(--space-2);
+  border: 0;
+  border-bottom: 1px solid var(--glass-border);
+  background: transparent;
+  text-align: left;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.listRowIdle:hover {
+  background: var(--glass-bg-highlight);
+}
+
+.listRowSelected {
+  background: var(--glass-bg-active);
+  border-color: var(--accent);
+}
+
+.listThumb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  flex-shrink: 0;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  background: var(--app-bg);
+}
+
+.listThumbImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.listMeta {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.listTitle {
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: var(--type-small);
+  font-weight: var(--weight-medium);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 0.2s ease;
+}
+
+.listRow:hover .listTitle {
+  color: var(--accent);
+}
+
+.listFilename,
+.listDate {
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: var(--type-micro);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.listDate {
+  width: 8rem;
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.listSize {
+  width: 5rem;
+  flex-shrink: 0;
+  color: var(--text-muted);
+  font-family: var(--font-mono, monospace);
+  font-size: var(--type-micro);
+  text-align: right;
+}
+
+.batchToolbarPortal {
+  position: fixed;
+  right: 0;
+  bottom: 2rem;
+  left: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.batchToolbarWrap {
+  max-width: calc(100vw - 2rem);
+  margin-inline: var(--space-4);
+  pointer-events: auto;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 1.5rem;
+  padding: 0 var(--space-3);
+  border-top: 1px solid var(--glass-border);
+  background: var(--glass-bg-strong);
+  color: var(--text-muted);
+  font-size: 10px;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.previewModal {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  pointer-events: auto;
+}
+
+@media (min-width: 768px) {
+  .header {
+    flex-direction: row;
+    align-items: center;
+    min-height: 3.5rem;
+    padding-inline: var(--space-4);
+  }
+
+  .searchShell {
+    width: 16rem;
+  }
+
+  .searchInput {
+    padding-top: 0.375rem;
+    padding-bottom: 0.375rem;
+  }
+
+  .mobileShareButton {
+    display: none;
+  }
+
+  .desktopControls {
+    display: flex;
+  }
+
+  .activeFilters {
+    margin-inline: var(--space-4);
+  }
+
+  .batchToolbarWrap {
+    max-width: fit-content;
+  }
+
+  .titleOverlay {
+    opacity: 0;
+  }
+
+  .gridCard:hover .titleOverlay {
+    opacity: 1;
+  }
+}
+
+@keyframes photo-browser-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

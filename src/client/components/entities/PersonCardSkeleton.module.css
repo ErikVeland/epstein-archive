@@ -1,0 +1,182 @@
+/* src/client/components/entities/PersonCardSkeleton.module.css */
+
+.card {
+  background-color: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-6);
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--glass-shadow);
+}
+
+.shimmer {
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  animation: shimmer 2s infinite;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--glass-highlight, rgba(255, 255, 255, 0.06)),
+    transparent
+  );
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.mentionBar {
+  margin-bottom: var(--space-4);
+  height: 0.25rem;
+  background-color: var(--glass-border);
+  border-radius: 9999px;
+  overflow: hidden;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.identityRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+.iconPlaceholder {
+  background-color: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-3);
+  height: 3rem;
+  width: 3rem;
+  flex-shrink: 0;
+}
+
+.nameBlock {
+  flex: 1;
+}
+
+.nameLine {
+  height: 1.5rem;
+  background-color: var(--glass-bg-strong);
+  border-radius: var(--radius-sm);
+  width: 75%;
+  margin-bottom: var(--space-2);
+}
+
+.roleLine {
+  height: 1rem;
+  background-color: var(--glass-bg-strong);
+  border-radius: var(--radius-sm);
+  width: 50%;
+}
+
+.scoreBlock {
+  text-align: right;
+  flex-shrink: 0;
+  margin-left: var(--space-2);
+}
+
+.scoreLine {
+  height: 1.5rem;
+  width: 4rem;
+  background-color: var(--glass-bg-strong);
+  border-radius: 9999px;
+  margin-bottom: var(--space-2);
+  margin-left: auto;
+}
+
+.mentionsLine {
+  height: 0.75rem;
+  width: 3rem;
+  background-color: var(--glass-bg-strong);
+  border-radius: var(--radius-sm);
+  margin-left: auto;
+}
+
+.bodyStack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.statusPlaceholder {
+  background-color: var(--glass-bg-strong);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+  height: 2.5rem;
+}
+
+.evidencePlaceholder {
+  background-color: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  height: 6rem;
+}
+
+.evidenceLines {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.evidenceLine {
+  height: 0.5rem;
+  background-color: var(--glass-bg-strong);
+  border-radius: var(--radius-sm);
+}
+
+.evidenceLineFull {
+  width: 100%;
+}
+
+.evidenceLineMost {
+  width: 83.333%;
+}
+
+.evidenceLineHalf {
+  width: 66.667%;
+}
+
+.footer {
+  margin-top: var(--space-6);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--glass-border);
+  display: flex;
+  justify-content: space-between;
+}
+
+.footerLineShort {
+  height: 0.75rem;
+  width: 5rem;
+  background-color: var(--glass-bg-strong);
+  border-radius: var(--radius-sm);
+}
+
+.footerLineLong {
+  height: 0.75rem;
+  width: 6rem;
+  background-color: var(--glass-bg-strong);
+  border-radius: var(--radius-sm);
+}

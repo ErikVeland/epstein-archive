@@ -13,6 +13,7 @@ import { Surface } from '../design-system/components/surfaces/Surface';
 import { Flex } from '../design-system/components/layout/Flex';
 import { Box } from '../design-system/components/layout/Box';
 import { LqText } from '../design-system/components/typography/Text';
+import styles from './AnalyticsPage.module.css';
 
 interface AnalyticsPageProps {
   filteredPeople?: Person[];
@@ -58,8 +59,8 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({
       <ScopedErrorBoundary>
         <Flex direction="column" gap={8}>
           <DegradedBanner />
-          <Box className="mb-12">
-            <LqText as="h2" variant="h2" color="accent" className="mb-3">
+          <Box className={styles.hero}>
+            <LqText as="h2" variant="h2" color="accent" className={styles.heroTitle}>
               Enhanced Analytics
             </LqText>
             <LqText
@@ -67,15 +68,15 @@ export const AnalyticsPage: React.FC<AnalyticsPageProps> = ({
               variant="body"
               color="muted"
               weight="light"
-              className="tracking-wide text-lg"
+              className={styles.heroDescription}
             >
               Interactive visualizations of the Epstein Investigation dataset
             </LqText>
           </Box>
           <EnhancedAnalytics />
 
-          <Surface variant="glass" className="p-8 mt-12 mb-8">
-            <Flex align="center" gap={3} className="mb-8">
+          <Surface variant="glass" className={styles.classicSection}>
+            <Flex align="center" gap={3} className={styles.classicHeader}>
               <LqText as="h3" variant="h3" color="accent">
                 Classic Analytics
               </LqText>

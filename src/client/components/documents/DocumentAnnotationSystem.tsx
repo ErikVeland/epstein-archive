@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { CheckCircle, Flag, Highlighter, MessageSquare, Tag, XCircle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../../services/apiClient';
+import styles from './DocumentAnnotationSystem.module.css';
 
 // Design System
 import { LqText } from '../../design-system/components/typography/Text';
@@ -46,39 +47,51 @@ const annotationTypes: Array<{
   type: AnnotationType;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
-  className: string;
+  styleKey: keyof typeof styles;
   accent?: 'amber' | 'cyan' | 'purple' | 'rose' | 'emerald';
 }> = [
   {
     type: 'highlight',
     label: 'Highlight',
     icon: Highlighter,
-    className: 'bg-yellow-300/25',
+    styleKey: 'type_highlight',
     accent: 'amber',
   },
-  { type: 'note', label: 'Note', icon: MessageSquare, className: 'bg-blue-300/25', accent: 'cyan' },
+  {
+    type: 'note',
+    label: 'Note',
+    icon: MessageSquare,
+    styleKey: 'type_note',
+    accent: 'cyan',
+  },
   {
     type: 'evidence',
     label: 'Evidence',
     icon: CheckCircle,
-    className: 'bg-emerald-300/25',
+    styleKey: 'type_evidence',
     accent: 'emerald',
   },
   {
     type: 'question',
     label: 'Question',
     icon: Flag,
-    className: 'bg-fuchsia-300/25',
+    styleKey: 'type_question',
     accent: 'purple',
   },
   {
     type: 'contradiction',
     label: 'Contradiction',
     icon: XCircle,
-    className: 'bg-rose-300/25',
+    styleKey: 'type_contradiction',
     accent: 'rose',
   },
-  { type: 'tag', label: 'Tag', icon: Tag, className: 'bg-cyan-300/25', accent: 'cyan' },
+  {
+    type: 'tag',
+    label: 'Tag',
+    icon: Tag,
+    styleKey: 'type_tag',
+    accent: 'cyan',
+  },
 ];
 
 const getTypeMeta = (type: AnnotationType) => {
@@ -238,10 +251,7 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
 
       return parts.map((part, idx) =>
         part.toLowerCase() === term.toLowerCase() ? (
-          <mark
-            key={`${keyPrefix}-mark-${idx}`}
-            className="bg-cyan-300/30 text-cyan-100 rounded px-0.5"
-          >
+          <mark key={`${keyPrefix}-mark-${idx}`} className={styles.searchMark}>
             {part}
           </mark>
         ) : (
@@ -288,9 +298,9 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
         <button
           key={`ann-${annotation.id}`}
           type="button"
-          className={`rounded-sm px-0.5 text-left align-baseline transition-colors ${
-            typeMeta.className
-          } ${isActive ? 'ring-1 ring-cyan-300/80' : 'hover:ring-1 hover:ring-[var(--glass-border)]'}`}
+          className={`${styles.annotationTrigger} ${styles[typeMeta.styleKey]} ${
+            isActive ? styles.annotationTriggerActive : styles.annotationTriggerHover
+          }`}
           title={`${typeMeta.label}: ${annotation.note || annotation.selectedText}`}
           onClick={() => setActiveAnnotationId(annotation.id)}
         >
@@ -314,9 +324,9 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
   }, [annotations, content, activeAnnotationId, renderSearchHighlighted]);
 
   return (
-    <Box className={`relative ${mode === 'full' ? 'h-full flex' : ''}`}>
-      <Box className={`${mode === 'full' ? 'flex-1 pr-4' : 'w-full'}`}>
-        <Flex align="center" justify="between" className="mb-3">
+    <Box className={`${styles.root} ${mode === 'full' ? styles.rootFull : ''}`}>
+      <Box className={`${mode === 'full' ? styles.mainPanelFull : styles.mainPanel}`}>
+        <Flex align="center" justify="between" className={styles.headerRow}>
           <LqText variant="xs" color="muted">
             {annotations.length} annotation{annotations.length === 1 ? '' : 's'}
           </LqText>
@@ -327,16 +337,12 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
           )}
         </Flex>
 
-        <Box
-          ref={contentRef}
-          className="text-[var(--text-secondary)] leading-relaxed whitespace-pre-wrap select-text min-h-[300px]"
-          onMouseUp={handleSelection}
-        >
+        <Box ref={contentRef} className={styles.contentBody} onMouseUp={handleSelection}>
           {renderedContent}
         </Box>
 
         {displayError && (
-          <Surface variant="glass-highlight" className="mt-3 border-rose-400/30 px-3 py-2">
+          <Surface variant="glass-highlight" className={styles.errorSurface}>
             <LqText variant="xs" color="danger">
               {displayError}
             </LqText>
@@ -344,7 +350,7 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
         )}
 
         {mode === 'inline' && (
-          <LqText variant="xs" color="muted" className="mt-3">
+          <LqText variant="xs" color="muted" className={styles.instruction}>
             Select text to add a public annotation with highlight and optional note.
           </LqText>
         )}
@@ -352,17 +358,17 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
         {pendingSelection && (
           <Surface
             variant="glass-strong"
-            className="absolute z-50 w-[340px] p-3 shadow-xl"
+            className={styles.floatingMenu}
             style={{
               left: `${menuPosition.x}px`,
               top: `${menuPosition.y}px`,
               transform: 'translate(-50%, -100%)',
             }}
           >
-            <LqText variant="xs" color="muted" className="mb-2 truncate block">
+            <LqText variant="xs" color="muted" className={styles.selectionPreview}>
               "{pendingSelection.selectedText}"
             </LqText>
-            <Box className="grid grid-cols-3 gap-1 mb-2">
+            <Box className={styles.typeGrid}>
               {annotationTypes.map((option) => {
                 const Icon = option.icon;
                 const active = draftType === option.type;
@@ -370,14 +376,10 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
                   <button
                     key={option.type}
                     type="button"
-                    className={`px-2 py-1 rounded text-xs flex items-center gap-1 justify-center border transition-colors ${
-                      active
-                        ? 'border-[var(--accent)]/60 bg-[var(--accent)]/10 text-cyan-100'
-                        : 'border-[var(--glass-border)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)]/70'
-                    }`}
+                    className={`${styles.typeOption} ${active ? styles.typeOptionActive : ''}`}
                     onClick={() => setDraftType(option.type)}
                   >
-                    <Icon className="w-3 h-3" />
+                    <Icon className={styles.iconMicro} />
                     {option.label}
                   </button>
                 );
@@ -387,22 +389,22 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
               value={draftAuthor}
               onChange={(event) => setDraftAuthor(event.target.value)}
               placeholder="Display name (optional)"
-              className="w-full mb-2 px-2 py-1.5 rounded bg-[var(--glass-bg)] border border-[var(--glass-border)] text-xs text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+              className={styles.inputField}
               maxLength={32}
             />
             <textarea
               value={draftNote}
               onChange={(event) => setDraftNote(event.target.value)}
               placeholder="Add note (optional)"
-              className="w-full mb-2 px-2 py-1.5 rounded bg-[var(--glass-bg)] border border-[var(--glass-border)] text-xs text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+              className={styles.inputField}
               rows={3}
               maxLength={4000}
             />
-            <Flex justify="between" gap="sm">
+            <Box className={styles.formFooter}>
               <button
                 type="button"
                 onClick={clearSelectionDraft}
-                className="px-3 py-1 text-xs rounded border border-[var(--glass-border)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)] transition-colors"
+                className={styles.secondaryButton}
               >
                 Cancel
               </button>
@@ -410,18 +412,18 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
                 type="button"
                 onClick={createAnnotation}
                 disabled={isSaving}
-                className="px-3 py-1 text-xs rounded border border-[var(--accent)]/60 bg-[var(--accent)]/10 text-cyan-100 hover:bg-[var(--accent)]/20 disabled:opacity-50 transition-colors"
+                className={styles.primaryButton}
               >
                 {isSaving ? 'Saving…' : 'Save Annotation'}
               </button>
-            </Flex>
+            </Box>
           </Surface>
         )}
       </Box>
 
       {mode === 'full' && (
-        <aside className="w-80 bg-[var(--glass-bg)]/70 border-l border-[var(--glass-border)] p-4 overflow-y-auto">
-          <Flex align="center" justify="between" className="mb-4">
+        <aside className={styles.sidebar}>
+          <Flex align="center" justify="between" className={styles.sidebarHeader}>
             <LqText variant="h4" weight="medium">
               Annotations
             </LqText>
@@ -430,7 +432,7 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
             </LqText>
           </Flex>
 
-          <Box className="space-y-3">
+          <Box className={styles.annotationList}>
             {annotations.map((annotation) => {
               const typeMeta = getTypeMeta(annotation.type);
               const Icon = typeMeta.icon;
@@ -441,44 +443,44 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
                   key={annotation.id}
                   variant={active ? 'glass-strong' : 'glass-highlight'}
                   accent={active ? typeMeta.accent : undefined}
-                  className={`w-full text-left p-3 border transition-all ${
-                    active ? 'border-[var(--accent)]/60' : 'opacity-80 hover:opacity-100'
+                  className={`${styles.annotationCard} ${
+                    active ? styles.annotationCardActive : styles.annotationCardInactive
                   }`}
                   onClick={() => setActiveAnnotationId(annotation.id)}
                 >
-                  <Flex align="center" gap="sm" className="mb-1">
-                    <Icon className="w-4 h-4 text-[var(--accent)]" />
+                  <Flex align="center" gap="sm" className={styles.cardHeader}>
+                    <Icon className={styles.cardHeaderIcon} />
                     <LqText variant="small" weight="medium">
                       {typeMeta.label}
                     </LqText>
                   </Flex>
-                  <LqText variant="xs" color="secondary" className="mb-2 italic">
+                  <LqText variant="xs" color="secondary" className={styles.cardSelectedText}>
                     "{annotation.selectedText}"
                   </LqText>
                   {annotation.note ? (
-                    <LqText variant="xs" className="mb-2">
+                    <LqText variant="xs" className={styles.cardNote}>
                       {annotation.note}
                     </LqText>
                   ) : null}
-                  <Flex justify="between" className="mt-2">
+                  <Box className={styles.cardFooter}>
                     <LqText variant="xs" color="muted">
                       {annotation.author || 'anonymous'}
                     </LqText>
                     <LqText variant="xs" color="muted">
                       {parseDateLabel(annotation.createdAt)}
                     </LqText>
-                  </Flex>
+                  </Box>
                 </Surface>
               );
             })}
 
             {annotations.length === 0 && !isLoading && (
-              <Box className="text-center py-12">
-                <MessageSquare className="w-8 h-8 mx-auto mb-3 opacity-20" />
+              <Box className={styles.emptyState}>
+                <MessageSquare className={styles.emptyIcon} />
                 <LqText variant="small" weight="medium" color="muted">
                   No annotations yet
                 </LqText>
-                <LqText variant="xs" color="muted" className="mt-1">
+                <LqText variant="xs" color="muted" className={styles.instruction}>
                   Select text in the document to annotate it.
                 </LqText>
               </Box>
@@ -486,19 +488,19 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
           </Box>
 
           {activeAnnotation && (
-            <Surface variant="glass-strong" className="mt-6 p-3 bg-[var(--glass-bg-strong)]/40">
+            <Surface variant="glass-strong" className={styles.activeDetail}>
               <LqText
                 variant="xs"
                 weight="bold"
                 color="accent"
-                className="uppercase tracking-widest mb-2 block"
+                className={styles.activeDetailLabel}
               >
                 Active annotation
               </LqText>
-              <LqText variant="small" className="mb-2 font-medium">
+              <LqText variant="small" className={styles.activeDetailText}>
                 "{activeAnnotation.selectedText}"
               </LqText>
-              <LqText variant="xs" color="secondary" className="whitespace-pre-wrap">
+              <LqText variant="xs" color="secondary" className={styles.activeDetailNote}>
                 {activeAnnotation.note || 'No note text.'}
               </LqText>
             </Surface>

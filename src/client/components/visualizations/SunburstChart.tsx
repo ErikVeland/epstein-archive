@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import styles from './SunburstChart.module.css';
 
 interface SunburstChartProps {
   data: Array<{
@@ -51,30 +52,32 @@ const CustomTooltip = ({
       data.redacted && data.count ? Math.round((data.redacted / data.count) * 100) : 0;
 
     return (
-      <div className="bg-[var(--glass-bg-strong)]/95 backdrop-blur-md p-4 rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] border border-[var(--glass-border)]">
-        <p className="text-[var(--text-primary)] font-bold text-lg mb-2">
-          {formatLabel(data.type)}
-        </p>
-        <div className="space-y-1 text-sm">
-          <div className="flex justify-between gap-4">
-            <span className="text-[var(--text-muted)]">Documents:</span>
-            <span className="text-[var(--text-primary)] font-mono font-bold">
-              {data.count.toLocaleString()}
-            </span>
+      <div className={styles.tooltip}>
+        <p className={styles.tooltipTitle}>{formatLabel(data.type)}</p>
+        <div className={styles.tooltipBody}>
+          <div className={styles.tooltipRow}>
+            <span className={styles.tooltipLabel}>Documents:</span>
+            <span className={styles.tooltipValue}>{data.count.toLocaleString()}</span>
           </div>
           {(data.redacted ?? 0) > 0 && (
-            <div className="flex justify-between gap-4">
-              <span className="text-[var(--text-muted)]">Redacted:</span>
-              <span className="text-[var(--accent-warning)] font-mono">
+            <div className={styles.tooltipRow}>
+              <span className={styles.tooltipLabel}>Redacted:</span>
+              <span className={styles.warningValue}>
                 {(data.redacted ?? 0).toLocaleString()} ({redactedPercent}%)
               </span>
             </div>
           )}
           {data.avgRisk && (
-            <div className="flex justify-between gap-4">
-              <span className="text-[var(--text-muted)]">Avg Risk:</span>
+            <div className={styles.tooltipRow}>
+              <span className={styles.tooltipLabel}>Avg Risk:</span>
               <span
-                className={`font-mono ${data.avgRisk >= 4 ? 'text-[var(--accent-danger)]' : data.avgRisk >= 2 ? 'text-[var(--accent-warning)]' : 'text-[var(--accent-success)]'}`}
+                className={`${styles.riskValue} ${
+                  data.avgRisk >= 4
+                    ? styles.riskValueHigh
+                    : data.avgRisk >= 2
+                      ? styles.riskValueMedium
+                      : styles.riskValueLow
+                }`}
               >
                 {'🚩'.repeat(Math.round(data.avgRisk))}
               </span>
@@ -118,7 +121,7 @@ const CustomLabel = ({
       fill="white"
       textAnchor="middle"
       dominantBaseline="central"
-      className="text-xs font-semibold drop-shadow-[var(--glass-shadow)]"
+      className={styles.chartLabel}
     >
       {formatLabel(type)}
     </text>
@@ -137,8 +140,8 @@ export const SunburstChart: React.FC<SunburstChartProps> = ({ data, onSegmentCli
   const total = useMemo(() => data.reduce((sum, d) => sum + d.count, 0), [data]);
 
   return (
-    <div className="flex flex-col w-full h-[500px]">
-      <div className="flex-1 min-h-0 relative">
+    <div className={styles.chartShell}>
+      <div className={styles.chartStage}>
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <defs>
@@ -175,7 +178,7 @@ export const SunburstChart: React.FC<SunburstChartProps> = ({ data, onSegmentCli
               label={CustomLabel}
               labelLine={false}
               onClick={(data) => onSegmentClick?.(data.type)}
-              className="cursor-pointer"
+              className={styles.pieCursor}
               animationBegin={0}
               animationDuration={800}
               animationEasing="ease-out"
@@ -187,7 +190,7 @@ export const SunburstChart: React.FC<SunburstChartProps> = ({ data, onSegmentCli
                   stroke={COLORS[index % COLORS.length].main}
                   strokeWidth={1}
                   style={{ filter: 'url(#glow)' }}
-                  className="hover:opacity-80 transition-opacity"
+                  className={styles.sliceCell}
                 />
               ))}
             </Pie>
@@ -196,38 +199,30 @@ export const SunburstChart: React.FC<SunburstChartProps> = ({ data, onSegmentCli
         </ResponsiveContainer>
 
         {/* Center stats overlay */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <span className="text-4xl font-bold text-[var(--text-primary)] drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]">
-            {total.toLocaleString()}
-          </span>
-          <span className="text-xs text-[var(--text-muted)] uppercase tracking-wider mt-1 font-semibold">
-            Total Files
-          </span>
+        <div className={styles.centerOverlay}>
+          <span className={styles.centerValue}>{total.toLocaleString()}</span>
+          <span className={styles.centerLabel}>Total Files</span>
         </div>
       </div>
 
       {/* Legend below */}
-      <div className="flex-none flex flex-wrap justify-center gap-2 px-4 py-2 mt-2 max-h-[100px] overflow-y-auto custom-scrollbar">
+      <div className={styles.legend}>
         {chartData.map((item, index) => (
           <button
             key={item.type}
             onClick={() => onSegmentClick?.(item.type)}
-            className="flex items-center gap-2 px-2 py-1 bg-[var(--glass-bg)]/50 hover:bg-[var(--glass-bg-highlight)]/50 rounded-full border border-[var(--glass-border)] transition-all hover:scale-105 shrink-0 max-w-[150px]"
+            className={styles.legendChip}
             title={`${formatLabel(item.type)}: ${item.count.toLocaleString()}`}
           >
             <div
-              className="w-2 h-2 rounded-full shrink-0"
+              className={styles.legendDot}
               style={{
                 backgroundColor: COLORS[index % COLORS.length].main,
                 boxShadow: `0 0 8px ${COLORS[index % COLORS.length].shadow}`,
               }}
             />
-            <span className="text-[10px] text-[var(--text-secondary)] font-medium truncate">
-              {formatLabel(item.type)}
-            </span>
-            <span className="text-[10px] text-[var(--text-muted)] font-mono shrink-0">
-              {item.count.toLocaleString()}
-            </span>
+            <span className={styles.legendLabel}>{formatLabel(item.type)}</span>
+            <span className={styles.legendCount}>{item.count.toLocaleString()}</span>
           </button>
         ))}
       </div>

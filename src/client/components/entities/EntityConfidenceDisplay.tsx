@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Icon from '../common/Icon';
 import { apiClient } from '../../services/apiClient';
+import styles from './EntityConfidenceDisplay.module.css';
 
 interface EntityConfidence {
   entityId: string | number;
@@ -33,7 +34,7 @@ export const EntityConfidenceDisplay: React.FC<EntityConfidenceDisplayProps> = (
   });
 
   if (loading) {
-    return <div className="animate-pulse bg-[var(--glass-bg-highlight)] rounded h-5 w-16" />;
+    return <div className={styles.skeleton} />;
   }
 
   if (!confidence) {
@@ -43,13 +44,13 @@ export const EntityConfidenceDisplay: React.FC<EntityConfidenceDisplayProps> = (
   const getColor = (level: string) => {
     switch (level) {
       case 'High':
-        return 'text-[var(--accent-success)] bg-[var(--accent-success)]/20 border-[var(--accent-success)]/30';
+        return styles.levelHigh;
       case 'Medium':
-        return 'text-[var(--accent-warning)] bg-[var(--accent-warning)]/20 border-[var(--accent-warning)]/30';
+        return styles.levelMedium;
       case 'Low':
-        return 'text-[var(--accent-danger)] bg-[var(--accent-danger)]/20 border-[var(--accent-danger)]/30';
+        return styles.levelLow;
       default:
-        return 'text-[var(--text-muted)] bg-[var(--glass-bg-highlight)]/20 border-[var(--glass-border)]';
+        return styles.levelDefault;
     }
   };
 
@@ -67,9 +68,9 @@ export const EntityConfidenceDisplay: React.FC<EntityConfidenceDisplayProps> = (
   };
 
   const sizeClasses = {
-    sm: 'text-xs px-1.5 py-0.5',
-    md: 'text-sm px-2 py-1',
-    lg: 'text-base px-3 py-1.5',
+    sm: styles.sizeSm,
+    md: styles.sizeMd,
+    lg: styles.sizeLg,
   };
 
   // Simple badge
@@ -77,47 +78,42 @@ export const EntityConfidenceDisplay: React.FC<EntityConfidenceDisplayProps> = (
     return (
       <button
         onClick={() => setExpanded(true)}
-        className={`inline-flex items-center gap-1 rounded border ${getColor(confidence.confidenceLevel)} ${sizeClasses[size]} hover:opacity-80 transition-opacity`}
+        className={`${styles.badge} ${getColor(confidence.confidenceLevel)} ${sizeClasses[size]}`}
         title={`Data confidence: ${confidence.confidenceScore}% based on ${confidence.totalMentions} mentions`}
       >
         <Icon name={getIcon(confidence.confidenceLevel)} size="xs" />
         <span>{confidence.confidenceLevel}</span>
-        <span className="opacity-60">({confidence.confidenceScore}%)</span>
+        <span className={styles.expandedScore}>({confidence.confidenceScore}%)</span>
       </button>
     );
   }
 
   // Expanded breakdown
   return (
-    <div
-      className={`rounded-[var(--radius-lg)] border ${getColor(confidence.confidenceLevel)} overflow-hidden`}
-    >
-      <div className="flex items-center justify-between px-3 py-2 bg-[var(--glass-bg)]/50">
-        <div className="flex items-center gap-2">
+    <div className={`${styles.expanded} ${getColor(confidence.confidenceLevel)}`}>
+      <div className={styles.expandedHeader}>
+        <div className={styles.expandedHeaderLeft}>
           <Icon name={getIcon(confidence.confidenceLevel)} size="sm" />
-          <span className="font-medium">{confidence.confidenceLevel} Confidence</span>
-          <span className="opacity-60">{confidence.confidenceScore}%</span>
+          <span className={styles.expandedLabel}>{confidence.confidenceLevel} Confidence</span>
+          <span className={styles.expandedScore}>{confidence.confidenceScore}%</span>
         </div>
-        <button onClick={() => setExpanded(false)} className="opacity-60 hover:opacity-100">
+        <button onClick={() => setExpanded(false)} className={styles.collapseButton}>
           <Icon name="X" size="sm" />
         </button>
       </div>
 
-      <div className="p-3 bg-[var(--glass-bg-strong)]/50 space-y-3">
-        <p className="text-xs text-[var(--text-muted)]">
+      <div className={styles.expandedBody}>
+        <p className={styles.mentionCount}>
           Based on {confidence.totalMentions.toLocaleString()} references across verified sources
         </p>
 
         {/* Evidence breakdown */}
         {confidence.evidenceBreakdown.length > 0 && (
-          <div className="space-y-1">
-            <span className="text-xs text-[var(--text-muted)]">Evidence Sources:</span>
-            <div className="flex flex-wrap gap-1">
+          <div className={styles.breakdownSection}>
+            <span className={styles.breakdownLabel}>Evidence Sources:</span>
+            <div className={styles.breakdownChips}>
               {confidence.evidenceBreakdown.map((ev) => (
-                <span
-                  key={ev.evidence_type}
-                  className="text-xs px-2 py-0.5 bg-[var(--glass-bg-highlight)]/50 rounded text-[var(--text-secondary)]"
-                >
+                <span key={ev.evidence_type} className={styles.breakdownChip}>
                   {ev.evidence_type?.replace(/_/g, ' ') || 'document'} ({ev.count})
                 </span>
               ))}
@@ -126,10 +122,9 @@ export const EntityConfidenceDisplay: React.FC<EntityConfidenceDisplayProps> = (
         )}
 
         {/* Confidence explanation */}
-        <div className="text-xs text-[var(--text-muted)] border-t border-[var(--glass-border)] pt-2">
-          <Icon name="Info" size="xs" className="inline mr-1" />
-          Confidence is weighted by source type: legal documents (100%), testimony (90%), flight
-          logs (85%), financial (80%), emails (70%), photos (50%).
+        <div className={styles.footerNote}>
+          <Icon name="Info" size="xs" /> Confidence is weighted by source type: legal documents
+          (100%), testimony (90%), flight logs (85%), financial (80%), emails (70%), photos (50%).
         </div>
       </div>
     </div>

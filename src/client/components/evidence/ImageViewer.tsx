@@ -6,6 +6,7 @@
 
 import { useState } from 'react';
 import { ZoomIn, ZoomOut, Maximize2, Download } from 'lucide-react';
+import styles from './ImageViewer.module.css';
 
 interface ImageViewerProps {
   evidence: {
@@ -28,51 +29,41 @@ export function ImageViewer({ evidence }: ImageViewerProps) {
   const zoomOut = () => setZoom((prev) => Math.max(prev - 25, 50));
 
   return (
-    <div className="p-6">
+    <div className={styles.root}>
       {/* Toolbar */}
-      <div className="mb-6 flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={zoomOut}
-            className="p-2 text-[var(--text-primary)] bg-[var(--text-primary)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] hover:bg-[var(--app-bg)]"
-            title="Zoom out"
-          >
-            <ZoomOut className="h-5 w-5" />
+      <div className={styles.toolbar}>
+        <div className={styles.toolbarGroup}>
+          <button onClick={zoomOut} className={styles.iconButton} title="Zoom out">
+            <ZoomOut className={styles.icon} />
           </button>
 
-          <span className="px-4 py-2 text-sm font-medium text-[var(--text-primary)] bg-[var(--app-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)]">
-            {zoom}%
-          </span>
+          <span className={styles.zoomBadge}>{zoom}%</span>
 
-          <button
-            onClick={zoomIn}
-            className="p-2 text-[var(--text-primary)] bg-[var(--text-primary)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] hover:bg-[var(--app-bg)]"
-            title="Zoom in"
-          >
-            <ZoomIn className="h-5 w-5" />
+          <button onClick={zoomIn} className={styles.iconButton} title="Zoom in">
+            <ZoomIn className={styles.icon} />
           </button>
 
           <button
             onClick={() => setFullscreen(!fullscreen)}
-            className="p-2 text-[var(--text-primary)] bg-[var(--text-primary)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] hover:bg-[var(--app-bg)]"
+            className={styles.iconButton}
             title="Fullscreen"
           >
-            <Maximize2 className="h-5 w-5" />
+            <Maximize2 className={styles.icon} />
           </button>
         </div>
 
-        <button className="flex items-center px-4 py-2 text-sm font-medium text-[var(--text-primary)] bg-[var(--text-primary)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] hover:bg-[var(--app-bg)]">
-          <Download className="h-4 w-4 mr-2" />
+        <button className={styles.downloadButton}>
+          <Download className={styles.downloadIcon} />
           Download Image
         </button>
       </div>
 
       {/* Image Container */}
       <div
-        className={`bg-[var(--app-bg)] rounded-[var(--radius-lg)] overflow-auto ${fullscreen ? 'fixed inset-0 z-50 p-8' : 'max-h-[600px]'}`}
+        className={`${styles.imageViewport} ${fullscreen ? styles.imageViewportFullscreen : styles.imageViewportWindowed}`}
       >
-        <div className="flex items-center justify-center min-h-full p-4">
-          <div style={{ transform: `scale(${zoom / 100})`, transformOrigin: 'center' }}>
+        <div className={styles.imageCenter}>
+          <div className={styles.scaledImageWrap} style={{ transform: `scale(${zoom / 100})` }}>
             <img
               src={
                 evidence.sourcePath.startsWith('/data/') || evidence.sourcePath.startsWith('data/')
@@ -80,30 +71,30 @@ export function ImageViewer({ evidence }: ImageViewerProps) {
                   : `/data/${evidence.sourcePath.replace(/^.*\/data\//, '')}`
               }
               alt={evidence.originalFilename}
-              className="max-w-full h-auto shadow-[var(--glass-shadow)]"
+              className={styles.image}
             />
           </div>
         </div>
       </div>
 
       {/* Metadata & OCR Text */}
-      <div className="mt-6 space-y-4">
+      <div className={styles.metadataSection}>
         {evidence.metadata && (
-          <div className="p-4 bg-[var(--app-bg)] rounded-[var(--radius-lg)]">
-            <h4 className="text-sm font-semibold text-[var(--text-primary)] mb-2">Image Info</h4>
-            <div className="grid grid-cols-3 gap-4 text-sm">
+          <div className={styles.infoCard}>
+            <h4 className={styles.cardTitle}>Image Info</h4>
+            <div className={styles.infoGrid}>
               {evidence.metadata.width && evidence.metadata.height && (
                 <div>
-                  <div className="text-[var(--text-primary)]">Dimensions</div>
-                  <div className="text-[var(--text-primary)]">
+                  <div className={styles.infoLabel}>Dimensions</div>
+                  <div className={styles.infoValue}>
                     {evidence.metadata.width} × {evidence.metadata.height}
                   </div>
                 </div>
               )}
               {evidence.metadata.format && (
                 <div>
-                  <div className="text-[var(--text-primary)]">Format</div>
-                  <div className="text-[var(--text-primary)] uppercase">
+                  <div className={styles.infoLabel}>Format</div>
+                  <div className={`${styles.infoValue} ${styles.formatValue}`}>
                     {evidence.metadata.format}
                   </div>
                 </div>
@@ -113,11 +104,9 @@ export function ImageViewer({ evidence }: ImageViewerProps) {
         )}
 
         {evidence.extractedText && evidence.extractedText.trim().length > 10 && (
-          <div className="p-4 bg-[var(--text-primary)] border border-[var(--glass-border)] rounded-[var(--radius-lg)]">
-            <h4 className="text-sm font-semibold text-[var(--text-primary)] mb-2">OCR Text</h4>
-            <div className="text-sm text-[var(--text-primary)] whitespace-pre-wrap">
-              {evidence.extractedText}
-            </div>
+          <div className={styles.ocrCard}>
+            <h4 className={styles.cardTitle}>OCR Text</h4>
+            <div className={styles.ocrText}>{evidence.extractedText}</div>
           </div>
         )}
       </div>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { AlertTriangle, Clock, Database } from 'lucide-react';
+import styles from './DataIntegrityPanel.module.css';
 
 interface DataIntegrityStats {
   entitiesWithDocuments: number;
@@ -24,43 +25,41 @@ export const DataIntegrityPanel: React.FC<DataIntegrityPanelProps> = ({ stats })
       ? Math.round((stats.documentsWithMetadata / stats.totalDocuments) * 100)
       : 0;
 
+  const getProgressClassName = (percentage: number) => {
+    if (percentage >= 95) return `${styles.progressFill} ${styles.progressFillHigh}`;
+    if (percentage >= 80) return `${styles.progressFill} ${styles.progressFillMedium}`;
+    return `${styles.progressFill} ${styles.progressFillLow}`;
+  };
+
   return (
-    <div className="bg-[var(--glass-bg)]/60 backdrop-blur-sm border border-[var(--glass-border)] rounded-[var(--radius-xl)] p-5 shadow-[var(--glass-shadow)]">
+    <div className={styles.panel}>
       {/* Header */}
-      <div className="flex items-center justify-between mb-5">
-        <h3 className="text-base font-semibold text-[var(--text-primary)] flex items-center">
-          <Database className="h-5 w-5 mr-2 text-[var(--accent)]" />
+      <div className={styles.header}>
+        <h3 className={styles.title}>
+          <Database className={styles.titleIcon} />
           Data Integrity
         </h3>
-        <span className="text-xs text-[var(--text-muted)] flex items-center">
-          <Clock className="h-4 w-4 mr-1" />
+        <span className={styles.lastRefresh}>
+          <Clock className={styles.refreshIcon} />
           {stats.lastRefresh}
         </span>
       </div>
 
       {/* Progress Bars */}
-      <div className="space-y-5">
+      <div className={styles.metrics}>
         {/* Entities with document links */}
         <div>
-          <div className="flex justify-between text-sm mb-2">
-            <span className="text-[var(--text-secondary)]">Entities with document links</span>
-            <span className="text-[var(--text-primary)] font-semibold">
-              {entityLinkPercentage}%
-            </span>
+          <div className={styles.metricHeader}>
+            <span className={styles.metricLabel}>Entities with document links</span>
+            <span className={styles.metricValue}>{entityLinkPercentage}%</span>
           </div>
-          <div className="w-full bg-[var(--glass-bg-highlight)]/60 rounded-full h-2.5 overflow-hidden">
+          <div className={styles.progressTrack}>
             <div
-              className={`h-2.5 rounded-full transition-all duration-500 ${
-                entityLinkPercentage >= 95
-                  ? 'bg-emerald-500'
-                  : entityLinkPercentage >= 80
-                    ? 'bg-amber-500'
-                    : 'bg-rose-500'
-              }`}
+              className={getProgressClassName(entityLinkPercentage)}
               style={{ width: `${entityLinkPercentage}%` }}
-            ></div>
+            />
           </div>
-          <div className="text-xs text-[var(--text-muted)] mt-1.5">
+          <div className={styles.metricFootnote}>
             {stats.entitiesWithDocuments.toLocaleString()} of {stats.totalEntities.toLocaleString()}{' '}
             entities linked
           </div>
@@ -68,25 +67,17 @@ export const DataIntegrityPanel: React.FC<DataIntegrityPanelProps> = ({ stats })
 
         {/* Documents with complete metadata */}
         <div>
-          <div className="flex justify-between text-sm mb-2">
-            <span className="text-[var(--text-secondary)]">Documents with complete metadata</span>
-            <span className="text-[var(--text-primary)] font-semibold">
-              {documentMetadataPercentage}%
-            </span>
+          <div className={styles.metricHeader}>
+            <span className={styles.metricLabel}>Documents with complete metadata</span>
+            <span className={styles.metricValue}>{documentMetadataPercentage}%</span>
           </div>
-          <div className="w-full bg-[var(--glass-bg-highlight)]/60 rounded-full h-2.5 overflow-hidden">
+          <div className={styles.progressTrack}>
             <div
-              className={`h-2.5 rounded-full transition-all duration-500 ${
-                documentMetadataPercentage >= 95
-                  ? 'bg-emerald-500'
-                  : documentMetadataPercentage >= 80
-                    ? 'bg-amber-500'
-                    : 'bg-rose-500'
-              }`}
+              className={getProgressClassName(documentMetadataPercentage)}
               style={{ width: `${documentMetadataPercentage}%` }}
-            ></div>
+            />
           </div>
-          <div className="text-xs text-[var(--text-muted)] mt-1.5">
+          <div className={styles.metricFootnote}>
             {stats.documentsWithMetadata.toLocaleString()} of{' '}
             {stats.totalDocuments.toLocaleString()} documents complete
           </div>
@@ -94,10 +85,10 @@ export const DataIntegrityPanel: React.FC<DataIntegrityPanelProps> = ({ stats })
       </div>
 
       {/* Footer */}
-      <div className="mt-5 pt-4 border-t border-[var(--glass-border)]">
-        <button className="text-xs text-[var(--accent)] hover:text-[var(--accent)] transition-colors flex items-center group">
+      <div className={styles.footer}>
+        <button className={styles.methodologyButton}>
           Methodology & Sources
-          <AlertTriangle className="h-3.5 w-3.5 ml-1.5 text-amber-400 group-hover:text-amber-300" />
+          <AlertTriangle className={styles.methodologyIcon} />
         </button>
       </div>
     </div>

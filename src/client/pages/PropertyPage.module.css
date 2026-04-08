@@ -1,0 +1,4 @@
+.pageShell {
+  padding: var(--space-6);
+  min-height: 500px;
+}

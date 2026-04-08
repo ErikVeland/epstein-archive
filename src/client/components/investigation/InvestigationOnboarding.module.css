@@ -1,0 +1,224 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+}
+
+.modal {
+  position: relative;
+  width: 100%;
+  max-width: 32rem;
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  border-radius: 1.5rem;
+  background: color-mix(in srgb, var(--glass-bg-strong) 90%, transparent);
+  backdrop-filter: blur(20px);
+  box-shadow: var(--glass-shadow);
+}
+
+.topGlow,
+.bottomGlow {
+  position: absolute;
+  width: 16rem;
+  height: 16rem;
+  border-radius: 9999px;
+  filter: blur(48px);
+  pointer-events: none;
+}
+
+.topGlow {
+  top: -5rem;
+  right: -5rem;
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+.bottomGlow {
+  bottom: -5rem;
+  left: -5rem;
+  background: color-mix(in srgb, #8b5cf6 10%, transparent);
+}
+
+.header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-6);
+  padding-bottom: var(--space-2);
+}
+
+.progressDots {
+  display: flex;
+  gap: 0.375rem;
+}
+
+.progressDot {
+  height: 0.375rem;
+  border-radius: 9999px;
+  transition:
+    width 0.5s ease,
+    background var(--duration-fast, 150ms);
+}
+
+.progressDotActive {
+  width: 2rem;
+  background: var(--accent);
+}
+
+.progressDotCompleted {
+  width: 0.375rem;
+  background: color-mix(in srgb, var(--accent) 50%, transparent);
+}
+
+.progressDotPending {
+  width: 0.375rem;
+  background: var(--glass-bg-highlight);
+}
+
+.closeButton {
+  border-color: var(--glass-border);
+  background: transparent;
+}
+
+.closeButton:hover {
+  background: var(--glass-bg-highlight);
+}
+
+.content {
+  position: relative;
+  min-height: 20rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8);
+  text-align: center;
+}
+
+.contentInner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.iconContainer {
+  margin-bottom: var(--space-8);
+  padding: var(--space-6);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 0 30px -5px transparent;
+}
+
+.tonePrimary {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 20%, transparent);
+  box-shadow: 0 0 30px -5px color-mix(in srgb, var(--accent) 20%, transparent);
+  color: var(--accent);
+}
+
+.toneDanger {
+  background: color-mix(in srgb, var(--accent-danger) 10%, transparent);
+  border-color: color-mix(in srgb, var(--accent-danger) 20%, transparent);
+  box-shadow: 0 0 30px -5px color-mix(in srgb, var(--accent-danger) 20%, transparent);
+  color: color-mix(in srgb, var(--accent-danger) 85%, white);
+}
+
+.toneSuccess {
+  background: color-mix(in srgb, var(--accent-success) 10%, transparent);
+  border-color: color-mix(in srgb, var(--accent-success) 20%, transparent);
+  box-shadow: 0 0 30px -5px color-mix(in srgb, var(--accent-success) 20%, transparent);
+  color: color-mix(in srgb, var(--accent-success) 85%, white);
+}
+
+.icon {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.title {
+  margin: 0 0 var(--space-3);
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  font-weight: var(--weight-bold);
+}
+
+.description {
+  max-width: 20rem;
+  margin: 0 auto;
+  color: var(--text-muted);
+  font-size: 1.125rem;
+  line-height: 1.6;
+}
+
+.footer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-6);
+  padding-top: 0;
+}
+
+.primaryButton {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: 0.875rem var(--space-4);
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-radius: var(--radius-xl);
+  background: linear-gradient(to right, #2563eb, #4f46e5);
+  color: var(--text-primary);
+  font-weight: var(--weight-medium);
+  box-shadow:
+    var(--glass-shadow),
+    0 10px 24px rgb(30 58 138 / 0.2);
+  transition:
+    filter var(--duration-fast, 150ms),
+    transform 0.15s ease;
+}
+
+.primaryButton:hover {
+  filter: brightness(1.08);
+}
+
+.primaryButtonIcon,
+.primaryButtonIconDone {
+  width: 1rem;
+  height: 1rem;
+}
+
+.primaryButtonIcon {
+  color: rgb(255 255 255 / 0.8);
+  transition: transform 0.15s ease;
+}
+
+.primaryButton:hover .primaryButtonIcon {
+  transform: translateX(0.125rem);
+}
+
+.primaryButtonIconDone {
+  color: rgb(255 255 255 / 0.9);
+}
+
+.guideLink {
+  padding: 0.25rem 0;
+  color: var(--accent);
+  font-size: var(--type-xs);
+  text-align: center;
+}
+
+.skipButton {
+  padding: var(--space-2) 0;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font-size: var(--type-small);
+}

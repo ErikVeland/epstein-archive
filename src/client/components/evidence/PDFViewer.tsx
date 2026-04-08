@@ -9,6 +9,7 @@ import { Document, Page, pdfjs } from 'react-pdf';
 import { Download, ZoomIn, ZoomOut, RotateCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
+import styles from './PDFViewer.module.css';
 
 // Set up worker for PDF.js
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
@@ -94,11 +95,11 @@ export function PDFViewer({ filePath, title }: PDFViewerProps) {
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center h-full p-8 text-center">
-        <div className="text-red-500 mb-4">
+      <div className={styles.errorState}>
+        <div className={styles.errorIconWrap}>
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-16 w-16 mx-auto"
+            className={styles.errorIcon}
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -111,14 +112,9 @@ export function PDFViewer({ filePath, title }: PDFViewerProps) {
             />
           </svg>
         </div>
-        <h3 className="text-xl font-semibold text-[var(--text-primary)] mb-2">
-          Unable to Load PDF
-        </h3>
-        <p className="text-[var(--text-primary)] mb-4">{error}</p>
-        <button
-          onClick={loadPDF}
-          className="px-4 py-2 bg-[var(--accent)] text-[var(--text-primary)] rounded-[var(--radius-lg)] hover:bg-blue-700 transition-colors"
-        >
+        <h3 className={styles.errorTitle}>Unable to Load PDF</h3>
+        <p className={styles.errorText}>{error}</p>
+        <button onClick={loadPDF} className={styles.retryButton}>
           Retry
         </button>
       </div>
@@ -126,109 +122,95 @@ export function PDFViewer({ filePath, title }: PDFViewerProps) {
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className={styles.root}>
       {/* Toolbar */}
-      <div className="flex items-center justify-between p-4 bg-[var(--app-bg)] border-b border-[var(--glass-border)]">
-        <div className="flex items-center space-x-2">
-          <h2 className="text-lg font-semibold text-[var(--text-primary)] truncate max-w-md">
-            {title}
-          </h2>
+      <div className={styles.toolbar}>
+        <div className={styles.toolbarGroup}>
+          <h2 className={styles.title}>{title}</h2>
         </div>
 
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={downloadPDF}
-            className="p-2 text-[var(--text-primary)] hover:text-[var(--text-primary)] hover:bg-[var(--app-bg)] rounded-[var(--radius-lg)] transition-colors"
-            title="Download PDF"
-          >
-            <Download className="h-5 w-5" />
+        <div className={styles.toolbarGroup}>
+          <button onClick={downloadPDF} className={styles.iconButton} title="Download PDF">
+            <Download className={styles.icon} />
           </button>
 
-          <div className="h-6 w-px bg-[var(--app-bg)]"></div>
+          <div className={styles.divider} />
 
           <button
             onClick={zoomOut}
-            className="p-2 text-[var(--text-primary)] hover:text-[var(--text-primary)] hover:bg-[var(--app-bg)] rounded-[var(--radius-lg)] transition-colors"
+            className={`${styles.iconButton} ${scale <= 0.5 ? styles.iconButtonDisabled : ''}`}
             disabled={scale <= 0.5}
             title="Zoom Out"
           >
-            <ZoomOut className="h-5 w-5" />
+            <ZoomOut className={styles.icon} />
           </button>
 
-          <span className="text-sm text-[var(--text-primary)] min-w-[40px] text-center">
-            {Math.round(scale * 100)}%
-          </span>
+          <span className={styles.zoomLabel}>{Math.round(scale * 100)}%</span>
 
           <button
             onClick={zoomIn}
-            className="p-2 text-[var(--text-primary)] hover:text-[var(--text-primary)] hover:bg-[var(--app-bg)] rounded-[var(--radius-lg)] transition-colors"
+            className={`${styles.iconButton} ${scale >= 3 ? styles.iconButtonDisabled : ''}`}
             disabled={scale >= 3}
             title="Zoom In"
           >
-            <ZoomIn className="h-5 w-5" />
+            <ZoomIn className={styles.icon} />
           </button>
 
-          <div className="h-6 w-px bg-[var(--app-bg)]"></div>
+          <div className={styles.divider} />
 
-          <button
-            onClick={rotate}
-            className="p-2 text-[var(--text-primary)] hover:text-[var(--text-primary)] hover:bg-[var(--app-bg)] rounded-[var(--radius-lg)] transition-colors"
-            title="Rotate"
-          >
-            <RotateCw className="h-5 w-5" />
+          <button onClick={rotate} className={styles.iconButton} title="Rotate">
+            <RotateCw className={styles.icon} />
           </button>
         </div>
       </div>
 
       {/* Navigation and PDF Display */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className={styles.body}>
         {/* Page navigation */}
-        <div className="flex items-center justify-between p-2 bg-[var(--app-bg)] border-b border-[var(--glass-border)]">
+        <div className={styles.navBar}>
           <button
             onClick={goToPrevPage}
             disabled={pageNumber <= 1}
-            className="p-2 text-[var(--text-primary)] hover:text-[var(--text-primary)] disabled:opacity-50 disabled:cursor-not-allowed"
+            className={`${styles.iconButton} ${pageNumber <= 1 ? styles.iconButtonDisabled : ''}`}
             title="Previous Page"
           >
-            <ChevronLeft className="h-5 w-5" />
+            <ChevronLeft className={styles.icon} />
           </button>
 
-          <span className="text-sm text-[var(--text-primary)]">
+          <span className={styles.pageLabel}>
             Page {pageNumber} of {numPages || '--'}
           </span>
 
           <button
             onClick={goToNextPage}
             disabled={!numPages || pageNumber >= numPages}
-            className="p-2 text-[var(--text-primary)] hover:text-[var(--text-primary)] disabled:opacity-50 disabled:cursor-not-allowed"
+            className={`${styles.iconButton} ${!numPages || pageNumber >= numPages ? styles.iconButtonDisabled : ''}`}
             title="Next Page"
           >
-            <ChevronRight className="h-5 w-5" />
+            <ChevronRight className={styles.icon} />
           </button>
         </div>
 
         {/* PDF Content */}
-        <div className="flex-1 overflow-auto bg-[var(--app-bg)] flex items-center justify-center p-4">
+        <div className={styles.viewerArea}>
           {loading ? (
-            <div className="flex flex-col items-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent)] mb-4"></div>
-              <p className="text-[var(--text-primary)]">Loading PDF...</p>
+            <div className={styles.loadingState}>
+              <div className={styles.spinner} />
+              <p className={styles.loadingText}>Loading PDF...</p>
             </div>
           ) : (
-            <div className="flex justify-center">
+            <div className={styles.viewerCenter}>
               <Document
                 file={`/api/media/pdf?filePath=${encodeURIComponent(filePath)}`}
                 onLoadSuccess={onDocumentLoadSuccess}
                 onLoadError={onDocumentLoadError}
                 loading={
-                  <div className="flex flex-col items-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent)] mb-4"></div>
-                    <p className="text-[var(--text-primary)]">Loading PDF...</p>
+                  <div className={styles.loadingState}>
+                    <div className={styles.spinner} />
+                    <p className={styles.loadingText}>Loading PDF...</p>
                   </div>
                 }
-                error={
-                  <div className="text-red-500 p-4 text-center">Failed to load PDF document</div>
-                }
+                error={<div className={styles.documentError}>Failed to load PDF document</div>}
               >
                 <Page
                   pageNumber={pageNumber}
@@ -236,7 +218,7 @@ export function PDFViewer({ filePath, title }: PDFViewerProps) {
                   rotate={rotation}
                   renderTextLayer={true}
                   renderAnnotationLayer={true}
-                  className="shadow-[var(--glass-shadow)]"
+                  className={styles.page}
                 />
               </Document>
             </div>

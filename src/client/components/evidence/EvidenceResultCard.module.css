@@ -1,0 +1,251 @@
+/* Layout helpers for design-system component overrides */
+.flexRowMd {
+  flex-direction: column;
+}
+
+@media (min-width: 768px) {
+  .flexRowMd {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+.flexWrap {
+  flex-wrap: wrap;
+}
+
+.filenameTruncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shrink0 {
+  flex-shrink: 0;
+}
+
+.addButtonHover:hover {
+  background-color: color-mix(in srgb, var(--glass-bg-highlight) 10%, transparent);
+}
+
+.card {
+  overflow: hidden;
+  border-color: rgba(255, 255, 255, 0.05);
+  transition: border-color 150ms ease;
+}
+
+.card:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Person header */
+.personHeader {
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.05), transparent);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.nameButton {
+  display: block;
+  text-align: left;
+  width: 100%;
+  margin-bottom: var(--space-2);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.nameButton:hover .personName {
+  color: var(--accent);
+}
+
+.personName {
+  transition: color 150ms ease;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Likelihood score badge */
+.likelihoodBadge {
+  padding: 0.125rem var(--space-1);
+  border-radius: var(--radius-sm);
+  font-size: 0.625rem;
+  font-weight: var(--weight-bold);
+  text-transform: uppercase;
+  border-width: 1px;
+  border-style: solid;
+}
+
+.likelihoodHigh {
+  background-color: color-mix(in srgb, var(--accent-danger) 20%, transparent);
+  color: var(--accent-danger);
+  border-color: color-mix(in srgb, var(--accent-danger) 30%, transparent);
+}
+
+.likelihoodMedium {
+  background-color: color-mix(in srgb, var(--accent-warning) 20%, transparent);
+  color: var(--accent-warning);
+  border-color: color-mix(in srgb, var(--accent-warning) 30%, transparent);
+}
+
+.likelihoodLow {
+  background-color: color-mix(in srgb, var(--accent-success) 20%, transparent);
+  color: var(--accent-success);
+  border-color: color-mix(in srgb, var(--accent-success) 30%, transparent);
+}
+
+/* Stats row */
+.statsRow {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.dotDivider {
+  width: 0.25rem;
+  height: 0.25rem;
+  border-radius: 9999px;
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Evidence types section */
+.evidenceTypesSection {
+  padding: var(--space-4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.evidenceTypeTag {
+  padding: var(--space-1) var(--space-2);
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-sm);
+  font-size: 0.625rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: var(--weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Matching contexts section */
+.contextsSection {
+  padding: var(--space-4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background-color: rgba(255, 255, 255, 0.01);
+}
+
+.contextsSectionHeader {
+  margin-bottom: var(--space-3);
+}
+
+.sectionIcon {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.contextsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.contextItem {
+  padding: var(--space-3);
+  background-color: rgba(255, 255, 255, 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.contextQuote {
+  font-style: italic;
+  opacity: 0.9;
+  line-height: 1.6;
+}
+
+.contextMeta {
+  opacity: 0.4;
+}
+
+.contextMetaDot {
+  width: 0.25rem;
+  height: 0.25rem;
+  border-radius: 9999px;
+  background-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Red flag passages section */
+.passagesSection {
+  padding: var(--space-4);
+  background-color: color-mix(in srgb, var(--accent-danger) 3%, transparent);
+}
+
+.passagesSectionHeader {
+  margin-bottom: var(--space-3);
+}
+
+.passagesIcon {
+  color: var(--accent-danger);
+}
+
+.passagesSectionTitle {
+  color: var(--accent-danger);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.passagesList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.passageItem {
+  padding: var(--space-3);
+  background-color: color-mix(in srgb, var(--accent-danger) 5%, transparent);
+  border-color: color-mix(in srgb, var(--accent-danger) 10%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.passageQuote {
+  color: #fee2e2;
+  line-height: 1.6;
+  font-weight: var(--weight-medium);
+}
+
+.passageKeyword {
+  padding: 0.125rem var(--space-1);
+  background-color: color-mix(in srgb, var(--accent-danger) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-danger) 20%, transparent);
+  border-radius: var(--radius-sm);
+  font-size: 0.5625rem;
+  font-weight: var(--weight-bold);
+  color: #fca5a5;
+  text-transform: uppercase;
+}
+
+.passageDot {
+  width: 0.25rem;
+  height: 0.25rem;
+  border-radius: 9999px;
+  background-color: color-mix(in srgb, var(--accent-danger) 20%, transparent);
+}
+
+.passageFilename {
+  color: color-mix(in srgb, var(--accent-danger) 60%, transparent);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* User icon — visible only on md+ */
+.userIconDesktop {
+  color: var(--accent);
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .userIconDesktop {
+    display: block;
+  }
+}

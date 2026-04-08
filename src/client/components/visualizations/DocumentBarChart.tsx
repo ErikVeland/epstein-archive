@@ -11,6 +11,7 @@ import {
   ReferenceArea,
   Cell,
 } from 'recharts';
+import styles from './DocumentBarChart.module.css';
 
 interface TimelineDataPoint {
   period: string;
@@ -52,39 +53,28 @@ const CustomTooltip = ({
     const total = payload.reduce((sum: number, p: BarTooltipEntry) => sum + (p.value || 0), 0);
 
     return (
-      <div className="bg-[var(--glass-bg-strong)]/95 backdrop-blur-md p-4 rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] border border-[var(--glass-border)] min-w-[200px]">
-        <p className="text-[var(--text-primary)] font-bold text-sm mb-3 border-b border-[var(--glass-border)] pb-2">
-          {label}
-        </p>
-        <div className="space-y-2">
+      <div className={styles.tooltip}>
+        <p className={styles.tooltipTitle}>{label}</p>
+        <div className={styles.tooltipEntries}>
           {payload.map(
             (entry: BarTooltipEntry, index: number) =>
               entry.value > 0 && (
-                <div key={index} className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-2 h-2 rounded-full"
-                      style={{ backgroundColor: entry.color }}
-                    />
-                    <span className="text-[var(--text-secondary)] text-xs capitalize">
-                      {entry.name}
-                    </span>
+                <div key={index} className={styles.tooltipRow}>
+                  <div className={styles.tooltipLabel}>
+                    <div className={styles.tooltipDot} style={{ backgroundColor: entry.color }} />
+                    <span className={styles.tooltipLabelText}>{entry.name}</span>
                   </div>
-                  <span className="text-[var(--text-primary)] font-mono text-xs font-bold">
-                    {entry.value.toLocaleString()}
-                  </span>
+                  <span className={styles.tooltipValue}>{entry.value.toLocaleString()}</span>
                 </div>
               ),
           )}
         </div>
-        <div className="mt-3 pt-2 border-t border-[var(--glass-border)] flex justify-between">
-          <span className="text-[var(--text-muted)] text-xs">Total Documents</span>
-          <span className="text-[var(--accent)] font-mono text-sm font-bold">
-            {total.toLocaleString()}
-          </span>
+        <div className={styles.tooltipTotal}>
+          <span className={styles.tooltipTotalLabel}>Total Documents</span>
+          <span className={styles.tooltipTotalValue}>{total.toLocaleString()}</span>
         </div>
         {label?.includes('2001') && (
-          <div className="mt-2 p-2 bg-red-500/10 border border-red-500/20 rounded text-[10px] text-red-400 leading-tight">
+          <div className={styles.tooltipWarning}>
             Critical period: Possible data suppression/gaps identified around 9/11.
           </div>
         )}
@@ -151,14 +141,14 @@ export const DocumentBarChart: React.FC<DocumentBarChartProps> = ({ data, onPeri
 
   if (chartData.length === 0) {
     return (
-      <div className="flex items-center justify-center h-[300px] text-[var(--text-muted)] italic">
+      <div className={styles.emptyState}>
         No document distribution data available for the selected range.
       </div>
     );
   }
 
   return (
-    <div className="w-full h-[400px]">
+    <div className={styles.chartContainer}>
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={chartData}
@@ -200,11 +190,7 @@ export const DocumentBarChart: React.FC<DocumentBarChartProps> = ({ data, onPeri
           <Tooltip content={<CustomTooltip />} cursor={{ fill: '#1e293b', opacity: 0.4 }} />
           <Legend
             wrapperStyle={{ paddingTop: '20px' }}
-            formatter={(value) => (
-              <span className="text-[var(--text-muted)] text-[10px] uppercase tracking-wider font-semibold">
-                {value}
-              </span>
-            )}
+            formatter={(value) => <span className={styles.legendLabel}>{value}</span>}
           />
 
           {/* Highlight the 2000-2002 period */}

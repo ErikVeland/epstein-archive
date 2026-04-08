@@ -558,6 +558,109 @@
   flex: 1;
 }
 
+.resultsDivider {
+  border-top: 1px solid var(--glass-border);
+}
+
+.resultsDivider > * + * {
+  border-top: 1px solid color-mix(in srgb, var(--text-muted) 35%, transparent);
+}
+
+.modalSection {
+  margin-bottom: var(--space-6);
+}
+
+.modalSectionLabel {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  margin-bottom: var(--space-2);
+}
+
+.modalChipList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.modalChip {
+  padding: var(--space-1) var(--space-3);
+  background: var(--glass-bg-highlight);
+  color: var(--text-secondary);
+  border-radius: var(--radius-full, 9999px);
+  font-size: 0.875rem;
+}
+
+.modalDateChip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.modalDateIcon {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.modalHighlightList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.modalHighlightCard {
+  padding: var(--space-3);
+  background: var(--glass-bg-strong);
+  border-radius: var(--radius-lg);
+}
+
+.modalHighlightText {
+  color: var(--accent);
+  font-size: 0.875rem;
+}
+
+.modalFooter {
+  padding: var(--space-6);
+  border-top: 1px solid var(--glass-border);
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+
+.modalSecondaryButton,
+.modalPrimaryButton {
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+  transition: background var(--duration-fast, 150ms);
+  border: none;
+  cursor: pointer;
+}
+
+.modalSecondaryButton {
+  background: var(--glass-bg-highlight);
+}
+
+.modalSecondaryButton:hover {
+  background: var(--glass-bg-highlight);
+}
+
+.modalPrimaryButton {
+  background: var(--accent);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.modalPrimaryButton:hover {
+  background: color-mix(in srgb, var(--accent) 80%, black);
+}
+
+.modalButtonIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
 @keyframes spin {
   from {
     transform: rotate(0deg);

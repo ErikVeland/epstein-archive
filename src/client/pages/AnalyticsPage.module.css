@@ -1,0 +1,22 @@
+.hero {
+  margin-bottom: var(--space-12);
+}
+
+.heroTitle {
+  margin-bottom: var(--space-3);
+}
+
+.heroDescription {
+  font-size: 1.125rem;
+  letter-spacing: 0.04em;
+}
+
+.classicSection {
+  margin-top: var(--space-12);
+  margin-bottom: var(--space-8);
+  padding: var(--space-8);
+}
+
+.classicHeader {
+  margin-bottom: var(--space-8);
+}

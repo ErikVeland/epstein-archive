@@ -19,6 +19,11 @@
   overflow: hidden;
 }
 
+.modalShell {
+  position: relative;
+  box-shadow: var(--glass-shadow);
+}
+
 .progressBarTrack {
   position: absolute;
   top: 0;
@@ -45,6 +50,15 @@
   position: absolute;
   top: var(--space-4);
   right: var(--space-4);
+}
+
+.closeButton {
+  background-color: transparent;
+  border-color: var(--glass-border);
+}
+
+.closeButton:hover {
+  background-color: var(--glass-bg);
 }
 
 .stepContent {

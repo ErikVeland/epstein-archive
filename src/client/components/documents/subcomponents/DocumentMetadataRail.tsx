@@ -3,6 +3,10 @@ import { Calendar, ChevronDown, FileText, X } from 'lucide-react';
 import { AddToInvestigationButton } from '../../common/AddToInvestigationButton';
 import styles from './DocumentMetadataRail.module.css';
 
+import { Surface } from '../../../design-system/components/surfaces/Surface';
+import { Box } from '../../../design-system/components/layout/Box';
+import { LqText } from '../../../design-system/components/typography/Text';
+
 interface DocRecord {
   id?: string | number;
   title?: string;
@@ -54,38 +58,53 @@ export const DocumentMetadataRail: React.FC<DocumentMetadataRailProps> = ({
   threadCount,
 }) => {
   return (
-    <div ref={rightPaneScrollRef} className={`${styles.railContainer} custom-scrollbar`}>
-      <section
+    <Box
+      ref={rightPaneScrollRef as React.RefObject<HTMLDivElement>}
+      className={styles.railContainer}
+    >
+      <Surface
+        variant="glass-highlight"
         data-rail-section="metadata"
-        className={`surface-glass-card p-6 ${styles.section} ${activeRailSection === 'metadata' ? styles.sectionActive : ''}`}
+        className={`${styles.sectionCard} ${styles.section} ${activeRailSection === 'metadata' ? styles.sectionActive : ''}`}
       >
         <h3 className={styles.sectionHeading}>
           <FileText size={16} className={styles.iconAccent} />
           Core Metadata
         </h3>
-        <div className={styles.metaFieldsStack}>
-          <div className={styles.metaIdBox}>
-            <span className={styles.metaLabel}>System Index ID</span>
-            <span className={styles.metaIdValue}>{String(doc.id || id)}</span>
-          </div>
-          <div className={styles.metaGrid}>
-            <div className={styles.metaField}>
-              <span className={styles.metaLabel}>Origin Collection</span>
-              <span className={styles.metaValue}>
+        <Box className={styles.metaFieldsStack}>
+          <Box className={styles.metaIdBox}>
+            <LqText variant="xs" className={styles.metaLabel}>
+              System Index ID
+            </LqText>
+            <LqText variant="xs" weight="medium" className={styles.metaIdValue}>
+              {String(doc.id || id)}
+            </LqText>
+          </Box>
+          <Box className={styles.metaGrid}>
+            <Box className={styles.metaField}>
+              <LqText variant="xs" className={styles.metaLabel}>
+                Origin Collection
+              </LqText>
+              <LqText variant="xs" weight="medium" className={styles.metaValue}>
                 {(doc.metadata?.source_collection as string | undefined) || 'Classified / Internal'}
-              </span>
-            </div>
-            <div className={styles.metaField}>
-              <span className={styles.metaLabel}>Thread Depth</span>
-              <span className={styles.metaValueMono}>{threadCount} Related Comms</span>
-            </div>
-          </div>
-        </div>
-      </section>
+              </LqText>
+            </Box>
+            <Box className={styles.metaField}>
+              <LqText variant="xs" className={styles.metaLabel}>
+                Thread Depth
+              </LqText>
+              <LqText variant="xs" weight="medium" className={styles.metaValueMono}>
+                {threadCount} Related Comms
+              </LqText>
+            </Box>
+          </Box>
+        </Box>
+      </Surface>
 
-      <section
+      <Surface
+        variant="glass-highlight"
         data-rail-section="entities"
-        className={`surface-glass-card p-6 ${styles.section} ${activeRailSection === 'entities' ? styles.sectionActive : ''}`}
+        className={`${styles.sectionCard} ${styles.section} ${activeRailSection === 'entities' ? styles.sectionActive : ''}`}
       >
         <button
           type="button"
@@ -99,9 +118,11 @@ export const DocumentMetadataRail: React.FC<DocumentMetadataRailProps> = ({
           />
         </button>
         {expandedEntities && (
-          <div className={styles.entitiesList}>
+          <Box className={styles.entitiesList}>
             {entities.length === 0 && (
-              <p className={styles.emptyEntities}>No entities flagged in this record.</p>
+              <LqText variant="small" color="muted" className={styles.emptyEntities}>
+                No entities flagged in this record.
+              </LqText>
             )}
             {entities.map((entity, index) => (
               <button
@@ -113,19 +134,21 @@ export const DocumentMetadataRail: React.FC<DocumentMetadataRailProps> = ({
                 }`}
                 onClick={() => setSelectedEntity(entity)}
               >
-                <div className={styles.entityRow}>
+                <Box className={styles.entityRow}>
                   <span className={styles.entityName}>{entity.name}</span>
                   <span className={styles.entityType}>{entity.entityType || 'ENT'}</span>
-                </div>
+                </Box>
               </button>
             ))}
-          </div>
+          </Box>
         )}
 
         {selectedEntity && (
-          <div className={styles.selectedEntityCard}>
-            <div className={styles.selectedEntityHeader}>
-              <span className={styles.selectedEntityLabel}>Active Focus</span>
+          <Box className={styles.selectedEntityCard}>
+            <Box className={styles.selectedEntityHeader}>
+              <LqText variant="xs" className={styles.selectedEntityLabel}>
+                Active Focus
+              </LqText>
               <button
                 onClick={() => setSelectedEntity(null)}
                 className={styles.clearButton}
@@ -133,58 +156,66 @@ export const DocumentMetadataRail: React.FC<DocumentMetadataRailProps> = ({
               >
                 <X size={16} />
               </button>
-            </div>
-            <div className={styles.selectedEntityName}>{selectedEntity.name}</div>
+            </Box>
+            <LqText variant="body" weight="semibold" className={styles.selectedEntityName}>
+              {selectedEntity.name}
+            </LqText>
             {Number.isFinite(Number(selectedEntity.id)) && (
               <button
-                className="control !h-10 !bg-[var(--accent)]/10 !border-[var(--accent)]/20 text-[var(--accent)] text-[11px] font-bold tracking-widest hover:!bg-[var(--accent)]/20 w-full"
+                className={styles.deepLinkButton}
                 onClick={() => onOpenDossier(String(selectedEntity.id))}
               >
                 Deep Link
               </button>
             )}
-          </div>
+          </Box>
         )}
-      </section>
+      </Surface>
 
-      <section
+      <Surface
+        variant="glass-highlight"
         data-rail-section="case"
-        className={`surface-glass-card p-6 ${styles.section} ${activeRailSection === 'case' ? styles.sectionActive : ''}`}
+        className={`${styles.sectionCard} ${styles.section} ${activeRailSection === 'case' ? styles.sectionActive : ''}`}
       >
         <h3 className={styles.sectionHeadingSmGap}>Case Reference</h3>
         {caseLinks.length === 0 ? (
-          <p className={styles.emptyText}>No formal linkage.</p>
+          <LqText variant="small" color="muted" className={styles.emptyText}>
+            No formal linkage.
+          </LqText>
         ) : (
-          <div className={styles.tagRow}>
+          <Box className={styles.tagRow}>
             {caseLinks.map((entry, index) => (
               <span key={`case-link-${index}`} className={styles.tag}>
                 {entry}
               </span>
             ))}
-          </div>
+          </Box>
         )}
-      </section>
+      </Surface>
 
-      <section
+      <Surface
+        variant="glass-highlight"
         data-rail-section="timeline"
-        className={`surface-glass-card p-6 ${styles.section} ${activeRailSection === 'timeline' ? styles.sectionActive : ''}`}
+        className={`${styles.sectionCard} ${styles.section} ${activeRailSection === 'timeline' ? styles.sectionActive : ''}`}
       >
         <h3 className={styles.sectionHeading}>
           <Calendar size={16} className={styles.iconMuted} />
           Timeline Hook
         </h3>
         {timelineReferences.length === 0 ? (
-          <p className={styles.emptyText}>No chronological tag.</p>
+          <LqText variant="small" color="muted" className={styles.emptyText}>
+            No chronological tag.
+          </LqText>
         ) : (
-          <div className={styles.tagRow}>
+          <Box className={styles.tagRow}>
             {timelineReferences.map((entry, index) => (
               <span key={`timeline-ref-${index}`} className={styles.tag}>
                 {entry}
               </span>
             ))}
-          </div>
+          </Box>
         )}
-      </section>
+      </Surface>
 
       <section className={styles.addSection}>
         <AddToInvestigationButton
@@ -200,10 +231,10 @@ export const DocumentMetadataRail: React.FC<DocumentMetadataRailProps> = ({
             },
           }}
           variant="quick"
-          className="w-full !bg-[var(--accent-investigate)]/10 !border-[var(--accent-investigate)]/30 text-[var(--accent-investigate)] hover:!bg-[var(--accent-investigate)]/20 uppercase tracking-widest text-[11px] font-bold shadow-none"
+          className={styles.addToInvestigationButton}
         />
       </section>
-    </div>
+    </Box>
   );
 };
 

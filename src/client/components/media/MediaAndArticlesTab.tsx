@@ -4,6 +4,8 @@ import { Newspaper, Image, Music, Film, User } from 'lucide-react';
 import ScopedErrorBoundary from '../common/ScopedErrorBoundary';
 import { useAuth } from '../../contexts/AuthContext';
 import { SEO } from '../common/SEO';
+import { cn } from '@client/utils/cn';
+import styles from './MediaAndArticlesTab.module.css';
 
 // Lazy load the tabs to prevent crashes
 const ArticlesTab = React.lazy(() => import('./ArticlesTab'));
@@ -151,8 +153,11 @@ export const MediaAndArticlesTab: React.FC = () => {
     navigate(`/media/${tab}`);
   };
 
+  const tabClassName = (tab: 'articles' | 'photos' | 'audio' | 'video' | 'faces') =>
+    cn(styles.tabButton, activeSubTab === tab && styles.tabButtonActive);
+
   return (
-    <div className="flex flex-col h-full bg-[var(--glass-bg)] overflow-hidden">
+    <div className={styles.container}>
       <SEO
         title={shareMetadata?.title || 'Epstein Media Archive'}
         description={
@@ -175,77 +180,40 @@ export const MediaAndArticlesTab: React.FC = () => {
         }}
       />
       {/* Sub-tab Navigation */}
-      <div className="flex-none flex gap-2 bg-[var(--glass-bg-strong)] px-4 pt-2 z-20 overflow-x-auto scrollbar-thin scrollbar-thumb-slate-700/60 scrollbar-track-transparent -mx-4 sm:mx-0">
-        <button
-          onClick={() => navigateToTab('photos')}
-          className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-all ${
-            activeSubTab === 'photos'
-              ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent)]/5'
-              : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--glass-bg)]/50'
-          }`}
-        >
-          <Image className="h-4 w-4" />
-          <span className="font-medium text-sm">Images</span>
+      <div className={styles.tabBar}>
+        <button onClick={() => navigateToTab('photos')} className={tabClassName('photos')}>
+          <Image className={styles.tabIcon} />
+          <span className={styles.tabLabel}>Images</span>
         </button>
-        <button
-          onClick={() => navigateToTab('audio')}
-          className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-all ${
-            activeSubTab === 'audio'
-              ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent)]/5'
-              : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--glass-bg)]/50'
-          }`}
-        >
-          <Music className="h-4 w-4" />
-          <span className="font-medium text-sm">Audio</span>
+        <button onClick={() => navigateToTab('audio')} className={tabClassName('audio')}>
+          <Music className={styles.tabIcon} />
+          <span className={styles.tabLabel}>Audio</span>
         </button>
-        <button
-          onClick={() => navigateToTab('video')}
-          className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-all ${
-            activeSubTab === 'video'
-              ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent)]/5'
-              : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--glass-bg)]/50'
-          }`}
-        >
-          <Film className="h-4 w-4" />
-          <span className="font-medium text-sm">Video</span>
+        <button onClick={() => navigateToTab('video')} className={tabClassName('video')}>
+          <Film className={styles.tabIcon} />
+          <span className={styles.tabLabel}>Video</span>
         </button>
-        <button
-          onClick={() => navigateToTab('articles')}
-          className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-all ${
-            activeSubTab === 'articles'
-              ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent)]/5'
-              : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--glass-bg)]/50'
-          }`}
-        >
-          <Newspaper className="h-4 w-4" />
-          <span className="font-medium text-sm">Articles</span>
+        <button onClick={() => navigateToTab('articles')} className={tabClassName('articles')}>
+          <Newspaper className={styles.tabIcon} />
+          <span className={styles.tabLabel}>Articles</span>
         </button>
         {isAdmin && (
-          <button
-            onClick={() => navigateToTab('faces')}
-            className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-all ${
-              activeSubTab === 'faces'
-                ? 'border-[var(--accent)] text-[var(--accent)] bg-[var(--accent)]/5'
-                : 'border-transparent text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--glass-bg)]/50'
-            }`}
-          >
-            <User className="h-4 w-4" />
-            <span className="font-medium text-sm">Faces (Admin)</span>
+          <button onClick={() => navigateToTab('faces')} className={tabClassName('faces')}>
+            <User className={styles.tabIcon} />
+            <span className={styles.tabLabel}>Faces (Admin)</span>
           </button>
         )}
       </div>
 
       {/* Content Area with isolation */}
-      <div className="flex-grow relative min-h-0 bg-[var(--glass-bg)]">
+      <div className={styles.contentArea}>
         <ScopedErrorBoundary>
           <Suspense
             fallback={
-              <div className="absolute inset-0 flex items-center justify-center bg-[var(--glass-bg)]">
-                <div className="flex flex-col items-center gap-3">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent)]"></div>
-                  <p className="text-[var(--text-muted)] text-xs font-mono tracking-widest uppercase">
-                    Decryption in progress...
-                  </p>
+              <div className={styles.loadingOverlay}>
+                <div className={styles.loadingContent}>
+                  <div className={styles.spinner} />
+                  <p className={styles.loadingLabel}>Decryption in progress...</p>
                 </div>
               </div>
             }

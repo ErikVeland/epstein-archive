@@ -1,0 +1,95 @@
+.tooltip {
+  min-width: 11.25rem;
+  padding: var(--space-4);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(12px);
+  box-shadow: var(--glass-shadow);
+}
+
+.tooltipTitle {
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  font-size: var(--type-small);
+  font-weight: var(--weight-bold);
+}
+
+.tooltipBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.tooltipRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.tooltipLabelWrap {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.tooltipDot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+}
+
+.tooltipLabel {
+  color: var(--text-secondary);
+  font-size: var(--type-xs);
+  text-transform: capitalize;
+}
+
+.tooltipValue {
+  color: var(--text-primary);
+  font-size: var(--type-xs);
+  font-family: var(--font-mono);
+  font-weight: var(--weight-bold);
+}
+
+.tooltipFooter {
+  display: flex;
+  justify-content: space-between;
+  margin-top: var(--space-3);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--glass-border);
+}
+
+.tooltipFooterLabel {
+  color: var(--text-muted);
+  font-size: var(--type-xs);
+}
+
+.tooltipFooterValue {
+  color: var(--accent);
+  font-size: var(--type-small);
+  font-family: var(--font-mono);
+  font-weight: var(--weight-bold);
+}
+
+.emptyState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 18.75rem;
+  color: var(--text-muted);
+}
+
+.chartWrap {
+  width: 100%;
+  height: 21.875rem;
+}
+
+.legendLabel {
+  color: var(--text-secondary);
+  font-size: var(--type-xs);
+  text-transform: capitalize;
+}

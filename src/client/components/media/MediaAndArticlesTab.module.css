@@ -1,0 +1,112 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background: var(--glass-bg);
+}
+
+.tabBar {
+  flex: 0 0 auto;
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4) 0;
+  margin-inline: calc(var(--space-4) * -1);
+  overflow-x: auto;
+  background: var(--glass-bg-strong);
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--text-muted) 55%, transparent) transparent;
+  z-index: var(--z-raised);
+}
+
+.tabButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.tabButton:hover {
+  color: var(--text-secondary);
+  background: color-mix(in srgb, var(--glass-bg) 50%, transparent);
+}
+
+.tabButtonActive {
+  border-bottom-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 5%, transparent);
+  color: var(--accent);
+}
+
+.tabIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.tabLabel {
+  font-size: var(--type-small);
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+}
+
+.contentArea {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  background: var(--glass-bg);
+}
+
+.loadingOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--glass-bg);
+}
+
+.loadingContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.spinner {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  border-right: 2px solid transparent;
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid var(--accent);
+  border-left: 2px solid var(--accent);
+  animation: media-tabs-spin 1s linear infinite;
+}
+
+.loadingLabel {
+  margin: 0;
+  color: var(--text-muted);
+  font-family: var(--font-mono, monospace);
+  font-size: var(--type-micro);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+@media (min-width: 640px) {
+  .tabBar {
+    margin-inline: 0;
+  }
+}
+
+@keyframes media-tabs-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -3,6 +3,10 @@ import { Calendar, Download, FileText, Search, ArrowLeft } from 'lucide-react';
 import { CloseButton } from '../../common/CloseButton';
 import { formatDate } from '../DocumentModalUtils';
 import styles from './DocumentHeader.module.css';
+import { LqText } from '../../../design-system/components/typography/Text';
+import { Flex } from '../../../design-system/components/layout/Flex';
+import { Surface } from '../../../design-system/components/surfaces/Surface';
+import { Box } from '../../../design-system/components/layout/Box';
 
 interface DocumentHeaderProps {
   doc: {
@@ -31,40 +35,43 @@ export const DocumentHeader: React.FC<DocumentHeaderProps> = ({
   onClose,
 }) => {
   return (
-    <div className={`surface-glass-header bg-transparent ${styles.header}`}>
-      <div className={styles.titleGroup}>
-        <div className={`surface-glass ${styles.iconBox}`}>
+    <Box className={styles.header}>
+      <Flex align="start" gap="md" className={styles.titleGroup}>
+        <Surface variant="glass-highlight" className={styles.iconBox}>
           <FileText size={28} className={styles.fileIcon} />
-        </div>
-        <div className={styles.titleMeta}>
-          <h2 id="document-modal-title" className={styles.docTitle}>
+        </Surface>
+        <Box className={styles.titleMeta}>
+          <LqText
+            variant="h2"
+            weight="medium"
+            id="document-modal-title"
+            className={styles.docTitle}
+          >
             {doc.title || doc.fileName}
-          </h2>
-          <div className={styles.badgeRow}>
+          </LqText>
+          <Flex align="center" gap="md" className={styles.badgeRow}>
             <span
               className={`${styles.typeBadge} ${
-                doc.evidenceType === 'email'
-                  ? 'surface-glass text-[var(--accent-emails)] border-[var(--accent-emails)]/20 shadow-sm shadow-[var(--accent-emails)]/10'
-                  : 'surface-glass text-text-dim'
+                doc.evidenceType === 'email' ? styles.emailTypeBadge : styles.defaultTypeBadge
               }`}
             >
               {doc.evidenceType || doc.fileType || 'Unclassified Record'}
             </span>
-            <span className={styles.dateBadge}>
+            <LqText variant="xs" weight="bold" className={styles.dateBadge}>
               <Calendar size={14} className={styles.calendarIcon} />
               {formatDate(doc.dateModified || doc.updatedAt || doc.dateModified)}
-            </span>
-          </div>
-        </div>
-      </div>
+            </LqText>
+          </Flex>
+        </Box>
+      </Flex>
 
-      <div className={styles.controls}>
-        <div className={`${styles.searchWrapper} group`}>
+      <Flex align="center" gap="sm" className={styles.controls}>
+        <Box className={`${styles.searchWrapper} group`}>
           <Search size={16} className={styles.searchIcon} />
           <input
             type="text"
             placeholder="Find in record..."
-            className="control !h-12 w-full !pl-12 !pr-4 surface-glass focus:!border-[var(--accent)] transition-all text-sm font-medium text-text-strong rounded-[var(--radius-md)] placeholder:text-text-muted/60 focus:bg-transparent shadow-inner focus:shadow-none"
+            className={styles.searchInput}
             value={localSearchTerm}
             onChange={(e) => setLocalSearchTerm(e.target.value)}
             autoComplete="off"
@@ -73,37 +80,24 @@ export const DocumentHeader: React.FC<DocumentHeaderProps> = ({
             spellCheck={false}
             name="document_record_search"
           />
-        </div>
+        </Box>
 
         {canReturnToCase && (
-          <button
-            onClick={handleBackToCase}
-            className="control !h-12 px-5 flex items-center gap-2 text-text-muted hover:text-text-strong group whitespace-nowrap"
-          >
-            <ArrowLeft
-              size={16}
-              className="group-hover:-translate-x-1 transition-transform block"
-            />
-            <span className="text-[10px] font-bold uppercase tracking-widest leading-none">
-              Case
-            </span>
+          <button onClick={handleBackToCase} className={styles.backButton}>
+            <ArrowLeft size={16} className={styles.backButtonIcon} />
+            <span className={styles.backButtonLabel}>Case</span>
           </button>
         )}
         <button
           onClick={downloadOriginalDocument}
-          className="control !h-12 w-12 flex items-center justify-center text-text-muted hover:text-[var(--accent)]"
+          className={`${styles.iconButton} ${styles.downloadButton}`}
           title="Download Original Document"
         >
           <Download size={20} />
         </button>
-        <CloseButton
-          onClick={onClose}
-          size="md"
-          label="Close"
-          className="!h-12 !w-12 text-text-muted hover:text-[var(--risk-critical)] hover:border-[var(--risk-critical)]/30"
-        />
-      </div>
-    </div>
+        <CloseButton onClick={onClose} size="md" label="Close" className={styles.closeButton} />
+      </Flex>
+    </Box>
   );
 };
 

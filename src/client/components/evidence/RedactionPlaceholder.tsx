@@ -10,6 +10,7 @@ import {
   Calendar,
   Hash,
 } from 'lucide-react';
+import styles from './RedactionPlaceholder.module.css';
 
 interface RedactionPlaceholderProps {
   type: string; // inferred_class
@@ -22,69 +23,50 @@ interface RedactionPlaceholderProps {
 export function RedactionPlaceholder({ type, role, confidence, kind }: RedactionPlaceholderProps) {
   const [showTooltip, setShowTooltip] = useState(false);
 
-  // Icon mapping
   const getIcon = () => {
     switch (type) {
       case 'person':
-        return <User className="w-3 h-3" />;
+        return <User className={styles.icon} />;
       case 'lawyer':
-        return <Briefcase className="w-3 h-3" />;
+        return <Briefcase className={styles.icon} />;
       case 'org':
-        return <Building className="w-3 h-3" />;
+        return <Building className={styles.icon} />;
       case 'location':
-        return <MapPin className="w-3 h-3" />;
+        return <MapPin className={styles.icon} />;
       case 'contact':
-        return <Mail className="w-3 h-3" />;
+        return <Mail className={styles.icon} />;
       case 'date':
-        return <Calendar className="w-3 h-3" />;
+        return <Calendar className={styles.icon} />;
       case 'id_number':
-        return <Hash className="w-3 h-3" />;
+        return <Hash className={styles.icon} />;
       default:
-        return <Shield className="w-3 h-3" />;
+        return <Shield className={styles.icon} />;
     }
   };
 
-  // Color mapping based on type and confidence
   const getStyles = () => {
-    // const opacity = Math.max(0.6, confidence); // Minimum opacity 0.6
-
-    // Base colors
-    let bg = 'bg-[var(--app-bg)]';
-    let text = 'text-[var(--text-primary)]';
-    let border = 'border-[var(--glass-border)]';
+    let state = styles.stateDefault;
 
     if (confidence > 0.8) {
-      // High confidence styling
       switch (type) {
         case 'person':
-          bg = 'bg-blue-100';
-          text = 'text-blue-800';
-          border = 'border-blue-200';
+          state = styles.statePerson;
           break;
         case 'lawyer':
-          bg = 'bg-purple-100';
-          text = 'text-purple-800';
-          border = 'border-purple-200';
+          state = styles.stateLawyer;
           break;
         case 'org':
-          bg = 'bg-emerald-100';
-          text = 'text-emerald-800';
-          border = 'border-emerald-200';
+          state = styles.stateOrg;
           break;
         case 'contact':
-          bg = 'bg-amber-100';
-          text = 'text-amber-800';
-          border = 'border-amber-200';
+          state = styles.stateContact;
           break;
       }
     } else if (confidence < 0.4) {
-      // Low confidence styling
-      bg = 'bg-[var(--app-bg)]';
-      text = 'text-[var(--text-muted)]';
-      border = 'border-[var(--glass-border)]';
+      state = styles.stateMuted;
     }
 
-    return `${bg} ${text} ${border}`;
+    return state;
   };
 
   const label = role
@@ -94,26 +76,21 @@ export function RedactionPlaceholder({ type, role, confidence, kind }: Redaction
 
   return (
     <span
-      className={`relative inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-xs font-mono select-none cursor-help ${getStyles()}`}
+      className={`${styles.root} ${getStyles()}`}
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
     >
       {getIcon()}
       {displayLabel}
 
-      {/* Tooltip */}
       {showTooltip && (
-        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-[var(--glass-bg-strong)] text-[var(--text-primary)] text-xs rounded shadow-[var(--glass-shadow)] whitespace-nowrap z-50">
-          <div className="font-semibold">
+        <div className={styles.tooltip}>
+          <div className={styles.tooltipTitle}>
             {type?.toUpperCase() || 'UNKNOWN'} {role ? `(${role})` : ''}
           </div>
-          <div className="text-[var(--text-secondary)] text-[10px]">
-            Confidence: {(confidence * 100).toFixed(0)}%
-          </div>
-          <div className="text-[var(--text-muted)] text-[10px] italic">
-            Source: {kind.replace('_', ' ')}
-          </div>
-          <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+          <div className={styles.tooltipMeta}>Confidence: {(confidence * 100).toFixed(0)}%</div>
+          <div className={styles.tooltipSource}>Source: {kind.replace('_', ' ')}</div>
+          <div className={styles.tooltipArrow} />
         </div>
       )}
     </span>
