@@ -618,52 +618,52 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
 
   if (loading) {
     return (
-      <div className="p-6">
-        <div className="animate-pulse h-6 w-48 bg-[var(--glass-bg-highlight)] rounded mb-3"></div>
-        <div className="animate-pulse h-3 w-96 bg-[var(--glass-bg)] rounded"></div>
+      <div className={styles.loadingPlaceholder}>
+        <div className={styles.skeletonTitle}></div>
+        <div className={styles.skeletonText}></div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 space-y-8">
-      <div className="flex items-start justify-between gap-4">
+    <div className={styles.root}>
+      <div className={styles.header}>
         <div>
-          <h2 className="text-xl font-semibold text-[var(--text-primary)]">Evidence Notebook</h2>
-          <p className="text-sm text-[var(--text-muted)] mt-1">
+          <h2 className={styles.title}>Evidence Notebook</h2>
+          <p className={styles.subtitle}>
             Write with Markdown and keep narrative in sync with evidence annotations.
           </p>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+        <div className={styles.toolbar}>
           <a
             href={`/api/investigations/${investigationId}/briefing`}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs px-3 py-1.5 rounded bg-[var(--accent)] hover:bg-blue-700 text-[var(--text-primary)] transition-colors"
+            className={styles.publishButton}
           >
             Publish Briefing
           </a>
         </div>
       </div>
 
-      <section className="bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-4">
-        <div className="flex items-center justify-between gap-2 mb-3">
-          <h3 className="text-sm font-medium text-[var(--text-secondary)]">Case Notes</h3>
-          <div className="flex items-center gap-2">
+      <section className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <h3 className={styles.sectionTitle}>Case Notes</h3>
+          <div className={styles.toolbar}>
             <button
               onClick={() => setPreviewMode(false)}
-              className={`text-xs px-2 py-1 rounded ${!previewMode ? 'bg-[var(--glass-bg-highlight)] text-[var(--text-primary)]' : 'text-[var(--text-muted)]'}`}
+              className={`${styles.toolButton} ${!previewMode ? styles.toolButtonActive : ''}`}
             >
               Edit
             </button>
             <button
               onClick={() => setPreviewMode(true)}
-              className={`text-xs px-2 py-1 rounded ${previewMode ? 'bg-[var(--glass-bg-highlight)] text-[var(--text-primary)]' : 'text-[var(--text-muted)]'}`}
+              className={`${styles.toolButton} ${previewMode ? styles.toolButtonActive : ''}`}
             >
               Preview
             </button>
             <span
-              className="text-xs text-[var(--text-muted)]"
+              className={styles.saveStatus}
               aria-live="polite"
               data-testid="notebook-save-status"
             >
@@ -678,66 +678,62 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
               <button
                 onClick={retryPersist}
                 data-testid="notebook-retry-save"
-                className="text-xs px-2 py-1 rounded bg-amber-700 hover:bg-amber-600 text-[var(--text-primary)]"
+                className={styles.retryButton}
               >
                 Retry save
               </button>
             )}
           </div>
         </div>
-        {saveErrorMessage && (
-          <div className="mb-2 text-xs text-amber-300 bg-amber-900/30 border border-amber-700 rounded px-2 py-1">
-            {saveErrorMessage}
-          </div>
-        )}
+        {saveErrorMessage && <div className={styles.errorMessage}>{saveErrorMessage}</div>}
 
         {!previewMode && (
-          <div className="flex flex-wrap items-center gap-2 mb-2">
+          <div className={styles.markdownControls}>
             <button
               onClick={() => insertMarkdownToken('**', '**', 'bold text')}
-              className="p-1.5 rounded bg-[var(--glass-bg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)]"
+              className={styles.markdownButton}
               title="Bold"
             >
               <Bold size={14} />
             </button>
             <button
               onClick={() => insertMarkdownToken('*', '*', 'italic text')}
-              className="p-1.5 rounded bg-[var(--glass-bg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)]"
+              className={styles.markdownButton}
               title="Italic"
             >
               <Italic size={14} />
             </button>
             <button
               onClick={() => insertMarkdownToken('# ', '', 'Heading')}
-              className="p-1.5 rounded bg-[var(--glass-bg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)]"
+              className={styles.markdownButton}
               title="Heading"
             >
               H1
             </button>
             <button
               onClick={() => insertMarkdownToken('> ', '', 'Quote')}
-              className="p-1.5 rounded bg-[var(--glass-bg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)]"
+              className={styles.markdownButton}
               title="Quote"
             >
               <Quote size={14} />
             </button>
             <button
               onClick={() => insertMarkdownToken('- ', '', 'List item')}
-              className="p-1.5 rounded bg-[var(--glass-bg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)]"
+              className={styles.markdownButton}
               title="List"
             >
               <List size={14} />
             </button>
             <button
               onClick={() => insertMarkdownToken('- [ ] ', '', 'Task')}
-              className="p-1.5 rounded bg-[var(--glass-bg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)]"
+              className={styles.markdownButton}
               title="Checklist"
             >
               <ListChecks size={14} />
             </button>
             <button
               onClick={() => insertMarkdownToken('[', '](https://)', 'link text')}
-              className="p-1.5 rounded bg-[var(--glass-bg)] text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)]"
+              className={styles.markdownButton}
               title="Link"
             >
               <Link2 size={14} />
@@ -777,11 +773,11 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
               }
             }}
             placeholder="Write your narrative, key claims, or open questions for this case."
-            className="w-full min-h-[220px] bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-md px-3 py-2 text-sm text-[var(--text-primary)] placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/60"
+            className={styles.editor}
           />
         ) : (
           <div
-            className="min-h-[220px] bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-md px-4 py-3 prose prose-invert max-w-none"
+            className={styles.preview}
             dangerouslySetInnerHTML={{
               __html:
                 markdownPreviewHtml ||
@@ -791,26 +787,19 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
         )}
       </section>
 
-      <section className="bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-4">
-        <h3 className="text-sm font-medium text-[var(--text-secondary)] mb-3">
-          Evidence annotations (auto-synced)
-        </h3>
+      <section className={styles.section}>
+        <h3 className={styles.sectionTitle}>Evidence annotations (auto-synced)</h3>
         {evidenceAnnotations.length === 0 ? (
-          <p className="text-sm text-[var(--text-muted)]">
+          <p className={styles.hint}>
             No evidence annotations yet. Add notes/highlights/tags in Evidence and they appear here
             automatically.
           </p>
         ) : (
-          <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+          <div className={styles.annotationList}>
             {evidenceAnnotations.map((annotation) => (
-              <div
-                key={annotation.id}
-                className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-md px-3 py-2"
-              >
-                <div className="flex items-center gap-2 text-xs text-[var(--text-muted)] mb-1">
-                  <span className="px-1.5 py-0.5 rounded bg-[var(--glass-bg)] text-[var(--text-secondary)]">
-                    Evidence #{annotation.evidenceId}
-                  </span>
+              <div key={annotation.id} className={styles.annotationCard}>
+                <div className={styles.annotationHeader}>
+                  <span className={styles.annotationBadge}>Evidence #{annotation.evidenceId}</span>
                   <span className="uppercase">{annotation.type}</span>
                   <span>
                     {new Date(
@@ -818,24 +807,22 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
                     ).toLocaleString()}
                   </span>
                 </div>
-                <p className="text-sm text-[var(--text-primary)] whitespace-pre-wrap">
-                  {annotation.content}
-                </p>
+                <p className={styles.annotationContent}>{annotation.content}</p>
               </div>
             ))}
           </div>
         )}
       </section>
 
-      <p className="text-xs text-[var(--text-muted)]">Use arrows to reorder your outline.</p>
+      <p className={styles.hint}>Use arrows to reorder your outline.</p>
 
-      <div className="space-y-6">
+      <div className={styles.evidenceGroups}>
         <section>
-          <div className="flex items-center gap-2 text-[var(--text-secondary)] mb-3">
+          <div className={styles.evidenceGroupTitle}>
             <Scissors size={16} />
             <span>Snippets</span>
           </div>
-          <div className="space-y-3">
+          <div className={styles.evidenceList}>
             {grouped.snippet.map((e) => {
               const meta = parseMeta(e.metadataJson);
               const docId = meta.document_id;
@@ -844,43 +831,30 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
                 ? `/documents?docId=${docId}&docTab=content&highlight=${encodeURIComponent(highlight.slice(0, 120))}`
                 : undefined;
               return (
-                <div
-                  key={e.id}
-                  className="bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded p-3"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-[var(--text-primary)]">
+                <div key={e.id} className={styles.evidenceCard}>
+                  <div className={styles.evidenceCardHeader}>
+                    <div className={styles.evidenceCardTitle}>
                       <GripVertical size={14} />
                       <span>{e.title || 'Snippet'}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => move(e.id, -1)}
-                        className="text-xs px-2 py-1 bg-[var(--glass-bg)] text-[var(--text-primary)] rounded"
-                      >
+                    <div className={styles.evidenceActions}>
+                      <button onClick={() => move(e.id, -1)} className={styles.evidenceButton}>
                         ↑
                       </button>
-                      <button
-                        onClick={() => move(e.id, 1)}
-                        className="text-xs px-2 py-1 bg-[var(--glass-bg)] text-[var(--text-primary)] rounded"
-                      >
+                      <button onClick={() => move(e.id, 1)} className={styles.evidenceButton}>
                         ↓
                       </button>
                       {viewUrl && (
                         <Link
                           to={viewUrl}
-                          className="text-xs px-2 py-1 bg-blue-700 text-[var(--text-primary)] rounded"
+                          className={`${styles.evidenceButton} ${styles.evidenceButtonPrimary}`}
                         >
                           View Source
                         </Link>
                       )}
                     </div>
                   </div>
-                  {e.description && (
-                    <div className="text-sm text-[var(--text-secondary)] mt-2 whitespace-pre-wrap">
-                      {e.description}
-                    </div>
-                  )}
+                  {e.description && <div className={styles.evidenceDesc}>{e.description}</div>}
                 </div>
               );
             })}
@@ -888,44 +862,39 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
         </section>
 
         <section>
-          <div className="flex items-center gap-2 text-[var(--text-secondary)] mb-3">
+          <div className={styles.evidenceGroupTitle}>
             <Mic size={16} />
             <span>Audio</span>
           </div>
-          <div className="space-y-3">
+          <div className={styles.evidenceList}>
             {grouped.audio.map((e) => {
               const meta = parseMeta(e.metadataJson);
               const mediaId = meta.media_item_id;
               const albumId = meta.album_id;
-              const details = mediaId ? mediaCache[mediaId] : null;
+              const details = (mediaId ? mediaCache[mediaId] : null) as {
+                metadata?: {
+                  transcript?: Array<{ text?: string; speaker?: string; start?: number }>;
+                };
+              } | null;
               const segments = details?.metadata?.transcript || [];
               return (
-                <div
-                  key={e.id}
-                  className="bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded p-3"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-[var(--text-primary)]">
+                <div key={e.id} className={styles.evidenceCard}>
+                  <div className={styles.evidenceCardHeader}>
+                    <div className={styles.evidenceCardTitle}>
                       <GripVertical size={14} />
                       <span>{e.title || 'Audio'}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => move(e.id, -1)}
-                        className="text-xs px-2 py-1 bg-[var(--glass-bg)] text-[var(--text-primary)] rounded"
-                      >
+                    <div className={styles.evidenceActions}>
+                      <button onClick={() => move(e.id, -1)} className={styles.evidenceButton}>
                         ↑
                       </button>
-                      <button
-                        onClick={() => move(e.id, 1)}
-                        className="text-xs px-2 py-1 bg-[var(--glass-bg)] text-[var(--text-primary)] rounded"
-                      >
+                      <button onClick={() => move(e.id, 1)} className={styles.evidenceButton}>
                         ↓
                       </button>
                       {mediaId && (
                         <button
                           onClick={() => openAudio(mediaId, albumId)}
-                          className="text-xs px-2 py-1 bg-blue-700 text-[var(--text-primary)] rounded"
+                          className={`${styles.evidenceButton} ${styles.evidenceButtonPrimary}`}
                         >
                           Open
                         </button>
@@ -933,12 +902,12 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
                     </div>
                   </div>
                   {segments && segments.length > 0 && (
-                    <div className="mt-2 space-y-1">
+                    <div className={styles.transcriptList}>
                       {segments.slice(0, 6).map((s, i) => (
                         <button
                           key={i}
                           onClick={() => openAudio(mediaId, albumId)}
-                          className="block text-left w-full text-xs text-[var(--text-secondary)] bg-[var(--glass-bg)]/60 hover:bg-[var(--glass-bg-highlight)] px-2 py-1 rounded"
+                          className={styles.transcriptItem}
                           title={`${s.speaker || ''} ${s.start || 0}s`}
                         >
                           {s.text}
@@ -953,44 +922,39 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
         </section>
 
         <section>
-          <div className="flex items-center gap-2 text-[var(--text-secondary)] mb-3">
+          <div className={styles.evidenceGroupTitle}>
             <Film size={16} />
             <span>Video</span>
           </div>
-          <div className="space-y-3">
+          <div className={styles.evidenceList}>
             {grouped.video.map((e) => {
               const meta = parseMeta(e.metadataJson);
               const mediaId = meta.media_item_id;
               const albumId = meta.album_id;
-              const details = mediaId ? mediaCache[mediaId] : null;
+              const details = (mediaId ? mediaCache[mediaId] : null) as {
+                metadata?: {
+                  transcript?: Array<{ text?: string; speaker?: string; start?: number }>;
+                };
+              } | null;
               const segments = details?.metadata?.transcript || [];
               return (
-                <div
-                  key={e.id}
-                  className="bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded p-3"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-[var(--text-primary)]">
+                <div key={e.id} className={styles.evidenceCard}>
+                  <div className={styles.evidenceCardHeader}>
+                    <div className={styles.evidenceCardTitle}>
                       <GripVertical size={14} />
                       <span>{e.title || 'Video'}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => move(e.id, -1)}
-                        className="text-xs px-2 py-1 bg-[var(--glass-bg)] text-[var(--text-primary)] rounded"
-                      >
+                    <div className={styles.evidenceActions}>
+                      <button onClick={() => move(e.id, -1)} className={styles.evidenceButton}>
                         ↑
                       </button>
-                      <button
-                        onClick={() => move(e.id, 1)}
-                        className="text-xs px-2 py-1 bg-[var(--glass-bg)] text-[var(--text-primary)] rounded"
-                      >
+                      <button onClick={() => move(e.id, 1)} className={styles.evidenceButton}>
                         ↓
                       </button>
                       {mediaId && (
                         <button
                           onClick={() => openVideo(mediaId, albumId)}
-                          className="text-xs px-2 py-1 bg-blue-700 text-[var(--text-primary)] rounded"
+                          className={`${styles.evidenceButton} ${styles.evidenceButtonPrimary}`}
                         >
                           Open
                         </button>
@@ -998,12 +962,12 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
                     </div>
                   </div>
                   {segments && segments.length > 0 && (
-                    <div className="mt-2 space-y-1">
+                    <div className={styles.transcriptList}>
                       {segments.slice(0, 6).map((s, i) => (
                         <button
                           key={i}
                           onClick={() => openVideo(mediaId, albumId)}
-                          className="block text-left w-full text-xs text-[var(--text-secondary)] bg-[var(--glass-bg)]/60 hover:bg-[var(--glass-bg-highlight)] px-2 py-1 rounded"
+                          className={styles.transcriptItem}
                           title={`${s.speaker || ''} ${s.start || 0}s`}
                         >
                           {s.text}
@@ -1018,41 +982,28 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
         </section>
 
         <section>
-          <div className="flex items-center gap-2 text-[var(--text-secondary)] mb-3">
+          <div className={styles.evidenceGroupTitle}>
             <FileText size={16} />
             <span>Documents</span>
           </div>
-          <div className="space-y-3">
+          <div className={styles.evidenceList}>
             {grouped.doc.map((e) => (
-              <div
-                key={e.id}
-                className="bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded p-3"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-[var(--text-primary)]">
+              <div key={e.id} className={styles.evidenceCard}>
+                <div className={styles.evidenceCardHeader}>
+                  <div className={styles.evidenceCardTitle}>
                     <GripVertical size={14} />
                     <span>{e.title || 'Document'}</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => move(e.id, -1)}
-                      className="text-xs px-2 py-1 bg-[var(--glass-bg)] text-[var(--text-primary)] rounded"
-                    >
+                  <div className={styles.evidenceActions}>
+                    <button onClick={() => move(e.id, -1)} className={styles.evidenceButton}>
                       ↑
                     </button>
-                    <button
-                      onClick={() => move(e.id, 1)}
-                      className="text-xs px-2 py-1 bg-[var(--glass-bg)] text-[var(--text-primary)] rounded"
-                    >
+                    <button onClick={() => move(e.id, 1)} className={styles.evidenceButton}>
                       ↓
                     </button>
                   </div>
                 </div>
-                {e.description && (
-                  <div className="text-sm text-[var(--text-secondary)] mt-2 whitespace-pre-wrap">
-                    {e.description}
-                  </div>
-                )}
+                {e.description && <div className={styles.evidenceDesc}>{e.description}</div>}
               </div>
             ))}
           </div>

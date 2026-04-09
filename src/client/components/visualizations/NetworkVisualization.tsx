@@ -15,6 +15,7 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { CollapsibleSplitPane } from '../common/CollapsibleSplitPane';
+import styles from './NetworkVisualization.module.css';
 
 export interface NetworkNode {
   id: string;
@@ -747,19 +748,22 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
     onChange: (checked: boolean) => void;
     color?: string;
   }) => (
-    <div
-      className="flex items-center gap-3 py-1 cursor-pointer group"
-      onClick={() => onChange(!checked)}
-    >
+    <div className={styles.checkboxRow} onClick={() => onChange(!checked)}>
       <div
-        className={`w-5 h-5 rounded border flex items-center justify-center transition-all ${checked ? 'bg-[var(--accent)] border-[var(--accent)]' : 'bg-[var(--glass-bg)] border-[var(--glass-border)] group-hover:border-[var(--glass-border)]'}`}
+        className={
+          checked ? `${styles.checkboxBox} ${styles.checkboxBoxChecked}` : styles.checkboxBox
+        }
       >
-        {checked && <Zap className="w-3 h-3 text-[var(--text-primary)] fill-current" />}
+        {checked && <Zap className={styles.checkboxCheck} />}
       </div>
-      <div className="flex items-center gap-2">
-        {color && <div className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />}
+      <div className={styles.checkboxMeta}>
+        {color && <div className={styles.checkboxColorDot} style={{ backgroundColor: color }} />}
         <span
-          className={`text-sm font-medium ${checked ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)]'}`}
+          className={
+            checked
+              ? `${styles.checkboxLabel} ${styles.checkboxLabelChecked}`
+              : styles.checkboxLabel
+          }
         >
           {label}
         </span>
@@ -768,106 +772,116 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
   );
 
   return (
-    <div className="surface-glass overflow-hidden shadow-[var(--glass-shadow)] flex flex-col h-full min-h-[600px]">
+    <div className={`surface-glass ${styles.root}`}>
       {/* Header */}
-      <div className="p-4 border-b border-[var(--glass-border)] bg-[var(--glass-bg-strong)]/80 backdrop-blur-md z-10">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="bg-[var(--accent)]/10 p-2 rounded-[var(--radius-lg)]">
-              <Network className="w-5 h-5 text-[var(--accent)]" />
+      <div className={styles.header}>
+        <div className={styles.headerRow}>
+          <div className={styles.headerBrand}>
+            <div className={styles.headerIconShell}>
+              <Network className={`${styles.headerIcon} ${styles.accentIcon}`} />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-[var(--text-primary)] tracking-tight">
-                Epstein Network Analysis
-              </h3>
-              <div className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
-                <span className="flex items-center gap-1">
-                  <Users className="w-3 h-3" /> {nodes.length} entities
+              <h3 className={styles.title}>Epstein Network Analysis</h3>
+              <div className={styles.headerMeta}>
+                <span className={styles.headerMetaItem}>
+                  <Users className={styles.metaIcon} /> {nodes.length} entities
                 </span>
                 <span>•</span>
-                <span className="flex items-center gap-1">
-                  <Zap className="w-3 h-3" /> {edges.length} connections
+                <span className={styles.headerMetaItem}>
+                  <Zap className={styles.metaIcon} /> {edges.length} connections
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <div className="relative mr-4 hidden md:block">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
+          <div className={styles.headerActions}>
+            <div className={styles.searchWrap}>
+              <Search className={styles.searchIcon} />
               <input
                 type="text"
                 placeholder="Search entities..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="h-10 pl-10 pr-4 surface-glass text-[var(--text-primary)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/50 transition-all w-64"
+                className={`surface-glass ${styles.searchInput}`}
               />
             </div>
 
             <button
               onClick={() => setShowTableView(!showTableView)}
-              className={`h-10 px-4 flex items-center gap-2 rounded-[var(--radius-lg)] text-sm font-semibold transition-all ${
+              className={`${
                 showTableView
-                  ? 'bg-[var(--accent)] text-[var(--text-primary)] shadow-[var(--glass-shadow)] shadow-blue-500/20'
-                  : 'surface-glass text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)]'
+                  ? `${styles.toggleButton} ${styles.toggleButtonActive}`
+                  : `surface-glass ${styles.toggleButton} ${styles.toggleButtonInactive}`
               }`}
             >
-              {showTableView ? <Network className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
+              {showTableView ? (
+                <Network className={styles.metaIcon} />
+              ) : (
+                <FileText className={styles.metaIcon} />
+              )}
               <span>{showTableView ? 'Visual Graph' : 'Data Table'}</span>
             </button>
 
             <button
               onClick={() => setShowSettings(!showSettings)}
-              className={`h-10 w-10 flex items-center justify-center rounded-[var(--radius-lg)] transition-all ${showSettings ? 'bg-[var(--glass-bg-highlight)] text-[var(--text-primary)]' : 'surface-glass text-[var(--text-muted)]'}`}
+              className={
+                showSettings
+                  ? `${styles.iconButton} ${styles.settingsButtonActive}`
+                  : `surface-glass ${styles.iconButton} ${styles.settingsButtonInactive}`
+              }
             >
-              <Settings className="w-4 h-4" />
+              <Settings className={styles.metaIcon} />
             </button>
 
             <button
               onClick={exportNetwork}
-              className="h-10 w-10 flex items-center justify-center surface-glass text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all"
+              className={`surface-glass ${styles.iconButton} ${styles.exportButton}`}
               title="Export Network"
             >
-              <Download className="w-4 h-4" />
+              <Download className={styles.metaIcon} />
             </button>
           </div>
         </div>
       </div>
 
-      <div className="flex-1 min-h-0">
+      <div className={styles.content}>
         <CollapsibleSplitPane
           left={
-            <div className="h-full relative bg-[radial-gradient(circle_at_center,_#1e293b_0%,_#0f172a_100%)]">
+            <div className={styles.graphArea}>
               {showTableView ? (
-                <div className="absolute inset-0 overflow-auto p-6 bg-[var(--glass-bg-strong)]/50">
-                  <div className="max-w-6xl mx-auto space-y-8">
+                <div className={styles.tableOverlay}>
+                  <div className={styles.tableContent}>
                     <div>
-                      <h4 className="text-[var(--text-primary)] font-bold text-lg mb-4 flex items-center gap-2">
-                        <Users className="w-5 h-5 text-[var(--accent)]" />
+                      <h4 className={styles.sectionTitle}>
+                        <Users className={`${styles.headerIcon} ${styles.accentIcon}`} />
                         Filtered Entities ({filteredNodes.length})
                       </h4>
-                      <div className="surface-glass overflow-hidden backdrop-blur-sm">
-                        <table className="w-full text-left border-collapse">
+                      <div className={`surface-glass ${styles.tableShell}`}>
+                        <table className={styles.table}>
                           <thead>
-                            <tr className="bg-[var(--glass-bg)]/60 text-[var(--text-muted)] text-xs font-bold uppercase tracking-wider">
-                              <th className="p-4">Entity Name</th>
-                              <th className="p-4">Type</th>
-                              <th className="p-4 text-center">Relevance</th>
-                              <th className="p-4 text-center">Hops</th>
-                              <th className="p-4 text-right">Mentions</th>
+                            <tr className={styles.tableHeadRow}>
+                              <th className={styles.headerCell}>Entity Name</th>
+                              <th className={styles.headerCell}>Type</th>
+                              <th className={`${styles.headerCell} ${styles.centerCell}`}>
+                                Relevance
+                              </th>
+                              <th className={`${styles.headerCell} ${styles.centerCell}`}>Hops</th>
+                              <th className={`${styles.headerCell} ${styles.rightCell}`}>
+                                Mentions
+                              </th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-slate-700/50">
+                          <tbody className={styles.tableBody}>
                             {filteredNodes.map((node) => (
                               <tr
                                 key={node.id}
-                                className="hover:bg-[var(--accent)]/5 cursor-pointer transition-colors"
+                                className={styles.rowButton}
                                 onClick={() => onNodeClick?.(node)}
                               >
-                                <td className="p-4">
-                                  <div className="flex items-center gap-3">
+                                <td className={styles.bodyCell}>
+                                  <div className={styles.entityCell}>
                                     <div
-                                      className="w-8 h-8 rounded-full flex items-center justify-center text-lg"
+                                      className={styles.entityIconBubble}
                                       style={{
                                         backgroundColor: `${node.color}22`,
                                         color: node.color,
@@ -875,34 +889,36 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
                                     >
                                       {getNodeIcon(node.type)}
                                     </div>
-                                    <span className="text-[var(--text-primary)] font-medium">
-                                      {node.label}
-                                    </span>
+                                    <span className={styles.entityName}>{node.label}</span>
                                   </div>
                                 </td>
-                                <td className="p-4">
-                                  <span className="text-xs font-semibold px-2 py-1 rounded-full bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] capitalize">
-                                    {node.type}
-                                  </span>
+                                <td className={styles.bodyCell}>
+                                  <span className={styles.typeBadge}>{node.type}</span>
                                 </td>
-                                <td className="p-4 text-center">
-                                  <div className="flex justify-center gap-0.5">
+                                <td className={`${styles.bodyCell} ${styles.centerCell}`}>
+                                  <div className={styles.importanceDots}>
                                     {[...Array(5)].map((_, i) => (
                                       <div
                                         key={i}
-                                        className={`w-1.5 h-1.5 rounded-full ${i < node.importance ? 'bg-[var(--accent)]' : 'bg-[var(--glass-bg-highlight)]'}`}
+                                        className={
+                                          i < node.importance
+                                            ? `${styles.importanceDot} ${styles.importanceDotActive}`
+                                            : styles.importanceDot
+                                        }
                                       />
                                     ))}
                                   </div>
                                 </td>
-                                <td className="p-4 text-center">
-                                  <span className="text-[var(--text-muted)] font-mono text-sm">
+                                <td className={`${styles.bodyCell} ${styles.centerCell}`}>
+                                  <span className={styles.monoMuted}>
                                     {hopsMap.get(node.id) === 0
                                       ? 'Root'
                                       : `+${hopsMap.get(node.id) || '?'}`}
                                   </span>
                                 </td>
-                                <td className="p-4 text-right font-mono text-[var(--text-secondary)]">
+                                <td
+                                  className={`${styles.bodyCell} ${styles.rightCell} ${styles.monoSecondary}`}
+                                >
                                   {node.metadata.mentions || 0}
                                 </td>
                               </tr>
@@ -914,12 +930,12 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
                   </div>
                 </div>
               ) : (
-                <div className="absolute inset-0 cursor-grab active:cursor-grabbing">
+                <div className={styles.canvasWrap}>
                   <canvas
                     ref={canvasRef}
                     width={800}
                     height={height}
-                    className="w-full h-full"
+                    className={styles.canvas}
                     onClick={handleCanvasClick}
                     onWheel={handleWheelEnhanced}
                     onMouseDown={handleMouseDown}
@@ -928,46 +944,39 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
                     onMouseLeave={handleMouseUp}
                   />
 
-                  <div className="absolute bottom-6 left-6 flex items-center gap-2 p-1 surface-glass backdrop-blur-md shadow-[var(--glass-shadow)]">
+                  <div className={`surface-glass ${styles.zoomControls}`}>
                     <button
                       onClick={() => setZoom((prev) => Math.min(3, prev * 1.2))}
-                      className="p-2 hover:bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-[var(--radius-lg)] transition-all"
+                      className={styles.zoomButton}
                       title="Zoom In"
                     >
-                      <Search className="w-4 h-4" />
+                      <Search className={styles.metaIcon} />
                     </button>
-                    <div className="w-px h-4 bg-[var(--glass-bg-highlight)] mx-1" />
+                    <div className={styles.divider} />
                     <button
                       onClick={() => {
                         setZoom(1);
                         setPan({ x: 0, y: 0 });
                       }}
-                      className="px-3 py-1.5 text-xs font-bold text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg)] rounded-[var(--radius-lg)] transition-all"
+                      className={styles.zoomTextButton}
                     >
                       RESET
                     </button>
-                    <button
-                      onClick={centerNetwork}
-                      className="px-3 py-1.5 text-xs font-bold text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg)] rounded-[var(--radius-lg)] transition-all"
-                    >
+                    <button onClick={centerNetwork} className={styles.zoomTextButton}>
                       CENTER
                     </button>
                   </div>
 
-                  <div className="absolute bottom-6 right-6 p-4 surface-glass backdrop-blur-sm hidden lg:block">
-                    <h5 className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest mb-3">
-                      Entity Key
-                    </h5>
-                    <div className="grid grid-cols-2 gap-x-6 gap-y-2">
+                  <div className={`surface-glass ${styles.legend}`}>
+                    <h5 className={styles.legendTitle}>Entity Key</h5>
+                    <div className={styles.legendGrid}>
                       {['person', 'organization', 'location', 'event'].map((type) => (
-                        <div key={type} className="flex items-center gap-2">
+                        <div key={type} className={styles.legendItem}>
                           <div
-                            className="w-2 h-2 rounded-full"
+                            className={styles.legendDot}
                             style={{ backgroundColor: getNodeColor(type) }}
                           />
-                          <span className="text-xs text-[var(--text-secondary)] capitalize">
-                            {type}
-                          </span>
+                          <span className={styles.legendText}>{type}</span>
                         </div>
                       ))}
                     </div>
@@ -977,30 +986,23 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
             </div>
           }
           right={
-            <div className="h-full p-6 space-y-8 overflow-y-auto scrollbar-thin">
-              <div className="flex items-center justify-between mb-2">
-                <h4 className="text-[var(--text-primary)] font-bold flex items-center gap-2">
-                  <Sliders className="w-4 h-4 text-[var(--accent)]" />
+            <div className={styles.settingsPanel}>
+              <div className={styles.panelTop}>
+                <h4 className={styles.panelTitle}>
+                  <Sliders className={`${styles.metaIcon} ${styles.accentIcon}`} />
                   Graph Settings
                 </h4>
-                <button
-                  onClick={() => setShowSettings(false)}
-                  className="text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                >
-                  <ChevronRight className="w-5 h-5" />
+                <button onClick={() => setShowSettings(false)} className={styles.panelClose}>
+                  <ChevronRight className={styles.headerIcon} />
                 </button>
               </div>
 
               {/* Range Filters */}
-              <div className="space-y-6 pt-4 border-t border-[var(--glass-border)]">
-                <div className="space-y-3">
-                  <div className="flex justify-between items-end">
-                    <label className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
-                      Network Density
-                    </label>
-                    <span className="text-[var(--accent)] font-mono text-xs font-bold">
-                      ≥ {minStrength}
-                    </span>
+              <div className={`${styles.section} ${styles.sectionTight}`}>
+                <div className={styles.controlGroup}>
+                  <div className={styles.controlLabelRow}>
+                    <label className={styles.controlLabel}>Network Density</label>
+                    <span className={styles.controlValue}>≥ {minStrength}</span>
                   </div>
                   <input
                     type="range"
@@ -1009,19 +1011,17 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
                     step="0.5"
                     value={minStrength}
                     onChange={(e) => setMinStrength(parseFloat(e.target.value))}
-                    className="w-full h-1.5 bg-[var(--glass-bg)] rounded-[var(--radius-lg)] appearance-none cursor-pointer accent-blue-500"
+                    className={`${styles.rangeInput} ${styles.accentBlue}`}
                   />
-                  <p className="text-[10px] text-[var(--text-muted)] italic">
+                  <p className={styles.helperText}>
                     Filter out weaker associations based on co-occurrence.
                   </p>
                 </div>
 
-                <div className="space-y-3">
-                  <div className="flex justify-between items-end">
-                    <label className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
-                      Degree of Separation
-                    </label>
-                    <span className="text-purple-400 font-mono text-xs font-bold">
+                <div className={styles.controlGroup}>
+                  <div className={styles.controlLabelRow}>
+                    <label className={styles.controlLabel}>Degree of Separation</label>
+                    <span className={`${styles.controlValue} ${styles.purpleValue}`}>
                       {maxHops >= 5 ? '∞' : `≤ ${maxHops} Hops`}
                     </span>
                   </div>
@@ -1032,43 +1032,59 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
                     step="1"
                     value={maxHops}
                     onChange={(e) => setMaxHops(parseInt(e.target.value))}
-                    className="w-full h-1.5 bg-[var(--glass-bg)] rounded-[var(--radius-lg)] appearance-none cursor-pointer accent-purple-500"
+                    className={`${styles.rangeInput} ${styles.accentPurple}`}
                   />
-                  <p className="text-[10px] text-[var(--text-muted)] italic">
+                  <p className={styles.helperText}>
                     Maximum connection distance from Jeffrey Epstein.
                   </p>
                 </div>
 
                 {/* Damning Evidence Mode Toggle */}
-                <div className="pt-4 border-t border-[var(--glass-border)]">
+                <div className={`${styles.section} ${styles.sectionTight}`}>
                   <div
-                    className={`p-4 rounded-[var(--radius-xl)] border transition-all cursor-pointer ${
+                    className={`${
                       damningEvidenceOnly
-                        ? 'bg-red-500/10 border-red-500/30'
-                        : 'bg-[var(--glass-bg)]/50 border-[var(--glass-border)] hover:border-[var(--glass-border)]'
+                        ? `${styles.dangerToggle} ${styles.dangerToggleActive}`
+                        : styles.dangerToggle
                     }`}
                     onClick={() => setDamningEvidenceOnly(!damningEvidenceOnly)}
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
+                    <div className={styles.dangerHeader}>
+                      <div className={styles.dangerLabelWrap}>
                         <AlertTriangle
-                          className={`w-4 h-4 ${damningEvidenceOnly ? 'text-red-400' : 'text-[var(--text-muted)]'}`}
+                          className={
+                            damningEvidenceOnly
+                              ? `${styles.dangerIcon} ${styles.dangerIconActive}`
+                              : styles.dangerIcon
+                          }
                         />
                         <span
-                          className={`text-xs font-bold uppercase tracking-wider ${damningEvidenceOnly ? 'text-red-400' : 'text-[var(--text-secondary)]'}`}
+                          className={
+                            damningEvidenceOnly
+                              ? `${styles.dangerLabel} ${styles.dangerLabelActive}`
+                              : styles.dangerLabel
+                          }
                         >
                           Damning Evidence Mode
                         </span>
                       </div>
                       <div
-                        className={`w-8 h-4 rounded-full relative transition-colors ${damningEvidenceOnly ? 'bg-red-500' : 'bg-[var(--glass-bg-highlight)]'}`}
+                        className={
+                          damningEvidenceOnly
+                            ? `${styles.toggleTrack} ${styles.toggleTrackActive}`
+                            : styles.toggleTrack
+                        }
                       >
                         <div
-                          className={`absolute top-1 w-2 h-2 rounded-full bg-[var(--text-primary)] transition-all ${damningEvidenceOnly ? 'left-5' : 'left-1'}`}
+                          className={
+                            damningEvidenceOnly
+                              ? `${styles.toggleThumb} ${styles.toggleThumbActive}`
+                              : styles.toggleThumb
+                          }
                         />
                       </div>
                     </div>
-                    <p className="text-[10px] text-[var(--text-muted)] leading-relaxed">
+                    <p className={styles.dangerText}>
                       Filters for high-confidence associations (&gt;80%) with elevated risk scores.
                     </p>
                   </div>
@@ -1076,13 +1092,13 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
               </div>
 
               {/* Relationship Types */}
-              <div className="space-y-4 pt-6 border-t border-[var(--glass-border)]">
-                <div className="flex items-center justify-between">
-                  <label className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider flex items-center gap-2">
-                    <Shield className="w-3 h-3" /> Relationship Types
+              <div className={styles.section}>
+                <div className={styles.sectionHeader}>
+                  <label className={styles.sectionLabel}>
+                    <Shield className={styles.metaIcon} /> Relationship Types
                   </label>
                   <button
-                    className="text-[10px] text-[var(--accent)] hover:text-[var(--accent)] font-bold"
+                    className={styles.sectionAction}
                     onClick={() =>
                       setSelectedEdgeTypes(
                         new Set([
@@ -1109,7 +1125,7 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
                     RE-SELECT ALL
                   </button>
                 </div>
-                <div className="grid grid-cols-1 gap-1">
+                <div className={styles.checkboxList}>
                   {[
                     'Aviation',
                     'Banking',
@@ -1162,11 +1178,11 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
               </div>
 
               {/* Entity Types */}
-              <div className="space-y-4 pt-6 border-t border-[var(--glass-border)]">
-                <label className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider flex items-center gap-2">
-                  <Filter className="w-3 h-3" /> Entity Groups
+              <div className={styles.section}>
+                <label className={styles.sectionLabel}>
+                  <Filter className={styles.metaIcon} /> Entity Groups
                 </label>
-                <div className="grid grid-cols-1 gap-1">
+                <div className={styles.checkboxList}>
                   {['person', 'organization', 'location', 'event'].map((type) => (
                     <Checkbox
                       key={type}
@@ -1184,11 +1200,11 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
                 </div>
               </div>
 
-              <div className="pt-8 block">
-                <div className="bg-[var(--accent)]/5 border border-[var(--accent)]/20 p-4 rounded-[var(--radius-xl)]">
-                  <div className="flex gap-3">
-                    <Info className="w-4 h-4 text-[var(--accent)] shrink-0 mt-0.5" />
-                    <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
+              <div className={styles.infoPanelWrap}>
+                <div className={styles.infoPanel}>
+                  <div className={styles.infoPanelRow}>
+                    <Info className={styles.infoIcon} />
+                    <p className={styles.infoText}>
                       Connecting lines represent evidence-backed associations. Thicker lines
                       indicate higher frequency or proximity scores in investigative files.
                     </p>
@@ -1198,20 +1214,20 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
             </div>
           }
           collapsedRight={
-            <div className="h-full py-3 flex flex-col items-center gap-2">
+            <div className={styles.collapsedPanel}>
               <button
                 type="button"
                 onClick={() => setShowSettings(true)}
-                className="control h-8 w-8 p-0 flex items-center justify-center text-[var(--accent)] hover:text-cyan-100"
+                className={`control ${styles.collapsedToggle}`}
                 title="Expand graph settings"
                 aria-label="Expand graph settings"
               >
-                <Settings className="w-4 h-4" />
+                <Settings className={styles.metaIcon} />
               </button>
-              <div className="h-px w-6 bg-[var(--glass-bg-highlight)]/80" />
-              <Sliders className="w-4 h-4 text-[var(--text-muted)]" aria-hidden="true" />
-              <Filter className="w-4 h-4 text-[var(--text-muted)]" aria-hidden="true" />
-              <Shield className="w-4 h-4 text-[var(--text-muted)]" aria-hidden="true" />
+              <div className={styles.collapsedDivider} />
+              <Sliders className={styles.collapsedIcon} aria-hidden="true" />
+              <Filter className={styles.collapsedIcon} aria-hidden="true" />
+              <Shield className={styles.collapsedIcon} aria-hidden="true" />
             </div>
           }
           defaultRightWidth={settingsPaneWidth}

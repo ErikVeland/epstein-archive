@@ -10,9 +10,5 @@
   "src/client/components/investigation/InvestigationTimelineBuilder.tsx",
   "src/client/components/investigation/InvestigationWorkspace.tsx",
   "src/client/components/investigation/MultiSourceCorrelationEngine.tsx",
-  "src/client/components/visualizations/DataVisualizationEnhanced.tsx",
-  "src/client/components/visualizations/FinancialTransactionMapper.tsx",
-  "src/client/components/visualizations/NetworkGraph.tsx",
-  "src/client/components/visualizations/NetworkVisualization.tsx",
-  "src/client/pages/AdminDashboard.tsx"
+  "src/client/components/visualizations/DataVisualizationEnhanced.tsx"
 ]

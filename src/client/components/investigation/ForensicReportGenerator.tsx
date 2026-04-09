@@ -1,6 +1,17 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { FileText, Printer, Calendar, CheckCircle, FileJson } from 'lucide-react';
+import {
+  FileText,
+  Printer,
+  Calendar,
+  FileJson,
+  Bot,
+  Sparkles,
+  Shield,
+  AlertTriangle,
+  Globe,
+} from 'lucide-react';
+import styles from './ForensicReportGenerator.module.css';
 
 interface ReportEntity {
   id?: string | number;
@@ -497,59 +508,51 @@ It is concluded that the identified patterns are consistent with complex organis
   const getClassificationColor = (classification: string) => {
     switch (classification) {
       case 'unclassified':
-        return 'text-green-400 bg-green-900';
+        return styles.unclassified;
       case 'confidential':
-        return 'text-[var(--accent)] bg-blue-900';
+        return styles.confidential;
       case 'restricted':
-        return 'text-yellow-400 bg-yellow-900';
+        return styles.restricted;
       case 'secret':
-        return 'text-red-400 bg-red-900';
+        return styles.secret;
       default:
-        return 'text-[var(--text-muted)] bg-[var(--glass-bg-strong)]';
+        return '';
     }
   };
 
-  // getTargetAudienceColor reserved for future use; removed to avoid unused-variable warnings.
-
   return (
-    <div className="min-h-screen bg-[var(--glass-bg-strong)] text-[var(--text-primary)] p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className={styles.root}>
+      <div className={styles.container}>
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-red-400 mb-2">Forensic Report Generator</h1>
-          <p className="text-[var(--text-muted)]">
+        <div className={styles.header}>
+          <h1 className={styles.title}>Forensic Report Generator</h1>
+          <p className={styles.subtitle}>
             Automated generation of comprehensive forensic analysis reports
           </p>
         </div>
 
         {/* Configuration Panel */}
-        <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] p-6 mb-6">
-          <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-4">
-            Report Configuration
-          </h2>
+        <div className={styles.configPanel}>
+          <h2 className={styles.sectionHeading}>Report Configuration</h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-            <div>
-              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                Report Title
-              </label>
+          <div className={styles.configGrid}>
+            <div className={styles.fieldGroup}>
+              <label className={styles.label}>Report Title</label>
               <input
                 type="text"
                 value={reportTitle}
                 onChange={(e) => setReportTitle(e.target.value)}
                 placeholder="Enter report title..."
-                className="w-full px-4 py-2 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className={styles.input}
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                Template
-              </label>
+            <div className={styles.fieldGroup}>
+              <label className={styles.label}>Template</label>
               <select
                 value={selectedTemplate}
                 onChange={(e) => setSelectedTemplate(e.target.value)}
-                className="w-full px-4 py-2 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] focus:ring-2 focus:ring-red-500"
+                className={styles.select}
               >
                 <option value="">Select a template...</option>
                 {templates.map((template) => (
@@ -560,14 +563,12 @@ It is concluded that the identified patterns are consistent with complex organis
               </select>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                Target Audience
-              </label>
+            <div className={styles.fieldGroup}>
+              <label className={styles.label}>Target Audience</label>
               <select
                 value={targetAudience}
                 onChange={(e) => setTargetAudience(e.target.value)}
-                className="w-full px-4 py-2 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] focus:ring-2 focus:ring-red-500"
+                className={styles.select}
               >
                 <option value="legal">Legal/Prosecution</option>
                 <option value="journalism">Journalism/Publication</option>
@@ -576,14 +577,12 @@ It is concluded that the identified patterns are consistent with complex organis
               </select>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-                Classification
-              </label>
+            <div className={styles.fieldGroup}>
+              <label className={styles.label}>Classification</label>
               <select
                 value={classification}
                 onChange={(e) => setClassification(e.target.value)}
-                className="w-full px-4 py-2 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] focus:ring-2 focus:ring-red-500"
+                className={styles.select}
               >
                 <option value="unclassified">Unclassified</option>
                 <option value="confidential">Confidential</option>
@@ -592,15 +591,18 @@ It is concluded that the identified patterns are consistent with complex organis
               </select>
             </div>
 
-            <div className="flex items-end">
+            <div className={styles.fieldGroup}>
+              <div className={styles.label} style={{ visibility: 'hidden' }}>
+                Spacing
+              </div>
               <button
                 onClick={generateReport}
                 disabled={!selectedTemplate || isGenerating}
-                className="w-full px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-[var(--glass-bg-highlight)] disabled:cursor-not-allowed rounded-[var(--radius-lg)] transition-colors flex items-center justify-center gap-2"
+                className={styles.generateButton}
               >
                 {isGenerating ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-[var(--glass-border)] border-t-transparent rounded-full animate-spin"></div>
+                    <div className={styles.spinner}></div>
                     Generating...
                   </>
                 ) : (
@@ -614,14 +616,14 @@ It is concluded that the identified patterns are consistent with complex organis
           </div>
 
           {isGenerating && (
-            <div className="mb-4">
-              <div className="flex justify-between text-sm text-[var(--text-muted)] mb-2">
+            <div className={styles.progressContainer}>
+              <div className={styles.progressHeader}>
                 <span>Generation Progress</span>
                 <span>{generationProgress}%</span>
               </div>
-              <div className="w-full bg-[var(--glass-bg-highlight)] rounded-full h-2">
+              <div className={styles.progressBarTrack}>
                 <div
-                  className="bg-red-600 h-2 rounded-full transition-all duration-300"
+                  className={styles.progressBarFill}
                   style={{ width: `${generationProgress}%` }}
                 ></div>
               </div>
@@ -629,55 +631,50 @@ It is concluded that the identified patterns are consistent with complex organis
           )}
 
           {/* Options */}
-          <div className="flex gap-6 text-sm">
-            <label className="flex items-center gap-2">
+          <div className={styles.optionsGroup}>
+            <label className={styles.checkboxContainer}>
               <input
                 type="checkbox"
                 checked={includeEvidence}
                 onChange={(e) => setIncludeEvidence(e.target.checked)}
-                className="rounded"
+                className={styles.checkbox}
               />
-              <span className="text-[var(--text-secondary)]">Include Evidence References</span>
+              <span>Include Evidence References</span>
             </label>
-            <label className="flex items-center gap-2">
+            <label className={styles.checkboxContainer}>
               <input
                 type="checkbox"
                 checked={includeCharts}
                 onChange={(e) => setIncludeCharts(e.target.checked)}
-                className="rounded"
+                className={styles.checkbox}
               />
-              <span className="text-[var(--text-secondary)]">Include Charts/Visualizations</span>
+              <span>Include Charts/Visualizations</span>
             </label>
           </div>
         </div>
 
         {/* Template Information */}
         {selectedTemplate && (
-          <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] p-6 mb-6">
-            <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
-              Selected Template Information
-            </h3>
+          <div className={styles.templateInfo}>
+            <h3 className={styles.sectionHeading}>Selected Template Information</h3>
             {(() => {
               const template = templates.find((t) => t.id === selectedTemplate);
               if (!template) return null;
               return (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <p className="text-sm text-[var(--text-muted)] mb-1">Name</p>
-                    <p className="text-[var(--text-primary)] font-medium">{template.name}</p>
+                <div className={styles.templateGrid}>
+                  <div className={styles.infoBlock}>
+                    <p className={styles.infoLabel}>Name</p>
+                    <p className={styles.infoValue}>{template.name}</p>
                   </div>
-                  <div>
-                    <p className="text-sm text-[var(--text-muted)] mb-1">Description</p>
-                    <p className="text-[var(--text-primary)]">{template.description}</p>
+                  <div className={styles.infoBlock}>
+                    <p className={styles.infoLabel}>Description</p>
+                    <p className={styles.infoValue}>{template.description}</p>
                   </div>
-                  <div>
-                    <p className="text-sm text-[var(--text-muted)] mb-1">Sections</p>
-                    <div className="flex flex-wrap gap-1">
+                  <div className={styles.infoBlock}>
+                    <p className={styles.infoLabel}>Sections</p>
+                    <div className={styles.tagList}>
                       {template.sections.map((section) => (
-                        <span
-                          key={section}
-                          className="px-2 py-1 bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] rounded text-xs capitalize"
-                        >
+                        <span key={section} className={styles.tag}>
                           {section.replace('_', ' ')}
                         </span>
                       ))}
@@ -691,101 +688,91 @@ It is concluded that the identified patterns are consistent with complex organis
 
         {/* Generated Report */}
         {generatedReport && (
-          <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] p-6 mb-6">
-            <div className="flex justify-between items-start mb-4">
+          <div className={styles.reportCard}>
+            <div className={styles.reportHeader}>
               <div>
-                <h2 className="text-xl font-semibold text-[var(--text-primary)]">
-                  Generated Report
-                </h2>
-                <p className="text-[var(--text-muted)] text-sm">{generatedReport.title}</p>
+                <h2 className={styles.configTitle}>Generated Report</h2>
+                <p className={styles.subtitle}>{generatedReport.title}</p>
               </div>
-              <div className="flex gap-2">
+              <div className={styles.reportMetadata}>
                 <span
-                  className={`px-3 py-1 rounded text-xs font-medium ${getClassificationColor(generatedReport.classification)}`}
+                  className={`${styles.classificationBadge} ${getClassificationColor(generatedReport.classification)}`}
                 >
                   {generatedReport.classification.toUpperCase()}
                 </span>
-                <span
-                  className={`px-3 py-1 rounded text-xs font-medium bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)]`}
-                >
+                <span className={styles.confidenceBadge}>
                   {generatedReport.confidence}% Confidence
                 </span>
               </div>
             </div>
 
             {/* Report Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-              <div className="bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] p-3">
-                <div className="flex items-center gap-2 mb-1">
+            <div className={styles.statsGrid}>
+              <div className={styles.statItem}>
+                <div className={styles.statHeader}>
                   <FileText className="w-4 h-4 text-[var(--accent)]" />
-                  <span className="text-sm text-[var(--text-muted)]">Pages</span>
+                  <span className={styles.statLabel}>Pages</span>
                 </div>
-                <p className="text-lg font-semibold text-[var(--text-primary)]">
-                  {generatedReport.totalPages}
-                </p>
+                <p className={styles.statValue}>{generatedReport.totalPages}</p>
               </div>
-              <div className="bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] p-3">
-                <div className="flex items-center gap-2 mb-1">
-                  <FileText className="w-4 h-4 text-green-400" />
-                  <span className="text-sm text-[var(--text-muted)]">Words</span>
+              <div className={styles.statItem}>
+                <div className={styles.statHeader}>
+                  <Sparkles className="w-4 h-4 text-[var(--accent-green)]" />
+                  <span className={styles.statLabel}>Words</span>
                 </div>
-                <p className="text-lg font-semibold text-[var(--text-primary)]">
-                  {generatedReport.wordCount.toLocaleString()}
-                </p>
+                <p className={styles.statValue}>{generatedReport.wordCount.toLocaleString()}</p>
               </div>
-              <div className="bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] p-3">
-                <div className="flex items-center gap-2 mb-1">
-                  <CheckCircle className="w-4 h-4 text-yellow-400" />
-                  <span className="text-sm text-[var(--text-muted)]">Evidence</span>
+              <div className={styles.statItem}>
+                <div className={styles.statHeader}>
+                  <Shield className="w-4 h-4 text-[var(--accent-yellow)]" />
+                  <span className={styles.statLabel}>Evidence</span>
                 </div>
-                <p className="text-lg font-semibold text-[var(--text-primary)]">
-                  {generatedReport.evidenceCount}
-                </p>
+                <p className={styles.statValue}>{generatedReport.evidenceCount}</p>
               </div>
-              <div className="bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] p-3">
-                <div className="flex items-center gap-2 mb-1">
+              <div className={styles.statItem}>
+                <div className={styles.statHeader}>
                   <Calendar className="w-4 h-4 text-purple-400" />
-                  <span className="text-sm text-[var(--text-muted)]">Generated</span>
+                  <span className={styles.statLabel}>Generated</span>
                 </div>
-                <p className="text-sm text-[var(--text-primary)]">
+                <p className={styles.infoValue}>
                   {new Date(generatedReport.generatedAt).toLocaleDateString()}
                 </p>
               </div>
             </div>
 
             {/* Export Options */}
-            <div className="flex flex-wrap gap-3">
+            <div className={styles.exportList}>
               <button
                 onClick={() => exportReport('pdf')}
-                className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-[var(--radius-lg)] transition-colors"
+                className={`${styles.exportButton} ${styles.btnPdf}`}
               >
                 <FileText className="w-4 h-4" />
                 Export PDF
               </button>
               <button
                 onClick={() => exportReport('docx')}
-                className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] hover:bg-blue-700 rounded-[var(--radius-lg)] transition-colors"
+                className={`${styles.exportButton} ${styles.btnDocx}`}
               >
                 <FileText className="w-4 h-4" />
                 Export DOCX
               </button>
               <button
                 onClick={() => exportReport('json')}
-                className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-[var(--radius-lg)] transition-colors"
+                className={`${styles.exportButton} ${styles.btnJson}`}
               >
                 <FileJson className="w-4 h-4" />
                 Export JSON
               </button>
               <button
                 onClick={() => exportReport('txt')}
-                className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-[var(--radius-lg)] transition-colors"
+                className={`${styles.exportButton} ${styles.btnTxt}`}
               >
                 <FileText className="w-4 h-4" />
                 Export TXT
               </button>
               <button
                 onClick={() => window.print()}
-                className="flex items-center gap-2 px-4 py-2 bg-[var(--glass-bg-highlight)] hover:bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] transition-colors"
+                className={`${styles.exportButton} ${styles.btnPrint}`}
               >
                 <Printer className="w-4 h-4" />
                 Print
@@ -796,29 +783,43 @@ It is concluded that the identified patterns are consistent with complex organis
 
         {/* Report Sections Preview */}
         {generatedReport && (
-          <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] p-6">
-            <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
-              Report Content Preview
-            </h3>
-            <div className="space-y-8">
+          <div className={styles.previewContainer}>
+            <h3 className={styles.sectionHeading}>Report Content Preview</h3>
+            <div className={styles.sectionList}>
               {generatedReport.sections.map((section) => (
-                <div key={section.id} className="border-l-2 border-red-500 pl-4 py-2">
-                  <h4 className="text-md font-bold text-[var(--text-primary)] mb-3 capitalize">
-                    {section.title}
-                  </h4>
-                  <div className="text-[var(--text-secondary)] whitespace-pre-wrap leading-relaxed">
-                    {section.content}
+                <div key={section.id} className={styles.reportSection}>
+                  <div className="flex items-center gap-3 mb-4">
+                    <Shield className="w-5 h-5 text-[var(--accent-red)]" />
+                    <h4 className={styles.sectionTitle}>{section.title}</h4>
                   </div>
+                  <div className={styles.sectionContent}>{section.content}</div>
+
                   {section.evidence.length > 0 && (
-                    <div className="mt-4 pt-4 border-t border-[var(--glass-border)] flex flex-wrap gap-2">
-                      {section.evidence.map((ev, i) => (
-                        <span
-                          key={i}
-                          className="px-2 py-1 bg-[var(--glass-bg-highlight)] text-[var(--accent)] text-xs rounded border border-[var(--glass-border)]"
-                        >
-                          {ev}
-                        </span>
-                      ))}
+                    <div className={styles.evidenceBlock}>
+                      <div className="flex items-center gap-2 mb-3">
+                        <AlertTriangle className="w-4 h-4 text-[var(--accent-red)]" />
+                        <h5 className={styles.evidenceHeading}>Supporting Evidence & Sources</h5>
+                      </div>
+                      <div className={styles.evidenceMetadata}>
+                        <div>
+                          <span className={styles.infoLabel}>Evidence</span>
+                          <p className={styles.infoValue}>{section.evidence.join(', ')}</p>
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-1">
+                            <Globe className="w-3 h-3 text-[var(--text-muted)]" />
+                            <span className={styles.infoLabel}>Sources</span>
+                          </div>
+                          <p className={styles.infoValue}>{section.sources.join(', ')}</p>
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-1">
+                            <Bot className="w-3 h-3 text-[var(--text-muted)]" />
+                            <span className={styles.infoLabel}>AI Confidence</span>
+                          </div>
+                          <p className={styles.infoValue}>{section.confidence}%</p>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>

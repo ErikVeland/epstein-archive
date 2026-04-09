@@ -45,6 +45,19 @@ const parseDate = (value: unknown): Date =>
     ? new Date(value)
     : new Date();
 
+import styles from './HypothesisTestingFramework.module.css';
+
+/** Shape of a raw hypothesis returned by the investigations API. */
+interface RawHypothesis {
+  id: number | string;
+  title: string;
+  description?: string;
+  status?: string;
+  confidence?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProps> = ({
   investigationId,
   initialHypothesis = '',
@@ -74,7 +87,8 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
     queryFn: async () => {
       const response = await fetch(`/api/investigations/${investigationId}/hypotheses`);
       if (!response.ok) return null;
-      return response.json() as Promise<Record<string, unknown>[] | null>;
+      const data = await response.json();
+      return (data || []) as RawHypothesis[];
     },
     enabled: Boolean(investigationId),
   });
@@ -88,10 +102,10 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
       const loadedHypotheses: Hypothesis[] = fetchedHypotheses.map((h) => ({
         id: `hyp-${h.id}`,
         investigationId,
-        title: h.title as string,
-        description: (h.description as string) || '',
-        status: ((h.status as string) || 'proposed') as Hypothesis['status'],
-        confidence: (h.confidence as number) || 50,
+        title: h.title,
+        description: h.description || '',
+        status: (h.status || 'proposed') as Hypothesis['status'],
+        confidence: h.confidence || 50,
         createdAt: parseDate(h.created_at),
         updatedAt: parseDate(h.updated_at),
         createdBy: 'System',
@@ -283,26 +297,21 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
   };
 
   return (
-    <div className="bg-[var(--glass-bg-strong)] rounded-[var(--radius-xl)] border border-[var(--glass-border)]">
+    <div className={styles.root}>
       {/* Header */}
-      <div className="border-b border-[var(--glass-border)] p-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
+      <div className={styles.header}>
+        <div className={styles.headerTitleRow}>
+          <div className={styles.titleGroup}>
             <Target className="w-6 h-6 text-[var(--accent)]" />
-            <h2 className="text-2xl font-bold text-[var(--text-primary)]">
-              Hypothesis Testing Framework
-            </h2>
+            <h2 className={styles.title}>Hypothesis Testing Framework</h2>
           </div>
-          <button
-            onClick={() => setShowNewForm(true)}
-            className="flex items-center space-x-2 px-4 py-2 bg-[var(--accent)] text-[var(--text-primary)] rounded-[var(--radius-lg)] hover:bg-blue-700 transition-colors"
-          >
+          <button onClick={() => setShowNewForm(true)} className={styles.actionButton}>
             <Plus className="w-4 h-4" />
             <span className="hidden sm:inline">New Hypothesis</span>
             <span className="sm:hidden">New</span>
           </button>
         </div>
-        <p className="text-[var(--text-muted)] mt-2">
+        <p className={styles.subtitle}>
           Systematic hypothesis testing with evidence linking, confidence scoring, and revision
           tracking
         </p>
@@ -310,48 +319,36 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
 
       {/* New Hypothesis Form */}
       {showNewForm && (
-        <div className="border-b border-[var(--glass-border)] p-6 bg-[var(--glass-bg)]/50">
-          <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
-            Create New Hypothesis
-          </h3>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
-                Title
-              </label>
+        <div className={styles.formSection}>
+          <h3 className={styles.formTitle}>Create New Hypothesis</h3>
+          <div className={styles.formGrid}>
+            <div className={styles.field}>
+              <label className={styles.label}>Title</label>
               <input
                 type="text"
                 value={newHypothesis.title}
                 onChange={(e) => setNewHypothesis({ ...newHypothesis, title: e.target.value })}
-                className="w-full px-3 py-2 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] text-[var(--text-primary)]"
+                className={styles.input}
                 placeholder="Enter hypothesis title"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
-                Description
-              </label>
+            <div className={styles.field}>
+              <label className={styles.label}>Description</label>
               <textarea
                 value={newHypothesis.description}
                 onChange={(e) =>
                   setNewHypothesis({ ...newHypothesis, description: e.target.value })
                 }
-                className="w-full px-3 py-2 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] text-[var(--text-primary)]"
+                className={styles.textarea}
                 rows={3}
                 placeholder="Describe your hypothesis"
               />
             </div>
-            <div className="flex justify-end space-x-3">
-              <button
-                onClick={() => setShowNewForm(false)}
-                className="px-4 py-2 text-sm font-medium text-[var(--text-secondary)] bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] hover:bg-[var(--glass-bg-highlight)] transition-colors"
-              >
+            <div className={styles.formActions}>
+              <button onClick={() => setShowNewForm(false)} className={styles.cancelButton}>
                 Cancel
               </button>
-              <button
-                onClick={createHypothesis}
-                className="px-4 py-2 text-sm font-medium text-[var(--text-primary)] bg-[var(--accent)] rounded-[var(--radius-lg)] hover:bg-blue-700 transition-colors"
-              >
+              <button onClick={createHypothesis} className={styles.actionButton}>
                 Create Hypothesis
               </button>
             </div>
@@ -360,33 +357,22 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
       )}
 
       {/* Hypotheses List */}
-      <div className="p-6">
+      <div className={styles.content}>
         {hypotheses.length === 0 ? (
-          <div className="text-center py-12">
-            <Target className="w-12 h-12 text-[var(--text-muted)] mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-[var(--text-primary)] mb-2">
-              No hypotheses yet
-            </h3>
-            <p className="text-[var(--text-muted)] mb-4">
-              Create your first hypothesis to begin testing
-            </p>
-            <button
-              onClick={() => setShowNewForm(true)}
-              className="px-4 py-2 bg-[var(--accent)] text-[var(--text-primary)] rounded-[var(--radius-lg)] hover:bg-blue-700 transition-colors"
-            >
+          <div className={styles.emptyState}>
+            <Target className={styles.emptyIcon} />
+            <h3 className={styles.formTitle}>No hypotheses yet</h3>
+            <p className={styles.subtitle}>Create your first hypothesis to begin testing</p>
+            <button onClick={() => setShowNewForm(true)} className={styles.actionButton}>
               Create Hypothesis
             </button>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className={styles.hypList}>
             {hypotheses.map((hypothesis) => (
               <div
                 key={hypothesis.id}
-                className={`border rounded-[var(--radius-xl)] p-5 transition-all ${
-                  activeHypothesis?.id === hypothesis.id
-                    ? 'border-[var(--accent)] bg-blue-900/20'
-                    : 'border-[var(--glass-border)] bg-[var(--glass-bg)]/50 hover:bg-[var(--glass-bg)]'
-                }`}
+                className={`${styles.hypCard} ${activeHypothesis?.id === hypothesis.id ? styles.hypCardActive : ''}`}
               >
                 <div
                   className="cursor-pointer"
@@ -394,66 +380,60 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
                     setActiveHypothesis(activeHypothesis?.id === hypothesis.id ? null : hypothesis)
                   }
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <h3 className="text-lg font-semibold text-[var(--text-primary)] truncate">
-                          {hypothesis.title}
-                        </h3>
+                  <div className={styles.hypCardHeader}>
+                    <div className={styles.hypHeaderInfo}>
+                      <div className={styles.hypTitleRow}>
+                        <h3 className={styles.hypTitle}>{hypothesis.title}</h3>
                         <span
-                          className={`px-2 py-1 text-xs rounded-full ${
+                          className={`${styles.statusBadge} ${
                             hypothesis.status === 'draft'
-                              ? 'bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)]'
+                              ? styles.statusDraft
                               : hypothesis.status === 'testing'
-                                ? 'bg-blue-900 text-[var(--accent)]'
+                                ? styles.statusTesting
                                 : hypothesis.status === 'supported'
-                                  ? 'bg-green-900 text-green-300'
+                                  ? styles.statusSupported
                                   : hypothesis.status === 'refuted'
-                                    ? 'bg-red-900 text-red-300'
-                                    : 'bg-yellow-900 text-yellow-300'
+                                    ? styles.statusRefuted
+                                    : styles.statusRevised
                           }`}
                         >
                           {hypothesis.status}
                         </span>
                       </div>
-                      <p className="text-[var(--text-secondary)] text-sm mb-3 break-words">
-                        {hypothesis.description}
-                      </p>
+                      <p className={styles.hypDesc}>{hypothesis.description}</p>
 
                       {/* Confidence Meter */}
-                      <div className="flex items-center space-x-3 mb-3">
-                        <div className="flex-1">
-                          <div className="flex justify-between text-xs text-[var(--text-muted)] mb-1">
-                            <span>Confidence</span>
-                            <span>{hypothesis.confidence}%</span>
-                          </div>
-                          <div className="w-full bg-[var(--glass-bg-highlight)] rounded-full h-2">
-                            <div
-                              className={`h-2 rounded-full ${
-                                hypothesis.confidence < 30
-                                  ? 'bg-red-500'
-                                  : hypothesis.confidence < 70
-                                    ? 'bg-yellow-500'
-                                    : 'bg-green-500'
-                              }`}
-                              style={{ width: `${hypothesis.confidence}%` }}
-                            ></div>
-                          </div>
+                      <div className={styles.confidenceRow}>
+                        <div className={styles.confidenceLabelRow}>
+                          <span>Confidence</span>
+                          <span>{hypothesis.confidence}%</span>
+                        </div>
+                        <div className={styles.confidenceBarBg}>
+                          <div
+                            className={`${styles.confidenceBarFill} ${
+                              hypothesis.confidence < 30
+                                ? styles.confidenceLow
+                                : hypothesis.confidence < 70
+                                  ? styles.confidenceMed
+                                  : styles.confidenceHigh
+                            }`}
+                            style={{ width: `${hypothesis.confidence}%` }}
+                          ></div>
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex items-center space-x-2 ml-4">
-                      <button className="p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] rounded-[var(--radius-lg)] hover:bg-[var(--glass-bg-highlight)]">
+                    <div className={styles.hypCardActions}>
+                      <button className={styles.iconButton}>
                         <Edit3 className="w-4 h-4" />
                       </button>
-                      <button className="p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] rounded-[var(--radius-lg)] hover:bg-[var(--glass-bg-highlight)]">
+                      <button className={styles.iconButton}>
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
 
-                  <div className="flex items-center text-xs text-[var(--text-muted)] space-x-4">
+                  <div className={styles.hypMeta}>
                     <span>Created by {hypothesis.createdBy}</span>
                     <span>•</span>
                     <span>{hypothesis.createdAt.toLocaleDateString()}</span>
@@ -464,13 +444,11 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
 
                 {/* Expanded Details */}
                 {activeHypothesis?.id === hypothesis.id && (
-                  <div className="mt-5 pt-5 border-t border-[var(--glass-border)]">
+                  <div className={styles.details}>
                     {/* Evidence Links */}
                     <div className="mb-6">
-                      <div className="flex items-center justify-between mb-3">
-                        <h4 className="text-sm font-medium text-[var(--text-secondary)]">
-                          Linked Evidence
-                        </h4>
+                      <div className={styles.detailsHeader}>
+                        <h4 className={styles.detailsTitle}>Linked Evidence</h4>
                         <button
                           onClick={() =>
                             setLinkingEvidence({
@@ -478,30 +456,26 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
                               [hypothesis.id]: !linkingEvidence[hypothesis.id],
                             })
                           }
-                          className="text-xs text-[var(--accent)] hover:text-[var(--accent)] flex items-center"
+                          className={styles.linkEvidenceButton}
                         >
-                          <Link className="w-3 h-3 mr-1" />
+                          <Link className="w-3 h-3" />
                           Link Evidence
                         </button>
                       </div>
 
                       {/* Link Evidence Form */}
                       {linkingEvidence[hypothesis.id] && (
-                        <div className="mb-4 p-4 bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)]">
-                          <h5 className="text-sm font-medium text-[var(--text-primary)] mb-3">
-                            Link Evidence to Hypothesis
-                          </h5>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <div>
-                              <label className="block text-xs text-[var(--text-muted)] mb-1">
-                                Evidence Item
-                              </label>
+                        <div className={styles.formSection}>
+                          <h5 className={styles.formTitle}>Link Evidence to Hypothesis</h5>
+                          <div className={styles.formGridTwoCol}>
+                            <div className={styles.field}>
+                              <label className={styles.label}>Evidence Item</label>
                               <select
                                 value={linkData.evidenceId}
                                 onChange={(e) =>
                                   setLinkData({ ...linkData, evidenceId: e.target.value })
                                 }
-                                className="w-full px-2 py-1 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded text-[var(--text-primary)] text-sm"
+                                className={styles.select}
                               >
                                 <option value="">Select evidence</option>
                                 {evidenceItems.map((item) => (
@@ -511,10 +485,8 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
                                 ))}
                               </select>
                             </div>
-                            <div>
-                              <label className="block text-xs text-[var(--text-muted)] mb-1">
-                                Relevance
-                              </label>
+                            <div className={styles.field}>
+                              <label className={styles.label}>Relevance</label>
                               <select
                                 value={linkData.relevance}
                                 onChange={(e) =>
@@ -526,17 +498,15 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
                                       | 'neutral',
                                   })
                                 }
-                                className="w-full px-2 py-1 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded text-[var(--text-primary)] text-sm"
+                                className={styles.select}
                               >
                                 <option value="supporting">Supporting</option>
                                 <option value="contradicting">Contradicting</option>
                                 <option value="neutral">Neutral</option>
                               </select>
                             </div>
-                            <div>
-                              <label className="block text-xs text-[var(--text-muted)] mb-1">
-                                Weight: {linkData.weight}
-                              </label>
+                            <div className={styles.field}>
+                              <label className={styles.label}>Weight: {linkData.weight}</label>
                               <input
                                 type="range"
                                 min="1"
@@ -551,22 +521,20 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
                                 className="w-full"
                               />
                             </div>
-                            <div>
-                              <label className="block text-xs text-[var(--text-muted)] mb-1">
-                                Notes
-                              </label>
+                            <div className={styles.field}>
+                              <label className={styles.label}>Notes</label>
                               <input
                                 type="text"
                                 value={linkData.notes}
                                 onChange={(e) =>
                                   setLinkData({ ...linkData, notes: e.target.value })
                                 }
-                                className="w-full px-2 py-1 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded text-[var(--text-primary)] text-sm"
+                                className={styles.input}
                                 placeholder="Add notes about this link"
                               />
                             </div>
                           </div>
-                          <div className="flex justify-end space-x-2 mt-3">
+                          <div className={styles.formActions}>
                             <button
                               onClick={() =>
                                 setLinkingEvidence({
@@ -574,13 +542,13 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
                                   [hypothesis.id]: false,
                                 })
                               }
-                              className="px-3 py-1 text-xs text-[var(--text-secondary)] bg-[var(--glass-bg-highlight)] rounded hover:bg-[var(--glass-bg-highlight)]"
+                              className={styles.cancelButton}
                             >
                               Cancel
                             </button>
                             <button
                               onClick={() => linkEvidenceToHypothesis(hypothesis.id)}
-                              className="px-3 py-1 text-xs text-[var(--text-primary)] bg-[var(--accent)] rounded hover:bg-blue-700"
+                              className={styles.actionButton}
                             >
                               Link Evidence
                             </button>
@@ -590,56 +558,49 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
 
                       {/* Evidence List */}
                       {hypothesis.evidenceLinks.length > 0 ? (
-                        <div className="space-y-2">
+                        <div className={styles.evidenceLinkList}>
                           {hypothesis.evidenceLinks.map((link) => {
                             const evidenceItem = getEvidenceItemById(link.evidenceId);
                             return (
-                              <div
-                                key={link.id}
-                                className="flex items-center justify-between p-3 bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)]"
-                              >
-                                <div className="flex items-center space-x-3">
+                              <div key={link.id} className={styles.evidenceLinkCard}>
+                                <div className={styles.evidenceLinkInfo}>
                                   <div
-                                    className={`w-3 h-3 rounded-full ${
+                                    className={`${styles.relevanceDot} ${
                                       link.relevance === 'supporting'
-                                        ? 'bg-green-500'
+                                        ? styles.relevanceSupporting
                                         : link.relevance === 'contradicting'
-                                          ? 'bg-red-500'
-                                          : 'bg-[var(--glass-bg-highlight)]'
+                                          ? styles.relevanceContradicting
+                                          : styles.relevanceNeutral
                                     }`}
                                   ></div>
-                                  <div>
-                                    <div className="flex items-center space-x-2">
-                                      <FileText className="w-4 h-4 text-[var(--text-muted)]" />
-                                      <span className="text-sm font-medium text-[var(--text-primary)] truncate">
+                                  <div className={styles.evidenceLinkDetails}>
+                                    <div className={styles.evidenceLinkHeader}>
+                                      <FileText className={styles.evidenceIcon} />
+                                      <span className={styles.evidenceTitle}>
                                         {evidenceItem?.title || 'Unknown Evidence'}
                                       </span>
                                       <span
-                                        className={`text-xs px-2 py-0.5 rounded ${
+                                        className={`${styles.statusBadge} ${
                                           link.relevance === 'supporting'
-                                            ? 'bg-green-900 text-green-300'
+                                            ? styles.statusSupported
                                             : link.relevance === 'contradicting'
-                                              ? 'bg-red-900 text-red-300'
-                                              : 'bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)]'
+                                              ? styles.statusRefuted
+                                              : styles.statusDraft
                                         }`}
                                       >
                                         {link.relevance}
                                       </span>
                                     </div>
                                     {link.notes && (
-                                      <p className="text-xs text-[var(--text-muted)] mt-1">
-                                        {link.notes}
-                                      </p>
+                                      <p className={styles.evidenceNotes}>{link.notes}</p>
                                     )}
                                   </div>
                                 </div>
-                                <div className="flex items-center space-x-3">
-                                  <span className="text-xs text-[var(--text-muted)]">
-                                    Weight: {link.weight}
-                                  </span>
+                                <div className={styles.hypMeta}>
+                                  <span>Weight: {link.weight}</span>
                                   <button
                                     onClick={() => unlinkEvidence(hypothesis.id, link.id)}
-                                    className="text-[var(--text-muted)] hover:text-red-400"
+                                    className={`${styles.iconButton} ${styles.evidenceUnlinkButton}`}
                                   >
                                     <Trash2 className="w-4 h-4" />
                                   </button>
@@ -649,41 +610,34 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
                           })}
                         </div>
                       ) : (
-                        <div className="text-center py-4 text-[var(--text-muted)]">
-                          <p>No evidence linked to this hypothesis yet</p>
+                        <div className={styles.emptyState}>
+                          <p className={styles.subtitle}>
+                            No evidence linked to this hypothesis yet
+                          </p>
                         </div>
                       )}
                     </div>
 
                     {/* Revision History */}
                     {hypothesis.revisions.length > 0 && (
-                      <div className="mb-6">
-                        <h4 className="text-sm font-medium text-[var(--text-secondary)] mb-3">
-                          Revision History
-                        </h4>
+                      <div className={styles.revisions}>
+                        <h4 className={styles.detailsTitle}>Revision History</h4>
                         <div className="space-y-3">
                           {hypothesis.revisions.map((revision) => (
-                            <div
-                              key={revision.id}
-                              className="p-3 bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)]"
-                            >
-                              <div className="flex items-center justify-between mb-2">
-                                <div className="flex items-center space-x-2">
+                            <div key={revision.id} className={styles.revisionCard}>
+                              <div className={styles.revisionHeader}>
+                                <div className={styles.revisionUser}>
                                   <User className="w-4 h-4 text-[var(--text-muted)]" />
-                                  <span className="text-sm text-[var(--text-primary)]">
-                                    {revision.createdBy}
-                                  </span>
+                                  <span>{revision.createdBy}</span>
                                 </div>
-                                <span className="text-xs text-[var(--text-muted)]">
+                                <span className={styles.revisionDate}>
                                   {revision.createdAt.toLocaleDateString()}
                                 </span>
                               </div>
-                              <p className="text-xs text-[var(--text-muted)] mb-2">
-                                {revision.reason}
-                              </p>
-                              <div className="text-sm text-[var(--text-secondary)]">
-                                <p className="font-medium truncate">{revision.title}</p>
-                                <p className="mt-1 break-words">{revision.description}</p>
+                              <p className={styles.revisionReason}>{revision.reason}</p>
+                              <div className={styles.revisionContent}>
+                                <p className={styles.revisionTitle}>{revision.title}</p>
+                                <p className={styles.revisionDesc}>{revision.description}</p>
                               </div>
                             </div>
                           ))}
@@ -692,7 +646,7 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
                     )}
 
                     {/* Action Buttons */}
-                    <div className="flex flex-wrap gap-2">
+                    <div className={styles.footerActions}>
                       <button
                         onClick={() =>
                           updateHypothesisStatus(
@@ -700,11 +654,7 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
                             hypothesis.status === 'testing' ? 'supported' : 'testing',
                           )
                         }
-                        className={`px-3 py-1.5 text-xs rounded-[var(--radius-lg)] ${
-                          hypothesis.status === 'supported'
-                            ? 'bg-green-900 text-green-300 hover:bg-green-800'
-                            : 'bg-green-700 text-[var(--text-primary)] hover:bg-green-600'
-                        }`}
+                        className={`${styles.statusButton} ${styles.supportButton} ${hypothesis.status === 'supported' ? styles.statusButtonActiveSupported : ''}`}
                       >
                         {hypothesis.status === 'supported' ? 'Mark as Tested' : 'Mark as Supported'}
                       </button>
@@ -715,11 +665,7 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
                             hypothesis.status === 'testing' ? 'refuted' : 'testing',
                           )
                         }
-                        className={`px-3 py-1.5 text-xs rounded-[var(--radius-lg)] ${
-                          hypothesis.status === 'refuted'
-                            ? 'bg-red-900 text-red-300 hover:bg-red-800'
-                            : 'bg-red-700 text-[var(--text-primary)] hover:bg-red-600'
-                        }`}
+                        className={`${styles.statusButton} ${styles.refuteButton} ${hypothesis.status === 'refuted' ? styles.statusButtonActiveRefuted : ''}`}
                       >
                         {hypothesis.status === 'refuted' ? 'Mark as Tested' : 'Mark as Refuted'}
                       </button>
@@ -740,7 +686,7 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
                             });
                           }
                         }}
-                        className="px-3 py-1.5 text-xs bg-yellow-700 text-[var(--text-primary)] rounded-[var(--radius-lg)] hover:bg-yellow-600"
+                        className={`${styles.statusButton} ${styles.reviseButton}`}
                       >
                         Revise Hypothesis
                       </button>

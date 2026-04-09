@@ -173,7 +173,6 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
     compareAId,
     compareB,
     compareBId,
-    docMeta,
     isAnalyzing,
     loadComparison,
     loadQuickMetric,
@@ -193,7 +192,30 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
     caseContext,
     onAnalysisComplete,
     locationSearch: location.search,
-  });
+  }) as {
+    analysis: ForensicAnalysis | null;
+    compareA: ForensicMetricRecord | null;
+    compareAId: string;
+    compareB: ForensicMetricRecord | null;
+    compareBId: string;
+    docMeta: { source_collection?: string; source_original_url?: string } | null;
+    isAnalyzing: boolean;
+    loadComparison: () => Promise<void>;
+    loadQuickMetric: (id: string) => Promise<void>;
+    metrics: ForensicMetricRecord | null;
+    quickMetrics: Record<string, ForensicMetricRecord>;
+    setActiveId: (id: string) => void;
+    setCompareAId: (id: string) => void;
+    setCompareBId: (id: string) => void;
+    startForensicAnalysis: () => Promise<void>;
+    summary: {
+      readabilityBuckets: Array<{ range: string; count: number }>;
+      sentimentCounts: { positive: number; neutral: number; negative: number };
+    } | null;
+    topDensity: Array<{ id: number | string; fileName: string; score: number }>;
+    topJs: Array<{ id: number | string; fileName: string; score: number }>;
+    topRisk: Array<{ id: number | string; fileName: string; score: number }>;
+  };
 
   const toggleSection = (section: string) => {
     setExpandedSections((prev) => ({
@@ -276,7 +298,7 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                   disabled={!documentId}
                   className={`${styles.analyzeButton} ${documentId ? styles.analyzeButtonEnabled : styles.analyzeButtonDisabled}`}
                 >
-                  <Fingerprint className="w-5 h-5" />
+                  <Fingerprint className={styles.iconButton} />
                   Analyze Document
                 </button>
               </div>
@@ -300,13 +322,13 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                     <h3 className={styles.scoreTitle}>Authenticity Score</h3>
                     <div className={styles.scoreDisplay}>
                       {analysis.authenticity.verdict === 'authentic' && (
-                        <CheckCircle className="w-5 h-5 text-green-500" />
+                        <CheckCircle className={styles.statusIconSuccess} />
                       )}
                       {analysis.authenticity.verdict === 'suspicious' && (
-                        <AlertTriangle className="w-5 h-5 text-yellow-500" />
+                        <AlertTriangle className={styles.statusIconWarning} />
                       )}
                       {analysis.authenticity.verdict === 'forged' && (
-                        <XCircle className="w-5 h-5 text-red-500" />
+                        <XCircle className={styles.statusIconError} />
                       )}
                       <span
                         className={`${styles.scoreValue} ${
@@ -344,9 +366,9 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                     className={styles.toggleFactorsButton}
                   >
                     {expandedSections.factors ? (
-                      <ChevronUp className="w-4 h-4" />
+                      <ChevronUp className={styles.iconSmall} />
                     ) : (
-                      <ChevronDown className="w-4 h-4" />
+                      <ChevronDown className={styles.iconSmall} />
                     )}
                     {expandedSections.factors ? 'Hide' : 'Show'} Authenticity Factors
                   </button>
@@ -373,27 +395,31 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                     {
                       key: 'dashboard',
                       label: 'Dashboard',
-                      icon: <FileText className="w-4 h-4" />,
+                      icon: <FileText className={styles.tabIcon} />,
                     },
                     {
                       key: 'entities',
                       label: 'Entities',
-                      icon: <User className="w-4 h-4" />,
-                      count: (analysis as ForensicAnalysis).entities.length,
+                      icon: <User className={styles.tabIcon} />,
+                      count: analysis.entities.length,
                     },
                     {
                       key: 'patterns',
                       label: 'Patterns',
-                      icon: <FileText className="w-4 h-4" />,
-                      count: (analysis as ForensicAnalysis).patterns.length,
+                      icon: <FileText className={styles.tabIcon} />,
+                      count: analysis.patterns.length,
                     },
                     {
                       key: 'anomalies',
                       label: 'Anomalies',
-                      icon: <AlertTriangle className="w-4 h-4" />,
-                      count: (analysis as ForensicAnalysis).anomalies.length,
+                      icon: <AlertTriangle className={styles.tabIcon} />,
+                      count: analysis.anomalies.length,
                     },
-                    { key: 'metadata', label: 'Metadata', icon: <FileText className="w-4 h-4" /> },
+                    {
+                      key: 'metadata',
+                      label: 'Metadata',
+                      icon: <FileText className={styles.tabIcon} />,
+                    },
                   ]}
                   activeTab={activeTab}
                   onChange={(key) =>
@@ -415,35 +441,34 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                           <div>
                             Producer:{' '}
                             <span className={styles.metricValue}>
-                              {(metrics as ForensicMetricRecord)?.technical?.producer ?? 'Unknown'}
+                              {metrics?.technical?.producer ?? 'Unknown'}
                             </span>
                           </div>
                           <div>
                             Creator:{' '}
                             <span className={styles.metricValue}>
-                              {(metrics as ForensicMetricRecord)?.technical?.creator ?? 'Unknown'}
+                              {metrics?.technical?.creator ?? 'Unknown'}
                             </span>
                           </div>
                           <div>
                             Created:{' '}
                             <span className={styles.metricValue}>
-                              {(metrics as ForensicMetricRecord)?.technical?.creationDate ?? '—'}
+                              {metrics?.technical?.creationDate ?? '—'}
                             </span>
                           </div>
                           <div>
                             Modified:{' '}
                             <span className={styles.metricValue}>
-                              {(metrics as ForensicMetricRecord)?.technical?.modificationDate ??
-                                '—'}
+                              {metrics?.technical?.modificationDate ?? '—'}
                             </span>
                           </div>
                           <div>
                             Page Count:{' '}
                             <span className={styles.metricValue}>
-                              {(metrics as ForensicMetricRecord)?.technical?.pageCount ?? '—'}
+                              {metrics?.technical?.pageCount ?? '—'}
                             </span>
                           </div>
-                          <div className="mt-2">
+                          <div className={styles.spacer}>
                             <button
                               onClick={async () => {
                                 const r = await fetch(
@@ -471,7 +496,7 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                           <div>
                             JavaScript:{' '}
                             <span className={styles.metricValue}>
-                              {(metrics as ForensicMetricRecord)?.structural?.containsJavascript
+                              {metrics?.structural?.containsJavascript
                                 ? 'Detected'
                                 : 'None/Unknown'}
                             </span>
@@ -479,38 +504,29 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                           <div>
                             Font Count:{' '}
                             <span className={styles.metricValue}>
-                              {(metrics as ForensicMetricRecord)?.structural?.fontCount ??
-                                'Unknown'}
+                              {metrics?.structural?.fontCount ?? 'Unknown'}
                             </span>
                           </div>
                           <div>
                             PDF Version:{' '}
                             <span className={styles.metricValue}>
-                              {(metrics as ForensicMetricRecord)?.structural?.pdfVersion ??
-                                'Unknown'}
+                              {metrics?.structural?.pdfVersion ?? 'Unknown'}
                             </span>
                           </div>
                           <div>
                             JS Object IDs:{' '}
                             <span className={styles.metricValue}>
-                              {Array.isArray(
-                                (metrics as ForensicMetricRecord)?.structural?.jsObjectIds,
-                              )
-                                ? (metrics as ForensicMetricRecord).structural?.jsObjectIds?.length
+                              {Array.isArray(metrics?.structural?.jsObjectIds)
+                                ? metrics?.structural?.jsObjectIds?.length
                                 : 0}
                             </span>
                           </div>
-                          {Array.isArray(
-                            (metrics as ForensicMetricRecord)?.structural?.jsObjectIds,
-                          ) &&
-                            ((metrics as ForensicMetricRecord).structural?.jsObjectIds?.length ??
-                              0) > 0 && (
+                          {Array.isArray(metrics?.structural?.jsObjectIds) &&
+                            (metrics?.structural?.jsObjectIds?.length ?? 0) > 0 && (
                               <details className={styles.details}>
                                 <summary className={styles.summary}>Show IDs</summary>
                                 <div className={styles.detailsContent}>
-                                  {(metrics as ForensicMetricRecord).structural?.jsObjectIds?.join(
-                                    ', ',
-                                  )}
+                                  {metrics?.structural?.jsObjectIds?.join(', ')}
                                 </div>
                               </details>
                             )}
@@ -523,22 +539,19 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                           <div>
                             Flesch-Kincaid:{' '}
                             <span className={styles.metricValue}>
-                              {(metrics as ForensicMetricRecord)?.linguistic?.readabilityFKGL ??
-                                '—'}
+                              {metrics?.linguistic?.readabilityFKGL ?? '—'}
                             </span>
                           </div>
                           <div>
                             Sentiment:{' '}
                             <span className={`${styles.metricValue} capitalize`}>
-                              {(metrics as ForensicMetricRecord)?.linguistic?.sentiment ??
-                                'neutral'}
+                              {metrics?.linguistic?.sentiment ?? 'neutral'}
                             </span>
                           </div>
                           <div>
                             TTR:{' '}
                             <span className={styles.metricValue}>
-                              {(metrics as ForensicMetricRecord)?.linguistic?.typeTokenRatio ?? '—'}
-                              %
+                              {metrics?.linguistic?.typeTokenRatio ?? '—'}%
                             </span>
                           </div>
                         </div>
@@ -550,15 +563,13 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                           <div>
                             Business Hours:{' '}
                             <span className={styles.metricValue}>
-                              {(metrics as ForensicMetricRecord)?.temporal?.businessHours
-                                ? 'Yes'
-                                : 'No'}
+                              {metrics?.temporal?.businessHours ? 'Yes' : 'No'}
                             </span>
                           </div>
                           <div>
                             Day of Week:{' '}
                             <span className={styles.metricValue}>
-                              {(metrics as ForensicMetricRecord)?.temporal?.dayOfWeek ?? '—'}
+                              {metrics?.temporal?.dayOfWeek ?? '—'}
                             </span>
                           </div>
                         </div>
@@ -570,14 +581,13 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                           <div>
                             Entity Density / 1000 words:{' '}
                             <span className={styles.metricValue}>
-                              {(metrics as ForensicMetricRecord)?.network
-                                ?.entityDensityPer1000Words ?? '—'}
+                              {metrics?.network?.entityDensityPer1000Words ?? '—'}
                             </span>
                           </div>
                           <div>
                             Risk Score:{' '}
                             <span className={styles.metricValue}>
-                              {(metrics as ForensicMetricRecord)?.network?.riskScore ?? '—'}%
+                              {metrics?.network?.riskScore ?? '—'}%
                             </span>
                           </div>
                         </div>
@@ -588,16 +598,25 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                         <div className={styles.chartContainer}>
                           <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={summary?.readabilityBuckets || []}>
-                              <XAxis dataKey="range" stroke="#ccc" tick={{ fill: '#ccc' }} />
-                              <YAxis stroke="#ccc" tick={{ fill: '#ccc' }} allowDecimals={false} />
+                              <XAxis
+                                dataKey="range"
+                                stroke="var(--text-muted)"
+                                tick={{ fill: 'var(--text-muted)' }}
+                              />
+                              <YAxis
+                                stroke="var(--text-muted)"
+                                tick={{ fill: 'var(--text-muted)' }}
+                                allowDecimals={false}
+                              />
                               <Tooltip
                                 contentStyle={{
-                                  backgroundColor: '#374151',
-                                  border: 'none',
-                                  color: '#fff',
+                                  backgroundColor: 'var(--glass-bg-strong)',
+                                  border: '1px solid var(--glass-border)',
+                                  color: 'var(--text-primary)',
+                                  borderRadius: 'var(--radius-md)',
                                 }}
                               />
-                              <Bar dataKey="count" fill="#60a5fa" />
+                              <Bar dataKey="count" fill="var(--accent)" />
                             </BarChart>
                           </ResponsiveContainer>
                         </div>
@@ -626,18 +645,23 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                                 dataKey="value"
                                 nameKey="name"
                                 outerRadius={60}
-                                fill="#8884d8"
+                                fill="var(--accent)"
                                 label
                               >
-                                {['#10b981', '#9ca3af', '#ef4444'].map((c, i) => (
+                                {[
+                                  'var(--accent-green)',
+                                  'var(--text-muted)',
+                                  'var(--accent-red)',
+                                ].map((c, i) => (
                                   <Cell key={i} fill={c} />
                                 ))}
                               </Pie>
                               <Tooltip
                                 contentStyle={{
-                                  backgroundColor: '#374151',
-                                  border: 'none',
-                                  color: '#fff',
+                                  backgroundColor: 'var(--glass-bg-strong)',
+                                  border: '1px solid var(--glass-border)',
+                                  color: 'var(--text-primary)',
+                                  borderRadius: 'var(--radius-md)',
                                 }}
                               />
                             </PieChart>
@@ -656,8 +680,8 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                               onMouseLeave={() => setHoveredId('')}
                               onClick={() => openForensicDocument(String(t.id))}
                             >
-                              <span className="truncate max-w-[50%]">{t.fileName}</span>
-                              <span className="mr-2">{t.score}</span>
+                              <span className={styles.entityName}>{t.fileName}</span>
+                              <span className={styles.entityConfidence}>{t.score}</span>
                               <div className={styles.topListActions}>
                                 <button
                                   onClick={(e) => {
@@ -679,7 +703,7 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                                 </button>
                               </div>
                               {hoveredId === String(t.id) && (
-                                <div className="ml-2 text-[10px] text-[var(--text-secondary)]">
+                                <div className={styles.entityConfidence}>
                                   <span>
                                     FKGL:{' '}
                                     {quickMetrics[String(t.id)]?.linguistic?.readabilityFKGL ?? '—'}
@@ -706,8 +730,8 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                               onMouseLeave={() => setHoveredId('')}
                               onClick={() => openForensicDocument(String(t.id))}
                             >
-                              <span className="truncate max-w-[50%]">{t.fileName}</span>
-                              <span className="mr-2">{t.score}</span>
+                              <span className={styles.entityName}>{t.fileName}</span>
+                              <span className={styles.entityConfidence}>{t.score}</span>
                               <div className={styles.topListActions}>
                                 <button
                                   onClick={(e) => {
@@ -729,7 +753,7 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                                 </button>
                               </div>
                               {hoveredId === String(t.id) && (
-                                <div className="ml-2 text-[10px] text-[var(--text-secondary)]">
+                                <div className={styles.entityConfidence}>
                                   <span>
                                     FKGL:{' '}
                                     {quickMetrics[String(t.id)]?.linguistic?.readabilityFKGL ?? '—'}
@@ -756,8 +780,8 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                               onMouseLeave={() => setHoveredId('')}
                               onClick={() => openForensicDocument(String(t.id))}
                             >
-                              <span className="truncate max-w-[50%]">{t.fileName}</span>
-                              <span className="mr-2">{t.score}%</span>
+                              <span className={styles.entityName}>{t.fileName}</span>
+                              <span className={styles.entityConfidence}>{t.score}%</span>
                               <div className={styles.topListActions}>
                                 <button
                                   onClick={(e) => {
@@ -779,7 +803,7 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                                 </button>
                               </div>
                               {hoveredId === String(t.id) && (
-                                <div className="ml-2 text-[10px] text-[var(--text-secondary)]">
+                                <div className={styles.entityConfidence}>
                                   <span>
                                     FKGL:{' '}
                                     {quickMetrics[String(t.id)]?.linguistic?.readabilityFKGL ?? '—'}
@@ -816,7 +840,11 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                         </div>
                         <div className={styles.dashboardGrid}>
                           <div className={styles.metricCard}>
-                            <h5 className={`${styles.metricValue} text-sm mb-2`}>FKGL</h5>
+                            <h5
+                              className={`${styles.metricTitle} ${styles.iconSmall} ${styles.spacer}`}
+                            >
+                              FKGL
+                            </h5>
                             <div className={styles.chartContainer}>
                               <ResponsiveContainer width="100%" height="100%">
                                 <BarChart
@@ -831,16 +859,34 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                                     },
                                   ]}
                                 >
-                                  <XAxis dataKey="name" stroke="#ccc" tick={{ fill: '#ccc' }} />
-                                  <YAxis stroke="#ccc" tick={{ fill: '#ccc' }} />
-                                  <Tooltip />
-                                  <Bar dataKey="val" fill="#ef4444" />
+                                  <XAxis
+                                    dataKey="name"
+                                    stroke="var(--text-muted)"
+                                    tick={{ fill: 'var(--text-muted)' }}
+                                  />
+                                  <YAxis
+                                    stroke="var(--text-muted)"
+                                    tick={{ fill: 'var(--text-muted)' }}
+                                  />
+                                  <Tooltip
+                                    contentStyle={{
+                                      backgroundColor: 'var(--glass-bg-strong)',
+                                      border: '1px solid var(--glass-border)',
+                                      color: 'var(--text-primary)',
+                                      borderRadius: 'var(--radius-md)',
+                                    }}
+                                  />
+                                  <Bar dataKey="val" fill="var(--accent-red)" />
                                 </BarChart>
                               </ResponsiveContainer>
                             </div>
                           </div>
                           <div className={styles.metricCard}>
-                            <h5 className={`${styles.metricValue} text-sm mb-2`}>Entity Density</h5>
+                            <h5
+                              className={`${styles.metricTitle} ${styles.iconSmall} ${styles.spacer}`}
+                            >
+                              Entity Density
+                            </h5>
                             <div className={styles.chartContainer}>
                               <ResponsiveContainer width="100%" height="100%">
                                 <BarChart
@@ -855,10 +901,24 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                                     },
                                   ]}
                                 >
-                                  <XAxis dataKey="name" stroke="#ccc" tick={{ fill: '#ccc' }} />
-                                  <YAxis stroke="#ccc" tick={{ fill: '#ccc' }} />
-                                  <Tooltip />
-                                  <Bar dataKey="val" fill="#10b981" />
+                                  <XAxis
+                                    dataKey="name"
+                                    stroke="var(--text-muted)"
+                                    tick={{ fill: 'var(--text-muted)' }}
+                                  />
+                                  <YAxis
+                                    stroke="var(--text-muted)"
+                                    tick={{ fill: 'var(--text-muted)' }}
+                                  />
+                                  <Tooltip
+                                    contentStyle={{
+                                      backgroundColor: 'var(--glass-bg-strong)',
+                                      border: '1px solid var(--glass-border)',
+                                      color: 'var(--text-primary)',
+                                      borderRadius: 'var(--radius-md)',
+                                    }}
+                                  />
+                                  <Bar dataKey="val" fill="var(--accent-green)" />
                                 </BarChart>
                               </ResponsiveContainer>
                             </div>
@@ -869,9 +929,9 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                   )}
                   {activeTab === 'entities' && (
                     <div className={styles.entityList}>
-                      {(analysis as ForensicAnalysis).entities.map((entity, index) => (
+                      {analysis.entities.map((entity, idx) => (
                         <div
-                          key={index}
+                          key={idx}
                           className={styles.entityItem}
                           onClick={() => setSelectedEntity(entity)}
                         >
@@ -883,12 +943,12 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                             </div>
                             <div className={styles.entityInfo}>
                               <div className={styles.entityHeaderLine}>
-                                <p className={styles.entityName}>{entity.text}</p>
+                                <h4 className={styles.entityName}>{entity.text}</h4>
                                 <span className={styles.entityConfidence}>
-                                  {Math.round(entity.confidence)}%
+                                  {Math.round(entity.confidence * 100)}% confidence
                                 </span>
                               </div>
-                              <p className={styles.entityType}>{entity.type}</p>
+                              <div className={styles.entityType}>{entity.type}</div>
                               <p className={styles.entityContext}>{entity.context}</p>
                             </div>
                           </div>
@@ -899,21 +959,21 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
 
                   {activeTab === 'patterns' && (
                     <div className={styles.patternList}>
-                      {(analysis as ForensicAnalysis).patterns.map((pattern, index) => (
+                      {analysis.patterns.map((pattern, idx) => (
                         <div
-                          key={index}
+                          key={idx}
                           className={styles.patternItem}
                           style={{
                             borderLeftColor:
                               pattern.significance === 'high'
-                                ? 'var(--status-error)'
+                                ? 'var(--accent-red)'
                                 : pattern.significance === 'medium'
-                                  ? 'var(--status-warning)'
-                                  : 'var(--status-success)',
+                                  ? 'var(--accent-yellow)'
+                                  : 'var(--accent-green)',
                           }}
                         >
                           <div className={styles.patternHeaderLine}>
-                            <span className={styles.patternTypeLabel}>{pattern.type}</span>
+                            <span className={styles.patternTypeLabel}>{pattern.type} Pattern</span>
                             <span
                               className={`${styles.significanceBadge} ${
                                 pattern.significance === 'high'
@@ -923,38 +983,26 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                                     : styles.badgeLow
                               }`}
                             >
-                              {pattern.significance}
+                              {pattern.significance} significance
                             </span>
                           </div>
-                          <div className={styles.patternCard}>
-                            <div className={styles.patternInner}>
-                              <AlertTriangle className={styles.alertIcon} />
-                              <div className="flex-1">
-                                <h4 className={styles.patternTitle}>{pattern.type}</h4>
-                                <p className={styles.patternDescription}>{pattern.description}</p>
-                                <div className={styles.severityContainer}>
-                                  <span className={styles.severityLabel}>Severity:</span>
-                                  <div className={styles.severityTrack}>
-                                    <div
-                                      className={`${styles.severityBar} ${
-                                        pattern.severity === 'high'
-                                          ? styles.barHigh
-                                          : pattern.severity === 'medium'
-                                            ? styles.barMedium
-                                            : styles.barLow
-                                      }`}
-                                      style={{
-                                        width:
-                                          pattern.severity === 'high'
-                                            ? '100%'
-                                            : pattern.severity === 'medium'
-                                              ? '60%'
-                                              : '30%',
-                                      }}
-                                    />
-                                  </div>
-                                </div>
-                              </div>
+                          <h4 className={styles.metricTitle}>{pattern.description}</h4>
+                          <div className={styles.patternInner}>
+                            <AlertTriangle className={styles.alertIcon} />
+                            <p className={styles.entityContext}>
+                              Involves: {pattern.entities.join(', ')}
+                            </p>
+                          </div>
+                          <div className={styles.severityContainer}>
+                            <span className={styles.severityLabel}>Confidence</span>
+                            <div className={styles.severityTrack}>
+                              <div
+                                className={styles.severityBar}
+                                style={{
+                                  width: `${pattern.confidence * 100}%`,
+                                  backgroundColor: 'var(--accent)',
+                                }}
+                              ></div>
                             </div>
                           </div>
                         </div>
@@ -964,58 +1012,49 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
 
                   {activeTab === 'anomalies' && (
                     <div className={styles.anomalyList}>
-                      {(analysis as ForensicAnalysis).anomalies.map((anomaly, index) => (
-                        <div key={index} className={styles.anomalyItem}>
-                          <div className={styles.anomalyHeader}>
-                            <AlertTriangle className={styles.alertIcon} />
-                            <h4 className={styles.anomalyType}>{anomaly.type}</h4>
-                            <span className={styles.anomalySeverity}>{anomaly.severity}</span>
+                      {analysis.anomalies.map((anomaly, idx) => (
+                        <div key={idx} className={styles.anomalyItem}>
+                          <div className={styles.patternHeaderLine}>
+                            <span className={styles.patternTypeLabel}>{anomaly.type} Anomaly</span>
+                            <span
+                              className={`${styles.anomalySeverity} ${
+                                anomaly.severity === 'critical'
+                                  ? styles.sentimentNegative
+                                  : styles.sentimentPositive
+                              }`}
+                            >
+                              {anomaly.severity}
+                            </span>
                           </div>
                           <p className={styles.anomalyDescription}>{anomaly.description}</p>
-                          <div className={styles.anomalyContext}>
-                            Explanation: {anomaly.explanation}
-                          </div>
+                          <p className={styles.anomalyContext}>{anomaly.explanation}</p>
+                          {anomaly.requiresInvestigation && (
+                            <div className={`${styles.severityContainer} ${styles.spacer}`}>
+                              <AlertTriangle className={styles.alertIcon} />
+                              <span className={styles.sentimentNegative}>
+                                Requires immediate investigation
+                              </span>
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
                   )}
 
-                  {activeTab === 'metadata' && (
-                    <div className={styles.metadataPanel}>
+                  {activeTab === 'metadata' && analysis && (
+                    <div className={styles.dashboardGrid}>
                       <DocumentMetadataPanel
                         document={{
-                          fileName: (analysis as ForensicAnalysis).metadata.fileInfo.name,
-                          fileType: (analysis as ForensicAnalysis).metadata.fileInfo.type,
-                          fileSize: (analysis as ForensicAnalysis).metadata.fileInfo.size,
-                          contentHash: (analysis as ForensicAnalysis).metadata.fileInfo.hash,
-                          dateCreated: (analysis as ForensicAnalysis).metadata.fileInfo.created,
-                          dateModified: (analysis as ForensicAnalysis).metadata.fileInfo.modified,
-                          redFlagRating: (metrics as ForensicMetricRecord | null)?.network
-                            ?.riskScore
-                            ? Math.ceil(
-                                ((metrics as ForensicMetricRecord | null)?.network?.riskScore ??
-                                  0) / 20,
-                              )
-                            : 0,
-                          tags: (analysis as ForensicAnalysis).metadata.tags,
+                          id: documentId,
                           metadata: {
-                            technical:
-                              (metrics as ForensicMetricRecord | null)?.technical ||
-                              (analysis as ForensicAnalysis).metadata.technical,
-                            structure:
-                              (metrics as ForensicMetricRecord | null)?.structural ||
-                              (analysis as ForensicAnalysis).metadata.structure,
-                            linguistics:
-                              (metrics as ForensicMetricRecord | null)?.linguistic ||
-                              (analysis as ForensicAnalysis).metadata.linguistics,
-                            network:
-                              (metrics as ForensicMetricRecord | null)?.network ||
-                              (analysis as ForensicAnalysis).metadata.network,
-                            source_collection: docMeta?.source_collection,
-                            source_original_url: docMeta?.source_original_url,
-                            tags: (analysis as ForensicAnalysis).metadata.tags,
+                            technical: metrics?.technical || analysis.metadata.technical,
+                            structure: metrics?.structural || analysis.metadata.structure,
+                            linguistics: metrics?.linguistic || analysis.metadata.linguistics,
+                            network: metrics?.network || analysis.metadata.network,
+                            tags: analysis.metadata.tags,
                           },
                         }}
+                        className={styles.metricCard}
                       />
                     </div>
                   )}
@@ -1031,12 +1070,12 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
         <div className={styles.modalOverlay}>
           <div className={styles.modalContainer}>
             <div className={styles.modalHeader}>
-              <div>
-                <h3 className={styles.modalTitle}>{selectedEntity.name}</h3>
+              <div className={styles.entityInfo}>
+                <h3 className={styles.modalTitle}>{selectedEntity.text}</h3>
                 <span className={styles.modalSubtitle}>{selectedEntity.type}</span>
               </div>
               <button onClick={() => setSelectedEntity(null)} className={styles.modalClose}>
-                <XCircle className="w-6 h-6" />
+                <XCircle className={styles.iconButton} />
               </button>
             </div>
 
@@ -1045,29 +1084,41 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                 <h4 className={styles.modalSectionTitle}>Analysis</h4>
                 <div className={styles.modalGrid}>
                   <div>
-                    <span className={styles.modalLabel}>Sentiment</span>
-                    <span
-                      className={
-                        selectedEntity.sentiment === 'negative'
-                          ? styles.sentimentNegative
-                          : styles.sentimentPositive
-                      }
-                    >
-                      {selectedEntity.sentiment}
+                    <span className={styles.modalLabel}>Confidence Score</span>
+                    <span className={styles.modalValue}>
+                      {Math.round(selectedEntity.confidence * 100)}%
                     </span>
                   </div>
                   <div>
-                    <span className={styles.modalLabel}>Confidence</span>
-                    <span className={styles.modalValue}>
-                      {(selectedEntity.confidence * 100).toFixed(0)}%
-                    </span>
+                    <span className={styles.modalLabel}>Detected Text</span>
+                    <span className={styles.modalValue}>{selectedEntity.text}</span>
                   </div>
                 </div>
               </div>
 
+              {selectedEntity.context && (
+                <div className={styles.modalAnalysis}>
+                  <h4 className={styles.modalSectionTitle}>Contextual Presence</h4>
+                  <p className={styles.entityContext}>{selectedEntity.context}</p>
+                </div>
+              )}
+
+              {selectedEntity.crossReferences && selectedEntity.crossReferences.length > 0 && (
+                <div className={styles.modalAnalysis}>
+                  <h4 className={styles.modalSectionTitle}>Cross-References</h4>
+                  <div className={styles.tagList}>
+                    {selectedEntity.crossReferences.map((ref, i) => (
+                      <span key={i} className={styles.tag}>
+                        {ref}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className={styles.modalActions}>
-                <button onClick={() => setSelectedEntity(null)} className={styles.modalButton}>
-                  Close
+                <button onClick={() => setSelectedEntity(null)} className={styles.downloadButton}>
+                  Close Detail
                 </button>
               </div>
             </div>

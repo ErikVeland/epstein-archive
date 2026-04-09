@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import Icon from '../common/Icon';
 import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
+import styles from './FinancialTransactionMapper.module.css';
 
 interface Transaction {
   id: string;
@@ -279,43 +280,41 @@ export default function FinancialTransactionMapper({
   };
 
   return (
-    <div className="min-h-screen bg-[var(--glass-bg-strong)] text-[var(--text-primary)] p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className={styles.page}>
+      <div className={styles.container}>
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-red-400 mb-2">Financial Transaction Mapper</h1>
-          <p className="text-[var(--text-muted)]">
+        <div className={styles.header}>
+          <h1 className={styles.title}>Financial Transaction Mapper</h1>
+          <p className={styles.subtitle}>
             Advanced forensic analysis of financial flows and suspicious patterns
           </p>
         </div>
 
         {/* Controls - Stacked Layout */}
-        <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] p-6 mb-6">
+        <div className={`${styles.panel} ${styles.controls}`}>
           {/* Search Row */}
-          <div className="mb-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[var(--text-muted)] w-4 h-4" />
+          <div className={styles.searchRow}>
+            <div className={styles.searchWrap}>
+              <Search className={styles.searchIcon} />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search entities, descriptions, or transaction details..."
-                className="w-full pl-10 pr-4 py-3 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className={styles.textInput}
               />
             </div>
           </div>
 
           {/* Filters Row - Stacked Layout */}
-          <div className="flex flex-col gap-3 mb-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div className={styles.filters}>
+            <div className={styles.filterGrid}>
               <div>
-                <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">
-                  Risk Level
-                </label>
+                <label className={styles.fieldLabel}>Risk Level</label>
                 <select
                   value={filterRisk}
                   onChange={(e) => setFilterRisk(e.target.value)}
-                  className="w-full px-3 py-2 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] focus:ring-2 focus:ring-red-500 text-sm"
+                  className={styles.selectInput}
                 >
                   <option value="all">All Risk Levels</option>
                   <option value="low">Low Risk</option>
@@ -326,13 +325,11 @@ export default function FinancialTransactionMapper({
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">
-                  Amount Range
-                </label>
+                <label className={styles.fieldLabel}>Amount Range</label>
                 <select
                   value={filterAmount}
                   onChange={(e) => setFilterAmount(e.target.value)}
-                  className="w-full px-3 py-2 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] focus:ring-2 focus:ring-red-500 text-sm"
+                  className={styles.selectInput}
                 >
                   <option value="all">All Amounts</option>
                   <option value="small">Under $100K</option>
@@ -342,42 +339,38 @@ export default function FinancialTransactionMapper({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className={styles.filterGrid}>
               <div>
-                <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">
-                  Start Date
-                </label>
+                <label className={styles.fieldLabel}>Start Date</label>
                 <input
                   type="date"
                   value={dateRange.start}
                   onChange={(e) => setDateRange((prev) => ({ ...prev, start: e.target.value }))}
-                  className="w-full px-3 py-2 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] focus:ring-2 focus:ring-red-500 text-sm"
+                  className={styles.dateInput}
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">
-                  End Date
-                </label>
+                <label className={styles.fieldLabel}>End Date</label>
                 <input
                   type="date"
                   value={dateRange.end}
                   onChange={(e) => setDateRange((prev) => ({ ...prev, end: e.target.value }))}
-                  className="w-full px-3 py-2 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] focus:ring-2 focus:ring-red-500 text-sm"
+                  className={styles.dateInput}
                 />
               </div>
             </div>
           </div>
 
           {/* Actions Row */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-            <div className="flex items-center gap-3">
+          <div className={styles.actionsRow}>
+            <div className={styles.actionsLeft}>
               <select
                 value={viewMode}
                 onChange={(e) =>
                   setViewMode(e.target.value as 'flow' | 'network' | 'timeline' | 'patterns')
                 }
-                className="px-3 py-2 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] focus:ring-2 focus:ring-red-500 text-sm"
+                className={styles.selectInput}
               >
                 <option value="flow">Flow Analysis</option>
                 <option value="network">Network View</option>
@@ -385,54 +378,49 @@ export default function FinancialTransactionMapper({
                 <option value="patterns">Detected Patterns</option>
               </select>
 
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-[var(--text-muted)]">
-                  {filteredTransactions.length} transactions
-                </span>
-              </div>
+              <span className={styles.transactionCount}>
+                {filteredTransactions.length} transactions
+              </span>
             </div>
 
-            <button
-              onClick={exportTransactionData}
-              className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-[var(--radius-lg)] transition-colors text-sm"
-            >
-              <Download className="w-4 h-4" />
+            <button onClick={exportTransactionData} className={styles.exportButton}>
+              <Download className={styles.calendarIcon} />
               Export Data
             </button>
           </div>
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] p-4">
-            <div className="flex items-center justify-between">
+        <div className={styles.summaryGrid}>
+          <div className={styles.summaryCard}>
+            <div className={styles.summaryRow}>
               <div>
-                <p className="text-[var(--text-muted)] text-sm">Total Transactions</p>
-                <p className="text-2xl font-bold text-[var(--accent)]">
+                <p className={styles.summaryLabel}>Total Transactions</p>
+                <p className={`${styles.summaryValue} ${styles.summaryAccent}`}>
                   {filteredTransactions.length}
                 </p>
               </div>
-              <TrendingUp className="w-8 h-8 text-[var(--accent)]" />
+              <TrendingUp className={`${styles.summaryIcon} ${styles.summaryAccent}`} />
             </div>
           </div>
 
-          <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] p-4">
-            <div className="flex items-center justify-between">
+          <div className={styles.summaryCard}>
+            <div className={styles.summaryRow}>
               <div>
-                <p className="text-[var(--text-muted)] text-sm">Total Value</p>
-                <p className="text-2xl font-bold text-green-400">
+                <p className={styles.summaryLabel}>Total Value</p>
+                <p className={`${styles.summaryValue} ${styles.summaryGreen}`}>
                   {formatCurrency(filteredTransactions.reduce((sum, tx) => sum + tx.amount, 0))}
                 </p>
               </div>
-              <DollarSign className="w-8 h-8 text-green-400" />
+              <DollarSign className={`${styles.summaryIcon} ${styles.summaryGreen}`} />
             </div>
           </div>
 
-          <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] p-4">
-            <div className="flex items-center justify-between">
+          <div className={styles.summaryCard}>
+            <div className={styles.summaryRow}>
               <div>
-                <p className="text-[var(--text-muted)] text-sm">High Risk</p>
-                <p className="text-2xl font-bold text-yellow-400">
+                <p className={styles.summaryLabel}>High Risk</p>
+                <p className={`${styles.summaryValue} ${styles.summaryYellow}`}>
                   {
                     filteredTransactions.filter(
                       (tx) => tx.riskLevel === 'high' || tx.riskLevel === 'critical',
@@ -440,74 +428,68 @@ export default function FinancialTransactionMapper({
                   }
                 </p>
               </div>
-              <AlertTriangle className="w-8 h-8 text-yellow-400" />
+              <AlertTriangle className={`${styles.summaryIcon} ${styles.summaryYellow}`} />
             </div>
           </div>
 
-          <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] p-4">
-            <div className="flex items-center justify-between">
+          <div className={styles.summaryCard}>
+            <div className={styles.summaryRow}>
               <div>
-                <p className="text-[var(--text-muted)] text-sm">Patterns Detected</p>
-                <p className="text-2xl font-bold text-red-400">{detectedPatterns.length}</p>
+                <p className={styles.summaryLabel}>Patterns Detected</p>
+                <p className={`${styles.summaryValue} ${styles.summaryRed}`}>
+                  {detectedPatterns.length}
+                </p>
               </div>
-              <Filter className="w-8 h-8 text-red-400" />
+              <Filter className={`${styles.summaryIcon} ${styles.summaryRed}`} />
             </div>
           </div>
         </div>
 
         {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className={styles.contentGrid}>
           {/* Transaction List */}
-          <div className="lg:col-span-2">
-            <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] p-6">
-              <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-4">
-                Transactions
-              </h2>
-              <div className="space-y-4 max-h-96 overflow-y-auto">
+          <div className={styles.mainColumn}>
+            <div className={styles.panel}>
+              <h2 className={styles.sectionTitle}>Transactions</h2>
+              <div className={styles.transactionList}>
                 {filteredTransactions.map((transaction) => (
                   <div
                     key={transaction.id}
                     onClick={() => setSelectedTransaction(transaction)}
-                    className={`p-4 rounded-[var(--radius-lg)] cursor-pointer transition-colors ${
+                    className={`${
                       selectedTransaction?.id === transaction.id
-                        ? 'bg-red-900 border border-red-500'
-                        : 'bg-[var(--glass-bg-highlight)] hover:bg-[var(--glass-bg-highlight)]'
+                        ? `${styles.transactionItem} ${styles.transactionItemSelected}`
+                        : styles.transactionItem
                     }`}
                   >
-                    <div className="flex flex-col gap-2">
-                      <div className="flex justify-between items-start">
-                        <div className="flex items-center gap-2 min-w-0 flex-1">
-                          <User className="w-4 h-4 text-[var(--text-muted)] shrink-0" />
-                          <span
-                            className="font-medium text-[var(--text-primary)] whitespace-nowrap overflow-hidden text-ellipsis max-w-[120px]"
-                            title={transaction.fromEntity}
-                          >
+                    <div className={styles.transactionHeader}>
+                      <div className={styles.transactionTop}>
+                        <div className={styles.transactionRoute}>
+                          <User className={styles.routeIconMuted} />
+                          <span className={styles.routeEntity} title={transaction.fromEntity}>
                             {transaction.fromEntity}
                           </span>
-                          <TrendingDown className="w-4 h-4 text-red-400 shrink-0" />
-                          <User className="w-4 h-4 text-[var(--text-muted)] shrink-0" />
-                          <span
-                            className="font-medium text-[var(--text-primary)] whitespace-nowrap overflow-hidden text-ellipsis max-w-[120px]"
-                            title={transaction.toEntity}
-                          >
+                          <TrendingDown className={styles.routeIconDanger} />
+                          <User className={styles.routeIconMuted} />
+                          <span className={styles.routeEntity} title={transaction.toEntity}>
                             {transaction.toEntity}
                           </span>
                         </div>
                         <div
-                          className="flex items-center gap-1"
+                          className={styles.riskActions}
                           title={`Risk Level: ${transaction.riskLevel.toUpperCase()}`}
                         >
                           {transaction.riskLevel === 'critical' && (
-                            <ShieldAlert className="w-5 h-5 text-red-400" />
+                            <ShieldAlert className={`${styles.riskIcon} ${styles.riskCritical}`} />
                           )}
                           {transaction.riskLevel === 'high' && (
-                            <Shield className="w-5 h-5 text-yellow-400" />
+                            <Shield className={`${styles.riskIcon} ${styles.riskHigh}`} />
                           )}
                           {transaction.riskLevel === 'medium' && (
-                            <ShieldCheck className="w-5 h-5 text-[var(--accent)]" />
+                            <ShieldCheck className={`${styles.riskIcon} ${styles.riskMedium}`} />
                           )}
                           {transaction.riskLevel === 'low' && (
-                            <Shield className="w-5 h-5 text-green-400" />
+                            <Shield className={`${styles.riskIcon} ${styles.riskLow}`} />
                           )}
                           <span onClick={(e) => e.stopPropagation()}>
                             <AddToInvestigationButton
@@ -532,38 +514,35 @@ export default function FinancialTransactionMapper({
                                 window.dispatchEvent(event);
                               }}
                               variant="icon"
-                              className="hover:bg-[var(--glass-bg-highlight)] p-1"
+                              className={styles.addButton}
                             />
                           </span>
                         </div>
                       </div>
 
-                      <div className="flex justify-between items-center text-sm text-[var(--text-muted)]">
-                        <span className="font-semibold">
+                      <div className={styles.transactionMeta}>
+                        <span className={styles.amount}>
                           {formatCurrency(transaction.amount, transaction.currency)}
                         </span>
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />
+                        <span className={styles.calendarMeta}>
+                          <Calendar className={styles.calendarIcon} />
                           {transaction.date}
                         </span>
-                        <span className="capitalize">{transaction.type.replace('_', ' ')}</span>
+                        <span className={styles.typeText}>
+                          {transaction.type.replace('_', ' ')}
+                        </span>
                       </div>
 
-                      <p className="text-sm text-[var(--text-secondary)] whitespace-normal break-words">
-                        {transaction.description}
-                      </p>
+                      <p className={styles.description}>{transaction.description}</p>
                     </div>
 
                     {transaction.suspiciousIndicators.length > 0 && (
-                      <div className="mt-2">
-                        <div className="flex flex-wrap gap-2">
+                      <div className={styles.indicatorWrap}>
+                        <div className={styles.indicatorList}>
                           {transaction.suspiciousIndicators.map((indicator, index) => (
-                            <span
-                              key={index}
-                              className="relative overflow-hidden px-2 py-1 bg-red-900/40 text-red-200 rounded text-xs border border-red-800/50 group"
-                            >
-                              <span className="relative z-10 whitespace-normal">{indicator}</span>
-                              <AlertTriangle className="absolute -right-1 -bottom-1 w-6 h-6 text-red-500/10 rotate-12" />
+                            <span key={index} className={styles.indicatorBadge}>
+                              <span className={styles.indicatorText}>{indicator}</span>
+                              <AlertTriangle className={styles.indicatorIcon} />
                             </span>
                           ))}
                         </div>
@@ -576,55 +555,50 @@ export default function FinancialTransactionMapper({
           </div>
 
           {/* Side Panel */}
-          <div className="space-y-6">
+          <div className={styles.sideColumn}>
             {/* Entity Flow Analysis */}
-            <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] p-6">
-              <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
-                Entity Flow Analysis
-              </h3>
-              <div className="space-y-2 max-h-64 overflow-y-auto">
+            <div className={styles.panel}>
+              <h3 className={styles.sectionTitle}>Entity Flow Analysis</h3>
+              <div className={styles.flowList}>
                 {flowAnalysis.slice(0, 5).map((flow, index) => (
-                  <div key={index} className="p-2 bg-[var(--glass-bg-highlight)] rounded">
-                    <div className="flex justify-between items-center mb-1">
-                      <span
-                        className="font-medium text-[var(--text-primary)] text-xs truncate max-w-[120px]"
-                        title={flow.entity}
-                      >
+                  <div key={index} className={styles.flowCard}>
+                    <div className={styles.flowHeader}>
+                      <span className={styles.flowEntity} title={flow.entity}>
                         {flow.entity}
                       </span>
                       <span
-                        className={`text-xs px-1 py-0.5 rounded ${
+                        className={`${
                           flow.riskScore > 20
-                            ? 'bg-red-900 text-red-200'
+                            ? `${styles.scoreBadge} ${styles.scoreHigh}`
                             : flow.riskScore > 10
-                              ? 'bg-yellow-900 text-yellow-200'
-                              : 'bg-green-900 text-green-200'
+                              ? `${styles.scoreBadge} ${styles.scoreMedium}`
+                              : `${styles.scoreBadge} ${styles.scoreLow}`
                         }`}
                       >
                         {flow.riskScore}
                       </span>
                     </div>
-                    <div className="grid grid-cols-3 gap-1 text-xs text-[var(--text-muted)]">
+                    <div className={styles.flowGrid}>
                       <div
-                        className="whitespace-nowrap overflow-hidden text-ellipsis"
+                        className={styles.ellipsisText}
                         title={`In: ${formatCurrency(flow.inflow)}`}
                       >
                         In: {formatCurrency(flow.inflow)}
                       </div>
                       <div
-                        className="whitespace-nowrap overflow-hidden text-ellipsis"
+                        className={styles.ellipsisText}
                         title={`Out: ${formatCurrency(flow.outflow)}`}
                       >
                         Out: {formatCurrency(flow.outflow)}
                       </div>
                       <div
-                        className="whitespace-nowrap overflow-hidden text-ellipsis"
+                        className={styles.ellipsisText}
                         title={`Net: ${formatCurrency(Math.abs(flow.netFlow))}`}
                       >
                         Net: {formatCurrency(Math.abs(flow.netFlow))}
                       </div>
                     </div>
-                    <div className="text-xs text-[var(--text-muted)] mt-1 truncate">
+                    <div className={`${styles.flowFooter} ${styles.ellipsisText}`}>
                       {flow.transactionCount} tx • {flow.connections.length} conn
                     </div>
                   </div>
@@ -634,39 +608,29 @@ export default function FinancialTransactionMapper({
 
             {/* Detected Patterns */}
             {detectedPatterns.length > 0 && (
-              <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] p-6">
-                <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-4">
-                  Detected Patterns
-                </h3>
-                <div className="space-y-2">
+              <div className={styles.panel}>
+                <h3 className={styles.sectionTitle}>Detected Patterns</h3>
+                <div className={styles.patternList}>
                   {detectedPatterns.map((pattern, index) => (
-                    <div
-                      key={index}
-                      className="p-2 bg-[var(--glass-bg-highlight)] rounded border-l-2 border-red-500"
-                    >
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="font-medium text-[var(--text-primary)] capitalize text-xs">
-                          {pattern.type.replace('_', ' ')}
-                        </span>
+                    <div key={index} className={styles.patternCard}>
+                      <div className={styles.patternHeader}>
+                        <span className={styles.patternName}>{pattern.type.replace('_', ' ')}</span>
                         <span
-                          className={`text-xs px-1 py-0.5 rounded ${
+                          className={`${
                             pattern.severity === 'critical'
-                              ? 'bg-red-900 text-red-200'
+                              ? `${styles.severityBadge} ${styles.severityCritical}`
                               : pattern.severity === 'high'
-                                ? 'bg-yellow-900 text-yellow-200'
-                                : 'bg-blue-900 text-blue-200'
+                                ? `${styles.severityBadge} ${styles.severityHigh}`
+                                : `${styles.severityBadge} ${styles.severityLow}`
                           }`}
                         >
                           {pattern.severity.substring(0, 1).toUpperCase()}
                         </span>
                       </div>
-                      <p
-                        className="text-xs text-[var(--text-secondary)] mb-1 line-clamp-2"
-                        title={pattern.description}
-                      >
+                      <p className={styles.patternDescription} title={pattern.description}>
                         {pattern.description}
                       </p>
-                      <div className="flex justify-between items-center text-xs text-[var(--text-muted)]">
+                      <div className={styles.patternMeta}>
                         <span>{pattern.confidence}% conf</span>
                         <span>{pattern.transactions.length} tx</span>
                       </div>
@@ -678,24 +642,18 @@ export default function FinancialTransactionMapper({
 
             {/* Transaction Details - Modal on Mobile, Inline on Desktop */}
             {selectedTransaction && (
-              <div
-                className={`
-                fixed inset-0 z-50 bg-[var(--glass-bg-strong)]/95 backdrop-blur-sm p-4 overflow-y-auto flex items-center justify-center md:static md:bg-transparent md:backdrop-blur-none md:p-0 md:block
-              `}
-              >
-                <div className="bg-[var(--glass-bg)] rounded-[var(--radius-lg)] p-6 w-full max-w-lg md:max-w-none shadow-[var(--glass-shadow)] md:shadow-none border border-[var(--glass-border)] md:border-0 relative">
+              <div className={styles.detailsOverlay}>
+                <div className={styles.detailsCard}>
                   {/* Mobile Close Button */}
                   <button
                     onClick={() => setSelectedTransaction(null)}
-                    className="absolute top-4 right-4 p-2 bg-[var(--glass-bg-highlight)] rounded-full text-[var(--text-muted)] hover:text-[var(--text-primary)] md:hidden"
+                    className={styles.mobileClose}
                   >
-                    <Icon name="X" className="w-5 h-5" />
+                    <Icon name="X" className={styles.closeIcon} />
                   </button>
 
-                  <div className="flex items-center justify-between mb-4 pr-10 md:pr-0">
-                    <h3 className="text-lg font-semibold text-[var(--text-primary)]">
-                      Transaction Details
-                    </h3>
+                  <div className={`${styles.detailsHeader} ${styles.detailsHeaderCompact}`}>
+                    <h3 className={styles.sectionTitle}>Transaction Details</h3>
                     <AddToInvestigationButton
                       item={{
                         id: selectedTransaction.id,
@@ -721,80 +679,54 @@ export default function FinancialTransactionMapper({
                       className="text-xs"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <div>
-                      <label className="block text-xs font-medium text-[var(--text-muted)]">
-                        From
-                      </label>
-                      <p
-                        className="text-[var(--text-primary)] text-sm"
-                        title={selectedTransaction.fromEntity}
-                      >
+                  <div className={styles.detailsList}>
+                    <div className={styles.detailBlock}>
+                      <label>From</label>
+                      <p className={styles.detailText} title={selectedTransaction.fromEntity}>
                         {selectedTransaction.fromEntity}
                       </p>
                     </div>
-                    <div>
-                      <label className="block text-xs font-medium text-[var(--text-muted)]">
-                        To
-                      </label>
-                      <p
-                        className="text-[var(--text-primary)] text-sm"
-                        title={selectedTransaction.toEntity}
-                      >
+                    <div className={styles.detailBlock}>
+                      <label>To</label>
+                      <p className={styles.detailText} title={selectedTransaction.toEntity}>
                         {selectedTransaction.toEntity}
                       </p>
                     </div>
-                    <div>
-                      <label className="block text-xs font-medium text-[var(--text-muted)]">
-                        Amount
-                      </label>
-                      <p className="text-[var(--text-primary)] font-semibold">
+                    <div className={styles.detailBlock}>
+                      <label>Amount</label>
+                      <p className={styles.detailValue}>
                         {formatCurrency(selectedTransaction.amount, selectedTransaction.currency)}
                       </p>
                     </div>
-                    <div>
-                      <label className="block text-xs font-medium text-[var(--text-muted)]">
-                        Date
-                      </label>
-                      <p className="text-[var(--text-primary)] text-sm">
-                        {selectedTransaction.date}
-                      </p>
+                    <div className={styles.detailBlock}>
+                      <label>Date</label>
+                      <p className={styles.detailText}>{selectedTransaction.date}</p>
                     </div>
-                    <div>
-                      <label className="block text-xs font-medium text-[var(--text-muted)]">
-                        Type
-                      </label>
-                      <p className="text-[var(--text-primary)] text-sm capitalize">
+                    <div className={styles.detailBlock}>
+                      <label>Type</label>
+                      <p className={`${styles.detailText} ${styles.capitalized}`}>
                         {selectedTransaction.type.replace('_', ' ')}
                       </p>
                     </div>
-                    <div>
-                      <label className="block text-xs font-medium text-[var(--text-muted)]">
-                        Method
-                      </label>
-                      <p className="text-[var(--text-primary)] text-sm capitalize">
+                    <div className={styles.detailBlock}>
+                      <label>Method</label>
+                      <p className={`${styles.detailText} ${styles.capitalized}`}>
                         {selectedTransaction.method}
                       </p>
                     </div>
-                    <div>
-                      <label className="block text-xs font-medium text-[var(--text-muted)]">
-                        Description
-                      </label>
-                      <p className="text-[var(--text-primary)] text-sm">
-                        {selectedTransaction.description}
-                      </p>
+                    <div className={styles.detailBlock}>
+                      <label>Description</label>
+                      <p className={styles.detailText}>{selectedTransaction.description}</p>
                     </div>
 
                     {selectedTransaction.sourceDocuments.length > 0 && (
-                      <div>
-                        <label className="block text-xs font-medium text-[var(--text-muted)] mb-1">
-                          Source Documents
-                        </label>
-                        <div className="space-y-1">
+                      <div className={styles.detailBlock}>
+                        <label className={styles.sourceLabel}>Source Documents</label>
+                        <div className={styles.sourceList}>
                           {selectedTransaction.sourceDocuments.map((doc, index) => (
                             <button
                               key={index}
-                              className="block w-full text-left px-2 py-1 bg-[var(--glass-bg-highlight)] hover:bg-[var(--glass-bg-highlight)] rounded text-xs text-[var(--accent)] hover:text-[var(--accent)] transition-colors truncate"
+                              className={styles.sourceButton}
                               onClick={() => {
                                 const normalized = String(doc).trim();
                                 if (!normalized) return;
