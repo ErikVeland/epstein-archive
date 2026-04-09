@@ -61,3 +61,25 @@ test.describe('SSR OG meta tags', () => {
     expect(html).toContain('archive');
   });
 });
+
+test.describe('Dynamic sitemap', () => {
+  test('GET /sitemap.xml returns valid XML with entity URLs', async ({ request }) => {
+    const res = await request.get(`${BASE}/sitemap.xml`);
+    expect(res.ok()).toBeTruthy();
+    expect(res.headers()['content-type']).toContain('application/xml');
+
+    const xml = await res.text();
+    expect(xml).toContain('<?xml version="1.0"');
+    expect(xml).toContain('<urlset');
+    // Collection pages must be present
+    expect(xml).toContain('https://epstein.academy/');
+    expect(xml).toContain('https://epstein.academy/documents');
+    // Entity URLs follow /entity/:id pattern
+    expect(xml).toMatch(/epstein\.academy\/entity\/\d+/);
+  });
+
+  test('GET /sitemap.xml returns Cache-Control: public', async ({ request }) => {
+    const res = await request.get(`${BASE}/sitemap.xml`);
+    expect(res.headers()['cache-control']).toContain('public');
+  });
+});

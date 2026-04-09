@@ -56,6 +56,7 @@ import propertiesRoutes from './server/routes/propertiesRoutes.js';
 import blackBookRoutes from './server/routes/blackBookRoutes.js';
 import faceRoutes from './server/routes/faceRoutes.js';
 import activeLearningRoutes from './server/routes/activeLearning.js';
+import sitemapRouter from './server/routes/sitemap.js';
 import { entitiesRepository } from './server/db/entitiesRepository.js';
 import { mediaRepository } from './server/db/mediaRepository.js';
 import { evidenceRepository } from './server/db/evidenceRepository.js';
@@ -336,6 +337,9 @@ export class App {
     this.app.use(cookieParser());
 
     // 5. Custom Headers (none needed beyond helmet defaults)
+
+    // 5b. Dynamic sitemap (must precede express.static so it takes priority over dist/sitemap.xml)
+    this.app.use('/sitemap.xml', sitemapRouter);
 
     // 6. Static files
     this.app.use((req, res, next) => {
