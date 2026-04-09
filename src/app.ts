@@ -1050,8 +1050,9 @@ export class App {
 
       const evidence = await evidenceRepository.getEvidenceById(id);
       if (evidence) {
-        const rawTitle = (evidence as Record<string, unknown>)['title'];
-        const rawDesc = (evidence as Record<string, unknown>)['description'];
+        const ev = evidence as Record<string, unknown>;
+        const rawTitle = ev['title'];
+        const rawDesc = ev['description'];
         if (typeof rawTitle === 'string' && rawTitle.trim()) {
           title = rawTitle.trim();
         }
