@@ -58,6 +58,7 @@ import faceRoutes from './server/routes/faceRoutes.js';
 import activeLearningRoutes from './server/routes/activeLearning.js';
 import { entitiesRepository } from './server/db/entitiesRepository.js';
 import { mediaRepository } from './server/db/mediaRepository.js';
+import { evidenceRepository } from './server/db/evidenceRepository.js';
 import { searchRepository } from './server/db/searchRepository.js';
 import {
   mapEntityDetailDto,
@@ -839,6 +840,9 @@ export class App {
       if (await this.tryServeMediaShareMeta(req, res)) {
         return;
       }
+      if (await this.tryServeEvidenceShareMeta(req, res)) {
+        return;
+      }
       res.setHeader('Cache-Control', 'no-store, max-age=0, must-revalidate');
       res.setHeader('Pragma', 'no-cache');
       res.setHeader('Expires', '0');
@@ -1025,6 +1029,51 @@ export class App {
       return true;
     } catch (error) {
       logger.warn({ err: error }, 'Failed to render media OG metadata, falling back to SPA shell');
+      return false;
+    }
+  }
+
+  private async tryServeEvidenceShareMeta(req: Request, res: Response): Promise<boolean> {
+    try {
+      if (!req.path.startsWith('/evidence/')) return false;
+      const id = req.path.replace('/evidence/', '').split('/')[0].trim();
+      if (!id) return false;
+
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      const canonical = `${baseUrl}${req.originalUrl}`;
+
+      let title = `Evidence Record ${id}`;
+      let description =
+        'Search and analyze the Epstein Files archive: documents, emails, media, entities, timelines, and flights.';
+      const image = `${baseUrl}/epstein-files.jpg`;
+      const imageAlt = 'Epstein Files Archive cover image';
+
+      const evidence = await evidenceRepository.getEvidenceById(id);
+      if (evidence) {
+        const rawTitle = (evidence as Record<string, unknown>)['title'];
+        const rawDesc = (evidence as Record<string, unknown>)['description'];
+        if (typeof rawTitle === 'string' && rawTitle.trim()) {
+          title = rawTitle.trim();
+        }
+        if (typeof rawDesc === 'string' && rawDesc.trim()) {
+          const raw = rawDesc.trim();
+          description = raw.length > 160 ? `${raw.slice(0, 157)}…` : raw;
+        }
+      }
+
+      let html = await this.loadIndexTemplate();
+      html = this.injectOgTags(html, { title, description, image, imageAlt, canonical });
+
+      res.setHeader('Cache-Control', 'no-store, max-age=0, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      res.status(200).type('html').send(html);
+      return true;
+    } catch (error) {
+      logger.warn(
+        { err: error },
+        'Failed to render evidence OG metadata, falling back to SPA shell',
+      );
       return false;
     }
   }
