@@ -10,6 +10,15 @@ export const useSeoConfig = (): SeoConfig => {
     const canonical = `${origin}${location.pathname}`;
     const commonKeywords = ['Epstein Files', 'Epstein documents', 'Jeffrey Epstein archive'];
 
+    const breadcrumb = (sectionName: string, sectionUrl: string): Record<string, unknown> => ({
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: origin },
+        { '@type': 'ListItem', position: 2, name: sectionName, item: sectionUrl },
+      ],
+    });
+
     if (location.pathname.startsWith('/documents')) {
       return {
         title: 'Epstein Documents',
@@ -19,16 +28,19 @@ export const useSeoConfig = (): SeoConfig => {
         canonical,
         type: 'CollectionPage',
         keywords: [...commonKeywords, 'court documents', 'depositions', 'evidence files'],
-        schema: {
-          '@context': 'https://schema.org',
-          '@type': 'Dataset',
-          name: 'Epstein Documents Dataset',
-          description:
-            'Searchable collection of documents, OCR text, and metadata from the Epstein files archive.',
-          url: canonical,
-          inLanguage: 'en',
-          isAccessibleForFree: true,
-        },
+        schema: [
+          {
+            '@context': 'https://schema.org',
+            '@type': 'Dataset',
+            name: 'Epstein Documents Dataset',
+            description:
+              'Searchable collection of documents, OCR text, and metadata from the Epstein files archive.',
+            url: canonical,
+            inLanguage: 'en',
+            isAccessibleForFree: true,
+          },
+          breadcrumb('Documents', canonical),
+        ],
       };
     }
 
@@ -41,13 +53,17 @@ export const useSeoConfig = (): SeoConfig => {
         canonical,
         type: 'CollectionPage',
         keywords: [...commonKeywords, 'Epstein people', 'entity index', 'named entities'],
-        schema: {
-          '@context': 'https://schema.org',
-          '@type': 'CollectionPage',
-          name: 'Epstein People Index',
-          description: 'Entity index and relationship navigation for people linked in the archive.',
-          url: canonical,
-        },
+        schema: [
+          {
+            '@context': 'https://schema.org',
+            '@type': 'CollectionPage',
+            name: 'Epstein People Index',
+            description:
+              'Entity index and relationship navigation for people linked in the archive.',
+            url: canonical,
+          },
+          breadcrumb('People', canonical),
+        ],
       };
     }
 
@@ -63,14 +79,17 @@ export const useSeoConfig = (): SeoConfig => {
         canonical: mediaCanonical,
         type: 'CollectionPage',
         keywords: [...commonKeywords, 'epstein media', 'epstein photos', 'epstein audio'],
-        schema: {
-          '@context': 'https://schema.org',
-          '@type': 'CollectionPage',
-          name: 'Epstein Media Archive',
-          description:
-            'Image, audio, and video records linked to entities and documents in the Epstein archive.',
-          url: mediaCanonical,
-        },
+        schema: [
+          {
+            '@context': 'https://schema.org',
+            '@type': 'CollectionPage',
+            name: 'Epstein Media Archive',
+            description:
+              'Image, audio, and video records linked to entities and documents in the Epstein archive.',
+            url: mediaCanonical,
+          },
+          breadcrumb('Media', mediaCanonical),
+        ],
       };
     }
 
@@ -83,13 +102,16 @@ export const useSeoConfig = (): SeoConfig => {
         canonical,
         type: 'CollectionPage',
         keywords: [...commonKeywords, 'epstein timeline', 'chronology', 'event sequence'],
-        schema: {
-          '@context': 'https://schema.org',
-          '@type': 'CollectionPage',
-          name: 'Epstein Timeline',
-          description: 'Chronological view of archive events linked to documents and entities.',
-          url: canonical,
-        },
+        schema: [
+          {
+            '@context': 'https://schema.org',
+            '@type': 'CollectionPage',
+            name: 'Epstein Timeline',
+            description: 'Chronological view of archive events linked to documents and entities.',
+            url: canonical,
+          },
+          breadcrumb('Timeline', canonical),
+        ],
       };
     }
 
@@ -102,14 +124,17 @@ export const useSeoConfig = (): SeoConfig => {
         canonical,
         type: 'CollectionPage',
         keywords: [...commonKeywords, 'epstein flight logs', 'flight records', 'travel routes'],
-        schema: {
-          '@context': 'https://schema.org',
-          '@type': 'Dataset',
-          name: 'Epstein Flight Logs',
-          description: 'Structured flight records linked to entities and documents.',
-          url: canonical,
-          isAccessibleForFree: true,
-        },
+        schema: [
+          {
+            '@context': 'https://schema.org',
+            '@type': 'Dataset',
+            name: 'Epstein Flight Logs',
+            description: 'Structured flight records linked to entities and documents.',
+            url: canonical,
+            isAccessibleForFree: true,
+          },
+          breadcrumb('Flight Logs', canonical),
+        ],
       };
     }
 
@@ -152,6 +177,7 @@ export const useSeoConfig = (): SeoConfig => {
               url: 'https://epstein.academy',
             },
           },
+          breadcrumb('The Epstein Files', canonical),
         ],
       };
     }
@@ -165,6 +191,7 @@ export const useSeoConfig = (): SeoConfig => {
         canonical,
         type: 'article',
         keywords: [...commonKeywords, 'methodology', 'archive status', 'data provenance'],
+        schema: [breadcrumb('About', canonical)],
       };
     }
 
@@ -177,6 +204,7 @@ export const useSeoConfig = (): SeoConfig => {
         canonical,
         type: 'CollectionPage',
         keywords: [...commonKeywords, 'epstein emails', 'email threads', 'mailbox archive'],
+        schema: [breadcrumb('Email Archive', canonical)],
       };
     }
 
@@ -189,6 +217,7 @@ export const useSeoConfig = (): SeoConfig => {
         canonical,
         type: 'CollectionPage',
         keywords: [...commonKeywords, 'epstein analytics', 'risk analysis', 'entity insights'],
+        schema: [breadcrumb('Analytics', canonical)],
       };
     }
 
@@ -201,6 +230,7 @@ export const useSeoConfig = (): SeoConfig => {
         canonical,
         type: 'CollectionPage',
         keywords: [...commonKeywords, 'black book', 'contact records', 'address book'],
+        schema: [breadcrumb('Black Book', canonical)],
       };
     }
 
@@ -213,6 +243,7 @@ export const useSeoConfig = (): SeoConfig => {
         canonical,
         type: 'CollectionPage',
         keywords: [...commonKeywords, 'properties', 'ownership', 'locations'],
+        schema: [breadcrumb('Property Records', canonical)],
       };
     }
 
@@ -228,6 +259,7 @@ export const useSeoConfig = (): SeoConfig => {
         canonical,
         type: 'CollectionPage',
         keywords: [...commonKeywords, 'investigations', 'evidence chaining', 'case workspace'],
+        schema: [breadcrumb('Investigations', canonical)],
       };
     }
     if (location.pathname.startsWith('/guide')) {
@@ -239,6 +271,7 @@ export const useSeoConfig = (): SeoConfig => {
         canonical,
         type: 'article',
         keywords: [...commonKeywords, 'guide', 'tutorial', 'investigation manual'],
+        schema: [breadcrumb('Guide', canonical)],
       };
     }
 
