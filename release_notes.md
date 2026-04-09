@@ -1,5 +1,23 @@
 # Release Notes
 
+## v18.5.0 - 2026-04-10 - Iconic Typography & Forensic Restoration
+
+This major release elevates the archive's visual identity with a high-impact **"Iconic & Bombastic"** typographic system, restores critical analytical tools, and achieves a zero-error production baseline for the "Liquid Glass" architecture.
+
+### User-Facing Changes
+
+- **Iconic Typography**: Integrated **Space Grotesk** and **Outfit** as the primary display fonts, delivering a modern, high-contrast intelligence aesthetic.
+- **Bombastic Headlines**: Introduced massive scaling and tight tracking for case headers, ensuring the investigation workspace feels definitive and high-stakes.
+- **Symbolic Metadata**: Updated HUD and forensic labels with wide-tracked uppercase mono variants for enhanced scanability.
+- **Investigation Restoration**: The **Signal Intelligence** (Analytics) tab is now fully functional, featuring a live Network Visualization engine for evidence mapping.
+- **Import Forensic Records**: Restored the "Import Data" modal and portal, enabling high-speed JSON/PDF migration flows directly from the workspace.
+
+### Technical & Stability
+
+- **Zero-Error Certification**: Cleared all remaining TypeScript and linting regressions, achieving an absolute zero-error status for production build and deployment.
+- **Design System Alignment**: Standardized all `Flex`, `Box`, and `Surface` component props to match the strict Liquid Glass governance baseline.
+- **Production Build**: Verified the production bundle generation pipeline with a 100% pass rate.
+
 ## v18.4.0 - 2026-04-06 - Media Browser Stability & Sascha Album Release
 
 This minor release fixes the media browser tab chrome, hardens image and video thumbnail handling, and promotes the Sascha TikTok into its own browsable video album while restoring a clean lint, typecheck, and formatting baseline across the repository.
