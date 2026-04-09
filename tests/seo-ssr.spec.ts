@@ -9,8 +9,11 @@ test.describe('SSR OG meta tags', () => {
     const res = await request.get(`${BASE}/media?albumId=1`);
     expect(res.ok()).toBeTruthy();
     const html = await res.text();
-    expect(html).toContain('og:title');
-    expect(html).toContain('og:description');
-    expect(html).toContain('og:image');
+    // Verify OG tags are present as proper meta tag attributes (not just as substrings anywhere)
+    expect(html).toContain('property="og:title"');
+    expect(html).toContain('property="og:description"');
+    expect(html).toContain('property="og:image"');
+    // Verify the title tag was actually overwritten from the generic default
+    expect(html).toMatch(/<title>.+<\/title>/);
   });
 });

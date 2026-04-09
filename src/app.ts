@@ -877,73 +877,78 @@ export class App {
       imageType?: string;
     },
   ): string {
-    const t = this.escapeHtml(opts.title);
-    const d = this.escapeHtml(opts.description);
-    const img = this.escapeHtml(opts.image);
-    const imgAlt = this.escapeHtml(opts.imageAlt);
-    const canon = this.escapeHtml(opts.canonical);
-    const imgType = this.escapeHtml(opts.imageType ?? 'image/jpeg');
+    const escapedTitle = this.escapeHtml(opts.title);
+    const escapedDescription = this.escapeHtml(opts.description);
+    const escapedImage = this.escapeHtml(opts.image);
+    const escapedImageAlt = this.escapeHtml(opts.imageAlt);
+    const escapedCanonical = this.escapeHtml(opts.canonical);
+    const escapedImageType = this.escapeHtml(opts.imageType ?? 'image/jpeg');
 
-    html = html.replace(/<title>[^<]*<\/title>/i, `<title>${t} | Epstein Files Archive</title>`);
+    html = html.replace(
+      /<title>[^<]*<\/title>/i,
+      `<title>${escapedTitle} | Epstein Files Archive</title>`,
+    );
     html = this.replaceMetaTag(
       html,
       /<meta\s+name="description"\s+content="[^"]*"\s*\/?>/i,
-      `<meta name="description" content="${d}" />`,
+      `<meta name="description" content="${escapedDescription}" />`,
     );
     html = this.replaceMetaTag(
       html,
       /<link\s+rel="canonical"\s+href="[^"]*"\s*\/?>/i,
-      `<link rel="canonical" href="${canon}" />`,
+      `<link rel="canonical" href="${escapedCanonical}" />`,
     );
     html = this.replaceMetaTag(
       html,
       /<meta\s+property="og:title"\s+content="[^"]*"\s*\/?>/i,
-      `<meta property="og:title" content="${t}" />`,
+      `<meta property="og:title" content="${escapedTitle}" />`,
     );
     html = this.replaceMetaTag(
       html,
       /<meta\s+property="og:description"\s+content="[^"]*"\s*\/?>/i,
-      `<meta property="og:description" content="${d}" />`,
+      `<meta property="og:description" content="${escapedDescription}" />`,
     );
     html = this.replaceMetaTag(
       html,
       /<meta\s+property="og:image"\s+content="[^"]*"\s*\/?>/i,
-      `<meta property="og:image" content="${img}" />`,
+      `<meta property="og:image" content="${escapedImage}" />`,
     );
     html = this.replaceMetaTag(
       html,
       /<meta\s+property="og:image:alt"\s+content="[^"]*"\s*\/?>/i,
-      `<meta property="og:image:alt" content="${imgAlt}" />`,
+      `<meta property="og:image:alt" content="${escapedImageAlt}" />`,
     );
+    // Inject og:image:type even if absent from the static template — all SSR-rendered
+    // pages should declare the image MIME type for social crawlers.
     html = this.replaceMetaTag(
       html,
       /<meta\s+property="og:image:type"\s+content="[^"]*"\s*\/?>/i,
-      `<meta property="og:image:type" content="${imgType}" />`,
+      `<meta property="og:image:type" content="${escapedImageType}" />`,
     );
     html = this.replaceMetaTag(
       html,
       /<meta\s+property="og:url"\s+content="[^"]*"\s*\/?>/i,
-      `<meta property="og:url" content="${canon}" />`,
+      `<meta property="og:url" content="${escapedCanonical}" />`,
     );
     html = this.replaceMetaTag(
       html,
       /<meta\s+name="twitter:title"\s+content="[^"]*"\s*\/?>/i,
-      `<meta name="twitter:title" content="${t}" />`,
+      `<meta name="twitter:title" content="${escapedTitle}" />`,
     );
     html = this.replaceMetaTag(
       html,
       /<meta\s+name="twitter:description"\s+content="[^"]*"\s*\/?>/i,
-      `<meta name="twitter:description" content="${d}" />`,
+      `<meta name="twitter:description" content="${escapedDescription}" />`,
     );
     html = this.replaceMetaTag(
       html,
       /<meta\s+name="twitter:image"\s+content="[^"]*"\s*\/?>/i,
-      `<meta name="twitter:image" content="${img}" />`,
+      `<meta name="twitter:image" content="${escapedImage}" />`,
     );
     html = this.replaceMetaTag(
       html,
       /<meta\s+name="twitter:image:alt"\s+content="[^"]*"\s*\/?>/i,
-      `<meta name="twitter:image:alt" content="${imgAlt}" />`,
+      `<meta name="twitter:image:alt" content="${escapedImageAlt}" />`,
     );
     return html;
   }
