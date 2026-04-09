@@ -866,6 +866,88 @@ export class App {
     return cachedIndexTemplate;
   }
 
+  private injectOgTags(
+    html: string,
+    opts: {
+      title: string;
+      description: string;
+      image: string;
+      imageAlt: string;
+      canonical: string;
+      imageType?: string;
+    },
+  ): string {
+    const t = this.escapeHtml(opts.title);
+    const d = this.escapeHtml(opts.description);
+    const img = this.escapeHtml(opts.image);
+    const imgAlt = this.escapeHtml(opts.imageAlt);
+    const canon = this.escapeHtml(opts.canonical);
+    const imgType = this.escapeHtml(opts.imageType ?? 'image/jpeg');
+
+    html = html.replace(/<title>[^<]*<\/title>/i, `<title>${t} | Epstein Files Archive</title>`);
+    html = this.replaceMetaTag(
+      html,
+      /<meta\s+name="description"\s+content="[^"]*"\s*\/?>/i,
+      `<meta name="description" content="${d}" />`,
+    );
+    html = this.replaceMetaTag(
+      html,
+      /<link\s+rel="canonical"\s+href="[^"]*"\s*\/?>/i,
+      `<link rel="canonical" href="${canon}" />`,
+    );
+    html = this.replaceMetaTag(
+      html,
+      /<meta\s+property="og:title"\s+content="[^"]*"\s*\/?>/i,
+      `<meta property="og:title" content="${t}" />`,
+    );
+    html = this.replaceMetaTag(
+      html,
+      /<meta\s+property="og:description"\s+content="[^"]*"\s*\/?>/i,
+      `<meta property="og:description" content="${d}" />`,
+    );
+    html = this.replaceMetaTag(
+      html,
+      /<meta\s+property="og:image"\s+content="[^"]*"\s*\/?>/i,
+      `<meta property="og:image" content="${img}" />`,
+    );
+    html = this.replaceMetaTag(
+      html,
+      /<meta\s+property="og:image:alt"\s+content="[^"]*"\s*\/?>/i,
+      `<meta property="og:image:alt" content="${imgAlt}" />`,
+    );
+    html = this.replaceMetaTag(
+      html,
+      /<meta\s+property="og:image:type"\s+content="[^"]*"\s*\/?>/i,
+      `<meta property="og:image:type" content="${imgType}" />`,
+    );
+    html = this.replaceMetaTag(
+      html,
+      /<meta\s+property="og:url"\s+content="[^"]*"\s*\/?>/i,
+      `<meta property="og:url" content="${canon}" />`,
+    );
+    html = this.replaceMetaTag(
+      html,
+      /<meta\s+name="twitter:title"\s+content="[^"]*"\s*\/?>/i,
+      `<meta name="twitter:title" content="${t}" />`,
+    );
+    html = this.replaceMetaTag(
+      html,
+      /<meta\s+name="twitter:description"\s+content="[^"]*"\s*\/?>/i,
+      `<meta name="twitter:description" content="${d}" />`,
+    );
+    html = this.replaceMetaTag(
+      html,
+      /<meta\s+name="twitter:image"\s+content="[^"]*"\s*\/?>/i,
+      `<meta name="twitter:image" content="${img}" />`,
+    );
+    html = this.replaceMetaTag(
+      html,
+      /<meta\s+name="twitter:image:alt"\s+content="[^"]*"\s*\/?>/i,
+      `<meta name="twitter:image:alt" content="${imgAlt}" />`,
+    );
+    return html;
+  }
+
   private async tryServeMediaShareMeta(req: Request, res: Response): Promise<boolean> {
     try {
       if (!req.path.startsWith('/media')) return false;
@@ -929,71 +1011,7 @@ export class App {
       }
 
       let html = await this.loadIndexTemplate();
-      const escapedTitle = this.escapeHtml(title);
-      const escapedDescription = this.escapeHtml(description);
-      const escapedCanonical = this.escapeHtml(canonical);
-      const escapedImage = this.escapeHtml(image);
-      const escapedImageAlt = this.escapeHtml(imageAlt);
-
-      html = html.replace(
-        /<title>[^<]*<\/title>/i,
-        `<title>${escapedTitle} | Epstein Files Archive</title>`,
-      );
-      html = this.replaceMetaTag(
-        html,
-        /<meta\s+name="description"\s+content="[^"]*"\s*\/?>/i,
-        `<meta name="description" content="${escapedDescription}" />`,
-      );
-      html = this.replaceMetaTag(
-        html,
-        /<link\s+rel="canonical"\s+href="[^"]*"\s*\/?>/i,
-        `<link rel="canonical" href="${escapedCanonical}" />`,
-      );
-      html = this.replaceMetaTag(
-        html,
-        /<meta\s+property="og:title"\s+content="[^"]*"\s*\/?>/i,
-        `<meta property="og:title" content="${escapedTitle}" />`,
-      );
-      html = this.replaceMetaTag(
-        html,
-        /<meta\s+property="og:description"\s+content="[^"]*"\s*\/?>/i,
-        `<meta property="og:description" content="${escapedDescription}" />`,
-      );
-      html = this.replaceMetaTag(
-        html,
-        /<meta\s+property="og:image"\s+content="[^"]*"\s*\/?>/i,
-        `<meta property="og:image" content="${escapedImage}" />`,
-      );
-      html = this.replaceMetaTag(
-        html,
-        /<meta\s+property="og:image:alt"\s+content="[^"]*"\s*\/?>/i,
-        `<meta property="og:image:alt" content="${escapedImageAlt}" />`,
-      );
-      html = this.replaceMetaTag(
-        html,
-        /<meta\s+property="og:url"\s+content="[^"]*"\s*\/?>/i,
-        `<meta property="og:url" content="${escapedCanonical}" />`,
-      );
-      html = this.replaceMetaTag(
-        html,
-        /<meta\s+name="twitter:title"\s+content="[^"]*"\s*\/?>/i,
-        `<meta name="twitter:title" content="${escapedTitle}" />`,
-      );
-      html = this.replaceMetaTag(
-        html,
-        /<meta\s+name="twitter:description"\s+content="[^"]*"\s*\/?>/i,
-        `<meta name="twitter:description" content="${escapedDescription}" />`,
-      );
-      html = this.replaceMetaTag(
-        html,
-        /<meta\s+name="twitter:image"\s+content="[^"]*"\s*\/?>/i,
-        `<meta name="twitter:image" content="${escapedImage}" />`,
-      );
-      html = this.replaceMetaTag(
-        html,
-        /<meta\s+name="twitter:image:alt"\s+content="[^"]*"\s*\/?>/i,
-        `<meta name="twitter:image:alt" content="${escapedImageAlt}" />`,
-      );
+      html = this.injectOgTags(html, { title, description, image, imageAlt, canonical });
 
       res.setHeader('Cache-Control', 'no-store, max-age=0, must-revalidate');
       res.setHeader('Pragma', 'no-cache');
