@@ -13,7 +13,8 @@ test.describe('SSR OG meta tags', () => {
     expect(html).toContain('property="og:title"');
     expect(html).toContain('property="og:description"');
     expect(html).toContain('property="og:image"');
-    // Verify the title tag was actually overwritten from the generic default
-    expect(html).toMatch(/<title>.+<\/title>/);
+    // The media SSR handler injects "Epstein Media Album 1 | Epstein Files Archive"
+    // for albumId=1. This verifies the title override actually ran.
+    expect(html).toContain('<title>Epstein Media Album 1 | Epstein Files Archive</title>');
   });
 });
