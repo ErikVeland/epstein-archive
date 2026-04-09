@@ -22,16 +22,26 @@
   background-color: color-mix(in srgb, var(--bg-elevated, var(--glass-bg-strong)) 95%, transparent);
   padding: var(--space-1);
   color: var(--text-primary);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -4px rgba(0, 0, 0, 0.2);
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.3),
+    0 4px 6px -4px rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(12px);
   animation: dropdownEnter 150ms ease;
 }
 
 /* Slide-in directions via Radix data-side attribute */
-.content[data-side='bottom'] { --dropdown-enter-y: -0.5rem; }
-.content[data-side='top']    { --dropdown-enter-y:  0.5rem; }
-.content[data-side='left']   { --dropdown-enter-x:  0.5rem; }
-.content[data-side='right']  { --dropdown-enter-x: -0.5rem; }
+.content[data-side='bottom'] {
+  --dropdown-enter-y: -0.5rem;
+}
+.content[data-side='top'] {
+  --dropdown-enter-y: 0.5rem;
+}
+.content[data-side='left'] {
+  --dropdown-enter-x: 0.5rem;
+}
+.content[data-side='right'] {
+  --dropdown-enter-x: -0.5rem;
+}
 
 /* Glass shine overlay */
 .contentShine {
@@ -60,7 +70,9 @@
   padding: 0.375rem var(--space-2);
   font-size: var(--type-small);
   outline: none;
-  transition: background-color 150ms ease, color 150ms ease;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
 }
 
 .item:focus {

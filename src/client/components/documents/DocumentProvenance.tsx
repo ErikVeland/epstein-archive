@@ -142,11 +142,7 @@ export const DocumentProvenance: React.FC<DocumentProvenanceProps> = ({
           <LqText variant="xs" color="muted">
             {sourceCollection || 'Source Info'}
           </LqText>
-          <LqText
-            variant="xs"
-            weight="semibold"
-            color={getCredibilityStatus(credibilityScore) as any}
-          >
+          <LqText variant="xs" weight="semibold" color={getCredibilityStatus(credibilityScore)}>
             ({getCredibilityLabel(credibilityScore)})
           </LqText>
           <Icon name="ChevronDown" size="xs" />
@@ -179,10 +175,7 @@ export const DocumentProvenance: React.FC<DocumentProvenanceProps> = ({
           </Box>
           <Box>
             <LqText className={styles.fieldLabel}>Credibility</LqText>
-            <LqText
-              className={styles.fieldValue}
-              color={getCredibilityStatus(credibilityScore) as any}
-            >
+            <LqText className={styles.fieldValue} color={getCredibilityStatus(credibilityScore)}>
               {credibilityScore
                 ? `${Math.round(credibilityScore * 100)}% (${getCredibilityLabel(credibilityScore)})`
                 : 'Not assessed'}
@@ -210,7 +203,7 @@ export const DocumentProvenance: React.FC<DocumentProvenanceProps> = ({
                 <LqText
                   variant="xs"
                   weight="medium"
-                  color={ocrQualityScore >= 0.7 ? 'success' : ('warning' as any)}
+                  color={ocrQualityScore >= 0.7 ? 'success' : 'warning'}
                 >
                   {Math.round(ocrQualityScore * 100)}%
                 </LqText>

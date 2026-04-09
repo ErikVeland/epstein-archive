@@ -13,7 +13,11 @@ import type {
 } from '@shared/dto/emails';
 import type { DocumentsListResponseDto } from '@shared/dto/documents';
 import type { EntityListResponseDto, SubjectsListResponseDto } from '@shared/dto/entities';
-import type { InvestigationEvidenceListResponseDto } from '@shared/dto/investigations';
+import type {
+  InvestigationEvidenceListResponseDto,
+  InvestigationTaskDto,
+  InvestigationTaskSummaryDto,
+} from '@shared/dto/investigations';
 import {
   documentsListResponseSchema,
   emailThreadDetailsResponseSchema,
@@ -312,7 +316,10 @@ class ApiClient {
         throw new Error(msg);
       }
 
-      const data = await response.json();
+      const contentType = response.headers.get('content-type') ?? '';
+      const data = contentType.includes('application/json')
+        ? await response.json()
+        : await response.text();
       if (method === 'GET' && options?.useCache) {
         const bodyString = options.body ? stableStringify(options.body) : '{}';
         this.setCachedData(`GET:${url}?${bodyString}`, data, options.cacheTtl ?? 60_000);
@@ -387,6 +394,15 @@ class ApiClient {
     const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
     return this.fetchWithErrorHandling<T>(url, {
       method: 'PUT',
+      body: body === undefined ? undefined : JSON.stringify(body),
+      useCache: false,
+    });
+  }
+
+  async patch<T>(endpoint: string, body?: unknown): Promise<T> {
+    const url = `${API_BASE_URL}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+    return this.fetchWithErrorHandling<T>(url, {
+      method: 'PATCH',
       body: body === undefined ? undefined : JSON.stringify(body),
       useCache: false,
     });
@@ -1025,21 +1041,17 @@ class ApiClient {
 
   async getInvestigativeTasksByInvestigation(
     investigationId: string,
-  ): Promise<{ data: unknown[]; total: number }> {
-    const url = `${API_BASE_URL}/investigative-tasks/investigation/${investigationId}`;
-    const tasks = await this.fetchWithErrorHandling<unknown[]>(url, { useCache: false });
+  ): Promise<{ data: InvestigationTaskDto[]; total: number }> {
+    const url = `${API_BASE_URL}/tasks/investigation/${investigationId}`;
+    const tasks = await this.fetchWithErrorHandling<InvestigationTaskDto[]>(url, {
+      useCache: false,
+    });
     return { data: tasks, total: tasks.length };
   }
 
-  async getInvestigativeTaskSummary(investigationId: string): Promise<{
-    statusBreakdown: Record<string, number>;
-    priorityBreakdown: Record<string, number>;
-    overdueTasks: number;
-    averageProgress: number;
-    assignmentBreakdown: { assigned_to: string; count: number }[];
-  }> {
-    const url = `${API_BASE_URL}/investigative-tasks/summary/${investigationId}`;
-    return this.fetchWithErrorHandling(url, { useCache: false });
+  async getInvestigativeTaskSummary(investigationId: string): Promise<InvestigationTaskSummaryDto> {
+    const url = `${API_BASE_URL}/tasks/summary/${investigationId}`;
+    return this.fetchWithErrorHandling<InvestigationTaskSummaryDto>(url, { useCache: false });
   }
 
   async createInvestigativeTask(body: {
@@ -1051,25 +1063,31 @@ class ApiClient {
     dueDate?: string;
     evidenceIds?: number[];
     relatedEntities?: number[];
-  }): Promise<unknown> {
-    return this.fetchWithErrorHandling<unknown>(`${API_BASE_URL}/investigative-tasks`, {
+  }): Promise<InvestigationTaskDto> {
+    return this.fetchWithErrorHandling<InvestigationTaskDto>(`${API_BASE_URL}/tasks`, {
       method: 'POST',
       body: JSON.stringify(body),
       useCache: false,
     });
   }
 
-  async updateInvestigativeTask(id: number, updates: unknown): Promise<unknown> {
-    return this.fetchWithErrorHandling<unknown>(`${API_BASE_URL}/investigative-tasks/${id}`, {
+  async updateInvestigativeTask(
+    id: number,
+    updates: Partial<InvestigationTaskDto>,
+  ): Promise<InvestigationTaskDto> {
+    return this.fetchWithErrorHandling<InvestigationTaskDto>(`${API_BASE_URL}/tasks/${id}`, {
       method: 'PUT',
       body: JSON.stringify(updates),
       useCache: false,
     });
   }
 
-  async updateInvestigativeTaskProgress(id: number, progress: number): Promise<unknown> {
-    return this.fetchWithErrorHandling<unknown>(
-      `${API_BASE_URL}/investigative-tasks/${id}/progress`,
+  async updateInvestigativeTaskProgress(
+    id: number,
+    progress: number,
+  ): Promise<InvestigationTaskDto> {
+    return this.fetchWithErrorHandling<InvestigationTaskDto>(
+      `${API_BASE_URL}/tasks/${id}/progress`,
       {
         method: 'PATCH',
         body: JSON.stringify({ progress }),

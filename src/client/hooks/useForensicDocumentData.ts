@@ -6,8 +6,7 @@ import type {
   ForensicCaseContext,
 } from '../components/investigation/ForensicDocumentAnalyzer';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type ForensicMetricRecord = Record<string, any>;
+import { ForensicMetricRecord, ForensicSummary } from '../types/forensics';
 
 type DocumentMeta = {
   source_collection?: string;
@@ -118,10 +117,10 @@ export function useForensicDocumentData({
   });
 
   // Fetch the global metrics summary via useQuery
-  const { data: summary = null } = useQuery<ForensicMetricRecord | null>({
+  const { data: summary = null } = useQuery<ForensicSummary | null>({
     queryKey: ['forensic-metrics-summary'],
     queryFn: ({ signal }) =>
-      apiClient.get<ForensicMetricRecord>('/forensic/metrics-summary', { signal }),
+      apiClient.get<ForensicSummary>('/forensic/metrics-summary', { signal }),
     enabled: activeTab === 'dashboard',
     staleTime: 60_000,
   });

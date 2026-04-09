@@ -863,8 +863,8 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
                     if (width < 50) return null; // Avoid invalid calculations
                     if (viewMode === 'tiles') {
                       const minColumnWidth = 200;
-                      const gap = 16; // gap-4
-                      const availableWidth = width - 48; // p-6 equivalent padding
+                      const gap = 16;
+                      const availableWidth = width - 48;
                       const columnCount = Math.max(
                         1,
                         Math.floor((availableWidth + gap) / (minColumnWidth + gap)),

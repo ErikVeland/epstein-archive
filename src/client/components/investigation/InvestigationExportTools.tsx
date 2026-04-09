@@ -9,12 +9,14 @@ import {
 import { Download, ShieldAlert, CheckCircle2, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToasts } from '../common/useToasts';
+import { apiClient } from '../../services/apiClient';
 import {
   buildEvidenceCsv,
   buildExportIntegrityMeta,
   buildTimelineExportJson,
   prependMarkdownMetadata,
 } from '../../utils/investigationExportIntegrity';
+import styles from './InvestigationExportTools.module.css';
 
 interface ExportToolsProps {
   investigation: Investigation;
@@ -184,9 +186,9 @@ export const InvestigationExportTools: React.FC<ExportToolsProps> = ({
       setProgress(35);
 
       if (selectedType === 'report') {
-        const response = await fetch(`/api/investigations/${investigation.id}/briefing`);
-        if (!response.ok) throw new Error('Failed to fetch backend briefing');
-        const markdown = await response.text();
+        const markdown = await apiClient.get<string>(
+          `/investigations/${investigation.id}/briefing`,
+        );
         content = prependMarkdownMetadata(markdown, integrity);
         filename = `investigation-briefing-${investigation.id}.md`;
         mimeType = 'text/markdown';
@@ -225,23 +227,21 @@ export const InvestigationExportTools: React.FC<ExportToolsProps> = ({
     step === 4;
 
   return (
-    <div className="w-full bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-xl)] p-4 md:p-6 space-y-6">
+    <div className={`${styles.panel} ${styles.stackLg}`}>
       <div>
-        <h3 className="text-xl font-semibold text-[var(--text-primary)]">Export Workflow</h3>
-        <p className="text-sm text-[var(--text-muted)] mt-1">
+        <h3 className={styles.title}>Export Workflow</h3>
+        <p className={styles.subtitle}>
           Step-based export flow: choose output, configure content, preview, then generate.
         </p>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+      <div className={styles.stepsGrid}>
         {[1, 2, 3, 4].map((idx) => (
           <button
             key={idx}
             onClick={() => setStep(idx as 1 | 2 | 3 | 4)}
-            className={`px-3 py-2 rounded-[var(--radius-lg)] text-sm font-medium transition-colors ${
-              step === idx
-                ? 'bg-[var(--accent)] text-[var(--text-primary)]'
-                : 'bg-[var(--glass-bg)] text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)]'
+            className={`${styles.stepButton} ${
+              step === idx ? styles.stepButtonActive : styles.stepButtonIdle
             }`}
           >
             Step {idx}
@@ -250,8 +250,8 @@ export const InvestigationExportTools: React.FC<ExportToolsProps> = ({
       </div>
 
       {step === 1 && (
-        <div className="space-y-3">
-          <h4 className="text-[var(--text-primary)] font-medium">1. Choose output type</h4>
+        <div className={styles.stackSm}>
+          <h4 className={styles.sectionHeading}>1. Choose output type</h4>
           {exportOptions.map((option) => (
             <button
               key={option.id}
@@ -259,27 +259,25 @@ export const InvestigationExportTools: React.FC<ExportToolsProps> = ({
               data-gated-reason={
                 option.available ? '' : option.unavailableReason || 'Not available yet'
               }
-              className={`w-full text-left p-4 rounded-[var(--radius-lg)] border transition-colors ${
-                selectedType === option.id
-                  ? 'border-[var(--accent)] bg-blue-900/20'
-                  : 'border-[var(--glass-border)] bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)]'
+              className={`${styles.optionButton} ${
+                selectedType === option.id ? styles.optionButtonSelected : styles.optionButtonIdle
               }`}
             >
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-sm font-medium text-[var(--text-primary)]">{option.title}</p>
+              <div className={styles.rowBetween}>
+                <p className={styles.bodyTextSm}>{option.title}</p>
                 {option.available ? (
-                  <span className="text-xs px-2 py-1 rounded bg-emerald-900/40 text-emerald-200">
-                    Available
-                  </span>
+                  <span className={`${styles.labelPill} ${styles.successPill}`}>Available</span>
                 ) : (
-                  <span className="text-xs px-2 py-1 rounded bg-amber-900/40 text-amber-200">
+                  <span className={`${styles.labelPill} ${styles.warningPill}`}>
                     Not available yet
                   </span>
                 )}
               </div>
-              <p className="text-xs text-[var(--text-muted)] mt-1">{option.description}</p>
+              <p className={styles.bodyTextXs}>{option.description}</p>
               {!option.available && option.unavailableReason && (
-                <p className="text-xs text-amber-300 mt-2">{option.unavailableReason}</p>
+                <p className={`${styles.bodyTextXs} ${styles.warningText}`}>
+                  {option.unavailableReason}
+                </p>
               )}
             </button>
           ))}
@@ -287,45 +285,39 @@ export const InvestigationExportTools: React.FC<ExportToolsProps> = ({
       )}
 
       {step === 2 && (
-        <div className="space-y-3">
-          <h4 className="text-[var(--text-primary)] font-medium">2. Configure content</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className={styles.stackSm}>
+          <h4 className={styles.sectionHeading}>2. Configure content</h4>
+          <div className={styles.toggleGrid}>
             {sectionToggles.map(({ label, value, setter }) => (
-              <label
-                key={String(label)}
-                className="flex items-center gap-2 p-3 bg-[var(--glass-bg)] rounded-[var(--radius-lg)] border border-[var(--glass-border)]"
-              >
+              <label key={String(label)} className={styles.toggleCard}>
                 <input type="checkbox" checked={value} onChange={(e) => setter(e.target.checked)} />
-                <span className="text-sm text-[var(--text-primary)]">{label}</span>
+                <span className={styles.bodyTextSm}>{label}</span>
               </label>
             ))}
           </div>
-          <label className="flex items-center gap-2 p-3 bg-[var(--glass-bg)] rounded-[var(--radius-lg)] border border-[var(--glass-border)]">
+          <label className={styles.toggleCard}>
             <input
               type="checkbox"
               checked={redactSensitive}
               onChange={(e) => setRedactSensitive(e.target.checked)}
             />
-            <span className="text-sm text-[var(--text-primary)]">
-              Apply redaction for sensitive content
-            </span>
+            <span className={styles.bodyTextSm}>Apply redaction for sensitive content</span>
           </label>
         </div>
       )}
 
       {step === 3 && (
-        <div className="space-y-3">
-          <h4 className="text-[var(--text-primary)] font-medium">3. Preview</h4>
-          <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-4 space-y-2">
-            <p className="text-sm text-[var(--text-primary)]">
-              <span className="text-[var(--text-muted)]">Type:</span> {selectedOption.title}
+        <div className={styles.stackSm}>
+          <h4 className={styles.sectionHeading}>3. Preview</h4>
+          <div className={styles.previewCard}>
+            <p className={styles.bodyTextSm}>
+              <span className={styles.mutedText}>Type:</span> {selectedOption.title}
             </p>
-            <p className="text-sm text-[var(--text-primary)]">
-              <span className="text-[var(--text-muted)]">Estimated size:</span> ~{estimatedSizeKb}{' '}
-              KB
+            <p className={styles.bodyTextSm}>
+              <span className={styles.mutedText}>Estimated size:</span> ~{estimatedSizeKb} KB
             </p>
-            <p className="text-sm text-[var(--text-primary)]">
-              <span className="text-[var(--text-muted)]">Sections:</span>{' '}
+            <p className={styles.bodyTextSm}>
+              <span className={styles.mutedText}>Sections:</span>{' '}
               {[
                 includeSummary && 'summary',
                 includeEvidence && 'evidence',
@@ -336,12 +328,12 @@ export const InvestigationExportTools: React.FC<ExportToolsProps> = ({
                 .filter(Boolean)
                 .join(', ') || 'none'}
             </p>
-            <p className="text-sm text-[var(--text-primary)]">
-              <span className="text-[var(--text-muted)]">Redaction:</span>{' '}
+            <p className={styles.bodyTextSm}>
+              <span className={styles.mutedText}>Redaction:</span>{' '}
               {redactSensitive ? 'enabled' : 'off'}
             </p>
-            <p className="text-sm text-[var(--text-primary)]">
-              <span className="text-[var(--text-muted)]">Audit trail:</span>{' '}
+            <p className={styles.bodyTextSm}>
+              <span className={styles.mutedText}>Audit trail:</span>{' '}
               {includeAuditTrail ? 'included' : 'excluded'}
             </p>
           </div>
@@ -349,57 +341,54 @@ export const InvestigationExportTools: React.FC<ExportToolsProps> = ({
       )}
 
       {step === 4 && (
-        <div className="space-y-4">
-          <h4 className="text-[var(--text-primary)] font-medium">4. Generate</h4>
+        <div className={styles.stackMd}>
+          <h4 className={styles.sectionHeading}>4. Generate</h4>
           <button
             onClick={runGeneration}
             disabled={isGenerating || !selectedOption.available}
-            className="inline-flex items-center gap-2 px-5 py-3 rounded-[var(--radius-lg)] bg-[var(--accent)] hover:bg-blue-700 disabled:bg-[var(--glass-bg-highlight)] disabled:cursor-not-allowed text-[var(--text-primary)]"
+            className={styles.generateButton}
           >
-            <Download className="w-4 h-4" />
+            <Download className={styles.iconSm} />
             {isGenerating ? 'Generating...' : 'Generate artifact'}
           </button>
 
           {isGenerating && (
-            <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-3">
-              <div className="flex justify-between text-xs text-[var(--text-secondary)] mb-2">
+            <div className={styles.progressCard}>
+              <div className={styles.progressLabelRow}>
                 <span>Generation progress</span>
                 <span>{progress}%</span>
               </div>
-              <div className="w-full h-2 rounded-full bg-[var(--glass-bg-highlight)] overflow-hidden">
-                <div
-                  className="h-full bg-[var(--accent)] transition-all"
-                  style={{ width: `${progress}%` }}
-                />
+              <div className={styles.progressTrack}>
+                <div className={styles.progressBar} style={{ width: `${progress}%` }} />
               </div>
             </div>
           )}
 
           {generatedMeta && (
-            <div className="bg-emerald-900/20 border border-emerald-700 rounded-[var(--radius-lg)] p-4 space-y-2">
-              <div className="flex items-center gap-2 text-emerald-200 text-sm font-medium">
-                <CheckCircle2 className="w-4 h-4" />
+            <div className={styles.successCard}>
+              <div className={styles.successHeading}>
+                <CheckCircle2 className={styles.iconSm} />
                 Export generated
               </div>
-              <p className="text-xs text-emerald-100">
-                <span className="text-emerald-300">File:</span> {generatedMeta.filename}
+              <p className={styles.successText}>
+                <span className={styles.successLabel}>File:</span> {generatedMeta.filename}
               </p>
-              <p className="text-xs text-emerald-100">
-                <span className="text-emerald-300">Checksum:</span> {generatedMeta.checksum}
+              <p className={styles.successText}>
+                <span className={styles.successLabel}>Checksum:</span> {generatedMeta.checksum}
               </p>
-              <p className="text-xs text-emerald-100">
-                <span className="text-emerald-300">Generated at:</span>{' '}
+              <p className={styles.successText}>
+                <span className={styles.successLabel}>Generated at:</span>{' '}
                 {format(new Date(generatedMeta.generatedAt), 'PPpp')}
               </p>
-              <p className="text-xs text-emerald-100">
-                <span className="text-emerald-300">Version:</span> {generatedMeta.version}
+              <p className={styles.successText}>
+                <span className={styles.successLabel}>Version:</span> {generatedMeta.version}
               </p>
             </div>
           )}
 
           {!selectedOption.available && (
-            <div className="bg-amber-900/20 border border-amber-700 rounded-[var(--radius-lg)] p-3 text-xs text-amber-200 flex items-start gap-2">
-              <ShieldAlert className="w-4 h-4 mt-0.5" />
+            <div className={styles.warningCard}>
+              <ShieldAlert className={styles.iconSm} />
               <span>
                 {selectedOption.unavailableReason || 'Not available yet.'} Use an available export
                 type now and keep provenance enabled for auditability.
@@ -407,49 +396,47 @@ export const InvestigationExportTools: React.FC<ExportToolsProps> = ({
             </div>
           )}
 
-          <div className="text-xs text-[var(--text-muted)] flex items-center gap-2">
-            <Clock className="w-3 h-3" />
+          <div className={styles.footerMeta}>
+            <Clock className={styles.iconXs} />
             Generated files are local downloads. No automatic publish endpoint is active in this
             module.
           </div>
         </div>
       )}
 
-      <div className="flex items-center justify-between gap-2 pt-2 border-t border-[var(--glass-border)]">
+      <div className={styles.footerDivider}>
         <button
           onClick={() => setStep((prev) => Math.max(1, prev - 1) as 1 | 2 | 3 | 4)}
           disabled={step === 1}
-          className="px-3 py-2 text-sm rounded bg-[var(--glass-bg)] text-[var(--text-primary)] disabled:opacity-50"
+          className={`${styles.navButton} ${styles.navButtonSecondary}`}
         >
           Back
         </button>
         <button
           onClick={() => setStep((prev) => Math.min(4, prev + 1) as 1 | 2 | 3 | 4)}
           disabled={step === 4 || !canProceed}
-          className="px-3 py-2 text-sm rounded bg-[var(--accent)] text-[var(--text-primary)] disabled:opacity-50"
+          className={`${styles.navButton} ${styles.navButtonPrimary}`}
         >
           Next
         </button>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-        <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded p-3">
-          <p className="text-[var(--text-muted)]">Evidence items</p>
-          <p className="text-[var(--text-primary)] text-lg font-semibold">{evidence.length}</p>
+      <div className={styles.statsGrid}>
+        <div className={styles.statCard}>
+          <p className={styles.bodyTextXs}>Evidence items</p>
+          <p className={styles.statValue}>{evidence.length}</p>
         </div>
-        <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded p-3">
-          <p className="text-[var(--text-muted)]">Timeline events</p>
-          <p className="text-[var(--text-primary)] text-lg font-semibold">
-            {timelineEvents.length}
-          </p>
+        <div className={styles.statCard}>
+          <p className={styles.bodyTextXs}>Timeline events</p>
+          <p className={styles.statValue}>{timelineEvents.length}</p>
         </div>
-        <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded p-3">
-          <p className="text-[var(--text-muted)]">Hypotheses</p>
-          <p className="text-[var(--text-primary)] text-lg font-semibold">{hypotheses.length}</p>
+        <div className={styles.statCard}>
+          <p className={styles.bodyTextXs}>Hypotheses</p>
+          <p className={styles.statValue}>{hypotheses.length}</p>
         </div>
-        <div className="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded p-3">
-          <p className="text-[var(--text-muted)]">Annotations</p>
-          <p className="text-[var(--text-primary)] text-lg font-semibold">{annotations.length}</p>
+        <div className={styles.statCard}>
+          <p className={styles.bodyTextXs}>Annotations</p>
+          <p className={styles.statValue}>{annotations.length}</p>
         </div>
       </div>
     </div>

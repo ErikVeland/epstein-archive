@@ -35,6 +35,7 @@ import { Flex } from '../design-system/components/layout/Flex';
 import { Box } from '../design-system/components/layout/Box';
 import { Grid } from '../design-system/components/layout/Grid';
 import { LqText } from '../design-system/components/typography/Text';
+import styles from './EvidenceDetail.module.css';
 
 interface Evidence {
   id: number;
@@ -139,9 +140,9 @@ export function EvidenceDetail() {
   };
 
   const getRedFlagColor = (rating: number): string => {
-    if (rating >= 4) return 'text-red-600 bg-red-50';
-    if (rating >= 2) return 'text-orange-600 bg-orange-50';
-    return 'text-[var(--text-primary)] bg-[var(--glass-bg)]';
+    if (rating >= 4) return styles.pillRedFlagHigh;
+    if (rating >= 2) return styles.pillRedFlagMedium;
+    return styles.pillRedFlagLow;
   };
 
   const getEvidenceTypeLabel = (type: string): string => {
@@ -191,10 +192,10 @@ export function EvidenceDetail() {
 
   if (loading) {
     return (
-      <Flex align="center" justify="center" className="min-h-screen bg-[var(--glass-bg)]">
-        <Box className="text-center">
-          <Box className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></Box>
-          <LqText as="p" variant="body" color="primary" className="mt-4">
+      <Flex align="center" justify="center" className={styles.centerScreen}>
+        <Box className={styles.centerContent}>
+          <Box className={styles.spinner}></Box>
+          <LqText as="p" variant="body" color="primary" className={styles.statusText}>
             Loading evidence...
           </LqText>
         </Box>
@@ -204,13 +205,13 @@ export function EvidenceDetail() {
 
   if (error || !evidence) {
     return (
-      <Flex align="center" justify="center" className="min-h-screen bg-[var(--glass-bg)]">
-        <Box className="text-center">
-          <AlertTriangle className="h-12 w-12 text-red-600 mx-auto" />
-          <LqText as="p" variant="body" color="primary" className="mt-4">
+      <Flex align="center" justify="center" className={styles.centerScreen}>
+        <Box className={styles.centerContent}>
+          <AlertTriangle className={styles.errorIcon} />
+          <LqText as="p" variant="body" color="primary" className={styles.statusText}>
             {error || 'Evidence not found'}
           </LqText>
-          <Link to="/evidence" className="mt-4 inline-block text-cyan-400 hover:underline">
+          <Link to="/evidence" className={styles.backLink}>
             ← Back to Evidence List
           </Link>
         </Box>
@@ -219,7 +220,7 @@ export function EvidenceDetail() {
   }
 
   return (
-    <Box className="min-h-screen bg-[var(--glass-bg)] text-[var(--text-primary)]">
+    <Box className={styles.page}>
       <SEO
         title={evidence.title}
         description={
@@ -228,58 +229,50 @@ export function EvidenceDetail() {
         type="article"
       />
       {/* Header */}
-      <Box className="bg-[var(--glass-bg)] border-b border-[var(--glass-border)]">
-        <Box className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <Box className={styles.headerBar}>
+        <Box className={styles.shell}>
           <Flex align="center" justify="between">
             <Flex align="center" gap={4}>
-              <Link
-                to="/evidence"
-                className="text-[var(--text-primary)] hover:text-[var(--text-primary)] flex items-center"
-              >
-                <ChevronLeft className="h-5 w-5" />
-                <span className="ml-1">Back</span>
+              <Link to="/evidence" className={styles.backButton}>
+                <ChevronLeft className={styles.backIcon} />
+                <span className={styles.backLabel}>Back</span>
               </Link>
               <Box>
-                <LqText as="h1" variant="h3" color="primary" className="font-bold">
+                <LqText as="h1" variant="h3" color="primary" className={styles.headerTitle}>
                   {evidence.title}
                 </LqText>
-                <LqText
-                  as="p"
-                  variant="body"
-                  color="muted"
-                  className="text-xs font-light mt-1 truncate"
-                >
+                <LqText as="p" variant="body" color="muted" className={styles.headerMeta}>
                   {evidence.originalFilename}
                 </LqText>
               </Box>
             </Flex>
 
-            <Flex align="center" gap={2}>
+            <Flex align="center" gap={2} className={styles.headerActions}>
               <button
                 onClick={handleShare}
-                className="p-2 text-[var(--text-primary)] hover:bg-[var(--glass-bg)] rounded"
+                className={styles.iconButton}
                 aria-label="Share evidence"
               >
-                <Share2 className="h-5 w-5" />
+                <Share2 className={styles.actionIcon} />
               </button>
               <button
                 onClick={handleBookmark}
-                className="p-2 text-[var(--text-primary)] hover:bg-[var(--glass-bg)] rounded"
+                className={styles.iconButton}
                 aria-label="Bookmark evidence"
               >
-                <Bookmark className="h-5 w-5" />
+                <Bookmark className={styles.actionIcon} />
               </button>
               <button
                 onClick={handleDownload}
-                className="p-2 text-[var(--text-primary)] hover:bg-[var(--glass-bg)] rounded"
+                className={styles.iconButton}
                 aria-label="Download evidence file"
               >
-                <Download className="h-5 w-5" />
+                <Download className={styles.actionIcon} />
               </button>
             </Flex>
           </Flex>
           {actionNotice && (
-            <LqText as="p" variant="small" color="muted" className="mt-2 text-xs">
+            <LqText as="p" variant="small" color="muted" className={styles.notice}>
               {actionNotice}
             </LqText>
           )}
@@ -287,75 +280,64 @@ export function EvidenceDetail() {
       </Box>
 
       {/* Metadata Bar */}
-      <Surface variant="glass" className="border-b border-[var(--glass-border)] rounded-none">
-        <Box className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
-          <Flex align="center" justify="between" className="flex-wrap gap-4">
-            <Flex align="center" gap={4}>
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                <FileText className="h-4 w-4 mr-1" />
+      <Surface variant="glass" className={styles.metaSurface}>
+        <Box className={`${styles.shell} ${styles.metaBar}`}>
+          <Flex align="center" justify="between" className={styles.metaPrimaryRow}>
+            <Flex align="center" gap={4} className={styles.metaPrimaryRow}>
+              <span className={`${styles.pill} ${styles.pillEvidenceType}`}>
+                <FileText className={styles.pillIcon} />
                 {getEvidenceTypeLabel(evidence.evidenceType)}
               </span>
 
-              <span
-                className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getRedFlagColor(evidence.redFlagRating)}`}
-              >
-                <AlertTriangle className="h-4 w-4 mr-1" />
+              <span className={`${styles.pill} ${getRedFlagColor(evidence.redFlagRating)}`}>
+                <AlertTriangle className={styles.pillIcon} />
                 Red Flag: {evidence.redFlagRating}/5
               </span>
 
               {evidence.signalScore !== undefined && (
-                <span
-                  className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800"
-                  title="Signal Strength"
-                >
-                  <Zap className="h-4 w-4 mr-1" />
+                <span className={`${styles.pill} ${styles.pillSignal}`} title="Signal Strength">
+                  <Zap className={styles.pillIcon} />
                   Signal: {(evidence.signalScore * 100).toFixed(0)}%
                 </span>
               )}
 
               {evidence.ocrQualityScore !== undefined && evidence.ocrQualityScore < 0.7 && (
-                <span
-                  className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800"
-                  title="Low OCR Quality"
-                >
-                  <Activity className="h-4 w-4 mr-1" />
+                <span className={`${styles.pill} ${styles.pillWarning}`} title="Low OCR Quality">
+                  <Activity className={styles.pillIcon} />
                   OCR Quality: Low
                 </span>
               )}
 
               {evidence.unredaction_metrics?.succeeded && (
                 <span
-                  className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800"
+                  className={`${styles.pill} ${styles.pillSuccess}`}
                   title={`Gained ${evidence.unredaction_metrics.unredactedTextGain?.toFixed(0) || 0} characters`}
                 >
-                  <ShieldCheck className="h-4 w-4 mr-1" />
+                  <ShieldCheck className={styles.pillIcon} />
                   Unredacted
                 </span>
               )}
 
               {evidence.createdAt && (
-                <span className="inline-flex items-center text-sm text-[var(--text-primary)]">
-                  <Calendar className="h-4 w-4 mr-1" />
+                <span className={styles.dateMeta}>
+                  <Calendar className={styles.pillIcon} />
                   {formatDate(evidence.createdAt)}
                 </span>
               )}
             </Flex>
 
-            <Flex align="center" gap={4} className="text-sm text-[var(--text-primary)]">
+            <Flex align="center" gap={4} className={styles.metaStats}>
               <span>{evidence.wordCount?.toLocaleString()} words</span>
               <span>{formatFileSize(evidence.fileSize)}</span>
             </Flex>
           </Flex>
 
           {evidence.tags && evidence.tags.length > 0 && (
-            <Flex align="center" gap={2} className="mt-3">
-              <Tag className="h-4 w-4 text-[var(--text-muted)]" />
-              <Flex gap={2} className="flex-wrap">
+            <Flex align="center" gap={2} className={styles.tagRow}>
+              <Tag className={styles.tagIcon} />
+              <Flex gap={2} className={styles.tagsWrap}>
                 {evidence.tags.map((tag, index) => (
-                  <span
-                    key={index}
-                    className="px-2 py-1 bg-[var(--glass-bg)] text-[var(--text-primary)] text-xs rounded"
-                  >
+                  <span key={index} className={styles.tagPill}>
                     {tag}
                   </span>
                 ))}
@@ -365,17 +347,17 @@ export function EvidenceDetail() {
         </Box>
       </Surface>
 
-      <Box className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <Box className={styles.contentShell}>
         <Grid cols={{ base: 1, lg: 4 }} gap="lg">
           {/* Main Content */}
-          <Box className="lg:col-span-3">
-            <Surface variant="glass" className="h-full">
+          <Box className={styles.layoutMain}>
+            <Surface variant="glass" className={styles.mainSurface}>
               {renderViewer()}
             </Surface>
           </Box>
 
           {/* Sidebar */}
-          <Flex direction="column" gap={6} className="lg:col-span-1">
+          <Flex direction="column" gap={6} className={styles.layoutSide}>
             {/* Claims & Facts */}
             {evidence.claims && evidence.claims.length > 0 && (
               <ClaimsList
@@ -385,9 +367,9 @@ export function EvidenceDetail() {
 
             {/* Linked Entities */}
             {evidence.entities && evidence.entities.length > 0 && (
-              <Surface variant="glass" className="p-4">
-                <LqText as="h3" variant="h3" color="primary" className="mb-4 flex items-center">
-                  <Users className="h-5 w-5 mr-2" />
+              <Surface variant="glass" className={styles.linkedSurface}>
+                <LqText as="h3" variant="h3" color="primary" className={styles.linkedHeader}>
+                  <Users className={styles.linkedHeaderIcon} />
                   Linked Entities ({evidence.entities.length})
                 </LqText>
                 <Flex direction="column" gap={3}>
@@ -397,28 +379,40 @@ export function EvidenceDetail() {
                       <Link
                         key={entity.id}
                         to={`/entities/${entity.id}`}
-                        className="block p-3 border border-[var(--glass-border)] rounded-lg hover:border-cyan-500 hover:shadow-[var(--glass-shadow-soft)] transition"
+                        className={styles.entityLink}
                       >
                         <Flex align="start" justify="between">
-                          <Box className="flex-1 min-w-0">
+                          <Box className={styles.entityContent}>
                             <LqText
                               as="p"
                               variant="body"
                               color="primary"
-                              className="font-medium truncate"
+                              className={styles.entityName}
                             >
                               {entity.name}
                             </LqText>
-                            <LqText as="p" variant="small" color="muted" className="mt-1">
+                            <LqText
+                              as="p"
+                              variant="small"
+                              color="muted"
+                              className={styles.entityMeta}
+                            >
                               Role: {entity.role}
                             </LqText>
                             {entity.confidence < 1 && (
-                              <LqText as="p" variant="small" color="muted" className="mt-1">
+                              <LqText
+                                as="p"
+                                variant="small"
+                                color="muted"
+                                className={styles.entityMeta}
+                              >
                                 Confidence: {(entity.confidence * 100).toFixed(0)}%
                               </LqText>
                             )}
                           </Box>
-                          <span className={`text-sm ${iconConfig.color}`}>{iconConfig.icon}</span>
+                          <span className={`${styles.entityIcon} ${iconConfig.color}`}>
+                            {iconConfig.icon}
+                          </span>
                         </Flex>
                       </Link>
                     );
@@ -429,17 +423,17 @@ export function EvidenceDetail() {
 
             {/* Metadata */}
             {evidence.metadata && Object.keys(evidence.metadata).length > 0 && (
-              <Surface variant="solid" className="p-4 bg-[var(--text-primary)]">
-                <LqText as="h3" variant="h3" className="mb-4 text-[var(--bg-primary)]">
+              <Surface variant="solid" className={`${styles.metadataSurface} ${styles.metaSolid}`}>
+                <LqText as="h3" variant="h3" className={styles.metaSolidTitle}>
                   Metadata
                 </LqText>
-                <dl className="space-y-2 text-sm">
+                <dl className={styles.metaList}>
                   {Object.entries(evidence.metadata).map(([key, value]) => (
                     <Box key={key}>
-                      <dt className="text-[var(--bg-primary)] font-medium">
+                      <dt className={styles.metaTerm}>
                         {key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}
                       </dt>
-                      <dd className="text-[var(--bg-primary)] mt-1 opacity-80">
+                      <dd className={styles.metaDesc}>
                         {typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value)}
                       </dd>
                     </Box>

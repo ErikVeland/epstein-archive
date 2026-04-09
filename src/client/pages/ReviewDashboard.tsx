@@ -1,11 +1,13 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Shield, Check, X, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { apiClient } from '../services/apiClient';
 import { Surface } from '../design-system/components/surfaces/Surface';
 import { Flex } from '../design-system/components/layout/Flex';
 import { Box } from '../design-system/components/layout/Box';
 import { LqText } from '../design-system/components/typography/Text';
 import type { SpaceValue } from '../design-system/lib/resolveSpace';
+import styles from './ReviewDashboard.module.css';
 
 interface MentionQueueItem {
   id: number;
@@ -37,11 +39,11 @@ export function ReviewDashboard() {
     setLoading(true);
     try {
       if (activeTab === 'mentions') {
-        const res = await fetch('/api/review/mentions/queue?limit=50');
-        setMentions(await res.json());
+        const json = await apiClient.get<MentionQueueItem[]>('/review/mentions/queue?limit=50');
+        setMentions(Array.isArray(json) ? json : []);
       } else {
-        const res = await fetch('/api/review/claims/queue?limit=50');
-        setClaims(await res.json());
+        const json = await apiClient.get<ClaimQueueItem[]>('/review/claims/queue?limit=50');
+        setClaims(Array.isArray(json) ? json : []);
       }
     } catch (e) {
       console.error(e);
@@ -56,12 +58,7 @@ export function ReviewDashboard() {
 
   const verifyItem = async (id: number, type: 'mentions' | 'claims') => {
     try {
-      await fetch(`/api/review/${type}/${id}/verify`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({}),
-      });
-      // Remove from list
+      await apiClient.post(`/review/${type}/${id}/verify`, {});
       if (type === 'mentions') setMentions((p) => p.filter((x) => x.id !== id));
       else setClaims((p) => p.filter((x) => x.id !== id));
     } catch (e) {
@@ -73,11 +70,7 @@ export function ReviewDashboard() {
     const reason = prompt('Reason for rejection?');
     if (!reason) return;
     try {
-      await fetch(`/api/review/${type}/${id}/reject`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ rejection_reason: reason }),
-      });
+      await apiClient.post(`/review/${type}/${id}/reject`, { rejection_reason: reason });
       if (type === 'mentions') setMentions((p) => p.filter((x) => x.id !== id));
       else setClaims((p) => p.filter((x) => x.id !== id));
     } catch (e) {
@@ -85,122 +78,91 @@ export function ReviewDashboard() {
     }
   };
 
+  const confidenceClassName = (value: number) =>
+    value > 0.8 ? styles.scorePillHigh : styles.scorePillMedium;
+
   return (
-    <Box className="min-h-screen app-backdrop p-6">
-      <Box className="max-w-7xl mx-auto">
-        <Flex align="center" justify="between" className="mb-12">
+    <Box className={`app-backdrop ${styles.page}`}>
+      <Box className={styles.pageInner}>
+        <Flex align="center" justify="between" className={styles.header}>
           <Box>
-            <LqText
-              as="h1"
-              variant="h1"
-              color="accent"
-              className="flex items-center gap-4 mb-3 text-[2.5rem] leading-none font-display font-light tracking-tight"
-            >
-              <Shield className="h-8 w-8 text-[var(--accent)] opacity-80" strokeWidth={1} />
+            <LqText as="h1" variant="h1" color="accent" className={styles.title}>
+              <Shield className={styles.titleIcon} strokeWidth={1} />
               Active Learning Review
             </LqText>
-            <LqText
-              as="p"
-              variant="body"
-              color="muted"
-              weight="light"
-              className="tracking-wide text-lg"
-            >
+            <LqText as="p" variant="body" color="muted" weight="light" className={styles.subtitle}>
               Verify high-signal extractions to train the system.
             </LqText>
           </Box>
         </Flex>
 
         {/* Tabs */}
-        <Flex gap={8} className="mb-6 px-2">
+        <Flex gap={8} className={styles.tabs}>
           <button
             onClick={() => setActiveTab('mentions')}
-            className={`pb-3 text-sm font-semibold tracking-wider uppercase transition-all duration-300 relative ${activeTab === 'mentions' ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}
+            className={`${styles.tabButton} ${
+              activeTab === 'mentions' ? styles.tabButtonActive : styles.tabButtonIdle
+            }`}
           >
             Entity Mentions
-            {activeTab === 'mentions' && (
-              <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[var(--accent)] shadow-[0_0_10px_var(--accent)]" />
-            )}
+            {activeTab === 'mentions' && <div className={styles.tabUnderline} />}
           </button>
           <button
             onClick={() => setActiveTab('claims')}
-            className={`pb-3 text-sm font-semibold tracking-wider uppercase transition-all duration-300 relative ${activeTab === 'claims' ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'}`}
+            className={`${styles.tabButton} ${
+              activeTab === 'claims' ? styles.tabButtonActive : styles.tabButtonIdle
+            }`}
           >
             Claims & Facts
-            {activeTab === 'claims' && (
-              <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[var(--accent)] shadow-[0_0_10px_var(--accent)]" />
-            )}
+            {activeTab === 'claims' && <div className={styles.tabUnderline} />}
           </button>
         </Flex>
 
-        <Surface variant="glass" className="overflow-hidden">
+        <Surface variant="glass" className={styles.surfaceShell}>
           {loading ? (
-            <Box className="p-12 text-center text-[var(--text-muted)]">Loading queue...</Box>
+            <Box className={styles.loadingState}>Loading queue...</Box>
           ) : (
-            <Flex direction="column" className="divide-y divide-[var(--glass-border)]">
+            <Flex direction="column" className={styles.queueList}>
               {activeTab === 'mentions' &&
                 mentions.map((item) => (
-                  <Flex
-                    gap={4}
-                    key={item.id}
-                    className="p-6 hover:bg-[var(--glass-bg-strong)] transition-all duration-300 group hover:translate-x-1 relative overflow-hidden"
-                  >
-                    <Box className="absolute left-0 top-0 bottom-0 w-1 bg-[var(--accent)] opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <Box className="flex-1">
-                      <Flex align="center" gap={3} className="mb-3">
-                        <span className="font-bold text-lg text-[var(--text-primary)]">
-                          {item.entity_name}
-                        </span>
+                  <Flex gap={4} key={item.id} className={styles.queueItem}>
+                    <Box className={styles.queueItemAccent} />
+                    <Box className={styles.queueItemContent}>
+                      <Flex align="center" gap={3} className={styles.rowHeader}>
+                        <span className={styles.entityName}>{item.entity_name}</span>
                         <span
-                          className={`text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full ${item.confidence_score > 0.8 ? 'bg-green-500/10 text-green-400' : 'bg-amber-500/10 text-amber-400'}`}
+                          className={`${styles.scorePill} ${confidenceClassName(item.confidence_score)}`}
                         >
                           Conf: {(item.confidence_score * 100).toFixed(0)}%
                         </span>
-                        <span className="text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full bg-[var(--glass-bg)] text-[var(--text-secondary)] shadow-[0_2px_10px_rgba(0,0,0,0.1)]">
+                        <span className={styles.signalPill}>
                           Signal: {(item.signal_score * 100).toFixed(0)}
                         </span>
                       </Flex>
-                      <LqText
-                        as="p"
-                        variant="body"
-                        color="primary"
-                        className="mb-4 font-mono leading-relaxed bg-[var(--glass-bg-strong)] p-4 rounded-lg shadow-inner text-sm"
-                      >
+                      <LqText as="p" variant="body" color="primary" className={styles.quoteBlock}>
                         "...{item.mention_context}..."
                       </LqText>
-                      <Flex
-                        align="center"
-                        gap={1.5 as SpaceValue}
-                        className="text-xs text-[var(--text-muted)] font-medium tracking-wide"
-                      >
-                        Source:{' '}
-                        <span className="text-[var(--text-secondary)]">{item.file_name}</span>
-                        <Link
-                          to={`/evidence/${item.document_id}`}
-                          className="ml-2 hover:text-[var(--accent)] transition-colors inline-block hover:-translate-y-0.5 transform"
-                        >
-                          <ExternalLink className="w-3.5 h-3.5" />
+                      <Flex align="center" gap={1.5 as SpaceValue} className={styles.metaRow}>
+                        Source: <span className={styles.metaValue}>{item.file_name}</span>
+                        <Link to={`/evidence/${item.document_id}`} className={styles.sourceLink}>
+                          <ExternalLink className={styles.sourceLinkIcon} />
                         </Link>
                       </Flex>
                     </Box>
-                    <Flex
-                      direction="column"
-                      gap={3}
-                      className="opacity-50 group-hover:opacity-100 transition-opacity"
-                    >
+                    <Flex direction="column" gap={3} className={styles.actions}>
                       <button
                         onClick={() => verifyItem(item.id, 'mentions')}
-                        className="p-2.5 bg-green-500/10 hover:bg-green-500 text-green-500 hover:text-[var(--text-primary)] rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.1)] hover:shadow-[0_5px_15px_rgba(34,197,94,0.4)] transition-all transform hover:scale-110"
+                        className={`${styles.iconButton} ${styles.iconButtonApprove}`}
                         title="Verify"
                       >
-                        <Check className="w-5 h-5" />
+                        <Check className={styles.actionIcon} />
                       </button>
                       <button
                         onClick={() => rejectItem(item.id, 'mentions')}
-                        className="p-2.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-[var(--text-primary)] rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.1)] hover:shadow-[0_5px_15px_rgba(239,68,68,0.4)] transition-all transform hover:scale-110"
+                        className={`${styles.iconButton} ${styles.iconButtonReject}`}
                         title="Reject"
                       >
-                        <X className="w-5 h-5" />
+                        <X className={styles.actionIcon} />
                       </button>
                     </Flex>
                   </Flex>
@@ -208,19 +170,13 @@ export function ReviewDashboard() {
 
               {activeTab === 'claims' &&
                 claims.map((item) => (
-                  <Flex
-                    gap={4}
-                    key={item.id}
-                    className="p-6 hover:bg-[var(--glass-bg-strong)] transition-all duration-300 group hover:translate-x-1 relative overflow-hidden"
-                  >
-                    <Box className="absolute left-0 top-0 bottom-0 w-1 bg-[var(--accent)] opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <Box className="flex-1">
-                      <Flex align="center" gap={3} className="mb-3">
-                        <span className="font-bold text-lg text-[var(--accent)] font-mono uppercase tracking-[0.1em]">
-                          {item.predicate}
-                        </span>
+                  <Flex gap={4} key={item.id} className={styles.queueItem}>
+                    <Box className={styles.queueItemAccent} />
+                    <Box className={styles.queueItemContent}>
+                      <Flex align="center" gap={3} className={styles.rowHeader}>
+                        <span className={styles.predicate}>{item.predicate}</span>
                         <span
-                          className={`text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full ${item.confidence > 0.8 ? 'bg-green-500/10 text-green-400' : 'bg-amber-500/10 text-amber-400'}`}
+                          className={`${styles.scorePill} ${confidenceClassName(item.confidence)}`}
                         >
                           Conf: {(item.confidence * 100).toFixed(0)}%
                         </span>
@@ -229,45 +185,34 @@ export function ReviewDashboard() {
                         as="p"
                         variant="body"
                         color="primary"
-                        className="mb-5 font-light tracking-wide leading-relaxed text-[1.1rem]"
+                        className={styles.claimStatement}
                       >
-                        <span className="font-medium text-[var(--text-secondary)] tracking-tight">
+                        <span className={styles.claimSubject}>
                           Subject (ID {item.subject_entity_id})
                         </span>{' '}
-                        <span className="opacity-70 mx-1">
+                        <span className={styles.claimPredicate}>
                           {item.predicate.toLowerCase().replace(/_/g, ' ')}
                         </span>{' '}
-                        <span className="font-medium bg-[var(--accent)]/10 border border-[var(--accent)]/20 shadow-[var(--glass-shadow-soft)] text-[var(--accent)] px-2 py-0.5 rounded-md inline-block -translate-y-px">
-                          {item.object_text}
-                        </span>
+                        <span className={styles.claimObject}>{item.object_text}</span>
                       </LqText>
-                      <Flex
-                        align="center"
-                        gap={1.5 as SpaceValue}
-                        className="text-xs text-[var(--text-muted)] font-medium tracking-wide"
-                      >
-                        Source:{' '}
-                        <span className="text-[var(--text-secondary)]">{item.file_name}</span>
+                      <Flex align="center" gap={1.5 as SpaceValue} className={styles.metaRow}>
+                        Source: <span className={styles.metaValue}>{item.file_name}</span>
                       </Flex>
                     </Box>
-                    <Flex
-                      direction="column"
-                      gap={3}
-                      className="opacity-50 group-hover:opacity-100 transition-opacity"
-                    >
+                    <Flex direction="column" gap={3} className={styles.actions}>
                       <button
                         onClick={() => verifyItem(item.id, 'claims')}
-                        className="p-2.5 bg-green-500/10 hover:bg-green-500 text-green-500 hover:text-[var(--text-primary)] rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.1)] hover:shadow-[0_5px_15px_rgba(34,197,94,0.4)] transition-all transform hover:scale-110"
+                        className={`${styles.iconButton} ${styles.iconButtonApprove}`}
                         title="Verify"
                       >
-                        <Check className="w-5 h-5" />
+                        <Check className={styles.actionIcon} />
                       </button>
                       <button
                         onClick={() => rejectItem(item.id, 'claims')}
-                        className="p-2.5 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-[var(--text-primary)] rounded-full shadow-[0_2px_10px_rgba(0,0,0,0.1)] hover:shadow-[0_5px_15px_rgba(239,68,68,0.4)] transition-all transform hover:scale-110"
+                        className={`${styles.iconButton} ${styles.iconButtonReject}`}
                         title="Reject"
                       >
-                        <X className="w-5 h-5" />
+                        <X className={styles.actionIcon} />
                       </button>
                     </Flex>
                   </Flex>
@@ -278,24 +223,15 @@ export function ReviewDashboard() {
                   direction="column"
                   align="center"
                   justify="center"
-                  className="p-16 text-center"
+                  className={styles.emptyState}
                 >
-                  <Flex
-                    align="center"
-                    justify="center"
-                    className="w-16 h-16 rounded-full bg-[var(--glass-bg)] border border-[var(--glass-border)] shadow-[var(--glass-shadow-soft)] mb-6 text-[var(--accent)]"
-                  >
-                    <Check className="w-8 h-8 opacity-70" />
+                  <Flex align="center" justify="center" className={styles.emptyBadge}>
+                    <Check className={styles.emptyBadgeIcon} />
                   </Flex>
-                  <LqText
-                    as="h3"
-                    variant="h3"
-                    color="primary"
-                    className="mb-2 font-display text-xl"
-                  >
+                  <LqText as="h3" variant="h3" color="primary" className={styles.emptyTitle}>
                     Queue is Empty
                   </LqText>
-                  <LqText as="p" variant="body" color="muted" className="max-w-sm">
+                  <LqText as="p" variant="body" color="muted" className={styles.emptyBody}>
                     All pending items for this queue have been verified or rejected. Great work.
                   </LqText>
                 </Flex>

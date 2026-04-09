@@ -171,6 +171,8 @@ export interface EvidenceItem {
   sensitivity?: 'public' | 'confidential' | 'restricted' | 'secret';
   cleanedPath?: string;
   originalFilePath?: string;
+  metadata?: Record<string, unknown>;
+  metadata_json?: string | Record<string, unknown>;
 }
 
 export interface ChainOfCustodyEvent {

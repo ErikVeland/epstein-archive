@@ -9,6 +9,7 @@ const strictMode = process.env.STRICT_DESIGN_TOKENS === '1';
 const writeStrictBaseline = process.env.WRITE_STRICT_BASELINE === '1';
 const strictBaselinePath = path.join(rootDir, 'scripts/design-token-strict-baseline.json');
 const enforcedFiles = [
+  'src/client/App.tsx',
   // Core common primitives
   'src/client/components/common/FormField.tsx',
   'src/client/components/common/Select.tsx',
@@ -58,6 +59,10 @@ const moduleGovernedFiles = new Set(
     'src/client/components/common/TagSelector.tsx',
     'src/client/components/common/BatchToolbar.tsx',
     'src/client/components/common/AddToInvestigationButton.tsx',
+    'src/client/components/BlackBookReview.tsx',
+    'src/client/components/BlackBookViewer.tsx',
+    'src/client/components/FinancialTransactionAnalysis.tsx',
+    'src/client/components/PatternRecognitionAI.tsx',
     'src/client/components/pages/LegalPage.tsx',
     'src/client/components/shared/DegradedBanner.tsx',
     'src/client/components/shared/SensitiveWarningBanner.tsx',
@@ -106,12 +111,17 @@ const moduleGovernedFiles = new Set(
     'src/client/components/investigation/EvidencePacketExporter.tsx',
     'src/client/components/investigation/InvestigationActivityFeed.tsx',
     'src/client/components/investigation/InvestigationBoard.tsx',
+    'src/client/components/investigation/InvestigationExportTools.tsx',
     'src/client/components/investigation/InvestigationMemoryPanel.tsx',
     'src/client/components/investigation/InvestigationOnboarding.tsx',
     'src/client/components/entities/EntityEvidencePanel.tsx',
     'src/client/components/entities/EntityRelationshipMapper.tsx',
     'src/client/components/entities/CreateEntityModal.tsx',
+    'src/client/components/entities/CreateRelationshipModal.tsx',
     'src/client/components/entities/SubjectCardV2.tsx',
+    'src/client/components/investigation/InvestigationCaseFolder.tsx',
+    'src/client/components/investigation/InvestigationTasksPanel.tsx',
+    'src/client/components/investigation/InvestigationTeamManagement.tsx',
     // Page and top-level shell migration
     'src/client/components/pages/StatsSkeleton.tsx',
     'src/client/components/pages/StatsDashboard.tsx',
@@ -124,6 +134,9 @@ const moduleGovernedFiles = new Set(
     'src/client/components/pages/AboutPage.tsx',
     'src/client/pages/AnalyticsPage.tsx',
     'src/client/pages/LoginPage.tsx',
+    'src/client/pages/PeoplePage.tsx',
+    'src/client/pages/EvidenceDetail.tsx',
+    'src/client/pages/ReviewDashboard.tsx',
     'src/client/pages/TheEpsteinFilesPage.tsx',
     // Media and properties follow-up migration
     'src/client/components/media/ArticleCard.tsx',
@@ -161,6 +174,7 @@ const moduleGovernedFiles = new Set(
     'src/client/components/evidence/EvidenceDocSnippets.tsx',
     'src/client/components/evidence/ClaimsList.tsx',
     'src/client/components/evidence/EvidenceFilters.tsx',
+    'src/client/components/EvidenceSearch.tsx',
     'src/client/components/evidence/ContactListViewer.tsx',
     'src/client/components/evidence/DocumentViewer.tsx',
     'src/client/components/evidence/EvidenceLadder.tsx',
@@ -176,12 +190,18 @@ const moduleGovernedFiles = new Set(
     'src/client/components/entities/cards/EvidenceBadge.tsx',
     'src/client/components/entities/PersonCardSkeleton.tsx',
     'src/client/components/entities/PersonCard.tsx',
+    'src/client/components/faces/FaceGallery.tsx',
     'src/client/components/visualizations/AreaTimeline.tsx',
+    'src/client/components/visualizations/DataVisualization.tsx',
     'src/client/components/visualizations/DataIntegrityPanel.tsx',
     'src/client/components/visualizations/DocumentBarChart.tsx',
     'src/client/components/visualizations/EvidenceDrawer.tsx',
+    'src/client/components/visualizations/InteractiveEntityMap.tsx',
     'src/client/components/visualizations/LocationMap.tsx',
     'src/client/components/visualizations/SunburstChart.tsx',
+    'src/client/components/visualizations/Timeline.tsx',
+    'src/client/components/visualizations/TimelineVisualization.tsx',
+    'src/client/components/visualizations/TreeMap.tsx',
   ].map((f) => path.join(rootDir, f)),
 );
 

@@ -12,11 +12,10 @@ import { useQuery } from '@tanstack/react-query';
 import { preloader } from './utils/ResourcePreloader';
 import { runDevAffordanceAudit } from './utils/devAffordanceAudit';
 import { createPortal } from 'react-dom';
-import { useLocation, useNavigate, Link, Routes, Route, useMatch } from 'react-router-dom';
+import { useNavigate, Link, Routes, Route } from 'react-router-dom';
 // Icons imported as needed via Icon component
 import { Person } from './types';
 import type {
-  SeoConfig,
   GlobalStatsPayload,
   SearchResponsePayload,
   EntityByIdResponse,
@@ -47,6 +46,9 @@ import { Flex, Box, Grid, Surface, LqText } from './design-system/lib';
 import { useFilters } from './contexts/useFilters';
 import { LoginPage } from './pages/LoginPage';
 import { SEO } from './components/common/SEO';
+import { useSeoConfig } from './hooks/useSeoConfig';
+import { useAppNavigation, tabLabels } from './hooks/useAppNavigation';
+import { parseReleaseNotes } from './utils/releaseNotes';
 const PeoplePage = lazy(() =>
   import('./pages/PeoplePage').then((m) => ({ default: m.PeoplePage })),
 );
@@ -121,458 +123,18 @@ const ReviewDashboard = lazy(() =>
 import releaseNotesRaw from '../../release_notes.md?raw';
 import styles from './App.module.css';
 
-interface ParsedReleaseNote {
-  version: string;
-  date: string;
-  title: string;
-  notes: string[];
-}
-
-// Helper to parse markdown release notes
-const parseReleaseNotes = (markdown: string) => {
-  try {
-    const sections: string[] = [];
-    const lines = markdown.split('\n');
-    let current: string[] = [];
-
-    const isVersionHeading = (line: string): boolean =>
-      /^##\s+(?:[Vv]ersion\s+|[Vv])?\d+\.\d+\.\d+\b/.test(line) ||
-      /^#\s*📣\s*Epstein Archive\s+[Vv]\d+\.\d+\.\d+\b/.test(line);
-
-    for (const line of lines) {
-      if (isVersionHeading(line)) {
-        if (current.length > 0) {
-          sections.push(current.join('\n'));
-          current = [];
-        }
-      }
-      if (current.length > 0 || isVersionHeading(line)) {
-        current.push(line);
-      }
-    }
-    if (current.length > 0) {
-      sections.push(current.join('\n'));
-    }
-
-    return sections
-      .map((section): ParsedReleaseNote | null => {
-        const sectionLines = section.split('\n').map((l) => l.trim());
-        if (sectionLines.length === 0) return null;
-
-        const headerLine = sectionLines[0];
-        const versionMatch = headerLine.match(/(?:[Vv]ersion\s+|[Vv])?(\d+\.\d+\.\d+)/);
-        const version = versionMatch ? `v${versionMatch[1]}` : 'Update';
-
-        let date = 'Recent';
-        const isoDate = headerLine.match(/(\d{4}-\d{2}-\d{2})/);
-        if (isoDate) date = isoDate[1];
-        const parenDate = headerLine.match(/\(([^)]+)\)/);
-        if (parenDate) date = parenDate[1];
-
-        let title = 'Maintenance Update';
-        const dashTitle = headerLine.match(/[—-]\s*(.+)$/);
-        if (dashTitle) {
-          const candidate = dashTitle[1].trim().replace(/^\d{4}-\d{2}-\d{2}\s*[—-]\s*/, '');
-          if (candidate.length > 0 && !/^\d{4}-\d{2}-\d{2}$/.test(candidate)) {
-            title = candidate;
-          }
-        }
-        if (title === 'Maintenance Update') {
-          const sectionHeading = sectionLines.find((line) => line.startsWith('### '));
-          if (sectionHeading) {
-            title = sectionHeading.replace(/^###\s+/, '').trim();
-          }
-        }
-
-        const notes: string[] = [];
-        for (const line of sectionLines) {
-          if (line.startsWith('- ') || line.startsWith('* ')) {
-            notes.push(line.substring(2));
-          } else if (line.startsWith('### ')) {
-            notes.push(line);
-          }
-        }
-
-        return { version, date, title, notes };
-      })
-      .filter((record): record is ParsedReleaseNote => record !== null)
-      .filter((record) => record.notes.length > 0 || record.title !== 'Maintenance Update')
-      .sort((a, b) => {
-        // Sort by version (descending)
-        const vA = a.version.replace('v', '').split('.').map(Number);
-        const vB = b.version.replace('v', '').split('.').map(Number);
-        for (let i = 0; i < Math.max(vA.length, vB.length); i++) {
-          const numA = vA[i] || 0;
-          const numB = vB[i] || 0;
-          if (numA !== numB) return numB - numA;
-        }
-        return 0;
-      });
-  } catch (e) {
-    console.error('Failed to parse release notes', e);
-    return [];
-  }
-};
+// Release notes logic and interface moved to src/client/utils/releaseNotes.ts
 
 import { CreateEntityModal } from './components/entities/CreateEntityModal';
 import Footer from './components/layout/Footer';
 
 function App() {
   const { filters, setFilters } = useFilters();
-  const location = useLocation();
+  const { activeTab, location } = useAppNavigation();
   const navigate = useNavigate();
   const { user: currentUser, isAdmin } = useAuth();
 
-  // Determine active tab from URL using React Router's useMatch hooks.
-  // This replaces the brittle manual string-matching getTabFromPath function.
-  type Tab =
-    | 'people'
-    | 'search'
-    | 'documents'
-    | 'media'
-    | 'timeline'
-    | 'flights'
-    | 'properties'
-    | 'investigations'
-    | 'analytics'
-    | 'blackbook'
-    | 'about'
-    | 'emails'
-    | 'login'
-    | 'evidence'
-    | 'faq'
-    | 'guide'
-    | 'review'
-    | 'admin'
-    | 'landing';
-  const matchPeople = useMatch({ path: '/people', end: false });
-  const matchEntity = useMatch({ path: '/entity/:id', end: false });
-  const matchSearch = useMatch({ path: '/search', end: false });
-  const matchDocuments = useMatch({ path: '/documents', end: false });
-  const matchMedia = useMatch({ path: '/media', end: false });
-  const matchTimeline = useMatch({ path: '/timeline', end: false });
-  const matchFlights = useMatch({ path: '/flights', end: false });
-  const matchProperties = useMatch({ path: '/properties', end: false });
-  const matchInvestigations1 = useMatch({ path: '/investigations', end: false });
-  const matchInvestigations2 = useMatch({ path: '/investigate', end: false });
-  const matchInvestigations = matchInvestigations1 || matchInvestigations2;
-  const matchAnalytics = useMatch({ path: '/analytics', end: false });
-  const matchBlackbook = useMatch({ path: '/blackbook', end: false });
-  const matchAbout1 = useMatch({ path: '/about', end: false });
-  const matchAbout2 = useMatch({ path: '/privacy', end: false });
-  const matchAbout3 = useMatch({ path: '/terms', end: false });
-  const matchAbout = matchAbout1 || matchAbout2 || matchAbout3;
-  const matchEmails = useMatch({ path: '/emails', end: false });
-  const matchLogin = useMatch({ path: '/login', end: false });
-  const matchAdmin = useMatch({ path: '/admin', end: false });
-  const matchReview = useMatch({ path: '/review', end: false });
-  const matchEvidence = useMatch({ path: '/evidence/:id', end: false });
-  const matchFaq = useMatch({ path: '/faq', end: false });
-  const matchGuide = useMatch({ path: '/guide', end: false });
-  const matchLanding1 = useMatch({ path: '/the-epstein-files', end: false });
-  const matchLanding2 = useMatch({ path: '/epstein-documents', end: false });
-  const matchLanding3 = useMatch({ path: '/epstein-people', end: false });
-  const matchLanding4 = useMatch({ path: '/epstein-media', end: false });
-  const matchLanding5 = useMatch({ path: '/epstein-timeline', end: false });
-  const matchLanding6 = useMatch({ path: '/epstein-flights', end: false });
-  const matchLanding =
-    matchLanding1 ||
-    matchLanding2 ||
-    matchLanding3 ||
-    matchLanding4 ||
-    matchLanding5 ||
-    matchLanding6;
-
-  const activeTab: Tab = (() => {
-    if (matchSearch) return 'search';
-    if (matchDocuments) return 'documents';
-    if (matchMedia) return 'media';
-    if (matchTimeline) return 'timeline';
-    if (matchFlights) return 'flights';
-    if (matchProperties) return 'properties';
-    if (matchInvestigations) return 'investigations';
-    if (matchAnalytics) return 'analytics';
-    if (matchBlackbook) return 'blackbook';
-    if (matchAbout) return 'about';
-    if (matchEmails) return 'emails';
-    if (matchLogin) return 'login';
-    if (matchAdmin) return 'admin';
-    if (matchReview) return 'review';
-    if (matchEvidence) return 'evidence';
-    if (matchFaq) return 'faq';
-    if (matchGuide) return 'guide';
-    if (matchLanding) return 'landing';
-    if (matchEntity || matchPeople || location.pathname === '/') return 'people';
-    return 'people';
-  })();
-  const tabLabels: Record<Tab, string> = {
-    people: 'People',
-    search: 'Search',
-    documents: 'Documents',
-    media: 'Media',
-    timeline: 'Timeline',
-    flights: 'Flights',
-    properties: 'Properties',
-    investigations: 'Investigations',
-    analytics: 'Analytics',
-    blackbook: 'Black Book',
-    about: 'About',
-    emails: 'Emails',
-    login: 'Login',
-    evidence: 'Evidence',
-    faq: 'FAQ',
-    guide: 'Guide',
-    review: 'Review',
-    admin: 'Admin',
-    landing: 'The Epstein Files',
-  };
-  const seoConfig = useMemo<SeoConfig>(() => {
-    const origin = 'https://epstein.academy';
-    const canonical = `${origin}${location.pathname}`;
-    const commonKeywords = ['Epstein Files', 'Epstein documents', 'Jeffrey Epstein archive'];
-
-    if (location.pathname.startsWith('/documents')) {
-      return {
-        title: 'Epstein Documents',
-        description:
-          'Search Epstein files by document title, source, OCR text, and linked entities in the document browser.',
-        url: canonical,
-        canonical,
-        type: 'CollectionPage',
-        keywords: [...commonKeywords, 'court documents', 'depositions', 'evidence files'],
-        schema: {
-          '@context': 'https://schema.org',
-          '@type': 'Dataset',
-          name: 'Epstein Documents Dataset',
-          description:
-            'Searchable collection of documents, OCR text, and metadata from the Epstein files archive.',
-          url: canonical,
-          inLanguage: 'en',
-          isAccessibleForFree: true,
-        },
-      };
-    }
-
-    if (location.pathname.startsWith('/people')) {
-      return {
-        title: 'Epstein People Index',
-        description:
-          'Browse entities, mention context, and supporting references across the Epstein files archive.',
-        url: canonical,
-        canonical,
-        type: 'CollectionPage',
-        keywords: [...commonKeywords, 'Epstein people', 'entity index', 'named entities'],
-        schema: {
-          '@context': 'https://schema.org',
-          '@type': 'CollectionPage',
-          name: 'Epstein People Index',
-          description: 'Entity index and relationship navigation for people linked in the archive.',
-          url: canonical,
-        },
-      };
-    }
-
-    if (location.pathname.startsWith('/media')) {
-      const hasShareParams =
-        location.search.includes('id=') || location.search.includes('albumId=');
-      const mediaCanonical = hasShareParams ? `${canonical}${location.search}` : canonical;
-      return {
-        title: 'Epstein Media Archive',
-        description:
-          'Explore photos, audio, and video connected to the Epstein files with album and document context.',
-        url: mediaCanonical,
-        canonical: mediaCanonical,
-        type: 'CollectionPage',
-        keywords: [...commonKeywords, 'epstein media', 'epstein photos', 'epstein audio'],
-        schema: {
-          '@context': 'https://schema.org',
-          '@type': 'CollectionPage',
-          name: 'Epstein Media Archive',
-          description:
-            'Image, audio, and video records linked to entities and documents in the Epstein archive.',
-          url: mediaCanonical,
-        },
-      };
-    }
-
-    if (location.pathname.startsWith('/timeline')) {
-      return {
-        title: 'Epstein Timeline',
-        description:
-          'Trace key events and evidence chronology in the Epstein files timeline with linked source records.',
-        url: canonical,
-        canonical,
-        type: 'CollectionPage',
-        keywords: [...commonKeywords, 'epstein timeline', 'chronology', 'event sequence'],
-        schema: {
-          '@context': 'https://schema.org',
-          '@type': 'CollectionPage',
-          name: 'Epstein Timeline',
-          description: 'Chronological view of archive events linked to documents and entities.',
-          url: canonical,
-        },
-      };
-    }
-
-    if (location.pathname.startsWith('/flights')) {
-      return {
-        title: 'Epstein Flight Logs',
-        description:
-          'Analyze Epstein flight records, routes, and travel patterns with searchable evidence context.',
-        url: canonical,
-        canonical,
-        type: 'CollectionPage',
-        keywords: [...commonKeywords, 'epstein flight logs', 'flight records', 'travel routes'],
-        schema: {
-          '@context': 'https://schema.org',
-          '@type': 'Dataset',
-          name: 'Epstein Flight Logs',
-          description: 'Structured flight records linked to entities and documents.',
-          url: canonical,
-          isAccessibleForFree: true,
-        },
-      };
-    }
-
-    if (location.pathname === '/the-epstein-files' || location.pathname.startsWith('/epstein-')) {
-      return {
-        title: 'The Epstein Files',
-        description:
-          'Primary archive landing page for searching the Epstein files across documents, media, entities, flights, and timelines.',
-        url: canonical,
-        canonical,
-        type: 'CollectionPage',
-        keywords: [...commonKeywords, 'the epstein files', 'epstein files archive', 'epstein data'],
-        schema: [
-          {
-            '@context': 'https://schema.org',
-            '@type': 'CollectionPage',
-            name: 'The Epstein Files',
-            description:
-              'Public-facing archive for browsing documents, entities, and evidence linked to the Epstein files.',
-            url: canonical,
-          },
-          {
-            '@context': 'https://schema.org',
-            '@type': 'Dataset',
-            name: 'Epstein Files Archive Dataset',
-            description:
-              'Searchable structured archive of records, OCR text, media, and entities tied to the Epstein files.',
-            url: canonical,
-            isAccessibleForFree: true,
-          },
-          {
-            '@context': 'https://schema.org',
-            '@type': 'NewsArticle',
-            headline: 'The Epstein Files Archive: public search access',
-            dateModified: new Date().toISOString(),
-            mainEntityOfPage: canonical,
-            publisher: {
-              '@type': 'Organization',
-              name: 'Glass Academy',
-              url: 'https://epstein.academy',
-            },
-          },
-        ],
-      };
-    }
-
-    if (location.pathname.startsWith('/about')) {
-      return {
-        title: 'About the Epstein Files Archive',
-        description:
-          'Methodology, source provenance, and ingestion status for the Epstein Files Archive.',
-        url: canonical,
-        canonical,
-        type: 'article',
-        keywords: [...commonKeywords, 'methodology', 'archive status', 'data provenance'],
-      };
-    }
-
-    if (location.pathname.startsWith('/emails')) {
-      return {
-        title: 'Epstein Email Archive',
-        description:
-          'Search and analyze mailbox threads, participants, and linked evidence across the Epstein files email archive.',
-        url: canonical,
-        canonical,
-        type: 'CollectionPage',
-        keywords: [...commonKeywords, 'epstein emails', 'email threads', 'mailbox archive'],
-      };
-    }
-
-    if (location.pathname.startsWith('/analytics')) {
-      return {
-        title: 'Epstein Analytics',
-        description:
-          'Explore risk distributions, entity signals, and investigative trends across the Epstein files dataset.',
-        url: canonical,
-        canonical,
-        type: 'CollectionPage',
-        keywords: [...commonKeywords, 'epstein analytics', 'risk analysis', 'entity insights'],
-      };
-    }
-
-    if (location.pathname.startsWith('/blackbook')) {
-      return {
-        title: 'Epstein Black Book',
-        description:
-          'Browse contact entries, phone numbers, and linked entities from Epstein black book records.',
-        url: canonical,
-        canonical,
-        type: 'CollectionPage',
-        keywords: [...commonKeywords, 'black book', 'contact records', 'address book'],
-      };
-    }
-
-    if (location.pathname.startsWith('/properties')) {
-      return {
-        title: 'Epstein Property Records',
-        description:
-          'Review properties, ownership relationships, and location-linked evidence in the archive.',
-        url: canonical,
-        canonical,
-        type: 'CollectionPage',
-        keywords: [...commonKeywords, 'properties', 'ownership', 'locations'],
-      };
-    }
-
-    if (
-      location.pathname.startsWith('/investigations') ||
-      location.pathname.startsWith('/investigate')
-    ) {
-      return {
-        title: 'Epstein Investigations Workspace',
-        description:
-          'Create investigations, chain evidence, test hypotheses, and track investigative findings.',
-        url: canonical,
-        canonical,
-        type: 'CollectionPage',
-        keywords: [...commonKeywords, 'investigations', 'evidence chaining', 'case workspace'],
-      };
-    }
-    if (location.pathname.startsWith('/guide')) {
-      return {
-        title: 'Investigation System Guide',
-        description:
-          'Learn how to use the Epstein Archive workspace to organize evidence and build cases.',
-        url: canonical,
-        canonical,
-        type: 'article',
-        keywords: [...commonKeywords, 'guide', 'tutorial', 'investigation manual'],
-      };
-    }
-
-    return {
-      title: 'Epstein Files Archive',
-      description:
-        'Search and analyze the Epstein Files archive: documents, emails, media, entities, timelines, and flights.',
-      url: canonical,
-      canonical,
-      type: 'website',
-      keywords: commonKeywords,
-    };
-  }, [location.pathname, location.search]);
+  const seoConfig = useSeoConfig();
 
   // people state removed - PeoplePage handles its own data fetching
 
@@ -704,12 +266,16 @@ function App() {
   const { shouldShowOnboarding, completeOnboarding, skipOnboarding } = useFirstRunOnboarding();
 
   const [prevActiveTab, setPrevActiveTab] = useState(activeTab);
-  if (activeTab !== prevActiveTab) {
-    setPrevActiveTab(activeTab);
-    if (activeTab !== 'documents') {
-      setSelectedDocumentId(null);
+  /* eslint-disable react-hooks/set-state-in-effect -- Intentional: track tab changes to sync document modal state */
+  useEffect(() => {
+    if (activeTab !== prevActiveTab) {
+      setPrevActiveTab(activeTab);
+      if (activeTab !== 'documents') {
+        setSelectedDocumentId(null);
+      }
     }
-  }
+  }, [activeTab, prevActiveTab]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const pathMatch = location.pathname.match(/^\/documents\/([^/?#]+)/);
   const params = new URLSearchParams(location.search);
@@ -717,18 +283,22 @@ function App() {
   const docId = pathMatch?.[1] || queryDocId;
 
   const [prevDocIdForModal, setPrevDocIdForModal] = useState<string | null>(docId);
-  if (docId !== prevDocIdForModal) {
-    setPrevDocIdForModal(docId);
-    if (docId) {
-      if (documentModalId !== docId) {
-        if (selectedPerson) setSelectedPerson(null);
-        setDocumentModalId(docId);
+  /* eslint-disable react-hooks/set-state-in-effect -- Intentional: track docId changes to sync modal state */
+  useEffect(() => {
+    if (docId !== prevDocIdForModal) {
+      setPrevDocIdForModal(docId);
+      if (docId) {
+        if (documentModalId !== docId) {
+          if (selectedPerson) setSelectedPerson(null);
+          setDocumentModalId(docId);
+        }
+      } else if (documentModalId) {
+        setDocumentModalId('');
+        setDocumentModalInitial(null);
       }
-    } else if (documentModalId) {
-      setDocumentModalId('');
-      setDocumentModalInitial(null);
     }
-  }
+  }, [docId, prevDocIdForModal, documentModalId, selectedPerson]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Load entity from URL on page load (for shareable links)
 
@@ -748,49 +318,60 @@ function App() {
   });
 
   const [prevUrlEntityId, setPrevUrlEntityId] = useState<number | null>(null);
-  if (urlEntityId !== prevUrlEntityId) {
-    setPrevUrlEntityId(urlEntityId);
-    if (urlEntityId) {
-      if (documentModalId) setDocumentModalId('');
-      if (documentModalInitial) setDocumentModalInitial(null);
+  /* eslint-disable react-hooks/set-state-in-effect -- Intentional: track entityId changes to sync modal state */
+  useEffect(() => {
+    if (urlEntityId !== prevUrlEntityId) {
+      setPrevUrlEntityId(urlEntityId);
+      if (urlEntityId) {
+        if (documentModalId) setDocumentModalId('');
+        if (documentModalInitial) setDocumentModalInitial(null);
+      }
     }
-  }
+  }, [urlEntityId, prevUrlEntityId, documentModalId, documentModalInitial]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const [prevUrlEntityDataId, setPrevUrlEntityDataId] = useState<number | null>(null);
-
-  if (urlEntityData?.id && urlEntityData.id !== prevUrlEntityDataId) {
-    setPrevUrlEntityDataId(urlEntityData.id);
-    const person: Person = {
-      id: urlEntityData.id,
-      name: urlEntityData.fullName || 'Unknown',
-      fullName: urlEntityData.fullName || 'Unknown',
-      role: urlEntityData.primaryRole || 'Unknown',
-      mentions: urlEntityData.mentions || urlEntityData.mention_count || 0,
-      redFlagRating: urlEntityData.redFlagRating ?? 0,
-      files: urlEntityData.documentCount || urlEntityData.document_count || 0,
-      contexts: [],
-      evidenceTypes: urlEntityData.evidenceTypes || [],
-      significantPassages: [],
-      likelihoodScore: urlEntityData.likelihoodLevel || 'MEDIUM',
-      fileReferences: [],
-      bio: urlEntityData.bio || urlEntityData.description,
-      birthDate: urlEntityData.birthDate,
-      deathDate: urlEntityData.deathDate,
-      photos: urlEntityData.photos,
-      blackBookEntries: urlEntityData.blackBookEntry,
-      entityType: urlEntityData.entityType || urlEntityData.type,
-      redFlagDescription: urlEntityData.redFlagDescription,
-    };
-    setSelectedPerson(person);
-  }
+  /* eslint-disable react-hooks/set-state-in-effect -- Intentional: track entityData changes to set selected person */
+  useEffect(() => {
+    if (urlEntityData?.id && urlEntityData.id !== prevUrlEntityDataId) {
+      setPrevUrlEntityDataId(urlEntityData.id);
+      const person: Person = {
+        id: urlEntityData.id,
+        name: urlEntityData.fullName || 'Unknown',
+        fullName: urlEntityData.fullName || 'Unknown',
+        role: urlEntityData.primaryRole || 'Unknown',
+        mentions: urlEntityData.mentions || urlEntityData.mention_count || 0,
+        redFlagRating: urlEntityData.redFlagRating ?? 0,
+        files: urlEntityData.documentCount || urlEntityData.document_count || 0,
+        contexts: [],
+        evidenceTypes: urlEntityData.evidenceTypes || [],
+        significantPassages: [],
+        likelihoodScore: urlEntityData.likelihoodLevel || 'MEDIUM',
+        fileReferences: [],
+        bio: urlEntityData.bio || urlEntityData.description,
+        birthDate: urlEntityData.birthDate,
+        deathDate: urlEntityData.deathDate,
+        photos: urlEntityData.photos,
+        blackBookEntries: urlEntityData.blackBookEntry,
+        entityType: urlEntityData.entityType || urlEntityData.type,
+        redFlagDescription: urlEntityData.redFlagDescription,
+      };
+      setSelectedPerson(person);
+    }
+  }, [urlEntityData, prevUrlEntityDataId]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const [prevPathname, setPrevPathname] = useState(location.pathname);
-  if (location.pathname !== prevPathname) {
-    setPrevPathname(location.pathname);
-    if (!urlEntityId && selectedPerson && !location.pathname.startsWith('/blackbook')) {
-      setSelectedPerson(null);
+  /* eslint-disable react-hooks/set-state-in-effect -- Intentional: track pathname changes to clear selected person */
+  useEffect(() => {
+    if (location.pathname !== prevPathname) {
+      setPrevPathname(location.pathname);
+      if (!urlEntityId && selectedPerson && !location.pathname.startsWith('/blackbook')) {
+        setSelectedPerson(null);
+      }
     }
-  }
+  }, [location.pathname, prevPathname, urlEntityId, selectedPerson]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Handle global entity click events (e.g. from DocumentMetadataPanel or MediaViewerModal)
   useEffect(() => {
@@ -1293,13 +874,6 @@ function App() {
     [location.pathname, location.search, navigate],
   );
 
-  const navSegmentBaseClass = `main-nav-segment flex h-full w-full min-w-0 items-center justify-center ${
-    navLayoutMode === 'icons'
-      ? 'gap-0 px-2'
-      : navLayoutMode === 'compact'
-        ? 'gap-1.5 px-2.5'
-        : 'gap-1.5 px-3 lg:px-4'
-  } rounded-none whitespace-nowrap border-0 bg-transparent`;
   const navThemeClassByTab: Record<string, string> = {
     people: 'main-nav-segment-people',
     documents: 'main-nav-segment-documents',
@@ -1318,15 +892,28 @@ function App() {
     isActive: boolean,
     extraClass: string = '',
   ) =>
-    `${navSegmentBaseClass} ${navThemeClassByTab[tab]} ${isActive ? 'main-nav-segment-active' : ''} ${extraClass}`.trim();
-  const navItemClass = 'flex h-full min-w-0 flex-1';
-  const navLabelClass = navLayoutMode === 'icons' ? 'hidden' : 'inline';
-  const navPillClass =
-    navLayoutMode === 'normal'
-      ? 'flex h-11 w-full items-stretch rounded-full overflow-hidden transition-colors'
-      : navLayoutMode === 'compact'
-        ? 'flex h-10 w-full items-stretch rounded-full overflow-hidden transition-colors'
-        : 'flex h-11 w-full items-stretch rounded-full overflow-hidden transition-colors';
+    cn(
+      styles.navSegmentBase,
+      navLayoutMode === 'icons'
+        ? styles.navSegmentIcons
+        : navLayoutMode === 'compact'
+          ? styles.navSegmentCompact
+          : styles.navSegmentNormal,
+      'main-nav-segment',
+      navThemeClassByTab[tab],
+      isActive && 'main-nav-segment-active',
+      extraClass,
+    );
+  const navItemClass = styles.navItem;
+  const navLabelClass = navLayoutMode === 'icons' ? styles.navLabelHidden : styles.navLabelInline;
+  const navPillClass = cn(
+    styles.navPill,
+    navLayoutMode === 'compact'
+      ? styles.navPillCompact
+      : navLayoutMode === 'icons'
+        ? styles.navPillIcons
+        : styles.navPillNormal,
+  );
 
   useEffect(() => {
     const track = navTrackRef.current;
@@ -1372,27 +959,27 @@ function App() {
     <ToastProvider>
       <UndoProvider>
         <InvestigationsProvider>
-          <div className="min-h-screen app-backdrop relative overflow-x-hidden overflow-y-auto flex flex-col">
+          <div className={cn('app-backdrop', styles.appRoot)}>
             <SEO {...seoConfig} />
             {shouldShowOnboarding && (
               <FirstRunOnboarding onComplete={completeOnboarding} onSkip={skipOnboarding} />
             )}
 
             {/* Skip links for accessibility */}
-            <div className="sr-only">
+            <div className={styles.srOnly}>
               <a className={styles.skipLink}>Skip to main content</a>
               <a href="#navigation" className={cn(styles.skipLink, styles.skipNavigation)}>
                 Skip to navigation
               </a>
             </div>
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className={styles.bgEffects}>
               {/* Background effects removed requested by user for stability */}
 
               {/* Floating particles removed due to UI blocking/performance issues */}
             </div>
 
             {/* Header */}
-            <header className="app-header-glass transition-all duration-300">
+            <header className={cn('app-header-glass', styles.headerShell)}>
               <div className="content-shell">
                 <div className={styles.header}>
                   {/* LEFT: Logo and Stats */}
@@ -1405,21 +992,18 @@ function App() {
                     {/* Stats - Desktop only, single-line */}
                     <div className={styles.statsArea}>
                       <span
-                        className="text-sm font-mono font-light tracking-tight text-[var(--accent)]"
+                        className={cn(styles.headerStat, styles.headerStatPeople)}
                         title="Subjects"
                       >
                         {headerTotalPeople.toLocaleString()}
                       </span>
                       <span
-                        className="text-sm font-mono font-light tracking-tight text-[var(--accent-info)]"
+                        className={cn(styles.headerStat, styles.headerStatMentions)}
                         title="Mentions"
                       >
                         {headerTotalMentions.toLocaleString()}
                       </span>
-                      <span
-                        className="text-sm font-mono font-light tracking-tight text-[var(--accent-docs)]"
-                        title="Files"
-                      >
+                      <span className={cn(styles.headerStat, styles.headerStatFiles)} title="Files">
                         {headerTotalFiles.toLocaleString()}
                       </span>
                     </div>
@@ -1476,8 +1060,8 @@ function App() {
                           className={styles.controlButton}
                           title="Admin Dashboard"
                         >
-                          <Icon name="Shield" size="sm" className="text-[var(--accent-info)]" />
-                          <span className={cn(styles.buttonText, 'text-[var(--text-default)]')}>
+                          <Icon name="Shield" size="sm" className={styles.adminIcon} />
+                          <span className={cn(styles.buttonText, styles.adminButtonText)}>
                             Admin
                           </span>
                         </button>
@@ -1487,17 +1071,17 @@ function App() {
                     {/* Search Bar */}
                     <div className={styles.searchWrapper}>
                       <div className="header-search-pill">
-                        <div className={cn('relative flex-1 min-w-0', styles.searchInner)}>
+                        <div className={styles.searchInner}>
                           <Icon
                             name="Search"
                             size="sm"
                             color="gray"
-                            className="absolute left-3 top-1/2 transform -translate-y-1/2 pointer-events-none"
+                            className={styles.searchIcon}
                           />
                           <input
                             type="text"
                             placeholder="Search evidence..."
-                            className="w-full h-11 pl-9 pr-9 bg-transparent text-[var(--text-strong)] placeholder-[var(--text-muted)] focus:outline-none focus:ring-0 focus:border-none text-sm"
+                            className={styles.searchInput}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             onKeyDown={(e) => {
@@ -1514,7 +1098,7 @@ function App() {
                               type="button"
                               onClick={() => setSearchTerm('')}
                               aria-label="Clear search"
-                              className="absolute right-1 top-1/2 -translate-y-1/2 inline-flex items-center justify-center h-7 w-7 rounded-full text-[var(--text-secondary)] hover:text-[var(--text-strong)] hover:bg-[var(--glass-bg-strong)]"
+                              className={styles.searchClearButton}
                             >
                               <Icon name="X" size="xs" />
                             </button>
@@ -1529,19 +1113,19 @@ function App() {
                             }
                           }}
                           aria-label="Run search"
-                          className="header-search-button shrink-0"
+                          className={cn('header-search-button', styles.searchButton)}
                         >
                           <Icon name="Search" size="sm" />
                         </button>
                       </div>
                       {searchTerm.trim().length >= 2 && (
-                        <div className="absolute top-full right-0 mt-2 w-full md:w-96 glass-panel z-[var(--z-dropdown)] max-h-96 overflow-y-auto">
-                          <div className="p-2 text-xs text-[var(--text-secondary)] border-b border-[var(--glass-border)]">
+                        <div className={cn('glass-panel', styles.searchDropdown)}>
+                          <div className={styles.searchDropdownHeader}>
                             Search results for "{searchTerm}"
                           </div>
                           {searchSuggestionsLoading ? (
-                            <div className="px-3 py-4 text-sm text-[var(--text-secondary)] flex items-center gap-2">
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[var(--accent)]"></div>
+                            <div className={styles.searchDropdownLoading}>
+                              <div className={styles.miniSpinner}></div>
                               Searching...
                             </div>
                           ) : searchSuggestions.length > 0 ? (
@@ -1549,51 +1133,58 @@ function App() {
                               suggestion.kind === 'entity' ? (
                                 <button
                                   key={`entity-sugg-${suggestion.id}-${i}`}
-                                  className="w-full text-left px-3 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)] flex items-center gap-2"
+                                  className={styles.searchSuggestionButton}
                                   onClick={() => handlePersonClick(suggestion)}
                                 >
                                   <Icon name="User" size="sm" color="gray" />
-                                  <span className="truncate flex-1">
+                                  <span className={styles.searchSuggestionText}>
                                     {suggestion.canonicalName || suggestion.name}
                                     {suggestion.matchedAlias && (
-                                      <span className="ml-1 text-[11px] text-[var(--text-muted)]">
+                                      <span className={styles.searchSuggestionAlias}>
                                         ({suggestion.matchedAlias})
                                       </span>
                                     )}
                                   </span>
-                                  <span className="text-xs text-[var(--text-secondary)]">
+                                  <span className={styles.searchSuggestionMeta}>
                                     {suggestion.role !== 'Unknown' ? suggestion.role : 'Subject'}
                                   </span>
                                 </button>
                               ) : (
                                 <button
                                   key={`doc-sugg-${suggestion.id}-${i}`}
-                                  className="w-full text-left px-3 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)] flex items-start gap-2"
+                                  className={styles.searchDocButton}
                                   onClick={() => handleDocumentSuggestionClick(suggestion.id)}
                                 >
-                                  <Icon name="FileText" size="sm" color="gray" className="mt-0.5" />
-                                  <span className="min-w-0 flex-1">
-                                    <span className="block truncate">{suggestion.title}</span>
+                                  <Icon
+                                    name="FileText"
+                                    size="sm"
+                                    color="gray"
+                                    className={styles.searchDocIcon}
+                                  />
+                                  <span className={styles.searchDocBody}>
+                                    <span className={styles.searchDocTitle}>
+                                      {suggestion.title}
+                                    </span>
                                     {suggestion.snippet && (
-                                      <span className="block text-xs text-[var(--text-secondary)] line-clamp-2">
+                                      <span className={styles.searchDocSnippet}>
                                         {suggestion.snippet.replace(/<[^>]+>/g, '')}
                                       </span>
                                     )}
                                   </span>
-                                  <span className="text-xs text-[var(--text-secondary)] shrink-0">
+                                  <span className={styles.searchDocMeta}>
                                     {suggestion.evidenceType || 'Document'}
                                   </span>
                                 </button>
                               ),
                             )
                           ) : (
-                            <div className="px-3 py-2 text-sm text-[var(--text-secondary)]">
+                            <div className={styles.searchDropdownEmpty}>
                               No subjects or documents found
                             </div>
                           )}
-                          <div className="border-t border-[var(--glass-border)] mt-1 pt-1">
+                          <div className={styles.searchDropdownFooter}>
                             <button
-                              className="w-full text-left px-3 py-2 text-sm text-[var(--accent)] hover:bg-[var(--glass-bg-strong)] flex items-center gap-2"
+                              className={styles.searchAllButton}
                               onClick={() =>
                                 navigate(`/search?q=${encodeURIComponent(searchTerm)}`)
                               }
@@ -1607,12 +1198,17 @@ function App() {
                     </div>
 
                     {/* Global Date Range Filter */}
-                    <div ref={dateRangePickerRef} className="hidden md:flex items-center relative">
+                    <div ref={dateRangePickerRef} className={styles.dateFilterWrap}>
                       <button
                         onClick={() => setShowDateRangePicker((v) => !v)}
                         aria-expanded={showDateRangePicker}
                         aria-haspopup="dialog"
-                        className={`group control flex items-center rounded-full h-11 px-3 gap-2 transition-all duration-300${filters.timeRange[0] || filters.timeRange[1] ? ' text-[var(--accent-warning)]' : ''}`}
+                        className={cn(
+                          'group control',
+                          styles.dateFilterButton,
+                          (filters.timeRange[0] || filters.timeRange[1]) &&
+                            styles.dateFilterButtonActive,
+                        )}
                         title="Global date range filter"
                       >
                         <Icon
@@ -1621,14 +1217,14 @@ function App() {
                           color={filters.timeRange[0] || filters.timeRange[1] ? 'warning' : 'gray'}
                         />
                         {(filters.timeRange[0] || filters.timeRange[1]) && (
-                          <span className="text-xs text-[var(--accent-warning)] whitespace-nowrap max-w-[120px] truncate">
+                          <span className={styles.dateFilterValue}>
                             {filters.timeRange[0] ?? '…'} – {filters.timeRange[1] ?? '…'}
                           </span>
                         )}
                       </button>
                       {showDateRangePicker && (
                         <div
-                          className="absolute top-full right-0 mt-2 z-[var(--z-dropdown)] glass-panel p-4 w-72"
+                          className={cn('glass-panel', styles.dateFilterPanel)}
                           role="dialog"
                           aria-label="Global date range filter"
                           onKeyDown={(e) => {
@@ -1637,21 +1233,16 @@ function App() {
                             }
                           }}
                         >
-                          <div className="text-xs font-semibold text-[var(--text-secondary)] mb-3 uppercase tracking-wider">
-                            Global Date Filter
-                          </div>
-                          <div className="space-y-3">
+                          <div className={styles.dateFilterTitle}>Global Date Filter</div>
+                          <div className={styles.dateFilterFields}>
                             <div>
-                              <label
-                                htmlFor="global-date-from"
-                                className="block text-xs text-[var(--text-muted)] mb-1"
-                              >
+                              <label htmlFor="global-date-from" className={styles.dateFilterLabel}>
                                 From
                               </label>
                               <input
                                 id="global-date-from"
                                 type="date"
-                                className="w-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-md px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
+                                className={styles.dateInput}
                                 value={filters.timeRange[0] ?? ''}
                                 onChange={(e) =>
                                   setFilters({
@@ -1661,16 +1252,13 @@ function App() {
                               />
                             </div>
                             <div>
-                              <label
-                                htmlFor="global-date-to"
-                                className="block text-xs text-[var(--text-muted)] mb-1"
-                              >
+                              <label htmlFor="global-date-to" className={styles.dateFilterLabel}>
                                 To
                               </label>
                               <input
                                 id="global-date-to"
                                 type="date"
-                                className="w-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-md px-3 py-2 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
+                                className={styles.dateInput}
                                 value={filters.timeRange[1] ?? ''}
                                 onChange={(e) =>
                                   setFilters({
@@ -1685,7 +1273,7 @@ function App() {
                                   setFilters({ timeRange: [null, null] });
                                   setShowDateRangePicker(false);
                                 }}
-                                className="w-full text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--glass-border)] rounded-md py-2 transition-colors"
+                                className={styles.dateClearButton}
                               >
                                 Clear date filter
                               </button>
@@ -1698,8 +1286,7 @@ function App() {
                     {/* Mobile Menu Toggle */}
                     <button
                       onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                      className="md:hidden text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                      style={{ padding: 'var(--space-2)' }}
+                      className={styles.mobileMenuButton}
                     >
                       {isMobileMenuOpen ? (
                         <Icon name="X" size="sm" />
@@ -1712,9 +1299,9 @@ function App() {
               </div>
             </header>
 
-            <div className="content-shell flex-grow">
+            <div className={cn('content-shell', styles.mainShell)}>
               {/* Mobile Stats Row */}
-              <Grid cols={3} gap={2} mb={6} className="md:hidden text-center">
+              <Grid cols={3} gap={2} mb={6} className={styles.mobileStatsGrid}>
                 <Surface
                   variant="glass"
                   data-card
@@ -1725,12 +1312,10 @@ function App() {
                     cursor: 'pointer',
                     textAlign: 'center',
                   }}
-                  className="hover:bg-[var(--glass-bg-strong)] transition-colors"
+                  className={styles.mobileStatCard}
                 >
-                  <div className="text-xs text-[var(--text-secondary)] uppercase tracking-wider">
-                    People
-                  </div>
-                  <div className="text-lg font-bold text-[var(--accent)]">
+                  <div className={styles.mobileStatLabel}>People</div>
+                  <div className={cn(styles.mobileStatValue, styles.mobileStatPeople)}>
                     {headerTotalPeople.toLocaleString()}
                   </div>
                 </Surface>
@@ -1744,12 +1329,10 @@ function App() {
                     cursor: 'pointer',
                     textAlign: 'center',
                   }}
-                  className="hover:bg-[var(--glass-bg-strong)] transition-colors"
+                  className={styles.mobileStatCard}
                 >
-                  <div className="text-xs text-[var(--text-secondary)] uppercase tracking-wider">
-                    Mentions
-                  </div>
-                  <div className="text-lg font-bold text-[var(--accent-info)]">
+                  <div className={styles.mobileStatLabel}>Mentions</div>
+                  <div className={cn(styles.mobileStatValue, styles.mobileStatMentions)}>
                     {headerTotalMentions.toLocaleString()}
                   </div>
                 </Surface>
@@ -1763,12 +1346,10 @@ function App() {
                     cursor: 'pointer',
                     textAlign: 'center',
                   }}
-                  className="hover:bg-[var(--glass-bg-strong)] transition-colors"
+                  className={styles.mobileStatCard}
                 >
-                  <div className="text-xs text-[var(--text-secondary)] uppercase tracking-wider">
-                    Files
-                  </div>
-                  <div className="text-lg font-bold text-[var(--accent-docs)]">
+                  <div className={styles.mobileStatLabel}>Files</div>
+                  <div className={cn(styles.mobileStatValue, styles.mobileStatFiles)}>
                     {headerTotalFiles.toLocaleString()}
                   </div>
                 </Surface>
@@ -1779,10 +1360,10 @@ function App() {
                 label={isInitializing ? loadingProgress : undefined}
               />
               {/* Navigation Tabs - segmented pill with responsive horizontal track */}
-              <Box id="navigation" mb={6} className="hidden md:block text-sm font-medium">
-                <div className="relative">
+              <Box id="navigation" mb={6} className={styles.navShell}>
+                <div className={styles.navWrap}>
                   <div ref={navTrackRef} className="main-nav-track">
-                    <div className={`main-nav-pill ${navPillClass}`}>
+                    <div className={cn('main-nav-pill', navPillClass)}>
                       <div className={navItemClass}>
                         <button
                           onClick={() => navigate('/people')}
@@ -1801,7 +1382,7 @@ function App() {
                           <span className={navLabelClass}>Documents</span>
                         </button>
                       </div>
-                      <div className={`relative ${navItemClass}`}>
+                      <div className={cn(styles.navItemRelative, navItemClass)}>
                         <button
                           onClick={() => {
                             try {
@@ -1818,7 +1399,7 @@ function App() {
                             'investigations',
                             activeTab === 'investigations',
                             investigateAttract && activeTab !== 'investigations'
-                              ? 'ring-2 ring-[var(--accent-danger)] shadow-lg shadow-[var(--accent-danger)]/30 animate-pulse'
+                              ? styles.investigationPulse
                               : '',
                           )}
                           aria-haspopup="dialog"
@@ -1843,13 +1424,13 @@ function App() {
                                 top: investigatePopoverPos.y,
                                 zIndex: 50,
                               }}
-                              className="pointer-events-auto"
+                              className={styles.popoverSurface}
                             >
                               <div
-                                className="absolute -top-2"
+                                className={styles.popoverPointer}
                                 style={{ left: `${investigateArrowLeft}px` }}
                               >
-                                <div className="w-4 h-4 bg-[var(--bg-dark)] border border-[var(--glass-border-highlight)] rotate-45"></div>
+                                <div className={styles.popoverPointerDiamond}></div>
                               </div>
                               <Box mb={1}>
                                 <LqText weight="semibold">Investigations</LqText>
@@ -1980,10 +1561,10 @@ function App() {
                     </div>
                   </div>
                   {navEdgeFade.left && (
-                    <div className="pointer-events-none absolute left-0 top-0 bottom-0 w-10 bg-gradient-to-r from-[var(--bg-dark)] via-[var(--bg-dark)]/70 to-transparent" />
+                    <div className={cn(styles.navEdgeFade, styles.navEdgeFadeLeft)} />
                   )}
                   {navEdgeFade.right && (
-                    <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-[var(--bg-dark)] via-[var(--bg-dark)]/70 to-transparent" />
+                    <div className={cn(styles.navEdgeFade, styles.navEdgeFadeRight)} />
                   )}
                 </div>
               </Box>
@@ -2000,7 +1581,7 @@ function App() {
               />
 
               {/* Tab Content */}
-              <div id="main-content" className="flex-grow">
+              <div id="main-content" className={styles.mainContent}>
                 {/* Breadcrumb navigation */}
                 <div className={styles.breadcrumbContainer}>
                   <Breadcrumb
@@ -2012,11 +1593,11 @@ function App() {
                     ]}
                   />
                 </div>
-                <div className="view-transition-enter view-transition-enter-active">
+                <div className={styles.viewTransition}>
                   <Suspense
                     fallback={
-                      <div className="flex items-center justify-center h-64">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent)]"></div>
+                      <div className={styles.centerLoader}>
+                        <div className={styles.largeSpinner}></div>
                       </div>
                     }
                   >
@@ -2265,8 +1846,8 @@ function App() {
                           <Box mt={6}>
                             <Suspense
                               fallback={
-                                <div className="flex items-center justify-center h-64">
-                                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent)]"></div>
+                                <div className={styles.centerLoader}>
+                                  <div className={styles.largeSpinner}></div>
                                 </div>
                               }
                             >
@@ -2317,8 +1898,8 @@ function App() {
             {/* Evidence Modal */}
             <Suspense
               fallback={
-                <div className="fixed inset-0 bg-[var(--glass-bg-strong)] backdrop-blur-sm flex items-center justify-center z-50">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent)]"></div>
+                <div className={cn(styles.modalFallback, styles.modalFallbackBlur)}>
+                  <div className={styles.largeSpinner}></div>
                 </div>
               }
             >
@@ -2338,8 +1919,8 @@ function App() {
             {/* Inline Document Modal */}
             <Suspense
               fallback={
-                <div className="fixed inset-0 bg-[var(--glass-bg-strong)] flex items-center justify-center z-50">
-                  <div className="w-8 h-8 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin" />
+                <div className={styles.modalFallback}>
+                  <div className={styles.smallSpinner} />
                 </div>
               }
             >

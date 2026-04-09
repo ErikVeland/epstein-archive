@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useToasts } from '../common/useToasts';
 import { useScrollLock } from '../../hooks/useScrollLock';
+import styles from './InvestigationTeamManagement.module.css';
 
 interface InvestigationTeamManagementProps {
   investigation: Investigation;
@@ -237,54 +238,54 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
     }
   };
 
-  const getRoleColor = (role: TeamRole) => {
+  const getRoleTone = (role: TeamRole) => {
     switch (role) {
       case 'lead':
-        return 'text-yellow-300 bg-yellow-900/30 border-yellow-700';
+        return styles.leadTone;
       case 'researcher':
-        return 'text-[var(--accent)] bg-blue-900/30 border-blue-700';
+        return styles.researcherTone;
       case 'analyst':
-        return 'text-green-300 bg-green-900/30 border-green-700';
+        return styles.analystTone;
       case 'reviewer':
-        return 'text-purple-300 bg-purple-900/30 border-purple-700';
+        return styles.reviewerTone;
       case 'external':
-        return 'text-[var(--text-secondary)] bg-[var(--glass-bg-highlight)]/40 border-[var(--glass-border)]';
+        return styles.externalTone;
       default:
-        return 'text-[var(--text-secondary)] bg-[var(--glass-bg-highlight)]/40 border-[var(--glass-border)]';
+        return styles.externalTone;
     }
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+    <div className={styles.root}>
+      <div className={styles.header}>
         <div>
-          <h3 className="text-xl font-bold text-[var(--text-primary)]">Team & Access</h3>
-          <p className="text-sm text-[var(--text-muted)] mt-1">
+          <h3 className={styles.title}>Team & Access</h3>
+          <p className={styles.subtitle}>
             Local profiles and role controls for this investigation workspace
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className={styles.actionGroup}>
           <button
             onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] hover:bg-blue-700 rounded-[var(--radius-lg)] transition-colors"
+            className={`${styles.actionButton} ${styles.primaryAction}`}
           >
-            <UserPlus className="w-4 h-4" />
+            <UserPlus className={styles.iconSm} />
             Add Local Profile
           </button>
           <button
             onClick={exportTeamJson}
-            className="flex items-center gap-2 px-4 py-2 bg-[var(--glass-bg-highlight)] hover:bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] transition-colors"
+            className={`${styles.actionButton} ${styles.secondaryAction}`}
           >
-            <Download className="w-4 h-4" />
+            <Download className={styles.iconSm} />
             Export JSON
           </button>
-          <label className="flex items-center gap-2 px-4 py-2 bg-[var(--glass-bg-highlight)] hover:bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] transition-colors cursor-pointer">
-            <Upload className="w-4 h-4" />
+          <label className={styles.importLabel}>
+            <Upload className={styles.iconSm} />
             Import JSON
             <input
               type="file"
               accept="application/json"
-              className="hidden"
+              className={styles.hiddenInput}
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (file) importTeamJson(file);
@@ -294,12 +295,12 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
         </div>
       </div>
 
-      <div className="bg-blue-900/20 border border-blue-700 rounded-[var(--radius-xl)] p-4">
-        <div className="flex items-start gap-3">
-          <HardDrive className="w-5 h-5 text-[var(--accent)] mt-0.5" />
+      <div className={styles.noticeCard}>
+        <div className={styles.noticeRow}>
+          <HardDrive className={styles.noticeIcon} />
           <div>
-            <p className="text-blue-100 font-medium">Local to this device</p>
-            <p className="text-blue-200/90 text-sm mt-1">
+            <p className={styles.noticeTitle}>Local to this device</p>
+            <p className={styles.noticeText}>
               Team profiles are stored in browser local storage and are not synced to server
               accounts. Use JSON export/import to move this setup between devices.
             </p>
@@ -307,25 +308,19 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
         </div>
       </div>
 
-      <div className="bg-[var(--glass-bg)]/50 border border-[var(--glass-border)] rounded-[var(--radius-xl)] p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <Info className="w-4 h-4 text-[var(--text-secondary)]" />
-          <h4 className="text-[var(--text-primary)] font-semibold">Access & Roles</h4>
+      <div className={styles.rolesCard}>
+        <div className={styles.rolesHeader}>
+          <Info className={styles.sectionIcon} />
+          <h4 className={styles.sectionTitle}>Access & Roles</h4>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+        <div className={styles.rolesGrid}>
           {(Object.keys(rolePermissions) as TeamRole[]).map((role) => (
-            <div
-              key={role}
-              className="p-3 rounded-[var(--radius-lg)] border border-[var(--glass-border)] bg-[var(--glass-bg-strong)]/40"
-            >
-              <p className="text-sm font-medium text-[var(--text-primary)] capitalize">{role}</p>
-              <p className="text-xs text-[var(--text-muted)] mt-1">{roleNotes[role]}</p>
-              <div className="flex flex-wrap gap-2 mt-2">
+            <div key={role} className={styles.roleCard}>
+              <p className={styles.roleName}>{role}</p>
+              <p className={styles.roleNote}>{roleNotes[role]}</p>
+              <div className={styles.permissionList}>
                 {rolePermissions[role].map((permission) => (
-                  <span
-                    key={`${role}-${permission}`}
-                    className="px-2 py-0.5 text-xs bg-[var(--glass-bg-highlight)] rounded"
-                  >
+                  <span key={`${role}-${permission}`} className={styles.permissionPill}>
                     {permission}
                   </span>
                 ))}
@@ -335,44 +330,35 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
         </div>
       </div>
 
-      <div className="space-y-3">
+      <div className={styles.teamList}>
         {team.map((member) => {
           const RoleIcon = getRoleIcon(member.role as TeamRole);
-          const roleColorClass = getRoleColor(member.role as TeamRole);
+          const roleToneClass = getRoleTone(member.role as TeamRole);
 
           return (
-            <div
-              key={member.id}
-              className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 bg-[var(--glass-bg)]/50 border border-[var(--glass-border)] rounded-[var(--radius-xl)]"
-            >
-              <div className="flex items-start gap-3 min-w-0">
-                <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center border ${roleColorClass}`}
-                >
-                  <RoleIcon className="w-5 h-5" />
+            <div key={member.id} className={styles.memberCard}>
+              <div className={styles.memberInfo}>
+                <div className={`${styles.roleAvatar} ${roleToneClass}`}>
+                  <RoleIcon className={styles.roleAvatarIcon} />
                 </div>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <p className="text-base font-medium text-[var(--text-primary)] truncate">
-                      {member.name}
-                    </p>
-                    <span className={`text-xs px-2 py-1 rounded-full border ${roleColorClass}`}>
-                      {member.role}
-                    </span>
+                <div className={styles.memberCopy}>
+                  <div className={styles.memberHeader}>
+                    <p className={styles.memberName}>{member.name}</p>
+                    <span className={`${styles.roleBadge} ${roleToneClass}`}>{member.role}</span>
                   </div>
-                  <p className="text-sm text-[var(--text-muted)] truncate">{member.email}</p>
-                  <p className="text-xs text-[var(--text-muted)] mt-1">
+                  <p className={styles.memberEmail}>{member.email}</p>
+                  <p className={styles.memberJoined}>
                     Joined {member.joinedAt.toLocaleDateString()}
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className={styles.memberActions}>
                 {member.role !== 'lead' && (
                   <select
                     value={member.role}
                     onChange={(e) => updateRole(member.id, e.target.value as TeamRole)}
-                    className="px-3 py-2 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-sm text-[var(--text-primary)]"
+                    className={styles.roleSelect}
                     aria-label={`Update role for ${member.name}`}
                   >
                     <option value="researcher">Researcher</option>
@@ -384,15 +370,15 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
                 {member.role !== 'lead' && (
                   <button
                     onClick={() => removeMember(member.id)}
-                    className="p-2 text-[var(--text-secondary)] hover:text-red-300 hover:bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)]"
+                    className={styles.deleteButton}
                     aria-label={`Remove ${member.name}`}
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className={styles.iconSm} />
                   </button>
                 )}
                 {member.role === 'lead' && (
-                  <span className="text-xs text-[var(--text-muted)] inline-flex items-center gap-1">
-                    <Users className="w-3 h-3" />
+                  <span className={styles.leadHint}>
+                    <Users className={styles.hintIcon} />
                     Lead profile cannot be removed
                   </span>
                 )}
@@ -403,44 +389,40 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
       </div>
 
       {showAddModal && (
-        <div className="fixed inset-0 bg-[var(--glass-bg-strong)] flex items-center justify-center z-50 p-4">
-          <div className="bg-[var(--glass-bg)] rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] w-full max-w-md border border-[var(--glass-border)]">
-            <div className="border-b border-[var(--glass-border)] p-5">
-              <h3 className="text-lg font-semibold text-[var(--text-primary)]">
-                Add Local Profile
-              </h3>
-              <p className="text-xs text-[var(--text-muted)] mt-1">Stored on this device only.</p>
+        <div className={styles.overlay}>
+          <div className={styles.modal}>
+            <div className={styles.modalHeader}>
+              <h3 className={styles.modalTitle}>Add Local Profile</h3>
+              <p className={styles.modalSubtitle}>Stored on this device only.</p>
             </div>
 
-            <div className="p-5 space-y-4">
+            <div className={styles.modalBody}>
               <div>
-                <label className="block text-sm text-[var(--text-secondary)] mb-2">
-                  Display name
-                </label>
+                <label className={styles.fieldLabel}>Display name</label>
                 <input
                   type="text"
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
-                  className="w-full px-3 py-2 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)]"
+                  className={styles.fieldInput}
                   placeholder="Investigator name"
                 />
               </div>
               <div>
-                <label className="block text-sm text-[var(--text-secondary)] mb-2">Email</label>
+                <label className={styles.fieldLabel}>Email</label>
                 <input
                   type="email"
                   value={newEmail}
                   onChange={(e) => setNewEmail(e.target.value)}
-                  className="w-full px-3 py-2 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)]"
+                  className={styles.fieldInput}
                   placeholder="name@example.com"
                 />
               </div>
               <div>
-                <label className="block text-sm text-[var(--text-secondary)] mb-2">Role</label>
+                <label className={styles.fieldLabel}>Role</label>
                 <select
                   value={newRole}
                   onChange={(e) => setNewRole(e.target.value as TeamRole)}
-                  className="w-full px-3 py-2 bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)]"
+                  className={styles.fieldSelect}
                 >
                   <option value="researcher">Researcher</option>
                   <option value="analyst">Analyst</option>
@@ -450,17 +432,11 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
               </div>
             </div>
 
-            <div className="border-t border-[var(--glass-border)] p-5 flex justify-end gap-2">
-              <button
-                onClick={() => setShowAddModal(false)}
-                className="px-4 py-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-              >
+            <div className={styles.modalFooter}>
+              <button onClick={() => setShowAddModal(false)} className={styles.cancelButton}>
                 Cancel
               </button>
-              <button
-                onClick={addMember}
-                className="px-4 py-2 bg-[var(--accent)] hover:bg-blue-700 text-[var(--text-primary)] rounded-[var(--radius-lg)]"
-              >
+              <button onClick={addMember} className={styles.submitButton}>
                 Add Profile
               </button>
             </div>

@@ -13,6 +13,7 @@ import { GlassButton } from '../components/ui/GlassButton';
 import { Grid } from '../design-system/components/layout/Grid';
 import { Flex } from '../design-system/components/layout/Flex';
 import { Stack } from '../design-system/components/layout/Stack';
+import styles from './PeoplePage.module.css';
 
 interface DataStats {
   totalPeople: number;
@@ -124,7 +125,7 @@ export const PeoplePage: React.FC<PeoplePageProps> = ({
   return (
     <ScopedErrorBoundary>
       <Profiler id="PeoplePage" onRender={onRenderCallback}>
-        <Stack data-testid="people-page" className="surface-glass h-full px-4 py-4" gap="lg">
+        <Stack data-testid="people-page" className={`surface-glass ${styles.page}`} gap="lg">
           {loading && !dataStats.totalPeople ? (
             <StatsSkeleton />
           ) : (
@@ -141,11 +142,11 @@ export const PeoplePage: React.FC<PeoplePageProps> = ({
             align="center"
             justify="between"
             gap="md"
-            className="surface-glass-card relative z-40 px-3 py-3 flex-shrink-0"
+            className={`surface-glass-card ${styles.toolbarCard}`}
           >
             <Flex align="center" gap="sm">
-              <Icon name="Users" size="sm" color="info" className="flex-shrink-0" />
-              <p className="text-[var(--text-primary)] text-sm">
+              <Icon name="Users" size="sm" color="info" className={styles.toolbarIcon} />
+              <p className={styles.toolbarMeta}>
                 {total.toLocaleString()} subjects • Page {page}/{totalPagesLocal || 1}
               </p>
             </Flex>
@@ -154,7 +155,7 @@ export const PeoplePage: React.FC<PeoplePageProps> = ({
               wrap="wrap"
               align="center"
               gap="sm"
-              className="w-full font-sans"
+              className={styles.toolbarControls}
               style={{ flex: 1, justifyContent: 'flex-end', minWidth: '320px' }}
             >
               {isAdmin && (
@@ -162,23 +163,23 @@ export const PeoplePage: React.FC<PeoplePageProps> = ({
                   onClick={onAddSubject}
                   variant="secondary"
                   size="sm"
-                  className="hidden items-center gap-2"
+                  className={styles.addButton}
                   style={{ display: 'flex' }}
                 >
                   <Icon name="Plus" size="sm" />
-                  <span className="hidden sm:inline">Add Subject</span>
+                  <span className={styles.addButtonLabel}>Add Subject</span>
                 </GlassButton>
               )}
 
-              <div style={{ flex: 1, minWidth: '150px', maxWidth: '300px' }}>
+              <div className={styles.filterWrap}>
                 <EntityTypeFilter
                   value={entityType}
                   onChange={onEntityTypeChange}
-                  className="w-full"
+                  className={styles.fullWidth}
                 />
               </div>
 
-              <div style={{ flex: 1, minWidth: '150px', maxWidth: '300px' }}>
+              <div className={styles.filterWrap}>
                 <SortFilter
                   value={sortBy}
                   onChange={(val) => onSortByChange(val)}
@@ -196,7 +197,7 @@ export const PeoplePage: React.FC<PeoplePageProps> = ({
                     },
                     { value: 'name', label: 'Name', icon: <Icon name="User" size="sm" /> },
                   ]}
-                  className="w-full"
+                  className={styles.fullWidth}
                 />
               </div>
 
@@ -204,25 +205,19 @@ export const PeoplePage: React.FC<PeoplePageProps> = ({
                 onClick={onSortOrderToggle}
                 variant="ghost"
                 size="sm"
-                className="h-11 w-11 shrink-0 px-0 py-0"
+                className={styles.sortOrderButton}
                 title={`Sort ${sortOrder === 'asc' ? 'Descending' : 'Ascending'}`}
                 aria-label={`Sort ${sortOrder === 'asc' ? 'Descending' : 'Ascending'}`}
               >
                 {sortOrder === 'asc' ? '↑' : '↓'}
               </GlassButton>
             </Flex>
-            <div
-              className="text-xs text-[var(--text-muted)] uppercase tracking-[0.12em] w-full mt-1"
-              style={{ textAlign: 'right' }}
-            >
+            <div className={styles.toolbarSummary}>
               Sort: {sortBy.replace('_', ' ')} ({sortOrder})
             </div>
           </Flex>
 
-          <div
-            className="surface-glass-card flex-1 min-h-[600px] w-full px-4 py-4"
-            style={{ height: '100%' }}
-          >
+          <div className={`surface-glass-card ${styles.resultsShell}`}>
             {loading ? (
               <Grid cols={{ base: 1, md: 2, xl: 3 }} gap="md">
                 {[...Array(6)].map((_, i) => (
@@ -230,14 +225,10 @@ export const PeoplePage: React.FC<PeoplePageProps> = ({
                 ))}
               </Grid>
             ) : subjects.length === 0 ? (
-              <div className="surface-glass-card text-center py-12 px-4">
-                <Icon name="Users" size="xl" color="gray" className="mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-[var(--text-primary)] mb-2">
-                  No results found
-                </h3>
-                <p className="text-[var(--text-secondary)]">
-                  Try adjusting search or entity filters.
-                </p>
+              <div className={`surface-glass-card ${styles.emptyState}`}>
+                <Icon name="Users" size="xl" color="gray" className={styles.emptyIcon} />
+                <h3 className={styles.emptyTitle}>No results found</h3>
+                <p className={styles.emptyBody}>Try adjusting search or entity filters.</p>
               </div>
             ) : (
               <Grid cols={{ base: 1, md: 2, xl: 3 }} gap="md">
@@ -253,28 +244,28 @@ export const PeoplePage: React.FC<PeoplePageProps> = ({
           </div>
 
           {totalPagesLocal > 1 && (
-            <Flex justify="center" align="center" gap="md" className="mt-4 flex-shrink-0 pb-4">
+            <Flex justify="center" align="center" gap="md" className={styles.pagination}>
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="control px-4 text-[var(--text-primary)] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--glass-bg-highlight)] flex items-center gap-2"
+                className={`control ${styles.paginationButton}`}
                 style={{ display: 'flex', alignItems: 'center' }}
               >
                 <Icon name="ChevronLeft" size="sm" />
                 <span>Previous</span>
               </button>
 
-              <div className="chip px-4 h-11 flex items-center gap-2">
-                <span className="text-[var(--text-muted)]">Page</span>
-                <span className="text-[var(--text-primary)] font-medium">{page}</span>
-                <span className="text-[var(--text-muted)]">of</span>
-                <span className="text-[var(--text-primary)] font-medium">{totalPagesLocal}</span>
+              <div className={`chip ${styles.pageChip}`}>
+                <span className={styles.pageChipLabel}>Page</span>
+                <span className={styles.pageChipValue}>{page}</span>
+                <span className={styles.pageChipLabel}>of</span>
+                <span className={styles.pageChipValue}>{totalPagesLocal}</span>
               </div>
 
               <button
                 onClick={() => setPage((p) => Math.min(totalPagesLocal, p + 1))}
                 disabled={page === totalPagesLocal}
-                className="control px-4 text-[var(--text-primary)] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--glass-bg-highlight)] flex items-center gap-2"
+                className={`control ${styles.paginationButton}`}
                 style={{ display: 'flex', alignItems: 'center' }}
               >
                 <span>Next</span>

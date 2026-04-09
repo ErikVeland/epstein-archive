@@ -53,6 +53,12 @@
 .lq-text--color-danger {
   color: #f43f5e;
 }
+.lq-text--color-success {
+  color: var(--success, #22c55e);
+}
+.lq-text--color-warning {
+  color: var(--warning, #f59e0b);
+}
 
 /* Weight modifiers */
 .lq-text--weight-light {

@@ -294,7 +294,10 @@
 }
 
 .sentence {
-  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .sentenceBoilerplate {
@@ -317,7 +320,9 @@
 }
 
 .highlightActive {
-  box-shadow: 0 0 0 2px #fbbf24, 0 0 0 4px rgba(15, 23, 42, 0.9);
+  box-shadow:
+    0 0 0 2px #fbbf24,
+    0 0 0 4px rgba(15, 23, 42, 0.9);
 }
 
 @media (min-width: 768px) {

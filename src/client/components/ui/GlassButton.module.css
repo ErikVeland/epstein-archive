@@ -15,7 +15,9 @@
 
 .btn:focus {
   outline: none;
-  box-shadow: 0 0 0 2px var(--accent), 0 0 0 4px var(--app-bg);
+  box-shadow:
+    0 0 0 2px var(--accent),
+    0 0 0 4px var(--app-bg);
 }
 
 .btn:disabled {

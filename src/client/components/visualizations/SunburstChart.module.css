@@ -46,9 +46,15 @@
   font-family: var(--font-mono);
 }
 
-.riskValueHigh { color: var(--accent-danger); }
-.riskValueMedium { color: var(--accent-warning); }
-.riskValueLow { color: var(--accent-success); }
+.riskValueHigh {
+  color: var(--accent-danger);
+}
+.riskValueMedium {
+  color: var(--accent-warning);
+}
+.riskValueLow {
+  color: var(--accent-success);
+}
 
 .chartLabel {
   font-size: var(--type-xs);

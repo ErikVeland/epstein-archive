@@ -281,5 +281,7 @@
   gap: var(--space-1);
 }
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }

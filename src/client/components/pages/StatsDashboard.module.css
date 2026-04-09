@@ -74,11 +74,21 @@
 }
 
 /* Icon / value color variants */
-.colorAccent { color: var(--accent); }
-.colorDanger { color: var(--accent-danger); }
-.colorSuccess { color: var(--accent-success); }
-.colorWarning { color: var(--accent-warning); }
-.colorPrimary { color: var(--text-primary); }
+.colorAccent {
+  color: var(--accent);
+}
+.colorDanger {
+  color: var(--accent-danger);
+}
+.colorSuccess {
+  color: var(--accent-success);
+}
+.colorWarning {
+  color: var(--accent-warning);
+}
+.colorPrimary {
+  color: var(--text-primary);
+}
 
 .trendBadge {
   display: inline-flex;

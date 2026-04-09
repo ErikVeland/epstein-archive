@@ -81,6 +81,7 @@ import {
   useInvestigationList,
 } from '../../domains/investigations';
 import type { Hypothesis } from '../../types/investigation';
+import styles from './InvestigationWorkspace.module.css';
 
 /** Shape of a raw timeline event row returned by the timeline-events API. */
 interface RawTimelineEvent {
@@ -1173,89 +1174,72 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent)]"></div>
+      <div className={styles.tabLoading}>
+        <div className={styles.spinner}></div>
       </div>
     );
   }
 
   return (
-    <div className="investigation-workspace liquid-glass-workspace rounded-[var(--radius-xl)] h-[calc(100vh-8rem)] flex flex-col phthalo-gradient-bottom">
+    <div className={styles.root}>
       {/* Investigation Onboarding Overlay */}
       {!hasSeenOnboarding && !selectedInvestigation && (
         <InvestigationOnboarding onComplete={markOnboardingAsSeen} onSkip={markOnboardingAsSeen} />
       )}
 
-      {/* Example Investigation Link - REMOVED per user request */}
-
       {/* Header */}
-      <div className="border-b border-[var(--glass-border)] px-6 py-4 shrink-0">
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <h2 className="text-xl font-semibold text-[var(--text-primary)]">
-              Investigation Workspace
-            </h2>
-            <p className="text-sm text-[var(--text-muted)] mt-1">
+      <div className={styles.header}>
+        <div className={styles.headerContent}>
+          <div className={styles.headerTitleGroup}>
+            <h2 className={styles.headerTitle}>Investigation Workspace</h2>
+            <p className={styles.headerSubtitle}>
               Collaborative investigation platform for journalists and researchers
             </p>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
+          <div className={styles.headerActionGroup}>
             {selectedInvestigation && (
               <>
-                <div className="hidden sm:flex items-center bg-[var(--glass-bg)] rounded-[var(--radius-lg)] p-1 border border-[var(--glass-border)]">
+                <div className={styles.scopeSelector}>
                   <button
                     onClick={() => setUseGlobalContext(false)}
-                    className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-                      !useGlobalContext
-                        ? 'bg-[var(--accent)] text-[var(--text-primary)] shadow-sm'
-                        : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+                    className={`${styles.scopeButton} ${
+                      !useGlobalContext ? styles.scopeButtonActive : ''
                     }`}
                   >
                     Investigation Scope
                   </button>
                   <button
                     onClick={() => setUseGlobalContext(true)}
-                    className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-                      useGlobalContext
-                        ? 'bg-[var(--accent)] text-[var(--text-primary)] shadow-sm'
-                        : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+                    className={`${styles.scopeButton} ${
+                      useGlobalContext ? styles.scopeButtonActive : ''
                     }`}
                   >
                     Global Context
                   </button>
                 </div>
-                <button
-                  onClick={() => setShowTasksPanel(true)}
-                  className="hidden md:inline-flex items-center px-3 py-2 rounded-md text-xs font-medium bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)] hover:border-[var(--glass-border)] transition-colors"
-                >
+                <button onClick={() => setShowTasksPanel(true)} className={styles.auxButton}>
                   <Flag className="w-3.5 h-3.5 mr-1.5 text-amber-400" />
                   Tasks
                 </button>
-                <button
-                  onClick={() => setShowMemoryPanel(true)}
-                  className="hidden md:inline-flex items-center px-3 py-2 rounded-md text-xs font-medium bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)] hover:border-[var(--glass-border)] transition-colors"
-                >
+                <button onClick={() => setShowMemoryPanel(true)} className={styles.auxButton}>
                   <BookOpen className="w-3.5 h-3.5 mr-1.5 text-[var(--accent)]" />
                   Memory
                 </button>
                 <button
                   onClick={() => setShowLeadsPanel(true)}
-                  className="hidden md:inline-flex items-center px-3 py-2 rounded-md text-xs font-medium bg-[var(--glass-bg)] border border-amber-500/30 text-[var(--text-primary)] hover:bg-amber-500/10 transition-colors"
+                  className={`${styles.auxButton} ${styles.leadsButton}`}
                 >
                   <Crosshair className="w-3.5 h-3.5 mr-1.5 text-amber-400" />
                   Leads
                 </button>
-                <button
-                  onClick={() => setShowDossierPanel(true)}
-                  className="hidden md:inline-flex items-center px-3 py-2 rounded-md text-xs font-medium bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)] transition-colors"
-                >
+                <button onClick={() => setShowDossierPanel(true)} className={styles.auxButton}>
                   <User className="w-3.5 h-3.5 mr-1.5 text-purple-400" />
                   Subject
                 </button>
                 <button
                   onClick={() => setShowImportModal(true)}
-                  className="hidden md:inline-flex items-center px-3 py-2 rounded-md text-xs font-medium bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)] transition-colors"
+                  className={`${styles.auxButton} ${styles.importButton}`}
                 >
                   <Upload className="w-3.5 h-3.5 mr-1.5 text-emerald-400" />
                   Import Report
@@ -1266,10 +1250,10 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
             {!selectedInvestigation && (
               <button
                 onClick={() => setShowNewInvestigationModal(true)}
-                className="flex items-center justify-center sm:justify-start px-3 sm:px-4 py-2 bg-[var(--accent)] text-[var(--text-primary)] rounded-md hover:bg-blue-700 transition-colors shadow-[var(--glass-shadow)] shadow-blue-900/20 h-10 whitespace-nowrap"
+                className={styles.newInvButton}
               >
-                <Plus className="w-5 h-5 sm:w-4 sm:h-4 sm:mr-2 shrink-0" />
-                <span className="hidden sm:inline">New Investigation</span>
+                <Plus className="w-4 h-4 mr-2" />
+                <span>New Investigation</span>
               </button>
             )}
           </div>
@@ -1278,38 +1262,34 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
 
       {/* Investigation Dashboard */}
       {!selectedInvestigation && (
-        <div className="flex-1 overflow-y-auto p-8 relative">
-          <div className="max-w-6xl mx-auto">
+        <div className={styles.dashboard}>
+          <div className={styles.dashboardContent}>
             {/* Welcome / Hero Section */}
-            <div className="mb-12 text-center">
-              <h1 className="text-4xl font-light text-[var(--text-primary)] mb-4 tracking-tight">
-                Investigation Dashboard
-              </h1>
-              <p className="text-[var(--text-muted)] max-w-2xl mx-auto text-lg">
+            <div className={styles.dashboardHero}>
+              <h1 className={styles.dashboardHeroTitle}>Investigation Dashboard</h1>
+              <p className={styles.dashboardHeroSubtitle}>
                 Manage your investigations, organize evidence, and collaborate with your team.
                 Select an active investigation below or start a new one.
               </p>
             </div>
 
             {/* Actions Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+            <div className={styles.dashboardActions}>
               <button
                 onClick={() => setShowNewInvestigationModal(true)}
-                className="group relative flex flex-col items-start p-6 bg-gradient-to-br from-blue-600/20 to-blue-900/20 border border-[var(--accent)]/30 rounded-[var(--radius-xl)] hover:border-[var(--accent)]/60 hover:from-blue-600/30 hover:to-blue-900/30 transition-all duration-300 text-left"
+                className={styles.actionCard}
               >
-                <div className="bg-[var(--accent)] rounded-[var(--radius-lg)] p-3 mb-4 shadow-[var(--glass-shadow)] shadow-blue-900/30 group-hover:scale-110 transition-transform duration-300">
-                  <Plus className="w-8 h-8 text-[var(--text-primary)]" />
+                <div className={styles.actionIconBox}>
+                  <Plus className="w-8 h-8 text-white" />
                 </div>
-                <h3 className="text-xl font-semibold text-[var(--text-primary)] mb-2">
-                  New Investigation
-                </h3>
-                <p className="text-sm text-blue-200/70">
+                <h3 className={styles.actionCardTitle}>New Investigation</h3>
+                <p className={styles.actionCardDesc}>
                   Start a fresh investigation. Define your hypothesis, set a scope, and begin
                   gathering evidence.
                 </p>
               </button>
 
-              <div className="md:col-span-1 lg:col-span-2 bg-[var(--glass-bg)]/20 border border-[var(--glass-border)] rounded-[var(--radius-xl)] p-6 flex items-center justify-between">
+              <div className={styles.statsCombinedCard}>
                 <div>
                   <h3 className="text-lg font-medium text-[var(--text-primary)] mb-1">
                     {investigations.length} Active Investigations
@@ -1323,8 +1303,8 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
             </div>
 
             {/* Recent Investigations List */}
-            <div>
-              <h2 className="text-2xl font-light text-[var(--text-primary)] mb-6 flex items-center gap-3">
+            <div className={styles.recentSection}>
+              <h2 className={styles.recentSectionTitle}>
                 <Target className="w-6 h-6 text-[var(--text-muted)]" />
                 Recent Investigations
               </h2>
@@ -1341,15 +1321,15 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className={styles.recentGrid}>
                   {investigations.map((investigation) => (
                     <div
                       key={investigation.id}
-                      className="group bg-[var(--glass-bg)]/40 backdrop-blur-sm border border-[var(--glass-border)] rounded-[var(--radius-xl)] p-5 cursor-pointer hover:border-[var(--accent)]/50 hover:bg-[var(--glass-bg)]/60 transition-all duration-300 hover:shadow-[var(--glass-shadow)] hover:shadow-blue-900/10 flex flex-col h-full"
+                      className={styles.invCard}
                       onClick={() => loadInvestigation(investigation.id)}
                     >
                       <div className="flex-1">
-                        <div className="flex justify-between items-start mb-3">
+                        <div className={styles.invCardHeader}>
                           <span
                             className={`px-2.5 py-1 text-xs font-semibold rounded-full uppercase tracking-wide ${getStatusColor(investigation.status)}`}
                           >
@@ -1374,15 +1354,11 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                             </button>
                           )}
                         </div>
-                        <h3 className="text-xl font-medium text-[var(--text-primary)] group-hover:text-[var(--accent)] transition-colors mb-2 line-clamp-2">
-                          {investigation.title}
-                        </h3>
-                        <p className="text-sm text-[var(--text-muted)] line-clamp-3 mb-4">
-                          {investigation.description}
-                        </p>
+                        <h3 className={styles.invTitle}>{investigation.title}</h3>
+                        <p className={styles.invDesc}>{investigation.description}</p>
                       </div>
 
-                      <div className="mt-4 pt-4 border-t border-[var(--glass-border)] flex items-center justify-between text-xs text-[var(--text-muted)]">
+                      <div className={styles.invFooter}>
                         <div className="flex items-center gap-2">
                           <User className="w-3.5 h-3.5" />
                           <span>{investigation.leadInvestigator}</span>
@@ -1403,30 +1379,22 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
 
       {/* Main Layout - Column on mobile, Row on desktop */}
       {selectedInvestigation && (
-        <div className="flex flex-1 min-h-0 min-w-0 overflow-hidden flex-col md:flex-row">
+        <div className={styles.layoutContainer}>
           {/* Mobile Navigation */}
-          <div className="md:hidden shrink-0 w-full overflow-x-auto bg-[var(--glass-bg-strong)]/50 backdrop-blur-sm border-b border-[var(--glass-border)]">
-            <div className="p-2 flex items-center gap-2 overflow-hidden">
-              <button
-                onClick={() => setSelectedInvestigation(null)}
-                className="p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] shrink-0 h-10 w-10 flex items-center justify-center rounded-[var(--radius-lg)] hover:bg-[var(--glass-bg)]"
-              >
+          <div className={styles.mobileNav}>
+            <div className={styles.mobileNavContent}>
+              <button onClick={() => setSelectedInvestigation(null)} className={styles.backButton}>
                 <ArrowRight className="w-5 h-5 rotate-180" />
               </button>
-              <div className="w-full overflow-x-auto border-b border-[var(--glass-border)] bg-[var(--glass-bg-strong)]/95 no-scrollbar">
-                <div className="flex px-4 py-3 gap-2 min-w-max">
+              <div className={styles.mobileTabsScroll}>
+                <div className={styles.mobileTabsList}>
                   {mobileTabs.map((option) => (
                     <button
                       key={option.id}
                       onClick={() => navigateToTab(option.id)}
-                      className={`
-                        px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all
-                        ${
-                          activeTab === option.id
-                            ? 'bg-[var(--accent)] text-[var(--text-primary)] shadow-[var(--glass-shadow)] shadow-blue-900/30'
-                            : 'bg-[var(--glass-bg)] text-[var(--text-muted)] hover:bg-[var(--glass-bg-highlight)] hover:text-[var(--text-primary)] border border-[var(--glass-border)]'
-                        }
-                      `}
+                      className={`${styles.mobileTab} ${
+                        activeTab === option.id ? styles.mobileTabActive : ''
+                      }`}
                     >
                       {option.label}
                     </button>
@@ -1437,55 +1405,43 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
           </div>
 
           {/* Desktop Navigation Pane (reusable collapsible + resizable component) */}
-          <div className="hidden md:block shrink-0 h-full border-r border-[var(--glass-border)] bg-[var(--glass-bg-strong)]/50 backdrop-blur-sm">
+          <div className={styles.desktopSidebar}>
             <CollapsibleSplitPane
               mode="singleRight"
               left={null}
               right={
-                <div className="h-full p-4">
-                  <div className="flex items-center justify-between mb-6">
+                <div className={styles.sidebarInner}>
+                  <div className={styles.sidebarBackHeader}>
                     <button
                       onClick={() => setSelectedInvestigation(null)}
-                      className="text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] flex items-center gap-2 transition-colors h-10 px-3 bg-[var(--glass-bg)]/50 hover:bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] border border-[var(--glass-border)]"
+                      className={styles.backButton}
                     >
                       <ArrowRight className="w-4 h-4 rotate-180" />
                       <span className="font-medium">Back to Dashboard</span>
                     </button>
                   </div>
 
-                  <div className="mb-6 px-2">
-                    <h3
-                      className="font-medium text-[var(--text-primary)] truncate"
-                      title={selectedInvestigation.title}
-                    >
+                  <div className={styles.sidebarInvInfo}>
+                    <h3 className={styles.sidebarInvTitle} title={selectedInvestigation.title}>
                       {selectedInvestigation.title}
                     </h3>
-                    <button
-                      onClick={copyShareUrl}
-                      className="mt-2 flex items-center gap-1.5 text-xs text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors"
-                    >
+                    <button onClick={copyShareUrl} className={styles.shareButton}>
                       <Share2 className="w-3.5 h-3.5" />
                       {shareCopied ? 'Copied!' : 'Share'}
                     </button>
                   </div>
 
-                  <nav className="space-y-1 min-w-0 w-full p-1 overflow-hidden">
+                  <nav className={styles.nav}>
                     {desktopTabs.map((tab) => (
                       <button
                         key={tab.id}
                         onClick={() => navigateToTab(tab.id)}
-                        className={`
-                          flex items-center px-3 py-3 text-sm font-medium rounded-[var(--radius-lg)] transition-all
-                          whitespace-nowrap overflow-hidden w-full
-                          ${
-                            activeTab === tab.id
-                              ? 'bg-blue-900/40 text-[var(--accent)] border border-[var(--accent)]/30 shadow-sm relative z-10'
-                              : 'text-[var(--text-muted)] hover:bg-[var(--glass-bg-highlight)]/50 hover:text-[var(--text-primary)]'
-                          }
-                        `}
+                        className={`${styles.navButton} ${
+                          activeTab === tab.id ? styles.navButtonActive : ''
+                        }`}
                         title={tab.label}
                       >
-                        <tab.icon className="w-5 h-5 mr-3 shrink-0" />
+                        <tab.icon className={styles.navIcon} />
                         <span className="block truncate">{tab.label}</span>
                       </button>
                     ))}
@@ -1534,39 +1490,35 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
           </div>
 
           {/* Main Content */}
-          <div className="flex-1 min-w-0 p-6 overflow-y-auto overflow-x-hidden bg-[var(--glass-bg-strong)]">
+          <div className={styles.mainContent}>
             {activeTab === 'board' && selectedInvestigation && (
               <InvestigationBoard investigationId={selectedInvestigation.id} />
             )}
             {activeTab === 'overview' && (
               <div className="max-w-4xl">
-                <h3 className="text-xl font-bold text-[var(--text-primary)] mb-6">
-                  Investigation Overview
-                </h3>
+                <h3 className={styles.tabTitle}>Investigation Overview</h3>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                  <div className="bg-[var(--glass-bg)]/50 border border-[var(--glass-border)] rounded-[var(--radius-xl)] p-5">
-                    <h4 className="text-sm font-medium text-[var(--text-muted)] mb-3 uppercase tracking-wider">
-                      Hypothesis
-                    </h4>
-                    <p className="text-[var(--text-primary)] leading-relaxed">
-                      {selectedInvestigation.hypothesis}
-                    </p>
+                <div className={styles.overviewGrid}>
+                  <div className={styles.infoBox}>
+                    <h4 className={styles.infoLabel}>Hypothesis</h4>
+                    <p className={styles.infoText}>{selectedInvestigation.hypothesis}</p>
                   </div>
 
-                  <div className="bg-[var(--glass-bg)]/50 border border-[var(--glass-border)] rounded-[var(--radius-xl)] p-5">
-                    <h4 className="text-sm font-medium text-[var(--text-muted)] mb-3 uppercase tracking-wider">
-                      Status & Priority
-                    </h4>
+                  <div className={styles.infoBox}>
+                    <h4 className={styles.infoLabel}>Status & Priority</h4>
                     <div className="space-y-4">
-                      <div className="flex items-center gap-3">
+                      <div className={styles.statusRow}>
                         <span
-                          className={`px-3 py-1 text-sm font-medium rounded-full ${getStatusColor(selectedInvestigation.status)}`}
+                          className={`px-3 py-1 text-sm font-medium rounded-full ${getStatusColor(
+                            selectedInvestigation.status,
+                          )}`}
                         >
                           {selectedInvestigation.status}
                         </span>
                         <span
-                          className={`px-3 py-1 text-sm font-medium rounded-full ${getPriorityColor(selectedInvestigation.priority)}`}
+                          className={`px-3 py-1 text-sm font-medium rounded-full ${getPriorityColor(
+                            selectedInvestigation.priority,
+                          )}`}
                         >
                           {selectedInvestigation.priority} priority
                         </span>
@@ -1597,10 +1549,8 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                 </div>
 
                 <div>
-                  <h4 className="text-sm font-medium text-[var(--text-muted)] mb-3 uppercase tracking-wider">
-                    Recent Activity
-                  </h4>
-                  <div className="bg-[var(--glass-bg)]/50 border border-[var(--glass-border)] rounded-[var(--radius-xl)] p-5">
+                  <h4 className={styles.infoLabel}>Recent Activity</h4>
+                  <div className={styles.infoBox}>
                     <div className="flex items-start gap-4">
                       <div className="w-8 h-8 rounded-full bg-blue-900/30 flex items-center justify-center border border-[var(--accent)]/30">
                         <User className="w-4 h-4 text-[var(--accent)]" />

@@ -29,6 +29,7 @@ import { Flex } from '../design-system/components/layout/Flex';
 import { Box } from '../design-system/components/layout/Box';
 import { LqText } from '../design-system/components/typography/Text';
 import { Grid } from '../design-system/components/layout/Grid';
+import styles from './AdminDashboard.module.css';
 
 interface User {
   id: string;
@@ -81,6 +82,33 @@ type UserRole = User['role'];
 
 const isUserRole = (value: string): value is UserRole =>
   value === 'admin' || value === 'investigator' || value === 'viewer';
+
+const getTabClassName = (isActive: boolean) =>
+  isActive ? `${styles.tabButton} ${styles.tabButtonActive}` : styles.tabButton;
+
+const getRoleBadgeClassName = (role: UserRole) => {
+  if (role === 'admin') {
+    return `${styles.roleBadge} ${styles.roleBadgeAdmin}`;
+  }
+
+  if (role === 'investigator') {
+    return `${styles.roleBadge} ${styles.roleBadgeInvestigator}`;
+  }
+
+  return styles.roleBadge;
+};
+
+const getIngestionStatusClassName = (status: string) => {
+  if (status === 'success') {
+    return `${styles.statusBadge} ${styles.statusSuccess}`;
+  }
+
+  if (status === 'running') {
+    return `${styles.statusBadge} ${styles.statusRunning}`;
+  }
+
+  return styles.statusBadge;
+};
 
 export const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<
@@ -311,55 +339,38 @@ export const AdminDashboard: React.FC = () => {
   );
 
   return (
-    <Box className="min-h-screen app-backdrop text-[var(--text-primary)]">
-      <Box className="w-full max-w-7xl mx-auto px-4 py-8 space-y-8">
+    <Box className={`app-backdrop ${styles.pageRoot}`}>
+      <Box className={styles.pageContent}>
         {/* Header */}
         {error && (
-          <Flex
-            align="start"
-            gap={2}
-            className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200"
-          >
-            <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0" />
-            <Box className="flex-1">
-              <p className="font-medium">An error occurred while loading admin data.</p>
-              <p className="mt-1 text-red-200/80 break-all">{error}</p>
+          <Flex align="start" gap={2} className={styles.errorBanner}>
+            <AlertTriangle className={styles.errorIcon} />
+            <Box className={styles.errorContent}>
+              <p className={styles.errorTitle}>An error occurred while loading admin data.</p>
+              <p className={styles.errorMessage}>{error}</p>
             </Box>
             <CloseButton
               type="button"
               onClick={() => setError('')}
               size="sm"
               label="Dismiss error"
-              className="ml-2 border-red-700/60 bg-red-950/60 text-red-200 hover:bg-red-900/70 hover:text-[var(--text-primary)]"
+              className={styles.errorClose}
             />
           </Flex>
         )}
-        <Flex direction="column" className="md:flex-row md:items-center justify-between gap-4">
+        <Flex direction="column" align="start" className={styles.header}>
           <Box>
-            <LqText
-              as="h1"
-              variant="h1"
-              color="accent"
-              className="leading-none font-display font-light tracking-tight flex items-center gap-4 mb-3"
-            >
-              <Shield className="w-8 h-8 text-[var(--accent)] opacity-80" strokeWidth={1} />
+            <LqText as="h1" variant="h1" color="accent" className={styles.heading}>
+              <Shield className={styles.headingIcon} strokeWidth={1} />
               Admin Dashboard
             </LqText>
-            <LqText
-              as="p"
-              variant="body"
-              color="muted"
-              className="text-lg font-light tracking-wide"
-            >
+            <LqText as="p" variant="body" color="muted" className={styles.subtitle}>
               Manage users, permissions, and system access
             </LqText>
           </Box>
 
           <Flex align="center" gap={3}>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 px-4 py-2 bg-[var(--glass-bg-strong)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-lg transition-colors border border-[var(--glass-border)]"
-            >
+            <button onClick={handleLogout} className={styles.logoutButton}>
               <LogOut size={18} />
               <span>Log Out</span>
             </button>
@@ -367,72 +378,45 @@ export const AdminDashboard: React.FC = () => {
         </Flex>
 
         {/* Tab Navigation */}
-        <Flex
-          gap={1}
-          className="bg-[var(--glass-bg)]/40 p-1.5 rounded-2xl shadow-[var(--glass-shadow-soft)] w-fit backdrop-blur-md"
-        >
+        <Flex gap={1} className={styles.tabNav}>
           <button
             onClick={() => setActiveTab('users')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === 'users'
-                ? 'bg-[var(--accent)] text-[var(--text-primary)] shadow-lg shadow-[var(--accent)]/20'
-                : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)]'
-            }`}
+            className={getTabClassName(activeTab === 'users')}
           >
             <Users size={18} />
             User Management
           </button>
           <button
             onClick={() => setActiveTab('audit')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === 'audit'
-                ? 'bg-[var(--accent)] text-[var(--text-primary)] shadow-lg shadow-[var(--accent)]/20'
-                : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)]'
-            }`}
+            className={getTabClassName(activeTab === 'audit')}
           >
             <Activity size={18} />
             Audit Logs
           </button>
           <button
             onClick={() => setActiveTab('system')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === 'system'
-                ? 'bg-[var(--accent)] text-[var(--text-primary)] shadow-lg shadow-[var(--accent)]/20'
-                : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)]'
-            }`}
+            className={getTabClassName(activeTab === 'system')}
           >
             <Server size={18} />
             System Health
           </button>
           <button
             onClick={() => setActiveTab('review')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === 'review'
-                ? 'bg-[var(--accent)] text-[var(--text-primary)] shadow-lg shadow-[var(--accent)]/20'
-                : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)]'
-            }`}
+            className={getTabClassName(activeTab === 'review')}
           >
             <ShieldCheck size={18} />
             Agentic Review
           </button>
           <button
             onClick={() => setActiveTab('ingestion')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === 'ingestion'
-                ? 'bg-[var(--accent)] text-[var(--text-primary)] shadow-lg shadow-[var(--accent)]/20'
-                : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)]'
-            }`}
+            className={getTabClassName(activeTab === 'ingestion')}
           >
             <RefreshCw size={18} />
             Ingestion History
           </button>
           <button
             onClick={() => setActiveTab('backups')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === 'backups'
-                ? 'bg-[var(--accent)] text-[var(--text-primary)] shadow-lg shadow-[var(--accent)]/20'
-                : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)]'
-            }`}
+            className={getTabClassName(activeTab === 'backups')}
           >
             <Database size={18} />
             Backups
@@ -441,48 +425,45 @@ export const AdminDashboard: React.FC = () => {
 
         {/* --- USERS TAB --- */}
         {activeTab === 'users' && (
-          <Box className="space-y-6 animate-in fade-in duration-300">
+          <Box className={`${styles.tabSection} ${styles.fadeIn}`}>
             {/* Stats Cards */}
             <Grid cols={{ base: 1, md: 3 }} gap="lg">
-              <Surface
-                variant="glass"
-                className="p-6 hover:-translate-y-1 transition-all duration-300 group"
-              >
-                <Flex align="center" justify="between" className="mb-4">
-                  <h3 className="text-[10px] uppercase tracking-[0.2em] font-bold text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors">
-                    Total Users
-                  </h3>
-                  <Users className="text-[var(--accent)] w-5 h-5 opacity-70 group-hover:opacity-100 transition-opacity" />
+              <Surface variant="glass" className={styles.statCard}>
+                <Flex align="center" justify="between" className={styles.statHeader}>
+                  <h3 className={styles.statLabel}>Total Users</h3>
+                  <Users className={`${styles.statIcon} ${styles.accentIcon}`} />
                 </Flex>
-                <LqText as="div" variant="h1" className="text-5xl font-mono tracking-tighter">
+                <LqText
+                  as="div"
+                  variant="h1"
+                  className={`${styles.statValue} ${styles.statValueLarge}`}
+                >
                   {users.length}
                 </LqText>
               </Surface>
-              <Surface
-                variant="glass"
-                className="p-6 hover:-translate-y-1 transition-all duration-300 group"
-              >
-                <Flex align="center" justify="between" className="mb-4">
-                  <h3 className="text-[10px] uppercase tracking-[0.2em] font-bold text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors">
-                    Admins
-                  </h3>
-                  <Shield className="text-purple-400 w-5 h-5 opacity-70 group-hover:opacity-100 transition-opacity" />
+              <Surface variant="glass" className={styles.statCard}>
+                <Flex align="center" justify="between" className={styles.statHeader}>
+                  <h3 className={styles.statLabel}>Admins</h3>
+                  <Shield className={`${styles.statIcon} ${styles.purpleIcon}`} />
                 </Flex>
-                <LqText as="div" variant="h1" className="text-5xl font-mono tracking-tighter">
+                <LqText
+                  as="div"
+                  variant="h1"
+                  className={`${styles.statValue} ${styles.statValueLarge}`}
+                >
                   {users.filter((u) => u.role === 'admin').length}
                 </LqText>
               </Surface>
-              <Surface
-                variant="glass"
-                className="p-6 hover:-translate-y-1 transition-all duration-300 group"
-              >
-                <Flex align="center" justify="between" className="mb-4">
-                  <h3 className="text-[10px] uppercase tracking-[0.2em] font-bold text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors">
-                    Active (24h)
-                  </h3>
-                  <Check className="text-green-400 w-5 h-5 opacity-70 group-hover:opacity-100 transition-opacity" />
+              <Surface variant="glass" className={styles.statCard}>
+                <Flex align="center" justify="between" className={styles.statHeader}>
+                  <h3 className={styles.statLabel}>Active (24h)</h3>
+                  <Check className={`${styles.statIcon} ${styles.greenIcon}`} />
                 </Flex>
-                <LqText as="div" variant="h1" className="text-5xl font-mono tracking-tighter">
+                <LqText
+                  as="div"
+                  variant="h1"
+                  className={`${styles.statValue} ${styles.statValueLarge}`}
+                >
                   {
                     users.filter((u) => {
                       if (!u.last_active) return false;
@@ -494,113 +475,88 @@ export const AdminDashboard: React.FC = () => {
               </Surface>
             </Grid>
 
-            <Surface variant="panel" className="overflow-hidden">
-              <Flex
-                align="center"
-                justify="between"
-                gap={4}
-                className="p-4 border-b border-[var(--glass-border)]"
-              >
-                <LqText as="h2" variant="h3" color="primary" className="font-semibold">
+            <Surface variant="panel" className={styles.panelShell}>
+              <Flex align="center" justify="between" gap={4} className={styles.panelHeader}>
+                <LqText as="h2" variant="h3" color="primary" className={styles.panelHeading}>
                   Users
                 </LqText>
-                <Flex align="center" gap={3} className="w-full max-w-xl justify-end">
-                  <Box className="relative max-w-md w-full">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
+                <Flex align="center" gap={3} className={styles.panelActions}>
+                  <Box className={styles.searchField}>
+                    <Search className={styles.leadingIcon} />
                     <input
                       type="text"
                       placeholder="Search users..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-lg pl-9 pr-4 py-2 text-sm text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--accent)] outline-none transition-all"
+                      className={`${styles.textInput} ${styles.searchInput}`}
                     />
                   </Box>
-                  <button
-                    onClick={openCreateModal}
-                    className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] hover:brightness-110 text-[var(--text-primary)] rounded-lg transition-colors shadow-lg shadow-[var(--accent)]/20 whitespace-nowrap"
-                  >
+                  <button onClick={openCreateModal} className={styles.primaryButton}>
                     <UserPlus size={18} />
                     <span>Add User</span>
                   </button>
                 </Flex>
               </Flex>
 
-              <Box className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
+              <Box className={styles.tableScroll}>
+                <table className={styles.table}>
                   <thead>
-                    <tr className="bg-[var(--glass-bg-strong)] text-[var(--text-secondary)] text-sm border-b border-[var(--glass-border)]">
-                      <th className="px-6 py-3 font-medium">User</th>
-                      <th className="px-6 py-3 font-medium">Role</th>
-                      <th className="px-6 py-3 font-medium">Email</th>
-                      <th className="px-6 py-3 font-medium">Last Active</th>
-                      <th className="px-6 py-3 font-medium text-right">Actions</th>
+                    <tr className={styles.tableHeaderRow}>
+                      <th className={styles.headerCell}>User</th>
+                      <th className={styles.headerCell}>Role</th>
+                      <th className={styles.headerCell}>Email</th>
+                      <th className={styles.headerCell}>Last Active</th>
+                      <th className={`${styles.headerCell} ${styles.rightAlign}`}>Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[var(--glass-border)]">
+                  <tbody className={styles.tableBody}>
                     {loading ? (
                       <tr>
-                        <td colSpan={5} className="px-6 py-8 text-center text-[var(--text-muted)]">
+                        <td colSpan={5} className={styles.centerMuted}>
                           Loading users...
                         </td>
                       </tr>
                     ) : filteredUsers.length === 0 ? (
                       <tr>
-                        <td colSpan={5} className="px-6 py-8 text-center text-[var(--text-muted)]">
+                        <td colSpan={5} className={styles.centerMuted}>
                           No users found
                         </td>
                       </tr>
                     ) : (
                       filteredUsers.map((user) => (
-                        <tr
-                          key={user.id}
-                          className="hover:bg-[var(--glass-bg-strong)] transition-colors group"
-                        >
-                          <td className="px-6 py-4">
+                        <tr key={user.id} className={styles.rowHover}>
+                          <td className={styles.cell}>
                             <Flex align="center" gap={3}>
-                              <Flex
-                                align="center"
-                                justify="center"
-                                className="w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 font-medium text-sm"
-                              >
+                              <Flex align="center" justify="center" className={styles.avatar}>
                                 {user.username.charAt(0).toUpperCase()}
                               </Flex>
-                              <Box className="font-medium text-[var(--text-primary)]">
-                                {user.username}
-                              </Box>
+                              <Box className={styles.userName}>{user.username}</Box>
                             </Flex>
                           </td>
-                          <td className="px-6 py-4">
-                            <span
-                              className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border ${
-                                user.role === 'admin'
-                                  ? 'bg-purple-500/10 text-purple-400 border-purple-500/20'
-                                  : user.role === 'investigator'
-                                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                                    : 'bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] border-[var(--glass-border)]'
-                              }`}
-                            >
+                          <td className={styles.cell}>
+                            <span className={getRoleBadgeClassName(user.role)}>
                               {user.role === 'admin' && <Shield size={12} />}
                               {user.role}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-[var(--text-secondary)] text-sm">
+                          <td className={`${styles.cell} ${styles.mutedCell}`}>
                             {user.email || '-'}
                           </td>
-                          <td className="px-6 py-4 text-[var(--text-secondary)] text-sm">
+                          <td className={`${styles.cell} ${styles.mutedCell}`}>
                             {user.last_active
                               ? new Date(user.last_active).toLocaleString()
                               : 'Never'}
                           </td>
-                          <td className="px-6 py-4 text-right">
+                          <td className={`${styles.cell} ${styles.rightAlign}`}>
                             <Flex
                               align="center"
                               justify="end"
                               gap={2}
-                              className="opacity-0 group-hover:opacity-100 transition-opacity"
+                              className={styles.actionCell}
                             >
                               <button
                                 onClick={() => openEditModal(user)}
-                                className="p-1.5 text-[var(--text-muted)] hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
+                                className={`${styles.iconButton} ${styles.editButton}`}
                                 title="Edit User"
                               >
                                 <Edit2 size={16} />
@@ -608,7 +564,7 @@ export const AdminDashboard: React.FC = () => {
                               {user.id !== currentUser?.id && (
                                 <button
                                   onClick={() => handleDelete(user.id)}
-                                  className="p-1.5 text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                                  className={`${styles.iconButton} ${styles.deleteButton}`}
                                   title="Delete User"
                                 >
                                   <Trash2 size={16} />
@@ -628,79 +584,65 @@ export const AdminDashboard: React.FC = () => {
 
         {/* --- AUDIT TAB --- */}
         {activeTab === 'audit' && (
-          <Surface variant="panel" className="overflow-hidden animate-in fade-in duration-300">
-            <Flex
-              align="center"
-              justify="between"
-              className="p-4 border-b border-[var(--glass-border)]"
-            >
-              <LqText
-                as="h2"
-                variant="h3"
-                color="primary"
-                className="font-semibold flex items-center gap-2"
-              >
-                <Activity className="text-blue-400 w-5 h-5" />
+          <Surface variant="panel" className={`${styles.panelShell} ${styles.fadeIn}`}>
+            <Flex align="center" justify="between" className={styles.panelHeader}>
+              <LqText as="h2" variant="h3" color="primary" className={styles.panelHeading}>
+                <Activity className={`${styles.statIcon} ${styles.blueIcon}`} />
                 Audit Logs
               </LqText>
               <button
                 onClick={() => void refetchAuditLogs()}
-                className="p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-strong)] rounded-lg transition-colors"
+                className={styles.refreshButton}
                 title="Refresh"
               >
-                <RefreshCw size={18} className={auditLoading ? 'animate-spin' : ''} />
+                <RefreshCw size={18} className={auditLoading ? styles.spin : undefined} />
               </button>
             </Flex>
-            <Box className="overflow-x-auto max-h-[70vh]">
-              <table className="w-full text-left border-collapse">
-                <thead className="sticky top-0 z-10">
-                  <tr className="bg-[var(--glass-bg-strong)] text-[var(--text-secondary)] text-sm border-b border-[var(--glass-border)]">
-                    <th className="px-6 py-3 font-medium">Timestamp</th>
-                    <th className="px-6 py-3 font-medium">User</th>
-                    <th className="px-6 py-3 font-medium">Action</th>
-                    <th className="px-6 py-3 font-medium">Target</th>
-                    <th className="px-6 py-3 font-medium">Details</th>
+            <Box className={`${styles.tableScroll} ${styles.tableScrollTall}`}>
+              <table className={styles.table}>
+                <thead className={styles.stickyHead}>
+                  <tr className={styles.tableHeaderRow}>
+                    <th className={styles.headerCell}>Timestamp</th>
+                    <th className={styles.headerCell}>User</th>
+                    <th className={styles.headerCell}>Action</th>
+                    <th className={styles.headerCell}>Target</th>
+                    <th className={styles.headerCell}>Details</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[var(--glass-border)]">
+                <tbody className={styles.tableBody}>
                   {auditLoading && logs.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-6 py-8 text-center text-[var(--text-muted)]">
+                      <td colSpan={5} className={styles.centerMuted}>
                         Loading logs...
                       </td>
                     </tr>
                   ) : logs.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-6 py-8 text-center text-[var(--text-muted)]">
+                      <td colSpan={5} className={styles.centerMuted}>
                         No logs found
                       </td>
                     </tr>
                   ) : (
                     logs.map((log, idx) => (
-                      <tr
-                        key={log.id || idx}
-                        className="hover:bg-[var(--glass-bg-strong)] transition-colors"
-                      >
-                        <td className="px-6 py-4 text-xs font-mono text-[var(--text-muted)] whitespace-nowrap">
+                      <tr key={log.id || idx} className={styles.rowHover}>
+                        <td className={`${styles.cell} ${styles.xsMonoCell}`}>
                           {new Date(log.timestamp).toLocaleString()}
                         </td>
-                        <td className="px-6 py-4 text-sm font-medium text-[var(--text-primary)]">
+                        <td className={`${styles.cell} ${styles.userName}`}>
                           {log.performed_by || log.user_id}
                         </td>
-                        <td className="px-6 py-4">
-                          <span className="px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider bg-[var(--glass-bg-strong)] text-[var(--text-primary)] border border-[var(--glass-border)]">
-                            {log.action}
-                          </span>
+                        <td className={styles.cell}>
+                          <span className={styles.auditBadge}>{log.action}</span>
                         </td>
-                        <td className="px-6 py-4 text-sm text-[var(--text-secondary)]">
+                        <td className={`${styles.cell} ${styles.mutedCell}`}>
                           {log.object_type}{' '}
                           {log.object_id && (
-                            <span className="text-[var(--text-muted)]">
+                            <span className={styles.xsMonoCell}>
                               #{log.object_id.substring(0, 8)}
                             </span>
                           )}
                         </td>
-                        <td className="px-6 py-4 text-sm text-[var(--text-muted)] font-mono text-xs max-w-md truncate">
+                        <td className={`${styles.cell} ${styles.detailsCell}`}>
                           {JSON.stringify(log.payload)}
                         </td>
                       </tr>
@@ -714,103 +656,71 @@ export const AdminDashboard: React.FC = () => {
 
         {/* --- SYSTEM TAB --- */}
         {activeTab === 'system' && (
-          <Box className="space-y-6 animate-in fade-in duration-300">
+          <Box className={`${styles.tabSection} ${styles.fadeIn}`}>
             <Grid cols={{ base: 1, md: 2, lg: 4 }} gap="lg">
-              <Surface
-                variant="glass"
-                className="p-6 hover:-translate-y-1 transition-all duration-300 group"
-              >
-                <Flex align="center" gap={3} className="mb-4">
-                  <Activity className="text-green-400 opacity-70 group-hover:opacity-100 transition-opacity" />
-                  <h3 className="text-[10px] uppercase tracking-[0.2em] font-bold text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors">
-                    Status
-                  </h3>
+              <Surface variant="glass" className={styles.statCard}>
+                <Flex align="center" gap={3} className={styles.statHeader}>
+                  <Activity className={`${styles.statIcon} ${styles.greenIcon}`} />
+                  <h3 className={styles.statLabel}>Status</h3>
                 </Flex>
                 <LqText
                   as="div"
                   variant="h1"
-                  className="text-4xl font-mono uppercase tracking-tighter"
+                  className={`${styles.statValue} ${styles.statValueMedium}`}
                 >
                   {health?.status || 'Unknown'}
                 </LqText>
-                <LqText
-                  as="p"
-                  variant="small"
-                  color="muted"
-                  className="mt-2 font-mono uppercase tracking-wider"
-                >
+                <LqText as="p" variant="small" color="muted" className={styles.monoMeta}>
                   Uptime: {health ? (health.uptime / 3600).toFixed(1) : 0} hrs
                 </LqText>
               </Surface>
 
-              <Surface
-                variant="glass"
-                className="p-6 hover:-translate-y-1 transition-all duration-300 group"
-              >
-                <Flex align="center" gap={3} className="mb-4">
-                  <Database className="text-blue-400 opacity-70 group-hover:opacity-100 transition-opacity" />
-                  <h3 className="text-[10px] uppercase tracking-[0.2em] font-bold text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors">
-                    Database
-                  </h3>
+              <Surface variant="glass" className={styles.statCard}>
+                <Flex align="center" gap={3} className={styles.statHeader}>
+                  <Database className={`${styles.statIcon} ${styles.blueIcon}`} />
+                  <h3 className={styles.statLabel}>Database</h3>
                 </Flex>
                 <LqText
                   as="div"
                   variant="h1"
-                  className="text-4xl font-mono uppercase tracking-tighter"
+                  className={`${styles.statValue} ${styles.statValueMedium}`}
                 >
                   {health?.database || 'Unknown'}
                 </LqText>
-                <LqText
-                  as="p"
-                  variant="small"
-                  color="muted"
-                  className="mt-2 font-mono uppercase tracking-wider"
-                >
+                <LqText as="p" variant="small" color="muted" className={styles.monoMeta}>
                   Entities: {health?.data?.entities?.toLocaleString()}
                 </LqText>
               </Surface>
 
-              <Surface
-                variant="glass"
-                className="p-6 hover:-translate-y-1 transition-all duration-300 group"
-              >
-                <Flex align="center" gap={3} className="mb-4">
-                  <FileText className="text-orange-400 opacity-70 group-hover:opacity-100 transition-opacity" />
-                  <h3 className="text-[10px] uppercase tracking-[0.2em] font-bold text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors">
-                    Documents
-                  </h3>
+              <Surface variant="glass" className={styles.statCard}>
+                <Flex align="center" gap={3} className={styles.statHeader}>
+                  <FileText className={`${styles.statIcon} ${styles.orangeIcon}`} />
+                  <h3 className={styles.statLabel}>Documents</h3>
                 </Flex>
-                <LqText as="div" variant="h1" className="text-4xl font-mono tracking-tighter">
+                <LqText
+                  as="div"
+                  variant="h1"
+                  className={`${styles.statValue} ${styles.statValueMedium}`}
+                >
                   {health?.data?.documents?.toLocaleString() || 0}
                 </LqText>
               </Surface>
 
-              <Surface
-                variant="glass"
-                className="p-6 hover:-translate-y-1 transition-all duration-300 group"
-              >
-                <Flex align="center" gap={3} className="mb-4">
-                  <Cpu className="text-purple-400 opacity-70 group-hover:opacity-100 transition-opacity" />
-                  <h3 className="text-[10px] uppercase tracking-[0.2em] font-bold text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors">
-                    Environment
-                  </h3>
+              <Surface variant="glass" className={styles.statCard}>
+                <Flex align="center" gap={3} className={styles.statHeader}>
+                  <Cpu className={`${styles.statIcon} ${styles.purpleIcon}`} />
+                  <h3 className={styles.statLabel}>Environment</h3>
                 </Flex>
-                <Box className="text-sm font-mono tracking-wider text-[var(--text-primary)] bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] p-2 rounded-lg">
-                  {health?.environment || 'unknown'}
-                </Box>
+                <Box className={styles.systemEnvironment}>{health?.environment || 'unknown'}</Box>
               </Surface>
             </Grid>
 
             {/* Add more system controls here later */}
-            <Flex
-              align="start"
-              gap={3}
-              className="bg-amber-500/10 border border-amber-500/30 p-4 rounded-xl"
-            >
-              <AlertTriangle className="text-amber-500 mt-0.5" />
+            <Flex align="start" gap={3} className={styles.warningBox}>
+              <AlertTriangle className={styles.warningIcon} />
               <Box>
-                <h4 className="text-amber-400 font-medium">System Maintenance</h4>
-                <p className="text-amber-400/80 text-sm mt-1">
+                <h4 className={styles.warningTitle}>System Maintenance</h4>
+                <p className={styles.warningText}>
                   Advanced system operations (re-indexing, cache clearing) are currently handled via
                   CLI scripts. Do not attempt to modify production database directly while server is
                   running.
@@ -822,70 +732,50 @@ export const AdminDashboard: React.FC = () => {
 
         {/* --- INGESTION TAB --- */}
         {activeTab === 'ingestion' && (
-          <Surface variant="panel" className="overflow-hidden animate-in fade-in duration-300">
+          <Surface variant="panel" className={`${styles.panelShell} ${styles.fadeIn}`}>
             <Flex
               align="center"
               justify="between"
-              className="p-4 border-b border-[var(--glass-border)] font-bold"
+              className={`${styles.panelHeader} ${styles.panelHeaderStrong}`}
             >
-              <LqText
-                as="h2"
-                variant="h3"
-                color="primary"
-                className="font-semibold flex items-center gap-2"
-              >
-                <RefreshCw className="text-orange-400 w-5 h-5" />
+              <LqText as="h2" variant="h3" color="primary" className={styles.panelHeading}>
+                <RefreshCw className={`${styles.statIcon} ${styles.orangeIcon}`} />
                 Ingestion History
               </LqText>
             </Flex>
-            <Box className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+            <Box className={styles.tableScroll}>
+              <table className={styles.table}>
                 <thead>
-                  <tr className="bg-[var(--glass-bg-strong)] text-[var(--text-secondary)] text-sm border-b border-[var(--glass-border)]">
-                    <th className="px-6 py-3 font-medium">Run ID</th>
-                    <th className="px-6 py-3 font-medium">Status</th>
-                    <th className="px-6 py-3 font-medium">Date</th>
-                    <th className="px-6 py-3 font-medium">Commit</th>
-                    <th className="px-6 py-3 font-medium">Model / Agentic</th>
+                  <tr className={styles.tableHeaderRow}>
+                    <th className={styles.headerCell}>Run ID</th>
+                    <th className={styles.headerCell}>Status</th>
+                    <th className={styles.headerCell}>Date</th>
+                    <th className={styles.headerCell}>Commit</th>
+                    <th className={styles.headerCell}>Model / Agentic</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[var(--glass-border)]">
+                <tbody className={styles.tableBody}>
                   {ingestRuns.map((run) => (
-                    <tr
-                      key={run.id}
-                      className="hover:bg-[var(--glass-bg-strong)] transition-colors"
-                    >
-                      <td className="px-6 py-4 text-xs font-mono text-[var(--text-primary)] truncate max-w-[120px]">
-                        {run.id}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
-                            run.status === 'success'
-                              ? 'bg-green-500/10 text-green-400 border border-green-500/20'
-                              : run.status === 'running'
-                                ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
-                                : 'bg-red-500/10 text-red-400 border border-red-500/20'
-                          }`}
-                        >
+                    <tr key={run.id} className={styles.rowHover}>
+                      <td className={`${styles.cell} ${styles.xsPrimaryMonoCell}`}>{run.id}</td>
+                      <td className={styles.cell}>
+                        <span className={getIngestionStatusClassName(run.status)}>
                           {run.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-xs text-[var(--text-secondary)]">
+                      <td className={`${styles.cell} ${styles.mutedCell}`}>
                         {new Date(run.startedAt).toLocaleString()}
                       </td>
-                      <td className="px-6 py-4 text-[10px] font-mono text-[var(--text-muted)]">
+                      <td className={`${styles.cell} ${styles.xsMonoCell}`}>
                         {run.gitCommit?.substring(0, 7) || 'N/A'}
                       </td>
-                      <td className="px-6 py-4">
-                        <Flex direction="column" gap={1}>
-                          <span className="text-[10px] text-[var(--text-secondary)]">
+                      <td className={styles.cell}>
+                        <Flex direction="column" gap={1} className={styles.agenticCell}>
+                          <span className={styles.agenticModel}>
                             {run.agenticModelId || 'Legacy'}
                           </span>
                           {run.agenticEnabled && (
-                            <span className="text-[8px] bg-purple-500/20 text-purple-400 px-1 rounded w-fit font-bold uppercase">
-                              AGENTIC
-                            </span>
+                            <span className={styles.agenticBadge}>AGENTIC</span>
                           )}
                         </Flex>
                       </td>
@@ -893,10 +783,7 @@ export const AdminDashboard: React.FC = () => {
                   ))}
                   {ingestRuns.length === 0 && (
                     <tr>
-                      <td
-                        colSpan={5}
-                        className="px-6 py-12 text-center text-[var(--text-muted)] italic"
-                      >
+                      <td colSpan={5} className={styles.centerMutedLarge}>
                         No ingestion runs found in history.
                       </td>
                     </tr>
@@ -909,58 +796,49 @@ export const AdminDashboard: React.FC = () => {
 
         {/* --- BACKUPS TAB --- */}
         {activeTab === 'backups' && (
-          <Box className="space-y-6 animate-in fade-in duration-300">
-            <Flex align="center" justify="between">
+          <Box className={`${styles.tabSection} ${styles.fadeIn}`}>
+            <Flex align="center" justify="between" className={styles.backupHeader}>
               <Box>
-                <LqText as="h2" variant="h3" color="primary" className="font-bold cursor-text">
+                <LqText as="h2" variant="h3" color="primary" className={styles.backupTitle}>
                   Database Backups
                 </LqText>
                 <LqText as="p" variant="small" color="secondary">
                   Compressed database snapshots (Last 7 days retained)
                 </LqText>
               </Box>
-              <button
-                onClick={triggerBackup}
-                className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] hover:brightness-110 text-[var(--text-primary)] rounded-lg transition-colors shadow-lg shadow-[var(--accent)]/20"
-              >
+              <button onClick={triggerBackup} className={styles.primaryButton}>
                 <RefreshCw size={18} />
                 Snapshot Now
               </button>
             </Flex>
 
-            <Surface variant="panel" className="overflow-hidden">
-              <table className="w-full text-left border-collapse">
+            <Surface variant="panel" className={styles.panelShell}>
+              <table className={styles.table}>
                 <thead>
-                  <tr className="bg-[var(--glass-bg-strong)] text-[var(--text-secondary)] text-sm border-b border-[var(--glass-border)]">
-                    <th className="px-6 py-3 font-medium">Filename</th>
-                    <th className="px-6 py-3 font-medium text-right">Size</th>
-                    <th className="px-6 py-3 font-medium text-right">Created</th>
+                  <tr className={styles.tableHeaderRow}>
+                    <th className={styles.headerCell}>Filename</th>
+                    <th className={`${styles.headerCell} ${styles.rightAlign}`}>Size</th>
+                    <th className={`${styles.headerCell} ${styles.rightAlign}`}>Created</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[var(--glass-border)]">
+                <tbody className={styles.tableBody}>
                   {backups.map((backup) => (
-                    <tr
-                      key={backup.filename}
-                      className="hover:bg-[var(--glass-bg-strong)] transition-colors"
-                    >
-                      <td className="px-6 py-4 text-sm text-[var(--text-primary)] flex items-center gap-2">
-                        <FileText size={14} className="text-[var(--text-muted)]" />
+                    <tr key={backup.filename} className={styles.rowHover}>
+                      <td className={`${styles.cell} ${styles.backupFilename}`}>
+                        <FileText size={14} className={styles.mutedIcon} />
                         {backup.filename}
                       </td>
-                      <td className="px-6 py-4 text-xs font-mono text-[var(--text-secondary)] text-right">
+                      <td className={`${styles.cell} ${styles.xsMonoCell} ${styles.rightAlign}`}>
                         {(backup.size / 1024 / 1024).toFixed(2)} MB
                       </td>
-                      <td className="px-6 py-4 text-xs text-[var(--text-muted)] text-right">
+                      <td className={`${styles.cell} ${styles.xsMonoCell} ${styles.rightAlign}`}>
                         {new Date(backup.createdAt).toLocaleString()}
                       </td>
                     </tr>
                   ))}
                   {backups.length === 0 && (
                     <tr>
-                      <td
-                        colSpan={3}
-                        className="px-6 py-12 text-center text-[var(--text-muted)] italic"
-                      >
+                      <td colSpan={3} className={styles.centerMutedLarge}>
                         No snapshots available. Trigger a manual backup to start.
                       </td>
                     </tr>
@@ -973,7 +851,7 @@ export const AdminDashboard: React.FC = () => {
 
         {/* --- REVIEW TAB --- */}
         {activeTab === 'review' && (
-          <Box className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <Box className={styles.reviewShell}>
             <ReviewQueuePanel />
           </Box>
         )}
@@ -981,64 +859,49 @@ export const AdminDashboard: React.FC = () => {
 
       {/* Create/Edit Modal */}
       {isModalOpen && (
-        <Flex
-          align="center"
-          justify="center"
-          className="fixed inset-0 z-50 p-4 bg-[var(--glass-bg-strong)] backdrop-blur-sm"
-        >
-          <Surface
-            variant="panel"
-            className="w-full max-w-md shadow-2xl animate-in fade-in zoom-in duration-200"
-          >
-            <Flex
-              align="center"
-              justify="between"
-              className="p-6 border-b border-[var(--glass-border)]"
-            >
-              <LqText as="h3" variant="h3" color="primary" className="font-semibold">
+        <Flex align="center" justify="center" className={styles.modalOverlay}>
+          <Surface variant="panel" className={styles.modalPanel}>
+            <Flex align="center" justify="between" className={styles.modalHeader}>
+              <LqText as="h3" variant="h3" color="primary" className={styles.modalTitle}>
                 {editingUser ? 'Edit User' : 'Add New User'}
               </LqText>
               <CloseButton onClick={closeModal} size="sm" label="Close user modal" />
             </Flex>
 
-            <form onSubmit={editingUser ? handleUpdate : handleCreate} className="p-6 space-y-4">
+            <form onSubmit={editingUser ? handleUpdate : handleCreate} className={styles.modalForm}>
               <div>
-                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
-                  Username
-                </label>
+                <label className={styles.formLabel}>Username</label>
                 <input
                   type="text"
                   value={formData.username}
                   onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                   disabled={!!editingUser}
-                  className="w-full bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-lg px-3 py-2 text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--accent)] outline-none disabled:opacity-50 transition-all"
+                  className={`${styles.textInput} ${styles.formInput}`}
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
-                  Email (Optional)
-                </label>
+                <label className={styles.formLabel}>Email (Optional)</label>
                 <input
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-lg px-3 py-2 text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--accent)] outline-none transition-all"
+                  className={`${styles.textInput} ${styles.formInput}`}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                <label className={styles.formLabel}>
                   {editingUser ? 'New Password (leave blank to keep)' : 'Password'}
                 </label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
+                <div className={styles.searchField}>
+                  <Lock className={styles.leadingIcon} />
                   <input
                     type="password"
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                    className="w-full bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-lg pl-9 pr-3 py-2 text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--accent)] outline-none transition-all"
+                    className={`${styles.textInput} ${styles.passwordInput}`}
                     required={!editingUser}
                     minLength={6}
                   />
@@ -1046,9 +909,7 @@ export const AdminDashboard: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
-                  Role
-                </label>
+                <label className={styles.formLabel}>Role</label>
                 <select
                   value={formData.role}
                   onChange={(e) => {
@@ -1057,34 +918,26 @@ export const AdminDashboard: React.FC = () => {
                       setFormData({ ...formData, role: roleValue });
                     }
                   }}
-                  className="w-full bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-lg px-3 py-2 text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--accent)] outline-none transition-all"
+                  className={`${styles.textInput} ${styles.formInput}`}
                 >
-                  <option value="viewer" className="bg-[var(--glass-bg)]">
-                    Viewer (Read Only)
-                  </option>
-                  <option value="investigator" className="bg-[var(--glass-bg)]">
-                    Investigator (Can Edit)
-                  </option>
-                  <option value="admin" className="bg-[var(--glass-bg)]">
-                    Admin (Full Access)
-                  </option>
+                  <option value="viewer">Viewer (Read Only)</option>
+                  <option value="investigator">Investigator (Can Edit)</option>
+                  <option value="admin">Admin (Full Access)</option>
                 </select>
               </div>
 
-              <div className="flex items-center gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className="flex-1 px-4 py-2 bg-[var(--glass-bg-strong)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] rounded-lg transition-colors font-medium"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 px-4 py-2 bg-[var(--accent)] hover:brightness-110 text-[var(--text-primary)] rounded-lg transition-colors font-medium shadow-lg shadow-[var(--accent)]/20"
-                >
-                  {editingUser ? 'Save Changes' : 'Create User'}
-                </button>
+              <div className={styles.buttonRow}>
+                <Flex align="center" gap={3}>
+                  <button type="button" onClick={closeModal} className={styles.secondaryButton}>
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className={`${styles.primaryButton} ${styles.fullWidthButton}`}
+                  >
+                    {editingUser ? 'Save Changes' : 'Create User'}
+                  </button>
+                </Flex>
               </div>
             </form>
           </Surface>

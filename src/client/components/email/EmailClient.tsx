@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import './EmailClient.css';
 import { FixedSizeList as List, ListChildComponentProps } from 'react-window';
@@ -391,14 +391,18 @@ export const EmailClient: React.FC = () => {
     [mailboxWidth, threadWidth, clampWidths],
   );
 
-  // Layout clamping at render-time to avoid useEffect cascading
-  // We use window.innerWidth as a stable proxy during render to avoid Ref access warnings.
-  if (typeof window !== 'undefined' && window.innerWidth >= 768) {
-    const containerWidth = window.innerWidth;
-    const { mailbox, thread } = clampWidths(mailboxWidth, threadWidth, containerWidth);
-    if (mailbox !== mailboxWidth) setMailboxWidth(mailbox);
-    if (thread !== threadWidth) setThreadWidth(thread);
-  }
+  // Layout clamping using useLayoutEffect to avoid visual flickering
+  // This runs synchronously after DOM updates but before paint
+  /* eslint-disable react-hooks/set-state-in-effect -- Intentional: clamping widths before paint */
+  useLayoutEffect(() => {
+    if (typeof window !== 'undefined' && window.innerWidth >= 768) {
+      const containerWidth = window.innerWidth;
+      const { mailbox, thread } = clampWidths(mailboxWidth, threadWidth, containerWidth);
+      if (mailbox !== mailboxWidth) setMailboxWidth(mailbox);
+      if (thread !== threadWidth) setThreadWidth(thread);
+    }
+  }, [mailboxWidth, threadWidth, clampWidths]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
     window.localStorage.setItem('email-pane-mailbox-width', String(Math.round(mailboxWidth)));

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { CheckCircle, XCircle, SkipForward, AlertCircle } from 'lucide-react';
 import { useToasts } from './common/useToasts';
+import { apiClient } from '../services/apiClient';
+import styles from './BlackBookReview.module.css';
 
 interface ReviewEntry {
   id: number;
@@ -91,13 +93,9 @@ export const BlackBookReview: React.FC = () => {
     setSaving(true);
 
     try {
-      await fetch(`/api/black-book/review/${entry.id}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          correctedName: editedName,
-          action,
-        }),
+      await apiClient.post(`/black-book/review/${entry.id}`, {
+        correctedName: editedName,
+        action,
       });
 
       // Move to next entry
@@ -118,18 +116,18 @@ export const BlackBookReview: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent)]"></div>
+      <div className={styles.loadingScreen}>
+        <div className={styles.spinner}></div>
       </div>
     );
   }
 
   if (entries.length === 0) {
     return (
-      <div className="text-center py-12">
-        <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-        <h3 className="text-xl font-bold text-[var(--text-primary)] mb-2">All Done!</h3>
-        <p className="text-[var(--text-muted)]">All Black Book entries have been reviewed.</p>
+      <div className={styles.emptyState}>
+        <CheckCircle className={styles.emptyIcon} />
+        <h3 className={styles.emptyTitle}>All Done!</h3>
+        <p className={styles.emptyBody}>All Black Book entries have been reviewed.</p>
       </div>
     );
   }
@@ -138,81 +136,68 @@ export const BlackBookReview: React.FC = () => {
   const progress = ((stats.reviewed / stats.total) * 100).toFixed(1);
 
   return (
-    <div className="space-y-6">
+    <div className={styles.stack}>
       {/* Header & Progress */}
-      <div className="bg-[var(--glass-bg)]/50 border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-6">
-        <div className="flex items-center justify-between mb-4">
+      <div className={styles.card}>
+        <div className={styles.headerRow}>
           <div>
-            <h2 className="text-2xl font-bold text-[var(--text-primary)]">Black Book Review</h2>
-            <p className="text-[var(--text-muted)] text-sm mt-1">
+            <h2 className={styles.title}>Black Book Review</h2>
+            <p className={styles.subtitle}>
               Manually correct flagged entries with poor OCR quality
             </p>
           </div>
-          <div className="text-right">
-            <div className="text-3xl font-bold text-[var(--accent)]">{stats.remaining}</div>
-            <div className="text-sm text-[var(--text-muted)]">remaining</div>
+          <div className={styles.remainingBlock}>
+            <div className={styles.remainingValue}>{stats.remaining}</div>
+            <div className={styles.remainingLabel}>remaining</div>
           </div>
         </div>
 
         {/* Progress Bar */}
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm text-[var(--text-muted)]">
+        <div className={styles.progressSection}>
+          <div className={styles.progressMeta}>
             <span>Progress</span>
             <span>
               {stats.reviewed} of {stats.total} ({progress}%)
             </span>
           </div>
-          <div className="w-full bg-[var(--glass-bg-highlight)] rounded-full h-2">
-            <div
-              className="bg-gradient-to-r from-cyan-500 to-blue-500 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${progress}%` }}
-            />
+          <div className={styles.progressTrack}>
+            <div className={styles.progressFill} style={{ width: `${progress}%` }} />
           </div>
         </div>
       </div>
 
       {/* Review Card */}
-      <div className="bg-[var(--glass-bg)]/50 border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-6">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center space-x-2">
-            <AlertCircle className="w-5 h-5 text-amber-400" />
-            <span className="text-sm font-medium text-amber-400">Needs Review</span>
+      <div className={styles.card}>
+        <div className={styles.reviewHeader}>
+          <div className={styles.reviewBadge}>
+            <AlertCircle className={styles.reviewBadgeIcon} />
+            <span>Needs Review</span>
           </div>
-          <div className="text-sm text-[var(--text-muted)]">
+          <div className={styles.entryMeta}>
             Entry {currentIndex + 1} of {entries.length}
           </div>
         </div>
 
         {/* Original OCR Text */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-            Original OCR Text
-          </label>
-          <div className="bg-[var(--glass-bg-strong)]/50 border border-[var(--glass-border)] rounded p-3 font-mono text-sm text-[var(--text-muted)] whitespace-pre-wrap">
-            {current.entry_text}
-          </div>
+        <div className={styles.fieldSection}>
+          <label className={styles.label}>Original OCR Text</label>
+          <div className={styles.monoBlock}>{current.entry_text}</div>
         </div>
 
         {/* Current Name */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-            Current Name (AI Cleaned)
-          </label>
-          <div className="bg-[var(--glass-bg-strong)]/50 border border-[var(--glass-border)] rounded p-3 text-[var(--text-secondary)]">
-            {current.cleaned_name}
-          </div>
+        <div className={styles.fieldSectionCompact}>
+          <label className={styles.label}>Current Name (AI Cleaned)</label>
+          <div className={styles.valueBlock}>{current.cleaned_name}</div>
         </div>
 
         {/* Editable Name */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">
-            Corrected Name
-          </label>
+        <div className={styles.fieldSection}>
+          <label className={styles.label}>Corrected Name</label>
           <input
             type="text"
             value={editedName}
             onChange={(e) => setEditedName(e.target.value)}
-            className="w-full px-4 py-3 bg-[var(--glass-bg-strong)]/50 border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+            className={styles.textInput}
             placeholder="Enter corrected name..."
             disabled={saving}
           />
@@ -222,31 +207,25 @@ export const BlackBookReview: React.FC = () => {
         {(current.phone_numbers.length > 0 ||
           current.email_addresses.length > 0 ||
           current.addresses.length > 0) && (
-          <div className="mb-6 p-4 bg-[var(--glass-bg-strong)]/30 border border-[var(--glass-border)] rounded-[var(--radius-lg)]">
-            <h4 className="text-sm font-medium text-[var(--text-secondary)] mb-3">
-              Contact Information
-            </h4>
-            <div className="space-y-2 text-sm">
+          <div className={`${styles.fieldSection} ${styles.contactCard}`}>
+            <h4 className={styles.contactTitle}>Contact Information</h4>
+            <div className={styles.contactList}>
               {current.phone_numbers.length > 0 && (
-                <div>
-                  <span className="text-[var(--text-muted)]">Phones:</span>
-                  <span className="text-[var(--text-secondary)] ml-2">
-                    {current.phone_numbers.join(', ')}
-                  </span>
+                <div className={styles.contactRow}>
+                  <span className={styles.contactLabel}>Phones:</span>
+                  <span className={styles.contactValue}>{current.phone_numbers.join(', ')}</span>
                 </div>
               )}
               {current.email_addresses.length > 0 && (
-                <div>
-                  <span className="text-[var(--text-muted)]">Emails:</span>
-                  <span className="text-[var(--text-secondary)] ml-2">
-                    {current.email_addresses.join(', ')}
-                  </span>
+                <div className={styles.contactRow}>
+                  <span className={styles.contactLabel}>Emails:</span>
+                  <span className={styles.contactValue}>{current.email_addresses.join(', ')}</span>
                 </div>
               )}
               {current.addresses.length > 0 && (
-                <div>
-                  <span className="text-[var(--text-muted)]">Addresses:</span>
-                  <span className="text-[var(--text-secondary)] ml-2">
+                <div className={styles.contactRow}>
+                  <span className={styles.contactLabel}>Addresses:</span>
+                  <span className={styles.contactValue}>
                     {current.addresses.slice(0, 2).join('; ')}
                   </span>
                 </div>
@@ -256,38 +235,38 @@ export const BlackBookReview: React.FC = () => {
         )}
 
         {/* Action Buttons */}
-        <div className="flex space-x-3">
+        <div className={styles.actions}>
           <button
             onClick={() => handleAction('approve')}
             disabled={saving || !editedName.trim()}
-            className="flex-1 flex items-center justify-center space-x-2 px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-[var(--text-primary)] rounded-[var(--radius-lg)] font-medium hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            className={`${styles.actionButton} ${styles.actionButtonPrimary}`}
           >
-            <CheckCircle className="w-5 h-5" />
+            <CheckCircle className={styles.actionIcon} />
             <span>Approve & Save</span>
           </button>
 
           <button
             onClick={() => handleAction('skip')}
             disabled={saving}
-            className="flex items-center justify-center space-x-2 px-6 py-3 bg-[var(--glass-bg-highlight)] text-[var(--text-primary)] rounded-[var(--radius-lg)] font-medium hover:bg-[var(--glass-bg-highlight)] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            className={`${styles.actionButton} ${styles.actionButtonSecondary}`}
           >
-            <SkipForward className="w-5 h-5" />
+            <SkipForward className={styles.actionIcon} />
             <span>Skip</span>
           </button>
 
           <button
             onClick={() => handleAction('delete')}
             disabled={saving}
-            className="flex items-center justify-center space-x-2 px-6 py-3 bg-gradient-to-r from-red-600 to-pink-600 text-[var(--text-primary)] rounded-[var(--radius-lg)] font-medium hover:from-red-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            className={`${styles.actionButton} ${styles.actionButtonDanger}`}
           >
-            <XCircle className="w-5 h-5" />
+            <XCircle className={styles.actionIcon} />
             <span>Delete</span>
           </button>
         </div>
 
         {/* Keyboard Shortcuts Hint */}
-        <div className="mt-4 pt-4 border-t border-[var(--glass-border)]">
-          <p className="text-xs text-[var(--text-muted)] text-center">
+        <div className={styles.shortcutHint}>
+          <p className={styles.shortcutText}>
             Tip: Use Tab to focus name field, Enter to approve, or click buttons
           </p>
         </div>

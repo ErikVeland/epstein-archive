@@ -5,41 +5,18 @@ import { CheckCircle2, Clock, Flag, Loader2, Plus } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { CloseButton } from '../common/CloseButton';
 import { useScrollLock } from '../../hooks/useScrollLock';
+import styles from './InvestigationTasksPanel.module.css';
+
+import {
+  InvestigationTaskDto as InvestigationTask,
+  InvestigationTaskSummaryDto as TaskSummary,
+  TaskPriority,
+  TaskStatus,
+} from '@shared/dto/investigations';
 
 interface InvestigationTasksPanelProps {
   investigationId: string;
   onClose: () => void;
-}
-
-type TaskStatus = 'pending' | 'in_progress' | 'completed' | 'on_hold' | 'cancelled';
-
-type TaskPriority = 'low' | 'medium' | 'high' | 'critical';
-
-interface InvestigationTask {
-  id: number;
-  uuid: string;
-  investigationId: number;
-  title: string;
-  description?: string;
-  status: TaskStatus;
-  priority: TaskPriority;
-  assignedTo?: string;
-  dueDate?: string;
-  createdById: string;
-  createdAt: string;
-  updatedAt: string;
-  completedAt?: string;
-  evidenceIds?: number[];
-  relatedEntities?: number[];
-  progress?: number;
-}
-
-interface TaskSummary {
-  statusBreakdown: Record<string, number>;
-  priorityBreakdown: Record<string, number>;
-  overdueTasks: number;
-  averageProgress: number;
-  assignmentBreakdown: { assigned_to: string; count: number }[];
 }
 
 export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = ({
@@ -75,7 +52,7 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
         apiClient.getInvestigativeTasksByInvestigation(investigationId),
         apiClient.getInvestigativeTaskSummary(investigationId),
       ]);
-      setTasks(tasksResult.data as InvestigationTask[]);
+      setTasks(tasksResult.data);
       setSummary(summaryResult);
     } catch (error) {
       console.error('Error loading investigative tasks', error);
@@ -158,66 +135,59 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
     return 'Cancelled';
   };
 
-  const statusColor = (status: TaskStatus) => {
-    if (status === 'completed') return 'bg-emerald-500/10 text-emerald-300 border-emerald-500/40';
-    if (status === 'in_progress')
-      return 'bg-[var(--accent)]/10 text-[var(--accent)] border-[var(--accent)]/40';
-    if (status === 'pending')
-      return 'bg-[var(--glass-bg-highlight)]/10 text-[var(--text-primary)] border-[var(--glass-border)]';
-    if (status === 'on_hold') return 'bg-amber-500/10 text-amber-300 border-amber-500/40';
-    return 'bg-rose-500/10 text-rose-300 border-rose-500/40';
+  const statusClassName = (status: TaskStatus) => {
+    if (status === 'completed') return styles.statusCompleted;
+    if (status === 'in_progress') return styles.statusInProgress;
+    if (status === 'pending') return styles.statusPending;
+    if (status === 'on_hold') return styles.statusOnHold;
+    return styles.statusCancelled;
   };
 
-  const priorityColor = (priority: TaskPriority) => {
-    if (priority === 'critical') return 'bg-rose-500/10 text-rose-300 border-rose-500/40';
-    if (priority === 'high') return 'bg-amber-500/10 text-amber-300 border-amber-500/40';
-    if (priority === 'medium')
-      return 'bg-[var(--accent)]/10 text-[var(--accent)] border-[var(--accent)]/40';
-    return 'bg-[var(--glass-bg-highlight)]/10 text-[var(--text-primary)] border-[var(--glass-border)]';
+  const priorityClassName = (priority: TaskPriority) => {
+    if (priority === 'critical') return styles.priorityCritical;
+    if (priority === 'high') return styles.priorityHigh;
+    if (priority === 'medium') return styles.priorityMedium;
+    return styles.priorityLow;
   };
 
   return (
-    <div className="fixed inset-0 z-40 flex items-stretch justify-end bg-[var(--glass-bg)] backdrop-blur-sm">
-      <div className="w-full max-w-md bg-[var(--glass-bg-strong)] border-l border-[var(--glass-border)] shadow-[var(--glass-shadow)] flex flex-col">
-        <div className="px-4 sm:px-6 py-4 border-b border-[var(--glass-border)] flex items-center justify-between">
+    <div className={styles.overlay}>
+      <div className={styles.panel}>
+        <div className={`${styles.section} ${styles.header}`}>
           <div>
-            <h2 className="text-base sm:text-lg font-semibold text-[var(--text-primary)] flex items-center gap-2">
-              <Flag className="w-4 h-4 text-amber-400" />
+            <h2 className={styles.title}>
+              <Flag className={styles.flagIcon} />
               Investigation Tasks
             </h2>
-            <p className="text-xs sm:text-sm text-[var(--text-muted)] mt-0.5">
-              Track work items and progress for this investigation
-            </p>
+            <p className={styles.subtitle}>Track work items and progress for this investigation</p>
           </div>
           <CloseButton onClick={onClose} size="sm" label="Close tasks panel" />
         </div>
 
         {summary && (
-          <div className="px-4 sm:px-6 py-3 border-b border-[var(--glass-border)] flex gap-3 text-xs sm:text-sm">
-            <div className="flex-1">
-              <div className="text-[var(--text-muted)]">Total</div>
-              <div className="text-[var(--text-primary)] font-medium">
+          <div className={`${styles.section} ${styles.summaryGrid}`}>
+            <div className={styles.summaryCell}>
+              <div className={styles.summaryLabel}>Total</div>
+              <div className={styles.summaryValue}>
                 {Object.values(summary.statusBreakdown).reduce((a, b) => a + b, 0)}
               </div>
             </div>
-            <div className="flex-1">
-              <div className="text-[var(--text-muted)]">Overdue</div>
-              <div className="text-rose-300 font-medium">{summary.overdueTasks}</div>
+            <div className={styles.summaryCell}>
+              <div className={styles.summaryLabel}>Overdue</div>
+              <div className={styles.summaryDanger}>{summary.overdueTasks}</div>
             </div>
-            <div className="flex-1">
-              <div className="text-[var(--text-muted)]">Avg Progress</div>
-              <div className="text-emerald-300 font-medium">
-                {Math.round(summary.averageProgress)}%
-              </div>
+            <div className={styles.summaryCell}>
+              <div className={styles.summaryLabel}>Avg Progress</div>
+              <div className={styles.summarySuccess}>{Math.round(summary.averageProgress)}%</div>
             </div>
           </div>
         )}
 
-        <div className="px-4 sm:px-6 py-3 border-b border-[var(--glass-border)] flex gap-2 text-xs sm:text-sm">
+        <div className={`${styles.section} ${styles.filtersRow}`}>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as TaskStatus | 'all')}
-            className="flex-1 bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] px-2 py-1.5 text-[var(--text-primary)] text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+            className={styles.select}
           >
             <option value="all">All statuses</option>
             <option value="pending">Pending</option>
@@ -229,7 +199,7 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
           <select
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value as TaskPriority | 'all')}
-            className="flex-1 bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] px-2 py-1.5 text-[var(--text-primary)] text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+            className={styles.select}
           >
             <option value="all">All priorities</option>
             <option value="critical">Critical</option>
@@ -239,125 +209,101 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
           </select>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-3">
-          {isLoading && (
-            <div className="flex items-center justify-center py-8 text-[var(--text-muted)]">
-              <Loader2 className="w-5 h-5 animate-spin mr-2" />
-              Loading tasks
-            </div>
-          )}
+        <div className={styles.scrollArea}>
+          <div className={styles.stack}>
+            {isLoading && (
+              <div className={styles.loadingState}>
+                <Loader2 className={styles.spinner} />
+                Loading tasks
+              </div>
+            )}
 
-          {!isLoading && filteredTasks.length === 0 && (
-            <div className="border border-dashed border-[var(--glass-border)] rounded-[var(--radius-lg)] p-4 text-center">
-              <p className="text-sm text-[var(--text-muted)]">
-                No tasks yet for this investigation.
-              </p>
-              <p className="text-xs text-[var(--text-muted)] mt-1">
-                Use the form below to create the first task.
-              </p>
-            </div>
-          )}
+            {!isLoading && filteredTasks.length === 0 && (
+              <div className={styles.emptyState}>
+                <p className={styles.emptyText}>No tasks yet for this investigation.</p>
+                <p className={styles.emptySubtext}>Use the form below to create the first task.</p>
+              </div>
+            )}
 
-          {filteredTasks.map((task) => (
-            <div
-              key={task.id}
-              className="border border-[var(--glass-border)] rounded-[var(--radius-lg)] bg-[var(--glass-bg-strong)]/60 p-3 sm:p-4 flex flex-col gap-3"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-start gap-2">
-                  <button
-                    onClick={() => handleToggleComplete(task)}
-                    className="mt-0.5 p-1 rounded-full border border-[var(--glass-border)] hover:border-emerald-500/60 hover:bg-emerald-500/10 text-[var(--text-muted)] hover:text-emerald-300 transition-colors"
-                  >
-                    <CheckCircle2
-                      className={`w-4 h-4 ${
-                        task.status === 'completed'
-                          ? 'text-emerald-400'
-                          : 'text-[var(--text-muted)]'
-                      }`}
-                    />
-                  </button>
-                  <div>
-                    <h3 className="text-sm sm:text-base font-semibold text-[var(--text-primary)]">
-                      {task.title}
-                    </h3>
-                    {task.description && (
-                      <p className="mt-1 text-xs sm:text-sm text-[var(--text-secondary)] line-clamp-3">
-                        {task.description}
-                      </p>
-                    )}
+            {filteredTasks.map((task) => (
+              <div key={task.id} className={styles.taskCard}>
+                <div className={styles.taskHeader}>
+                  <div className={styles.taskHeaderMain}>
+                    <button
+                      onClick={() => handleToggleComplete(task)}
+                      className={styles.completeButton}
+                    >
+                      <CheckCircle2
+                        className={`${styles.completeIcon} ${
+                          task.status === 'completed' ? styles.completeIconDone : ''
+                        }`}
+                      />
+                    </button>
+                    <div>
+                      <h3 className={styles.taskTitle}>{task.title}</h3>
+                      {task.description && (
+                        <p className={styles.taskDescription}>{task.description}</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className={styles.badgeColumn}>
+                    <span className={`${styles.badge} ${statusClassName(task.status)}`}>
+                      {statusLabel(task.status)}
+                    </span>
+                    <span className={`${styles.badge} ${priorityClassName(task.priority)}`}>
+                      {task.priority === 'critical'
+                        ? 'Critical'
+                        : task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+                    </span>
                   </div>
                 </div>
-                <div className="flex flex-col items-end gap-1">
-                  <span
-                    className={`px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold border ${statusColor(
-                      task.status,
-                    )}`}
-                  >
-                    {statusLabel(task.status)}
-                  </span>
-                  <span
-                    className={`px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold border ${priorityColor(
-                      task.priority,
-                    )}`}
-                  >
-                    {task.priority === 'critical'
-                      ? 'Critical'
-                      : task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
-                  </span>
-                </div>
-              </div>
 
-              <div className="flex items-center justify-between gap-3 text-[11px] sm:text-xs text-[var(--text-muted)]">
-                <div className="flex items-center gap-2">
-                  {task.dueDate && (
-                    <span className="inline-flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      Due {new Date(task.dueDate).toLocaleDateString()}
-                    </span>
-                  )}
-                  {task.assignedTo && (
-                    <span className="inline-flex items-center gap-1">
-                      Assigned to
-                      <span className="text-[var(--text-primary)] font-medium">
-                        {task.assignedTo}
+                <div className={styles.taskMetaRow}>
+                  <div className={styles.dueMeta}>
+                    {task.dueDate && (
+                      <span className={styles.inlineRow}>
+                        <Clock className={styles.inlineIcon} />
+                        Due {new Date(task.dueDate).toLocaleDateString()}
                       </span>
-                    </span>
-                  )}
+                    )}
+                    {task.assignedTo && (
+                      <span className={styles.inlineRow}>
+                        Assigned to
+                        <span className={styles.strongText}>{task.assignedTo}</span>
+                      </span>
+                    )}
+                  </div>
+                  <div className={styles.inlineRow}>
+                    <span>{Math.round(task.progress ?? 0)}%</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span>{Math.round(task.progress ?? 0)}%</span>
-                </div>
-              </div>
 
-              <div className="flex items-center gap-2">
-                <div className="flex-1 h-1.5 rounded-full bg-[var(--glass-bg)] overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-blue-500 via-emerald-500 to-emerald-400"
-                    style={{ width: `${Math.max(0, Math.min(100, task.progress ?? 0))}%` }}
+                <div className={styles.taskProgressRow}>
+                  <div className={styles.progressTrack}>
+                    <div
+                      className={styles.progressFill}
+                      style={{ width: `${Math.max(0, Math.min(100, task.progress ?? 0))}%` }}
+                    />
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    step={5}
+                    value={Math.round(task.progress ?? 0)}
+                    onChange={(e) => handleProgressChange(task, parseInt(e.target.value, 10))}
+                    className={styles.rangeInput}
                   />
                 </div>
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  step={5}
-                  value={Math.round(task.progress ?? 0)}
-                  onChange={(e) => handleProgressChange(task, parseInt(e.target.value, 10))}
-                  className="w-24 accent-blue-500"
-                />
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
-        <form
-          onSubmit={handleCreateTask}
-          className="border-t border-[var(--glass-border)] px-4 sm:px-6 py-4 space-y-3 bg-[var(--glass-bg-strong)]"
-        >
-          <div className="flex items-center justify-between gap-2">
-            <h3 className="text-xs sm:text-sm font-medium text-[var(--text-primary)] flex items-center gap-2">
-              <Plus className="w-3 h-3 text-[var(--accent)]" />
+        <form onSubmit={handleCreateTask} className={styles.formSection}>
+          <div className={styles.formHeader}>
+            <h3 className={styles.formTitle}>
+              <Plus className={styles.plusIcon} />
               New task
             </h3>
           </div>
@@ -366,22 +312,22 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
             value={newTask.title}
             onChange={(e) => setNewTask((t) => ({ ...t, title: e.target.value }))}
             placeholder="Task title"
-            className="w-full px-3 py-2 rounded-[var(--radius-lg)] bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+            className={styles.input}
           />
           <textarea
             value={newTask.description}
             onChange={(e) => setNewTask((t) => ({ ...t, description: e.target.value }))}
             placeholder="Optional description"
             rows={2}
-            className="w-full px-3 py-2 rounded-[var(--radius-lg)] bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)] resize-none"
+            className={styles.textarea}
           />
-          <div className="flex gap-2">
+          <div className={styles.formRow}>
             <select
               value={newTask.priority}
               onChange={(e) =>
                 setNewTask((t) => ({ ...t, priority: e.target.value as TaskPriority }))
               }
-              className="flex-1 bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] px-2 py-1.5 text-xs sm:text-sm text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+              className={styles.select}
             >
               <option value="critical">Critical</option>
               <option value="high">High</option>
@@ -392,16 +338,16 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
               type="date"
               value={newTask.dueDate}
               onChange={(e) => setNewTask((t) => ({ ...t, dueDate: e.target.value }))}
-              className="flex-1 bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] px-2 py-1.5 text-xs sm:text-sm text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent)]"
+              className={styles.dateInput}
             />
           </div>
-          <div className="flex justify-end">
+          <div className={styles.footerRow}>
             <button
               type="submit"
               disabled={!newTask.title.trim() || isCreating}
-              className="inline-flex items-center justify-center px-3 sm:px-4 py-1.5 sm:py-2 rounded-[var(--radius-lg)] text-xs sm:text-sm font-medium bg-[var(--accent)] text-[var(--text-primary)] hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+              className={styles.submitButton}
             >
-              {isCreating && <Loader2 className="w-3 h-3 mr-2 animate-spin" />}
+              {isCreating && <Loader2 className={styles.buttonSpinner} />}
               Create task
             </button>
           </div>

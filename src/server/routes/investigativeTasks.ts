@@ -154,7 +154,7 @@ router.get(
       const id = Number(req.params.investigationId as string);
 
       const tasks = await taskService.getTasksByInvestigation(id);
-      res.json(tasks);
+      res.json({ data: tasks, total: tasks.length });
     } catch (error) {
       next(error);
     }

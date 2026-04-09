@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { BarChart3, Target, Clock, DollarSign, Users, MapPin, Activity } from 'lucide-react';
 import { apiClient } from '../services/apiClient';
 import { CloseButton } from './common/CloseButton';
+import styles from './PatternRecognitionAI.module.css';
 
 interface PatternRecognitionAIProps {
   onPatternDetected?: (patterns: DetectedPattern[]) => void;
@@ -267,39 +268,37 @@ export const PatternRecognitionAI: React.FC<PatternRecognitionAIProps> = ({
 
   const getSeverityColor = (severity: DetectedPattern['severity']) => {
     const colors = {
-      low: 'bg-green-100 text-green-800 border-green-200',
-      medium: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      high: 'bg-orange-100 text-orange-800 border-orange-200',
-      critical: 'bg-red-100 text-red-800 border-red-200',
+      low: styles.severityLow,
+      medium: styles.severityMedium,
+      high: styles.severityHigh,
+      critical: styles.severityCritical,
     };
     return colors[severity];
   };
 
   const getConfidenceColor = (confidence: number) => {
-    if (confidence >= 90) return 'text-green-600';
-    if (confidence >= 70) return 'text-yellow-600';
-    return 'text-red-600';
+    if (confidence >= 90) return styles.confidenceHigh;
+    if (confidence >= 70) return styles.confidenceMedium;
+    return styles.confidenceLow;
   };
 
   return (
-    <div className="bg-[var(--text-primary)] rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)]">
+    <div className={styles.root}>
       {/* Header */}
-      <div className="border-b border-[var(--glass-border)] px-6 py-4">
-        <div className="flex items-center justify-between">
+      <div className={styles.header}>
+        <div className={styles.headerRow}>
           <div>
-            <h2 className="text-xl font-semibold text-[var(--text-primary)]">
-              AI Pattern Recognition
-            </h2>
-            <p className="text-sm text-[var(--text-primary)] mt-1">
+            <h2 className={styles.title}>AI Pattern Recognition</h2>
+            <p className={styles.subtitle}>
               Advanced AI analysis to detect suspicious patterns and anomalies
             </p>
           </div>
           <button
             onClick={analyzePatterns}
             disabled={isAnalyzing}
-            className="flex items-center px-4 py-2 bg-purple-600 text-[var(--text-primary)] rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className={`${styles.primaryButton} ${isAnalyzing ? styles.primaryButtonDisabled : ''}`}
           >
-            <BarChart3 className="w-4 h-4 mr-2" />
+            <BarChart3 className={styles.buttonIcon} />
             {isAnalyzing ? 'Analyzing...' : 'Start Pattern Analysis'}
           </button>
         </div>
@@ -307,75 +306,64 @@ export const PatternRecognitionAI: React.FC<PatternRecognitionAIProps> = ({
 
       {/* Analysis Progress */}
       {isAnalyzing && (
-        <div className="px-6 py-4 bg-purple-50 border-b border-purple-200">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-purple-900">
-              Analyzing patterns across evidence...
-            </span>
-            <span className="text-sm text-purple-700">{analysisProgress}%</span>
+        <div className={styles.progressSection}>
+          <div className={styles.progressHeader}>
+            <span className={styles.progressLabel}>Analyzing patterns across evidence...</span>
+            <span className={styles.progressValue}>{analysisProgress}%</span>
           </div>
-          <div className="w-full bg-purple-200 rounded-full h-2">
-            <div
-              className="bg-purple-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${analysisProgress}%` }}
-            />
+          <div className={styles.progressTrack}>
+            <div className={styles.progressFill} style={{ width: `${analysisProgress}%` }} />
           </div>
         </div>
       )}
 
       {/* Pattern Results */}
       {!isAnalyzing && detectedPatterns.length > 0 && (
-        <div className="p-6">
-          <div className="mb-4">
-            <h3 className="text-lg font-medium text-[var(--text-primary)] mb-2">
-              Detected Patterns ({detectedPatterns.length})
-            </h3>
-            <p className="text-sm text-[var(--text-primary)]">
+        <div className={styles.content}>
+          <div className={styles.contentHeader}>
+            <h3 className={styles.sectionTitle}>Detected Patterns ({detectedPatterns.length})</h3>
+            <p className={styles.sectionBody}>
               AI has identified {detectedPatterns.length} suspicious patterns with varying
               confidence levels
             </p>
           </div>
 
-          <div className="grid gap-4">
+          <div className={styles.patternList}>
             {detectedPatterns.map((pattern) => {
               const Icon = getPatternIcon(pattern.type);
               return (
                 <div
                   key={pattern.id}
-                  className={`border rounded-[var(--radius-lg)] p-4 cursor-pointer transition-all hover:shadow-[var(--glass-shadow)] ${
-                    selectedPattern?.id === pattern.id ? 'ring-2 ring-purple-500' : ''
+                  className={`${styles.patternCard} ${
+                    selectedPattern?.id === pattern.id ? styles.patternCardSelected : ''
                   }`}
                   onClick={() => setSelectedPattern(pattern)}
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start flex-1">
+                  <div className={styles.patternRow}>
+                    <div className={styles.patternInfo}>
                       <div
-                        className={`p-2 rounded-[var(--radius-lg)] ${getSeverityColor(pattern.severity)} mr-3`}
+                        className={`${styles.patternIconWrap} ${getSeverityColor(pattern.severity)}`}
                       >
-                        <Icon className="w-5 h-5" />
+                        <Icon className={styles.patternIcon} />
                       </div>
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-1">
-                          <h4 className="text-sm font-medium text-[var(--text-primary)]">
-                            {pattern.title}
-                          </h4>
-                          <div className="flex items-center gap-2">
+                      <div className={styles.patternInfoBody}>
+                        <div className={styles.patternMeta}>
+                          <h4 className={styles.patternName}>{pattern.title}</h4>
+                          <div className={styles.patternBadges}>
                             <span
-                              className={`text-sm font-medium ${getConfidenceColor(pattern.confidence)}`}
+                              className={`${styles.confidence} ${getConfidenceColor(pattern.confidence)}`}
                             >
                               {pattern.confidence}% confidence
                             </span>
                             <span
-                              className={`px-2 py-1 text-xs font-medium rounded-full ${getSeverityColor(pattern.severity)}`}
+                              className={`${styles.severityBadge} ${getSeverityColor(pattern.severity)}`}
                             >
                               {pattern.severity.toUpperCase()}
                             </span>
                           </div>
                         </div>
-                        <p className="text-sm text-[var(--text-primary)] mb-2">
-                          {pattern.description}
-                        </p>
-                        <div className="flex items-center gap-4 text-xs text-[var(--text-muted)]">
+                        <p className={styles.patternDescription}>{pattern.description}</p>
+                        <div className={styles.patternStats}>
                           <span>Type: {pattern.type}</span>
                           <span>Entities: {pattern.entities.length}</span>
                           <span>Evidence: {pattern.evidenceIds.length} items</span>
@@ -392,21 +380,19 @@ export const PatternRecognitionAI: React.FC<PatternRecognitionAIProps> = ({
 
       {/* Pattern Detail Modal */}
       {selectedPattern && (
-        <div className="fixed inset-0 bg-[var(--glass-bg-strong)] bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-[var(--text-primary)] rounded-[var(--radius-lg)] p-6 w-full max-w-2xl max-h-96 overflow-auto">
-            <div className="flex items-start justify-between mb-4">
+        <div className={styles.overlay}>
+          <div className={styles.modal}>
+            <div className={styles.modalHeader}>
               <div>
-                <h3 className="text-lg font-medium text-[var(--text-primary)]">
-                  {selectedPattern.title}
-                </h3>
-                <div className="flex items-center gap-2 mt-1">
+                <h3 className={styles.modalTitle}>{selectedPattern.title}</h3>
+                <div className={styles.modalBadgeRow}>
                   <span
-                    className={`px-2 py-1 text-xs font-medium rounded-full ${getSeverityColor(selectedPattern.severity)}`}
+                    className={`${styles.severityBadge} ${getSeverityColor(selectedPattern.severity)}`}
                   >
                     {selectedPattern.severity.toUpperCase()}
                   </span>
                   <span
-                    className={`text-sm font-medium ${getConfidenceColor(selectedPattern.confidence)}`}
+                    className={`${styles.confidence} ${getConfidenceColor(selectedPattern.confidence)}`}
                   >
                     {selectedPattern.confidence}% confidence
                   </span>
@@ -416,26 +402,21 @@ export const PatternRecognitionAI: React.FC<PatternRecognitionAIProps> = ({
                 onClick={() => setSelectedPattern(null)}
                 size="sm"
                 label="Close pattern details"
-                className="border-[var(--glass-border)] bg-transparent text-[var(--text-muted)] hover:bg-[var(--app-bg)] hover:text-[var(--text-primary)]"
+                className={styles.closeButton}
               />
             </div>
 
-            <div className="space-y-4">
+            <div className={styles.modalContent}>
               <div>
-                <h4 className="text-sm font-medium text-[var(--text-primary)] mb-1">Description</h4>
-                <p className="text-sm text-[var(--text-primary)]">{selectedPattern.description}</p>
+                <h4 className={styles.fieldTitle}>Description</h4>
+                <p className={styles.fieldText}>{selectedPattern.description}</p>
               </div>
 
               <div>
-                <h4 className="text-sm font-medium text-[var(--text-primary)] mb-1">
-                  Involved Entities
-                </h4>
-                <div className="flex flex-wrap gap-2">
+                <h4 className={styles.fieldTitle}>Involved Entities</h4>
+                <div className={styles.chipRow}>
                   {selectedPattern.entities.map((entity, index) => (
-                    <span
-                      key={index}
-                      className="px-2 py-1 bg-[var(--app-bg)] text-[var(--text-primary)] text-xs rounded"
-                    >
+                    <span key={index} className={styles.chip}>
                       {entity}
                     </span>
                   ))}
@@ -444,10 +425,8 @@ export const PatternRecognitionAI: React.FC<PatternRecognitionAIProps> = ({
 
               {selectedPattern.metadata.timeRange && (
                 <div>
-                  <h4 className="text-sm font-medium text-[var(--text-primary)] mb-1">
-                    Time Range
-                  </h4>
-                  <p className="text-sm text-[var(--text-primary)]">
+                  <h4 className={styles.fieldTitle}>Time Range</h4>
+                  <p className={styles.fieldText}>
                     {selectedPattern.metadata.timeRange.start} to{' '}
                     {selectedPattern.metadata.timeRange.end}
                   </p>
@@ -457,15 +436,10 @@ export const PatternRecognitionAI: React.FC<PatternRecognitionAIProps> = ({
               {selectedPattern.metadata.locations &&
                 selectedPattern.metadata.locations.length > 0 && (
                   <div>
-                    <h4 className="text-sm font-medium text-[var(--text-primary)] mb-1">
-                      Locations
-                    </h4>
-                    <div className="flex flex-wrap gap-2">
+                    <h4 className={styles.fieldTitle}>Locations</h4>
+                    <div className={styles.chipRow}>
                       {selectedPattern.metadata.locations.map((location, index) => (
-                        <span
-                          key={index}
-                          className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded"
-                        >
+                        <span key={index} className={`${styles.chip} ${styles.locationChip}`}>
                           {location}
                         </span>
                       ))}
@@ -474,13 +448,11 @@ export const PatternRecognitionAI: React.FC<PatternRecognitionAIProps> = ({
                 )}
 
               <div>
-                <h4 className="text-sm font-medium text-[var(--text-primary)] mb-2">
-                  Investigation Recommendations
-                </h4>
-                <ul className="space-y-1">
+                <h4 className={styles.fieldTitle}>Investigation Recommendations</h4>
+                <ul className={styles.recommendations}>
                   {selectedPattern.recommendations.map((recommendation, index) => (
-                    <li key={index} className="text-sm text-[var(--text-primary)] flex items-start">
-                      <span className="w-1.5 h-1.5 rounded-full bg-purple-600 mt-2 mr-2 flex-shrink-0"></span>
+                    <li key={index} className={styles.recommendation}>
+                      <span className={styles.recommendationDot}></span>
                       {recommendation}
                     </li>
                   ))}
@@ -488,16 +460,11 @@ export const PatternRecognitionAI: React.FC<PatternRecognitionAIProps> = ({
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 mt-6">
-              <button
-                onClick={() => setSelectedPattern(null)}
-                className="px-4 py-2 text-sm font-medium text-[var(--text-primary)] bg-[var(--app-bg)] rounded-md hover:bg-[var(--app-bg)] transition-colors"
-              >
+            <div className={styles.modalFooter}>
+              <button onClick={() => setSelectedPattern(null)} className={styles.secondaryButton}>
                 Close
               </button>
-              <button className="px-4 py-2 text-sm font-medium text-[var(--text-primary)] bg-purple-600 rounded-md hover:bg-purple-700 transition-colors">
-                Add to Investigation
-              </button>
+              <button className={styles.primaryButton}>Add to Investigation</button>
             </div>
           </div>
         </div>
@@ -505,19 +472,14 @@ export const PatternRecognitionAI: React.FC<PatternRecognitionAIProps> = ({
 
       {/* Empty State */}
       {!isAnalyzing && detectedPatterns.length === 0 && (
-        <div className="p-12 text-center">
-          <BarChart3 className="w-12 h-12 text-[var(--text-muted)] mx-auto mb-4" />
-          <h3 className="text-sm font-medium text-[var(--text-primary)] mb-2">
-            No patterns detected yet
-          </h3>
-          <p className="text-sm text-[var(--text-primary)] mb-4">
+        <div className={styles.emptyState}>
+          <BarChart3 className={styles.emptyIcon} />
+          <h3 className={styles.emptyTitle}>No patterns detected yet</h3>
+          <p className={styles.emptyBody}>
             Start pattern analysis to identify suspicious activities, behavioral patterns, and
             anomalies in your evidence.
           </p>
-          <button
-            onClick={analyzePatterns}
-            className="px-4 py-2 bg-purple-600 text-[var(--text-primary)] text-sm rounded-md hover:bg-purple-700 transition-colors"
-          >
+          <button onClick={analyzePatterns} className={styles.primaryButton}>
             Start Pattern Analysis
           </button>
         </div>

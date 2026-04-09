@@ -48,3 +48,33 @@ export interface InvestigationEvidenceByTypeResponseDto {
   counts: Record<string, number>;
   total: number;
 }
+
+export type TaskStatus = 'pending' | 'in_progress' | 'completed' | 'on_hold' | 'cancelled';
+export type TaskPriority = 'low' | 'medium' | 'high' | 'critical';
+
+export interface InvestigationTaskDto {
+  id: number;
+  uuid: string;
+  investigationId: number;
+  title: string;
+  description?: string;
+  status: TaskStatus;
+  priority: TaskPriority;
+  assignedTo?: string;
+  dueDate?: string;
+  createdById: string;
+  createdAt: string;
+  updatedAt: string;
+  completedAt?: string;
+  evidenceIds?: number[];
+  relatedEntities?: number[];
+  progress?: number;
+}
+
+export interface InvestigationTaskSummaryDto {
+  statusBreakdown: Record<string, number>;
+  priorityBreakdown: Record<string, number>;
+  overdueTasks: number;
+  averageProgress: number;
+  assignmentBreakdown: { assigned_to: string; count: number }[];
+}

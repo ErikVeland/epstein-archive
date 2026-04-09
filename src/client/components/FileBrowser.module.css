@@ -70,9 +70,21 @@
   background: var(--glass-bg-highlight);
 }
 
-.iconEmails { color: #4ade80; } /* green-400 fallback */
-.iconDocuments { color: #f87171; } /* red-400 fallback */
-.iconImages { color: #c084fc; } /* purple-400 fallback */
-.iconFlights { color: #facc15; } /* yellow-400 fallback */
-.iconFinancial { color: #fb923c; } /* orange-400 fallback */
-.iconDefault { color: var(--accent-primary); }
+.iconEmails {
+  color: #4ade80;
+} /* green-400 fallback */
+.iconDocuments {
+  color: #f87171;
+} /* red-400 fallback */
+.iconImages {
+  color: #c084fc;
+} /* purple-400 fallback */
+.iconFlights {
+  color: #facc15;
+} /* yellow-400 fallback */
+.iconFinancial {
+  color: #fb923c;
+} /* orange-400 fallback */
+.iconDefault {
+  color: var(--accent-primary);
+}

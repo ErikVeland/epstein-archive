@@ -19,7 +19,7 @@ type TextTag =
 
 export interface TextProps extends React.HTMLAttributes<HTMLElement> {
   variant?: 'h1' | 'h2' | 'h3' | 'h4' | 'display' | 'body' | 'small' | 'xs';
-  color?: 'primary' | 'secondary' | 'muted' | 'accent' | 'danger';
+  color?: 'primary' | 'secondary' | 'muted' | 'accent' | 'danger' | 'success' | 'warning';
   weight?: 'light' | 'normal' | 'medium' | 'semibold' | 'bold' | 'black';
   as?: TextTag;
   align?: 'left' | 'center' | 'right' | 'justify';

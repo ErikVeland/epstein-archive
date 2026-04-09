@@ -29,7 +29,7 @@
   .metaGrid {
     grid-template-columns: 1fr 1fr;
   }
-  
+
   .colSpan2 {
     grid-column: span 2;
   }

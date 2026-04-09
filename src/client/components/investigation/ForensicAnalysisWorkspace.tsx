@@ -25,6 +25,8 @@ import { transformToNetwork } from '../../utils/networkDataUtils';
 import { computeForensicConfidence, type ConfidenceResult } from '../../utils/forensicConfidence';
 import { CloseButton } from '../common/CloseButton';
 
+import styles from './ForensicAnalysisWorkspace.module.css';
+
 interface ForensicAnalysisWorkspaceProps {
   investigation: Investigation;
   evidence: EvidenceItem[];
@@ -143,15 +145,14 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
       let rulesetVersion: string | null = null;
       let modelId: string | null = null;
       for (const item of evidence) {
-        const itemAsUnknown = item as unknown as Record<string, unknown>;
-        const meta = (itemAsUnknown.metadata || itemAsUnknown.metadata_json || {}) as
+        const meta = (item.metadata || item.metadata_json || {}) as
           | Record<string, unknown>
           | string;
         const parsed =
           typeof meta === 'string'
             ? (() => {
                 try {
-                  return JSON.parse(meta);
+                  return JSON.parse(meta) as Record<string, unknown>;
                 } catch {
                   return {};
                 }
@@ -421,52 +422,47 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
   };
 
   return (
-    <div className="min-h-full bg-[var(--glass-bg-strong)] text-[var(--text-primary)]">
+    <div className={styles.root}>
       {/* Header */}
-      <div className="bg-[var(--glass-bg)] border-b border-[var(--glass-border)] px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Microscope className="w-6 h-6 text-red-400" />
+      <div className={styles.header}>
+        <div className={styles.headerContent}>
+          <div className={styles.headerIdentity}>
+            <Microscope className={styles.headerIcon} />
             <div>
-              <h1 className="text-xl font-semibold text-[var(--text-primary)]">
-                Forensic Analysis Workspace
-              </h1>
-              <p className="text-sm text-[var(--text-muted)]">
+              <h1 className={styles.headerTitle}>Forensic Analysis Workspace</h1>
+              <p className={styles.headerSubtitle}>
                 {investigation.title} - Advanced forensic tools for criminal investigation
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className={styles.headerActions}>
             <button
               onClick={() => setShowToolSettings(!showToolSettings)}
-              className="flex items-center gap-2 px-3 py-2 bg-[var(--glass-bg-highlight)] hover:bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] transition-colors"
+              className={styles.headerButton}
             >
               <Settings className="w-4 h-4" />
-              <span className="text-sm">Tools</span>
+              <span>Tools</span>
             </button>
-            <button
-              onClick={downloadBriefing}
-              className="flex items-center gap-2 px-3 py-2 bg-red-600 hover:bg-red-700 rounded-[var(--radius-lg)] transition-colors"
-            >
+            <button onClick={downloadBriefing} className={styles.exportButton}>
               <Download className="w-4 h-4" />
-              <span className="text-sm">Export Briefing</span>
+              <span>Export Briefing</span>
             </button>
           </div>
         </div>
-        <div className="mt-3 flex items-center gap-2">
+        <div className="flex items-center gap-2">
           <button
             onClick={() => setShowReliabilityInfo((prev) => !prev)}
-            className="inline-flex items-center gap-2 text-xs px-2.5 py-1.5 rounded-md border border-[var(--glass-border)] text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)]"
+            className={styles.reliabilityToggle}
           >
             <Info className="w-3.5 h-3.5" />
             What does confidence mean?
           </button>
         </div>
         {showReliabilityInfo && (
-          <div className="mt-3 p-3 rounded-[var(--radius-lg)] border border-[var(--glass-border)] bg-[var(--glass-bg)] text-xs text-[var(--text-secondary)]">
+          <div className={styles.reliabilityInfo}>
             Confidence = internal scoring of completeness + evidence quality for this investigation,
             not truth.
-            <div className="mt-2 text-[var(--text-muted)]">
+            <div className={styles.reliabilityDetails}>
               Coverage (40%) + Signal quality (25%) + Corroboration (25%) + Model certainty (10%).
               Tools with zero inputs show N/A.
             </div>
@@ -475,24 +471,24 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
 
         {/* Tool Settings */}
         {showToolSettings && (
-          <div className="mt-4 p-4 bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)]">
-            <h3 className="text-sm font-medium text-[var(--text-secondary)] mb-3">
-              Enabled Forensic Tools
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+          <div className={styles.toolSettings}>
+            <h3 className={styles.toolSettingsTitle}>Enabled Forensic Tools</h3>
+            <div className={styles.toolSettingsGrid}>
               {forensicTools.map((tool) => (
-                <label key={tool.id} className="flex items-center gap-2 cursor-pointer">
+                <label key={tool.id} className={styles.toolCheckboxLabel}>
                   <input
                     type="checkbox"
                     checked={enabledTools[tool.id as keyof typeof enabledTools]}
                     onChange={() => toggleTool(tool.id)}
-                    className="rounded"
+                    className={styles.toolCheckbox}
                   />
-                  <span className="text-sm text-[var(--text-secondary)]">{tool.name}</span>
+                  <span>{tool.name}</span>
                   {enabledTools[tool.id as keyof typeof enabledTools] ? (
-                    <Eye className="w-3 h-3 text-green-400 ml-auto" />
+                    <Eye className={`w-3 h-3 text-green-400 ${styles.toolStatusIcon}`} />
                   ) : (
-                    <EyeOff className="w-3 h-3 text-[var(--text-muted)] ml-auto" />
+                    <EyeOff
+                      className={`w-3 h-3 text-[var(--text-muted)] ${styles.toolStatusIcon}`}
+                    />
                   )}
                 </label>
               ))}
@@ -501,22 +497,16 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
         )}
       </div>
 
-      <div className="flex flex-col md:flex-row">
+      <div className={`${styles.layout} ${toolsCollapsed ? styles.sidebarCollapsed : ''}`}>
         {/* Collapsible Sidebar */}
-        <div
-          className={`${toolsCollapsed ? 'w-16' : 'w-full md:w-80'} bg-[var(--glass-bg)] border-b md:border-b-0 md:border-r border-[var(--glass-border)] transition-all duration-300 overflow-x-hidden`}
-        >
+        <aside className={`${styles.sidebar} ${toolsCollapsed ? styles.sidebarCollapsed : ''}`}>
           {/* Tool Selection */}
-          <div className="p-4 border-b border-[var(--glass-border)]">
-            <div className="flex items-center justify-between mb-4">
-              <h2
-                className={`text-lg font-semibold text-[var(--text-primary)] ${toolsCollapsed ? 'hidden' : ''}`}
-              >
-                Forensic Tools
-              </h2>
+          <div className={styles.sidebarHeader}>
+            <div className={styles.sidebarTitleRow}>
+              {!toolsCollapsed && <h2 className={styles.sidebarTitle}>Forensic Tools</h2>}
               <button
                 onClick={() => setToolsCollapsed(!toolsCollapsed)}
-                className="p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors rounded-md hover:bg-[var(--glass-bg-highlight)]"
+                className={styles.collapseButton}
                 title={toolsCollapsed ? 'Expand tools' : 'Collapse tools'}
               >
                 {toolsCollapsed ? (
@@ -526,10 +516,12 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
                 )}
               </button>
             </div>
-            <div className="space-y-2">
+            <div className={styles.toolList}>
               {enabledToolsList.map((tool) => {
                 const Icon = tool.icon;
                 const toolStats = stats[tool.id as keyof typeof stats];
+                const finalScore = toolStats.confidenceDetails.finalScore;
+
                 return (
                   <div key={tool.id} className="relative group">
                     <button
@@ -543,58 +535,45 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
                             | 'reports',
                         )
                       }
-                      className={`w-full p-3 rounded-[var(--radius-lg)] text-left transition-colors ${
-                        activeTool === tool.id
-                          ? 'bg-red-900 border border-red-600'
-                          : 'bg-[var(--glass-bg-highlight)] hover:bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)]'
-                      } ${toolsCollapsed ? 'p-3 flex items-center justify-center' : ''}`}
+                      className={`${styles.toolCard} ${activeTool === tool.id ? styles.toolCardActive : ''}`}
                       title={toolsCollapsed ? `${tool.name}: ${tool.description}` : ''}
                     >
-                      <div
-                        className={`flex items-center ${toolsCollapsed ? 'justify-center' : 'gap-3 mb-2'}`}
-                      >
-                        <Icon className="w-5 h-5 text-red-400" />
-                        {!toolsCollapsed && (
-                          <span className="font-medium text-[var(--text-primary)]">
-                            {tool.name}
-                          </span>
-                        )}
+                      <div className={styles.toolCardHeader}>
+                        <Icon className={styles.toolIcon} />
+                        {!toolsCollapsed && <span className={styles.toolName}>{tool.name}</span>}
                       </div>
+
                       {!toolsCollapsed && (
                         <>
-                          <p className="text-xs text-[var(--text-muted)] mb-2 line-clamp-2 break-words">
-                            {tool.description}
-                          </p>
-                          <div className="flex justify-between items-center text-xs">
-                            <span className="text-[var(--text-muted)]">
+                          <p className={styles.toolDescription}>{tool.description}</p>
+                          <div className={styles.toolStats}>
+                            <span className={styles.itemCount}>
                               {toolStats.count.toLocaleString()} items
                             </span>
                             <button
                               type="button"
-                              className={`px-2 py-1 rounded text-xs ${
-                                toolStats.confidenceDetails.finalScore === null
-                                  ? 'bg-[var(--glass-bg-highlight)] text-[var(--text-primary)]'
-                                  : toolStats.confidenceDetails.finalScore >= 90
-                                    ? 'bg-green-900 text-green-200'
-                                    : toolStats.confidenceDetails.finalScore >= 80
-                                      ? 'bg-yellow-900 text-yellow-200'
-                                      : 'bg-red-900 text-red-200'
+                              className={`${styles.confidenceBadge} ${
+                                finalScore === null
+                                  ? styles.confidenceNA
+                                  : finalScore >= 90
+                                    ? styles.confidenceHigh
+                                    : finalScore >= 80
+                                      ? styles.confidenceMedium
+                                      : styles.confidenceLow
                               }`}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setSelectedConfidenceTool(tool.id);
                               }}
                             >
-                              {toolStats.confidenceDetails.finalScore === null
-                                ? 'N/A'
-                                : `${toolStats.confidenceDetails.finalScore}% confidence`}
+                              {finalScore === null ? 'N/A' : `${finalScore}% confidence`}
                             </button>
                           </div>
-                          <div className="mt-2 flex items-center justify-between gap-2">
-                            <span className="text-[11px] text-[var(--text-muted)]">
+                          <div className={styles.toolFooter}>
+                            <span className={styles.toolStatus}>
                               {resolveToolStatus(tool.id as keyof typeof stats)}
                             </span>
-                            <div className="flex items-center gap-1">
+                            <div className={styles.toolActionRow}>
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -607,7 +586,7 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
                                       | 'reports',
                                   );
                                 }}
-                                className="px-2 py-1 text-[11px] rounded bg-[var(--glass-bg-highlight)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-primary)]"
+                                className={styles.toolActionBtn}
                               >
                                 Run tool
                               </button>
@@ -623,13 +602,13 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
                                       | 'reports',
                                   );
                                 }}
-                                className="px-2 py-1 text-[11px] rounded border border-[var(--glass-border)] text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)]"
+                                className={`${styles.toolActionBtn} ${styles.toolActionBtnBorder}`}
                               >
                                 View
                               </button>
                             </div>
                           </div>
-                          <div className="mt-1 text-[11px] text-[var(--text-muted)]">
+                          <div className={styles.requiredInputHint}>
                             {getRequiredInput(tool.id)}
                           </div>
                         </>
@@ -638,7 +617,7 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
 
                     {/* Popover summary for collapsed view */}
                     {toolsCollapsed && (
-                      <div className="absolute left-full ml-2 top-0 w-64 bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-3 shadow-[var(--glass-shadow)] z-10 hidden group-hover:block">
+                      <div className={styles.collapsedPopover}>
                         <h4 className="font-medium text-[var(--text-primary)] mb-1">{tool.name}</h4>
                         <p className="text-xs text-[var(--text-muted)] mb-2">{tool.description}</p>
                         <div className="flex justify-between items-center text-xs">
@@ -647,20 +626,18 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
                           </span>
                           <button
                             type="button"
-                            className={`px-2 py-1 rounded text-xs ${
-                              toolStats.confidenceDetails.finalScore === null
-                                ? 'bg-[var(--glass-bg-highlight)] text-[var(--text-primary)]'
-                                : toolStats.confidenceDetails.finalScore >= 90
-                                  ? 'bg-green-900 text-green-200'
-                                  : toolStats.confidenceDetails.finalScore >= 80
-                                    ? 'bg-yellow-900 text-yellow-200'
-                                    : 'bg-red-900 text-red-200'
+                            className={`${styles.confidenceBadge} ${
+                              finalScore === null
+                                ? styles.confidenceNA
+                                : finalScore >= 90
+                                  ? styles.confidenceHigh
+                                  : finalScore >= 80
+                                    ? styles.confidenceMedium
+                                    : styles.confidenceLow
                             }`}
                             onClick={() => setSelectedConfidenceTool(tool.id)}
                           >
-                            {toolStats.confidenceDetails.finalScore === null
-                              ? 'N/A'
-                              : `${toolStats.confidenceDetails.finalScore}% confidence`}
+                            {finalScore === null ? 'N/A' : `${finalScore}% confidence`}
                           </button>
                         </div>
                         <div className="mt-2 text-[11px] text-[var(--text-muted)]">
@@ -675,71 +652,67 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
           </div>
 
           {/* Investigation Summary */}
-          <div className="p-4">
-            <h3 className="text-sm font-medium text-[var(--text-secondary)] mb-3">
-              Investigation Summary
-            </h3>
-            <div className="space-y-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-[var(--text-muted)]">Status</span>
-                <span
-                  className={`px-2 py-1 rounded text-xs font-medium ${
-                    investigation.status === 'active'
-                      ? 'bg-green-900 text-green-200'
-                      : investigation.status === 'review'
-                        ? 'bg-yellow-900 text-yellow-200'
-                        : 'bg-[var(--glass-bg-strong)] text-[var(--text-primary)]'
-                  }`}
-                >
-                  {investigation.status}
-                </span>
+          {!toolsCollapsed && (
+            <div className={styles.summarySection}>
+              <h3 className={styles.summaryTitle}>Investigation Summary</h3>
+              <div className={styles.summaryGrid}>
+                <div className={styles.summaryRow}>
+                  <span className={styles.summaryLabel}>Status</span>
+                  <span
+                    className={`${styles.statusBadge} ${
+                      investigation.status === 'active'
+                        ? styles.statusActive
+                        : investigation.status === 'review'
+                          ? styles.statusReview
+                          : styles.statusDefault
+                    }`}
+                  >
+                    {investigation.status}
+                  </span>
+                </div>
+                <div className={styles.summaryRow}>
+                  <span className={styles.summaryLabel}>Priority</span>
+                  <span
+                    className={`${styles.priorityBadge} ${
+                      investigation.priority === 'critical'
+                        ? styles.priorityCritical
+                        : investigation.priority === 'high'
+                          ? styles.priorityHigh
+                          : investigation.priority === 'medium'
+                            ? styles.priorityMedium
+                            : styles.priorityLow
+                    }`}
+                  >
+                    {investigation.priority}
+                  </span>
+                </div>
+                <div className={styles.summaryRow}>
+                  <span className={styles.summaryLabel}>Evidence Items</span>
+                  <span className={styles.summaryValue}>{evidence.length}</span>
+                </div>
+                <div className={styles.summaryRow}>
+                  <span className={styles.summaryLabel}>Timeline Events</span>
+                  <span className={styles.summaryValue}>{timelineEvents.length}</span>
+                </div>
+                <div className={styles.summaryRow}>
+                  <span className={styles.summaryLabel}>Team Size</span>
+                  <span className={styles.summaryValue}>{investigation.team.length}</span>
+                </div>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-[var(--text-muted)]">Priority</span>
-                <span
-                  className={`px-2 py-1 rounded text-xs font-medium ${
-                    investigation.priority === 'critical'
-                      ? 'bg-red-900 text-red-200'
-                      : investigation.priority === 'high'
-                        ? 'bg-orange-900 text-orange-200'
-                        : investigation.priority === 'medium'
-                          ? 'bg-yellow-900 text-yellow-200'
-                          : 'bg-green-900 text-green-200'
-                  }`}
-                >
-                  {investigation.priority}
-                </span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-[var(--text-muted)]">Evidence Items</span>
-                <span className="text-[var(--text-primary)]">{evidence.length}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-[var(--text-muted)]">Timeline Events</span>
-                <span className="text-[var(--text-primary)]">{timelineEvents.length}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-[var(--text-muted)]">Team Size</span>
-                <span className="text-[var(--text-primary)]">{investigation.team.length}</span>
-              </div>
-            </div>
 
-            {investigation.hypothesis && (
-              <div className="mt-4">
-                <h4 className="text-sm font-medium text-[var(--text-secondary)] mb-2">
-                  Hypothesis
-                </h4>
-                <p className="text-xs text-[var(--text-muted)] leading-relaxed">
-                  {investigation.hypothesis}
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
+              {investigation.hypothesis && (
+                <div className={styles.hypothesisBox}>
+                  <h4 className={styles.hypothesisTitle}>Hypothesis</h4>
+                  <p className={styles.hypothesisText}>{investigation.hypothesis}</p>
+                </div>
+              )}
+            </div>
+          )}
+        </aside>
 
         {/* Main Content */}
-        <div className="flex-1 bg-[var(--glass-bg-strong)]">
-          <div className="h-full">
+        <main className={styles.mainContent}>
+          <div className={styles.toolContainer}>
             {activeTool === 'documents' && (
               <ForensicDocumentAnalyzer documentId={docIdParam || evidence[0]?.id || ''} />
             )}
@@ -761,16 +734,16 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
               />
             )}
           </div>
-        </div>
+        </main>
       </div>
 
       {selectedConfidenceTool && (
-        <div className="fixed inset-0 z-[1100] bg-[var(--glass-bg-strong)] flex items-center justify-center p-4">
-          <div className="w-full max-w-2xl rounded-[var(--radius-xl)] border border-[var(--glass-border)] bg-[var(--glass-bg-strong)] text-[var(--text-primary)] max-h-[90vh] overflow-auto">
-            <div className="p-4 border-b border-[var(--glass-border)] flex items-center justify-between">
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContent}>
+            <div className={styles.modalHeader}>
               <div>
-                <h3 className="text-lg font-semibold">Confidence details</h3>
-                <p className="text-xs text-[var(--text-muted)]">
+                <h3 className={styles.modalTitle}>Confidence details</h3>
+                <p className={styles.modalSubtitle}>
                   {forensicTools.find((t) => t.id === selectedConfidenceTool)?.name}
                 </p>
               </div>
@@ -787,53 +760,53 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
               ]?.confidenceDetails;
               if (!details) return null;
               return (
-                <div className="p-4 space-y-4 text-sm">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div className="p-3 rounded border border-[var(--glass-border)] bg-[var(--glass-bg)]">
-                      <p className="text-xs text-[var(--text-muted)]">Final score</p>
-                      <p className="text-xl font-semibold">
+                <div className={styles.modalBody}>
+                  <div className={styles.confidenceDetailsGrid}>
+                    <div className={styles.detailBox}>
+                      <p className={styles.detailLabel}>Final score</p>
+                      <p className={styles.detailValueLarge}>
                         {details.finalScore === null ? 'N/A' : `${details.finalScore}%`}
                       </p>
                     </div>
-                    <div className="p-3 rounded border border-[var(--glass-border)] bg-[var(--glass-bg)]">
-                      <p className="text-xs text-[var(--text-muted)]">Algorithm</p>
+                    <div className={styles.detailBox}>
+                      <p className={styles.detailLabel}>Algorithm</p>
                       <p>{details.algorithm}</p>
                     </div>
                   </div>
-                  <div className="p-3 rounded border border-[var(--glass-border)] bg-[var(--glass-bg)]">
-                    <p className="text-xs text-[var(--text-muted)] mb-2">Weight breakdown</p>
+                  <div className={styles.weightBreakdown}>
+                    <p className={styles.detailLabel + ' mb-2'}>Weight breakdown</p>
                     <p>
                       Coverage 40% / Signal quality 25% / Corroboration 25% / Model certainty 10%
                     </p>
                   </div>
-                  <div className="p-3 rounded border border-[var(--glass-border)] bg-[var(--glass-bg)]">
-                    <p className="text-xs text-[var(--text-muted)] mb-2">Raw factors</p>
-                    <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className={styles.rawFactors}>
+                    <p className={styles.detailLabel + ' mb-2'}>Raw factors</p>
+                    <div className={styles.rawFactorsGrid}>
                       <div>Coverage: {details.factors.coverage ?? 'N/A'}</div>
                       <div>Signal quality: {details.factors.signalQuality ?? 'N/A'}</div>
                       <div>Corroboration: {details.factors.corroboration ?? 'N/A'}</div>
                       <div>Model certainty: {details.factors.modelCertainty ?? 'N/A'}</div>
                     </div>
                   </div>
-                  <div className="p-3 rounded border border-[var(--glass-border)] bg-[var(--glass-bg)]">
-                    <p className="text-xs text-[var(--text-muted)] mb-2">Per-factor inputs</p>
-                    <pre className="text-xs whitespace-pre-wrap break-words text-[var(--text-secondary)]">
+                  <div className={styles.factorInputs}>
+                    <p className={styles.detailLabel + ' mb-2'}>Per-factor inputs</p>
+                    <pre className={styles.preformatted}>
                       {JSON.stringify(details.factorInputs, null, 2)}
                     </pre>
                   </div>
-                  <div className="p-3 rounded border border-[var(--glass-border)] bg-[var(--glass-bg)]">
-                    <p className="text-xs text-[var(--text-muted)] mb-2">Missing inputs</p>
+                  <div className={styles.missingInputs}>
+                    <p className={styles.detailLabel + ' mb-2'}>Missing inputs</p>
                     {details.missingInputs.length > 0 ? (
-                      <ul className="list-disc pl-5 text-xs text-amber-200">
+                      <ul className={styles.missingList}>
                         {details.missingInputs.map((item) => (
                           <li key={item}>{item}</li>
                         ))}
                       </ul>
                     ) : (
-                      <p className="text-xs text-emerald-200">No missing inputs.</p>
+                      <p className={styles.noMissingText}>No missing inputs.</p>
                     )}
                   </div>
-                  <div className="p-3 rounded border border-[var(--glass-border)] bg-[var(--glass-bg)] text-xs space-y-1">
+                  <div className={styles.metadataBox}>
                     <p>
                       Determinism:{' '}
                       {details.determinism.deterministic ? 'deterministic' : 'non-deterministic'}

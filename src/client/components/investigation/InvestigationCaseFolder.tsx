@@ -6,6 +6,7 @@ import type {
   InvestigationEvidenceByTypeResponseDto as EvidenceByType,
 } from '@shared/dto/investigations';
 import { useCaseFolder } from '../../domains/investigations';
+import styles from './InvestigationCaseFolder.module.css';
 
 interface InvestigationCaseFolderProps {
   investigationId: number | string;
@@ -17,23 +18,23 @@ interface InvestigationCaseFolderProps {
   onReloadCaseFolder?: () => Promise<EvidenceByType | null> | void;
 }
 
-const typeConfig: Record<string, { icon: string; label: string; color: string }> = {
-  entity: { icon: 'User', label: 'Entities', color: 'cyan' },
-  document: { icon: 'FileText', label: 'Documents', color: 'blue' },
-  flight_log: { icon: 'Navigation', label: 'Flights', color: 'purple' },
-  property_record: { icon: 'Building', label: 'Properties', color: 'emerald' },
-  email: { icon: 'Mail', label: 'Emails', color: 'amber' },
-  testimony: { icon: 'MessageSquare', label: 'Testimonies', color: 'pink' },
-  financial: { icon: 'DollarSign', label: 'Financial', color: 'green' },
-  legal: { icon: 'Scale', label: 'Legal', color: 'red' },
-  photo: { icon: 'Image', label: 'Photos', color: 'indigo' },
-  other: { icon: 'File', label: 'Other', color: 'slate' },
+const typeConfig: Record<string, { icon: string; label: string; toneClass: string }> = {
+  entity: { icon: 'User', label: 'Entities', toneClass: styles.toneCyan },
+  document: { icon: 'FileText', label: 'Documents', toneClass: styles.toneBlue },
+  flight_log: { icon: 'Navigation', label: 'Flights', toneClass: styles.tonePurple },
+  property_record: { icon: 'Building', label: 'Properties', toneClass: styles.toneEmerald },
+  email: { icon: 'Mail', label: 'Emails', toneClass: styles.toneAmber },
+  testimony: { icon: 'MessageSquare', label: 'Testimonies', toneClass: styles.tonePink },
+  financial: { icon: 'DollarSign', label: 'Financial', toneClass: styles.toneGreen },
+  legal: { icon: 'Scale', label: 'Legal', toneClass: styles.toneRed },
+  photo: { icon: 'Image', label: 'Photos', toneClass: styles.toneIndigo },
+  other: { icon: 'File', label: 'Other', toneClass: styles.toneSlate },
 };
 
 const relevanceColors: Record<string, string> = {
-  high: 'bg-red-500/20 text-red-300 border-red-500/30',
-  medium: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30',
-  low: 'bg-green-500/20 text-green-300 border-green-500/30',
+  high: styles.relevanceHigh,
+  medium: styles.relevanceMedium,
+  low: styles.relevanceLow,
 };
 
 const readString = (value: unknown): string | null =>
@@ -227,16 +228,16 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent)]" />
+      <div className={styles.centerState}>
+        <div className={styles.spinner} />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="text-center py-8 text-red-400">
-        <Icon name="AlertCircle" size="lg" className="mx-auto mb-2" />
+      <div className={styles.errorState}>
+        <Icon name="AlertCircle" size="lg" className={styles.errorIcon} />
         <p>{error}</p>
       </div>
     );
@@ -244,12 +245,10 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
 
   if (!evidence || evidence.total === 0) {
     return (
-      <div className="text-center py-12 text-[var(--text-muted)]">
-        <Icon name="FolderOpen" size="xl" className="mx-auto mb-3 opacity-50" />
-        <h3 className="text-lg font-medium text-[var(--text-secondary)] mb-2">
-          Case Folder is Empty
-        </h3>
-        <p className="text-sm">
+      <div className={styles.emptyState}>
+        <Icon name="FolderOpen" size="xl" className={styles.emptyIcon} />
+        <h3 className={styles.emptyTitle}>Case Folder is Empty</h3>
+        <p className={styles.emptyBody}>
           Add evidence from Subjects, Documents, Flights, Properties, or Emails
           <br />
           using the "Add to Investigation" button.
@@ -261,21 +260,25 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
   const types = Object.keys(evidence.byType);
 
   return (
-    <div className="case-folder space-y-6">
+    <div className={styles.root}>
       {/* Summary Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+      <div className={styles.summaryGrid}>
         {/* All Evidence */}
         <button
           onClick={() => setSelectedType(null)}
-          className={`p-4 rounded-[var(--radius-lg)] border transition-all ${
+          className={`${styles.summaryCard} ${
             selectedType === null
-              ? 'bg-[var(--accent)]/20 border-[var(--accent)]/50 ring-2 ring-[var(--accent)]/30'
-              : 'surface-glass hover:bg-[var(--glass-bg-highlight)]'
+              ? `${styles.summaryCardAllActive} ${styles.summaryCardActive}`
+              : styles.surfaceButton
           }`}
         >
-          <Icon name="Folder" size="md" className="mx-auto mb-2 text-[var(--accent)]" />
-          <div className="text-2xl font-bold text-[var(--text-primary)]">{evidence.total}</div>
-          <div className="text-xs text-[var(--text-muted)]">All Evidence</div>
+          <Icon
+            name="Folder"
+            size="md"
+            className={`${styles.summaryIcon} ${styles.summaryIconAll}`}
+          />
+          <div className={styles.summaryCount}>{evidence.total}</div>
+          <div className={styles.summaryLabel}>All Evidence</div>
         </button>
 
         {/* Type Cards */}
@@ -286,53 +289,41 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
             <button
               key={type}
               onClick={() => setSelectedType(type === selectedType ? null : type)}
-              className={`p-4 rounded-[var(--radius-lg)] border transition-all ${
-                selectedType === type
-                  ? `bg-${config.color}-600/20 border-${config.color}-500/50 ring-2 ring-${config.color}-500/30`
-                  : 'surface-glass hover:bg-[var(--glass-bg-highlight)]'
+              className={`${styles.summaryCard} ${config.toneClass} ${
+                selectedType === type ? styles.summaryToneActive : styles.surfaceButton
               }`}
             >
-              <Icon
-                name={config.icon as IconName}
-                size="md"
-                className={`mx-auto mb-2 text-${config.color}-400`}
-              />
-              <div className="text-2xl font-bold text-[var(--text-primary)]">{count}</div>
-              <div className="text-xs text-[var(--text-muted)]">{config.label}</div>
+              <Icon name={config.icon as IconName} size="md" className={styles.summaryIcon} />
+              <div className={styles.summaryCount}>{count}</div>
+              <div className={styles.summaryLabel}>{config.label}</div>
             </button>
           );
         })}
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap items-center gap-3 p-4 surface-glass">
+      <div className={`${styles.filtersBar} ${styles.glassPanel}`}>
         {/* Search */}
-        <div className="relative flex-1 min-w-[200px]">
-          <Icon
-            name="Search"
-            size="sm"
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
-          />
+        <div className={styles.searchWrap}>
+          <Icon name="Search" size="sm" className={styles.searchIcon} />
           <input
             type="text"
             placeholder="Search evidence..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 surface-glass text-[var(--text-primary)] placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/50"
+            className={styles.searchInput}
           />
         </div>
 
         {/* Relevance Filter */}
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-[var(--text-muted)]">Relevance:</span>
+        <div className={styles.filterGroup}>
+          <span className={styles.filterLabel}>Relevance:</span>
           {['high', 'medium', 'low'].map((rel) => (
             <button
               key={rel}
               onClick={() => setRelevanceFilter(rel === relevanceFilter ? null : rel)}
-              className={`px-3 py-1.5 rounded-[var(--radius-lg)] text-xs font-medium border transition-colors ${
-                relevanceFilter === rel
-                  ? relevanceColors[rel]
-                  : 'surface-glass text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+              className={`${styles.pillButton} ${
+                relevanceFilter === rel ? relevanceColors[rel] : styles.surfaceButton
               }`}
             >
               {rel.charAt(0).toUpperCase() + rel.slice(1)}
@@ -348,7 +339,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
               setRelevanceFilter(null);
               setSelectedType(null);
             }}
-            className="px-3 py-1.5 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+            className={styles.clearButton}
           >
             Clear Filters
           </button>
@@ -356,23 +347,21 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
       </div>
 
       {/* Evidence List */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-[var(--text-primary)]">
+      <div className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <h3 className={styles.sectionTitle}>
             {selectedType ? typeConfig[selectedType]?.label || selectedType : 'All Evidence'}
-            <span className="ml-2 text-sm font-normal text-[var(--text-muted)]">
-              ({filteredEvidence.length} items)
-            </span>
+            <span className={styles.sectionMeta}>({filteredEvidence.length} items)</span>
           </h3>
         </div>
 
         {filteredEvidence.length === 0 ? (
-          <div className="text-center py-8 text-[var(--text-muted)]">
+          <div className={styles.emptyList}>
             <p>No evidence matches your filters</p>
           </div>
         ) : (
           <div
-            className="grid gap-3 max-h-[45rem] overflow-y-auto pr-1"
+            className={styles.list}
             onScroll={(e) => setListScrollTop((e.currentTarget as HTMLDivElement).scrollTop)}
           >
             {shouldVirtualize && startIndex > 0 && (
@@ -386,80 +375,56 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
               return (
                 <div
                   key={item.id}
-                  className={`p-4 surface-glass transition-colors ${
-                    isDeepLinkedItem(item)
-                      ? 'border-[var(--accent)] ring-2 ring-[var(--accent)]/40'
-                      : 'hover:bg-[var(--glass-bg-highlight)]'
+                  className={`${styles.rowCard} ${
+                    isDeepLinkedItem(item) ? styles.rowCardLinked : ''
                   }`}
                   data-evidence-row-id={resolveEvidenceKey(item)}
                 >
-                  <div className="flex items-start gap-4">
+                  <div className={styles.rowLayout}>
                     {/* Type Icon */}
-                    <div
-                      className={`flex-shrink-0 w-10 h-10 rounded-[var(--radius-lg)] bg-${config.color}-900/30 flex items-center justify-center`}
-                    >
-                      <Icon
-                        name={config.icon as IconName}
-                        size="md"
-                        className={`text-${config.color}-400`}
-                      />
+                    <div className={`${styles.typeBadge} ${config.toneClass}`}>
+                      <Icon name={config.icon as IconName} size="md" className={config.toneClass} />
                     </div>
 
                     {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-medium text-[var(--text-primary)] truncate">
-                          {item.title}
-                        </h4>
+                    <div className={styles.rowContent}>
+                      <div className={styles.rowHeader}>
+                        <h4 className={styles.rowTitle}>{item.title}</h4>
                         <span
-                          className={`px-2 py-0.5 text-xs rounded border ${relevanceColors[item.relevance] || 'bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)]'}`}
+                          className={`${styles.relevancePill} ${relevanceColors[item.relevance] || styles.toneSlate}`}
                         >
                           {item.relevance}
                         </span>
                         {item.redFlagRating > 0 && (
-                          <span className="flex items-center gap-1 text-xs text-red-400">
+                          <span className={styles.redFlag}>
                             <Icon name="Flag" size="xs" />
                             {item.redFlagRating}
                           </span>
                         )}
                       </div>
 
-                      {item.description && (
-                        <p className="text-sm text-[var(--text-muted)] line-clamp-2 mb-2">
-                          {item.description}
-                        </p>
-                      )}
+                      {item.description && <p className={styles.description}>{item.description}</p>}
 
-                      {item.notes && (
-                        <p className="text-xs text-[var(--text-muted)] italic mb-2">
-                          Note: {item.notes}
-                        </p>
-                      )}
+                      {item.notes && <p className={styles.notes}>Note: {item.notes}</p>}
 
-                      <div className="flex items-center gap-4 text-xs text-[var(--text-muted)]">
+                      <div className={styles.metaRow}>
                         <span>Added {new Date(item.addedAt).toLocaleDateString()}</span>
                         <span>by {item.addedBy}</span>
                         {provenance.ingestRunId && (
-                          <span className="px-1.5 py-0.5 rounded bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)]">
-                            run {provenance.ingestRunId}
-                          </span>
+                          <span className={styles.metaBadge}>run {provenance.ingestRunId}</span>
                         )}
-                        <span className="px-1.5 py-0.5 rounded bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)]">
-                          ladder {provenance.ladder}
-                        </span>
-                        <span className="px-1.5 py-0.5 rounded bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)]">
+                        <span className={styles.metaBadge}>ladder {provenance.ladder}</span>
+                        <span className={styles.metaBadge}>
                           confidence{' '}
                           {provenance.confidence === null ? 'N/A' : provenance.confidence}
                         </span>
                         {provenance.wasAgentic && (
-                          <span className="px-1.5 py-0.5 rounded bg-amber-900/50 text-amber-200">
-                            agentic-derived
-                          </span>
+                          <span className={styles.agenticBadge}>agentic-derived</span>
                         )}
                         {link && (
                           <Link
                             to={link}
-                            className="text-[var(--accent)] hover:text-[var(--accent)] flex items-center gap-1"
+                            className={styles.sourceLink}
                             onClick={(e) => e.stopPropagation()}
                           >
                             <Icon name="ExternalLink" size="xs" />
@@ -467,7 +432,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
                           </Link>
                         )}
                       </div>
-                      <div className="mt-2 text-[11px] text-[var(--text-muted)]">
+                      <div className={styles.sourceReason}>
                         Why in case: linked by investigator relevance "{item.relevance}" from{' '}
                         {item.sourcePath || 'unknown source'}
                         {provenance.pipelineVersion
@@ -478,7 +443,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center gap-2">
+                    <div className={styles.rowActions}>
                       {onEvidenceClick && (
                         <button
                           onClick={(e) => onEvidenceClick(item, e.currentTarget)}
@@ -487,7 +452,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
                             if (el) evidenceButtonRefs.current.set(key, el);
                             else evidenceButtonRefs.current.delete(key);
                           }}
-                          className="p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] transition-colors"
+                          className={styles.iconButton}
                           title="View Details"
                         >
                           <Icon name="Eye" size="sm" />
@@ -498,7 +463,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
                   {onEvidenceClick && (
                     <button
                       onClick={(e) => onEvidenceClick(item, e.currentTarget)}
-                      className="mt-3 text-xs text-[var(--accent)] hover:text-cyan-200"
+                      className={styles.openButton}
                     >
                       Open evidence
                     </button>

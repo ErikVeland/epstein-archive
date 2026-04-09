@@ -156,9 +156,15 @@
 }
 
 /* Status variants */
-.statusSuccess { color: var(--accent-success); }
-.statusError { color: var(--accent-danger); }
-.statusWarning { color: var(--accent-warning); }
+.statusSuccess {
+  color: var(--accent-success);
+}
+.statusError {
+  color: var(--accent-danger);
+}
+.statusWarning {
+  color: var(--accent-warning);
+}
 
 .progressBar {
   width: 100%;
@@ -252,12 +258,19 @@
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: .5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .warningBox {

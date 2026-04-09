@@ -1,0 +1,137 @@
+.page {
+  height: 100%;
+  padding: var(--space-4);
+}
+
+.toolbarCard {
+  position: relative;
+  z-index: 40;
+  flex-shrink: 0;
+  padding: var(--space-3);
+}
+
+.toolbarMeta {
+  color: var(--text-primary);
+  font-size: 0.875rem;
+}
+
+.toolbarIcon {
+  flex-shrink: 0;
+}
+
+.toolbarControls {
+  width: 100%;
+  min-width: 20rem;
+  font-family: var(--font-sans, inherit);
+}
+
+.addButton {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.addButtonLabel {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .addButtonLabel {
+    display: inline;
+  }
+}
+
+.filterWrap {
+  flex: 1 1 0;
+  min-width: 9.375rem;
+  max-width: 18.75rem;
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+.sortOrderButton {
+  width: 2.75rem;
+  height: 2.75rem;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.toolbarSummary {
+  width: 100%;
+  margin-top: var(--space-1);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-align: right;
+  text-transform: uppercase;
+}
+
+.resultsShell {
+  width: 100%;
+  min-height: 37.5rem;
+  height: 100%;
+  padding: var(--space-4);
+}
+
+.emptyState {
+  padding: var(--space-12) var(--space-4);
+  text-align: center;
+}
+
+.emptyIcon {
+  display: block;
+  margin: 0 auto var(--space-4);
+}
+
+.emptyTitle {
+  margin-bottom: var(--space-2);
+  color: var(--text-primary);
+  font-size: 1.125rem;
+  font-weight: var(--weight-medium);
+}
+
+.emptyBody {
+  color: var(--text-secondary);
+}
+
+.pagination {
+  margin-top: var(--space-4);
+  padding-bottom: var(--space-4);
+  flex-shrink: 0;
+}
+
+.paginationButton {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-4);
+  color: var(--text-primary);
+}
+
+.paginationButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.paginationButton:hover:not(:disabled) {
+  background: var(--glass-bg-highlight);
+}
+
+.pageChip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 2.75rem;
+  padding: 0 var(--space-4);
+}
+
+.pageChipLabel {
+  color: var(--text-muted);
+}
+
+.pageChipValue {
+  color: var(--text-primary);
+  font-weight: var(--weight-medium);
+}

@@ -35,12 +35,24 @@
 }
 
 /* Annotation Types */
-.type_highlight { background-color: rgba(212, 168, 75, 0.2); } /* var(--accent) approx */
-.type_note { background-color: rgba(6, 182, 212, 0.2); } /* cyan approx */
-.type_evidence { background-color: rgba(52, 211, 153, 0.2); } /* emerald approx */
-.type_question { background-color: rgba(167, 139, 250, 0.2); } /* purple approx */
-.type_contradiction { background-color: rgba(239, 68, 68, 0.2); } /* rose approx */
-.type_tag { background-color: rgba(6, 182, 212, 0.2); }
+.type_highlight {
+  background-color: rgba(212, 168, 75, 0.2);
+} /* var(--accent) approx */
+.type_note {
+  background-color: rgba(6, 182, 212, 0.2);
+} /* cyan approx */
+.type_evidence {
+  background-color: rgba(52, 211, 153, 0.2);
+} /* emerald approx */
+.type_question {
+  background-color: rgba(167, 139, 250, 0.2);
+} /* purple approx */
+.type_contradiction {
+  background-color: rgba(239, 68, 68, 0.2);
+} /* rose approx */
+.type_tag {
+  background-color: rgba(6, 182, 212, 0.2);
+}
 
 .searchMark {
   background-color: rgba(6, 182, 212, 0.3);

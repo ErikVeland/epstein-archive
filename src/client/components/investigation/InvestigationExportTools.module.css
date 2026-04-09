@@ -1,0 +1,347 @@
+.panel {
+  width: 100%;
+  padding: var(--space-4);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  background: var(--glass-bg-strong);
+}
+
+@media (min-width: 768px) {
+  .panel {
+    padding: var(--space-6);
+  }
+}
+
+.stackLg {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.stackMd {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.stackSm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.stackXs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.title {
+  color: var(--text-primary);
+  font-size: 1.25rem;
+  font-weight: var(--weight-semibold);
+}
+
+.mutedText {
+  color: var(--text-muted);
+}
+
+.subtitle {
+  margin-top: var(--space-1);
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.stepsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+@media (min-width: 768px) {
+  .stepsGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.stepButton {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-lg);
+  font-size: 0.875rem;
+  font-weight: var(--weight-medium);
+  transition:
+    background var(--duration-fast, 150ms),
+    color var(--duration-fast, 150ms);
+}
+
+.stepButtonActive {
+  background: var(--accent);
+  color: var(--text-primary);
+}
+
+.stepButtonIdle {
+  background: var(--glass-bg);
+  color: var(--text-secondary);
+}
+
+.stepButtonIdle:hover {
+  background: var(--glass-bg-highlight);
+}
+
+.sectionHeading {
+  color: var(--text-primary);
+  font-weight: var(--weight-medium);
+}
+
+.optionButton {
+  width: 100%;
+  padding: var(--space-4);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  text-align: left;
+  transition:
+    background var(--duration-fast, 150ms),
+    border-color var(--duration-fast, 150ms);
+}
+
+.optionButtonIdle {
+  background: var(--glass-bg);
+}
+
+.optionButtonIdle:hover {
+  background: var(--glass-bg-highlight);
+}
+
+.optionButtonSelected {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.rowBetween {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.labelPill {
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-md);
+  font-size: 0.75rem;
+}
+
+.successPill {
+  background: color-mix(in srgb, var(--status-success, #22c55e) 20%, transparent);
+  color: color-mix(in srgb, var(--status-success, #22c55e) 80%, white);
+}
+
+.warningPill {
+  background: color-mix(in srgb, var(--status-warning, #f59e0b) 20%, transparent);
+  color: color-mix(in srgb, var(--status-warning, #f59e0b) 80%, white);
+}
+
+.bodyTextSm {
+  color: var(--text-primary);
+  font-size: 0.875rem;
+}
+
+.bodyTextXs {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.warningText {
+  color: color-mix(in srgb, var(--status-warning, #f59e0b) 85%, white);
+}
+
+.toggleGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+}
+
+@media (min-width: 768px) {
+  .toggleGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.toggleCard {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+}
+
+.previewCard,
+.progressCard,
+.statCard {
+  padding: var(--space-4);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+}
+
+.previewCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.generateButton,
+.navButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border-radius: var(--radius-lg);
+  transition:
+    background var(--duration-fast, 150ms),
+    opacity var(--duration-fast, 150ms),
+    filter var(--duration-fast, 150ms);
+}
+
+.generateButton {
+  padding: var(--space-3) var(--space-5);
+  background: var(--accent);
+  color: var(--text-primary);
+}
+
+.generateButton:hover,
+.navButtonPrimary:hover {
+  filter: brightness(0.92);
+}
+
+.navButton {
+  padding: var(--space-2) var(--space-3);
+  font-size: 0.875rem;
+}
+
+.navButtonSecondary {
+  background: var(--glass-bg);
+  color: var(--text-primary);
+}
+
+.navButtonPrimary {
+  background: var(--accent);
+  color: var(--text-primary);
+}
+
+.generateButton:disabled,
+.navButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  filter: none;
+}
+
+.iconSm {
+  width: 1rem;
+  height: 1rem;
+}
+
+.iconXs {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.progressLabelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
+.progressTrack {
+  width: 100%;
+  height: 0.5rem;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: var(--glass-bg-highlight);
+}
+
+.progressBar {
+  height: 100%;
+  background: var(--accent);
+  transition: width var(--duration-fast, 150ms);
+}
+
+.successCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  border: 1px solid color-mix(in srgb, var(--status-success, #22c55e) 60%, transparent);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--status-success, #22c55e) 20%, transparent);
+}
+
+.successHeading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: color-mix(in srgb, var(--status-success, #22c55e) 80%, white);
+  font-size: 0.875rem;
+  font-weight: var(--weight-medium);
+}
+
+.successText {
+  color: color-mix(in srgb, var(--status-success, #22c55e) 88%, white);
+  font-size: 0.75rem;
+}
+
+.successLabel {
+  color: color-mix(in srgb, var(--status-success, #22c55e) 70%, white);
+}
+
+.warningCard {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid color-mix(in srgb, var(--status-warning, #f59e0b) 60%, transparent);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--status-warning, #f59e0b) 18%, transparent);
+  color: color-mix(in srgb, var(--status-warning, #f59e0b) 80%, white);
+  font-size: 0.75rem;
+}
+
+.footerMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.footerDivider {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--glass-border);
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  font-size: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  .statsGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.statValue {
+  color: var(--text-primary);
+  font-size: 1.125rem;
+  font-weight: var(--weight-semibold);
+}

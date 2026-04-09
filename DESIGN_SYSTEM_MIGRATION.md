@@ -14,8 +14,8 @@ Legacy phase labels such as `Phase 4C`, `Phase 7`, and `Phase 9f` are retired. G
   - `scripts/design-token-strict-baseline.json` tracks existing strict debt outside the governed set.
   - ESLint still warns on raw Tailwind utility patterns in `.tsx` files.
 - Current repo snapshot as of `2026-04-08`:
-  - advisory violations: `38`
-  - strict-baseline entries: `38`
+  - advisory violations: `24`
+  - strict-baseline entries: `25`
   - governed file count: `131`
   - Tailwind retirement status: `not ready`
 
@@ -29,7 +29,7 @@ Current verified state:
 - `pnpm type-check`: passing
 - `node ./scripts/check_design_token_usage.ts`: passing
 - `scripts/check_design_token_usage.ts` governed set: `131` files
-- `scripts/design-token-strict-baseline.json`: `38` remaining entries
+- `scripts/design-token-strict-baseline.json`: `25` remaining entries
 
 Current remaining strict-baseline inventory:
 
@@ -192,7 +192,7 @@ Tailwind removal is the last step, not the current step. Before removing Tailwin
 
 Only then decide whether Tailwind remains for compatibility/token plumbing or is removed entirely.
 
-At the current repo state, this review cannot pass. With `38` advisory violations and `38` strict-baseline entries still present, Tailwind must remain installed until later waves are complete.
+At the current repo state, this review cannot pass. With `24` advisory violations and `25` strict-baseline entries still present, Tailwind must remain installed until later waves are complete.
 
 ## Enforcement Rules
 
@@ -241,8 +241,8 @@ Track these values after each wave:
 
 Current tracked values:
 
-- advisory violation count: `38`
-- strict baseline count: `38`
+- advisory violation count: `24`
+- strict baseline count: `25`
 - governed file count: `131`
 
 Required smoke coverage for touched waves:

@@ -15,6 +15,7 @@ import {
   Scissors,
 } from 'lucide-react';
 import { apiClient } from '../../services/apiClient';
+import styles from './EvidenceNotebook.module.css';
 
 interface EvidenceRecord {
   id: number;
@@ -63,15 +64,12 @@ const escapeHtml = (value: string): string =>
 
 const applyInlineMarkdown = (value: string): string => {
   let output = value;
-  output = output.replace(
-    /`([^`]+)`/g,
-    '<code class="px-1 py-0.5 rounded bg-[var(--glass-bg)] text-cyan-200">$1</code>',
-  );
+  output = output.replace(/`([^`]+)`/g, `<code class="${styles.code}">$1</code>`);
   output = output.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
   output = output.replace(/\*([^*]+)\*/g, '<em>$1</em>');
   output = output.replace(
     /\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g,
-    '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-[var(--accent)] underline">$1</a>',
+    `<a href="$2" target="_blank" rel="noopener noreferrer" class="${styles.link}">$1</a>`,
   );
   return output;
 };
@@ -82,9 +80,7 @@ const renderMarkdown = (markdown: string): string => {
 
   let content = source.replace(/```([\s\S]*?)```/g, (_match, code) => {
     const token = `__CODE_BLOCK_${codeBlocks.length}__`;
-    codeBlocks.push(
-      `<pre class="bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-md p-3 overflow-x-auto"><code>${code}</code></pre>`,
-    );
+    codeBlocks.push(`<pre class="${styles.pre}"><code>${code}</code></pre>`);
     return token;
   });
 
@@ -116,24 +112,20 @@ const renderMarkdown = (markdown: string): string => {
     if (heading) {
       closeLists();
       const level = heading[1].length;
-      out.push(
-        `<h${level} class="font-semibold text-[var(--text-primary)] mt-3 mb-2">${applyInlineMarkdown(heading[2])}</h${level}>`,
-      );
+      out.push(`<h${level}>${applyInlineMarkdown(heading[2])}</h${level}>`);
       continue;
     }
 
     if (/^(-{3,}|\*{3,})$/.test(line)) {
       closeLists();
-      out.push('<hr class="border-[var(--glass-border)] my-3" />');
+      out.push('<hr />');
       continue;
     }
 
     const quote = line.match(/^>\s+(.+)$/);
     if (quote) {
       closeLists();
-      out.push(
-        `<blockquote class="border-l-4 border-[var(--glass-border)] pl-3 italic text-[var(--text-secondary)] my-2">${applyInlineMarkdown(quote[1])}</blockquote>`,
-      );
+      out.push(`<blockquote>${applyInlineMarkdown(quote[1])}</blockquote>`);
       continue;
     }
 
@@ -141,12 +133,12 @@ const renderMarkdown = (markdown: string): string => {
     if (checklist) {
       if (!inUl) {
         closeLists();
-        out.push('<ul class="list-none pl-1 space-y-1">');
+        out.push('<ul>');
         inUl = true;
       }
       const checked = checklist[1].toLowerCase() === 'x';
       out.push(
-        `<li class="text-[var(--text-primary)]"><input type="checkbox" disabled ${checked ? 'checked' : ''} class="mr-2" />${applyInlineMarkdown(checklist[2])}</li>`,
+        `<li><input type="checkbox" disabled ${checked ? 'checked' : ''} /> ${applyInlineMarkdown(checklist[2])}</li>`,
       );
       continue;
     }
@@ -155,10 +147,10 @@ const renderMarkdown = (markdown: string): string => {
     if (unordered) {
       if (!inUl) {
         closeLists();
-        out.push('<ul class="list-disc pl-6 space-y-1">');
+        out.push('<ul>');
         inUl = true;
       }
-      out.push(`<li class="text-[var(--text-primary)]">${applyInlineMarkdown(unordered[1])}</li>`);
+      out.push(`<li>${applyInlineMarkdown(unordered[1])}</li>`);
       continue;
     }
 
@@ -166,15 +158,15 @@ const renderMarkdown = (markdown: string): string => {
     if (ordered) {
       if (!inOl) {
         closeLists();
-        out.push('<ol class="list-decimal pl-6 space-y-1">');
+        out.push('<ol>');
         inOl = true;
       }
-      out.push(`<li class="text-[var(--text-primary)]">${applyInlineMarkdown(ordered[2])}</li>`);
+      out.push(`<li>${applyInlineMarkdown(ordered[2])}</li>`);
       continue;
     }
 
     closeLists();
-    out.push(`<p class="text-[var(--text-primary)] leading-6">${applyInlineMarkdown(line)}</p>`);
+    out.push(`<p>${applyInlineMarkdown(line)}</p>`);
   }
 
   closeLists();

@@ -7,6 +7,7 @@ import { AddToInvestigationButton } from './common/AddToInvestigationButton';
 import { useNavigate } from 'react-router-dom';
 import { FixedSizeList as List } from 'react-window';
 import AutoSizer from './common/AutoSizer';
+import styles from './BlackBookViewer.module.css';
 
 interface BlackBookEntry {
   id: number;
@@ -152,25 +153,34 @@ export const BlackBookViewer: React.FC = () => {
     [navigate],
   );
 
+  const getCategoryBadgeClass = (category: BlackBookEntry['entry_category']) => {
+    switch (category) {
+      case 'credential':
+        return styles.badgeCredential;
+      case 'contact':
+        return styles.badgeContact;
+      default:
+        return styles.badgeOriginal;
+    }
+  };
+
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent)]"></div>
+      <div className={styles.loadingState}>
+        <div className={styles.spinner}></div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className={styles.root}>
       {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div className="flex items-center space-x-3">
-          <Book className="w-8 h-8 text-[var(--accent)]" />
+      <div className={styles.header}>
+        <div className={styles.titleGroup}>
+          <Book className={styles.heroIcon} />
           <div>
-            <h2 className="text-2xl font-bold text-[var(--text-primary)]">
-              Jeffrey Epstein's Black Book
-            </h2>
-            <p className="text-[var(--text-muted)] text-sm">
+            <h2 className={styles.title}>Jeffrey Epstein's Black Book</h2>
+            <p className={styles.subtitle}>
               {filteredEntries.length} of {entries.length} contacts
             </p>
           </div>
@@ -179,38 +189,34 @@ export const BlackBookViewer: React.FC = () => {
         {/* Pretty/Raw Toggle */}
         <button
           onClick={() => setShowRaw(!showRaw)}
-          className={`flex items-center gap-2 px-4 py-2 rounded-[var(--radius-lg)] transition-all ${
-            showRaw
-              ? 'bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] border border-[var(--glass-border)]'
-              : 'bg-[var(--accent)] text-[var(--text-primary)] border border-[var(--accent)]'
+          className={`${styles.toggleButton} ${
+            showRaw ? styles.toggleButtonInactive : styles.toggleButtonActive
           }`}
           title={showRaw ? 'Showing raw OCR text' : 'Showing cleaned text'}
         >
-          {showRaw ? <FileText className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-          <span className="text-sm font-medium">{showRaw ? 'Raw OCR' : 'Pretty'}</span>
+          {showRaw ? <FileText className={styles.smIcon} /> : <Eye className={styles.smIcon} />}
+          <span className={styles.toggleText}>{showRaw ? 'Raw OCR' : 'Pretty'}</span>
         </button>
       </div>
 
       {/* Search Bar */}
-      <div className="relative">
-        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[var(--text-muted)]" />
+      <div className={styles.searchWrap}>
+        <Search className={styles.searchIcon} />
         <input
           type="text"
           placeholder="Search by name, phone, email, or address..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-12 pr-4 py-3 bg-[var(--glass-bg)]/50 border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+          className={styles.searchInput}
         />
       </div>
 
       {/* Alphabet Filter */}
-      <div className="flex flex-wrap gap-2">
+      <div className={styles.letters}>
         <button
           onClick={() => setSelectedLetter('ALL')}
-          className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-            selectedLetter === 'ALL'
-              ? 'bg-[var(--accent)] text-[var(--text-primary)]'
-              : 'bg-[var(--glass-bg)]/50 text-[var(--text-muted)] hover:bg-[var(--glass-bg-highlight)]'
+          className={`${styles.letterButton} ${
+            selectedLetter === 'ALL' ? styles.letterButtonActive : styles.letterButtonInactive
           }`}
         >
           ALL
@@ -219,10 +225,8 @@ export const BlackBookViewer: React.FC = () => {
           <button
             key={letter}
             onClick={() => setSelectedLetter(letter)}
-            className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-              selectedLetter === letter
-                ? 'bg-[var(--accent)] text-[var(--text-primary)]'
-                : 'bg-[var(--glass-bg)]/50 text-[var(--text-muted)] hover:bg-[var(--glass-bg-highlight)]'
+            className={`${styles.letterButton} ${
+              selectedLetter === letter ? styles.letterButtonActive : styles.letterButtonInactive
             }`}
           >
             {letter}
@@ -231,46 +235,46 @@ export const BlackBookViewer: React.FC = () => {
       </div>
 
       {/* Contact Filters */}
-      <div className="flex flex-wrap gap-3 items-center">
-        <label className="flex items-center gap-2 text-[var(--text-secondary)]">
+      <div className={styles.filtersRow}>
+        <label className={styles.checkLabel}>
           <input
             type="checkbox"
             checked={hasPhone}
             onChange={(e) => setHasPhone(e.target.checked)}
           />
           <span>Has Phone</span>
-          <Phone className="w-4 h-4 text-[var(--text-muted)]" />
+          <Phone className={styles.smIcon} />
         </label>
-        <label className="flex items-center gap-2 text-[var(--text-secondary)]">
+        <label className={styles.checkLabel}>
           <input
             type="checkbox"
             checked={hasEmail}
             onChange={(e) => setHasEmail(e.target.checked)}
           />
           <span>Has Email</span>
-          <Mail className="w-4 h-4 text-[var(--text-muted)]" />
+          <Mail className={styles.smIcon} />
         </label>
-        <label className="flex items-center gap-2 text-[var(--text-secondary)]">
+        <label className={styles.checkLabel}>
           <input
             type="checkbox"
             checked={hasAddress}
             onChange={(e) => setHasAddress(e.target.checked)}
           />
           <span>Has Address</span>
-          <MapPin className="w-4 h-4 text-[var(--text-muted)]" />
+          <MapPin className={styles.smIcon} />
         </label>
 
-        <div className="h-6 w-px bg-[var(--glass-bg-highlight)] mx-2 hidden sm:block" />
+        <div className={styles.divider} />
 
-        <div className="flex bg-[var(--glass-bg)]/80 p-1 rounded-[var(--radius-lg)] border border-[var(--glass-border)]">
+        <div className={styles.categoryBar}>
           {['ALL', 'Original', 'Contact', 'Credential'].map((cat) => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-3 py-1 rounded-md text-xs font-semibold transition-all ${
+              className={`${styles.categoryButton} ${
                 selectedCategory === cat
-                  ? 'bg-[var(--accent)]/20 text-[var(--accent)] border border-[var(--accent)]/30'
-                  : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+                  ? styles.categoryButtonActive
+                  : styles.categoryButtonInactive
               }`}
             >
               {cat}
@@ -280,7 +284,7 @@ export const BlackBookViewer: React.FC = () => {
       </div>
 
       {/* Entries Grid - Virtualized */}
-      <div className="w-full h-[600px] bg-[var(--glass-bg)]/10 rounded-[var(--radius-lg)]">
+      <div className={styles.listShell}>
         {filteredEntries.length > 0 && (
           <AutoSizer>
             {({ height, width }: { height: number; width: number }) => {
@@ -295,15 +299,13 @@ export const BlackBookViewer: React.FC = () => {
                   itemCount={rowCount}
                   itemSize={220}
                   width={safeWidth || '100%'}
-                  className="blackbook-virtualized-list"
+                  className={styles.virtualList}
                 >
                   {({ index, style }) => {
                     const rowItems = filteredEntries.slice(index * columns, (index + 1) * columns);
 
                     return (
-                      <div
-                        style={{ ...style, display: 'flex', gap: '1rem', paddingBottom: '1rem' }}
-                      >
+                      <div style={style} className={styles.row}>
                         {rowItems.map((entry) => {
                           const rawName = entry.person_name || extractName(entry.entry_text);
                           const displayName = showRaw
@@ -316,12 +318,12 @@ export const BlackBookViewer: React.FC = () => {
                               style={{
                                 width: `calc(${100 / columns}% - ${((columns - 1) * 16) / columns}px)`,
                               }}
-                              className="bg-[var(--glass-bg)]/50 border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-4 flex flex-col hover:border-[var(--accent)]/50 transition-all h-full"
+                              className={styles.card}
                             >
                               {/* Name - clickable if known entity */}
-                              <div className="flex items-center space-x-3 mb-3">
+                              <div className={styles.cardHeader}>
                                 {entry.thumbnail_path ? (
-                                  <div className="w-10 h-10 rounded-full overflow-hidden border border-[var(--glass-border)] shrink-0 bg-[var(--glass-bg-strong)]">
+                                  <div className={styles.avatar}>
                                     <img
                                       src={
                                         entry.thumbnail_path.startsWith('/')
@@ -329,32 +331,32 @@ export const BlackBookViewer: React.FC = () => {
                                           : `/${entry.thumbnail_path}`
                                       }
                                       alt={displayName}
-                                      className="w-full h-full object-cover"
+                                      className={styles.avatarImg}
                                       loading="lazy"
                                     />
                                   </div>
                                 ) : (
-                                  <div className="w-10 h-10 rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg)] flex items-center justify-center shrink-0">
-                                    <User className="w-5 h-5 text-[var(--accent)]" />
+                                  <div className={styles.fallbackAvatar}>
+                                    <User className={styles.fallbackIcon} />
                                   </div>
                                 )}
-                                <div className="min-w-0 flex-1">
+                                <div className={styles.nameWrap}>
                                   {entry.person_name ? (
                                     <button
                                       onClick={() => handleEntityClick(entry.person_id || 0)}
-                                      className="text-lg font-semibold text-[var(--accent)] hover:text-[var(--accent)] hover:underline flex items-center gap-1 transition-colors text-left truncate w-full"
+                                      className={styles.entityButton}
                                       title="Click to view entity profile"
                                     >
-                                      <span className="truncate">{displayName}</span>
-                                      <ExternalLink className="w-3 h-3 opacity-60 shrink-0" />
+                                      <span className={styles.textClamp}>{displayName}</span>
+                                      <ExternalLink className={styles.tinyExternal} />
                                     </button>
                                   ) : (
-                                    <h3 className="text-lg font-semibold text-[var(--text-primary)] truncate">
+                                    <h3 className={`${styles.plainName} ${styles.textClamp}`}>
                                       {displayName}
                                     </h3>
                                   )}
                                 </div>
-                                <div className="ml-auto">
+                                <div className={styles.headerActions}>
                                   <AddToInvestigationButton
                                     item={{
                                       id: `blackbook-${entry.id}`,
@@ -369,23 +371,20 @@ export const BlackBookViewer: React.FC = () => {
                                       },
                                     }}
                                     variant="icon"
-                                    className="text-[var(--text-muted)] hover:text-[var(--text-primary)] relative z-10"
+                                    className={styles.addButton}
                                   />
                                 </div>
                               </div>
 
                               {/* Contact Info */}
-                              <div className="space-y-2 flex-grow overflow-y-auto pr-2 custom-scrollbar">
+                              <div className={styles.contactSection}>
                                 {/* Phone Numbers */}
                                 {entry.phone_numbers.length > 0 && (
-                                  <div className="flex items-start space-x-2">
-                                    <Phone className="w-4 h-4 text-[var(--text-muted)] mt-1 flex-shrink-0" />
-                                    <div className="flex-1">
+                                  <div className={styles.infoRow}>
+                                    <Phone className={styles.infoIcon} />
+                                    <div className={styles.infoBody}>
                                       {entry.phone_numbers.map((phone, idx) => (
-                                        <div
-                                          key={idx}
-                                          className="text-sm text-[var(--text-secondary)]"
-                                        >
+                                        <div key={idx} className={styles.infoText}>
                                           {showRaw ? phone : formatPhoneNumber(phone)}
                                         </div>
                                       ))}
@@ -395,25 +394,22 @@ export const BlackBookViewer: React.FC = () => {
 
                                 {/* Emails */}
                                 {entry.email_addresses.length > 0 && (
-                                  <div className="flex items-start space-x-2">
-                                    <Mail className="w-4 h-4 text-[var(--text-muted)] mt-1 flex-shrink-0" />
-                                    <div className="flex-1">
+                                  <div className={styles.infoRow}>
+                                    <Mail className={styles.infoIcon} />
+                                    <div className={styles.infoBody}>
                                       {entry.email_addresses.map((email, idx) => (
-                                        <div
-                                          key={idx}
-                                          className="text-sm text-[var(--text-secondary)] break-all flex items-center justify-between gap-2 group/email"
-                                        >
+                                        <div key={idx} className={styles.emailRow}>
                                           <Link
                                             to={`/emails?search=${encodeURIComponent(email)}`}
-                                            className="hover:text-[var(--accent)] hover:underline relative z-10"
+                                            className={styles.emailLink}
                                           >
                                             {email}
                                           </Link>
                                           <Link
                                             to={`/emails?search=${encodeURIComponent(email)}`}
-                                            className="opacity-0 group-hover/email:opacity-100 text-[var(--text-muted)] hover:text-[var(--accent)] relative z-10"
+                                            className={styles.emailActions}
                                           >
-                                            <ExternalLink className="w-3 h-3" />
+                                            <ExternalLink className={styles.tinyExternal} />
                                           </Link>
                                         </div>
                                       ))}
@@ -423,19 +419,16 @@ export const BlackBookViewer: React.FC = () => {
 
                                 {/* Addresses */}
                                 {entry.addresses.length > 0 && (
-                                  <div className="flex items-start space-x-2">
-                                    <MapPin className="w-4 h-4 text-[var(--text-muted)] mt-1 flex-shrink-0" />
-                                    <div className="flex-1">
+                                  <div className={styles.infoRow}>
+                                    <MapPin className={styles.infoIcon} />
+                                    <div className={styles.infoBody}>
                                       {entry.addresses.slice(0, 2).map((address, idx) => (
-                                        <div
-                                          key={idx}
-                                          className="text-sm text-[var(--text-secondary)]"
-                                        >
+                                        <div key={idx} className={styles.infoText}>
                                           {address}
                                         </div>
                                       ))}
                                       {entry.addresses.length > 2 && (
-                                        <div className="text-xs text-[var(--text-muted)] mt-1">
+                                        <div className={styles.subtleCount}>
                                           +{entry.addresses.length - 2} more
                                         </div>
                                       )}
@@ -447,22 +440,16 @@ export const BlackBookViewer: React.FC = () => {
                                 {entry.phone_numbers.length === 0 &&
                                   entry.email_addresses.length === 0 &&
                                   entry.addresses.length === 0 && (
-                                    <div className="text-sm text-[var(--text-muted)] italic">
+                                    <div className={styles.emptyInfo}>
                                       No contact information available
                                     </div>
                                   )}
                               </div>
 
                               {/* Metadata & Categories */}
-                              <div className="pt-3 mt-3 flex items-center justify-between border-t border-[var(--glass-border)] shrink-0">
+                              <div className={styles.cardFooter}>
                                 <span
-                                  className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
-                                    entry.entry_category === 'credential'
-                                      ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
-                                      : entry.entry_category === 'contact'
-                                        ? 'bg-[var(--accent)]/10 text-[var(--accent)] border border-[var(--accent)]/20'
-                                        : 'bg-[var(--glass-bg-highlight)]/50 text-[var(--text-muted)] border border-[var(--glass-border)]'
-                                  }`}
+                                  className={`${styles.categoryBadge} ${getCategoryBadgeClass(entry.entry_category)}`}
                                 >
                                   {entry.entry_category}
                                 </span>
@@ -470,9 +457,9 @@ export const BlackBookViewer: React.FC = () => {
                                 {entry.document_id && (
                                   <Link
                                     to={`/documents/${entry.document_id}`}
-                                    className="text-[10px] text-[var(--text-muted)] hover:text-[var(--accent)] flex items-center gap-1 transition-colors relative z-10"
+                                    className={styles.documentLink}
                                   >
-                                    <FileText className="w-3 h-3" />
+                                    <FileText className={styles.tinyExternal} />
                                     Source Document
                                   </Link>
                                 )}
@@ -492,19 +479,14 @@ export const BlackBookViewer: React.FC = () => {
 
       {/* Empty State */}
       {filteredEntries.length === 0 && (
-        <div className="text-center py-12">
-          <Book className="w-16 h-16 text-[var(--text-primary)] mx-auto mb-4" />
-          <p className={`text-lg ${error ? 'text-red-400' : 'text-[var(--text-muted)]'}`}>
+        <div className={styles.emptyState}>
+          <Book className={styles.emptyIcon} />
+          <p className={`${styles.emptyMessage} ${error ? styles.errorText : styles.mutedText}`}>
             {error ? 'Failed to load contacts' : 'No contacts found'}
           </p>
-          <p className="text-[var(--text-muted)] text-sm mt-2">
-            {error || 'Try adjusting your search or filter'}
-          </p>
+          <p className={styles.emptyHint}>{error || 'Try adjusting your search or filter'}</p>
           {error && (
-            <button
-              onClick={() => void fetchBlackBookEntries()}
-              className="mt-4 px-4 py-2 rounded-[var(--radius-lg)] bg-[var(--glass-bg)] border border-[var(--glass-border)] text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)] transition-colors"
-            >
+            <button onClick={() => void fetchBlackBookEntries()} className={styles.retryButton}>
               Retry
             </button>
           )}

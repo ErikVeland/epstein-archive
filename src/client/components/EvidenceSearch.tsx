@@ -16,6 +16,7 @@ import { Flex } from '../design-system/components/layout/Flex';
 import { Grid } from '../design-system/components/layout/Grid';
 import { LqText } from '../design-system/components/typography/Text';
 import type { SpaceValue } from '../design-system/lib/resolveSpace';
+import styles from './EvidenceSearch.module.css';
 
 interface EvidenceSearchProps {
   onPersonClick?: (person: Person, searchTerm: string) => void;
@@ -67,6 +68,7 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
       minRedFlagRating,
       maxRedFlagRating,
       sortBy,
+      showRedFlagOnly,
     ],
     queryFn: async () => {
       const dataService = optimizedDataService;
@@ -74,7 +76,7 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
 
       const filters: SearchFilters = {
         searchTerm: debouncedSearchTerm || undefined,
-        minRedFlagIndex: minRedFlagRating,
+        minRedFlagIndex: showRedFlagOnly ? Math.max(1, minRedFlagRating) : minRedFlagRating,
         maxRedFlagIndex: maxRedFlagRating,
       };
 
@@ -237,7 +239,7 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
   );
 
   return (
-    <Box className="space-y-6">
+    <Box className={styles.root}>
       <EvidenceFilters
         searchTerm={searchTerm}
         onSearchTermChange={setSearchTerm}
@@ -263,33 +265,33 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
         resultCount={searchResults.length}
       />
 
-      <Box className="space-y-4">
+      <Box className={styles.resultsStack}>
         {loading && people.length === 0 ? (
           <Grid cols={{ base: 1, md: 2 }} gap={24 as SpaceValue}>
             {[...Array(6)].map((_, i) => (
-              <Surface key={i} variant="glass" className="p-5 relative overflow-hidden">
-                <Box className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/5 to-transparent" />
-                <Flex align="start" justify="between" className="mb-4">
+              <Surface key={i} variant="glass" className={styles.skeletonCard}>
+                <Box className={styles.shimmer} />
+                <Flex align="start" justify="between" className={styles.skeletonHeader}>
                   <Flex align="center" gap={12}>
-                    <Box className="bg-white/5 rounded-lg w-10 h-10" />
+                    <Box className={styles.skeletonRow} />
                     <Box>
-                      <Box className="h-4 w-32 bg-white/5 rounded mb-2" />
-                      <Box className="h-3 w-24 bg-white/5 rounded" />
+                      <Box className={`${styles.skeletonLine} ${styles.skeletonLineLg}`} />
+                      <Box className={`${styles.skeletonLine} ${styles.skeletonLineMd}`} />
                     </Box>
                   </Flex>
-                  <Box className="h-6 w-16 bg-white/5 rounded-full" />
+                  <Box className={styles.skeletonBadge} />
                 </Flex>
-                <Box className="space-y-2 mb-4">
-                  <Box className="h-3 w-full bg-white/5 rounded" />
-                  <Box className="h-3 w-5/6 bg-white/5 rounded" />
-                  <Box className="h-3 w-4/6 bg-white/5 rounded" />
+                <Box className={styles.skeletonBody}>
+                  <Box className={`${styles.skeletonLine} ${styles.skeletonFull}`} />
+                  <Box className={`${styles.skeletonLine} ${styles.skeletonWide}`} />
+                  <Box className={`${styles.skeletonLine} ${styles.skeletonMedium}`} />
                 </Box>
-                <Flex align="center" justify="between" className="pt-3 border-t border-white/5">
+                <Flex align="center" justify="between" className={styles.skeletonFooter}>
                   <Flex align="center" gap={8}>
-                    <Box className="h-3 w-16 bg-white/5 rounded" />
-                    <Box className="h-3 w-12 bg-white/5 rounded" />
+                    <Box className={`${styles.skeletonLine} ${styles.skeletonBadge}`} />
+                    <Box className={`${styles.skeletonLine} ${styles.skeletonLineMd}`} />
                   </Flex>
-                  <Box className="h-3 w-20 bg-white/5 rounded" />
+                  <Box className={`${styles.skeletonLine} ${styles.skeletonBadge}`} />
                 </Flex>
               </Surface>
             ))}
@@ -297,24 +299,24 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
         ) : (
           <>
             {searchResults.length === 0 && docSnippets.length === 0 && searchTerm.trim() && (
-              <Flex direction="column" align="center" className="py-24 text-center">
-                <Search size={48} className="text-white/20 mb-4" />
+              <Flex direction="column" align="center" className={styles.emptyState}>
+                <Search size={48} className={styles.emptyIcon} />
                 <LqText variant="h3" color="muted">
                   No results found for &quot;{searchTerm}&quot;
                 </LqText>
-                <LqText variant="small" color="muted" className="mt-2">
+                <LqText variant="small" color="muted" className={styles.emptySubtitle}>
                   Try adjusting your search terms or filters
                 </LqText>
               </Flex>
             )}
 
             {!loading && searchResults.length === 0 && !searchTerm.trim() && !showRedFlagOnly && (
-              <Flex direction="column" align="center" className="py-24 text-center">
-                <Search size={48} className="text-white/20 mb-4" />
+              <Flex direction="column" align="center" className={styles.emptyState}>
+                <Search size={48} className={styles.emptyIcon} />
                 <LqText variant="h3" color="muted">
                   Start searching to find evidence
                 </LqText>
-                <LqText variant="small" color="muted" className="mt-2">
+                <LqText variant="small" color="muted" className={styles.emptySubtitle}>
                   Search for names, keywords, or apply filters
                 </LqText>
               </Flex>

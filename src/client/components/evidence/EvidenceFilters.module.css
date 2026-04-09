@@ -50,7 +50,9 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-lg);
   color: var(--text-primary);
-  transition: box-shadow 0.15s, border-color 0.15s;
+  transition:
+    box-shadow 0.15s,
+    border-color 0.15s;
 }
 
 .searchInput::placeholder {
@@ -87,7 +89,9 @@
   border: none;
   cursor: pointer;
   color: rgba(255, 255, 255, 0.4);
-  transition: background-color 0.15s, color 0.15s;
+  transition:
+    background-color 0.15s,
+    color 0.15s;
   line-height: 0;
 }
 
@@ -144,7 +148,9 @@
   padding: 0 var(--space-3);
   height: 2.5rem;
   color: var(--text-primary);
-  transition: box-shadow 0.15s, border-color 0.15s;
+  transition:
+    box-shadow 0.15s,
+    border-color 0.15s;
 }
 
 .select:focus {

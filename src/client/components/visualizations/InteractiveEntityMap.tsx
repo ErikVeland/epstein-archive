@@ -15,6 +15,7 @@ import {
 import { apiClient } from '../../services/apiClient';
 import { useScrollLock } from '../../hooks/useScrollLock';
 import ScopedErrorBoundary from '../common/ScopedErrorBoundary';
+import styles from './InteractiveEntityMap.module.css';
 
 // Fix for default marker icon issues
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -142,22 +143,19 @@ export const InteractiveEntityMap: React.FC<InteractiveEntityMapProps> = ({
   };
 
   const mapContent = (
-    <div className="relative h-full w-full">
+    <div className={styles.mapShell}>
       {loading && (
-        <div className="absolute inset-0 z-[1000] flex items-center justify-center bg-[var(--glass-bg-strong)]/50 backdrop-blur-sm">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent)]"></div>
+        <div className={styles.loadingOverlay}>
+          <div className={styles.spinner}></div>
         </div>
       )}
 
       {error && (
-        <div className="absolute inset-0 z-[1000] flex items-center justify-center bg-[var(--glass-bg-strong)]/80 backdrop-blur-sm">
-          <div className="text-center p-4">
-            <AlertTriangle className="h-8 w-8 text-red-500 mx-auto mb-2" />
-            <p className="text-red-400 text-sm">{error}</p>
-            <button
-              onClick={() => void fetchMapEntities()}
-              className="mt-2 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] underline"
-            >
+        <div className={styles.errorOverlay}>
+          <div className={styles.errorCard}>
+            <AlertTriangle className={styles.alertIconLg} />
+            <p className={styles.errorText}>{error}</p>
+            <button onClick={() => void fetchMapEntities()} className={styles.errorRetry}>
               Retry
             </button>
           </div>
@@ -166,11 +164,11 @@ export const InteractiveEntityMap: React.FC<InteractiveEntityMapProps> = ({
 
       <ScopedErrorBoundary
         fallback={
-          <div className="flex h-full w-full items-center justify-center p-4">
-            <div className="text-center">
-              <AlertTriangle className="mx-auto mb-2 h-8 w-8 text-red-500" />
-              <p className="text-sm font-semibold text-red-400">Map Rendering Failed</p>
-              <p className="text-xs text-red-400/80">Entity markers may be corrupted.</p>
+          <div className={styles.fallback}>
+            <div className={styles.fallbackCard}>
+              <AlertTriangle className={styles.alertIconLg} />
+              <p className={styles.fallbackTitle}>Map Rendering Failed</p>
+              <p className={styles.fallbackBody}>Entity markers may be corrupted.</p>
             </div>
           </div>
         }
@@ -179,8 +177,7 @@ export const InteractiveEntityMap: React.FC<InteractiveEntityMapProps> = ({
           center={[20, 0]}
           zoom={2}
           maxBoundsViscosity={1.0}
-          className="h-full w-full z-0 bg-[var(--glass-bg-strong)]"
-          style={{ height: '100%', width: '100%', minHeight: '300px' }}
+          className={styles.mapContainer}
         >
           <TileLayer
             attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
@@ -201,26 +198,25 @@ export const InteractiveEntityMap: React.FC<InteractiveEntityMapProps> = ({
               }}
             >
               <Popup className="custom-popup">
-                <div className="p-2 min-w-[200px]">
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <h4 className="font-bold text-[var(--text-primary)] text-sm">{entity.label}</h4>
+                <div className={styles.popupCard}>
+                  <div className={styles.popupHeader}>
+                    <h4 className={styles.popupTitle}>{entity.label}</h4>
                     <div
-                      className={`
-                    px-1.5 py-0.5 rounded text-[10px] font-bold uppercase
-                    ${entity.risk_score >= 4 ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}
-                  `}
+                      className={`${styles.riskBadge} ${
+                        entity.risk_score >= 4 ? styles.riskBadgeHigh : styles.riskBadgeLow
+                      }`}
                     >
                       {entity.risk_level}
                     </div>
                   </div>
 
-                  <div className="text-xs text-[var(--text-primary)] mb-2">
-                    <div className="flex items-center gap-1">
-                      <User className="w-3 h-3" />
+                  <div className={styles.popupMeta}>
+                    <div className={styles.popupRow}>
+                      <User className={styles.popupIcon} />
                       <span>{entity.type}</span>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Shield className="w-3 h-3" />
+                    <div className={styles.popupRow}>
+                      <Shield className={styles.popupIcon} />
                       <span>{entity.mentions} Mentions</span>
                     </div>
                   </div>
@@ -229,9 +225,9 @@ export const InteractiveEntityMap: React.FC<InteractiveEntityMapProps> = ({
                     onClick={() => {
                       if (typeof entity.id === 'number') onEntitySelect?.(entity.id);
                     }}
-                    className="w-full mt-2 px-3 py-1.5 bg-[var(--glass-bg-strong)] text-[var(--text-primary)] text-xs rounded hover:bg-[var(--glass-bg-highlight)] transition-colors flex items-center justify-center gap-1"
+                    className={styles.profileButton}
                   >
-                    View Profile <Navigation className="w-3 h-3" />
+                    View Profile <Navigation className={styles.buttonIcon} />
                   </button>
                 </div>
               </Popup>
@@ -241,50 +237,43 @@ export const InteractiveEntityMap: React.FC<InteractiveEntityMapProps> = ({
       </ScopedErrorBoundary>
 
       {/* Stats Overlay */}
-      <div className="absolute top-4 right-4 z-[400] bg-[var(--glass-bg-strong)]/90 backdrop-blur border border-[var(--glass-border)] p-2 rounded-[var(--radius-lg)] text-xs shadow-[var(--glass-shadow)]">
-        <div className="flex items-center gap-2 mb-1">
-          <MapPin className="w-3 h-3 text-[var(--accent)]" />
-          <span className="text-[var(--text-primary)] font-mono">{entities.length} Locations</span>
+      <div className={styles.statsOverlay}>
+        <div className={styles.statsRow}>
+          <MapPin className={styles.statsIcon} />
+          <span className={styles.statsValue}>{entities.length} Locations</span>
         </div>
-        {entities.length >= 500 && (
-          <div className="text-orange-400 text-[10px]">Cap Reached (Top 500)</div>
-        )}
+        {entities.length >= 500 && <div className={styles.statsWarning}>Cap Reached (Top 500)</div>}
       </div>
     </div>
   );
 
   if (isExpanded) {
     return (
-      <div className="fixed inset-0 z-[2000] bg-[var(--glass-bg-strong)] flex flex-col">
-        <div className="flex items-center justify-between p-4 border-b border-[var(--glass-border)]">
-          <h2 className="text-xl font-bold text-[var(--text-primary)] flex items-center gap-2">
-            <MapPin className="w-5 h-5 text-[var(--accent)]" />
+      <div className={styles.expandedShell}>
+        <div className={styles.expandedHeader}>
+          <h2 className={styles.expandedTitle}>
+            <MapPin className={styles.headerIcon} />
             Global Entity Map
           </h2>
-          <button
-            onClick={() => setIsExpanded(false)}
-            className="p-2 bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] rounded-[var(--radius-lg)] text-[var(--text-primary)]"
-          >
-            <Minimize2 className="w-5 h-5" />
+          <button onClick={() => setIsExpanded(false)} className={styles.collapseButton}>
+            <Minimize2 className={styles.headerIcon} />
           </button>
         </div>
-        <div className="flex-1 relative">{mapContent}</div>
+        <div className={styles.expandedBody}>{mapContent}</div>
       </div>
     );
   }
 
   return (
-    <div
-      className={`relative rounded-[var(--radius-xl)] overflow-hidden border border-[var(--glass-border)] shadow-[var(--glass-shadow)] ${className}`}
-    >
-      <div className="absolute bottom-4 left-4 z-[400]">
+    <div className={`${styles.cardShell} ${className}`}>
+      <div className={styles.expandButtonWrap}>
         <button
           onClick={() => setIsExpanded(true)}
-          className="p-2 bg-[var(--glass-bg-strong)]/90 backdrop-blur hover:bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] transition-colors"
+          className={styles.expandButton}
           title="Expand Map"
           aria-label="Expand map"
         >
-          <Maximize2 className="w-4 h-4" />
+          <Maximize2 className={styles.expandIcon} />
         </button>
       </div>
       {mapContent}

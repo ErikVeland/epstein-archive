@@ -55,6 +55,7 @@ import flightsRoutes from './server/routes/flightsRoutes.js';
 import propertiesRoutes from './server/routes/propertiesRoutes.js';
 import blackBookRoutes from './server/routes/blackBookRoutes.js';
 import faceRoutes from './server/routes/faceRoutes.js';
+import activeLearningRoutes from './server/routes/activeLearning.js';
 import { entitiesRepository } from './server/db/entitiesRepository.js';
 import { mediaRepository } from './server/db/mediaRepository.js';
 import { searchRepository } from './server/db/searchRepository.js';
@@ -827,6 +828,7 @@ export class App {
     router.use('/properties', propertiesRoutes);
     router.use('/black-book', blackBookRoutes);
     router.use('/faces', faceRoutes);
+    router.use('/review', activeLearningRoutes);
     router.use('/investigations', investigationEvidenceRoutes);
     router.use('/investigations/:id/leads', investigationLeadsRouter);
 

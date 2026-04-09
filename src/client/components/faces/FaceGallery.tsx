@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Icon from '../common/Icon';
 import { useToasts } from '../common/useToasts';
+import { apiClient } from '../../services/apiClient';
+import styles from './FaceGallery.module.css';
 
 interface FaceCluster {
   id: string;
@@ -52,13 +54,13 @@ const EntitySearch: React.FC<{
     return () => document.removeEventListener('mousedown', close);
   }, []);
 
-  if (!query.trim() && results.length !== 0) {
-    setResults([]);
-  }
-
+  /* eslint-disable react-hooks/set-state-in-effect -- Intentional: clear results when query becomes empty, debounced search otherwise */
   useEffect(() => {
     if (debounce.current) clearTimeout(debounce.current);
-    if (!query.trim()) return;
+    if (!query.trim()) {
+      setResults([]);
+      return;
+    }
     debounce.current = setTimeout(async () => {
       setSearching(true);
       try {
@@ -77,23 +79,24 @@ const EntitySearch: React.FC<{
       setSearching(false);
     }, 250);
   }, [query]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   return (
-    <div className="relative" ref={ref}>
+    <div className={styles.entitySearch} ref={ref}>
       <input
         type="text"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         onFocus={() => setOpen(true)}
         placeholder={placeholder}
-        className="w-full bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] px-3 py-2 text-sm text-[var(--text-primary)] placeholder-slate-500 focus:border-[var(--accent)] focus:outline-none"
+        className={styles.searchInput}
       />
       {open && (results.length > 0 || searching) && (
-        <div className="absolute z-50 mt-1 w-full bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] shadow-[var(--glass-shadow)] overflow-hidden">
+        <div className={styles.searchResults}>
           {searching ? (
-            <div className="p-3 text-sm text-[var(--text-muted)] text-center">Searching…</div>
+            <div className={styles.searchingState}>Searching…</div>
           ) : (
-            <div className="max-h-52 overflow-y-auto">
+            <div className={styles.searchResultsList}>
               {results.map((entity) => (
                 <button
                   key={entity.id}
@@ -102,21 +105,13 @@ const EntitySearch: React.FC<{
                     setQuery('');
                     setOpen(false);
                   }}
-                  className="w-full flex items-center justify-between px-3 py-2 hover:bg-[var(--glass-bg-highlight)]/60 text-left"
+                  className={styles.searchResultButton}
                 >
                   <div>
-                    <div className="text-sm text-[var(--text-primary)] font-medium">
-                      {entity.name}
-                    </div>
-                    {entity.role && (
-                      <div className="text-xs text-[var(--text-muted)]">{entity.role}</div>
-                    )}
+                    <div className={styles.searchResultName}>{entity.name}</div>
+                    {entity.role && <div className={styles.searchResultRole}>{entity.role}</div>}
                   </div>
-                  <Icon
-                    name="Link"
-                    size="xs"
-                    className="text-[var(--text-muted)] flex-shrink-0 ml-2"
-                  />
+                  <Icon name="Link" size="xs" className={styles.searchResultIcon} />
                 </button>
               ))}
             </div>
@@ -135,21 +130,13 @@ export const FaceGallery: React.FC = () => {
 
   const { data: clusters = [], isLoading: loading } = useQuery<FaceCluster[]>({
     queryKey: ['faceClusters'],
-    queryFn: async () => {
-      const res = await fetch('/api/faces/clusters');
-      if (!res.ok) throw new Error('Failed to fetch clusters');
-      return res.json() as Promise<FaceCluster[]>;
-    },
+    queryFn: () => apiClient.get<FaceCluster[]>('/faces/clusters'),
     staleTime: 30_000,
   });
 
   const { data: clusterDetail = null, isLoading: detailLoading } = useQuery<ClusterDetail | null>({
     queryKey: ['faceClusterDetail', selectedClusterId],
-    queryFn: async () => {
-      const res = await fetch(`/api/faces/clusters/${selectedClusterId}`);
-      if (!res.ok) throw new Error('Failed');
-      return res.json() as Promise<ClusterDetail>;
-    },
+    queryFn: () => apiClient.get<ClusterDetail>(`/faces/clusters/${selectedClusterId}`),
     enabled: Boolean(selectedClusterId),
     staleTime: 30_000,
   });
@@ -158,13 +145,7 @@ export const FaceGallery: React.FC = () => {
     if (!selectedClusterId) return null;
     setSaving(true);
     try {
-      const res = await fetch(`/api/faces/clusters/${selectedClusterId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) throw new Error('Failed');
-      return (await res.json()) as FaceCluster;
+      return await apiClient.patch<FaceCluster>(`/faces/clusters/${selectedClusterId}`, payload);
     } finally {
       setSaving(false);
     }
@@ -215,8 +196,8 @@ export const FaceGallery: React.FC = () => {
 
   if (loading && !clusters.length) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent)]" />
+      <div className={styles.loadingScreen}>
+        <div className={styles.spinnerLg} />
       </div>
     );
   }
@@ -225,74 +206,65 @@ export const FaceGallery: React.FC = () => {
   if (selectedClusterId) {
     const cluster = clusterDetail?.cluster;
     return (
-      <div className="p-6">
-        <button
-          onClick={() => setSelectedClusterId(null)}
-          className="flex items-center text-[var(--text-muted)] hover:text-[var(--text-primary)] mb-6 transition-colors"
-        >
-          <Icon name="ChevronLeft" size="sm" className="mr-2" />
+      <div className={styles.page}>
+        <button onClick={() => setSelectedClusterId(null)} className={styles.backButton}>
+          <Icon name="ChevronLeft" size="sm" className={styles.backIcon} />
           Back to Gallery
         </button>
 
         {detailLoading || !clusterDetail ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent)]" />
+          <div className={styles.loadingCard}>
+            <div className={styles.spinnerMd} />
           </div>
         ) : (
           <div>
             {/* Header */}
-            <div className="flex items-start gap-6 mb-8 border-b border-[var(--glass-border)] pb-6">
+            <div className={styles.detailHeader}>
               {/* Avatar */}
-              <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-[var(--accent)]/50 bg-[var(--glass-bg)] flex-shrink-0">
+              <div className={styles.avatar}>
                 {cluster?.thumbnail_path ? (
                   <img
                     src={getImageUrl(cluster.thumbnail_path) ?? undefined}
                     alt={cluster.name}
-                    className="w-full h-full object-cover"
+                    className={styles.avatarImage}
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-[var(--text-muted)]">
+                  <div className={styles.emptyAvatar}>
                     <Icon name="User" size="lg" />
                   </div>
                 )}
               </div>
 
               {/* Identity panel */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-3 mb-1">
-                  <h1 className="text-2xl font-bold text-[var(--text-primary)] truncate">
-                    {cluster?.name}
-                  </h1>
-                  <span className="text-[var(--text-muted)] text-sm flex-shrink-0">
-                    {cluster?.face_count} faces
-                  </span>
+              <div className={styles.detailIdentity}>
+                <div className={styles.detailTitleRow}>
+                  <h1 className={styles.detailTitle}>{cluster?.name}</h1>
+                  <span className={styles.faceCount}>{cluster?.face_count} faces</span>
                 </div>
 
                 {/* Entity link */}
                 {cluster?.entity_id ? (
-                  <div className="flex items-center gap-2 mt-2">
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-[var(--accent)]/10 border border-[var(--accent)]/30 rounded-[var(--radius-lg)]">
-                      <Icon name="Link" size="xs" className="text-[var(--accent)]" />
-                      <span className="text-sm text-[var(--accent)] font-medium">
+                  <div className={styles.entityLinkedRow}>
+                    <div className={styles.entityBadge}>
+                      <Icon name="Link" size="xs" className={styles.entityBadgeIcon} />
+                      <span className={styles.entityBadgeText}>
                         {cluster.entity_name ?? cluster.name}
                       </span>
                     </div>
                     <button
                       onClick={handleUnlink}
                       disabled={saving}
-                      className="p-1.5 text-[var(--text-muted)] hover:text-[var(--accent-danger)] transition-colors"
+                      className={styles.unlinkButton}
                       title="Remove entity link"
                     >
                       <Icon name="Unlink" size="xs" />
                     </button>
                   </div>
                 ) : (
-                  <div className="mt-3 max-w-xs">
-                    <div className="text-xs text-[var(--text-muted)] mb-1.5 uppercase tracking-wider font-medium">
-                      Link to entity
-                    </div>
+                  <div className={styles.linkPanel}>
+                    <div className={styles.linkLabel}>Link to entity</div>
                     <EntitySearch onSelect={handleLinkEntity} placeholder="Search for a person…" />
-                    <p className="text-xs text-[var(--text-primary)] mt-1.5">
+                    <p className={styles.linkHelp}>
                       Linking tags all {cluster?.face_count} photos to this person in the media
                       browser.
                     </p>
@@ -302,26 +274,23 @@ export const FaceGallery: React.FC = () => {
             </div>
 
             {/* Face grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
+            <div className={styles.facesGrid}>
               {clusterDetail.faces.map((face) => (
-                <div
-                  key={face.id}
-                  className="relative group aspect-square bg-[var(--glass-bg)] rounded-[var(--radius-lg)] overflow-hidden border border-[var(--glass-border)] hover:border-[var(--accent)]/50 transition-all"
-                >
+                <div key={face.id} className={styles.faceCard}>
                   {face.crop_path ? (
                     <img
                       src={getImageUrl(face.crop_path) ?? undefined}
                       alt="Face crop"
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                      className={styles.faceImage}
                       loading="lazy"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-[var(--text-primary)]">
+                    <div className={styles.emptyFace}>
                       <Icon name="User" size="md" />
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2">
-                    <span className="text-xs text-[var(--text-secondary)]">
+                  <div className={styles.faceOverlay}>
+                    <span className={styles.faceOverlayText}>
                       {(face.detection_confidence * 100).toFixed(0)}%
                     </span>
                   </div>
@@ -329,7 +298,7 @@ export const FaceGallery: React.FC = () => {
                     href={`/media?id=${face.media_item_id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="absolute top-2 right-2 p-1.5 bg-[var(--glass-bg-strong)] rounded-full text-[var(--text-primary)] opacity-0 group-hover:opacity-100 hover:bg-[var(--accent)] transition-all"
+                    className={styles.faceActionLink}
                     title="View original photo"
                   >
                     <Icon name="ExternalLink" size="xs" />
@@ -345,59 +314,50 @@ export const FaceGallery: React.FC = () => {
 
   // ── Gallery Grid ─────────────────────────────────────────────────────────────
   return (
-    <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-3">
-          <Icon name="Users" size="md" className="text-[var(--accent)]" />
+    <div className={styles.page}>
+      <div className={styles.galleryHeader}>
+        <h1 className={styles.galleryTitle}>
+          <Icon name="Users" size="md" className={styles.galleryTitleIcon} />
           Face Gallery
         </h1>
-        <div className="text-sm text-[var(--text-muted)]">{clusters.length} People Found</div>
+        <div className={styles.galleryMeta}>{clusters.length} People Found</div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+      <div className={styles.galleryGrid}>
         {clusters.map((cluster) => (
           <button
             key={cluster.id}
             onClick={() => setSelectedClusterId(cluster.id)}
-            className="group flex flex-col bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-xl)] overflow-hidden hover:border-[var(--accent)]/50 hover:shadow-[var(--glass-shadow)] hover:shadow-cyan-500/10 transition-all duration-300 text-left"
+            className={styles.galleryCard}
           >
-            <div className="aspect-square w-full bg-[var(--glass-bg)] relative overflow-hidden">
+            <div className={styles.thumb}>
               {cluster.thumbnail_path ? (
                 <img
                   src={getImageUrl(cluster.thumbnail_path) ?? undefined}
                   alt={cluster.name}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  className={styles.galleryImage}
                   loading="lazy"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-[var(--text-primary)] group-hover:text-[var(--text-muted)]">
+                <div className={styles.emptyThumb}>
                   <Icon name="User" size="xl" />
                 </div>
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60 group-hover:opacity-40 transition-opacity" />
-              <div className="absolute bottom-2 right-2 bg-[var(--glass-bg-strong)] backdrop-blur-sm px-2 py-0.5 rounded text-xs font-mono text-[var(--accent)] border border-[var(--accent)]/30">
-                {cluster.face_count}
-              </div>
+              <div className={styles.thumbGradient} />
+              <div className={styles.countBadge}>{cluster.face_count}</div>
               {cluster.entity_id && (
-                <div
-                  className="absolute top-2 left-2 p-1 bg-[var(--accent)]/80 rounded-full"
-                  title="Linked to entity"
-                >
-                  <Icon name="Link" size="xs" className="text-[var(--text-primary)]" />
+                <div className={styles.linkedBadge} title="Linked to entity">
+                  <Icon name="Link" size="xs" className={styles.linkedBadgeIcon} />
                 </div>
               )}
             </div>
 
-            <div className="p-3">
-              <div className="font-medium text-[var(--text-primary)] truncate group-hover:text-[var(--accent)] transition-colors">
-                {cluster.entity_name ?? cluster.name}
-              </div>
+            <div className={styles.cardBody}>
+              <div className={styles.cardTitle}>{cluster.entity_name ?? cluster.name}</div>
               {cluster.entity_id && cluster.entity_name && cluster.entity_name !== cluster.name && (
-                <div className="text-xs text-[var(--text-muted)] truncate mt-0.5">
-                  {cluster.name}
-                </div>
+                <div className={styles.cardSubtitle}>{cluster.name}</div>
               )}
-              <div className="text-xs text-[var(--text-primary)] mt-0.5">
+              <div className={styles.cardDate}>
                 {new Date(cluster.created_at).toLocaleDateString()}
               </div>
             </div>

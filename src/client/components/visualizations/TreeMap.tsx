@@ -3,6 +3,7 @@ import { ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 import { filterPeopleOnly } from '../../utils/entityFilters';
 import type { Person } from '../../types';
 import { useAnalytics } from '../../contexts/AnalyticsContextState';
+import styles from './TreeMap.module.css';
 
 export interface PersonLike {
   name?: string;
@@ -110,46 +111,31 @@ export const TreeMap: React.FC<TreeMapProps> = ({ people }) => {
   const resetZoom = () => setTransform({ k: 1, x: 0, y: 0 });
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex justify-end gap-2 mb-2">
-        <button
-          onClick={zoomIn}
-          className="p-2 bg-[var(--glass-bg)] rounded hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)]"
-          title="Zoom In"
-        >
+    <div className={styles.wrapper}>
+      <div className={styles.controls}>
+        <button onClick={zoomIn} className={styles.controlButton} title="Zoom In">
           <ZoomIn size={16} />
         </button>
-        <button
-          onClick={zoomOut}
-          className="p-2 bg-[var(--glass-bg)] rounded hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)]"
-          title="Zoom Out"
-        >
+        <button onClick={zoomOut} className={styles.controlButton} title="Zoom Out">
           <ZoomOut size={16} />
         </button>
-        <button
-          onClick={resetZoom}
-          className="p-2 bg-[var(--glass-bg)] rounded hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)]"
-          title="Reset"
-        >
+        <button onClick={resetZoom} className={styles.controlButton} title="Reset">
           <RotateCcw size={16} />
         </button>
       </div>
 
       <div
         ref={containerRef}
-        className={`relative w-full ${isMobile ? 'h-[800px]' : 'h-[600px]'} bg-[var(--glass-bg-strong)]/50 rounded-[var(--radius-xl)] border border-[var(--glass-border)] overflow-hidden cursor-move`}
+        className={`${styles.container} ${
+          isMobile ? styles.containerMobile : styles.containerDesktop
+        }`}
         onWheel={handleWheel}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
       >
-        <svg
-          width="100%"
-          height="100%"
-          viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
-          className="w-full h-full select-none"
-        >
+        <svg width="100%" height="100%" viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className={styles.svg}>
           <g transform={`translate(${transform.x}, ${transform.y}) scale(${transform.k})`}>
             {layout.map((node, index) => {
               const isHovered = hoveredNode?.name === node.name;
@@ -164,7 +150,7 @@ export const TreeMap: React.FC<TreeMapProps> = ({ people }) => {
                     e.stopPropagation(); // Prevent drag start on click
                     onPersonClick?.(node.person);
                   }}
-                  className="cursor-pointer transition-all duration-200"
+                  className={styles.interactiveNode}
                   style={{ opacity: hoveredNode && !isHovered ? 0.6 : 1 }}
                 >
                   <defs>
@@ -196,8 +182,10 @@ export const TreeMap: React.FC<TreeMapProps> = ({ people }) => {
                         x={node.x + node.width / 2}
                         y={node.y + node.height / 2 - 8}
                         textAnchor="middle"
-                        className="fill-[var(--text-primary)] font-semibold text-xs pointer-events-none user-select-none"
+                        fill="var(--text-primary)"
+                        pointerEvents="none"
                         style={{
+                          fontWeight: 600,
                           fontSize: Math.min(14, (node.width * transform.k) / 8) / transform.k,
                         }}
                       >
@@ -207,7 +195,8 @@ export const TreeMap: React.FC<TreeMapProps> = ({ people }) => {
                         x={node.x + node.width / 2}
                         y={node.y + node.height / 2 + 8}
                         textAnchor="middle"
-                        className="fill-[var(--text-primary)] text-xs pointer-events-none user-select-none"
+                        fill="var(--text-primary)"
+                        pointerEvents="none"
                         style={{
                           fontSize: Math.min(12, (node.width * transform.k) / 10) / transform.k,
                         }}
@@ -224,26 +213,22 @@ export const TreeMap: React.FC<TreeMapProps> = ({ people }) => {
 
         {/* Hover tooltip - fixed position relative to viewport */}
         {hoveredNode && (
-          <div className="absolute top-4 right-4 bg-[var(--glass-bg-strong)]/95 backdrop-blur-sm border border-[var(--glass-border)] rounded-[var(--radius-lg)] p-4 shadow-[var(--glass-shadow)] max-w-xs z-10 pointer-events-none">
-            <h4 className="text-[var(--text-primary)] font-bold text-sm mb-2">
-              {hoveredNode.name}
-            </h4>
-            <div className="space-y-1 text-xs">
-              <div className="flex justify-between">
-                <span className="text-[var(--text-muted)]">Mentions:</span>
-                <span className="text-[var(--text-primary)] font-mono">
-                  {hoveredNode.value.toLocaleString()}
-                </span>
+          <div className={styles.tooltip}>
+            <h4 className={styles.tooltipTitle}>{hoveredNode.name}</h4>
+            <div className={styles.tooltipList}>
+              <div className={styles.tooltipRow}>
+                <span className={styles.tooltipLabel}>Mentions:</span>
+                <span className={styles.tooltipValue}>{hoveredNode.value.toLocaleString()}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-[var(--text-muted)]">Percentage:</span>
-                <span className="text-[var(--text-primary)] font-mono">
+              <div className={styles.tooltipRow}>
+                <span className={styles.tooltipLabel}>Percentage:</span>
+                <span className={styles.tooltipValue}>
                   {((hoveredNode.value / total) * 100).toFixed(2)}%
                 </span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-[var(--text-muted)]">Red Flag Index:</span>
-                <span className="text-[var(--text-primary)]">
+              <div className={styles.tooltipRow}>
+                <span className={styles.tooltipLabel}>Red Flag Index:</span>
+                <span className={styles.tooltipRating}>
                   {hoveredNode.redFlagRating}/5 {'🚩'.repeat(hoveredNode.redFlagRating)}
                 </span>
               </div>

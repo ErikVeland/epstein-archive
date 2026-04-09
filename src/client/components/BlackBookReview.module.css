@@ -1,0 +1,328 @@
+.loadingScreen,
+.emptyState,
+.actionButton,
+.progressMeta,
+.headerRow,
+.reviewHeader,
+.contactRow,
+.shortcutHint,
+.buttonContent {
+  display: flex;
+}
+
+.loadingScreen,
+.emptyState {
+  align-items: center;
+  justify-content: center;
+}
+
+.loadingScreen {
+  height: 16rem;
+}
+
+.spinner {
+  width: 3rem;
+  height: 3rem;
+  border-width: 0 0 2px;
+  border-style: solid;
+  border-color: var(--accent);
+  border-radius: 9999px;
+  animation: spin 1s linear infinite;
+}
+
+.emptyState {
+  flex-direction: column;
+  padding: var(--space-12) 0;
+  text-align: center;
+}
+
+.emptyIcon {
+  width: 4rem;
+  height: 4rem;
+  margin-bottom: var(--space-4);
+  color: color-mix(in srgb, var(--status-success, #22c55e) 80%, white);
+}
+
+.emptyTitle {
+  margin-bottom: var(--space-2);
+  color: var(--text-primary);
+  font-size: 1.25rem;
+  font-weight: var(--weight-bold);
+}
+
+.emptyBody {
+  color: var(--text-muted);
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.card {
+  padding: var(--space-6);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--glass-bg) 50%, transparent);
+}
+
+.headerRow {
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.title {
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  font-weight: var(--weight-bold);
+}
+
+.subtitle {
+  margin-top: var(--space-1);
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.remainingValue {
+  color: var(--accent);
+  font-size: 1.875rem;
+  font-weight: var(--weight-bold);
+  text-align: right;
+}
+
+.remainingLabel {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  text-align: right;
+}
+
+.remainingBlock {
+  text-align: right;
+}
+
+.progressSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.progressMeta {
+  align-items: center;
+  justify-content: space-between;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.progressTrack {
+  width: 100%;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: var(--glass-bg-highlight);
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--accent) 90%, white),
+    color-mix(in srgb, var(--status-success, #22c55e) 85%, white)
+  );
+  transition: width 300ms ease;
+}
+
+.reviewHeader {
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.reviewBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: color-mix(in srgb, var(--status-warning, #f59e0b) 80%, white);
+  font-size: 0.875rem;
+  font-weight: var(--weight-medium);
+}
+
+.reviewBadgeIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.entryMeta {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.fieldSection {
+  margin-bottom: var(--space-6);
+}
+
+.fieldSectionCompact {
+  margin-bottom: var(--space-4);
+}
+
+.label {
+  display: block;
+  margin-bottom: var(--space-2);
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: var(--weight-medium);
+}
+
+.monoBlock,
+.valueBlock,
+.textInput,
+.contactCard {
+  border: 1px solid var(--glass-border);
+}
+
+.monoBlock,
+.valueBlock {
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+}
+
+.monoBlock {
+  background: color-mix(in srgb, var(--glass-bg-strong) 50%, transparent);
+  color: var(--text-muted);
+  font-family: var(--font-mono, monospace);
+  font-size: 0.875rem;
+  white-space: pre-wrap;
+}
+
+.valueBlock {
+  background: color-mix(in srgb, var(--glass-bg-strong) 50%, transparent);
+  color: var(--text-secondary);
+}
+
+.textInput {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--glass-bg-strong) 50%, transparent);
+  color: var(--text-primary);
+}
+
+.textInput::placeholder {
+  color: var(--text-muted);
+}
+
+.textInput:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.contactCard {
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--glass-bg-strong) 30%, transparent);
+}
+
+.contactTitle {
+  margin-bottom: var(--space-3);
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: var(--weight-medium);
+}
+
+.contactList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: 0.875rem;
+}
+
+.contactRow {
+  align-items: baseline;
+}
+
+.contactLabel {
+  color: var(--text-muted);
+}
+
+.contactValue {
+  margin-left: var(--space-2);
+  color: var(--text-secondary);
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.actionButton {
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-6);
+  border-radius: var(--radius-lg);
+  font-weight: var(--weight-medium);
+  transition:
+    filter var(--duration-fast, 150ms),
+    opacity var(--duration-fast, 150ms);
+}
+
+.actionButton:hover {
+  filter: brightness(0.94);
+}
+
+.actionButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.actionButtonPrimary {
+  flex: 1 1 auto;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--status-success, #16a34a) 90%, black),
+    color-mix(in srgb, var(--status-success, #059669) 95%, black)
+  );
+  color: var(--text-primary);
+}
+
+.actionButtonSecondary {
+  background: var(--glass-bg-highlight);
+  color: var(--text-primary);
+}
+
+.actionButtonDanger {
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--status-danger, #dc2626) 92%, black),
+    color-mix(in srgb, #db2777 92%, black)
+  );
+  color: var(--text-primary);
+}
+
+.actionIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.shortcutHint {
+  justify-content: center;
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--glass-border);
+}
+
+.shortcutText {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-align: center;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
