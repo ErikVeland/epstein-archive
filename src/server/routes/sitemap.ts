@@ -34,9 +34,13 @@ const COLLECTION_URLS: CollectionEntry[] = [
   { loc: `${ORIGIN}/faq`, changefreq: 'weekly', priority: '0.5' },
 ];
 
+function escapeLoc(url: string): string {
+  return url.replace(/&/g, '&amp;');
+}
+
 function urlEntry(loc: string, changefreq: string, priority: string, lastmod?: string): string {
   const lastmodLine = lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : '';
-  return `  <url>\n    <loc>${loc}</loc>${lastmodLine}\n    <changefreq>${changefreq}</changefreq>\n    <priority>${priority}</priority>\n  </url>`;
+  return `  <url>\n    <loc>${escapeLoc(loc)}</loc>${lastmodLine}\n    <changefreq>${changefreq}</changefreq>\n    <priority>${priority}</priority>\n  </url>`;
 }
 
 router.get('/', async (_req: Request, res: Response) => {
