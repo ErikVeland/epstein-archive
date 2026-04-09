@@ -65,7 +65,8 @@ router.get('/', async (_req: Request, res: Response) => {
     res.setHeader('Content-Type', 'application/xml; charset=utf-8');
     res.setHeader('Cache-Control', 'public, max-age=3600');
     res.status(200).send(xml);
-  } catch (_err) {
+  } catch (err) {
+    console.error('[sitemap] Failed to generate sitemap:', err);
     res.status(500).type('text').send('Error generating sitemap');
   }
 });
