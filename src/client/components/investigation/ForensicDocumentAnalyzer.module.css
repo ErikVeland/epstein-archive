@@ -369,7 +369,9 @@
   border-radius: var(--radius-lg);
   padding: var(--spacing-4);
   cursor: pointer;
-  transition: transform var(--transition-base), background-color var(--transition-base);
+  transition:
+    transform var(--transition-base),
+    background-color var(--transition-base);
 }
 
 .entityItem:hover {
@@ -474,9 +476,18 @@
   font-weight: var(--font-weight-medium);
 }
 
-.badgeHigh { background-color: rgba(var(--accent-red-rgb), 0.2); color: var(--accent-red); }
-.badgeMedium { background-color: rgba(var(--accent-yellow-rgb), 0.2); color: var(--accent-yellow); }
-.badgeLow { background-color: rgba(var(--accent-green-rgb), 0.2); color: var(--accent-green); }
+.badgeHigh {
+  background-color: rgba(var(--accent-red-rgb), 0.2);
+  color: var(--accent-red);
+}
+.badgeMedium {
+  background-color: rgba(var(--accent-yellow-rgb), 0.2);
+  color: var(--accent-yellow);
+}
+.badgeLow {
+  background-color: rgba(var(--accent-green-rgb), 0.2);
+  color: var(--accent-green);
+}
 
 .patternInner {
   display: flex;
@@ -515,9 +526,15 @@
   border-radius: 9999px;
 }
 
-.barHigh { background-color: var(--accent-red); }
-.barMedium { background-color: var(--accent-yellow); }
-.barLow { background-color: var(--accent-green); }
+.barHigh {
+  background-color: var(--accent-red);
+}
+.barMedium {
+  background-color: var(--accent-yellow);
+}
+.barLow {
+  background-color: var(--accent-green);
+}
 
 .anomalyList {
   display: flex;
@@ -580,8 +597,16 @@
   border-top: 1px solid var(--glass-border);
 }
 
-.sentimentNegative { color: var(--accent-red); font-weight: var(--font-weight-semibold); text-transform: capitalize; }
-.sentimentPositive { color: var(--accent-green); font-weight: var(--font-weight-semibold); text-transform: capitalize; }
+.sentimentNegative {
+  color: var(--accent-red);
+  font-weight: var(--font-weight-semibold);
+  text-transform: capitalize;
+}
+.sentimentPositive {
+  color: var(--accent-green);
+  font-weight: var(--font-weight-semibold);
+  text-transform: capitalize;
+}
 
 .modalClose {
   background: none;
@@ -596,8 +621,12 @@
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .iconButton {

@@ -62,7 +62,8 @@
   background: var(--glass-bg-highlight);
   color: var(--text-primary);
   font-size: var(--font-size-sm);
-  transition: box-shadow var(--duration-fast) var(--ease-out),
+  transition:
+    box-shadow var(--duration-fast) var(--ease-out),
     border-color var(--duration-fast) var(--ease-out);
 }
 
@@ -219,7 +220,8 @@
   border-radius: var(--radius-lg);
   background: var(--glass-bg-highlight);
   cursor: pointer;
-  transition: background-color var(--duration-fast) var(--ease-out),
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
     border-color var(--duration-fast) var(--ease-out);
 }
 

@@ -326,11 +326,22 @@
   opacity: 0.9;
 }
 
-.btnPdf { background-color: var(--accent-red); }
-.btnDocx { background-color: var(--accent); }
-.btnJson { background-color: var(--accent-green); }
-.btnTxt { background-color: #9333ea; } /* Purple */
-.btnPrint { background-color: var(--glass-bg-highlight); color: var(--text-primary); }
+.btnPdf {
+  background-color: var(--accent-red);
+}
+.btnDocx {
+  background-color: var(--accent);
+}
+.btnJson {
+  background-color: var(--accent-green);
+}
+.btnTxt {
+  background-color: #9333ea;
+} /* Purple */
+.btnPrint {
+  background-color: var(--glass-bg-highlight);
+  color: var(--text-primary);
+}
 
 .previewContainer {
   background-color: var(--glass-bg);
@@ -406,12 +417,28 @@
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Status colors for badges */
-.unclassified { color: var(--accent-green); background-color: rgba(16, 185, 129, 0.2); }
-.confidential { color: var(--accent); background-color: rgba(59, 130, 246, 0.2); }
-.restricted { color: var(--accent-yellow); background-color: rgba(245, 158, 11, 0.2); }
-.secret { color: var(--accent-red); background-color: rgba(239, 68, 68, 0.2); }
+.unclassified {
+  color: var(--accent-green);
+  background-color: rgba(16, 185, 129, 0.2);
+}
+.confidential {
+  color: var(--accent);
+  background-color: rgba(59, 130, 246, 0.2);
+}
+.restricted {
+  color: var(--accent-yellow);
+  background-color: rgba(245, 158, 11, 0.2);
+}
+.secret {
+  color: var(--accent-red);
+  background-color: rgba(239, 68, 68, 0.2);
+}

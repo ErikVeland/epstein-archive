@@ -92,7 +92,9 @@
   color: var(--text-secondary);
 }
 
-.input, .textarea, .select {
+.input,
+.textarea,
+.select {
   width: 100%;
   padding: 0.5rem 0.75rem;
   background: var(--glass-bg-highlight);
@@ -104,7 +106,9 @@
   transition: ring 0.2s ease;
 }
 
-.input:focus, .textarea:focus, .select:focus {
+.input:focus,
+.textarea:focus,
+.select:focus {
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.6);
 }
 
@@ -128,7 +132,9 @@
 }
 
 .cancelButton:hover {
-  background: var(--glass-bg-highlight); /* This hover should probably be different, maybe darker? */
+  background: var(
+    --glass-bg-highlight
+  ); /* This hover should probably be different, maybe darker? */
   filter: brightness(1.2);
 }
 
@@ -266,9 +272,15 @@
   transition: width 0.3s ease;
 }
 
-.confidenceLow { background: #ef4444; }
-.confidenceMed { background: #eab308; }
-.confidenceHigh { background: #22c55e; }
+.confidenceLow {
+  background: #ef4444;
+}
+.confidenceMed {
+  background: #eab308;
+}
+.confidenceHigh {
+  background: #22c55e;
+}
 
 .hypCardActions {
   display: flex;
@@ -284,7 +296,9 @@
   background: transparent;
   border: none;
   cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 .iconButton:hover {
@@ -362,9 +376,16 @@
   border-radius: 9999px;
 }
 
-.relevanceSupporting { background: #22c55e; }
-.relevanceContradicting { background: #ef4444; }
-.relevanceNeutral { background: var(--glass-bg-highlight); border: 1px solid var(--glass-border); }
+.relevanceSupporting {
+  background: #22c55e;
+}
+.relevanceContradicting {
+  background: #ef4444;
+}
+.relevanceNeutral {
+  background: var(--glass-bg-highlight);
+  border: 1px solid var(--glass-border);
+}
 
 .evidenceLinkDetails {
   display: flex;
@@ -485,12 +506,30 @@
   color: var(--text-primary);
 }
 
-.supportButton { background: #15803d; }
-.supportButton:hover { background: #16a34a; }
-.refuteButton { background: #b91c1c; }
-.refuteButton:hover { background: #dc2626; }
-.reviseButton { background: #a16207; }
-.reviseButton:hover { background: #ca8a04; }
+.supportButton {
+  background: #15803d;
+}
+.supportButton:hover {
+  background: #16a34a;
+}
+.refuteButton {
+  background: #b91c1c;
+}
+.refuteButton:hover {
+  background: #dc2626;
+}
+.reviseButton {
+  background: #a16207;
+}
+.reviseButton:hover {
+  background: #ca8a04;
+}
 
-.statusButtonActiveSupported { background: #064e3b; color: #6ee7b7; }
-.statusButtonActiveRefuted { background: #7f1d1d; color: #fca5a5; }
+.statusButtonActiveSupported {
+  background: #064e3b;
+  color: #6ee7b7;
+}
+.statusButtonActiveRefuted {
+  background: #7f1d1d;
+  color: #fca5a5;
+}
