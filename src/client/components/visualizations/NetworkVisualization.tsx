@@ -15,6 +15,7 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { CollapsibleSplitPane } from '../common/CollapsibleSplitPane';
+import { Button, SearchField, Surface } from '../../design-system/lib';
 import styles from './NetworkVisualization.module.css';
 
 export interface NetworkNode {
@@ -272,19 +273,19 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
 
   const getNodeColor = (type: string, riskLevel?: string): string => {
     const baseColors: Record<string, string> = {
-      person: '#38bdf8', // Blue/Cyan
-      organization: '#fbbf24', // Gold
-      location: '#10b981', // green
-      event: '#f472b6', // pink
-      document: '#94a3b8', // slate
-      evidence: '#f87171', // red
+      person: 'var(--nav-people)',
+      organization: 'var(--nav-emails)', // yellow/gold
+      location: 'var(--nav-documents)', // green
+      event: 'var(--nav-blackbook)', // pink
+      document: 'var(--text-muted)',
+      evidence: 'var(--accent-evidence)',
     };
 
     const riskColors: Record<string, string> = {
-      low: '#22c55e',
-      medium: '#eab308',
-      high: '#f97316',
-      critical: '#dc2626',
+      low: 'var(--risk-low)',
+      medium: 'var(--risk-medium)',
+      high: 'var(--risk-high)',
+      critical: 'var(--risk-critical)',
     };
 
     return riskLevel && riskLevel !== 'low'
@@ -298,24 +299,24 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
 
   const getEdgeColor = (type: string): string => {
     const colors: Record<string, string> = {
-      connection: '#64748b',
-      communication: '#3b82f6',
-      financial: '#fbbf24',
-      legal: '#ef4444',
-      family: '#f472b6',
-      business: '#38bdf8',
-      evidence: '#f97316',
-      co_occurrence: '#475569',
-      co_mention: '#475569',
-      Aviation: '#38bdf8',
-      Banking: '#fbbf24',
-      Investment: '#a855f7',
-      Legal: '#ef4444',
-      Personal: '#f472b6',
-      Professional: '#3b82f6',
-      'Real Estate': '#22c55e',
+      connection: 'var(--text-dim)',
+      communication: 'var(--accent-emails)',
+      financial: 'var(--nav-emails)',
+      legal: 'var(--accent-danger)',
+      family: 'var(--nav-blackbook)',
+      business: 'var(--nav-flights)',
+      evidence: 'var(--accent-investigate)',
+      co_occurrence: 'var(--text-dim)',
+      co_mention: 'var(--text-dim)',
+      Aviation: 'var(--nav-flights)',
+      Banking: 'var(--nav-emails)',
+      Investment: 'var(--nav-media)',
+      Legal: 'var(--accent-danger)',
+      Personal: 'var(--nav-blackbook)',
+      Professional: 'var(--accent-emails)',
+      'Real Estate': 'var(--nav-documents)',
     };
-    return colors[type] || '#64748b';
+    return colors[type] || 'var(--text-dim)';
   };
 
   const applyForceLayout = (nodes: NetworkNode[], edges: NetworkEdge[], iterations = 150) => {
@@ -772,7 +773,7 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
   );
 
   return (
-    <div className={`surface-glass ${styles.root}`}>
+    <div className={styles.root}>
       {/* Header */}
       <div className={styles.header}>
         <div className={styles.headerRow}>
@@ -796,22 +797,21 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
 
           <div className={styles.headerActions}>
             <div className={styles.searchWrap}>
-              <Search className={styles.searchIcon} />
-              <input
-                type="text"
+              <SearchField
                 placeholder="Search entities..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className={`surface-glass ${styles.searchInput}`}
+                className={styles.searchInput}
+                aria-label="Search network entities"
               />
             </div>
 
-            <button
+            <Button
               onClick={() => setShowTableView(!showTableView)}
-              className={`${
-                showTableView
-                  ? `${styles.toggleButton} ${styles.toggleButtonActive}`
-                  : `surface-glass ${styles.toggleButton} ${styles.toggleButtonInactive}`
+              variant={showTableView ? 'secondary' : 'ghost'}
+              size="sm"
+              className={`${styles.toggleButton} ${
+                showTableView ? styles.toggleButtonActive : styles.toggleButtonInactive
               }`}
             >
               {showTableView ? (
@@ -820,26 +820,28 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
                 <FileText className={styles.metaIcon} />
               )}
               <span>{showTableView ? 'Visual Graph' : 'Data Table'}</span>
-            </button>
+            </Button>
 
-            <button
+            <Button
               onClick={() => setShowSettings(!showSettings)}
-              className={
-                showSettings
-                  ? `${styles.iconButton} ${styles.settingsButtonActive}`
-                  : `surface-glass ${styles.iconButton} ${styles.settingsButtonInactive}`
-              }
+              variant={showSettings ? 'secondary' : 'ghost'}
+              size="sm"
+              className={`${styles.iconButton} ${
+                showSettings ? styles.settingsButtonActive : styles.settingsButtonInactive
+              }`}
             >
               <Settings className={styles.metaIcon} />
-            </button>
+            </Button>
 
-            <button
+            <Button
               onClick={exportNetwork}
-              className={`surface-glass ${styles.iconButton} ${styles.exportButton}`}
+              variant="ghost"
+              size="sm"
+              className={`${styles.iconButton} ${styles.exportButton}`}
               title="Export Network"
             >
               <Download className={styles.metaIcon} />
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -856,7 +858,7 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
                         <Users className={`${styles.headerIcon} ${styles.accentIcon}`} />
                         Filtered Entities ({filteredNodes.length})
                       </h4>
-                      <div className={`surface-glass ${styles.tableShell}`}>
+                      <Surface className={styles.tableShell}>
                         <table className={styles.table}>
                           <thead>
                             <tr className={styles.tableHeadRow}>
@@ -925,7 +927,7 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
                             ))}
                           </tbody>
                         </table>
-                      </div>
+                      </Surface>
                     </div>
                   </div>
                 </div>
@@ -944,7 +946,7 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
                     onMouseLeave={handleMouseUp}
                   />
 
-                  <div className={`surface-glass ${styles.zoomControls}`}>
+                  <Surface className={styles.zoomControls}>
                     <button
                       onClick={() => setZoom((prev) => Math.min(3, prev * 1.2))}
                       className={styles.zoomButton}
@@ -965,9 +967,9 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
                     <button onClick={centerNetwork} className={styles.zoomTextButton}>
                       CENTER
                     </button>
-                  </div>
+                  </Surface>
 
-                  <div className={`surface-glass ${styles.legend}`}>
+                  <Surface className={styles.legend}>
                     <h5 className={styles.legendTitle}>Entity Key</h5>
                     <div className={styles.legendGrid}>
                       {['person', 'organization', 'location', 'event'].map((type) => (
@@ -980,7 +982,7 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
                         </div>
                       ))}
                     </div>
-                  </div>
+                  </Surface>
                 </div>
               )}
             </div>
@@ -1215,15 +1217,16 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
           }
           collapsedRight={
             <div className={styles.collapsedPanel}>
-              <button
-                type="button"
+              <Button
                 onClick={() => setShowSettings(true)}
-                className={`control ${styles.collapsedToggle}`}
+                variant="ghost"
+                size="sm"
+                className={styles.collapsedToggle}
                 title="Expand graph settings"
                 aria-label="Expand graph settings"
               >
                 <Settings className={styles.metaIcon} />
-              </button>
+              </Button>
               <div className={styles.collapsedDivider} />
               <Sliders className={styles.collapsedIcon} aria-hidden="true" />
               <Filter className={styles.collapsedIcon} aria-hidden="true" />

@@ -36,7 +36,7 @@ const looksInteractive = (el: Element): boolean => {
   const className = (el.getAttribute('class') || '').toLowerCase();
   return (
     className.includes('cursor-pointer') ||
-    className.includes('control') ||
+    className.includes('interactive') ||
     className.includes('btn') ||
     className.includes('button')
   );
@@ -63,7 +63,7 @@ export const runDevAffordanceAudit = (root: ParentNode = document): void => {
 
     if (hasSuspiciousLabel || isAnchorWithoutDestination) {
       // eslint-disable-next-line no-console
-      console.warn('[UI dead affordance audit] interactive control requires action or gating', {
+      console.warn('[UI dead affordance audit] interactive affordance requires action or gating', {
         text: text || '(icon-only)',
         element: el,
       });

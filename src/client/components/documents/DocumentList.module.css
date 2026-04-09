@@ -128,23 +128,7 @@
 }
 
 .jumpToBtn {
-  margin-left: var(--space-1);
-  margin-right: var(--space-1);
-  display: inline-flex;
-  height: 2rem;
-  width: 2rem;
-  align-items: center;
-  justify-content: center;
-  border-radius: 9999px;
-  background: var(--accent);
-  color: var(--text-primary);
-  border: none;
-  cursor: pointer;
-  transition: filter 0.15s ease;
-}
-
-.jumpToBtn:hover {
-  filter: brightness(1.1);
+  margin-left: 0.25rem;
 }
 
 .actionIcon {
@@ -167,24 +151,5 @@
 }
 
 .pageBtn {
-  padding: var(--space-2) var(--space-4);
-  background: var(--glass-bg-strong);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
-  color: var(--text-primary);
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  cursor: pointer;
-  transition: background 0.15s ease;
-  font-size: var(--type-small);
-}
-
-.pageBtn:hover {
-  background: var(--glass-bg-highlight);
-}
-
-.pageBtn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+  min-width: 8rem;
 }

@@ -16,7 +16,7 @@
 
 .title {
   margin-bottom: var(--space-2);
-  color: var(--color-danger-400);
+  color: var(--accent-danger);
   font-size: 1.875rem;
   font-weight: var(--font-weight-bold);
 }
@@ -72,7 +72,7 @@
 .dateInput:focus {
   outline: none;
   border-color: transparent;
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-danger-500) 50%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 50%, transparent);
 }
 
 .textInput {
@@ -130,14 +130,14 @@
   gap: var(--space-2);
   padding: var(--space-2) var(--space-4);
   border-radius: var(--radius-lg);
-  background: var(--color-danger-600);
+  background: var(--accent-danger);
   color: var(--text-primary);
   font-size: var(--font-size-sm);
   transition: background-color var(--duration-fast) var(--ease-out);
 }
 
 .exportButton:hover {
-  background: var(--color-danger-700);
+  background: color-mix(in srgb, var(--accent-danger) 80%, black);
 }
 
 .summaryGrid {
@@ -174,15 +174,15 @@
 }
 
 .summaryGreen {
-  color: var(--color-green-400);
+  color: var(--accent-success);
 }
 
 .summaryYellow {
-  color: var(--color-yellow-400);
+  color: var(--accent-warning);
 }
 
 .summaryRed {
-  color: var(--color-danger-400);
+  color: var(--accent-danger);
 }
 
 .summaryIcon {
@@ -226,8 +226,8 @@
 }
 
 .transactionItemSelected {
-  border: 1px solid var(--color-danger-500);
-  background: color-mix(in srgb, var(--color-danger-900) 100%, transparent);
+  border: 1px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
 }
 
 .transactionHeader {
@@ -260,7 +260,7 @@
 .routeIconDanger {
   width: 1rem;
   height: 1rem;
-  color: var(--color-danger-400);
+  color: var(--accent-danger);
   flex-shrink: 0;
 }
 
@@ -285,19 +285,19 @@
 }
 
 .riskCritical {
-  color: var(--color-danger-400);
+  color: var(--risk-critical);
 }
 
 .riskHigh {
-  color: var(--color-yellow-400);
+  color: var(--risk-high);
 }
 
 .riskMedium {
-  color: var(--accent);
+  color: var(--risk-medium);
 }
 
 .riskLow {
-  color: var(--color-green-400);
+  color: var(--risk-low);
 }
 
 .addButton {
@@ -351,10 +351,10 @@
   position: relative;
   overflow: hidden;
   padding: 0.25rem 0.5rem;
-  border: 1px solid color-mix(in srgb, var(--color-danger-800) 50%, transparent);
+  border: 1px solid color-mix(in srgb, var(--risk-critical) 30%, transparent);
   border-radius: var(--radius-sm);
-  background: color-mix(in srgb, var(--color-danger-900) 40%, transparent);
-  color: var(--color-danger-200);
+  background: color-mix(in srgb, var(--risk-critical) 15%, transparent);
+  color: var(--text-strong);
   font-size: 0.75rem;
 }
 
@@ -370,7 +370,7 @@
   bottom: -0.25rem;
   width: 1.5rem;
   height: 1.5rem;
-  color: color-mix(in srgb, var(--color-danger-500) 10%, transparent);
+  color: color-mix(in srgb, var(--risk-critical) 10%, transparent);
   transform: rotate(12deg);
 }
 
@@ -423,18 +423,18 @@
 }
 
 .scoreHigh {
-  background: color-mix(in srgb, var(--color-danger-900) 100%, transparent);
-  color: var(--color-danger-200);
+  background: color-mix(in srgb, var(--risk-critical) 25%, transparent);
+  color: var(--text-strong);
 }
 
 .scoreMedium {
-  background: color-mix(in srgb, var(--color-yellow-900) 100%, transparent);
-  color: var(--color-yellow-200);
+  background: color-mix(in srgb, var(--risk-medium) 25%, transparent);
+  color: var(--text-strong);
 }
 
 .scoreLow {
-  background: color-mix(in srgb, var(--color-green-900) 100%, transparent);
-  color: var(--color-green-200);
+  background: color-mix(in srgb, var(--risk-low) 25%, transparent);
+  color: var(--text-strong);
 }
 
 .flowGrid {
@@ -463,7 +463,7 @@
 
 .patternCard {
   padding: var(--space-2);
-  border-left: 2px solid var(--color-danger-500);
+  border-left: 2px solid var(--accent);
   border-radius: var(--radius-sm);
   background: var(--glass-bg-highlight);
 }
@@ -489,18 +489,18 @@
 }
 
 .severityCritical {
-  background: color-mix(in srgb, var(--color-danger-900) 100%, transparent);
-  color: var(--color-danger-200);
+  background: color-mix(in srgb, var(--risk-critical) 30%, transparent);
+  color: var(--text-strong);
 }
 
 .severityHigh {
-  background: color-mix(in srgb, var(--color-yellow-900) 100%, transparent);
-  color: var(--color-yellow-200);
+  background: color-mix(in srgb, var(--risk-high) 30%, transparent);
+  color: var(--text-strong);
 }
 
 .severityLow {
-  background: color-mix(in srgb, var(--color-blue-900) 100%, transparent);
-  color: var(--color-blue-200);
+  background: color-mix(in srgb, var(--risk-low) 30%, transparent);
+  color: var(--text-strong);
 }
 
 .patternDescription {

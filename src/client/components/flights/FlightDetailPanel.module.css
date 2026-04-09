@@ -1,97 +1,124 @@
-/* FlightDetailPanel.module.css */
+/* Flight Detail Panel - Scoped Presentation Tokens */
 
-.backdropButton {
+.detailOverlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  justify-content: flex-end;
+  z-index: var(--z-modal);
+}
+
+.backdrop {
   position: absolute;
   inset: 0;
+  background: color-mix(in srgb, var(--bg-dark) 40%, transparent);
+  backdrop-filter: blur(4px);
 }
 
-.closeBtn {
-  border: 1px solid var(--glass-border);
-  background-color: color-mix(in srgb, var(--glass-bg-strong) 80%, transparent);
-  color: var(--text-primary);
+.detailPanel {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+  height: 100%;
+  border-left: 1px solid var(--glass-border);
+  display: flex;
+  flex-direction: column;
+  animation: slideInRight var(--duration-normal) var(--easing-liquid);
 }
 
-.routeGrid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--space-4);
-  margin-bottom: var(--space-6);
+.header {
+  padding: var(--space-6);
+  border-bottom: 1px solid var(--glass-border);
 }
 
-@media (min-width: 768px) {
-  .routeGrid {
-    grid-template-columns: 1fr 1fr;
-  }
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-6);
 }
 
 .infoCard {
-  background-color: color-mix(in srgb, var(--glass-bg) 50%, transparent);
   padding: var(--space-4);
+  flex: 1;
+}
+
+.mapWrapper {
+  height: 240px;
   border-radius: var(--radius-lg);
+  overflow: hidden;
   border: 1px solid var(--glass-border);
-}
-
-.infoCardHeader {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  margin-bottom: var(--space-2);
-}
-
-.infoCardIconAccent {
-  color: var(--accent);
-}
-
-.infoCardIconEmerald {
-  color: #34d399;
-}
-
-.infoCardLabel {
-  font-size: var(--type-small);
-  font-weight: var(--weight-medium);
-  color: var(--text-muted);
-}
-
-.infoCardAirport {
-  font-size: 1.125rem;
-  font-weight: var(--weight-bold);
-  color: var(--text-primary);
-  margin-bottom: var(--space-1);
-}
-
-.infoCardDate {
-  font-size: var(--type-small);
-  color: var(--text-muted);
-}
-
-.mapSection {
-  margin-bottom: var(--space-6);
-}
-
-.mapSectionTitle {
-  font-size: var(--type-small);
-  font-weight: var(--weight-medium);
-  color: var(--text-muted);
-  margin-bottom: var(--space-3);
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
+  margin-top: var(--space-3);
 }
 
 .mapUnavailable {
-  background-color: color-mix(in srgb, var(--glass-bg) 50%, transparent);
-  padding: var(--space-8);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--glass-border);
-  text-align: center;
+  height: 100%;
+  background: color-mix(in srgb, var(--bg-dark) 50%, transparent);
 }
 
-.mapUnavailableIcon {
-  color: var(--text-primary);
-  margin-bottom: var(--space-2);
-  margin-inline: auto;
+.passengerRow {
+  padding: var(--space-2) var(--space-3);
 }
 
-.mapUnavailableText {
-  color: var(--text-muted);
+.roleIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.roleIcon.victim {
+  color: var(--risk-critical);
+  background: color-mix(in srgb, var(--risk-critical) 15%, transparent);
+}
+.roleIcon.perpetrator {
+  color: var(--risk-high);
+  background: color-mix(in srgb, var(--risk-high) 15%, transparent);
+}
+.roleIcon.witness {
+  color: var(--accent-info);
+  background: color-mix(in srgb, var(--accent-info) 15%, transparent);
+}
+
+.passengerLink {
+  color: var(--accent);
+  text-decoration: none;
+  transition: color var(--duration-fast);
+}
+
+.passengerLink:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
+}
+
+.aircraftMeta {
+  flex: 1;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--bg-dark) 30%, transparent);
+}
+
+.actions {
+  margin-top: var(--space-4);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--glass-border);
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 640px) {
+  .detailPanel {
+    max-width: 100%;
+  }
+  .routeGrid {
+    flex-direction: column;
+  }
 }

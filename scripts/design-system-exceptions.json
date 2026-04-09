@@ -1,0 +1,23 @@
+[
+  {
+    "rule": "hardcoded-color",
+    "pattern": "src/client/components/visualizations/",
+    "owner": "design-system-migration",
+    "reason": "Visualization palette migration is tracked separately and still relies on feature-owned color definitions.",
+    "expiresOn": "2026-06-30"
+  },
+  {
+    "rule": "raw-interactive-element",
+    "pattern": "src/client/components/visualizations/",
+    "owner": "design-system-migration",
+    "reason": "Visualization controls and SVG/canvas affordances still need dedicated wrappers before full primitive adoption.",
+    "expiresOn": "2026-06-30"
+  },
+  {
+    "rule": "presentational-inline-style",
+    "pattern": "src/client/components/visualizations/",
+    "owner": "design-system-migration",
+    "reason": "Chart geometry and rendering styles remain dynamic and are temporarily exempt from presentational inline-style enforcement.",
+    "expiresOn": "2026-06-30"
+  }
+]

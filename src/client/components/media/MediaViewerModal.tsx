@@ -15,16 +15,25 @@ import {
   Check,
   Save,
   RotateCw,
+  Share2,
+  MapPin,
 } from 'lucide-react';
+import {
+  Surface,
+  Flex,
+  Box,
+  Stack,
+  LqText,
+  Button,
+  Grid as LqGrid,
+  cn,
+} from '../../design-system/lib';
 import { MediaImage } from '../../types/media.types';
-import Icon from '../common/Icon';
 import { useAuth } from '../../contexts/AuthContext';
 import LocationMap from '../visualizations/LocationMap';
 import TagSelector, { TagData } from '../common/TagSelector';
 import PeopleSelector, { PersonData } from '../entities/PeopleSelector';
 import { useScrollLock } from '../../hooks/useScrollLock';
-import { CloseButton } from '../common/CloseButton';
-import { cn } from '@client/utils/cn';
 import styles from './MediaViewerModal.module.css';
 
 interface MediaViewerModalProps {
@@ -152,7 +161,6 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
       });
       if (!res.ok) {
         setRotation((prev) => (prev - (direction === 'right' ? 90 : -90)) % 360);
-        console.error('Failed to rotate image');
         return;
       }
       const updatedImage = await res.json();
@@ -162,7 +170,7 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
       setImageVersion((v) => v + 1);
       setRotation(0);
     } catch (e) {
-      console.error('Error rotating image:', e);
+      console.error(e);
       setRotation((prev) => (prev - (direction === 'right' ? 90 : -90)) % 360);
     }
   };
@@ -175,15 +183,11 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title: editTitle, description: editDesc }),
       });
-      if (!res.ok) {
-        console.error('Failed to save');
-        alert('Failed to save changes');
-        return;
-      }
+      if (!res.ok) throw new Error('Save failed');
       setIsEditing(false);
       onImageUpdate?.({ ...currentImage, title: editTitle, description: editDesc });
     } catch (e) {
-      console.error('Error saving:', e);
+      console.error(e);
       alert('Error saving changes');
     }
   };
@@ -199,17 +203,13 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-        if (e.key === 'Escape') {
-          (e.target as HTMLElement).blur();
-        }
-        if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') return;
+        if (e.key === 'Escape') (e.target as HTMLElement).blur();
         return;
       }
-
       if (e.key === 'Escape') onClose();
       if (e.key === 'ArrowRight') handleNext();
       if (e.key === 'ArrowLeft') handlePrev();
-      if (e.key === 'i') setShowSidebar((prev) => !prev);
+      if (e.key === 'i') setShowSidebar((v) => !v);
     },
     [handleNext, handlePrev, onClose],
   );
@@ -230,7 +230,13 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
 
   const formatDate = (dateString: string | undefined | null) => {
     if (!dateString) return 'Unknown';
-    return new Date(dateString).toLocaleString();
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   };
 
   const formatFileSize = (bytes: number | undefined) => {
@@ -252,73 +258,84 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
   const imageSrc = `/api/media/images/${currentImage.id}/raw?v=${imageVersion}`;
 
   return createPortal(
-    <div id="MediaViewerModal" className={styles.overlay}>
-      <div
+    <Box className={styles.overlay}>
+      <Box
         className={cn(
           styles.mainPanel,
           showSidebar ? styles.mainPanelShifted : styles.mainPanelFull,
         )}
       >
-        <div className={styles.toolbar}>
-          <div className={styles.toolbarLeft}>
-            <CloseButton
-              onClick={onClose}
-              size="sm"
-              label="Close media viewer"
-              className={styles.controlButton}
-            />
-            <div className={styles.toolbarMeta}>
-              <h2 className={styles.toolbarTitle}>{currentImage.title}</h2>
-              <p className={styles.toolbarCounter}>
-                {currentIndex + 1} / {images.length}
-              </p>
-            </div>
-          </div>
+        <Flex justify="between" align="center" className={styles.toolbar}>
+          <Flex align="center" gap="md">
+            <Button variant="glass" size="sm" onClick={onClose} title="Close Resolution Viewer">
+              <X size={20} />
+            </Button>
+            <Stack gap="0">
+              <LqText variant="small" weight="bold" color="foreground">
+                {currentImage.title}
+              </LqText>
+              <LqText
+                variant="xs"
+                color="muted"
+                style={{ textTransform: 'uppercase' }}
+                weight="bold"
+              >
+                OBJECT {currentIndex + 1} OF {images.length}
+              </LqText>
+            </Stack>
+          </Flex>
 
-          <div className={styles.toolbarActions}>
-            <button onClick={handleShare} className={styles.iconButton} title="Copy Link">
+          <Flex align="center" gap="sm">
+            <Button variant="glass" size="sm" onClick={handleShare}>
               {showCopied ? (
-                <Check size={20} className={styles.successIcon} />
+                <Check size={18} className={styles.successIcon} />
               ) : (
-                <Icon name="Share2" size="sm" className={styles.shareIcon} />
+                <Share2 size={18} />
               )}
-            </button>
-            <button onClick={() => setIsZoomed(!isZoomed)} className={styles.iconButton}>
-              {isZoomed ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
-            </button>
+            </Button>
+            <Button variant="glass" size="sm" onClick={() => setIsZoomed(!isZoomed)}>
+              {isZoomed ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+            </Button>
             {isAdmin && (
-              <button
+              <Button
+                variant="glass"
+                size="sm"
                 onClick={() => handleRotate('right')}
-                className={styles.iconButton}
                 title="Rotate 90° CW"
               >
-                <RotateCw size={20} />
-              </button>
+                <RotateCw size={18} />
+              </Button>
             )}
-            <button
+            <Button
+              variant={showSidebar ? 'accent-solid' : 'glass'}
+              size="sm"
               onClick={() => setShowSidebar(!showSidebar)}
-              className={cn(
-                styles.iconButton,
-                showSidebar ? styles.iconButtonActive : styles.iconButtonIdle,
-              )}
             >
-              <Info size={20} />
-            </button>
-          </div>
-        </div>
+              <Info size={18} />
+            </Button>
+          </Flex>
+        </Flex>
 
         {currentIndex > 0 && (
-          <button onClick={handlePrev} className={cn(styles.navButton, styles.navButtonLeft)}>
-            <ChevronLeft size={32} className={styles.navIconLeft} />
-          </button>
+          <Button
+            variant="glass"
+            className={cn(styles.navButton, styles.navButtonLeft)}
+            onClick={handlePrev}
+          >
+            <ChevronLeft size={48} />
+          </Button>
         )}
         {currentIndex < images.length - 1 && (
-          <button onClick={handleNext} className={cn(styles.navButton, styles.navButtonRight)}>
-            <ChevronRight size={32} className={styles.navIconRight} />
-          </button>
+          <Button
+            variant="glass"
+            className={cn(styles.navButton, styles.navButtonRight)}
+            onClick={handleNext}
+          >
+            <ChevronRight size={48} />
+          </Button>
         )}
 
-        <div
+        <Box
           className={styles.imageStage}
           onClick={() => setShowSidebar(false)}
           onTouchStart={onTouchStart}
@@ -326,9 +343,9 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
           onTouchEnd={onTouchEnd}
         >
           {imageLoading && (
-            <div className={styles.loadingOverlay}>
-              <div className={styles.loadingSpinner} />
-            </div>
+            <Flex align="center" justify="center" className={styles.loadingOverlay}>
+              <Box className={styles.loadingSpinner} />
+            </Flex>
           )}
           <img
             src={imageSrc}
@@ -342,161 +359,185 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
             style={{ transform: `rotate(${rotation}deg)` }}
             draggable={false}
           />
-        </div>
-      </div>
+        </Box>
+      </Box>
 
-      <div
+      <Surface
+        variant="glass-container"
         className={cn(styles.sidebar, showSidebar ? styles.sidebarVisible : styles.sidebarHidden)}
       >
-        <div className={styles.sidebarContent}>
-          <div>
-            {isEditing ? (
-              <div className={styles.editSection}>
-                <label className={styles.sectionLabel}>Title</label>
-                <input
-                  type="text"
-                  value={editTitle}
-                  onChange={(e) => setEditTitle(e.target.value)}
-                  className={styles.textInput}
-                />
-              </div>
-            ) : (
-              <>
-                <div className={styles.sidebarHeader}>
-                  <h3 className={styles.sidebarTitle}>{currentImage.title}</h3>
-                  <div className={styles.sidebarHeaderActions}>
-                    {isAdmin && (
-                      <button onClick={() => setIsEditing(true)} className={styles.editButton}>
-                        <Edit2 size={16} />
-                      </button>
-                    )}
-                    <CloseButton
-                      onClick={() => setShowSidebar(false)}
-                      size="sm"
-                      label="Close media details"
-                      className={styles.sidebarCloseButton}
+        <Stack gap="xl" className={styles.sidebarContent}>
+          <Stack gap="md">
+            <Flex justify="between" align="start">
+              <Stack gap="xs" style={{ flex: 1 }}>
+                {isEditing ? (
+                  <Stack gap="xs">
+                    <LqText variant="xs" weight="bold" color="muted">
+                      EDIT TITLE
+                    </LqText>
+                    <input
+                      type="text"
+                      value={editTitle}
+                      onChange={(e) => setEditTitle(e.target.value)}
+                      className={styles.textInput}
                     />
-                  </div>
-                </div>
-                <p className={styles.filename} title={currentImage.filename}>
-                  {currentImage.filename}
-                </p>
-              </>
+                  </Stack>
+                ) : (
+                  <Stack gap="0">
+                    <LqText variant="body" weight="bold">
+                      {currentImage.title}
+                    </LqText>
+                    <LqText variant="xs" color="muted" style={{ textTransform: 'uppercase' }}>
+                      {currentImage.filename}
+                    </LqText>
+                  </Stack>
+                )}
+              </Stack>
+              <Flex gap="xs">
+                {isAdmin && !isEditing && (
+                  <Button variant="glass" size="sm" onClick={() => setIsEditing(true)}>
+                    <Edit2 size={14} />
+                  </Button>
+                )}
+                <Button variant="glass" size="sm" onClick={() => setShowSidebar(false)}>
+                  <X size={14} />
+                </Button>
+              </Flex>
+            </Flex>
+
+            {isEditing && (
+              <Flex gap="sm">
+                <Button variant="secondary" size="sm" onClick={handleSave}>
+                  <Save size={14} />
+                  <span>Save Intelligence</span>
+                </Button>
+                <Button variant="glass" size="sm" onClick={() => setIsEditing(false)}>
+                  <X size={14} />
+                </Button>
+              </Flex>
             )}
-          </div>
+          </Stack>
 
-          {isEditing && (
-            <div className={styles.editActions}>
-              <button onClick={handleSave} className={styles.saveButton}>
-                <Save size={16} /> Save Changes
-              </button>
-              <button onClick={() => setIsEditing(false)} className={styles.cancelButton}>
-                <X size={16} />
-              </button>
-            </div>
-          )}
-
-          <div className={styles.section}>
-            <h4 className={styles.sectionHeading}>File Information</h4>
-            <div className={styles.infoGrid}>
-              <div className={styles.infoCard}>
-                <div className={styles.infoLabelRow}>
-                  <FileImage size={14} />
-                  <span className={styles.infoLabel}>Size</span>
-                </div>
-                <div className={styles.infoValue}>{formatFileSize(currentImage.fileSize)}</div>
-              </div>
-              <div className={styles.infoCard}>
-                <div className={styles.infoLabelRow}>
-                  <Tag size={14} />
-                  <span className={styles.infoLabel}>Type</span>
-                </div>
-                <div className={cn(styles.infoValue, styles.infoValueUppercase)}>
+          <Stack gap="md">
+            <Flex align="center" gap="sm">
+              <Box className={styles.sectionIcon}>
+                <FileImage size={14} />
+              </Box>
+              <LqText variant="xs" weight="bold" style={{ textTransform: 'uppercase' }}>
+                File Matrix
+              </LqText>
+            </Flex>
+            <LqGrid cols={2} gap="sm">
+              <Surface variant="glass-highlight" p="sm" className={styles.infoCard}>
+                <LqText variant="xs" color="muted" weight="bold">
+                  SIZE
+                </LqText>
+                <LqText variant="xs" weight="bold">
+                  {formatFileSize(currentImage.fileSize)}
+                </LqText>
+              </Surface>
+              <Surface variant="glass-highlight" p="sm" className={styles.infoCard}>
+                <LqText variant="xs" color="muted" weight="bold">
+                  FORMAT
+                </LqText>
+                <LqText variant="xs" weight="bold" style={{ textTransform: 'uppercase' }}>
                   {currentImage.format}
-                </div>
-              </div>
-            </div>
-          </div>
+                </LqText>
+              </Surface>
+            </LqGrid>
+          </Stack>
 
-          {(currentImage.description || isEditing) && (
-            <div className={styles.sectionCompact}>
-              <h4 className={styles.sectionHeading}>Description</h4>
-              {isEditing ? (
-                <textarea
-                  value={editDesc}
-                  onChange={(e) => setEditDesc(e.target.value)}
-                  rows={6}
-                  className={styles.textarea}
-                />
-              ) : (
-                <p className={styles.description}>{currentImage.description}</p>
-              )}
-            </div>
-          )}
+          <Stack gap="md">
+            <Flex align="center" gap="sm">
+              <Box className={styles.sectionIcon}>
+                <Info size={14} />
+              </Box>
+              <LqText variant="xs" weight="bold" style={{ textTransform: 'uppercase' }}>
+                Forensic Description
+              </LqText>
+            </Flex>
+            {isEditing ? (
+              <textarea
+                value={editDesc}
+                onChange={(e) => setEditDesc(e.target.value)}
+                rows={4}
+                className={styles.textarea}
+              />
+            ) : (
+              <LqText variant="xs" color="muted">
+                {currentImage.description || 'No analytical summary provided.'}
+              </LqText>
+            )}
+          </Stack>
 
-          <div className={styles.section}>
-            <h4 className={styles.sectionHeadingWithIcon}>
-              <Camera size={14} /> Camera Details
-            </h4>
-            <div className={styles.exifList}>
-              <div className={styles.exifRow}>
-                <span className={styles.exifLabel}>Date Taken</span>
-                <span className={styles.exifValue}>{formatDate(currentImage.dateTaken)}</span>
-              </div>
-              <div className={styles.exifRow}>
-                <span className={styles.exifLabel}>Camera</span>
-                <span className={styles.exifValue}>
-                  {currentImage.cameraMake} {currentImage.cameraModel || 'Unknown'}
-                </span>
-              </div>
-              <div className={styles.exifRow}>
-                <span className={styles.exifLabel}>Resolution</span>
-                <span className={styles.exifValue}>
-                  {currentImage.width} x {currentImage.height}
-                </span>
-              </div>
-              <div className={styles.miniStatGrid}>
-                <div className={styles.miniStatCard}>
-                  <div className={styles.miniStatLabel}>ISO</div>
-                  <div className={styles.miniStatValue}>{currentImage.iso || '-'}</div>
-                </div>
-                <div className={styles.miniStatCard}>
-                  <div className={styles.miniStatLabel}>Aperture</div>
-                  <div className={styles.miniStatValue}>{currentImage.aperture || '-'}</div>
-                </div>
-                <div className={styles.miniStatCardWide}>
-                  <div className={styles.miniStatLabel}>Shutter</div>
-                  <div
-                    className={styles.miniStatValueTruncate}
-                    title={currentImage.shutterSpeed?.toString()}
-                  >
-                    {(() => {
-                      const val = currentImage.shutterSpeed;
-                      if (!val) return '-';
-                      const num = Number(val);
-                      if (Number.isNaN(num)) return val;
-                      if (num >= 1) return `${Math.round(num * 10) / 10}s`;
-                      if (num > 0) return `1/${Math.round(1 / num)}`;
-                      return val;
-                    })()}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <Stack gap="md">
+            <Flex align="center" gap="sm">
+              <Box className={styles.sectionIcon}>
+                <Camera size={14} />
+              </Box>
+              <LqText variant="xs" weight="bold" style={{ textTransform: 'uppercase' }}>
+                EXIF Intelligence
+              </LqText>
+            </Flex>
+            <Surface variant="glass-highlight" p="md">
+              <Stack gap="sm">
+                <Flex justify="between" align="center">
+                  <LqText variant="xs" color="muted">
+                    DATE CAPTURED
+                  </LqText>
+                  <LqText variant="xs" weight="bold">
+                    {formatDate(currentImage.dateTaken)}
+                  </LqText>
+                </Flex>
+                <Flex justify="between" align="center">
+                  <LqText variant="xs" color="muted">
+                    OPTICS
+                  </LqText>
+                  <LqText variant="xs" weight="bold">
+                    {currentImage.cameraMake} {currentImage.cameraModel || 'Generic'}
+                  </LqText>
+                </Flex>
+                <Flex justify="between" align="center">
+                  <LqText variant="xs" color="muted">
+                    RESOLUTION
+                  </LqText>
+                  <LqText variant="xs" weight="bold">
+                    {currentImage.width} × {currentImage.height}
+                  </LqText>
+                </Flex>
+              </Stack>
+            </Surface>
+          </Stack>
 
           {currentImage.latitude && currentImage.longitude && (
-            <LocationMap
-              latitude={currentImage.latitude}
-              longitude={currentImage.longitude}
-              title={currentImage.title || 'Photo Location'}
-            />
+            <Stack gap="md">
+              <Flex align="center" gap="sm">
+                <Box className={styles.sectionIcon}>
+                  <MapPin size={14} />
+                </Box>
+                <LqText variant="xs" weight="bold" style={{ textTransform: 'uppercase' }}>
+                  Spatial Provenance
+                </LqText>
+              </Flex>
+              <Box className={styles.mapContainer}>
+                <LocationMap
+                  latitude={currentImage.latitude}
+                  longitude={currentImage.longitude}
+                  title="Capture Coordinates"
+                />
+              </Box>
+            </Stack>
           )}
 
-          <div className={styles.sectionCompact}>
-            <h4 className={styles.sectionHeadingWithIcon}>
-              <Tag size={14} /> Tags
-            </h4>
+          <Stack gap="md">
+            <Flex align="center" gap="sm">
+              <Box className={styles.sectionIcon}>
+                <Tag size={14} />
+              </Box>
+              <LqText variant="xs" weight="bold" style={{ textTransform: 'uppercase' }}>
+                Forensic Tags
+              </LqText>
+            </Flex>
             <TagSelector
               selectedTags={imageTags}
               onTagsChange={setImageTags}
@@ -507,7 +548,7 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
                 navigate(`/media?tagId=${tag.id}`);
               }}
             />
-          </div>
+          </Stack>
 
           <PeopleSelector
             selectedPeople={imagePeople}
@@ -528,9 +569,9 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
               }
             }}
           />
-        </div>
-      </div>
-    </div>,
+        </Stack>
+      </Surface>
+    </Box>,
     document.body,
   );
 };

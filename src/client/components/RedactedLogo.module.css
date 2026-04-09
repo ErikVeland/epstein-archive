@@ -1,0 +1,21 @@
+.root {
+  position: relative;
+  width: 185px;
+  min-width: 185px;
+  max-width: 185px;
+  overflow: hidden;
+}
+
+.globalGlitch {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}

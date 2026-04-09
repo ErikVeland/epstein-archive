@@ -7,7 +7,7 @@
   border-top: 1px solid var(--glass-border);
   padding-top: var(--space-12);
   padding-bottom: var(--space-12);
-  margin-top: auto;
+  margin-top: 5rem;
   z-index: var(--z-overlay, 10);
   position: relative;
 }

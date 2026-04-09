@@ -134,7 +134,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
               }}
             />
             <div className={s.searchIconWrap}>
-              <Icon name="Search" size="xs" />
+              <Icon name="Search" />
             </div>
           </div>
         </div>

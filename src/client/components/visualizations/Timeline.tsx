@@ -6,6 +6,7 @@ import { CloseButton } from '../common/CloseButton';
 import { useFilters } from '../../contexts/useFilters';
 import { useScrollLock } from '../../hooks/useScrollLock';
 import ScopedErrorBoundary from '../common/ScopedErrorBoundary';
+import { EmptyCorpus } from '../common/EmptyCorpus';
 import styles from './Timeline.module.css';
 
 interface EntityLink {
@@ -48,6 +49,7 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
   const { filters } = useFilters();
   const [events, setEvents] = useState<TimelineEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<TimelineEvent | null>(null);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [filteredSignificance, setFilteredSignificance] = useState<('high' | 'medium' | 'low')[]>([
@@ -88,6 +90,7 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
   const loadTimelineData = async (start: string | null, end: string | null) => {
     try {
       setLoading(true);
+      setFetchError(false);
       const params = new URLSearchParams();
       if (start) params.set('startDate', start);
       if (end) params.set('endDate', end);
@@ -130,6 +133,7 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
       }
     } catch (error) {
       console.error('Error loading timeline data:', error);
+      setFetchError(true);
       setEvents([]);
     } finally {
       setLoading(false);
@@ -210,6 +214,30 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
             Loading timeline data from evidence database...
           </span>
         </div>
+      </div>
+    );
+  }
+
+  if (fetchError) {
+    return (
+      <div className={`${styles.root} ${className}`}>
+        <EmptyCorpus
+          icon="AlertCircle"
+          title="Timeline Unavailable"
+          body="The timeline API returned an error. Ensure the API server is running and the database is accessible."
+        />
+      </div>
+    );
+  }
+
+  if (events.length === 0) {
+    return (
+      <div className={`${styles.root} ${className}`}>
+        <EmptyCorpus
+          icon="Clock"
+          title="No Timeline Events"
+          body="Timeline events are extracted from documents, emails, and records during corpus ingestion. No events have been loaded yet — run the ingestion pipeline to populate the timeline."
+        />
       </div>
     );
   }

@@ -109,7 +109,7 @@ export const DocumentProvenance: React.FC<DocumentProvenanceProps> = ({
     return (
       <Box className={styles.padding2}>
         <LqText variant="xs" color="accent" className={styles.flexCenterGap1}>
-          <Icon name="AlertCircle" size="xs" />
+          <Icon name="AlertCircle" />
           {error || 'Not available'}
         </LqText>
       </Box>
@@ -138,14 +138,14 @@ export const DocumentProvenance: React.FC<DocumentProvenanceProps> = ({
     return (
       <button onClick={() => setExpanded(true)} className={styles.closeButton}>
         <Flex align="center" gap="sm">
-          <Icon name="Shield" size="xs" />
+          <Icon name="Shield" />
           <LqText variant="xs" color="muted">
             {sourceCollection || 'Source Info'}
           </LqText>
           <LqText variant="xs" weight="semibold" color={getCredibilityStatus(credibilityScore)}>
             ({getCredibilityLabel(credibilityScore)})
           </LqText>
-          <Icon name="ChevronDown" size="xs" />
+          <Icon name="ChevronDown" />
         </Flex>
       </button>
     );
@@ -187,7 +187,7 @@ export const DocumentProvenance: React.FC<DocumentProvenanceProps> = ({
         {ocrEngine && (
           <Box className={styles.ocrBadge}>
             <Box className={styles.ocrInfo}>
-              <Icon name="FileSearch" size="xs" className={styles.ocrIcon} />
+              <Icon name="FileSearch" className={styles.ocrIcon} />
               <LqText variant="xs" color="muted">
                 OCR:
               </LqText>
@@ -219,7 +219,10 @@ export const DocumentProvenance: React.FC<DocumentProvenanceProps> = ({
               <LqText variant="xs" color="muted">
                 Extracted from:
               </LqText>
-              <a href={`/documents/${lineage.originalDocument.id}`} className="link text-xs">
+              <a
+                href={`/documents/${lineage.originalDocument.id}`}
+                className={`link ${styles.documentLink}`}
+              >
                 {lineage.originalDocument.fileName}
               </a>
             </Flex>
@@ -256,7 +259,7 @@ export const DocumentProvenance: React.FC<DocumentProvenanceProps> = ({
             <Box className={styles.trailList}>
               {lineage.auditTrail.map((entry, i) => (
                 <Box key={i} className={styles.trailEntry}>
-                  <Icon name="Clock" size="xs" />
+                  <Icon name="Clock" />
                   <LqText variant="xs">{new Date(entry.timestamp).toLocaleDateString()}</LqText>
                   <LqText variant="xs" color="primary" className={styles.entryAction}>
                     {entry.action}

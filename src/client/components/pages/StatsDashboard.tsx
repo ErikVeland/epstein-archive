@@ -54,7 +54,7 @@ const StatsDashboard: React.FC<StatsDashboardProps> = ({ people }) => {
   return (
     <div className={s.grid}>
       {cards.map((card, index) => (
-        <div key={index} className="surface-glass-card">
+        <div key={index} className="surface-panel">
           <div className={s.cardInner}>
             <div className={s.cardHeader}>
               <div>

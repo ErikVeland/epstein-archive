@@ -7,9 +7,25 @@
 
 /* Variant styles */
 .lq-text--display {
+  font-family: var(--font-display);
   font-size: var(--font-size-4xl);
-  line-height: 1.2;
+  line-height: 1.1;
   letter-spacing: -0.02em;
+}
+.lq-text--bombastic {
+  font-family: var(--font-bombastic);
+  font-size: var(--type-bombastic);
+  line-height: 0.85;
+  letter-spacing: var(--tracking-bombastic);
+  text-transform: uppercase;
+  font-weight: 900;
+}
+.lq-text--symbolic {
+  font-family: var(--font-mono);
+  font-size: var(--type-symbolic);
+  letter-spacing: var(--tracking-symbolic);
+  text-transform: uppercase;
+  opacity: 0.8;
 }
 .lq-text--h1 {
   font-size: var(--font-size-3xl);
@@ -29,6 +45,12 @@
 }
 .lq-text--body {
   font-size: var(--font-size-base);
+  line-height: 1.6;
+}
+.lq-text--subtitle {
+  font-size: var(--type-subtitle);
+  line-height: 1.5;
+  color: var(--text-secondary);
 }
 .lq-text--small {
   font-size: var(--font-size-sm);

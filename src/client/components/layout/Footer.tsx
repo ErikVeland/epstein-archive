@@ -4,6 +4,7 @@ import { ExternalLink, Github, Eye, EyeOff, ArrowRight } from 'lucide-react';
 import { useSensitiveSettings } from '../../contexts/SensitiveSettingsContext';
 import { Link } from 'react-router-dom';
 import { apiClient } from '../../services/apiClient';
+import { Surface } from '../../design-system/lib';
 import s from './Footer.module.css';
 
 interface FooterProps {
@@ -89,14 +90,14 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
 
               {/* Status Tooltip */}
               {systemStatus.status === 'error' && (
-                <div className={`${s.statusTooltip} glass-panel`}>
+                <Surface variant="glass-strong" className={s.statusTooltip}>
                   <div className={s.statusTooltipTitle}>Live Data Status</div>
                   <div className={s.statusTooltipMessage}>{systemStatus.message}</div>
                   {systemStatus.details && (
                     <div className={s.statusTooltipDetails}>{systemStatus.details}</div>
                   )}
                   <div className={s.statusTooltipArrow} />
-                </div>
+                </Surface>
               )}
             </div>
           </div>

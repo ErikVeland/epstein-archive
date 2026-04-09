@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { ArrowRight, Filter, Search, FileText, CheckCircle } from 'lucide-react';
+import { ArrowRight, Filter, CheckCircle, Sparkles, Shield, Target, BookOpen } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CloseButton } from '../common/CloseButton';
 import { useScrollLock } from '../../hooks/useScrollLock';
 import { Link } from 'react-router-dom';
+
+// UI Library
+import { Surface, Button, Flex, Box, Stack, LqText, cn } from '../../design-system/lib';
 import styles from './InvestigationOnboarding.module.css';
 
 interface InvestigationOnboardingProps {
@@ -16,7 +18,7 @@ export const InvestigationOnboarding: React.FC<InvestigationOnboardingProps> = (
   onSkip,
 }) => {
   const [step, setStep] = useState(1);
-  const totalSteps = 3;
+  const totalSteps = 4; // Adding a welcome step for premium feel
   useScrollLock(true);
 
   const handleNext = () => {
@@ -30,129 +32,133 @@ export const InvestigationOnboarding: React.FC<InvestigationOnboardingProps> = (
   const steps = [
     {
       id: 1,
-      title: 'Start an Investigation',
+      title: 'Initialize Mission',
       description:
-        'Begin by creating a new investigation. Give it a meaningful name and description to help you stay organized.',
-      icon: Search,
-      tone: 'primary',
+        'Establish a secure investigation workspace. Define strategic goals and parameters for the mission stream.',
+      icon: Target,
+      tone: 'accent',
     },
     {
       id: 2,
-      title: 'Filter by Red Flag Index',
+      title: 'Signal Analysis',
       description:
-        'Cut through noise using the Red Flag Index to focus on the most significant entities and documents.',
+        'Filter through massive datasets using the Red Flag Index. Focus on priority signals and high-risk intersections.',
       icon: Filter,
-      tone: 'danger',
+      tone: 'error',
     },
     {
       id: 3,
-      title: 'Verify Source Documents',
+      title: 'Source Verification',
       description:
-        'Every insight is linked to its source. Trace connections back to original documents for complete auditability.',
-      icon: FileText,
+        'Each analytical claim is linked to its forensic source. Maintain 100% auditability across the case stream.',
+      icon: Shield,
       tone: 'success',
+    },
+    {
+      id: 4,
+      title: 'Strategic Briefing',
+      description:
+        'Construct a sequential narrative from correlated evidence. Export professional-grade intelligence artifacts.',
+      icon: BookOpen,
+      tone: 'accent',
     },
   ];
 
   const currentStep = steps[step - 1];
   const Icon = currentStep.icon;
-  const toneClassName =
-    currentStep.tone === 'danger'
-      ? styles.toneDanger
-      : currentStep.tone === 'success'
-        ? styles.toneSuccess
-        : styles.tonePrimary;
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className={styles.overlay}
-    >
+    <Box className={styles.overlay} onClick={onSkip}>
       <motion.div
-        initial={{ scale: 0.95, opacity: 0, y: 20 }}
+        initial={{ scale: 0.9, opacity: 0, y: 30 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
-        transition={{ type: 'spring', duration: 0.5, bounce: 0.3 }}
-        className={styles.modal}
+        exit={{ scale: 0.9, opacity: 0, y: 30 }}
+        transition={{ type: 'spring', duration: 0.6, bounce: 0.4 }}
+        onClick={(e) => e.stopPropagation()}
       >
-        {/* Decorative Background Gradients */}
-        <div className={styles.topGlow} />
-        <div className={styles.bottomGlow} />
+        <Surface variant="panel" width={520} p="none" className={styles.modal}>
+          {/* Decorative Elements */}
+          <Box className={styles.topGlow} />
 
-        {/* Header */}
-        <div className={styles.header}>
-          {/* Progress Indicators */}
-          <div className={styles.progressDots}>
-            {steps.map((s) => (
-              <div
-                key={s.id}
-                className={`${styles.progressDot} ${
-                  s.id === step
-                    ? styles.progressDotActive
-                    : s.id < step
-                      ? styles.progressDotCompleted
-                      : styles.progressDotPending
-                }`}
-              />
-            ))}
-          </div>
+          <Stack gap="none" style={{ height: '100%' }}>
+            {/* Header */}
+            <Flex justify="between" align="center" p="xl" className={styles.header}>
+              <Flex gap="md" align="center">
+                <Sparkles size={18} className={styles.iconAccent} />
+                <LqText
+                  variant="xs"
+                  weight="bold"
+                  color="muted"
+                  style={{ textTransform: 'uppercase', letterSpacing: '0.1em' }}
+                >
+                  Protocol Induction
+                </LqText>
+              </Flex>
+            </Flex>
 
-          <CloseButton
-            onClick={onSkip}
-            size="md"
-            label="Close investigation onboarding"
-            className={styles.closeButton}
-          />
-        </div>
+            {/* Content Area */}
+            <Box className={styles.content}>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={step}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Stack align="center" gap="xl" textAlign="center">
+                    <Box
+                      className={cn(
+                        'p-6 rounded-3xl',
+                        currentStep.tone === 'error'
+                          ? 'bg-[var(--lq-error-dim)] text-[var(--lq-error)]'
+                          : currentStep.tone === 'success'
+                            ? 'bg-[var(--lq-success-dim)] text-[var(--lq-success)]'
+                            : 'bg-[var(--lq-accent-dim)] text-[var(--lq-accent)]',
+                      )}
+                    >
+                      <Icon size={48} />
+                    </Box>
+                    <Stack gap="md">
+                      <LqText variant="h2" weight="bold">
+                        {currentStep.title}
+                      </LqText>
+                      <LqText variant="small" color="muted" lineHeight="relaxed">
+                        {currentStep.description}
+                      </LqText>
+                    </Stack>
+                  </Stack>
+                </motion.div>
+              </AnimatePresence>
+            </Box>
 
-        {/* Content Area */}
-        <div className={styles.content}>
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={step}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-              className={styles.contentInner}
-            >
-              {/* Icon Container */}
-              <div className={`${styles.iconContainer} ${toneClassName}`}>
-                <Icon className={styles.icon} />
-              </div>
+            {/* Footer */}
+            <Surface variant="glass" p="xl" className={styles.footer}>
+              <Stack gap="xl">
+                <Button variant="secondary" size="md" onClick={handleNext}>
+                  {step === totalSteps ? 'Initialize Mission' : 'Synchronize Next Section'}
+                  {step === totalSteps ? (
+                    <CheckCircle size={18} className="ml-2" />
+                  ) : (
+                    <ArrowRight size={18} className="ml-2" />
+                  )}
+                </Button>
 
-              <h2 className={styles.title}>{currentStep.title}</h2>
-              <p className={styles.description}>{currentStep.description}</p>
-            </motion.div>
-          </AnimatePresence>
-        </div>
-
-        {/* Footer */}
-        <div className={styles.footer}>
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={handleNext}
-            className={styles.primaryButton}
-          >
-            <span>{step === totalSteps ? 'Get Started' : 'Continue'}</span>
-            {step === totalSteps ? (
-              <CheckCircle className={styles.primaryButtonIconDone} />
-            ) : (
-              <ArrowRight className={styles.primaryButtonIcon} />
-            )}
-          </motion.button>
-
-          <Link to="/guide" className={styles.guideLink}>
-            Read the Full Guide
-          </Link>
-
-          <button onClick={onSkip} className={styles.skipButton}>
-            Skip Introduction
-          </button>
-        </div>
+                <Flex justify="between" align="center">
+                  <Link to="/guide" className={styles.guideLink}>
+                    Neural Guide Documentation
+                  </Link>
+                  <Button variant="ghost" size="sm" onClick={onSkip}>
+                    <LqText variant="xs" className={styles.skipButtonText}>
+                      Skip Induction Protocol
+                    </LqText>
+                  </Button>
+                </Flex>
+              </Stack>
+            </Surface>
+          </Stack>
+        </Surface>
       </motion.div>
-    </motion.div>
+    </Box>
   );
 };

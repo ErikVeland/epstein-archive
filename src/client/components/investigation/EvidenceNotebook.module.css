@@ -264,6 +264,10 @@
   color: var(--text-secondary);
 }
 
+.annotationType {
+  text-transform: uppercase;
+}
+
 .annotationContent {
   font-size: 0.875rem;
   color: var(--text-primary);
@@ -400,4 +404,126 @@
   50% {
     opacity: 0.5;
   }
+}
+
+.autoGen44 {
+  border-color: b;
+  border-color: b-[var(--lq-surface-3)];
+}
+
+.autoGen45 {
+  color: var(--lq-accent);
+}
+
+.autoGen46 {
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--lq-surface-3);
+  overflow: hidden;
+}
+
+.autoGen47 {
+  flex-direction: column;
+  height: 100%;
+}
+
+.autoGen48 {
+  border-color: b;
+  border-color: b-[var(--lq-surface-3)];
+  background-color: var(--lq-surface-2);
+}
+
+.autoGen49 {
+  background-color: var(--lq-surface-1);
+  padding: 0.25rem;
+  border-radius: var(--radius-lg);
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--lq-surface-3);
+}
+
+.autoGen50 {
+  /* Missing: animate-spin */
+  color: var(--lq-accent);
+}
+
+.autoGen51 {
+  color: var(--lq-text-dim);
+}
+
+.autoGen52 {
+  color: var(--lq-warning);
+}
+
+.autoGen53 {
+  background-color: var(--lq-surface-1);
+  border-color: b;
+  border-color: b-[var(--lq-surface-2)];
+}
+
+.autoGen54 {
+  flex: 1 1 0%;
+}
+
+.autoGen55 {
+  position: relative;
+  /* Missing: min-h-[500px] */
+}
+
+.autoGen56 {
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--lq-surface-3);
+}
+
+.autoGen57 {
+  color: var(--lq-accent);
+}
+
+.autoGen58 {
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--lq-surface-3);
+}
+
+.autoGen59 {
+  color: var(--lq-accent);
+}
+
+.autoGen60 {
+  color: var(--lq-accent);
+}
+
+.autoGen61 {
+  flex: 1 1 0%;
+  /* Missing: h-px */
+  background-color: var(--lq-surface-3);
+}
+
+.autoGen62 {
+  border-width: 1px;
+  border-style: solid;
+  border-color: dashed;
+  border-color: var(--lq-surface-3);
+  text-align: center;
+}
+
+.autoGen63 {
+  /* Missing: mx-auto */
+  color: var(--lq-text-dim);
+  margin-bottom: 1rem;
+}
+
+.autoGen64 {
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--lq-surface-3);
+}
+
+.autoGen65 {
+  flex: 1 1 0%;
+}
+
+.autoGen66 {
+  color: var(--lq-accent);
 }

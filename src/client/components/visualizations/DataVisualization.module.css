@@ -303,6 +303,10 @@
   gap: var(--space-3);
 }
 
+.minWidthZero {
+  min-width: 0;
+}
+
 .rankBadge {
   display: flex;
   align-items: center;

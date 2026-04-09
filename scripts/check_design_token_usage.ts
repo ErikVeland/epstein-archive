@@ -8,6 +8,7 @@ const clientDir = path.join(rootDir, 'src/client');
 const strictMode = process.env.STRICT_DESIGN_TOKENS === '1';
 const writeStrictBaseline = process.env.WRITE_STRICT_BASELINE === '1';
 const strictBaselinePath = path.join(rootDir, 'scripts/design-token-strict-baseline.json');
+const exceptionPath = path.join(rootDir, 'scripts/design-system-exceptions.json');
 const enforcedFiles = [
   'src/client/App.tsx',
   // Core common primitives
@@ -122,6 +123,17 @@ const moduleGovernedFiles = new Set(
     'src/client/components/investigation/InvestigationCaseFolder.tsx',
     'src/client/components/investigation/InvestigationTasksPanel.tsx',
     'src/client/components/investigation/InvestigationTeamManagement.tsx',
+    'src/client/components/investigation/MultiSourceCorrelationEngine.tsx',
+    'src/client/components/investigation/InvestigationTimelineBuilder.tsx',
+    'src/client/components/investigation/ForensicDocumentAnalyzer.tsx',
+    'src/client/components/investigation/HypothesisTestingFramework.tsx',
+    'src/client/components/investigation/ForensicAnalysisWorkspace.tsx',
+    'src/client/components/investigation/EvidenceNotebook.tsx',
+    'src/client/components/investigation/ForensicReportGenerator.tsx',
+    'src/client/components/investigation/InvestigationEvidencePanel.tsx',
+    'src/client/components/investigation/CommunicationAnalysis.tsx',
+    'src/client/components/investigation/InvestigationWorkspace.tsx',
+    'src/client/components/email/EmailClient.tsx',
     // Page and top-level shell migration
     'src/client/components/pages/StatsSkeleton.tsx',
     'src/client/components/pages/StatsDashboard.tsx',
@@ -193,6 +205,7 @@ const moduleGovernedFiles = new Set(
     'src/client/components/entities/PersonCard.tsx',
     'src/client/components/faces/FaceGallery.tsx',
     'src/client/components/visualizations/AreaTimeline.tsx',
+    'src/client/components/visualizations/DataVisualizationEnhanced.tsx',
     'src/client/components/visualizations/DataVisualization.tsx',
     'src/client/components/visualizations/DataIntegrityPanel.tsx',
     'src/client/components/visualizations/DocumentBarChart.tsx',
@@ -211,6 +224,36 @@ const moduleGovernedFiles = new Set(
 
 const tailwindUtilityPattern =
   /className\s*=\s*(?:\{\s*)?["'`][^"'`\n\r]*\b(flex|grid|items-center|items-start|justify-between|justify-center|gap-\d|p-\d|px-\d|py-\d|pt-\d|pb-\d|m-\d|mx-\d|my-\d|mt-\d|mb-\d|w-full|h-\d|text-(?:xs|sm|base|lg|xl)|font-(?:medium|bold|semibold|mono)|rounded(?:-(?:md|lg|xl|full|sm))?|overflow-(?:hidden|auto|scroll)|absolute|relative|hidden|block|inline-flex|inline-block|truncate|uppercase|transition-)\b[^"'`\n\r]*["'`]/;
+const deprecatedUiImportPattern = /from\s+['"][^'"]*components\/ui(?:\/[^'"]+)?['"]/g;
+const bannedPresentationClassPattern =
+  /\b(surface-glass(?:-card|-header|-strong)?|glass-panel|app-header-glass|modal-header|control)\b/g;
+const rawInteractivePattern = /<(button|input|select|textarea)\b/g;
+const presentationalInlineStylePattern =
+  /style\s*=\s*\{\{[^}]*\b(background|border|padding|margin|color|boxShadow|display|alignItems|justifyContent|textAlign|overflow)\b[^}]*\}\}/g;
+const hardcodedColorPattern = /#[0-9a-fA-F]{3,8}|rgba?\(|hsl\(/g;
+
+type RuleName =
+  | 'deprecated-ui-import'
+  | 'banned-presentation-class'
+  | 'raw-interactive-element'
+  | 'presentational-inline-style'
+  | 'hardcoded-color';
+
+interface ExceptionEntry {
+  rule: RuleName;
+  pattern: string;
+  owner: string;
+  reason: string;
+  expiresOn: string;
+}
+
+const exceptions: ExceptionEntry[] = fs.existsSync(exceptionPath)
+  ? (JSON.parse(fs.readFileSync(exceptionPath, 'utf8')) as ExceptionEntry[])
+  : [];
+
+function isExcepted(relPath: string, rule: RuleName): boolean {
+  return exceptions.some((entry) => entry.rule === rule && relPath.includes(entry.pattern));
+}
 
 function walk(dir: string): string[] {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
@@ -230,6 +273,14 @@ function walk(dir: string): string[] {
 
 function main() {
   const violations: string[] = [];
+  const governedDesignSystemViolations: string[] = [];
+  const advisoryViolations = {
+    deprecatedUiImports: [] as string[],
+    bannedPresentationClasses: [] as string[],
+    rawInteractiveElements: [] as string[],
+    presentationalInlineStyles: [] as string[],
+    hardcodedColors: [] as string[],
+  };
   for (const filePath of enforcedFiles) {
     const content = fs.readFileSync(filePath, 'utf8');
     classPattern.lastIndex = 0;
@@ -242,10 +293,11 @@ function main() {
   const strictViolations: string[] = [];
   for (const filePath of walk(clientDir)) {
     const content = fs.readFileSync(filePath, 'utf8');
+    const relPath = path.relative(rootDir, filePath);
     for (const pattern of forbiddenArbitraryUtilities) {
       pattern.lastIndex = 0;
       if (pattern.test(content)) {
-        arbitraryViolations.push(path.relative(rootDir, filePath));
+        arbitraryViolations.push(relPath);
         break;
       }
     }
@@ -253,15 +305,58 @@ function main() {
       strictClassPattern.lastIndex = 0;
       strictSpacingPattern.lastIndex = 0;
       if (strictClassPattern.test(content) || strictSpacingPattern.test(content)) {
-        strictViolations.push(path.relative(rootDir, filePath));
+        strictViolations.push(relPath);
       }
     }
     if (moduleGovernedFiles.has(filePath)) {
       if (tailwindUtilityPattern.test(content)) {
-        violations.push(
-          `${path.relative(rootDir, filePath)} — CSS module governed file contains Tailwind utility strings`,
+        violations.push(`${relPath} — CSS module governed file contains Tailwind utility strings`);
+      }
+    }
+
+    deprecatedUiImportPattern.lastIndex = 0;
+    if (deprecatedUiImportPattern.test(content) && !isExcepted(relPath, 'deprecated-ui-import')) {
+      advisoryViolations.deprecatedUiImports.push(relPath);
+      if (moduleGovernedFiles.has(filePath)) {
+        governedDesignSystemViolations.push(
+          `${relPath} — imports deprecated components/ui surface`,
         );
       }
+    }
+
+    bannedPresentationClassPattern.lastIndex = 0;
+    if (
+      bannedPresentationClassPattern.test(content) &&
+      !isExcepted(relPath, 'banned-presentation-class')
+    ) {
+      advisoryViolations.bannedPresentationClasses.push(relPath);
+      if (moduleGovernedFiles.has(filePath)) {
+        governedDesignSystemViolations.push(
+          `${relPath} — uses deprecated global presentation classes`,
+        );
+      }
+    }
+
+    rawInteractivePattern.lastIndex = 0;
+    if (rawInteractivePattern.test(content) && !isExcepted(relPath, 'raw-interactive-element')) {
+      advisoryViolations.rawInteractiveElements.push(relPath);
+    }
+
+    presentationalInlineStylePattern.lastIndex = 0;
+    if (
+      presentationalInlineStylePattern.test(content) &&
+      !isExcepted(relPath, 'presentational-inline-style')
+    ) {
+      advisoryViolations.presentationalInlineStyles.push(relPath);
+    }
+
+    hardcodedColorPattern.lastIndex = 0;
+    if (
+      hardcodedColorPattern.test(content) &&
+      !relPath.endsWith('designTokens.ts') &&
+      !isExcepted(relPath, 'hardcoded-color')
+    ) {
+      advisoryViolations.hardcodedColors.push(relPath);
     }
   }
   const configPath = path.join(rootDir, 'tailwind.config.js');
@@ -333,6 +428,26 @@ function main() {
         `[design-token-usage] advisory: ${advisoryCount} files still use raw palette/spacing classes`,
       );
       console.log('[design-token-usage] set STRICT_DESIGN_TOKENS=1 to enforce hard failure');
+    }
+    const advisoryParts = [
+      ['deprecated components/ui imports', advisoryViolations.deprecatedUiImports.length],
+      [
+        'deprecated global presentation classes',
+        advisoryViolations.bannedPresentationClasses.length,
+      ],
+      ['raw interactive elements', advisoryViolations.rawInteractiveElements.length],
+      ['presentational inline styles', advisoryViolations.presentationalInlineStyles.length],
+      ['hardcoded colors', advisoryViolations.hardcodedColors.length],
+    ].filter(([, count]) => (count as number) > 0);
+    if (advisoryParts.length > 0) {
+      console.log(
+        `[design-token-usage] design-system advisory: ${advisoryParts.map(([label, count]) => `${label}=${count}`).join(', ')}`,
+      );
+    }
+    if (governedDesignSystemViolations.length > 0) {
+      console.log(
+        `[design-token-usage] governed migration backlog: ${governedDesignSystemViolations.length} files still use deprecated system patterns`,
+      );
     }
   }
 

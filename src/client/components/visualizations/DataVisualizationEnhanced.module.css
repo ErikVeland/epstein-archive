@@ -1,0 +1,396 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: var(--space-6);
+  margin-bottom: var(--space-8);
+}
+
+.counterCard {
+  padding: var(--space-6);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--glass-shadow);
+  transition: transform 300ms var(--ease-out);
+}
+
+.counterCard:hover {
+  transform: scale(1.05);
+}
+
+.counterHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.counterValue {
+  color: var(--text-primary);
+  font-size: 1.875rem;
+  font-weight: var(--font-weight-bold);
+}
+
+.counterLabel {
+  color: var(--text-primary);
+  opacity: 0.9;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.counterRiskHigh {
+  background: linear-gradient(
+    135deg,
+    var(--risk-critical),
+    color-mix(in srgb, var(--risk-critical) 60%, black)
+  );
+}
+
+.counterRiskMedium {
+  background: linear-gradient(
+    135deg,
+    var(--risk-medium),
+    color-mix(in srgb, var(--risk-medium) 60%, black)
+  );
+}
+
+.counterRiskLow {
+  background: linear-gradient(
+    135deg,
+    var(--risk-low),
+    color-mix(in srgb, var(--risk-low) 60%, black)
+  );
+}
+
+.counterPrimary {
+  background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 60%, black));
+}
+
+.iconHigh {
+  color: var(--risk-critical);
+  font-size: 1.5rem;
+}
+
+.iconMedium {
+  color: var(--risk-medium);
+  font-size: 1.5rem;
+}
+
+.iconLow {
+  color: var(--risk-low);
+  font-size: 1.5rem;
+}
+
+.iconPrimary {
+  color: var(--accent);
+  font-size: 1.5rem;
+}
+
+.tooltip {
+  padding: var(--space-4);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  background: color-mix(in srgb, var(--glass-bg-strong) 95%, transparent);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(8px);
+}
+
+.tooltipTitle {
+  margin-bottom: var(--space-2);
+  color: var(--text-primary);
+  font-size: 1.125rem;
+  font-weight: var(--font-weight-bold);
+}
+
+.tooltipRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: 0.25rem;
+}
+
+.tooltipDot {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 999px;
+}
+
+.tooltipText {
+  color: var(--text-secondary);
+}
+
+.tooltipValue {
+  color: var(--text-primary);
+  font-weight: var(--font-weight-bold);
+}
+
+.chartGrid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: var(--space-8);
+}
+
+.chartCard {
+  padding: var(--space-8);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--glass-shadow);
+  background: linear-gradient(135deg, var(--bg-surface), var(--bg-dark));
+}
+
+.chartTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  font-weight: var(--font-weight-bold);
+}
+
+.titleDot {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 999px;
+}
+
+.dotRisk {
+  background: linear-gradient(90deg, var(--risk-critical), var(--accent-warning));
+}
+
+.dotStatus {
+  background: linear-gradient(90deg, var(--accent), var(--accent-emails));
+}
+
+.dotMentions {
+  background: linear-gradient(90deg, var(--risk-low), var(--accent-success));
+}
+
+.dotRole {
+  background: linear-gradient(90deg, var(--accent-emails), var(--nav-blackbook));
+}
+
+.dotIntensity {
+  background: linear-gradient(90deg, var(--accent-info), var(--accent));
+}
+
+.dotTreemap {
+  background: linear-gradient(90deg, var(--accent-success), var(--nav-documents));
+}
+
+.chartMedium {
+  height: 20rem;
+}
+
+.chartTall {
+  height: 31.25rem;
+}
+
+.chartTreemap {
+  height: 37.5rem;
+}
+
+.descriptionList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-6);
+}
+
+.descriptionItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--font-size-sm);
+}
+
+.descriptionDot {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 999px;
+}
+
+.descriptionText {
+  color: var(--text-secondary);
+}
+
+.legendRow {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-6);
+  margin-top: var(--space-6);
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.legendSwatch {
+  width: 1rem;
+  height: 1rem;
+  border-radius: var(--radius-sm);
+}
+
+.legendText {
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.riskHighGradient {
+  background: linear-gradient(90deg, var(--risk-critical), var(--accent-danger));
+}
+
+.riskMediumGradient {
+  background: linear-gradient(90deg, var(--risk-medium), var(--accent-warning));
+}
+
+.riskLowGradient {
+  background: linear-gradient(90deg, var(--risk-low), var(--accent-success));
+}
+
+.treemapHighGradient {
+  background: linear-gradient(
+    90deg,
+    var(--risk-critical),
+    color-mix(in srgb, var(--risk-critical) 80%, black)
+  );
+}
+
+.treemapMediumGradient {
+  background: linear-gradient(
+    90deg,
+    var(--risk-medium),
+    color-mix(in srgb, var(--risk-medium) 80%, black)
+  );
+}
+
+.treemapLowGradient {
+  background: linear-gradient(
+    90deg,
+    var(--risk-low),
+    color-mix(in srgb, var(--risk-low) 80%, black)
+  );
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-6);
+}
+
+.summaryCard {
+  padding: var(--space-6);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--glass-shadow);
+}
+
+.summaryHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.summaryValue {
+  color: var(--text-primary);
+  font-size: 1.875rem;
+  font-weight: var(--font-weight-bold);
+}
+
+.summaryEmoji {
+  font-size: 1.5rem;
+}
+
+.summaryLabel {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.summaryMeta {
+  margin-top: var(--space-2);
+  font-size: 0.75rem;
+  opacity: 0.75;
+}
+
+.summaryPurple {
+  border: 1px solid #6b21a8;
+  background: linear-gradient(135deg, #581c87, #6b21a8, #581c87);
+}
+
+.summaryPurple .summaryLabel {
+  color: #e9d5ff;
+}
+
+.summaryPurple .summaryMeta,
+.summaryPurple .summaryEmoji {
+  color: #d8b4fe;
+}
+
+.summaryIndigo {
+  border: 1px solid #4338ca;
+  background: linear-gradient(135deg, #312e81, #3730a3, #312e81);
+}
+
+.summaryIndigo .summaryLabel {
+  color: #c7d2fe;
+}
+
+.summaryIndigo .summaryMeta,
+.summaryIndigo .summaryEmoji {
+  color: var(--accent);
+}
+
+.summaryPink {
+  border: 1px solid #be185d;
+  background: linear-gradient(135deg, #831843, #9d174d, #831843);
+}
+
+.summaryPink .summaryLabel {
+  color: #fbcfe8;
+}
+
+.summaryPink .summaryMeta,
+.summaryPink .summaryEmoji {
+  color: #f9a8d4;
+}
+
+.summaryTeal {
+  border: 1px solid #0f766e;
+  background: linear-gradient(135deg, #134e4a, #115e59, #134e4a);
+}
+
+.summaryTeal .summaryLabel {
+  color: #99f6e4;
+}
+
+.summaryTeal .summaryMeta,
+.summaryTeal .summaryEmoji {
+  color: #5eead4;
+}
+
+.legendFormatter {
+  color: var(--text-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+@media (min-width: 768px) {
+  .statsGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .summaryGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .chartGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

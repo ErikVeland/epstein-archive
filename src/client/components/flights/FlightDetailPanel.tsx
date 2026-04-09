@@ -1,9 +1,9 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
-import Icon from '../common/Icon';
+import { ArrowUpRight, ArrowDownRight, Globe, Users, Plane, Shield, X, MapPin } from 'lucide-react';
+import { Surface, Flex, Box, Stack, LqText, Button, cn } from '../../design-system/lib';
 import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
-import { CloseButton } from '../common/CloseButton';
 import { RouteMap } from '../visualizations/RouteMap';
 import { useScrollLock } from '../../hooks/useScrollLock';
 import type { Flight, AirportCoords } from './types';
@@ -30,151 +30,224 @@ export const FlightDetailPanel: React.FC<FlightDetailPanelProps> = ({
   const arrivalCoords = airports[flight.arrival_airport];
 
   return createPortal(
-    <div className="flight-modal-overlay">
-      <button
-        type="button"
-        className={styles.backdropButton}
-        aria-label="Close flight details"
-        onClick={onClose}
-      />
-      <div
-        className="flight-modal"
+    <Box className={styles.detailOverlay}>
+      <Box className={styles.backdrop} onClick={onClose} />
+      <Surface
+        variant="glass-strong"
+        className={styles.detailPanel}
         role="dialog"
         aria-modal="true"
         aria-labelledby="flight-details-title"
-        onClick={(e) => e.stopPropagation()}
       >
-        <CloseButton
-          onClick={onClose}
-          size="sm"
-          label="Close flight details"
-          className={`modal-close-btn ${styles.closeBtn}`}
-        />
+        <Flex align="center" justify="between" className={styles.header}>
+          <Stack gap={1}>
+            <LqText variant="h3" weight="bold" id="flight-details-title">
+              Flight Details
+            </LqText>
+            <LqText variant="xs" color="muted">
+              {formatDate(flight.date)}
+            </LqText>
+          </Stack>
+          <Button variant="ghost" size="sm" onClick={onClose} className={styles.closeBtn}>
+            <X size={18} />
+          </Button>
+        </Flex>
 
-        <div className="modal-header" style={{ paddingRight: '3rem' }}>
-          <h2 id="flight-details-title">Flight Details</h2>
-          <span className="flight-date">{formatDate(flight.date)}</span>
-        </div>
+        <Stack gap="lg" className={styles.content}>
+          <Flex gap="md" className={styles.routeGrid}>
+            <Surface variant="panel" className={styles.infoCard}>
+              <Stack gap="xs">
+                <Flex align="center" gap="xs">
+                  <ArrowUpRight size={14} className={styles.iconDeparture} />
+                  <LqText
+                    variant="xs"
+                    weight="bold"
+                    color="muted"
+                    style={{ textTransform: 'uppercase' }}
+                  >
+                    Departure
+                  </LqText>
+                </Flex>
+                <LqText variant="h2" weight="bold">
+                  {flight.departure_airport}
+                </LqText>
+                <LqText variant="xs" color="muted">
+                  {flight.departure_city}
+                </LqText>
+              </Stack>
+            </Surface>
 
-        {/* Flight Route Map & Info */}
-        <div className={styles.routeGrid}>
-          <div className={styles.infoCard}>
-            <div className={styles.infoCardHeader}>
-              <Icon name="ArrowUpRight" className={styles.infoCardIconAccent} size="sm" />
-              <span className={styles.infoCardLabel}>Departure</span>
-            </div>
-            <div className={styles.infoCardAirport}>{flight.departure_airport}</div>
-            <div className={styles.infoCardDate}>{new Date(flight.date).toLocaleString()}</div>
-          </div>
+            <Surface variant="panel" className={styles.infoCard}>
+              <Stack gap="xs">
+                <Flex align="center" gap="xs">
+                  <ArrowDownRight size={14} className={styles.iconArrival} />
+                  <LqText
+                    variant="xs"
+                    weight="bold"
+                    color="muted"
+                    style={{ textTransform: 'uppercase' }}
+                  >
+                    Arrival
+                  </LqText>
+                </Flex>
+                <LqText variant="h2" weight="bold">
+                  {flight.arrival_airport}
+                </LqText>
+                <LqText variant="xs" color="muted">
+                  {flight.arrival_city}
+                </LqText>
+              </Stack>
+            </Surface>
+          </Flex>
 
-          <div className={styles.infoCard}>
-            <div className={styles.infoCardHeader}>
-              <Icon name="ArrowDown" className={styles.infoCardIconEmerald} size="sm" />
-              <span className={styles.infoCardLabel}>Arrival</span>
-            </div>
-            <div className={styles.infoCardAirport}>{flight.arrival_airport}</div>
-            <div className={styles.infoCardDate}>{new Date(flight.date).toLocaleString()}</div>
-          </div>
-        </div>
-
-        {/* Flight Route Map */}
-        {(departureCoords || arrivalCoords) && (
-          <div className={styles.mapSection}>
-            <h4 className={styles.mapSectionTitle}>
-              <Icon name="Globe" size="sm" />
-              Flight Path Visualization
-            </h4>
-            {departureCoords && arrivalCoords ? (
-              <RouteMap
-                departure={{
-                  lat: departureCoords.lat,
-                  lng: departureCoords.lng,
-                  name: flight.departure_city || flight.departure_airport,
-                  code: flight.departure_airport,
-                }}
-                arrival={{
-                  lat: arrivalCoords.lat,
-                  lng: arrivalCoords.lng,
-                  name: flight.arrival_city || flight.arrival_airport,
-                  code: flight.arrival_airport,
-                }}
-              />
-            ) : (
-              <div className={styles.mapUnavailable}>
-                <Icon name="MapPin" size="lg" className={styles.mapUnavailableIcon} />
-                <p className={styles.mapUnavailableText}>
-                  Complete route data unavailable for map visualization
-                </p>
-              </div>
-            )}
-          </div>
-        )}
-
-        <div className="modal-route">
-          <div className="route-endpoint">
-            <span className="code">{flight.departure_airport}</span>
-            <span className="city">{flight.departure_city}</span>
-          </div>
-          <div className="route-arrow">→</div>
-          <div className="route-endpoint">
-            <span className="code">{flight.arrival_airport}</span>
-            <span className="city">{flight.arrival_city}</span>
-          </div>
-        </div>
-
-        <div className="modal-section">
-          <h3>Aircraft</h3>
-          <p>
-            {flight.aircraft_type} ({flight.aircraft_tail})
-          </p>
-        </div>
-
-        <div className="modal-section">
-          <h3>Passenger Manifest ({flight.passengers?.length || 0})</h3>
-          <div className="passenger-list">
-            {flight.passengers?.map((p, i) => (
-              <div key={i} className="passenger-row">
-                <span className={`role-badge ${p.role}`}>{p.role}</span>
-                {p.entity_id ? (
-                  <Link to={`/entity/${p.entity_id}`} className="passenger-link">
-                    {p.passenger_name}
-                  </Link>
+          {(departureCoords || arrivalCoords) && (
+            <Surface variant="panel" className={styles.mapSection}>
+              <Flex align="center" gap="sm" className={styles.sectionHeader}>
+                <Globe size={16} color="var(--accent)" />
+                <LqText variant="small" weight="bold">
+                  Route Visualization
+                </LqText>
+              </Flex>
+              <Box className={styles.mapWrapper}>
+                {departureCoords && arrivalCoords ? (
+                  <RouteMap
+                    departure={{
+                      lat: departureCoords.lat,
+                      lng: departureCoords.lng,
+                      name: flight.departure_city || flight.departure_airport,
+                      code: flight.departure_airport,
+                    }}
+                    arrival={{
+                      lat: arrivalCoords.lat,
+                      lng: arrivalCoords.lng,
+                      name: flight.arrival_city || flight.arrival_airport,
+                      code: flight.arrival_airport,
+                    }}
+                  />
                 ) : (
-                  <span>{p.passenger_name}</span>
+                  <Flex
+                    align="center"
+                    justify="center"
+                    direction="column"
+                    gap="md"
+                    className={styles.mapUnavailable}
+                  >
+                    <MapPin size={32} color="var(--text-muted)" />
+                    <LqText variant="xs" color="muted" align="center">
+                      Complete route coordinates unavailable for visualization
+                    </LqText>
+                  </Flex>
                 )}
-              </div>
-            ))}
-          </div>
-        </div>
+              </Box>
+            </Surface>
+          )}
 
-        {/* Add to Investigation */}
-        <div
-          className="modal-section"
-          style={{ borderTop: '1px solid #2a2a4a', paddingTop: '16px' }}
-        >
-          <AddToInvestigationButton
-            item={{
-              id: String(flight.id),
-              title: `Flight ${flight.aircraft_tail}: ${flight.departure_airport} → ${flight.arrival_airport}`,
-              description: `${formatDate(flight.date)} - ${flight.passengers?.length || 0} passengers including ${flight.passengers
-                ?.slice(0, 3)
-                .map((p) => p.passenger_name)
-                .join(', ')}${flight.passengers && flight.passengers.length > 3 ? '...' : ''}`,
-              type: 'flight',
-              sourceId: String(flight.id),
-              metadata: {
-                date: flight.date,
-                departure: flight.departure_airport,
-                arrival: flight.arrival_airport,
-                aircraft: flight.aircraft_tail,
-                passengerCount: flight.passengers?.length || 0,
-              },
-            }}
-            variant="button"
-          />
-        </div>
-      </div>
-    </div>,
+          <Surface variant="panel" className={styles.manifestSection}>
+            <Flex align="center" justify="between" className={styles.sectionHeader}>
+              <Flex align="center" gap="sm">
+                <Users size={16} color="var(--accent)" />
+                <LqText variant="small" weight="bold">
+                  Passenger Manifest
+                </LqText>
+              </Flex>
+              <LqText variant="xs" weight="bold" color="muted">
+                {flight.passengers?.length || 0} Entities
+              </LqText>
+            </Flex>
+            <Stack gap="xs" className={styles.passengerList}>
+              {flight.passengers?.map((p, i) => (
+                <Surface key={i} variant="glass-strong" className={styles.passengerRow}>
+                  <Flex align="center" justify="between">
+                    <Flex align="center" gap="sm">
+                      <Surface
+                        variant="glass-strong"
+                        className={cn(styles.roleIcon, styles[p.role.toLowerCase()])}
+                      >
+                        <Shield size={12} />
+                      </Surface>
+                      {p.entity_id ? (
+                        <Link to={`/entity/${p.entity_id}`} className={styles.passengerLink}>
+                          <LqText variant="xs" weight="medium">
+                            {p.passenger_name}
+                          </LqText>
+                        </Link>
+                      ) : (
+                        <LqText variant="xs">{p.passenger_name}</LqText>
+                      )}
+                    </Flex>
+                    <LqText
+                      variant="xs"
+                      weight="bold"
+                      color="muted"
+                      style={{ textTransform: 'uppercase' }}
+                    >
+                      {p.role}
+                    </LqText>
+                  </Flex>
+                </Surface>
+              ))}
+            </Stack>
+          </Surface>
+
+          <Surface variant="panel" className={styles.aircraftSection}>
+            <Flex align="center" gap="sm" className={styles.sectionHeader}>
+              <Plane size={16} color="var(--accent)" />
+              <LqText variant="small" weight="bold">
+                Aircraft Intelligence
+              </LqText>
+            </Flex>
+            <Flex justify="between" align="stretch" gap="md">
+              <Stack gap="xxs" className={styles.aircraftMeta}>
+                <LqText
+                  variant="xs"
+                  weight="bold"
+                  color="muted"
+                  style={{ textTransform: 'uppercase' }}
+                >
+                  Tail Number
+                </LqText>
+                <LqText variant="small" weight="bold" color="accent">
+                  {flight.aircraft_tail}
+                </LqText>
+              </Stack>
+              <Stack gap="xxs" className={styles.aircraftMeta}>
+                <LqText
+                  variant="xs"
+                  weight="bold"
+                  color="muted"
+                  style={{ textTransform: 'uppercase' }}
+                >
+                  Type / Model
+                </LqText>
+                <LqText variant="xs" weight="medium">
+                  {flight.aircraft_type || 'Unknown'}
+                </LqText>
+              </Stack>
+            </Flex>
+          </Surface>
+
+          <Box className={styles.actions}>
+            <AddToInvestigationButton
+              item={{
+                id: String(flight.id),
+                title: `Flight ${flight.aircraft_tail}: ${flight.departure_airport} → ${flight.arrival_airport}`,
+                description: `${formatDate(flight.date)} - ${flight.passengers?.length || 0} passengers manifest`,
+                type: 'flight',
+                sourceId: String(flight.id),
+                metadata: {
+                  date: flight.date,
+                  departure: flight.departure_airport,
+                  arrival: flight.arrival_airport,
+                  aircraft: flight.aircraft_tail,
+                  passengerCount: flight.passengers?.length || 0,
+                },
+              }}
+              variant="button"
+            />
+          </Box>
+        </Stack>
+      </Surface>
+    </Box>,
     document.body,
   );
 };

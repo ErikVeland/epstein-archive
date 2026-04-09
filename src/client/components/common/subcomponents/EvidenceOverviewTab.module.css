@@ -77,7 +77,7 @@
 
 .metricsCard,
 .signalsCard {
-  composes: glass-card from global;
+  composes: surface-panel from global;
   padding: var(--space-6);
   display: flex;
   flex-direction: column;
@@ -280,7 +280,7 @@
 }
 
 .blackbookCard {
-  composes: glass-card from global;
+  composes: surface-panel from global;
   border-left: 3px solid var(--accent-investigate);
   padding: var(--space-6);
   margin-bottom: var(--space-10);

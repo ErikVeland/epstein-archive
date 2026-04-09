@@ -768,7 +768,7 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                 <Surface variant="glass-strong" className={styles.listItem}>
                   <Flex align="center" gap="sm" className={styles.headerMain}>
                     <FolderOpen className={styles.appliedTagIcon} />
-                    <LqText variant="xs" weight="bold" className="uppercase tracking-widest">
+                    <LqText variant="xs" weight="bold" className={styles.stateLabel}>
                       Active State
                     </LqText>
                   </Flex>

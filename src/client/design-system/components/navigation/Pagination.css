@@ -1,0 +1,13 @@
+.ds-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.ds-paginationText {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+}

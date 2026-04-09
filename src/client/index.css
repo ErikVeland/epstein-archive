@@ -1,6 +1,3 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 :root {
   /* Core Foundation */
   --radius-sm: 4px;
@@ -31,50 +28,67 @@
 
   /* Typography */
   --font-display: 'DM Serif Display', Georgia, serif;
-  --font-sans: 'IBM Plex Sans', 'Inter', system-ui, sans-serif;
+  --font-sans: 'Outfit', 'Inter', system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
-  --font-geometric: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-geometric: 'Space Grotesk', system-ui, sans-serif;
+  --font-bombastic: 'Space Grotesk', sans-serif;
 
   /* Typographic Scale */
-  --type-display-xxl: clamp(2.5rem, 4vw, 4rem);
-  --type-display-xl: clamp(2rem, 3vw, 3rem);
-  --type-h1: clamp(1.75rem, 2.5vw, 2.25rem);
-  --type-h2: clamp(1.375rem, 2vw, 1.75rem);
-  --type-h3: clamp(1.125rem, 1.5vw, 1.375rem);
-  --type-subtitle: 0.95rem;
-  --type-body: 0.95rem;
-  --type-small: 0.8rem;
-  --type-xs: 0.625rem;
+  --type-bombastic: clamp(4rem, 15vw, 15rem);
+  --type-display-xxl: clamp(3rem, 5vw, 5rem);
+  --type-display-xl: clamp(2.5rem, 4vw, 4rem);
+  --type-h1: clamp(2rem, 3.5vw, 3.5rem);
+  --type-h2: clamp(1.5rem, 2.5vw, 2.5rem);
+  --type-h3: clamp(1.25rem, 2vw, 1.75rem);
+  --type-subtitle: 1.125rem;
+  --type-body: 1rem;
+  --type-small: 0.875rem;
+  --type-xs: 0.75rem;
+  --type-symbolic: 0.625rem;
+  --font-size-xs: var(--type-xs);
+  --font-size-sm: var(--type-small);
+  --font-size-base: var(--type-body);
+  --font-size-lg: var(--type-h3);
+  --font-size-xl: var(--type-h2);
+  --font-size-2xl: var(--type-h1);
+  --font-size-3xl: var(--type-display-xl);
+  --font-size-4xl: var(--type-display-xxl);
   --font-size-h2: var(--type-h2);
-  --tracking-tight: -0.01em;
-  --tracking-wide: 0.08em;
+  --tracking-tighter: -0.05em;
+  --tracking-tight: -0.02em;
+  --tracking-wide: 0.1em;
+  --tracking-relaxed: 1.625;
+  --tracking-symbolic: 0.25em;
   --weight-thin: 200;
   --weight-light: 300;
   --weight-regular: 400;
   --weight-medium: 500;
   --weight-bold: 700;
+  --line-height-relaxed: 1.625;
 
   /* Liquid Motion */
   --easing-liquid: cubic-bezier(0.2, 0.8, 0.2, 1);
   --easing-swift: cubic-bezier(0.4, 0, 0.2, 1);
+  --easing-gentle: cubic-bezier(0, 0, 0.2, 1);
   --duration-fast: 150ms;
   --duration-normal: 300ms;
   --duration-slow: 500ms;
 
   /* Color Palette */
-  --bg-dark: #0a0a0b;
-  --bg-surface: #111114;
-  --glass-bg: rgba(15, 23, 42, 0.56);
-  --glass-bg-strong: rgba(15, 23, 42, 0.74);
-  --glass-border: rgba(203, 213, 225, 0.038);
-  --glass-border-highlight: rgba(226, 232, 240, 0.075);
-  --glass-highlight: rgba(248, 250, 252, 0.2);
-  --glass-bg-highlight: rgba(248, 250, 252, 0.06);
-  --glass-shadow: 0 10px 32px rgba(2, 6, 23, 0.45);
-  --glass-shadow-soft: 0 5px 20px rgba(2, 6, 23, 0.25);
-  --glass-blur: 18px;
-  --bg-elevated: #1a1a21;
-  --border-subtle: rgba(148, 163, 184, 0.04);
+  --bg-dark: #050506;
+  --bg-surface: #0a0a0d;
+  --glass-bg: rgba(15, 23, 42, 0.68);
+  --glass-bg-strong: rgba(15, 23, 42, 0.88);
+  --glass-border: rgba(203, 213, 225, 0.12);
+  --glass-border-strong: rgba(226, 232, 240, 0.22);
+  --glass-border-highlight: rgba(226, 232, 240, 0.18);
+  --glass-highlight: rgba(248, 250, 252, 0.25);
+  --glass-bg-highlight: rgba(248, 250, 252, 0.1);
+  --glass-shadow: 0 12px 40px rgba(0, 0, 0, 0.65);
+  --glass-shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --glass-blur: 20px;
+  --bg-elevated: #121217;
+  --border-subtle: rgba(148, 163, 184, 0.12);
 
   /* Text Aliases for component usage */
   --text-strong: #f8fafc;
@@ -157,22 +171,22 @@
   /* Navigation Category Colors — Intelligence section */
   --nav-investigations: #ec4899;
   --nav-investigations-bg: color-mix(in srgb, #831843 20%, transparent);
-  --nav-investigations-bg-hover: color-mix(in srgb, #831843 40%, transparent);
-  --nav-investigations-border: color-mix(in srgb, #ec4899 10%, transparent);
+  --nav-investigations-bg-hover: color-mix(in srgb, #ec4899 26%, transparent);
+  --nav-investigations-border: color-mix(in srgb, #ec4899 18%, transparent);
   --nav-investigations-ring: color-mix(in srgb, #ec4899 50%, transparent);
   --nav-investigations-glow: 0 0 15px -3px color-mix(in srgb, #ec4899 30%, transparent);
   --nav-timeline: #fb923c;
   --nav-timeline-bg: color-mix(in srgb, #7c2d12 20%, transparent);
-  --nav-timeline-bg-hover: color-mix(in srgb, #7c2d12 40%, transparent);
-  --nav-timeline-border: color-mix(in srgb, #fb923c 10%, transparent);
+  --nav-timeline-bg-hover: color-mix(in srgb, #fb923c 28%, transparent);
+  --nav-timeline-border: color-mix(in srgb, #fb923c 18%, transparent);
   --nav-flights: #38bdf8;
   --nav-flights-bg: color-mix(in srgb, #0c4a6e 20%, transparent);
-  --nav-flights-bg-hover: color-mix(in srgb, #0c4a6e 40%, transparent);
-  --nav-flights-border: color-mix(in srgb, #38bdf8 10%, transparent);
+  --nav-flights-bg-hover: color-mix(in srgb, #38bdf8 30%, transparent);
+  --nav-flights-border: color-mix(in srgb, #38bdf8 18%, transparent);
   --nav-analytics: #2dd4bf;
   --nav-analytics-bg: color-mix(in srgb, #134e4a 20%, transparent);
-  --nav-analytics-bg-hover: color-mix(in srgb, #134e4a 40%, transparent);
-  --nav-analytics-border: color-mix(in srgb, #2dd4bf 10%, transparent);
+  --nav-analytics-bg-hover: color-mix(in srgb, #2dd4bf 26%, transparent);
+  --nav-analytics-border: color-mix(in srgb, #2dd4bf 18%, transparent);
 
   /* Semantic Risk Scale */
   --risk-critical: #c0392b;
@@ -206,6 +220,13 @@
   --source-public-border: color-mix(in srgb, #6ee7b7 26%, transparent);
   --source-public-text: #d1fae5;
   --source-public-shadow: 0 1px 2px color-mix(in srgb, #064e3b 22%, transparent);
+  --control-height-compact: 36px;
+  --control-height: 44px;
+  --control-padding-inline: var(--space-4);
+  --shadow-sm: 0 1px 2px rgba(2, 6, 23, 0.2);
+  --shadow-md: 0 8px 24px rgba(2, 6, 23, 0.22);
+  --shadow-lg: var(--glass-shadow);
+  --z-tooltip: 210;
 }
 
 html,
@@ -217,6 +238,14 @@ body {
   color: var(--text-default);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+}
+
+button,
+select,
+input,
+textarea {
+  color: var(--text-primary);
+  font-family: inherit;
 }
 
 /* Backdrop surface for app-level depth */
@@ -295,6 +324,14 @@ body {
   border: 1px solid var(--glass-border-highlight);
   border-radius: var(--radius-md);
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  padding: 0;
+  overflow: hidden;
+}
+
+.dropdown-surface ul {
+  list-style: none;
+  margin: 0;
+  padding: 4px;
 }
 
 .glass-card {

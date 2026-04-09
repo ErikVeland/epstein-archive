@@ -13,6 +13,10 @@
   text-align: center;
 }
 
+.stateCard {
+  width: min(100%, 40rem);
+}
+
 .spinner {
   width: 3rem;
   height: 3rem;

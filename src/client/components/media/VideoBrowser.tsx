@@ -1,18 +1,28 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { FixedSizeGrid as Grid, GridChildComponentProps, areEqual } from 'react-window';
 import { createPortal } from 'react-dom';
+import {
+  Play,
+  Calendar,
+  CheckSquare,
+  Clock,
+  Search,
+  RefreshCw,
+  Users,
+  AlertTriangle,
+  User,
+} from 'lucide-react';
+import { Surface, Flex, Box, Stack, LqText, Button, cn } from '../../design-system/lib';
 import AutoSizer from '../common/AutoSizer';
 import { VideoPlayer } from './VideoPlayer';
-import { Play, Calendar, CheckSquare, Clock } from 'lucide-react';
 import { SensitiveContent } from '../common/SensitiveContent';
 import BatchToolbar from '../common/BatchToolbar';
 import { SensitiveWarningBanner } from '../shared/SensitiveWarningBanner';
 import { AlbumSidebar } from '../shared/AlbumSidebar';
 import { MobileAlbumDropdown } from '../shared/MobileAlbumDropdown';
 import { SEO } from '../common/SEO';
-import Icon from '../common/Icon';
 import { usePaginatedMediaCollection } from '../../hooks/usePaginatedMediaCollection';
-import { cn } from '@client/utils/cn';
+import { EmptyCorpus } from '../common/EmptyCorpus';
 import styles from './VideoBrowser.module.css';
 
 interface VideoItem {
@@ -110,16 +120,14 @@ const VideoCell = React.memo(({ columnIndex, rowIndex, style, data }: GridChildC
   const isSelected = selectedItems.has(video.id);
 
   return (
-    <div style={{ ...style, padding: '4px' }}>
-      <button
-        className={cn(
-          styles.videoCard,
-          isSelected ? styles.videoCardSelected : styles.videoCardIdle,
-        )}
+    <div style={{ ...style, padding: '6px' }}>
+      <Surface
+        variant={isSelected ? 'glass-highlight' : 'glass-strong'}
         onClick={() => onVideoClick(video, index)}
+        className={cn(styles.videoCard, isSelected && styles.videoCardSelected)}
         tabIndex={isBatchMode ? 0 : -1}
       >
-        <div className={styles.thumbnail}>
+        <Box className={styles.thumbnail}>
           <SensitiveContent isSensitive={video.isSensitive} className={styles.thumbnailMedia}>
             <img
               key={video.id}
@@ -134,54 +142,65 @@ const VideoCell = React.memo(({ columnIndex, rowIndex, style, data }: GridChildC
                 img.src = VIDEO_THUMB_PLACEHOLDER;
               }}
             />
-            <div className={styles.playOverlay}>
-              <div className={styles.playButton}>
-                <Play className={styles.playIcon} />
-              </div>
-            </div>
+            <Box className={styles.playOverlay}>
+              <Box className={styles.playButton}>
+                <Play className={styles.playIcon} size={24} fill="currentColor" />
+              </Box>
+            </Box>
           </SensitiveContent>
 
           {isBatchMode && (
-            <div
-              className={cn(
-                styles.selectionBox,
-                isSelected ? styles.selectionBoxActive : styles.selectionBoxIdle,
+            <Surface variant="glass" className={styles.selectionBox}>
+              {isSelected ? (
+                <CheckSquare size={14} />
+              ) : (
+                <LqText variant="xs" weight="bold">
+                  {index + 1}
+                </LqText>
               )}
-            >
-              {isSelected && <CheckSquare className={styles.selectionIcon} />}
-            </div>
+            </Surface>
           )}
 
           {video.metadata?.duration && (
-            <div className={styles.durationBadge}>
-              <Clock className={styles.durationIcon} />
-              {Math.floor(video.metadata.duration / 60)}:
-              {
-                Math.floor(video.metadata.duration % 60)
-                  .toString()
-                  .padStart(2, '0')
-                  .split('.')[0]
-              }
-            </div>
+            <Surface variant="glass-strong" className={styles.durationBadge}>
+              <Flex gap="xs" align="center">
+                <Clock size={10} />
+                <LqText variant="xs" weight="bold">
+                  {Math.floor(video.metadata.duration / 60)}:
+                  {
+                    Math.floor(video.metadata.duration % 60)
+                      .toString()
+                      .padStart(2, '0')
+                      .split('.')[0]
+                  }
+                </LqText>
+              </Flex>
+            </Surface>
           )}
-        </div>
+        </Box>
 
-        <div className={styles.cardBody}>
-          <h3 className={styles.cardTitle}>{video.title}</h3>
-          <div className={styles.cardMeta}>
-            <div className={styles.dateMeta}>
-              <Calendar className={styles.metaIcon} />
-              {video.dateTaken ? formatDate(video.dateTaken) : formatDate(video.createdAt)}
-            </div>
+        <Stack gap="xs" className={styles.cardBody}>
+          <LqText variant="xs" weight="bold">
+            {video.title}
+          </LqText>
+          <Flex align="center" justify="between">
+            <Flex align="center" gap="xs">
+              <Calendar size={12} className={styles.metaIcon} />
+              <LqText variant="xs" color="muted">
+                {video.dateTaken ? formatDate(video.dateTaken) : formatDate(video.createdAt)}
+              </LqText>
+            </Flex>
             {video.people && video.people.length > 0 && (
-              <div className={styles.peopleMeta}>
-                <span>👤</span>
-                {video.people.length === 1 ? video.people[0].name : `${video.people.length} people`}
-              </div>
+              <Flex align="center" gap="xs">
+                <User size={10} className={styles.metaIcon} />
+                <LqText variant="xs" color="muted" weight="bold">
+                  {video.people.length === 1 ? video.people[0].name : `${video.people.length} Ppl`}
+                </LqText>
+              </Flex>
             )}
-          </div>
-        </div>
-      </button>
+          </Flex>
+        </Stack>
+      </Surface>
     </div>
   );
 }, areEqual);
@@ -204,9 +223,6 @@ export const VideoBrowser: React.FC = () => {
 
   const [selectedItem, setSelectedItem] = useState<VideoItem | null>(null);
   const [showAlbumDropdown, setShowAlbumDropdown] = useState(false);
-  const [_pickerOpenId, _setPickerOpenId] = useState<number | null>(null);
-  const [_investigationsList, _setInvestigationsList] = useState<string[]>([]);
-  const [_addingId, _setAddingId] = useState<number | null>(null);
   const [isBatchMode, setIsBatchMode] = useState(false);
   const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
 
@@ -289,7 +305,7 @@ export const VideoBrowser: React.FC = () => {
   const formatDate = useCallback((dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('en-US', {
       year: 'numeric',
-      month: 'long',
+      month: 'short',
       day: 'numeric',
     });
   }, []);
@@ -324,67 +340,68 @@ export const VideoBrowser: React.FC = () => {
         title={currentAlbum ? `${currentAlbum.name} — Video` : 'Video Recordings'}
         description="Forensic video evidence from the Epstein files."
       />
-      <div className={cn('surface-glass', styles.browser)}>
-        <div className={cn('app-header-glass', styles.header)}>
+      <Surface variant="glass-container" className={styles.browser}>
+        <Flex justify="between" align="center" className={styles.header}>
           <MobileAlbumDropdown
             albums={albums}
             selectedAlbum={selectedAlbum}
             onSelectAlbum={setSelectedAlbum}
             isOpen={showAlbumDropdown}
-            onToggle={() => setShowAlbumDropdown((value) => !value)}
+            onToggle={() => setShowAlbumDropdown((v) => !v)}
             totalItemCount={libraryTotalCount}
             allLabel="All Videos"
             currentAlbumName={currentAlbum?.name}
           />
 
-          <div className={styles.headerContent}>
-            <div>
-              <h2 className={styles.heading}>Video Recordings</h2>
-              <p className={styles.headingSubtext}>Forensic video evidence</p>
-            </div>
-            <div className={styles.controls}>
-              <div className={styles.searchField}>
-                <Icon name="Search" size="sm" className={styles.searchIcon} />
-                <input
-                  type="text"
-                  value={transcriptSearch}
-                  onChange={(e) => setTranscriptSearch(e.target.value)}
-                  placeholder={
-                    selectedAlbum ? 'Search transcripts in this album…' : 'Search transcripts…'
-                  }
-                  className={styles.searchInput}
-                />
-              </div>
-              <span className={styles.countLabel}>
-                {items.length} loaded{libraryTotalCount ? ` / ${libraryTotalCount}` : ''}
-              </span>
-              <button onClick={() => void refresh()} className={styles.reloadButton} title="Reload">
-                Reload
-              </button>
-              <button
-                onClick={() => setHasPeopleOnly((v) => !v)}
-                className={cn(
-                  styles.peopleFilterButton,
-                  hasPeopleOnly ? styles.peopleFilterButtonActive : styles.peopleFilterButtonIdle,
-                )}
-                title="Show only videos with identified people"
-              >
-                👤 People in Frame
-              </button>
-            </div>
-            <button
-              onClick={() => setIsBatchMode(!isBatchMode)}
-              className={cn(
-                styles.batchButton,
-                isBatchMode ? styles.batchButtonActive : styles.batchButtonIdle,
-              )}
-            >
-              {isBatchMode ? 'Exit Batch' : 'Batch Edit'}
-            </button>
-          </div>
-        </div>
+          <Flex grow align="center" gap="md" className={styles.headerContent}>
+            <Box className={styles.searchField}>
+              <Search size={16} className={styles.searchIcon} />
+              <input
+                type="text"
+                value={transcriptSearch}
+                onChange={(e) => setTranscriptSearch(e.target.value)}
+                placeholder={
+                  selectedAlbum ? 'Search transcripts in album...' : 'Search transcripts...'
+                }
+                className={styles.searchInput}
+              />
+            </Box>
 
-        <div className={styles.contentLayout}>
+            <Flex gap="sm" align="center" className={styles.controls}>
+              <LqText
+                variant="xs"
+                weight="bold"
+                color="muted"
+                style={{ textTransform: 'uppercase' }}
+              >
+                {items.length} of {libraryTotalCount || 0}
+              </LqText>
+
+              <Button variant="glass" onClick={() => void refresh()} title="Reload archive">
+                <RefreshCw size={14} />
+              </Button>
+
+              <Button
+                variant={hasPeopleOnly ? 'accent-solid' : 'glass'}
+                onClick={() => setHasPeopleOnly((v) => !v)}
+                title="Filter by people"
+              >
+                <Users size={14} />
+                <span>People</span>
+              </Button>
+
+              <Button
+                variant={isBatchMode ? 'accent-solid' : 'glass-highlight'}
+                onClick={() => setIsBatchMode(!isBatchMode)}
+              >
+                <CheckSquare size={14} />
+                <span>{isBatchMode ? 'Finish' : 'Batch'}</span>
+              </Button>
+            </Flex>
+          </Flex>
+        </Flex>
+
+        <Flex className={styles.contentLayout}>
           <AlbumSidebar
             albums={albums}
             selectedAlbum={selectedAlbum}
@@ -393,31 +410,48 @@ export const VideoBrowser: React.FC = () => {
             allLabel="All Videos"
           />
 
-          <div className={styles.mainContent}>
-            {loading && items.length === 0 ? (
-              <div className={styles.loadingOverlay}>
-                <div className={styles.loadingSpinner} />
-              </div>
-            ) : null}
+          <Stack grow className={styles.mainContent}>
+            {loading && items.length === 0 && (
+              <Flex align="center" justify="center" className={styles.loadingOverlay}>
+                <Box className={styles.loadingSpinner} />
+              </Flex>
+            )}
 
             {showSensitiveWarning && <SensitiveWarningBanner mediaType="video" />}
 
-            {error && <div className={styles.errorBanner}>{error}</div>}
+            {error && (
+              <Surface variant="glass-strong" className={styles.errorBanner}>
+                <Flex align="center" gap="sm">
+                  <AlertTriangle size={18} />
+                  <LqText variant="xs" weight="bold">
+                    {error}
+                  </LqText>
+                </Flex>
+              </Surface>
+            )}
 
-            <div className={styles.gridViewport}>
+            {!loading && !error && items.length === 0 && (
+              <EmptyCorpus
+                icon="Film"
+                title="No Video Files"
+                body="Video footage is extracted and indexed during media ingestion. No videos have been loaded into the corpus yet — run the media ingestion pipeline to populate this section."
+              />
+            )}
+
+            <Box className={styles.gridViewport}>
               <AutoSizer>
                 {({ width, height }) => {
                   if (width < 50) return null;
-                  const minColumnWidth = 220;
+                  const minColumnWidth = 240;
                   const gap = 16;
-                  const availableWidth = width - 48;
+                  const availableWidth = width - 32;
                   const columnCount = Math.max(
                     1,
                     Math.floor((availableWidth + gap) / (minColumnWidth + gap)),
                   );
                   const columnWidth = (availableWidth - gap * (columnCount - 1)) / columnCount;
                   const rowCount = Math.ceil(items.length / columnCount);
-                  const rowHeight = (columnWidth * 9) / 16 + 72;
+                  const rowHeight = (columnWidth * 9) / 16 + 84;
 
                   return (
                     <Grid
@@ -428,7 +462,7 @@ export const VideoBrowser: React.FC = () => {
                       rowHeight={rowHeight + gap}
                       width={width}
                       itemData={{ ...gridData, columnCount }}
-                      className={cn(styles.virtualScroller, styles.gridScroller)}
+                      className={styles.virtualScroller}
                       onItemsRendered={({ visibleRowStopIndex }) => {
                         if (
                           visibleRowStopIndex * columnCount >= items.length - 12 &&
@@ -445,25 +479,33 @@ export const VideoBrowser: React.FC = () => {
                 }}
               </AutoSizer>
 
-              {loading && items.length === 0 && (
-                <div className={styles.busyOverlay}>
-                  <div className={styles.busyContent}>
-                    <div className={styles.busySpinner} />
-                    <p className={styles.busyLabel}>Crunching Evidence...</p>
-                  </div>
-                </div>
+              {loading && items.length > 0 && (
+                <Flex align="center" justify="center" className={styles.busyOverlay}>
+                  <Surface variant="glass-strong" className={styles.busyContent}>
+                    <Flex align="center" gap="md">
+                      <Box className={styles.busySpinner} />
+                      <LqText variant="xs" weight="bold">
+                        Indexing Forensic Streams...
+                      </LqText>
+                    </Flex>
+                  </Surface>
+                </Flex>
               )}
-            </div>
-          </div>
-        </div>
+            </Box>
+          </Stack>
+        </Flex>
 
-        <div className={styles.footer}>
-          <div>{items.length} items</div>
-          <div>{selectedAlbum ? currentAlbum?.name : 'All Videos'}</div>
-        </div>
+        <Flex justify="between" align="center" px="md" py="xs" className={styles.footer}>
+          <LqText variant="xs" color="muted" weight="bold" style={{ textTransform: 'uppercase' }}>
+            {items.length} EVIDENCE STREAMS
+          </LqText>
+          <LqText variant="xs" color="muted" weight="bold" style={{ textTransform: 'uppercase' }}>
+            {selectedAlbum ? currentAlbum?.name : 'MASTER VIDEO ARCHIVE'}
+          </LqText>
+        </Flex>
 
         {isBatchMode && selectedItems.size > 0 && (
-          <div className={styles.batchToolbarWrap}>
+          <Box className={styles.batchToolbarWrap}>
             <BatchToolbar
               selectedCount={selectedItems.size}
               onRotate={() => {}}
@@ -474,42 +516,34 @@ export const VideoBrowser: React.FC = () => {
               onCancel={() => setSelectedItems(new Set())}
               onDeselect={() => setSelectedItems(new Set())}
             />
-          </div>
+          </Box>
         )}
 
         {selectedItem &&
           createPortal(
-            <div className={styles.playerModalOverlay}>
-              <div className={styles.playerModalFrame}>
+            <Box className={styles.playerModalOverlay}>
+              <Box className={styles.playerModalFrame}>
                 <VideoPlayer
                   key={selectedItem.id}
                   src={`/api/media/video/${selectedItem.id}/stream`}
                   title={selectedItem.title}
-                  transcript={
-                    selectedItem.metadata.transcript as unknown as
-                      | import('./AudioPlayer').TranscriptSegment[]
-                      | undefined
-                  }
-                  chapters={
-                    selectedItem.metadata.chapters as unknown as
-                      | import('./AudioPlayer').Chapter[]
-                      | undefined
-                  }
+                  transcript={selectedItem.metadata.transcript as any}
+                  chapters={selectedItem.metadata.chapters as any}
                   onClose={() => setSelectedItem(null)}
                   autoPlay
                   isSensitive={selectedItem.isSensitive}
                   warningText={selectedItem.description}
                   documentId={
-                    selectedItem.metadata.documentId !== undefined
+                    selectedItem.metadata.documentId
                       ? Number(selectedItem.metadata.documentId)
                       : undefined
                   }
                 />
-              </div>
-            </div>,
+              </Box>
+            </Box>,
             document.body,
           )}
-      </div>
+      </Surface>
     </>
   );
 };

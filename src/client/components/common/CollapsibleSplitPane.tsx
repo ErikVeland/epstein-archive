@@ -136,32 +136,31 @@ export const CollapsibleSplitPane: React.FC<CollapsibleSplitPaneProps> = ({
     return (
       <div ref={rootRef} className={`${s.root} ${className}`}>
         <div className={s.singleRightPanel} style={rightStyle}>
-          <div className={s.iconRail}>
+          <div className={s.singleRightContent}>
+            <div className={s.sidebarInner}>{collapsed ? collapsedRight : right}</div>
+
             <button
               type="button"
               onClick={() => setCollapsed(!collapsed)}
-              className={s.collapseBtn}
+              className={s.panelToggleBtn}
               aria-label={collapsed ? expandAriaLabel : collapseAriaLabel}
               title={collapsed ? expandAriaLabel : collapseAriaLabel}
             >
               {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+              {!collapsed && <span className={s.toggleLabel}>Collapse Sidebar</span>}
             </button>
-
-            {!collapsed && (
-              <button
-                type="button"
-                onPointerDown={startResize}
-                onKeyDown={handleDividerKeyDown}
-                className={s.resizeHandle}
-                aria-label={dividerAriaLabel}
-                title={dividerAriaLabel}
-              >
-                <div className={s.resizeBar} />
-              </button>
-            )}
           </div>
 
-          <div className={s.singleRightContent}>{collapsed ? collapsedRight : right}</div>
+          {!collapsed && (
+            <button
+              type="button"
+              onPointerDown={startResize}
+              onKeyDown={handleDividerKeyDown}
+              className={s.resizeHandle}
+              aria-label={dividerAriaLabel}
+              title={dividerAriaLabel}
+            />
+          )}
         </div>
       </div>
     );

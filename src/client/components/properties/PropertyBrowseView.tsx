@@ -1,7 +1,6 @@
 import React from 'react';
 import Icon from '../common/Icon';
-import { Select } from '../common/Select';
-import { GlassButton } from '../ui/GlassButton';
+import { Button, Pagination, SearchField, Select } from '../../design-system/lib';
 import { PropertyCard } from './PropertyCard';
 import type { Property, PropertyStats } from './types';
 import styles from './PropertyBrowseView.module.css';
@@ -51,21 +50,21 @@ export function PropertyBrowseView({
       <div className={styles.filtersBar}>
         <div className={styles.filtersInner}>
           <div className={styles.searchWrapper}>
-            <Icon name="Search" className={styles.searchIcon} size="sm" />
-            <input
-              type="text"
-              placeholder="Search properties, owners, addresses..."
+            <SearchField
               value={searchTerm}
+              aria-label="Search properties, owners, or addresses"
+              placeholder="Search properties, owners, addresses..."
               onChange={(e) => {
                 onSearchChange(e.target.value);
                 onPageChange(1);
               }}
+              rootClassName={styles.searchFieldRoot}
               className={styles.searchInput}
             />
           </div>
           <div className={styles.filterControls}>
             <Select
-              containerClassName={styles.propertyTypeSelect}
+              rootClassName={styles.propertyTypeSelect}
               value={propertyType}
               onChange={(e) => {
                 onPropertyTypeChange(e.target.value);
@@ -78,7 +77,7 @@ export function PropertyBrowseView({
             />
 
             <Select
-              containerClassName={styles.minValueSelect}
+              rootClassName={styles.minValueSelect}
               value={minValue}
               onChange={(e) => {
                 onMinValueChange(e.target.value);
@@ -110,7 +109,7 @@ export function PropertyBrowseView({
 
             {/* View Toggle */}
             <div className={styles.viewToggle}>
-              <GlassButton
+              <Button
                 onClick={() => onViewModeChange('browse')}
                 variant={viewMode === 'browse' ? 'primary' : 'ghost'}
                 size="sm"
@@ -118,8 +117,8 @@ export function PropertyBrowseView({
                 title="Browse List"
               >
                 <Icon name="List" size="sm" />
-              </GlassButton>
-              <GlassButton
+              </Button>
+              <Button
                 onClick={() => onViewModeChange('associates')}
                 variant={viewMode === 'associates' ? 'primary' : 'ghost'}
                 size="sm"
@@ -127,8 +126,8 @@ export function PropertyBrowseView({
                 title="Known Associates"
               >
                 <Icon name="Users" size="sm" />
-              </GlassButton>
-              <GlassButton
+              </Button>
+              <Button
                 onClick={() => onViewModeChange('analytics')}
                 variant={viewMode === 'analytics' ? 'primary' : 'ghost'}
                 size="sm"
@@ -136,7 +135,7 @@ export function PropertyBrowseView({
                 title="Analytics"
               >
                 <Icon name="BarChart3" size="sm" />
-              </GlassButton>
+              </Button>
             </div>
           </div>
         </div>
@@ -157,25 +156,12 @@ export function PropertyBrowseView({
             </div>
 
             {/* Pagination */}
-            <div className={styles.pagination}>
-              <button
-                onClick={() => onPageChange(Math.max(1, page - 1))}
-                disabled={page === 1}
-                className={styles.pageButton}
-              >
-                <Icon name="ChevronLeft" size="sm" />
-              </button>
-              <span className={styles.pageInfo}>
-                Page {page} of {totalPages}
-              </span>
-              <button
-                onClick={() => onPageChange(Math.min(totalPages, page + 1))}
-                disabled={page === totalPages}
-                className={styles.pageButton}
-              >
-                <Icon name="ChevronRight" size="sm" />
-              </button>
-            </div>
+            <Pagination
+              className={styles.pagination}
+              page={page}
+              totalPages={totalPages}
+              onPageChange={onPageChange}
+            />
           </>
         )}
       </div>

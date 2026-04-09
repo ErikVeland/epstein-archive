@@ -1,0 +1,129 @@
+/* Flight Network - Scoped Relationship Tokens */
+
+.networkView {
+  padding: 0;
+}
+
+.networkHeader {
+  padding: var(--space-6);
+}
+
+.headerIconWrap {
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mainGrid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  align-items: stretch;
+}
+
+.cardHeader {
+  margin-bottom: var(--space-4);
+}
+
+.coOccurrenceList,
+.connectedPassengers {
+  padding: var(--space-6);
+  flex: 1;
+}
+
+.coOccurrenceCard,
+.passengerConnectionCard {
+  padding: var(--space-3) var(--space-4);
+}
+
+.passengerLink {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.passengerLink:hover {
+  text-decoration: underline;
+  color: var(--accent-hover);
+}
+
+.connectionIndicator {
+  padding: 2px 8px;
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  border-radius: var(--radius-full);
+}
+
+.connectionBar {
+  height: 4px;
+  background: var(--glass-bg-strong);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  margin-top: var(--space-1);
+}
+
+.connectionFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), #60a5fa);
+  transition: width var(--duration-normal) var(--easing-liquid);
+}
+
+.rank {
+  min-width: 2rem;
+}
+
+.loadingState {
+  height: 400px;
+}
+
+.loadingSpinner {
+  text-align: center;
+}
+
+.radarSweep {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  margin: 0 auto var(--space-3);
+  position: relative;
+  animation: radarPulse 2s infinite;
+}
+
+.radarSweep::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 50%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), transparent);
+  transform-origin: left center;
+  animation: radarSweepAnim 2s infinite linear;
+}
+
+@keyframes radarSweepAnim {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes radarPulse {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 40%, transparent);
+  }
+  50% {
+    opacity: 0.6;
+    box-shadow: 0 0 25px color-mix(in srgb, var(--accent) 60%, transparent);
+  }
+}
+
+@media (max-width: 1024px) {
+  .mainGrid {
+    grid-template-columns: 1fr;
+  }
+}

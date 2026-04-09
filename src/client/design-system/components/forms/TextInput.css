@@ -1,0 +1,110 @@
+.ds-inputRoot {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.ds-inputLabelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.ds-inputLabel,
+.ds-inputHint,
+.ds-inputMessage {
+  margin: 0;
+}
+
+.ds-inputLabel {
+  color: var(--text-strong);
+  font-size: var(--font-size-sm);
+  font-weight: var(--weight-medium);
+}
+
+.ds-inputHint {
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.ds-inputField {
+  width: 100%;
+  min-height: var(--control-height);
+  padding: 0 var(--control-padding-inline);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 82%, transparent);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(148, 163, 184, 0.012)),
+    color-mix(in srgb, var(--glass-bg) 94%, transparent);
+  box-shadow: var(--glass-shadow-soft);
+  transition:
+    border-color var(--duration-fast) var(--easing-swift),
+    box-shadow var(--duration-fast) var(--easing-swift),
+    background-color var(--duration-fast) var(--easing-swift);
+}
+
+.ds-inputField::placeholder {
+  color: var(--text-dim);
+}
+
+.ds-inputField:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--glass-border-highlight) 72%, transparent);
+}
+
+.ds-inputField:focus-visible {
+  outline: none;
+  border-color: color-mix(in srgb, var(--accent) 54%, transparent);
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--accent) 18%, transparent),
+    var(--glass-shadow-soft);
+}
+
+.ds-inputField:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ds-inputField[data-invalid='true'] {
+  border-color: color-mix(in srgb, var(--accent-danger) 54%, transparent);
+}
+
+.ds-inputField[data-density='compact'] {
+  min-height: var(--control-height-compact);
+}
+
+.ds-inputField[data-density='comfortable'] {
+  min-height: calc(var(--control-height) + 4px);
+}
+
+.ds-inputMessage {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+.ds-inputMessage[data-tone='critical'] {
+  color: var(--accent-danger);
+}
+
+.ds-inputTextarea {
+  min-height: 120px;
+  padding-block: var(--space-3);
+  resize: vertical;
+}
+
+.ds-inputSearchShell {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.ds-inputSearchIcon {
+  position: absolute;
+  left: var(--space-3);
+  color: var(--text-dim);
+  pointer-events: none;
+}
+
+.ds-inputSearchField {
+  padding-left: calc(var(--space-10) + var(--space-1));
+}

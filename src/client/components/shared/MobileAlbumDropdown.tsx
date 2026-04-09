@@ -1,7 +1,8 @@
 import React from 'react';
-import Icon from '../common/Icon';
+import { Folder, ChevronUp, ChevronDown } from 'lucide-react';
+import { Surface, Button, Flex, Box, LqText, Stack, Badge } from '../../design-system/lib';
 import type { MediaAlbum } from '../../hooks/useMediaBrowser';
-import s from './MobileAlbumDropdown.module.css';
+import styles from './MobileAlbumDropdown.module.css';
 
 interface MobileAlbumDropdownProps {
   albums: MediaAlbum[];
@@ -10,17 +11,11 @@ interface MobileAlbumDropdownProps {
   isOpen: boolean;
   onToggle: () => void;
   totalItemCount: number;
-  /** Label for "All" option (e.g., "All Audio", "All Videos", "All Photos") */
   allLabel: string;
-  /** Current album name to display in the dropdown button */
   currentAlbumName?: string;
 }
 
-/**
- * Mobile-friendly album dropdown component used across Audio, Video, and Photo browsers.
- * Only visible on mobile screens (hidden on md: and larger).
- */
-export function MobileAlbumDropdown({
+export const MobileAlbumDropdown: React.FC<MobileAlbumDropdownProps> = ({
   albums,
   selectedAlbum,
   onSelectAlbum,
@@ -29,7 +24,7 @@ export function MobileAlbumDropdown({
   totalItemCount,
   allLabel,
   currentAlbumName,
-}: MobileAlbumDropdownProps): React.ReactElement {
+}) => {
   const handleSelect = (albumId: number | null): void => {
     onSelectAlbum(albumId);
     onToggle();
@@ -38,37 +33,50 @@ export function MobileAlbumDropdown({
   const displayName = currentAlbumName || allLabel;
 
   return (
-    <div className={s.root}>
-      <button onClick={onToggle} className={s.trigger}>
-        <span className={s.triggerLabel}>
-          <Icon name="Folder" size="sm" />
-          {displayName}
-        </span>
-        <Icon name={isOpen ? 'ChevronUp' : 'ChevronDown'} size="sm" />
-      </button>
+    <Box className={styles.root}>
+      <Button variant="glass" onClick={onToggle} className={styles.trigger}>
+        <Flex justify="between" align="center" grow>
+          <Flex align="center" gap="sm">
+            <Folder size={16} />
+            <LqText variant="small" weight="bold">
+              {displayName}
+            </LqText>
+          </Flex>
+          {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+        </Flex>
+      </Button>
+
       {isOpen && (
-        <div className={`${s.dropdown} dropdown-surface`}>
-          <button
-            className={`${s.option} ${selectedAlbum === null ? s.optionSelected : ''}`}
-            onClick={() => handleSelect(null)}
-          >
-            <span>{allLabel}</span>
-            <span className={s.badge}>{totalItemCount}</span>
-          </button>
-          {albums.map((album) => (
-            <button
-              key={album.id}
-              className={`${s.option} ${s.optionDivided} ${selectedAlbum === album.id ? s.optionSelected : ''}`}
-              onClick={() => handleSelect(album.id)}
+        <Surface variant="glass-highlight" className={styles.dropdown}>
+          <Stack gap="xs" p="xs">
+            <Button
+              variant={selectedAlbum === null ? 'primary' : 'ghost'}
+              size="sm"
+              onClick={() => handleSelect(null)}
             >
-              <span className={s.albumName}>{album.name}</span>
-              <span className={s.badge}>{album.itemCount || 0}</span>
-            </button>
-          ))}
-        </div>
+              <Flex justify="between" align="center" grow>
+                <LqText variant="small">{allLabel}</LqText>
+                <Badge variant="muted" label={totalItemCount} />
+              </Flex>
+            </Button>
+            {albums.map((album) => (
+              <Button
+                key={album.id}
+                variant={selectedAlbum === album.id ? 'primary' : 'ghost'}
+                size="sm"
+                onClick={() => handleSelect(album.id)}
+              >
+                <Flex justify="between" align="center" grow>
+                  <LqText variant="small">{album.name}</LqText>
+                  <Badge variant="muted" label={album.itemCount || 0} />
+                </Flex>
+              </Button>
+            ))}
+          </Stack>
+        </Surface>
       )}
-    </div>
+    </Box>
   );
-}
+};
 
 export default MobileAlbumDropdown;

@@ -676,7 +676,7 @@ export default function FinancialTransactionMapper({
                         window.dispatchEvent(event);
                       }}
                       variant="button"
-                      className="text-xs"
+                      size="sm"
                     />
                   </div>
                   <div className={styles.detailsList}>

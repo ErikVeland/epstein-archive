@@ -56,7 +56,7 @@
 }
 
 .card {
-  composes: glass-card from global;
+  composes: surface-panel from global;
   overflow: hidden;
   display: flex;
   flex-direction: column;

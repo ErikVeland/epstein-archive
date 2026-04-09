@@ -52,7 +52,7 @@
 }
 
 .iconAmber {
-  color: #fbbf24; /* amber-400 equivalent for investigation specific branding */
+  color: var(--risk-medium);
 }
 
 .statsBar {
@@ -75,12 +75,12 @@
 }
 
 .statValueEmerald {
-  color: #34d399;
-  font-weight: 600;
+  color: var(--risk-low);
+  font-weight: var(--font-weight-semibold);
 }
 .statValueBlue {
-  color: #60a5fa;
-  font-weight: 600;
+  color: var(--accent-info);
+  font-weight: var(--font-weight-semibold);
 }
 .statLabel {
   color: var(--text-muted);
@@ -320,45 +320,46 @@
 
 /* Status variants */
 .statusOpen {
-  color: #34d399;
-  border-color: rgba(16, 185, 129, 0.4);
-  background-color: rgba(16, 185, 129, 0.1);
+  color: var(--risk-low);
+  border-color: color-mix(in srgb, var(--risk-low) 40%, transparent);
+  background-color: color-mix(in srgb, var(--risk-low) 10%, transparent);
 }
 .statusPursued {
-  color: #60a5fa;
-  border-color: rgba(59, 130, 246, 0.4);
-  background-color: rgba(59, 130, 246, 0.1);
+  color: var(--accent-info);
+  border-color: color-mix(in srgb, var(--accent-info) 40%, transparent);
+  background-color: color-mix(in srgb, var(--accent-info) 10%, transparent);
 }
 .statusDeadEnd {
-  color: #fb7185;
-  border-color: rgba(244, 63, 94, 0.4);
-  background-color: rgba(244, 63, 94, 0.1);
+  color: var(--risk-critical);
+  border-color: color-mix(in srgb, var(--risk-critical) 40%, transparent);
+  background-color: color-mix(in srgb, var(--risk-critical) 10%, transparent);
 }
 .statusResolved {
-  color: #c084fc;
-  border-color: rgba(168, 85, 247, 0.4);
-  background-color: rgba(168, 85, 247, 0.1);
+  color: var(--accent-purple);
+  border-color: color-mix(in srgb, var(--accent-purple) 40%, transparent);
+  background-color: color-mix(in srgb, var(--accent-purple) 10%, transparent);
 }
 
 /* Priority variants */
 .priorityCritical {
-  color: #fb7185;
-  border-color: rgba(244, 63, 94, 0.4);
-  background-color: rgba(244, 63, 94, 0.1);
+  color: var(--risk-critical);
+  border-color: color-mix(in srgb, var(--risk-critical) 40%, transparent);
+  background-color: color-mix(in srgb, var(--risk-critical) 10%, transparent);
 }
 .priorityHigh {
-  color: #fbbf24;
-  border-color: rgba(245, 158, 11, 0.4);
-  background-color: rgba(245, 158, 11, 0.1);
+  color: var(--risk-high);
+  border-color: color-mix(in srgb, var(--risk-high) 40%, transparent);
+  background-color: color-mix(in srgb, var(--risk-high) 10%, transparent);
 }
 .priorityMedium {
-  color: #60a5fa;
-  border-color: rgba(59, 130, 246, 0.4);
-  background-color: rgba(59, 130, 246, 0.1);
+  color: var(--risk-medium);
+  border-color: color-mix(in srgb, var(--risk-medium) 40%, transparent);
+  background-color: color-mix(in srgb, var(--risk-medium) 10%, transparent);
 }
 .priorityLow {
-  color: var(--text-muted);
-  border-color: var(--glass-border);
+  color: var(--risk-low);
+  border-color: color-mix(in srgb, var(--risk-low) 40%, transparent);
+  background-color: color-mix(in srgb, var(--risk-low) 10%, transparent);
 }
 
 /* Icon and Animation Utilities */

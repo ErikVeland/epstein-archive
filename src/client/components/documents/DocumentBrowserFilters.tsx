@@ -1,12 +1,9 @@
 import React from 'react';
 import { Folder, Scale, Mail, ScrollText, Image as ImageIcon, Landmark } from 'lucide-react';
 import { BrowseFilters } from '../../types/documents';
-import { Surface } from '../../design-system/components/surfaces/Surface';
-import { Box } from '../../design-system/components/layout/Box';
-import { Flex } from '../../design-system/components/layout/Flex';
-import { LqText } from '../../design-system/components/typography/Text';
 import { DOJ_TRANCHE_OPTIONS } from './documentTrancheOptions';
 import styles from './DocumentBrowserFilters.module.css';
+import { Surface, Button, Flex, Box, LqText, cn } from '../../design-system/lib';
 
 interface DocumentBrowserFiltersProps {
   localFilters: BrowseFilters;
@@ -43,47 +40,41 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
       <Flex direction="column" align="stretch" justify="between" gap="md" className={styles.topBar}>
         <Box className={styles.categoryScroll}>
           <Flex align="center" className={styles.categoryStrip}>
+            {/* Category tabs */}
             {[
               { type: 'all', label: 'All', icon: <Folder size={14} /> },
               { type: 'legal', label: 'Legal', icon: <Scale size={14} /> },
               { type: 'email', label: 'Email', icon: <Mail size={14} /> },
-              {
-                type: 'deposition',
-                label: 'Deposition',
-                icon: <ScrollText size={14} />,
-              },
+              { type: 'deposition', label: 'Deposition', icon: <ScrollText size={14} /> },
               { type: 'photo', label: 'Photo', icon: <ImageIcon size={14} /> },
-              {
-                type: 'financial',
-                label: 'Financial',
-                icon: <Landmark size={14} />,
-              },
-            ].map(({ type, label, icon }) => (
-              <button
-                key={type}
-                onClick={() => {
-                  if (type === 'all') {
-                    handleFilterChange('categories', []);
-                  } else {
-                    handleFilterChange('categories', [type]);
-                    if (type === 'photo') {
-                      handleFilterChange('includeMedia', true);
+              { type: 'financial', label: 'Financial', icon: <Landmark size={14} /> },
+            ].map(({ type, label, icon }) => {
+              const isActive =
+                (type === 'all' &&
+                  (!localFilters.categories || localFilters.categories.length === 0)) ||
+                localFilters.categories?.includes(type);
+              return (
+                <Button
+                  key={type}
+                  onClick={() => {
+                    if (type === 'all') {
+                      handleFilterChange('categories', []);
+                    } else {
+                      handleFilterChange('categories', [type]);
+                      if (type === 'photo') {
+                        handleFilterChange('includeMedia', true);
+                      }
                     }
-                  }
-                }}
-                className={cx(
-                  styles.categoryTab,
-                  (type === 'all' &&
-                    (!localFilters.categories || localFilters.categories.length === 0)) ||
-                    localFilters.categories?.includes(type)
-                    ? styles.categoryTabActive
-                    : styles.categoryTabInactive,
-                )}
-              >
-                <span>{icon}</span>
-                <span>{label}</span>
-              </button>
-            ))}
+                  }}
+                  variant={isActive ? 'primary' : 'ghost'}
+                  size="sm"
+                  className={styles.categoryTab}
+                >
+                  {icon}
+                  {label}
+                </Button>
+              );
+            })}
           </Flex>
         </Box>
 
@@ -97,75 +88,57 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
             </Surface>
           )}
           <Flex align="center" className={styles.riskStrip}>
-            <button
+            <Button
               onClick={() => {
                 const isActive =
                   localFilters.redFlagLevel?.min === 4 && localFilters.redFlagLevel?.max === 5;
                 handleRedFlagLevelChange(isActive ? 0 : 4, isActive ? 5 : 5);
               }}
-              className={cx(
-                styles.riskTab,
+              variant={
                 localFilters.redFlagLevel?.min === 4 && localFilters.redFlagLevel?.max === 5
-                  ? styles.riskTabHighActive
-                  : undefined,
-              )}
+                  ? 'primary'
+                  : 'ghost'
+              }
+              size="sm"
+              className={styles.riskTab}
             >
-              <Box
-                className={cx(
-                  styles.riskDot,
-                  localFilters.redFlagLevel?.min === 4 && localFilters.redFlagLevel?.max === 5
-                    ? styles.riskDotHighActive
-                    : styles.riskDotHighInactive,
-                )}
-              />
+              <Box className={cn(styles.riskDot, styles.riskDotHigh)} />
               <LqText variant="xs">High Significance</LqText>
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => {
                 const isActive =
                   localFilters.redFlagLevel?.min === 2 && localFilters.redFlagLevel?.max === 3;
                 handleRedFlagLevelChange(isActive ? 0 : 2, isActive ? 5 : 3);
               }}
-              className={cx(
-                styles.riskTab,
+              variant={
                 localFilters.redFlagLevel?.min === 2 && localFilters.redFlagLevel?.max === 3
-                  ? styles.riskTabMedActive
-                  : undefined,
-              )}
+                  ? 'primary'
+                  : 'ghost'
+              }
+              size="sm"
+              className={styles.riskTab}
             >
-              <Box
-                className={cx(
-                  styles.riskDot,
-                  localFilters.redFlagLevel?.min === 2 && localFilters.redFlagLevel?.max === 3
-                    ? styles.riskDotMedActive
-                    : styles.riskDotMedInactive,
-                )}
-              />
+              <Box className={cn(styles.riskDot, styles.riskDotMed)} />
               <LqText variant="xs">Medium</LqText>
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => {
                 const isActive =
                   localFilters.redFlagLevel?.min === 0 && localFilters.redFlagLevel?.max === 1;
                 handleRedFlagLevelChange(isActive ? 0 : 0, isActive ? 5 : 1);
               }}
-              className={cx(
-                styles.riskTab,
+              variant={
                 localFilters.redFlagLevel?.min === 0 && localFilters.redFlagLevel?.max === 1
-                  ? styles.riskTabLowActive
-                  : undefined,
-              )}
+                  ? 'primary'
+                  : 'ghost'
+              }
+              size="sm"
+              className={styles.riskTab}
             >
-              <Box
-                className={cx(
-                  styles.riskDot,
-                  localFilters.redFlagLevel?.min === 0 && localFilters.redFlagLevel?.max === 1
-                    ? styles.riskDotLowActive
-                    : styles.riskDotLowInactive,
-                )}
-              />
+              <Box className={cn(styles.riskDot, styles.riskDotLow)} />
               <LqText variant="xs">Low Risk</LqText>
-            </button>
+            </Button>
           </Flex>
         </Flex>
       </Flex>
@@ -207,16 +180,15 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
               },
             },
           ].map((preset) => (
-            <button
+            <Button
               key={preset.label}
               onClick={preset.onClick}
-              className={cx(
-                styles.presetBtn,
-                preset.isActive ? styles.presetBtnActive : styles.presetBtnInactive,
-              )}
+              variant={preset.isActive ? 'primary' : 'ghost'}
+              size="sm"
+              className={styles.presetBtn}
             >
               {preset.label}
-            </button>
+            </Button>
           ))}
         </Flex>
       </Surface>
@@ -231,23 +203,27 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
                 File Formats
               </LqText>
               <Flex gap="sm">
-                <button
+                <Button
                   onClick={() => handleFilterChange('excludedFileTypes', [])}
+                  variant="ghost"
+                  size="sm"
                   className={styles.linkAccent}
                 >
                   Show All
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={() =>
                     handleFilterChange(
                       'excludedFileTypes',
                       fileTypeOptions.map((o) => o.value),
                     )
                   }
+                  variant="ghost"
+                  size="sm"
                   className={styles.linkMuted}
                 >
                   Hide All
-                </button>
+                </Button>
               </Flex>
             </Flex>
             {fileTypeOptions.length === 0 ? (

@@ -111,7 +111,7 @@ const EntitySearch: React.FC<{
                     <div className={styles.searchResultName}>{entity.name}</div>
                     {entity.role && <div className={styles.searchResultRole}>{entity.role}</div>}
                   </div>
-                  <Icon name="Link" size="xs" className={styles.searchResultIcon} />
+                  <Icon name="Link" className={styles.searchResultIcon} />
                 </button>
               ))}
             </div>
@@ -246,7 +246,7 @@ export const FaceGallery: React.FC = () => {
                 {cluster?.entity_id ? (
                   <div className={styles.entityLinkedRow}>
                     <div className={styles.entityBadge}>
-                      <Icon name="Link" size="xs" className={styles.entityBadgeIcon} />
+                      <Icon name="Link" className={styles.entityBadgeIcon} />
                       <span className={styles.entityBadgeText}>
                         {cluster.entity_name ?? cluster.name}
                       </span>
@@ -257,7 +257,7 @@ export const FaceGallery: React.FC = () => {
                       className={styles.unlinkButton}
                       title="Remove entity link"
                     >
-                      <Icon name="Unlink" size="xs" />
+                      <Icon name="Unlink" />
                     </button>
                   </div>
                 ) : (
@@ -301,7 +301,7 @@ export const FaceGallery: React.FC = () => {
                     className={styles.faceActionLink}
                     title="View original photo"
                   >
-                    <Icon name="ExternalLink" size="xs" />
+                    <Icon name="ExternalLink" />
                   </a>
                 </div>
               ))}
@@ -347,7 +347,7 @@ export const FaceGallery: React.FC = () => {
               <div className={styles.countBadge}>{cluster.face_count}</div>
               {cluster.entity_id && (
                 <div className={styles.linkedBadge} title="Linked to entity">
-                  <Icon name="Link" size="xs" className={styles.linkedBadgeIcon} />
+                  <Icon name="Link" className={styles.linkedBadgeIcon} />
                 </div>
               )}
             </div>

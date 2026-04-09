@@ -9,6 +9,9 @@ export interface FlexProps extends React.HTMLAttributes<HTMLDivElement>, Spacing
   justify?: 'start' | 'center' | 'end' | 'between' | 'around' | 'evenly';
   wrap?: 'nowrap' | 'wrap' | 'wrap-reverse';
   children: React.ReactNode;
+  grow?: boolean;
+  fullWidth?: boolean;
+  fullHeight?: boolean;
 }
 
 const alignMap: Record<string, string> = {
@@ -57,6 +60,9 @@ export const Flex: React.FC<FlexProps> = ({
   minH,
   maxW,
   maxH,
+  grow,
+  fullWidth,
+  fullHeight,
   ...props
 }) => {
   const spacingStyle = buildSpacingStyles({
@@ -93,6 +99,9 @@ export const Flex: React.FC<FlexProps> = ({
           '--flex-justify': justifyMap[justify] ?? 'flex-start',
           '--flex-wrap': wrap,
           ...spacingStyle,
+          ...(grow && { flexGrow: 1 }),
+          ...(fullWidth && { width: '100%' }),
+          ...(fullHeight && { height: '100%' }),
           ...style,
         } as React.CSSProperties
       }

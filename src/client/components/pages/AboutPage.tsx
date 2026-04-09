@@ -25,6 +25,7 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { Surface } from '../../design-system/lib';
 import s from './AboutPage.module.css';
 
 interface PipelineDataset {
@@ -509,8 +510,8 @@ export const AboutPage: React.FC = () => {
       </section>
 
       {/* Analysis Article */}
-      <section className={`soft-glass-panel-strong ${s.analysisSection}`}>
-        <div className={`soft-glass-divider ${s.analysisHeader}`}>
+      <Surface as="section" variant="glass-strong" className={s.analysisSection}>
+        <div className={s.analysisHeader}>
           <FileText size={32} className={s.iconAccent} />
           <div className={s.analysisHeaderText}>
             <h2 className={s.analysisTitle}>The Epstein Files: Analysis</h2>
@@ -840,7 +841,7 @@ export const AboutPage: React.FC = () => {
             </div>
           </div>
 
-          <div className={`soft-glass-panel ${s.legalPanel}`}>
+          <Surface className={s.legalPanel}>
             <h3 className={s.legalPanelTitle}>
               <Shield size={24} className={s.iconSuccess} />
               Legal Thresholds: Association vs. Complicity
@@ -888,9 +889,9 @@ export const AboutPage: React.FC = () => {
               sworn testimony alleging participation or specific knowledge are flagged with higher
               risk scores (4-5).
             </p>
-          </div>
+          </Surface>
         </div>
-      </section>
+      </Surface>
 
       {/* How It Works */}
       <section className={s.section}>
@@ -1017,7 +1018,7 @@ export const AboutPage: React.FC = () => {
       </section>
 
       {/* What's Next */}
-      <section className={`surface-glass-card ${s.whatsNextSection}`}>
+      <section className={`surface-panel ${s.whatsNextSection}`}>
         <div className={s.sectionHeader}>
           <ImageIcon size={32} className={s.iconAccent} />
           <h2 className={s.sectionTitle}>Fully Ingested, Intelligence Ongoing</h2>

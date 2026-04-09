@@ -5,10 +5,11 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Copy, Check, Download, ChevronLeft, ChevronRight, Bookmark } from 'lucide-react';
+import { Copy, Check, Download, ChevronLeft, ChevronRight, Bookmark } from 'lucide-react';
 import { prettifyOCRText } from '../../utils/prettifyOCR';
 import { RedactionPlaceholder } from './RedactionPlaceholder';
 import { WikiLink } from '../common/WikiLink';
+import { Button, SearchField, Surface } from '../../design-system/lib';
 import styles from './DocumentViewer.module.css';
 
 interface DocumentViewerProps {
@@ -227,13 +228,12 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
     <div className={styles.container}>
       <div className={styles.toolbar}>
         <div className={styles.searchGroup}>
-          <Search className={styles.searchIcon} />
-          <input
-            type="text"
+          <SearchField
             placeholder="Scoping search..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className={`control surface-glass ${styles.searchInput}`}
+            className={styles.searchInput}
+            aria-label="Search document text"
           />
           {totalMatches > 0 && (
             <div className={styles.matchCounter}>
@@ -254,7 +254,7 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
 
         <div className={styles.actions}>
           {/* Quick Actions */}
-          <div className={`surface-glass ${styles.segmentedControl}`}>
+          <Surface className={styles.segmentedControl}>
             <button
               onClick={() => setShowRaw(false)}
               className={[styles.segmentedButton, !showRaw ? styles.segmentedButtonActive : '']
@@ -271,7 +271,7 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
             >
               Raw OCR
             </button>
-          </div>
+          </Surface>
 
           {hasSentences && !showRaw && (
             <button
@@ -284,26 +284,27 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
             </button>
           )}
 
-          <button onClick={copyText} className={`control ${styles.copyButton}`}>
+          <Button onClick={copyText} variant="secondary" size="sm" className={styles.copyButton}>
             {copied ? (
               <Check className={`${styles.buttonIcon} ${styles.copiedIcon}`} />
             ) : (
               <Copy className={styles.buttonIcon} />
             )}
             {copied ? 'Copied' : 'Copy'}
-          </button>
+          </Button>
 
           {(evidence.original_file_path || evidence.metadata?.source_original_url) && (
-            <a
-              href={evidence.original_file_path || evidence.metadata.source_original_url}
-              download
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`control ${styles.iconButton}`}
-              title="Download Original"
-            >
-              <Download className={styles.buttonIcon} />
-            </a>
+            <Button asChild variant="ghost" size="sm" className={styles.iconButton}>
+              <a
+                href={evidence.original_file_path || evidence.metadata.source_original_url}
+                download
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Download Original"
+              >
+                <Download className={styles.buttonIcon} />
+              </a>
+            </Button>
           )}
 
           {redactionSummary.length > 0 && (

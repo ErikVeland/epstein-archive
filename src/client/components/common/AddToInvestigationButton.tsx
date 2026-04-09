@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Surface } from '../../design-system/lib';
 import { Investigation } from '../../types/investigation';
 import Icon from './Icon';
 import { useInvestigations } from '../../contexts/InvestigationsContext';
@@ -23,6 +24,7 @@ interface AddToInvestigationButtonProps {
     relevance: 'high' | 'medium' | 'low',
   ) => void;
   variant?: 'button' | 'icon' | 'dropdown' | 'quick';
+  size?: 'sm' | 'md' | 'lg';
   className?: string;
   defaultInvestigationId?: string;
   stopPropagation?: boolean;
@@ -33,6 +35,7 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
   investigations: propInvestigations,
   onAddToInvestigation,
   variant = 'button',
+  size = 'md',
   className = '',
   defaultInvestigationId,
   stopPropagation = false,
@@ -183,7 +186,7 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
             if (!hasInvestigations) setIsCreatingNew(true);
             setShowModal(true);
           }}
-          className={`${s.triggerButton} ${className}`}
+          className={`${s.triggerButton} ${size === 'sm' ? s.triggerButtonSm : size === 'lg' ? s.triggerButtonLg : ''} ${className}`}
           title="Add to Investigation"
         >
           <Icon name="Plus" size="sm" />
@@ -234,7 +237,7 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
           className={`${s.triggerQuick} ${className}`}
           title="Add to Investigation"
         >
-          {isLoading ? <div className={s.quickSpinner} /> : <Icon name="Plus" size="xs" />}
+          {isLoading ? <div className={s.quickSpinner} /> : <Icon name="Plus" />}
         </button>
       )}
 
@@ -248,7 +251,7 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
       {/* Modal */}
       {showModal && (
         <div className={`${s.overlay} app-backdrop`}>
-          <div className={`${s.panel} glass-panel`}>
+          <Surface variant="glass-strong" className={s.panel}>
             <div className={s.modalHeader}>
               <div className={s.modalHeaderInner}>
                 <div className={s.modalTitleRow}>
@@ -265,9 +268,9 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
 
             <div className={s.modalBody}>
               {/* Item Preview */}
-              <div className={`${s.itemPreview} surface-glass-card`}>
+              <div className={`${s.itemPreview} surface-panel`}>
                 <div className={s.itemPreviewHeader}>
-                  <Icon name={ItemIcon} size="xs" color="gray" />
+                  <Icon name={ItemIcon} color="gray" />
                   <h4 className={s.itemTitle}>{item.title}</h4>
                 </div>
                 <p className={s.itemDescription}>{item.description}</p>
@@ -364,7 +367,7 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
                 {isLoading ? 'Adding...' : isCreatingNew ? 'Create & Add' : 'Add to Investigation'}
               </button>
             </div>
-          </div>
+          </Surface>
         </div>
       )}
     </>

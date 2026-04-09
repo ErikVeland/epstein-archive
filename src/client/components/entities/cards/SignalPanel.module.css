@@ -1,12 +1,9 @@
-/* src/client/components/entities/cards/SignalPanel.module.css */
-
-.panel {
+.root {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
   width: 100%;
-  padding-top: var(--space-1);
-  padding-bottom: var(--space-1);
+  padding: var(--space-1) 0;
 }
 
 .row {
@@ -14,25 +11,25 @@
   align-items: center;
   gap: var(--space-2);
   font-size: 10px;
-  font-weight: var(--weight-medium);
-  letter-spacing: 0.05em;
+  font-weight: 500;
+  letter-spacing: 0.08em;
 }
 
-.rowLabel {
-  color: var(--text-muted);
+.label {
   width: 4rem;
+  color: var(--text-muted);
 }
 
-.barTrack {
+.track {
   flex: 1;
   height: 3px;
-  background-color: color-mix(in srgb, var(--glass-bg) 80%, transparent);
-  border-radius: 9999px;
   overflow: hidden;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--glass-bg) 80%, transparent);
 }
 
-.barFill {
+.fill {
   height: 100%;
-  background-color: color-mix(in srgb, var(--app-bg) 70%, transparent);
-  transition: width 0.5s ease-out;
+  background: color-mix(in srgb, var(--app-bg) 70%, transparent);
+  transition: width 500ms ease-out;
 }

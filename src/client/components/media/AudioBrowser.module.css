@@ -69,40 +69,37 @@
 
 .evidenceBadges {
   margin-top: var(--space-2);
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2);
 }
 
 .evidenceBadge {
   display: flex;
   align-items: center;
   gap: 0.375rem;
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-md);
-  font-size: 11px;
+  padding: 0.125rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 10px;
   font-weight: var(--weight-bold);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  border: 1px solid transparent;
 }
 
 .evidenceBadgeAmber {
-  background-color: rgba(120, 53, 15, 0.3);
+  background-color: color-mix(in srgb, #92400e 30%, transparent);
   color: #fcd34d;
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-color: color-mix(in srgb, #f59e0b 30%, transparent);
 }
 
 .evidenceBadgeGreen {
-  background-color: rgba(6, 78, 59, 0.3);
+  background-color: color-mix(in srgb, #064e3b 30%, transparent);
   color: #86efac;
-  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-color: color-mix(in srgb, #22c55e 30%, transparent);
 }
 
 .evidenceBadgeBlue {
-  background-color: rgba(30, 58, 138, 0.3);
+  background-color: color-mix(in srgb, var(--accent) 20%, transparent);
   color: var(--accent);
-  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
 }
 
 .evidenceBadgeMuted {
@@ -118,108 +115,42 @@
 }
 
 .searchWrapper {
-  position: relative;
-  width: 16rem;
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  height: 2.25rem;
+  padding: 0 var(--space-2);
+  gap: var(--space-2);
 }
 
 .searchInput {
-  width: 100%;
-  background-color: var(--app-bg, var(--glass-bg));
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
+  flex: 1;
+  min-width: 0;
+  background: transparent !important;
+  border: 0 !important;
+  font-size: var(--type-sm);
   color: var(--text-primary);
-  padding-left: 2.25rem;
-  padding-right: var(--space-3);
-  padding-top: var(--space-2);
-  padding-bottom: var(--space-2);
-  font-size: var(--type-small);
-  outline: none;
-  transition:
-    border-color 0.2s,
-    box-shadow 0.2s;
+  padding: 0 !important;
 }
 
 .searchInput:focus {
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 50%, transparent);
+  outline: none;
 }
 
 .searchIcon {
-  position: absolute;
-  left: var(--space-3);
-  top: 50%;
-  transform: translateY(-50%);
+  width: 1rem;
+  height: 1rem;
   color: var(--text-muted);
-  pointer-events: none;
+  flex-shrink: 0;
+  margin-left: var(--space-2);
 }
 
 .divider {
-  height: 2rem;
+  height: 1rem;
   width: 1px;
   background-color: var(--glass-border);
-  margin-left: var(--space-1);
-  margin-right: var(--space-1);
-  display: none;
-}
-
-@media (min-width: 768px) {
-  .divider {
-    display: block;
-  }
-}
-
-.batchButton {
-  padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-lg);
-  font-size: var(--type-xs);
-  font-weight: var(--weight-bold);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  transition: all 0.2s;
-  box-shadow: var(--glass-shadow);
-}
-
-.batchButtonActive {
-  background-color: var(--accent);
-  color: var(--text-primary);
-  box-shadow:
-    var(--glass-shadow),
-    0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent);
-}
-
-.batchButtonInactive {
-  background-color: var(--glass-bg);
-  color: var(--text-muted);
-  border: 1px solid var(--glass-border);
-}
-
-.batchButtonInactive:hover {
-  color: var(--text-primary);
-  background-color: var(--glass-bg-highlight);
-}
-
-.investigationButton {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-lg);
-  font-size: var(--type-xs);
-  font-weight: var(--weight-bold);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  background-image: linear-gradient(to right, #d97706, #b45309);
-  color: var(--text-primary);
-  border: 1px solid rgba(245, 158, 11, 0.5);
-  box-shadow: var(--glass-shadow);
-  transition: all 0.2s;
-}
-
-.investigationButton:hover {
-  background-image: linear-gradient(to right, #f59e0b, #d97706);
-}
-
-.investigationButton:active {
-  transform: scale(0.95);
+  margin-inline: var(--space-2);
 }
 
 .body {

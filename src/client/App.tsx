@@ -42,7 +42,7 @@ import { useFirstRunOnboarding } from './hooks/useFirstRunOnboarding';
 import { InvestigationsProvider } from './contexts/InvestigationsContext';
 import { useAuth } from './contexts/AuthContext';
 import { cn } from './utils/cn';
-import { Flex, Box, Grid, Surface, LqText } from './design-system/lib';
+import { Flex, Box, Grid, Surface, LqText, Button } from './design-system/lib';
 import { useFilters } from './contexts/useFilters';
 import { LoginPage } from './pages/LoginPage';
 import { SEO } from './components/common/SEO';
@@ -875,17 +875,17 @@ function App() {
   );
 
   const navThemeClassByTab: Record<string, string> = {
-    people: 'main-nav-segment-people',
-    documents: 'main-nav-segment-documents',
-    investigations: 'main-nav-segment-investigations',
-    timeline: 'main-nav-segment-timeline',
-    flights: 'main-nav-segment-flights',
-    properties: 'main-nav-segment-properties',
-    media: 'main-nav-segment-media',
-    emails: 'main-nav-segment-emails',
-    blackbook: 'main-nav-segment-blackbook',
-    analytics: 'main-nav-segment-analytics',
-    about: 'main-nav-segment-about',
+    people: styles.navThemePeople,
+    documents: styles.navThemeDocuments,
+    investigations: styles.navThemeInvestigations,
+    timeline: styles.navThemeTimeline,
+    flights: styles.navThemeFlights,
+    properties: styles.navThemeProperties,
+    media: styles.navThemeMedia,
+    emails: styles.navThemeEmails,
+    blackbook: styles.navThemeBlackbook,
+    analytics: styles.navThemeAnalytics,
+    about: styles.navThemeAbout,
   };
   const getNavSegmentClass = (
     tab: keyof typeof navThemeClassByTab,
@@ -899,9 +899,8 @@ function App() {
         : navLayoutMode === 'compact'
           ? styles.navSegmentCompact
           : styles.navSegmentNormal,
-      'main-nav-segment',
       navThemeClassByTab[tab],
-      isActive && 'main-nav-segment-active',
+      isActive && styles.navSegmentActive,
       extraClass,
     );
   const navItemClass = styles.navItem;
@@ -959,7 +958,7 @@ function App() {
     <ToastProvider>
       <UndoProvider>
         <InvestigationsProvider>
-          <div className={cn('app-backdrop', styles.appRoot)}>
+          <div className={cn(styles.appRoot)}>
             <SEO {...seoConfig} />
             {shouldShowOnboarding && (
               <FirstRunOnboarding onComplete={completeOnboarding} onSkip={skipOnboarding} />
@@ -979,8 +978,8 @@ function App() {
             </div>
 
             {/* Header */}
-            <header className={cn('app-header-glass', styles.headerShell)}>
-              <div className="content-shell">
+            <header className={cn(styles.headerShell)}>
+              <div className={styles.contentShell}>
                 <div className={styles.header}>
                   {/* LEFT: Logo and Stats */}
                   <div className={styles.logoArea}>
@@ -991,21 +990,33 @@ function App() {
 
                     {/* Stats - Desktop only, single-line */}
                     <div className={styles.statsArea}>
-                      <span
-                        className={cn(styles.headerStat, styles.headerStatPeople)}
-                        title="Subjects"
-                      >
-                        {headerTotalPeople.toLocaleString()}
-                      </span>
-                      <span
-                        className={cn(styles.headerStat, styles.headerStatMentions)}
-                        title="Mentions"
-                      >
-                        {headerTotalMentions.toLocaleString()}
-                      </span>
-                      <span className={cn(styles.headerStat, styles.headerStatFiles)} title="Files">
-                        {headerTotalFiles.toLocaleString()}
-                      </span>
+                      <div className={styles.headerStatItem}>
+                        <span className={styles.headerStatLabel}>People</span>
+                        <span
+                          className={cn(styles.headerStat, styles.headerStatPeople)}
+                          title="Subjects"
+                        >
+                          {headerTotalPeople.toLocaleString()}
+                        </span>
+                      </div>
+                      <div className={styles.headerStatItem}>
+                        <span className={styles.headerStatLabel}>Mentions</span>
+                        <span
+                          className={cn(styles.headerStat, styles.headerStatMentions)}
+                          title="Mentions"
+                        >
+                          {headerTotalMentions.toLocaleString()}
+                        </span>
+                      </div>
+                      <div className={styles.headerStatItem}>
+                        <span className={styles.headerStatLabel}>Files</span>
+                        <span
+                          className={cn(styles.headerStat, styles.headerStatFiles)}
+                          title="Files"
+                        >
+                          {headerTotalFiles.toLocaleString()}
+                        </span>
+                      </div>
                     </div>
                   </div>
 
@@ -1070,7 +1081,7 @@ function App() {
 
                     {/* Search Bar */}
                     <div className={styles.searchWrapper}>
-                      <div className="header-search-pill">
+                      <div className={styles.headerSearchPill}>
                         <div className={styles.searchInner}>
                           <Icon
                             name="Search"
@@ -1113,13 +1124,13 @@ function App() {
                             }
                           }}
                           aria-label="Run search"
-                          className={cn('header-search-button', styles.searchButton)}
+                          className={cn(styles.searchButton)}
                         >
                           <Icon name="Search" size="sm" />
                         </button>
                       </div>
                       {searchTerm.trim().length >= 2 && (
-                        <div className={cn('glass-panel', styles.searchDropdown)}>
+                        <Surface className={styles.searchDropdown}>
                           <div className={styles.searchDropdownHeader}>
                             Search results for "{searchTerm}"
                           </div>
@@ -1193,18 +1204,19 @@ function App() {
                               <span>Search all documents for "{searchTerm}"</span>
                             </button>
                           </div>
-                        </div>
+                        </Surface>
                       )}
                     </div>
 
                     {/* Global Date Range Filter */}
                     <div ref={dateRangePickerRef} className={styles.dateFilterWrap}>
-                      <button
+                      <Button
                         onClick={() => setShowDateRangePicker((v) => !v)}
                         aria-expanded={showDateRangePicker}
                         aria-haspopup="dialog"
+                        variant="ghost"
+                        size="sm"
                         className={cn(
-                          'group control',
                           styles.dateFilterButton,
                           (filters.timeRange[0] || filters.timeRange[1]) &&
                             styles.dateFilterButtonActive,
@@ -1221,10 +1233,10 @@ function App() {
                             {filters.timeRange[0] ?? '…'} – {filters.timeRange[1] ?? '…'}
                           </span>
                         )}
-                      </button>
+                      </Button>
                       {showDateRangePicker && (
-                        <div
-                          className={cn('glass-panel', styles.dateFilterPanel)}
+                        <Surface
+                          className={styles.dateFilterPanel}
                           role="dialog"
                           aria-label="Global date range filter"
                           onKeyDown={(e) => {
@@ -1279,7 +1291,7 @@ function App() {
                               </button>
                             )}
                           </div>
-                        </div>
+                        </Surface>
                       )}
                     </div>
 
@@ -1299,7 +1311,7 @@ function App() {
               </div>
             </header>
 
-            <div className={cn('content-shell', styles.mainShell)}>
+            <div className={cn(styles.contentShell, styles.mainShell)}>
               {/* Mobile Stats Row */}
               <Grid cols={3} gap={2} mb={6} className={styles.mobileStatsGrid}>
                 <Surface
@@ -1362,8 +1374,8 @@ function App() {
               {/* Navigation Tabs - segmented pill with responsive horizontal track */}
               <Box id="navigation" mb={6} className={styles.navShell}>
                 <div className={styles.navWrap}>
-                  <div ref={navTrackRef} className="main-nav-track">
-                    <div className={cn('main-nav-pill', navPillClass)}>
+                  <div ref={navTrackRef} className={styles.navTrack}>
+                    <div className={cn(styles.navPillContainer, navPillClass)}>
                       <div className={navItemClass}>
                         <button
                           onClick={() => navigate('/people')}

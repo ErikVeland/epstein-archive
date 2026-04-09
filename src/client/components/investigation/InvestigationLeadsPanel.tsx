@@ -1,21 +1,34 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useToasts } from '../common/useToasts';
 import { useScrollLock } from '../../hooks/useScrollLock';
-import { CloseButton } from '../common/CloseButton';
 import { apiClient } from '../../services/apiClient';
 import {
   AlertCircle,
   CheckCircle2,
   Circle,
-  ExternalLink,
   Flag,
   Loader2,
   PlusCircle,
   Trash2,
   XCircle,
+  Zap,
+  Target,
+  ArrowRight,
+  Filter,
 } from 'lucide-react';
 
-import styles from './InvestigationLeadsPanel.module.css';
+// UI Library
+import {
+  Surface,
+  Button,
+  Flex,
+  Box,
+  Stack,
+  LqText,
+  cn,
+  Badge,
+  Skeleton,
+} from '../../design-system/lib';
 
 type LeadStatus = 'open' | 'pursued' | 'dead_end' | 'resolved';
 type LeadPriority = 'low' | 'medium' | 'high' | 'critical';
@@ -42,46 +55,20 @@ interface InvestigationLeadsPanelProps {
   onConvertToHypothesis?: (lead: InvestigationLead) => void;
 }
 
-// ─── Status helpers ───────────────────────────────────────────────────────────
+const STATUS_MAP: Record<LeadStatus, { label: string; Icon: any; variant: any; next: LeadStatus }> =
+  {
+    open: { label: 'Open Signal', Icon: Circle, variant: 'glass', next: 'pursued' },
+    pursued: { label: 'Active Pursuit', Icon: AlertCircle, variant: 'accent', next: 'resolved' },
+    dead_end: { label: 'Inert / Terminated', Icon: XCircle, variant: 'glass', next: 'open' },
+    resolved: { label: 'Resolved / Logged', Icon: CheckCircle2, variant: 'success', next: 'open' },
+  };
 
-const STATUS_CONFIG: Record<
-  LeadStatus,
-  { label: string; Icon: React.FC<{ className?: string }>; style: string; next: LeadStatus }
-> = {
-  open: {
-    label: 'Open',
-    Icon: Circle,
-    style: styles.statusOpen,
-    next: 'pursued',
-  },
-  pursued: {
-    label: 'Pursued',
-    Icon: AlertCircle,
-    style: styles.statusPursued,
-    next: 'resolved',
-  },
-  dead_end: {
-    label: 'Dead End',
-    Icon: XCircle,
-    style: styles.statusDeadEnd,
-    next: 'open',
-  },
-  resolved: {
-    label: 'Resolved',
-    Icon: CheckCircle2,
-    style: styles.statusResolved,
-    next: 'open',
-  },
+const PRIORITY_VARIANT: Record<LeadPriority, any> = {
+  critical: 'error',
+  high: 'warning',
+  medium: 'accent',
+  low: 'glass',
 };
-
-const PRIORITY_STYLE: Record<LeadPriority, string> = {
-  critical: styles.priorityCritical,
-  high: styles.priorityHigh,
-  medium: styles.priorityMedium,
-  low: styles.priorityLow,
-};
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = ({
   investigationId,
@@ -101,6 +88,7 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
   });
   const [creating, setCreating] = useState(false);
   const { addToast } = useToasts();
+
   useScrollLock(true);
 
   const loadLeads = useCallback(async () => {
@@ -112,7 +100,7 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
       );
       setLeads(data);
     } catch {
-      addToast({ text: 'Failed to load leads', type: 'error' });
+      addToast({ text: 'Failed to synchronize leads', type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -123,7 +111,7 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
   }, [loadLeads]);
 
   const handleStatusCycle = async (lead: InvestigationLead) => {
-    const next = STATUS_CONFIG[lead.status].next;
+    const next = STATUS_MAP[lead.status].next;
     try {
       await fetch(`/api/investigations/${investigationId}/leads/${lead.id}`, {
         method: 'PATCH',
@@ -133,35 +121,7 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
       });
       await loadLeads();
     } catch {
-      addToast({ text: 'Failed to update lead status', type: 'error' });
-    }
-  };
-
-  const handleMarkDeadEnd = async (lead: InvestigationLead) => {
-    try {
-      await fetch(`/api/investigations/${investigationId}/leads/${lead.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ status: 'dead_end' }),
-      });
-      await loadLeads();
-    } catch {
-      addToast({ text: 'Failed to mark dead end', type: 'error' });
-    }
-  };
-
-  const handleDelete = async (lead: InvestigationLead) => {
-    if (!window.confirm(`Delete lead "${lead.title}"? This cannot be undone.`)) return;
-    try {
-      await fetch(`/api/investigations/${investigationId}/leads/${lead.id}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      });
-      await loadLeads();
-      addToast({ text: 'Lead deleted', type: 'success' });
-    } catch {
-      addToast({ text: 'Failed to delete lead', type: 'error' });
+      addToast({ text: 'Status propagation failed', type: 'error' });
     }
   };
 
@@ -179,220 +139,342 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
       setNewLead({ title: '', description: '', priority: 'high', source_efta_ref: '' });
       setShowNewForm(false);
       await loadLeads();
-      addToast({ text: 'Lead created', type: 'success' });
+      addToast({ text: 'Operational lead established', type: 'success' });
     } catch {
-      addToast({ text: 'Failed to create lead', type: 'error' });
+      addToast({ text: 'Signal creation failed', type: 'error' });
     } finally {
       setCreating(false);
     }
   };
 
-  const openCount = leads.filter((l) => l.status === 'open').length;
-  const pursuedCount = leads.filter((l) => l.status === 'pursued').length;
+  const totals = {
+    open: leads.filter((l) => l.status === 'open').length,
+    active: leads.filter((l) => l.status === 'pursued').length,
+  };
 
   return (
-    <div className={styles.overlay}>
-      <div className={styles.panel}>
-        {/* Header */}
-        <div className={styles.header}>
-          <div>
-            <h2 className={styles.headerTitle}>
-              <Flag className={`${styles.iconMd} ${styles.iconAmber}`} />
-              Investigation Leads
-            </h2>
-            <p className={styles.headerSubtitle}>Track, pursue, and resolve investigative leads</p>
-          </div>
-          <CloseButton onClick={onClose} size="sm" label="Close leads panel" />
-        </div>
+    <Box
+      className="fixed inset-0 z-[var(--lq-z-modal)] flex justify-end bg-black/40 backdrop-blur-sm"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <Surface
+        variant="glass"
+        style={{ width: 480, height: '100%' }}
+        className="border-l border-l-[var(--lq-surface-3)] shadow-2xl"
+      >
+        <Stack gap="xl" style={{ height: '100%' }}>
+          {/* Header */}
+          <Surface variant="glass" p="lg" className="border-b border-b-[var(--lq-surface-3)]">
+            <Flex justify="between" align="center">
+              <Stack gap="none">
+                <Flex align="center" gap="sm">
+                  <Flag size={20} className="text-[var(--lq-warning)]" />
+                  <LqText variant="h3" weight="bold">
+                    Investigation Leads
+                  </LqText>
+                </Flex>
+                <LqText
+                  variant="xs"
+                  color="muted"
+                  style={{ textTransform: 'uppercase' }}
+                  weight="bold"
+                >
+                  Operational Tracking • Signal Analysis
+                </LqText>
+              </Stack>
+              <Button variant="ghost" size="sm" onClick={onClose}>
+                <XCircle size={18} />
+              </Button>
+            </Flex>
+          </Surface>
 
-        {/* Stats bar */}
-        <div className={styles.statsBar}>
-          <div className={styles.statItem}>
-            <span className={styles.statValueEmerald}>{openCount}</span>
-            <span className={styles.statLabel}>open</span>
-          </div>
-          <div className={styles.statItem}>
-            <span className={styles.statValueBlue}>{pursuedCount}</span>
-            <span className={styles.statLabel}>active</span>
-          </div>
-          <div className={`${styles.statLabel} ${styles.statItemRight}`}>
-            <span>{leads.length} total</span>
-          </div>
-        </div>
+          {/* Metrics HUD */}
+          <Box px="lg">
+            <Surface variant="glass-highlight" p="sm">
+              <Flex justify="around" align="center">
+                <Stack align="center" gap="none">
+                  <LqText variant="small" weight="bold" color="success">
+                    {totals.open}
+                  </LqText>
+                  <LqText variant="xs" color="muted" style={{ textTransform: 'uppercase' }}>
+                    Available
+                  </LqText>
+                </Stack>
+                <Box className="w-px h-6 bg-[var(--lq-surface-3)]" />
+                <Stack align="center" gap="none">
+                  <LqText variant="small" weight="bold" color="accent">
+                    {totals.active}
+                  </LqText>
+                  <LqText variant="xs" color="muted" style={{ textTransform: 'uppercase' }}>
+                    Active
+                  </LqText>
+                </Stack>
+                <Box className="w-px h-6 bg-[var(--lq-surface-3)]" />
+                <Stack align="center" gap="none">
+                  <LqText variant="small" weight="bold">
+                    {leads.length}
+                  </LqText>
+                  <LqText variant="xs" color="muted" style={{ textTransform: 'uppercase' }}>
+                    Total Signal
+                  </LqText>
+                </Stack>
+              </Flex>
+            </Surface>
+          </Box>
 
-        {/* Filters + Add */}
-        <div className={styles.controlsBar}>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as LeadStatus | 'all')}
-            className={styles.select}
-          >
-            <option value="all">All statuses</option>
-            <option value="open">Open</option>
-            <option value="pursued">Pursued</option>
-            <option value="dead_end">Dead End</option>
-            <option value="resolved">Resolved</option>
-          </select>
-          <button onClick={() => setShowNewForm((v) => !v)} className={styles.addButton}>
-            <PlusCircle className={styles.iconSm} />
-            New Lead
-          </button>
-        </div>
-
-        {/* New lead form */}
-        {showNewForm && (
-          <form onSubmit={handleCreate} className={styles.form}>
-            <input
-              autoFocus
-              type="text"
-              placeholder="Lead title *"
-              value={newLead.title}
-              onChange={(e) => setNewLead((p) => ({ ...p, title: e.target.value }))}
-              className={styles.input}
-            />
-            <textarea
-              rows={2}
-              placeholder="Description (optional)"
-              value={newLead.description}
-              onChange={(e) => setNewLead((p) => ({ ...p, description: e.target.value }))}
-              className={styles.textarea}
-            />
-            <div className={styles.formRow}>
-              <select
-                value={newLead.priority}
-                onChange={(e) =>
-                  setNewLead((p) => ({ ...p, priority: e.target.value as LeadPriority }))
-                }
-                className={styles.select}
-              >
-                <option value="critical">Critical</option>
-                <option value="high">High</option>
-                <option value="medium">Medium</option>
-                <option value="low">Low</option>
-              </select>
-              <input
-                type="text"
-                placeholder="EFTA ID (optional)"
-                value={newLead.source_efta_ref}
-                onChange={(e) => setNewLead((p) => ({ ...p, source_efta_ref: e.target.value }))}
-                className={styles.input}
+          {/* Controls */}
+          <Flex px="lg" gap="md" align="center">
+            <Box grow className="relative">
+              <Filter
+                className="absolute left-2 top-1/2 -translate-y-1/2 text-[var(--lq-text-dim)]"
+                size={12}
               />
-            </div>
-            <div className={styles.formActions}>
-              <button
-                type="button"
-                onClick={() => setShowNewForm(false)}
-                className={styles.cancelButton}
+              <select
+                style={{
+                  width: '100%',
+                  background: 'var(--lq-surface-3)',
+                  border: '1px solid var(--lq-surface-4)',
+                  borderRadius: '0.375rem',
+                  padding: '0.5rem 0.75rem 0.5rem 2rem',
+                  fontSize: '0.875rem',
+                  color: 'var(--lq-text-primary)',
+                  outline: 'none',
+                  appearance: 'none',
+                }}
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as any)}
               >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={!newLead.title.trim() || creating}
-                className={styles.submitButton}
-              >
-                {creating && <Loader2 className={`${styles.iconSm} ${styles.spin}`} />}
-                Add Lead
-              </button>
-            </div>
-          </form>
-        )}
+                <option value="all">All Statuses</option>
+                <option value="open">Open Leads</option>
+                <option value="pursued">Active Pursuit</option>
+                <option value="resolved">Resolved</option>
+              </select>
+            </Box>
+            <Button variant="primary" size="sm" onClick={() => setShowNewForm(!showNewForm)}>
+              <PlusCircle size={14} /> New Lead
+            </Button>
+          </Flex>
 
-        {/* Leads list */}
-        <div className={styles.leadsList}>
-          {loading && (
-            <div className={styles.loaderCentered}>
-              <Loader2 className={`${styles.iconMd} ${styles.spin} text-[var(--text-muted)]`} />
-            </div>
+          {/* New Lead Entry */}
+          {showNewForm && (
+            <Box px="lg">
+              <Surface
+                variant="glass-highlight"
+                p="lg"
+                className="border-dashed border-[var(--lq-surface-3)]"
+              >
+                <Stack gap="md">
+                  <input
+                    autoFocus
+                    style={{
+                      width: '100%',
+                      background: 'var(--lq-surface-3)',
+                      border: '1px solid var(--lq-surface-4)',
+                      borderRadius: '0.375rem',
+                      padding: '0.5rem 0.75rem',
+                      fontSize: '0.875rem',
+                      color: 'var(--lq-text-primary)',
+                      outline: 'none',
+                    }}
+                    placeholder="Lead Designation *"
+                    value={newLead.title}
+                    onChange={(e) => setNewLead((p) => ({ ...p, title: e.target.value }))}
+                  />
+                  <textarea
+                    style={{
+                      width: '100%',
+                      background: 'var(--lq-surface-3)',
+                      border: '1px solid var(--lq-surface-4)',
+                      borderRadius: '0.375rem',
+                      padding: '0.5rem 0.75rem',
+                      fontSize: '0.875rem',
+                      color: 'var(--lq-text-primary)',
+                      outline: 'none',
+                      resize: 'none',
+                    }}
+                    placeholder="Qualitative description..."
+                    rows={2}
+                    value={newLead.description}
+                    onChange={(e) => setNewLead((p) => ({ ...p, description: e.target.value }))}
+                  />
+                  <Flex gap="md">
+                    <select
+                      style={{
+                        flex: 1,
+                        background: 'var(--lq-surface-3)',
+                        border: '1px solid var(--lq-surface-4)',
+                        borderRadius: '0.375rem',
+                        padding: '0.5rem 0.75rem',
+                        fontSize: '0.875rem',
+                        color: 'var(--lq-text-primary)',
+                        outline: 'none',
+                      }}
+                      value={newLead.priority}
+                      onChange={(e) =>
+                        setNewLead((p) => ({ ...p, priority: e.target.value as any }))
+                      }
+                    >
+                      {['critical', 'high', 'medium', 'low'].map((p) => (
+                        <option key={p} value={p}>
+                          {p.toUpperCase()}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      style={{
+                        flex: 2,
+                        background: 'var(--lq-surface-3)',
+                        border: '1px solid var(--lq-surface-4)',
+                        borderRadius: '0.375rem',
+                        padding: '0.5rem 0.75rem',
+                        fontSize: '0.875rem',
+                        color: 'var(--lq-text-primary)',
+                        outline: 'none',
+                      }}
+                      placeholder="EFTA Reference..."
+                      value={newLead.source_efta_ref}
+                      onChange={(e) =>
+                        setNewLead((p) => ({ ...p, source_efta_ref: e.target.value }))
+                      }
+                    />
+                  </Flex>
+                  <Flex gap="sm" justify="end">
+                    <Button variant="ghost" size="sm" onClick={() => setShowNewForm(false)}>
+                      Abort
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      onClick={handleCreate}
+                      disabled={!newLead.title.trim() || creating}
+                    >
+                      {creating ? <Loader2 className="animate-spin" size={14} /> : 'Establish Lead'}
+                    </Button>
+                  </Flex>
+                </Stack>
+              </Surface>
+            </Box>
           )}
 
-          {!loading && leads.length === 0 && (
-            <div className={styles.emptyState}>
-              <Flag className={styles.emptyIcon} />
-              <p className={styles.emptyTextPrimary}>No leads yet.</p>
-              <p className={styles.emptySubtext}>Import a report or add leads manually.</p>
-            </div>
-          )}
+          {/* Leads Stream */}
+          <Box grow px="lg" className="overflow-y-auto">
+            {loading ? (
+              <Stack gap="md">
+                <Skeleton height={100} />
+                <Skeleton height={100} />
+                <Skeleton height={100} />
+              </Stack>
+            ) : leads.length === 0 ? (
+              <Stack align="center" justify="center" gap="lg" py="xxxl" textAlign="center">
+                <Target size={48} className="text-[var(--lq-text-dim)]" />
+                <LqText
+                  variant="xs"
+                  color="muted"
+                  style={{ textTransform: 'uppercase' }}
+                  weight="bold"
+                >
+                  No Leads Identified
+                </LqText>
+              </Stack>
+            ) : (
+              <Stack gap="md">
+                {leads.map((lead) => {
+                  const cfg = STATUS_MAP[lead.status];
+                  return (
+                    <Surface
+                      key={lead.id}
+                      variant="glass-highlight"
+                      p="lg"
+                      className="border-l-4 border-l-[var(--lq-surface-3)]"
+                    >
+                      <Stack gap="md">
+                        <Flex justify="between" align="start">
+                          <Flex gap="md" align="start">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="p-0 h-auto"
+                              onClick={() => handleStatusCycle(lead)}
+                            >
+                              <cfg.Icon
+                                size={18}
+                                className={cn(`text-[var(--lq-${cfg.variant})]`)}
+                              />
+                            </Button>
+                            <Stack gap="none">
+                              <LqText variant="small" weight="bold">
+                                {lead.title}
+                              </LqText>
+                              {lead.description && (
+                                <LqText variant="xs" color="muted" mt="xs">
+                                  {lead.description}
+                                </LqText>
+                              )}
+                            </Stack>
+                          </Flex>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-[var(--lq-error)] opacity-30 hover:opacity-100"
+                            onClick={() => {
+                              if (window.confirm('Delete signal?'))
+                                fetch(`/api/investigations/${investigationId}/leads/${lead.id}`, {
+                                  method: 'DELETE',
+                                  credentials: 'include',
+                                }).then(() => loadLeads());
+                            }}
+                          >
+                            <Trash2 size={12} />
+                          </Button>
+                        </Flex>
 
-          {leads.map((lead) => {
-            const { label, Icon, style } = STATUS_CONFIG[lead.status];
-            return (
-              <div key={lead.id} className={styles.leadCard}>
-                {/* Title row */}
-                <div className={styles.leadTitleRow}>
-                  <button
-                    onClick={() => handleStatusCycle(lead)}
-                    title={`Status: ${label} — click to advance`}
-                    className={styles.statusIconWrapper}
-                  >
-                    <Icon className={`${styles.iconMd} ${style.split(' ')[0]}`} />
-                  </button>
-                  <div className={styles.leadBody}>
-                    <p className={styles.leadTitle}>{lead.title}</p>
-                    {lead.description && (
-                      <p className={styles.leadDescription}>{lead.description}</p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Badges row */}
-                <div className={styles.badgeRow}>
-                  <span className={`${styles.badge} ${style}`}>{label}</span>
-                  <span className={`${styles.badge} ${PRIORITY_STYLE[lead.priority]}`}>
-                    {lead.priority}
-                  </span>
-                  {lead.sourceEftaRef && (
-                    <a
-                      href={`/documents?q=${lead.sourceEftaRef}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={styles.eftaLink}
-                    >
-                      {lead.sourceEftaRef}
-                      <ExternalLink className={styles.iconXs} />
-                    </a>
-                  )}
-                </div>
-
-                {/* Actions row */}
-                <div className={styles.actionsRow}>
-                  {lead.status !== 'dead_end' && (
-                    <button
-                      onClick={() => handleMarkDeadEnd(lead)}
-                      className={`${styles.actionButton} ${styles.actionButtonDanger}`}
-                    >
-                      Mark dead end
-                    </button>
-                  )}
-                  {onConvertToTask && (
-                    <button
-                      onClick={() => onConvertToTask(lead)}
-                      className={`${styles.actionButton} ${styles.actionButtonAccent}`}
-                    >
-                      → Task
-                    </button>
-                  )}
-                  {onConvertToHypothesis && (
-                    <button
-                      onClick={() => onConvertToHypothesis(lead)}
-                      className={`${styles.actionButton} ${styles.actionButtonAccent}`}
-                    >
-                      → Hypothesis
-                    </button>
-                  )}
-                  <button
-                    onClick={() => handleDelete(lead)}
-                    className={styles.deleteButton}
-                    title="Delete lead"
-                  >
-                    <Trash2 className={styles.iconSm} />
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
+                        <Flex
+                          justify="between"
+                          align="center"
+                          pt="sm"
+                          className="border-t border-t-[var(--lq-surface-3)]"
+                        >
+                          <Flex gap="xs">
+                            <Badge
+                              variant={cfg.variant}
+                              label={cfg.label.toUpperCase()}
+                              size="sm"
+                            />
+                            <Badge
+                              variant={PRIORITY_VARIANT[lead.priority]}
+                              label={lead.priority.toUpperCase()}
+                              size="sm"
+                            />
+                          </Flex>
+                          <Flex gap="xs">
+                            {onConvertToTask && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => onConvertToTask(lead)}
+                              >
+                                <ArrowRight size={10} /> Task
+                              </Button>
+                            )}
+                            {onConvertToHypothesis && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => onConvertToHypothesis(lead)}
+                              >
+                                <Zap size={10} /> Hypo
+                              </Button>
+                            )}
+                          </Flex>
+                        </Flex>
+                      </Stack>
+                    </Surface>
+                  );
+                })}
+              </Stack>
+            )}
+          </Box>
+        </Stack>
+      </Surface>
+    </Box>
   );
 };

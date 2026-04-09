@@ -1,48 +1,207 @@
-/* FlightTracker.module.css */
+/* Flight Tracker - Radar/Aviation Scoped Tokens */
 
-.filterRow {
+.flightTracker {
+  min-height: 100vh;
+}
+
+.loadingSpinner {
+  text-align: center;
+}
+
+.radarSweep {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  margin: 0 auto var(--space-4);
+  position: relative;
+  animation: radarPulse 2s infinite;
+}
+
+.radarSweep::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 50%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), transparent);
+  transform-origin: left center;
+  animation: radarSweepAnim 2s infinite linear;
+}
+
+@keyframes radarSweepAnim {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes radarPulse {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 15px color-mix(in srgb, var(--accent) 30%, transparent);
+  }
+  50% {
+    opacity: 0.6;
+    box-shadow: 0 0 40px color-mix(in srgb, var(--accent) 60%, transparent);
+  }
+}
+
+.headerIconWrap {
+  width: 2.5rem;
+  height: 2.5rem;
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-4);
+  align-items: center;
+  justify-content: center;
+}
+
+.headerIcon {
+  color: var(--accent);
 }
 
 .dateRangeWrapper {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  background-color: color-mix(in srgb, var(--glass-bg-strong) 50%, transparent);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
-  padding: var(--space-2) var(--space-3);
+  padding: 0 var(--space-3);
+  height: 40px;
 }
 
 .dateInput {
-  background-color: transparent;
+  background: transparent;
   border: none;
   color: var(--text-primary);
-  font-size: var(--type-small);
-}
-
-.dateInput:focus {
+  font-size: var(--font-size-sm);
   outline: none;
+  width: 120px;
 }
 
-.dateSeparator {
-  color: var(--text-muted);
+.flightMapContainer {
+  position: relative;
+  overflow: hidden;
+  height: 500px;
 }
 
-.errorFallback {
-  background-color: color-mix(in srgb, var(--accent-danger) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--accent-danger) 20%, transparent);
-  color: var(--accent-danger);
-  font-size: var(--type-small);
-  border-radius: var(--radius-lg);
-  padding: var(--space-8);
-  text-align: center;
-  margin-top: var(--space-4);
+.flightMap {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
-.errorFallbackTitle {
-  font-weight: var(--weight-bold);
-  margin-bottom: var(--space-2);
+.flightRoutePath {
+  animation: mapRouteDash 20s linear infinite;
+}
+
+@keyframes mapRouteDash {
+  to {
+    stroke-dashoffset: -100;
+  }
+}
+
+.airportMarker {
+  cursor: pointer;
+}
+
+.airportPulse {
+  animation: airportPulseAnim 2s infinite;
+}
+
+@keyframes airportPulseAnim {
+  0%,
+  100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.airportLabel {
+  font-family: var(--font-mono);
+  pointer-events: none;
+}
+
+.mapLegend {
+  position: absolute;
+  bottom: var(--space-4);
+  left: var(--space-4);
+  padding: var(--space-4);
+  z-index: 10;
+}
+
+.legendDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.legendDot.primary {
+  background: var(--accent);
+}
+.legendDot.secondary {
+  background: color-mix(in srgb, var(--accent) 50%, transparent);
+}
+
+/* Stats Custom Layouts */
+.statIconWrap {
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.statValue {
+  text-shadow: 0 0 20px color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+.barTrack {
+  height: 6px;
+  background: var(--glass-bg-strong);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), #60a5fa);
+  transition: width var(--duration-slow) var(--easing-liquid);
+}
+
+.routeCountBadge {
+  padding: 2px 6px;
+  border-radius: var(--radius-xs);
+}
+
+.yearChart {
+  height: 140px;
+  padding-top: var(--space-6);
+}
+
+.yearBarGroup {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+}
+
+.yearBarTrack {
+  width: 100%;
+  flex: 1;
+  background: var(--glass-bg-strong);
+  border-radius: 2px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+}
+
+.yearFill {
+  background: linear-gradient(180deg, var(--accent), transparent);
+  transition: height var(--duration-slow) var(--easing-liquid);
 }

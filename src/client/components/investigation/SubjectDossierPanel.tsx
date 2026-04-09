@@ -1,18 +1,33 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { apiClient } from '../../services/apiClient';
 import { useToasts } from '../common/useToasts';
-import { CloseButton } from '../common/CloseButton';
 import { useModalFocusTrap } from '../../hooks/useModalFocusTrap';
 import {
-  AlertTriangle,
   ExternalLink,
   FileText,
   Loader2,
   Search,
   ShieldAlert,
   User,
+  Plus,
+  XCircle,
+  TrendingUp,
+  Fingerprint,
 } from 'lucide-react';
 
+// UI Library
+import {
+  Surface,
+  Button,
+  Flex,
+  Box,
+  Stack,
+  LqText,
+  Grid,
+  cn,
+  Badge,
+  Skeleton,
+} from '../../design-system/lib';
 import styles from './SubjectDossierPanel.module.css';
 
 interface EntitySummary {
@@ -58,12 +73,11 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
         const entity = await apiClient.get<EntitySummary>(`/entities/${entityId}`);
         setSelectedEntity(entity);
 
-        // Load recent documents for this entity
         setLoadingDocs(true);
         try {
-          const docs = await apiClient.get<{
-            data: Array<{ id: string; title: string; file_path: string }>;
-          }>(`/documents?entityId=${entityId}&limit=8&sortBy=date&sortOrder=desc`);
+          const docs = await apiClient.get<{ data: any[] }>(
+            `/documents?entityId=${entityId}&limit=8&sortBy=date&sortOrder=desc`,
+          );
           setRecentDocs(docs.data ?? []);
         } catch {
           setRecentDocs([]);
@@ -71,7 +85,7 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
           setLoadingDocs(false);
         }
       } catch {
-        addToast({ text: 'Failed to load entity', type: 'error' });
+        addToast({ text: 'Failed to load entity signal', type: 'error' });
       } finally {
         setLoadingEntity(false);
       }
@@ -80,9 +94,7 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
   );
 
   useEffect(() => {
-    if (initialEntityId) {
-      void loadEntity(initialEntityId);
-    }
+    if (initialEntityId) void loadEntity(initialEntityId);
   }, [initialEntityId, loadEntity]);
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -95,7 +107,7 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
       );
       setSearchResults(res.results ?? []);
     } catch {
-      addToast({ text: 'Search failed', type: 'error' });
+      addToast({ text: 'Subject search failed', type: 'error' });
     } finally {
       setSearching(false);
     }
@@ -104,208 +116,301 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
   const handlePin = async () => {
     if (!selectedEntity) return;
     try {
-      // Add entity as evidence to the investigation
       await apiClient.post(`/investigations/${investigationId}/evidence`, {
         title: selectedEntity.fullName,
         type: 'entity',
         source_path: `entity:${selectedEntity.id}`,
         relevance: 'high',
-        notes: 'Pinned as primary subject',
+        notes: 'Pinned as primary subject via dossier',
       });
-      addToast({ text: `${selectedEntity.fullName} pinned as subject`, type: 'success' });
+      addToast({ text: `${selectedEntity.fullName} linked as primary subject`, type: 'success' });
+      window.dispatchEvent(new CustomEvent('investigation-item-added'));
     } catch {
       addToast({ text: 'Failed to pin subject', type: 'error' });
     }
   };
 
   const rfi = selectedEntity?.redFlagRating ?? 0;
-  const rfiClassName =
-    rfi >= 4 ? styles.statValueRose : rfi >= 2 ? styles.statValueAmber : styles.statValueEmerald;
+  const getRfiVariant = (val: number): any => {
+    if (val >= 4.0) return 'error';
+    if (val >= 2.5) return 'warning';
+    return 'accent';
+  };
 
   return (
-    <div className={styles.overlay}>
-      <div ref={modalRef} tabIndex={-1} className={styles.panel}>
-        {/* Header */}
-        <div className={styles.header}>
-          <div>
-            <h2 className={styles.headerTitle}>
-              <User className={`${styles.iconMd} text-[var(--accent)]`} />
-              Subject Dossier
-            </h2>
-            <p className={styles.headerSubtitle}>Entity profile and linked documents</p>
-          </div>
-          <CloseButton onClick={onClose} size="sm" label="Close dossier panel" />
-        </div>
+    <Box className={styles.overlay} onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <Surface
+        ref={modalRef}
+        tabIndex={-1}
+        variant="glass"
+        style={{ height: '100%', width: 500 }}
+        className={styles.panel}
+      >
+        <Stack gap="xl" style={{ height: '100%' }}>
+          {/* Header */}
+          <Surface variant="glass" p="lg" className={styles.header}>
+            <Flex justify="between" align="center">
+              <Stack gap="none">
+                <Flex align="center" gap="sm">
+                  <Fingerprint size={20} className="text-[var(--lq-accent)]" />
+                  <LqText variant="h3" weight="bold">
+                    Subject Dossier
+                  </LqText>
+                </Flex>
+                <LqText
+                  variant="xs"
+                  color="muted"
+                  style={{ textTransform: 'uppercase' }}
+                  weight="bold"
+                >
+                  Intel Extraction • Profile Metadata
+                </LqText>
+              </Stack>
+              <Button variant="ghost" size="sm" onClick={onClose}>
+                <XCircle size={18} />
+              </Button>
+            </Flex>
+          </Surface>
 
-        {/* Search */}
-        <form onSubmit={handleSearch} className={styles.searchForm}>
-          <div className={styles.searchWrapper}>
-            <Search className={styles.searchIcon} />
-            <input
-              type="text"
-              placeholder="Search subject by name…"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className={styles.searchInput}
-            />
-            {searching && <Loader2 className={`${styles.searchLoader} ${styles.spin}`} />}
-          </div>
-        </form>
-
-        {/* Search results */}
-        {searchResults.length > 0 && !selectedEntity && (
-          <div className={styles.searchResults}>
-            {searchResults.map((entity) => (
-              <button
-                key={String(entity.id)}
-                onClick={() => {
-                  setSearchResults([]);
-                  setSearchQuery('');
-                  void loadEntity(String(entity.id));
-                }}
-                className={styles.resultButton}
-              >
-                <span className={styles.resultName}>{entity.fullName}</span>
-                {entity.primaryRole && (
-                  <span className={styles.resultRole}>{entity.primaryRole}</span>
+          {/* Search Interface */}
+          <Box px="lg">
+            <form onSubmit={handleSearch}>
+              <Box className={styles.searchWrapper}>
+                <Search className={styles.searchIcon} size={16} />
+                <input
+                  type="text"
+                  style={{
+                    width: '100%',
+                    background: 'var(--lq-surface-3)',
+                    border: '1px solid var(--lq-surface-4)',
+                    borderRadius: '0.375rem',
+                    padding: '0.5rem 0.75rem 0.5rem 2.5rem',
+                    fontSize: '0.875rem',
+                    color: 'var(--lq-text-primary)',
+                    outline: 'none',
+                  }}
+                  placeholder="Search subjects by name…"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                {searching && (
+                  <Loader2 className={cn(styles.searchLoader, styles.spin)} size={16} />
                 )}
-              </button>
-            ))}
-          </div>
-        )}
+              </Box>
+            </form>
+          </Box>
 
-        {/* Entity dossier */}
-        <div className={styles.dossierContent}>
-          {loadingEntity && (
-            <div className={styles.loaderWrapper}>
-              <Loader2 className={`${styles.iconMd} ${styles.spin} text-[var(--text-muted)]`} />
-            </div>
+          {/* Search Results Dropdown */}
+          {searchResults.length > 0 && !selectedEntity && (
+            <Box px="lg" style={{ zIndex: 10 }}>
+              <Surface variant="glass-highlight" p="sm" className={styles.searchResults}>
+                <Stack gap="xs">
+                  {searchResults.map((entity) => (
+                    <Button
+                      key={entity.id}
+                      variant="ghost"
+                      style={{ justifyContent: 'start' }}
+                      onClick={() => {
+                        setSearchResults([]);
+                        setSearchQuery('');
+                        loadEntity(String(entity.id));
+                      }}
+                    >
+                      <Stack gap="none" align="start">
+                        <LqText variant="xs" weight="bold">
+                          {entity.fullName}
+                        </LqText>
+                        <LqText variant="xs" color="muted">
+                          {entity.primaryRole || 'No role defined'}
+                        </LqText>
+                      </Stack>
+                    </Button>
+                  ))}
+                </Stack>
+              </Surface>
+            </Box>
           )}
 
-          {!loadingEntity && !selectedEntity && (
-            <div className={styles.emptyState}>
-              <User className={styles.emptyIcon} />
-              <p className={styles.emptyTextPrimary}>Search for a subject above</p>
-              <p className={styles.emptyTextSecondary}>
-                Or open directly from entity cards on the archive
-              </p>
-            </div>
-          )}
-
-          {selectedEntity && (
-            <div className={styles.dossierBody}>
-              {/* Name + type */}
-              <div>
-                <div className={styles.profileHeader}>
-                  <div>
-                    <h3 className={styles.profileTitle}>{selectedEntity.fullName}</h3>
-                    {selectedEntity.primaryRole && (
-                      <p className={styles.profileSubtitle}>{selectedEntity.primaryRole}</p>
-                    )}
-                  </div>
-                  <a
-                    href={`/subjects/${selectedEntity.id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={styles.externalLink}
-                    title="Open full profile"
+          {/* Body Content */}
+          <Box grow p="lg" className={styles.dossierContent}>
+            {loadingEntity ? (
+              <Stack gap="xl">
+                <Skeleton height={80} />
+                <Grid cols={2} gap="md">
+                  <Skeleton height={60} />
+                  <Skeleton height={60} />
+                </Grid>
+                <Skeleton height={150} />
+              </Stack>
+            ) : !selectedEntity ? (
+              <Stack align="center" justify="center" gap="lg" py="xxxl" textAlign="center">
+                <User size={48} className="text-[var(--lq-text-dim)]" />
+                <Stack gap="xs">
+                  <LqText variant="small" weight="bold">
+                    Intelligence Buffer Empty
+                  </LqText>
+                  <LqText variant="xs" color="muted">
+                    Perform a subject search or select a node to populate the profile data.
+                  </LqText>
+                </Stack>
+              </Stack>
+            ) : (
+              <Stack gap="xl">
+                {/* Profile Header */}
+                <Flex justify="between" align="start">
+                  <Stack gap="none">
+                    <LqText variant="h2" weight="bold">
+                      {selectedEntity.fullName}
+                    </LqText>
+                    <Flex gap="sm" align="center" mt="xs">
+                      <Badge
+                        variant="accent"
+                        label={selectedEntity.entityType.toUpperCase()}
+                        size="sm"
+                      />
+                      <LqText variant="xs" color="muted">
+                        SID-{selectedEntity.id}
+                      </LqText>
+                    </Flex>
+                  </Stack>
+                  <Button
+                    variant="ghost"
+                    onClick={() => window.open(`/subjects/${selectedEntity.id}`, '_blank')}
                   >
-                    <ExternalLink className={styles.iconMd} />
-                  </a>
-                </div>
-                <div className={styles.badgeStack}>
-                  <span className={styles.badge}>{selectedEntity.entityType}</span>
-                  <span className={styles.badge}>ID #{selectedEntity.id}</span>
-                </div>
-              </div>
+                    <ExternalLink size={16} />
+                  </Button>
+                </Flex>
 
-              {/* Risk + mentions */}
-              <div className={styles.statsGrid}>
-                <div className={styles.statCard}>
-                  <div className={styles.statHeader}>
-                    <ShieldAlert className={styles.statIcon} />
-                    <span className={styles.statLabel}>Red Flag Index</span>
-                  </div>
-                  <span className={`${styles.statValue} ${rfiClassName}`}>{rfi.toFixed(1)}</span>
-                  <span className={styles.statUnit}>/ 5</span>
-                </div>
-                <div className={styles.statCard}>
-                  <div className={styles.statHeader}>
-                    <FileText className={styles.statIcon} />
-                    <span className={styles.statLabel}>Mentions</span>
-                  </div>
-                  <span className={`${styles.statValue} ${styles.statValuePrimary}`}>
-                    {(selectedEntity.mentions ?? 0).toLocaleString()}
-                  </span>
-                </div>
-              </div>
+                {/* Critical Metrics */}
+                <Grid cols={2} gap="md">
+                  <Surface
+                    variant="glass-highlight"
+                    p="md"
+                    className={cn('border-l-4', `border-l-[var(--lq-${getRfiVariant(rfi)})]`)}
+                  >
+                    <Stack gap="xs">
+                      <Flex align="center" gap="xs">
+                        <ShieldAlert
+                          size={12}
+                          className={cn(`text-[var(--lq-${getRfiVariant(rfi)})]`)}
+                        />
+                        <LqText
+                          variant="xs"
+                          weight="bold"
+                          color="muted"
+                          style={{ textTransform: 'uppercase' }}
+                        >
+                          Red Flag Index
+                        </LqText>
+                      </Flex>
+                      <LqText variant="h2" weight="bold" color={getRfiVariant(rfi)}>
+                        {rfi.toFixed(1)}{' '}
+                        <LqText variant="xs" color="muted" weight="normal" className="inline">
+                          / 5.0
+                        </LqText>
+                      </LqText>
+                    </Stack>
+                  </Surface>
+                  <Surface variant="glass-highlight" p="md">
+                    <Stack gap="xs">
+                      <Flex align="center" gap="xs">
+                        <TrendingUp size={12} className="text-[var(--lq-accent)]" />
+                        <LqText
+                          variant="xs"
+                          weight="bold"
+                          color="muted"
+                          style={{ textTransform: 'uppercase' }}
+                        >
+                          Mention Count
+                        </LqText>
+                      </Flex>
+                      <LqText variant="h2" weight="bold">
+                        {(selectedEntity.mentions ?? 0).toLocaleString()}
+                      </LqText>
+                    </Stack>
+                  </Surface>
+                </Grid>
 
-              {/* Aliases */}
-              {selectedEntity.aliases && selectedEntity.aliases.length > 0 && (
-                <div>
-                  <h4 className={styles.sectionHeader}>Known Aliases</h4>
-                  <div className={styles.aliasStack}>
-                    {selectedEntity.aliases.map((alias) => (
-                      <span key={alias} className={styles.aliasBadge}>
-                        {alias}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Pin button */}
-              <button onClick={handlePin} className={styles.pinButton}>
-                📌 Pin as Primary Subject
-              </button>
-
-              {/* All archive documents */}
-              <a
-                href={`/documents?entityId=${selectedEntity.id}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.actionLink}
-              >
-                <FileText className={styles.iconMd} />
-                View all documents mentioning {selectedEntity.fullName.split(' ')[0]}
-              </a>
-
-              {/* Recent documents */}
-              <div>
-                <h4 className={styles.sectionHeader}>Recent Documents</h4>
-                {loadingDocs && (
-                  <div className={styles.loaderCentered}>
-                    <Loader2
-                      className={`${styles.iconSm} ${styles.spin} text-[var(--text-muted)]`}
-                    />
-                  </div>
+                {/* Known Identities */}
+                {selectedEntity.aliases && selectedEntity.aliases.length > 0 && (
+                  <Stack gap="sm">
+                    <LqText
+                      variant="xs"
+                      weight="bold"
+                      color="muted"
+                      style={{ textTransform: 'uppercase' }}
+                    >
+                      Known Identities & Aliases
+                    </LqText>
+                    <Flex wrap="wrap" gap="xs">
+                      {selectedEntity.aliases.map((a) => (
+                        <Badge key={a} variant="glass" label={a} size="sm" />
+                      ))}
+                    </Flex>
+                  </Stack>
                 )}
-                {!loadingDocs && recentDocs.length === 0 && (
-                  <div className={styles.emptyInfo}>
-                    <AlertTriangle className={styles.iconSm} />
-                    No documents indexed for this entity yet
-                  </div>
-                )}
-                {!loadingDocs && recentDocs.length > 0 && (
-                  <div className={styles.documentList}>
-                    {recentDocs.map((doc) => (
-                      <button
-                        key={doc.id}
-                        onClick={() => onOpenDocument?.(doc.id)}
-                        className={styles.documentButton}
-                      >
-                        <span className={styles.documentTitle}>
-                          {doc.title || doc.file_path?.split('/').pop() || `Document ${doc.id}`}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+
+                {/* Actions */}
+                <Button variant="primary" onClick={handlePin}>
+                  <Plus size={16} /> Link as Case Primary Subject
+                </Button>
+
+                {/* Sub-Signals */}
+                <Stack gap="md">
+                  <LqText
+                    variant="xs"
+                    weight="bold"
+                    color="muted"
+                    style={{ textTransform: 'uppercase' }}
+                  >
+                    Recent Linked Evidence
+                  </LqText>
+                  {loadingDocs ? (
+                    <Stack gap="xs">
+                      <Skeleton height={40} />
+                      <Skeleton height={40} />
+                    </Stack>
+                  ) : recentDocs.length === 0 ? (
+                    <Surface variant="glass" p="md">
+                      <LqText variant="xs" color="muted">
+                        No recent documents indexed.
+                      </LqText>
+                    </Surface>
+                  ) : (
+                    <Stack gap="xs">
+                      {recentDocs.map((doc) => (
+                        <Surface
+                          key={doc.id}
+                          variant="glass-highlight"
+                          p="sm"
+                          className={styles.docItem}
+                          onClick={() => onOpenDocument?.(doc.id)}
+                        >
+                          <Flex gap="sm" align="center">
+                            <FileText size={14} className="text-[var(--lq-accent)]" />
+                            <LqText variant="xs" weight="bold">
+                              {doc.title || doc.file_path?.split('/').pop()}
+                            </LqText>
+                          </Flex>
+                        </Surface>
+                      ))}
+                    </Stack>
+                  )}
+                  <Button
+                    variant="ghost"
+                    onClick={() =>
+                      window.open(`/documents?entityId=${selectedEntity.id}`, '_blank')
+                    }
+                    style={{ marginTop: 'var(--space-sm)' }}
+                  >
+                    View All Mentions <ExternalLink size={10} style={{ marginLeft: '0.25rem' }} />
+                  </Button>
+                </Stack>
+              </Stack>
+            )}
+          </Box>
+        </Stack>
+      </Surface>
+    </Box>
   );
 };

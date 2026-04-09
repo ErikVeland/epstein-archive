@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { AudioBrowser } from './AudioBrowser';
+import styles from '../../App.module.css';
 
 const AudioTab: React.FC = () => {
   const location = useLocation();
@@ -21,7 +22,7 @@ const AudioTab: React.FC = () => {
   }, [location.search]);
 
   return (
-    <div className="h-full">
+    <div className={styles.hFull}>
       <AudioBrowser
         initialAlbumId={initialAlbumId}
         initialAudioId={initialAudioId}

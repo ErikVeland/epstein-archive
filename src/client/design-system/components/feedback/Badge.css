@@ -1,0 +1,44 @@
+.ds-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 24px;
+  padding: 0.125rem 0.625rem;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.03em;
+}
+
+.ds-badge[data-tone='neutral'] {
+  color: var(--text-secondary);
+  border-color: color-mix(in srgb, var(--glass-border) 72%, transparent);
+  background: color-mix(in srgb, var(--glass-bg) 84%, transparent);
+}
+
+.ds-badge[data-tone='accent'] {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 28%, transparent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.ds-badge[data-tone='success'] {
+  color: var(--accent-success);
+  border-color: color-mix(in srgb, var(--accent-success) 30%, transparent);
+  background: color-mix(in srgb, var(--accent-success) 14%, transparent);
+}
+
+.ds-badge[data-tone='warning'] {
+  color: var(--accent-warning);
+  border-color: color-mix(in srgb, var(--accent-warning) 30%, transparent);
+  background: color-mix(in srgb, var(--accent-warning) 14%, transparent);
+}
+
+.ds-badge[data-tone='danger'] {
+  color: var(--accent-danger);
+  border-color: color-mix(in srgb, var(--accent-danger) 30%, transparent);
+  background: color-mix(in srgb, var(--accent-danger) 14%, transparent);
+}

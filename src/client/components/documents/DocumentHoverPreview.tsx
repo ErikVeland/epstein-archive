@@ -32,7 +32,7 @@ export const DocumentHoverPreview: React.FC<DocumentHoverPreviewProps> = ({ doc,
       animate={{ opacity: 1, scale: 1, x: 0 }}
       exit={{ opacity: 0, scale: 0.95, x: x < rect.left ? 10 : -10 }}
       style={{ left: x, top: y }}
-      className="fixed z-[100] w-[420px] pointer-events-none"
+      className={styles.pastedPreviewRoot}
     >
       <Surface variant="glass-strong" className={styles.root}>
         <Box className={styles.header}>

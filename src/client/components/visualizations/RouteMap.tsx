@@ -8,6 +8,7 @@ import ScopedErrorBoundary from '../common/ScopedErrorBoundary';
 // See: https://github.com/PaulLeCam/react-leaflet/issues/453
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+import styles from './RouteMap.module.css';
 
 const DefaultIcon = L.icon({
   iconUrl: icon,
@@ -66,10 +67,8 @@ export const RouteMap: React.FC<RouteMapProps> = ({ departure, arrival, classNam
     arrival.lat === 0
   ) {
     return (
-      <div
-        className={`flex items-center justify-center bg-[var(--glass-bg-strong)] border border-[var(--glass-border)] rounded-[var(--radius-xl)] h-64 ${className}`}
-      >
-        <p className="text-[var(--text-muted)]">Map data unavailable for this route</p>
+      <div className={[styles.fallback, className].filter(Boolean).join(' ')}>
+        <p className={styles.fallbackText}>Map data unavailable for this route</p>
       </div>
     );
   }
@@ -81,13 +80,11 @@ export const RouteMap: React.FC<RouteMapProps> = ({ departure, arrival, classNam
   ];
 
   return (
-    <div
-      className={`h-[400px] w-full rounded-[var(--radius-xl)] overflow-hidden border border-[var(--glass-border)] shadow-[var(--glass-shadow)] ${className}`}
-    >
+    <div className={[styles.mapShell, className].filter(Boolean).join(' ')}>
       <ScopedErrorBoundary
         fallback={
-          <div className="h-full w-full flex items-center justify-center bg-[var(--glass-bg-strong)] p-[var(--space-4)] text-center">
-            <p className="text-[var(--accent-danger)] text-sm">Failed to render the route map.</p>
+          <div className={styles.errorFallback}>
+            <p className={styles.errorText}>Failed to render the route map.</p>
           </div>
         }
       >
@@ -95,7 +92,7 @@ export const RouteMap: React.FC<RouteMapProps> = ({ departure, arrival, classNam
           center={center}
           zoom={4}
           scrollWheelZoom={false}
-          className="h-full w-full z-0"
+          className={styles.map}
           style={{ height: '100%', width: '100%', minHeight: '300px' }}
         >
           <TileLayer

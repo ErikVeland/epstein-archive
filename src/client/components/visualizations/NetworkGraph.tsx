@@ -56,12 +56,13 @@ interface GraphNode extends ServiceGraphNode {
 }
 
 // Risk-based colors with better visibility
+// Risk-based colors using Liquid Glass semantic tokens
 const getRiskColor = (riskLevel: number): string => {
-  if (riskLevel >= 5) return '#a855f7'; // Purple - Critical
-  if (riskLevel >= 4) return '#ef4444'; // Red - High
-  if (riskLevel >= 3) return '#f59e0b'; // Amber - Medium
-  if (riskLevel >= 2) return '#3b82f6'; // Blue - Low
-  return '#10b981'; // Green - Minimal
+  if (riskLevel >= 5) return 'var(--risk-critical)';
+  if (riskLevel >= 4) return 'var(--risk-high)';
+  if (riskLevel >= 3) return 'var(--risk-medium)';
+  if (riskLevel >= 2) return 'var(--risk-low)';
+  return 'var(--risk-minimal)';
 };
 
 const getNodeSize = (connectionCount: number, maxConnections: number): number => {
@@ -627,16 +628,21 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
   );
 
   return (
-    <div className={`soft-glass-outline ${styles.root} ${spacePressed ? styles.panMode : ''}`}>
+    <div
+      className={`${styles.softGlassOutline} ${styles.root} ${spacePressed ? styles.panMode : ''}`}
+    >
       {/* Controls */}
       <div className={styles.controls}>
-        <button onClick={zoomIn} className={`soft-glass-outline ${styles.controlButton}`}>
+        <button onClick={zoomIn} className={`${styles.softGlassOutline} ${styles.controlButton}`}>
           <ZoomIn className={styles.controlIcon} />
         </button>
-        <button onClick={zoomOut} className={`soft-glass-outline ${styles.controlButton}`}>
+        <button onClick={zoomOut} className={`${styles.softGlassOutline} ${styles.controlButton}`}>
           <ZoomOut className={styles.controlIcon} />
         </button>
-        <button onClick={resetView} className={`soft-glass-outline ${styles.controlButton}`}>
+        <button
+          onClick={resetView}
+          className={`${styles.softGlassOutline} ${styles.controlButton}`}
+        >
           <RefreshCw className={styles.controlIcon} />
         </button>
         <button
@@ -647,7 +653,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
           className={
             showFilters
               ? `${styles.controlButton} ${styles.filterButton} ${styles.filterButtonActive}`
-              : `soft-glass-outline ${styles.controlButton} ${styles.filterButton}`
+              : `${styles.softGlassOutline} ${styles.controlButton} ${styles.filterButton}`
           }
         >
           <Filter className={styles.controlIcon} />
@@ -676,7 +682,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
       )}
       {/* Filter Panel */}
       {showFilters && (
-        <div className={`soft-glass-outline ${styles.filterPanel}`}>
+        <div className={`${styles.softGlassOutline} ${styles.filterPanel}`}>
           <p className={styles.filterTitle}>
             <Filter className={styles.tinyIcon} /> Node Filters
           </p>
@@ -758,18 +764,18 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
       )}
 
       {/* Legend */}
-      <div className={`soft-glass-outline ${styles.legend} ${styles.legendInteractive}`}>
+      <div className={`${styles.softGlassOutline} ${styles.legend} ${styles.legendInteractive}`}>
         <div className={styles.legendHeader}>
           <p className={styles.legendTitle}>Node Risk</p>
           {nodeRiskActions ? <div className={styles.legendActions}>{nodeRiskActions}</div> : null}
         </div>
         <div className={styles.legendList}>
           {[
-            { level: 5, label: 'Critical Risk', color: '#a855f7' },
-            { level: 4, label: 'High Risk', color: '#ef4444' },
-            { level: 3, label: 'Medium Risk', color: '#f59e0b' },
-            { level: 2, label: 'Low Risk', color: '#3b82f6' },
-            { level: 1, label: 'Minimal', color: '#10b981' },
+            { level: 5, label: 'Critical Risk', color: 'var(--risk-critical)' },
+            { level: 4, label: 'High Risk', color: 'var(--risk-high)' },
+            { level: 3, label: 'Medium Risk', color: 'var(--risk-medium)' },
+            { level: 2, label: 'Low Risk', color: 'var(--risk-low)' },
+            { level: 1, label: 'Minimal', color: 'var(--risk-minimal)' },
           ].map(({ level, label, color }) => (
             <div key={level} className={styles.legendItem}>
               <div className={styles.legendNodeDot} style={{ backgroundColor: color, color }} />

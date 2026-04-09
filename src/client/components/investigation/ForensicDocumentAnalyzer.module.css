@@ -28,6 +28,10 @@
   min-height: 500px;
 }
 
+.viewerFill {
+  flex: 1;
+}
+
 .analysisPanel {
   display: flex;
   flex-direction: column;
@@ -308,6 +312,10 @@
   color: var(--text-primary);
 }
 
+.metricValueCapitalized {
+  text-transform: capitalize;
+}
+
 .downloadButton {
   margin-top: var(--spacing-2);
   padding: var(--spacing-1) var(--spacing-2);
@@ -423,6 +431,11 @@
 .entityConfidence {
   font-size: var(--font-size-xs);
   color: var(--text-muted);
+}
+
+.quickMetricSentiment {
+  margin-left: var(--spacing-2);
+  text-transform: capitalize;
 }
 
 .entityType {
@@ -664,4 +677,124 @@
 
 .spacer {
   margin-top: var(--spacing-2);
+}
+
+.autoGen95 {
+  flex: 1 1 0%;
+  display: flex;
+  flex-direction: column;
+}
+
+.autoGen96 {
+  flex: 1 1 0%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.autoGen97 {
+  height: 100%;
+  background-color: var(--lq-surface-2);
+}
+
+.autoGen98 {
+  width: 100%;
+  height: 100%;
+}
+
+.autoGen99 {
+  height: 100%;
+  border-color: l;
+  border-color: l-[var(--lq-surface-3)];
+}
+
+.autoGen100 {
+  overflow-y: auto;
+}
+
+.autoGen101 {
+  color: var(--lq-text-dim);
+}
+
+.autoGen102 {
+  color: var(--lq-accent);
+  /* Missing: animate-spin */
+}
+
+.autoGen103 {
+  border-color: l-4;
+  border-color: l-[var(--lq-accent)];
+}
+
+.autoGen104 {
+  color: var(--lq-success);
+}
+
+.autoGen105 {
+  color: var(--lq-warning);
+}
+
+.autoGen106 {
+  color: var(--lq-error);
+}
+
+.autoGen107 {
+  width: 100%;
+  /* Missing: h-2 */
+  background-color: var(--lq-surface-3);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.autoGen108 {
+  /* Missing: sticky */
+  /* Missing: top-0 */
+  /* Missing: z-10 */
+  background-color: var(--lq-surface-1);
+}
+
+.autoGen109 {
+  /* Missing: h-40 */
+  width: 100%;
+}
+
+.autoGen110 {
+  cursor: pointer;
+  /* Missing: hover:bg-[var(--lq-surface-3)] */
+}
+
+.autoGen111 {
+  cursor: pointer;
+  /* Missing: hover:bg-[var(--lq-surface-3)] */
+}
+
+.autoGen112 {
+  background-color: var(--lq-surface-3);
+  border-radius: var(--radius-rounded);
+}
+
+.autoGen113 {
+  color: var(--lq-accent);
+}
+
+.autoGen114 {
+  color: var(--lq-error);
+}
+
+.autoGen115 {
+  position: fixed;
+  inset: 0;
+  /* Missing: z-[var(--lq-z-modal)] */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl);
+  background-color: black/40;
+  /* Missing: backdrop-blur-sm */
+}
+
+.autoGen116 {
+  /* Missing: shadow-2xl */
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--lq-surface-3);
 }

@@ -1,6 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Icon from '../common/Icon';
 import { getEntityTypeIcon } from '../../utils/entityTypeIcons';
+import {
+  Button,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '../../design-system/lib';
 import styles from './EntityTypeFilter.module.css';
 
 interface EntityTypeOption {
@@ -51,25 +58,29 @@ const EntityTypeFilter: React.FC<EntityTypeFilterProps> = ({ value, onChange, cl
       ].join(' ')}
       ref={dropdownRef}
     >
-      <button
-        type="button"
-        onClick={() => setIsOpen((open) => !open)}
-        className={`control ${styles.triggerButton}`}
-        aria-haspopup="listbox"
-        aria-expanded={isOpen}
-      >
-        <div className={styles.triggerContent}>
-          {getEntityTypeIcon(selectedOption.value, 'sm')}
-          <span className={styles.triggerLabel}>{selectedOption.label}</span>
-        </div>
-        <Icon name="ChevronDown" size="sm" />
-      </button>
+      <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+        <DropdownMenuTrigger asChild>
+          <Button
+            type="button"
+            onClick={() => setIsOpen((open) => !open)}
+            className={styles.triggerButton}
+            variant="secondary"
+            size="sm"
+            aria-haspopup="listbox"
+            aria-expanded={isOpen}
+          >
+            <div className={styles.triggerContent}>
+              {getEntityTypeIcon(selectedOption.value, 'sm')}
+              <span className={styles.triggerLabel}>{selectedOption.label}</span>
+            </div>
+            <Icon name="ChevronDown" size="sm" />
+          </Button>
+        </DropdownMenuTrigger>
 
-      {isOpen && (
-        <div className={`dropdown-surface ${styles.dropdown}`}>
-          <ul role="listbox" className={styles.list}>
+        {isOpen && (
+          <DropdownMenuContent className={styles.dropdown} align="start">
             {options.map((option) => (
-              <li
+              <DropdownMenuItem
                 key={option.value}
                 role="option"
                 aria-selected={option.value === value}
@@ -77,18 +88,18 @@ const EntityTypeFilter: React.FC<EntityTypeFilterProps> = ({ value, onChange, cl
                   styles.optionItem,
                   option.value === value ? styles.optionSelected : styles.optionUnselected,
                 ].join(' ')}
-                onClick={() => {
+                onSelect={() => {
                   onChange(option.value);
                   setIsOpen(false);
                 }}
               >
                 {getEntityTypeIcon(option.value, 'sm')}
                 <span>{option.label}</span>
-              </li>
+              </DropdownMenuItem>
             ))}
-          </ul>
-        </div>
-      )}
+          </DropdownMenuContent>
+        )}
+      </DropdownMenu>
     </div>
   );
 };

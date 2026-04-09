@@ -1,12 +1,25 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { apiClient } from '../../services/apiClient';
 import { useToasts } from '../common/useToasts';
-import { CheckCircle2, Clock, Flag, Loader2, Plus } from 'lucide-react';
+import { CheckCircle2, Clock, Loader2, Plus, XCircle, BarChart3 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { CloseButton } from '../common/CloseButton';
 import { useScrollLock } from '../../hooks/useScrollLock';
-import styles from './InvestigationTasksPanel.module.css';
 
+// UI Library
+import {
+  Surface,
+  Button,
+  Flex,
+  Box,
+  Stack,
+  LqText,
+  Grid,
+  cn,
+  Badge,
+  Skeleton,
+} from '../../design-system/lib';
+
+import styles from './InvestigationTasksPanel.module.css';
 import {
   InvestigationTaskDto as InvestigationTask,
   InvestigationTaskSummaryDto as TaskSummary,
@@ -19,6 +32,21 @@ interface InvestigationTasksPanelProps {
   onClose: () => void;
 }
 
+const STATUS_VARIANT: Record<TaskStatus, any> = {
+  completed: 'success',
+  in_progress: 'accent',
+  pending: 'glass',
+  on_hold: 'warning',
+  cancelled: 'glass',
+};
+
+const PRIORITY_VARIANT: Record<TaskPriority, any> = {
+  critical: 'danger',
+  high: 'warning',
+  medium: 'accent',
+  low: 'glass',
+};
+
 export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = ({
   investigationId,
   onClose,
@@ -27,21 +55,17 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
   const [summary, setSummary] = useState<TaskSummary | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
-  const [newTask, setNewTask] = useState<{
-    title: string;
-    description: string;
-    priority: TaskPriority;
-    dueDate: string;
-  }>({
+  const [newTask, setNewTask] = useState({
     title: '',
     description: '',
-    priority: 'medium',
+    priority: 'medium' as TaskPriority,
     dueDate: '',
   });
   const [statusFilter, setStatusFilter] = useState<TaskStatus | 'all'>('all');
   const [priorityFilter, setPriorityFilter] = useState<TaskPriority | 'all'>('all');
   const { addToast } = useToasts();
   const { user } = useAuth();
+
   useScrollLock(true);
 
   const loadTasks = useCallback(async () => {
@@ -54,16 +78,15 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
       ]);
       setTasks(tasksResult.data);
       setSummary(summaryResult);
-    } catch (error) {
-      console.error('Error loading investigative tasks', error);
-      addToast({ text: 'Failed to load tasks', type: 'error' });
+    } catch {
+      addToast({ text: 'Failed to synchronize task state', type: 'error' });
     } finally {
       setIsLoading(false);
     }
   }, [addToast, investigationId]);
 
   useEffect(() => {
-    loadTasks();
+    void loadTasks();
   }, [loadTasks]);
 
   const filteredTasks = useMemo(() => {
@@ -87,17 +110,12 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
         dueDate: newTask.dueDate || undefined,
         assignedTo: user?.id ?? undefined,
       });
-      setNewTask({
-        title: '',
-        description: '',
-        priority: 'medium',
-        dueDate: '',
-      });
+      setNewTask({ title: '', description: '', priority: 'medium', dueDate: '' });
       await loadTasks();
-      addToast({ text: 'Task created', type: 'success' });
-    } catch (error) {
-      console.error('Error creating investigative task', error);
-      addToast({ text: 'Failed to create task', type: 'error' });
+      addToast({ text: 'Investigative task initialized', type: 'success' });
+      window.dispatchEvent(new CustomEvent('investigation-item-added'));
+    } catch {
+      addToast({ text: 'Task creation failed', type: 'error' });
     } finally {
       setIsCreating(false);
     }
@@ -105,254 +123,307 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
 
   const handleToggleComplete = async (task: InvestigationTask) => {
     try {
-      const nextStatus: TaskStatus = task.status === 'completed' ? 'in_progress' : 'completed';
+      const next: TaskStatus = task.status === 'completed' ? 'in_progress' : 'completed';
       await apiClient.updateInvestigativeTask(task.id, {
-        status: nextStatus,
-        progress: nextStatus === 'completed' ? 100 : (task.progress ?? 0),
+        status: next,
+        progress: next === 'completed' ? 100 : (task.progress ?? 0),
       });
       await loadTasks();
-    } catch (error) {
-      console.error('Error updating task status', error);
-      addToast({ text: 'Failed to update task', type: 'error' });
+    } catch {
+      addToast({ text: 'Sync failure', type: 'error' });
     }
-  };
-
-  const handleProgressChange = async (task: InvestigationTask, progress: number) => {
-    try {
-      await apiClient.updateInvestigativeTaskProgress(task.id, progress);
-      await loadTasks();
-    } catch (error) {
-      console.error('Error updating task progress', error);
-      addToast({ text: 'Failed to update progress', type: 'error' });
-    }
-  };
-
-  const statusLabel = (status: TaskStatus) => {
-    if (status === 'pending') return 'Pending';
-    if (status === 'in_progress') return 'In Progress';
-    if (status === 'completed') return 'Completed';
-    if (status === 'on_hold') return 'On Hold';
-    return 'Cancelled';
-  };
-
-  const statusClassName = (status: TaskStatus) => {
-    if (status === 'completed') return styles.statusCompleted;
-    if (status === 'in_progress') return styles.statusInProgress;
-    if (status === 'pending') return styles.statusPending;
-    if (status === 'on_hold') return styles.statusOnHold;
-    return styles.statusCancelled;
-  };
-
-  const priorityClassName = (priority: TaskPriority) => {
-    if (priority === 'critical') return styles.priorityCritical;
-    if (priority === 'high') return styles.priorityHigh;
-    if (priority === 'medium') return styles.priorityMedium;
-    return styles.priorityLow;
   };
 
   return (
-    <div className={styles.overlay}>
-      <div className={styles.panel}>
-        <div className={`${styles.section} ${styles.header}`}>
-          <div>
-            <h2 className={styles.title}>
-              <Flag className={styles.flagIcon} />
-              Investigation Tasks
-            </h2>
-            <p className={styles.subtitle}>Track work items and progress for this investigation</p>
-          </div>
-          <CloseButton onClick={onClose} size="sm" label="Close tasks panel" />
-        </div>
+    <Box className={styles.autoGen263} onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <Surface variant="glass" style={{ height: '100%', width: 500 }} className={styles.autoGen264}>
+        <Stack gap="xl" style={{ height: '100%' }}>
+          {/* Header */}
+          <Surface variant="glass" p="lg" className={styles.autoGen265}>
+            <Flex justify="between" align="center">
+              <Stack gap="none">
+                <Flex align="center" gap="sm">
+                  <BarChart3 size={20} className={styles.autoGen266} />
+                  <LqText variant="h3" weight="bold">
+                    Mission Control
+                  </LqText>
+                </Flex>
+                <LqText
+                  variant="xs"
+                  color="muted"
+                  style={{ textTransform: 'uppercase' }}
+                  weight="bold"
+                >
+                  Task Orchestration • Progress Analytics
+                </LqText>
+              </Stack>
+              <Button variant="ghost" size="sm" onClick={onClose}>
+                <XCircle size={18} />
+              </Button>
+            </Flex>
+          </Surface>
 
-        {summary && (
-          <div className={`${styles.section} ${styles.summaryGrid}`}>
-            <div className={styles.summaryCell}>
-              <div className={styles.summaryLabel}>Total</div>
-              <div className={styles.summaryValue}>
-                {Object.values(summary.statusBreakdown).reduce((a, b) => a + b, 0)}
-              </div>
-            </div>
-            <div className={styles.summaryCell}>
-              <div className={styles.summaryLabel}>Overdue</div>
-              <div className={styles.summaryDanger}>{summary.overdueTasks}</div>
-            </div>
-            <div className={styles.summaryCell}>
-              <div className={styles.summaryLabel}>Avg Progress</div>
-              <div className={styles.summarySuccess}>{Math.round(summary.averageProgress)}%</div>
-            </div>
-          </div>
-        )}
+          {/* Summary HUD */}
+          {summary && (
+            <Box px="lg">
+              <Grid cols={3} gap="md">
+                <Surface variant="glass-highlight" p="md">
+                  <LqText variant="h3" weight="bold">
+                    {Object.values(summary.statusBreakdown).reduce((a, b) => a + b, 0)}
+                  </LqText>
+                  <LqText variant="xs" color="muted" style={{ textTransform: 'uppercase' }}>
+                    Total Tasks
+                  </LqText>
+                </Surface>
+                <Surface variant="glass-highlight" p="md" className={styles.autoGen267}>
+                  <LqText variant="h3" weight="bold" color="danger">
+                    {summary.overdueTasks}
+                  </LqText>
+                  <LqText variant="xs" color="muted" style={{ textTransform: 'uppercase' }}>
+                    Overdue
+                  </LqText>
+                </Surface>
+                <Surface variant="glass-highlight" p="md">
+                  <LqText variant="h3" weight="bold" color="success">
+                    {Math.round(summary.averageProgress)}%
+                  </LqText>
+                  <LqText variant="xs" color="muted" style={{ textTransform: 'uppercase' }}>
+                    Avg Progress
+                  </LqText>
+                </Surface>
+              </Grid>
+            </Box>
+          )}
 
-        <div className={`${styles.section} ${styles.filtersRow}`}>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as TaskStatus | 'all')}
-            className={styles.select}
-          >
-            <option value="all">All statuses</option>
-            <option value="pending">Pending</option>
-            <option value="in_progress">In progress</option>
-            <option value="completed">Completed</option>
-            <option value="on_hold">On hold</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
-          <select
-            value={priorityFilter}
-            onChange={(e) => setPriorityFilter(e.target.value as TaskPriority | 'all')}
-            className={styles.select}
-          >
-            <option value="all">All priorities</option>
-            <option value="critical">Critical</option>
-            <option value="high">High</option>
-            <option value="medium">Medium</option>
-            <option value="low">Low</option>
-          </select>
-        </div>
+          {/* Filtering Hub */}
+          <Flex px="lg" gap="sm">
+            <Box style={{ flex: 1 }}>
+              <select
+                style={{
+                  width: '100%',
+                  background: 'var(--lq-surface-3)',
+                  border: '1px solid var(--lq-surface-4)',
+                  borderRadius: '0.375rem',
+                  padding: '0.5rem 0.75rem',
+                  fontSize: '0.875rem',
+                  color: 'var(--lq-text-primary)',
+                  outline: 'none',
+                }}
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as any)}
+              >
+                <option value="all">Any Status</option>
+                <option value="pending">Pending</option>
+                <option value="in_progress">In Progress</option>
+                <option value="completed">Completed</option>
+              </select>
+            </Box>
+            <Box style={{ flex: 1 }}>
+              <select
+                style={{
+                  width: '100%',
+                  background: 'var(--lq-surface-3)',
+                  border: '1px solid var(--lq-surface-4)',
+                  borderRadius: '0.375rem',
+                  padding: '0.5rem 0.75rem',
+                  fontSize: '0.875rem',
+                  color: 'var(--lq-text-primary)',
+                  outline: 'none',
+                }}
+                value={priorityFilter}
+                onChange={(e) => setPriorityFilter(e.target.value as any)}
+              >
+                <option value="all">Any Priority</option>
+                <option value="critical">Critical</option>
+                <option value="high">High</option>
+              </select>
+            </Box>
+          </Flex>
 
-        <div className={styles.scrollArea}>
-          <div className={styles.stack}>
-            {isLoading && (
-              <div className={styles.loadingState}>
-                <Loader2 className={styles.spinner} />
-                Loading tasks
-              </div>
+          {/* Task Stream */}
+          <Box grow px="lg" className={styles.autoGen268}>
+            {isLoading ? (
+              <Stack gap="md">
+                <Skeleton height={120} />
+                <Skeleton height={120} />
+                <Skeleton height={120} />
+              </Stack>
+            ) : filteredTasks.length === 0 ? (
+              <Stack align="center" justify="center" gap="lg" py="xxxl" textAlign="center">
+                <CheckCircle2 size={48} className={styles.autoGen269} />
+                <LqText
+                  variant="xs"
+                  color="muted"
+                  style={{ textTransform: 'uppercase' }}
+                  weight="bold"
+                >
+                  Clearance 100% • No Active Tasks
+                </LqText>
+              </Stack>
+            ) : (
+              <Stack gap="md">
+                {filteredTasks.map((task) => (
+                  <Surface
+                    key={task.id}
+                    variant="glass-highlight"
+                    p="lg"
+                    className={styles.autoGen270}
+                  >
+                    <Stack gap="md">
+                      <Flex justify="between" align="start">
+                        <Flex gap="md" align="start">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className={styles.autoGen271}
+                            onClick={() => handleToggleComplete(task)}
+                          >
+                            <CheckCircle2
+                              size={18}
+                              className={cn(
+                                task.status === 'completed'
+                                  ? 'text-[var(--lq-success)]'
+                                  : 'text-[var(--lq-text-dim)]',
+                              )}
+                            />
+                          </Button>
+                          <Stack gap="none">
+                            <LqText
+                              variant="small"
+                              weight="bold"
+                              className={
+                                task.status === 'completed' ? 'line-through opacity-50' : ''
+                              }
+                            >
+                              {task.title}
+                            </LqText>
+                            {task.description && (
+                              <LqText variant="xs" color="muted" mt="xxs">
+                                {task.description}
+                              </LqText>
+                            )}
+                          </Stack>
+                        </Flex>
+                        <Flex direction="column" align="end" gap="xs">
+                          <Badge
+                            variant={STATUS_VARIANT[task.status]}
+                            label={task.status.replace('_', ' ').toUpperCase()}
+                            size="sm"
+                          />
+                          <Badge
+                            variant={PRIORITY_VARIANT[task.priority]}
+                            label={task.priority.toUpperCase()}
+                            size="sm"
+                          />
+                        </Flex>
+                      </Flex>
+
+                      <Stack gap="xs">
+                        <Flex justify="between" align="center">
+                          <Flex align="center" gap="xs">
+                            <Clock size={10} className={styles.autoGen272} />
+                            <LqText variant="xs" color="muted">
+                              Due:{' '}
+                              {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'Unset'}
+                            </LqText>
+                          </Flex>
+                          <LqText variant="xs" weight="bold">
+                            {Math.round(task.progress ?? 0)}%
+                          </LqText>
+                        </Flex>
+                        <Box className={styles.autoGen273}>
+                          <Box
+                            className={styles.autoGen274}
+                            style={{ width: `${task.progress ?? 0}%` }}
+                          />
+                        </Box>
+                      </Stack>
+                    </Stack>
+                  </Surface>
+                ))}
+              </Stack>
             )}
+          </Box>
 
-            {!isLoading && filteredTasks.length === 0 && (
-              <div className={styles.emptyState}>
-                <p className={styles.emptyText}>No tasks yet for this investigation.</p>
-                <p className={styles.emptySubtext}>Use the form below to create the first task.</p>
-              </div>
-            )}
-
-            {filteredTasks.map((task) => (
-              <div key={task.id} className={styles.taskCard}>
-                <div className={styles.taskHeader}>
-                  <div className={styles.taskHeaderMain}>
-                    <button
-                      onClick={() => handleToggleComplete(task)}
-                      className={styles.completeButton}
-                    >
-                      <CheckCircle2
-                        className={`${styles.completeIcon} ${
-                          task.status === 'completed' ? styles.completeIconDone : ''
-                        }`}
-                      />
-                    </button>
-                    <div>
-                      <h3 className={styles.taskTitle}>{task.title}</h3>
-                      {task.description && (
-                        <p className={styles.taskDescription}>{task.description}</p>
-                      )}
-                    </div>
-                  </div>
-                  <div className={styles.badgeColumn}>
-                    <span className={`${styles.badge} ${statusClassName(task.status)}`}>
-                      {statusLabel(task.status)}
-                    </span>
-                    <span className={`${styles.badge} ${priorityClassName(task.priority)}`}>
-                      {task.priority === 'critical'
-                        ? 'Critical'
-                        : task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
-                    </span>
-                  </div>
-                </div>
-
-                <div className={styles.taskMetaRow}>
-                  <div className={styles.dueMeta}>
-                    {task.dueDate && (
-                      <span className={styles.inlineRow}>
-                        <Clock className={styles.inlineIcon} />
-                        Due {new Date(task.dueDate).toLocaleDateString()}
-                      </span>
-                    )}
-                    {task.assignedTo && (
-                      <span className={styles.inlineRow}>
-                        Assigned to
-                        <span className={styles.strongText}>{task.assignedTo}</span>
-                      </span>
-                    )}
-                  </div>
-                  <div className={styles.inlineRow}>
-                    <span>{Math.round(task.progress ?? 0)}%</span>
-                  </div>
-                </div>
-
-                <div className={styles.taskProgressRow}>
-                  <div className={styles.progressTrack}>
-                    <div
-                      className={styles.progressFill}
-                      style={{ width: `${Math.max(0, Math.min(100, task.progress ?? 0))}%` }}
-                    />
-                  </div>
+          {/* Rapid Task Entry */}
+          <Surface variant="glass" p="lg" className={styles.autoGen275}>
+            <form onSubmit={handleCreateTask}>
+              <Stack gap="md">
+                <Flex align="center" gap="sm">
+                  <Plus size={14} className={styles.autoGen276} />
+                  <LqText
+                    variant="xs"
+                    weight="bold"
+                    color="muted"
+                    style={{ textTransform: 'uppercase' }}
+                  >
+                    Queue New Task
+                  </LqText>
+                </Flex>
+                <input
+                  style={{
+                    width: '100%',
+                    background: 'var(--lq-surface-3)',
+                    border: '1px solid var(--lq-surface-4)',
+                    borderRadius: '0.375rem',
+                    padding: '0.5rem 0.75rem',
+                    fontSize: '0.875rem',
+                    color: 'var(--lq-text-primary)',
+                    outline: 'none',
+                  }}
+                  placeholder="Task designation..."
+                  value={newTask.title}
+                  onChange={(e) => setNewTask((t) => ({ ...t, title: e.target.value }))}
+                />
+                <Grid cols={2} gap="md">
+                  <select
+                    style={{
+                      width: '100%',
+                      background: 'var(--lq-surface-3)',
+                      border: '1px solid var(--lq-surface-4)',
+                      borderRadius: '0.375rem',
+                      padding: '0.5rem 0.75rem',
+                      fontSize: '0.875rem',
+                      color: 'var(--lq-text-primary)',
+                      outline: 'none',
+                    }}
+                    value={newTask.priority}
+                    onChange={(e) => setNewTask((t) => ({ ...t, priority: e.target.value as any }))}
+                  >
+                    {['critical', 'high', 'medium', 'low'].map((p) => (
+                      <option key={p} value={p}>
+                        {p.toUpperCase()}
+                      </option>
+                    ))}
+                  </select>
                   <input
-                    type="range"
-                    min={0}
-                    max={100}
-                    step={5}
-                    value={Math.round(task.progress ?? 0)}
-                    onChange={(e) => handleProgressChange(task, parseInt(e.target.value, 10))}
-                    className={styles.rangeInput}
+                    type="date"
+                    style={{
+                      width: '100%',
+                      background: 'var(--lq-surface-3)',
+                      border: '1px solid var(--lq-surface-4)',
+                      borderRadius: '0.375rem',
+                      padding: '0.5rem 0.75rem',
+                      fontSize: '0.875rem',
+                      color: 'var(--lq-text-primary)',
+                      outline: 'none',
+                    }}
+                    value={newTask.dueDate}
+                    onChange={(e) => setNewTask((t) => ({ ...t, dueDate: e.target.value }))}
                   />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <form onSubmit={handleCreateTask} className={styles.formSection}>
-          <div className={styles.formHeader}>
-            <h3 className={styles.formTitle}>
-              <Plus className={styles.plusIcon} />
-              New task
-            </h3>
-          </div>
-          <input
-            type="text"
-            value={newTask.title}
-            onChange={(e) => setNewTask((t) => ({ ...t, title: e.target.value }))}
-            placeholder="Task title"
-            className={styles.input}
-          />
-          <textarea
-            value={newTask.description}
-            onChange={(e) => setNewTask((t) => ({ ...t, description: e.target.value }))}
-            placeholder="Optional description"
-            rows={2}
-            className={styles.textarea}
-          />
-          <div className={styles.formRow}>
-            <select
-              value={newTask.priority}
-              onChange={(e) =>
-                setNewTask((t) => ({ ...t, priority: e.target.value as TaskPriority }))
-              }
-              className={styles.select}
-            >
-              <option value="critical">Critical</option>
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
-            </select>
-            <input
-              type="date"
-              value={newTask.dueDate}
-              onChange={(e) => setNewTask((t) => ({ ...t, dueDate: e.target.value }))}
-              className={styles.dateInput}
-            />
-          </div>
-          <div className={styles.footerRow}>
-            <button
-              type="submit"
-              disabled={!newTask.title.trim() || isCreating}
-              className={styles.submitButton}
-            >
-              {isCreating && <Loader2 className={styles.buttonSpinner} />}
-              Create task
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+                </Grid>
+                <Button
+                  variant="primary"
+                  onClick={handleCreateTask}
+                  disabled={!newTask.title.trim() || isCreating}
+                >
+                  {isCreating ? <Loader2 className="animate-spin" size={14} /> : 'Initialize Task'}
+                </Button>
+              </Stack>
+            </form>
+          </Surface>
+        </Stack>
+      </Surface>
+    </Box>
   );
 };

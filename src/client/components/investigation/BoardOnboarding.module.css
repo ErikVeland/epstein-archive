@@ -159,3 +159,57 @@
   width: 1rem;
   height: 1rem;
 }
+
+.autoGen1 {
+  position: fixed;
+  inset: 0;
+  /* Missing: z-[var(--lq-z-modal)] */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl);
+  background-color: black/40;
+  /* Missing: backdrop-blur-sm */
+}
+
+.autoGen2 {
+  overflow: hidden;
+  /* Missing: shadow-2xl */
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--lq-surface-3);
+  position: relative;
+}
+
+.autoGen3 {
+  height: 100%;
+}
+
+.autoGen4 {
+  width: 100%;
+  /* Missing: h-1 */
+  background-color: var(--lq-surface-3);
+}
+
+.autoGen5 {
+  height: 100%;
+  background-color: var(--lq-accent);
+}
+
+.autoGen6 {
+  border-color: b;
+  border-color: b-[var(--lq-surface-3)];
+}
+
+.autoGen7 {
+  color: var(--lq-accent);
+}
+
+.autoGen8 {
+  text-align: center;
+}
+
+.autoGen9 {
+  border-color: t;
+  border-color: t-[var(--lq-surface-3)];
+}

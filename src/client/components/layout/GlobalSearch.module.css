@@ -32,16 +32,7 @@
 }
 
 .filterToggle {
-  display: flex;
-  align-items: center;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-4);
-  background: var(--glass-bg-highlight);
-  border-radius: var(--radius-lg);
-  color: var(--text-primary);
-  transition: background var(--duration-fast, 150ms);
-  border: none;
-  cursor: pointer;
 }
 
 .filterToggle:hover {
@@ -87,13 +78,7 @@
   right: 1rem;
   top: 50%;
   transform: translateY(-50%);
-  padding: 0.25rem;
-  border-radius: var(--radius-full, 9999px);
   color: var(--text-muted);
-  transition: all var(--duration-fast, 150ms);
-  background: none;
-  border: none;
-  cursor: pointer;
 }
 
 .clearButton:hover {
@@ -173,13 +158,6 @@
 
 .clearFilterButton {
   width: 100%;
-  padding: var(--space-2) var(--space-4);
-  background: var(--glass-bg-highlight);
-  border-radius: var(--radius-lg);
-  color: var(--text-primary);
-  transition: background var(--duration-fast, 150ms);
-  border: none;
-  cursor: pointer;
 }
 
 .clearFilterButton:hover {
@@ -247,16 +225,11 @@
 }
 
 .entityCard {
-  background: color-mix(in srgb, var(--glass-bg-highlight) 50%, transparent);
-  padding: var(--space-4);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--glass-border);
-  transition: border-color var(--duration-fast, 150ms);
-  cursor: pointer;
+  transition: transform 0.2s;
 }
 
 .entityCard:hover {
-  border-color: var(--accent);
+  transform: translateY(-2px);
 }
 
 .entityHeader {
@@ -328,21 +301,11 @@
 }
 
 .resultItem {
-  padding: var(--space-6);
-  transition: background var(--duration-fast, 150ms);
-  border-left: 4px solid transparent;
-  display: block;
-  width: 100%;
-  text-align: left;
-  background: none;
-  border-top: none;
-  border-right: none;
-  border-bottom: none;
-  cursor: pointer;
+  transition: transform 0.2s;
 }
 
 .resultItem:hover {
-  background: color-mix(in srgb, var(--glass-bg) 30%, transparent);
+  transform: translateX(4px);
 }
 
 .resultItemDoc {
@@ -431,31 +394,6 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-}
-
-.actionButton {
-  padding: var(--space-2);
-  border-radius: var(--radius-lg);
-  color: var(--text-primary);
-  transition: background var(--duration-fast, 150ms);
-  border: none;
-  cursor: pointer;
-}
-
-.actionButtonAccent {
-  background: var(--accent);
-}
-
-.actionButtonAccent:hover {
-  background: color-mix(in srgb, var(--accent) 80%, black);
-}
-
-.actionButtonGlass {
-  background: var(--glass-bg-highlight);
-}
-
-.actionButtonGlass:hover {
-  background: var(--glass-bg-highlight);
 }
 
 /* ── Empty/Welcome ── */
@@ -629,31 +567,7 @@
 
 .modalSecondaryButton,
 .modalPrimaryButton {
-  padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-lg);
-  color: var(--text-primary);
-  transition: background var(--duration-fast, 150ms);
-  border: none;
-  cursor: pointer;
-}
-
-.modalSecondaryButton {
-  background: var(--glass-bg-highlight);
-}
-
-.modalSecondaryButton:hover {
-  background: var(--glass-bg-highlight);
-}
-
-.modalPrimaryButton {
-  background: var(--accent);
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.modalPrimaryButton:hover {
-  background: color-mix(in srgb, var(--accent) 80%, black);
+  transition: filter 0.2s;
 }
 
 .modalButtonIcon {

@@ -22,6 +22,12 @@
   gap: 0.75rem;
 }
 
+.titleIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--accent);
+}
+
 .title {
   font-size: 1.5rem;
   font-weight: 700;
@@ -52,6 +58,19 @@
 
 .actionButton:hover {
   background: #2563eb; /* Darker blue */
+}
+
+.actionIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.desktopOnly {
+  display: none;
+}
+
+.mobileOnly {
+  display: inline;
 }
 
 /* Forms */
@@ -321,6 +340,14 @@
   border-top: 1px solid var(--glass-border);
 }
 
+.clickableCard {
+  cursor: pointer;
+}
+
+.detailsSection {
+  margin-bottom: 1.5rem;
+}
+
 .detailsHeader {
   display: flex;
   align-items: center;
@@ -347,6 +374,15 @@
 
 .linkEvidenceButton:hover {
   text-decoration: underline;
+}
+
+.linkIcon {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.rangeInput {
+  width: 100%;
 }
 
 .evidenceLinkList {
@@ -438,6 +474,12 @@
   gap: 0.75rem;
 }
 
+.revisionList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
 .revisionCard {
   padding: 0.75rem;
   background: var(--glass-bg-highlight);
@@ -457,6 +499,12 @@
   gap: 0.5rem;
   font-size: 0.875rem;
   color: var(--text-primary);
+}
+
+.revisionUserIcon {
+  width: 1rem;
+  height: 1rem;
+  color: var(--text-muted);
 }
 
 .revisionDate {
@@ -532,4 +580,82 @@
 .statusButtonActiveRefuted {
   background: #7f1d1d;
   color: #fca5a5;
+}
+
+@media (min-width: 640px) {
+  .desktopOnly {
+    display: inline;
+  }
+
+  .mobileOnly {
+    display: none;
+  }
+}
+
+.autoGen132 {
+  border-color: b;
+  border-color: b-[var(--lq-surface-3)];
+}
+
+.autoGen133 {
+  color: var(--lq-accent);
+}
+
+.autoGen134 {
+  border-color: dashed;
+  border-color: 2;
+  border-color: var(--lq-surface-3);
+}
+
+.autoGen135 {
+  color: var(--lq-text-dim);
+}
+
+.autoGen136 {
+  /* Missing: w-24 */
+  /* Missing: h-1 */
+  background-color: var(--lq-surface-3);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.autoGen137 {
+  height: 100%;
+  background-color: var(--lq-accent);
+}
+
+.autoGen138 {
+  border-color: t;
+  border-color: t-[var(--lq-surface-3)];
+}
+
+.autoGen139 {
+  color: var(--lq-accent);
+}
+
+.autoGen140 {
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--lq-surface-3);
+}
+
+.autoGen141 {
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--lq-surface-3);
+}
+
+.autoGen142 {
+  color: var(--lq-error);
+  /* Missing: opacity-30 */
+  /* Missing: hover:opacity-100 */
+}
+
+.autoGen143 {
+  color: var(--lq-text-muted);
+}
+
+.autoGen144 {
+  border-color: t;
+  border-color: t-[var(--lq-surface-3)];
 }

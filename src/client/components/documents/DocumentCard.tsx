@@ -82,14 +82,14 @@ export const DocumentCard = React.forwardRef<HTMLElement, DocumentCardProps>(fun
         className={active ? styles.surfaceActive : styles.surfaceDefault}
       >
         <Flex align="center" justify="between" className={styles.headerRow}>
-          <Flex align="center" gap="sm">
+          <Flex align="center" gap="md">
             <Box className={styles.iconBox}>{iconElement}</Box>
             <LqText variant="xs" weight="bold" color="muted" className={styles.typeLabel}>
               {document.sourceType || document.evidenceType || document.fileType}
             </LqText>
           </Flex>
 
-          <Flex align="center" gap="xs">
+          <Flex align="center" gap="sm">
             {document.previewKind === 'ai_summary' && (
               <Box className={styles.aiBadge} title="AI Forensic Summary">
                 <Sparkles className={styles.badgeIcon} />
@@ -107,7 +107,7 @@ export const DocumentCard = React.forwardRef<HTMLElement, DocumentCardProps>(fun
           </Flex>
         </Flex>
 
-        <LqText variant="body" weight="bold" className={styles.title}>
+        <LqText variant="body" weight="black" className={styles.title}>
           {searchTerm ? highlightSearchTerm(displayTitle, searchTerm) : displayTitle}
         </LqText>
 
@@ -133,8 +133,8 @@ export const DocumentCard = React.forwardRef<HTMLElement, DocumentCardProps>(fun
           </Flex>
           <Flex align="center" gap="xs" className={styles.metaPill}>
             <Eye className={styles.metaIcon} />
-            <LqText variant="xs" color="muted" weight="medium">
-              {entitiesCount} Ent
+            <LqText variant="xs" color="muted" weight="medium" className={styles.footerText}>
+              {entitiesCount} {entitiesCount === 1 ? 'Entity' : 'Entities'}
             </LqText>
           </Flex>
           <Flex align="center" gap="xs" className={styles.metaPill}>

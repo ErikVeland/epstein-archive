@@ -97,3 +97,7 @@
   margin-left: var(--space-1);
   opacity: 0.5;
 }
+
+.iconAccent {
+  color: var(--accent);
+}

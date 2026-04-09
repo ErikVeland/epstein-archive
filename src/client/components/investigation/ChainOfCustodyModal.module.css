@@ -34,6 +34,19 @@
   font-size: var(--type-h3);
 }
 
+.closeButton {
+  background: transparent !important;
+  border: 1px solid var(--glass-border) !important;
+  color: var(--text-secondary) !important;
+  transition: all var(--duration-fast) var(--easing-swift) !important;
+}
+
+.closeButton:hover {
+  color: var(--text-primary) !important;
+  background: var(--glass-bg-highlight) !important;
+  border-color: var(--glass-border-highlight) !important;
+}
+
 .body {
   padding: var(--space-6);
   display: flex;
@@ -184,4 +197,126 @@
 
 .addButton:hover {
   opacity: 0.9;
+}
+
+.autoGen10 {
+  position: fixed;
+  inset: 0;
+  /* Missing: z-[var(--lq-z-modal)] */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl);
+  background-color: black/40;
+  /* Missing: backdrop-blur-sm */
+}
+
+.autoGen11 {
+  /* Missing: shadow-2xl */
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--lq-surface-3);
+  overflow: hidden;
+}
+
+.autoGen12 {
+  height: 100%;
+}
+
+.autoGen13 {
+  border-color: b;
+  border-color: b-[var(--lq-surface-3)];
+}
+
+.autoGen14 {
+  color: var(--lq-accent);
+}
+
+.autoGen15 {
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--lq-surface-3);
+}
+
+.autoGen16 {
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--lq-surface-3);
+}
+
+.autoGen17 {
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--lq-surface-3);
+}
+
+.autoGen18 {
+  flex: 1 1 0%;
+  overflow-y: auto;
+  padding: var(--space-xl);
+}
+
+.autoGen19 {
+  color: var(--lq-accent);
+}
+
+.autoGen20 {
+  flex: 1 1 0%;
+  /* Missing: h-px */
+  background-color: var(--lq-surface-3);
+}
+
+.autoGen21 {
+  /* Missing: h-20 */
+}
+
+.autoGen22 {
+  border-width: 1px;
+  border-style: solid;
+  border-color: dashed;
+  border-color: var(--lq-surface-3);
+  text-align: center;
+}
+
+.autoGen23 {
+  /* Missing: mx-auto */
+  color: var(--lq-text-dim);
+  margin-bottom: 1rem;
+}
+
+.autoGen24 {
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--lq-surface-3);
+}
+
+.autoGen25 {
+  background-color: var(--lq-accent-dim);
+  color: var(--lq-accent);
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  padding-top: 0rem;
+  padding-bottom: 0rem;
+  border-radius: var(--radius-rounded);
+}
+
+.autoGen26 {
+  color: var(--lq-text-dim);
+}
+
+.autoGen27 {
+  background-color: var(--lq-surface-1);
+  border-radius: var(--radius-rounded);
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--lq-surface-2);
+}
+
+.autoGen28 {
+  border-color: t;
+  border-color: t-[var(--lq-surface-3)];
+}
+
+.autoGen29 {
+  color: var(--lq-accent);
 }

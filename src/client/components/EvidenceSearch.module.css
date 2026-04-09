@@ -107,3 +107,7 @@
     transform: translateX(100%);
   }
 }
+
+.autoGen0 {
+  border-radius: 9999px;
+}

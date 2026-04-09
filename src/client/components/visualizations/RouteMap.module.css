@@ -1,0 +1,44 @@
+.fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 16rem;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  background: var(--glass-bg-strong);
+}
+
+.fallbackText {
+  color: var(--text-muted);
+}
+
+.mapShell {
+  width: 100%;
+  height: 400px;
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--glass-shadow);
+}
+
+.errorFallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: var(--space-4);
+  background: var(--glass-bg-strong);
+  text-align: center;
+}
+
+.errorText {
+  color: var(--accent-danger);
+  font-size: 0.875rem;
+}
+
+.map {
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}

@@ -1,12 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Icon from './common/Icon';
-import { GlassButton } from './ui/GlassButton';
 import { PropertyBrowseView } from './properties/PropertyBrowseView';
 import { PropertyAssociatesView } from './properties/PropertyAssociatesView';
 import { PropertyAnalyticsView } from './properties/PropertyAnalyticsView';
 import { PropertyStatsHeader } from './properties/PropertyStatsHeader';
 import { cn } from '@client/utils/cn';
+import { Button, EmptyState } from '../design-system/lib';
 import type { Property, PropertyStats, ValueDistribution, TopOwner } from './properties/types';
 import styles from './PropertyBrowser.module.css';
 
@@ -125,14 +125,16 @@ export function PropertyBrowser(): React.ReactElement {
           </p>
         </div>
         <div className={styles.centeredState}>
-          <div className={cn(styles.stateIconCircle, styles.errorCircle)}>
-            <Icon name="AlertCircle" size="xl" className={styles.errorIcon} />
-          </div>
-          <h2 className={styles.stateTitle}>Property Data Unavailable</h2>
-          <p className={styles.stateDescription}>
-            The property records could not be loaded. This may be a temporary issue — try refreshing
-            the page.
-          </p>
+          <EmptyState
+            className={styles.stateCard}
+            icon={
+              <div className={cn(styles.stateIconCircle, styles.errorCircle)}>
+                <Icon name="AlertCircle" size="xl" className={styles.errorIcon} />
+              </div>
+            }
+            title="Property Data Unavailable"
+            description="The property records could not be loaded. Ensure the API server is running and the property ingestion pipeline has been run to populate the database."
+          />
         </div>
       </div>
     );
@@ -151,14 +153,16 @@ export function PropertyBrowser(): React.ReactElement {
           </p>
         </div>
         <div className={styles.centeredState}>
-          <div className={cn(styles.stateIconCircle, styles.emptyCircle)}>
-            <Icon name="Building" size="xl" className={styles.emptyIcon} />
-          </div>
-          <h2 className={styles.stateTitle}>No Property Records</h2>
-          <p className={styles.stateDescription}>
-            No Palm Beach County property records have been loaded yet. Run the property ingestion
-            pipeline to populate this section.
-          </p>
+          <EmptyState
+            className={styles.stateCard}
+            icon={
+              <div className={cn(styles.stateIconCircle, styles.emptyCircle)}>
+                <Icon name="Building" size="xl" className={styles.emptyIcon} />
+              </div>
+            }
+            title="No Property Records"
+            description="No Palm Beach County property records have been loaded yet. Run the property ingestion pipeline to populate this section."
+          />
         </div>
       </div>
     );
@@ -170,7 +174,7 @@ export function PropertyBrowser(): React.ReactElement {
 
       {/* View Tabs */}
       <div className={styles.viewTabs}>
-        <GlassButton
+        <Button
           variant={viewMode === 'browse' ? 'primary' : 'ghost'}
           size="sm"
           className={cn(styles.tab, viewMode === 'browse' && styles.tabActive)}
@@ -178,8 +182,8 @@ export function PropertyBrowser(): React.ReactElement {
         >
           <Icon name="Grid" size="sm" />
           Browse Properties
-        </GlassButton>
-        <GlassButton
+        </Button>
+        <Button
           variant={viewMode === 'associates' ? 'primary' : 'ghost'}
           size="sm"
           className={cn(styles.tab, viewMode === 'associates' && styles.tabActive)}
@@ -187,8 +191,8 @@ export function PropertyBrowser(): React.ReactElement {
         >
           <Icon name="AlertTriangle" size="sm" />
           Known Associates ({knownAssociates.length})
-        </GlassButton>
-        <GlassButton
+        </Button>
+        <Button
           variant={viewMode === 'analytics' ? 'primary' : 'ghost'}
           size="sm"
           className={cn(styles.tab, viewMode === 'analytics' && styles.tabActive)}
@@ -196,7 +200,7 @@ export function PropertyBrowser(): React.ReactElement {
         >
           <Icon name="BarChart3" size="sm" />
           Analytics
-        </GlassButton>
+        </Button>
       </div>
 
       {/* Content */}

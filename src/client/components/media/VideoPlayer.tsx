@@ -13,6 +13,7 @@ import {
 import { TranscriptSegment, Chapter } from './AudioPlayer';
 import { CloseButton } from '../common/CloseButton';
 import { useScrollLock } from '../../hooks/useScrollLock';
+import { Button, SearchField, Surface } from '../../design-system/lib';
 import { cn } from '@client/utils/cn';
 import styles from './VideoPlayer.module.css';
 
@@ -353,7 +354,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       : null;
 
   return (
-    <div className={cn('surface-glass', styles.root)}>
+    <Surface className={styles.root}>
       <div className={styles.header}>
         <div className={styles.headerBar}>
           <div className={styles.headerInfo}>
@@ -377,9 +378,11 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                 <Share2 size={16} />
               )}
             </button>
-            <button
+            <Button
               onClick={openFullTranscript}
-              className={cn('surface-glass', styles.readButton)}
+              variant="secondary"
+              size="sm"
+              className={styles.readButton}
               title="Read full transcript overlay"
             >
               <svg
@@ -396,7 +399,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                 />
               </svg>
               Read Full Transcript
-            </button>
+            </Button>
             {(transcript.length > 0 || chapters.length > 0) && (
               <button
                 onClick={toggleTranscript}
@@ -616,16 +619,16 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                 <>
                   {transcript.length > 0 && (
                     <div className={styles.searchSticky}>
-                      <input
+                      <SearchField
                         ref={sidebarSearchInputRef}
-                        type="text"
                         value={transcriptSearch}
                         onChange={(e) => {
                           setTranscriptSearch(e.target.value);
                           setCurrentMatchIndex(0);
                         }}
                         placeholder="Search in transcript…"
-                        className={cn('surface-glass', styles.searchInput)}
+                        className={styles.searchInput}
+                        aria-label="Search transcript"
                       />
                       {normalizedTranscriptQuery && (
                         <div className={styles.searchMeta}>
@@ -717,7 +720,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
       {showFullTranscriptOverlay && (
         <div className={styles.overlayBackdrop}>
-          <div className={cn('surface-glass', styles.overlayPanel)}>
+          <Surface className={styles.overlayPanel}>
             <div className={styles.overlayHeader}>
               <div className={styles.overlayActions}>
                 <button onClick={togglePlay} className={styles.overlayActionPrimary}>
@@ -742,16 +745,16 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
             </div>
             <div className={styles.overlayContent}>
               <div className={styles.overlaySearchBar}>
-                <input
+                <SearchField
                   ref={overlaySearchInputRef}
-                  type="text"
                   value={transcriptSearch}
                   onChange={(e) => {
                     setTranscriptSearch(e.target.value);
                     setCurrentMatchIndex(0);
                   }}
                   placeholder="Search in transcript…"
-                  className={cn('surface-glass', styles.searchInput)}
+                  className={styles.searchInput}
+                  aria-label="Search full transcript"
                 />
                 {normalizedTranscriptQuery && (
                   <div className={styles.searchMeta}>
@@ -808,9 +811,9 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                 })}
               </div>
             </div>
-          </div>
+          </Surface>
         </div>
       )}
-    </div>
+    </Surface>
   );
 };

@@ -506,3 +506,78 @@
     transform: rotate(360deg);
   }
 }
+
+.autoGen263 {
+  position: fixed;
+  inset: 0;
+  /* Missing: z-[var(--lq-z-modal)] */
+  display: flex;
+  justify-content: flex-end;
+  background-color: black/40;
+  /* Missing: backdrop-blur-sm */
+}
+
+.autoGen264 {
+  border-color: l;
+  border-color: l-[var(--lq-surface-3)];
+  /* Missing: shadow-2xl */
+}
+
+.autoGen265 {
+  border-color: b;
+  border-color: b-[var(--lq-surface-3)];
+}
+
+.autoGen266 {
+  color: var(--lq-accent);
+}
+
+.autoGen267 {
+  border-color: b-2;
+  border-color: b-[var(--lq-error)];
+}
+
+.autoGen268 {
+  overflow-y: auto;
+}
+
+.autoGen269 {
+  color: var(--lq-text-dim);
+}
+
+.autoGen270 {
+  border-color: l-4;
+  border-color: l-[var(--lq-surface-3)];
+}
+
+.autoGen271 {
+  padding: 0rem;
+  /* Missing: h-auto */
+}
+
+.autoGen272 {
+  color: var(--lq-text-dim);
+}
+
+.autoGen273 {
+  width: 100%;
+  /* Missing: h-1 */
+  background-color: var(--lq-surface-3);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.autoGen274 {
+  height: 100%;
+  background-color: var(--lq-accent);
+  transition: all 0.2s ease;
+}
+
+.autoGen275 {
+  border-color: t;
+  border-color: t-[var(--lq-surface-3)];
+}
+
+.autoGen276 {
+  color: var(--lq-accent);
+}

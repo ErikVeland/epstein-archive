@@ -14,6 +14,8 @@ export interface GridBreakpoints {
 export interface GridProps extends React.HTMLAttributes<HTMLDivElement>, SpacingProps, SizingProps {
   cols?: number | GridBreakpoints;
   children: React.ReactNode;
+  align?: string;
+  gridColumn?: string;
 }
 
 export const Grid: React.FC<GridProps> = ({

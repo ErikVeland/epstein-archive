@@ -6,6 +6,7 @@
 
 import { useState, useMemo } from 'react';
 import { Search, Phone, Mail, MapPin, User } from 'lucide-react';
+import { EmptyCorpus } from '../common/EmptyCorpus';
 import styles from './ContactListViewer.module.css';
 
 interface ContactListViewerProps {
@@ -137,11 +138,17 @@ export function ContactListViewer({ evidence }: ContactListViewerProps) {
         ))}
       </div>
 
-      {filteredContacts.length === 0 && (
+      {contacts.length === 0 ? (
+        <EmptyCorpus
+          icon="Book"
+          title="No Contacts Parsed"
+          body="No contact entries could be extracted from this document. The text may be structured differently than expected, or OCR quality may be too low to parse individual entries."
+        />
+      ) : filteredContacts.length === 0 ? (
         <div className={styles.emptyState}>
           <p className={styles.emptyText}>No contacts found matching &quot;{searchTerm}&quot;</p>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

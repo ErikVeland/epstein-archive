@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Newspaper, Search, ChevronDown, ChevronUp, Clock } from 'lucide-react';
-import ArticleViewerModal from './ArticleViewerModal';
+import { Newspaper, Search, ChevronDown, ChevronUp, Clock, Filter, Calendar } from 'lucide-react';
 import { Article } from './ArticleCard';
-import { cn } from '@client/utils/cn';
+import { Surface, Button, Flex, Box, Stack, LqText, Grid, Badge } from '../../design-system/lib';
+import { EmptyCorpus } from '../common/EmptyCorpus';
 import styles from './ArticlesTab.module.css';
 
 interface PublicationStats {
@@ -32,12 +32,12 @@ export const ArticlesTab: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPublication, setSelectedPublication] = useState<string | null>(null);
-  const [viewerArticle, setViewerArticle] = useState<ArticleContent | null>(null);
   const [showPublicationDropdown, setShowPublicationDropdown] = useState(false);
   const [sortOrder, setSortOrder] = useState<'date' | 'redFlag'>('redFlag');
 
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
+  const [apiUnavailable, setApiUnavailable] = useState(false);
 
   const fetchArticles = useCallback(
     async (pageNum: number, isReset: boolean = false) => {
@@ -55,15 +55,16 @@ export const ArticlesTab: React.FC = () => {
         const response = await fetch(`/api/articles?${params.toString()}`);
 
         if (!response.ok) {
-          console.warn('Articles API not available, using empty array');
-          if (isReset) setArticles([]);
+          if (isReset) {
+            setArticles([]);
+            setApiUnavailable(true);
+          }
           return;
         }
 
         const { data, pagination } = await response.json();
 
         if (Array.isArray(data)) {
-          // Normalize API response
           const normalized: ArticleContent[] = data.map((item: ArticleApiItem) => ({
             id: asNumber(item.id),
             title: asString(item.title),
@@ -101,7 +102,6 @@ export const ArticlesTab: React.FC = () => {
   );
 
   useEffect(() => {
-    // Reset and fetch when filters change
     setArticles([]);
     setPage(1);
     fetchArticles(1, true);
@@ -113,7 +113,6 @@ export const ArticlesTab: React.FC = () => {
     fetchArticles(nextPage);
   };
 
-  // Calculate publication stats (like albums)
   const publications = useMemo((): PublicationStats[] => {
     const pubMap = new Map<string, { count: number; totalRedFlag: number }>();
     for (const article of articles) {
@@ -133,13 +132,6 @@ export const ArticlesTab: React.FC = () => {
       .sort((a, b) => b.count - a.count);
   }, [articles]);
 
-  // Client-side filtering is no longer needed as it's done server-side
-  // But we keep the sorting logic if we want to re-sort fetched items,
-  // though typically server-side sort is preferred.
-  // We'll trust the server order for now or just return 'articles' directly
-  // since we reset on sort change.
-  const filteredArticles = articles;
-
   const formatDate = (dateStr: string) => {
     try {
       return new Date(dateStr).toLocaleDateString('en-US', {
@@ -152,254 +144,279 @@ export const ArticlesTab: React.FC = () => {
     }
   };
 
-  const mobilePublicationClassName = (isActive: boolean, isFirst = false) =>
-    cn(
-      styles.mobilePublicationOption,
-      isActive ? styles.mobilePublicationOptionActive : styles.mobilePublicationOptionInactive,
-      !isFirst && styles.mobilePublicationOptionBordered,
-    );
-
-  const sidebarPublicationClassName = (isActive: boolean) =>
-    cn(
-      styles.sidebarPublicationButton,
-      isActive ? styles.sidebarPublicationButtonActive : styles.sidebarPublicationButtonInactive,
-    );
-
   return (
-    <div className={styles.container}>
-      {/* Header with controls */}
-      <div className={styles.header}>
-        {/* Mobile Publication Dropdown */}
-        <div className={styles.mobileOnly}>
-          <button
+    <Box className={styles.wrapper}>
+      {/* Header */}
+      <Surface variant="glass" className={styles.header}>
+        <Flex justify="between" align="center" gap="md" fullWidth>
+          <Flex align="center" gap="md">
+            <Box className={styles.iconBox}>
+              <Newspaper size={24} />
+            </Box>
+            <Stack gap="none">
+              <LqText variant="h2" weight="bold">
+                Press Archive
+              </LqText>
+              <LqText variant="xs" color="muted" style={{ textTransform: 'uppercase' }}>
+                Media Monitoring • Forensic Verification
+              </LqText>
+            </Stack>
+          </Flex>
+
+          <Flex align="center" gap="sm">
+            <Box className={styles.searchBox}>
+              <Search size={16} className={styles.searchIcon} />
+              <input
+                type="text"
+                placeholder="Search articles..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className={styles.searchInput}
+              />
+            </Box>
+
+            <Surface variant="glass-highlight" className={styles.sortContainer}>
+              <Flex align="center" gap="xs" px="sm">
+                <LqText variant="xs" weight="bold" color="muted">
+                  SORT
+                </LqText>
+                <select
+                  value={sortOrder}
+                  onChange={(e) => setSortOrder(e.target.value as 'date' | 'redFlag')}
+                  className={styles.sortSelect}
+                >
+                  <option value="redFlag">Red Flag Rating</option>
+                  <option value="date">Date Published</option>
+                </select>
+              </Flex>
+            </Surface>
+          </Flex>
+        </Flex>
+
+        {/* Mobile Nav */}
+        <Box className={styles.mobileNav}>
+          <Button
+            variant="glass"
             onClick={() => setShowPublicationDropdown(!showPublicationDropdown)}
-            className={styles.mobileDropdownButton}
           >
-            <span className={styles.mobileDropdownLabel}>
-              <Newspaper className={styles.smallIcon} />
-              {selectedPublication || 'All Publications'}
-            </span>
-            {showPublicationDropdown ? (
-              <ChevronUp className={styles.smallIcon} />
-            ) : (
-              <ChevronDown className={styles.smallIcon} />
-            )}
-          </button>
+            <Flex justify="between" align="center" grow>
+              <Flex align="center" gap="sm">
+                <Filter size={16} />
+                <LqText variant="small" weight="bold">
+                  {selectedPublication || 'All Publications'}
+                </LqText>
+              </Flex>
+              {showPublicationDropdown ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </Flex>
+          </Button>
           {showPublicationDropdown && (
-            <div className={styles.mobileDropdownMenu}>
-              <button
-                className={mobilePublicationClassName(!selectedPublication, true)}
-                onClick={() => {
-                  setSelectedPublication(null);
-                  setShowPublicationDropdown(false);
-                }}
-              >
-                <span>All Publications</span>
-                <span className={styles.optionCount}>{articles.length}</span>
-              </button>
-              {publications.map((pub) => (
-                <button
-                  key={pub.name}
-                  className={mobilePublicationClassName(selectedPublication === pub.name)}
+            <Surface variant="glass-highlight" className={styles.mobileDropdown}>
+              <Stack gap="xs" p="xs">
+                <Button
+                  variant={!selectedPublication ? 'primary' : 'ghost'}
+                  size="sm"
                   onClick={() => {
-                    setSelectedPublication(pub.name);
+                    setSelectedPublication(null);
                     setShowPublicationDropdown(false);
                   }}
                 >
-                  <span className={styles.truncate}>{pub.name}</span>
-                  <span className={styles.optionCount}>{pub.count}</span>
-                </button>
-              ))}
-            </div>
+                  <Flex justify="between" align="center" grow>
+                    <LqText variant="small">All Publications</LqText>
+                    <Badge variant="muted" label={articles.length} />
+                  </Flex>
+                </Button>
+                {publications.map((pub) => (
+                  <Button
+                    key={pub.name}
+                    variant={selectedPublication === pub.name ? 'primary' : 'ghost'}
+                    size="sm"
+                    onClick={() => {
+                      setSelectedPublication(pub.name);
+                      setShowPublicationDropdown(false);
+                    }}
+                  >
+                    <Flex justify="between" align="center" grow>
+                      <LqText variant="small">{pub.name}</LqText>
+                      <Badge variant="muted" label={pub.count} />
+                    </Flex>
+                  </Button>
+                ))}
+              </Stack>
+            </Surface>
           )}
-        </div>
+        </Box>
+      </Surface>
 
-        {/* Search */}
-        <div className={styles.searchShell}>
-          <div className={styles.searchField}>
-            <Search className={styles.searchIcon} />
-            <input
-              type="text"
-              placeholder="Search articles..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className={styles.searchInput}
-            />
-          </div>
-        </div>
-
-        {/* Desktop Sort Controls */}
-        <div className={styles.desktopControls}>
-          <span className={styles.sortLabel}>Sort by:</span>
-          <select
-            value={sortOrder}
-            onChange={(e) => setSortOrder(e.target.value as 'date' | 'redFlag')}
-            className={styles.sortSelect}
-          >
-            <option value="redFlag">Red Flag Rating</option>
-            <option value="date">Date Published</option>
-          </select>
-
-          <div className={styles.articleCount}>
-            {filteredArticles.length} of {articles.length} articles
-          </div>
-        </div>
-      </div>
-
-      <div className={styles.content}>
-        {/* Publications sidebar - Hidden on mobile */}
-        <aside className={styles.sidebar}>
-          <h3 className={styles.sidebarTitle}>Publications</h3>
-          <div className={styles.sidebarList}>
-            <button
-              className={sidebarPublicationClassName(!selectedPublication)}
-              onClick={() => setSelectedPublication(null)}
-            >
-              <span className={styles.truncate}>All Publications</span>
-              <span className={styles.sidebarCountPill}>{articles.length}</span>
-            </button>
-            {publications.map((pub) => (
-              <button
-                key={pub.name}
-                className={sidebarPublicationClassName(selectedPublication === pub.name)}
-                onClick={() => setSelectedPublication(pub.name)}
-                title={pub.name}
+      <Flex className={styles.body} grow>
+        {/* Sidebar */}
+        <Box className={styles.sidebarWrapper}>
+          <Stack gap="md">
+            <Flex align="center" gap="sm" px="sm">
+              <LqText
+                variant="xs"
+                weight="bold"
+                color="muted"
+                style={{ textTransform: 'uppercase' }}
               >
-                <span className={styles.truncate}>{pub.name}</span>
-                <span className={styles.sidebarCountPill}>{pub.count}</span>
-              </button>
-            ))}
-          </div>
-        </aside>
+                Publications
+              </LqText>
+            </Flex>
+            <Stack gap="xs">
+              <Button
+                variant={!selectedPublication ? 'glass-highlight' : 'ghost'}
+                size="sm"
+                onClick={() => setSelectedPublication(null)}
+              >
+                <Flex justify="between" align="center" grow>
+                  <LqText variant="small" weight={!selectedPublication ? 'bold' : 'medium'}>
+                    All Publications
+                  </LqText>
+                  <Badge variant="muted" label={articles.length} />
+                </Flex>
+              </Button>
+              {publications.map((pub) => (
+                <Button
+                  key={pub.name}
+                  variant={selectedPublication === pub.name ? 'glass-highlight' : 'ghost'}
+                  size="sm"
+                  onClick={() => setSelectedPublication(pub.name)}
+                >
+                  <Flex justify="between" align="center" grow>
+                    <LqText
+                      variant="small"
+                      weight={selectedPublication === pub.name ? 'bold' : 'medium'}
+                    >
+                      {pub.name}
+                    </LqText>
+                    <Badge variant="muted" label={pub.count} />
+                  </Flex>
+                </Button>
+              ))}
+            </Stack>
+          </Stack>
+        </Box>
 
         {/* Main Content */}
-        <div className={styles.main}>
-          {loading ? (
-            <div className={styles.loadingOverlay}>
-              <div className={styles.loadingSpinner} />
-            </div>
-          ) : null}
-
-          {/* Articles Grid */}
-          <div className={styles.gridScroller}>
-            {filteredArticles.length === 0 ? (
-              <div className={styles.emptyState}>
-                <Newspaper className={styles.emptyIcon} />
-                <p>No articles found</p>
-              </div>
-            ) : (
-              <div className={styles.articleGrid}>
-                {filteredArticles.map((article) => (
-                  <a
-                    key={article.id}
-                    href={article.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={styles.articleCard}
-                  >
-                    {/* Hero Image */}
-                    <div className={styles.hero}>
-                      {article.imageUrl ? (
-                        <img
-                          src={article.imageUrl}
-                          alt={article.title}
-                          className={styles.heroImage}
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className={styles.heroFallback}>
-                          <Newspaper className={styles.heroFallbackIcon} />
-                        </div>
-                      )}
-                      {/* Gradient overlay */}
-                      <div className={styles.heroOverlay} />
-                      {/* Red flag badge */}
-                      {article.redFlagRating > 0 && (
-                        <div className={styles.redFlagBadge}>
-                          {'🚩'.repeat(Math.min(article.redFlagRating, 5))}
-                        </div>
-                      )}
-                      {/* Publication badge */}
-                      <div className={styles.publicationBadgeWrap}>
-                        <span className={styles.publicationBadge}>{article.publication}</span>
-                      </div>
-                    </div>
-
-                    {/* Card Content */}
-                    <div className={styles.cardContent}>
-                      <h3 className={styles.cardTitle}>{article.title}</h3>
-                      <p className={styles.cardSummary}>
-                        {article.summary || 'No summary available.'}
-                      </p>
-
-                      {/* Author and meta */}
-                      <div className={styles.cardMeta}>
-                        <div className={styles.authorBlock}>
-                          <div className={styles.authorAvatar}>
-                            {article.author
-                              ?.split(' ')
-                              .map((n) => n[0])
-                              .join('')
-                              .slice(0, 2) || '?'}
-                          </div>
-                          <div>
-                            <div className={styles.authorName}>{article.author || 'Unknown'}</div>
-                            <div className={styles.publishedDate}>
-                              {formatDate(article.published_date)}
-                            </div>
-                          </div>
-                        </div>
-                        {article.reading_time && (
-                          <div className={styles.readingTime}>
-                            <Clock className={styles.readingTimeIcon} />
-                            {article.reading_time}
-                          </div>
+        <Box className={styles.mainContent} style={{ flex: 1 }}>
+          {loading && articles.length === 0 ? (
+            <Flex align="center" justify="center" fullHeight>
+              <div className={styles.spinner} />
+            </Flex>
+          ) : (
+            <Stack gap="xl" p="xl">
+              {articles.length === 0 ? (
+                <EmptyCorpus
+                  icon="Newspaper"
+                  title={apiUnavailable ? 'Articles Not Available' : 'No Articles Found'}
+                  body={
+                    apiUnavailable
+                      ? 'The articles API is not responding. News articles and press coverage are scraped and ingested separately — run the articles ingestion pipeline to populate this section.'
+                      : searchTerm || selectedPublication
+                        ? 'No articles match the current search or publication filter. Try clearing the filters to see all indexed articles.'
+                        : 'No news articles have been indexed yet. Run the articles ingestion pipeline to load press coverage into the corpus.'
+                  }
+                />
+              ) : (
+                <Grid cols={{ sm: 1, md: 2, lg: 3 }} gap="xl">
+                  {articles.map((article) => (
+                    <Surface
+                      key={article.id}
+                      variant="glass"
+                      className={styles.articleCard}
+                      onClick={() => window.open(article.url, '_blank')}
+                    >
+                      <Box className={styles.hero}>
+                        {article.imageUrl ? (
+                          <img src={article.imageUrl} alt="" className={styles.heroImage} />
+                        ) : (
+                          <Flex align="center" justify="center" className={styles.heroFallback}>
+                            <Newspaper size={40} className={styles.iconMuted} />
+                          </Flex>
                         )}
-                      </div>
+                        <Box className={styles.heroOverlay} />
+                        {article.redFlagRating > 0 && (
+                          <Box className={styles.redFlagContainer}>
+                            <Flex gap="xs">
+                              {Array.from({ length: Math.min(article.redFlagRating, 5) }).map(
+                                (_, i) => (
+                                  <Box key={i} className={styles.redFlag}>
+                                    🚩
+                                  </Box>
+                                ),
+                              )}
+                            </Flex>
+                          </Box>
+                        )}
+                        <Box className={styles.pubBadge}>
+                          <Badge variant="accent" label={article.publication} />
+                        </Box>
+                      </Box>
 
-                      {/* Tags */}
-                      {article.tags && (
-                        <div className={styles.tagList}>
-                          {article.tags
-                            .split(',')
-                            .slice(0, 4)
-                            .map((tag, i) => (
-                              <span key={i} className={styles.tag}>
-                                {tag.trim()}
-                              </span>
-                            ))}
-                        </div>
-                      )}
-                    </div>
-                  </a>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+                      <Stack p="md" gap="md">
+                        <Stack gap="xs">
+                          <LqText variant="small" weight="bold">
+                            {article.title}
+                          </LqText>
+                          <LqText variant="xs" color="muted">
+                            {article.summary || 'Analytical summary pending...'}
+                          </LqText>
+                        </Stack>
 
-      {hasMore && (
-        <div className={styles.loadMoreFooter}>
-          <button onClick={handleLoadMore} disabled={loading} className={styles.loadMoreButton}>
-            {loading ? (
-              <>
-                <div className={styles.buttonSpinner} />
-                Loading...
-              </>
-            ) : (
-              'Load More Articles'
-            )}
-          </button>
-        </div>
-      )}
+                        <Flex align="center" justify="between" mt="auto">
+                          <Flex align="center" gap="sm">
+                            <Box className={styles.avatar}>
+                              {article.author?.slice(0, 1) || 'U'}
+                            </Box>
+                            <Stack gap="none">
+                              <LqText variant="xs" weight="bold">
+                                {article.author || 'Unknown'}
+                              </LqText>
+                              <Flex align="center" gap="xs">
+                                <Calendar size={10} className={styles.iconMuted} />
+                                <LqText variant="xs" color="muted">
+                                  {formatDate(article.published_date)}
+                                </LqText>
+                              </Flex>
+                            </Stack>
+                          </Flex>
+                          {article.reading_time && (
+                            <Flex align="center" gap="xs">
+                              <Clock size={12} className={styles.iconMuted} />
+                              <LqText variant="xs" color="muted">
+                                {article.reading_time}
+                              </LqText>
+                            </Flex>
+                          )}
+                        </Flex>
 
-      <ArticleViewerModal
-        article={viewerArticle}
-        highlight={searchTerm}
-        onClose={() => setViewerArticle(null)}
-      />
-    </div>
+                        {article.tags && (
+                          <Flex gap="xs" wrap="wrap">
+                            {article.tags
+                              .split(',')
+                              .slice(0, 3)
+                              .map((tag, i) => (
+                                <Badge key={i} variant="muted" label={tag.trim()} />
+                              ))}
+                          </Flex>
+                        )}
+                      </Stack>
+                    </Surface>
+                  ))}
+                </Grid>
+              )}
+
+              {hasMore && (
+                <Flex justify="center" pt="xl">
+                  <Button variant="glass" size="lg" onClick={handleLoadMore} loading={loading}>
+                    Load More Intelligence
+                  </Button>
+                </Flex>
+              )}
+            </Stack>
+          )}
+        </Box>
+      </Flex>
+    </Box>
   );
 };
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import { SignalMetrics } from '../../../utils/forensics';
 import Tooltip from '../../common/Tooltip';
+import styles from './SignalPanel.module.css';
 
 interface SignalPanelProps {
   metrics: SignalMetrics;
@@ -8,18 +9,15 @@ interface SignalPanelProps {
 
 export const SignalPanel: React.FC<SignalPanelProps> = ({ metrics }) => {
   return (
-    <div className="flex flex-col gap-[var(--space-1)] w-full py-[var(--space-1)]">
+    <div className={styles.root}>
       <Tooltip
         content="Exposure: relative mention volume across the corpus. Computed from log10(mentions+1) scaled to 0–100."
         position="top-end"
       >
-        <div className="flex items-center gap-[var(--space-2)] text-[10px] font-medium tracking-wide">
-          <span className="text-[var(--text-muted)] w-16">Exposure</span>
-          <div className="flex-1 h-[3px] bg-[var(--glass-bg)]/80 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-[var(--app-bg)]/70 transition-all duration-500 ease-out"
-              style={{ width: `${Math.max(5, metrics.exposure)}%` }}
-            />
+        <div className={styles.row}>
+          <span className={styles.label}>Exposure</span>
+          <div className={styles.track}>
+            <div className={styles.fill} style={{ width: `${Math.max(5, metrics.exposure)}%` }} />
           </div>
         </div>
       </Tooltip>
@@ -28,11 +26,11 @@ export const SignalPanel: React.FC<SignalPanelProps> = ({ metrics }) => {
         content="Network: connectivity score from relationship density. Based on connection count, capped for visualization."
         position="top-end"
       >
-        <div className="flex items-center gap-[var(--space-2)] text-[10px] font-medium tracking-wide">
-          <span className="text-[var(--text-muted)] w-16">Network</span>
-          <div className="flex-1 h-[3px] bg-[var(--glass-bg)]/80 rounded-full overflow-hidden">
+        <div className={styles.row}>
+          <span className={styles.label}>Network</span>
+          <div className={styles.track}>
             <div
-              className="h-full bg-[var(--app-bg)]/70 transition-all duration-500 ease-out"
+              className={styles.fill}
               style={{ width: `${Math.max(5, metrics.connectivity)}%` }}
             />
           </div>
@@ -43,11 +41,11 @@ export const SignalPanel: React.FC<SignalPanelProps> = ({ metrics }) => {
         content="Source: corroboration from distinct evidence types and document diversity contributing to the signal."
         position="top-end"
       >
-        <div className="flex items-center gap-[var(--space-2)] text-[10px] font-medium tracking-wide">
-          <span className="text-[var(--text-muted)] w-16">Source</span>
-          <div className="flex-1 h-[3px] bg-[var(--glass-bg)]/80 rounded-full overflow-hidden">
+        <div className={styles.row}>
+          <span className={styles.label}>Source</span>
+          <div className={styles.track}>
             <div
-              className="h-full bg-[var(--app-bg)]/70 transition-all duration-500 ease-out"
+              className={styles.fill}
               style={{ width: `${Math.max(5, metrics.corroboration)}%` }}
             />
           </div>

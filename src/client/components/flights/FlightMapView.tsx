@@ -1,5 +1,7 @@
 import React, { useMemo } from 'react';
+import { Surface, Flex, Box, Stack, LqText, cn } from '../../design-system/lib';
 import type { Flight, AirportCoords, FlightStats } from './types';
+import styles from './FlightTracker.module.css';
 
 interface FlightMapViewProps {
   flights: Flight[];
@@ -27,10 +29,10 @@ export const FlightMapView: React.FC<FlightMapViewProps> = ({ flights, airports,
   };
 
   return (
-    <div className="flight-map-container">
-      <svg viewBox="0 0 800 400" className="flight-map">
+    <Surface variant="panel" className={styles.flightMapContainer}>
+      <svg viewBox="0 0 800 400" className={styles.flightMap}>
         {/* Simple world background */}
-        <rect x="0" y="0" width="800" height="400" fill="#0a0a1a" />
+        <rect x="0" y="0" width="800" height="400" fill="rgba(6, 6, 15, 0.4)" />
 
         {/* Grid lines */}
         {[...Array(9)].map((_, i) => (
@@ -40,8 +42,9 @@ export const FlightMapView: React.FC<FlightMapViewProps> = ({ flights, airports,
             y1={i * 50}
             x2="800"
             y2={i * 50}
-            stroke="#1a1a2e"
+            stroke="var(--glass-border)"
             strokeWidth="0.5"
+            opacity="0.3"
           />
         ))}
         {[...Array(17)].map((_, i) => (
@@ -51,8 +54,9 @@ export const FlightMapView: React.FC<FlightMapViewProps> = ({ flights, airports,
             y1="0"
             x2={i * 50}
             y2="400"
-            stroke="#1a1a2e"
+            stroke="var(--glass-border)"
             strokeWidth="0.5"
+            opacity="0.3"
           />
         ))}
 
@@ -68,15 +72,17 @@ export const FlightMapView: React.FC<FlightMapViewProps> = ({ flights, airports,
           const midX = (from.x + to.x) / 2;
           const midY = (from.y + to.y) / 2 - 30;
 
+          const routeColor = `color-mix(in srgb, var(--accent) ${Math.min(30 + route.count * 10, 90)}%, transparent)`;
+
           return (
             <g key={i}>
               <path
                 d={`M ${from.x} ${from.y} Q ${midX} ${midY} ${to.x} ${to.y}`}
                 fill="none"
-                stroke={`rgba(0, 200, 255, ${Math.min(0.3 + route.count * 0.1, 0.9)})`}
+                stroke={routeColor}
                 strokeWidth={Math.min(1 + route.count * 0.3, 3)}
                 strokeDasharray="5,3"
-                className="flight-route"
+                className={styles.flightRoutePath}
               />
             </g>
           );
@@ -88,12 +94,12 @@ export const FlightMapView: React.FC<FlightMapViewProps> = ({ flights, airports,
           const flightCount = stats?.airports.find((a) => a.code === code)?.count || 0;
 
           return (
-            <g key={code} className="airport-marker">
+            <g key={code} className={styles.airportMarker}>
               <circle
                 cx={x}
                 cy={y}
                 r={Math.min(4 + flightCount * 0.3, 10)}
-                fill="#00c8ff"
+                fill="var(--accent)"
                 opacity="0.8"
               />
               <circle
@@ -101,17 +107,18 @@ export const FlightMapView: React.FC<FlightMapViewProps> = ({ flights, airports,
                 cy={y}
                 r={Math.min(4 + flightCount * 0.3, 10)}
                 fill="none"
-                stroke="#00c8ff"
+                stroke="var(--accent)"
                 strokeWidth="2"
-                className="airport-pulse"
+                className={styles.airportPulse}
               />
               <text
                 x={x}
                 y={y - 12}
-                fill="#fff"
+                fill="var(--text-primary)"
                 fontSize="8"
+                fontWeight="bold"
                 textAnchor="middle"
-                className="airport-label"
+                className={styles.airportLabel}
               >
                 {code}
               </text>
@@ -120,17 +127,31 @@ export const FlightMapView: React.FC<FlightMapViewProps> = ({ flights, airports,
         })}
       </svg>
 
-      <div className="map-legend">
-        <h4>Key Locations</h4>
-        <div className="legend-items">
-          <div className="legend-item">
-            <span className="legend-dot primary" /> Primary Hubs
-          </div>
-          <div className="legend-item">
-            <span className="legend-dot secondary" /> Destinations
-          </div>
-        </div>
-      </div>
-    </div>
+      <Surface variant="glass-strong" className={styles.mapLegend}>
+        <LqText
+          variant="xs"
+          weight="bold"
+          color="accent"
+          style={{ textTransform: 'uppercase' }}
+          className={styles.legendTitle}
+        >
+          Key Locations
+        </LqText>
+        <Stack gap="xs" className={styles.legendItems}>
+          <Flex align="center" gap="xs" className={styles.legendItem}>
+            <Box className={cn(styles.legendDot, styles.primary)} />
+            <LqText variant="xs" weight="bold">
+              Primary Hubs
+            </LqText>
+          </Flex>
+          <Flex align="center" gap="xs" className={styles.legendItem}>
+            <Box className={cn(styles.legendDot, styles.secondary)} />
+            <LqText variant="xs" weight="bold">
+              Destinations
+            </LqText>
+          </Flex>
+        </Stack>
+      </Surface>
+    </Surface>
   );
 };

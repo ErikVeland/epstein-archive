@@ -4,6 +4,7 @@ import { Download, ZoomIn, ZoomOut, RotateCw } from 'lucide-react';
 import { CloseButton } from '../common/CloseButton';
 import { useScrollLock } from '../../hooks/useScrollLock';
 import { cn } from '@client/utils/cn';
+import { Button, Surface } from '../../design-system/lib';
 import styles from './MediaViewer.module.css';
 
 interface MediaViewerProps {
@@ -136,7 +137,7 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({
   const content = (
     <div className={cn(styles.viewer, inline ? styles.viewerInline : styles.viewerOverlay)}>
       {/* Header */}
-      <div className={cn('app-header-glass', styles.header, inline && styles.headerInline)}>
+      <Surface variant="glass-strong" className={cn(styles.header, inline && styles.headerInline)}>
         <div className={styles.headerMeta}>
           <div className={styles.fileIconBox}>
             {isPdf ? (
@@ -194,33 +195,53 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({
         <div className={styles.controls}>
           {!isPdf && isImage && (
             <>
-              <button
+              <Button
+                type="button"
                 onClick={handleZoomOut}
                 className={styles.iconButton}
+                variant="secondary"
+                size="sm"
                 disabled={zoom <= 0.5}
                 title="Zoom Out"
               >
                 <ZoomOut className={styles.controlIcon} />
-              </button>
+              </Button>
               <span className={styles.zoomValue}>{Math.round(zoom * 100)}%</span>
-              <button
+              <Button
+                type="button"
                 onClick={handleZoomIn}
                 className={styles.iconButton}
+                variant="secondary"
+                size="sm"
                 disabled={zoom >= 3}
                 title="Zoom In"
               >
                 <ZoomIn className={styles.controlIcon} />
-              </button>
-              <button onClick={handleRotate} className={styles.iconButton} title="Rotate">
+              </Button>
+              <Button
+                type="button"
+                onClick={handleRotate}
+                className={styles.iconButton}
+                variant="secondary"
+                size="sm"
+                title="Rotate"
+              >
                 <RotateCw className={styles.controlIcon} />
-              </button>
+              </Button>
             </>
           )}
           {!inline && (
             <>
-              <button onClick={handleDownload} className={styles.iconButton} title="Download">
+              <Button
+                type="button"
+                onClick={handleDownload}
+                className={styles.iconButton}
+                variant="secondary"
+                size="sm"
+                title="Download"
+              >
                 <Download className={styles.controlIcon} />
-              </button>
+              </Button>
               <CloseButton
                 onClick={onClose}
                 size="sm"
@@ -230,7 +251,7 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({
             </>
           )}
         </div>
-      </div>
+      </Surface>
 
       <div className={styles.body}>
         {/* Loading Spinner Overlay */}
@@ -264,9 +285,14 @@ export const MediaViewer: React.FC<MediaViewerProps> = ({
               <h3 className={styles.stateTitle}>Error Loading Media</h3>
               <p className={styles.stateMessage}>{error}</p>
               {!inline && (
-                <button onClick={onClose} className={styles.secondaryButton}>
+                <Button
+                  type="button"
+                  onClick={onClose}
+                  className={styles.secondaryButton}
+                  variant="secondary"
+                >
                   Close Viewer
-                </button>
+                </Button>
               )}
             </div>
           </div>

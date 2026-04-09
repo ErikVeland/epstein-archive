@@ -1,10 +1,23 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { apiClient } from '../../services/apiClient';
 import { useToasts } from '../common/useToasts';
-import { BookOpen, Loader2, Search, Star, Trash2 } from 'lucide-react';
+import { BookOpen, Loader2, Search, Star, Trash2, Clock, Sparkles, Send } from 'lucide-react';
 import type { MemoryEntry } from '../../types/memory';
 import { CloseButton } from '../common/CloseButton';
 import { useScrollLock } from '../../hooks/useScrollLock';
+
+// UI Library
+import {
+  Surface,
+  Button,
+  Flex,
+  Box,
+  Stack,
+  LqText,
+  Grid,
+  Badge,
+  Skeleton,
+} from '../../design-system/lib';
 import styles from './InvestigationMemoryPanel.module.css';
 
 interface InvestigationMemoryPanelProps {
@@ -19,12 +32,13 @@ export const InvestigationMemoryPanel: React.FC<InvestigationMemoryPanelProps> =
   const [entries, setEntries] = useState<MemoryEntry[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [page, setPage] = useState(1);
-  const [pageSize] = useState(20);
+  const [pageSize] = useState(25);
   const [searchQuery, setSearchQuery] = useState('');
   const [newContent, setNewContent] = useState('');
   const [importance, setImportance] = useState(0.7);
   const [isSaving, setIsSaving] = useState(false);
   const { addToast } = useToasts();
+
   useScrollLock(true);
 
   const loadEntries = useCallback(async () => {
@@ -39,8 +53,8 @@ export const InvestigationMemoryPanel: React.FC<InvestigationMemoryPanelProps> =
       });
       setEntries(result.data as MemoryEntry[]);
     } catch (error) {
-      console.error('Error loading investigation memory entries', error);
-      addToast({ text: 'Failed to load investigation notes', type: 'error' });
+      console.error(error);
+      addToast({ text: 'Neural buffer extraction failed.', type: 'error' });
     } finally {
       setIsLoading(false);
     }
@@ -49,11 +63,6 @@ export const InvestigationMemoryPanel: React.FC<InvestigationMemoryPanelProps> =
   useEffect(() => {
     loadEntries();
   }, [loadEntries]);
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setPage(1);
-  };
 
   const handleCreateEntry = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,22 +79,22 @@ export const InvestigationMemoryPanel: React.FC<InvestigationMemoryPanelProps> =
       setImportance(0.7);
       setPage(1);
       await loadEntries();
-      addToast({ text: 'Note saved to investigation memory', type: 'success' });
+      addToast({ text: 'Note persisted to investigation memory.', type: 'success' });
     } catch (error) {
-      console.error('Error creating investigation memory entry', error);
-      addToast({ text: 'Failed to save note', type: 'error' });
+      console.error(error);
+      addToast({ text: 'Neural storage failed.', type: 'error' });
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleDeleteEntry = async (entry: MemoryEntry) => {
+  const handleDeleteEntry = async (id: number) => {
     try {
-      await apiClient.deleteMemoryEntry(entry.id);
+      await apiClient.deleteMemoryEntry(id);
       await loadEntries();
     } catch (error) {
-      console.error('Error deleting investigation memory entry', error);
-      addToast({ text: 'Failed to delete note', type: 'error' });
+      console.error(error);
+      addToast({ text: 'De-indexing failed.', type: 'error' });
     }
   };
 
@@ -98,137 +107,211 @@ export const InvestigationMemoryPanel: React.FC<InvestigationMemoryPanelProps> =
     });
   }, [entries]);
 
-  const controlFieldClassName = styles.field;
-
   return (
-    <div className={styles.overlay}>
-      <div className={styles.panel}>
-        <div className={styles.header}>
-          <div>
-            <h2 className={styles.title}>
-              <BookOpen className={styles.titleIcon} />
-              Investigation Memory
-            </h2>
-            <p className={styles.subtitle}>
-              Persistent notes and AI-ready context for this investigation
-            </p>
-          </div>
-          <CloseButton onClick={onClose} size="sm" label="Close memory panel" />
-        </div>
+    <Box className={styles.autoGen240} onClick={onClose}>
+      <Surface
+        variant="panel"
+        style={{ width: 600, height: '100%' }}
+        className="border-l border-l-[var(--lq-surface-3)] shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <Stack style={{ height: '100%' }} gap="0">
+          {/* Header HUD */}
+          <Surface variant="glass" p="xl" className={styles.autoGen242}>
+            <Flex justify="between" align="start">
+              <Stack gap="none">
+                <Flex align="center" gap="md">
+                  <BookOpen size={24} className={styles.autoGen243} />
+                  <LqText variant="h1" weight="bold">
+                    Neural Repository
+                  </LqText>
+                </Flex>
+                <LqText
+                  variant="xs"
+                  color="muted"
+                  style={{ textTransform: 'uppercase' }}
+                  weight="bold"
+                  mt="xs"
+                >
+                  Persistent Investigative Context • AI Awareness Buffer
+                </LqText>
+              </Stack>
+              <CloseButton onClick={onClose} size="md" />
+            </Flex>
 
-        <form onSubmit={handleSearchSubmit} className={styles.searchForm}>
-          <div className={styles.searchFieldWrap}>
-            <Search className={styles.searchIcon} />
-            <input
-              type="text"
-              placeholder="Search notes"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className={styles.searchInput}
-            />
-          </div>
-          <button type="submit" className={styles.searchButton}>
-            Search
-          </button>
-        </form>
+            {/* In-Panel Search */}
+            <Box mt="xl" className={styles.autoGen244}>
+              <Search size={14} className={styles.autoGen245} />
+              <input
+                style={{
+                  width: '100%',
+                  background: 'var(--lq-surface-3)',
+                  border: '1px solid var(--lq-surface-4)',
+                  borderRadius: '0.375rem',
+                  padding: '0.5rem 0.75rem 0.5rem 2.5rem',
+                  fontSize: '0.875rem',
+                  color: 'var(--lq-text-primary)',
+                  outline: 'none',
+                }}
+                placeholder="Search memory stream..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && setPage(1)}
+              />
+            </Box>
+          </Surface>
 
-        <div className={styles.entryList}>
-          {isLoading && (
-            <div className={styles.loadingState}>
-              <Loader2 className={styles.loadingIcon} />
-              Loading notes
-            </div>
-          )}
+          {/* Memory Stream */}
+          <Box grow className={styles.autoGen246}>
+            {isLoading ? (
+              <Stack gap="md">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <Skeleton key={i} height={120} />
+                ))}
+              </Stack>
+            ) : sortedEntries.length === 0 ? (
+              <Stack align="center" justify="center" style={{ height: '100%' }} p="xxxl" gap="md">
+                <Sparkles size={48} className={styles.autoGen247} />
+                <LqText variant="small" weight="bold" color="muted">
+                  Neural Buffer Clear
+                </LqText>
+                <LqText variant="xs" color="muted" style={{ textAlign: 'center' }}>
+                  No persistent context blocks found. Initialize an entry to prime the investigation
+                  memory.
+                </LqText>
+              </Stack>
+            ) : (
+              <Stack gap="lg">
+                {sortedEntries.map((entry) => (
+                  <Surface
+                    key={entry.id}
+                    variant="glass-highlight"
+                    p="lg"
+                    className={styles.autoGen248}
+                  >
+                    <Stack gap="md">
+                      <Flex justify="between" align="start">
+                        <Flex align="center" gap="sm">
+                          <Clock size={12} className={styles.autoGen249} />
+                          <LqText variant="xs" color="muted" weight="bold">
+                            {new Date(entry.createdAt).toLocaleDateString()}{' '}
+                            {new Date(entry.createdAt).toLocaleTimeString([], {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </LqText>
+                        </Flex>
+                        <Flex gap="md" align="center">
+                          <Badge variant="glass" size="sm">
+                            <Star size={10} className={styles.autoGen250} />{' '}
+                            {Math.round((entry.importanceScore ?? 0) * 100)}% PRIORITY
+                          </Badge>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className={styles.autoGen251}
+                            onClick={() => handleDeleteEntry(entry.id)}
+                          >
+                            <Trash2 size={12} />
+                          </Button>
+                        </Flex>
+                      </Flex>
 
-          {!isLoading && sortedEntries.length === 0 && (
-            <div className={styles.emptyState}>
-              <p className={styles.emptyText}>No notes in memory for this investigation yet.</p>
-              <p className={styles.emptySubtext}>
-                Use the form below to capture key insights and context.
-              </p>
-            </div>
-          )}
+                      <LqText variant="xs" lineHeight="relaxed" className="whitespace-pre-wrap">
+                        {entry.content}
+                      </LqText>
 
-          {sortedEntries.map((entry) => (
-            <div key={entry.id} className={styles.entryCard}>
-              <div className={styles.entryRow}>
-                <div>
-                  <div className={styles.entryMeta}>
-                    <span>
-                      {new Date(entry.createdAt).toLocaleDateString()}{' '}
-                      {new Date(entry.createdAt).toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </span>
-                  </div>
-                  <p className={styles.entryContent}>{entry.content}</p>
-                </div>
-                <div className={styles.entryActions}>
-                  <div className={styles.importanceBadge}>
-                    <Star className={styles.badgeIcon} />
-                    <span>{Math.round((entry.importanceScore ?? 0) * 100)}%</span>
-                  </div>
-                  <button onClick={() => handleDeleteEntry(entry)} className={styles.deleteButton}>
-                    <Trash2 className={styles.deleteIcon} />
-                  </button>
-                </div>
-              </div>
-              {entry.contextTags && entry.contextTags.length > 0 && (
-                <div className={styles.tagList}>
-                  {entry.contextTags.map((tag) => (
-                    <span key={tag} className={styles.tag}>
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
+                      {entry.contextTags && entry.contextTags.length > 0 && (
+                        <Flex gap="xs" wrap="wrap">
+                          {entry.contextTags.map((tag) => (
+                            <Badge
+                              key={tag}
+                              variant="glass-highlight"
+                              label={tag.toUpperCase()}
+                              size="sm"
+                            />
+                          ))}
+                        </Flex>
+                      )}
+                    </Stack>
+                  </Surface>
+                ))}
+              </Stack>
+            )}
+          </Box>
 
-        <form onSubmit={handleCreateEntry} className={styles.footerForm}>
-          <div className={styles.footerHeader}>
-            <h3 className={styles.footerTitle}>
-              <BookOpen className={styles.footerTitleIcon} />
-              New investigation note
-            </h3>
-          </div>
-          <textarea
-            value={newContent}
-            onChange={(e) => setNewContent(e.target.value)}
-            placeholder="Capture an insight, lead, or decision to persist in memory"
-            rows={3}
-            className={controlFieldClassName}
-          />
-          <div className={styles.sliderRow}>
-            <div className={styles.sliderMeta}>
-              <Star className={styles.badgeIcon} />
-              <span>Importance</span>
-              <span className={styles.sliderValue}>{Math.round(importance * 100)}%</span>
-            </div>
-            <input
-              type="range"
-              min={0}
-              max={100}
-              step={5}
-              value={Math.round(importance * 100)}
-              onChange={(e) => setImportance(parseInt(e.target.value, 10) / 100)}
-              className={styles.slider}
-            />
-          </div>
-          <div className={styles.footerActions}>
-            <button
-              type="submit"
-              disabled={!newContent.trim() || isSaving}
-              className={styles.saveButton}
-            >
-              {isSaving && <Loader2 className={styles.savingIcon} />}
-              Save note
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+          {/* New Entry Formulation */}
+          <Surface variant="glass" p="xl" className={styles.autoGen252}>
+            <form onSubmit={handleCreateEntry}>
+              <Stack gap="lg">
+                <Flex align="center" gap="md">
+                  <Sparkles size={16} className={styles.autoGen253} />
+                  <LqText
+                    variant="xs"
+                    weight="bold"
+                    color="muted"
+                    style={{ textTransform: 'uppercase' }}
+                  >
+                    Formulate Neural Context
+                  </LqText>
+                </Flex>
+
+                <textarea
+                  style={{
+                    width: '100%',
+                    background: 'var(--lq-surface-3)',
+                    border: '1px solid var(--lq-surface-4)',
+                    borderRadius: '0.375rem',
+                    padding: '0.75rem',
+                    fontSize: '0.875rem',
+                    color: 'var(--lq-text-primary)',
+                    outline: 'none',
+                    resize: 'none',
+                  }}
+                  placeholder="Capture critical insights, lead extractions, or strategic decisions for AI persistence..."
+                  value={newContent}
+                  onChange={(e) => setNewContent(e.target.value)}
+                  rows={3}
+                />
+
+                <Grid cols={2} gap="xl" align="center">
+                  <Stack gap="xs">
+                    <Flex justify="between">
+                      <LqText variant="xs" weight="bold" color="muted">
+                        IMPORTANCE SCALE
+                      </LqText>
+                      <LqText variant="xs" weight="bold" color="accent">
+                        {Math.round(importance * 100)}%
+                      </LqText>
+                    </Flex>
+                    <input
+                      type="range"
+                      min={0}
+                      max={100}
+                      step={5}
+                      style={{ width: '100%', accentColor: 'var(--lq-accent)' }}
+                      value={Math.round(importance * 100)}
+                      onChange={(e) => setImportance(parseInt(e.target.value, 10) / 100)}
+                    />
+                  </Stack>
+                  <Button
+                    variant="secondary"
+                    type="submit"
+                    disabled={!newContent.trim() || isSaving}
+                  >
+                    {isSaving ? (
+                      <Loader2 className="animate-spin mr-2" />
+                    ) : (
+                      <Send size={14} className="mr-2" />
+                    )}
+                    Commit to Memory
+                  </Button>
+                </Grid>
+              </Stack>
+            </form>
+          </Surface>
+        </Stack>
+      </Surface>
+    </Box>
   );
 };

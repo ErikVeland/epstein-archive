@@ -1,9 +1,22 @@
 import React, { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { createPortal } from 'react-dom';
+import {
+  Shield,
+  FileText,
+  Download,
+  Printer,
+  Plus,
+  History,
+  ShieldCheck,
+  Terminal,
+  CheckCircle,
+} from 'lucide-react';
+
+// UI Library
+import { Surface, Button, Flex, Box, Stack, Grid, LqText } from '../../design-system/lib';
 import { useScrollLock } from '../../hooks/useScrollLock';
 import { CloseButton } from '../common/CloseButton';
-
 import styles from './ChainOfCustodyModal.module.css';
 
 interface CustodyEvent {
@@ -25,6 +38,7 @@ export const ChainOfCustodyModal: React.FC<Props> = ({ evidenceId, onClose }) =>
   const [actor, setActor] = useState('');
   const [action, setAction] = useState('analyzed');
   const [notes, setNotes] = useState('');
+
   const exportReport = async () => {
     const res = await fetch(`/api/evidence/${evidenceId}/custody/report`);
     const text = await res.text();
@@ -36,6 +50,7 @@ export const ChainOfCustodyModal: React.FC<Props> = ({ evidenceId, onClose }) =>
     a.click();
     URL.revokeObjectURL(url);
   };
+
   const exportCsv = async () => {
     const res = await fetch(`/api/evidence/${evidenceId}/custody/report.csv`);
     const text = await res.text();
@@ -47,6 +62,7 @@ export const ChainOfCustodyModal: React.FC<Props> = ({ evidenceId, onClose }) =>
     a.click();
     URL.revokeObjectURL(url);
   };
+
   const openPrintable = () => {
     window.open(`/api/evidence/${evidenceId}/custody/report.html`, '_blank');
   };
@@ -62,6 +78,7 @@ export const ChainOfCustodyModal: React.FC<Props> = ({ evidenceId, onClose }) =>
   });
 
   const addEvent = async () => {
+    if (!actor || !action) return;
     await fetch(`/api/evidence/${evidenceId}/custody`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -74,80 +91,210 @@ export const ChainOfCustodyModal: React.FC<Props> = ({ evidenceId, onClose }) =>
   };
 
   return createPortal(
-    <div id="ChainOfCustodyModal" className={styles.overlay}>
-      <div className={styles.modal}>
-        <div className={styles.header}>
-          <h3 className={styles.headerTitle}>Chain of Custody</h3>
-          <CloseButton
-            onClick={onClose}
-            size="sm"
-            label="Close chain of custody"
-            className="bg-transparent border-[var(--glass-border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--glass-bg-highlight)]"
-          />
-        </div>
-        <div className={styles.body}>
-          <div className={styles.evidenceIdHidden}>Evidence ID: {evidenceId}</div>
-          <div className={styles.exportButtons}>
-            <button onClick={exportReport} className={styles.exportButton}>
-              Export Report
-            </button>
-            <button onClick={exportCsv} className={styles.exportButton}>
-              Export CSV
-            </button>
-            <button onClick={openPrintable} className={styles.exportButton}>
-              Printable PDF
-            </button>
-          </div>
-          {loading ? (
-            <div className={styles.loadingText}>Loading...</div>
-          ) : (
-            <div className={styles.eventsList}>
-              {events.map((ev) => (
-                <div key={ev.id} className={styles.eventCard}>
-                  <div className={styles.eventHeader}>
-                    <span className={styles.eventAction}>{ev.action}</span>
-                    <span className={styles.eventDate}>{ev.date}</span>
-                  </div>
-                  <div className={styles.eventActor}>
-                    Actor: <span className={styles.actorName}>{ev.actor}</span>
-                  </div>
-                  {ev.notes && <div className={styles.eventNotes}>{ev.notes}</div>}
-                </div>
-              ))}
-              {events.length === 0 && (
-                <div className={styles.emptyText}>No custody events yet.</div>
+    <Box className={styles.autoGen10} onClick={onClose}>
+      <Surface
+        variant="panel"
+        style={{ width: 600, padding: 0 }}
+        className={styles.autoGen11}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <Stack gap="none" className={styles.autoGen12}>
+          {/* Header HUD */}
+          <Surface variant="glass" p="xl" className={styles.autoGen13}>
+            <Flex justify="between" align="start">
+              <Stack gap="none">
+                <Flex align="center" gap="md">
+                  <ShieldCheck size={24} className={styles.autoGen14} />
+                  <LqText variant="h3" weight="bold">
+                    Chain of Custody Protocol
+                  </LqText>
+                </Flex>
+                <LqText
+                  variant="small"
+                  color="muted"
+                  weight="bold"
+                  style={{ textTransform: 'uppercase', marginTop: 'var(--spacing-xs)' }}
+                >
+                  Forensic Audit Trail • Signal Integrity Preservation
+                </LqText>
+              </Stack>
+              <CloseButton onClick={onClose} size="md" />
+            </Flex>
+
+            <Flex gap="md" style={{ marginTop: 'var(--spacing-xl)' }}>
+              <Button variant="ghost" size="sm" onClick={exportReport} className={styles.autoGen15}>
+                <FileText size={12} className="mr-1" /> EXPORT REPORT
+              </Button>
+              <Button variant="ghost" size="sm" onClick={exportCsv} className={styles.autoGen16}>
+                <Download size={12} className="mr-1" /> EXPORT CSV
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={openPrintable}
+                className={styles.autoGen17}
+              >
+                <Printer size={12} className="mr-1" /> PRINTABLE PDF
+              </Button>
+            </Flex>
+          </Surface>
+
+          {/* Audit Log Stream */}
+          <Box className={styles.autoGen18}>
+            <Stack gap="md">
+              <Flex align="center" gap="md">
+                <History size={16} className={styles.autoGen19} />
+                <LqText
+                  variant="small"
+                  weight="bold"
+                  color="muted"
+                  style={{ textTransform: 'uppercase' }}
+                >
+                  Forensic History Stream
+                </LqText>
+                <Box className={styles.autoGen20} />
+              </Flex>
+
+              {loading ? (
+                <Stack gap="md">
+                  {[1, 2, 3, 4].map((i) => (
+                    <Surface key={i} variant="glass" p="lg" className={styles.autoGen21} />
+                  ))}
+                </Stack>
+              ) : events.length === 0 ? (
+                <Surface variant="glass" p="xxxl" className={styles.autoGen22}>
+                  <Terminal size={32} className={styles.autoGen23} />
+                  <LqText variant="small" color="muted">
+                    Custody stream clear. Record the first handling event below.
+                  </LqText>
+                </Surface>
+              ) : (
+                <Stack gap="sm">
+                  {events.map((ev) => (
+                    <Surface
+                      key={ev.id}
+                      variant="glass-highlight"
+                      p="lg"
+                      className={styles.autoGen24}
+                    >
+                      <Stack gap="md">
+                        <Flex justify="between" align="start">
+                          <Stack gap="xs">
+                            <Flex align="center" gap="md">
+                              <LqText variant="small" weight="bold" className={styles.autoGen25}>
+                                {ev.action.toUpperCase()}
+                              </LqText>
+                              <LqText variant="small" weight="bold">
+                                {ev.actor}
+                              </LqText>
+                            </Flex>
+                            <LqText variant="xs" color="muted">
+                              {ev.date}
+                            </LqText>
+                          </Stack>
+                          <Shield size={14} className={styles.autoGen26} />
+                        </Flex>
+                        {ev.notes && (
+                          <Box p="md" className={styles.autoGen27}>
+                            <LqText variant="small" color="muted" style={{ fontStyle: 'italic' }}>
+                              "{ev.notes}"
+                            </LqText>
+                          </Box>
+                        )}
+                      </Stack>
+                    </Surface>
+                  ))}
+                </Stack>
               )}
-            </div>
-          )}
-          <div className={styles.addEventSection}>
-            <h4 className={styles.addEventTitle}>Add Event</h4>
-            <div className={styles.addEventGrid}>
-              <input
-                value={actor}
-                onChange={(e) => setActor(e.target.value)}
-                placeholder="Actor"
-                className={styles.input}
-              />
-              <input
-                value={action}
-                onChange={(e) => setAction(e.target.value)}
-                placeholder="Action"
-                className={styles.input}
-              />
-              <input
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Notes"
-                className={styles.input}
-              />
-            </div>
-            <button onClick={addEvent} className={styles.addButton}>
-              Add
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>,
+            </Stack>
+          </Box>
+
+          {/* Add Event Suite */}
+          <Surface variant="glass" p="xl" className={styles.autoGen28}>
+            <Stack gap="lg">
+              <Flex align="center" gap="md">
+                <Plus size={16} className={styles.autoGen29} />
+                <LqText
+                  variant="small"
+                  weight="bold"
+                  color="muted"
+                  style={{ textTransform: 'uppercase' }}
+                >
+                  Register Custody Event
+                </LqText>
+              </Flex>
+
+              <Grid cols={3} gap="md">
+                <Stack gap="xs">
+                  <LqText variant="xs" weight="bold" color="muted">
+                    HANDLER NAME
+                  </LqText>
+                  <input
+                    style={{
+                      width: '100%',
+                      background: 'var(--lq-surface-3)',
+                      border: '1px solid var(--lq-surface-4)',
+                      borderRadius: '0.375rem',
+                      padding: '0.5rem 0.75rem',
+                      fontSize: '0.875rem',
+                      color: 'var(--lq-text-primary)',
+                      outline: 'none',
+                    }}
+                    value={actor}
+                    onChange={(e) => setActor(e.target.value)}
+                    placeholder="Investigator Code..."
+                  />
+                </Stack>
+                <Stack gap="xs">
+                  <LqText variant="xs" weight="bold" color="muted">
+                    ACTION MODALITY
+                  </LqText>
+                  <input
+                    style={{
+                      width: '100%',
+                      background: 'var(--lq-surface-3)',
+                      border: '1px solid var(--lq-surface-4)',
+                      borderRadius: '0.375rem',
+                      padding: '0.5rem 0.75rem',
+                      fontSize: '0.875rem',
+                      color: 'var(--lq-text-primary)',
+                      outline: 'none',
+                    }}
+                    value={action}
+                    onChange={(e) => setAction(e.target.value)}
+                    placeholder="Analyzed / Transfer..."
+                  />
+                </Stack>
+                <Stack gap="xs">
+                  <LqText variant="xs" weight="bold" color="muted">
+                    ANNOTATIONS
+                  </LqText>
+                  <input
+                    style={{
+                      width: '100%',
+                      background: 'var(--lq-surface-3)',
+                      border: '1px solid var(--lq-surface-4)',
+                      borderRadius: '0.375rem',
+                      padding: '0.5rem 0.75rem',
+                      fontSize: '0.875rem',
+                      color: 'var(--lq-text-primary)',
+                      outline: 'none',
+                    }}
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    placeholder="Optional context..."
+                  />
+                </Stack>
+              </Grid>
+
+              <Button variant="secondary" size="sm" onClick={addEvent} disabled={!actor || !action}>
+                <CheckCircle size={14} className="mr-2" /> Commit Forensic Signature
+              </Button>
+            </Stack>
+          </Surface>
+        </Stack>
+      </Surface>
+    </Box>,
     document.body,
   );
 };

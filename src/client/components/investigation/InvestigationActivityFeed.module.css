@@ -203,3 +203,27 @@
     transform: rotate(360deg);
   }
 }
+
+.autoGen145 {
+  color: var(--lq-error);
+}
+
+.autoGen146 {
+  color: var(--lq-text-dim);
+}
+
+.autoGen147 {
+  background-color: var(--lq-surface-2);
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  padding-top: 0rem;
+  padding-bottom: 0rem;
+  border-radius: var(--radius-rounded);
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--lq-surface-3);
+}
+
+.autoGen148 {
+  color: var(--lq-accent);
+}

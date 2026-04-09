@@ -5,12 +5,24 @@ import './Button.css';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   asChild?: boolean;
-  variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
+  variant?:
+    | 'primary'
+    | 'secondary'
+    | 'danger'
+    | 'ghost'
+    | 'glass'
+    | 'accent-solid'
+    | 'glass-highlight';
   size?: 'sm' | 'md' | 'lg';
+  grow?: boolean;
+  loading?: boolean;
 }
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ asChild = false, className, variant = 'primary', size = 'md', ...props }, ref) => {
+  (
+    { asChild = false, className, variant = 'primary', size = 'md', grow, style, ...props },
+    ref,
+  ) => {
     const Comp = asChild ? Slot : 'button';
 
     return (
@@ -20,6 +32,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         data-variant={variant}
         data-size={size}
         className={cn('ds-btn', className)}
+        style={grow ? { flexGrow: 1, ...style } : style}
         {...props}
       />
     );

@@ -1,0 +1,4 @@
+.root {
+  min-height: 500px;
+  padding: var(--space-6);
+}

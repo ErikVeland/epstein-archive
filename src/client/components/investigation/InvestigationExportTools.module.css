@@ -345,3 +345,114 @@
   font-size: 1.125rem;
   font-weight: var(--weight-semibold);
 }
+
+.autoGen222 {
+  flex: 1 1 0%;
+  display: flex;
+  flex-direction: column;
+}
+
+.autoGen223 {
+  border-color: b;
+  border-color: b-[var(--lq-surface-3)];
+}
+
+.autoGen224 {
+  color: var(--lq-accent);
+}
+
+.autoGen225 {
+  background-color: var(--lq-surface-2);
+  padding: 0.25rem;
+  border-radius: var(--radius-lg);
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--lq-surface-3);
+}
+
+.autoGen226 {
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--lq-surface-3);
+  /* Missing: hover:border-[var(--lq-accent)] */
+  transition: all 0.2s ease;
+}
+
+.autoGen227 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.autoGen228 {
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--lq-warning);
+}
+
+.autoGen229 {
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--lq-surface-3);
+}
+
+.autoGen230 {
+  border-color: t;
+  border-color: t-[var(--lq-surface-3)];
+}
+
+.autoGen231 {
+  width: 100%;
+  /* Missing: h-1 */
+  background-color: var(--lq-surface-3);
+  border-radius: 9999px;
+  overflow: hidden;
+  margin-top: 0.25rem;
+}
+
+.autoGen232 {
+  height: 100%;
+  background-color: var(--lq-accent);
+  transition: all 0.2s ease;
+  /* Missing: ease-linear */
+}
+
+.autoGen233 {
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--lq-success);
+  /* Missing: animate-in */
+  /* Missing: fade-in */
+  /* Missing: slide-in-from-bottom-2 */
+}
+
+.autoGen234 {
+  color: var(--lq-success);
+  margin-top: 0.25rem;
+}
+
+.autoGen235 {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.autoGen236 {
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--lq-warning);
+}
+
+.autoGen237 {
+  color: var(--lq-warning);
+}
+
+.autoGen238 {
+  color: var(--lq-text-dim);
+}
+
+.autoGen239 {
+  border-color: t;
+  border-color: t-[var(--lq-surface-3)];
+}

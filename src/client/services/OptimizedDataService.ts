@@ -120,8 +120,8 @@ export class OptimizedDataService {
       return cached;
     }
 
-    // STRICT QUALITY FILTER for Page 1 default view
-    // If no search, no specific filters, and page 1 -> We apply strict quality control
+    // Strict quality filter for the default first-page view
+    // If no search, no specific filters, and page 1 -> apply the highest quality threshold
     const isDefaultView =
       !filters.searchTerm && !filters.evidenceTypes?.length && !filters.entityType && page === 1;
 

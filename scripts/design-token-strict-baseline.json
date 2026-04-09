@@ -1,14 +1,1 @@
-[
-  "src/client/components/email/EmailClient.tsx",
-  "src/client/components/investigation/CommunicationAnalysis.tsx",
-  "src/client/components/investigation/EvidenceNotebook.tsx",
-  "src/client/components/investigation/ForensicAnalysisWorkspace.tsx",
-  "src/client/components/investigation/ForensicDocumentAnalyzer.tsx",
-  "src/client/components/investigation/ForensicReportGenerator.tsx",
-  "src/client/components/investigation/HypothesisTestingFramework.tsx",
-  "src/client/components/investigation/InvestigationEvidencePanel.tsx",
-  "src/client/components/investigation/InvestigationTimelineBuilder.tsx",
-  "src/client/components/investigation/InvestigationWorkspace.tsx",
-  "src/client/components/investigation/MultiSourceCorrelationEngine.tsx",
-  "src/client/components/visualizations/DataVisualizationEnhanced.tsx"
-]
+[]

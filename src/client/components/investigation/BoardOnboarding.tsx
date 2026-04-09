@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { ArrowRight, Target, FileText, BookOpen, CheckCircle } from 'lucide-react';
+import { ArrowRight, Target, BookOpen, CheckCircle, Layers, Activity } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CloseButton } from '../common/CloseButton';
 import { useScrollLock } from '../../hooks/useScrollLock';
 
+// UI Library
+import { Surface, Button, Flex, Box, Stack, LqText } from '../../design-system/lib';
 import styles from './BoardOnboarding.module.css';
 
 interface BoardOnboardingProps {
@@ -27,30 +29,27 @@ export const BoardOnboarding: React.FC<BoardOnboardingProps> = ({ onComplete, on
   const steps = [
     {
       id: 1,
-      title: 'Define Your Hypotheses',
+      title: 'Define Strategic Hypotheses',
       description:
-        'Start on the left. create theories or questions you want to answer. These act as the "buckets" for your evidence.',
+        'Initialize theoretical "buckets" on the left. These act as the analytical anchor points for your mission stream.',
       icon: Target,
-      containerClass: styles.iconContainerPurple,
-      iconClass: styles.iconPurple,
-    },
-    {
-      id: 2,
-      title: 'Gather & Connect Evidence',
-      description:
-        'Items you "Add to Investigation" from around the app appear in the middle Evidence Pool. Drag them onto Hypotheses to prove or disprove them.',
-      icon: FileText,
-      containerClass: styles.iconContainerAccent,
-      iconClass: styles.iconAccent,
+      tone: 'accent',
     },
     {
       id: 3,
-      title: 'Build Your Case',
+      title: 'Gather & Correlate Signals',
       description:
-        'Finally, drag your proven points into the Case Narrative on the right. This organizes your findings into a coherent story ready for export.',
+        'Assigned evidence appears in the central matrix. Drag signals onto hypotheses to establish supporting or contradicting links.',
+      icon: Layers,
+      tone: 'error',
+    },
+    {
+      id: 3,
+      title: 'Sequencing the Narrative',
+      description:
+        'Finalize the mission by dragging proven points into the Strategic Workspace on the right to construct a sequential chain of proof.',
       icon: BookOpen,
-      containerClass: styles.iconContainerAmber,
-      iconClass: styles.iconAmber,
+      tone: 'success',
     },
   ];
 
@@ -58,76 +57,112 @@ export const BoardOnboarding: React.FC<BoardOnboardingProps> = ({ onComplete, on
   const Icon = currentStep.icon;
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className={styles.overlay}
-    >
+    <Box className={styles.autoGen1} onClick={onSkip}>
       <motion.div
-        initial={{ scale: 0.95, opacity: 0, y: 20 }}
+        initial={{ scale: 0.9, opacity: 0, y: 30 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
-        transition={{ type: 'spring', duration: 0.5, bounce: 0.3 }}
-        className={`surface-glass ${styles.modalShell} ${styles.modal}`}
+        exit={{ scale: 0.9, opacity: 0, y: 30 }}
+        transition={{ type: 'spring', duration: 0.6, bounce: 0.4 }}
+        onClick={(e) => e.stopPropagation()}
       >
-        {/* Progress Bar */}
-        <div className={`surface-glass ${styles.progressBarTrack}`}>
-          <motion.div
-            className={styles.progressBarFill}
-            initial={{ width: '0%' }}
-            animate={{ width: `${(step / totalSteps) * 100}%` }}
-            transition={{ duration: 0.3 }}
-          />
-        </div>
+        <Surface variant="panel" style={{ width: 480, padding: 0 }} className={styles.autoGen2}>
+          <Stack gap="none" className={styles.autoGen3}>
+            {/* Mission Progress HUD */}
+            <Box className={styles.autoGen4}>
+              <motion.div
+                className={styles.autoGen5}
+                initial={{ width: '0%' }}
+                animate={{ width: `${(step / totalSteps) * 100}%` }}
+                transition={{ duration: 0.4 }}
+              />
+            </Box>
 
-        {/* Content Area */}
-        <div className={styles.content}>
-          <div className={styles.closeButtonWrapper}>
-            <CloseButton
-              onClick={onSkip}
-              size="sm"
-              label="Close board onboarding"
-              className={styles.closeButton}
-            />
-          </div>
+            {/* Header */}
+            <Flex justify="between" align="center" p="lg" className={styles.autoGen6}>
+              <Flex gap="md" align="center">
+                <Activity size={18} className={styles.autoGen7} />
+                <LqText
+                  variant="small"
+                  weight="bold"
+                  color="muted"
+                  style={{ textTransform: 'uppercase' }}
+                >
+                  Workspace Indoctrination
+                </LqText>
+              </Flex>
+              <CloseButton onClick={onSkip} size="sm" />
+            </Flex>
 
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={step}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.2 }}
-              className={styles.stepContent}
-            >
-              <div className={`${styles.iconContainer} ${currentStep.containerClass}`}>
-                <Icon className={currentStep.iconClass} />
-              </div>
+            {/* Content Area */}
+            <Box p="xxxl" className={styles.contentArea}>
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={step}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Stack align="center" gap="xl" className={styles.autoGen8}>
+                    <Box
+                      className={styles.stepIconBox}
+                      style={{
+                        backgroundColor:
+                          currentStep.tone === 'error'
+                            ? 'var(--lq-error-dim)'
+                            : currentStep.tone === 'success'
+                              ? 'var(--lq-success-dim)'
+                              : 'var(--lq-accent-dim)',
+                        color:
+                          currentStep.tone === 'error'
+                            ? 'var(--lq-error)'
+                            : currentStep.tone === 'success'
+                              ? 'var(--lq-success)'
+                              : 'var(--lq-accent)',
+                      }}
+                    >
+                      <Icon size={48} />
+                    </Box>
+                    <Stack gap="md">
+                      <LqText variant="h2" weight="bold">
+                        {currentStep.title}
+                      </LqText>
+                      <LqText variant="small" color="muted" style={{ lineHeight: '1.6' }}>
+                        {currentStep.description}
+                      </LqText>
+                    </Stack>
+                  </Stack>
+                </motion.div>
+              </AnimatePresence>
+            </Box>
 
-              <h2 className={styles.stepTitle}>{currentStep.title}</h2>
-              <p className={styles.stepDescription}>{currentStep.description}</p>
-            </motion.div>
-          </AnimatePresence>
-        </div>
+            {/* Footer Control Suite */}
+            <Surface variant="glass" p="xl" className={styles.autoGen9}>
+              <Stack gap="lg">
+                <Button variant="secondary" size="sm" onClick={handleNext}>
+                  {step === totalSteps ? 'Initialize Investigation' : 'Proceed to Next Phase'}
+                  {step === totalSteps ? (
+                    <CheckCircle size={18} style={{ marginLeft: '0.5rem' }} />
+                  ) : (
+                    <ArrowRight size={18} style={{ marginLeft: '0.5rem' }} />
+                  )}
+                </Button>
 
-        {/* Footer */}
-        <div className={styles.footer}>
-          <button onClick={handleNext} className={styles.nextButton}>
-            <span>{step === totalSteps ? 'Start Investigating' : 'Next'}</span>
-            {step === totalSteps ? (
-              <CheckCircle className={styles.iconSm} />
-            ) : (
-              <ArrowRight className={styles.iconSm} />
-            )}
-          </button>
-
-          <div className={styles.stepCounter}>
-            <span className={styles.stepCounterText}>
-              Step {step} of {totalSteps}
-            </span>
-          </div>
-        </div>
+                <Flex justify="center" align="center">
+                  <LqText
+                    variant="small"
+                    color="muted"
+                    weight="bold"
+                    style={{ textTransform: 'uppercase' }}
+                  >
+                    Phase {step} of {totalSteps} Synchronization
+                  </LqText>
+                </Flex>
+              </Stack>
+            </Surface>
+          </Stack>
+        </Surface>
       </motion.div>
-    </motion.div>
+    </Box>
   );
 };

@@ -1,3 +1,10 @@
+.pastedPreviewRoot {
+  position: fixed;
+  z-index: 100;
+  width: 420px;
+  pointer-events: none;
+}
+
 .root {
   border-radius: var(--radius-xl);
   border: 1px solid var(--glass-border-highlight);

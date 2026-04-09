@@ -4,6 +4,13 @@
   min-height: 600px;
   height: 100%;
   overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(148, 163, 184, 0.012)),
+    color-mix(in srgb, var(--glass-bg) 94%, transparent);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid color-mix(in srgb, var(--glass-border) 80%, transparent);
+  border-radius: var(--radius-lg);
   box-shadow: var(--glass-shadow);
 }
 

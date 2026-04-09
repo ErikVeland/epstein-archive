@@ -246,7 +246,7 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
       </div>
 
       {/* Type Breakdown */}
-      <div className="surface-glass-card">
+      <div className="surface-panel">
         <div className={styles.section}>
           <div className={styles.sectionHeader}>
             <BarChart3 className={styles.sectionIcon} />
@@ -273,7 +273,7 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
 
       {/* Role Breakdown */}
       {stats.roleBreakdown.length > 0 && (
-        <div className="surface-glass-card">
+        <div className="surface-panel">
           <div className={styles.section}>
             <div className={styles.sectionHeader}>
               <User className={styles.sectionIcon} />
@@ -295,7 +295,7 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
 
       {/* Related Entities */}
       {stats.relatedEntities.length > 0 && (
-        <div className="surface-glass-card">
+        <div className="surface-panel">
           <div className={styles.section}>
             <div className={styles.relatedHeader}>
               <div className={styles.sectionHeader} style={{ marginBottom: 0 }}>
@@ -383,7 +383,7 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
 
       {/* Email / Communications Activity */}
       {communications.length > 0 && (
-        <div className="surface-glass-card">
+        <div className="surface-panel">
           <div className={styles.section}>
             <div className={styles.sectionHeader}>
               <Mail className={styles.sectionIcon} />
@@ -459,7 +459,7 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
 
       {/* Relation Evidence (graph edges with quotes) */}
       {relationEdges.length > 0 && (
-        <div className={`surface-glass-card ${styles.sectionCard}`}>
+        <div className={`surface-panel ${styles.sectionCard}`}>
           <div className={styles.sectionHeader}>
             <Network className={styles.sectionIcon} />
             <h3 className={styles.sectionTitle}>Relation Evidence</h3>
@@ -492,7 +492,7 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
       )}
 
       {/* Filters & Search */}
-      <div className={`surface-glass-card ${styles.sectionCard}`}>
+      <div className={`surface-panel ${styles.sectionCard}`}>
         <div className={styles.evidenceHeader}>
           <div className={styles.evidenceHeaderTitleGroup}>
             <h3 className={styles.sectionTitle}>Evidence Items</h3>

@@ -1,9 +1,10 @@
 import React from 'react';
 import EmailClient from '../components/email/EmailClient';
+import styles from './EmailPage.module.css';
 
 export const EmailPage: React.FC = () => {
   return (
-    <div className="min-w-0 overflow-hidden h-[calc(100dvh-9.5rem)] min-h-[560px] md:h-[calc(100dvh-12.5rem)] md:min-h-[640px]">
+    <div className={styles.root}>
       <EmailClient />
     </div>
   );

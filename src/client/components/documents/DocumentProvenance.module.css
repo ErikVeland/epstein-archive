@@ -280,6 +280,10 @@
   flex-direction: column;
   gap: var(--space-1);
 }
+
+.documentLink {
+  font-size: var(--type-xs);
+}
 @keyframes spin {
   to {
     transform: rotate(360deg);

@@ -2,10 +2,6 @@
 
 /* ── Card root ── */
 .card {
-  position: relative;
-  padding: var(--space-4);
-  display: flex;
-  flex-direction: column;
   height: 100%;
 }
 
@@ -234,17 +230,5 @@
 }
 
 .profileLink {
-  font-size: var(--type-xs);
-  font-weight: var(--weight-bold);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--accent);
-  display: flex;
-  align-items: center;
   gap: var(--space-1);
-  background: transparent;
-}
-
-.profileLink:hover {
-  filter: brightness(1.1);
 }

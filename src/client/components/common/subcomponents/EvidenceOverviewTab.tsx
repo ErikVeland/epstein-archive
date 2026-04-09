@@ -224,7 +224,7 @@ export const EvidenceOverviewTab: React.FC<EvidenceOverviewTabProps> = ({
                   <div className={s.phoneList}>
                     {entry.phoneNumbers.map((phone: string, i: number) => (
                       <span key={i} className={s.phoneChip}>
-                        <Icon name="Phone" size="xs" className={s.phoneIcon} /> {phone}
+                        <Icon name="Phone" className={s.phoneIcon} /> {phone}
                       </span>
                     ))}
                   </div>

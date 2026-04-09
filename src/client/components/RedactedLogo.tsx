@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import styles from './RedactedLogo.module.css';
 
 interface RedactedLogoProps {
   text: string;
@@ -167,32 +168,20 @@ export const RedactedLogo: React.FC<RedactedLogoProps> = ({ text, className = ''
   };
 
   return (
-    <div
-      className={`relative ${className}`}
-      style={{
-        // FIXED width - calculated for "THE EPSTEIN FILES" (18 chars including space)
-        width: '185px',
-        minWidth: '185px',
-        maxWidth: '185px',
-        overflow: 'hidden',
-      }}
-    >
+    <div className={[styles.root, className].filter(Boolean).join(' ')}>
       {/* Global glitch overlay */}
       {globalGlitch && (
         <div
+          className={styles.globalGlitch}
           style={{
-            position: 'absolute',
-            inset: 0,
             background:
               'repeating-linear-gradient(0deg, transparent 0px, transparent 2px, rgba(0,255,255,0.03) 2px, rgba(0,255,255,0.03) 4px)',
-            pointerEvents: 'none',
-            zIndex: 10,
           }}
         />
       )}
 
       <h1
-        className="text-xl font-bold tracking-tight whitespace-nowrap"
+        className={styles.title}
         style={{
           transform: globalGlitch ? `translateX(${Math.random() > 0.5 ? 3 : -3}px)` : 'none',
           filter: globalGlitch ? 'hue-rotate(20deg)' : 'none',

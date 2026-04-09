@@ -1,0 +1,54 @@
+.sizeSm {
+  font-size: 0.75rem;
+}
+
+.sizeMd {
+  font-size: 0.875rem;
+}
+
+.sizeLg {
+  font-size: 1rem;
+}
+
+.muted {
+  color: var(--text-muted);
+}
+
+.warning {
+  color: var(--accent-warning);
+}
+
+.danger {
+  color: var(--accent-danger);
+}
+
+.secondary {
+  color: var(--accent-secondary);
+}
+
+.textStrong {
+  font-weight: 500;
+}
+
+.combined {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.root {
+  display: inline-flex;
+  flex-direction: column;
+}
+
+.row {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.legend {
+  margin-top: var(--space-1);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}

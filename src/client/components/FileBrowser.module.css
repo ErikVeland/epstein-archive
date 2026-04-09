@@ -20,23 +20,13 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: var(--space-3);
-  border-radius: var(--radius-lg);
-  transition: all var(--duration-fast) var(--easing-swift);
-  background: var(--glass-bg-highlight);
-  color: var(--text-secondary);
   border: none;
   cursor: pointer;
+  transition: transform var(--duration-fast);
 }
 
 .categoryButton:hover {
-  background: var(--glass-bg-strong);
-}
-
-.categoryButtonActive {
-  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-  color: var(--text-primary);
-  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
 }
 
 .errorBanner {
@@ -57,17 +47,13 @@
 
 .fileItem {
   width: 100%;
-  padding: var(--space-4);
   text-align: left;
-  background: transparent;
-  transition: background var(--duration-fast);
-  border: none;
   border-bottom: 1px solid var(--glass-border);
-  cursor: pointer;
+  transition: transform var(--duration-fast);
 }
 
 .fileItem:hover {
-  background: var(--glass-bg-highlight);
+  transform: translateX(4px);
 }
 
 .iconEmails {
@@ -87,4 +73,153 @@
 } /* orange-400 fallback */
 .iconDefault {
   color: var(--accent-primary);
+}
+
+.loadingSpinnerRing {
+  width: 3rem;
+  height: 3rem;
+  border: 2px solid transparent;
+  border-bottom-color: var(--accent);
+  border-radius: 9999px;
+  animation: spin 1s linear infinite;
+}
+
+.categoryLabel {
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+.searchWrap {
+  position: relative;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--text-muted);
+  transform: translateY(-50%);
+}
+
+.searchInput {
+  width: 100%;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg-highlight);
+  color: var(--text-primary);
+}
+
+.searchInput::placeholder {
+  color: #9ca3af;
+}
+
+.searchInput:focus {
+  border-color: transparent;
+  outline: none;
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.fileListShell {
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+  background: var(--glass-bg);
+}
+
+.listTitle {
+  color: var(--text-primary);
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.listMeta {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.fileTypeIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--accent);
+}
+
+.fileEyeIcon {
+  width: 1rem;
+  height: 1rem;
+  color: var(--text-muted);
+}
+
+.emptyIcon {
+  width: 3rem;
+  height: 3rem;
+  color: var(--text-muted);
+  margin: 0 auto;
+}
+
+.modalOverlay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-modal);
+}
+
+.modalFileIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--accent);
+}
+
+.modalTitle {
+  color: var(--text-primary);
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.downloadButton {
+  gap: var(--space-2);
+}
+
+.downloadIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.closeButtonOverride {
+  border-color: var(--glass-border);
+  background: color-mix(in srgb, var(--glass-bg-strong) 70%, transparent);
+  color: var(--text-primary);
+}
+
+.metaLabel {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.metaValue {
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.metaValueCapitalize {
+  color: var(--text-primary);
+  margin: 0;
+  text-transform: capitalize;
+}
+
+.contentPreview {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-family: var(--font-mono);
+  white-space: pre-wrap;
+  margin: 0;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }

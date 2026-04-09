@@ -2,6 +2,7 @@ import Icon from '../common/Icon';
 import type { IconName } from '../common/Icon';
 import { useCountUp } from '../../hooks/useCountUp';
 import { riskToneFromRating } from '../../utils/riskSemantics';
+import { Button, Surface } from '../../design-system/lib';
 import s from './StatsDisplay.module.css';
 
 interface StatsDisplayProps {
@@ -48,20 +49,21 @@ export function StatsDisplay({
         onClick={() => onRiskLevelClick?.('MEDIUM')}
       />
       <MetricStat label="Mentions" icon="MessageSquare" value={mentionsCount} />
-      <button
+      <Button
         onClick={onResetFilters}
-        className={`surface-glass ${s.btn} ${s.btnHoverAccentBorder}`}
+        variant="ghost"
+        className={`${s.btn} ${s.btnHoverAccentBorder}`}
         title="Reset all filters"
       >
         <div className={s.statHeader}>
           <span className={s.statLabel}>Documents</span>
           <span className={`chip ${s.chipIcon} ${s.chipFile}`}>
-            <Icon name="FileText" size="xs" />
+            <Icon name="FileText" />
           </span>
         </div>
         <div className={`data-emphasis ${s.statValue}`}>{documentsCount.toLocaleString()}</div>
         <div className={s.statFooter}>{stats.totalPeople.toLocaleString()} Subjects</div>
-      </button>
+      </Button>
     </div>
   );
 }
@@ -84,33 +86,34 @@ function RiskStat({
   const tone = riskToneFromRating(rating);
 
   return (
-    <button
+    <Button
       onClick={onClick}
-      className={`surface-glass ${s.btn} ${active ? s.btnActive : ''}`}
+      variant="ghost"
+      className={`${s.btn} ${active ? s.btnActive : ''}`}
       title={`Filter by ${label}`}
     >
       <div className={s.statHeader}>
         <span className={s.statLabel}>{label}</span>
         <span className={`chip ${s.chipIcon} ${tone.className}`}>
-          <Icon name={icon} size="xs" />
+          <Icon name={icon} />
         </span>
       </div>
       <div className={`data-emphasis ${s.statValue}`}>{value.toLocaleString()}</div>
       <div className={s.statFooter}>{label === 'High Risk' ? 'Priority One' : 'Monitor'}</div>
-    </button>
+    </Button>
   );
 }
 
 function MetricStat({ label, icon, value }: { label: string; icon: IconName; value: number }) {
   return (
-    <div className={`surface-glass ${s.btn}`}>
+    <Surface className={s.btn}>
       <div className={s.statHeader}>
         <span className={s.statLabel}>{label}</span>
         <span className={`chip ${s.chipIcon} ${s.chipInfo}`}>
-          <Icon name={icon} size="xs" />
+          <Icon name={icon} />
         </span>
       </div>
       <div className={`data-emphasis ${s.statValue}`}>{value.toLocaleString()}</div>
-    </div>
+    </Surface>
   );
 }

@@ -1,5 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Icon from '../common/Icon';
+import {
+  Button,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '../../design-system/lib';
 import s from './SortFilter.module.css';
 
 interface SortOption {
@@ -36,42 +43,46 @@ const SortFilter: React.FC<SortFilterProps> = ({ value, onChange, options, class
 
   return (
     <div className={`${s.root} ${isOpen ? s.rootOpen : ''} ${className}`} ref={dropdownRef}>
-      <button
-        type="button"
-        onClick={() => setIsOpen((open) => !open)}
-        data-testid="sort-filter"
-        className={`control ${s.trigger}`}
-        aria-haspopup="listbox"
-        aria-expanded={isOpen}
-      >
-        <div className={s.triggerInner}>
-          {selectedOption.icon}
-          <span>{selectedOption.label}</span>
-        </div>
-        <Icon name="ChevronDown" size="sm" />
-      </button>
+      <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+        <DropdownMenuTrigger asChild>
+          <Button
+            type="button"
+            onClick={() => setIsOpen((open) => !open)}
+            data-testid="sort-filter"
+            className={s.trigger}
+            variant="secondary"
+            size="sm"
+            aria-haspopup="listbox"
+            aria-expanded={isOpen}
+          >
+            <div className={s.triggerInner}>
+              {selectedOption.icon}
+              <span>{selectedOption.label}</span>
+            </div>
+            <Icon name="ChevronDown" size="sm" />
+          </Button>
+        </DropdownMenuTrigger>
 
-      {isOpen && (
-        <div className={`${s.dropdown} dropdown-surface`}>
-          <ul role="listbox" className={s.list}>
+        {isOpen && (
+          <DropdownMenuContent className={s.dropdown} align="start">
             {options.map((option) => (
-              <li
+              <DropdownMenuItem
                 key={option.value}
                 role="option"
                 aria-selected={option.value === value}
                 className={`${s.option} ${option.value === value ? s.optionSelected : ''}`}
-                onClick={() => {
+                onSelect={() => {
                   onChange(option.value);
                   setIsOpen(false);
                 }}
               >
                 {option.icon}
                 <span>{option.label}</span>
-              </li>
+              </DropdownMenuItem>
             ))}
-          </ul>
-        </div>
-      )}
+          </DropdownMenuContent>
+        )}
+      </DropdownMenu>
     </div>
   );
 };

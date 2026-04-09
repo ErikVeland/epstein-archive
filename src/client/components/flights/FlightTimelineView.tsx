@@ -1,7 +1,9 @@
 import React from 'react';
 import { FixedSizeList as List } from 'react-window';
+import { Box } from '../../design-system/lib';
 import AutoSizer from '../common/AutoSizer';
 import { FlightCard } from './FlightCard';
+import { EmptyCorpus } from '../common/EmptyCorpus';
 import type { Flight } from './types';
 import styles from './FlightTimelineView.module.css';
 
@@ -16,9 +18,13 @@ export const FlightTimelineView: React.FC<FlightTimelineViewProps> = ({
   onSelectFlight,
   formatDate,
 }) => (
-  <div className={styles.container}>
+  <Box className={styles.container}>
     {flights.length === 0 ? (
-      <div className={styles.noFlights}>No flights found</div>
+      <EmptyCorpus
+        icon="Navigation"
+        title="No Flight Records"
+        body="Flight logs for the Epstein aircraft are imported from the source manifest during ingestion. No records have been loaded yet — run the flights ingestion pipeline to populate this view."
+      />
     ) : (
       <AutoSizer>
         {({ height, width }: { height: number; width: number }) => (
@@ -31,15 +37,14 @@ export const FlightTimelineView: React.FC<FlightTimelineViewProps> = ({
             {({ index, style }) => {
               const flight = flights[index];
               return (
-                // style prop required by react-window for virtual positioning
-                <div style={style} className={styles.itemWrapper}>
+                <Box style={style} className={styles.itemWrapper}>
                   <FlightCard flight={flight} onSelect={onSelectFlight} formatDate={formatDate} />
-                </div>
+                </Box>
               );
             }}
           </List>
         )}
       </AutoSizer>
     )}
-  </div>
+  </Box>
 );

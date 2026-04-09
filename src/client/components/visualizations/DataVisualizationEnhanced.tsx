@@ -17,6 +17,7 @@ import {
   type TooltipProps,
 } from 'recharts';
 import { Person } from '../../types';
+import styles from './DataVisualizationEnhanced.module.css';
 
 interface DataVisualizationProps {
   people: Person[];
@@ -34,15 +35,15 @@ interface TreemapContentProps {
 }
 
 const COLORS = {
-  HIGH: '#ef4444',
-  MEDIUM: '#f59e0b',
-  LOW: '#10b981',
-  primary: '#3b82f6',
-  secondary: '#8b5cf6',
-  accent: '#06b6d4',
-  danger: '#dc2626',
-  warning: '#d97706',
-  success: '#059669',
+  HIGH: 'var(--risk-critical)',
+  MEDIUM: 'var(--risk-medium)',
+  LOW: 'var(--risk-low)',
+  primary: 'var(--accent)',
+  secondary: 'var(--nav-blackbook)',
+  accent: 'var(--accent-info)',
+  danger: 'var(--accent-danger)',
+  warning: 'var(--accent-warning)',
+  success: 'var(--accent-success)',
 };
 
 // Animated counter component
@@ -74,16 +75,12 @@ const AnimatedCounter: React.FC<{
   }, [value]);
 
   return (
-    <div
-      className={`bg-gradient-to-br ${color} p-6 rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] transform hover:scale-105 transition-all duration-300 glow-cyan`}
-    >
-      <div className="flex items-center justify-between mb-4">
+    <div className={`${styles.counterCard} ${color}`}>
+      <div className={styles.counterHeader}>
         {icon}
-        <div className="text-3xl font-bold text-[var(--text-primary)]">
-          {displayValue.toLocaleString()}
-        </div>
+        <div className={styles.counterValue}>{displayValue.toLocaleString()}</div>
       </div>
-      <div className="text-[var(--text-primary)] opacity-90 text-sm font-medium">{label}</div>
+      <div className={styles.counterLabel}>{label}</div>
     </div>
   );
 };
@@ -91,17 +88,17 @@ const AnimatedCounter: React.FC<{
 const CustomTooltip: React.FC<TooltipProps<number, string>> = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-[var(--glass-bg-strong)]/95 backdrop-blur-sm p-4 rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] border border-[var(--glass-border)]">
-        <p className="text-[var(--text-primary)] font-bold text-lg mb-2">{String(label ?? '')}</p>
+      <div className={styles.tooltip}>
+        <p className={styles.tooltipTitle}>{String(label ?? '')}</p>
         {payload.map((entry, index) => (
-          <div key={index} className="flex items-center space-x-2 mb-1">
+          <div key={index} className={styles.tooltipRow}>
             <div
-              className="w-3 h-3 rounded-full"
+              className={styles.tooltipDot}
               style={{ backgroundColor: typeof entry.color === 'string' ? entry.color : undefined }}
-            ></div>
-            <span className="text-[var(--text-secondary)]">
+            />
+            <span className={styles.tooltipText}>
               {String(entry.name || 'value')}:{' '}
-              <span className="font-bold text-[var(--text-primary)]">
+              <span className={styles.tooltipValue}>
                 {typeof entry.value === 'number'
                   ? entry.value.toLocaleString()
                   : String(entry.value ?? '')}
@@ -126,8 +123,7 @@ const TreemapCellContent: React.FC<TreemapContentProps> = ({
   level = 'LOW',
 }) => {
   const fontSize = Math.min(width / 8, height / 4, 14);
-  const textColor =
-    level === 'HIGH' ? 'text-red-100' : level === 'MEDIUM' ? 'text-yellow-100' : 'text-green-100';
+  const textColor = level === 'HIGH' ? '#fee2e2' : level === 'MEDIUM' ? '#fef3c7' : '#dcfce7';
 
   return (
     <g>
@@ -135,11 +131,23 @@ const TreemapCellContent: React.FC<TreemapContentProps> = ({
         <linearGradient id={`gradient-${index}`} x1="0" y1="0" x2="1" y2="1">
           <stop
             offset="0%"
-            stopColor={level === 'HIGH' ? '#dc2626' : level === 'MEDIUM' ? '#d97706' : '#059669'}
+            stopColor={
+              level === 'HIGH'
+                ? 'var(--risk-critical)'
+                : level === 'MEDIUM'
+                  ? 'var(--risk-medium)'
+                  : 'var(--risk-low)'
+            }
           />
           <stop
             offset="100%"
-            stopColor={level === 'HIGH' ? '#ef4444' : level === 'MEDIUM' ? '#f59e0b' : '#10b981'}
+            stopColor={
+              level === 'HIGH'
+                ? 'var(--accent-danger)'
+                : level === 'MEDIUM'
+                  ? 'var(--accent-warning)'
+                  : 'var(--accent-success)'
+            }
           />
         </linearGradient>
       </defs>
@@ -149,10 +157,9 @@ const TreemapCellContent: React.FC<TreemapContentProps> = ({
         width={width}
         height={height}
         fill={`url(#gradient-${index})`}
-        stroke="#1f2937"
+        stroke="var(--bg-dark)"
         strokeWidth={2}
         rx={8}
-        className="hover:opacity-80 transition-opacity cursor-pointer"
       />
       {width > 60 && height > 40 && (
         <>
@@ -160,9 +167,9 @@ const TreemapCellContent: React.FC<TreemapContentProps> = ({
             x={x + width / 2}
             y={y + height / 2 - fontSize / 2}
             textAnchor="middle"
-            className={`${textColor} font-bold`}
             fontSize={fontSize}
-            fill="currentColor"
+            fontWeight="700"
+            fill={textColor}
           >
             {name.length > 12 ? `${name.substring(0, 12)}...` : name}
           </text>
@@ -170,9 +177,8 @@ const TreemapCellContent: React.FC<TreemapContentProps> = ({
             x={x + width / 2}
             y={y + height / 2 + fontSize / 2}
             textAnchor="middle"
-            className={`${textColor}`}
             fontSize={fontSize * 0.8}
-            fill="currentColor"
+            fill={textColor}
           >
             {size.toLocaleString()}
           </text>
@@ -286,43 +292,43 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({ people }) 
   }));
 
   return (
-    <div className="space-y-8" key={animationKey}>
+    <div className={styles.root} key={animationKey}>
       {/* Animated Header Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div className={styles.statsGrid}>
         <AnimatedCounter
           value={people.filter((p) => p.likelihoodScore === 'HIGH').length}
           label="High Risk Individuals"
-          color="from-red-600 to-red-800"
-          icon={<span className="text-red-300 text-2xl">⚠️</span>}
+          color={styles.counterRiskHigh}
+          icon={<span className={styles.iconHigh}>⚠️</span>}
         />
         <AnimatedCounter
           value={people.filter((p) => p.likelihoodScore === 'MEDIUM').length}
           label="Medium Risk Individuals"
-          color="from-yellow-600 to-orange-600"
-          icon={<span className="text-yellow-300 text-2xl">⚡</span>}
+          color={styles.counterRiskMedium}
+          icon={<span className={styles.iconMedium}>⚡</span>}
         />
         <AnimatedCounter
           value={people.filter((p) => p.likelihoodScore === 'LOW').length}
           label="Low Risk Individuals"
-          color="from-green-600 to-emerald-600"
-          icon={<span className="text-green-300 text-2xl">✓</span>}
+          color={styles.counterRiskLow}
+          icon={<span className={styles.iconLow}>✓</span>}
         />
         <AnimatedCounter
           value={people.reduce((sum, p) => sum + p.mentions, 0)}
           label="Total Mentions"
-          color="from-blue-600 to-purple-600"
-          icon={<span className="text-[var(--accent)] text-2xl">📊</span>}
+          color={styles.counterPrimary}
+          icon={<span className={styles.iconPrimary}>📊</span>}
         />
       </div>
 
       {/* Enhanced Top Row - Likelihood Distribution with 3D Effect */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-gradient-to-br from-gray-800 to-gray-900 p-8 rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] border border-[var(--glass-border)]">
-          <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-6 flex items-center space-x-3">
-            <div className="w-4 h-4 rounded-full bg-gradient-to-r from-red-500 to-orange-500"></div>
+      <div className={styles.chartGrid}>
+        <div className={styles.chartCard}>
+          <h3 className={styles.chartTitle}>
+            <div className={`${styles.titleDot} ${styles.dotRisk}`}></div>
             <span>Risk Level Distribution</span>
           </h3>
-          <div className="h-80">
+          <div className={styles.chartMedium}>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -340,7 +346,7 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({ people }) 
                     <Cell
                       key={`cell-${index}`}
                       fill={entry.color}
-                      stroke="#1f2937"
+                      stroke="var(--bg-dark)"
                       strokeWidth={2}
                     />
                   ))}
@@ -349,35 +355,36 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({ people }) 
                 <Legend
                   verticalAlign="bottom"
                   height={36}
-                  formatter={(value) => (
-                    <span className="text-[var(--text-primary)] font-medium">{value}</span>
-                  )}
+                  formatter={(value) => <span className={styles.legendFormatter}>{value}</span>}
                 />
               </PieChart>
             </ResponsiveContainer>
           </div>
 
           {/* Risk Level Descriptions */}
-          <div className="mt-6 space-y-2">
+          <div className={styles.descriptionList}>
             {likelihoodData.map((item, index) => (
-              <div key={index} className="flex items-center space-x-3 text-sm">
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></div>
-                <span className="text-[var(--text-secondary)]">{item.description}</span>
+              <div key={index} className={styles.descriptionItem}>
+                <div
+                  className={styles.descriptionDot}
+                  style={{ backgroundColor: item.color }}
+                ></div>
+                <span className={styles.descriptionText}>{item.description}</span>
               </div>
             ))}
           </div>
         </div>
 
         {/* Status Distribution with Enhanced Styling */}
-        <div className="bg-gradient-to-br from-gray-800 to-gray-900 p-8 rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] border border-[var(--glass-border)]">
-          <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-6 flex items-center space-x-3">
-            <div className="w-4 h-4 rounded-full bg-gradient-to-r from-blue-500 to-purple-500"></div>
+        <div className={styles.chartCard}>
+          <h3 className={styles.chartTitle}>
+            <div className={`${styles.titleDot} ${styles.dotStatus}`}></div>
             <span>Current Status Distribution</span>
           </h3>
-          <div className="h-80">
+          <div className={styles.chartMedium}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={statusData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--glass-border)" opacity={0.3} />
                 <XAxis
                   dataKey="name"
                   stroke="#9ca3af"
@@ -397,8 +404,8 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({ people }) 
                 >
                   <defs>
                     <linearGradient id="statusGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#3b82f6" />
-                      <stop offset="100%" stopColor="#8b5cf6" />
+                      <stop offset="0%" stopColor="var(--accent)" />
+                      <stop offset="100%" stopColor="var(--accent-emails)" />
                     </linearGradient>
                   </defs>
                 </Bar>
@@ -409,19 +416,19 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({ people }) 
       </div>
 
       {/* Enhanced Top Mentions Chart with Horizontal Layout */}
-      <div className="bg-gradient-to-br from-gray-800 to-gray-900 p-8 rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] border border-[var(--glass-border)]">
-        <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-6 flex items-center space-x-3">
-          <div className="w-4 h-4 rounded-full bg-gradient-to-r from-green-500 to-emerald-500"></div>
+      <div className={styles.chartCard}>
+        <h3 className={styles.chartTitle}>
+          <div className={`${styles.titleDot} ${styles.dotMentions}`}></div>
           <span>Top 15 Most Mentioned Individuals</span>
         </h3>
-        <div className="h-[500px]">
+        <div className={styles.chartTall}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={topMentions}
               layout="horizontal"
               margin={{ top: 20, right: 30, left: 120, bottom: 5 }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--glass-border)" opacity={0.3} />
               <XAxis type="number" stroke="#9ca3af" fontSize={12} />
               <YAxis
                 type="category"
@@ -447,16 +454,16 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({ people }) 
                 ))}
                 <defs>
                   <linearGradient id="highRiskGradient" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="#dc2626" />
-                    <stop offset="100%" stopColor="#ef4444" />
+                    <stop offset="0%" stopColor="var(--risk-critical)" />
+                    <stop offset="100%" stopColor="var(--accent-danger)" />
                   </linearGradient>
                   <linearGradient id="mediumRiskGradient" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="#d97706" />
-                    <stop offset="100%" stopColor="#f59e0b" />
+                    <stop offset="0%" stopColor="var(--risk-medium)" />
+                    <stop offset="100%" stopColor="var(--accent-warning)" />
                   </linearGradient>
                   <linearGradient id="lowRiskGradient" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="#059669" />
-                    <stop offset="100%" stopColor="#10b981" />
+                    <stop offset="0%" stopColor="var(--risk-low)" />
+                    <stop offset="100%" stopColor="var(--accent-success)" />
                   </linearGradient>
                 </defs>
               </Bar>
@@ -465,32 +472,32 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({ people }) 
         </div>
 
         {/* Legend for risk levels */}
-        <div className="mt-6 flex justify-center space-x-6">
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 rounded bg-gradient-to-r from-red-500 to-red-600"></div>
-            <span className="text-[var(--text-secondary)] text-sm">High Risk</span>
+        <div className={styles.legendRow}>
+          <div className={styles.legendItem}>
+            <div className={`${styles.legendSwatch} ${styles.riskHighGradient}`}></div>
+            <span className={styles.legendText}>High Risk</span>
           </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 rounded bg-gradient-to-r from-yellow-500 to-orange-500"></div>
-            <span className="text-[var(--text-secondary)] text-sm">Medium Risk</span>
+          <div className={styles.legendItem}>
+            <div className={`${styles.legendSwatch} ${styles.riskMediumGradient}`}></div>
+            <span className={styles.legendText}>Medium Risk</span>
           </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 rounded bg-gradient-to-r from-green-500 to-emerald-500"></div>
-            <span className="text-[var(--text-secondary)] text-sm">Low Risk</span>
+          <div className={styles.legendItem}>
+            <div className={`${styles.legendSwatch} ${styles.riskLowGradient}`}></div>
+            <span className={styles.legendText}>Low Risk</span>
           </div>
         </div>
       </div>
 
       {/* Role Distribution with Enhanced Visualization */}
-      <div className="bg-gradient-to-br from-gray-800 to-gray-900 p-8 rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] border border-[var(--glass-border)]">
-        <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-6 flex items-center space-x-3">
-          <div className="w-4 h-4 rounded-full bg-gradient-to-r from-purple-500 to-pink-500"></div>
+      <div className={styles.chartCard}>
+        <h3 className={styles.chartTitle}>
+          <div className={`${styles.titleDot} ${styles.dotRole}`}></div>
           <span>Role Distribution Analysis</span>
         </h3>
-        <div className="h-80">
+        <div className={styles.chartMedium}>
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={roleData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--glass-border)" opacity={0.3} />
               <XAxis
                 dataKey="name"
                 stroke="#9ca3af"
@@ -512,8 +519,8 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({ people }) 
               />
               <defs>
                 <linearGradient id="roleGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#8b5cf6" />
-                  <stop offset="100%" stopColor="#ec4899" />
+                  <stop offset="0%" stopColor="var(--accent-emails)" />
+                  <stop offset="100%" stopColor="var(--nav-blackbook)" />
                 </linearGradient>
               </defs>
             </AreaChart>
@@ -522,18 +529,18 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({ people }) 
       </div>
 
       {/* Mention Intensity Distribution */}
-      <div className="bg-gradient-to-br from-gray-800 to-gray-900 p-8 rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] border border-[var(--glass-border)]">
-        <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-6 flex items-center space-x-3">
-          <div className="w-4 h-4 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500"></div>
+      <div className={styles.chartCard}>
+        <h3 className={styles.chartTitle}>
+          <div className={`${styles.titleDot} ${styles.dotIntensity}`}></div>
           <span>Mention Intensity Distribution</span>
         </h3>
-        <div className="h-80">
+        <div className={styles.chartMedium}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={mentionDistribution}
               margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--glass-border)" opacity={0.3} />
               <XAxis dataKey="range" stroke="#9ca3af" fontSize={12} />
               <YAxis stroke="#9ca3af" fontSize={12} />
               <Tooltip content={<CustomTooltip />} />
@@ -545,8 +552,8 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({ people }) 
               >
                 <defs>
                   <linearGradient id="intensityGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#06b6d4" />
-                    <stop offset="100%" stopColor="#3b82f6" />
+                    <stop offset="0%" stopColor="var(--accent-info)" />
+                    <stop offset="100%" stopColor="var(--accent)" />
                   </linearGradient>
                 </defs>
               </Bar>
@@ -556,18 +563,18 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({ people }) 
       </div>
 
       {/* Enhanced Treemap Visualization */}
-      <div className="bg-gradient-to-br from-gray-800 to-gray-900 p-8 rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] border border-[var(--glass-border)]">
-        <h3 className="text-2xl font-bold text-[var(--text-primary)] mb-6 flex items-center space-x-3">
-          <div className="w-4 h-4 rounded-full bg-gradient-to-r from-teal-500 to-emerald-500"></div>
+      <div className={styles.chartCard}>
+        <h3 className={styles.chartTitle}>
+          <div className={`${styles.titleDot} ${styles.dotTreemap}`}></div>
           <span>Top 50 Individuals by Mentions (Interactive Treemap)</span>
         </h3>
-        <div className="h-[600px]">
+        <div className={styles.chartTreemap}>
           <ResponsiveContainer width="100%" height="100%">
             <Treemap
               data={treemapData}
               dataKey="size"
               aspectRatio={4 / 3}
-              stroke="#1f2937"
+              stroke="var(--bg-dark)"
               animationDuration={2000}
               content={<TreemapCellContent />}
             />
@@ -575,64 +582,62 @@ export const DataVisualization: React.FC<DataVisualizationProps> = ({ people }) 
         </div>
 
         {/* Treemap Legend */}
-        <div className="mt-6 flex justify-center space-x-6">
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 rounded bg-gradient-to-r from-red-600 to-red-700"></div>
-            <span className="text-[var(--text-secondary)] text-sm">High Risk</span>
+        <div className={styles.legendRow}>
+          <div className={styles.legendItem}>
+            <div className={`${styles.legendSwatch} ${styles.treemapHighGradient}`}></div>
+            <span className={styles.legendText}>High Risk</span>
           </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 rounded bg-gradient-to-r from-yellow-600 to-orange-600"></div>
-            <span className="text-[var(--text-secondary)] text-sm">Medium Risk</span>
+          <div className={styles.legendItem}>
+            <div className={`${styles.legendSwatch} ${styles.treemapMediumGradient}`}></div>
+            <span className={styles.legendText}>Medium Risk</span>
           </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 rounded bg-gradient-to-r from-green-600 to-emerald-600"></div>
-            <span className="text-[var(--text-secondary)] text-sm">Low Risk</span>
+          <div className={styles.legendItem}>
+            <div className={`${styles.legendSwatch} ${styles.treemapLowGradient}`}></div>
+            <span className={styles.legendText}>Low Risk</span>
           </div>
         </div>
       </div>
 
       {/* Summary Statistics with Enhanced Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-        <div className="bg-gradient-to-br from-purple-900 via-purple-800 to-purple-900 p-6 rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] border border-purple-700">
-          <div className="flex items-center justify-between mb-4">
-            <div className="text-3xl font-bold text-[var(--text-primary)]">
-              {people.length.toLocaleString()}
-            </div>
-            <div className="text-purple-300 text-2xl">👥</div>
+      <div className={styles.summaryGrid}>
+        <div className={`${styles.summaryCard} ${styles.summaryPurple}`}>
+          <div className={styles.summaryHeader}>
+            <div className={styles.summaryValue}>{people.length.toLocaleString()}</div>
+            <div className={styles.summaryEmoji}>👥</div>
           </div>
-          <div className="text-purple-200 text-sm font-medium">Total Individuals</div>
-          <div className="mt-2 text-xs text-purple-300 opacity-75">Across all evidence files</div>
+          <div className={styles.summaryLabel}>Total Individuals</div>
+          <div className={styles.summaryMeta}>Across all evidence files</div>
         </div>
 
-        <div className="bg-gradient-to-br from-indigo-900 via-indigo-800 to-indigo-900 p-6 rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] border border-indigo-700">
-          <div className="flex items-center justify-between mb-4">
-            <div className="text-3xl font-bold text-[var(--text-primary)]">
+        <div className={`${styles.summaryCard} ${styles.summaryIndigo}`}>
+          <div className={styles.summaryHeader}>
+            <div className={styles.summaryValue}>
               {Math.round(people.reduce((sum, p) => sum + p.mentions, 0) / people.length)}
             </div>
-            <div className="text-[var(--accent)] text-2xl">📈</div>
+            <div className={styles.summaryEmoji}>📈</div>
           </div>
-          <div className="text-indigo-200 text-sm font-medium">Avg Mentions</div>
-          <div className="mt-2 text-xs text-[var(--accent)] opacity-75">Per individual</div>
+          <div className={styles.summaryLabel}>Avg Mentions</div>
+          <div className={styles.summaryMeta}>Per individual</div>
         </div>
 
-        <div className="bg-gradient-to-br from-pink-900 via-pink-800 to-pink-900 p-6 rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] border border-pink-700">
-          <div className="flex items-center justify-between mb-4">
-            <div className="text-3xl font-bold text-[var(--text-primary)]">{roleData.length}</div>
-            <div className="text-pink-300 text-2xl">🎭</div>
+        <div className={`${styles.summaryCard} ${styles.summaryPink}`}>
+          <div className={styles.summaryHeader}>
+            <div className={styles.summaryValue}>{roleData.length}</div>
+            <div className={styles.summaryEmoji}>🎭</div>
           </div>
-          <div className="text-pink-200 text-sm font-medium">Unique Roles</div>
-          <div className="mt-2 text-xs text-pink-300 opacity-75">Across all individuals</div>
+          <div className={styles.summaryLabel}>Unique Roles</div>
+          <div className={styles.summaryMeta}>Across all individuals</div>
         </div>
 
-        <div className="bg-gradient-to-br from-teal-900 via-teal-800 to-teal-900 p-6 rounded-[var(--radius-xl)] shadow-[var(--glass-shadow)] border border-teal-700">
-          <div className="flex items-center justify-between mb-4">
-            <div className="text-3xl font-bold text-[var(--text-primary)]">
+        <div className={`${styles.summaryCard} ${styles.summaryTeal}`}>
+          <div className={styles.summaryHeader}>
+            <div className={styles.summaryValue}>
               {Math.max(...people.map((p) => p.mentions)).toLocaleString()}
             </div>
-            <div className="text-teal-300 text-2xl">🔥</div>
+            <div className={styles.summaryEmoji}>🔥</div>
           </div>
-          <div className="text-teal-200 text-sm font-medium">Max Mentions</div>
-          <div className="mt-2 text-xs text-teal-300 opacity-75">Single individual</div>
+          <div className={styles.summaryLabel}>Max Mentions</div>
+          <div className={styles.summaryMeta}>Single individual</div>
         </div>
       </div>
     </div>

@@ -22,6 +22,7 @@ import { useAnalytics } from '../../contexts/AnalyticsContextState';
 import { apiClient } from '../../services/apiClient';
 import type { Evidence } from '../visualizations/EvidenceDrawer';
 import type { Person } from '../../../types';
+import { Surface } from '../../design-system/lib';
 
 /** Raw node shape returned by /graph/global and /graph/global?mode=path */
 interface GraphApiNode {
@@ -179,7 +180,7 @@ const StatCard: React.FC<{
   label: string;
   sublabel?: string;
 }> = ({ icon, value, label, sublabel }) => (
-  <div className={`glass-panel ${s.statCard}`}>
+  <Surface className={s.statCard}>
     <div className={s.statCardContent}>
       <div className={s.statCardHeader}>
         {icon}
@@ -190,7 +191,7 @@ const StatCard: React.FC<{
       </div>
       {sublabel && <div className={s.statCardSublabel}>{sublabel}</div>}
     </div>
-  </div>
+  </Surface>
 );
 
 export const EnhancedAnalytics: React.FC = () => {
@@ -564,7 +565,7 @@ export const EnhancedAnalytics: React.FC = () => {
   return (
     <div className={`${s.page} ${s.fadeIn}`}>
       {/* Entity Network - Full Width - MOVED TO TOP */}
-      <div className={`glass-card ${s.networkSection}`}>
+      <div className={`surface-panel ${s.networkSection}`}>
         {/* Archive Reconciliation Header Indicator */}
         {data && (
           <div className={s.archiveBadgeWrap}>
@@ -832,7 +833,7 @@ export const EnhancedAnalytics: React.FC = () => {
       {/* Secondary Visualizations Grid */}
       <div className={s.vizGrid}>
         {/* Document Types Sunburst */}
-        <div className={`glass-card ${s.vizPanel}`}>
+        <div className={`surface-panel ${s.vizPanel}`}>
           <div className={s.vizPanelIconDecor}>
             <Database size={96} className={s.iconAccent} />
           </div>
@@ -859,7 +860,7 @@ export const EnhancedAnalytics: React.FC = () => {
         </div>
 
         {/* Timeline */}
-        <div className={`glass-card ${s.vizPanel}`}>
+        <div className={`surface-panel ${s.vizPanel}`}>
           <div className={s.vizPanelIconDecor}>
             <TrendingUp size={96} className={s.vizPanelIconPurple} />
           </div>

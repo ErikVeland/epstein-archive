@@ -14,6 +14,7 @@ import { DocumentList } from './DocumentList';
 import { DocumentHoverPreview } from './DocumentHoverPreview';
 import { useDocumentBrowserData } from '../../hooks/useDocumentBrowserData';
 import { useNavigate } from 'react-router-dom';
+import styles from './DocumentBrowser.module.css';
 
 interface DocumentBrowserProps {
   searchTerm?: string;
@@ -226,8 +227,8 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
   };
 
   return (
-    <Surface variant="glass" className="min-h-screen overflow-x-hidden">
-      <Box className="w-full px-[var(--space-6)] md:px-[var(--space-12)] py-[var(--space-4)] md:py-[var(--space-6)]">
+    <Surface variant="glass" className={styles.pageShell}>
+      <Box className={styles.contentWrap}>
         <DocumentBrowserHeader
           isHeaderCondensed={isHeaderCondensed}
           searchInput={searchInput}
@@ -258,7 +259,7 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden"
+              className={styles.filterMotion}
             >
               <DocumentBrowserFilters
                 localFilters={filters}
@@ -278,13 +279,13 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
         </AnimatePresence>
 
         {hasHighlights && (
-          <div className="mb-[var(--space-4)]">
+          <div className={styles.highlightWrap}>
             <HighlightNavigationControls
               currentHighlightIndex={currentHighlightIndex}
               totalHighlights={totalHighlights}
               onNext={nextHighlight}
               onPrev={prevHighlight}
-              className="surface-glass-card px-[var(--space-3)] py-[var(--space-2)] shrink-0"
+              className={`surface-panel ${styles.highlightControl}`}
             />
           </div>
         )}

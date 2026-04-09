@@ -9,26 +9,50 @@
   gap: var(--space-2);
   padding: var(--space-2) var(--space-3);
   background: var(--accent);
-  color: var(--text-primary);
+  color: white;
+  border: none;
   border-radius: var(--radius-lg);
   font-size: 0.875rem;
-  transition: filter var(--duration-fast) var(--easing-liquid);
+  font-weight: 600;
+  transition: all var(--duration-fast) var(--easing-liquid);
+  box-shadow: 0 4px 12px rgba(184, 134, 11, 0.2);
 }
 
 .triggerButton:hover {
-  filter: brightness(0.9);
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+/* Size variants for 'button' */
+.triggerButtonSm {
+  padding: var(--space-1) var(--space-2);
+  font-size: 0.75rem;
+}
+
+.triggerButtonLg {
+  padding: var(--space-3) var(--space-4);
+  font-size: 1rem;
 }
 
 /* 'icon' variant — ghost with accent text */
 .triggerIcon {
   padding: var(--space-2);
   color: var(--accent);
-  border-radius: var(--radius-lg);
-  transition: background-color var(--duration-fast) var(--easing-liquid);
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  transition: all var(--duration-fast) var(--easing-liquid);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
 }
 
 .triggerIcon:hover {
   background: color-mix(in srgb, var(--accent) 15%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 50%, transparent);
+  transform: scale(1.05);
 }
 
 /* Wrapper for dropdown variant */

@@ -1,11 +1,12 @@
 import React from 'react';
 import PhotoBrowser from './PhotoBrowser';
+import styles from '../../App.module.css';
 
 type MediaTabProps = Record<string, never>;
 
 export const MediaTab: React.FC<MediaTabProps> = () => {
   return (
-    <div className="h-full">
+    <div className={styles.hFull}>
       <PhotoBrowser />
     </div>
   );

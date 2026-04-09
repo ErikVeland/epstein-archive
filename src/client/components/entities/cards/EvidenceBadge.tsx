@@ -17,7 +17,7 @@ const FlagStack = ({ count, riskClassName }: { count: number; riskClassName: str
     <div className={styles.flagContainer}>
       {Array.from({ length: n }).map((_, i) => (
         <span key={i} className={`${styles.flagIcon} ${riskClassName}`}>
-          <Icon name="Flag" size="xs" className={styles.flagSvg} />
+          <Icon name="Flag" className={styles.flagSvg} />
         </span>
       ))}
     </div>
@@ -71,7 +71,7 @@ export const EvidenceBadge: React.FC<EvidenceBadgeProps> = ({
 
   return (
     <div className={`semantic-chip ${cfg.color}`} title={`Evidence Level: ${cfg.label}`}>
-      <Icon name={cfg.icon} size="xs" className={styles.flagSvg} />
+      <Icon name={cfg.icon} className={styles.flagSvg} />
       <span className={styles.levelLabel}>{cfg.label}</span>
     </div>
   );

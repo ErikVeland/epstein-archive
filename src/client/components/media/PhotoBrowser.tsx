@@ -7,9 +7,24 @@ import {
   ListChildComponentProps,
   areEqual,
 } from 'react-window';
+import {
+  Search,
+  Share2,
+  Check,
+  Users,
+  ArrowUp,
+  ArrowDown,
+  LayoutGrid,
+  List as ListIcon,
+  CheckSquare,
+  X,
+  AlertTriangle,
+  Clock,
+  HardDrive,
+} from 'lucide-react';
+import { Surface, Flex, Box, Stack, LqText, Button, cn } from '../../design-system/lib';
 import AutoSizer from '../common/AutoSizer';
 import { MediaImage } from '../../types/media.types';
-import Icon from '../common/Icon';
 import MediaViewerModal from './MediaViewerModal';
 import BatchToolbar from '../common/BatchToolbar';
 import LazyImage from '../common/LazyImage';
@@ -20,10 +35,9 @@ import { PhotoSortField as SortField, usePhotoBrowserData } from '../../hooks/us
 import { AlbumSidebar } from '../shared/AlbumSidebar';
 import { MobileAlbumDropdown } from '../shared/MobileAlbumDropdown';
 import { SEO } from '../common/SEO';
-import { cn } from '@client/utils/cn';
+import { EmptyCorpus } from '../common/EmptyCorpus';
 import styles from './PhotoBrowser.module.css';
 
-// Lazy load EvidenceModal to reduce initial bundle size
 const EvidenceModal = React.lazy(() =>
   import('../common/EvidenceModal').then((module) => ({ default: module.EvidenceModal })),
 );
@@ -33,8 +47,6 @@ interface PhotoBrowserProps {
 }
 
 type ViewMode = 'tiles' | 'rows';
-
-// --- Virtualized Renderers ---
 
 interface ItemData {
   images: MediaImage[];
@@ -58,62 +70,67 @@ const GridCell = React.memo(
       selectedImages,
       isBatchMode,
       onImageClick,
-      onToggleSelection,
       columnCount = 1,
       formatDate,
       formatFileSize,
     } = data;
     const index = rowIndex * columnCount + columnIndex;
 
-    // Handle empty cells in the last row
     if (index >= images.length) return null;
 
     const img = images[index];
     const isSelected = selectedImages.has(img.id);
 
     return (
-      <div style={{ ...style, padding: '4px' }}>
-        <button
+      <div style={{ ...style, padding: '6px' }}>
+        <Surface
+          variant={isSelected ? 'glass-highlight' : 'glass-strong'}
+          onClick={(e) => onImageClick(img, index, e as any)}
           className={cn(
             styles.gridCard,
-            isSelected ? styles.gridCardSelected : styles.gridCardIdle,
+            isSelected && styles.gridCardSelected,
+            isBatchMode && styles.batchModeCard,
           )}
-          onClick={(e) => onImageClick(img, index, e)}
-          onKeyDown={(e) => {
-            if (isBatchMode && e.key === 'Enter') {
-              onToggleSelection(img.id, index, e);
-            }
-          }}
           tabIndex={isBatchMode ? 0 : -1}
         >
-          {/* Selection indicator */}
           {isBatchMode && (
-            <div className={styles.selectionBadge}>{isSelected ? '✓' : index + 1}</div>
+            <Surface variant="solid" className={styles.selectionBadge}>
+              <LqText variant="xs" weight="bold" color="primary">
+                {isSelected ? <Check size={10} /> : index + 1}
+              </LqText>
+            </Surface>
           )}
+
           <SensitiveContent isSensitive={img.isSensitive} className={styles.mediaSurface}>
             <LazyImage
               key={img.id}
               src={`/api/media/images/${img.id}/thumbnail`}
               alt={img.title}
-              onError={(e) => {
-                const el = e.currentTarget as HTMLImageElement;
-                el.onerror = null;
-                el.src = `/api/media/images/${img.id}/file`;
-              }}
               className={styles.gridImage}
             />
           </SensitiveContent>
-          {/* Title overlay */}
-          <div className={styles.titleOverlay}>
-            <div className={styles.overlayTitle} title={img.title}>
-              {img.title}
-            </div>
-            <div className={styles.overlayMeta}>
-              <span>{formatDate(img.dateTaken)}</span>
-              <span>{formatFileSize(img.fileSize)}</span>
-            </div>
-          </div>
-        </button>
+
+          <Box className={styles.titleOverlay}>
+            <Stack gap="0" className={styles.overlayContent}>
+              <LqText
+                variant="xs"
+                weight="bold"
+                style={{ WebkitLineClamp: 1, display: '-webkit-box', overflow: 'hidden' }}
+                title={img.title}
+              >
+                {img.title}
+              </LqText>
+              <Flex justify="between" align="center">
+                <LqText variant="xs" color="muted">
+                  {formatDate(img.dateTaken)}
+                </LqText>
+                <LqText variant="xs" color="muted">
+                  {formatFileSize(img.fileSize)}
+                </LqText>
+              </Flex>
+            </Stack>
+          </Box>
+        </Surface>
       </div>
     );
   },
@@ -121,63 +138,66 @@ const GridCell = React.memo(
 );
 
 const ListRow = React.memo(({ index, style, data }: ListChildComponentProps<ItemData>) => {
-  const {
-    images,
-    selectedImages,
-    isBatchMode,
-    onImageClick,
-    onToggleSelection,
-    formatDate,
-    formatFileSize,
-  } = data;
+  const { images, selectedImages, isBatchMode, onImageClick, formatDate, formatFileSize } = data;
   const img = images[index];
   const isSelected = selectedImages.has(img.id);
 
   return (
-    <div style={style}>
-      <button
-        className={cn(styles.listRow, isSelected ? styles.listRowSelected : styles.listRowIdle)}
-        onClick={(e) => onImageClick(img, index, e)}
-        onKeyDown={(e) => {
-          if (isBatchMode && e.key === 'Enter') {
-            onToggleSelection(img.id, index, e);
-          }
-        }}
-        tabIndex={isBatchMode ? 0 : -1}
+    <div style={{ ...style, padding: '2px 6px' }}>
+      <Surface
+        variant={isSelected ? 'glass-highlight' : 'glass-highlight'}
+        onClick={(e) => onImageClick(img, index, e as any)}
+        className={cn(styles.listRow, isSelected && styles.listRowSelected)}
       >
-        {/* Selection indicator */}
-        {isBatchMode && (
-          <div className={cn(styles.selectionBadge, styles.listSelectionBadge)}>
-            {isSelected ? '✓' : index + 1}
-          </div>
-        )}
-        <div className={styles.listThumb}>
-          <SensitiveContent isSensitive={img.isSensitive} className={styles.mediaSurface}>
-            <LazyImage
-              key={img.id}
-              src={`/api/media/images/${img.id}/thumbnail`}
-              alt={img.title}
-              onError={(e) => {
-                const el = e.currentTarget as HTMLImageElement;
-                el.onerror = null;
-                el.src = `/api/media/images/${img.id}/file`;
-              }}
-              className={styles.listThumbImage}
-            />
-          </SensitiveContent>
-        </div>
-        <div className={styles.listMeta}>
-          <div className={styles.listTitle} title={img.title}>
-            {img.title}
-          </div>
-          <div className={styles.listFilename}>
-            {img.title !== img.filename ? img.filename : ''}
-          </div>
-        </div>
+        <Flex align="center" gap="md">
+          {isBatchMode && (
+            <Surface variant="solid" className={styles.listSelectionBadge}>
+              <LqText variant="xs" weight="bold" color="primary">
+                {isSelected ? <Check size={10} /> : index + 1}
+              </LqText>
+            </Surface>
+          )}
 
-        <div className={styles.listDate}>{formatDate(img.dateTaken || img.dateAdded)}</div>
-        <div className={styles.listSize}>{formatFileSize(img.fileSize)}</div>
-      </button>
+          <Box className={styles.listThumb}>
+            <SensitiveContent isSensitive={img.isSensitive} className={styles.mediaSurface}>
+              <LazyImage
+                key={img.id}
+                src={`/api/media/images/${img.id}/thumbnail`}
+                alt={img.title}
+                className={styles.listThumbImage}
+              />
+            </SensitiveContent>
+          </Box>
+
+          <Stack gap="0" style={{ flex: 1 }}>
+            <LqText
+              variant="xs"
+              weight="bold"
+              style={{ WebkitLineClamp: 1, display: '-webkit-box', overflow: 'hidden' }}
+            >
+              {img.title}
+            </LqText>
+            <LqText variant="xxxs" color="muted">
+              {img.filename}
+            </LqText>
+          </Stack>
+
+          <Flex align="center" gap="lg" className={styles.listMeta}>
+            <Flex align="center" gap="xs">
+              <Clock size={12} className={styles.mutedIcon} />
+              <LqText variant="xxxs" color="muted">
+                {formatDate(img.dateTaken || img.dateAdded)}
+              </LqText>
+            </Flex>
+            <Flex align="center" gap="xs">
+              <HardDrive size={12} className={styles.mutedIcon} />
+              <LqText variant="xxxs" color="muted">
+                {formatFileSize(img.fileSize)}
+              </LqText>
+            </Flex>
+          </Flex>
+        </Flex>
+      </Surface>
     </div>
   );
 }, areEqual);
@@ -186,15 +206,13 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
   const [viewMode, setViewMode] = useState<ViewMode>('tiles');
   const { isAdmin } = useAuth();
   const [viewerStartIndex, setViewerStartIndex] = useState<number | null>(null);
-  const [showAlbumDropdown, setShowAlbumDropdown] = useState(false); // Mobile album dropdown
+  const [showAlbumDropdown, setShowAlbumDropdown] = useState(false);
   const [previewPerson, setPreviewPerson] = useState<Pick<Person, 'id' | 'name'> | null>(null);
 
-  // Batch selection state
   const [selectedImages, setSelectedImages] = useState<Set<number>>(new Set());
   const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(null);
   const [isBatchMode, setIsBatchMode] = useState(false);
 
-  // Undo stack for batch operations
   const [undoStack, setUndoStack] = useState<
     Array<{ action: string; imageIds: number[]; prevState: MediaImage[] }>
   >([]);
@@ -256,14 +274,12 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
       let newSelectedImages = new Set(selectedImages);
 
       if (event.shiftKey && lastSelectedIndex !== null) {
-        // Shift+click: Select range (add to existing selection)
         const start = Math.min(lastSelectedIndex, index);
         const end = Math.max(lastSelectedIndex, index);
         for (let i = start; i <= end; i++) {
           newSelectedImages.add(images[i].id);
         }
       } else if (event.ctrlKey || event.metaKey) {
-        // Ctrl/Cmd+click: Toggle selection (add/remove from existing)
         if (newSelectedImages.has(imageId)) {
           newSelectedImages.delete(imageId);
         } else {
@@ -271,18 +287,14 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
         }
         setLastSelectedIndex(index);
       } else {
-        // Regular click: If in batch mode, deselect all and select only this one
         if (isBatchMode) {
           newSelectedImages = new Set([imageId]);
           setLastSelectedIndex(index);
         } else {
-          // If external handler provided, use it (legacy), otherwise open viewer
           if (onImageClick) {
             onImageClick(images[index]);
           } else {
             setViewerStartIndex(index);
-            // URL update handled by MediaViewerModal or here?
-            // MediaViewerModal handles param set.
           }
         }
       }
@@ -294,33 +306,25 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
 
   const handleImageClick = useCallback(
     (image: MediaImage, index: number, event: React.MouseEvent) => {
-      // If in batch mode, handle selection
       if (isBatchMode) {
         toggleImageSelection(image.id, index, event);
       } else {
-        // If external handler provided, use it (legacy), otherwise open viewer
         if (onImageClick) {
           onImageClick(image);
         } else {
           setViewerStartIndex(index);
-          // URL update handled by MediaViewerModal or here?
-          // MediaViewerModal handles param set.
         }
       }
     },
     [isBatchMode, toggleImageSelection, onImageClick],
   );
 
-  const enterBatchMode = () => {
-    setIsBatchMode(true);
-  };
-
+  const enterBatchMode = () => setIsBatchMode(true);
   const exitBatchMode = () => {
     setIsBatchMode(false);
     setSelectedImages(new Set());
     setLastSelectedIndex(null);
   };
-
   const clearSelection = () => {
     setSelectedImages(new Set());
     setLastSelectedIndex(null);
@@ -334,259 +338,138 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
     });
   };
 
-  // Handle grid container click (for click-outside-to-deselect)
   const handleGridClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    // Only clear selection if in batch mode and clicked directly on the grid container (not an image)
     if (isBatchMode && e.target === e.currentTarget) {
       clearSelection();
     }
   };
 
-  // Undo the last batch operation
   const handleUndo = () => {
     if (undoStack.length === 0) return;
-
     const lastAction = undoStack[undoStack.length - 1];
-
-    // Restore previous state
     const updatedImages = [...images];
     for (const prevImg of lastAction.prevState) {
       const index = updatedImages.findIndex((img) => img.id === prevImg.id);
-      if (index !== -1) {
-        updatedImages[index] = prevImg;
-      }
+      if (index !== -1) updatedImages[index] = prevImg;
     }
     updateImages(() => updatedImages);
-
-    // Remove from undo stack
     setUndoStack((prev) => prev.slice(0, -1));
-
-    console.log(`Undid ${lastAction.action} on ${lastAction.imageIds.length} images`);
   };
 
   const handleBatchRotate = async (direction: 'left' | 'right') => {
     if (selectedImages.size === 0) return;
-
-    // Save state for undo
     const affectedImageIds = Array.from(selectedImages);
     const prevState = images.filter((img) => selectedImages.has(img.id)).map((img) => ({ ...img }));
-
     try {
       const response = await fetch('/api/media/images/batch/rotate', {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          imageIds: affectedImageIds,
-          direction,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageIds: affectedImageIds, direction }),
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to batch rotate images');
-      }
-
+      if (!response.ok) throw new Error('Failed to batch rotate');
       const { results } = await response.json();
-
-      // Push to undo stack
       setUndoStack((prev) => [
         ...prev.slice(-9),
         { action: `rotate-${direction}`, imageIds: affectedImageIds, prevState },
       ]);
-
-      // Update images with rotated versions
       const updatedImages = [...images];
       for (const result of results) {
         if (result.success) {
           const index = updatedImages.findIndex((img) => img.id === result.id);
           if (index !== -1) {
-            // Normalize backend response to match frontend model
             const raw = result.image;
-            const normalizedUpdate = {
-              ...raw,
-              dateModified: raw.date_modified || raw.dateModified,
-              width: raw.width,
-              height: raw.height,
-              orientation: raw.orientation,
-            };
-            updatedImages[index] = { ...updatedImages[index], ...normalizedUpdate };
+            updatedImages[index] = { ...updatedImages[index], ...raw };
           }
         }
       }
       updateImages(() => updatedImages);
-
-      // Show success message
-      console.log(
-        `Successfully rotated ${(results as Array<{ success: boolean }>).filter((r) => r.success).length} images`,
-      );
     } catch (error) {
-      console.error('Error batch rotating images:', error);
+      console.error(error);
       alert('Failed to rotate images');
     }
   };
 
   const handleBatchRate = async (rating: number) => {
     if (selectedImages.size === 0) return;
-
     try {
       const response = await fetch('/api/media/images/batch/rate', {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          imageIds: Array.from(selectedImages),
-          rating,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageIds: Array.from(selectedImages), rating }),
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to batch rate images');
-      }
-
+      if (!response.ok) throw new Error('Failed to batch rate');
       const { results } = await response.json();
-
-      // Update images with new ratings
       const updatedImages = [...images];
       for (const result of results) {
         if (result.success) {
           const index = updatedImages.findIndex((img) => img.id === result.id);
-          if (index !== -1) {
-            updatedImages[index] = { ...updatedImages[index], rating };
-          }
+          if (index !== -1) updatedImages[index] = { ...updatedImages[index], rating };
         }
       }
       updateImages(() => updatedImages);
-
-      // Show success message
-      console.log(
-        `Successfully tagged ${(results as Array<{ success: boolean }>).filter((r) => r.success).length} images`,
-      );
     } catch (error) {
-      console.error('Error batch rating images:', error);
+      console.error(error);
       alert('Failed to rate images');
     }
   };
 
   const handleBatchTag = async (tagIds: number[], action: 'add' | 'remove') => {
     if (selectedImages.size === 0) return;
-
     try {
       const response = await fetch('/api/media/items/batch/tags', {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          itemIds: Array.from(selectedImages),
-          tagIds,
-          action,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ itemIds: Array.from(selectedImages), tagIds, action }),
       });
-
-      if (!response.ok) {
-        throw new Error(`Failed to batch ${action} tags`);
-      }
-
-      const { results } = await response.json();
-
-      // For simplicity, we're not updating the UI with tag changes
-      // In a real implementation, we might want to refetch tags for affected images
-
-      // Show success message
-      console.log(
-        `Successfully ${action}ed tags to ${(results as Array<{ success: boolean }>).filter((r) => r.success).length} images`,
-      );
+      if (!response.ok) throw new Error(`Failed to batch ${action} tags`);
     } catch (error) {
-      console.error(`Error batch ${action}ing tags:`, error);
+      console.error(error);
       alert(`Failed to ${action} tags`);
     }
   };
 
   const handleBatchPeople = async (entityIds: number[], action: 'add' | 'remove') => {
     if (selectedImages.size === 0) return;
-
     try {
       const response = await fetch('/api/media/items/batch/people', {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          itemIds: Array.from(selectedImages),
-          personIds: entityIds,
-          action,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ itemIds: Array.from(selectedImages), personIds: entityIds, action }),
       });
-
-      if (!response.ok) {
-        throw new Error(`Failed to batch ${action} people`);
-      }
-
-      const { results } = await response.json();
-
-      // For simplicity, we're not updating the UI with people changes
-      // In a real implementation, we might want to refetch people for affected images
-
-      // Show success message
-      console.log(
-        `Successfully tagged people for ${(results as Array<{ success: boolean }>).filter((r) => r.success).length} images`,
-      );
+      if (!response.ok) throw new Error(`Failed to batch ${action} people`);
     } catch (error) {
-      console.error(`Error batch ${action}ing people:`, error);
+      console.error(error);
       alert(`Failed to ${action} people`);
     }
   };
 
   const handleBatchMetadata = async (updates: { title?: string; description?: string }) => {
     if (selectedImages.size === 0) return;
-
     try {
       const response = await fetch('/api/media/images/batch/metadata', {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          imageIds: Array.from(selectedImages),
-          updates,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageIds: Array.from(selectedImages), updates }),
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to batch update metadata');
-      }
-
+      if (!response.ok) throw new Error('Failed to batch update metadata');
       const { results } = await response.json();
-
-      // Update images with new metadata
       const updatedImages = [...images];
       for (const result of results) {
         if (result.success) {
           const index = updatedImages.findIndex((img) => img.id === result.id);
-          if (index !== -1) {
-            updatedImages[index] = { ...updatedImages[index], ...updates };
-          }
+          if (index !== -1) updatedImages[index] = { ...updatedImages[index], ...updates };
         }
       }
       updateImages(() => updatedImages);
-
-      // Show success message
-      console.log(
-        `Successfully updated metadata for ${(results as Array<{ success: boolean }>).filter((r) => r.success).length} images`,
-      );
     } catch (error) {
-      console.error('Error batch updating metadata:', error);
+      console.error(error);
       alert('Failed to update metadata');
     }
   };
 
-  // Memoize formatters to prevent recreation on every render (performance optimization)
   const formatFileSize = useCallback((bytes: number | string | undefined): string => {
     const numBytes = Number(bytes);
-    if (bytes === undefined || bytes === null || bytes === '' || !Number.isFinite(numBytes))
-      return 'Unknown';
+    if (!bytes || !Number.isFinite(numBytes)) return 'Unknown';
     if (numBytes === 0) return '0 B';
     if (numBytes < 1024) return `${numBytes} B`;
     if (numBytes < 1024 * 1024) return `${(numBytes / 1024).toFixed(1)} KB`;
@@ -598,12 +481,8 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
     try {
       const date = new Date(dateString);
       if (isNaN(date.getTime())) return 'Unknown';
-      return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-      });
-    } catch (_e) {
+      return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    } catch {
       return 'Unknown';
     }
   }, []);
@@ -621,163 +500,131 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
         title={currentAlbum ? `${currentAlbum.name} — Photos` : 'Photo Archive'}
         description="Forensic photo evidence from the Epstein files."
       />
-      <div className={cn('surface-glass', styles.browser)}>
+      <Surface variant="glass-container" className={styles.browser}>
         {/* Header with controls */}
-        <div className={cn('app-header-glass', styles.header)}>
+        <Flex justify="between" align="center" className={styles.header}>
           <MobileAlbumDropdown
             albums={adaptedAlbums}
             selectedAlbum={selectedAlbum}
             onSelectAlbum={setSelectedAlbum}
             isOpen={showAlbumDropdown}
-            onToggle={() => setShowAlbumDropdown((value) => !value)}
+            onToggle={() => setShowAlbumDropdown((v) => !v)}
             totalItemCount={libraryTotalCount}
             allLabel="All Photos"
             currentAlbumName={currentAlbum?.name}
           />
 
-          {/* Search - Smaller on mobile */}
-          <div className={styles.searchShell}>
-            <div className={styles.searchField}>
-              <Icon name="Search" size="sm" className={styles.searchIcon} />
+          <Flex gap="md" align="center" grow className={styles.searchShell}>
+            <Box className={styles.searchField}>
+              <Search size={16} className={styles.searchIcon} />
               <input
                 type="text"
-                placeholder="Search images..."
+                placeholder="Search archive..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className={cn('surface-glass', styles.searchInput)}
+                className={styles.searchInput}
               />
-            </div>
-            {/* Mobile share button */}
-            <button onClick={handleShare} className={cn('surface-glass', styles.mobileShareButton)}>
-              {showCopied ? (
-                <Icon name="Check" size="sm" className={styles.shareSuccessIcon} />
-              ) : (
-                <Icon name="Share2" size="sm" />
+            </Box>
+
+            <Flex gap="sm" className={styles.desktopControls}>
+              <Button variant="glass" size="sm" onClick={handleShare}>
+                {showCopied ? (
+                  <Check size={14} className={styles.shareSuccess} />
+                ) : (
+                  <Share2 size={14} />
+                )}
+                <span>Share</span>
+              </Button>
+
+              <Flex gap="xs" className={styles.filterControls}>
+                <select
+                  value={selectedTag || ''}
+                  onChange={(e) => setSelectedTag(e.target.value ? parseInt(e.target.value) : null)}
+                  className={styles.filterSelect}
+                >
+                  <option value="">All Tags</option>
+                  {availableTags.map((tag) => (
+                    <option key={tag.id} value={tag.id}>
+                      {tag.name}
+                    </option>
+                  ))}
+                </select>
+
+                <select
+                  value={selectedPerson || ''}
+                  onChange={(e) =>
+                    setSelectedPerson(e.target.value ? parseInt(e.target.value) : null)
+                  }
+                  onFocus={loadPeopleOptions}
+                  className={styles.filterSelect}
+                >
+                  <option value="">All People</option>
+                  {availablePeople.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+
+                <Button
+                  variant={hasPeopleOnly ? 'accent-solid' : 'glass'}
+                  onClick={() => setHasPeopleOnly(!hasPeopleOnly)}
+                  title="Filter for people"
+                >
+                  <Users size={14} />
+                </Button>
+              </Flex>
+
+              <Box className={styles.controlsDivider} />
+
+              <Flex align="center" gap="xs" className={styles.sortControls}>
+                <select
+                  value={sortField}
+                  onChange={(e) => setSortField(e.target.value as SortField)}
+                  className={styles.sortSelect}
+                >
+                  <option value="date_added">Added</option>
+                  <option value="date_taken">Taken</option>
+                  <option value="filename">Name</option>
+                  <option value="file_size">Size</option>
+                </select>
+                <Button
+                  variant="glass"
+                  onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                >
+                  {sortOrder === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
+                </Button>
+              </Flex>
+
+              <Flex className={styles.viewToggle}>
+                <Button
+                  variant={viewMode === 'tiles' ? 'accent-solid' : 'glass'}
+                  onClick={() => setViewMode('tiles')}
+                >
+                  <LayoutGrid size={14} />
+                </Button>
+                <Button
+                  variant={viewMode === 'rows' ? 'accent-solid' : 'glass'}
+                  onClick={() => setViewMode('rows')}
+                >
+                  <ListIcon size={14} />
+                </Button>
+              </Flex>
+
+              {isAdmin && (
+                <Button
+                  variant={isBatchMode ? 'accent-solid' : 'glass-highlight'}
+                  onClick={isBatchMode ? exitBatchMode : enterBatchMode}
+                >
+                  <CheckSquare size={14} />
+                  <span>{isBatchMode ? 'Finish' : 'Batch'}</span>
+                </Button>
               )}
-            </button>
-          </div>
+            </Flex>
+          </Flex>
+        </Flex>
 
-          {/* Desktop Sort and View Controls - Hidden on mobile */}
-          <div className={styles.desktopControls}>
-            <button onClick={handleShare} className={cn('surface-glass', styles.shareButton)}>
-              {showCopied ? (
-                <Icon name="Check" size="sm" className={styles.shareSuccessIcon} />
-              ) : (
-                <Icon name="Share2" size="sm" />
-              )}
-              Share
-            </button>
-
-            {/* Filters */}
-            <div className={styles.filterControls}>
-              <select
-                value={selectedTag || ''}
-                onChange={(e) => setSelectedTag(e.target.value ? parseInt(e.target.value) : null)}
-                className={cn('surface-glass', styles.filterSelect)}
-              >
-                <option value="">All Tags</option>
-                {availableTags.map((tag) => (
-                  <option key={tag.id} value={tag.id}>
-                    {tag.name}
-                  </option>
-                ))}
-              </select>
-
-              <select
-                value={selectedPerson || ''}
-                onChange={(e) =>
-                  setSelectedPerson(e.target.value ? parseInt(e.target.value) : null)
-                }
-                onFocus={loadPeopleOptions}
-                className={cn('surface-glass', styles.filterSelect)}
-              >
-                <option value="">All People</option>
-                {availablePeople.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
-
-              <button
-                onClick={() => setHasPeopleOnly(!hasPeopleOnly)}
-                className={cn(
-                  styles.peopleFilterButton,
-                  hasPeopleOnly ? styles.peopleFilterButtonActive : 'surface-glass',
-                )}
-                title="Show only images with people"
-              >
-                <Icon name="Users" size="sm" />
-              </button>
-            </div>
-
-            <div className={styles.controlsDivider} />
-
-            <div className={styles.sortControls}>
-              <span className={styles.sortLabel}>Sort by:</span>
-              <select
-                value={sortField}
-                onChange={(e) => setSortField(e.target.value as SortField)}
-                className={cn('surface-glass', styles.sortSelect)}
-              >
-                <option value="date_added">Date Added</option>
-                <option value="date_taken">Date Taken</option>
-                <option value="filename">Name</option>
-                <option value="file_size">Size</option>
-                <option value="title">Title</option>
-              </select>
-            </div>
-
-            <button
-              onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-              className={cn('surface-glass', styles.iconButton)}
-              title={sortOrder === 'asc' ? 'Ascending' : 'Descending'}
-            >
-              <Icon name={sortOrder === 'asc' ? 'ArrowUp' : 'ArrowDown'} size="sm" />
-            </button>
-
-            <div className={cn('surface-glass', styles.viewToggle)}>
-              <button
-                className={cn(
-                  styles.viewToggleButton,
-                  viewMode === 'tiles'
-                    ? styles.viewToggleButtonActive
-                    : styles.viewToggleButtonIdle,
-                )}
-                onClick={() => setViewMode('tiles')}
-                title="Grid View"
-              >
-                <Icon name="Grid" size="sm" />
-              </button>
-              <button
-                className={cn(
-                  styles.viewToggleButton,
-                  viewMode === 'rows' ? styles.viewToggleButtonActive : styles.viewToggleButtonIdle,
-                )}
-                onClick={() => setViewMode('rows')}
-                title="List View"
-              >
-                <Icon name="List" size="sm" />
-              </button>
-            </div>
-
-            {/* Batch Mode Toggle - Admin Only */}
-            {isAdmin && (
-              <button
-                onClick={isBatchMode ? exitBatchMode : enterBatchMode}
-                className={cn(
-                  styles.batchToggleButton,
-                  isBatchMode ? styles.batchToggleButtonActive : 'surface-glass',
-                )}
-              >
-                <Icon name="CheckSquare" size="sm" />
-                {isBatchMode ? 'Exit Batch Mode' : 'Batch Edit'}
-              </button>
-            )}
-          </div>
-        </div>
-
-        <div className={styles.contentLayout}>
+        <Flex className={styles.contentLayout}>
           <AlbumSidebar
             albums={adaptedAlbums}
             selectedAlbum={selectedAlbum}
@@ -786,93 +633,100 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
             allLabel="All Photos"
           />
 
-          {/* Main Content */}
-          <div className={styles.mainContent}>
-            {loading && images.length === 0 ? (
-              <div className={styles.loadingOverlay}>
-                <div className={styles.loadingSpinner} />
-              </div>
-            ) : null}
-
-            {/* Discreet loading indicator for updates */}
-            {loading && images.length > 0 && (
-              <div className={styles.inlineLoaderWrap}>
-                <div className={styles.inlineLoader} />
-              </div>
+          <Stack grow className={styles.mainContent}>
+            {loading && images.length === 0 && (
+              <Flex align="center" justify="center" className={styles.loadingOverlay}>
+                <Box className={styles.loadingSpinner} />
+              </Flex>
             )}
 
-            {/* Warning Banner for Fake/Unconfirmed Albums */}
+            {/* Forensic Warning Banners */}
             {selectedAlbum && currentAlbum?.name.match(/Fake|Unconfirmed/i) && (
-              <div className={styles.warningBanner}>
-                <Icon name="AlertTriangle" className={styles.warningIcon} />
-                <div>
-                  <h4 className={styles.warningTitle}>
-                    {currentAlbum.name.includes('Fake')
-                      ? 'Confirmed Fake Media'
-                      : 'Unconfirmed / Unverified Content'}
-                  </h4>
-                  <p className={styles.warningBody}>
-                    {currentAlbum.name.includes('Fake')
-                      ? 'These images have been confirmed as AI-generated or photoshopped. They are distributed to spread misinformation and discredit survivors. Viewing them may be harmful.'
-                      : 'These images currently lack provenance or verification. Treat with extreme caution as they may be manipulated or out of context.'}
-                  </p>
-                </div>
-              </div>
+              <Surface variant="glass-strong" className={styles.warningBanner}>
+                <Flex align="start" gap="md">
+                  <AlertTriangle size={24} color="var(--lq-danger)" />
+                  <Stack gap="xs">
+                    <LqText variant="small" weight="bold" color="danger">
+                      {currentAlbum.name.includes('Fake')
+                        ? 'Confirmed Forensic Manipulation'
+                        : 'Unverified Intelligence'}
+                    </LqText>
+                    <LqText variant="xxs">
+                      {currentAlbum.name.includes('Fake')
+                        ? 'This material has been confirmed as AI-generated or manipulated intelligence designed to discredit investigation proceeds.'
+                        : 'This content lacks definitive provenance. Analytical skepticism is required during forensic review.'}
+                    </LqText>
+                  </Stack>
+                </Flex>
+              </Surface>
             )}
 
-            {/* Active Filters */}
+            {/* Active Filters Display */}
             {(selectedTag || selectedPerson) && (
-              <div className={cn('surface-glass-header', styles.activeFilters)}>
-                <span className={styles.activeFiltersLabel}>Filtered by:</span>
-
+              <Flex gap="sm" align="center" className={styles.activeFilters}>
+                <LqText
+                  variant="xxxs"
+                  weight="bold"
+                  color="muted"
+                  style={{ textTransform: 'uppercase' }}
+                >
+                  Active Filters:
+                </LqText>
                 {selectedTag && (
-                  <button onClick={() => setSelectedTag(null)} className={styles.filterPill}>
-                    <span>Tag: {selectedTagLabel}</span>
-                    <Icon name="X" size="xs" className={styles.filterPillIcon} />
-                  </button>
+                  <Button variant="glass-highlight" size="sm" onClick={() => setSelectedTag(null)}>
+                    <span>{selectedTagLabel}</span>
+                    <X size={10} />
+                  </Button>
                 )}
-
                 {selectedPerson && (
-                  <button onClick={() => setSelectedPerson(null)} className={styles.filterPill}>
-                    <span>Person: {selectedPersonLabel}</span>
-                    <Icon name="X" size="xs" className={styles.filterPillIcon} />
-                  </button>
+                  <Button
+                    variant="glass-highlight"
+                    size="sm"
+                    onClick={() => setSelectedPerson(null)}
+                  >
+                    <span>{selectedPersonLabel}</span>
+                    <X size={10} />
+                  </Button>
                 )}
-
-                <button
+                <Button
+                  variant="glass"
+                  size="sm"
                   onClick={() => {
                     setSelectedTag(null);
                     setSelectedPerson(null);
                   }}
-                  className={styles.clearFiltersButton}
                 >
-                  Clear all
-                </button>
-              </div>
+                  Clear All
+                </Button>
+              </Flex>
             )}
 
-            <div className={styles.browserViewport} onClick={handleGridClick}>
+            <Box className={styles.browserViewport} onClick={handleGridClick}>
               {!loading && images.length === 0 ? (
-                <div className={styles.emptyState}>
-                  <Icon name="Image" size="lg" className={styles.emptyStateIcon} />
-                  <p>No images found</p>
-                </div>
+                <EmptyCorpus
+                  icon="Image"
+                  title="No Images Found"
+                  body={
+                    searchQuery || selectedTag || selectedPerson || hasPeopleOnly
+                      ? 'No images match the current filters. Try clearing the search or tag filters to see all indexed photographs.'
+                      : 'Photographs and visual evidence are indexed during media ingestion. No images have been loaded into the corpus yet — run the media ingestion pipeline to populate this section.'
+                  }
+                />
               ) : (
                 <AutoSizer>
                   {({ width, height }) => {
-                    if (width < 50) return null; // Avoid invalid calculations
+                    if (width < 50) return null;
                     if (viewMode === 'tiles') {
-                      const minColumnWidth = 200;
+                      const minColumnWidth = 220;
                       const gap = 16;
-                      const availableWidth = width - 48;
+                      const availableWidth = width - 32;
                       const columnCount = Math.max(
                         1,
                         Math.floor((availableWidth + gap) / (minColumnWidth + gap)),
                       );
                       const columnWidth = (availableWidth - gap * (columnCount - 1)) / columnCount;
                       const rowCount = Math.ceil(images.length / columnCount);
-                      // Aspect ratio 3:2 roughly plus padding
-                      const rowHeight = columnWidth / 1.5 + 8;
+                      const rowHeight = columnWidth / 1.5 + 40;
 
                       const itemData = {
                         images,
@@ -894,10 +748,13 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
                           rowHeight={rowHeight + gap}
                           width={width}
                           itemData={itemData}
-                          className={cn(styles.virtualScroller, styles.gridScroller)}
+                          className={styles.virtualScroller}
                           onItemsRendered={({ visibleRowStopIndex }) => {
-                            const visibleIndex = visibleRowStopIndex * columnCount;
-                            if (visibleIndex >= images.length - 20 && hasMore && !loading) {
+                            if (
+                              visibleRowStopIndex * columnCount >= images.length - 20 &&
+                              hasMore &&
+                              !loading
+                            ) {
                               void loadMore();
                             }
                           }}
@@ -906,7 +763,6 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
                         </Grid>
                       );
                     } else {
-                      // List View
                       const itemData = {
                         images,
                         selectedImages,
@@ -921,7 +777,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
                         <List
                           height={height}
                           itemCount={images.length}
-                          itemSize={72} // Height of list item
+                          itemSize={84}
                           width={width}
                           itemData={itemData}
                           className={styles.virtualScroller}
@@ -939,51 +795,39 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
                 </AutoSizer>
               )}
 
-              {/* Batch Toolbar - Rendered via Portal for true viewport positioning */}
               {isBatchMode &&
                 createPortal(
-                  <div className={styles.batchToolbarPortal}>
-                    <div className={styles.batchToolbarWrap}>
+                  <Box className={styles.batchToolbarPortal}>
+                    <Surface variant="glass-container" className={styles.batchToolbarWrap}>
                       <BatchToolbar
                         selectedCount={selectedImages.size}
                         onRotate={handleBatchRotate}
-                        onAssignTags={(tags) => {
-                          // For now, we'll just add tags
-                          handleBatchTag(tags, 'add');
-                        }}
-                        onAssignPeople={(people) => {
-                          // For now, we'll just add people
-                          handleBatchPeople(people, 'add');
-                        }}
+                        onAssignTags={(tags) => handleBatchTag(tags, 'add')}
+                        onAssignPeople={(ppl) => handleBatchPeople(ppl, 'add')}
                         onAssignRating={handleBatchRate}
-                        onEditMetadata={(field, value) => {
-                          // Create updates object based on field
-                          const updates: { title?: string; description?: string } = {};
-                          if (field === 'title') {
-                            updates.title = value;
-                          } else if (field === 'description') {
-                            updates.description = value;
-                          }
-                          handleBatchMetadata(updates);
-                        }}
+                        onEditMetadata={(field, val) => handleBatchMetadata({ [field]: val })}
                         onCancel={exitBatchMode}
                         onDeselect={clearSelection}
                         onUndo={handleUndo}
                         canUndo={undoStack.length > 0}
                       />
-                    </div>
-                  </div>,
+                    </Surface>
+                  </Box>,
                   document.body,
                 )}
-            </div>
-          </div>
-        </div>
+            </Box>
+          </Stack>
+        </Flex>
 
         {/* Footer Status Bar */}
-        <div className={styles.footer}>
-          <div>{images.length} items</div>
-          <div>{selectedAlbum ? currentAlbum?.name : 'All Photos'}</div>
-        </div>
+        <Flex justify="between" align="center" px="md" py="xs" className={styles.footer}>
+          <LqText variant="xs" color="muted" style={{ textTransform: 'uppercase' }} weight="bold">
+            {images.length} Objects Indexed
+          </LqText>
+          <LqText variant="xs" color="muted" style={{ textTransform: 'uppercase' }} weight="bold">
+            Catalog: {selectedAlbum ? currentAlbum?.name : 'Master Archive'}
+          </LqText>
+        </Flex>
 
         {/* Full Screen Viewer */}
         {viewerStartIndex !== null && (
@@ -991,33 +835,30 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
             images={images}
             initialIndex={viewerStartIndex}
             onClose={handleCloseViewer}
-            onImageUpdate={(updatedImage) => {
+            onImageUpdate={(updated) => {
               const newImages = [...images];
-              const index = newImages.findIndex((img) => img.id === updatedImage.id);
-              if (index !== -1) {
-                newImages[index] = updatedImage;
+              const idx = newImages.findIndex((img) => img.id === updated.id);
+              if (idx !== -1) {
+                newImages[idx] = updated;
                 updateImages(() => newImages);
               }
             }}
-            onEntityClick={(person) => {
-              // Open EvidenceModal for the clicked person
-              // Construct a partial person object from the minimal data we have
-              setPreviewPerson({ id: person.id, name: person.name || '' });
-            }}
+            onEntityClick={(p) => setPreviewPerson({ id: p.id, name: p.name || '' })}
           />
         )}
+
         {previewPerson && (
           <React.Suspense fallback={null}>
-            <div className={styles.previewModal}>
+            <Box className={styles.previewModal}>
               <EvidenceModal
                 entityId={String(previewPerson.id)}
                 isOpen={!!previewPerson}
                 onClose={() => setPreviewPerson(null)}
               />
-            </div>
+            </Box>
           </React.Suspense>
         )}
-      </div>
+      </Surface>
     </>
   );
 });

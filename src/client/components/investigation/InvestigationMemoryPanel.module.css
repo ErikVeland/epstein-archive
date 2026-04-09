@@ -436,3 +436,82 @@
     transform: rotate(360deg);
   }
 }
+
+.autoGen240 {
+  position: fixed;
+  inset: 0;
+  /* Missing: z-[var(--lq-z-modal)] */
+  display: flex;
+  justify-content: flex-end;
+  background-color: black/40;
+  /* Missing: backdrop-blur-sm */
+}
+
+.autoGen241 {
+  /* Missing: shadow-2xl */
+  border-color: l;
+  border-color: l-[var(--lq-surface-3)];
+  /* Missing: ml-auto */
+}
+
+.autoGen242 {
+  border-color: b;
+  border-color: b-[var(--lq-surface-3)];
+}
+
+.autoGen243 {
+  color: var(--lq-accent);
+}
+
+.autoGen244 {
+  position: relative;
+}
+
+.autoGen245 {
+  position: absolute;
+  /* Missing: left-3 */
+  /* Missing: top-1/2 */
+  /* Missing: -translate-y-1/2 */
+  color: var(--lq-text-dim);
+}
+
+.autoGen246 {
+  overflow-y: auto;
+  padding: var(--space-xl);
+}
+
+.autoGen247 {
+  color: var(--lq-text-dim);
+}
+
+.autoGen248 {
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--lq-surface-3);
+  /* Missing: hover:border-[var(--lq-accent)] */
+  transition: all 0.2s ease;
+}
+
+.autoGen249 {
+  color: var(--lq-text-dim);
+}
+
+.autoGen250 {
+  /* Missing: mr-1 */
+  color: var(--lq-warning);
+}
+
+.autoGen251 {
+  color: var(--lq-error);
+  /* Missing: opacity-30 */
+  /* Missing: hover:opacity-100 */
+}
+
+.autoGen252 {
+  border-color: t;
+  border-color: t-[var(--lq-surface-3)];
+}
+
+.autoGen253 {
+  color: var(--lq-accent);
+}

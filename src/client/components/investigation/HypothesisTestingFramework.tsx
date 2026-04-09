@@ -1,15 +1,48 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Target, Plus, Edit3, Trash2, Link, User, FileText } from 'lucide-react';
-import { EvidenceItem, Hypothesis as BaseHypothesis } from '../../types/investigation';
+import {
+  Target,
+  Plus,
+  Trash2,
+  Link,
+  CheckCircle2,
+  XCircle,
+  Zap,
+  RefreshCw,
+  TrendingUp,
+  History,
+} from 'lucide-react';
+import { EvidenceItem } from '../../types/investigation';
+
+// UI Library
+import styles from './HypothesisTestingFramework.module.css';
+import {
+  Surface,
+  Button,
+  Flex,
+  Box,
+  Stack,
+  LqText,
+  Grid,
+  cn,
+  Badge,
+} from '../../design-system/lib';
 
 // Extended Hypothesis type with additional fields for testing
-// Extended Hypothesis type with additional fields for testing
-interface Hypothesis extends Omit<BaseHypothesis, 'status'> {
-  status: 'draft' | 'testing' | 'supported' | 'refuted' | 'revised' | BaseHypothesis['status'];
+interface Hypothesis {
+  id: string;
+  investigationId?: string;
+  title: string;
+  description: string;
+  status: 'draft' | 'testing' | 'supported' | 'refuted' | 'revised';
   evidenceLinks: EvidenceLink[];
   revisions: HypothesisRevision[];
-  updatedAt: Date;
+  confidence?: number;
+  createdAt?: Date;
+  updatedAt?: Date;
+  createdBy?: string;
+  evidence?: unknown[];
+  relatedHypotheses?: unknown[];
 }
 
 interface EvidenceLink {
@@ -45,9 +78,6 @@ const parseDate = (value: unknown): Date =>
     ? new Date(value)
     : new Date();
 
-import styles from './HypothesisTestingFramework.module.css';
-
-/** Shape of a raw hypothesis returned by the investigations API. */
 interface RawHypothesis {
   id: number | string;
   title: string;
@@ -67,10 +97,7 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
   const [hypotheses, setHypotheses] = useState<Hypothesis[]>([]);
   const [activeHypothesis, setActiveHypothesis] = useState<Hypothesis | null>(null);
   const [showNewForm, setShowNewForm] = useState(false);
-  const [newHypothesis, setNewHypothesis] = useState({
-    title: '',
-    description: '',
-  });
+  const [newHypothesis, setNewHypothesis] = useState({ title: '', description: '' });
   const [linkingEvidence, setLinkingEvidence] = useState<{ [key: string]: boolean }>({});
   const [linkData, setLinkData] = useState({
     evidenceId: '',
@@ -79,7 +106,6 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
     notes: '',
   });
 
-  // Fetch hypotheses from API on mount
   const [hypothesesSeeded, setHypothesesSeeded] = useState(false);
 
   const { data: fetchedHypotheses } = useQuery({
@@ -93,18 +119,16 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
     enabled: Boolean(investigationId),
   });
 
-  // Seed local mutable state from query data once
   React.useEffect(() => {
-    if (hypothesesSeeded) return;
-    if (fetchedHypotheses === undefined) return; // still loading
+    if (hypothesesSeeded || fetchedHypotheses === undefined) return;
 
     if (fetchedHypotheses && fetchedHypotheses.length > 0) {
-      const loadedHypotheses: Hypothesis[] = fetchedHypotheses.map((h) => ({
+      const loaded: Hypothesis[] = fetchedHypotheses.map((h) => ({
         id: `hyp-${h.id}`,
         investigationId,
         title: h.title,
         description: h.description || '',
-        status: (h.status || 'proposed') as Hypothesis['status'],
+        status: (h.status || 'proposed') as any,
         confidence: h.confidence || 50,
         createdAt: parseDate(h.created_at),
         updatedAt: parseDate(h.updated_at),
@@ -114,19 +138,15 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
         evidence: [],
         relatedHypotheses: [],
       }));
-      setHypotheses(loadedHypotheses);
-      setActiveHypothesis(loadedHypotheses[0]);
-      onHypothesesUpdate(loadedHypotheses);
+      setHypotheses(loaded);
+      setActiveHypothesis(loaded[0]);
+      onHypothesesUpdate(loaded);
       setHypothesesSeeded(true);
-      return;
-    }
-
-    // Fallback: If no hypotheses from API and we have an initialHypothesis, create one
-    if (initialHypothesis && hypotheses.length === 0) {
-      const defaultHypothesis: Hypothesis = {
+    } else if (initialHypothesis && hypotheses.length === 0) {
+      const def: Hypothesis = {
         id: 'hyp-1',
         investigationId,
-        title: 'Initial Investigation Hypothesis',
+        title: 'Primary Investigative Theory',
         description: initialHypothesis,
         status: 'testing',
         confidence: 50,
@@ -138,18 +158,25 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
         evidence: [],
         relatedHypotheses: [],
       };
-      setHypotheses([defaultHypothesis]);
-      setActiveHypothesis(defaultHypothesis);
-      onHypothesesUpdate([defaultHypothesis]);
+      setHypotheses([def]);
+      setActiveHypothesis(def);
+      onHypothesesUpdate([def]);
+      setHypothesesSeeded(true);
+    } else {
+      setHypothesesSeeded(true);
     }
-    setHypothesesSeeded(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- seeded once on first data arrival
-  }, [fetchedHypotheses, hypothesesSeeded]);
+  }, [
+    fetchedHypotheses,
+    hypothesesSeeded,
+    initialHypothesis,
+    investigationId,
+    onHypothesesUpdate,
+    hypotheses.length,
+  ]);
 
   const createHypothesis = () => {
     if (!newHypothesis.title.trim()) return;
-
-    const hypothesis: Hypothesis = {
+    const hyp: Hypothesis = {
       id: `hyp-${Date.now()}`,
       investigationId,
       title: newHypothesis.title,
@@ -164,540 +191,479 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
       evidence: [],
       relatedHypotheses: [],
     };
-
-    const updatedHypotheses = [...hypotheses, hypothesis];
-    setHypotheses(updatedHypotheses);
-    setActiveHypothesis(hypothesis);
+    const updated = [...hypotheses, hyp];
+    setHypotheses(updated);
+    setActiveHypothesis(hyp);
     setShowNewForm(false);
     setNewHypothesis({ title: '', description: '' });
-    onHypothesesUpdate(updatedHypotheses);
+    onHypothesesUpdate(updated);
   };
 
-  const updateHypothesisStatus = (hypothesisId: string, status: Hypothesis['status']) => {
-    const updatedHypotheses = hypotheses.map((hyp) =>
-      hyp.id === hypothesisId ? { ...hyp, status, updatedAt: new Date() } : hyp,
+  const updateStatus = (id: string, status: any) => {
+    const updated = hypotheses.map((h) =>
+      h.id === id ? { ...h, status, updatedAt: new Date() } : h,
     );
-    setHypotheses(updatedHypotheses);
-    if (activeHypothesis?.id === hypothesisId) {
+    setHypotheses(updated);
+    if (activeHypothesis?.id === id)
       setActiveHypothesis({ ...activeHypothesis, status, updatedAt: new Date() });
-    }
-    onHypothesesUpdate(updatedHypotheses);
+    onHypothesesUpdate(updated);
   };
 
-  const linkEvidenceToHypothesis = (hypothesisId: string) => {
+  const linkEvidence = (id: string) => {
     if (!linkData.evidenceId) return;
-
-    const evidenceLink: EvidenceLink = {
+    const link: EvidenceLink = {
       id: `link-${Date.now()}`,
       evidenceId: linkData.evidenceId,
-      hypothesisId,
+      hypothesisId: id,
       relevance: linkData.relevance,
       weight: linkData.weight,
       notes: linkData.notes,
       createdAt: new Date(),
     };
-
-    const updatedHypotheses = hypotheses.map((hyp) =>
-      hyp.id === hypothesisId
-        ? {
-            ...hyp,
-            evidenceLinks: [...hyp.evidenceLinks, evidenceLink],
-            updatedAt: new Date(),
-          }
-        : hyp,
+    const updated = hypotheses.map((h) =>
+      h.id === id ? { ...h, evidenceLinks: [...h.evidenceLinks, link], updatedAt: new Date() } : h,
     );
-
-    setHypotheses(updatedHypotheses);
-    if (activeHypothesis?.id === hypothesisId) {
+    setHypotheses(updated);
+    if (activeHypothesis?.id === id)
       setActiveHypothesis({
         ...activeHypothesis,
-        evidenceLinks: [...activeHypothesis.evidenceLinks, evidenceLink],
+        evidenceLinks: [...activeHypothesis.evidenceLinks, link],
         updatedAt: new Date(),
       });
-    }
-    setLinkingEvidence({ ...linkingEvidence, [hypothesisId]: false });
-    setLinkData({
-      evidenceId: '',
-      relevance: 'supporting',
-      weight: 5,
-      notes: '',
-    });
-    onHypothesesUpdate(updatedHypotheses);
-  };
-
-  const unlinkEvidence = (hypothesisId: string, linkId: string) => {
-    const updatedHypotheses = hypotheses.map((hyp) =>
-      hyp.id === hypothesisId
-        ? {
-            ...hyp,
-            evidenceLinks: hyp.evidenceLinks.filter((link) => link.id !== linkId),
-            updatedAt: new Date(),
-          }
-        : hyp,
-    );
-
-    setHypotheses(updatedHypotheses);
-    if (activeHypothesis?.id === hypothesisId) {
-      setActiveHypothesis({
-        ...activeHypothesis,
-        evidenceLinks: activeHypothesis.evidenceLinks.filter((link) => link.id !== linkId),
-        updatedAt: new Date(),
-      });
-    }
-    onHypothesesUpdate(updatedHypotheses);
-  };
-
-  const reviseHypothesis = (
-    hypothesisId: string,
-    revisionData: { title: string; description: string; reason: string },
-  ) => {
-    const hypothesis = hypotheses.find((hyp) => hyp.id === hypothesisId);
-    if (!hypothesis) return;
-
-    const revision: HypothesisRevision = {
-      id: `rev-${Date.now()}`,
-      hypothesisId,
-      title: revisionData.title,
-      description: revisionData.description,
-      confidence: hypothesis.confidence,
-      reason: revisionData.reason,
-      createdAt: new Date(),
-      createdBy: 'CurrentUser',
-    };
-
-    const updatedHypotheses = hypotheses.map((hyp) =>
-      hyp.id === hypothesisId
-        ? {
-            ...hyp,
-            title: revisionData.title,
-            description: revisionData.description,
-            revisions: [...hyp.revisions, revision],
-            updatedAt: new Date(),
-            status: 'revised' as Hypothesis['status'],
-          }
-        : hyp,
-    );
-
-    setHypotheses(updatedHypotheses);
-    if (activeHypothesis?.id === hypothesisId) {
-      setActiveHypothesis({
-        ...activeHypothesis,
-        title: revisionData.title,
-        description: revisionData.description,
-        revisions: [...activeHypothesis.revisions, revision],
-        updatedAt: new Date(),
-        status: 'revised' as Hypothesis['status'],
-      });
-    }
-    onHypothesesUpdate(updatedHypotheses);
-  };
-
-  const getEvidenceItemById = (id: string) => {
-    return evidenceItems.find((item) => item.id === id);
+    setLinkingEvidence({ ...linkingEvidence, [id]: false });
+    setLinkData({ evidenceId: '', relevance: 'supporting', weight: 5, notes: '' });
+    onHypothesesUpdate(updated);
   };
 
   return (
-    <div className={styles.root}>
+    <Box style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
-      <div className={styles.header}>
-        <div className={styles.headerTitleRow}>
-          <div className={styles.titleGroup}>
-            <Target className="w-6 h-6 text-[var(--accent)]" />
-            <h2 className={styles.title}>Hypothesis Testing Framework</h2>
-          </div>
-          <button onClick={() => setShowNewForm(true)} className={styles.actionButton}>
-            <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">New Hypothesis</span>
-            <span className="sm:hidden">New</span>
-          </button>
-        </div>
-        <p className={styles.subtitle}>
-          Systematic hypothesis testing with evidence linking, confidence scoring, and revision
-          tracking
-        </p>
-      </div>
+      <Surface variant="glass" p="xl" className={styles.autoGen132}>
+        <Flex justify="between" align="center">
+          <Stack gap="none">
+            <Flex align="center" gap="md">
+              <Target size={24} className={styles.autoGen133} />
+              <LqText variant="h1" weight="bold">
+                Hypothesis Testing Workbench
+              </LqText>
+            </Flex>
+            <LqText variant="xs" color="muted" weight="bold" style={{ marginTop: 'xs' }}>
+              Systematic Theory Analysis • Analytical Confidence Scoring
+            </LqText>
+          </Stack>
+          <Button variant="secondary" size="sm" onClick={() => setShowNewForm(true)}>
+            <Plus size={16} /> <span style={{ marginLeft: '0.5rem' }}>Initialize Theory</span>
+          </Button>
+        </Flex>
+      </Surface>
 
-      {/* New Hypothesis Form */}
-      {showNewForm && (
-        <div className={styles.formSection}>
-          <h3 className={styles.formTitle}>Create New Hypothesis</h3>
-          <div className={styles.formGrid}>
-            <div className={styles.field}>
-              <label className={styles.label}>Title</label>
-              <input
-                type="text"
-                value={newHypothesis.title}
-                onChange={(e) => setNewHypothesis({ ...newHypothesis, title: e.target.value })}
-                className={styles.input}
-                placeholder="Enter hypothesis title"
-              />
-            </div>
-            <div className={styles.field}>
-              <label className={styles.label}>Description</label>
-              <textarea
-                value={newHypothesis.description}
-                onChange={(e) =>
-                  setNewHypothesis({ ...newHypothesis, description: e.target.value })
-                }
-                className={styles.textarea}
-                rows={3}
-                placeholder="Describe your hypothesis"
-              />
-            </div>
-            <div className={styles.formActions}>
-              <button onClick={() => setShowNewForm(false)} className={styles.cancelButton}>
-                Cancel
-              </button>
-              <button onClick={createHypothesis} className={styles.actionButton}>
-                Create Hypothesis
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Hypotheses List */}
-      <div className={styles.content}>
-        {hypotheses.length === 0 ? (
-          <div className={styles.emptyState}>
-            <Target className={styles.emptyIcon} />
-            <h3 className={styles.formTitle}>No hypotheses yet</h3>
-            <p className={styles.subtitle}>Create your first hypothesis to begin testing</p>
-            <button onClick={() => setShowNewForm(true)} className={styles.actionButton}>
-              Create Hypothesis
-            </button>
-          </div>
-        ) : (
-          <div className={styles.hypList}>
-            {hypotheses.map((hypothesis) => (
-              <div
-                key={hypothesis.id}
-                className={`${styles.hypCard} ${activeHypothesis?.id === hypothesis.id ? styles.hypCardActive : ''}`}
-              >
-                <div
-                  className="cursor-pointer"
-                  onClick={() =>
-                    setActiveHypothesis(activeHypothesis?.id === hypothesis.id ? null : hypothesis)
-                  }
+      <Box p="xl">
+        <Stack gap="xl">
+          {/* New Hypothesis Entry */}
+          {showNewForm && (
+            <Surface variant="glass-highlight" p="xl" className={styles.autoGen134}>
+              <Stack gap="md">
+                <LqText
+                  variant="xs"
+                  weight="bold"
+                  color="muted"
+                  style={{ textTransform: 'uppercase' }}
                 >
-                  <div className={styles.hypCardHeader}>
-                    <div className={styles.hypHeaderInfo}>
-                      <div className={styles.hypTitleRow}>
-                        <h3 className={styles.hypTitle}>{hypothesis.title}</h3>
-                        <span
-                          className={`${styles.statusBadge} ${
-                            hypothesis.status === 'draft'
-                              ? styles.statusDraft
-                              : hypothesis.status === 'testing'
-                                ? styles.statusTesting
-                                : hypothesis.status === 'supported'
-                                  ? styles.statusSupported
-                                  : hypothesis.status === 'refuted'
-                                    ? styles.statusRefuted
-                                    : styles.statusRevised
-                          }`}
-                        >
-                          {hypothesis.status}
-                        </span>
-                      </div>
-                      <p className={styles.hypDesc}>{hypothesis.description}</p>
+                  Draft New Investigative Signal
+                </LqText>
+                <input
+                  style={{
+                    width: '100%',
+                    background: 'var(--lq-surface-3)',
+                    border: '1px solid var(--lq-surface-4)',
+                    borderRadius: '0.375rem',
+                    padding: '0.5rem 0.75rem',
+                    fontSize: '0.875rem',
+                    color: 'var(--lq-text-primary)',
+                    outline: 'none',
+                  }}
+                  placeholder="Theory Designation *"
+                  value={newHypothesis.title}
+                  onChange={(e) => setNewHypothesis({ ...newHypothesis, title: e.target.value })}
+                />
+                <textarea
+                  style={{
+                    width: '100%',
+                    background: 'var(--lq-surface-3)',
+                    border: '1px solid var(--lq-surface-4)',
+                    borderRadius: '0.375rem',
+                    padding: '0.5rem 0.75rem',
+                    fontSize: '0.875rem',
+                    color: 'var(--lq-text-primary)',
+                    outline: 'none',
+                    resize: 'none',
+                  }}
+                  placeholder="Qualitative description of the hypothesis..."
+                  rows={3}
+                  value={newHypothesis.description}
+                  onChange={(e) =>
+                    setNewHypothesis({ ...newHypothesis, description: e.target.value })
+                  }
+                />
+                <Flex justify="end" gap="md">
+                  <Button variant="ghost" size="sm" onClick={() => setShowNewForm(false)}>
+                    Abort
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={createHypothesis}
+                    disabled={!newHypothesis.title.trim()}
+                  >
+                    Establish Hypothesis
+                  </Button>
+                </Flex>
+              </Stack>
+            </Surface>
+          )}
 
-                      {/* Confidence Meter */}
-                      <div className={styles.confidenceRow}>
-                        <div className={styles.confidenceLabelRow}>
-                          <span>Confidence</span>
-                          <span>{hypothesis.confidence}%</span>
-                        </div>
-                        <div className={styles.confidenceBarBg}>
-                          <div
-                            className={`${styles.confidenceBarFill} ${
-                              hypothesis.confidence < 30
-                                ? styles.confidenceLow
-                                : hypothesis.confidence < 70
-                                  ? styles.confidenceMed
-                                  : styles.confidenceHigh
-                            }`}
-                            style={{ width: `${hypothesis.confidence}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    </div>
+          {/* Main List */}
+          {hypotheses.length === 0 ? (
+            <Surface variant="glass" p="xxxl">
+              <Stack align="center" gap="lg">
+                <Zap size={48} className={styles.autoGen135} />
+                <LqText
+                  variant="xs"
+                  color="muted"
+                  style={{ textTransform: 'uppercase' }}
+                  weight="bold"
+                >
+                  Intelligence Matrix Clear • Define Hypotheses
+                </LqText>
+              </Stack>
+            </Surface>
+          ) : (
+            <Stack gap="md">
+              {hypotheses.map((h) => {
+                const isActive = activeHypothesis?.id === h.id;
+                return (
+                  <Surface
+                    key={h.id}
+                    variant="glass-highlight"
+                    p="lg"
+                    className={cn(
+                      'border-l-4 transition-all',
+                      isActive ? 'border-l-[var(--lq-accent)]' : 'border-l-[var(--lq-surface-3)]',
+                    )}
+                  >
+                    <Stack gap="md">
+                      <Flex
+                        justify="between"
+                        align="start"
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => setActiveHypothesis(isActive ? null : h)}
+                      >
+                        <Stack gap="sm" style={{ flex: 1 }}>
+                          <Flex align="center" gap="md">
+                            <LqText variant="small" weight="bold">
+                              {h.title}
+                            </LqText>
+                            <Badge>{h.status.toUpperCase()}</Badge>
+                          </Flex>
+                          <LqText
+                            variant="xs"
+                            color="muted"
+                            className={isActive ? '' : 'line-clamp-2'}
+                          >
+                            {h.description}
+                          </LqText>
+                        </Stack>
+                        <Stack align="end" gap="xs">
+                          <Flex align="center" gap="xs">
+                            <TrendingUp
+                              size={12}
+                              className={cn(
+                                (h.confidence ?? 0) > 70
+                                  ? 'text-[var(--lq-success)]'
+                                  : 'text-[var(--lq-accent)]',
+                              )}
+                            />
+                            <LqText variant="xs" weight="bold">
+                              {h.confidence ?? 0}% CONF
+                            </LqText>
+                          </Flex>
+                          <Box className={styles.autoGen136}>
+                            <Box
+                              className={styles.autoGen137}
+                              style={{ width: `${h.confidence ?? 0}%` }}
+                            />
+                          </Box>
+                        </Stack>
+                      </Flex>
 
-                    <div className={styles.hypCardActions}>
-                      <button className={styles.iconButton}>
-                        <Edit3 className="w-4 h-4" />
-                      </button>
-                      <button className={styles.iconButton}>
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className={styles.hypMeta}>
-                    <span>Created by {hypothesis.createdBy}</span>
-                    <span>•</span>
-                    <span>{hypothesis.createdAt.toLocaleDateString()}</span>
-                    <span>•</span>
-                    <span>{hypothesis.evidenceLinks.length} evidence items</span>
-                  </div>
-                </div>
-
-                {/* Expanded Details */}
-                {activeHypothesis?.id === hypothesis.id && (
-                  <div className={styles.details}>
-                    {/* Evidence Links */}
-                    <div className="mb-6">
-                      <div className={styles.detailsHeader}>
-                        <h4 className={styles.detailsTitle}>Linked Evidence</h4>
-                        <button
-                          onClick={() =>
-                            setLinkingEvidence({
-                              ...linkingEvidence,
-                              [hypothesis.id]: !linkingEvidence[hypothesis.id],
-                            })
-                          }
-                          className={styles.linkEvidenceButton}
-                        >
-                          <Link className="w-3 h-3" />
-                          Link Evidence
-                        </button>
-                      </div>
-
-                      {/* Link Evidence Form */}
-                      {linkingEvidence[hypothesis.id] && (
-                        <div className={styles.formSection}>
-                          <h5 className={styles.formTitle}>Link Evidence to Hypothesis</h5>
-                          <div className={styles.formGridTwoCol}>
-                            <div className={styles.field}>
-                              <label className={styles.label}>Evidence Item</label>
-                              <select
-                                value={linkData.evidenceId}
-                                onChange={(e) =>
-                                  setLinkData({ ...linkData, evidenceId: e.target.value })
-                                }
-                                className={styles.select}
+                      {/* Expanded Analysis Workbench */}
+                      {isActive && (
+                        <Stack gap="xl" mt="lg" pt="xl" className={styles.autoGen138}>
+                          <Flex justify="between" align="center">
+                            <Flex align="center" gap="sm">
+                              <Link size={14} className={styles.autoGen139} />
+                              <LqText
+                                variant="xs"
+                                weight="bold"
+                                color="muted"
+                                style={{ textTransform: 'uppercase' }}
                               >
-                                <option value="">Select evidence</option>
-                                {evidenceItems.map((item) => (
-                                  <option key={item.id} value={item.id}>
-                                    {item.title}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                            <div className={styles.field}>
-                              <label className={styles.label}>Relevance</label>
-                              <select
-                                value={linkData.relevance}
-                                onChange={(e) =>
-                                  setLinkData({
-                                    ...linkData,
-                                    relevance: e.target.value as
-                                      | 'supporting'
-                                      | 'contradicting'
-                                      | 'neutral',
-                                  })
-                                }
-                                className={styles.select}
-                              >
-                                <option value="supporting">Supporting</option>
-                                <option value="contradicting">Contradicting</option>
-                                <option value="neutral">Neutral</option>
-                              </select>
-                            </div>
-                            <div className={styles.field}>
-                              <label className={styles.label}>Weight: {linkData.weight}</label>
-                              <input
-                                type="range"
-                                min="1"
-                                max="10"
-                                value={linkData.weight}
-                                onChange={(e) =>
-                                  setLinkData({
-                                    ...linkData,
-                                    weight: parseInt(e.target.value),
-                                  })
-                                }
-                                className="w-full"
-                              />
-                            </div>
-                            <div className={styles.field}>
-                              <label className={styles.label}>Notes</label>
-                              <input
-                                type="text"
-                                value={linkData.notes}
-                                onChange={(e) =>
-                                  setLinkData({ ...linkData, notes: e.target.value })
-                                }
-                                className={styles.input}
-                                placeholder="Add notes about this link"
-                              />
-                            </div>
-                          </div>
-                          <div className={styles.formActions}>
-                            <button
+                                Evidence Correlation Layer
+                              </LqText>
+                            </Flex>
+                            <Button
+                              variant="ghost"
+                              size="sm"
                               onClick={() =>
                                 setLinkingEvidence({
                                   ...linkingEvidence,
-                                  [hypothesis.id]: false,
+                                  [h.id]: !linkingEvidence[h.id],
                                 })
                               }
-                              className={styles.cancelButton}
                             >
-                              Cancel
-                            </button>
-                            <button
-                              onClick={() => linkEvidenceToHypothesis(hypothesis.id)}
-                              className={styles.actionButton}
-                            >
-                              Link Evidence
-                            </button>
-                          </div>
-                        </div>
-                      )}
+                              <Plus size={10} className="mr-1" /> Link Signal
+                            </Button>
+                          </Flex>
 
-                      {/* Evidence List */}
-                      {hypothesis.evidenceLinks.length > 0 ? (
-                        <div className={styles.evidenceLinkList}>
-                          {hypothesis.evidenceLinks.map((link) => {
-                            const evidenceItem = getEvidenceItemById(link.evidenceId);
-                            return (
-                              <div key={link.id} className={styles.evidenceLinkCard}>
-                                <div className={styles.evidenceLinkInfo}>
-                                  <div
-                                    className={`${styles.relevanceDot} ${
-                                      link.relevance === 'supporting'
-                                        ? styles.relevanceSupporting
-                                        : link.relevance === 'contradicting'
-                                          ? styles.relevanceContradicting
-                                          : styles.relevanceNeutral
-                                    }`}
-                                  ></div>
-                                  <div className={styles.evidenceLinkDetails}>
-                                    <div className={styles.evidenceLinkHeader}>
-                                      <FileText className={styles.evidenceIcon} />
-                                      <span className={styles.evidenceTitle}>
-                                        {evidenceItem?.title || 'Unknown Evidence'}
-                                      </span>
-                                      <span
-                                        className={`${styles.statusBadge} ${
-                                          link.relevance === 'supporting'
-                                            ? styles.statusSupported
-                                            : link.relevance === 'contradicting'
-                                              ? styles.statusRefuted
-                                              : styles.statusDraft
-                                        }`}
-                                      >
-                                        {link.relevance}
-                                      </span>
-                                    </div>
-                                    {link.notes && (
-                                      <p className={styles.evidenceNotes}>{link.notes}</p>
-                                    )}
-                                  </div>
-                                </div>
-                                <div className={styles.hypMeta}>
-                                  <span>Weight: {link.weight}</span>
-                                  <button
-                                    onClick={() => unlinkEvidence(hypothesis.id, link.id)}
-                                    className={`${styles.iconButton} ${styles.evidenceUnlinkButton}`}
+                          {/* Evidence Link Entry */}
+                          {linkingEvidence[h.id] && (
+                            <Surface variant="glass" p="lg" className={styles.autoGen140}>
+                              <Grid cols={2} gap="md">
+                                <Stack gap="xs">
+                                  <LqText variant="xs" weight="bold">
+                                    SELECT EVIDENCE
+                                  </LqText>
+                                  <select
+                                    style={{
+                                      width: '100%',
+                                      background: 'var(--lq-surface-3)',
+                                      border: '1px solid var(--lq-surface-4)',
+                                      borderRadius: '0.375rem',
+                                      padding: '0.5rem 0.75rem',
+                                      fontSize: '0.875rem',
+                                      color: 'var(--lq-text-primary)',
+                                      outline: 'none',
+                                    }}
+                                    value={linkData.evidenceId}
+                                    onChange={(e) =>
+                                      setLinkData({ ...linkData, evidenceId: e.target.value })
+                                    }
                                   >
-                                    <Trash2 className="w-4 h-4" />
-                                  </button>
+                                    <option value="">Choose item...</option>
+                                    {evidenceItems.map((item) => (
+                                      <option key={item.id} value={item.id}>
+                                        {item.title}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </Stack>
+                                <Stack gap="xs">
+                                  <LqText variant="xs" weight="bold">
+                                    SIGNAL RELEVANCE
+                                  </LqText>
+                                  <select
+                                    style={{
+                                      width: '100%',
+                                      background: 'var(--lq-surface-3)',
+                                      border: '1px solid var(--lq-surface-4)',
+                                      borderRadius: '0.375rem',
+                                      padding: '0.5rem 0.75rem',
+                                      fontSize: '0.875rem',
+                                      color: 'var(--lq-text-primary)',
+                                      outline: 'none',
+                                    }}
+                                    value={linkData.relevance}
+                                    onChange={(e) =>
+                                      setLinkData({ ...linkData, relevance: e.target.value as any })
+                                    }
+                                  >
+                                    <option value="supporting">Supporting</option>
+                                    <option value="contradicting">Contradicting</option>
+                                    <option value="neutral">Neutral</option>
+                                  </select>
+                                </Stack>
+                                <div style={{ gridColumn: 'span 2' }}>
+                                  <Stack gap="xs">
+                                    <LqText variant="xs" weight="bold">
+                                      ANALYTICAL NOTES
+                                    </LqText>
+                                    <input
+                                      style={{
+                                        width: '100%',
+                                        background: 'var(--lq-surface-3)',
+                                        border: '1px solid var(--lq-surface-4)',
+                                        borderRadius: '0.375rem',
+                                        padding: '0.5rem 0.75rem',
+                                        fontSize: '0.875rem',
+                                        color: 'var(--lq-text-primary)',
+                                        outline: 'none',
+                                      }}
+                                      value={linkData.notes}
+                                      onChange={(e) =>
+                                        setLinkData({ ...linkData, notes: e.target.value })
+                                      }
+                                      placeholder="Why is this evidence relevant?"
+                                    />
+                                  </Stack>
                                 </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      ) : (
-                        <div className={styles.emptyState}>
-                          <p className={styles.subtitle}>
-                            No evidence linked to this hypothesis yet
-                          </p>
-                        </div>
+                              </Grid>
+                              <Flex justify="end" gap="sm" mt="md">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() =>
+                                    setLinkingEvidence({ ...linkingEvidence, [h.id]: false })
+                                  }
+                                >
+                                  Abort
+                                </Button>
+                                <Button
+                                  variant="secondary"
+                                  size="sm"
+                                  onClick={() => linkEvidence(h.id)}
+                                >
+                                  Establish Correlation
+                                </Button>
+                              </Flex>
+                            </Surface>
+                          )}
+
+                          {/* Correlation Stream */}
+                          <Stack gap="sm">
+                            {h.evidenceLinks.length === 0 ? (
+                              <LqText variant="xs" color="muted" align="center" italic>
+                                No evidence signals correlated with this theory yet.
+                              </LqText>
+                            ) : (
+                              <Grid cols={2} gap="md">
+                                {h.evidenceLinks.map((link) => {
+                                  const ev = evidenceItems.find(
+                                    (item) => item.id === link.evidenceId,
+                                  );
+                                  return (
+                                    <Surface
+                                      key={link.id}
+                                      variant="glass-highlight"
+                                      p="sm"
+                                      className={styles.autoGen141}
+                                    >
+                                      <Flex gap="sm" align="start">
+                                        <Box
+                                          className={cn(
+                                            'w-1 h-full rounded',
+                                            link.relevance === 'supporting'
+                                              ? 'bg-[var(--lq-success)]'
+                                              : link.relevance === 'contradicting'
+                                                ? 'bg-[var(--lq-error)]'
+                                                : 'bg-[var(--lq-surface-3)]',
+                                          )}
+                                        />
+                                        <Stack gap="xs" style={{ flex: 1 }}>
+                                          <Flex justify="between">
+                                            <LqText variant="xs" weight="bold">
+                                              {ev?.title || 'Unknown Signal'}
+                                            </LqText>
+                                            <Badge
+                                              tone={
+                                                link.relevance === 'supporting'
+                                                  ? 'success'
+                                                  : link.relevance === 'contradicting'
+                                                    ? 'danger'
+                                                    : 'neutral'
+                                              }
+                                              label={link.relevance.toUpperCase()}
+                                              size="sm"
+                                            />
+                                          </Flex>
+                                          {link.notes && (
+                                            <LqText variant="xs" color="muted">
+                                              {link.notes}
+                                            </LqText>
+                                          )}
+                                        </Stack>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className={styles.autoGen142}
+                                          onClick={() => {}}
+                                        >
+                                          <Trash2 size={10} />
+                                        </Button>
+                                      </Flex>
+                                    </Surface>
+                                  );
+                                })}
+                              </Grid>
+                            )}
+                          </Stack>
+
+                          {/* Revision History Section */}
+                          {h.revisions.length > 0 && (
+                            <Stack gap="sm" mt="sm">
+                              <Flex align="center" gap="sm">
+                                <History size={14} className={styles.autoGen143} />
+                                <LqText
+                                  variant="xs"
+                                  weight="bold"
+                                  color="muted"
+                                  style={{ textTransform: 'uppercase' }}
+                                >
+                                  Revision Chain
+                                </LqText>
+                              </Flex>
+                              <Stack gap="xs">
+                                {h.revisions.map((rev) => (
+                                  <Surface key={rev.id} variant="glass" p="sm">
+                                    <Flex justify="between">
+                                      <LqText variant="xs" weight="bold">
+                                        {rev.reason}
+                                      </LqText>
+                                      <LqText variant="xs" color="muted">
+                                        {rev.createdAt.toLocaleDateString()}
+                                      </LqText>
+                                    </Flex>
+                                  </Surface>
+                                ))}
+                              </Stack>
+                            </Stack>
+                          )}
+
+                          {/* Action Suite */}
+                          <Flex gap="md" py="md" className={styles.autoGen144}>
+                            <Button
+                              variant="ghost"
+                              grow
+                              onClick={() => updateStatus(h.id, 'supported')}
+                              className="hover:text-[var(--lq-success)]"
+                            >
+                              <CheckCircle2 size={14} className="mr-2" /> Mark Supported
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              grow
+                              onClick={() => updateStatus(h.id, 'refuted')}
+                              className="hover:text-[var(--lq-error)]"
+                            >
+                              <XCircle size={14} className="mr-2" /> Mark Refuted
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              grow
+                              onClick={() => updateStatus(h.id, 'testing')}
+                            >
+                              <RefreshCw size={14} className="mr-2" /> Reset Status
+                            </Button>
+                          </Flex>
+                        </Stack>
                       )}
-                    </div>
-
-                    {/* Revision History */}
-                    {hypothesis.revisions.length > 0 && (
-                      <div className={styles.revisions}>
-                        <h4 className={styles.detailsTitle}>Revision History</h4>
-                        <div className="space-y-3">
-                          {hypothesis.revisions.map((revision) => (
-                            <div key={revision.id} className={styles.revisionCard}>
-                              <div className={styles.revisionHeader}>
-                                <div className={styles.revisionUser}>
-                                  <User className="w-4 h-4 text-[var(--text-muted)]" />
-                                  <span>{revision.createdBy}</span>
-                                </div>
-                                <span className={styles.revisionDate}>
-                                  {revision.createdAt.toLocaleDateString()}
-                                </span>
-                              </div>
-                              <p className={styles.revisionReason}>{revision.reason}</p>
-                              <div className={styles.revisionContent}>
-                                <p className={styles.revisionTitle}>{revision.title}</p>
-                                <p className={styles.revisionDesc}>{revision.description}</p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Action Buttons */}
-                    <div className={styles.footerActions}>
-                      <button
-                        onClick={() =>
-                          updateHypothesisStatus(
-                            hypothesis.id,
-                            hypothesis.status === 'testing' ? 'supported' : 'testing',
-                          )
-                        }
-                        className={`${styles.statusButton} ${styles.supportButton} ${hypothesis.status === 'supported' ? styles.statusButtonActiveSupported : ''}`}
-                      >
-                        {hypothesis.status === 'supported' ? 'Mark as Tested' : 'Mark as Supported'}
-                      </button>
-                      <button
-                        onClick={() =>
-                          updateHypothesisStatus(
-                            hypothesis.id,
-                            hypothesis.status === 'testing' ? 'refuted' : 'testing',
-                          )
-                        }
-                        className={`${styles.statusButton} ${styles.refuteButton} ${hypothesis.status === 'refuted' ? styles.statusButtonActiveRefuted : ''}`}
-                      >
-                        {hypothesis.status === 'refuted' ? 'Mark as Tested' : 'Mark as Refuted'}
-                      </button>
-                      <button
-                        onClick={() => {
-                          const newTitle = prompt('New hypothesis title:', hypothesis.title);
-                          const newDescription = prompt(
-                            'New hypothesis description:',
-                            hypothesis.description,
-                          );
-                          const reason = prompt('Reason for revision:');
-
-                          if (newTitle && newDescription && reason) {
-                            reviseHypothesis(hypothesis.id, {
-                              title: newTitle,
-                              description: newDescription,
-                              reason,
-                            });
-                          }
-                        }}
-                        className={`${styles.statusButton} ${styles.reviseButton}`}
-                      >
-                        Revise Hypothesis
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
+                    </Stack>
+                  </Surface>
+                );
+              })}
+            </Stack>
+          )}
+        </Stack>
+      </Box>
+    </Box>
   );
 };

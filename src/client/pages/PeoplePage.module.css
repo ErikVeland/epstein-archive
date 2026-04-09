@@ -70,9 +70,12 @@
 
 .resultsShell {
   width: 100%;
+  max-width: 100%;
   min-height: 37.5rem;
   height: 100%;
   padding: var(--space-4);
+  margin-top: var(--space-4);
+  box-sizing: border-box;
 }
 
 .emptyState {

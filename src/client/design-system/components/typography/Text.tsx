@@ -18,11 +18,37 @@ type TextTag =
   | 'li';
 
 export interface TextProps extends React.HTMLAttributes<HTMLElement> {
-  variant?: 'h1' | 'h2' | 'h3' | 'h4' | 'display' | 'body' | 'small' | 'xs';
-  color?: 'primary' | 'secondary' | 'muted' | 'accent' | 'danger' | 'success' | 'warning';
+  variant?:
+    | 'h1'
+    | 'h2'
+    | 'h3'
+    | 'h4'
+    | 'display'
+    | 'bombastic'
+    | 'symbolic'
+    | 'body'
+    | 'subtitle'
+    | 'small'
+    | 'xs'
+    | 'xxs'
+    | 'xxxs';
+  color?:
+    | 'primary'
+    | 'secondary'
+    | 'muted'
+    | 'accent'
+    | 'danger'
+    | 'success'
+    | 'warning'
+    | 'foreground';
   weight?: 'light' | 'normal' | 'medium' | 'semibold' | 'bold' | 'black';
   as?: TextTag;
   align?: 'left' | 'center' | 'right' | 'justify';
+  mt?: string;
+  ml?: string;
+  py?: string;
+  lineHeight?: string;
+  italic?: boolean;
 }
 
 export const LqText: React.FC<TextProps> = ({
@@ -33,6 +59,12 @@ export const LqText: React.FC<TextProps> = ({
   align,
   className,
   children,
+  mt,
+  ml,
+  py,
+  lineHeight,
+  italic,
+  style,
   ...props
 }) => {
   return (
@@ -45,6 +77,14 @@ export const LqText: React.FC<TextProps> = ({
         align && `lq-text--align-${align}`,
         className,
       )}
+      style={{
+        ...(mt && { marginTop: mt }),
+        ...(ml && { marginLeft: ml }),
+        ...(py && { paddingTop: py, paddingBottom: py }),
+        ...(lineHeight && { lineHeight }),
+        ...(italic && { fontStyle: 'italic' }),
+        ...style,
+      }}
       {...props}
     >
       {children}

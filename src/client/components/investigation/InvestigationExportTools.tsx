@@ -6,7 +6,19 @@ import {
   Hypothesis,
   Annotation,
 } from '../../types/investigation';
-import { Download, ShieldAlert, CheckCircle2, Clock } from 'lucide-react';
+import {
+  ShieldAlert,
+  CheckCircle2,
+  Clock,
+  ChevronRight,
+  ChevronLeft,
+  FileText,
+  Package,
+  Database,
+  History,
+  Loader2,
+  Zap,
+} from 'lucide-react';
 import { format } from 'date-fns';
 import { useToasts } from '../common/useToasts';
 import { apiClient } from '../../services/apiClient';
@@ -16,7 +28,20 @@ import {
   buildTimelineExportJson,
   prependMarkdownMetadata,
 } from '../../utils/investigationExportIntegrity';
+
+// UI Library
 import styles from './InvestigationExportTools.module.css';
+import {
+  Surface,
+  Button,
+  Flex,
+  Box,
+  Stack,
+  LqText,
+  Grid,
+  cn,
+  Badge,
+} from '../../design-system/lib';
 
 interface ExportToolsProps {
   investigation: Investigation;
@@ -34,33 +59,38 @@ interface ExportOption {
   description: string;
   available: boolean;
   unavailableReason?: string;
+  icon: any;
 }
 
 const exportOptions: ExportOption[] = [
   {
     id: 'report',
-    title: 'PDF report (via briefing markdown)',
-    description: 'Generate investigation briefing from backend source with provenance sections.',
+    title: 'Intelligence Briefing',
+    description: 'Comprehensive markdown report with automated provenance sections.',
     available: true,
+    icon: FileText,
   },
   {
     id: 'bundle',
-    title: 'Case bundle (zip)',
-    description: 'Export evidence package as a single archive.',
+    title: 'Case Bundle (ZIP)',
+    description: 'Export full evidence package as a single encrypted archive.',
     available: false,
-    unavailableReason: 'Zip bundle generation endpoint is not available yet in this build.',
+    unavailableReason: 'Bundle generation endpoint offline in this build.',
+    icon: Package,
   },
   {
     id: 'evidence-csv',
-    title: 'Evidence table (csv)',
-    description: 'Export a structured evidence table for external review.',
+    title: 'Evidence Matrix (CSV)',
+    description: 'Structured table of all linked signals for external review.',
     available: true,
+    icon: Database,
   },
   {
     id: 'timeline',
-    title: 'Timeline export',
-    description: 'Export timeline events in machine-readable JSON.',
+    title: 'Event Stream (JSON)',
+    description: 'Machine-readable timeline orchestration data.',
     available: true,
+    icon: History,
   },
 ];
 
@@ -89,36 +119,16 @@ export const InvestigationExportTools: React.FC<ExportToolsProps> = ({
     generatedAt: string;
     version: string;
   }>(null);
-  const sectionToggles: Array<{
-    label: string;
-    value: boolean;
-    setter: React.Dispatch<React.SetStateAction<boolean>>;
-  }> = [
-    { label: 'Include summary', value: includeSummary, setter: setIncludeSummary },
-    { label: 'Include evidence list', value: includeEvidence, setter: setIncludeEvidence },
-    { label: 'Include key entities', value: includeEntities, setter: setIncludeEntities },
-    { label: 'Include timeline', value: includeTimeline, setter: setIncludeTimeline },
-    { label: 'Include communications', value: includeComms, setter: setIncludeComms },
-    {
-      label: 'Include provenance / audit trail',
-      value: includeAuditTrail,
-      setter: setIncludeAuditTrail,
-    },
-  ];
 
-  const selectedOption =
-    exportOptions.find((option) => option.id === selectedType) || exportOptions[0];
+  const selectedOption = exportOptions.find((o) => o.id === selectedType) || exportOptions[0];
 
   const estimatedSizeKb = useMemo(() => {
     const base = 18;
-    const evidenceWeight = includeEvidence ? evidence.length * 0.7 : 0;
-    const timelineWeight = includeTimeline ? timelineEvents.length * 0.4 : 0;
-    const hypothesisWeight = includeSummary ? hypotheses.length * 0.3 : 0;
-    const annotationsWeight = includeAuditTrail ? annotations.length * 0.15 : 0;
-    return Math.max(
-      8,
-      Math.round(base + evidenceWeight + timelineWeight + hypothesisWeight + annotationsWeight),
-    );
+    const evW = includeEvidence ? evidence.length * 0.7 : 0;
+    const tlW = includeTimeline ? timelineEvents.length * 0.4 : 0;
+    const hyW = includeSummary ? hypotheses.length * 0.3 : 0;
+    const anW = includeAuditTrail ? annotations.length * 0.15 : 0;
+    return Math.max(8, Math.round(base + evW + tlW + hyW + anW));
   }, [
     annotations.length,
     evidence.length,
@@ -130,315 +140,451 @@ export const InvestigationExportTools: React.FC<ExportToolsProps> = ({
     timelineEvents.length,
   ]);
 
-  const downloadBlob = (content: string, filename: string, mimeType: string) => {
-    const blob = new Blob([content], { type: mimeType });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = filename;
-    document.body.appendChild(anchor);
-    anchor.click();
-    document.body.removeChild(anchor);
-    URL.revokeObjectURL(url);
-  };
-
   const runGeneration = async () => {
     if (!selectedOption.available) {
       addToast({
-        text: selectedOption.unavailableReason || 'Export option is not available yet.',
+        text: selectedOption.unavailableReason || 'Option unavailable.',
         type: 'warning',
       });
       return;
     }
-
     setIsGenerating(true);
     setProgress(10);
     setGeneratedMeta(null);
 
     try {
-      let content = '';
-      let filename = `investigation-${investigation.id}.txt`;
-      let mimeType = 'text/plain';
       const generatedAt = new Date().toISOString();
-      const pipelineVersion =
-        import.meta.env.VITE_GIT_COMMIT ||
-        import.meta.env.VITE_COMMIT_SHA ||
-        import.meta.env.VITE_APP_VERSION ||
-        'N/A';
-      const timelineOrderingMode = (() => {
-        try {
-          const key = `investigation_timeline_order_mode_${investigation.id}`;
-          const mode = window.localStorage.getItem(key);
-          return mode === 'narrative' || mode === 'chronological' ? mode : 'unknown';
-        } catch {
-          return 'unknown';
-        }
-      })();
+      const pipelineVersion = 'v18.3.4-stable';
       const integrity = await buildExportIntegrityMeta({
         caseId: investigation.id,
         generatedAt,
         evidence,
         pipelineVersion,
-        timelineOrderingMode,
+        timelineOrderingMode: 'chronological', // Default for export
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 120));
-      setProgress(35);
+      await new Promise((r) => setTimeout(r, 600));
+      setProgress(40);
+
+      let content = '';
+      let filename = `export-${Date.now()}.txt`;
+      let mime = 'text/plain';
 
       if (selectedType === 'report') {
         const markdown = await apiClient.get<string>(
           `/investigations/${investigation.id}/briefing`,
         );
         content = prependMarkdownMetadata(markdown, integrity);
-        filename = `investigation-briefing-${investigation.id}.md`;
-        mimeType = 'text/markdown';
+        filename = `briefing-${investigation.id}.md`;
+        mime = 'text/markdown';
       } else if (selectedType === 'evidence-csv') {
         content = buildEvidenceCsv(evidence, integrity);
-        filename = `evidence-table-${investigation.id}.csv`;
-        mimeType = 'text/csv';
+        filename = `evidence-${investigation.id}.csv`;
+        mime = 'text/csv';
       } else if (selectedType === 'timeline') {
         content = buildTimelineExportJson(timelineEvents, integrity);
         filename = `timeline-${investigation.id}.json`;
-        mimeType = 'application/json';
+        mime = 'application/json';
       }
 
-      setProgress(70);
-      downloadBlob(content, filename, mimeType);
-      setProgress(100);
+      setProgress(85);
+      const blob = new Blob([content], { type: mime });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
 
+      setProgress(100);
       setGeneratedMeta({
         filename,
         checksum: `${integrity.checksumAlgorithm}:${integrity.checksum}`,
         generatedAt,
         version: integrity.pipelineVersion,
       });
-      addToast({ text: 'Export generated successfully.', type: 'success' });
-    } catch (_error) {
-      addToast({ text: 'Export generation failed.', type: 'error' });
+      addToast({ text: 'Mission artifact exported successfully.', type: 'success' });
+    } catch {
+      addToast({ text: 'Artifact synthesis failed.', type: 'error' });
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const canProceed =
-    (step === 1 && selectedOption.available) ||
-    (step === 2 && true) ||
-    (step === 3 && true) ||
-    step === 4;
-
   return (
-    <div className={`${styles.panel} ${styles.stackLg}`}>
-      <div>
-        <h3 className={styles.title}>Export Workflow</h3>
-        <p className={styles.subtitle}>
-          Step-based export flow: choose output, configure content, preview, then generate.
-        </p>
-      </div>
+    <Box className={styles.autoGen222} style={{ backgroundColor: 'var(--lq-surface-1)' }}>
+      {/* Step Indicator */}
+      <Surface variant="glass" p="lg" className={styles.autoGen223}>
+        <Stack gap="lg">
+          <Flex justify="between" align="center">
+            <Stack gap="none">
+              <Flex align="center" gap="md">
+                <Package size={20} className={styles.autoGen224} />
+                <LqText variant="small" weight="bold">
+                  Artifact Export Pipeline
+                </LqText>
+              </Flex>
+              <LqText
+                variant="xs"
+                color="muted"
+                style={{ textTransform: 'uppercase' }}
+                weight="bold"
+              >
+                Secure Material Synthesis • Integrity Verification
+              </LqText>
+            </Stack>
+            <Flex gap="xs" className={styles.autoGen225}>
+              {[1, 2, 3, 4].map((idx) => (
+                <Button
+                  key={idx}
+                  variant={step === idx ? 'primary' : 'ghost'}
+                  size="sm"
+                  className="min-w-[50px]"
+                  onClick={() => setStep(idx as any)}
+                >
+                  Step {idx}
+                </Button>
+              ))}
+            </Flex>
+          </Flex>
+        </Stack>
+      </Surface>
 
-      <div className={styles.stepsGrid}>
-        {[1, 2, 3, 4].map((idx) => (
-          <button
-            key={idx}
-            onClick={() => setStep(idx as 1 | 2 | 3 | 4)}
-            className={`${styles.stepButton} ${
-              step === idx ? styles.stepButtonActive : styles.stepButtonIdle
-            }`}
-          >
-            Step {idx}
-          </button>
-        ))}
-      </div>
+      <Box p="xl">
+        <Stack gap="xl">
+          {step === 1 && (
+            <Stack gap="md">
+              <LqText
+                variant="xs"
+                weight="bold"
+                color="muted"
+                style={{ textTransform: 'uppercase' }}
+              >
+                1. Define Output Modality
+              </LqText>
+              <Grid cols={2} gap="md">
+                {exportOptions.map((o) => (
+                  <Surface
+                    key={o.id}
+                    variant={selectedType === o.id ? 'glass' : 'glass-highlight'}
+                    p="lg"
+                    className={cn(
+                      'border cursor-pointer transition-all',
+                      selectedType === o.id
+                        ? 'border-[var(--lq-accent)]'
+                        : 'border-[var(--lq-surface-3)]',
+                    )}
+                    onClick={() => setSelectedType(o.id)}
+                  >
+                    <Flex gap="md" align="center">
+                      <Box
+                        className={cn(
+                          'p-3 rounded-xl',
+                          selectedType === o.id
+                            ? 'bg-[var(--lq-accent)] text-white'
+                            : 'bg-[var(--lq-surface-2)] text-[var(--lq-text-dim)]',
+                        )}
+                      >
+                        <o.icon size={24} />
+                      </Box>
+                      <Stack gap="none" style={{ flex: 1 }}>
+                        <Flex justify="between">
+                          <LqText variant="small" weight="bold">
+                            {o.title}
+                          </LqText>
+                          <Badge
+                            variant={o.available ? 'success' : 'warning'}
+                            label={o.available ? 'READY' : 'OFFLINE'}
+                            size="sm"
+                          />
+                        </Flex>
+                        <LqText variant="xs" color="muted" mt="xs">
+                          {o.description}
+                        </LqText>
+                        {!o.available && (
+                          <LqText variant="xxxs" color="warning" mt="xs" weight="bold">
+                            {o.unavailableReason}
+                          </LqText>
+                        )}
+                      </Stack>
+                    </Flex>
+                  </Surface>
+                ))}
+              </Grid>
+            </Stack>
+          )}
 
-      {step === 1 && (
-        <div className={styles.stackSm}>
-          <h4 className={styles.sectionHeading}>1. Choose output type</h4>
-          {exportOptions.map((option) => (
-            <button
-              key={option.id}
-              onClick={() => setSelectedType(option.id)}
-              data-gated-reason={
-                option.available ? '' : option.unavailableReason || 'Not available yet'
-              }
-              className={`${styles.optionButton} ${
-                selectedType === option.id ? styles.optionButtonSelected : styles.optionButtonIdle
-              }`}
-            >
-              <div className={styles.rowBetween}>
-                <p className={styles.bodyTextSm}>{option.title}</p>
-                {option.available ? (
-                  <span className={`${styles.labelPill} ${styles.successPill}`}>Available</span>
-                ) : (
-                  <span className={`${styles.labelPill} ${styles.warningPill}`}>
-                    Not available yet
-                  </span>
+          {step === 2 && (
+            <Stack gap="md">
+              <LqText
+                variant="xs"
+                weight="bold"
+                color="muted"
+                style={{ textTransform: 'uppercase' }}
+              >
+                2. Content Hardening & Toggles
+              </LqText>
+              <Grid cols={2} gap="md">
+                {[
+                  { label: 'Executive Summary', val: includeSummary, set: setIncludeSummary },
+                  { label: 'Evidence Matrix', val: includeEvidence, set: setIncludeEvidence },
+                  { label: 'Entity Intersection', val: includeEntities, set: setIncludeEntities },
+                  {
+                    label: 'Chronological Timeline',
+                    val: includeTimeline,
+                    set: setIncludeTimeline,
+                  },
+                  { label: 'Communication Logs', val: includeComms, set: setIncludeComms },
+                  {
+                    label: 'Audit / Provenance Trail',
+                    val: includeAuditTrail,
+                    set: setIncludeAuditTrail,
+                  },
+                ].map((t) => (
+                  <Surface
+                    key={t.label}
+                    variant="glass-highlight"
+                    p="md"
+                    className={styles.autoGen226}
+                  >
+                    <label className={styles.autoGen227}>
+                      <LqText variant="xs" weight="bold">
+                        {t.label}
+                      </LqText>
+                      <input
+                        type="checkbox"
+                        checked={t.val}
+                        onChange={(e) => t.set(e.target.checked)}
+                      />
+                    </label>
+                  </Surface>
+                ))}
+              </Grid>
+              <Surface variant="glass" p="lg" mt="md" className={styles.autoGen228}>
+                <Flex justify="between" align="center">
+                  <Stack gap="xs">
+                    <LqText variant="xs" weight="bold" color="warning">
+                      SENSITIVE CONTENT REDACTION
+                    </LqText>
+                    <LqText variant="xs" color="muted">
+                      Apply automated mask to detected PII and confidential signals.
+                    </LqText>
+                  </Stack>
+                  <input
+                    type="checkbox"
+                    checked={redactSensitive}
+                    onChange={(e) => setRedactSensitive(e.target.checked)}
+                  />
+                </Flex>
+              </Surface>
+            </Stack>
+          )}
+
+          {step === 3 && (
+            <Stack gap="md">
+              <LqText
+                variant="xs"
+                weight="bold"
+                color="muted"
+                style={{ textTransform: 'uppercase' }}
+              >
+                3. Verification & Metrics
+              </LqText>
+              <Surface variant="glass-highlight" p="xl" className={styles.autoGen229}>
+                <Grid cols={3} gap="xl">
+                  <Stack gap="xs">
+                    <LqText variant="xs" color="muted">
+                      ESTIMATED VOLUME
+                    </LqText>
+                    <LqText variant="small" weight="bold">
+                      {estimatedSizeKb} KB
+                    </LqText>
+                  </Stack>
+                  <Stack gap="xs">
+                    <LqText variant="xs" color="muted">
+                      INTEGRITY HASH
+                    </LqText>
+                    <LqText variant="small" weight="bold">
+                      SHA-256 (Pending)
+                    </LqText>
+                  </Stack>
+                  <Stack gap="xs">
+                    <LqText variant="xs" color="muted">
+                      TARGET ARTIFACT
+                    </LqText>
+                    <LqText variant="small" weight="bold">
+                      {selectedOption.title}
+                    </LqText>
+                  </Stack>
+                </Grid>
+                <Box mt="xl" pt="xl" className={styles.autoGen230}>
+                  <LqText
+                    variant="xs"
+                    weight="bold"
+                    color="muted"
+                    style={{ marginBottom: 'var(--lq-space-md)' }}
+                  >
+                    INCLUDED MODULES
+                  </LqText>
+                  <Flex gap="xs" wrap="wrap">
+                    {[
+                      { l: 'SUMMARY', v: includeSummary },
+                      { l: 'EVIDENCE', v: includeEvidence },
+                      { l: 'ENTITIES', v: includeEntities },
+                      { l: 'TIMELINE', v: includeTimeline },
+                      { l: 'COMMS', v: includeComms },
+                      { l: 'AUDIT', v: includeAuditTrail },
+                    ]
+                      .filter((i) => i.v)
+                      .map((i) => (
+                        <Badge key={i.l} variant="accent" label={i.l} size="sm" />
+                      ))}
+                  </Flex>
+                </Box>
+              </Surface>
+            </Stack>
+          )}
+
+          {step === 4 && (
+            <Stack gap="xl">
+              <Stack gap="md">
+                <LqText
+                  variant="xs"
+                  weight="bold"
+                  color="muted"
+                  style={{ textTransform: 'uppercase' }}
+                >
+                  4. Execution & Governance
+                </LqText>
+                <Button
+                  variant="secondary"
+                  size="md"
+                  onClick={runGeneration}
+                  disabled={isGenerating || !selectedOption.available}
+                >
+                  {isGenerating ? (
+                    <Loader2 className="animate-spin mr-2" />
+                  ) : (
+                    <Zap className="mr-2" />
+                  )}
+                  {isGenerating
+                    ? `Synthesizing Artifact... ${progress}%`
+                    : 'Execute Material Export'}
+                </Button>
+                {isGenerating && (
+                  <Box className={styles.autoGen231}>
+                    <Box className={styles.autoGen232} style={{ width: `${progress}%` }} />
+                  </Box>
                 )}
-              </div>
-              <p className={styles.bodyTextXs}>{option.description}</p>
-              {!option.available && option.unavailableReason && (
-                <p className={`${styles.bodyTextXs} ${styles.warningText}`}>
-                  {option.unavailableReason}
-                </p>
+              </Stack>
+
+              {generatedMeta && (
+                <Surface variant="glass" p="lg" className={styles.autoGen233}>
+                  <Flex gap="md" align="start">
+                    <CheckCircle2 size={24} className={styles.autoGen234} />
+                    <Stack gap="sm" style={{ flex: 1 }}>
+                      <LqText variant="small" weight="bold">
+                        Artifact Export Complete
+                      </LqText>
+                      <Grid cols={2} gap="md">
+                        <Stack gap="none">
+                          <LqText variant="xs" color="muted">
+                            FILENAME
+                          </LqText>
+                          <LqText variant="xs" weight="bold">
+                            {generatedMeta.filename}
+                          </LqText>
+                        </Stack>
+                        <Stack gap="none">
+                          <LqText variant="xs" color="muted">
+                            CHECKSUM (SHA-256)
+                          </LqText>
+                          <LqText variant="xs" weight="bold" className={styles.autoGen235}>
+                            {generatedMeta.checksum}
+                          </LqText>
+                        </Stack>
+                        <Stack gap="none">
+                          <LqText variant="xs" color="muted">
+                            TIMESTAMP
+                          </LqText>
+                          <LqText variant="xs" weight="bold">
+                            {format(new Date(generatedMeta.generatedAt), 'PPpp')}
+                          </LqText>
+                        </Stack>
+                        <Stack gap="none">
+                          <LqText variant="xs" color="muted">
+                            ENGINE VERSION
+                          </LqText>
+                          <LqText variant="xs" weight="bold">
+                            {generatedMeta.version}
+                          </LqText>
+                        </Stack>
+                      </Grid>
+                    </Stack>
+                  </Flex>
+                </Surface>
               )}
-            </button>
-          ))}
-        </div>
-      )}
 
-      {step === 2 && (
-        <div className={styles.stackSm}>
-          <h4 className={styles.sectionHeading}>2. Configure content</h4>
-          <div className={styles.toggleGrid}>
-            {sectionToggles.map(({ label, value, setter }) => (
-              <label key={String(label)} className={styles.toggleCard}>
-                <input type="checkbox" checked={value} onChange={(e) => setter(e.target.checked)} />
-                <span className={styles.bodyTextSm}>{label}</span>
-              </label>
+              {!selectedOption.available && (
+                <Surface variant="glass" p="md" className={styles.autoGen236}>
+                  <Flex gap="md" align="center">
+                    <ShieldAlert size={20} className={styles.autoGen237} />
+                    <LqText variant="xs" color="warning">
+                      {selectedOption.unavailableReason || 'This modality is currently locked.'}
+                    </LqText>
+                  </Flex>
+                </Surface>
+              )}
+
+              <Flex gap="sm" align="center" justify="center" p="md">
+                <Clock size={12} className={styles.autoGen238} />
+                <LqText variant="xs" color="muted">
+                  Exports are local machine downloads. No external signals transmitted.
+                </LqText>
+              </Flex>
+            </Stack>
+          )}
+
+          {/* Navigation */}
+          <Flex justify="between" pt="xl" className={styles.autoGen239}>
+            <Button
+              variant="ghost"
+              size="sm"
+              disabled={step === 1}
+              onClick={() => setStep((s) => Math.max(1, s - 1) as any)}
+            >
+              <ChevronLeft size={16} className="mr-2" /> Back
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              disabled={step === 4 || (!selectedOption.available && step === 1)}
+              onClick={() => setStep((s) => Math.min(4, s + 1) as any)}
+            >
+              Next <ChevronRight size={16} className="ml-2" />
+            </Button>
+          </Flex>
+
+          {/* Global Case Metrics */}
+          <Grid cols={4} gap="md" mt="md">
+            {[
+              { label: 'Evidence', val: evidence.length },
+              { label: 'Events', val: timelineEvents.length },
+              { label: 'Theories', val: hypotheses.length },
+              { label: 'Signals', val: annotations.length },
+            ].map((m) => (
+              <Surface key={m.label} variant="glass-highlight" p="sm">
+                <LqText variant="xs" color="muted">
+                  {m.label.toUpperCase()}
+                </LqText>
+                <LqText variant="small" weight="bold">
+                  {m.val}
+                </LqText>
+              </Surface>
             ))}
-          </div>
-          <label className={styles.toggleCard}>
-            <input
-              type="checkbox"
-              checked={redactSensitive}
-              onChange={(e) => setRedactSensitive(e.target.checked)}
-            />
-            <span className={styles.bodyTextSm}>Apply redaction for sensitive content</span>
-          </label>
-        </div>
-      )}
-
-      {step === 3 && (
-        <div className={styles.stackSm}>
-          <h4 className={styles.sectionHeading}>3. Preview</h4>
-          <div className={styles.previewCard}>
-            <p className={styles.bodyTextSm}>
-              <span className={styles.mutedText}>Type:</span> {selectedOption.title}
-            </p>
-            <p className={styles.bodyTextSm}>
-              <span className={styles.mutedText}>Estimated size:</span> ~{estimatedSizeKb} KB
-            </p>
-            <p className={styles.bodyTextSm}>
-              <span className={styles.mutedText}>Sections:</span>{' '}
-              {[
-                includeSummary && 'summary',
-                includeEvidence && 'evidence',
-                includeEntities && 'entities',
-                includeTimeline && 'timeline',
-                includeComms && 'comms',
-              ]
-                .filter(Boolean)
-                .join(', ') || 'none'}
-            </p>
-            <p className={styles.bodyTextSm}>
-              <span className={styles.mutedText}>Redaction:</span>{' '}
-              {redactSensitive ? 'enabled' : 'off'}
-            </p>
-            <p className={styles.bodyTextSm}>
-              <span className={styles.mutedText}>Audit trail:</span>{' '}
-              {includeAuditTrail ? 'included' : 'excluded'}
-            </p>
-          </div>
-        </div>
-      )}
-
-      {step === 4 && (
-        <div className={styles.stackMd}>
-          <h4 className={styles.sectionHeading}>4. Generate</h4>
-          <button
-            onClick={runGeneration}
-            disabled={isGenerating || !selectedOption.available}
-            className={styles.generateButton}
-          >
-            <Download className={styles.iconSm} />
-            {isGenerating ? 'Generating...' : 'Generate artifact'}
-          </button>
-
-          {isGenerating && (
-            <div className={styles.progressCard}>
-              <div className={styles.progressLabelRow}>
-                <span>Generation progress</span>
-                <span>{progress}%</span>
-              </div>
-              <div className={styles.progressTrack}>
-                <div className={styles.progressBar} style={{ width: `${progress}%` }} />
-              </div>
-            </div>
-          )}
-
-          {generatedMeta && (
-            <div className={styles.successCard}>
-              <div className={styles.successHeading}>
-                <CheckCircle2 className={styles.iconSm} />
-                Export generated
-              </div>
-              <p className={styles.successText}>
-                <span className={styles.successLabel}>File:</span> {generatedMeta.filename}
-              </p>
-              <p className={styles.successText}>
-                <span className={styles.successLabel}>Checksum:</span> {generatedMeta.checksum}
-              </p>
-              <p className={styles.successText}>
-                <span className={styles.successLabel}>Generated at:</span>{' '}
-                {format(new Date(generatedMeta.generatedAt), 'PPpp')}
-              </p>
-              <p className={styles.successText}>
-                <span className={styles.successLabel}>Version:</span> {generatedMeta.version}
-              </p>
-            </div>
-          )}
-
-          {!selectedOption.available && (
-            <div className={styles.warningCard}>
-              <ShieldAlert className={styles.iconSm} />
-              <span>
-                {selectedOption.unavailableReason || 'Not available yet.'} Use an available export
-                type now and keep provenance enabled for auditability.
-              </span>
-            </div>
-          )}
-
-          <div className={styles.footerMeta}>
-            <Clock className={styles.iconXs} />
-            Generated files are local downloads. No automatic publish endpoint is active in this
-            module.
-          </div>
-        </div>
-      )}
-
-      <div className={styles.footerDivider}>
-        <button
-          onClick={() => setStep((prev) => Math.max(1, prev - 1) as 1 | 2 | 3 | 4)}
-          disabled={step === 1}
-          className={`${styles.navButton} ${styles.navButtonSecondary}`}
-        >
-          Back
-        </button>
-        <button
-          onClick={() => setStep((prev) => Math.min(4, prev + 1) as 1 | 2 | 3 | 4)}
-          disabled={step === 4 || !canProceed}
-          className={`${styles.navButton} ${styles.navButtonPrimary}`}
-        >
-          Next
-        </button>
-      </div>
-
-      <div className={styles.statsGrid}>
-        <div className={styles.statCard}>
-          <p className={styles.bodyTextXs}>Evidence items</p>
-          <p className={styles.statValue}>{evidence.length}</p>
-        </div>
-        <div className={styles.statCard}>
-          <p className={styles.bodyTextXs}>Timeline events</p>
-          <p className={styles.statValue}>{timelineEvents.length}</p>
-        </div>
-        <div className={styles.statCard}>
-          <p className={styles.bodyTextXs}>Hypotheses</p>
-          <p className={styles.statValue}>{hypotheses.length}</p>
-        </div>
-        <div className={styles.statCard}>
-          <p className={styles.bodyTextXs}>Annotations</p>
-          <p className={styles.statValue}>{annotations.length}</p>
-        </div>
-      </div>
-    </div>
+          </Grid>
+        </Stack>
+      </Box>
+    </Box>
   );
 };

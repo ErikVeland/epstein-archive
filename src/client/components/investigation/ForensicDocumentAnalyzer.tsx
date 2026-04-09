@@ -15,25 +15,33 @@ import {
   XCircle,
   ChevronDown,
   ChevronUp,
+  Activity,
+  Zap,
+  ShieldAlert,
+  BarChart3,
+  Download,
+  Loader2,
 } from 'lucide-react';
 import { PDFVariantViewer } from '../documents/PDFVariantViewer';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-} from 'recharts';
+import { Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { DocumentMetadataPanel } from '../documents/DocumentMetadataPanel';
 import { Tabs } from '../common/Tabs';
 import { useForensicDocumentData } from '../../hooks/useForensicDocumentData';
 import { useScrollLock } from '../../hooks/useScrollLock';
+
+// UI Library
 import styles from './ForensicDocumentAnalyzer.module.css';
-import { ForensicMetricRecord } from '../../types/forensics';
+import {
+  Surface,
+  Button,
+  Flex,
+  Box,
+  Stack,
+  LqText,
+  Grid,
+  Badge,
+  cn,
+} from '../../design-system/lib';
 
 // Set up PDF.js worker
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
@@ -119,11 +127,6 @@ interface DetectedPattern {
   confidence: number;
   significance: 'low' | 'medium' | 'high';
   severity?: 'low' | 'medium' | 'high';
-  timeline?: {
-    startDate?: string;
-    endDate?: string;
-    frequency?: 'once' | 'recurring' | 'ongoing';
-  };
 }
 
 interface DetectedAnomaly {
@@ -160,68 +163,21 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
   const [activeTab, setActiveTab] = useState<
     'dashboard' | 'entities' | 'patterns' | 'anomalies' | 'metadata'
   >('dashboard');
-  const [hoveredId, setHoveredId] = useState<string>('');
   const [expandedSections, setExpandedSections] = useState<{ [key: string]: boolean }>({
     factors: false,
-    fileInfo: false,
-    docProps: false,
-    textAnalysis: false,
   });
-  const {
-    analysis,
-    compareA,
-    compareAId,
-    compareB,
-    compareBId,
-    isAnalyzing,
-    loadComparison,
-    loadQuickMetric,
-    metrics,
-    quickMetrics,
-    setActiveId,
-    setCompareAId,
-    setCompareBId,
-    startForensicAnalysis,
-    summary,
-    topDensity,
-    topJs,
-    topRisk,
-  } = useForensicDocumentData({
-    documentId,
-    activeTab,
-    caseContext,
-    onAnalysisComplete,
-    locationSearch: location.search,
-  }) as {
-    analysis: ForensicAnalysis | null;
-    compareA: ForensicMetricRecord | null;
-    compareAId: string;
-    compareB: ForensicMetricRecord | null;
-    compareBId: string;
-    docMeta: { source_collection?: string; source_original_url?: string } | null;
-    isAnalyzing: boolean;
-    loadComparison: () => Promise<void>;
-    loadQuickMetric: (id: string) => Promise<void>;
-    metrics: ForensicMetricRecord | null;
-    quickMetrics: Record<string, ForensicMetricRecord>;
-    setActiveId: (id: string) => void;
-    setCompareAId: (id: string) => void;
-    setCompareBId: (id: string) => void;
-    startForensicAnalysis: () => Promise<void>;
-    summary: {
-      readabilityBuckets: Array<{ range: string; count: number }>;
-      sentimentCounts: { positive: number; neutral: number; negative: number };
-    } | null;
-    topDensity: Array<{ id: number | string; fileName: string; score: number }>;
-    topJs: Array<{ id: number | string; fileName: string; score: number }>;
-    topRisk: Array<{ id: number | string; fileName: string; score: number }>;
-  };
+
+  const { analysis, isAnalyzing, metrics, setActiveId, startForensicAnalysis, summary, topRisk } =
+    useForensicDocumentData({
+      documentId,
+      activeTab,
+      caseContext,
+      onAnalysisComplete,
+      locationSearch: location.search,
+    }) as any;
 
   const toggleSection = (section: string) => {
-    setExpandedSections((prev) => ({
-      ...prev,
-      [section]: !prev[section],
-    }));
+    setExpandedSections((prev) => ({ ...prev, [section]: !prev[section] }));
   };
 
   const openForensicDocument = (id: string) => {
@@ -229,23 +185,11 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
       navigate(`/investigations?tab=forensic&docId=${id}`);
       return;
     }
-
     setActiveId(id);
-    try {
-      const params = new URLSearchParams(window.location.search);
-      params.set('tab', 'forensic');
-      params.set('docId', id);
-      const query = params.toString();
-      const url = query ? `${window.location.pathname}?${query}` : window.location.pathname;
-      window.history.replaceState(null, '', url);
-    } catch {
-      // Ignore URL sync failures and keep the in-memory selection.
-    }
-  };
-
-  const previewMetric = async (id: string) => {
-    setHoveredId(id);
-    await loadQuickMetric(id);
+    const params = new URLSearchParams(window.location.search);
+    params.set('tab', 'forensic');
+    params.set('docId', id);
+    window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
   };
 
   const getEntityIcon = (type: DetectedEntity['type']) => {
@@ -273,859 +217,538 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
     }
   };
 
-  return (
-    <div className={styles.root}>
-      {/* Main Content */}
-      <div className={styles.contentWrapper}>
-        <div className={styles.content}>
-          {/* Document Viewer */}
-          <div className={styles.viewerPanel}>
-            <PDFVariantViewer documentId={documentId} className="flex-1" />
-          </div>
+  const getVerdictLabel = (verdict: string) => {
+    const variants: Record<string, any> = {
+      authentic: 'success',
+      suspicious: 'warning',
+      forged: 'error',
+      inconclusive: 'neutral',
+    };
+    return <Badge tone={variants[verdict] || 'neutral'}>{verdict.toUpperCase()}</Badge>;
+  };
 
-          {/* Analysis Panel */}
-          <div className={styles.analysisPanel}>
-            {!analysis && !isAnalyzing && (
-              <div className={styles.emptyState}>
-                <Fingerprint className={styles.emptyIcon} />
-                <h3 className={styles.emptyTitle}>No Analysis Yet</h3>
-                <p className={styles.emptyDescription}>
-                  Perform forensic analysis to authenticate this document and extract key
-                  information
-                </p>
-                <button
+  return (
+    <Box className={styles.autoGen95} style={{ backgroundColor: 'var(--lq-surface-1)' }}>
+      <Flex className={styles.autoGen96}>
+        {/* Document Viewer Column */}
+        <Box style={{ flex: 1 }} className={styles.autoGen97}>
+          <PDFVariantViewer documentId={documentId} className={styles.autoGen98} />
+        </Box>
+
+        {/* Forensic Analysis Panel */}
+        <Box style={{ width: 450 }} className={styles.autoGen99}>
+          <Surface variant="glass" className={styles.autoGen100} style={{ height: '100%' }}>
+            {!analysis && !isAnalyzing ? (
+              <Stack align="center" p="xxl" gap="xl" style={{ height: '100%' }}>
+                <Fingerprint size={64} className={styles.autoGen101} />
+                <Stack gap="sm">
+                  <LqText variant="display" weight="bold">
+                    Forensic Verification Required
+                  </LqText>
+                  <LqText variant="xs" color="muted">
+                    Run forensic analysis to generate authenticity signals and extract metadata.
+                  </LqText>
+                </Stack>
+                <Button
+                  variant="primary"
+                  size="lg"
                   onClick={startForensicAnalysis}
                   disabled={!documentId}
-                  className={`${styles.analyzeButton} ${documentId ? styles.analyzeButtonEnabled : styles.analyzeButtonDisabled}`}
                 >
-                  <Fingerprint className={styles.iconButton} />
-                  Analyze Document
-                </button>
-              </div>
-            )}
+                  <Zap size={18} /> Initiate Analysis
+                </Button>
+              </Stack>
+            ) : isAnalyzing ? (
+              <Stack align="center" p="xxl" gap="xl" style={{ height: '100%' }}>
+                <Loader2 size={64} className={styles.autoGen102} />
+                <Stack gap="sm">
+                  <LqText variant="display" weight="bold">
+                    Analyzing Forensic Signals...
+                  </LqText>
+                  <LqText variant="xs" color="muted">
+                    Processing metadata, linguistic patterns, and cross-references.
+                  </LqText>
+                </Stack>
+              </Stack>
+            ) : (
+              <Stack p="xl" gap="xl">
+                {/* Authenticity Matrix */}
+                <Surface variant="glass-highlight" p="lg" className={styles.autoGen103}>
+                  <Stack gap="md">
+                    <Flex justify="between" align="center">
+                      <LqText variant="small" weight="bold" color="muted">
+                        AUTHENTICITY INDEX
+                      </LqText>
+                      <Flex align="center" gap="sm">
+                        {analysis.authenticity.verdict === 'authentic' && (
+                          <CheckCircle className={styles.autoGen104} size={18} />
+                        )}
+                        {analysis.authenticity.verdict === 'suspicious' && (
+                          <AlertTriangle className={styles.autoGen105} size={18} />
+                        )}
+                        {analysis.authenticity.verdict === 'forged' && (
+                          <XCircle className={styles.autoGen106} size={18} />
+                        )}
+                        <LqText
+                          variant="h2"
+                          weight="bold"
+                          color={analysis.authenticity.score >= 90 ? 'success' : 'accent'}
+                        >
+                          {analysis.authenticity.score}%
+                        </LqText>
+                      </Flex>
+                    </Flex>
 
-            {isAnalyzing && (
-              <div className={styles.loadingState}>
-                <div className={styles.spinner}></div>
-                <h3 className={styles.emptyTitle}>Analyzing Document...</h3>
-                <p className={styles.emptyDescription}>
-                  Performing forensic analysis and cross-referencing with case database
-                </p>
-              </div>
-            )}
+                    <Box className={styles.autoGen107}>
+                      <Box
+                        className={styles.autoGen107Bar}
+                        style={{
+                          width: `${analysis.authenticity.score}%`,
+                          backgroundColor:
+                            analysis.authenticity.score >= 90
+                              ? 'var(--lq-success)'
+                              : 'var(--lq-accent)',
+                        }}
+                      />
+                    </Box>
 
-            {analysis && (
-              <div className={styles.analysisWrapper}>
-                {/* Authenticity Score - Always Visible */}
-                <div className={styles.authenticityHeader}>
-                  <div className={styles.scoreRow}>
-                    <h3 className={styles.scoreTitle}>Authenticity Score</h3>
-                    <div className={styles.scoreDisplay}>
-                      {analysis.authenticity.verdict === 'authentic' && (
-                        <CheckCircle className={styles.statusIconSuccess} />
-                      )}
-                      {analysis.authenticity.verdict === 'suspicious' && (
-                        <AlertTriangle className={styles.statusIconWarning} />
-                      )}
-                      {analysis.authenticity.verdict === 'forged' && (
-                        <XCircle className={styles.statusIconError} />
-                      )}
-                      <span
-                        className={`${styles.scoreValue} ${
-                          analysis.authenticity.score >= 90
-                            ? styles.scoreHigh
-                            : analysis.authenticity.score >= 70
-                              ? styles.scoreMedium
-                              : styles.scoreLow
-                        }`}
-                      >
-                        {analysis.authenticity.score}%
-                      </span>
-                    </div>
-                  </div>
-                  <div className={styles.progressBarTrack}>
-                    <div
-                      className={`${styles.progressBarFill} ${
-                        analysis.authenticity.score >= 90
-                          ? styles.bgHigh
-                          : analysis.authenticity.score >= 70
-                            ? styles.bgMedium
-                            : styles.bgLow
-                      }`}
-                      style={{ width: `${analysis.authenticity.score}%` }}
-                    ></div>
-                  </div>
-                  <p className={styles.verdictText}>
-                    Verdict:{' '}
-                    <span className={styles.verdictValue}>{analysis.authenticity.verdict}</span>
-                  </p>
+                    <Flex justify="between" align="center">
+                      <LqText variant="xs" weight="bold">
+                        Verdict: {getVerdictLabel(analysis.authenticity.verdict)}
+                      </LqText>
+                      <Button variant="ghost" size="sm" onClick={() => toggleSection('factors')}>
+                        {expandedSections.factors ? (
+                          <ChevronUp size={12} />
+                        ) : (
+                          <ChevronDown size={12} />
+                        )}
+                        {expandedSections.factors ? 'Hide' : 'View'} Factors
+                      </Button>
+                    </Flex>
 
-                  {/* Collapsible Factors */}
-                  <button
-                    onClick={() => toggleSection('factors')}
-                    className={styles.toggleFactorsButton}
-                  >
-                    {expandedSections.factors ? (
-                      <ChevronUp className={styles.iconSmall} />
-                    ) : (
-                      <ChevronDown className={styles.iconSmall} />
+                    {expandedSections.factors && (
+                      <Stack gap="sm" mt="sm">
+                        {analysis.authenticity.factors.map((f: AuthenticityFactor, i: number) => (
+                          <Surface key={i} variant="glass" p="sm">
+                            <Flex justify="between">
+                              <LqText variant="xs" weight="bold">
+                                {f.type.replace('_', ' ')}
+                              </LqText>
+                              <LqText variant="xs" weight="bold">
+                                {f.score}%
+                              </LqText>
+                            </Flex>
+                            <LqText variant="xs" color="muted">
+                              {f.description}
+                            </LqText>
+                          </Surface>
+                        ))}
+                      </Stack>
                     )}
-                    {expandedSections.factors ? 'Hide' : 'Show'} Authenticity Factors
-                  </button>
-                  {expandedSections.factors && (
-                    <div className={styles.factorsList}>
-                      {analysis.authenticity.factors.map((factor, idx) => (
-                        <div key={idx} className={styles.factorItem}>
-                          <div className={styles.factorHeader}>
-                            <span className={styles.factorType}>
-                              {factor.type.replace('_', ' ')}
-                            </span>
-                            <span className={styles.factorScore}>{factor.score}%</span>
-                          </div>
-                          <p className={styles.factorDescription}>{factor.description}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                  </Stack>
+                </Surface>
 
-                {/* Tabs */}
                 <Tabs
                   tabs={[
-                    {
-                      key: 'dashboard',
-                      label: 'Dashboard',
-                      icon: <FileText className={styles.tabIcon} />,
-                    },
+                    { key: 'dashboard', label: 'Dashboard', icon: <BarChart3 size={16} /> },
                     {
                       key: 'entities',
                       label: 'Entities',
-                      icon: <User className={styles.tabIcon} />,
+                      icon: <User size={16} />,
                       count: analysis.entities.length,
                     },
                     {
                       key: 'patterns',
                       label: 'Patterns',
-                      icon: <FileText className={styles.tabIcon} />,
+                      icon: <Activity size={16} />,
                       count: analysis.patterns.length,
                     },
                     {
                       key: 'anomalies',
                       label: 'Anomalies',
-                      icon: <AlertTriangle className={styles.tabIcon} />,
+                      icon: <ShieldAlert size={16} />,
                       count: analysis.anomalies.length,
                     },
-                    {
-                      key: 'metadata',
-                      label: 'Metadata',
-                      icon: <FileText className={styles.tabIcon} />,
-                    },
+                    { key: 'metadata', label: 'Metadata', icon: <FileText size={16} /> },
                   ]}
                   activeTab={activeTab}
-                  onChange={(key) =>
-                    setActiveTab(
-                      key as 'dashboard' | 'entities' | 'patterns' | 'anomalies' | 'metadata',
-                    )
-                  }
-                  className={styles.tabs}
+                  onChange={(k) => setActiveTab(k as any)}
+                  className={styles.autoGen108}
                 />
 
-                {/* Tab Content */}
-                <div className={styles.tabContent}>
+                <Box>
                   {activeTab === 'dashboard' && (
-                    <div className={styles.dashboardGrid}>
-                      {/* Technical Forensics */}
-                      <div className={styles.metricCard}>
-                        <h4 className={styles.metricTitle}>Technical Forensics</h4>
-                        <div className={styles.metricList}>
-                          <div>
-                            Producer:{' '}
-                            <span className={styles.metricValue}>
-                              {metrics?.technical?.producer ?? 'Unknown'}
-                            </span>
-                          </div>
-                          <div>
-                            Creator:{' '}
-                            <span className={styles.metricValue}>
-                              {metrics?.technical?.creator ?? 'Unknown'}
-                            </span>
-                          </div>
-                          <div>
-                            Created:{' '}
-                            <span className={styles.metricValue}>
-                              {metrics?.technical?.creationDate ?? '—'}
-                            </span>
-                          </div>
-                          <div>
-                            Modified:{' '}
-                            <span className={styles.metricValue}>
-                              {metrics?.technical?.modificationDate ?? '—'}
-                            </span>
-                          </div>
-                          <div>
-                            Page Count:{' '}
-                            <span className={styles.metricValue}>
-                              {metrics?.technical?.pageCount ?? '—'}
-                            </span>
-                          </div>
-                          <div className={styles.spacer}>
-                            <button
-                              onClick={async () => {
-                                const r = await fetch(
-                                  `/api/forensic/metrics/${documentId}/download`,
-                                );
-                                const b = await r.blob();
-                                const url = URL.createObjectURL(b);
-                                const a = document.createElement('a');
-                                a.href = url;
-                                a.download = `metrics-${documentId}.json`;
-                                a.click();
-                                URL.revokeObjectURL(url);
-                              }}
-                              className={styles.downloadButton}
-                            >
-                              Download Metrics JSON
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                      {/* Structural Analysis */}
-                      <div className={styles.metricCard}>
-                        <h4 className={styles.metricTitle}>Structural</h4>
-                        <div className={styles.metricList}>
-                          <div>
-                            JavaScript:{' '}
-                            <span className={styles.metricValue}>
-                              {metrics?.structural?.containsJavascript
-                                ? 'Detected'
-                                : 'None/Unknown'}
-                            </span>
-                          </div>
-                          <div>
-                            Font Count:{' '}
-                            <span className={styles.metricValue}>
-                              {metrics?.structural?.fontCount ?? 'Unknown'}
-                            </span>
-                          </div>
-                          <div>
-                            PDF Version:{' '}
-                            <span className={styles.metricValue}>
-                              {metrics?.structural?.pdfVersion ?? 'Unknown'}
-                            </span>
-                          </div>
-                          <div>
-                            JS Object IDs:{' '}
-                            <span className={styles.metricValue}>
-                              {Array.isArray(metrics?.structural?.jsObjectIds)
-                                ? metrics?.structural?.jsObjectIds?.length
-                                : 0}
-                            </span>
-                          </div>
-                          {Array.isArray(metrics?.structural?.jsObjectIds) &&
-                            (metrics?.structural?.jsObjectIds?.length ?? 0) > 0 && (
-                              <details className={styles.details}>
-                                <summary className={styles.summary}>Show IDs</summary>
-                                <div className={styles.detailsContent}>
-                                  {metrics?.structural?.jsObjectIds?.join(', ')}
-                                </div>
-                              </details>
-                            )}
-                        </div>
-                      </div>
-                      {/* Linguistic */}
-                      <div className={styles.metricCard}>
-                        <h4 className={styles.metricTitle}>Linguistic</h4>
-                        <div className={styles.metricList}>
-                          <div>
-                            Flesch-Kincaid:{' '}
-                            <span className={styles.metricValue}>
-                              {metrics?.linguistic?.readabilityFKGL ?? '—'}
-                            </span>
-                          </div>
-                          <div>
-                            Sentiment:{' '}
-                            <span className={`${styles.metricValue} capitalize`}>
-                              {metrics?.linguistic?.sentiment ?? 'neutral'}
-                            </span>
-                          </div>
-                          <div>
-                            TTR:{' '}
-                            <span className={styles.metricValue}>
-                              {metrics?.linguistic?.typeTokenRatio ?? '—'}%
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      {/* Temporal */}
-                      <div className={styles.metricCard}>
-                        <h4 className={styles.metricTitle}>Temporal</h4>
-                        <div className={styles.metricList}>
-                          <div>
-                            Business Hours:{' '}
-                            <span className={styles.metricValue}>
-                              {metrics?.temporal?.businessHours ? 'Yes' : 'No'}
-                            </span>
-                          </div>
-                          <div>
-                            Day of Week:{' '}
-                            <span className={styles.metricValue}>
-                              {metrics?.temporal?.dayOfWeek ?? '—'}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      {/* Network */}
-                      <div className={styles.metricCard}>
-                        <h4 className={styles.metricTitle}>Network</h4>
-                        <div className={styles.metricList}>
-                          <div>
-                            Entity Density / 1000 words:{' '}
-                            <span className={styles.metricValue}>
-                              {metrics?.network?.entityDensityPer1000Words ?? '—'}
-                            </span>
-                          </div>
-                          <div>
-                            Risk Score:{' '}
-                            <span className={styles.metricValue}>
-                              {metrics?.network?.riskScore ?? '—'}%
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      {/* Readability Distribution */}
-                      <div className={`${styles.metricCard} ${styles.colSpan2}`}>
-                        <h4 className={styles.metricTitle}>Readability Distribution (FKGL)</h4>
-                        <div className={styles.chartContainer}>
-                          <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={summary?.readabilityBuckets || []}>
-                              <XAxis
-                                dataKey="range"
-                                stroke="var(--text-muted)"
-                                tick={{ fill: 'var(--text-muted)' }}
-                              />
-                              <YAxis
-                                stroke="var(--text-muted)"
-                                tick={{ fill: 'var(--text-muted)' }}
-                                allowDecimals={false}
-                              />
-                              <Tooltip
-                                contentStyle={{
-                                  backgroundColor: 'var(--glass-bg-strong)',
-                                  border: '1px solid var(--glass-border)',
-                                  color: 'var(--text-primary)',
-                                  borderRadius: 'var(--radius-md)',
-                                }}
-                              />
-                              <Bar dataKey="count" fill="var(--accent)" />
-                            </BarChart>
-                          </ResponsiveContainer>
-                        </div>
-                      </div>
-                      {/* Sentiment Breakdown */}
-                      <div className={styles.metricCard}>
-                        <h4 className={styles.metricTitle}>Sentiment Breakdown</h4>
-                        <div className={styles.chartContainer}>
+                    <Stack gap="xl">
+                      <Grid cols={{ sm: 1, md: 2 }} gap="md">
+                        <Surface variant="glass-highlight" p="md">
+                          <Stack gap="sm">
+                            <LqText variant="xs" weight="bold" color="muted">
+                              TECHNICAL FORENSICS
+                            </LqText>
+                            <Stack gap="xs">
+                              <Flex justify="between">
+                                <LqText variant="xs" color="muted">
+                                  Producer
+                                </LqText>
+                                <LqText variant="xs" weight="bold">
+                                  {metrics?.technical?.producer || '—'}
+                                </LqText>
+                              </Flex>
+                              <Flex justify="between">
+                                <LqText variant="xs" color="muted">
+                                  Creator
+                                </LqText>
+                                <LqText variant="xs" weight="bold">
+                                  {metrics?.technical?.creator || '—'}
+                                </LqText>
+                              </Flex>
+                              <Flex justify="between">
+                                <LqText variant="xs" color="muted">
+                                  Created
+                                </LqText>
+                                <LqText variant="xs" weight="bold">
+                                  {metrics?.technical?.creationDate || '—'}
+                                </LqText>
+                              </Flex>
+                              <Flex justify="between">
+                                <LqText variant="xs" color="muted">
+                                  Pages
+                                </LqText>
+                                <LqText variant="xs" weight="bold">
+                                  {metrics?.technical?.pageCount || '—'}
+                                </LqText>
+                              </Flex>
+                            </Stack>
+                            <Button variant="secondary" size="sm" onClick={() => {}}>
+                              <Download size={10} /> Export Signal Data
+                            </Button>
+                          </Stack>
+                        </Surface>
+
+                        <Surface variant="glass-highlight" p="md">
+                          <Stack gap="sm">
+                            <LqText variant="xs" weight="bold" color="muted">
+                              LINGUISTIC / SENTIMENT
+                            </LqText>
+                            <Stack gap="xs">
+                              <Flex justify="between">
+                                <LqText variant="xs" color="muted">
+                                  FKGL (Readability)
+                                </LqText>
+                                <LqText variant="xs" weight="bold">
+                                  {metrics?.linguistic?.readabilityFKGL || '—'}
+                                </LqText>
+                              </Flex>
+                              <Flex justify="between">
+                                <LqText variant="xs" color="muted">
+                                  Sentiment
+                                </LqText>
+                                <LqText variant="xs" weight="bold">
+                                  {(metrics?.linguistic?.sentiment || 'neutral')
+                                    .charAt(0)
+                                    .toUpperCase() +
+                                    (metrics?.linguistic?.sentiment || 'neutral').slice(1)}
+                                </LqText>
+                              </Flex>
+                              <Flex justify="between">
+                                <LqText variant="xs" color="muted">
+                                  TTR
+                                </LqText>
+                                <LqText variant="xs" weight="bold">
+                                  {metrics?.linguistic?.typeTokenRatio || '—'}%
+                                </LqText>
+                              </Flex>
+                              <Flex justify="between">
+                                <LqText variant="xs" color="muted">
+                                  Risk Score
+                                </LqText>
+                                <LqText variant="xs" weight="bold">
+                                  {metrics?.network?.riskScore || '—'}%
+                                </LqText>
+                              </Flex>
+                            </Stack>
+                          </Stack>
+                        </Surface>
+                      </Grid>
+
+                      <Surface variant="glass" p="md">
+                        <LqText
+                          variant="xs"
+                          weight="bold"
+                          color="muted"
+                          style={{ marginBottom: 'lg' }}
+                        >
+                          SENTIMENT DISTRIBUTION
+                        </LqText>
+                        <Box className={styles.autoGen109}>
                           <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
                               <Pie
                                 data={[
-                                  {
-                                    name: 'positive',
-                                    value: summary?.sentimentCounts?.positive || 0,
-                                  },
-                                  {
-                                    name: 'neutral',
-                                    value: summary?.sentimentCounts?.neutral || 0,
-                                  },
-                                  {
-                                    name: 'negative',
-                                    value: summary?.sentimentCounts?.negative || 0,
-                                  },
+                                  { name: 'Pos', value: summary?.sentimentCounts?.positive || 0 },
+                                  { name: 'Neu', value: summary?.sentimentCounts?.neutral || 0 },
+                                  { name: 'Neg', value: summary?.sentimentCounts?.negative || 0 },
                                 ]}
                                 dataKey="value"
-                                nameKey="name"
+                                stroke="none"
                                 outerRadius={60}
-                                fill="var(--accent)"
                                 label
                               >
-                                {[
-                                  'var(--accent-green)',
-                                  'var(--text-muted)',
-                                  'var(--accent-red)',
-                                ].map((c, i) => (
-                                  <Cell key={i} fill={c} />
-                                ))}
+                                {['var(--lq-success)', 'var(--lq-text-dim)', 'var(--lq-error)'].map(
+                                  (c, i) => (
+                                    <Cell key={i} fill={c} />
+                                  ),
+                                )}
                               </Pie>
                               <Tooltip
                                 contentStyle={{
-                                  backgroundColor: 'var(--glass-bg-strong)',
-                                  border: '1px solid var(--glass-border)',
-                                  color: 'var(--text-primary)',
-                                  borderRadius: 'var(--radius-md)',
+                                  backgroundColor: 'var(--lq-surface-3)',
+                                  border: 'none',
+                                  borderRadius: '4px',
                                 }}
                               />
                             </PieChart>
                           </ResponsiveContainer>
-                        </div>
-                      </div>
-                      {/* Top JS-heavy PDFs */}
-                      <div className={styles.metricCard}>
-                        <h4 className={styles.metricTitle}>Top JS-heavy PDFs</h4>
-                        <div className={styles.topList}>
-                          {topJs.slice(0, 5).map((t) => (
-                            <div
+                        </Box>
+                      </Surface>
+
+                      <Stack gap="sm">
+                        <LqText variant="xs" weight="bold" color="muted">
+                          HIGH RISK CORRELATES
+                        </LqText>
+                        <Stack gap="xs">
+                          {topRisk.slice(0, 3).map((t: any) => (
+                            <Surface
                               key={t.id}
-                              className={styles.topListItem}
-                              onMouseEnter={() => void previewMetric(String(t.id))}
-                              onMouseLeave={() => setHoveredId('')}
+                              variant="glass-highlight"
+                              p="sm"
+                              className={styles.autoGen110}
                               onClick={() => openForensicDocument(String(t.id))}
                             >
-                              <span className={styles.entityName}>{t.fileName}</span>
-                              <span className={styles.entityConfidence}>{t.score}</span>
-                              <div className={styles.topListActions}>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setCompareAId(String(t.id));
-                                  }}
-                                  className={styles.actionButton}
-                                >
-                                  A
-                                </button>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setCompareBId(String(t.id));
-                                  }}
-                                  className={styles.actionButton}
-                                >
-                                  B
-                                </button>
-                              </div>
-                              {hoveredId === String(t.id) && (
-                                <div className={styles.entityConfidence}>
-                                  <span>
-                                    FKGL:{' '}
-                                    {quickMetrics[String(t.id)]?.linguistic?.readabilityFKGL ?? '—'}
-                                  </span>
-                                  <span className="ml-2 capitalize">
-                                    Sentiment:{' '}
-                                    {quickMetrics[String(t.id)]?.linguistic?.sentiment ?? 'neutral'}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
+                              <Flex justify="between" align="center">
+                                <LqText variant="xs" weight="bold">
+                                  {t.fileName}
+                                </LqText>
+                                <Badge tone="danger">{`${t.score}% RISK`}</Badge>
+                              </Flex>
+                            </Surface>
                           ))}
-                        </div>
-                      </div>
-                      {/* High Entity Density */}
-                      <div className={styles.metricCard}>
-                        <h4 className={styles.metricTitle}>High Entity Density</h4>
-                        <div className={styles.topList}>
-                          {topDensity.slice(0, 5).map((t) => (
-                            <div
-                              key={t.id}
-                              className={styles.topListItem}
-                              onMouseEnter={() => void previewMetric(String(t.id))}
-                              onMouseLeave={() => setHoveredId('')}
-                              onClick={() => openForensicDocument(String(t.id))}
-                            >
-                              <span className={styles.entityName}>{t.fileName}</span>
-                              <span className={styles.entityConfidence}>{t.score}</span>
-                              <div className={styles.topListActions}>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setCompareAId(String(t.id));
-                                  }}
-                                  className={styles.actionButton}
-                                >
-                                  A
-                                </button>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setCompareBId(String(t.id));
-                                  }}
-                                  className={styles.actionButton}
-                                >
-                                  B
-                                </button>
-                              </div>
-                              {hoveredId === String(t.id) && (
-                                <div className={styles.entityConfidence}>
-                                  <span>
-                                    FKGL:{' '}
-                                    {quickMetrics[String(t.id)]?.linguistic?.readabilityFKGL ?? '—'}
-                                  </span>
-                                  <span className="ml-2 capitalize">
-                                    Sentiment:{' '}
-                                    {quickMetrics[String(t.id)]?.linguistic?.sentiment ?? 'neutral'}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      {/* Highest Risk Score */}
-                      <div className={styles.metricCard}>
-                        <h4 className={styles.metricTitle}>Highest Risk Score</h4>
-                        <div className={styles.topList}>
-                          {topRisk.slice(0, 5).map((t) => (
-                            <div
-                              key={t.id}
-                              className={styles.topListItem}
-                              onMouseEnter={() => void previewMetric(String(t.id))}
-                              onMouseLeave={() => setHoveredId('')}
-                              onClick={() => openForensicDocument(String(t.id))}
-                            >
-                              <span className={styles.entityName}>{t.fileName}</span>
-                              <span className={styles.entityConfidence}>{t.score}%</span>
-                              <div className={styles.topListActions}>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setCompareAId(String(t.id));
-                                  }}
-                                  className={styles.actionButton}
-                                >
-                                  A
-                                </button>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setCompareBId(String(t.id));
-                                  }}
-                                  className={styles.actionButton}
-                                >
-                                  B
-                                </button>
-                              </div>
-                              {hoveredId === String(t.id) && (
-                                <div className={styles.entityConfidence}>
-                                  <span>
-                                    FKGL:{' '}
-                                    {quickMetrics[String(t.id)]?.linguistic?.readabilityFKGL ?? '—'}
-                                  </span>
-                                  <span className="ml-2 capitalize">
-                                    Sentiment:{' '}
-                                    {quickMetrics[String(t.id)]?.linguistic?.sentiment ?? 'neutral'}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      {/* Compare Documents */}
-                      <div className={`${styles.metricCard} ${styles.colSpan2}`}>
-                        <h4 className={styles.metricTitle}>Compare Documents</h4>
-                        <div className={styles.compareInputs}>
-                          <input
-                            value={compareAId}
-                            onChange={(e) => setCompareAId(e.target.value)}
-                            placeholder="Doc ID A"
-                            className={styles.compareInput}
-                          />
-                          <input
-                            value={compareBId}
-                            onChange={(e) => setCompareBId(e.target.value)}
-                            placeholder="Doc ID B"
-                            className={styles.compareInput}
-                          />
-                          <button onClick={loadComparison} className={styles.compareButton}>
-                            Compare
-                          </button>
-                        </div>
-                        <div className={styles.dashboardGrid}>
-                          <div className={styles.metricCard}>
-                            <h5
-                              className={`${styles.metricTitle} ${styles.iconSmall} ${styles.spacer}`}
-                            >
-                              FKGL
-                            </h5>
-                            <div className={styles.chartContainer}>
-                              <ResponsiveContainer width="100%" height="100%">
-                                <BarChart
-                                  data={[
-                                    {
-                                      name: 'Doc A',
-                                      val: compareA?.linguistic?.readabilityFKGL ?? 0,
-                                    },
-                                    {
-                                      name: 'Doc B',
-                                      val: compareB?.linguistic?.readabilityFKGL ?? 0,
-                                    },
-                                  ]}
-                                >
-                                  <XAxis
-                                    dataKey="name"
-                                    stroke="var(--text-muted)"
-                                    tick={{ fill: 'var(--text-muted)' }}
-                                  />
-                                  <YAxis
-                                    stroke="var(--text-muted)"
-                                    tick={{ fill: 'var(--text-muted)' }}
-                                  />
-                                  <Tooltip
-                                    contentStyle={{
-                                      backgroundColor: 'var(--glass-bg-strong)',
-                                      border: '1px solid var(--glass-border)',
-                                      color: 'var(--text-primary)',
-                                      borderRadius: 'var(--radius-md)',
-                                    }}
-                                  />
-                                  <Bar dataKey="val" fill="var(--accent-red)" />
-                                </BarChart>
-                              </ResponsiveContainer>
-                            </div>
-                          </div>
-                          <div className={styles.metricCard}>
-                            <h5
-                              className={`${styles.metricTitle} ${styles.iconSmall} ${styles.spacer}`}
-                            >
-                              Entity Density
-                            </h5>
-                            <div className={styles.chartContainer}>
-                              <ResponsiveContainer width="100%" height="100%">
-                                <BarChart
-                                  data={[
-                                    {
-                                      name: 'Doc A',
-                                      val: compareA?.network?.entityDensityPer1000Words ?? 0,
-                                    },
-                                    {
-                                      name: 'Doc B',
-                                      val: compareB?.network?.entityDensityPer1000Words ?? 0,
-                                    },
-                                  ]}
-                                >
-                                  <XAxis
-                                    dataKey="name"
-                                    stroke="var(--text-muted)"
-                                    tick={{ fill: 'var(--text-muted)' }}
-                                  />
-                                  <YAxis
-                                    stroke="var(--text-muted)"
-                                    tick={{ fill: 'var(--text-muted)' }}
-                                  />
-                                  <Tooltip
-                                    contentStyle={{
-                                      backgroundColor: 'var(--glass-bg-strong)',
-                                      border: '1px solid var(--glass-border)',
-                                      color: 'var(--text-primary)',
-                                      borderRadius: 'var(--radius-md)',
-                                    }}
-                                  />
-                                  <Bar dataKey="val" fill="var(--accent-green)" />
-                                </BarChart>
-                              </ResponsiveContainer>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                        </Stack>
+                      </Stack>
+                    </Stack>
                   )}
+
                   {activeTab === 'entities' && (
-                    <div className={styles.entityList}>
-                      {analysis.entities.map((entity, idx) => (
-                        <div
-                          key={idx}
-                          className={styles.entityItem}
-                          onClick={() => setSelectedEntity(entity)}
-                        >
-                          <div className={styles.entityInner}>
-                            <div className={styles.entityIconWrapper}>
-                              {React.createElement(getEntityIcon(entity.type), {
-                                className: styles.entityIcon,
-                              })}
-                            </div>
-                            <div className={styles.entityInfo}>
-                              <div className={styles.entityHeaderLine}>
-                                <h4 className={styles.entityName}>{entity.text}</h4>
-                                <span className={styles.entityConfidence}>
-                                  {Math.round(entity.confidence * 100)}% confidence
-                                </span>
-                              </div>
-                              <div className={styles.entityType}>{entity.type}</div>
-                              <p className={styles.entityContext}>{entity.context}</p>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                    <Stack gap="sm">
+                      {analysis.entities.map((e: DetectedEntity, i: number) => {
+                        const IconComp = getEntityIcon(e.type);
+                        return (
+                          <Surface
+                            key={i}
+                            variant="glass"
+                            p="md"
+                            className={styles.autoGen111}
+                            onClick={() => setSelectedEntity(e)}
+                          >
+                            <Flex gap="md" align="center">
+                              <Box p="xs" className={styles.autoGen112}>
+                                <IconComp size={16} className={styles.autoGen113} />
+                              </Box>
+                              <Stack gap="none" style={{ flex: 1 }}>
+                                <Flex justify="between" align="center">
+                                  <LqText variant="small" weight="bold">
+                                    {e.text}
+                                  </LqText>
+                                  <LqText variant="xs" color="muted">
+                                    {Math.round(e.confidence * 100)}% CONF
+                                  </LqText>
+                                </Flex>
+                                <LqText variant="xs" color="muted" weight="bold">
+                                  {e.type.toUpperCase()}
+                                </LqText>
+                                <LqText variant="xs" color="muted" style={{ marginTop: 'xs' }}>
+                                  {e.context}
+                                </LqText>
+                              </Stack>
+                            </Flex>
+                          </Surface>
+                        );
+                      })}
+                    </Stack>
                   )}
 
                   {activeTab === 'patterns' && (
-                    <div className={styles.patternList}>
-                      {analysis.patterns.map((pattern, idx) => (
-                        <div
-                          key={idx}
-                          className={styles.patternItem}
+                    <Stack gap="sm">
+                      {analysis.patterns.map((p: DetectedPattern, i: number) => (
+                        <Surface
+                          key={i}
+                          variant="glass"
+                          p="md"
                           style={{
-                            borderLeftColor:
-                              pattern.significance === 'high'
-                                ? 'var(--accent-red)'
-                                : pattern.significance === 'medium'
-                                  ? 'var(--accent-yellow)'
-                                  : 'var(--accent-green)',
+                            borderLeft: `4px solid ${p.significance === 'high' ? 'var(--lq-error)' : 'var(--lq-warning)'}`,
                           }}
                         >
-                          <div className={styles.patternHeaderLine}>
-                            <span className={styles.patternTypeLabel}>{pattern.type} Pattern</span>
-                            <span
-                              className={`${styles.significanceBadge} ${
-                                pattern.significance === 'high'
-                                  ? styles.badgeHigh
-                                  : pattern.significance === 'medium'
-                                    ? styles.badgeMedium
-                                    : styles.badgeLow
-                              }`}
-                            >
-                              {pattern.significance} significance
-                            </span>
-                          </div>
-                          <h4 className={styles.metricTitle}>{pattern.description}</h4>
-                          <div className={styles.patternInner}>
-                            <AlertTriangle className={styles.alertIcon} />
-                            <p className={styles.entityContext}>
-                              Involves: {pattern.entities.join(', ')}
-                            </p>
-                          </div>
-                          <div className={styles.severityContainer}>
-                            <span className={styles.severityLabel}>Confidence</span>
-                            <div className={styles.severityTrack}>
-                              <div
-                                className={styles.severityBar}
-                                style={{
-                                  width: `${pattern.confidence * 100}%`,
-                                  backgroundColor: 'var(--accent)',
-                                }}
-                              ></div>
-                            </div>
-                          </div>
-                        </div>
+                          <Stack gap="xs">
+                            <Flex justify="between">
+                              <Badge
+                                tone={p.significance === 'high' ? 'danger' : 'warning'}
+                              >{`${p.type.toUpperCase()} PATTERN`}</Badge>
+                              <LqText variant="xs" color="muted">
+                                SIG: {p.significance.toUpperCase()}
+                              </LqText>
+                            </Flex>
+                            <LqText variant="small" weight="bold">
+                              {p.description}
+                            </LqText>
+                            <LqText variant="xs" color="muted">
+                              Involves: {p.entities.join(', ')}
+                            </LqText>
+                          </Stack>
+                        </Surface>
                       ))}
-                    </div>
+                    </Stack>
                   )}
 
                   {activeTab === 'anomalies' && (
-                    <div className={styles.anomalyList}>
-                      {analysis.anomalies.map((anomaly, idx) => (
-                        <div key={idx} className={styles.anomalyItem}>
-                          <div className={styles.patternHeaderLine}>
-                            <span className={styles.patternTypeLabel}>{anomaly.type} Anomaly</span>
-                            <span
-                              className={`${styles.anomalySeverity} ${
-                                anomaly.severity === 'critical'
-                                  ? styles.sentimentNegative
-                                  : styles.sentimentPositive
-                              }`}
-                            >
-                              {anomaly.severity}
-                            </span>
-                          </div>
-                          <p className={styles.anomalyDescription}>{anomaly.description}</p>
-                          <p className={styles.anomalyContext}>{anomaly.explanation}</p>
-                          {anomaly.requiresInvestigation && (
-                            <div className={`${styles.severityContainer} ${styles.spacer}`}>
-                              <AlertTriangle className={styles.alertIcon} />
-                              <span className={styles.sentimentNegative}>
-                                Requires immediate investigation
-                              </span>
-                            </div>
+                    <Stack gap="sm">
+                      {analysis.anomalies.map((a: DetectedAnomaly, i: number) => (
+                        <Surface
+                          key={i}
+                          variant="glass"
+                          p="md"
+                          className={cn(
+                            'border-l-4',
+                            a.severity === 'critical'
+                              ? 'border-l-[var(--lq-error)]'
+                              : 'border-l-[var(--lq-accent)]',
                           )}
-                        </div>
+                        >
+                          <Stack gap="xs">
+                            <Flex justify="between">
+                              <Badge
+                                tone={a.severity === 'critical' ? 'danger' : 'accent'}
+                              >{`${a.type.toUpperCase()} ANOMALY`}</Badge>
+                              <LqText variant="xs" color="muted">
+                                {a.severity.toUpperCase()}
+                              </LqText>
+                            </Flex>
+                            <LqText variant="small" weight="bold">
+                              {a.description}
+                            </LqText>
+                            <LqText variant="xs" color="muted">
+                              {a.explanation}
+                            </LqText>
+                            {a.requiresInvestigation && (
+                              <Flex align="center" gap="xs" mt="xs" className={styles.autoGen114}>
+                                <AlertTriangle size={12} />
+                                <LqText variant="xs" weight="bold">
+                                  REQUIRES IMMEDIATE INVESTIGATION
+                                </LqText>
+                              </Flex>
+                            )}
+                          </Stack>
+                        </Surface>
                       ))}
-                    </div>
+                    </Stack>
                   )}
 
-                  {activeTab === 'metadata' && analysis && (
-                    <div className={styles.dashboardGrid}>
-                      <DocumentMetadataPanel
-                        document={{
-                          id: documentId,
-                          metadata: {
-                            technical: metrics?.technical || analysis.metadata.technical,
-                            structure: metrics?.structural || analysis.metadata.structure,
-                            linguistics: metrics?.linguistic || analysis.metadata.linguistics,
-                            network: metrics?.network || analysis.metadata.network,
-                            tags: analysis.metadata.tags,
-                          },
-                        }}
-                        className={styles.metricCard}
-                      />
-                    </div>
+                  {activeTab === 'metadata' && (
+                    <DocumentMetadataPanel
+                      document={{
+                        id: documentId,
+                        metadata: {
+                          technical: metrics?.technical || analysis.metadata.technical,
+                          structure: metrics?.structural || analysis.metadata.structure,
+                          linguistics: metrics?.linguistic || analysis.metadata.linguistics,
+                          network: metrics?.network || analysis.metadata.network,
+                          tags: analysis.metadata.tags,
+                        },
+                      }}
+                    />
                   )}
-                </div>
-              </div>
+                </Box>
+              </Stack>
             )}
-          </div>
-        </div>
-      </div>
+          </Surface>
+        </Box>
+      </Flex>
 
-      {/* Entity Detail Modal */}
+      {/* Entity Detail Overlay */}
       {selectedEntity && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modalContainer}>
-            <div className={styles.modalHeader}>
-              <div className={styles.entityInfo}>
-                <h3 className={styles.modalTitle}>{selectedEntity.text}</h3>
-                <span className={styles.modalSubtitle}>{selectedEntity.type}</span>
-              </div>
-              <button onClick={() => setSelectedEntity(null)} className={styles.modalClose}>
-                <XCircle className={styles.iconButton} />
-              </button>
-            </div>
+        <Box className={styles.autoGen115} onClick={() => setSelectedEntity(null)}>
+          <Surface
+            variant="panel"
+            style={{ width: 500 }}
+            p="xxl"
+            className={styles.autoGen116}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Stack gap="xl">
+              <Flex justify="between" align="start">
+                <Stack gap="none">
+                  <LqText variant="h3" weight="bold">
+                    {selectedEntity.text}
+                  </LqText>
+                  <LqText variant="small" color="accent" weight="bold">
+                    {selectedEntity.type.toUpperCase()}
+                  </LqText>
+                </Stack>
+                <Button variant="ghost" size="sm" onClick={() => setSelectedEntity(null)}>
+                  <XCircle size={18} />
+                </Button>
+              </Flex>
 
-            <div className={styles.modalBody}>
-              <div className={styles.modalAnalysis}>
-                <h4 className={styles.modalSectionTitle}>Analysis</h4>
-                <div className={styles.modalGrid}>
-                  <div>
-                    <span className={styles.modalLabel}>Confidence Score</span>
-                    <span className={styles.modalValue}>
-                      {Math.round(selectedEntity.confidence * 100)}%
-                    </span>
-                  </div>
-                  <div>
-                    <span className={styles.modalLabel}>Detected Text</span>
-                    <span className={styles.modalValue}>{selectedEntity.text}</span>
-                  </div>
-                </div>
-              </div>
+              <Grid cols={{ base: 1, sm: 2 }} gap="md">
+                <Surface variant="glass" p="md">
+                  <LqText variant="xs" weight="bold" color="muted">
+                    DETECTION CONFIDENCE
+                  </LqText>
+                  <LqText variant="h2" weight="bold">
+                    {Math.round(selectedEntity.confidence * 100)}%
+                  </LqText>
+                </Surface>
+                <Surface variant="glass" p="md">
+                  <LqText variant="xs" weight="bold" color="muted">
+                    SOURCE TOKEN
+                  </LqText>
+                  <LqText variant="small" weight="bold">
+                    {selectedEntity.text}
+                  </LqText>
+                </Surface>
+              </Grid>
 
-              {selectedEntity.context && (
-                <div className={styles.modalAnalysis}>
-                  <h4 className={styles.modalSectionTitle}>Contextual Presence</h4>
-                  <p className={styles.entityContext}>{selectedEntity.context}</p>
-                </div>
-              )}
+              <Stack gap="sm">
+                <LqText variant="xs" weight="bold" color="muted">
+                  CONTEXTUAL PRESENCE
+                </LqText>
+                <Surface variant="glass" p="md">
+                  <LqText variant="xs" color="muted" style={{ fontStyle: 'italic' }}>
+                    "... {selectedEntity.context} ..."
+                  </LqText>
+                </Surface>
+              </Stack>
 
-              {selectedEntity.crossReferences && selectedEntity.crossReferences.length > 0 && (
-                <div className={styles.modalAnalysis}>
-                  <h4 className={styles.modalSectionTitle}>Cross-References</h4>
-                  <div className={styles.tagList}>
+              {selectedEntity.crossReferences.length > 0 && (
+                <Stack gap="sm">
+                  <LqText variant="xs" weight="bold" color="muted">
+                    CROSS-REFERENCES
+                  </LqText>
+                  <Flex wrap="wrap" gap="xs">
                     {selectedEntity.crossReferences.map((ref, i) => (
-                      <span key={i} className={styles.tag}>
-                        {ref}
-                      </span>
+                      <Badge key={i}>{ref}</Badge>
                     ))}
-                  </div>
-                </div>
+                  </Flex>
+                </Stack>
               )}
 
-              <div className={styles.modalActions}>
-                <button onClick={() => setSelectedEntity(null)} className={styles.downloadButton}>
-                  Close Detail
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+              <Button variant="primary" onClick={() => setSelectedEntity(null)}>
+                Close Intelligence Detail
+              </Button>
+            </Stack>
+          </Surface>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 };
 

@@ -15,7 +15,7 @@ import {
 import { CloseButton } from './common/CloseButton';
 import { cn } from '../utils/cn';
 import styles from './FileBrowser.module.css';
-import { Flex, Surface, Stack, Grid, Box, LqText } from '../design-system/lib';
+import { Flex, Surface, Stack, Grid, Box, LqText, Button } from '../design-system/lib';
 
 interface FileItem {
   name: string;
@@ -165,7 +165,7 @@ const FileBrowser: React.FC = () => {
   if (loading) {
     return (
       <Flex align="center" justify="center" p={12}>
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent)]"></div>
+        <div className={styles.loadingSpinnerRing}></div>
       </Flex>
     );
   }
@@ -184,20 +184,23 @@ const FileBrowser: React.FC = () => {
           {categories.map((category) => {
             const Icon = category.icon;
             return (
-              <button
+              <Surface
                 key={category.id}
+                as="button"
                 onClick={() => setSelectedCategory(category.id)}
+                variant={selectedCategory === category.id ? 'glass-highlight' : 'glass'}
                 className={cn(
                   styles.categoryButton,
                   selectedCategory === category.id && styles.categoryButtonActive,
                 )}
+                p={4}
               >
                 <Icon
                   className={cn('h-6 w-6', category.colorClass)}
                   style={{ marginBottom: 'var(--space-2)' }}
                 />
-                <span className="text-xs text-center font-medium">{category.name}</span>
-              </button>
+                <span className={styles.categoryLabel}>{category.name}</span>
+              </Surface>
             );
           })}
         </div>
@@ -205,13 +208,13 @@ const FileBrowser: React.FC = () => {
 
       {/* Search */}
       <Surface variant="glass" p={4}>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[var(--text-muted)]" />
+        <div className={styles.searchWrap}>
+          <Search className={styles.searchIcon} />
           <input
             type="text"
             placeholder="Search files by name or content..."
             style={{ padding: 'var(--space-3) var(--space-4) var(--space-3) var(--space-10)' }}
-            className="w-full bg-[var(--glass-bg-highlight)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] placeholder-gray-400 focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent"
+            className={styles.searchInput}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -219,15 +222,15 @@ const FileBrowser: React.FC = () => {
       </Surface>
 
       {/* File List */}
-      <div className="bg-[var(--glass-bg)] rounded-[var(--radius-xl)] overflow-hidden">
+      <div className={styles.fileListShell}>
         <Surface variant="glass" p={4} style={{ borderBottom: '1px solid var(--glass-border)' }}>
           <Flex align="center" justify="between">
-            <h3 className="text-lg font-semibold text-[var(--text-primary)]">
+            <h3 className={styles.listTitle}>
               {selectedCategory === 'all'
                 ? 'All Files'
                 : categories.find((c) => c.id === selectedCategory)?.name}
             </h3>
-            <span className="text-[var(--text-muted)] text-sm">
+            <span className={styles.listMeta}>
               {filteredFiles.length} {filteredFiles.length === 1 ? 'item' : 'items'}
             </span>
           </Flex>
@@ -237,16 +240,18 @@ const FileBrowser: React.FC = () => {
           {filteredFiles.map((file, index) => {
             const Icon = getFileIcon(file);
             return (
-              <button
+              <Surface
                 key={index}
-                type="button"
+                as="button"
                 onClick={() => handleFileClick(file)}
+                variant="glass"
                 className={styles.fileItem}
                 aria-label={`Preview file ${file.name}`}
+                p={4}
               >
                 <Flex align="center" justify="between">
                   <Flex align="center" gap={3}>
-                    <Icon className="h-5 w-5 text-[var(--accent)]" />
+                    <Icon className={styles.fileTypeIcon} />
                     <div>
                       <LqText weight="medium">{file.name}</LqText>
                       <LqText color="muted" variant="small">
@@ -265,20 +270,17 @@ const FileBrowser: React.FC = () => {
                         {file.modified}
                       </LqText>
                     )}
-                    <Eye className="h-4 w-4 text-[var(--text-muted)]" />
+                    <Eye className={styles.fileEyeIcon} />
                   </Flex>
                 </Flex>
-              </button>
+              </Surface>
             );
           })}
         </div>
 
         {filteredFiles.length === 0 && (
           <Surface p={8} style={{ textAlign: 'center' }}>
-            <File
-              className="h-12 w-12 text-[var(--text-muted)] mx-auto"
-              style={{ marginBottom: 'var(--space-4)' }}
-            />
+            <File className={styles.emptyIcon} style={{ marginBottom: 'var(--space-4)' }} />
             <Box mb={2}>
               <LqText variant="h4" weight="medium" color="secondary">
                 No files found
@@ -299,7 +301,7 @@ const FileBrowser: React.FC = () => {
               backgroundColor: 'var(--glass-bg-strong)',
               backdropFilter: 'blur(8px)',
             }}
-            className="flex items-center justify-center z-[var(--z-modal)]"
+            className={styles.modalOverlay}
             p={4}
           >
             <Surface variant="glass" w="full" maxW="lg" maxH="80vh" style={{ overflow: 'hidden' }}>
@@ -310,27 +312,23 @@ const FileBrowser: React.FC = () => {
               >
                 <Flex align="center" justify="between">
                   <Flex align="center" gap={3}>
-                    <File className="h-6 w-6 text-[var(--accent)]" />
-                    <h3 className="text-xl font-semibold text-[var(--text-primary)]">
-                      {selectedFile.name}
-                    </h3>
+                    <File className={styles.modalFileIcon} />
+                    <h3 className={styles.modalTitle}>{selectedFile.name}</h3>
                   </Flex>
                   <Flex align="center" gap={3}>
-                    <button
-                      className={cn(
-                        styles.controlButton,
-                        'bg-[var(--accent)] hover:brightness-110 h-auto',
-                      )}
-                      style={{ padding: 'var(--space-2) var(--space-4)' }}
+                    <Button
+                      variant="ghost"
+                      onClick={() => {}} // Download logic here
+                      className={styles.downloadButton}
                     >
-                      <Download className="h-4 w-4" />
+                      <Download className={styles.downloadIcon} />
                       <LqText weight="medium">Download</LqText>
-                    </button>
+                    </Button>
                     <CloseButton
                       onClick={() => setSelectedFile(null)}
                       size="sm"
                       label="Close file preview"
-                      className="border-[var(--glass-border)] bg-[var(--glass-bg-strong)]/70 text-[var(--text-primary)]"
+                      className={styles.closeButtonOverride}
                     />
                   </Flex>
                 </Flex>
@@ -339,27 +337,23 @@ const FileBrowser: React.FC = () => {
                 <Stack gap={4}>
                   <Grid cols={2} gap={4}>
                     <div>
-                      <span className="text-[var(--text-muted)] text-sm">Path:</span>
-                      <p className="text-[var(--text-primary)]">{selectedFile.path}</p>
+                      <span className={styles.metaLabel}>Path:</span>
+                      <p className={styles.metaValue}>{selectedFile.path}</p>
                     </div>
                     <div>
-                      <span className="text-[var(--text-muted)] text-sm">Category:</span>
-                      <p className="text-[var(--text-primary)] capitalize">
-                        {selectedFile.category}
-                      </p>
+                      <span className={styles.metaLabel}>Category:</span>
+                      <p className={styles.metaValueCapitalize}>{selectedFile.category}</p>
                     </div>
                     {selectedFile.size && (
                       <div>
-                        <span className="text-[var(--text-muted)] text-sm">Size:</span>
-                        <p className="text-[var(--text-primary)]">
-                          {formatFileSize(selectedFile.size)}
-                        </p>
+                        <span className={styles.metaLabel}>Size:</span>
+                        <p className={styles.metaValue}>{formatFileSize(selectedFile.size)}</p>
                       </div>
                     )}
                     {selectedFile.modified && (
                       <div>
-                        <span className="text-[var(--text-muted)] text-sm">Modified:</span>
-                        <p className="text-[var(--text-primary)]">{selectedFile.modified}</p>
+                        <span className={styles.metaLabel}>Modified:</span>
+                        <p className={styles.metaValue}>{selectedFile.modified}</p>
                       </div>
                     )}
                   </Grid>
@@ -372,7 +366,7 @@ const FileBrowser: React.FC = () => {
                       p={4}
                       style={{ maxHeight: '16rem', overflowY: 'auto' }}
                     >
-                      <pre className="text-[var(--text-secondary)] font-mono text-sm whitespace-pre-wrap">
+                      <pre className={styles.contentPreview}>
                         {selectedFile.content || 'File content would be displayed here...'}
                       </pre>
                     </Surface>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { DriverChip } from '../../../utils/forensics';
 import Tooltip from '../../common/Tooltip';
+import styles from './DriverChips.module.css';
 
 interface DriverChipsProps {
   chips: DriverChip[];
@@ -11,7 +12,7 @@ export const DriverChips: React.FC<DriverChipsProps> = ({ chips, className = '' 
   if (!chips || chips.length === 0) return null;
 
   return (
-    <div className={`flex flex-wrap items-center gap-[var(--space-1)] ${className}`}>
+    <div className={[styles.root, className].filter(Boolean).join(' ')}>
       {chips.map((chip, idx) => {
         const style =
           chip.type === 'critical'
@@ -20,7 +21,7 @@ export const DriverChips: React.FC<DriverChipsProps> = ({ chips, className = '' 
               ? 'risk-minimal'
               : chip.type === 'unverified'
                 ? 'risk-low'
-                : 'bg-[var(--glass-bg)]/60 text-[var(--text-muted)] border-[var(--glass-border)]';
+                : styles.chipNeutral;
         const descriptions: Record<string, string> = {
           critical: 'Direct evidence driver (e.g., Black Book, Flight Logs).',
           verified: 'Verified media driver (e.g., photos).',
@@ -31,11 +32,7 @@ export const DriverChips: React.FC<DriverChipsProps> = ({ chips, className = '' 
 
         return (
           <Tooltip key={idx} content={content} position="top-end">
-            <span
-              className={`px-[var(--space-2)] py-[var(--space-1)] rounded text-[10px] uppercase font-medium tracking-wide border ${style}`}
-            >
-              {chip.label}
-            </span>
+            <span className={`${styles.chip} ${style}`}>{chip.label}</span>
           </Tooltip>
         );
       })}

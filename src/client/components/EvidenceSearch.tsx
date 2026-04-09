@@ -10,12 +10,7 @@ import { useUndo } from './useUndo';
 import { EvidenceFilters } from './evidence/EvidenceFilters';
 import { EvidenceResultCard } from './evidence/EvidenceResultCard';
 import { EvidenceDocSnippets } from './evidence/EvidenceDocSnippets';
-import { Surface } from '../design-system/components/surfaces/Surface';
-import { Box } from '../design-system/components/layout/Box';
-import { Flex } from '../design-system/components/layout/Flex';
-import { Grid } from '../design-system/components/layout/Grid';
-import { LqText } from '../design-system/components/typography/Text';
-import type { SpaceValue } from '../design-system/lib/resolveSpace';
+import { Surface, Flex, Stack, LqText, Grid } from '../design-system/lib';
 import styles from './EvidenceSearch.module.css';
 
 interface EvidenceSearchProps {
@@ -34,7 +29,7 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
   >('relevance');
   const [showFilters, setShowFilters] = useState(false);
 
-  const { addUndoAction } = useUndo();
+  useUndo();
   const navigation = useNavigation();
   const { searchTerm, setSearchTerm } = navigation;
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
@@ -105,9 +100,8 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
     },
     placeholderData: (previousData) => previousData,
   });
+
   const loading = isLoading || isFetching;
-  const loadingProgress = loading ? 'Searching database...' : 'Complete';
-  const loadingProgressValue = loading ? 70 : 100;
 
   const allEvidenceTypes = useMemo(() => {
     const types = new Set<string>();
@@ -118,66 +112,10 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
   }, [people]);
 
   const handlePersonClick = (person: Person) => {
-    if (onPersonClick) {
-      onPersonClick(person, searchTerm);
-    }
+    if (onPersonClick) onPersonClick(person, searchTerm);
   };
 
-  const setSelectedRiskLevelWithUndo = (value: string) => {
-    const previousValue = selectedRiskLevel;
-    setSelectedRiskLevel(value);
-    addUndoAction({
-      description: 'Risk level filter change',
-      undo: () => setSelectedRiskLevel(previousValue),
-    });
-  };
-
-  const setSelectedEvidenceTypeWithUndo = (value: string) => {
-    const previousValue = selectedEvidenceType;
-    setSelectedEvidenceType(value);
-    addUndoAction({
-      description: 'Evidence type filter change',
-      undo: () => setSelectedEvidenceType(previousValue),
-    });
-  };
-
-  const setShowRedFlagOnlyWithUndo = (value: boolean) => {
-    const previousValue = showRedFlagOnly;
-    setShowRedFlagOnly(value);
-    addUndoAction({
-      description: 'Red flag only filter change',
-      undo: () => setShowRedFlagOnly(previousValue),
-    });
-  };
-
-  const setMinRedFlagRatingWithUndo = (value: number) => {
-    const previousValue = minRedFlagRating;
-    setMinRedFlagRating(value);
-    addUndoAction({
-      description: 'Minimum red flag rating change',
-      undo: () => setMinRedFlagRating(previousValue),
-    });
-  };
-
-  const setMaxRedFlagRatingWithUndo = (value: number) => {
-    const previousValue = maxRedFlagRating;
-    setMaxRedFlagRating(value);
-    addUndoAction({
-      description: 'Maximum red flag rating change',
-      undo: () => setMaxRedFlagRating(previousValue),
-    });
-  };
-
-  const setSortByWithUndo = (value: typeof sortBy) => {
-    const previousValue = sortBy;
-    setSortBy(value);
-    addUndoAction({
-      description: 'Sort order change',
-      undo: () => setSortBy(previousValue),
-    });
-  };
-
-  const { data: docSnippetsState = [] } = useQuery<
+  const { data: docSnippets = [] } = useQuery<
     Array<{ id: number; title: string; redFlagRating: number; snippet?: string }>
   >({
     queryKey: ['evidence-search-doc-snippets', debouncedSearchTerm],
@@ -186,20 +124,16 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
       if (!q) return [];
       const r = await fetch(`/api/search?q=${encodeURIComponent(q)}&limit=8&snippets=true`);
       const json = await r.json();
-      return Array.isArray(json.documents)
-        ? json.documents.map((d: Record<string, unknown>) => ({
-            id: Number(d.id || 0),
-            title: String(d.title || ''),
-            redFlagRating: Number(d.redFlagRating || 0),
-            snippet: String(d.snippet || d.contentPreview || ''),
-          }))
-        : [];
+      return (json.documents || []).map((d: any) => ({
+        id: Number(d.id),
+        title: String(d.title),
+        redFlagRating: Number(d.redFlagRating),
+        snippet: String(d.snippet || d.contentPreview || ''),
+      }));
     },
-    enabled: Boolean((debouncedSearchTerm || '').trim()),
+    enabled: Boolean(debouncedSearchTerm.trim()),
     placeholderData: (previousData) => previousData,
   });
-
-  const docSnippets = useMemo(() => docSnippetsState, [docSnippetsState]);
 
   const searchResults = useMemo(() => {
     if (loading && people.length === 0) return [];
@@ -220,12 +154,12 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
         { value: 'LOW', label: 'Low Risk' },
       ],
       redFlagRatings: [
-        { value: 0, label: '⚪ 0 - No Red Flags' },
-        { value: 1, label: '🟡 1 - Minor Concerns' },
-        { value: 2, label: '🟠 2 - Moderate Red Flags' },
-        { value: 3, label: '🔴 3 - Significant Red Flags' },
-        { value: 4, label: '🟣 4 - High Red Flags' },
-        { value: 5, label: '⚫ 5 - Critical Red Flags' },
+        { value: 0, label: '0 - No Red Flags' },
+        { value: 1, label: '1 - Minor Concerns' },
+        { value: 2, label: '2 - Moderate' },
+        { value: 3, label: '3 - Significant' },
+        { value: 4, label: '4 - High Risk' },
+        { value: 5, label: '5 - Critical' },
       ],
       sortByOptions: [
         { value: 'relevance', label: 'Relevance' },
@@ -239,97 +173,107 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
   );
 
   return (
-    <Box className={styles.root}>
+    <Stack gap="xl" className={styles.root}>
       <EvidenceFilters
         searchTerm={searchTerm}
         onSearchTermChange={setSearchTerm}
         selectedRiskLevel={selectedRiskLevel}
-        onRiskLevelChange={setSelectedRiskLevelWithUndo}
+        onRiskLevelChange={setSelectedRiskLevel}
         selectedEvidenceType={selectedEvidenceType}
-        onEvidenceTypeChange={setSelectedEvidenceTypeWithUndo}
+        onEvidenceTypeChange={setSelectedEvidenceType}
         minRedFlagRating={minRedFlagRating}
-        onMinRedFlagRatingChange={setMinRedFlagRatingWithUndo}
+        onMinRedFlagRatingChange={setMinRedFlagRating}
         maxRedFlagRating={maxRedFlagRating}
-        onMaxRedFlagRatingChange={setMaxRedFlagRatingWithUndo}
+        onMaxRedFlagRatingChange={setMaxRedFlagRating}
         sortBy={sortBy}
-        onSortByChange={setSortByWithUndo}
+        onSortByChange={setSortBy}
         showRedFlagOnly={showRedFlagOnly}
-        onShowRedFlagOnlyChange={setShowRedFlagOnlyWithUndo}
+        onShowRedFlagOnlyChange={setShowRedFlagOnly}
         showFilters={showFilters}
         onShowFiltersToggle={() => setShowFilters(!showFilters)}
         loading={loading}
-        loadingProgress={loadingProgress}
-        loadingProgressValue={loadingProgressValue}
+        loadingProgress={loading ? 'Scanning Archive...' : 'Complete'}
+        loadingProgressValue={loading ? 70 : 100}
         allEvidenceTypes={allEvidenceTypes}
         filterOptions={filterOptions}
         resultCount={searchResults.length}
       />
 
-      <Box className={styles.resultsStack}>
+      <Stack gap="lg" className={styles.resultsStack}>
         {loading && people.length === 0 ? (
-          <Grid cols={{ base: 1, md: 2 }} gap={24 as SpaceValue}>
+          <Grid cols={{ base: 1, md: 2 }} gap="lg">
             {[...Array(6)].map((_, i) => (
-              <Surface key={i} variant="glass" className={styles.skeletonCard}>
-                <Box className={styles.shimmer} />
-                <Flex align="start" justify="between" className={styles.skeletonHeader}>
-                  <Flex align="center" gap={12}>
-                    <Box className={styles.skeletonRow} />
-                    <Box>
-                      <Box className={`${styles.skeletonLine} ${styles.skeletonLineLg}`} />
-                      <Box className={`${styles.skeletonLine} ${styles.skeletonLineMd}`} />
-                    </Box>
+              <Surface key={i} variant="glass" p="md">
+                <Stack gap="md">
+                  <Flex justify="between" align="center">
+                    <Flex align="center" gap="md">
+                      <Surface
+                        variant="glass"
+                        className={styles.autoGen0}
+                        style={{ width: 40, height: 40 }}
+                      />
+                      <Stack gap="xs">
+                        <Surface variant="glass" style={{ width: 120, height: 20 }} />
+                        <Surface variant="glass" style={{ width: 80, height: 12 }} />
+                      </Stack>
+                    </Flex>
+                    <Surface variant="glass" style={{ width: 60, height: 24 }} />
                   </Flex>
-                  <Box className={styles.skeletonBadge} />
-                </Flex>
-                <Box className={styles.skeletonBody}>
-                  <Box className={`${styles.skeletonLine} ${styles.skeletonFull}`} />
-                  <Box className={`${styles.skeletonLine} ${styles.skeletonWide}`} />
-                  <Box className={`${styles.skeletonLine} ${styles.skeletonMedium}`} />
-                </Box>
-                <Flex align="center" justify="between" className={styles.skeletonFooter}>
-                  <Flex align="center" gap={8}>
-                    <Box className={`${styles.skeletonLine} ${styles.skeletonBadge}`} />
-                    <Box className={`${styles.skeletonLine} ${styles.skeletonLineMd}`} />
-                  </Flex>
-                  <Box className={`${styles.skeletonLine} ${styles.skeletonBadge}`} />
-                </Flex>
+                  <Stack gap="xs">
+                    <Surface variant="glass" style={{ width: '100%', height: 12 }} />
+                    <Surface variant="glass" style={{ width: '90%', height: 12 }} />
+                    <Surface variant="glass" style={{ width: '40%', height: 12 }} />
+                  </Stack>
+                </Stack>
               </Surface>
             ))}
           </Grid>
         ) : (
           <>
             {searchResults.length === 0 && docSnippets.length === 0 && searchTerm.trim() && (
-              <Flex direction="column" align="center" className={styles.emptyState}>
-                <Search size={48} className={styles.emptyIcon} />
-                <LqText variant="h3" color="muted">
-                  No results found for &quot;{searchTerm}&quot;
-                </LqText>
-                <LqText variant="small" color="muted" className={styles.emptySubtitle}>
-                  Try adjusting your search terms or filters
-                </LqText>
-              </Flex>
+              <Surface variant="glass" className={styles.emptyState} p="xl">
+                <Flex direction="column" align="center" gap="md">
+                  <Search size={48} className={styles.emptyIcon} />
+                  <Stack align="center" gap="xs">
+                    <LqText variant="h3" color="muted">
+                      No signals found for &quot;{searchTerm}&quot;
+                    </LqText>
+                    <LqText variant="small" color="muted">
+                      Try adjusting your forensic filters or search terms.
+                    </LqText>
+                  </Stack>
+                </Flex>
+              </Surface>
             )}
 
             {!loading && searchResults.length === 0 && !searchTerm.trim() && !showRedFlagOnly && (
-              <Flex direction="column" align="center" className={styles.emptyState}>
-                <Search size={48} className={styles.emptyIcon} />
-                <LqText variant="h3" color="muted">
-                  Start searching to find evidence
-                </LqText>
-                <LqText variant="small" color="muted" className={styles.emptySubtitle}>
-                  Search for names, keywords, or apply filters
-                </LqText>
-              </Flex>
+              <Surface variant="glass" className={styles.emptyState} p="xl">
+                <Flex direction="column" align="center" gap="md">
+                  <Search size={48} className={styles.emptyIcon} />
+                  <Stack align="center" gap="xs">
+                    <LqText variant="h3" color="muted">
+                      Initialize Forensic Search
+                    </LqText>
+                    <LqText variant="small" color="muted">
+                      Enter keywords or use the filters to begin analysis.
+                    </LqText>
+                  </Stack>
+                </Flex>
+              </Surface>
             )}
 
-            {searchResults.map((result, index) => (
-              <EvidenceResultCard key={index} result={result} onPersonClick={handlePersonClick} />
-            ))}
+            <Grid cols={{ base: 1, md: 2 }} gap="lg">
+              {searchResults.map((result, index) => (
+                <EvidenceResultCard key={index} result={result} onPersonClick={handlePersonClick} />
+              ))}
+            </Grid>
 
-            <EvidenceDocSnippets snippets={docSnippets} searchTerm={searchTerm} />
+            {docSnippets.length > 0 && (
+              <EvidenceDocSnippets snippets={docSnippets} searchTerm={searchTerm} />
+            )}
           </>
         )}
-      </Box>
-    </Box>
+      </Stack>
+    </Stack>
   );
 };

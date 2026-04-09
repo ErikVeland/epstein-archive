@@ -6,6 +6,10 @@
   margin-bottom: var(--space-4);
 }
 
+.iconAccent {
+  color: var(--accent);
+}
+
 .infoRow {
   margin-bottom: var(--space-6);
   opacity: 0.7;

@@ -1,8 +1,26 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import Icon, { type IconName } from '../common/Icon';
+import {
+  Plus,
+  Trash2,
+  Edit3,
+  Activity,
+  User,
+  FileText,
+  Navigation,
+  Building,
+  Mail,
+  Target,
+  Lightbulb,
+  Calendar,
+  AlertCircle,
+  RefreshCw,
+  Clock,
+} from 'lucide-react';
+
+// UI Library
+import { Surface, Flex, Box, Stack, LqText, cn, Badge, Skeleton } from '../../design-system/lib';
 import styles from './InvestigationActivityFeed.module.css';
-// import { Link } from 'react-router-dom';
 
 interface ActivityItem {
   id: number;
@@ -41,30 +59,29 @@ const actionLabels: Record<string, string> = {
   notebook_updated: 'updated notebook',
 };
 
-const targetTypeIcons: Record<string, string> = {
-  entity: 'User',
-  document: 'FileText',
-  flight_log: 'Navigation',
-  property_record: 'Building',
-  email: 'Mail',
-  evidence: 'Target',
-  hypothesis: 'Lightbulb',
-  timeline_event: 'Calendar',
+const targetTypeIcons: Record<string, any> = {
+  entity: User,
+  document: FileText,
+  flight_log: Navigation,
+  property_record: Building,
+  email: Mail,
+  evidence: Target,
+  hypothesis: Lightbulb,
+  timeline_event: Calendar,
 };
 
-const getActionIcon = (actionType: string): string => {
-  if (actionType.includes('added') || actionType.includes('created')) return 'Plus';
-  if (actionType.includes('removed') || actionType.includes('deleted')) return 'Trash2';
-  if (actionType.includes('updated') || actionType.includes('changed')) return 'Edit3';
-  return 'Activity';
+const getActionIcon = (actionType: string) => {
+  if (actionType.includes('added') || actionType.includes('created')) return Plus;
+  if (actionType.includes('removed') || actionType.includes('deleted')) return Trash2;
+  if (actionType.includes('updated') || actionType.includes('changed')) return Edit3;
+  return Activity;
 };
 
-const getActionColor = (actionType: string): string => {
-  if (actionType.includes('added') || actionType.includes('created')) return styles.actionPositive;
-  if (actionType.includes('removed') || actionType.includes('deleted'))
-    return styles.actionNegative;
-  if (actionType.includes('updated') || actionType.includes('changed')) return styles.actionNeutral;
-  return styles.actionMuted;
+const getActionVariant = (actionType: string): any => {
+  if (actionType.includes('added') || actionType.includes('created')) return 'success';
+  if (actionType.includes('removed') || actionType.includes('deleted')) return 'error';
+  if (actionType.includes('updated') || actionType.includes('changed')) return 'warning';
+  return 'accent';
 };
 
 const formatTimeAgo = (dateString: string): string => {
@@ -72,13 +89,12 @@ const formatTimeAgo = (dateString: string): string => {
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
   const diffSec = Math.floor(diffMs / 1000);
-  const diffMin = Math.floor(diffSec / 60);
-  const diffHour = Math.floor(diffMin / 60);
-  const diffDay = Math.floor(diffHour / 24);
-
   if (diffSec < 60) return 'just now';
+  const diffMin = Math.floor(diffSec / 60);
   if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHour = Math.floor(diffMin / 60);
   if (diffHour < 24) return `${diffHour}h ago`;
+  const diffDay = Math.floor(diffHour / 24);
   if (diffDay < 7) return `${diffDay}d ago`;
   return date.toLocaleDateString();
 };
@@ -91,7 +107,7 @@ const readRelevance = (value: unknown): 'high' | 'medium' | 'low' | null => {
 export const InvestigationActivityFeed: React.FC<InvestigationActivityFeedProps> = ({
   investigationId,
   maxItems = 20,
-  refreshInterval = 30000, // 30 seconds default
+  refreshInterval = 30000,
   compact = false,
 }) => {
   const queryClient = useQueryClient();
@@ -118,130 +134,130 @@ export const InvestigationActivityFeed: React.FC<InvestigationActivityFeedProps>
     void queryClient.invalidateQueries({ queryKey });
   }, [queryClient, queryKey]);
 
-  // Listen for new items added via custom event
-  React.useEffect(() => {
-    const handleItemAdded = () => {
-      // Refresh after a short delay to allow the server to process
-      setTimeout(refetch, 500);
-    };
-
+  useEffect(() => {
+    const handleItemAdded = () => setTimeout(refetch, 500);
     window.addEventListener('investigation-item-added', handleItemAdded);
     return () => window.removeEventListener('investigation-item-added', handleItemAdded);
   }, [refetch]);
 
-  const error =
-    queryError instanceof Error
-      ? queryError.message
-      : queryError
-        ? 'Failed to load activity'
-        : null;
-
-  const getActivityItemClassName = (isCompact: boolean) =>
-    `${styles.activityItem} ${isCompact ? styles.activityItemCompact : styles.activityItemExpanded}`;
-
-  const getContentTextClassName = (isCompact: boolean) =>
-    `${styles.contentText} ${isCompact ? styles.contentTextCompact : styles.contentTextRegular}`;
-
-  const getTimestampClassName = (isCompact: boolean) =>
-    `${styles.timestamp} ${isCompact ? styles.timestampCompact : styles.timestampRegular}`;
-
-  const getRelevanceClassName = (relevance: 'high' | 'medium' | 'low') =>
-    `${styles.relevanceBadge} ${
-      relevance === 'high'
-        ? styles.relevanceHigh
-        : relevance === 'medium'
-          ? styles.relevanceMedium
-          : styles.relevanceLow
-    }`;
-
   if (isLoading) {
     return (
-      <div className={styles.loadingWrap}>
-        <div className={styles.spinner} />
-      </div>
+      <Stack gap="md" p="md">
+        {[1, 2, 3].map((i) => (
+          <Skeleton key={i} height={compact ? 40 : 64} variant="rect" />
+        ))}
+      </Stack>
     );
   }
 
-  if (error) {
+  if (queryError) {
     return (
-      <div className={styles.errorState}>
-        <Icon name="AlertCircle" size="md" className={styles.errorIcon} />
-        <p className={styles.errorText}>{error}</p>
-      </div>
+      <Surface variant="glass" p="xl">
+        <Stack align="center" gap="sm">
+          <AlertCircle className={styles.autoGen145} size={24} />
+          <LqText variant="xs" color="muted">
+            Investigation activity feed unavailable.
+          </LqText>
+        </Stack>
+      </Surface>
     );
   }
 
   if (activities.length === 0) {
     return (
-      <div className={styles.emptyState}>
-        <Icon name="Activity" size="lg" className={styles.emptyIcon} />
-        <p className={styles.emptyTitle}>No activity yet</p>
-        <p className={styles.emptyText}>Actions will appear here as the team works</p>
-      </div>
+      <Surface variant="glass" p="xxl">
+        <Stack align="center" gap="md">
+          <Activity size={32} className={styles.autoGen146} />
+          <Stack gap="none">
+            <LqText variant="small" weight="bold">
+              No Activity Detected
+            </LqText>
+            <LqText variant="xs" color="muted">
+              Forensic signals appear here as investigators work.
+            </LqText>
+          </Stack>
+        </Stack>
+      </Surface>
     );
   }
 
   return (
-    <div className={`${styles.feed} ${compact ? styles.feedCompact : styles.feedRegular}`}>
+    <Stack gap={compact ? 'xs' : 'sm'} style={{ width: '100%' }}>
       {activities.map((activity) => {
         const relevance = readRelevance(activity.metadata?.relevance);
+        const ActionIcon = getActionIcon(activity.actionType);
+        const variant = getActionVariant(activity.actionType);
+        const TargetIcon = activity.targetType
+          ? targetTypeIcons[activity.targetType] || FileText
+          : null;
+
         return (
-          <div key={activity.id} className={getActivityItemClassName(compact)}>
-            {/* Action icon */}
-            <div className={`${styles.actionIconWrap} ${getActionColor(activity.actionType)}`}>
-              <Icon name={getActionIcon(activity.actionType) as IconName} size="sm" />
-            </div>
+          <Surface key={activity.id} variant="glass-highlight" p={compact ? 'sm' : 'md'}>
+            <Flex gap="md" align="center">
+              <Box p="xs" className={cn('rounded', `bg-[var(--lq-${variant})]`, 'text-white')}>
+                <ActionIcon size={compact ? 12 : 16} />
+              </Box>
 
-            {/* Content */}
-            <div className={styles.content}>
-              <div className={getContentTextClassName(compact)}>
-                <span className={styles.userName}>{activity.userName}</span>{' '}
-                <span className={styles.actionText}>
-                  {actionLabels[activity.actionType] || activity.actionType.replace(/_/g, ' ')}
-                </span>
-                {activity.targetTitle && (
-                  <>
-                    {' '}
-                    <span className={styles.targetTitle}>
-                      {activity.targetType && (
-                        <Icon
-                          name={(targetTypeIcons[activity.targetType] || 'File') as IconName}
-                          size="xs"
-                          className={styles.targetIcon}
-                        />
-                      )}
-                      {activity.targetTitle}
-                    </span>
-                  </>
-                )}
-              </div>
-
-              {/* Metadata details */}
-              {!compact && activity.metadata && (
-                <div className={styles.metadataRow}>
-                  {relevance && (
-                    <span className={getRelevanceClassName(relevance)}>{relevance} relevance</span>
+              <Stack grow gap="none">
+                <Flex wrap="wrap" align="center" gap="xs">
+                  <LqText
+                    variant="xs"
+                    weight="bold"
+                    color="accent"
+                    style={{ textTransform: 'uppercase' }}
+                  >
+                    {activity.userName}
+                  </LqText>
+                  <LqText variant="xs" color="muted">
+                    {actionLabels[activity.actionType] || activity.actionType.replace(/_/g, ' ')}
+                  </LqText>
+                  {activity.targetTitle && (
+                    <Flex align="center" gap="xs" className={styles.autoGen147}>
+                      {TargetIcon && <TargetIcon size={12} className={styles.autoGen148} />}
+                      <LqText variant="xs" weight="medium">
+                        {activity.targetTitle}
+                      </LqText>
+                    </Flex>
                   )}
-                </div>
-              )}
+                </Flex>
 
-              {/* Timestamp */}
-              <div className={getTimestampClassName(compact)}>
-                {formatTimeAgo(activity.createdAt)}
-              </div>
-            </div>
-          </div>
+                {!compact && activity.metadata && relevance && (
+                  <Box mt="xs">
+                    <Badge
+                      variant={
+                        relevance === 'high'
+                          ? 'error'
+                          : relevance === 'medium'
+                            ? 'warning'
+                            : 'glass'
+                      }
+                      label={`${relevance.toUpperCase()} RELEVANCE`}
+                      size="sm"
+                    />
+                  </Box>
+                )}
+              </Stack>
+
+              <Flex align="center" gap="xs" className="ml-auto opacity-60">
+                <Clock size={10} />
+                <LqText variant="xs" style={{ textTransform: 'uppercase' }} weight="bold">
+                  {formatTimeAgo(activity.createdAt)}
+                </LqText>
+              </Flex>
+            </Flex>
+          </Surface>
         );
       })}
 
-      {/* Refresh indicator */}
       {refreshInterval > 0 && (
-        <div className={styles.refreshIndicator}>
-          <Icon name="RefreshCw" size="xs" className={styles.refreshIcon} />
-          Auto-refreshes every {Math.floor(refreshInterval / 1000)}s
-        </div>
+        <Flex justify="center" align="center" gap="xs" mt="md" className="opacity-40">
+          <RefreshCw size={10} className="animate-spin-slow" />
+          <LqText variant="xs" weight="bold" style={{ textTransform: 'uppercase' }}>
+            Signal check every {Math.floor(refreshInterval / 1000)}s
+          </LqText>
+        </Flex>
       )}
-    </div>
+    </Stack>
   );
 };
 

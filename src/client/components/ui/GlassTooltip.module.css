@@ -1,0 +1,74 @@
+.content {
+  position: relative;
+  z-index: 50;
+  overflow: hidden;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--bg-elevated) 95%, transparent);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  box-shadow: 0 10px 24px rgb(0 0 0 / 0.25);
+  backdrop-filter: blur(12px);
+}
+
+.content[data-state='open'] {
+  animation: tooltipIn 180ms ease;
+}
+
+.content[data-state='closed'] {
+  animation: tooltipOut 180ms ease;
+}
+
+.content[data-side='bottom'] {
+  transform-origin: top center;
+}
+
+.content[data-side='top'] {
+  transform-origin: bottom center;
+}
+
+.content[data-side='left'] {
+  transform-origin: center right;
+}
+
+.content[data-side='right'] {
+  transform-origin: center left;
+}
+
+.shine {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: var(--glass-shine);
+  pointer-events: none;
+  opacity: 0.3;
+}
+
+.inner {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes tooltipIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes tooltipOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}

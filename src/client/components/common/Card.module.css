@@ -1,7 +1,7 @@
 /* src/client/components/common/Card.module.css */
 
 /* Root — padding + active + fade-in animation.
-   glass surface styles come from the global surface-glass-card class. */
+   glass surface styles come from the global surface-panel class. */
 .root {
   padding: var(--space-6);
   animation: cardFadeIn var(--duration-normal) var(--easing-swift) both;

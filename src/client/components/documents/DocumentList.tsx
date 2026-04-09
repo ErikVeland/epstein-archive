@@ -1,10 +1,15 @@
 import React from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { FileText, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Surface } from '../../design-system/components/surfaces/Surface';
-import { Box } from '../../design-system/components/layout/Box';
-import { Flex } from '../../design-system/components/layout/Flex';
-import { LqText } from '../../design-system/components/typography/Text';
+import { FileText, ArrowRight } from 'lucide-react';
+import {
+  Box,
+  Button,
+  EmptyState,
+  Flex,
+  LqText,
+  Pagination,
+  Surface,
+} from '../../design-system/lib';
 import { Document } from '../../types/documents';
 import { DocumentCard } from './DocumentCard';
 import DocumentSkeleton from './DocumentSkeleton';
@@ -59,26 +64,20 @@ export const DocumentList: React.FC<DocumentListProps> = ({
 
   if (filteredDocuments.length === 0) {
     return (
-      <Flex
-        direction="column"
-        align="center"
-        justify="center"
-        className={`glass-panel ${styles.emptyState}`}
-      >
-        <Box className={styles.emptyIconBox}>
-          <FileText className={styles.emptyIcon} />
-        </Box>
-        <LqText variant="h3" weight="bold" className={styles.emptyTitle}>
-          No documents found
-        </LqText>
-        <LqText variant="body" color="secondary" className={styles.emptyBody}>
-          {searchTerm ? (
-            <>No documents match your search for "{searchTerm}"</>
-          ) : (
-            <>Try adjusting your search terms or filters to find what you're looking for.</>
-          )}
-        </LqText>
-      </Flex>
+      <EmptyState
+        className={styles.emptyState}
+        icon={
+          <Box className={styles.emptyIconBox}>
+            <FileText className={styles.emptyIcon} />
+          </Box>
+        }
+        title="No documents found"
+        description={
+          searchTerm
+            ? `No documents match your search for "${searchTerm}"`
+            : "Try adjusting your search terms or filters to find what you're looking for."
+        }
+      />
     );
   }
 
@@ -119,17 +118,20 @@ export const DocumentList: React.FC<DocumentListProps> = ({
               onChange={(e) => setJumpToPage(e.target.value)}
               className={styles.jumpToInput}
             />
-            <button
+            <Button
+              type="button"
               onClick={() => {
                 const page = Number(jumpToPage);
                 if (!Number.isFinite(page)) return;
                 setCurrentPage(Math.min(totalPages, Math.max(1, page)));
               }}
+              variant="ghost"
+              size="sm"
               className={styles.jumpToBtn}
               title="Go to page"
             >
               <ArrowRight className={styles.actionIcon} strokeWidth={2.75} />
-            </button>
+            </Button>
           </div>
         </Flex>
       </Flex>
@@ -155,36 +157,16 @@ export const DocumentList: React.FC<DocumentListProps> = ({
 
       {/* Pagination Controls */}
       {totalDocuments > itemsPerPage && (
-        <Flex align="center" justify="center" gap="lg" className={styles.pagination}>
-          <button
-            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-            disabled={currentPage === 1 || isFetching}
-            className={styles.pageBtn}
-          >
-            <ChevronLeft className={styles.actionIcon} />
-            Previous
-          </button>
-          <Box className={styles.pageInfo}>
-            <Box>
-              Page{' '}
-              <LqText as="span" weight="medium" color="primary">
-                {currentPage}
-              </LqText>{' '}
-              of{' '}
-              <LqText as="span" weight="medium" color="primary">
-                {totalPages}
-              </LqText>
-            </Box>
-          </Box>
-          <button
-            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-            disabled={currentPage === totalPages || isFetching}
-            className={styles.pageBtn}
-          >
-            Next
-            <ChevronRight className={styles.actionIcon} />
-          </button>
-        </Flex>
+        <Pagination
+          className={styles.pagination}
+          page={currentPage}
+          totalPages={totalPages}
+          previousLabel="Previous document page"
+          nextLabel="Next document page"
+          onPageChange={(page) => {
+            if (!isFetching) setCurrentPage(page);
+          }}
+        />
       )}
     </Box>
   );

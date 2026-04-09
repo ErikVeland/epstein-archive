@@ -4,10 +4,20 @@ import { buildSpacingStyles, type SpacingProps, type SizingProps } from '../../l
 import './Surface.css';
 
 export interface SurfaceProps extends React.HTMLAttributes<HTMLElement>, SpacingProps, SizingProps {
-  variant?: 'glass' | 'glass-strong' | 'glass-highlight' | 'solid' | 'panel' | 'outline';
+  variant?:
+    | 'glass'
+    | 'glass-strong'
+    | 'glass-highlight'
+    | 'solid'
+    | 'panel'
+    | 'outline'
+    | 'glass-container';
   accent?: 'amber' | 'cyan' | 'purple' | 'rose' | 'emerald';
   children?: React.ReactNode;
   as?: React.ElementType;
+  width?: number | string;
+  grow?: boolean;
+  fullWidth?: boolean;
 }
 
 export const Surface = forwardRef<HTMLElement, SurfaceProps>(
@@ -40,6 +50,9 @@ export const Surface = forwardRef<HTMLElement, SurfaceProps>(
       minH,
       maxW,
       maxH,
+      width,
+      grow,
+      fullWidth,
       ...props
     },
     ref,
@@ -77,7 +90,13 @@ export const Surface = forwardRef<HTMLElement, SurfaceProps>(
           accent && `lq-surface--accent-${accent}`,
           className,
         )}
-        style={{ ...spacingStyle, ...style }}
+        style={{
+          ...spacingStyle,
+          ...(width && { width: typeof width === 'number' ? `${width}px` : width }),
+          ...(grow && { flexGrow: 1 }),
+          ...(fullWidth && { width: '100%' }),
+          ...style,
+        }}
         {...props}
       >
         {children}

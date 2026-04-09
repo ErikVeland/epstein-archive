@@ -1,0 +1,31 @@
+.ds-emptyState {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-3);
+  text-align: center;
+}
+
+.ds-emptyStateIcon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--glass-bg) 92%, transparent);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 80%, transparent);
+  color: var(--text-muted);
+}
+
+.ds-emptyStateTitle {
+  margin: 0;
+  color: var(--text-strong);
+  font-size: var(--font-size-lg);
+  font-weight: var(--weight-medium);
+}
+
+.ds-emptyStateBody {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+  max-width: 48ch;
+}

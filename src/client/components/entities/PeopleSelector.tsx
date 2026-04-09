@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Users, Plus, X, Search } from 'lucide-react';
+import styles from './PeopleSelector.module.css';
 
 export interface PersonData {
   id: number;
@@ -98,30 +99,30 @@ export const PeopleSelector: React.FC<PeopleSelectorProps> = ({
   };
 
   const getRedFlagColor = (rating: number = 0) => {
-    if (rating >= 4) return 'text-[var(--accent-danger)]';
-    if (rating >= 3) return 'text-[var(--accent-warning)]';
-    if (rating >= 2) return 'text-[var(--accent)]';
-    return 'text-[var(--text-muted)]';
+    if (rating >= 4) return styles.riskDanger;
+    if (rating >= 3) return styles.riskWarning;
+    if (rating >= 2) return styles.riskAccent;
+    return styles.riskMuted;
   };
 
   return (
-    <div className={`space-y-[var(--space-3)] ${className}`}>
-      <div className="flex items-center gap-[var(--space-2)] text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">
-        <Users className="w-4 h-4" />
+    <div className={[styles.root, className].filter(Boolean).join(' ')}>
+      <div className={styles.header}>
+        <Users className={styles.icon} />
         People in Photo
       </div>
 
       {/* Selected People */}
-      <div className="space-y-[var(--space-2)]">
+      <div className={styles.list}>
         {selectedPeople.map((person) => (
           <div
             key={person.id}
-            className={`flex items-center justify-between p-[var(--space-2)] bg-[var(--glass-bg)]/50 rounded-[var(--radius-lg)] border border-[var(--glass-border)] ${onPersonClick ? 'cursor-pointer hover:bg-[var(--glass-bg)] transition-colors' : ''}`}
+            className={`${styles.personRow} ${onPersonClick ? styles.clickable : ''}`}
             onClick={() => onPersonClick && onPersonClick(person)}
           >
             <div>
-              <div className="text-sm text-[var(--text-primary)] font-medium">{person.name}</div>
-              <div className={`text-xs ${getRedFlagColor(person.redFlagRating)}`}>
+              <div className={styles.name}>{person.name}</div>
+              <div className={`${styles.meta} ${getRedFlagColor(person.redFlagRating)}`}>
                 {person.role}
                 {person.redFlagRating ? ` • 🚩 ${person.redFlagRating}` : ''}
               </div>
@@ -132,9 +133,9 @@ export const PeopleSelector: React.FC<PeopleSelectorProps> = ({
                   e.stopPropagation();
                   handleRemovePerson(person);
                 }}
-                className="p-[var(--space-1)] hover:bg-[var(--glass-bg-highlight)] rounded text-[var(--text-muted)] hover:text-[var(--accent-danger)] transition-colors"
+                className={styles.removeButton}
               >
-                <X className="w-4 h-4" />
+                <X className={styles.icon} />
               </button>
             )}
           </div>
@@ -143,41 +144,39 @@ export const PeopleSelector: React.FC<PeopleSelectorProps> = ({
 
       {/* Add Person Search - Admin Only */}
       {isAdmin && (
-        <div className="relative" ref={dropdownRef}>
-          <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
+        <div className={styles.searchWrap} ref={dropdownRef}>
+          <div className={styles.searchFieldWrap}>
+            <Search className={styles.searchIcon} />
             <input
               type="text"
               placeholder="Search people to add..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onFocus={() => setShowDropdown(true)}
-              className="w-full pl-[var(--space-9)] pr-[var(--space-3)] py-[var(--space-2)] bg-[var(--glass-bg)] border border-[var(--glass-border)] rounded-[var(--radius-lg)] text-[var(--text-primary)] text-sm focus:outline-none focus:border-[var(--accent)]"
+              className={styles.input}
             />
           </div>
 
           {/* Search Results Dropdown */}
           {showDropdown && (searchResults.length > 0 || isSearching) && (
-            <div className="absolute z-50 mt-[var(--space-1)] w-full dropdown-surface overflow-hidden">
+            <div className={`${styles.dropdown} dropdown-surface`}>
               {isSearching ? (
-                <div className="p-[var(--space-3)] text-center text-sm text-[var(--text-muted)]">
-                  Searching...
-                </div>
+                <div className={styles.searching}>Searching...</div>
               ) : (
-                <div className="max-h-48 overflow-y-auto">
+                <div className={styles.results}>
                   {searchResults.map((person) => (
                     <button
                       key={person.id}
                       onClick={() => handleAddPerson(person)}
-                      className="w-full flex items-center justify-between p-[var(--space-2)] hover:bg-[var(--glass-bg-highlight)]/50 text-left"
+                      className={styles.resultButton}
                     >
                       <div>
-                        <div className="text-sm text-[var(--text-primary)]">{person.name}</div>
-                        <div className={`text-xs ${getRedFlagColor(person.redFlagRating)}`}>
+                        <div className={styles.name}>{person.name}</div>
+                        <div className={`${styles.meta} ${getRedFlagColor(person.redFlagRating)}`}>
                           {person.role}
                         </div>
                       </div>
-                      <Plus className="w-4 h-4 text-[var(--text-muted)]" />
+                      <Plus className={`${styles.icon} ${styles.riskMuted}`} />
                     </button>
                   ))}
                 </div>

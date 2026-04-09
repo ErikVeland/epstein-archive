@@ -1,16 +1,6 @@
 import React from 'react';
-import {
-  Search,
-  X,
-  LayoutGrid,
-  List as ListIcon,
-  Filter,
-  ChevronDown,
-  ChevronRight,
-} from 'lucide-react';
-import { Box } from '../../design-system/components/layout/Box';
-import { Flex } from '../../design-system/components/layout/Flex';
-import { LqText } from '../../design-system/components/typography/Text';
+import { X, LayoutGrid, List as ListIcon, Filter, ChevronDown, ChevronRight } from 'lucide-react';
+import { Box, Button, Flex, LqText, SearchField, Select } from '../../design-system/lib';
 import { DOJ_TRANCHE_OPTIONS } from './documentTrancheOptions';
 import styles from './DocumentBrowserHeader.module.css';
 
@@ -84,86 +74,93 @@ export const DocumentBrowserHeader: React.FC<DocumentBrowserHeaderProps> = ({
 
       <Box className={styles.controlsGrid}>
         <Box className={styles.searchWrapper}>
-          <Search className={styles.searchIcon} />
-          <input
-            type="text"
+          <SearchField
             placeholder="Search by name, document ID, phrase, or source…"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            className={`control ${styles.searchInput}`}
+            className={styles.searchInput}
             autoComplete="off"
             autoCorrect="off"
             autoCapitalize="off"
             spellCheck={false}
             name="document_browser_search"
+            aria-label="Search documents"
           />
           {searchInput && (
-            <button
+            <Button
+              type="button"
               onClick={() => setSearchInput('')}
+              variant="ghost"
+              size="sm"
               className={styles.clearBtn}
               title="Clear search"
             >
               <X className={styles.actionIcon} />
-            </button>
+            </Button>
           )}
         </Box>
 
         <Flex align="center" gap="sm" className={styles.toolbar}>
-          <select
+          <Select
             value={selectedTranche}
             onChange={(e) => applyTrancheFilter(e.target.value)}
-            className={`control ${styles.selectControl}`}
+            className={styles.selectControl}
             aria-label="Filter by tranche"
-            title="Filter documents by tranche/source collection"
-          >
-            {DOJ_TRANCHE_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          <select
+            options={DOJ_TRANCHE_OPTIONS}
+          />
+          <Select
             value={sortBy}
             onChange={(e) =>
               setSortBy(e.target.value as 'relevance' | 'date' | 'red_flag' | 'fileType' | 'size')
             }
-            className={`control ${styles.selectControl}`}
+            className={styles.selectControl}
             aria-label="Sort field"
-          >
-            <option value="red_flag">Risk</option>
-            <option value="date">Date</option>
-            <option value="title">Title</option>
-            <option value="size">Size</option>
-          </select>
-          <button
+            options={[
+              { value: 'red_flag', label: 'Risk' },
+              { value: 'date', label: 'Date' },
+              { value: 'title', label: 'Title' },
+              { value: 'size', label: 'Size' },
+            ]}
+          />
+          <Button
+            type="button"
             onClick={() => setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc')}
-            className={`control ${styles.btnControl}`}
+            className={styles.btnControl}
+            variant="secondary"
+            size="sm"
           >
             {sortOrder === 'desc' ? 'Desc' : 'Asc'}
-          </button>
-          <select
+          </Button>
+          <Select
             value={itemsPerPage}
             onChange={(e) => {
               setItemsPerPage(Number(e.target.value));
               setCurrentPage(1);
             }}
-            className={`control ${styles.selectControl}`}
+            className={styles.selectControl}
             aria-label="Results per page"
-          >
-            <option value={25}>25</option>
-            <option value={50}>50</option>
-            <option value={100}>100</option>
-          </select>
-          <button
+            options={[
+              { value: 25, label: '25' },
+              { value: 50, label: '50' },
+              { value: 100, label: '100' },
+            ]}
+          />
+          <Button
+            type="button"
             onClick={() => setDensityMode(densityMode === 'compact' ? 'comfortable' : 'compact')}
-            className={`control ${styles.btnControl}`}
+            className={styles.btnControl}
+            variant="secondary"
+            size="sm"
             aria-label="Toggle density mode"
           >
             {densityMode === 'compact' ? 'Compact' : 'Comfortable'}
-          </button>
-          <button
+          </Button>
+          <Button
+            type="button"
             onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-            className={`control ${styles.btnControlGap}`}
+            className={styles.btnControlGap}
+            variant="secondary"
+            size="sm"
             aria-label={`Switch to ${viewMode === 'grid' ? 'list' : 'grid'} view`}
             title={`Switch to ${viewMode === 'grid' ? 'list' : 'grid'} view`}
           >
@@ -175,10 +172,13 @@ export const DocumentBrowserHeader: React.FC<DocumentBrowserHeaderProps> = ({
             <LqText variant="xs" weight="semibold" className={styles.viewToggleLabel}>
               {viewMode === 'grid' ? 'List' : 'Grid'}
             </LqText>
-          </button>
-          <button
+          </Button>
+          <Button
+            type="button"
             onClick={() => setShowFilters(!showFilters)}
-            className={`control ${styles.btnFilterGap}`}
+            className={styles.btnFilterGap}
+            variant="secondary"
+            size="sm"
           >
             <Filter className={styles.actionIcon} />
             Filters
@@ -187,7 +187,7 @@ export const DocumentBrowserHeader: React.FC<DocumentBrowserHeaderProps> = ({
             ) : (
               <ChevronRight className={styles.smallIcon} />
             )}
-          </button>
+          </Button>
         </Flex>
       </Box>
     </Box>

@@ -2,6 +2,7 @@ import React from 'react';
 import { Card } from '../common/Card';
 import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
 import { IconName } from '../common/Icon';
+import styles from './MediaCard.module.css';
 
 interface MediaItem {
   id: string;
@@ -45,9 +46,8 @@ export const MediaCard: React.FC<MediaCardProps> = ({ media, onClick }) => {
       redFlagRating={media.linkedEntities}
       metadata={metadata}
       actionButtons={actionButtons}
-      className="group"
     >
-      <div className="flex justify-end">
+      <div className={styles.actions}>
         <AddToInvestigationButton
           item={{
             id: media.id,
@@ -57,7 +57,7 @@ export const MediaCard: React.FC<MediaCardProps> = ({ media, onClick }) => {
             sourceId: media.id,
           }}
           variant="quick"
-          className="text-xs px-[var(--space-2)] py-[var(--space-1)]"
+          className={styles.addButton}
         />
       </div>
     </Card>

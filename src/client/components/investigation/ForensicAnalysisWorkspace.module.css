@@ -47,6 +47,11 @@
   gap: 0.75rem;
 }
 
+.headerActionIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
 .headerButton {
   display: flex;
   align-items: center;
@@ -100,6 +105,17 @@
 
 .reliabilityToggle:hover {
   background: var(--glass-bg-highlight);
+}
+
+.reliabilityRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.reliabilityIcon {
+  width: 0.875rem;
+  height: 0.875rem;
 }
 
 .reliabilityInfo {
@@ -166,6 +182,18 @@
   margin-left: auto;
 }
 
+.toolStatusEnabled {
+  width: 0.75rem;
+  height: 0.75rem;
+  color: var(--color-green-400);
+}
+
+.toolStatusDisabled {
+  width: 0.75rem;
+  height: 0.75rem;
+  color: var(--text-muted);
+}
+
 .layout {
   display: flex;
   flex-direction: column;
@@ -229,6 +257,15 @@
 .collapseButton:hover {
   color: var(--text-primary);
   background: var(--glass-bg-highlight);
+}
+
+.collapseIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.collapseIconExpanded {
+  transform: rotate(180deg);
 }
 
 .toolList {
@@ -388,8 +425,42 @@
   display: none;
 }
 
-.relative:hover .collapsedPopover {
+.popoverAnchor {
+  position: relative;
+}
+
+.popoverAnchor:hover .collapsedPopover {
   display: block;
+}
+
+.collapsedPopoverTitle {
+  margin: 0 0 0.25rem;
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.collapsedPopoverDescription {
+  margin: 0 0 0.5rem;
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.collapsedPopoverMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--font-size-xs);
+}
+
+.collapsedPopoverCount {
+  color: var(--text-muted);
+}
+
+.collapsedPopoverStatus {
+  margin-top: 0.5rem;
+  color: var(--text-muted);
+  font-size: 0.6875rem;
 }
 
 .summarySection {
@@ -538,6 +609,16 @@
   color: var(--text-muted);
 }
 
+.modalCloseButton {
+  background: transparent;
+  border-color: var(--glass-border);
+  color: var(--text-secondary);
+}
+
+.modalCloseButton:hover {
+  background: var(--glass-bg);
+}
+
 .modalBody {
   padding: 1rem;
   display: flex;
@@ -568,6 +649,10 @@
 .detailLabel {
   font-size: 0.75rem;
   color: var(--text-muted);
+}
+
+.detailLabelSpaced {
+  margin-bottom: 0.5rem;
 }
 
 .detailValueLarge {
@@ -638,4 +723,149 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+}
+
+.autoGen71 {
+  flex: 1 1 0%;
+  display: flex;
+  flex-direction: column;
+}
+
+.autoGen72 {
+  border-color: b;
+  border-color: b-[var(--lq-surface-3)];
+}
+
+.autoGen73 {
+  color: var(--lq-accent);
+}
+
+.autoGen74 {
+  display: none;
+  /* Missing: xl:block */
+}
+
+.autoGen75 {
+  background-color: var(--lq-surface-2);
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-radius: var(--radius-lg);
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--lq-surface-3);
+}
+
+.autoGen76 {
+  color: var(--lq-success);
+}
+
+.autoGen77 {
+  /* Missing: w-px */
+  /* Missing: h-3 */
+  background-color: var(--lq-surface-3);
+}
+
+.autoGen78 {
+  /* Missing: ml-2 */
+  display: none;
+  /* Missing: sm:inline */
+}
+
+.autoGen79 {
+  /* Missing: ml-2 */
+  display: none;
+  /* Missing: sm:inline */
+}
+
+.autoGen80 {
+  border-color: t;
+  border-color: t-[var(--lq-surface-3)];
+}
+
+.autoGen81 {
+  background-color: var(--lq-surface-1);
+  padding: 0.75rem;
+  border-radius: var(--radius-lg);
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--lq-surface-3);
+}
+
+.autoGen82 {
+  flex: 1 1 0%;
+  min-height: 0;
+}
+
+.autoGen83 {
+  height: 100%;
+  border-color: r;
+  border-color: r-[var(--lq-surface-3)];
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+
+.autoGen84 {
+  height: 100%;
+}
+
+.autoGen85 {
+  flex: 1 1 0%;
+  overflow-y: auto;
+  /* Missing: pr-1 */
+}
+
+.autoGen86 {
+  flex: 1 1 0%;
+}
+
+.autoGen87 {
+  border-color: t;
+  border-color: t-[var(--lq-surface-3)];
+}
+
+.autoGen88 {
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--lq-surface-3);
+}
+
+.autoGen89 {
+  flex: 1 1 0%;
+  position: relative;
+  overflow: hidden;
+}
+
+.autoGen90 {
+  position: absolute;
+  inset: 0;
+  overflow: auto;
+}
+
+.autoGen91 {
+  position: fixed;
+  inset: 0;
+  /* Missing: z-[var(--lq-z-modal)] */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl);
+  background-color: black/40;
+  /* Missing: backdrop-blur-sm */
+}
+
+.autoGen92 {
+  /* Missing: shadow-2xl */
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--lq-surface-3);
+}
+
+.autoGen93 {
+  text-align: center;
+}
+
+.autoGen94 {
+  text-align: center;
 }

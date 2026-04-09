@@ -1,4 +1,5 @@
 import React, { useState, useCallback, ReactNode } from 'react';
+import { Surface } from '../../design-system/lib';
 import { LoadingContext, LoadingTask } from './loadingContext';
 import s from './LoadingPill.module.css';
 
@@ -72,7 +73,7 @@ const LoadingPillDisplay: React.FC<LoadingPillDisplayProps> = ({ tasks }) => {
       </div>
 
       {hovered && tasks.length > 0 && (
-        <div className={`${s.panel} glass-panel`}>
+        <Surface variant="glass-strong" className={s.panel}>
           <div className={s.panelHeading}>Active Tasks</div>
           <div className={s.taskList}>
             {tasks.map((task) => (
@@ -85,7 +86,7 @@ const LoadingPillDisplay: React.FC<LoadingPillDisplayProps> = ({ tasks }) => {
               </div>
             ))}
           </div>
-        </div>
+        </Surface>
       )}
     </div>
   );

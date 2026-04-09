@@ -403,15 +403,28 @@
   }
 }
 
-.statValueRose {
-  color: var(--danger);
-  font-weight: 700;
+.statValueCritical {
+  color: var(--risk-critical);
+  font-weight: var(--font-weight-bold);
 }
-.statValueAmber {
-  color: #fbbf24;
-  font-weight: 700;
+.statValueHigh {
+  color: var(--risk-high);
+  font-weight: var(--font-weight-bold);
 }
-.statValueEmerald {
-  color: #34d399;
-  font-weight: 700;
+.statValueMedium {
+  color: var(--risk-medium);
+  font-weight: var(--font-weight-bold);
+}
+.statValueLow {
+  color: var(--risk-low);
+  font-weight: var(--font-weight-bold);
+}
+
+.docItem {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.docItem:hover {
+  background-color: var(--lq-surface-3);
 }

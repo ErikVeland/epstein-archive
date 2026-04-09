@@ -95,7 +95,7 @@
 
 .skeletonCard {
   height: 7rem; /* h-28 */
-  composes: surface-glass-card from global;
+  composes: surface-panel from global;
   padding: var(--space-5);
   display: flex;
   gap: var(--space-5);

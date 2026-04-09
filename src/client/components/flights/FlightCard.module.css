@@ -1,20 +1,44 @@
-/* FlightCard.module.css */
+/* Flight Card - Scoped High-Fidelity Tokens */
 
-.buttonRoot {
-  background-color: transparent;
-  text-align: left;
+.cardRoot {
   width: 100%;
-  margin: 0;
-  height: 100%;
+  padding: var(--space-4) var(--space-6);
 }
 
-.buttonRoot:focus-visible {
-  outline: none;
-  box-shadow: inset 0 0 0 2px var(--accent);
+.routeContainer {
+  padding: var(--space-4) 0;
 }
 
-.aircraftInfo {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+.flightLineWrap {
+  flex: 1;
+  padding: 0 var(--space-4);
+  position: relative;
+}
+
+.dashedLine {
+  flex: 1;
+  height: 1px;
+  border-top: 1px dashed var(--glass-border);
+  opacity: 0.5;
+}
+
+.planeIcon {
+  font-size: var(--font-size-sm);
+  color: var(--accent);
+  padding: 0 var(--space-2);
+}
+
+.passengerTag {
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+.passengerTag.victim {
+  color: var(--risk-critical);
+}
+.passengerTag.perpetrator {
+  color: var(--risk-high);
+}
+.passengerTag.witness {
+  color: var(--accent-info);
 }

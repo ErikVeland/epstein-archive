@@ -6,7 +6,12 @@ import './Stack.css';
 export interface StackProps
   extends React.HTMLAttributes<HTMLDivElement>, SpacingProps, SizingProps {
   align?: 'start' | 'center' | 'end' | 'stretch';
+  justify?: 'start' | 'center' | 'end' | 'between' | 'around' | 'evenly';
   children: React.ReactNode;
+  grow?: boolean;
+  fullHeight?: boolean;
+  width?: number | string;
+  textAlign?: 'left' | 'center' | 'right' | 'justify';
 }
 
 const alignMap: Record<string, string> = {
@@ -14,6 +19,15 @@ const alignMap: Record<string, string> = {
   center: 'center',
   end: 'flex-end',
   stretch: 'stretch',
+};
+
+const justifyMap: Record<string, string> = {
+  start: 'flex-start',
+  center: 'center',
+  end: 'flex-end',
+  between: 'space-between',
+  around: 'space-around',
+  evenly: 'space-evenly',
 };
 
 export const Stack: React.FC<StackProps> = ({
@@ -42,6 +56,11 @@ export const Stack: React.FC<StackProps> = ({
   minH,
   maxW,
   maxH,
+  grow,
+  fullHeight,
+  width,
+  textAlign,
+  justify,
   ...props
 }) => {
   const spacingStyle = buildSpacingStyles({
@@ -74,7 +93,12 @@ export const Stack: React.FC<StackProps> = ({
       style={
         {
           '--stack-align': alignMap[align] ?? 'stretch',
+          '--stack-justify': justify !== undefined ? (justifyMap[justify] ?? 'normal') : 'normal',
           ...spacingStyle,
+          ...(grow && { flexGrow: 1 }),
+          ...(fullHeight && { height: '100%' }),
+          ...(width && { width: typeof width === 'number' ? `${width}px` : width }),
+          ...(textAlign && { textAlign }),
           ...style,
         } as React.CSSProperties
       }

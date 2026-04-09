@@ -48,7 +48,7 @@ export const Card: React.FC<CardProps> = ({
   return (
     <div
       onClick={onClick}
-      className={cn('surface-glass-card', s.root, onClick && s.clickable, className)}
+      className={cn('surface-panel', s.root, onClick && s.clickable, className)}
     >
       {/* Header section with title, subtitle, and icon */}
       {(title || subtitle || icon || redFlagRating !== undefined) && (
@@ -97,7 +97,7 @@ export const Card: React.FC<CardProps> = ({
               <div key={index} className={s.metadataItem}>
                 {item.icon && (
                   <span className={s.metaIconWrapper}>
-                    <Icon name={item.icon} size="xs" />
+                    <Icon name={item.icon} />
                   </span>
                 )}
                 <span className={s.metaLabel}>{item.label}:</span>

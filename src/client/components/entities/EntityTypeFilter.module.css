@@ -5,8 +5,8 @@
 }
 
 .triggerButton {
-  padding-left: var(--space-3);
-  padding-right: var(--space-3);
+  padding-left: var(--space-2);
+  padding-right: var(--space-2);
   font-size: var(--type-small);
   display: flex;
   align-items: center;
@@ -32,8 +32,9 @@
 }
 
 .list {
-  padding-top: var(--space-1);
-  padding-bottom: var(--space-1);
+  padding: 0;
+  margin: 0;
+  list-style: none;
 }
 
 .wrapperOpen {
@@ -53,17 +54,25 @@
 }
 
 .optionItem {
-  padding: 0 var(--space-3);
+  padding: 0 var(--space-4);
   height: 2.5rem;
+  width: 100%;
+  box-sizing: border-box;
   font-size: var(--type-small);
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-3);
   border-radius: var(--radius-sm);
+  color: var(--text-primary) !important;
   transition:
     color 0.2s ease,
     background-color 0.2s ease;
+}
+
+.optionItem svg,
+.optionItem [class*='icon'] {
+  color: var(--text-primary) !important;
 }
 
 .optionItem:hover {
@@ -76,5 +85,5 @@
 }
 
 .optionUnselected {
-  color: var(--text-secondary);
+  color: var(--text-primary);
 }

@@ -1,6 +1,7 @@
 export { cn } from '../../utils/cn';
 export { resolveSpace, resolveSize, buildSpacingStyles } from './resolveSpace';
 export type { SpaceValue, SizeValue, SpacingProps, SizingProps } from './resolveSpace';
+export * from './tokens';
 
 // Layout
 export * from '../components/layout/Box';
@@ -14,10 +15,13 @@ export * from '../components/typography/Text';
 
 // Primitives
 export * from '../components/Button';
-
-// Interactive primitives remain intentionally deferred until their consumer migration waves land.
-// export * from '../components/interactive/Dialog';
-// export * from '../components/interactive/DropdownMenu';
-// export * from '../components/interactive/Tooltip';
-// export * from '../components/interactive/Switch';
-// export * from '../components/interactive/Select';
+export * from '../components/forms/TextInput';
+export * from '../components/forms/Select';
+export * from '../components/feedback/Badge';
+export * from '../components/feedback/EmptyState';
+export * from '../../components/common/Skeleton';
+export * from '../components/navigation/Pagination';
+export * from '../components/interactive/Dialog';
+export * from '../components/interactive/DropdownMenu';
+export * from '../components/interactive/Tooltip';
+export * from '../components/interactive/Switch';

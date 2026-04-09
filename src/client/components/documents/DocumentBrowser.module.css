@@ -1,0 +1,28 @@
+.pageShell {
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.contentWrap {
+  width: 100%;
+  padding: var(--space-4) var(--space-6);
+}
+
+@media (min-width: 768px) {
+  .contentWrap {
+    padding: var(--space-6) var(--space-12);
+  }
+}
+
+.filterMotion {
+  overflow: hidden;
+}
+
+.highlightWrap {
+  margin-bottom: var(--space-4);
+}
+
+.highlightControl {
+  flex-shrink: 0;
+  padding: var(--space-2) var(--space-3);
+}

@@ -1,4 +1,5 @@
 import React from 'react';
+import styles from './RedFlagIndex.module.css';
 
 interface RedFlagIndexProps {
   value: number;
@@ -11,19 +12,19 @@ interface RedFlagIndexProps {
 }
 
 const sizeClasses = {
-  sm: 'text-xs',
-  md: 'text-sm',
-  lg: 'text-base',
+  sm: styles.sizeSm,
+  md: styles.sizeMd,
+  lg: styles.sizeLg,
 };
 
 // Consistent color scale for all risk levels with better contrast
 const colors = {
-  0: 'text-[var(--text-muted)]',
-  1: 'text-[var(--accent-warning)]',
-  2: 'text-[var(--accent-warning)]',
-  3: 'text-[var(--accent-danger)]',
-  4: 'text-[var(--accent-secondary)]',
-  5: 'text-[var(--accent-danger)]',
+  0: styles.muted,
+  1: styles.warning,
+  2: styles.warning,
+  3: styles.danger,
+  4: styles.secondary,
+  5: styles.danger,
 };
 
 // Standardized labels for consistency
@@ -80,7 +81,7 @@ export const RedFlagIndex: React.FC<RedFlagIndexProps> = ({
       case 'text':
         return (
           <span
-            className={`${sizeClasses[size]} font-medium`}
+            className={`${sizeClasses[size]} ${styles.textStrong}`}
             aria-label={`${description} - Risk Level: ${textLabel}`}
           >
             {textLabel}
@@ -94,13 +95,13 @@ export const RedFlagIndex: React.FC<RedFlagIndexProps> = ({
         );
       case 'combined':
         return (
-          <div className="inline-flex items-center gap-[var(--space-1)]">
+          <div className={styles.combined}>
             <span className={`${sizeClasses[size]} ${colorClass}`} aria-hidden="true">
               {peppers}
             </span>
             {showTextLabel && (
               <span
-                className={`${sizeClasses[size]} font-medium`}
+                className={`${sizeClasses[size]} ${styles.textStrong}`}
                 aria-label={`${description} - Risk Level: ${textLabel}`}
               >
                 {textLabel}
@@ -119,21 +120,17 @@ export const RedFlagIndex: React.FC<RedFlagIndexProps> = ({
   };
 
   return (
-    <div className="inline-flex flex-col">
-      <div className="inline-flex items-center gap-[var(--space-2)]">
+    <div className={styles.root}>
+      <div className={styles.row}>
         {renderContent()}
         {showLabel && (
-          <span className={`${sizeClasses[size]} text-[var(--text-muted)]`}>
-            {normalizedValue}/5
-          </span>
+          <span className={`${sizeClasses[size]} ${styles.muted}`}>{normalizedValue}/5</span>
         )}
         {showDescription && (
           <span className={`${sizeClasses[size]} ${colorClass}`}>{description}</span>
         )}
       </div>
-      {showLegend && (
-        <div className="mt-[var(--space-1)] text-xs text-[var(--text-muted)]">{riskCategory}</div>
-      )}
+      {showLegend && <div className={styles.legend}>{riskCategory}</div>}
     </div>
   );
 };

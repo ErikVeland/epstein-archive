@@ -610,6 +610,958 @@
   border-bottom: 2px solid #3b82f6;
 }
 
+.headerIcon {
+  width: 0.875rem;
+  height: 0.875rem;
+  margin-right: 0.375rem;
+}
+
+.iconAmber {
+  color: #fbbf24;
+}
+
+.iconAccent {
+  color: var(--accent);
+}
+
+.iconPurple {
+  color: #c084fc;
+}
+
+.iconEmerald {
+  color: #34d399;
+}
+
+.newInvestigationIcon {
+  width: 1rem;
+  height: 1rem;
+  margin-right: 0.5rem;
+}
+
+.actionIcon {
+  width: 2rem;
+  height: 2rem;
+  color: #fff;
+}
+
+.statsCardBodyTitle {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin: 0 0 0.25rem;
+}
+
+.statsCardBodyText {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.recentSectionIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--text-muted);
+}
+
+.emptyState {
+  text-align: center;
+  padding: 5rem 1.5rem;
+  border: 1px dashed var(--glass-border);
+  border-radius: var(--radius-xl);
+  background: rgba(var(--glass-bg-strong-rgb), 0.5);
+}
+
+.emptyStateIcon {
+  width: 3rem;
+  height: 3rem;
+  color: var(--text-primary);
+  margin: 0 auto 1rem;
+}
+
+.emptyStateTitle {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.emptyStateText {
+  color: var(--text-muted);
+  margin: 0.5rem auto 0;
+  max-width: 20rem;
+}
+
+.invCardBody {
+  flex: 1;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.statusActive {
+  background: rgba(34, 197, 94, 0.16);
+  color: #86efac;
+}
+
+.statusReview {
+  background: rgba(250, 204, 21, 0.16);
+  color: #fde68a;
+}
+
+.statusPublished {
+  background: rgba(59, 130, 246, 0.16);
+  color: #93c5fd;
+}
+
+.statusArchived {
+  background: rgba(var(--glass-bg-rgb), 0.9);
+  color: var(--text-primary);
+}
+
+.invDeleteButton {
+  color: var(--text-muted);
+  transition: color 0.2s ease;
+  padding: 0.25rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.invDeleteButton:hover {
+  color: #f87171;
+}
+
+.invFooterMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.invFooterIcon {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.mobileBackIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+  transform: rotate(180deg);
+}
+
+.sidebarBackIcon {
+  width: 1rem;
+  height: 1rem;
+  transform: rotate(180deg);
+}
+
+.shareIcon {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.navLabel {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.collapsedSidebar {
+  height: 100%;
+  padding: 1rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.collapsedBackButton {
+  height: 2rem;
+  width: 2rem;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  transition:
+    color 0.2s ease,
+    background 0.2s ease;
+  background: rgba(var(--glass-bg-rgb), 0.5);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.collapsedBackButton:hover {
+  color: var(--text-primary);
+  background: rgba(var(--glass-bg-highlight-rgb), 0.5);
+}
+
+.collapsedDivider {
+  height: 1px;
+  width: 1.5rem;
+  background: rgba(var(--glass-bg-highlight-rgb), 0.8);
+}
+
+.collapsedNavButton {
+  height: 2rem;
+  width: 2rem;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    color 0.2s ease,
+    background 0.2s ease;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.collapsedNavButton:hover {
+  color: var(--text-primary);
+  background: rgba(var(--glass-bg-highlight-rgb), 0.5);
+}
+
+.collapsedNavButtonActive {
+  background: rgba(30, 58, 138, 0.4);
+  color: var(--accent);
+}
+
+.collapsedNavIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.contentColumn {
+  max-width: 64rem;
+}
+
+.statusDetailStack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.pillBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.priorityCritical {
+  background: rgba(248, 113, 113, 0.16);
+  color: #fca5a5;
+}
+
+.priorityHigh {
+  background: rgba(251, 146, 60, 0.16);
+  color: #fdba74;
+}
+
+.priorityMedium {
+  background: rgba(250, 204, 21, 0.16);
+  color: #fde68a;
+}
+
+.priorityLow {
+  background: rgba(34, 197, 94, 0.16);
+  color: #86efac;
+}
+
+.dueDateRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-muted);
+}
+
+.infoIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.infoSmallText {
+  font-size: 0.875rem;
+}
+
+.sectionSpacing {
+  margin-bottom: 2rem;
+}
+
+.activityRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.activityAvatar {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  background: rgba(30, 58, 138, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  flex-shrink: 0;
+}
+
+.activityAvatarIcon {
+  width: 1rem;
+  height: 1rem;
+  color: var(--accent);
+}
+
+.activityPrimary {
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.activityEmphasis {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.activityMeta {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 0.25rem 0 0;
+}
+
+.sectionTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 1.5rem;
+}
+
+.sectionStack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.surfaceCard {
+  background: rgba(var(--glass-bg-rgb), 0.5);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  padding: 1.5rem;
+}
+
+.surfaceCardTitle {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 1rem;
+}
+
+.surfaceCardText {
+  color: var(--text-muted);
+  margin: 0 0 1rem;
+}
+
+.analyticsHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.analyticsTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.analyticsSubtitle {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin: 0.25rem 0 0;
+}
+
+.analyticsControls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.analyticsSelect {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+}
+
+.analyticsToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  padding: 0.5rem 0.75rem;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+}
+
+.analyticsActionButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: #7c3aed;
+  color: var(--text-primary);
+  border-radius: var(--radius-lg);
+  transition: background 0.2s ease;
+  font-size: 0.875rem;
+  border: none;
+  cursor: pointer;
+}
+
+.analyticsActionButton:hover {
+  background: #6d28d9;
+}
+
+.analyticsActionIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.analyticsSection {
+  margin-bottom: 1.5rem;
+}
+
+.analyticsSectionTitle {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0 0 0.75rem;
+}
+
+.analyticsKpiGrid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .analyticsKpiGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .analyticsKpiGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.analyticsCard {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+}
+
+.analyticsLabel {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.analyticsValue {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0.5rem 0 0;
+}
+
+.analyticsSkeletonTall {
+  height: 2rem;
+  margin-top: 0.5rem;
+  background: var(--glass-bg-highlight);
+  border-radius: var(--radius-md);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.analyticsSkeleton {
+  height: 1rem;
+  background: var(--glass-bg-highlight);
+  border-radius: var(--radius-md);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.analyticsTopSourcesCard {
+  margin-top: 0.75rem;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: 0.75rem;
+}
+
+.analyticsHelperText {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 0 0 0.5rem;
+}
+
+.analyticsChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.analyticsChip {
+  padding: 0.25rem 0.5rem;
+  background: var(--glass-bg-highlight);
+  color: var(--text-primary);
+  border-radius: var(--radius-md);
+  font-size: 0.75rem;
+}
+
+.analyticsGridTwo {
+  margin-bottom: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+@media (min-width: 1024px) {
+  .analyticsGridTwo {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.analyticsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.analyticsRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.analyticsDateLabel {
+  width: 6rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.analyticsBarTrack {
+  flex: 1;
+  height: 0.5rem;
+  background: var(--glass-bg-highlight);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.analyticsBarFill {
+  height: 100%;
+  background: var(--accent);
+}
+
+.analyticsRowValue {
+  font-size: 0.75rem;
+  color: var(--text-primary);
+}
+
+.analyticsSourceRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.875rem;
+}
+
+.analyticsSourceLabel {
+  color: var(--text-secondary);
+  text-transform: capitalize;
+}
+
+.analyticsSourceValue {
+  color: var(--text-primary);
+}
+
+.analyticsSubsection {
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--glass-border);
+}
+
+.analyticsSubsectionTight {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.analyticsSpikeText {
+  font-size: 0.75rem;
+  color: #fbbf24;
+  margin: 0;
+}
+
+.analyticsEntityRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.875rem;
+}
+
+.analyticsEntityName {
+  color: var(--text-primary);
+}
+
+.analyticsRiskScore {
+  color: #fca5a5;
+}
+
+.analyticsConnectionText {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.analyticsDocumentRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.analyticsDocumentTitle {
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.analyticsCountChip {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  background: var(--glass-bg-highlight);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+}
+
+.visualizationShell {
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(12px);
+}
+
+.modalCard {
+  width: 100%;
+  max-width: 28rem;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 1.5rem;
+  border-radius: var(--radius-xl);
+}
+
+.modalTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 1.5rem;
+}
+
+.modalForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.modalFieldLabel {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 0.25rem;
+}
+
+.modalInput,
+.modalTextarea,
+.modalSelect {
+  width: 100%;
+  padding: 0 0.75rem;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+  outline: none;
+}
+
+.modalInput,
+.modalSelect {
+  height: 2.5rem;
+}
+
+.modalTextarea {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  resize: vertical;
+}
+
+.modalInput::placeholder,
+.modalTextarea::placeholder {
+  color: #94a3b8;
+}
+
+.modalInput:focus,
+.modalTextarea:focus,
+.modalSelect:focus {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 65%, transparent);
+}
+
+.modalGridTwo {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+
+.secondaryButton {
+  padding: 0 1rem;
+  height: 2.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: var(--glass-bg);
+  border-radius: var(--radius-lg);
+  border: none;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.secondaryButton:hover {
+  background: var(--glass-bg-highlight);
+  color: var(--text-primary);
+}
+
+.primaryButton {
+  padding: 0 1rem;
+  height: 2.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  background: var(--accent);
+  border-radius: var(--radius-lg);
+  border: none;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    opacity 0.2s ease;
+  box-shadow: 0 10px 30px rgba(30, 58, 138, 0.2);
+}
+
+.primaryButton:hover {
+  background: #2563eb;
+}
+
+.primaryButton:disabled,
+.importButtonPrimary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.importOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+}
+
+.importCard {
+  width: 100%;
+  max-width: 42rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow);
+}
+
+.importHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.importTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.importTitleIcon {
+  width: 1rem;
+  height: 1rem;
+  color: #34d399;
+}
+
+.closeButton {
+  color: var(--text-muted);
+  transition: color 0.2s ease;
+  font-size: 1.25rem;
+  line-height: 1;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.closeButton:hover {
+  color: var(--text-primary);
+}
+
+.importDescription {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.importTextarea {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 0.75rem;
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  outline: none;
+  resize: none;
+}
+
+.importTextarea::placeholder {
+  color: var(--text-muted);
+}
+
+.importTextarea:focus {
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.importActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.importCancelButton {
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-lg);
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.importCancelButton:hover {
+  color: var(--text-primary);
+}
+
+.importButtonPrimary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-lg);
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.importButtonPrimary:hover {
+  opacity: 0.9;
+}
+
+.importSpinner {
+  width: 0.75rem;
+  height: 0.75rem;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #fff;
+  border-radius: 9999px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
 @keyframes spin {
   from {
     transform: rotate(0deg);
@@ -617,4 +1569,95 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+.headerSurface {
+  border-bottom: 1px solid var(--lq-surface-3);
+}
+
+.scopeToggleSurface {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--lq-surface-3);
+}
+
+.iconWarning {
+  color: var(--lq-warning);
+}
+
+.iconAccent {
+  color: var(--lq-accent);
+}
+
+.iconMuted {
+  color: var(--lq-text-dim);
+}
+
+.scrollArea {
+  overflow-y: auto;
+}
+
+.invCardInteractive {
+  border: 1px solid var(--lq-surface-3);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.invCardInteractive:hover {
+  border-color: var(--lq-accent);
+}
+
+.tabButton {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  border-radius: var(--radius-lg);
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.tabButtonActive {
+  background-color: var(--lq-accent);
+  color: white;
+  box-shadow: var(--shadow-lg);
+}
+
+.tabButtonInactive {
+  color: var(--lq-text-dim);
+}
+
+.tabButtonInactive:hover {
+  background-color: var(--lq-surface-3);
+}
+
+.mainContentArea {
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--lq-surface-1);
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--lq-z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl);
+}
+
+.modalBackdrop {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+.modalPanel {
+  position: relative;
+  box-shadow: var(--shadow-2xl);
+  border: 1px solid var(--lq-surface-3);
 }

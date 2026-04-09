@@ -59,7 +59,7 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onClick, searchTerm }) 
   const filesCount = person.files ?? person.fileReferences?.length ?? 0;
 
   return (
-    <article className={`surface-glass-card group ${styles.card}`}>
+    <article className={`surface-panel group ${styles.card}`}>
       <button
         type="button"
         onClick={onClick}
@@ -104,7 +104,7 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onClick, searchTerm }) 
                   className={styles.blackBookBadge}
                   title="Listed in Jeffrey Epstein's Black Book"
                 >
-                  <Icon name="Book" size="xs" />
+                  <Icon name="Book" />
                   BB
                 </div>
               )}
@@ -155,7 +155,7 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onClick, searchTerm }) 
           )}
         </div>
         <button type="button" onClick={onClick} className={styles.profileLink}>
-          Profile <Icon name="ArrowRight" size="xs" />
+          Profile <Icon name="ArrowRight" />
         </button>
       </div>
     </article>

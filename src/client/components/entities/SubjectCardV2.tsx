@@ -149,7 +149,7 @@ const SubjectCardV2: React.FC<SubjectCardV2Props> = React.memo(({ subject, style
           </Tooltip>
           <Tooltip content="Open full profile for this entity" position="top-end">
             <button type="button" onClick={handleProfileClick} className={styles.viewButton}>
-              View <Icon name="ArrowRight" size="xs" />
+              View <Icon name="ArrowRight" />
             </button>
           </Tooltip>
         </Flex>

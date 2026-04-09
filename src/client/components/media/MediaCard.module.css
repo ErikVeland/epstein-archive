@@ -1,0 +1,9 @@
+.actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.addButton {
+  font-size: 0.75rem;
+  padding: var(--space-1) var(--space-2);
+}

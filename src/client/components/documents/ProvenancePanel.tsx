@@ -367,7 +367,7 @@ export const ProvenancePanel: React.FC<ProvenancePanelProps> = ({ document }) =>
         </LqText>
         {lineage?.processingInfo?.ocrEngine && (
           <Box className={styles.determinismBlock}>
-            <Icon name="FileSearch" size="xs" />
+            <Icon name="FileSearch" />
             <LqText variant="xs">
               OCR engine {lineage.processingInfo.ocrEngine}
               {typeof lineage.processingInfo.ocrQualityScore === 'number'

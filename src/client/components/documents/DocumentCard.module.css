@@ -3,6 +3,7 @@
 .card {
   position: relative;
   height: 100%;
+  min-height: 200px; /* Ensure a stable min height for short content */
   cursor: pointer;
   touch-action: manipulation;
   border-radius: var(--radius-lg);
@@ -38,6 +39,9 @@
 /* Header row */
 .headerRow {
   margin-bottom: var(--space-3);
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
 }
 
 /* Icon box */
@@ -60,12 +64,13 @@
 /* Type label */
 .typeLabel {
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
   font-family: var(--font-mono, monospace);
+  color: var(--text-muted);
+  font-size: 10px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 80px;
 }
 
 /* AI badge */
@@ -84,8 +89,9 @@
 .badgeIcon,
 .entityIcon,
 .metaIcon {
-  width: 0.75rem;
-  height: 0.75rem;
+  width: 0.625rem; /* 10px icons in footer */
+  height: 0.625rem;
+  opacity: 0.8;
 }
 
 /* Risk badge */
@@ -133,10 +139,11 @@
   line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  line-height: 1.6;
-  opacity: 0.8;
+  line-height: 1.5;
+  opacity: 0.7; /* Increased contrast vs title */
   margin-bottom: var(--space-4);
-  flex: 1;
+  flex: 1; /* Pushes footer to the bottom */
+  font-size: 0.85rem;
 }
 
 /* Entities row */
@@ -188,11 +195,13 @@
   color: var(--text-muted);
 }
 
-.metaLabelTruncate {
+.metaLabelTruncate,
+.footerText {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 60px;
+  font-size: 10px !important; /* Force smaller size for hierarchy */
+  letter-spacing: 0.02em;
 }
 
 /* Risk dot colours — preserved from DocumentCard.css */

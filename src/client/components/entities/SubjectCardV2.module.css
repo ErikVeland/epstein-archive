@@ -1,24 +1,6 @@
 .card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  width: 100%;
   height: 100%;
-  padding: var(--space-4);
-  background: transparent;
-  text-align: left;
-  transition:
-    border-color 0.3s ease,
-    box-shadow 0.3s ease;
-}
-
-.card:hover {
-  border-color: var(--glass-border-highlight);
-}
-
-.card:focus-visible {
-  outline: none;
-  box-shadow: inset 0 0 0 2px var(--accent);
+  cursor: pointer;
 }
 
 .headerRow {
@@ -105,19 +87,7 @@
 }
 
 .viewButton {
-  display: inline-flex;
-  align-items: center;
   gap: 0.25rem;
-  color: var(--accent);
-  font-size: 0.625rem;
-  font-weight: var(--weight-bold);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  transition: filter var(--duration-fast, 150ms);
-}
-
-.viewButton:hover {
-  filter: brightness(1.1);
 }
 
 .metricLabel {

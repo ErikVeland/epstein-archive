@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { FixedSizeList as List } from 'react-window';
 import AutoSizer from './common/AutoSizer';
 import styles from './BlackBookViewer.module.css';
+import { Surface, Button } from '../design-system/lib';
 
 interface BlackBookEntry {
   id: number;
@@ -187,16 +188,16 @@ export const BlackBookViewer: React.FC = () => {
         </div>
 
         {/* Pretty/Raw Toggle */}
-        <button
+        <Button
           onClick={() => setShowRaw(!showRaw)}
-          className={`${styles.toggleButton} ${
-            showRaw ? styles.toggleButtonInactive : styles.toggleButtonActive
-          }`}
+          variant={showRaw ? 'secondary' : 'primary'}
+          size="sm"
+          className={styles.toggleButton}
           title={showRaw ? 'Showing raw OCR text' : 'Showing cleaned text'}
         >
           {showRaw ? <FileText className={styles.smIcon} /> : <Eye className={styles.smIcon} />}
           <span className={styles.toggleText}>{showRaw ? 'Raw OCR' : 'Pretty'}</span>
-        </button>
+        </Button>
       </div>
 
       {/* Search Bar */}
@@ -213,24 +214,22 @@ export const BlackBookViewer: React.FC = () => {
 
       {/* Alphabet Filter */}
       <div className={styles.letters}>
-        <button
+        <Button
           onClick={() => setSelectedLetter('ALL')}
-          className={`${styles.letterButton} ${
-            selectedLetter === 'ALL' ? styles.letterButtonActive : styles.letterButtonInactive
-          }`}
+          variant={selectedLetter === 'ALL' ? 'primary' : 'secondary'}
+          size="sm"
         >
           ALL
-        </button>
+        </Button>
         {alphabet.map((letter) => (
-          <button
+          <Button
             key={letter}
             onClick={() => setSelectedLetter(letter)}
-            className={`${styles.letterButton} ${
-              selectedLetter === letter ? styles.letterButtonActive : styles.letterButtonInactive
-            }`}
+            variant={selectedLetter === letter ? 'primary' : 'secondary'}
+            size="sm"
           >
             {letter}
-          </button>
+          </Button>
         ))}
       </div>
 
@@ -266,21 +265,18 @@ export const BlackBookViewer: React.FC = () => {
 
         <div className={styles.divider} />
 
-        <div className={styles.categoryBar}>
+        <Surface variant="glass" className={styles.categoryBar} p={1}>
           {['ALL', 'Original', 'Contact', 'Credential'].map((cat) => (
-            <button
+            <Button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`${styles.categoryButton} ${
-                selectedCategory === cat
-                  ? styles.categoryButtonActive
-                  : styles.categoryButtonInactive
-              }`}
+              variant={selectedCategory === cat ? 'primary' : 'ghost'}
+              size="sm"
             >
               {cat}
-            </button>
+            </Button>
           ))}
-        </div>
+        </Surface>
       </div>
 
       {/* Entries Grid - Virtualized */}
@@ -313,12 +309,13 @@ export const BlackBookViewer: React.FC = () => {
                             : extractCleanName(entry.entry_text) || rawName;
 
                           return (
-                            <div
+                            <Surface
                               key={entry.id}
                               style={{
                                 width: `calc(${100 / columns}% - ${((columns - 1) * 16) / columns}px)`,
                               }}
                               className={styles.card}
+                              variant="glass"
                             >
                               {/* Name - clickable if known entity */}
                               <div className={styles.cardHeader}>
@@ -342,14 +339,15 @@ export const BlackBookViewer: React.FC = () => {
                                 )}
                                 <div className={styles.nameWrap}>
                                   {entry.person_name ? (
-                                    <button
+                                    <Button
                                       onClick={() => handleEntityClick(entry.person_id || 0)}
+                                      variant="ghost"
                                       className={styles.entityButton}
                                       title="Click to view entity profile"
                                     >
                                       <span className={styles.textClamp}>{displayName}</span>
                                       <ExternalLink className={styles.tinyExternal} />
-                                    </button>
+                                    </Button>
                                   ) : (
                                     <h3 className={`${styles.plainName} ${styles.textClamp}`}>
                                       {displayName}
@@ -464,7 +462,7 @@ export const BlackBookViewer: React.FC = () => {
                                   </Link>
                                 )}
                               </div>
-                            </div>
+                            </Surface>
                           );
                         })}
                       </div>
@@ -486,9 +484,9 @@ export const BlackBookViewer: React.FC = () => {
           </p>
           <p className={styles.emptyHint}>{error || 'Try adjusting your search or filter'}</p>
           {error && (
-            <button onClick={() => void fetchBlackBookEntries()} className={styles.retryButton}>
+            <Button onClick={() => void fetchBlackBookEntries()} variant="secondary">
               Retry
-            </button>
+            </Button>
           )}
         </div>
       )}

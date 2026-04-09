@@ -116,3 +116,25 @@
   height: 1.25rem;
   margin-right: var(--space-2);
 }
+
+.autoGen67 {
+  border-radius: var(--radius-xl);
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--lq-surface-3);
+}
+
+.autoGen68 {
+  color: var(--lq-accent);
+}
+
+.autoGen69 {
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--lq-surface-3);
+}
+
+.autoGen70 {
+  color: var(--lq-success);
+  /* Missing: opacity-50 */
+}

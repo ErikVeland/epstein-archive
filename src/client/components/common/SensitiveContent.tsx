@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useSensitiveSettings } from '../../contexts/SensitiveSettingsContext';
 import { EyeOff } from 'lucide-react';
+import styles from './SensitiveContent.module.css';
 
 interface SensitiveContentProps {
   isSensitive?: boolean;
@@ -179,14 +180,13 @@ export function SensitiveContent({
   }
 
   return (
-    <div
-      ref={containerRef}
-      className={`relative overflow-hidden ${className}`}
-      style={{ minHeight: '100px' }}
-    >
+    <div ref={containerRef} className={[styles.container, className].filter(Boolean).join(' ')}>
       {/* Blurred content */}
       <div
-        className={`transition-all duration-500 ${isRevealing ? 'blur-sm opacity-60' : 'blur-2xl opacity-30'}`}
+        className={[
+          styles.content,
+          isRevealing ? styles.contentRevealing : styles.contentIdle,
+        ].join(' ')}
         style={{
           filter: isRevealing ? 'blur(8px) brightness(0.7)' : 'blur(40px) brightness(0.5)',
         }}
@@ -195,42 +195,32 @@ export function SensitiveContent({
       </div>
 
       {/* Particle canvas - only visible during reveal */}
-      {isRevealing && (
-        <canvas
-          ref={canvasRef}
-          className="absolute inset-0 w-full h-full pointer-events-none z-30"
-        />
-      )}
+      {isRevealing && <canvas ref={canvasRef} className={styles.canvas} />}
 
       {/* Click overlay - hidden during reveal to allow interaction */}
       {!isRevealing && (
         <button
           onClick={handleReveal}
-          className="absolute inset-0 flex flex-col items-center justify-center z-20 cursor-pointer transition-all hover:bg-[var(--glass-bg-strong)] group"
+          className={styles.overlay}
           aria-label="Click to reveal sensitive content"
         >
           {/* Backdrop */}
-          <div className="absolute inset-0 bg-gradient-to-br from-[var(--app-bg)]/80 via-[var(--glass-bg-strong)]/70 to-[var(--app-bg)]/80 backdrop-blur-md" />
+          <div className={styles.backdrop} />
 
           {/* Icon and label */}
-          <div className="relative z-30 flex flex-col items-center gap-[var(--space-3)] transition-transform group-hover:scale-105">
-            <div className="w-16 h-16 rounded-full bg-[var(--glass-bg)]/80 border-2 border-[var(--glass-border)] flex items-center justify-center backdrop-blur-sm shadow-[var(--glass-shadow)] group-hover:border-[var(--glass-border)] transition-all">
-              <EyeOff
-                size={28}
-                className="text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors"
-              />
+          <div className={styles.overlayInner}>
+            <div className={styles.iconWrap}>
+              <EyeOff size={28} className={styles.icon} />
             </div>
-            <div className="flex flex-col items-center gap-[var(--space-1)]">
-              <span className="text-[var(--text-primary)] font-semibold text-sm tracking-wide uppercase">
-                {label}
-              </span>
-              <span className="text-[var(--text-muted)] text-xs">Click to reveal</span>
+            <div className={styles.labelGroup}>
+              <span className={styles.label}>{label}</span>
+              <span className={styles.hint}>Click to reveal</span>
             </div>
           </div>
 
           {/* Grain texture */}
           <div
-            className="absolute inset-0 opacity-5 pointer-events-none mix-blend-overlay"
+            className={styles.grain}
             style={{
               backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='2' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
             }}

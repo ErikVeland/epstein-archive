@@ -278,7 +278,7 @@ export const DataVisualization: React.FC = () => {
       {/* Charts Row 1 */}
       <div className={styles.chartsGrid}>
         {/* Top Entities Bar Chart - Enhanced */}
-        <div className={`${styles.glassCard} glass-card`}>
+        <div className={`${styles.glassCard} surface-panel`}>
           <div className={styles.overlayIcon}>
             <Activity className={`${styles.overlayIconGraphic} ${styles.overlayAccent}`} />
           </div>
@@ -329,7 +329,7 @@ export const DataVisualization: React.FC = () => {
                   >
                     <div className={styles.rankGrid}>
                       <div className={styles.rankBadge}>{index + 1}</div>
-                      <div className="min-w-0">
+                      <div className={styles.minWidthZero}>
                         <div className={styles.rankName}>{entry.name}</div>
                         <div className={styles.rankBarTrack}>
                           <div className={styles.rankBarFill} style={{ width: `${barWidth}%` }} />
@@ -362,7 +362,7 @@ export const DataVisualization: React.FC = () => {
         </div>
 
         {/* Risk Distribution Pie Chart */}
-        <div className={`${styles.glassCard} glass-card`}>
+        <div className={`${styles.glassCard} surface-panel`}>
           <div className={styles.overlayIcon}>
             <ShieldAlert className={`${styles.overlayIconGraphic} ${styles.overlayWarning}`} />
           </div>
@@ -418,7 +418,7 @@ export const DataVisualization: React.FC = () => {
       </div>
 
       {/* Interactive Tree Map */}
-      <div className={`${styles.glassCard} glass-card`}>
+      <div className={`${styles.glassCard} surface-panel`}>
         <div className={styles.treeHeader}>
           <h3 className={styles.cardTitle}>
             <Activity className={`${styles.titleIcon} ${styles.titlePurple}`} />

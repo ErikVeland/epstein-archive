@@ -484,3 +484,193 @@
   font-size: var(--type-xs);
   color: var(--text-muted);
 }
+
+.autoGen149 {
+  overflow: hidden;
+}
+
+.autoGen150 {
+  border-color: b;
+  border-color: b-[var(--lq-surface-3)];
+}
+
+.autoGen151 {
+  color: var(--lq-accent);
+}
+
+.autoGen152 {
+  display: none;
+  /* Missing: xl:block */
+}
+
+.autoGen153 {
+  background-color: var(--lq-surface-2);
+  padding-left: 1rem;
+  padding-right: 1rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-radius: var(--radius-lg);
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--lq-surface-3);
+}
+
+.autoGen154 {
+  color: var(--lq-success);
+}
+
+.autoGen155 {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.autoGen156 {
+  border-color: r;
+  border-color: r-[var(--lq-surface-3)];
+}
+
+.autoGen157 {
+  border-color: b;
+  border-color: b-[var(--lq-surface-3)];
+}
+
+.autoGen158 {
+  color: var(--lq-accent);
+}
+
+.autoGen159 {
+  background-color: var(--lq-surface-2);
+  border-color: b;
+  border-color: b-[var(--lq-surface-3)];
+}
+
+.autoGen160 {
+  overflow-y: auto;
+  padding: var(--space-md);
+}
+
+.autoGen161 {
+  color: var(--lq-text-dim);
+}
+
+.autoGen162 {
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--lq-surface-3);
+  /* Missing: hover:border-[var(--lq-accent)] */
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.autoGen163 {
+  border-color: t;
+  border-color: t-[var(--lq-surface-3)];
+}
+
+.autoGen164 {
+  color: var(--lq-text-dim);
+}
+
+.autoGen165 {
+  border-color: r;
+  border-color: r-[var(--lq-surface-3)];
+}
+
+.autoGen166 {
+  border-color: b;
+  border-color: b-[var(--lq-surface-3)];
+}
+
+.autoGen167 {
+  color: var(--lq-accent);
+}
+
+.autoGen168 {
+  overflow-y: auto;
+  padding: var(--space-md);
+}
+
+.autoGen169 {
+  color: var(--lq-text-dim);
+}
+
+.autoGen170 {
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--lq-surface-3);
+  /* Missing: hover:translate-x-1 */
+  transition: all 0.2s ease;
+  /* Missing: cursor-grab */
+  /* Missing: active:cursor-grabbing */
+}
+
+.autoGen171 {
+  color: var(--lq-text-dim);
+}
+
+.autoGen172 {
+  background-color: var(--lq-surface-2);
+}
+
+.autoGen173 {
+  border-color: b;
+  border-color: b-[var(--lq-surface-3)];
+}
+
+.autoGen174 {
+  color: var(--lq-accent);
+}
+
+.autoGen175 {
+  overflow-y: auto;
+  padding: var(--space-xl);
+  position: relative;
+}
+
+.autoGen176 {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl);
+}
+
+.autoGen177 {
+  border-color: dashed;
+  border-color: 2;
+  border-color: var(--lq-surface-3);
+  /* Missing: max-w-sm */
+  text-align: center;
+}
+
+.autoGen178 {
+  /* Missing: mx-auto */
+  color: var(--lq-text-dim);
+  margin-bottom: 1rem;
+}
+
+.autoGen179 {
+  border-width: 1px;
+  border-style: solid;
+  border-color: var(--lq-surface-3);
+  position: relative;
+}
+
+.autoGen180 {
+  position: absolute;
+  /* Missing: -left-4 */
+  /* Missing: top-1/2 */
+  /* Missing: -translate-y-1/2 */
+  /* Missing: w-8 */
+  /* Missing: h-8 */
+  border-radius: 9999px;
+  background-color: var(--lq-accent);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: [10px];
+  font-weight: 700;
+  /* Missing: shadow-lg */
+}

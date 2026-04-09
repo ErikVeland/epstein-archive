@@ -48,7 +48,7 @@ export const LegalPage: React.FC<LegalPageProps> = ({ mode }) => {
   const sections = mode === 'privacy' ? PRIVACY_SECTIONS : TERMS_SECTIONS;
 
   return (
-    <div className={`surface-glass-card ${s.root}`}>
+    <div className={`surface-panel ${s.root}`}>
       <div className={s.titleBlock}>
         <h1 className={s.title}>{title}</h1>
         <p className={s.intro}>{intro}</p>

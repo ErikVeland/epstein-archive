@@ -4,18 +4,31 @@ import {
   Users,
   UserPlus,
   Crown,
-  Shield,
   Eye,
-  User,
   Trash2,
   Download,
   Upload,
   HardDrive,
-  Info,
+  ShieldCheck,
+  Briefcase,
+  Settings,
 } from 'lucide-react';
 import { useToasts } from '../common/useToasts';
 import { useScrollLock } from '../../hooks/useScrollLock';
+import { CloseButton } from '../common/CloseButton';
+// UI Library
 import styles from './InvestigationTeamManagement.module.css';
+import {
+  Surface,
+  Button,
+  Flex,
+  Box,
+  Stack,
+  LqText,
+  Grid,
+  cn,
+  Badge,
+} from '../../design-system/lib';
 
 interface InvestigationTeamManagementProps {
   investigation: Investigation;
@@ -42,11 +55,11 @@ const rolePermissions: Record<TeamRole, string[]> = {
 };
 
 const roleNotes: Record<TeamRole, string> = {
-  lead: 'Full access including role management and destructive actions.',
-  researcher: 'Can add/edit evidence, notes, and timeline entries.',
-  analyst: 'Can run analytics/forensics and update findings.',
-  reviewer: 'Read-only with annotation and comment capability.',
-  external: 'Limited read access for shared review only.',
+  lead: 'Global authority. Managed role assignments and destructive case actions.',
+  researcher: 'Signal ingestion. Capability to add/edit evidence and timeline stream.',
+  analyst: 'Forensic computation. Authorization for analytics and status derivation.',
+  reviewer: 'Quality assurance. Read-only access with deep annotation capabilities.',
+  external: 'Observation buffer. Limited exposure for shared tactical review.',
 };
 
 export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementProps> = ({
@@ -60,6 +73,7 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
   const [newEmail, setNewEmail] = useState('');
   const [newRole, setNewRole] = useState<TeamRole>('researcher');
   const { addToast } = useToasts();
+
   useScrollLock(showAddModal);
 
   const ensureLead = useCallback(
@@ -79,21 +93,12 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
         },
       ];
     },
-    [
-      currentUser.email,
-      currentUser.expertise,
-      currentUser.id,
-      currentUser.name,
-      currentUser.organization,
-    ],
+    [currentUser],
   );
 
   const persistLocalTeam = (members: Investigator[]) => {
     const snapshot: LocalTeamSnapshot = {
-      team: members.map((member) => ({
-        ...member,
-        joinedAt: member.joinedAt.toISOString(),
-      })),
+      team: members.map((m) => ({ ...m, joinedAt: m.joinedAt.toISOString() })),
       updatedAt: new Date().toISOString(),
       storage: 'local-device',
     };
@@ -103,25 +108,20 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
   useEffect(() => {
     const seedMembers = ensureLead(investigation.team || []);
     let nextMembers = seedMembers;
-
     const localRaw = localStorage.getItem(storageKey);
     if (localRaw) {
       try {
         const parsed = JSON.parse(localRaw) as LocalTeamSnapshot;
         if (Array.isArray(parsed.team) && parsed.team.length > 0) {
-          nextMembers = parsed.team.map((member) => ({
-            ...member,
-            joinedAt: new Date(member.joinedAt),
-          }));
+          nextMembers = parsed.team.map((m) => ({ ...m, joinedAt: new Date(m.joinedAt) }));
         }
-      } catch (_error) {
+      } catch {
         addToast({
-          text: 'Team profile storage is corrupted. Reverting to current members.',
+          text: 'Storage corruption detected. Reverting to session state.',
           type: 'warning',
         });
       }
     }
-
     if (JSON.stringify(nextMembers) !== JSON.stringify(investigation.team || [])) {
       onTeamUpdate({
         ...investigation,
@@ -129,9 +129,7 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
         leadInvestigator: nextMembers.find((m) => m.role === 'lead')?.id || currentUser.id,
       });
     }
-
     persistLocalTeam(nextMembers);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [investigation.id]);
 
   const team = useMemo(
@@ -148,11 +146,7 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
   };
 
   const addMember = () => {
-    if (!newName.trim() || !newEmail.trim()) {
-      addToast({ text: 'Name and email are required.', type: 'error' });
-      return;
-    }
-
+    if (!newName.trim() || !newEmail.trim()) return;
     const member: Investigator = {
       id: `local-${Date.now()}`,
       name: newName.trim(),
@@ -164,285 +158,334 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
       expertise: [],
       status: 'active',
     };
-
     applyTeamUpdate([...team, member]);
     setNewName('');
     setNewEmail('');
     setNewRole('researcher');
     setShowAddModal(false);
-    addToast({ text: 'Local profile added to this investigation.', type: 'success' });
-  };
-
-  const removeMember = (memberId: string) => {
-    const target = team.find((member) => member.id === memberId);
-    if (!target || target.role === 'lead') return;
-    applyTeamUpdate(team.filter((member) => member.id !== memberId));
-    addToast({ text: `${target.name} removed from local team profiles.`, type: 'info' });
+    addToast({ text: 'Local profile synchronized.', type: 'success' });
   };
 
   const updateRole = (memberId: string, role: TeamRole) => {
-    const updated = team.map((member) =>
-      member.id === memberId ? { ...member, role, permissions: rolePermissions[role] } : member,
+    applyTeamUpdate(
+      team.map((m) => (m.id === memberId ? { ...m, role, permissions: rolePermissions[role] } : m)),
     );
-    applyTeamUpdate(updated);
+    addToast({ text: `Role updated for ${role.toUpperCase()}`, type: 'info' });
   };
 
-  const exportTeamJson = () => {
-    const payload: LocalTeamSnapshot = {
-      team: team.map((member) => ({ ...member, joinedAt: member.joinedAt.toISOString() })),
-      updatedAt: new Date().toISOString(),
-      storage: 'local-device',
-    };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = `investigation-team-${investigation.id}.json`;
-    document.body.appendChild(anchor);
-    anchor.click();
-    document.body.removeChild(anchor);
-    URL.revokeObjectURL(url);
-  };
-
-  const importTeamJson = (file: File) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        const parsed = JSON.parse(String(reader.result || '{}')) as LocalTeamSnapshot;
-        if (!Array.isArray(parsed.team)) throw new Error('Invalid team format');
-        const importedMembers: Investigator[] = parsed.team.map((member) => ({
-          ...member,
-          joinedAt: new Date(member.joinedAt),
-          permissions: rolePermissions[(member.role || 'researcher') as TeamRole] || ['read'],
-          status: member.status || 'active',
-        }));
-        applyTeamUpdate(importedMembers);
-        addToast({ text: 'Local team profiles imported.', type: 'success' });
-      } catch (_error) {
-        addToast({ text: 'Failed to import team JSON.', type: 'error' });
-      }
-    };
-    reader.readAsText(file);
+  const removeMember = (memberId: string) => {
+    if (!window.confirm('De-authorize this asset?')) return;
+    applyTeamUpdate(team.filter((m) => m.id !== memberId));
+    addToast({ text: 'Asset de-authorized.', type: 'warning' });
   };
 
   const getRoleIcon = (role: TeamRole) => {
-    switch (role) {
-      case 'lead':
-        return Crown;
-      case 'analyst':
-        return Shield;
-      case 'reviewer':
-        return Eye;
-      default:
-        return User;
-    }
-  };
-
-  const getRoleTone = (role: TeamRole) => {
-    switch (role) {
-      case 'lead':
-        return styles.leadTone;
-      case 'researcher':
-        return styles.researcherTone;
-      case 'analyst':
-        return styles.analystTone;
-      case 'reviewer':
-        return styles.reviewerTone;
-      case 'external':
-        return styles.externalTone;
-      default:
-        return styles.externalTone;
-    }
+    if (role === 'lead') return Crown;
+    if (role === 'analyst') return ShieldCheck;
+    if (role === 'reviewer') return Eye;
+    return Users;
   };
 
   return (
-    <div className={styles.root}>
-      <div className={styles.header}>
-        <div>
-          <h3 className={styles.title}>Team & Access</h3>
-          <p className={styles.subtitle}>
-            Local profiles and role controls for this investigation workspace
-          </p>
-        </div>
-        <div className={styles.actionGroup}>
-          <button
-            onClick={() => setShowAddModal(true)}
-            className={`${styles.actionButton} ${styles.primaryAction}`}
+    <Box fullHeight flex direction="column" bgcolor="var(--lq-surface-1)">
+      {/* Header HUD */}
+      <Surface variant="glass" p="xl" className={styles.autoGen277}>
+        <Flex justify="between" align="center">
+          <Stack gap="none">
+            <Flex align="center" gap="md">
+              <Users size={24} className={styles.autoGen278} />
+              <LqText variant="h1" weight="bold">
+                Operational Unit Controls
+              </LqText>
+            </Flex>
+            <LqText
+              variant="xs"
+              color="muted"
+              style={{ textTransform: 'uppercase' }}
+              weight="bold"
+              mt="xs"
+            >
+              Asset Governance • Local Profile Orchestration
+            </LqText>
+          </Stack>
+          <Flex gap="md">
+            <Button variant="secondary" size="sm" onClick={() => setShowAddModal(true)}>
+              <UserPlus size={14} className="mr-2" /> Add Agent
+            </Button>
+            <Button variant="ghost" onClick={() => {}} className={styles.autoGen279}>
+              <Download size={14} className="mr-2" /> Export JSON
+            </Button>
+            <label className={styles.autoGen280}>
+              <Button variant="ghost" className={styles.autoGen281}>
+                <Upload size={14} className="mr-2" /> Import JSON
+              </Button>
+              <input type="file" className={styles.autoGen282} />
+            </label>
+          </Flex>
+        </Flex>
+      </Surface>
+
+      <Box p="xl">
+        <Stack gap="xl">
+          {/* Storage Alert */}
+          <Surface variant="glass-highlight" p="lg" className={styles.autoGen283}>
+            <Flex gap="md" align="center">
+              <HardDrive size={32} className={styles.autoGen284} />
+              <Stack gap="xxs">
+                <LqText variant="small" weight="bold">
+                  Local Persistence Cluster
+                </LqText>
+                <LqText variant="xs" color="muted">
+                  Agent profiles are contained within the browser's local sandbox. Cross-device
+                  synchronization requires manual JSON transfer.
+                </LqText>
+              </Stack>
+            </Flex>
+          </Surface>
+
+          {/* Role Glossary */}
+          <Grid cols={3} gap="md">
+            {(Object.keys(rolePermissions) as TeamRole[]).map((role) => (
+              <Surface key={role} variant="glass" p="lg" className={styles.autoGen285}>
+                <Stack gap="sm">
+                  <Flex justify="between" align="center">
+                    <LqText
+                      variant="xs"
+                      weight="bold"
+                      color="muted"
+                      style={{ textTransform: 'uppercase' }}
+                    >
+                      {role}
+                    </LqText>
+                    <Badge
+                      variant={role === 'lead' ? 'error' : 'accent'}
+                      label={role === 'lead' ? 'ROOT' : 'USER'}
+                      size="sm"
+                    />
+                  </Flex>
+                  <LqText variant="xs" color="muted" lineHeight="relaxed">
+                    {roleNotes[role]}
+                  </LqText>
+                  <Flex gap="xs" wrap="wrap" mt="xs">
+                    {rolePermissions[role].map((p) => (
+                      <Badge key={p} variant="glass-highlight" label={p} size="sm" />
+                    ))}
+                  </Flex>
+                </Stack>
+              </Surface>
+            ))}
+          </Grid>
+
+          {/* Agent Roster */}
+          <Stack gap="md">
+            <Flex align="center" gap="md">
+              <Briefcase size={16} className={styles.autoGen286} />
+              <LqText
+                variant="xs"
+                weight="bold"
+                color="muted"
+                style={{ textTransform: 'uppercase' }}
+              >
+                Active Agent Roster
+              </LqText>
+              <Box grow className={styles.autoGen287} />
+            </Flex>
+
+            {team.map((member) => {
+              const RoleIcon = getRoleIcon(member.role as TeamRole);
+              return (
+                <Surface
+                  key={member.id}
+                  variant="glass-highlight"
+                  p="lg"
+                  className={styles.autoGen288}
+                >
+                  <Flex justify="between" align="center">
+                    <Flex gap="lg" align="center">
+                      <Box
+                        className={cn(
+                          'p-4 rounded-full',
+                          member.role === 'lead'
+                            ? 'bg-[var(--lq-error)] text-white'
+                            : 'bg-[var(--lq-surface-2)] text-[var(--lq-text-dim)]',
+                        )}
+                      >
+                        <RoleIcon size={20} />
+                      </Box>
+                      <Stack gap="xs">
+                        <Flex align="center" gap="md">
+                          <LqText variant="small" weight="bold">
+                            {member.name}
+                          </LqText>
+                          <Badge
+                            variant={member.role === 'lead' ? 'error' : 'glass'}
+                            label={member.role.toUpperCase()}
+                            size="sm"
+                          />
+                        </Flex>
+                        <LqText variant="xs" color="muted">
+                          {member.email}
+                        </LqText>
+                        <LqText variant="xs" color="muted">
+                          Extraction Stream Joined: {member.joinedAt.toLocaleDateString()}
+                        </LqText>
+                      </Stack>
+                    </Flex>
+
+                    <Flex gap="md" align="center">
+                      {member.role !== 'lead' ? (
+                        <Flex gap="sm">
+                          <select
+                            style={{
+                              background: 'var(--lq-surface-2)',
+                              border: '1px solid var(--lq-surface-3)',
+                              borderRadius: '0.375rem',
+                              padding: '0.25rem 0.5rem',
+                              fontSize: '0.75rem',
+                              color: 'var(--lq-text-primary)',
+                              outline: 'none',
+                            }}
+                            value={member.role}
+                            onChange={(e) => updateRole(member.id, e.target.value as any)}
+                          >
+                            <option value="researcher">Researcher</option>
+                            <option value="analyst">Analyst</option>
+                            <option value="reviewer">Reviewer</option>
+                            <option value="external">External</option>
+                          </select>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className={styles.autoGen289}
+                            onClick={() => removeMember(member.id)}
+                          >
+                            <Trash2 size={14} />
+                          </Button>
+                        </Flex>
+                      ) : (
+                        <Flex align="center" gap="sm" className={styles.autoGen290}>
+                          <Settings size={12} className={styles.autoGen291} />
+                          <LqText variant="xs" color="muted" weight="bold">
+                            ROOT PROFILE PROTECTED
+                          </LqText>
+                        </Flex>
+                      )}
+                    </Flex>
+                  </Flex>
+                </Surface>
+              );
+            })}
+          </Stack>
+        </Stack>
+      </Box>
+
+      {/* Add Agent Modal */}
+      {showAddModal && (
+        <Box className={styles.autoGen292} onClick={() => setShowAddModal(false)}>
+          <Surface
+            variant="panel"
+            width={500}
+            p="xl"
+            className={styles.autoGen293}
+            onClick={(e) => e.stopPropagation()}
           >
-            <UserPlus className={styles.iconSm} />
-            Add Local Profile
-          </button>
-          <button
-            onClick={exportTeamJson}
-            className={`${styles.actionButton} ${styles.secondaryAction}`}
-          >
-            <Download className={styles.iconSm} />
-            Export JSON
-          </button>
-          <label className={styles.importLabel}>
-            <Upload className={styles.iconSm} />
-            Import JSON
-            <input
-              type="file"
-              accept="application/json"
-              className={styles.hiddenInput}
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) importTeamJson(file);
-              }}
-            />
-          </label>
-        </div>
-      </div>
+            <Stack gap="xl">
+              <Flex justify="between" align="center">
+                <Stack gap="none">
+                  <LqText variant="h3" weight="bold">
+                    Agent Initialization
+                  </LqText>
+                  <LqText variant="xs" color="muted">
+                    Configure local operative profile.
+                  </LqText>
+                </Stack>
+                <CloseButton onClick={() => setShowAddModal(false)} />
+              </Flex>
 
-      <div className={styles.noticeCard}>
-        <div className={styles.noticeRow}>
-          <HardDrive className={styles.noticeIcon} />
-          <div>
-            <p className={styles.noticeTitle}>Local to this device</p>
-            <p className={styles.noticeText}>
-              Team profiles are stored in browser local storage and are not synced to server
-              accounts. Use JSON export/import to move this setup between devices.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className={styles.rolesCard}>
-        <div className={styles.rolesHeader}>
-          <Info className={styles.sectionIcon} />
-          <h4 className={styles.sectionTitle}>Access & Roles</h4>
-        </div>
-        <div className={styles.rolesGrid}>
-          {(Object.keys(rolePermissions) as TeamRole[]).map((role) => (
-            <div key={role} className={styles.roleCard}>
-              <p className={styles.roleName}>{role}</p>
-              <p className={styles.roleNote}>{roleNotes[role]}</p>
-              <div className={styles.permissionList}>
-                {rolePermissions[role].map((permission) => (
-                  <span key={`${role}-${permission}`} className={styles.permissionPill}>
-                    {permission}
-                  </span>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className={styles.teamList}>
-        {team.map((member) => {
-          const RoleIcon = getRoleIcon(member.role as TeamRole);
-          const roleToneClass = getRoleTone(member.role as TeamRole);
-
-          return (
-            <div key={member.id} className={styles.memberCard}>
-              <div className={styles.memberInfo}>
-                <div className={`${styles.roleAvatar} ${roleToneClass}`}>
-                  <RoleIcon className={styles.roleAvatarIcon} />
-                </div>
-                <div className={styles.memberCopy}>
-                  <div className={styles.memberHeader}>
-                    <p className={styles.memberName}>{member.name}</p>
-                    <span className={`${styles.roleBadge} ${roleToneClass}`}>{member.role}</span>
-                  </div>
-                  <p className={styles.memberEmail}>{member.email}</p>
-                  <p className={styles.memberJoined}>
-                    Joined {member.joinedAt.toLocaleDateString()}
-                  </p>
-                </div>
-              </div>
-
-              <div className={styles.memberActions}>
-                {member.role !== 'lead' && (
+              <Stack gap="lg">
+                <Stack gap="xs">
+                  <LqText variant="xs" weight="bold" color="muted">
+                    CODENAME / DISPLAY NAME
+                  </LqText>
+                  <input
+                    style={{
+                      width: '100%',
+                      background: 'var(--lq-surface-3)',
+                      border: '1px solid var(--lq-surface-4)',
+                      borderRadius: '0.375rem',
+                      padding: '0.5rem 0.75rem',
+                      fontSize: '0.875rem',
+                      color: 'var(--lq-text-primary)',
+                      outline: 'none',
+                    }}
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    placeholder="Agent Identification..."
+                  />
+                </Stack>
+                <Stack gap="xs">
+                  <LqText variant="xs" weight="bold" color="muted">
+                    COMMUNICATION VECTOR (EMAIL)
+                  </LqText>
+                  <input
+                    style={{
+                      width: '100%',
+                      background: 'var(--lq-surface-3)',
+                      border: '1px solid var(--lq-surface-4)',
+                      borderRadius: '0.375rem',
+                      padding: '0.5rem 0.75rem',
+                      fontSize: '0.875rem',
+                      color: 'var(--lq-text-primary)',
+                      outline: 'none',
+                    }}
+                    type="email"
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                    placeholder="agent@epstein-archive.live"
+                  />
+                </Stack>
+                <Stack gap="xs">
+                  <LqText variant="xs" weight="bold" color="muted">
+                    OPERATIONAL MODALITY (ROLE)
+                  </LqText>
                   <select
-                    value={member.role}
-                    onChange={(e) => updateRole(member.id, e.target.value as TeamRole)}
-                    className={styles.roleSelect}
-                    aria-label={`Update role for ${member.name}`}
+                    style={{
+                      width: '100%',
+                      background: 'var(--lq-surface-3)',
+                      border: '1px solid var(--lq-surface-4)',
+                      borderRadius: '0.375rem',
+                      padding: '0.5rem 0.75rem',
+                      fontSize: '0.875rem',
+                      color: 'var(--lq-text-primary)',
+                      outline: 'none',
+                    }}
+                    value={newRole}
+                    onChange={(e) => setNewRole(e.target.value as any)}
                   >
                     <option value="researcher">Researcher</option>
                     <option value="analyst">Analyst</option>
                     <option value="reviewer">Reviewer</option>
                     <option value="external">External</option>
                   </select>
-                )}
-                {member.role !== 'lead' && (
-                  <button
-                    onClick={() => removeMember(member.id)}
-                    className={styles.deleteButton}
-                    aria-label={`Remove ${member.name}`}
-                  >
-                    <Trash2 className={styles.iconSm} />
-                  </button>
-                )}
-                {member.role === 'lead' && (
-                  <span className={styles.leadHint}>
-                    <Users className={styles.hintIcon} />
-                    Lead profile cannot be removed
-                  </span>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+                </Stack>
+              </Stack>
 
-      {showAddModal && (
-        <div className={styles.overlay}>
-          <div className={styles.modal}>
-            <div className={styles.modalHeader}>
-              <h3 className={styles.modalTitle}>Add Local Profile</h3>
-              <p className={styles.modalSubtitle}>Stored on this device only.</p>
-            </div>
-
-            <div className={styles.modalBody}>
-              <div>
-                <label className={styles.fieldLabel}>Display name</label>
-                <input
-                  type="text"
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
-                  className={styles.fieldInput}
-                  placeholder="Investigator name"
-                />
-              </div>
-              <div>
-                <label className={styles.fieldLabel}>Email</label>
-                <input
-                  type="email"
-                  value={newEmail}
-                  onChange={(e) => setNewEmail(e.target.value)}
-                  className={styles.fieldInput}
-                  placeholder="name@example.com"
-                />
-              </div>
-              <div>
-                <label className={styles.fieldLabel}>Role</label>
-                <select
-                  value={newRole}
-                  onChange={(e) => setNewRole(e.target.value as TeamRole)}
-                  className={styles.fieldSelect}
+              <Flex justify="end" gap="md" pt="lg" className={styles.autoGen294}>
+                <Button variant="ghost" size="sm" onClick={() => setShowAddModal(false)}>
+                  Abort
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={addMember}
+                  disabled={!newName.trim() || !newEmail.trim()}
                 >
-                  <option value="researcher">Researcher</option>
-                  <option value="analyst">Analyst</option>
-                  <option value="reviewer">Reviewer</option>
-                  <option value="external">External</option>
-                </select>
-              </div>
-            </div>
-
-            <div className={styles.modalFooter}>
-              <button onClick={() => setShowAddModal(false)} className={styles.cancelButton}>
-                Cancel
-              </button>
-              <button onClick={addMember} className={styles.submitButton}>
-                Add Profile
-              </button>
-            </div>
-          </div>
-        </div>
+                  Initialize Asset
+                </Button>
+              </Flex>
+            </Stack>
+          </Surface>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 };

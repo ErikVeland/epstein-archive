@@ -1,12 +1,45 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import Icon, { type IconName } from '../common/Icon';
 import { Link } from 'react-router-dom';
+import {
+  Folder,
+  User,
+  FileText,
+  Navigation,
+  Building,
+  Mail,
+  MessageSquare,
+  DollarSign,
+  Scale,
+  Image,
+  File,
+  Search,
+  ExternalLink,
+  Eye,
+  AlertCircle,
+  FolderOpen,
+  Flag,
+  Loader2,
+  Clock,
+} from 'lucide-react';
 import type {
   InvestigationCaseEvidenceItemDto as EvidenceItem,
   InvestigationEvidenceByTypeResponseDto as EvidenceByType,
 } from '@shared/dto/investigations';
 import { useCaseFolder } from '../../domains/investigations';
+
+// UI Library
 import styles from './InvestigationCaseFolder.module.css';
+import {
+  Surface,
+  Button,
+  Flex,
+  Box,
+  Stack,
+  LqText,
+  Grid,
+  Badge,
+  cn,
+} from '../../design-system/lib';
 
 interface InvestigationCaseFolderProps {
   investigationId: number | string;
@@ -18,23 +51,40 @@ interface InvestigationCaseFolderProps {
   onReloadCaseFolder?: () => Promise<EvidenceByType | null> | void;
 }
 
-const typeConfig: Record<string, { icon: string; label: string; toneClass: string }> = {
-  entity: { icon: 'User', label: 'Entities', toneClass: styles.toneCyan },
-  document: { icon: 'FileText', label: 'Documents', toneClass: styles.toneBlue },
-  flight_log: { icon: 'Navigation', label: 'Flights', toneClass: styles.tonePurple },
-  property_record: { icon: 'Building', label: 'Properties', toneClass: styles.toneEmerald },
-  email: { icon: 'Mail', label: 'Emails', toneClass: styles.toneAmber },
-  testimony: { icon: 'MessageSquare', label: 'Testimonies', toneClass: styles.tonePink },
-  financial: { icon: 'DollarSign', label: 'Financial', toneClass: styles.toneGreen },
-  legal: { icon: 'Scale', label: 'Legal', toneClass: styles.toneRed },
-  photo: { icon: 'Image', label: 'Photos', toneClass: styles.toneIndigo },
-  other: { icon: 'File', label: 'Other', toneClass: styles.toneSlate },
+const typeConfig: Record<
+  string,
+  {
+    icon: any;
+    label: string;
+    tone:
+      | 'cyan'
+      | 'blue'
+      | 'purple'
+      | 'emerald'
+      | 'amber'
+      | 'pink'
+      | 'green'
+      | 'red'
+      | 'indigo'
+      | 'slate';
+  }
+> = {
+  entity: { icon: User, label: 'Entities', tone: 'cyan' },
+  document: { icon: FileText, label: 'Documents', tone: 'blue' },
+  flight_log: { icon: Navigation, label: 'Flights', tone: 'purple' },
+  property_record: { icon: Building, label: 'Properties', tone: 'emerald' },
+  email: { icon: Mail, label: 'Emails', tone: 'amber' },
+  testimony: { icon: MessageSquare, label: 'Testimonies', tone: 'pink' },
+  financial: { icon: DollarSign, label: 'Financial', tone: 'green' },
+  legal: { icon: Scale, label: 'Legal', tone: 'red' },
+  photo: { icon: Image, label: 'Photos', tone: 'indigo' },
+  other: { icon: File, label: 'Other', tone: 'slate' },
 };
 
-const relevanceColors: Record<string, string> = {
-  high: styles.relevanceHigh,
-  medium: styles.relevanceMedium,
-  low: styles.relevanceLow,
+const relevanceVariants: Record<string, any> = {
+  high: 'error',
+  medium: 'warning',
+  low: 'accent',
 };
 
 const readString = (value: unknown): string | null =>
@@ -61,6 +111,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
   const evidence = caseFolderData || domainCaseFolder.caseFolder;
   const loading = caseFolderLoading ?? domainCaseFolder.loading;
   const error = caseFolderError ?? domainCaseFolder.error;
+
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [relevanceFilter, setRelevanceFilter] = useState<string | null>(null);
@@ -68,14 +119,10 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
   const evidenceButtonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
 
   useEffect(() => {
-    // Listen for new items
     const handleItemAdded = () => {
       setTimeout(() => {
-        if (onReloadCaseFolder) {
-          void onReloadCaseFolder();
-        } else {
-          void domainCaseFolder.reload();
-        }
+        if (onReloadCaseFolder) void onReloadCaseFolder();
+        else void domainCaseFolder.reload();
       }, 500);
     };
     window.addEventListener('investigation-item-added', handleItemAdded);
@@ -84,9 +131,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
 
   const filteredEvidence = useMemo(() => {
     if (!evidence) return [];
-
     let items = selectedType ? evidence.byType[selectedType] || [] : evidence.all;
-
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       items = items.filter(
@@ -96,25 +141,22 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
           e.notes?.toLowerCase().includes(term),
       );
     }
-
     if (relevanceFilter) {
       items = items.filter((e) => e.relevance === relevanceFilter);
     }
-
     return items;
   }, [evidence, selectedType, searchTerm, relevanceFilter]);
 
-  const shouldVirtualize = filteredEvidence.length > 100;
-  const rowHeight = 148;
-  const viewportHeight = 720;
-  const visibleCount = Math.ceil(viewportHeight / rowHeight) + 10;
-  const startIndex = shouldVirtualize ? Math.max(0, Math.floor(listScrollTop / rowHeight) - 5) : 0;
+  // Virtualization constants
+  const rowHeight = 160;
+  const viewportHeight = 800;
+  const visibleCount = Math.ceil(viewportHeight / rowHeight) + 5;
+  const shouldVirtualize = filteredEvidence.length > 50;
+  const startIndex = shouldVirtualize ? Math.max(0, Math.floor(listScrollTop / rowHeight) - 2) : 0;
   const endIndex = shouldVirtualize
     ? Math.min(filteredEvidence.length, startIndex + visibleCount)
     : filteredEvidence.length;
-  const visibleRows = shouldVirtualize
-    ? filteredEvidence.slice(startIndex, endIndex)
-    : filteredEvidence;
+  const visibleRows = filteredEvidence.slice(startIndex, endIndex);
 
   const getSourceLink = (item: EvidenceItem): string | null => {
     const [type, id] = (item.sourcePath || '').split(':');
@@ -127,15 +169,12 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
   };
 
   const getProvenance = (item: EvidenceItem) => {
-    let metadata: Record<string, unknown> = {};
+    let metadata: any = {};
     try {
-      metadata = item.metadataJson
-        ? (JSON.parse(item.metadataJson) as Record<string, unknown>)
-        : {};
-    } catch (_error) {
+      metadata = item.metadataJson ? JSON.parse(item.metadataJson) : {};
+    } catch {
       metadata = {};
     }
-    // Old pipeline records may have snake_case keys inside the JSON blob
     const ingestRunId =
       readString(item.ingestRunId) ||
       readString(metadata.ingestRunId) ||
@@ -151,28 +190,11 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
       readString(metadata.pipelineVersion) ||
       readString(metadata.pipeline_version) ||
       null;
-    const evidencePack =
-      (typeof item.evidencePack === 'object' && item.evidencePack !== null
-        ? (item.evidencePack as Record<string, unknown>)
-        : null) ||
-      (typeof metadata.evidencePack === 'object' && metadata.evidencePack !== null
-        ? (metadata.evidencePack as Record<string, unknown>)
-        : null) ||
-      (typeof metadata.evidence_pack === 'object' && metadata.evidence_pack !== null
-        ? (metadata.evidence_pack as Record<string, unknown>)
-        : null);
     const confidence = readConfidence(metadata.confidence_score ?? metadata.confidence ?? null);
     const wasAgentic = Boolean(
       item.wasAgentic ?? metadata.wasAgentic ?? metadata.was_agentic ?? false,
     );
-    return {
-      ingestRunId: ingestRunId ? String(ingestRunId) : null,
-      ladder: String(ladder),
-      pipelineVersion: pipelineVersion ? String(pipelineVersion) : null,
-      evidencePack: evidencePack ? String(evidencePack) : null,
-      confidence: confidence === null ? null : Number(confidence),
-      wasAgentic,
-    };
+    return { ingestRunId, ladder, pipelineVersion, confidence, wasAgentic };
   };
 
   const resolveEvidenceKey = (item: EvidenceItem): string =>
@@ -181,43 +203,19 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
   const isDeepLinkedItem = (item: EvidenceItem): boolean => {
     if (!deepLinkedEvidenceId) return false;
     const linked = String(deepLinkedEvidenceId);
-    return (
-      String(item.id) === linked ||
-      String(item.investigationEvidenceId || '') === linked ||
-      resolveEvidenceKey(item) === linked
-    );
+    return String(item.id) === linked || resolveEvidenceKey(item) === linked;
   };
-
-  const [prevDeepLinkedId, setPrevDeepLinkedId] = useState<string | null>(null);
-  if (deepLinkedEvidenceId && deepLinkedEvidenceId !== prevDeepLinkedId && evidence?.all?.length) {
-    setPrevDeepLinkedId(String(deepLinkedEvidenceId));
-    const linked = String(deepLinkedEvidenceId);
-    const match = evidence.all.find(
-      (item) =>
-        String(item.id) === linked ||
-        String(item.investigationEvidenceId || '') === linked ||
-        resolveEvidenceKey(item) === linked,
-    );
-    if (match) {
-      if (searchTerm) setSearchTerm('');
-      if (relevanceFilter) setRelevanceFilter(null);
-      if (selectedType !== match.type) setSelectedType(match.type || null);
-    }
-  }
 
   useEffect(() => {
     if (!deepLinkedEvidenceId || !evidence?.all?.length) return;
     const linked = String(deepLinkedEvidenceId);
     const match = evidence.all.find(
-      (item) =>
-        String(item.id) === linked ||
-        String(item.investigationEvidenceId || '') === linked ||
-        resolveEvidenceKey(item) === linked,
+      (i) => String(i.id) === linked || resolveEvidenceKey(i) === linked,
     );
     if (!match) return;
 
     window.requestAnimationFrame(() => {
-      const key = String(match.investigationEvidenceId || match.id);
+      const key = resolveEvidenceKey(match);
       const rowButton = evidenceButtonRefs.current.get(key);
       if (rowButton) {
         rowButton.scrollIntoView({ block: 'center', behavior: 'smooth' });
@@ -228,256 +226,305 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
 
   if (loading) {
     return (
-      <div className={styles.centerState}>
-        <div className={styles.spinner} />
-      </div>
+      <Flex justify="center" align="center" fullHeight p="xxxl">
+        <Loader2 className={styles.autoGen181} size={32} />
+      </Flex>
     );
   }
 
   if (error) {
     return (
-      <div className={styles.errorState}>
-        <Icon name="AlertCircle" size="lg" className={styles.errorIcon} />
-        <p>{error}</p>
-      </div>
+      <Surface variant="glass" p="xl">
+        <Flex align="center" gap="md" className={styles.autoGen182}>
+          <AlertCircle size={24} />
+          <LqText variant="small" weight="bold">
+            {error}
+          </LqText>
+        </Flex>
+      </Surface>
     );
   }
 
   if (!evidence || evidence.total === 0) {
     return (
-      <div className={styles.emptyState}>
-        <Icon name="FolderOpen" size="xl" className={styles.emptyIcon} />
-        <h3 className={styles.emptyTitle}>Case Folder is Empty</h3>
-        <p className={styles.emptyBody}>
-          Add evidence from Subjects, Documents, Flights, Properties, or Emails
-          <br />
-          using the "Add to Investigation" button.
-        </p>
-      </div>
+      <Surface variant="glass" p="xxl">
+        <Stack align="center" gap="lg" textAlign="center">
+          <FolderOpen size={48} className={styles.autoGen183} />
+          <Stack gap="xs">
+            <LqText variant="body" weight="bold">
+              Case Folder is Empty
+            </LqText>
+            <LqText variant="xs" color="muted">
+              Add evidence from Subjects, Documents, or Metadata archives.
+            </LqText>
+          </Stack>
+        </Stack>
+      </Surface>
     );
   }
 
   const types = Object.keys(evidence.byType);
 
   return (
-    <div className={styles.root}>
-      {/* Summary Stats */}
-      <div className={styles.summaryGrid}>
-        {/* All Evidence */}
-        <button
+    <Stack gap="xl" style={{ width: '100%' }}>
+      {/* Category Summary Grid */}
+      <Grid cols={{ sm: 2, md: 3, lg: 5 }} gap="md">
+        <Surface
+          variant={selectedType === null ? 'glass-highlight' : 'glass'}
+          p="md"
           onClick={() => setSelectedType(null)}
-          className={`${styles.summaryCard} ${
-            selectedType === null
-              ? `${styles.summaryCardAllActive} ${styles.summaryCardActive}`
-              : styles.surfaceButton
-          }`}
+          className={styles.autoGen184}
         >
-          <Icon
-            name="Folder"
-            size="md"
-            className={`${styles.summaryIcon} ${styles.summaryIconAll}`}
-          />
-          <div className={styles.summaryCount}>{evidence.total}</div>
-          <div className={styles.summaryLabel}>All Evidence</div>
-        </button>
+          <Stack gap="xs" align="center">
+            <Folder size={18} />
+            <LqText variant="body" weight="bold">
+              {evidence.total}
+            </LqText>
+            <LqText variant="xs" style={{ textTransform: 'uppercase' }} weight="bold">
+              All Items
+            </LqText>
+          </Stack>
+        </Surface>
 
-        {/* Type Cards */}
         {types.map((type) => {
           const config = typeConfig[type] || typeConfig.other;
           const count = evidence.counts[type] || 0;
+          const isActive = selectedType === type;
           return (
-            <button
+            <Surface
               key={type}
-              onClick={() => setSelectedType(type === selectedType ? null : type)}
-              className={`${styles.summaryCard} ${config.toneClass} ${
-                selectedType === type ? styles.summaryToneActive : styles.surfaceButton
-              }`}
+              variant={isActive ? 'glass-highlight' : 'glass'}
+              p="md"
+              onClick={() => setSelectedType(isActive ? null : type)}
+              className={cn(
+                'cursor-pointer transition-all active:scale-95 border-b-2',
+                isActive ? 'border-[var(--lq-accent)]' : 'border-transparent',
+              )}
             >
-              <Icon name={config.icon as IconName} size="md" className={styles.summaryIcon} />
-              <div className={styles.summaryCount}>{count}</div>
-              <div className={styles.summaryLabel}>{config.label}</div>
-            </button>
+              <Stack gap="xs" align="center">
+                <config.icon
+                  size={18}
+                  className={cn(isActive ? 'text-[var(--lq-accent)]' : 'text-[var(--lq-text-dim)]')}
+                />
+                <LqText variant="body" weight="bold">
+                  {count}
+                </LqText>
+                <LqText variant="xs" style={{ textTransform: 'uppercase' }} weight="bold">
+                  {config.label}
+                </LqText>
+              </Stack>
+            </Surface>
           );
         })}
-      </div>
+      </Grid>
 
-      {/* Filters */}
-      <div className={`${styles.filtersBar} ${styles.glassPanel}`}>
-        {/* Search */}
-        <div className={styles.searchWrap}>
-          <Icon name="Search" size="sm" className={styles.searchIcon} />
-          <input
-            type="text"
-            placeholder="Search evidence..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className={styles.searchInput}
-          />
-        </div>
+      {/* Modern Filter Strip */}
+      <Surface variant="glass" p="md">
+        <Flex gap="xl" wrap="wrap" align="center">
+          <Flex grow align="center" gap="sm" className={styles.autoGen185}>
+            <Search className={styles.autoGen186} size={16} />
+            <input
+              type="text"
+              placeholder="Search investigative records..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{
+                width: '100%',
+                background: 'var(--lq-surface-3)',
+                border: '1px solid var(--lq-surface-4)',
+                borderRadius: '0.375rem',
+                padding: '0.5rem 0.75rem 0.5rem 2.5rem',
+                fontSize: '0.875rem',
+                color: 'var(--lq-text-primary)',
+                outline: 'none',
+              }}
+            />
+          </Flex>
 
-        {/* Relevance Filter */}
-        <div className={styles.filterGroup}>
-          <span className={styles.filterLabel}>Relevance:</span>
-          {['high', 'medium', 'low'].map((rel) => (
-            <button
-              key={rel}
-              onClick={() => setRelevanceFilter(rel === relevanceFilter ? null : rel)}
-              className={`${styles.pillButton} ${
-                relevanceFilter === rel ? relevanceColors[rel] : styles.surfaceButton
-              }`}
+          <Flex align="center" gap="sm">
+            <LqText variant="xs" weight="bold" color="muted" style={{ textTransform: 'uppercase' }}>
+              Relevance:
+            </LqText>
+            {['high', 'medium', 'low'].map((rel) => (
+              <Button
+                key={rel}
+                variant={relevanceFilter === rel ? (relevanceVariants[rel] as any) : 'glass'}
+                onClick={() => setRelevanceFilter(relevanceFilter === rel ? null : rel)}
+              >
+                {rel.toUpperCase()}
+              </Button>
+            ))}
+          </Flex>
+
+          {(searchTerm || relevanceFilter || selectedType) && (
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setSearchTerm('');
+                setRelevanceFilter(null);
+                setSelectedType(null);
+              }}
             >
-              {rel.charAt(0).toUpperCase() + rel.slice(1)}
-            </button>
-          ))}
-        </div>
+              Clear Signals
+            </Button>
+          )}
+        </Flex>
+      </Surface>
 
-        {/* Clear Filters */}
-        {(searchTerm || relevanceFilter || selectedType) && (
-          <button
-            onClick={() => {
-              setSearchTerm('');
-              setRelevanceFilter(null);
-              setSelectedType(null);
-            }}
-            className={styles.clearButton}
+      {/* Evidence Stream */}
+      <Stack gap="md">
+        <Flex justify="between" align="center">
+          <LqText
+            variant="small"
+            weight="bold"
+            style={{ textTransform: 'uppercase' }}
+            color="muted"
           >
-            Clear Filters
-          </button>
-        )}
-      </div>
-
-      {/* Evidence List */}
-      <div className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <h3 className={styles.sectionTitle}>
-            {selectedType ? typeConfig[selectedType]?.label || selectedType : 'All Evidence'}
-            <span className={styles.sectionMeta}>({filteredEvidence.length} items)</span>
-          </h3>
-        </div>
+            {selectedType ? typeConfig[selectedType]?.label : 'Active Evidence Stream'}
+          </LqText>
+          <Badge variant="glass" label={`${filteredEvidence.length} SIGNALS`} />
+        </Flex>
 
         {filteredEvidence.length === 0 ? (
-          <div className={styles.emptyList}>
-            <p>No evidence matches your filters</p>
-          </div>
+          <Surface variant="glass" p="xl">
+            <LqText variant="xs" color="muted">
+              No evidence matches current intelligence filters.
+            </LqText>
+          </Surface>
         ) : (
-          <div
-            className={styles.list}
+          <Box
+            fullWidth
+            className={styles.autoGen187}
+            style={{ maxHeight: '800px' }}
             onScroll={(e) => setListScrollTop((e.currentTarget as HTMLDivElement).scrollTop)}
           >
             {shouldVirtualize && startIndex > 0 && (
               <div style={{ height: startIndex * rowHeight }} />
             )}
-            {visibleRows.map((item) => {
-              const config = typeConfig[item.type] || typeConfig.other;
-              const link = getSourceLink(item);
-              const provenance = getProvenance(item);
+            <Stack gap="sm">
+              {visibleRows.map((item) => {
+                const config = typeConfig[item.type] || typeConfig.other;
+                const link = getSourceLink(item);
+                const provenance = getProvenance(item);
+                const isLinked = isDeepLinkedItem(item);
 
-              return (
-                <div
-                  key={item.id}
-                  className={`${styles.rowCard} ${
-                    isDeepLinkedItem(item) ? styles.rowCardLinked : ''
-                  }`}
-                  data-evidence-row-id={resolveEvidenceKey(item)}
-                >
-                  <div className={styles.rowLayout}>
-                    {/* Type Icon */}
-                    <div className={`${styles.typeBadge} ${config.toneClass}`}>
-                      <Icon name={config.icon as IconName} size="md" className={config.toneClass} />
-                    </div>
+                return (
+                  <Surface
+                    key={item.id}
+                    variant={isLinked ? 'glass-highlight' : 'glass'}
+                    className={cn(
+                      'transition-all',
+                      isLinked && 'border-l-4 border-l-[var(--lq-accent)]',
+                    )}
+                  >
+                    <Flex p="lg" gap="lg" align="start">
+                      <Box p="sm" className={styles.autoGen188}>
+                        <config.icon size={20} className={styles.autoGen189} />
+                      </Box>
 
-                    {/* Content */}
-                    <div className={styles.rowContent}>
-                      <div className={styles.rowHeader}>
-                        <h4 className={styles.rowTitle}>{item.title}</h4>
-                        <span
-                          className={`${styles.relevancePill} ${relevanceColors[item.relevance] || styles.toneSlate}`}
-                        >
-                          {item.relevance}
-                        </span>
-                        {item.redFlagRating > 0 && (
-                          <span className={styles.redFlag}>
-                            <Icon name="Flag" size="xs" />
-                            {item.redFlagRating}
-                          </span>
+                      <Stack grow gap="xs">
+                        <Flex justify="between" align="start">
+                          <Stack gap="none">
+                            <LqText variant="body" weight="bold">
+                              {item.title}
+                            </LqText>
+                            <Flex gap="sm" align="center">
+                              <Badge
+                                variant={relevanceVariants[item.relevance]}
+                                label={item.relevance.toUpperCase()}
+                                size="sm"
+                              />
+                              {item.redFlagRating > 0 && (
+                                <Badge
+                                  variant="error"
+                                  icon={Flag}
+                                  label={`RFI ${item.redFlagRating}`}
+                                  size="sm"
+                                />
+                              )}
+                            </Flex>
+                          </Stack>
+                          {onEvidenceClick && (
+                            <Button
+                              variant="glass"
+                              onClick={(e) => onEvidenceClick(item, e.currentTarget as any)}
+                              className="focus:ring-2 focus:ring-[var(--lq-accent)]"
+                              ref={(el) => {
+                                const key = resolveEvidenceKey(item);
+                                if (el) evidenceButtonRefs.current.set(key, el as any);
+                                else evidenceButtonRefs.current.delete(key);
+                              }}
+                            >
+                              <Eye size={14} /> Analyze
+                            </Button>
+                          )}
+                        </Flex>
+
+                        {item.description && (
+                          <LqText variant="xs" color="muted">
+                            {item.description}
+                          </LqText>
                         )}
-                      </div>
-
-                      {item.description && <p className={styles.description}>{item.description}</p>}
-
-                      {item.notes && <p className={styles.notes}>Note: {item.notes}</p>}
-
-                      <div className={styles.metaRow}>
-                        <span>Added {new Date(item.addedAt).toLocaleDateString()}</span>
-                        <span>by {item.addedBy}</span>
-                        {provenance.ingestRunId && (
-                          <span className={styles.metaBadge}>run {provenance.ingestRunId}</span>
+                        {item.notes && (
+                          <Box p="xs" mt="xs" className={styles.autoGen190}>
+                            <LqText
+                              variant="xs"
+                              color="accent"
+                              weight="bold"
+                              style={{ textTransform: 'uppercase' }}
+                            >
+                              Forensic Note:
+                            </LqText>
+                            <LqText variant="xs">{item.notes}</LqText>
+                          </Box>
                         )}
-                        <span className={styles.metaBadge}>ladder {provenance.ladder}</span>
-                        <span className={styles.metaBadge}>
-                          confidence{' '}
-                          {provenance.confidence === null ? 'N/A' : provenance.confidence}
-                        </span>
-                        {provenance.wasAgentic && (
-                          <span className={styles.agenticBadge}>agentic-derived</span>
-                        )}
-                        {link && (
-                          <Link
-                            to={link}
-                            className={styles.sourceLink}
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <Icon name="ExternalLink" size="xs" />
-                            View Source
-                          </Link>
-                        )}
-                      </div>
-                      <div className={styles.sourceReason}>
-                        Why in case: linked by investigator relevance "{item.relevance}" from{' '}
-                        {item.sourcePath || 'unknown source'}
-                        {provenance.pipelineVersion
-                          ? ` • pipeline ${provenance.pipelineVersion}`
-                          : ''}
-                        {provenance.evidencePack ? ' • evidence pack available' : ''}
-                      </div>
-                    </div>
 
-                    {/* Actions */}
-                    <div className={styles.rowActions}>
-                      {onEvidenceClick && (
-                        <button
-                          onClick={(e) => onEvidenceClick(item, e.currentTarget)}
-                          ref={(el) => {
-                            const key = String(item.investigationEvidenceId || item.id);
-                            if (el) evidenceButtonRefs.current.set(key, el);
-                            else evidenceButtonRefs.current.delete(key);
-                          }}
-                          className={styles.iconButton}
-                          title="View Details"
-                        >
-                          <Icon name="Eye" size="sm" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                  {onEvidenceClick && (
-                    <button
-                      onClick={(e) => onEvidenceClick(item, e.currentTarget)}
-                      className={styles.openButton}
-                    >
-                      Open evidence
-                    </button>
-                  )}
-                </div>
-              );
-            })}
+                        <Flex wrap="wrap" gap="sm" mt="sm" align="center">
+                          <Flex align="center" gap="xs">
+                            <Clock size={12} className={styles.autoGen191} />
+                            <LqText variant="xs" color="muted">
+                              {new Date(item.addedAt).toLocaleDateString()}
+                            </LqText>
+                          </Flex>
+                          <Flex align="center" gap="xs">
+                            <User size={12} className={styles.autoGen192} />
+                            <LqText variant="xs" color="muted">
+                              Added by {item.addedBy}
+                            </LqText>
+                          </Flex>
+                          {provenance.ingestRunId && (
+                            <Badge
+                              variant="glass"
+                              label={`RUN ${provenance.ingestRunId}`}
+                              size="sm"
+                            />
+                          )}
+                          <Badge variant="glass" label={`LADDER ${provenance.ladder}`} size="sm" />
+                          {provenance.wasAgentic && (
+                            <Badge variant="accent" label="AGENTIC DERIVED" size="sm" />
+                          )}
+
+                          {link && (
+                            <Link to={link} className="ml-auto">
+                              <Button variant="ghost" size="sm">
+                                <ExternalLink size={12} /> View Source
+                              </Button>
+                            </Link>
+                          )}
+                        </Flex>
+                      </Stack>
+                    </Flex>
+                  </Surface>
+                );
+              })}
+            </Stack>
             {shouldVirtualize && endIndex < filteredEvidence.length && (
               <div style={{ height: (filteredEvidence.length - endIndex) * rowHeight }} />
             )}
-          </div>
+          </Box>
         )}
-      </div>
-    </div>
+      </Stack>
+    </Stack>
   );
 };
 

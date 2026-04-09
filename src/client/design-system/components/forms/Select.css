@@ -1,0 +1,76 @@
+.ds-selectRoot {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.ds-selectLabelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.ds-selectLabel {
+  margin: 0;
+  color: var(--text-strong);
+  font-size: var(--font-size-sm);
+  font-weight: var(--weight-medium);
+}
+
+.ds-selectHint {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.ds-selectControl {
+  position: relative;
+}
+
+.ds-selectField {
+  width: 100%;
+  min-height: var(--control-height);
+  appearance: none;
+  padding: 0 calc(var(--control-padding-inline) + var(--space-5)) 0 var(--control-padding-inline);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 82%, transparent);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(148, 163, 184, 0.012)),
+    color-mix(in srgb, var(--glass-bg) 94%, transparent);
+  box-shadow: var(--glass-shadow-soft);
+  transition:
+    border-color var(--duration-fast) var(--easing-swift),
+    box-shadow var(--duration-fast) var(--easing-swift);
+}
+
+.ds-selectField:focus-visible {
+  outline: none;
+  border-color: color-mix(in srgb, var(--accent) 54%, transparent);
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--accent) 18%, transparent),
+    var(--glass-shadow-soft);
+}
+
+.ds-selectField[data-invalid='true'] {
+  border-color: color-mix(in srgb, var(--accent-danger) 54%, transparent);
+}
+
+.ds-selectIcon {
+  position: absolute;
+  top: 50%;
+  right: var(--space-3);
+  color: var(--text-dim);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.ds-selectMessage {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+}
+
+.ds-selectMessage[data-tone='critical'] {
+  color: var(--accent-danger);
+}

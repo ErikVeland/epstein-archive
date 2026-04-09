@@ -81,7 +81,7 @@ export const EntityConfidenceDisplay: React.FC<EntityConfidenceDisplayProps> = (
         className={`${styles.badge} ${getColor(confidence.confidenceLevel)} ${sizeClasses[size]}`}
         title={`Data confidence: ${confidence.confidenceScore}% based on ${confidence.totalMentions} mentions`}
       >
-        <Icon name={getIcon(confidence.confidenceLevel)} size="xs" />
+        <Icon name={getIcon(confidence.confidenceLevel)} />
         <span>{confidence.confidenceLevel}</span>
         <span className={styles.expandedScore}>({confidence.confidenceScore}%)</span>
       </button>
@@ -123,8 +123,8 @@ export const EntityConfidenceDisplay: React.FC<EntityConfidenceDisplayProps> = (
 
         {/* Confidence explanation */}
         <div className={styles.footerNote}>
-          <Icon name="Info" size="xs" /> Confidence is weighted by source type: legal documents
-          (100%), testimony (90%), flight logs (85%), financial (80%), emails (70%), photos (50%).
+          <Icon name="Info" /> Confidence is weighted by source type: legal documents (100%),
+          testimony (90%), flight logs (85%), financial (80%), emails (70%), photos (50%).
         </div>
       </div>
     </div>

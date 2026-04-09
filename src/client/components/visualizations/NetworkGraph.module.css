@@ -9,6 +9,13 @@
   user-select: none;
 }
 
+.softGlassOutline {
+  border: 1px solid color-mix(in srgb, var(--glass-border) 80%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 8px 20px rgba(2, 6, 23, 0.24);
+}
+
 .panMode {
   cursor: grab;
 }
@@ -57,7 +64,7 @@
 
 .controlButtonActive .controlIcon,
 .filterButtonActive .controlIcon {
-  color: var(--text-primary);
+  color: var(--text-strong);
 }
 
 .filterPing,
@@ -84,13 +91,13 @@
   padding: 0.25rem 0.5rem;
   border: 1px solid color-mix(in srgb, var(--accent) 50%, transparent);
   border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--glass-bg-strong) 95%, transparent);
+  background: var(--glass-bg-strong);
   color: var(--text-primary);
-  font-size: 0.625rem;
+  font-size: var(--font-size-xs);
   white-space: nowrap;
   pointer-events: none;
-  backdrop-filter: blur(16px);
-  box-shadow: 0 0 15px rgba(6, 182, 212, 0.3);
+  backdrop-filter: blur(var(--glass-blur));
+  box-shadow: var(--glass-shadow-strong);
 }
 
 .tooltipLabel {
@@ -390,7 +397,9 @@
 }
 
 .link:hover {
-  stroke: var(--color-cyan-400);
+  stroke: var(--nav-flights);
+  stroke-opacity: 0.8;
+  stroke-width: 2.5;
 }
 
 .nodeGroup {

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import './EmailClient.css';
+import styles from './EmailClient.module.css';
 import { FixedSizeList as List, ListChildComponentProps } from 'react-window';
 import { AutoSizer } from 'react-virtualized-auto-sizer';
 import {
@@ -24,6 +24,7 @@ import { ViewerShell } from '../viewer/ViewerShell';
 import { riskToneFromRating } from '../../utils/riskSemantics';
 import { useFilters } from '../../contexts/useFilters';
 import { useEmailWorkspaceData } from '../../hooks/useEmailWorkspaceData';
+import { EmptyCorpus } from '../common/EmptyCorpus';
 
 type EmailDensity = 'comfortable' | 'compact';
 
@@ -36,11 +37,10 @@ const tabOptions: Array<{ id: 'all' | 'primary' | 'updates' | 'promotions'; labe
 
 const ladderTone = (ladder: string | null): string => {
   const value = (ladder || '').toLowerCase();
-  if (value.includes('direct')) return 'text-emerald-300 border-emerald-500/60 bg-emerald-600/15';
-  if (value.includes('infer')) return 'text-amber-300 border-amber-500/60 bg-amber-600/15';
-  if (value.includes('agentic'))
-    return 'text-[var(--accent)] border-[var(--accent)]/60 bg-[var(--accent)]/15';
-  return 'text-[var(--text-secondary)] border-[var(--glass-border)] bg-[var(--glass-bg-strong)]';
+  if (value.includes('direct')) return styles.ladderDirect;
+  if (value.includes('infer')) return styles.ladderInfer;
+  if (value.includes('agentic')) return styles.ladderAgentic;
+  return styles.ladderDefault;
 };
 
 const riskTone = (risk: number | null): string => {
@@ -92,33 +92,25 @@ const ThreadRow = React.memo(
         onClick={() => data.onOpen(thread.threadId)}
         data-thread-id={thread.threadId}
         data-testid="email-thread-row"
-        className={`w-full text-left email-row ${compact ? 'py-2' : 'py-3'} px-5 focus:outline-none ${
-          selected ? 'active' : ''
+        className={`${styles.emailRow} ${selected ? styles.active : ''} ${
+          compact ? styles.threadRowCompact : styles.threadRowComfortable
         }`}
       >
-        <div className="flex items-start justify-between gap-3 relative z-10">
-          <div className="min-w-0 flex-1">
-            <div className="text-[13px] font-bold text-[var(--text-primary)] truncate tracking-tight">
-              {thread.subject}
-            </div>
-            <div className="text-[11px] text-[var(--text-muted)] truncate mt-0.5 font-medium">
+        <div className={styles.rowShell}>
+          <div className={styles.rowMain}>
+            <div className={styles.rowSubject}>{thread.subject}</div>
+            <div className={styles.rowParticipants}>
               {thread.participants.slice(0, 3).join(' · ') || 'Unknown participants'}
             </div>
             {!compact && thread.snippet && (
-              <div className="text-[11px] text-[var(--text-secondary)] truncate mt-1 leading-normal">
-                {thread.snippet}
-              </div>
+              <div className={styles.rowSnippet}>{thread.snippet}</div>
             )}
           </div>
-          <div className="text-right shrink-0">
-            <div className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
-              {formatTime(thread.lastMessageAt)}
-            </div>
-            <div className="mt-1.5 flex items-center justify-end gap-1.5">
-              {thread.hasAttachments && <Paperclip className="w-3 h-3 text-[var(--accent)]" />}
-              <span
-                className={`px-1 rounded-[var(--radius-sm)] border border-[var(--glass-border)] text-[var(--text-primary)] bg-[var(--glass-bg-strong)] text-[9px] font-black ${riskTone(thread.risk)}`}
-              >
+          <div className={styles.rowAside}>
+            <div className={styles.rowTime}>{formatTime(thread.lastMessageAt)}</div>
+            <div className={styles.rowMetaRight}>
+              {thread.hasAttachments && <Paperclip className={styles.paperclipIconSmall} />}
+              <span className={`${styles.riskBadge} ${riskTone(thread.risk)}`}>
                 R{thread.risk ?? '0'}
               </span>
             </div>
@@ -147,35 +139,32 @@ const MailboxRow = React.memo(
       <button
         style={style}
         onClick={() => data.onSelect(mailbox.mailboxId)}
-        className={`w-full text-left email-row py-3 px-4 focus:outline-none ${active ? 'active' : ''} ${isVip ? 'vip-mailbox' : ''}`}
+        className={`${styles.emailRow} ${styles.mailboxRow} ${active ? styles.active : ''} ${
+          isVip ? styles.vipMailbox : ''
+        }`}
       >
-        <div className="flex items-center justify-between gap-3 relative z-10">
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <div className="text-[13px] font-bold text-[var(--text-primary)] truncate tracking-tight">
-                {mailbox.displayName}
-              </div>
+        <div className={styles.mailboxRowInner}>
+          <div className={styles.rowMain}>
+            <div className={styles.mailboxTitleRow}>
+              <div className={styles.rowSubject}>{mailbox.displayName}</div>
               {isVip && (
-                <span
-                  className="flex-shrink-0 flex items-center justify-center w-3.5 h-3.5 rounded-full bg-amber-500/20 text-amber-500"
-                  title="VIP"
-                >
-                  <Sparkles className="w-2.5 h-2.5" />
+                <span className={styles.mailboxVipBadge} title="VIP">
+                  <Sparkles className={styles.mailboxVipIcon} />
                 </span>
               )}
               {mailbox.isVerified && !isVip && (
-                <span className="flex items-center shrink-0" title="Verified">
-                  <ShieldCheck className="w-3 h-3 text-emerald-500" />
+                <span className={styles.verifiedBadge} title="Verified">
+                  <ShieldCheck className={styles.verifiedIcon} />
                 </span>
               )}
             </div>
-            <div className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-wider mt-0.5">
+            <div className={styles.mailboxCount}>
               {mailbox.totalThreads.toLocaleString()} THREADS
             </div>
           </div>
-          <div className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-tighter shrink-0 text-right">
+          <div className={styles.rowAside}>
             <div>{formatTime(mailbox.lastActivityAt)}</div>
-            {isVip && <div className="text-[9px] text-amber-500/80 mt-1">PRIORITY VIP</div>}
+            {isVip && <div className={styles.mailboxPriority}>PRIORITY VIP</div>}
           </div>
         </div>
       </button>
@@ -430,76 +419,76 @@ export const EmailClient: React.FC = () => {
   ].filter(Boolean).length;
 
   return (
-    <div className="email-workspace flex flex-col">
-      <div className="md:hidden px-4 py-3 border-b border-[var(--glass-border)] bg-[var(--app-bg)]/50 backdrop-blur-sm space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="text-sm font-semibold text-[var(--text-primary)]">Mail</div>
-          <div className="text-xs text-[var(--text-muted)]">
-            {threadsTotal.toLocaleString()} threads
+    <div className={styles.emailWorkspace}>
+      <div className={styles.mobileOnly}>
+        <div className={styles.mobileHeader}>
+          <div className={styles.mobileHeaderTop}>
+            <div className={styles.mobileTitle}>Mail</div>
+            <div className={styles.mobileCount}>{threadsTotal.toLocaleString()} threads</div>
           </div>
-        </div>
-        <div className="inline-flex w-full rounded-full border border-[var(--glass-border)] overflow-hidden bg-[var(--glass-bg-strong)]">
-          <button
-            onClick={() => setMobilePane('mailboxes')}
-            className={`flex-1 h-9 text-xs font-semibold ${
-              mobilePane === 'mailboxes'
-                ? 'bg-[var(--accent)]/20 text-[var(--accent)]'
-                : 'text-[var(--text-secondary)]'
-            }`}
-          >
-            Mailboxes
-          </button>
-          <button
-            onClick={() => setMobilePane('threads')}
-            className={`flex-1 h-9 text-xs font-semibold ${
-              mobilePane === 'threads'
-                ? 'bg-[var(--accent)]/20 text-[var(--accent)]'
-                : 'text-[var(--text-secondary)]'
-            }`}
-          >
-            Threads
-          </button>
-          <button
-            onClick={() => selectedThreadId && setMobilePane('messages')}
-            disabled={!selectedThreadId}
-            className={`flex-1 h-9 text-xs font-semibold ${
-              mobilePane === 'messages'
-                ? 'bg-[var(--accent)]/20 text-[var(--accent)]'
-                : 'text-[var(--text-secondary)]'
-            } disabled:opacity-50`}
-          >
-            Message
-          </button>
-        </div>
-        {mobilePane === 'threads' && (
-          <div className="relative">
-            <Search className="w-4 h-4 text-[var(--text-muted)] absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              value={searchInput}
-              onChange={(event) => setSearchInput(event.target.value)}
-              placeholder="Search threads"
-              className="w-full h-10 rounded-full bg-[var(--glass-bg)] border border-[var(--glass-border)] pl-9 pr-3 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)]"
-            />
+          <div className={styles.mobileTabs}>
+            <button
+              onClick={() => setMobilePane('mailboxes')}
+              className={`${styles.mobileTabButton} ${
+                mobilePane === 'mailboxes' ? styles.mobileTabActive : ''
+              }`}
+            >
+              Mailboxes
+            </button>
+            <button
+              onClick={() => setMobilePane('threads')}
+              className={`${styles.mobileTabButton} ${
+                mobilePane === 'threads' ? styles.mobileTabActive : ''
+              }`}
+            >
+              Threads
+            </button>
+            <button
+              onClick={() => selectedThreadId && setMobilePane('messages')}
+              disabled={!selectedThreadId}
+              className={`${styles.mobileTabButton} ${
+                mobilePane === 'messages' ? styles.mobileTabActive : ''
+              } ${!selectedThreadId ? styles.mobileTabDisabled : ''}`}
+            >
+              Message
+            </button>
           </div>
-        )}
+          {mobilePane === 'threads' && (
+            <div className={styles.searchWrap}>
+              <Search className={styles.searchIconInline} />
+              <input
+                value={searchInput}
+                onChange={(event) => setSearchInput(event.target.value)}
+                placeholder="Search threads"
+                className={styles.searchInputPill}
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       <div
         ref={desktopLayoutRef}
-        className="flex-1 min-h-0 flex md:grid overflow-hidden relative"
+        className={styles.desktopLayout}
         style={{
-          gridTemplateColumns: `${mailboxWidth}px 10px ${threadWidth}px 10px minmax(420px, 1fr)`,
+          display: window.innerWidth < 768 ? 'block' : 'grid',
+          gridTemplateColumns:
+            window.innerWidth < 768
+              ? '1fr'
+              : `${mailboxWidth}px 10px ${threadWidth}px 10px minmax(420px, 1fr)`,
         }}
       >
         <aside
-          className={`mailbox-pane ${mobilePane === 'mailboxes' ? 'flex absolute inset-0 z-50 w-full' : 'hidden md:flex'} md:col-[1]`}
+          className={`${styles.mailboxPane} ${
+            mobilePane === 'mailboxes' ? styles.mobilePaneVisible : styles.mobilePaneHidden
+          } md:col-[1]`}
         >
-          <div className="p-4 border-b border-[var(--glass-border)] space-y-4">
-            <div className="flex items-center justify-between text-xs text-[var(--text-muted)] uppercase tracking-wide">
+          <div className={styles.mailboxHeader}>
+            <div className={styles.mailboxHeaderTop}>
               <span>Entity mailboxes</span>
               <button
                 onClick={() => setShowSuppressedJunk((prev) => !prev)}
-                className="text-[11px] text-[var(--accent)] hover:text-[var(--text-primary)]"
+                className={styles.mailboxToggle}
                 title={
                   showSuppressedJunk
                     ? 'Hide junk-tagged entities from the mailbox list'
@@ -509,58 +498,56 @@ export const EmailClient: React.FC = () => {
                 {showSuppressedJunk ? 'Hide junk' : 'Show junk'}
               </button>
             </div>
-            <div className="-mt-2 text-[11px] text-[var(--text-muted)]">
+            <div className={styles.mailboxSubnote}>
               All Inboxes + top-mentioned entities from email evidence
             </div>
-            <div className="relative">
-              <Search className="w-4 h-4 text-[var(--text-muted)] absolute left-3 top-1/2 -translate-y-1/2" />
+            <div className={styles.searchWrap}>
+              <Search className={styles.searchIconInline} />
               <input
                 data-testid="email-search-input"
                 value={searchInput}
                 onChange={(event) => setSearchInput(event.target.value)}
                 placeholder="Search threads"
-                className="w-full h-10 rounded-full bg-[var(--glass-bg)] border border-[var(--glass-border)] pl-9 pr-3 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)]"
+                className={styles.searchInputPill}
               />
             </div>
-            <div className="flex items-center gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className={styles.tabPills}>
               {tabsWithData.map((option) => (
                 <button
                   key={option.id}
                   onClick={() => setActiveTab(option.id as Parameters<typeof setActiveTab>[0])}
-                  className={`h-8 px-3 rounded-full text-xs border whitespace-nowrap ${
-                    activeTab === option.id
-                      ? 'text-[var(--accent)] border-[var(--accent)] bg-[var(--accent)]/10'
-                      : 'text-[var(--text-secondary)] border-[var(--glass-border)] bg-[var(--glass-bg)]'
+                  className={`${styles.tabPill} ${
+                    activeTab === option.id ? styles.tabPillActive : styles.tabPillInactive
                   }`}
                 >
                   {option.label}
                 </button>
               ))}
             </div>
-            <div className="flex items-center justify-between gap-2">
-              <div className="inline-flex items-center rounded-full border border-[var(--glass-border)] overflow-hidden">
+            <div className={styles.densityRow}>
+              <div className={styles.densityToggle}>
                 <button
                   onClick={() => setDensity('comfortable')}
-                  className={`h-7 px-2.5 text-[11px] ${
+                  className={`${styles.densityButton} ${
                     density === 'comfortable'
-                      ? 'bg-[var(--accent)]/20 text-[var(--accent)]'
-                      : 'text-[var(--text-secondary)] bg-[var(--glass-bg-strong)]'
+                      ? styles.densityButtonActive
+                      : styles.densityButtonInactive
                   }`}
                 >
                   Comfortable
                 </button>
                 <button
                   onClick={() => setDensity('compact')}
-                  className={`h-7 px-2.5 text-[11px] ${
+                  className={`${styles.densityButton} ${
                     density === 'compact'
-                      ? 'bg-[var(--accent)]/20 text-[var(--accent)]'
-                      : 'text-[var(--text-secondary)] bg-[var(--glass-bg-strong)]'
+                      ? styles.densityButtonActive
+                      : styles.densityButtonInactive
                   }`}
                 >
                   Compact
                 </button>
               </div>
-              <div className="text-[11px] text-[var(--text-muted)]">
+              <div className={styles.filterCountText}>
                 {activeQuickFilterCount > 0
                   ? `${activeQuickFilterCount} active filter${activeQuickFilterCount > 1 ? 's' : ''}`
                   : 'No active filters'}
@@ -568,13 +555,19 @@ export const EmailClient: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex-1 min-h-0">
+          <div className={styles.rowMain}>
             {mailboxesLoading ? (
-              <div className="h-full flex items-start justify-start p-4 text-[var(--text-muted)] text-sm text-left">
-                <Loader2 className="w-4 h-4 animate-spin mr-2" /> Loading mailboxes
+              <div className={styles.stateLoading}>
+                <Loader2 className={styles.loaderInline} /> Loading mailboxes
               </div>
             ) : mailboxesError ? (
-              <div className="p-4 text-sm text-rose-300">{mailboxesError}</div>
+              <div className={styles.stateError}>{mailboxesError}</div>
+            ) : mailboxes.length === 0 ? (
+              <EmptyCorpus
+                icon="Inbox"
+                title="No Mailboxes"
+                body="Email archives are imported from .mbox or .pst files during ingestion. No mailbox data has been loaded into the corpus yet — run the email ingestion pipeline to populate this section."
+              />
             ) : (
               <AutoSizer
                 renderProp={({ height, width }) =>
@@ -603,7 +596,7 @@ export const EmailClient: React.FC = () => {
         </aside>
 
         <div
-          className="pane-resizer hidden md:flex md:col-[2]"
+          className={`${styles.paneResizer} ${styles.desktopOnly}`}
           onMouseDown={startResize('mailbox')}
           role="separator"
           aria-orientation="vertical"
@@ -611,143 +604,123 @@ export const EmailClient: React.FC = () => {
         />
 
         <section
-          className={`thread-pane ${mobilePane === 'threads' ? 'flex w-full md:w-auto' : 'hidden md:flex'} md:col-[3]`}
+          className={`${styles.threadPane} ${
+            mobilePane === 'threads' ? styles.threadPaneVisible : styles.threadPaneHidden
+          }`}
         >
-          <div className="pane-header">
-            <div className="flex items-center gap-2">
+          <div className={styles.paneHeader}>
+            <div className={styles.threadHeaderLeft}>
               <button
                 onClick={() => setMobilePane('mailboxes')}
-                className="md:hidden p-1 -ml-1 text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                className={`${styles.backButtonMobile} ${styles.mobileOnly}`}
               >
-                <ArrowLeft className="w-4 h-4" />
+                <ArrowLeft className={styles.backIcon} />
               </button>
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--text-muted)]">
-                Conversations
-              </span>
+              <span className={styles.threadLabel}>Conversations</span>
             </div>
-            <div className="text-[10px] text-[var(--text-muted)] font-bold uppercase tracking-wider">
-              {threadsTotal.toLocaleString()} total
-            </div>
+            <div className={styles.threadCount}>{threadsTotal.toLocaleString()} total</div>
           </div>
-          <div className="pane-subheader">
-            <div className="flex items-center gap-3 flex-wrap">
+          <div className={styles.paneSubheader}>
+            <div className={styles.threadMetaRow}>
               <span>
                 {threads.length.toLocaleString()} of {threadsTotal.toLocaleString()} threads
               </span>
               <span
-                className="flex items-center gap-1"
+                className={styles.metadataOnly}
                 title="Thread lists are metadata-only; message bodies are lazy-loaded."
               >
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-300" />
+                <ShieldCheck className={styles.metadataOnlyIcon} />
                 Metadata-only list
               </span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className={styles.headerActions}>
               <button
                 onClick={() => setShowFilterPanel((prev) => !prev)}
-                className={`h-8 px-3 rounded-[var(--radius-full)] border text-[11px] inline-flex items-center gap-1.5 transition-colors ${
-                  showFilterPanel
-                    ? 'border-[var(--accent)] text-[var(--text-primary)] bg-[var(--accent)]/10'
-                    : 'border-[var(--glass-border)] text-[var(--text-secondary)] bg-[var(--glass-bg)] hover:border-[var(--glass-border-highlight)] hover:text-[var(--text-primary)]'
+                className={`${styles.filterToggleButton} ${
+                  showFilterPanel ? styles.filterToggleActive : styles.filterToggleInactive
                 }`}
                 title="Show or hide conversation filters"
               >
-                <SlidersHorizontal className="w-3.5 h-3.5" />
+                <SlidersHorizontal className={styles.slidersIcon} />
                 Filters
                 {activeQuickFilterCount > 0 && (
-                  <span className="h-5 min-w-5 px-1 rounded-full bg-[var(--accent)]/20 text-[var(--accent)] text-[10px] font-bold inline-flex items-center justify-center">
-                    {activeQuickFilterCount}
-                  </span>
+                  <span className={styles.filterCountBadge}>{activeQuickFilterCount}</span>
                 )}
                 <ChevronDown
-                  className={`w-3.5 h-3.5 transition-transform ${showFilterPanel ? 'rotate-180' : ''}`}
+                  className={`${styles.chevronSmallIcon} ${showFilterPanel ? styles.rotate180 : ''}`}
                 />
               </button>
               <button
                 onClick={clearQuickFilters}
-                className="h-8 px-3 rounded-full border border-[var(--glass-border)] text-[11px] text-[var(--text-secondary)] bg-[var(--glass-bg)] inline-flex items-center gap-1 disabled:opacity-50 hover:text-[var(--text-primary)]"
+                className={styles.clearButton}
                 disabled={activeQuickFilterCount === 0}
               >
-                <X className="w-3 h-3" />
+                <X className={styles.xIcon} />
                 Clear
               </button>
             </div>
           </div>
           {showFilterPanel && (
-            <div className="px-3 py-3 border-b border-[var(--glass-border)] bg-[var(--glass-bg)]">
-              <div className="rounded-[var(--radius-lg)] border border-[var(--glass-border)] bg-[var(--glass-bg-strong)] p-3 md:p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
-                <div className="text-[11px] font-medium text-[var(--text-muted)] mb-3">
+            <div className={styles.filterPanel}>
+              <div className={styles.filterGrid}>
+                <div className={styles.filterLead}>
                   Refine by sender, recipient, date, attachments, and risk.
                 </div>
-                <div className="grid grid-cols-1 xl:grid-cols-[1.15fr_1.15fr_0.95fr_0.95fr] gap-2 md:gap-3">
-                  <label className="space-y-1">
-                    <span className="block text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)] px-1">
-                      From
-                    </span>
+                <div className={styles.filterFormGrid}>
+                  <label className={styles.filterField}>
+                    <span className={styles.filterLabel}>From</span>
                     <input
                       value={fromFilter}
                       onChange={(event) => setFromFilter(event.target.value)}
                       placeholder="sender@domain.com or name"
-                      className="h-9 w-full rounded-[var(--radius-xl)] bg-[var(--app-bg)] border border-[var(--glass-border)] px-3 text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)]"
+                      className={styles.filterTextInput}
                     />
                   </label>
-                  <label className="space-y-1">
-                    <span className="block text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)] px-1">
-                      To
-                    </span>
+                  <label className={styles.filterField}>
+                    <span className={styles.filterLabel}>To</span>
                     <input
                       value={toFilter}
                       onChange={(event) => setToFilter(event.target.value)}
                       placeholder="recipient@domain.com or name"
-                      className="h-9 w-full rounded-[var(--radius-xl)] bg-[var(--app-bg)] border border-[var(--glass-border)] px-3 text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)]"
+                      className={styles.filterTextInput}
                     />
                   </label>
-                  <label className="space-y-1">
-                    <span className="block text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)] px-1">
-                      Date From
-                    </span>
+                  <label className={styles.filterField}>
+                    <span className={styles.filterLabel}>Date From</span>
                     <input
                       value={dateFrom}
                       onChange={(event) => setDateFrom(event.target.value)}
                       type="date"
-                      className="h-9 w-full rounded-[var(--radius-xl)] bg-[var(--app-bg)] border border-[var(--glass-border)] px-3 text-xs text-[var(--text-primary)]"
+                      className={styles.filterDateInput}
                     />
                   </label>
-                  <label className="space-y-1">
-                    <span className="block text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)] px-1">
-                      Date To
-                    </span>
+                  <label className={styles.filterField}>
+                    <span className={styles.filterLabel}>Date To</span>
                     <input
                       value={dateTo}
                       onChange={(event) => setDateTo(event.target.value)}
                       type="date"
-                      className="h-9 w-full rounded-[var(--radius-xl)] bg-[var(--app-bg)] border border-[var(--glass-border)] px-3 text-xs text-[var(--text-primary)]"
+                      className={styles.filterDateInput}
                     />
                   </label>
                 </div>
 
-                <div className="mt-3 pt-3 border-t border-[var(--glass-border)] flex flex-wrap items-center gap-2 md:gap-3">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)] px-1">
-                    Quick Toggles
-                  </span>
+                <div className={styles.filterQuickRow}>
+                  <span className={styles.quickLabel}>Quick Toggles</span>
                   <button
                     onClick={() => setHasAttachmentsOnly((prev) => !prev)}
-                    className={`h-8 px-3 rounded-full border text-[11px] font-medium ${
-                      hasAttachmentsOnly
-                        ? 'border-[var(--accent)] text-[var(--text-primary)] bg-[var(--accent)]/10'
-                        : 'border-[var(--glass-border)] text-[var(--text-secondary)] bg-[var(--glass-bg)] hover:text-[var(--text-primary)]'
+                    className={`${styles.toggleChip} ${
+                      hasAttachmentsOnly ? styles.toggleChipActive : styles.toggleChipInactive
                     }`}
                   >
                     Has attachments
                   </button>
-                  <div className="inline-flex items-center gap-2 h-8 px-2 rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg)]">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)] pl-1">
-                      Min Risk
-                    </span>
+                  <div className={styles.riskPicker}>
+                    <span className={styles.riskLabel}>Min Risk</span>
                     <select
                       value={minRisk}
                       onChange={(event) => setMinRisk(Number(event.target.value))}
-                      className="h-6 rounded-[var(--radius-lg)] border border-[var(--glass-border)] bg-[var(--glass-bg-strong)] px-2 text-[11px] text-[var(--text-primary)] min-w-[110px]"
+                      className={styles.riskSelect}
                       aria-label="Minimum risk"
                     >
                       <option value={0}>Any</option>
@@ -762,34 +735,41 @@ export const EmailClient: React.FC = () => {
             </div>
           )}
 
-          <div className="flex-1 min-h-0">
+          <div className={styles.threadPaneBody}>
             {threadsLoading ? (
-              <div className="h-full flex items-start justify-start p-4 text-[var(--text-muted)] text-sm text-left">
-                <Loader2 className="w-4 h-4 animate-spin mr-2" /> Loading conversations
+              <div className={styles.stateLoading}>
+                <Loader2 className={styles.loaderInline} /> Loading conversations
               </div>
             ) : threadsError ? (
-              <div className="p-4 text-sm text-rose-300">{threadsError}</div>
+              <div className={styles.stateError}>{threadsError}</div>
             ) : threads.length === 0 ? (
-              <div className="p-6 text-sm text-[var(--text-secondary)] space-y-3">
-                <div className="font-semibold text-[var(--text-primary)]">
-                  No conversations found
+              searchInput || activeTab !== 'all' ? (
+                <div className={styles.stateEmpty}>
+                  <div className={styles.emptyTitle}>No conversations match these filters</div>
+                  <p>
+                    {searchInput
+                      ? `No threads contain "${searchInput}" in this mailbox.`
+                      : `The "${activeTab}" tab returned no threads for this mailbox.`}
+                  </p>
+                  <div className={styles.emptyActions}>
+                    <button
+                      onClick={() => setActiveTab('all')}
+                      className={styles.emptyActionButton}
+                    >
+                      Use All tab
+                    </button>
+                    <button onClick={() => setSearchInput('')} className={styles.emptyActionButton}>
+                      Clear search
+                    </button>
+                  </div>
                 </div>
-                <p>Why: this mailbox + filter combination returned no matching threads.</p>
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    onClick={() => setActiveTab('all')}
-                    className="h-8 px-3 rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                  >
-                    Use All tab
-                  </button>
-                  <button
-                    onClick={() => setSearchInput('')}
-                    className="h-8 px-3 rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                  >
-                    Clear search
-                  </button>
-                </div>
-              </div>
+              ) : (
+                <EmptyCorpus
+                  icon="Mail"
+                  title="No Emails in This Mailbox"
+                  body="This mailbox is empty. Email archives are imported from .mbox or .pst source files during ingestion. If you expected messages here, ensure the ingestion pipeline has been run for this mailbox."
+                />
+              )
             ) : (
               <AutoSizer
                 renderProp={({ height, width }) =>
@@ -814,28 +794,26 @@ export const EmailClient: React.FC = () => {
             )}
           </div>
 
-          <div className="px-3 py-2 border-t border-[var(--glass-border)]">
+          <div className={styles.footerBar}>
             {canLoadMore ? (
               <button
                 onClick={() => {
                   if (!threadsNextCursor || loadingMoreThreads) return;
                   void loadThreads(threadsNextCursor, true);
                 }}
-                className="w-full h-9 rounded-full border border-[var(--glass-border)] text-sm text-[var(--text-secondary)] bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] hover:text-[var(--text-primary)] disabled:opacity-60 inline-flex items-center justify-start px-4 text-left"
+                className={styles.loadMoreButton}
                 disabled={loadingMoreThreads}
               >
                 {loadingMoreThreads ? 'Loading...' : 'Load more'}
               </button>
             ) : (
-              <div className="text-[11px] text-[var(--text-muted)] text-left w-full pl-1">
-                End of results
-              </div>
+              <div className={styles.endText}>End of results</div>
             )}
           </div>
         </section>
 
         <div
-          className="pane-resizer hidden md:flex md:col-[4]"
+          className={`${styles.paneResizer} ${styles.desktopOnly}`}
           onMouseDown={startResize('thread')}
           role="separator"
           aria-orientation="vertical"
@@ -843,30 +821,30 @@ export const EmailClient: React.FC = () => {
         />
 
         <section
-          className={`content-pane overflow-hidden flex flex-col ${mobilePane === 'messages' ? 'flex w-full md:w-auto' : 'hidden md:flex'} md:col-[5]`}
+          className={`${styles.contentPane} ${styles.contentPaneShell} ${
+            mobilePane === 'messages' ? styles.threadPaneVisible : styles.threadPaneHidden
+          }`}
         >
           {selectedThreadId ? (
             threadLoading && !selectedThread ? (
-              <div className="h-full flex items-start justify-start p-4 text-[var(--text-muted)] text-sm text-left">
-                <Loader2 className="w-4 h-4 animate-spin mr-2" /> Opening thread
+              <div className={styles.stateLoading}>
+                <Loader2 className={styles.loaderInline} /> Opening thread
               </div>
             ) : threadError ? (
-              <div className="p-4 text-sm text-rose-300">{threadError}</div>
+              <div className={styles.stateError}>{threadError}</div>
             ) : selectedThread ? (
               <ViewerShell
                 header={
-                  <div className="min-w-0">
-                    <div className="text-lg font-semibold text-[var(--text-primary)] truncate">
-                      {selectedThread.subject}
-                    </div>
-                    <div className="text-xs text-[var(--text-muted)] mt-1">
+                  <div className={styles.viewerHeaderMeta}>
+                    <div className={styles.subjectLine}>{selectedThread.subject}</div>
+                    <div className={styles.viewerHeaderSub}>
                       {selectedThread.messages.length.toLocaleString()} messages · mailbox{' '}
                       {selectedMailbox?.displayName || 'All'}
                     </div>
                   </div>
                 }
                 actions={
-                  <div data-testid="email-thread-actions" className="flex items-center gap-2">
+                  <div data-testid="email-thread-actions" className={styles.viewerActions}>
                     <button
                       onClick={() => {
                         if (window.innerWidth < 768) {
@@ -876,9 +854,9 @@ export const EmailClient: React.FC = () => {
                           updateUrlState({ threadId: null, messageId: null });
                         }
                       }}
-                      className="h-9 px-3 rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg)] text-sm text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)] hover:text-[var(--text-primary)] transition-colors"
+                      className={styles.backToThreadsButton}
                     >
-                      <ArrowLeft className="w-4 h-4" />
+                      <ArrowLeft className={styles.backIcon} />
                     </button>
                     <AddToInvestigationButton
                       item={{
@@ -894,14 +872,14 @@ export const EmailClient: React.FC = () => {
                         },
                       }}
                       variant="quick"
-                      className="h-9 border-[var(--glass-border)] bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                      className={styles.backToThreadsButton}
                     />
                   </div>
                 }
-                headerClassName="px-4 py-3 border-b border-[var(--glass-border)] bg-[var(--app-bg)]/50 backdrop-blur-sm"
-                bodyClassName="bg-[var(--app-bg)]"
+                headerClassName={styles.viewerShellHeader}
+                bodyClassName={styles.viewerShellBody}
               >
-                <div className="message-thread">
+                <div className={styles.messageThread}>
                   {selectedThread.messages.map((message) => {
                     const expanded = Boolean(expandedMessages[message.messageId]);
                     const body = bodyState[message.messageId];
@@ -910,78 +888,80 @@ export const EmailClient: React.FC = () => {
                     return (
                       <article
                         key={message.messageId}
-                        className={`message-card ${expanded ? 'expanded' : ''}`}
+                        className={`${styles.messageCard} ${expanded ? styles.expanded : ''}`}
                         data-message-id={message.messageId}
                       >
                         <button
                           onClick={() => handleToggleMessage(message.messageId, !expanded)}
-                          className="w-full text-left"
+                          className={styles.messageToggle}
                         >
-                          <div className="message-header">
-                            <div className="w-10 h-10 rounded-full bg-[var(--glass-bg-strong)] flex items-center justify-center shrink-0 border border-[var(--glass-border)]">
-                              <User className="w-5 h-5 text-[var(--text-muted)]" />
+                          <div className={styles.messageHeader}>
+                            <div className={styles.messageAvatar}>
+                              <User className={styles.messageAvatarIcon} />
                             </div>
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-center justify-between gap-3">
-                                <div className="text-sm font-bold text-[var(--text-primary)] truncate">
+                            <div className={styles.messageMetaMain}>
+                              <div className={styles.messageFromRow}>
+                                <div className={styles.messageFrom}>
                                   {message.from || 'Unknown Sender'}
                                 </div>
-                                <div className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-widest">
-                                  {formatTime(message.date)}
-                                </div>
+                                <div className={styles.messageTime}>{formatTime(message.date)}</div>
                               </div>
-                              <div className="text-[11px] text-[var(--text-muted)] truncate mt-0.5">
+                              <div className={styles.messageTo}>
                                 To: {message.to.join(' · ') || 'Unknown recipient'}
                               </div>
                             </div>
                             <ChevronRight
-                              className={`w-4 h-4 text-[var(--text-muted)] transition-transform duration-300 ${expanded ? 'rotate-90' : ''}`}
+                              className={`${styles.chevronIcon} ${expanded ? styles.rotate90 : ''}`}
                             />
                           </div>
                         </button>
 
                         {expanded && (
-                          <div className="message-body space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                            <div className="flex flex-wrap items-center gap-3">
+                          <div className={`${styles.messageBody} ${styles.messageBodyExpanded}`}>
+                            <div className={styles.messageTagRow}>
                               <div
-                                className={`px-2.5 py-1 rounded-[var(--radius-sm)] border text-[9px] font-black uppercase tracking-wider ${ladderTone(message.ladder)}`}
+                                className={`${styles.messageTagPill} ${ladderTone(message.ladder)}`}
                               >
                                 LADDER: {message.ladder || 'N/A'}
                               </div>
-                              <div className="px-2.5 py-1 rounded-[var(--radius-sm)] border border-[var(--glass-border)] bg-[var(--glass-bg)] text-[9px] font-black text-[var(--text-muted)] uppercase tracking-wider">
+                              <div
+                                className={`${styles.messageTagPill} ${styles.messagePillMuted}`}
+                              >
                                 CONFIDENCE:{' '}
                                 {typeof message.confidence === 'number'
                                   ? (message.confidence * 100).toFixed(0)
                                   : '0'}
                                 %
                               </div>
-                              <div className="px-2.5 py-1 rounded-[var(--radius-sm)] border border-[var(--glass-border)] bg-[var(--glass-bg)] text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-wider">
+                              <div
+                                className={`${styles.messageTagPill} ${styles.messagePillSecondary}`}
+                              >
                                 ID: {message.ingestRunId || 'RAW_INGEST'}
                               </div>
                               {message.wasAgentic && (
-                                <div className="px-2.5 py-1 rounded-md border border-fuchsia-500/30 bg-fuchsia-500/10 text-[9px] font-black text-fuchsia-400 uppercase tracking-wider flex items-center gap-1.5">
-                                  <Sparkles className="w-3 h-3" />
+                                <div className={styles.agenticBadge}>
+                                  <Sparkles className={styles.agenticIcon} />
                                   Agentic Highlighting
                                 </div>
                               )}
                             </div>
 
-                            <div className="flex flex-wrap items-center gap-2">
+                            <div className={styles.messageActionRow}>
                               <button
                                 onClick={() => void copyText(citation)}
-                                className="h-8 px-4 rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg)] text-[10px] font-bold text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)] hover:text-[var(--text-primary)] transition-colors uppercase tracking-wide"
+                                className={styles.messageActionButton}
                               >
                                 Copy Citation
                               </button>
                               <button
                                 onClick={() => handleToggleRaw(message.messageId)}
-                                className="h-8 px-4 rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg)] text-[10px] font-bold text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)] hover:text-[var(--text-primary)] transition-colors uppercase tracking-wide"
+                                className={styles.messageActionButton}
                               >
                                 {body?.showRaw ? 'Show Cleaned' : 'View MIME'}
                               </button>
                               <button
                                 onClick={() => handleToggleQuoted(message.messageId)}
-                                className="h-8 px-4 rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg)] text-[10px] font-bold text-[var(--text-secondary)] hover:bg-[var(--glass-bg-highlight)] hover:text-[var(--text-primary)] transition-colors uppercase tracking-wide"
+                                className={styles.messageActionButton}
                               >
                                 {body?.showQuoted ? 'Hide History' : 'Show History'}
                               </button>
@@ -1000,46 +980,41 @@ export const EmailClient: React.FC = () => {
                                   },
                                 }}
                                 variant="quick"
-                                className="h-8 border-[var(--glass-border)] bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                                className={styles.messageActionButton}
                               />
                             </div>
 
-                            <div
-                              data-testid="email-message-body"
-                              className="mime-content glass-surface p-6 rounded-[var(--radius-lg)] border-[var(--glass-border)]"
-                            >
+                            <div data-testid="email-message-body" className={styles.mimeContent}>
                               {body?.loading ? (
-                                <div className="py-12 flex flex-col items-start justify-start text-[var(--text-muted)] gap-3 text-left">
-                                  <Loader2 className="w-6 h-6 animate-spin text-[var(--accent)]" />
-                                  <span className="text-[10px] font-black uppercase tracking-widest">
+                                <div className={styles.bodyLoading}>
+                                  <Loader2 className={styles.bodyLoaderIcon} />
+                                  <span className={styles.bodyLoadingLabel}>
                                     Decompressing MIME Stream
                                   </span>
                                 </div>
                               ) : body?.error ? (
-                                <div className="p-4 text-xs text-rose-400 font-bold bg-rose-500/10 rounded-[var(--radius-md)] border border-rose-500/20">
-                                  {body.error}
-                                </div>
+                                <div className={styles.bodyError}>{body.error}</div>
                               ) : body?.showRaw ? (
-                                <pre className="text-[11px] font-mono text-[var(--text-secondary)] whitespace-pre-wrap break-words">
+                                <pre className={styles.rawPre}>
                                   {body.raw || 'No raw content available.'}
                                 </pre>
                               ) : (
-                                <div className="whitespace-pre-wrap selection:bg-[var(--accent)]/30 text-[var(--text-primary)]">
+                                <div className={styles.cleanBody}>
                                   {body?.data?.cleanedText || 'No readable body available.'}
                                 </div>
                               )}
                             </div>
 
                             {(message.linkedEntities || []).length > 0 && (
-                              <div className="flex flex-wrap gap-2 px-1">
+                              <div className={styles.entityPills}>
                                 {(message.linkedEntities || []).map((entity) => (
                                   <button
                                     key={`${message.messageId}-${entity.entityId}`}
                                     onClick={() => setSelectedEntityId(String(entity.entityId))}
-                                    className="inline-flex items-center gap-1.5 h-8 px-3 rounded-full border border-[var(--accent)]/30 bg-[var(--accent)]/10 text-[10px] font-bold text-[var(--accent)] hover:bg-[var(--accent)]/20 transition-colors"
+                                    className={styles.entityChip}
                                     title={`Open entity ${entity.name}`}
                                   >
-                                    <User className="w-3 h-3" />
+                                    <User className={styles.entityChipIcon} />
                                     {entity.name}
                                   </button>
                                 ))}
@@ -1047,25 +1022,25 @@ export const EmailClient: React.FC = () => {
                             )}
 
                             {(message.attachmentsMeta || []).length > 0 && (
-                              <div className="space-y-2 px-1">
-                                <div className="text-[10px] font-black font-mono text-[var(--text-muted)] uppercase tracking-widest flex items-center gap-2">
-                                  <Paperclip className="w-3 h-3" />
+                              <div className={styles.attachmentSection}>
+                                <div className={styles.attachmentTitle}>
+                                  <Paperclip className={styles.entityChipIcon} />
                                   Forensic Attachments ({(message.attachmentsMeta || []).length})
                                 </div>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                <div className={styles.attachmentGrid}>
                                   {(message.attachmentsMeta || []).map((attachment, index) => {
                                     const linkedDocumentId = attachment.linkedDocumentId;
                                     const canOpen = Boolean(linkedDocumentId);
                                     return (
                                       <div
                                         key={`${message.messageId}-attachment-${index}`}
-                                        className="flex items-center justify-between gap-3 p-2 rounded-[var(--radius-lg)] border border-[var(--glass-border)] bg-[var(--glass-bg)] hover:bg-[var(--glass-bg-highlight)] transition-all cursor-default group"
+                                        className={styles.attachmentCard}
                                       >
-                                        <div className="min-w-0 flex-1">
-                                          <div className="text-[11px] font-bold text-[var(--text-primary)] truncate">
+                                        <div className={styles.attachmentInfo}>
+                                          <div className={styles.attachmentName}>
                                             {attachment.filename || `Attachment ${index + 1}`}
                                           </div>
-                                          <div className="text-[9px] text-[var(--text-muted)] font-mono mt-0.5">
+                                          <div className={styles.attachmentMeta}>
                                             {attachment.mimeType || 'UNKNOWN_MIME'} ·{' '}
                                             {attachment.size
                                               ? `${(attachment.size / 1024).toFixed(1)}KB`
@@ -1077,13 +1052,15 @@ export const EmailClient: React.FC = () => {
                                             onClick={() =>
                                               navigate(`/documents/${linkedDocumentId}`)
                                             }
-                                            className="h-7 px-3 rounded-[var(--radius-md)] border border-[var(--accent)]/30 bg-[var(--accent)]/10 text-[10px] font-black text-[var(--accent)] hover:bg-[var(--accent)]/20 transition-colors uppercase tracking-widest"
+                                            className={styles.attachmentOpenButton}
                                           >
                                             Open
                                           </button>
                                         ) : (
-                                          <span className="text-[9px] text-[var(--text-muted)] font-bold uppercase tracking-tighter px-2">
-                                            Not Ingested
+                                          <span className={styles.attachmentMissingWrap}>
+                                            <span className={styles.attachmentMissing}>
+                                              Not Ingested
+                                            </span>
                                           </span>
                                         )}
                                       </div>
@@ -1100,18 +1077,14 @@ export const EmailClient: React.FC = () => {
                 </div>
               </ViewerShell>
             ) : (
-              <div className="h-full flex items-start justify-start p-4 text-[var(--text-muted)] text-sm text-left">
-                Thread not found.
-              </div>
+              <div className={styles.stateNotFound}>Thread not found.</div>
             )
           ) : (
-            <div className="h-full flex items-start justify-start px-6 py-6 border-l border-[var(--glass-border)]">
-              <div className="text-left text-[var(--text-muted)] max-w-md">
-                <Mail className="w-14 h-14 mb-4 opacity-30 text-[var(--text-muted)]" />
-                <div className="text-lg text-[var(--text-primary)] mb-2">
-                  Investigation-grade Email Workspace
-                </div>
-                <p className="text-sm text-[var(--text-secondary)]">
+            <div className={styles.placeholderState}>
+              <div className={styles.placeholderInner}>
+                <Mail className={styles.placeholderIcon} />
+                <div className={styles.placeholderTitle}>Investigation-grade Email Workspace</div>
+                <p className={styles.placeholderBody}>
                   Select a thread to load message headers first, then lazy-load bodies. Use linked
                   entities and Add to Investigation for evidence chaining.
                 </p>
