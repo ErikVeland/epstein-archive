@@ -38,4 +38,26 @@ test.describe('SSR OG meta tags', () => {
     expect(html).toContain('property="og:title"');
     expect(html).toContain('property="og:description"');
   });
+
+  test('entity page returns entity name in og:title', async ({ request }) => {
+    // Get a valid entity ID first
+    const listRes = await request.get(`${BASE}/api/entities?page=1&limit=1`);
+    const list = await listRes.json();
+
+    if (!list.data || list.data.length === 0) {
+      test.skip(true, 'No entity records in DB');
+      return;
+    }
+
+    const id = list.data[0].id as string;
+    const res = await request.get(`${BASE}/entity/${id}`);
+    expect(res.ok()).toBeTruthy();
+    const html = await res.text();
+    expect(html).toMatch(/<title>.+\| Epstein Files Archive<\/title>/);
+    // og:title must be present as a proper meta attribute
+    expect(html).toContain('property="og:title"');
+    expect(html).toContain('property="og:description"');
+    // Description should reference the archive
+    expect(html).toContain('archive');
+  });
 });

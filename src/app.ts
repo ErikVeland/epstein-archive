@@ -843,6 +843,9 @@ export class App {
       if (await this.tryServeEvidenceShareMeta(req, res)) {
         return;
       }
+      if (await this.tryServeEntityShareMeta(req, res)) {
+        return;
+      }
       res.setHeader('Cache-Control', 'no-store, max-age=0, must-revalidate');
       res.setHeader('Pragma', 'no-cache');
       res.setHeader('Expires', '0');
@@ -1075,6 +1078,50 @@ export class App {
         { err: error },
         'Failed to render evidence OG metadata, falling back to SPA shell',
       );
+      return false;
+    }
+  }
+
+  private async tryServeEntityShareMeta(req: Request, res: Response): Promise<boolean> {
+    try {
+      if (!req.path.startsWith('/entity/')) return false;
+      const rawId = req.path.replace('/entity/', '').split('/')[0].trim();
+      if (!rawId) return false;
+      const numericId = Number(rawId);
+      if (Number.isNaN(numericId) || numericId <= 0) return false;
+
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      const canonical = `${baseUrl}${req.originalUrl}`;
+
+      let title = `Entity ${numericId}`;
+      let description =
+        'Browse entities, mention context, and supporting references across the Epstein files archive.';
+      const image = `${baseUrl}/epstein-files.jpg`;
+      const imageAlt = 'Epstein Files Archive cover image';
+
+      const entity = await entitiesRepository.getEntityById(numericId);
+      if (entity) {
+        if (entity.name && entity.name !== 'Unknown') {
+          title = entity.name;
+        }
+        const role =
+          entity.primaryRole && entity.primaryRole !== 'Unknown' ? entity.primaryRole : null;
+        const mentions = typeof entity.mentions === 'number' ? entity.mentions : 0;
+        description = role
+          ? `${role} — ${mentions} mention${mentions === 1 ? '' : 's'} in the Epstein Files archive.`
+          : `${mentions} mention${mentions === 1 ? '' : 's'} in the Epstein Files archive.`;
+      }
+
+      let html = await this.loadIndexTemplate();
+      html = this.injectOgTags(html, { title, description, image, imageAlt, canonical });
+
+      res.setHeader('Cache-Control', 'no-store, max-age=0, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      res.status(200).type('html').send(html);
+      return true;
+    } catch (error) {
+      logger.warn({ err: error }, 'Failed to render entity OG metadata, falling back to SPA shell');
       return false;
     }
   }
