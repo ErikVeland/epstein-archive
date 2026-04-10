@@ -68,7 +68,10 @@ export interface EntityPhoto {
   filePath?: string;
   thumbnailPath?: string;
   dateTaken?: string;
-  metadata?: Record<string, unknown>;
+  metadata?: {
+    isSensitive?: boolean;
+    [key: string]: unknown;
+  };
 }
 
 export interface EvidenceDocument {

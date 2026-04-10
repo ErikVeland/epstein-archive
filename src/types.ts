@@ -17,6 +17,10 @@ export interface Photo {
   thumbnail_path?: string;
   file_path?: string;
   path?: string;
+  metadata?: {
+    isSensitive?: boolean;
+    [key: string]: unknown;
+  };
 }
 
 export interface Person {

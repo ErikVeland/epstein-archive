@@ -176,3 +176,19 @@ export const normalizeEntityMediaItem = (
     sourceType: item.sourceType || item.type || 'Media',
   };
 };
+
+/**
+ * Sorts media items naturally by title (e.g., Part 1, Part 2, Part 10).
+ */
+export function naturalSortMedia<T extends { title?: string; fileName?: string }>(items: T[]): T[] {
+  const collator = new Intl.Collator(undefined, {
+    numeric: true,
+    sensitivity: 'base',
+  });
+
+  return [...items].sort((a, b) => {
+    const titleA = a.title || a.fileName || '';
+    const titleB = b.title || b.fileName || '';
+    return collator.compare(titleA, titleB);
+  });
+}

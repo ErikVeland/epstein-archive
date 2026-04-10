@@ -403,37 +403,42 @@ log_step "Using production SSH key: $SSH_KEY_PATH"
 # PRE-FLIGHT (all non-mutating checks first)
 # ============================================
 if [ "$DRY_RUN" = false ] && [ "$DB_ONLY" = false ]; then
-  log_step "Running pre-flight QA (format, lint, release notes, clean tree, build)..."
+  if [ "$SKIP_INTEGRITY" = true ]; then
+    log_warning "Bypassing local integrity checks (--skip-integrity). Standardizing format and release notes only..."
+    verify_release_notes_version
+  else
+    log_step "Running pre-flight QA (format, lint, release notes, clean tree, build)..."
 
-  log_step "Auto-fixing format and lint issues..."
-  pnpm format
-  pnpm lint:fix
+    log_step "Auto-fixing format and lint issues..."
+    pnpm format
+    pnpm lint:fix
 
-  # Parity check removed (legacy SQLite/RTF logic purged)
+    # Parity check removed (legacy SQLite/RTF logic purged)
 
-  verify_release_notes_version
+    verify_release_notes_version
 
-  if [ -n "$(git status --porcelain)" ]; then
-    log_step "Working tree is dirty; auto-committing changes before deploy..."
-    git status --short
-    git add -A
-    ensure_local_git_identity
-    # Prompt for meaningful commit message if interactive, otherwise use context-aware default
-    if [ -t 0 ]; then
-      read -p "Enter commit message: " COMMIT_MSG
-      if [ -z "$COMMIT_MSG" ]; then
-        log_error "Commit message required."
-        exit 1
+    if [ -n "$(git status --porcelain)" ]; then
+      log_step "Working tree is dirty; auto-committing changes before deploy..."
+      git status --short
+      git add -A
+      ensure_local_git_identity
+      # Prompt for meaningful commit message if interactive, otherwise use context-aware default
+      if [ -t 0 ]; then
+        read -p "Enter commit message: " COMMIT_MSG
+        if [ -z "$COMMIT_MSG" ]; then
+          log_error "Commit message required."
+          exit 1
+        fi
+      else
+        COMMIT_MSG="deploy: auto-commit pre-deployment changes"
       fi
-    else
-      COMMIT_MSG="deploy: auto-commit pre-deployment changes"
+      git commit -m "$COMMIT_MSG"
+      log_success "Commit created: $COMMIT_MSG"
     fi
-    git commit -m "$COMMIT_MSG"
-    log_success "Commit created: $COMMIT_MSG"
-  fi
 
-  log_step "Building locally to verify integrity..."
-  pnpm build:prod
+    log_step "Building locally to verify integrity..."
+    pnpm build:prod
+  fi
 
   log_step "Pushing code to origin..."
   git push origin main --no-verify

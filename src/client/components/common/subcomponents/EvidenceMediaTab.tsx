@@ -8,7 +8,13 @@ import {
   Image as ImageIcon,
   ExternalLink,
 } from 'lucide-react';
-import { formatMetaDate, isVisualMediaItem, getRiskClass } from '../../../utils/evidenceUtils';
+import {
+  formatMetaDate,
+  isVisualMediaItem,
+  getRiskClass,
+  naturalSortMedia,
+} from '../../../utils/evidenceUtils';
+import { cn } from '../../../utils/cn';
 import { EntityPhoto } from '../EvidenceModal';
 import s from './EvidenceMediaTab.module.css';
 
@@ -31,7 +37,10 @@ export const EvidenceMediaTab: React.FC<EvidenceMediaTabProps> = ({
   brokenMediaIds,
   setBrokenMediaIds,
 }) => {
-  const displayItems = mediaItems.length > 0 ? mediaItems : entity?.photos || [];
+  const displayItems = React.useMemo(() => {
+    const items = mediaItems.length > 0 ? mediaItems : entity?.photos || [];
+    return naturalSortMedia(items);
+  }, [mediaItems, entity?.photos]);
 
   return (
     <div className={s.container} data-testid="entity-modal-tab-media">
@@ -60,6 +69,17 @@ export const EvidenceMediaTab: React.FC<EvidenceMediaTabProps> = ({
             return (
               <article key={i} className={s.card}>
                 <div className={s.mediaWrapper}>
+                  {/* Background Blur Layer (Liquid Glass aesthetic) */}
+                  {photo.metadata?.isSensitive && (
+                    <div className={s.blurLayer}>
+                      <img
+                        src={photo.url || photo.thumbnailUrl || photo.fullUrl}
+                        alt=""
+                        className={s.blurImage}
+                      />
+                    </div>
+                  )}
+
                   {brokenMediaIds[id] || !isVisualMediaItem(photo) ? (
                     <div className={s.mediaPlaceholder}>
                       <div className={s.placeholderContent}>
@@ -68,22 +88,39 @@ export const EvidenceMediaTab: React.FC<EvidenceMediaTabProps> = ({
                       </div>
                     </div>
                   ) : (
-                    <img
-                      src={photo.url || photo.thumbnailUrl || photo.fullUrl}
-                      alt={title}
-                      className={s.image}
-                      onError={(event) => {
-                        const fallbackUrl =
-                          photo.fullUrl || photo.filePath || `/api/media/images/${id}`;
-                        const img = event.currentTarget;
-                        if (img.dataset.fallbackApplied !== '1') {
-                          img.dataset.fallbackApplied = '1';
-                          img.src = fallbackUrl;
-                          return;
-                        }
-                        setBrokenMediaIds((prev) => ({ ...prev, [id]: true }));
-                      }}
-                    />
+                    <div className={s.imageContainer}>
+                      <img
+                        src={photo.url || photo.thumbnailUrl || photo.fullUrl}
+                        alt={title}
+                        className={cn(s.image, photo.metadata?.isSensitive && s.imageBlurred)}
+                        onError={(event) => {
+                          const fallbackUrl =
+                            photo.fullUrl || photo.filePath || `/api/media/images/${id}/file`;
+                          const img = event.currentTarget;
+                          if (img.dataset.fallbackApplied !== '1') {
+                            img.dataset.fallbackApplied = '1';
+                            img.src = fallbackUrl;
+                            return;
+                          }
+                          setBrokenMediaIds((prev) => ({ ...prev, [id]: true }));
+                        }}
+                      />
+
+                      {/* Sensitive Content Overlay */}
+                      {photo.metadata?.isSensitive && (
+                        <div className={s.sensitiveOverlay}>
+                          <div className={s.sensitiveIndicator}>
+                            <div className={s.sensitiveIconBadge}>
+                              <ShieldAlert size={24} />
+                            </div>
+                            <div className={s.sensitiveTextGroup}>
+                              <span className={s.sensitiveTitle}>Sensitive Content</span>
+                              <span className={s.sensitiveAction}>Click to reveal</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
                 <div className={s.cardBody}>
@@ -128,7 +165,7 @@ export const EvidenceMediaTab: React.FC<EvidenceMediaTabProps> = ({
                     <button
                       onClick={() =>
                         window.open(
-                          photo.fullUrl || photo.url || `/api/media/images/${photo.id}`,
+                          photo.fullUrl || photo.url || `/api/media/images/${photo.id}/file`,
                           '_blank',
                         )
                       }

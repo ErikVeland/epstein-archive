@@ -1,5 +1,22 @@
 # Release Notes
 
+## v18.8.1 - 2026-04-10 - UI Hardening & Natural Sorting
+
+This patch release hardens the media browsing experience with human-readable sorting, improved scroll affordance, and global layout stability across the investigation suite.
+
+### Media Browser & UX
+
+- **Human-First Sorting**: Implemented natural sorting for media assets. Numbered series (e.g., "Sascha Barros Testimony Parts 1-6") now appear in their correct logical sequence rather than lexicographical order.
+- **Scroll Affordance**: Calibrated the media browser height to 680px (approximately 2.25 rows) to provide a clear visual cue that content continues below the fold.
+- **Blurred Thumbnail Aesthetic**: Upgraded sensitive media placeholders to a high-fidelity glassmorphic design, using 40px background blurs of the actual assets to maintain aesthetic continuity.
+- **VIEW Link Fix**: Corrected a regression where media "VIEW" buttons triggered raw JSON API responses; links now correctly resolve to high-resolution asset files.
+
+### Global Layout & Stability
+
+- **Box-Sizing Hardening**: Implemented a global `box-sizing: border-box` reset to prevent padding-induced layout overflows and ensure predictable component geometry.
+- **Close Button Alignment**: Resolved a visual regression where the "What's New" dialog close button overran the panel boundaries.
+- **Header Geometry**: Refined the Release Notes panel header and footer for perfect pixel alignment within the Liquid Glass design system.
+
 ## v18.8.0 - 2026-04-10 - Forensic Portraits & UI Hardening
 
 This release introduces the standardized Forensic Portrait system and completes the UI hardening of the investigation media browsers, ensuring a high-fidelity and stable evidence exploration experience.

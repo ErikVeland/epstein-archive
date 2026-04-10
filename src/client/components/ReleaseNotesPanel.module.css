@@ -30,8 +30,10 @@
   width: 100%;
   max-width: 28rem;
   height: 100%;
-  overflow: hidden;
+  overflow: hidden; /* Prevent child spillover */
   border-left: 1px solid var(--glass-border);
+  background: var(--glass-bg-strong);
+  position: relative;
 }
 
 @media (min-width: 768px) {
@@ -40,6 +42,7 @@
     height: auto;
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-lg);
+    box-shadow: var(--glass-shadow);
   }
 }
 
@@ -49,7 +52,8 @@
   z-index: 10;
   width: 100%;
   padding: var(--space-4);
-  background: color-mix(in srgb, var(--glass-bg-strong) 80%, transparent);
+  background: color-mix(in srgb, var(--glass-bg-strong) 95%, transparent);
+  backdrop-filter: blur(12px);
 }
 
 .header {
