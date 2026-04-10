@@ -71,6 +71,7 @@ interface HypothesisTestingFrameworkProps {
   initialHypothesis?: string;
   evidenceItems: EvidenceItem[];
   onHypothesesUpdate: (hypotheses: Hypothesis[]) => void;
+  mobileMode?: boolean;
 }
 
 const parseDate = (value: unknown): Date =>
@@ -93,6 +94,7 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
   initialHypothesis = '',
   evidenceItems,
   onHypothesesUpdate,
+  mobileMode,
 }) => {
   const [hypotheses, setHypotheses] = useState<Hypothesis[]>([]);
   const [activeHypothesis, setActiveHypothesis] = useState<Hypothesis | null>(null);
@@ -246,24 +248,26 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
   return (
     <Box style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       {/* Header */}
-      <Surface variant="glass" p="xl" className={styles.autoGen132}>
-        <Flex justify="between" align="center">
-          <Stack gap="none">
-            <Flex align="center" gap="md">
-              <Target size={24} className={styles.autoGen133} />
-              <LqText variant="h1" weight="bold">
-                Hypothesis Testing Workbench
+      {!mobileMode && (
+        <Surface variant="glass" p="xl" className={styles.autoGen132}>
+          <Flex justify="between" align="center">
+            <Stack gap="none">
+              <Flex align="center" gap="md">
+                <Target size={24} className={styles.autoGen133} />
+                <LqText variant="h1" weight="bold">
+                  Hypothesis Testing Workbench
+                </LqText>
+              </Flex>
+              <LqText variant="xs" color="muted" weight="bold" style={{ marginTop: 'xs' }}>
+                Systematic Theory Analysis • Analytical Confidence Scoring
               </LqText>
-            </Flex>
-            <LqText variant="xs" color="muted" weight="bold" style={{ marginTop: 'xs' }}>
-              Systematic Theory Analysis • Analytical Confidence Scoring
-            </LqText>
-          </Stack>
-          <Button variant="secondary" size="sm" onClick={() => setShowNewForm(true)}>
-            <Plus size={16} /> <span style={{ marginLeft: '0.5rem' }}>Initialize Theory</span>
-          </Button>
-        </Flex>
-      </Surface>
+            </Stack>
+            <Button variant="secondary" size="sm" onClick={() => setShowNewForm(true)}>
+              <Plus size={16} /> <span style={{ marginLeft: '0.5rem' }}>Initialize Theory</span>
+            </Button>
+          </Flex>
+        </Surface>
+      )}
 
       <Box p="xl">
         <Stack gap="xl">
