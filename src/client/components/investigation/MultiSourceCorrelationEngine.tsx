@@ -73,7 +73,13 @@ interface CorrelationRule {
   triggerCount: number;
 }
 
-export const MultiSourceCorrelationEngine = () => {
+interface MultiSourceCorrelationEngineProps {
+  mobileMode?: boolean;
+}
+
+export const MultiSourceCorrelationEngine = ({
+  mobileMode,
+}: MultiSourceCorrelationEngineProps = {}) => {
   const [dataSources, setDataSources] = useState<DataSource[]>([]);
   const [correlations, setCorrelations] = useState<CorrelationResult[]>([]);
   const [_correlationRules, setCorrelationRules] = useState<CorrelationRule[]>([]);
@@ -182,134 +188,136 @@ export const MultiSourceCorrelationEngine = () => {
     <Box className={styles.autoGen307} style={{ backgroundColor: 'var(--lq-surface-1)' }}>
       <Stack gap="xl" className={styles.autoGen308}>
         {/* Header HUD */}
-        <Surface variant="glass" p="xl" className={styles.autoGen309}>
-          <Flex justify="between" align="start">
-            <Stack gap="none">
-              <Flex align="center" gap="md">
-                <Layers size={24} className={styles.autoGen310} />
-                <LqText variant="h1" weight="bold">
-                  Multi-Source Correlation Engine
+        {!mobileMode && (
+          <Surface variant="glass" p="xl" className={styles.autoGen309}>
+            <Flex justify="between" align="start">
+              <Stack gap="none">
+                <Flex align="center" gap="md">
+                  <Layers size={24} className={styles.autoGen310} />
+                  <LqText variant="h1" weight="bold">
+                    Multi-Source Correlation Engine
+                  </LqText>
+                </Flex>
+                <LqText
+                  variant="xs"
+                  color="muted"
+                  weight="bold"
+                  style={{ textTransform: 'uppercase' }}
+                  mt="xs"
+                >
+                  Neural Cross-Reference • Forensic Pattern Derivation
                 </LqText>
+              </Stack>
+              <Flex gap="md">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={exportCorrelations}
+                  className={styles.autoGen311}
+                >
+                  <Download size={14} className="mr-2" /> Export Analysis
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={recomputeCorrelations}
+                  disabled={isAnalyzing}
+                >
+                  {isAnalyzing ? (
+                    <Loader2 size={14} className="animate-spin mr-2" />
+                  ) : (
+                    <Zap size={14} className="mr-2" />
+                  )}
+                  {isAnalyzing ? `Analyzing Signals (${analysisProgress}%)` : 'Execute Analysis'}
+                </Button>
               </Flex>
-              <LqText
-                variant="xs"
-                color="muted"
-                weight="bold"
-                style={{ textTransform: 'uppercase' }}
-                mt="xs"
-              >
-                Neural Cross-Reference • Forensic Pattern Derivation
-              </LqText>
-            </Stack>
-            <Flex gap="md">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={exportCorrelations}
-                className={styles.autoGen311}
-              >
-                <Download size={14} className="mr-2" /> Export Analysis
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={recomputeCorrelations}
-                disabled={isAnalyzing}
-              >
-                {isAnalyzing ? (
-                  <Loader2 size={14} className="animate-spin mr-2" />
-                ) : (
-                  <Zap size={14} className="mr-2" />
-                )}
-                {isAnalyzing ? `Analyzing Signals (${analysisProgress}%)` : 'Execute Analysis'}
-              </Button>
             </Flex>
-          </Flex>
 
-          {/* Search/Filter HUD */}
-          <Box mt="xl" pt="xl" className={styles.autoGen312}>
-            <Grid cols={4} gap="lg" align="end">
-              <Stack gap="xs">
-                <LqText variant="xs" weight="bold" color="muted">
-                  SIGNAL SEARCH
-                </LqText>
-                <Box className={styles.autoGen313}>
-                  <Search size={14} className={styles.autoGen314} />
-                  <input
+            {/* Search/Filter HUD */}
+            <Box mt="xl" pt="xl" className={styles.autoGen312}>
+              <Grid cols={4} gap="lg" align="end">
+                <Stack gap="xs">
+                  <LqText variant="xs" weight="bold" color="muted">
+                    SIGNAL SEARCH
+                  </LqText>
+                  <Box className={styles.autoGen313}>
+                    <Search size={14} className={styles.autoGen314} />
+                    <input
+                      style={{
+                        width: '100%',
+                        background: 'var(--lq-surface-3)',
+                        border: '1px solid var(--lq-surface-4)',
+                        borderRadius: '0.375rem',
+                        padding: '0.5rem 0.75rem 0.5rem 2.5rem',
+                        fontSize: '0.875rem',
+                        color: 'var(--lq-text-primary)',
+                        outline: 'none',
+                      }}
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      placeholder="Filter entities..."
+                    />
+                  </Box>
+                </Stack>
+                <Stack gap="xs">
+                  <LqText variant="xs" weight="bold" color="muted">
+                    CORRELATION TYPE
+                  </LqText>
+                  <select
                     style={{
                       width: '100%',
                       background: 'var(--lq-surface-3)',
                       border: '1px solid var(--lq-surface-4)',
                       borderRadius: '0.375rem',
-                      padding: '0.5rem 0.75rem 0.5rem 2.5rem',
+                      padding: '0.5rem 0.75rem',
                       fontSize: '0.875rem',
                       color: 'var(--lq-text-primary)',
                       outline: 'none',
                     }}
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Filter entities..."
-                  />
-                </Box>
-              </Stack>
-              <Stack gap="xs">
-                <LqText variant="xs" weight="bold" color="muted">
-                  CORRELATION TYPE
-                </LqText>
-                <select
-                  style={{
-                    width: '100%',
-                    background: 'var(--lq-surface-3)',
-                    border: '1px solid var(--lq-surface-4)',
-                    borderRadius: '0.375rem',
-                    padding: '0.5rem 0.75rem',
-                    fontSize: '0.875rem',
-                    color: 'var(--lq-text-primary)',
-                    outline: 'none',
-                  }}
-                  value={filterType}
-                  onChange={(e) => setFilterType(e.target.value)}
-                >
-                  <option value="all">All Modalities</option>
-                  <option value="temporal">Temporal</option>
-                  <option value="spatial">Spatial</option>
-                  <option value="entity">Entity</option>
-                  <option value="financial">Financial</option>
-                </select>
-              </Stack>
-              <Stack gap="xs">
-                <LqText variant="xs" weight="bold" color="muted">
-                  SIGNIFICANCE SCALE
-                </LqText>
-                <select
-                  style={{
-                    width: '100%',
-                    background: 'var(--lq-surface-3)',
-                    border: '1px solid var(--lq-surface-4)',
-                    borderRadius: '0.375rem',
-                    padding: '0.5rem 0.75rem',
-                    fontSize: '0.875rem',
-                    color: 'var(--lq-text-primary)',
-                    outline: 'none',
-                  }}
-                  value={filterSignificance}
-                  onChange={(e) => setFilterSignificance(e.target.value)}
-                >
-                  <option value="all">All Significance</option>
-                  <option value="critical">Critical</option>
-                  <option value="high">High</option>
-                  <option value="medium">Medium</option>
-                </select>
-              </Stack>
-              <Flex gap="md" align="center" className={styles.autoGen315}>
-                <Activity size={14} className={styles.autoGen316} />
-                <LqText variant="xs" weight="bold" color="muted">
-                  {filteredCorrelations.length} Intersections Extracted
-                </LqText>
-              </Flex>
-            </Grid>
-          </Box>
-        </Surface>
+                    value={filterType}
+                    onChange={(e) => setFilterType(e.target.value)}
+                  >
+                    <option value="all">All Modalities</option>
+                    <option value="temporal">Temporal</option>
+                    <option value="spatial">Spatial</option>
+                    <option value="entity">Entity</option>
+                    <option value="financial">Financial</option>
+                  </select>
+                </Stack>
+                <Stack gap="xs">
+                  <LqText variant="xs" weight="bold" color="muted">
+                    SIGNIFICANCE SCALE
+                  </LqText>
+                  <select
+                    style={{
+                      width: '100%',
+                      background: 'var(--lq-surface-3)',
+                      border: '1px solid var(--lq-surface-4)',
+                      borderRadius: '0.375rem',
+                      padding: '0.5rem 0.75rem',
+                      fontSize: '0.875rem',
+                      color: 'var(--lq-text-primary)',
+                      outline: 'none',
+                    }}
+                    value={filterSignificance}
+                    onChange={(e) => setFilterSignificance(e.target.value)}
+                  >
+                    <option value="all">All Significance</option>
+                    <option value="critical">Critical</option>
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                  </select>
+                </Stack>
+                <Flex gap="md" align="center" className={styles.autoGen315}>
+                  <Activity size={14} className={styles.autoGen316} />
+                  <LqText variant="xs" weight="bold" color="muted">
+                    {filteredCorrelations.length} Intersections Extracted
+                  </LqText>
+                </Flex>
+              </Grid>
+            </Box>
+          </Surface>
+        )}
 
         {/* Global Metrics HUD */}
         <Grid cols={4} gap="lg">

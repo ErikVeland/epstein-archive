@@ -49,6 +49,7 @@ interface GeneratedReport {
 
 interface ForensicReportGeneratorProps {
   investigationId?: number;
+  mobileMode?: boolean;
 }
 
 const DEFAULT_TEMPLATES: ReportTemplate[] = [
@@ -96,6 +97,7 @@ const DEFAULT_TEMPLATES: ReportTemplate[] = [
 
 export default function ForensicReportGenerator({
   investigationId,
+  mobileMode,
 }: ForensicReportGeneratorProps = {}) {
   const [templates] = useState<ReportTemplate[]>(DEFAULT_TEMPLATES);
   const [selectedTemplate, setSelectedTemplate] = useState<string>('legal-prosecution');
@@ -213,157 +215,159 @@ export default function ForensicReportGenerator({
 
   return (
     <Box className={styles.autoGen117} style={{ backgroundColor: 'var(--lq-surface-1)' }}>
-      <Surface variant="glass" p="xl" className={styles.autoGen118}>
-        <Stack gap="lg">
-          <Flex justify="between" align="center">
-            <Stack gap="none">
-              <Flex align="center" gap="md">
-                <FileText size={24} className={styles.autoGen119} />
-                <LqText variant="h1" weight="bold">
-                  Intelligence Briefing Generator
-                </LqText>
-              </Flex>
-              <LqText
-                variant="small"
-                color="muted"
-                weight="bold"
-                style={{ textTransform: 'uppercase', marginTop: 'var(--spacing-xs)' }}
-              >
-                Process Sigma • Automated Narrative Construction
-              </LqText>
-            </Stack>
-            <Flex gap="md">
-              <Button variant="ghost" size="sm">
-                <Shield size={14} className="mr-1" /> SECURE MODE
-              </Button>
-              <Button variant="ghost" size="sm" onClick={() => window.print()}>
-                <Printer size={14} />
-              </Button>
-            </Flex>
-          </Flex>
-
-          <Surface variant="glass-highlight" p="lg" className={styles.autoGen120}>
-            <Grid cols={2} gap="xl">
-              <Stack gap="md">
-                <Stack gap="xs">
-                  <LqText variant="xs" weight="bold" color="muted">
-                    REPORT DESIGNATION
+      {!mobileMode && (
+        <Surface variant="glass" p="xl" className={styles.autoGen118}>
+          <Stack gap="lg">
+            <Flex justify="between" align="center">
+              <Stack gap="none">
+                <Flex align="center" gap="md">
+                  <FileText size={24} className={styles.autoGen119} />
+                  <LqText variant="h1" weight="bold">
+                    Intelligence Briefing Generator
                   </LqText>
-                  <input
-                    style={{
-                      width: '100%',
-                      background: 'var(--lq-surface-3)',
-                      border: '1px solid var(--lq-surface-4)',
-                      borderRadius: '0.375rem',
-                      padding: '0.5rem 0.75rem',
-                      fontSize: '0.875rem',
-                      color: 'var(--lq-text-primary)',
-                      outline: 'none',
-                    }}
-                    value={reportTitle}
-                    onChange={(e) => setReportTitle(e.target.value)}
-                    placeholder="Case ID / Mission Title..."
-                  />
-                </Stack>
-                <Grid cols={2} gap="md">
-                  <Stack gap="xs">
-                    <LqText variant="xs" weight="bold" color="muted">
-                      TEMPLATE LENS
-                    </LqText>
-                    <select
-                      style={{
-                        width: '100%',
-                        background: 'var(--lq-surface-3)',
-                        border: '1px solid var(--lq-surface-4)',
-                        borderRadius: '0.375rem',
-                        padding: '0.5rem 0.75rem',
-                        fontSize: '0.875rem',
-                        color: 'var(--lq-text-primary)',
-                        outline: 'none',
-                      }}
-                      value={selectedTemplate}
-                      onChange={(e) => setSelectedTemplate(e.target.value)}
-                    >
-                      {templates.map((t) => (
-                        <option key={t.id} value={t.id}>
-                          {t.name}
-                        </option>
-                      ))}
-                    </select>
-                  </Stack>
-                  <Stack gap="xs">
-                    <LqText variant="xs" weight="bold" color="muted">
-                      CLASSIFICATION LEVEL
-                    </LqText>
-                    <select
-                      style={{
-                        width: '100%',
-                        background: 'var(--lq-surface-3)',
-                        border: '1px solid var(--lq-surface-4)',
-                        borderRadius: '0.375rem',
-                        padding: '0.5rem 0.75rem',
-                        fontSize: '0.875rem',
-                        color: 'var(--lq-text-primary)',
-                        outline: 'none',
-                      }}
-                      value={classification}
-                      onChange={(e) => setClassification(e.target.value)}
-                    >
-                      {['unclassified', 'confidential', 'restricted', 'secret'].map((c) => (
-                        <option key={c} value={c}>
-                          {c.toUpperCase()}
-                        </option>
-                      ))}
-                    </select>
-                  </Stack>
-                </Grid>
-              </Stack>
-              <Stack gap="md">
-                <Flex gap="md" py="xs">
-                  <label className={styles.autoGen121}>
-                    <input
-                      type="checkbox"
-                      checked={includeEvidence}
-                      onChange={(e) => setIncludeEvidence(e.target.checked)}
-                    />
-                    <LqText variant="xs" weight="bold">
-                      ATTACH CHAIN OF CUSTODY
-                    </LqText>
-                  </label>
-                  <label className={styles.autoGen122}>
-                    <input
-                      type="checkbox"
-                      checked={includeCharts}
-                      onChange={(e) => setIncludeCharts(e.target.checked)}
-                    />
-                    <LqText variant="xs" weight="bold">
-                      INJECT ANALYTICAL CHARTS
-                    </LqText>
-                  </label>
                 </Flex>
-                <Button variant="secondary" onClick={generateReport} disabled={isGenerating}>
-                  {isGenerating ? (
-                    <Loader2 className="animate-spin mr-2" size={16} />
-                  ) : (
-                    <Zap className="mr-2" size={16} />
-                  )}
-                  {isGenerating
-                    ? `Synthesizing Intelligence... ${generationProgress}%`
-                    : 'Execute Narrative Extraction'}
-                </Button>
-                {isGenerating && (
-                  <Box className={styles.autoGen123}>
-                    <Box
-                      className={styles.autoGen124}
-                      style={{ width: `${generationProgress}%` }}
-                    />
-                  </Box>
-                )}
+                <LqText
+                  variant="small"
+                  color="muted"
+                  weight="bold"
+                  style={{ textTransform: 'uppercase', marginTop: 'var(--spacing-xs)' }}
+                >
+                  Process Sigma • Automated Narrative Construction
+                </LqText>
               </Stack>
-            </Grid>
-          </Surface>
-        </Stack>
-      </Surface>
+              <Flex gap="md">
+                <Button variant="ghost" size="sm">
+                  <Shield size={14} className="mr-1" /> SECURE MODE
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => window.print()}>
+                  <Printer size={14} />
+                </Button>
+              </Flex>
+            </Flex>
+
+            <Surface variant="glass-highlight" p="lg" className={styles.autoGen120}>
+              <Grid cols={2} gap="xl">
+                <Stack gap="md">
+                  <Stack gap="xs">
+                    <LqText variant="xs" weight="bold" color="muted">
+                      REPORT DESIGNATION
+                    </LqText>
+                    <input
+                      style={{
+                        width: '100%',
+                        background: 'var(--lq-surface-3)',
+                        border: '1px solid var(--lq-surface-4)',
+                        borderRadius: '0.375rem',
+                        padding: '0.5rem 0.75rem',
+                        fontSize: '0.875rem',
+                        color: 'var(--lq-text-primary)',
+                        outline: 'none',
+                      }}
+                      value={reportTitle}
+                      onChange={(e) => setReportTitle(e.target.value)}
+                      placeholder="Case ID / Mission Title..."
+                    />
+                  </Stack>
+                  <Grid cols={2} gap="md">
+                    <Stack gap="xs">
+                      <LqText variant="xs" weight="bold" color="muted">
+                        TEMPLATE LENS
+                      </LqText>
+                      <select
+                        style={{
+                          width: '100%',
+                          background: 'var(--lq-surface-3)',
+                          border: '1px solid var(--lq-surface-4)',
+                          borderRadius: '0.375rem',
+                          padding: '0.5rem 0.75rem',
+                          fontSize: '0.875rem',
+                          color: 'var(--lq-text-primary)',
+                          outline: 'none',
+                        }}
+                        value={selectedTemplate}
+                        onChange={(e) => setSelectedTemplate(e.target.value)}
+                      >
+                        {templates.map((t) => (
+                          <option key={t.id} value={t.id}>
+                            {t.name}
+                          </option>
+                        ))}
+                      </select>
+                    </Stack>
+                    <Stack gap="xs">
+                      <LqText variant="xs" weight="bold" color="muted">
+                        CLASSIFICATION LEVEL
+                      </LqText>
+                      <select
+                        style={{
+                          width: '100%',
+                          background: 'var(--lq-surface-3)',
+                          border: '1px solid var(--lq-surface-4)',
+                          borderRadius: '0.375rem',
+                          padding: '0.5rem 0.75rem',
+                          fontSize: '0.875rem',
+                          color: 'var(--lq-text-primary)',
+                          outline: 'none',
+                        }}
+                        value={classification}
+                        onChange={(e) => setClassification(e.target.value)}
+                      >
+                        {['unclassified', 'confidential', 'restricted', 'secret'].map((c) => (
+                          <option key={c} value={c}>
+                            {c.toUpperCase()}
+                          </option>
+                        ))}
+                      </select>
+                    </Stack>
+                  </Grid>
+                </Stack>
+                <Stack gap="md">
+                  <Flex gap="md" py="xs">
+                    <label className={styles.autoGen121}>
+                      <input
+                        type="checkbox"
+                        checked={includeEvidence}
+                        onChange={(e) => setIncludeEvidence(e.target.checked)}
+                      />
+                      <LqText variant="xs" weight="bold">
+                        ATTACH CHAIN OF CUSTODY
+                      </LqText>
+                    </label>
+                    <label className={styles.autoGen122}>
+                      <input
+                        type="checkbox"
+                        checked={includeCharts}
+                        onChange={(e) => setIncludeCharts(e.target.checked)}
+                      />
+                      <LqText variant="xs" weight="bold">
+                        INJECT ANALYTICAL CHARTS
+                      </LqText>
+                    </label>
+                  </Flex>
+                  <Button variant="secondary" onClick={generateReport} disabled={isGenerating}>
+                    {isGenerating ? (
+                      <Loader2 className="animate-spin mr-2" size={16} />
+                    ) : (
+                      <Zap className="mr-2" size={16} />
+                    )}
+                    {isGenerating
+                      ? `Synthesizing Intelligence... ${generationProgress}%`
+                      : 'Execute Narrative Extraction'}
+                  </Button>
+                  {isGenerating && (
+                    <Box className={styles.autoGen123}>
+                      <Box
+                        className={styles.autoGen124}
+                        style={{ width: `${generationProgress}%` }}
+                      />
+                    </Box>
+                  )}
+                </Stack>
+              </Grid>
+            </Surface>
+          </Stack>
+        </Surface>
+      )}
 
       <Box p="xl">
         {!generatedReport && !isGenerating ? (

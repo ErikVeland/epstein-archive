@@ -65,6 +65,8 @@ import { EvidenceModal } from '../common/EvidenceModal';
 import { useToasts } from '../common/useToasts';
 import { useInvestigationOnboarding } from '../../hooks/useInvestigationOnboarding';
 import { useScrollLock } from '../../hooks/useScrollLock';
+import { useIsMobile } from '../../hooks/useIsMobile';
+import { MobileInvestigationShell } from './mobile/MobileInvestigationShell';
 import { InvestigationOnboarding } from './InvestigationOnboarding';
 import { NetworkVisualization } from '../visualizations/NetworkVisualization';
 
@@ -144,6 +146,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   const location = useLocation();
   const navigate = useNavigate();
   const { addToast } = useToasts();
+  const isMobile = useIsMobile();
   const [showImportModal, setShowImportModal] = useState(false);
 
   const {
@@ -747,8 +750,20 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
         </Box>
       )}
 
+      {/* Investigation Workspace Layout (Mobile) */}
+      {selectedInvestigation && isMobile && (
+        <MobileInvestigationShell
+          currentUser={currentUser}
+          selectedInvestigation={selectedInvestigation}
+          timelineEvents={timelineEvents}
+          evidenceItems={evidenceItems}
+          investigationId={String(selectedInvestigation.id)}
+          onInvestigationSelect={onInvestigationSelect}
+        />
+      )}
+
       {/* Investigation Workspace Layout (Restored Flex) */}
-      {selectedInvestigation && (
+      {selectedInvestigation && !isMobile && (
         <Flex grow fullWidth className={styles.layoutContainer}>
           {/* Dashboard Sidebar (Fixed Width) */}
           <Box className={styles.desktopSidebar} w="320px">

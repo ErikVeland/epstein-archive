@@ -24,6 +24,7 @@ interface CommunicationAnalysisProps {
   evidence: EvidenceItem[];
   onCommunicationPatternDetected?: (patterns: CommunicationPattern[]) => void;
   onOpenCaseFolder?: () => void;
+  mobileMode?: boolean;
 }
 
 export interface CommunicationPattern {
@@ -56,6 +57,7 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
   investigation,
   evidence,
   onCommunicationPatternDetected,
+  mobileMode,
 }) => {
   const [communicationPatterns, setCommunicationPatterns] = useState<CommunicationPattern[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -283,27 +285,29 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
 
   return (
     <Box className={styles.autoGen30} style={{ backgroundColor: 'var(--lq-surface-1)' }}>
-      <Surface variant="glass" p="xl" className={styles.autoGen31}>
-        <Flex justify="between" align="center">
-          <Stack gap="none">
-            <LqText variant="h2" weight="bold">
-              Communication Forensics
-            </LqText>
-            <Flex align="center" gap="sm">
-              <LqText variant="xs" color="muted" weight="bold">
-                SIGNAL INTELLIGENCE • NETWORK ANALYSIS
+      {!mobileMode && (
+        <Surface variant="glass" p="xl" className={styles.autoGen31}>
+          <Flex justify="between" align="center">
+            <Stack gap="none">
+              <LqText variant="h2" weight="bold">
+                Communication Forensics
               </LqText>
-              {lastRunAt && (
-                <Badge>{`LAST SCAN: ${new Date(lastRunAt).toLocaleTimeString()}`}</Badge>
-              )}
-            </Flex>
-          </Stack>
-          <Button variant="primary" onClick={analyzeCommunications} disabled={isAnalyzing}>
-            <Activity className={isAnalyzing ? 'animate-spin-slow' : ''} size={18} />
-            {isAnalyzing ? 'Analyzing Network...' : 'Initiate Communication Scan'}
-          </Button>
-        </Flex>
-      </Surface>
+              <Flex align="center" gap="sm">
+                <LqText variant="xs" color="muted" weight="bold">
+                  SIGNAL INTELLIGENCE • NETWORK ANALYSIS
+                </LqText>
+                {lastRunAt && (
+                  <Badge>{`LAST SCAN: ${new Date(lastRunAt).toLocaleTimeString()}`}</Badge>
+                )}
+              </Flex>
+            </Stack>
+            <Button variant="primary" onClick={analyzeCommunications} disabled={isAnalyzing}>
+              <Activity className={isAnalyzing ? 'animate-spin-slow' : ''} size={18} />
+              {isAnalyzing ? 'Analyzing Network...' : 'Initiate Communication Scan'}
+            </Button>
+          </Flex>
+        </Surface>
+      )}
 
       <Box p="xl">
         {isAnalyzing && (
