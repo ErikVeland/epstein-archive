@@ -17,14 +17,33 @@
   }
 }
 
-.btn {
-  padding: var(--space-3);
+.card {
+  padding: var(--space-4);
   text-align: left;
-  transition: color var(--duration-fast) var(--easing-liquid);
+  transition: all var(--duration-normal) var(--easing-liquid);
+  display: flex !important;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
 }
 
-.btnActive {
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 45%, transparent);
+.interactive {
+  cursor: pointer;
+}
+
+.interactive:hover {
+  background: var(--glass-bg-strong);
+  border-color: var(--glass-border-highlight);
+  transform: translateY(-2px);
+  box-shadow: var(--glass-shadow);
+}
+
+.cardActive {
+  background: var(--glass-bg-strong);
+  border-color: var(--accent);
+  box-shadow:
+    0 0 0 1px var(--accent),
+    var(--glass-shadow);
 }
 
 .btnHoverAccentBorder:hover {
@@ -35,35 +54,32 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--space-2);
+  width: 100%;
 }
 
 .statLabel {
-  font-size: 11px;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--text-muted);
 }
 
 .chipIcon {
-  height: 1.5rem;
+  height: 1.75rem;
   padding-inline: var(--space-2);
   display: flex;
   align-items: center;
 }
 
 .statFooter {
-  margin-top: var(--space-1);
-  font-size: 11px;
-  color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.05em;
+  opacity: 0.8;
 }
 
-/* Stat value: primary text color + tabular nums */
+/* Stat value: tabular nums */
 .statValue {
-  color: var(--text-primary);
   font-variant-numeric: tabular-nums;
+  line-height: 1;
+  margin: var(--space-1) 0;
 }
 
 /* Chip color variants */

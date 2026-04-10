@@ -77,6 +77,8 @@
   /* Color Palette */
   --bg-dark: #050506;
   --bg-surface: #0a0a0d;
+  --lq-surface-1: #0a0a0d;
+  --lq-surface-2: #121217;
   --glass-bg: rgba(15, 23, 42, 0.68);
   --glass-bg-strong: rgba(15, 23, 42, 0.88);
   --glass-border: rgba(203, 213, 225, 0.12);
@@ -97,6 +99,7 @@
   --text-dim: #64748b;
   --text-primary: var(--text-default);
   --text-secondary: var(--text-muted);
+
   --app-backdrop:
     radial-gradient(1200px 600px at 10% 0%, rgba(18, 23, 40, 0.55), transparent 60%),
     radial-gradient(1200px 600px at 90% 10%, rgba(14, 18, 30, 0.5), transparent 62%), var(--bg-dark);
@@ -235,6 +238,9 @@ body {
   width: 100%;
   position: relative;
   background-color: var(--bg-dark);
+  background-image: var(--app-backdrop);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
   color: var(--text-default);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;

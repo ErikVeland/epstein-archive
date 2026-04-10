@@ -514,8 +514,7 @@
   position: relative;
   display: none;
   align-items: center;
-  flex: 0 0 140px; /* Lock width to prevent layout shifts */
-  width: 140px;
+  flex: none;
   height: 100%; /* Ensure top: 100% child anchors to the bottom of the header */
 }
 

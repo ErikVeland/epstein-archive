@@ -15,8 +15,8 @@
 .lq-text--bombastic {
   font-family: var(--font-bombastic);
   font-size: var(--type-bombastic);
-  line-height: 0.85;
-  letter-spacing: var(--tracking-bombastic);
+  line-height: 0.95;
+  letter-spacing: var(--tracking-bombastic, -0.04em);
   text-transform: uppercase;
   font-weight: 900;
 }

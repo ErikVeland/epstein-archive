@@ -91,3 +91,5 @@ export const LqText: React.FC<TextProps> = ({
     </Component>
   );
 };
+
+export const Text = LqText;

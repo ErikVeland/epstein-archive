@@ -540,10 +540,10 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
               </LqText>
               <LqText
                 variant="symbolic"
-                color="accent"
+                color="secondary"
                 weight="bold"
-                className={styles.headerSubtitle}
-                style={{ marginTop: '-1rem' }}
+                className="tracking-symbolic"
+                pb="md"
               >
                 Forensic Intelligence • 12 Active Investigators • Collaborative Analysis
               </LqText>

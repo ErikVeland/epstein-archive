@@ -2,7 +2,7 @@ import Icon from '../common/Icon';
 import type { IconName } from '../common/Icon';
 import { useCountUp } from '../../hooks/useCountUp';
 import { riskToneFromRating } from '../../utils/riskSemantics';
-import { Button, Surface } from '../../design-system/lib';
+import { Surface, Stack, Text as LqText, cn } from '../../design-system/lib';
 import s from './StatsDisplay.module.css';
 
 interface StatsDisplayProps {
@@ -49,21 +49,29 @@ export function StatsDisplay({
         onClick={() => onRiskLevelClick?.('MEDIUM')}
       />
       <MetricStat label="Mentions" icon="MessageSquare" value={mentionsCount} />
-      <Button
+      <Surface
         onClick={onResetFilters}
-        variant="ghost"
-        className={`${s.btn} ${s.btnHoverAccentBorder}`}
+        variant="glass"
+        className={cn(s.card, s.interactive, s.btnHoverAccentBorder)}
         title="Reset all filters"
       >
-        <div className={s.statHeader}>
-          <span className={s.statLabel}>Documents</span>
-          <span className={`chip ${s.chipIcon} ${s.chipFile}`}>
-            <Icon name="FileText" />
-          </span>
-        </div>
-        <div className={`data-emphasis ${s.statValue}`}>{documentsCount.toLocaleString()}</div>
-        <div className={s.statFooter}>{stats.totalPeople.toLocaleString()} Subjects</div>
-      </Button>
+        <Stack gap="sm">
+          <div className={s.statHeader}>
+            <LqText variant="xs" color="muted" weight="bold" className={s.statLabel}>
+              Documents
+            </LqText>
+            <span className={cn('chip', s.chipIcon, s.chipFile)}>
+              <Icon name="FileText" />
+            </span>
+          </div>
+          <LqText variant="h2" weight="bold" className={s.statValue}>
+            {documentsCount.toLocaleString()}
+          </LqText>
+          <LqText variant="xs" color="muted" className={s.statFooter}>
+            {stats.totalPeople.toLocaleString()} Subjects
+          </LqText>
+        </Stack>
+      </Surface>
     </div>
   );
 }
@@ -86,34 +94,48 @@ function RiskStat({
   const tone = riskToneFromRating(rating);
 
   return (
-    <Button
+    <Surface
       onClick={onClick}
-      variant="ghost"
-      className={`${s.btn} ${active ? s.btnActive : ''}`}
+      variant={active ? 'glass-highlight' : 'glass'}
+      className={cn(s.card, s.interactive, active && s.cardActive)}
       title={`Filter by ${label}`}
     >
-      <div className={s.statHeader}>
-        <span className={s.statLabel}>{label}</span>
-        <span className={`chip ${s.chipIcon} ${tone.className}`}>
-          <Icon name={icon} />
-        </span>
-      </div>
-      <div className={`data-emphasis ${s.statValue}`}>{value.toLocaleString()}</div>
-      <div className={s.statFooter}>{label === 'High Risk' ? 'Priority One' : 'Monitor'}</div>
-    </Button>
+      <Stack gap="sm">
+        <div className={s.statHeader}>
+          <LqText variant="xs" color="muted" weight="bold" className={s.statLabel}>
+            {label}
+          </LqText>
+          <span className={cn('chip', s.chipIcon, tone.className)}>
+            <Icon name={icon} />
+          </span>
+        </div>
+        <LqText variant="h2" weight="bold" className={s.statValue}>
+          {value.toLocaleString()}
+        </LqText>
+        <LqText variant="xs" color="muted" className={s.statFooter}>
+          {label === 'High Risk' ? 'Priority One' : 'Monitor'}
+        </LqText>
+      </Stack>
+    </Surface>
   );
 }
 
 function MetricStat({ label, icon, value }: { label: string; icon: IconName; value: number }) {
   return (
-    <Surface className={s.btn}>
-      <div className={s.statHeader}>
-        <span className={s.statLabel}>{label}</span>
-        <span className={`chip ${s.chipIcon} ${s.chipInfo}`}>
-          <Icon name={icon} />
-        </span>
-      </div>
-      <div className={`data-emphasis ${s.statValue}`}>{value.toLocaleString()}</div>
+    <Surface className={s.card} variant="glass">
+      <Stack gap="sm">
+        <div className={s.statHeader}>
+          <LqText variant="xs" color="muted" weight="bold" className={s.statLabel}>
+            {label}
+          </LqText>
+          <span className={cn('chip', s.chipIcon, s.chipInfo)}>
+            <Icon name={icon} />
+          </span>
+        </div>
+        <LqText variant="h2" weight="bold" className={s.statValue}>
+          {value.toLocaleString()}
+        </LqText>
+      </Stack>
     </Surface>
   );
 }

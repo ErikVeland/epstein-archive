@@ -7,7 +7,7 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   variant?: string;
   label?: string | number;
   size?: string;
-  icon?: React.ComponentType<any>;
+  icon?: React.ComponentType<{ size?: number; color?: string; className?: string }>;
   cursor?: string;
 }
 

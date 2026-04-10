@@ -136,11 +136,15 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
     enabled: Boolean(targetAudioId) && !selectedItem,
   });
 
-  useEffect(() => {
+  const [prevTargetId, setPrevTargetId] = useState<number | undefined>(undefined);
+
+  // Sync direct link item to selection during render to avoid cascading effects
+  if (targetAudioId !== prevTargetId) {
+    setPrevTargetId(targetAudioId);
     if (directLinkItem && !selectedItem) {
       setSelectedItem(directLinkItem);
     }
-  }, [directLinkItem, selectedItem]);
+  }
 
   const toggleSelection = useCallback(
     (id: number) => {

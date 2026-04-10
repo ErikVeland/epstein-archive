@@ -12,6 +12,7 @@ import {
   AlertTriangle,
   User,
 } from 'lucide-react';
+import { TranscriptSegment, Chapter } from './AudioPlayer';
 import { Surface, Flex, Box, Stack, LqText, Button, cn } from '../../design-system/lib';
 import AutoSizer from '../common/AutoSizer';
 import { VideoPlayer } from './VideoPlayer';
@@ -527,8 +528,8 @@ export const VideoBrowser: React.FC = () => {
                   key={selectedItem.id}
                   src={`/api/media/video/${selectedItem.id}/stream`}
                   title={selectedItem.title}
-                  transcript={selectedItem.metadata.transcript as any}
-                  chapters={selectedItem.metadata.chapters as any}
+                  transcript={selectedItem.metadata.transcript as TranscriptSegment[]}
+                  chapters={selectedItem.metadata.chapters as Chapter[]}
                   onClose={() => setSelectedItem(null)}
                   autoPlay
                   isSensitive={selectedItem.isSensitive}

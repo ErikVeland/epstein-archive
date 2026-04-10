@@ -85,7 +85,7 @@ const GridCell = React.memo(
       <div style={{ ...style, padding: '6px' }}>
         <Surface
           variant={isSelected ? 'glass-highlight' : 'glass-strong'}
-          onClick={(e) => onImageClick(img, index, e as any)}
+          onClick={(e) => onImageClick(img, index, e)}
           className={cn(
             styles.gridCard,
             isSelected && styles.gridCardSelected,
@@ -146,7 +146,7 @@ const ListRow = React.memo(({ index, style, data }: ListChildComponentProps<Item
     <div style={{ ...style, padding: '2px 6px' }}>
       <Surface
         variant={isSelected ? 'glass-highlight' : 'glass-highlight'}
-        onClick={(e) => onImageClick(img, index, e as any)}
+        onClick={(e) => onImageClick(img, index, e)}
         className={cn(styles.listRow, isSelected && styles.listRowSelected)}
       >
         <Flex align="center" gap="md">
