@@ -1,12 +1,27 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { FixedSizeList as List } from 'react-window';
-import { Music, Play } from 'lucide-react';
+import { FixedSizeList as List, ListChildComponentProps } from 'react-window';
+import { Music, Play, Calendar, ExternalLink, Filter, ChevronRight } from 'lucide-react';
 import { AudioPlayer, TranscriptSegment, Chapter } from './AudioPlayer';
 import { SensitiveContent } from '../common/SensitiveContent';
 
 import { usePaginatedMediaCollection } from '../../hooks/usePaginatedMediaCollection';
-import { Surface, Button, Flex, Box, Stack, LqText, cn } from '../../design-system/lib';
+import { MobileAlbumDropdown } from '../shared/MobileAlbumDropdown';
+import { AlbumSidebar } from '../shared/AlbumSidebar';
+import { SEO } from '../common/SEO';
+import { EmptyCorpus } from '../common/EmptyCorpus';
+import { AutoSizer } from '../common/AutoSizer';
+import {
+  Surface,
+  Button,
+  Flex,
+  Box,
+  Stack,
+  LqText,
+  cn,
+  Badge,
+  SearchField,
+} from '../../design-system/lib';
 import styles from './AudioBrowser.module.css';
 
 interface AudioItem {
@@ -151,7 +166,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
   const rowCount = Math.ceil(items.length / columns);
 
   const Row = useCallback(
-    ({ index, style }: { index: number; style: React.CSSProperties }) => {
+    ({ index, style }: ListChildComponentProps) => {
       const startIdx = index * columns;
       const rowItems = items.slice(startIdx, startIdx + columns);
 
@@ -373,7 +388,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
 
           <Box className={styles.virtualScrollArea} grow>
             <AutoSizer>
-              {({ width, height }) => {
+              {({ width, height }: { width: number; height: number }) => {
                 if (width === 0 || height === 0) return null;
                 if (items.length > 0) {
                   return (
