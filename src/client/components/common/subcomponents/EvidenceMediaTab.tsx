@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import {
   Search,
   FileText,
@@ -6,7 +7,11 @@ import {
   Sparkles,
   Calendar,
   Image as ImageIcon,
-  ExternalLink,
+  Play,
+  Music,
+  Maximize2,
+  X,
+  Loader2,
 } from 'lucide-react';
 import {
   formatMetaDate,
@@ -16,6 +21,8 @@ import {
 } from '../../../utils/evidenceUtils';
 import { cn } from '../../../utils/cn';
 import { EntityPhoto } from '../EvidenceModal';
+import { AudioPlayer } from '../../media/AudioPlayer';
+import { VideoPlayer } from '../../media/VideoPlayer';
 import s from './EvidenceMediaTab.module.css';
 
 interface EvidenceEntity {
@@ -30,6 +37,8 @@ interface EvidenceMediaTabProps {
   setBrokenMediaIds: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
 }
 
+type MediaCategory = 'all' | 'photos' | 'videos' | 'audio';
+
 export const EvidenceMediaTab: React.FC<EvidenceMediaTabProps> = ({
   entity,
   mediaItems,
@@ -37,13 +46,90 @@ export const EvidenceMediaTab: React.FC<EvidenceMediaTabProps> = ({
   brokenMediaIds,
   setBrokenMediaIds,
 }) => {
-  const displayItems = React.useMemo(() => {
-    const items = mediaItems.length > 0 ? mediaItems : entity?.photos || [];
-    return naturalSortMedia(items);
+  const [activeCategory, setActiveCategory] = useState<MediaCategory>('all');
+  const [selectedItemId, setSelectedItemId] = useState<string | number | null>(null);
+
+  const getMediaType = (item: EntityPhoto): MediaCategory => {
+    const type = String(item.sourceType || item.type || '').toLowerCase();
+    const url = String(item.fullUrl || item.url || '').toLowerCase();
+
+    if (
+      type.includes('video') ||
+      url.includes('.mp4') ||
+      url.includes('.webm') ||
+      url.includes('.mov')
+    )
+      return 'videos';
+    if (
+      type.includes('audio') ||
+      url.includes('.mp3') ||
+      url.includes('.wav') ||
+      url.includes('.m4a')
+    )
+      return 'audio';
+    if (isVisualMediaItem(item)) return 'photos';
+    return 'all';
+  };
+
+  const allItems = React.useMemo(() => {
+    return mediaItems.length > 0 ? mediaItems : entity?.photos || [];
   }, [mediaItems, entity?.photos]);
+
+  const displayItems = React.useMemo(() => {
+    const sorted = naturalSortMedia(allItems);
+    if (activeCategory === 'all') return sorted;
+    return sorted.filter((item) => getMediaType(item) === activeCategory);
+  }, [allItems, activeCategory]);
+
+  const selectedItem = React.useMemo(() => {
+    if (selectedItemId === null) return null;
+    return allItems.find((item) => String(item.id) === String(selectedItemId)) || null;
+  }, [allItems, selectedItemId]);
+
+  const selectedCategory = selectedItem ? getMediaType(selectedItem) : null;
+
+  const { data: enrichedItem, isLoading: isEnriching } = useQuery({
+    queryKey: ['media-enrichment', selectedItemId, selectedCategory],
+    queryFn: async () => {
+      if (!selectedItem || (selectedCategory !== 'audio' && selectedCategory !== 'videos'))
+        return null;
+      const endpoint = selectedCategory === 'audio' ? 'audio' : 'videos';
+      const res = await fetch(`/api/media/${endpoint}/${selectedItem.id}`);
+      if (!res.ok) return null;
+      const data = await res.json();
+      return {
+        ...data,
+        metadata: typeof data.metadata === 'string' ? JSON.parse(data.metadata) : data.metadata,
+      };
+    },
+    enabled: !!selectedItemId && (selectedCategory === 'audio' || selectedCategory === 'videos'),
+  });
+
+  const finalSelectedItem = enrichedItem || selectedItem;
+
+  const categories: { id: MediaCategory; label: string; icon: React.ReactNode }[] = [
+    { id: 'all', label: 'All Media', icon: <Search size={14} /> },
+    { id: 'photos', label: 'Photos', icon: <ImageIcon size={14} /> },
+    { id: 'videos', label: 'Videos', icon: <Play size={14} /> },
+    { id: 'audio', label: 'Audio', icon: <Music size={14} /> },
+  ];
 
   return (
     <div className={s.container} data-testid="entity-modal-tab-media">
+      {/* Sub-Tabs */}
+      <div className={s.subNavBar}>
+        {categories.map((cat) => (
+          <button
+            key={cat.id}
+            onClick={() => setActiveCategory(cat.id)}
+            className={cn(s.subTab, activeCategory === cat.id && s.subTabActive)}
+          >
+            {cat.icon}
+            {cat.label}
+          </button>
+        ))}
+      </div>
+
       {isMediaLoading ? (
         <div className={s.loadingState}>
           <Search size={48} className={s.loadingIcon} />
@@ -65,6 +151,7 @@ export const EvidenceMediaTab: React.FC<EvidenceMediaTabProps> = ({
             const riskRating = Number(photo.riskRating || photo.redFlagRating || 0);
             const hasDirectSignal = Boolean(photo.directEvidence || photo.verified);
             const id = String(photo.id || i);
+            const category = getMediaType(photo);
 
             return (
               <article key={i} className={s.card}>
@@ -80,10 +167,10 @@ export const EvidenceMediaTab: React.FC<EvidenceMediaTabProps> = ({
                     </div>
                   )}
 
-                  {brokenMediaIds[id] || !isVisualMediaItem(photo) ? (
+                  {brokenMediaIds[id] || category === 'audio' ? (
                     <div className={s.mediaPlaceholder}>
                       <div className={s.placeholderContent}>
-                        <FileText size={28} />
+                        {category === 'audio' ? <Music size={32} /> : <FileText size={28} />}
                         <span className={s.sourceLabel}>{sourceType}</span>
                       </div>
                     </div>
@@ -120,6 +207,15 @@ export const EvidenceMediaTab: React.FC<EvidenceMediaTabProps> = ({
                           </div>
                         </div>
                       )}
+
+                      {/* Category Icon Badge */}
+                      <div className={s.categoryBadge}>
+                        {category === 'videos' ? (
+                          <Play size={10} fill="currentColor" />
+                        ) : (
+                          <ImageIcon size={10} />
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -148,7 +244,13 @@ export const EvidenceMediaTab: React.FC<EvidenceMediaTabProps> = ({
                       {date}
                     </span>
                     <span className={s.metaItem}>
-                      <ImageIcon size={12} />
+                      {category === 'audio' ? (
+                        <Music size={12} />
+                      ) : category === 'videos' ? (
+                        <Play size={12} />
+                      ) : (
+                        <ImageIcon size={12} />
+                      )}
                       {sourceType}
                     </span>
                   </div>
@@ -163,17 +265,11 @@ export const EvidenceMediaTab: React.FC<EvidenceMediaTabProps> = ({
 
                   <div className={s.cardFooter}>
                     <button
-                      onClick={() =>
-                        window.open(
-                          photo.fullUrl || photo.url || `/api/media/images/${photo.id}/file`,
-                          '_blank',
-                        )
-                      }
+                      onClick={() => setSelectedItemId(photo.id || id)}
                       className={s.openBtn}
                       aria-label={`Open media item ${title}`}
-                      title="Open media in new tab"
                     >
-                      View <ExternalLink size={12} />
+                      {category === 'photos' ? 'Inspect' : 'Play'} <Maximize2 size={12} />
                     </button>
                   </div>
                 </div>
@@ -184,7 +280,72 @@ export const EvidenceMediaTab: React.FC<EvidenceMediaTabProps> = ({
       ) : (
         <div className={s.emptyState}>
           <Search size={48} className={s.emptyIcon} />
-          <p>No media files found for this entity.</p>
+          <p>No {activeCategory === 'all' ? 'media' : activeCategory} found for this entity.</p>
+        </div>
+      )}
+
+      {/* Integrated Player Overlay */}
+      {selectedItemId && finalSelectedItem && (
+        <div className={s.playerOverlay}>
+          <div className={s.playerBackdrop} onClick={() => setSelectedItemId(null)} />
+          <div className={s.playerContent}>
+            {isEnriching ? (
+              <div className={s.playerLoader}>
+                <Loader2 size={48} className={s.spin} />
+                <p>Initializing Forensic Stream…</p>
+              </div>
+            ) : selectedCategory === 'audio' ? (
+              <AudioPlayer
+                src={
+                  finalSelectedItem.fullUrl ||
+                  finalSelectedItem.url ||
+                  `/api/media/audio/${finalSelectedItem.id}/file`
+                }
+                title={finalSelectedItem.title || finalSelectedItem.filename || 'Audio Recording'}
+                transcript={finalSelectedItem.metadata?.transcript}
+                chapters={finalSelectedItem.metadata?.chapters}
+                isSensitive={finalSelectedItem.metadata?.isSensitive}
+                onClose={() => setSelectedItemId(null)}
+                autoPlay
+              />
+            ) : selectedCategory === 'videos' ? (
+              <VideoPlayer
+                src={
+                  finalSelectedItem.fullUrl ||
+                  finalSelectedItem.url ||
+                  `/api/media/videos/${finalSelectedItem.id}/file`
+                }
+                title={finalSelectedItem.title || finalSelectedItem.filename || 'Video Evidence'}
+                transcript={finalSelectedItem.metadata?.transcript}
+                chapters={finalSelectedItem.metadata?.chapters}
+                isSensitive={finalSelectedItem.metadata?.isSensitive}
+                onClose={() => setSelectedItemId(null)}
+                autoPlay
+              />
+            ) : (
+              <div className={s.imageViewer}>
+                <div className={s.imageViewerHeader}>
+                  <h3 className={s.imageViewerTitle}>
+                    {finalSelectedItem.title || finalSelectedItem.filename}
+                  </h3>
+                  <button className={s.closeViewer} onClick={() => setSelectedItemId(null)}>
+                    <X size={20} />
+                  </button>
+                </div>
+                <div className={s.imageViewerMain}>
+                  <img
+                    src={
+                      finalSelectedItem.fullUrl ||
+                      finalSelectedItem.url ||
+                      `/api/media/images/${finalSelectedItem.id}/file`
+                    }
+                    alt={finalSelectedItem.title}
+                    className={s.fullImage}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>

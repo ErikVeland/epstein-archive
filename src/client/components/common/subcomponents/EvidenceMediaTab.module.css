@@ -5,10 +5,66 @@
   overflow-y: auto;
   composes: custom-scrollbar from global;
   padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.subNavBar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1);
+  background: color-mix(in srgb, var(--glass-bg) 40%, transparent);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(12px);
+  width: fit-content;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: var(--glass-shadow-sm);
+}
+
+.subTab {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--easing-liquid);
+}
+
+.subTab:hover {
+  color: var(--text-secondary);
+  background: color-mix(in srgb, var(--glass-highlight) 30%, transparent);
+}
+
+.subTabActive {
+  color: var(--accent);
+  background: var(--glass-highlight);
+  box-shadow: var(--glass-shadow-sm);
+}
+
+.subTab svg {
+  opacity: 0.7;
+}
+
+.subTabActive svg {
+  opacity: 1;
 }
 
 .loadingState {
-  height: 100%;
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -183,6 +239,24 @@
   font-weight: 500;
 }
 
+.categoryBadge {
+  position: absolute;
+  bottom: var(--space-3);
+  right: var(--space-3);
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--glass-bg) 80%, transparent);
+  backdrop-filter: blur(4px);
+  border: 1px solid var(--glass-border);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  z-index: 5;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
 .mediaPlaceholder {
   width: 100%;
   height: 100%;
@@ -339,6 +413,7 @@
 }
 
 .emptyState {
+  flex: 1;
   padding-top: 5rem;
   padding-bottom: 5rem;
   text-align: center;
@@ -348,4 +423,124 @@
 .emptyIcon {
   margin-bottom: var(--space-4);
   opacity: 0.2;
+}
+
+/* Integrated Player Overlay */
+.playerOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-10);
+}
+
+.playerBackdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+}
+
+.playerContent {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 1200px;
+  height: 100%;
+  max-height: 800px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: modalEnter 400ms var(--easing-liquid);
+}
+
+@keyframes modalEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.imageViewer {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-dark);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-2xl);
+}
+
+.imageViewerHeader {
+  padding: var(--space-4) var(--space-6);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: color-mix(in srgb, var(--glass-bg) 40%, transparent);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.imageViewerTitle {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  color: var(--text-strong);
+}
+
+.closeViewer {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.closeViewer:hover {
+  color: var(--text-primary);
+}
+
+.imageViewerMain {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+  background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%);
+}
+
+.fullImage {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+
+.playerLoader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  color: var(--text-muted);
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+  color: var(--accent);
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }

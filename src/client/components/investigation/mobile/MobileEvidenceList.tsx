@@ -30,18 +30,26 @@ export function MobileEvidenceList({ investigationId }: MobileEvidenceListProps)
   const [fetchError, setFetchError] = useState<string | null>(null);
 
   useEffect(() => {
+    let active = true;
     setLoading(true);
     setFetchError(null);
     investigationsApi
       .getCaseFolder(investigationId)
       .then((folder) => {
-        setEvidence(folder.all ?? []);
+        if (active) setEvidence(folder.all ?? []);
       })
       .catch((error) => {
-        console.error(error);
-        setFetchError('Failed to load evidence.');
+        if (active) {
+          console.error(error);
+          setFetchError('Failed to load evidence.');
+        }
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
   }, [investigationId]);
 
   const handleView = (item: InvestigationCaseEvidenceItemDto) => {
