@@ -538,15 +538,16 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
               <LqText variant="bombastic" className={styles.headerTitle}>
                 Investigation
               </LqText>
-              <LqText
-                variant="symbolic"
-                color="secondary"
-                weight="bold"
-                className="tracking-symbolic"
-                pb="md"
-              >
-                Forensic Intelligence • 12 Active Investigators • Collaborative Analysis
-              </LqText>
+              <Stack pb="md">
+                <LqText
+                  variant="symbolic"
+                  color="secondary"
+                  weight="bold"
+                  className="tracking-symbolic"
+                >
+                  Forensic Intelligence • 12 Active Investigators • Collaborative Analysis
+                </LqText>
+              </Stack>
             </Stack>
 
             <Flex align="center" gap="sm">

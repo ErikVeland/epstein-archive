@@ -528,8 +528,8 @@ export const VideoBrowser: React.FC = () => {
                   key={selectedItem.id}
                   src={`/api/media/video/${selectedItem.id}/stream`}
                   title={selectedItem.title}
-                  transcript={selectedItem.metadata.transcript as TranscriptSegment[]}
-                  chapters={selectedItem.metadata.chapters as Chapter[]}
+                  transcript={selectedItem.metadata.transcript as unknown as TranscriptSegment[]}
+                  chapters={selectedItem.metadata.chapters as unknown as Chapter[]}
                   onClose={() => setSelectedItem(null)}
                   autoPlay
                   isSensitive={selectedItem.isSensitive}

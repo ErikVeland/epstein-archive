@@ -84,14 +84,20 @@ export const TailoredErrorFallback: React.FC<TailoredErrorFallbackProps> = ({
 
         <Flex gap="md">
           {showRetry && onRetry && (
-            <Button onClick={onRetry} variant="glass" leftIcon={<RefreshCw size={16} />}>
-              Try Again
+            <Button onClick={onRetry} variant="glass">
+              <Flex gap="sm" align="center">
+                <RefreshCw size={16} />
+                <span>Try Again</span>
+              </Flex>
             </Button>
           )}
 
           {showHome && onGoHome && (
-            <Button onClick={onGoHome} variant="primary" leftIcon={<Home size={16} />}>
-              Home
+            <Button onClick={onGoHome} variant="primary">
+              <Flex gap="sm" align="center">
+                <Home size={16} />
+                <span>Home</span>
+              </Flex>
             </Button>
           )}
         </Flex>
