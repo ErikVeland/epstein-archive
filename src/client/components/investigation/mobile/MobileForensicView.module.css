@@ -1,0 +1,52 @@
+/* MobileForensicView.module.css */
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.tabs {
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: var(--glass-bg-strong);
+  border-bottom: 1px solid var(--glass-border);
+  flex-shrink: 0;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tab {
+  flex-shrink: 0;
+  padding: 0.75rem 1rem;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  min-height: 2.75rem;
+  font-family: inherit;
+}
+
+.tabActive {
+  border-bottom-color: var(--accent);
+  color: var(--text-primary);
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.placeholder {
+  padding: 1.5rem;
+  color: var(--text-muted);
+  text-align: center;
+  font-size: 0.9375rem;
+}
