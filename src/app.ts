@@ -22,6 +22,7 @@ import {
 import { validateStartup } from './server/utils/startupValidation.js';
 import { runMigrations } from './server/db/migrator.js';
 import { getEntityAndDocumentCounts } from './server/db/routesDb.js';
+import { resolveMediaPath } from './server/utils/pathResolver.js';
 import type { SearchFilters, SortOption } from './types.js';
 
 // Route imports
@@ -807,6 +808,52 @@ export class App {
         const entity = await entitiesRepository.getEntityById(req.params.id);
         if (!entity) return res.status(404).json({ error: 'Entity not found' });
         return res.json(mapEntityDetailDto(entity as unknown as Record<string, unknown>));
+      } catch (error) {
+        next(error);
+      }
+    });
+
+    router.get('/entities/:id/portrait', async (req, res, next) => {
+      try {
+        const { id } = req.params;
+        const portraitPath = await mediaRepository.getEntityProfilePhoto(id);
+        if (!portraitPath) {
+          return res.status(404).json({ error: 'Portrait not found' });
+        }
+
+        const resolved = resolveMediaPath(portraitPath);
+        if (!resolved || !fs.existsSync(resolved)) {
+          return res.status(404).json({ error: 'Portrait file not found' });
+        }
+
+        res.type(path.extname(resolved) || 'image/jpeg');
+        return res.sendFile(resolved);
+      } catch (error) {
+        next(error);
+      }
+    });
+
+    router.get('/entities/batch/portraits', async (req, res, next) => {
+      try {
+        const idsStr = req.query.ids as string;
+        if (!idsStr) return res.status(400).json({ error: 'ids parameter required' });
+
+        const rawIds = idsStr.split(',').filter(Boolean);
+        if (rawIds.length > 100) {
+          return res.status(400).json({ error: 'Max 100 ids allowed per batch request' });
+        }
+
+        const results = await Promise.all(
+          rawIds.map(async (id) => {
+            const portraitPath = await mediaRepository.getEntityProfilePhoto(id);
+            return {
+              entityId: id,
+              url: portraitPath ? `/api/entities/${id}/portrait` : null,
+            };
+          }),
+        );
+
+        res.json({ items: results });
       } catch (error) {
         next(error);
       }

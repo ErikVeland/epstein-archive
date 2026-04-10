@@ -428,3 +428,36 @@
 .docItem:hover {
   background-color: var(--lq-surface-3);
 }
+
+.portraitShell {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--lq-surface-2);
+  border: 1px solid var(--lq-surface-4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.portraitImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.portraitFallback {
+  width: 100%;
+  height: 100%;
+  background: var(--lq-surface-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.portraitFallback::before {
+  content: "👤";
+  font-size: 24px;
+}

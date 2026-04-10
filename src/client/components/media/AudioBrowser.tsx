@@ -1,29 +1,12 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { FixedSizeList as List } from 'react-window';
-import {
-  Music,
-  CheckSquare,
-  Square,
-  Calendar,
-  Search,
-  ExternalLink,
-  Filter,
-  Loader2,
-  Play,
-  ChevronRight,
-} from 'lucide-react';
+import { Music, Play } from 'lucide-react';
 import { AudioPlayer, TranscriptSegment, Chapter } from './AudioPlayer';
 import { SensitiveContent } from '../common/SensitiveContent';
-import { SensitiveWarningBanner } from '../shared/SensitiveWarningBanner';
 
 import { usePaginatedMediaCollection } from '../../hooks/usePaginatedMediaCollection';
-import { AlbumSidebar } from '../shared/AlbumSidebar';
-import { MobileAlbumDropdown } from '../shared/MobileAlbumDropdown';
-import { SEO } from '../common/SEO';
-import { Surface, Button, Flex, Box, Stack, LqText, cn, Badge } from '../../design-system/lib';
-import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
-import { EmptyCorpus } from '../common/EmptyCorpus';
+import { Surface, Button, Flex, Box, Stack, LqText, cn } from '../../design-system/lib';
 import styles from './AudioBrowser.module.css';
 
 interface AudioItem {
@@ -155,26 +138,6 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
     },
     [selectedItems],
   );
-
-  const [containerHeight, setContainerHeight] = useState(800);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (containerRef.current) {
-      setContainerHeight(containerRef.current.clientHeight);
-    }
-  }, []);
-
-  const [containerWidth, setContainerWidth] = useState(0);
-
-  useEffect(() => {
-    if (!containerRef.current) return;
-    const observer = new ResizeObserver((entries) => {
-      setContainerWidth(entries[0].contentRect.width);
-    });
-    observer.observe(containerRef.current);
-    return () => observer.disconnect();
-  }, []);
 
   const columns = useMemo(() => {
     if (containerWidth === 0) return 1;
@@ -358,17 +321,14 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
               </Stack>
             </Flex>
 
-            <Flex align="center" gap="sm">
-              <Box className={styles.searchBox}>
-                <Search size={16} className={styles.searchIcon} />
-                <input
-                  type="text"
-                  value={transcriptSearch}
-                  onChange={(e) => setTranscriptSearch(e.target.value)}
-                  placeholder="Query transcripts..."
-                  className={styles.searchInput}
-                />
-              </Box>
+            <Flex align="center" gap="md">
+              <SearchField
+                value={transcriptSearch}
+                onChange={(e) => setTranscriptSearch(e.target.value)}
+                placeholder="Query transcripts..."
+                rootClassName={styles.searchField}
+                density="compact"
+              />
 
               <Button
                 variant={isBatchMode ? 'accent-solid' : 'glass'}
@@ -411,45 +371,37 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
             />
           </Box>
 
-          <Box className={styles.mainContent} style={{ flex: 1 }}>
-            {loading && items.length === 0 && (
-              <Flex align="center" justify="center" fullHeight>
-                <Loader2 className={cn('animate-spin', styles.spinner)} size={48} />
-              </Flex>
-            )}
-
-            {currentAlbum?.name.match(/Sensitive|Disturbing/i) && (
-              <Box p="md">
-                <SensitiveWarningBanner mediaType="audio" />
-              </Box>
-            )}
-
-            <div ref={containerRef} className={styles.virtualScrollArea}>
-              {containerWidth > 0 && items.length > 0 && (
-                <List
-                  height={containerHeight}
-                  itemCount={rowCount}
-                  itemSize={460}
-                  width="100%"
-                  onScroll={({ scrollOffset }) => {
-                    const threshold = rowCount * 460 - 1000;
-                    if (scrollOffset > threshold && hasMore && !loading) {
-                      loadMore();
-                    }
-                  }}
-                >
-                  {Row}
-                </List>
-              )}
-
-              {items.length === 0 && !loading && (
-                <EmptyCorpus
-                  icon="Music"
-                  title="No Audio Recordings"
-                  body="Audio files are extracted and indexed during media ingestion. No recordings have been loaded into the corpus yet — run the media ingestion pipeline to populate this section."
-                />
-              )}
-            </div>
+          <Box className={styles.virtualScrollArea} grow>
+            <AutoSizer>
+              {({ width, height }) => {
+                if (width === 0 || height === 0) return null;
+                if (items.length > 0) {
+                  return (
+                    <List
+                      height={height}
+                      itemCount={rowCount}
+                      itemSize={460}
+                      width={width}
+                      onScroll={({ scrollOffset }) => {
+                        const threshold = rowCount * 460 - 1000;
+                        if (scrollOffset > threshold && hasMore && !loading) {
+                          loadMore();
+                        }
+                      }}
+                    >
+                      {Row}
+                    </List>
+                  );
+                }
+                return !loading ? (
+                  <EmptyCorpus
+                    icon="Music"
+                    title="No Audio Recordings"
+                    body="Audio files are extracted and indexed during media ingestion. No recordings have been loaded into the corpus yet — run the media ingestion pipeline to populate this section."
+                  />
+                ) : null;
+              }}
+            </AutoSizer>
           </Box>
         </Flex>
 

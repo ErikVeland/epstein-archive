@@ -25,8 +25,8 @@ interface SubjectCardV2Props {
 
 const SubjectCardV2: React.FC<SubjectCardV2Props> = React.memo(({ subject, style, onClick }) => {
   const navigate = useNavigate();
-  const topPhotoId = subject.topPhotoId;
-  const avatarUrl = topPhotoId ? `/api/media/images/${topPhotoId}/thumbnail` : null;
+  const portraitUrl = `/api/entities/${subject.id}/portrait`;
+  const hasPhotos = subject.topPhotoId != null;
 
   // Safety fallbacks
   const stats = subject.stats || {
@@ -79,14 +79,20 @@ const SubjectCardV2: React.FC<SubjectCardV2Props> = React.memo(({ subject, style
       >
         <Flex align="center" gap="md" className={styles.headerRow}>
           <div className={styles.avatarShell}>
-            {avatarUrl ? (
+            {hasPhotos ? (
               <img
-                src={avatarUrl}
+                src={portraitUrl}
                 alt={subject.name}
                 className={styles.avatarImage}
                 loading="lazy"
                 onError={(e) => {
                   (e.target as HTMLImageElement).style.display = 'none';
+                  const parent = (e.target as HTMLElement).parentElement;
+                  if (parent && !parent.querySelector(`.${styles.avatarFallback}`)) {
+                    const fallback = document.createElement('div');
+                    fallback.className = styles.avatarFallback;
+                    parent.appendChild(fallback);
+                  }
                 }}
               />
             ) : (

@@ -1,5 +1,26 @@
 # Release Notes
 
+## v18.8.0 - 2026-04-10 - Forensic Portraits & UI Hardening
+
+This release introduces the standardized Forensic Portrait system and completes the UI hardening of the investigation media browsers, ensuring a high-fidelity and stable evidence exploration experience.
+
+### Forensic UI & Portraits
+
+- **Forensic Portrait System**: Implemented a canonical entity portrait API (`/api/entities/:id/portrait`) that prioritizes high-fidelity face crops from the forensic detection pipeline.
+- **Dossier Enrichment**: Integrated forensic portraits into the Subject Dossier Panel, providing a visual pivot point for entity metrics and document analysis.
+- **Unified Identity**: Updated Person and Subject cards across the "Leads" and Search interfaces to utilize standardized forensic zoom shots, improving subject recognition speed.
+
+### Media Browser Hardening
+
+- **Audio Browser Stability**: Fixed a rendering regression where audio recordings would fail to appear upon tab activation; refactored to use `AutoSizer` for robust viewport calculations.
+- **Standardized Search Interface**: Migrated legacy search inputs in the Audio and Video browsers to the unified Liquid Glass `SearchField` design system primitive.
+- **Layout Spacing Harmony**: Corrected vertical spacing and button alignment across all three media tab headers (Audio, Video, Photo) for consistent UX.
+
+### Archival Integrity
+
+- **Sascha Riley Verification**: Confirmed and verified the successful backfill of the Sascha Riley TikTok Q&A collection and associated forensic albums.
+- **Environment Sync**: Synchronized local development configurations with the latest production baseline.
+
 ## v18.7.0 - 2026-04-10 - Media Visibility & Archival Preservation
 
 This release resolves critical gaps in the media library, enabling full visibility for archival image collections, and hardens the search interface for forensic speed.

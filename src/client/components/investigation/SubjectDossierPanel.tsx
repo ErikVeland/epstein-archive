@@ -258,21 +258,40 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
               <Stack gap="xl">
                 {/* Profile Header */}
                 <Flex justify="between" align="start">
-                  <Stack gap="none">
-                    <LqText variant="h2" weight="bold">
-                      {selectedEntity.fullName}
-                    </LqText>
-                    <Flex gap="sm" align="center" mt="xs">
-                      <Badge
-                        tone="accent"
-                        label={selectedEntity.entityType.toUpperCase()}
-                        size="sm"
+                  <Flex align="center" gap="lg">
+                    <Box className={styles.portraitShell}>
+                      <img
+                        src={`/api/entities/${selectedEntity.id}/portrait`}
+                        alt={selectedEntity.fullName}
+                        className={styles.portraitImg}
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          const parent = target.parentElement;
+                          if (parent && !parent.querySelector(`.${styles.portraitFallback}`)) {
+                            const fallback = document.createElement('div');
+                            fallback.className = styles.portraitFallback;
+                            parent.appendChild(fallback);
+                          }
+                        }}
                       />
-                      <LqText variant="xs" color="muted">
-                        SID-{selectedEntity.id}
+                    </Box>
+                    <Stack gap="none">
+                      <LqText variant="h2" weight="bold">
+                        {selectedEntity.fullName}
                       </LqText>
-                    </Flex>
-                  </Stack>
+                      <Flex gap="sm" align="center" mt="xs">
+                        <Badge
+                          tone="accent"
+                          label={selectedEntity.entityType.toUpperCase()}
+                          size="sm"
+                        />
+                        <LqText variant="xs" color="muted">
+                          SID-{selectedEntity.id}
+                        </LqText>
+                      </Flex>
+                    </Stack>
+                  </Flex>
                   <Button
                     variant="ghost"
                     onClick={() => window.open(`/subjects/${selectedEntity.id}`, '_blank')}

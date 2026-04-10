@@ -1,6 +1,6 @@
 import React from 'react';
-import { Search, Info, Filter, Flag, X, FileText } from 'lucide-react';
-import { Surface, Button, Flex, Box, LqText, Grid, cn } from '../../design-system/lib';
+import { Info, Filter, Flag, FileText } from 'lucide-react';
+import { Surface, Button, Flex, Box, LqText, Grid, cn, SearchField } from '../../design-system/lib';
 import ProgressBar from '../common/ProgressBar';
 import styles from './EvidenceFilters.module.css';
 
@@ -76,26 +76,13 @@ export const EvidenceFilters: React.FC<EvidenceFiltersProps> = ({
             </Surface>
           </Flex>
 
-          <Box className={styles.searchBox}>
-            <Search size={16} className={styles.searchIcon} />
-            <input
-              type="text"
-              placeholder="Query forensic archive..."
-              value={searchTerm}
-              onChange={(e) => onSearchTermChange(e.target.value)}
-              className={styles.searchInput}
-            />
-            {searchTerm && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onSearchTermChange('')}
-                className={styles.clearBtn}
-              >
-                <X size={14} />
-              </Button>
-            )}
-          </Box>
+          <SearchField
+            placeholder="Query forensic archive..."
+            value={searchTerm}
+            onChange={(e) => onSearchTermChange(e.target.value)}
+            rootClassName={styles.searchField}
+            density="compact"
+          />
         </Flex>
 
         <Flex justify="between" align="center" className={styles.stripRow}>

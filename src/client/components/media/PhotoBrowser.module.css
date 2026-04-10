@@ -83,6 +83,7 @@
   display: flex;
   flex: 1 1 auto;
   overflow: hidden;
+  margin-top: var(--space-6);
 }
 
 .mainContent {

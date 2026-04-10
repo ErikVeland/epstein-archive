@@ -35,7 +35,8 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onClick, searchTerm }) 
   // Identity
   const entityType = person.entityType;
   const role = person.title || person.role || person.primaryRole || 'Unknown';
-  const avatarPhoto = photos.length > 0 ? photos[0] : null;
+  const portraitUrl = `/api/entities/${person.id}/portrait`;
+  const hasPhotos = photos.length > 0;
 
   // Highlight helper
   const highlightText = (text: string, term?: string) => {
@@ -71,12 +72,22 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onClick, searchTerm }) 
         <div className={styles.identityHeader}>
           {/* Zoomed Avatar */}
           <div className={styles.avatar}>
-            {avatarPhoto ? (
+            {hasPhotos ? (
               <img
-                src={`/api/media/images/${avatarPhoto.id}/thumbnail`}
+                src={portraitUrl}
                 alt={person.name}
                 className={styles.avatarImg}
                 loading="lazy"
+                onError={(e) => {
+                  // Fallback to icon if portrait specifically fails
+                  (e.target as HTMLElement).style.display = 'none';
+                  const parent = (e.target as HTMLElement).parentElement;
+                  if (parent && !parent.querySelector(`.${styles.avatarFallback}`)) {
+                    const fallback = document.createElement('div');
+                    fallback.className = styles.avatarFallback;
+                    parent.appendChild(fallback);
+                  }
+                }}
               />
             ) : (
               <div className={styles.avatarFallback}>

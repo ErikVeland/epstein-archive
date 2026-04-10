@@ -6,14 +6,22 @@ import {
   Calendar,
   CheckSquare,
   Clock,
-  Search,
   RefreshCw,
   Users,
   AlertTriangle,
   User,
 } from 'lucide-react';
 import { TranscriptSegment, Chapter } from './AudioPlayer';
-import { Surface, Flex, Box, Stack, LqText, Button, cn } from '../../design-system/lib';
+import {
+  Surface,
+  Flex,
+  Box,
+  Stack,
+  LqText,
+  Button,
+  cn,
+  SearchField,
+} from '../../design-system/lib';
 import AutoSizer from '../common/AutoSizer';
 import { VideoPlayer } from './VideoPlayer';
 import { SensitiveContent } from '../common/SensitiveContent';
@@ -355,20 +363,17 @@ export const VideoBrowser: React.FC = () => {
           />
 
           <Flex grow align="center" gap="md" className={styles.headerContent}>
-            <Box className={styles.searchField}>
-              <Search size={16} className={styles.searchIcon} />
-              <input
-                type="text"
-                value={transcriptSearch}
-                onChange={(e) => setTranscriptSearch(e.target.value)}
-                placeholder={
-                  selectedAlbum ? 'Search transcripts in album...' : 'Search transcripts...'
-                }
-                className={styles.searchInput}
-              />
-            </Box>
+            <SearchField
+              value={transcriptSearch}
+              onChange={(e) => setTranscriptSearch(e.target.value)}
+              placeholder={
+                selectedAlbum ? 'Search transcripts in album...' : 'Search transcripts...'
+              }
+              rootClassName={styles.searchField}
+              density="compact"
+            />
 
-            <Flex gap="sm" align="center" className={styles.controls}>
+            <Flex gap="md" align="center" className={styles.controls}>
               <LqText
                 variant="xs"
                 weight="bold"
