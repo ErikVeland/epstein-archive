@@ -1,6 +1,7 @@
-
 const pg = require('pg');
-const pool = new pg.Pool({ connectionString: 'postgresql://epstein:epstein@localhost:5435/epstein_archive' });
+const pool = new pg.Pool({
+  connectionString: 'postgresql://epstein:epstein@localhost:5435/epstein_archive',
+});
 
 async function runTest() {
   const entityId = '1'; // Trying canonical Jeffrey Epstein first
@@ -12,7 +13,7 @@ async function runTest() {
   const id = Number(entityId);
   const offset = (page - 1) * limit;
   const params = [BigInt(id), limit, offset];
-  
+
   const query = `
     SELECT
       em.document_id                          AS id,
