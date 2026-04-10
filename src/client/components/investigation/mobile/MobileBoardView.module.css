@@ -159,7 +159,7 @@
   background: var(--accent);
   border: none;
   border-radius: var(--radius-base);
-  color: #fff;
+  color: var(--text-on-accent, #fff);
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
@@ -189,4 +189,9 @@
   color: var(--text-muted);
   padding: 2rem 0;
   font-size: 0.9375rem;
+}
+
+.errorMsg {
+  color: var(--accent-red);
+  font-size: 0.875rem;
 }

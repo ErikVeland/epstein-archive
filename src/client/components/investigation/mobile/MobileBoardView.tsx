@@ -26,12 +26,95 @@ interface CreateHypothesisResponse {
   status: string;
 }
 
+function HypothesisList({
+  hypotheses,
+  onMove,
+}: {
+  hypotheses: Hypothesis[];
+  onMove: (title: string) => void;
+}) {
+  if (hypotheses.length === 0) return <div className={styles.emptyState}>No hypotheses yet</div>;
+  return (
+    <>
+      {hypotheses.map((h) => (
+        <div key={h.id} className={styles.card}>
+          <div className={styles.cardTitle}>{h.title}</div>
+          <div className={styles.cardMeta}>
+            <span className={styles.badge}>{h.status}</span>
+          </div>
+          <div className={styles.cardActions}>
+            <button className={styles.cardBtn} onClick={() => onMove(h.title)}>
+              Move
+            </button>
+          </div>
+        </div>
+      ))}
+    </>
+  );
+}
+
+function EvidenceList({
+  evidence,
+  onMove,
+}: {
+  evidence: EvidenceItem[];
+  onMove: (title: string) => void;
+}) {
+  if (evidence.length === 0) return <div className={styles.emptyState}>No evidence yet</div>;
+  return (
+    <>
+      {evidence.map((ev) => (
+        <div key={ev.id} className={styles.card}>
+          <div className={styles.cardTitle}>{ev.title ?? 'Untitled'}</div>
+          <div className={styles.cardMeta}>
+            <span className={styles.badge}>{ev.type}</span>
+            <span className={styles.badge}>{ev.relevance}</span>
+          </div>
+          <div className={styles.cardActions}>
+            <button className={styles.cardBtn} onClick={() => onMove(ev.title ?? 'Untitled')}>
+              Move
+            </button>
+          </div>
+        </div>
+      ))}
+    </>
+  );
+}
+
+function NarrativeList({
+  items,
+  onMove,
+}: {
+  items: EvidenceItem[];
+  onMove: (title: string) => void;
+}) {
+  if (items.length === 0) return <div className={styles.emptyState}>No narrative items yet</div>;
+  return (
+    <>
+      {items.map((ev) => (
+        <div key={ev.id} className={styles.card}>
+          <div className={styles.cardTitle}>{ev.title ?? 'Untitled'}</div>
+          <div className={styles.cardMeta}>
+            <span className={styles.badge}>{ev.type}</span>
+          </div>
+          <div className={styles.cardActions}>
+            <button className={styles.cardBtn} onClick={() => onMove(ev.title ?? 'Untitled')}>
+              Move
+            </button>
+          </div>
+        </div>
+      ))}
+    </>
+  );
+}
+
 export function MobileBoardView({ investigationId }: MobileBoardViewProps) {
   const [activeColumn, setActiveColumn] = useState<Column>('hypotheses');
   const [addSheet, setAddSheet] = useState<AddSheetState>(null);
   const [moveSheet, setMoveSheet] = useState<MoveSheetState>(null);
   const [addTitle, setAddTitle] = useState('');
   const [saving, setSaving] = useState(false);
+  const [addError, setAddError] = useState<string | null>(null);
   const touchStartX = useRef(0);
   const colIndex = COLUMNS.indexOf(activeColumn);
 
@@ -94,6 +177,7 @@ export function MobileBoardView({ investigationId }: MobileBoardViewProps) {
       setAddTitle('');
     } catch (err) {
       console.error('Add card failed:', err);
+      setAddError('Failed to add. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -101,65 +185,23 @@ export function MobileBoardView({ investigationId }: MobileBoardViewProps) {
 
   const renderCards = () => {
     if (loadingShell) return <div className={styles.loadingState}>Loading...</div>;
-
-    if (activeColumn === 'hypotheses') {
-      if (hypotheses.length === 0)
-        return <div className={styles.emptyState}>No hypotheses yet</div>;
-      return hypotheses.map((h) => (
-        <div key={h.id} className={styles.card}>
-          <div className={styles.cardTitle}>{h.title}</div>
-          <div className={styles.cardMeta}>
-            <span className={styles.badge}>{h.status}</span>
-          </div>
-          <div className={styles.cardActions}>
-            <button className={styles.cardBtn} onClick={() => setMoveSheet({ cardTitle: h.title })}>
-              Move
-            </button>
-          </div>
-        </div>
-      ));
-    }
-
-    if (activeColumn === 'evidence') {
-      if (evidence.length === 0) return <div className={styles.emptyState}>No evidence yet</div>;
-      return evidence.map((ev) => (
-        <div key={ev.id} className={styles.card}>
-          <div className={styles.cardTitle}>{ev.title ?? 'Untitled'}</div>
-          <div className={styles.cardMeta}>
-            <span className={styles.badge}>{ev.type}</span>
-            <span className={styles.badge}>{ev.relevance}</span>
-          </div>
-          <div className={styles.cardActions}>
-            <button
-              className={styles.cardBtn}
-              onClick={() => setMoveSheet({ cardTitle: ev.title ?? 'Untitled' })}
-            >
-              Move
-            </button>
-          </div>
-        </div>
-      ));
-    }
-
-    // narrative
-    if (narrativeItems.length === 0)
-      return <div className={styles.emptyState}>No narrative items yet</div>;
-    return narrativeItems.map((ev) => (
-      <div key={ev.id} className={styles.card}>
-        <div className={styles.cardTitle}>{ev.title ?? 'Untitled'}</div>
-        <div className={styles.cardMeta}>
-          <span className={styles.badge}>{ev.type}</span>
-        </div>
-        <div className={styles.cardActions}>
-          <button
-            className={styles.cardBtn}
-            onClick={() => setMoveSheet({ cardTitle: ev.title ?? 'Untitled' })}
-          >
-            Move
-          </button>
-        </div>
-      </div>
-    ));
+    if (activeColumn === 'hypotheses')
+      return (
+        <HypothesisList
+          hypotheses={hypotheses}
+          onMove={(title) => setMoveSheet({ cardTitle: title })}
+        />
+      );
+    if (activeColumn === 'evidence')
+      return (
+        <EvidenceList evidence={evidence} onMove={(title) => setMoveSheet({ cardTitle: title })} />
+      );
+    return (
+      <NarrativeList
+        items={narrativeItems}
+        onMove={(title) => setMoveSheet({ cardTitle: title })}
+      />
+    );
   };
 
   return (
@@ -178,16 +220,30 @@ export function MobileBoardView({ investigationId }: MobileBoardViewProps) {
 
       <div className={styles.columnContent}>
         {renderCards()}
-        <button className={styles.addBtn} onClick={() => setAddSheet({ column: activeColumn })}>
+        <button
+          className={styles.addBtn}
+          onClick={() => {
+            setAddSheet({ column: activeColumn });
+            setAddError(null);
+          }}
+        >
           + Add to {COLUMN_LABELS[activeColumn]}
         </button>
       </div>
 
       {/* Add sheet */}
       {addSheet !== null && (
-        <div className={styles.sheet} onClick={() => setAddSheet(null)}>
+        <div
+          className={styles.sheet}
+          onClick={() => {
+            setAddSheet(null);
+            setAddTitle('');
+            setAddError(null);
+          }}
+        >
           <div className={styles.sheetInner} onClick={(ev) => ev.stopPropagation()}>
             <div className={styles.sheetTitle}>Add to {COLUMN_LABELS[addSheet.column]}</div>
+            {addError !== null && <div className={styles.errorMsg}>{addError}</div>}
             <input
               type="text"
               className={styles.sheetInput}
