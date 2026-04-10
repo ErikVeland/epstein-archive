@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { investigationsApi } from '../../../domains/investigations';
 import type { InvestigationCaseEvidenceItemDto } from '@shared/dto/investigations';
 import styles from './MobileEvidenceList.module.css';
@@ -21,21 +22,35 @@ function isFlagged(item: InvestigationCaseEvidenceItemDto): boolean {
 }
 
 export function MobileEvidenceList({ investigationId }: MobileEvidenceListProps) {
+  const navigate = useNavigate();
   const [evidence, setEvidence] = useState<InvestigationCaseEvidenceItemDto[]>([]);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterChip>('All');
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   useEffect(() => {
     setLoading(true);
+    setFetchError(null);
     investigationsApi
       .getCaseFolder(investigationId)
       .then((folder) => {
         setEvidence(folder.all ?? []);
       })
-      .catch(console.error)
+      .catch((error) => {
+        console.error(error);
+        setFetchError('Failed to load evidence.');
+      })
       .finally(() => setLoading(false));
   }, [investigationId]);
+
+  const handleView = (item: InvestigationCaseEvidenceItemDto) => {
+    if (item.documentId) {
+      navigate(`/documents?id=${item.documentId}`);
+    } else if (item.sourcePath) {
+      window.open(`/files/${encodeURIComponent(item.sourcePath)}`, '_blank', 'noopener');
+    }
+  };
 
   const filtered = evidence.filter((item) => {
     const matchesSearch =
@@ -56,6 +71,10 @@ export function MobileEvidenceList({ investigationId }: MobileEvidenceListProps)
 
   if (loading) {
     return <div className={styles.empty}>Loading evidence...</div>;
+  }
+
+  if (fetchError) {
+    return <div className={styles.empty}>{fetchError}</div>;
   }
 
   return (
@@ -89,7 +108,7 @@ export function MobileEvidenceList({ investigationId }: MobileEvidenceListProps)
               Unsorted
             </div>
             {unsorted.map((item) => (
-              <EvidenceCard key={item.id} item={item} />
+              <EvidenceCard key={item.id} item={item} onView={handleView} />
             ))}
           </>
         )}
@@ -98,7 +117,7 @@ export function MobileEvidenceList({ investigationId }: MobileEvidenceListProps)
           <>
             <div className={styles.groupHeader}>Evidence</div>
             {sorted.map((item) => (
-              <EvidenceCard key={item.id} item={item} />
+              <EvidenceCard key={item.id} item={item} onView={handleView} />
             ))}
           </>
         )}
@@ -111,14 +130,11 @@ export function MobileEvidenceList({ investigationId }: MobileEvidenceListProps)
 
 interface EvidenceCardProps {
   item: InvestigationCaseEvidenceItemDto;
+  onView: (item: InvestigationCaseEvidenceItemDto) => void;
 }
 
-function EvidenceCard({ item }: EvidenceCardProps) {
-  const handleView = () => {
-    if (item.sourcePath) {
-      window.open(`/files/${encodeURIComponent(item.sourcePath)}`, '_blank');
-    }
-  };
+function EvidenceCard({ item, onView }: EvidenceCardProps) {
+  const canView = !!item.documentId || !!item.sourcePath;
 
   return (
     <div className={styles.card}>
@@ -133,7 +149,7 @@ function EvidenceCard({ item }: EvidenceCardProps) {
         {item.relevance && <span>{item.relevance}</span>}
       </div>
       <div className={styles.cardActions}>
-        <button className={styles.cardBtn} onClick={handleView} disabled={!item.sourcePath}>
+        <button className={styles.cardBtn} onClick={() => onView(item)} disabled={!canView}>
           View
         </button>
       </div>
