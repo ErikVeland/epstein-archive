@@ -28,7 +28,6 @@ import { DocumentMetadataPanel } from '../documents/DocumentMetadataPanel';
 import { Tabs } from '../common/Tabs';
 import { useForensicDocumentData } from '../../hooks/useForensicDocumentData';
 import { useScrollLock } from '../../hooks/useScrollLock';
-
 // UI Library
 import styles from './ForensicDocumentAnalyzer.module.css';
 import {
@@ -174,7 +173,7 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
       caseContext,
       onAnalysisComplete,
       locationSearch: location.search,
-    }) as any;
+    });
 
   const toggleSection = (section: string) => {
     setExpandedSections((prev) => ({ ...prev, [section]: !prev[section] }));
@@ -218,10 +217,10 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
   };
 
   const getVerdictLabel = (verdict: string) => {
-    const variants: Record<string, any> = {
+    const variants: Record<string, 'success' | 'warning' | 'danger' | 'neutral'> = {
       authentic: 'success',
       suspicious: 'warning',
-      forged: 'error',
+      forged: 'danger',
       inconclusive: 'neutral',
     };
     return <Badge tone={variants[verdict] || 'neutral'}>{verdict.toUpperCase()}</Badge>;
@@ -280,21 +279,21 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                         AUTHENTICITY INDEX
                       </LqText>
                       <Flex align="center" gap="sm">
-                        {analysis.authenticity.verdict === 'authentic' && (
+                        {analysis!.authenticity.verdict === 'authentic' && (
                           <CheckCircle className={styles.autoGen104} size={18} />
                         )}
-                        {analysis.authenticity.verdict === 'suspicious' && (
+                        {analysis!.authenticity.verdict === 'suspicious' && (
                           <AlertTriangle className={styles.autoGen105} size={18} />
                         )}
-                        {analysis.authenticity.verdict === 'forged' && (
+                        {analysis!.authenticity.verdict === 'forged' && (
                           <XCircle className={styles.autoGen106} size={18} />
                         )}
                         <LqText
                           variant="h2"
                           weight="bold"
-                          color={analysis.authenticity.score >= 90 ? 'success' : 'accent'}
+                          color={analysis!.authenticity.score >= 90 ? 'success' : 'accent'}
                         >
-                          {analysis.authenticity.score}%
+                          {analysis!.authenticity.score}%
                         </LqText>
                       </Flex>
                     </Flex>
@@ -303,9 +302,9 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                       <Box
                         className={styles.autoGen107Bar}
                         style={{
-                          width: `${analysis.authenticity.score}%`,
+                          width: `${analysis!.authenticity.score}%`,
                           backgroundColor:
-                            analysis.authenticity.score >= 90
+                            analysis!.authenticity.score >= 90
                               ? 'var(--lq-success)'
                               : 'var(--lq-accent)',
                         }}
@@ -314,7 +313,7 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
 
                     <Flex justify="between" align="center">
                       <LqText variant="xs" weight="bold">
-                        Verdict: {getVerdictLabel(analysis.authenticity.verdict)}
+                        Verdict: {getVerdictLabel(analysis!.authenticity.verdict)}
                       </LqText>
                       <Button variant="ghost" size="sm" onClick={() => toggleSection('factors')}>
                         {expandedSections.factors ? (
@@ -328,7 +327,7 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
 
                     {expandedSections.factors && (
                       <Stack gap="sm" mt="sm">
-                        {analysis.authenticity.factors.map((f: AuthenticityFactor, i: number) => (
+                        {analysis!.authenticity.factors.map((f: AuthenticityFactor, i: number) => (
                           <Surface key={i} variant="glass" p="sm">
                             <Flex justify="between">
                               <LqText variant="xs" weight="bold">
@@ -355,24 +354,28 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                       key: 'entities',
                       label: 'Entities',
                       icon: <User size={16} />,
-                      count: analysis.entities.length,
+                      count: analysis!.entities.length,
                     },
                     {
                       key: 'patterns',
                       label: 'Patterns',
                       icon: <Activity size={16} />,
-                      count: analysis.patterns.length,
+                      count: analysis!.patterns.length,
                     },
                     {
                       key: 'anomalies',
                       label: 'Anomalies',
                       icon: <ShieldAlert size={16} />,
-                      count: analysis.anomalies.length,
+                      count: analysis!.anomalies.length,
                     },
                     { key: 'metadata', label: 'Metadata', icon: <FileText size={16} /> },
                   ]}
                   activeTab={activeTab}
-                  onChange={(k) => setActiveTab(k as any)}
+                  onChange={(k) =>
+                    setActiveTab(
+                      k as 'dashboard' | 'entities' | 'patterns' | 'anomalies' | 'metadata',
+                    )
+                  }
                   className={styles.autoGen108}
                 />
 
@@ -517,7 +520,7 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                           HIGH RISK CORRELATES
                         </LqText>
                         <Stack gap="xs">
-                          {topRisk.slice(0, 3).map((t: any) => (
+                          {topRisk.slice(0, 3).map((t) => (
                             <Surface
                               key={t.id}
                               variant="glass-highlight"
@@ -540,7 +543,7 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
 
                   {activeTab === 'entities' && (
                     <Stack gap="sm">
-                      {analysis.entities.map((e: DetectedEntity, i: number) => {
+                      {analysis!.entities.map((e: DetectedEntity, i: number) => {
                         const IconComp = getEntityIcon(e.type);
                         return (
                           <Surface
@@ -579,7 +582,7 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
 
                   {activeTab === 'patterns' && (
                     <Stack gap="sm">
-                      {analysis.patterns.map((p: DetectedPattern, i: number) => (
+                      {analysis!.patterns.map((p: DetectedPattern, i: number) => (
                         <Surface
                           key={i}
                           variant="glass"
@@ -611,7 +614,7 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
 
                   {activeTab === 'anomalies' && (
                     <Stack gap="sm">
-                      {analysis.anomalies.map((a: DetectedAnomaly, i: number) => (
+                      {analysis!.anomalies.map((a: DetectedAnomaly, i: number) => (
                         <Surface
                           key={i}
                           variant="glass"
@@ -657,11 +660,11 @@ export const ForensicDocumentAnalyzer: React.FC<ForensicDocumentAnalyzerProps> =
                       document={{
                         id: documentId,
                         metadata: {
-                          technical: metrics?.technical || analysis.metadata.technical,
-                          structure: metrics?.structural || analysis.metadata.structure,
-                          linguistics: metrics?.linguistic || analysis.metadata.linguistics,
-                          network: metrics?.network || analysis.metadata.network,
-                          tags: analysis.metadata.tags,
+                          technical: metrics?.technical || analysis!.metadata!.technical,
+                          structure: metrics?.structural || analysis!.metadata!.structure,
+                          linguistics: metrics?.linguistic || analysis!.metadata!.linguistics,
+                          network: metrics?.network || analysis!.metadata!.network,
+                          tags: analysis!.metadata!.tags,
                         },
                       }}
                     />

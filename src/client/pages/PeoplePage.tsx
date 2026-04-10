@@ -145,14 +145,14 @@ export const PeoplePage: React.FC<PeoplePageProps> = ({
 
           <Surface variant="panel" className={styles.toolbarCard}>
             <Flex wrap="wrap" align="center" justify="between" gap="md" fullWidth>
-              <Flex align="center" gap="sm" className={styles.toolbarMetaRow}>
+              <Flex align="center" className={styles.toolbarMetaRow}>
                 <Icon name="Users" size="sm" color="info" className={styles.toolbarIcon} />
                 <p className={styles.toolbarMeta}>
                   {total.toLocaleString()} subjects • Page {page}/{totalPagesLocal || 1}
                 </p>
               </Flex>
 
-              <Flex gap="sm" align="center" className={styles.toolbarControls}>
+              <Flex gap="md" align="center" className={styles.toolbarControls}>
                 {isAdmin && (
                   <Button
                     onClick={onAddSubject}

@@ -16,6 +16,7 @@ import {
   Cpu,
   RefreshCw,
   XCircle,
+  ShieldCheck,
 } from 'lucide-react';
 import { useToasts } from '../common/useToasts';
 import { ForensicDocumentAnalyzer } from './ForensicDocumentAnalyzer';
@@ -38,6 +39,7 @@ import {
   cn,
   Badge,
 } from '../../design-system/lib';
+import styles from './ForensicAnalysisWorkspace.module.css';
 
 interface ForensicAnalysisWorkspaceProps {
   investigation: Investigation;
@@ -80,7 +82,7 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
   });
 
   const networkData = useMemo(() => {
-    const people: any[] = [];
+    const people: Array<{ id: string; name: string; mentionedEntities: string[] }> = [];
     const documents = (evidence || []).map((ev) => ({
       id: ev.id,
       title: ev.title || ev.id,
@@ -144,7 +146,7 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
       let rulesetVersion: string | null = null;
       let modelId: string | null = null;
       for (const item of evidence) {
-        const meta = (item.metadata || item.metadata_json || {}) as any;
+        const meta = (item.metadata || item.metadata_json || {}) as Record<string, unknown>;
         const parsed =
           typeof meta === 'string'
             ? (() => {
@@ -169,7 +171,7 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
       signal: number,
       corroboration: number,
       certainty: number | null,
-      inputs: any,
+      inputs: Record<string, unknown>,
     ): ConfidenceResult => {
       return computeForensicConfidence({
         toolId,
@@ -258,13 +260,13 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
   };
 
   const runTool = async (toolId: string) => {
-    const toolStats = (stats as any)[toolId];
-    if (toolStats.count === 0) {
+    const toolStats = stats[toolId as keyof typeof stats];
+    if (!toolStats || toolStats.count === 0) {
       addToast({ text: 'Insufficient evidence to initialize forensic tool', type: 'warning' });
       return;
     }
     setToolRunState((prev) => ({ ...prev, [toolId]: 'running' }));
-    setActiveTool(toolId as any);
+    setActiveTool(toolId as typeof activeTool);
     await new Promise((resolve) => setTimeout(resolve, 600));
     setToolRunState((prev) => ({ ...prev, [toolId]: 'complete' }));
     onEvidenceUpdate(evidence);
@@ -274,12 +276,14 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
     });
   };
 
-  const getConfidenceLevel = (score: number | null): any => {
-    if (score === null) return 'glass';
+  const getConfidenceLevel = (
+    score: number | null,
+  ): 'success' | 'warning' | 'accent' | 'danger' | 'muted' => {
+    if (score === null) return 'muted';
     if (score >= 90) return 'success';
     if (score >= 75) return 'accent';
     if (score >= 50) return 'warning';
-    return 'error';
+    return 'danger';
   };
 
   return (
@@ -420,8 +424,8 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
             <Box className={styles.autoGen85}>
               <Stack gap="md">
                 {enabledToolsList.map((tool) => {
-                  const toolStats = (stats as any)[tool.id];
-                  const score = toolStats.confidenceDetails.finalScore;
+                  const toolStats = stats[tool.id as keyof typeof stats];
+                  const score = toolStats?.confidenceDetails.finalScore ?? null;
                   const isActive = activeTool === tool.id;
 
                   return (
@@ -433,7 +437,7 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
                         'cursor-pointer border-l-2 transition-all hover:translate-x-1',
                         isActive ? 'border-l-[var(--lq-accent)]' : 'border-l-transparent',
                       )}
-                      onClick={() => setActiveTool(tool.id as any)}
+                      onClick={() => setActiveTool(tool.id as typeof activeTool)}
                     >
                       <Flex align="center" gap="md">
                         <Box
@@ -534,7 +538,7 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
                 <Stack gap="xs">
                   <Flex justify="between">
                     <LqText variant="xs">Priority</LqText>
-                    <Badge tone={PRIORITY_VARIANT[investigation.priority] as any}>
+                    <Badge tone={PRIORITY_VARIANT[investigation.priority]}>
                       {investigation.priority?.toUpperCase()}
                     </Badge>
                   </Flex>
@@ -608,7 +612,8 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
               </Flex>
 
               {(() => {
-                const details = (stats as any)[selectedConfidenceTool]?.confidenceDetails;
+                const details =
+                  stats[selectedConfidenceTool as keyof typeof stats]?.confidenceDetails;
                 if (!details) return null;
                 return (
                   <Stack gap="lg">
@@ -673,7 +678,7 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
                                 </LqText>
                               </Stack>
                               <LqText variant="small" weight="bold">
-                                {(f.val * 100).toFixed(0)}%
+                                {((f.val ?? 0) * 100).toFixed(0)}%
                               </LqText>
                             </Flex>
                           </Surface>
@@ -700,13 +705,9 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
   );
 };
 
-const PRIORITY_VARIANT: Record<string, any> = {
+const PRIORITY_VARIANT: Record<string, 'danger' | 'warning' | 'accent' | 'neutral'> = {
   critical: 'danger',
   high: 'warning',
   medium: 'accent',
   low: 'neutral',
 };
-
-// Need ShieldCheck for the button
-import { ShieldCheck } from 'lucide-react';
-import styles from './ForensicAnalysisWorkspace.module.css';

@@ -52,6 +52,12 @@
   margin-top: var(--space-1);
   width: 100%;
   min-width: 220px;
+  background: var(--lq-surface-2) !important;
+  border: 1px solid var(--lq-surface-focus) !important;
+  box-shadow: var(--shadow-xl);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(16px);
+  padding: var(--space-2);
 }
 
 .optionItem {
@@ -77,12 +83,14 @@
 }
 
 .optionItem:hover {
-  background-color: color-mix(in srgb, var(--glass-bg-highlight) 55%, transparent);
+  background-color: var(--lq-surface-focus) !important;
+  color: var(--lq-text-white) !important;
 }
 
 .optionSelected {
-  background-color: color-mix(in srgb, var(--glass-bg-highlight) 65%, transparent);
-  color: var(--text-primary);
+  background-color: var(--lq-surface-focus) !important;
+  color: var(--lq-text-white) !important;
+  font-weight: 600;
 }
 
 .optionUnselected {

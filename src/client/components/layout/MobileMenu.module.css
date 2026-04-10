@@ -137,6 +137,7 @@
   flex: 1;
   overflow-y: auto;
   padding: var(--space-3);
+  padding-bottom: max(var(--space-3), env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
@@ -146,7 +147,7 @@
 /* ── Section label ────────────────────────────────────────── */
 .sectionLabel {
   padding: var(--space-2) var(--space-3);
-  font-size: 0.625rem; /* text-[10px] */
+  font-size: 0.6875rem; /* 11px — minimum legible size */
   font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
@@ -174,7 +175,8 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-3) var(--space-3);
+  min-height: 2.75rem; /* 44px touch target */
+  padding: 0.6875rem var(--space-3);
   border-radius: var(--radius-lg);
   color: var(--text-primary);
   transition:
@@ -341,6 +343,6 @@
 }
 
 .versionText {
-  font-size: 0.625rem; /* text-[10px] */
+  font-size: 0.6875rem; /* 11px */
   color: var(--text-muted);
 }

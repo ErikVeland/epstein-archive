@@ -332,6 +332,12 @@
   gap: 1.5rem;
 }
 .transportButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  padding: var(--space-2);
   border: 0;
   background: transparent;
   color: var(--text-muted);

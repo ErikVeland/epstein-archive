@@ -269,25 +269,30 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
     queryKey: ['evidence-notebook', investigationId],
     queryFn: async () => {
       const [sum, nb] = await Promise.all([
-        apiClient.getInvestigationEvidenceSummary(String(investigationId)) as any,
-        apiClient.getInvestigationNotebook(String(investigationId)) as any,
+        apiClient.getInvestigationEvidenceSummary(String(investigationId)),
+        apiClient.getInvestigationNotebook(String(investigationId)),
       ]);
-      const items = sum?.evidence || [];
+      const items = (sum as { evidence?: EvidenceRecord[] })?.evidence || [];
       const evAnns = await loadEvidenceAnnotations(items);
       return { sum, nb, evAnns };
     },
   });
 
+  const initializedRef = useRef(false);
   useEffect(() => {
-    if (!fetchResult) return;
-    const { sum, nb, evAnns } = fetchResult;
+    if (!fetchResult || initializedRef.current) return;
+    initializedRef.current = true;
+    const { sum, nb, evAnns } = fetchResult as {
+      sum: { evidence?: EvidenceRecord[] };
+      nb: { order?: number[]; annotations?: NotebookAnnotation[] };
+      evAnns: NotebookAnnotation[];
+    };
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSummary(sum);
     const loadedOrder = (nb?.order || []).map(Number).filter(Number.isFinite);
-    setOrder(loadedOrder.length ? loadedOrder : (sum?.evidence || []).map((e: any) => e.id));
-    const merged = [
-      ...(nb?.annotations || []).filter((a: any) => a.source !== 'evidence'),
-      ...evAnns,
-    ];
+    setOrder(loadedOrder.length ? loadedOrder : (sum?.evidence || []).map((e) => e.id));
+    const merged = [...(nb?.annotations || []).filter((a) => a.source !== 'evidence'), ...evAnns];
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setAnnotations(merged);
     const caseNotes = merged.find((a) => a.id === 'case-notes')?.content || '';
     const local = localStorage.getItem(localDraftKey);

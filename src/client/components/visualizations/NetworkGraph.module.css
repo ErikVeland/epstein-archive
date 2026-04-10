@@ -2,10 +2,10 @@
   position: relative;
   width: 100%;
   height: 100%;
-  min-height: 420px;
+  min-height: 480px;
   overflow: hidden;
-  border-radius: var(--radius-lg);
-  background: color-mix(in srgb, var(--glass-bg-strong) 50%, transparent);
+  border-radius: var(--radius-xl);
+  background: color-mix(in srgb, var(--bg-dark) 40%, transparent);
   user-select: none;
 }
 
@@ -84,12 +84,12 @@
 
 .hoverTooltip {
   position: absolute;
-  z-index: 30;
+  z-index: var(--z-tooltip);
   display: flex;
   flex-direction: column;
   gap: 0.125rem;
-  padding: 0.25rem 0.5rem;
-  border: 1px solid color-mix(in srgb, var(--accent) 50%, transparent);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
   border-radius: var(--radius-md);
   background: var(--glass-bg-strong);
   color: var(--text-primary);
@@ -375,8 +375,8 @@
   height: 100%;
   background: radial-gradient(
     circle at 50% 50%,
-    rgba(15, 23, 42, 0.5) 0%,
-    rgba(2, 6, 23, 0.8) 100%
+    color-mix(in srgb, var(--bg-surface) 60%, transparent) 0%,
+    color-mix(in srgb, var(--bg-dark) 90%, transparent) 100%
   );
 }
 
@@ -391,15 +391,15 @@
 .link {
   cursor: pointer;
   transition:
-    stroke 300ms var(--ease-out),
-    stroke-width 300ms var(--ease-out),
-    stroke-opacity 300ms var(--ease-out);
+    stroke var(--duration-normal) var(--easing-liquid),
+    stroke-width var(--duration-normal) var(--easing-liquid),
+    stroke-opacity var(--duration-normal) var(--easing-liquid);
 }
 
 .link:hover {
-  stroke: var(--nav-flights);
-  stroke-opacity: 0.8;
-  stroke-width: 2.5;
+  stroke: var(--accent-info);
+  stroke-opacity: 0.9;
+  stroke-width: 3.5;
 }
 
 .nodeGroup {

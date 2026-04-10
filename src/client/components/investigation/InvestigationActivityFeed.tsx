@@ -16,6 +16,7 @@ import {
   AlertCircle,
   RefreshCw,
   Clock,
+  LucideIcon,
 } from 'lucide-react';
 
 // UI Library
@@ -59,7 +60,7 @@ const actionLabels: Record<string, string> = {
   notebook_updated: 'updated notebook',
 };
 
-const targetTypeIcons: Record<string, any> = {
+const targetTypeIcons: Record<string, LucideIcon> = {
   entity: User,
   document: FileText,
   flight_log: Navigation,
@@ -77,7 +78,7 @@ const getActionIcon = (actionType: string) => {
   return Activity;
 };
 
-const getActionVariant = (actionType: string): any => {
+const getActionVariant = (actionType: string): 'success' | 'error' | 'warning' | 'accent' => {
   if (actionType.includes('added') || actionType.includes('created')) return 'success';
   if (actionType.includes('removed') || actionType.includes('deleted')) return 'error';
   if (actionType.includes('updated') || actionType.includes('changed')) return 'warning';

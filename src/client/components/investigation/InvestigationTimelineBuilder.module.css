@@ -148,7 +148,7 @@
 }
 
 .primaryButton:hover {
-  background: color-mix(in srgb, var(--risk-critical) 80%, white);
+  background: color-mix(in srgb, var(--risk-critical) 80%, transparent);
 }
 
 .filters {

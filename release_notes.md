@@ -1,5 +1,27 @@
 # Release Notes
 
+## v18.6.0 - 2026-04-10 - Archival Hardening & Liquid Glass Standardization
+
+This minor release bundles significant "Hardening" improvements across the investigation suite, purifies the entity directory from archival noise, and completes the standardization of visualization surfaces using Liquid Glass tokens.
+
+### Archival Hardening & Data Integrity
+
+- **Junk Entity Purge**: Improved the entity extraction filter to automatically identify and suppress email header fragments, salutations, and role-based labels (e.g., "From:", "Hi Jeffrey", "professor", "original message").
+- **Robust Relationship Joins**: Fixed type-casting mismatches in the media linking SQL logic, ensuring persistent associations between entities and forensic assets.
+- **Dossier Precision**: Denormalized mention and evidence counts on the primary entity listing to ensure accurate, high-speed sorting.
+
+### Investigation Suite & Visualizations
+
+- **Typed Forensic Reporting**: Upgraded the Report Generator with explicit schema interfaces and localized source tracking for more accurate evidence mapping.
+- **Standardized Surface tokens**: Integrated Liquid Glass design tokens (`--accent-info`, `var(--nav-flights)`, etc.) into the Network Graph and entity cards to eliminate visual drift.
+- **UI Spacing Polish**: Refined toolbar geometry and flex-alignment on the People page for better viewport accessibility.
+
+### Technical & Quality
+
+- **Zero-Warning Hygiene**: Verified a clean production build with 100% pass rates on linting, type-checking, and automated smoke test suites.
+- **Rollback Safety**: Hardened the deployment pipeline with pre-migration Postgres backups and chunk-cache compatibility for zero-downtime serving.
+
+
 ## v18.5.1 - 2026-04-10 - Production Hardening & People Page Restoration
 
 This maintenance release finalizes the v18.5.0 migration by resolving critical data filtering logic, unifying toolbar layouts on the People page, and achieving a zero-warning TypeScript baseline for the Investigation Suite.
@@ -12,9 +34,9 @@ This maintenance release finalizes the v18.5.0 migration by resolving critical d
 
 ### Type-Safety & Stability
 
-- **Zero-Warning Hardening**: Resolved 9 critical TypeScript errors and 80+ linting warnings, including purity violations in the Hypothesis Testing Workbench.
+- **Zero-Warning Hardening**: Resolved 9 critical TypeScript errors and 80+ linting warnings, including schema mismatches in the `entities` repository (synchronized `likelihood_score` → `risk_level`).
 - **Infrastructure Sync**: Synchronized `pnpm` versioning between GitHub Actions and `package.json` to ensure stable CI/CD pipeline runs.
-- **Liquid Glass Alignment**: Standardized component heights (`2.25rem`) and icon baselines across the forensic toolbar and filter dropdowns.
+- **Liquid Glass Alignment**: Hardened toolbar geometry with `!important` tokens to prevent design system overrides and standardized icon baselines.
 
 ## v18.5.0 - 2026-04-10 - Iconic Typography & Forensic Restoration
 

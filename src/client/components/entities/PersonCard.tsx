@@ -9,6 +9,7 @@ import {
   calculateSignalMetrics,
   generateDriverChips,
 } from '../../utils/forensics';
+import { Button } from '../../design-system/lib';
 import { SignalPanel } from './cards/SignalPanel';
 import { EvidenceBadge } from './cards/EvidenceBadge';
 import { DriverChips } from './cards/DriverChips';
@@ -154,9 +155,9 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onClick, searchTerm }) 
             <span className={styles.bioSnippet}>&ldquo;{person.bio.slice(0, 30)}...&rdquo;</span>
           )}
         </div>
-        <button type="button" onClick={onClick} className={styles.profileLink}>
+        <Button variant="glass" size="sm" onClick={onClick} className={styles.profileLink}>
           Profile <Icon name="ArrowRight" />
-        </button>
+        </Button>
       </div>
     </article>
   );

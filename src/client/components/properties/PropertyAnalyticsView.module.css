@@ -33,7 +33,11 @@
 
 .barFill {
   width: 100%;
-  background: linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent) 65%, white));
+  background: linear-gradient(
+    180deg,
+    var(--accent),
+    color-mix(in srgb, var(--accent) 65%, transparent)
+  );
   border-radius: 4px 4px 0 0;
   min-height: 4px;
   margin-top: auto;

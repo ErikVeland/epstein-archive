@@ -996,7 +996,7 @@ function App() {
                           className={cn(styles.headerStat, styles.headerStatPeople)}
                           title="Subjects"
                         >
-                          {headerTotalPeople.toLocaleString()}
+                          {(headerTotalPeople ?? 0).toLocaleString()}
                         </span>
                       </div>
                       <div className={styles.headerStatItem}>
@@ -1005,7 +1005,7 @@ function App() {
                           className={cn(styles.headerStat, styles.headerStatMentions)}
                           title="Mentions"
                         >
-                          {headerTotalMentions.toLocaleString()}
+                          {(headerTotalMentions ?? 0).toLocaleString()}
                         </span>
                       </div>
                       <div className={styles.headerStatItem}>
@@ -1014,7 +1014,7 @@ function App() {
                           className={cn(styles.headerStat, styles.headerStatFiles)}
                           title="Files"
                         >
-                          {headerTotalFiles.toLocaleString()}
+                          {(headerTotalFiles ?? 0).toLocaleString()}
                         </span>
                       </div>
                     </div>
@@ -1328,7 +1328,7 @@ function App() {
                 >
                   <div className={styles.mobileStatLabel}>People</div>
                   <div className={cn(styles.mobileStatValue, styles.mobileStatPeople)}>
-                    {headerTotalPeople.toLocaleString()}
+                    {(headerTotalPeople ?? 0).toLocaleString()}
                   </div>
                 </Surface>
                 <Surface
@@ -1345,7 +1345,7 @@ function App() {
                 >
                   <div className={styles.mobileStatLabel}>Mentions</div>
                   <div className={cn(styles.mobileStatValue, styles.mobileStatMentions)}>
-                    {headerTotalMentions.toLocaleString()}
+                    {(headerTotalMentions ?? 0).toLocaleString()}
                   </div>
                 </Surface>
                 <Surface
@@ -1362,7 +1362,7 @@ function App() {
                 >
                   <div className={styles.mobileStatLabel}>Files</div>
                   <div className={cn(styles.mobileStatValue, styles.mobileStatFiles)}>
-                    {headerTotalFiles.toLocaleString()}
+                    {(headerTotalFiles ?? 0).toLocaleString()}
                   </div>
                 </Surface>
               </Grid>

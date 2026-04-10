@@ -25,11 +25,25 @@
   height: 3px;
   overflow: hidden;
   border-radius: 9999px;
-  background: color-mix(in srgb, var(--glass-bg) 80%, transparent);
+  background: color-mix(in srgb, var(--glass-border) 30%, transparent);
 }
 
 .fill {
   height: 100%;
-  background: color-mix(in srgb, var(--app-bg) 70%, transparent);
-  transition: width 500ms ease-out;
+  transition: width 500ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.exposureFill {
+  background: var(--accent);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+.networkFill {
+  background: var(--accent-warning);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent-warning) 40%, transparent);
+}
+
+.sourceFill {
+  background: var(--accent-info);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent-info) 40%, transparent);
 }

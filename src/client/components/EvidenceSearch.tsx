@@ -124,7 +124,7 @@ export const EvidenceSearch: React.FC<EvidenceSearchProps> = ({ onPersonClick })
       if (!q) return [];
       const r = await fetch(`/api/search?q=${encodeURIComponent(q)}&limit=8&snippets=true`);
       const json = await r.json();
-      return (json.documents || []).map((d: any) => ({
+      return (json.documents || []).map((d: Record<string, unknown>) => ({
         id: Number(d.id),
         title: String(d.title),
         redFlagRating: Number(d.redFlagRating),

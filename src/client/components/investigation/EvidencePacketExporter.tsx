@@ -73,13 +73,13 @@ export const EvidencePacketExporter: React.FC<EvidencePacketExporterProps> = ({
           <Grid cols={2} gap="md">
             {[
               {
-                id: 'json',
+                id: 'json' as const,
                 label: 'JSON Stream',
                 icon: FileJson,
                 desc: 'Machine-readable structured data.',
               },
               {
-                id: 'zip',
+                id: 'zip' as const,
                 label: 'ZIP Archive',
                 icon: FileArchive,
                 desc: 'Compressed bundle with media buffers.',
@@ -95,7 +95,7 @@ export const EvidencePacketExporter: React.FC<EvidencePacketExporterProps> = ({
                     ? 'border-[var(--lq-accent)]'
                     : 'border-[var(--lq-surface-3)]',
                 )}
-                onClick={() => setSelectedFormat(f.id as any)}
+                onClick={() => setSelectedFormat(f.id)}
               >
                 <Flex gap="md" align="center">
                   <Box

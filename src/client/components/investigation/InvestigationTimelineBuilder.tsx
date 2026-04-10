@@ -110,12 +110,14 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
     // Legacy persistence logic
     try {
       const mode = window.localStorage.getItem(`iv_tm_mode_${investigation.id}`);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (mode === 'narrative' || mode === 'chronological') setOrderingMode(mode);
       const host = window.localStorage.getItem(`iv_tm_ord_${investigation.id}`);
       if (host) setNarrativeOrder(JSON.parse(host));
     } catch {
       /* ... */
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
   }, [investigation.id]);
 
   const orderedEvents = useMemo(() => {
@@ -196,7 +198,9 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
               <Calendar size={14} className={styles.autoGen297} />
               <select
                 value={timelineScale}
-                onChange={(e) => setTimelineScale(e.target.value as any)}
+                onChange={(e) =>
+                  setTimelineScale(e.target.value as 'day' | 'week' | 'month' | 'year')
+                }
                 style={{
                   background: 'var(--lq-surface-3)',
                   border: '1px solid var(--lq-surface-4)',
@@ -520,7 +524,9 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
                         outline: 'none',
                       }}
                       value={newEvent.type}
-                      onChange={(e) => setNewEvent({ ...newEvent, type: e.target.value as any })}
+                      onChange={(e) =>
+                        setNewEvent({ ...newEvent, type: e.target.value as TimelineEvent['type'] })
+                      }
                     >
                       {eventTypes.map((t) => (
                         <option key={t.value} value={t.value}>

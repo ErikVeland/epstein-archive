@@ -295,7 +295,7 @@
 }
 
 .primaryButton:hover {
-  background: color-mix(in srgb, var(--accent) 80%, white);
+  background: color-mix(in srgb, var(--accent) 80%, transparent);
 }
 
 .filtersRow {
@@ -649,7 +649,7 @@
 }
 
 .annotateButton:hover {
-  color: color-mix(in srgb, var(--accent-purple) 80%, white);
+  color: color-mix(in srgb, var(--accent-purple) 80%, transparent);
 }
 
 .annotationCount {
@@ -757,7 +757,7 @@
 }
 
 .modalSearchButton:hover {
-  background: color-mix(in srgb, var(--accent) 80%, white);
+  background: color-mix(in srgb, var(--accent) 80%, transparent);
 }
 
 .resultCard {

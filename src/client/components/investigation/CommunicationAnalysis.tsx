@@ -90,12 +90,12 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
         const allItems = Array.isArray(payload?.all) ? payload.all : [];
         const fromCaseFolder = allItems
           .filter(
-            (item: any) =>
+            (item: Record<string, unknown>) =>
               item?.targetType === 'entity' ||
               String(item?.sourcePath || '').startsWith('entity:') ||
               ['entity', 'person', 'organization'].includes(String(item?.type || '').toLowerCase()),
           )
-          .map((item: any) => {
+          .map((item: Record<string, unknown>) => {
             if (item?.targetId) return String(item.targetId);
             const match = String(item?.sourcePath || '').match(/^entity:(\d+)$/);
             return match ? match[1] : null;
@@ -123,21 +123,33 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
       return;
     }
 
-    const allEvents: any[] = [];
+    interface CommunicationEvent {
+      entityId: string;
+      documentId: string;
+      threadId: string;
+      subject: string;
+      date: string;
+      from: string;
+      to: string[];
+      cc: string[];
+      topic: string;
+    }
+
+    const allEvents: CommunicationEvent[] = [];
     for (let i = 0; i < entityIds.length; i++) {
       const entityId = entityIds[i];
       try {
         setAnalysisMessage(`Processing signal for entity ${entityId}`);
         const res = await apiClient.getEntityCommunications(entityId, { limit: 500 });
-        const events = (res.data || []).map((ev: any) => ({
+        const events = ((res.data || []) as Record<string, unknown>[]).map((ev) => ({
           entityId,
           documentId: String(ev.documentId || ev.document_id || ''),
           threadId: String(ev.threadId || ev.thread_id || ''),
           subject: String(ev.subject || ''),
           date: ev.date ? String(ev.date) : '',
           from: String(ev.from || ''),
-          to: Array.isArray(ev.to) ? ev.to : [],
-          cc: Array.isArray(ev.cc) ? ev.cc : [],
+          to: Array.isArray(ev.to) ? (ev.to as string[]) : [],
+          cc: Array.isArray(ev.cc) ? (ev.cc as string[]) : [],
           topic: String(ev.topic || 'misc'),
         }));
         allEvents.push(...events);
@@ -162,7 +174,7 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
     const byTopic = new Map<string, number>();
     const byPair = new Map<string, number>();
     const byHour: number[] = Array.from({ length: 24 }, () => 0);
-    const byHourBucket = new Map<string, any[]>();
+    const byHourBucket = new Map<string, CommunicationEvent[]>();
 
     allEvents.forEach((ev) => {
       byTopic.set(ev.topic, (byTopic.get(ev.topic) || 0) + 1);
@@ -249,14 +261,16 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
     }
   };
 
-  const getSeverityVariant = (s: string): any => {
-    const variants: Record<string, any> = {
-      critical: 'error',
+  const getSeverityVariant = (
+    s: string,
+  ): 'danger' | 'warning' | 'accent' | 'neutral' | 'success' => {
+    const variants: Record<string, 'danger' | 'warning' | 'accent' | 'neutral' | 'success'> = {
+      critical: 'danger',
       high: 'warning',
       medium: 'accent',
-      low: 'glass',
+      low: 'neutral',
     };
-    return variants[s] || 'glass';
+    return variants[s] || 'neutral';
   };
 
   const openScopedEmailView = (pattern?: CommunicationPattern) => {
@@ -323,16 +337,18 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
                 >
                   FILTER SIGMA:
                 </LqText>
-                {['all', 'frequency', 'timing', 'network', 'anomaly'].map((t) => (
-                  <Button
-                    key={t}
-                    variant={filterType === t ? 'secondary' : 'ghost'}
-                    size="sm"
-                    onClick={() => setFilterType(t as any)}
-                  >
-                    {t.toUpperCase()}
-                  </Button>
-                ))}
+                {(['all', 'frequency', 'timing', 'network', 'anomaly'] as PatternFilterType[]).map(
+                  (t) => (
+                    <Button
+                      key={t}
+                      variant={filterType === t ? 'secondary' : 'ghost'}
+                      size="sm"
+                      onClick={() => setFilterType(t)}
+                    >
+                      {t.toUpperCase()}
+                    </Button>
+                  ),
+                )}
               </Flex>
             </Surface>
 

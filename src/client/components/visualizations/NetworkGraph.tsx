@@ -628,21 +628,16 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
   );
 
   return (
-    <div
-      className={`${styles.softGlassOutline} ${styles.root} ${spacePressed ? styles.panMode : ''}`}
-    >
+    <div className={`glass-panel ${styles.root} ${spacePressed ? styles.panMode : ''}`}>
       {/* Controls */}
       <div className={styles.controls}>
-        <button onClick={zoomIn} className={`${styles.softGlassOutline} ${styles.controlButton}`}>
+        <button onClick={zoomIn} className={`glass-surface ${styles.controlButton}`}>
           <ZoomIn className={styles.controlIcon} />
         </button>
-        <button onClick={zoomOut} className={`${styles.softGlassOutline} ${styles.controlButton}`}>
+        <button onClick={zoomOut} className={`glass-surface ${styles.controlButton}`}>
           <ZoomOut className={styles.controlIcon} />
         </button>
-        <button
-          onClick={resetView}
-          className={`${styles.softGlassOutline} ${styles.controlButton}`}
-        >
+        <button onClick={resetView} className={`glass-surface ${styles.controlButton}`}>
           <RefreshCw className={styles.controlIcon} />
         </button>
         <button
@@ -653,7 +648,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
           className={
             showFilters
               ? `${styles.controlButton} ${styles.filterButton} ${styles.filterButtonActive}`
-              : `${styles.softGlassOutline} ${styles.controlButton} ${styles.filterButton}`
+              : `glass-surface ${styles.controlButton} ${styles.filterButton}`
           }
         >
           <Filter className={styles.controlIcon} />
@@ -682,7 +677,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
       )}
       {/* Filter Panel */}
       {showFilters && (
-        <div className={`${styles.softGlassOutline} ${styles.filterPanel}`}>
+        <div className={`soft-glass-panel-strong ${styles.filterPanel}`}>
           <p className={styles.filterTitle}>
             <Filter className={styles.tinyIcon} /> Node Filters
           </p>
@@ -764,7 +759,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
       )}
 
       {/* Legend */}
-      <div className={`${styles.softGlassOutline} ${styles.legend} ${styles.legendInteractive}`}>
+      <div className={`soft-glass-panel ${styles.legend} ${styles.legendInteractive}`}>
         <div className={styles.legendHeader}>
           <p className={styles.legendTitle}>Node Risk</p>
           {nodeRiskActions ? <div className={styles.legendActions}>{nodeRiskActions}</div> : null}
@@ -788,7 +783,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
           <div className={styles.legendEdgeList}>
             <div className={styles.legendEdgeItem}>
               <svg width="18" height="6" viewBox="0 0 18 6" aria-hidden="true">
-                <line x1="0" y1="3" x2="18" y2="3" stroke="#60a5fa" strokeWidth="1.5" />
+                <line x1="0" y1="3" x2="18" y2="3" stroke="var(--accent-info)" strokeWidth="1.5" />
               </svg>
               Direct
             </div>
@@ -799,7 +794,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
                   y1="3"
                   x2="18"
                   y2="3"
-                  stroke="#22d3ee"
+                  stroke="var(--nav-flights)"
                   strokeWidth="1.5"
                   strokeDasharray="3 2"
                 />
@@ -813,7 +808,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
                   y1="3"
                   x2="18"
                   y2="3"
-                  stroke="#a855f7"
+                  stroke="var(--nav-media)"
                   strokeWidth="1.5"
                   strokeDasharray="1.5 2.5"
                 />
@@ -894,7 +889,11 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
               const type = String(link.type || '').toLowerCase();
               const isInferred = link.classification === 'INFERRED' || type.includes('infer');
               const isAgentic = type.includes('agentic') || type.includes('derived');
-              const stroke = isAgentic ? '#a855f7' : isInferred ? '#22d3ee' : '#60a5fa';
+              const stroke = isAgentic
+                ? 'var(--nav-media)'
+                : isInferred
+                  ? 'var(--nav-flights)'
+                  : 'var(--accent-info)';
               // Dynamic width based on weight (1.0 to 3.5 base pixels since non-scaling-stroke is active)
               const weightBonus = (link.normalizedWeight || 0) * 2.5;
               const baseWidth = 1.0 + weightBonus;
@@ -913,7 +912,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
                   y1={link.source.y}
                   x2={link.target.x}
                   y2={link.target.y}
-                  stroke={isHighlight ? '#e2e8f0' : stroke}
+                  stroke={isHighlight ? 'var(--text-strong)' : stroke}
                   strokeWidth={isHighlight ? highlightWidth : baseWidth}
                   strokeOpacity={isHighlight ? 0.85 : baseOpacity}
                   strokeDasharray={isInferred || isAgentic ? '1.6 1.2' : undefined}
@@ -1010,7 +1009,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
                     <text
                       dy={size / 2 + 2.8}
                       textAnchor="middle"
-                      fill="#e2e8f0"
+                      fill="var(--text-default)"
                       fontSize={Math.max(labelFontSize, size / 2.8)}
                       className={styles.label}
                       style={{

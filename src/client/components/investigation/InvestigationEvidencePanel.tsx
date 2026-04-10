@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Plus,
   Search,
@@ -87,6 +87,7 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
     evidenceType?: string;
     entityCategory?: string;
   }
+
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [annotatingEvidence, setAnnotatingEvidence] = useState<Evidence | null>(null);
@@ -102,16 +103,16 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
 
   useScrollLock(showAddModal);
 
-  useEffect(() => {
-    loadEvidenceSummary();
-  }, [investigationId]);
-
-  const loadEvidenceSummary = async () => {
+  const loadEvidenceSummary = useCallback(async () => {
     setLoading(true);
     try {
-      const data = (await apiClient.getInvestigationEvidenceSummary(
-        String(investigationId),
-      )) as any;
+      const data = (await apiClient.getInvestigationEvidenceSummary(String(investigationId))) as {
+        evidence?: Evidence[];
+        entityCoverage?: Entity[];
+        typeBreakdown?: Record<string, number>;
+        entityByEvidence?: Record<string, EntityRef[]>;
+        evidenceByEntity?: Record<string, string[]>;
+      };
       setEvidence(data.evidence || []);
       setEntityCoverage(data.entityCoverage || []);
       setTypeBreakdown(data.typeBreakdown || {});
@@ -122,7 +123,11 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
     } finally {
       setLoading(false);
     }
-  };
+  }, [investigationId]);
+
+  useEffect(() => {
+    loadEvidenceSummary();
+  }, [loadEvidenceSummary]);
 
   const handleDeleteEvidence = async (id: number) => {
     if (!window.confirm('Remove this evidence item from the investigation?')) return;
@@ -148,9 +153,18 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
         entRes.json(),
       ]);
       const combined: SearchResult[] = [
-        ...(evData.results || []).map((i: any) => ({ ...i, source: 'evidence' })),
-        ...(docData.results || []).map((i: any) => ({ ...i, source: 'document' })),
-        ...(entData.results || []).map((i: any) => ({ ...i, source: 'entity' })),
+        ...((evData.results as SearchResult[]) || []).map((i) => ({
+          ...i,
+          source: 'evidence' as const,
+        })),
+        ...((docData.results as SearchResult[]) || []).map((i) => ({
+          ...i,
+          source: 'document' as const,
+        })),
+        ...((entData.results as SearchResult[]) || []).map((i) => ({
+          ...i,
+          source: 'entity' as const,
+        })),
       ];
       setSearchResults(combined);
     } catch (error) {
@@ -368,7 +382,20 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
                   <LqText variant="xs" weight="bold" color="muted">
                     {s.label.toUpperCase()}
                   </LqText>
-                  <LqText variant="h2" weight="bold" color={s.color as any}>
+                  <LqText
+                    variant="h2"
+                    weight="bold"
+                    color={
+                      s.color as
+                        | 'primary'
+                        | 'secondary'
+                        | 'muted'
+                        | 'accent'
+                        | 'danger'
+                        | 'success'
+                        | 'warning'
+                    }
+                  >
                     {loading ? <Skeleton width={40} height={32} /> : s.val}
                   </LqText>
                 </Stack>

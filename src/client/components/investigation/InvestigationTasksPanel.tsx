@@ -32,7 +32,7 @@ interface InvestigationTasksPanelProps {
   onClose: () => void;
 }
 
-const STATUS_VARIANT: Record<TaskStatus, any> = {
+const STATUS_VARIANT: Record<TaskStatus, 'success' | 'accent' | 'glass' | 'warning'> = {
   completed: 'success',
   in_progress: 'accent',
   pending: 'glass',
@@ -40,7 +40,7 @@ const STATUS_VARIANT: Record<TaskStatus, any> = {
   cancelled: 'glass',
 };
 
-const PRIORITY_VARIANT: Record<TaskPriority, any> = {
+const PRIORITY_VARIANT: Record<TaskPriority, 'danger' | 'warning' | 'accent' | 'glass'> = {
   critical: 'danger',
   high: 'warning',
   medium: 'accent',
@@ -210,7 +210,7 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
                   outline: 'none',
                 }}
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as any)}
+                onChange={(e) => setStatusFilter(e.target.value as TaskStatus | 'all')}
               >
                 <option value="all">Any Status</option>
                 <option value="pending">Pending</option>
@@ -231,7 +231,7 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
                   outline: 'none',
                 }}
                 value={priorityFilter}
-                onChange={(e) => setPriorityFilter(e.target.value as any)}
+                onChange={(e) => setPriorityFilter(e.target.value as TaskPriority | 'all')}
               >
                 <option value="all">Any Priority</option>
                 <option value="critical">Critical</option>
@@ -388,7 +388,9 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
                       outline: 'none',
                     }}
                     value={newTask.priority}
-                    onChange={(e) => setNewTask((t) => ({ ...t, priority: e.target.value as any }))}
+                    onChange={(e) =>
+                      setNewTask((t) => ({ ...t, priority: e.target.value as TaskPriority }))
+                    }
                   >
                     {['critical', 'high', 'medium', 'low'].map((p) => (
                       <option key={p} value={p}>

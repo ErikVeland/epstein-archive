@@ -482,7 +482,13 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
                                     }}
                                     value={linkData.relevance}
                                     onChange={(e) =>
-                                      setLinkData({ ...linkData, relevance: e.target.value as any })
+                                      setLinkData({
+                                        ...linkData,
+                                        relevance: e.target.value as
+                                          | 'supporting'
+                                          | 'contradicting'
+                                          | 'neutral',
+                                      })
                                     }
                                   >
                                     <option value="supporting">Supporting</option>

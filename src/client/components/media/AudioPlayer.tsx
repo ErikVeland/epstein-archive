@@ -96,10 +96,13 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
     // Initialize analyzer only on first play or when src changes
     const initAnalyzer = () => {
       if (audioContextRef.current) return;
-      const Ctor = window.AudioContext || (window as any).webkitAudioContext;
-      if (!Ctor) return;
+      const AudioContextClass =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof window.AudioContext })
+          .webkitAudioContext;
+      if (!AudioContextClass) return;
 
-      const ctx = new Ctor();
+      const ctx = new AudioContextClass();
       audioContextRef.current = ctx;
       const source = ctx.createMediaElementSource(audioRef.current!);
       const analyser = ctx.createAnalyser();

@@ -31,14 +31,14 @@
 
 /* Modal surface */
 .modal {
-  border-radius: 0;
   display: flex;
   flex-direction: column;
   border: 0;
   pointer-events: auto;
   overflow: hidden;
-  width: clamp(960px, 94vw, 1500px);
-  height: clamp(600px, 90vh, 1000px);
+  border-radius: 0;
+  width: 100%;
+  height: 100%;
   box-shadow:
     0 0 0 1px var(--glass-border),
     var(--glass-shadow);
@@ -47,6 +47,8 @@
 @media (min-width: 768px) {
   .modal {
     border-radius: var(--radius-xl);
+    width: clamp(960px, 94vw, 1500px);
+    height: clamp(600px, 90vh, 1000px);
   }
 }
 

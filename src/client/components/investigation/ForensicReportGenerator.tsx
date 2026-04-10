@@ -32,9 +32,11 @@ interface GeneratedReport {
   sections: {
     id: string;
     title: string;
+    type: string;
     content: string;
     evidence: string[];
     confidence: number;
+    sources?: string[];
   }[];
   generatedAt: string;
   generatedBy: string;
@@ -132,9 +134,13 @@ export default function ForensicReportGenerator({
         let entities = [];
 
         if (investigationId) {
-          entities = (await entRes.json())
-            .filter((e: any) => e.type === 'entity')
-            .map((e: any) => ({ name: e.title || e.name, id: e.source_id }));
+          const data = await entRes.json();
+          entities = (Array.isArray(data) ? data : [])
+            .filter((e: Record<string, unknown>) => e.type === 'entity')
+            .map((e: Record<string, unknown>) => ({
+              name: String(e.title || e.name),
+              id: String(e.source_id),
+            }));
         } else {
           entities = (await entRes.json()).data || [];
         }
@@ -174,7 +180,7 @@ export default function ForensicReportGenerator({
         sections: template.sections.map((s) => ({
           id: s,
           title: s.replace('_', ' ').toUpperCase(),
-          type: s as any,
+          type: s,
           content: `Automated forensic output for ${s}... [Content placeholder for v18.3.4 extraction demo]`,
           evidence: includeEvidence ? ['REF-001', 'REF-002'] : [],
           confidence: 90,

@@ -14,6 +14,7 @@ import { type EvidenceLadderLevel } from '../../utils/forensics';
 import { Flex } from '../../design-system/components/layout/Flex';
 import { Stack } from '../../design-system/components/layout/Stack';
 import { Grid } from '../../design-system/components/layout/Grid';
+import { Button } from '../../design-system/lib';
 import styles from './SubjectCardV2.module.css';
 
 interface SubjectCardV2Props {
@@ -76,7 +77,7 @@ const SubjectCardV2: React.FC<SubjectCardV2Props> = React.memo(({ subject, style
           boxShadow: `inset 0 1px 0 color-mix(in srgb, var(--text-strong) 5%, transparent), 0 12px 26px color-mix(in srgb, var(--bg-dark) 36%, transparent), 0 0 0 1px color-mix(in srgb, ${riskTone.cssVar} 22%, transparent)`,
         }}
       >
-        <Flex align="start" gap="md" className={styles.headerRow}>
+        <Flex align="center" gap="md" className={styles.headerRow}>
           <div className={styles.avatarShell}>
             {avatarUrl ? (
               <img
@@ -148,9 +149,14 @@ const SubjectCardV2: React.FC<SubjectCardV2Props> = React.memo(({ subject, style
             </span>
           </Tooltip>
           <Tooltip content="Open full profile for this entity" position="top-end">
-            <button type="button" onClick={handleProfileClick} className={styles.viewButton}>
+            <Button
+              variant="glass"
+              size="sm"
+              onClick={handleProfileClick}
+              className={styles.viewButton}
+            >
               View <Icon name="ArrowRight" />
-            </button>
+            </Button>
           </Tooltip>
         </Flex>
       </article>

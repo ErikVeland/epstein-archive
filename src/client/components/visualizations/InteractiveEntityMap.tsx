@@ -15,6 +15,7 @@ import {
 import { apiClient } from '../../services/apiClient';
 import { useScrollLock } from '../../hooks/useScrollLock';
 import ScopedErrorBoundary from '../common/ScopedErrorBoundary';
+import { Button } from '../../design-system/lib';
 import styles from './InteractiveEntityMap.module.css';
 
 // Fix for default marker icon issues
@@ -221,14 +222,16 @@ export const InteractiveEntityMap: React.FC<InteractiveEntityMapProps> = ({
                     </div>
                   </div>
 
-                  <button
+                  <Button
+                    variant="glass"
+                    size="sm"
                     onClick={() => {
                       if (typeof entity.id === 'number') onEntitySelect?.(entity.id);
                     }}
                     className={styles.profileButton}
                   >
                     View Profile <Navigation className={styles.buttonIcon} />
-                  </button>
+                  </Button>
                 </div>
               </Popup>
             </Marker>

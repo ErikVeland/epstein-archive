@@ -18,6 +18,7 @@ import {
   History,
   Loader2,
   Zap,
+  LucideIcon,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToasts } from '../common/useToasts';
@@ -59,7 +60,7 @@ interface ExportOption {
   description: string;
   available: boolean;
   unavailableReason?: string;
-  icon: any;
+  icon: LucideIcon;
 }
 
 const exportOptions: ExportOption[] = [
@@ -240,7 +241,7 @@ export const InvestigationExportTools: React.FC<ExportToolsProps> = ({
                   variant={step === idx ? 'primary' : 'ghost'}
                   size="sm"
                   className="min-w-[50px]"
-                  onClick={() => setStep(idx as any)}
+                  onClick={() => setStep(idx as 1 | 2 | 3 | 4)}
                 >
                   Step {idx}
                 </Button>
@@ -551,7 +552,7 @@ export const InvestigationExportTools: React.FC<ExportToolsProps> = ({
               variant="ghost"
               size="sm"
               disabled={step === 1}
-              onClick={() => setStep((s) => Math.max(1, s - 1) as any)}
+              onClick={() => setStep((s) => Math.max(1, s - 1) as 1 | 2 | 3 | 4)}
             >
               <ChevronLeft size={16} className="mr-2" /> Back
             </Button>
@@ -559,7 +560,7 @@ export const InvestigationExportTools: React.FC<ExportToolsProps> = ({
               variant="primary"
               size="sm"
               disabled={step === 4 || (!selectedOption.available && step === 1)}
-              onClick={() => setStep((s) => Math.min(4, s + 1) as any)}
+              onClick={() => setStep((s) => Math.min(4, s + 1) as 1 | 2 | 3 | 4)}
             >
               Next <ChevronRight size={16} className="ml-2" />
             </Button>

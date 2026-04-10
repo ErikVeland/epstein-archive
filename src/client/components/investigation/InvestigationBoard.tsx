@@ -12,7 +12,7 @@ import {
   Activity,
   Search,
 } from 'lucide-react';
-import { EvidenceItem } from '../../types/investigation';
+import { EvidenceItem, Hypothesis } from '../../types/investigation';
 import { apiClient } from '../../services/apiClient';
 import { DocumentModal } from '../documents/DocumentModal';
 import { BoardOnboarding } from './BoardOnboarding';
@@ -52,6 +52,22 @@ const useVirtualWindow = (itemCount: number, rowHeight: number, overscan = 6) =>
     setScrollTop,
   };
 };
+
+interface HypothesisWithLinks extends Hypothesis {
+  evidenceLinks?: Array<{
+    id: string;
+    evidenceId: string;
+    evidence_title: string;
+    relevance: string;
+  }>;
+}
+
+interface CreateHypothesisResponse {
+  id: string | number;
+  title: string;
+  description?: string;
+  status: string;
+}
 
 export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investigationId }) => {
   const {
@@ -119,18 +135,28 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
   const handleCreateHypothesis = async () => {
     if (!newHypothesisTitle.trim()) return;
     try {
-      const created = await apiClient.post<any>(`/investigations/${investigationId}/hypotheses`, {
-        title: newHypothesisTitle,
-        description: newHypothesisDesc,
-        status: 'draft',
-      });
-      setHypotheses((prev: any) => [
+      const created = await apiClient.post<CreateHypothesisResponse>(
+        `/investigations/${investigationId}/hypotheses`,
+        {
+          title: newHypothesisTitle,
+          description: newHypothesisDesc,
+          status: 'draft',
+        },
+      );
+      setHypotheses((prev: Hypothesis[]) => [
         {
           id: String(created.id),
+          investigationId,
           title: created.title,
           description: created.description || '',
-          status: created.status || 'proposed',
-          evidenceLinks: [],
+          status: (created.status || 'proposed') as Hypothesis['status'],
+          evidence: [],
+          evidenceIds: [],
+          timelineEventIds: [],
+          confidence: 0,
+          createdBy: '',
+          createdAt: new Date(),
+          relatedHypotheses: [],
         },
         ...prev,
       ]);
@@ -149,21 +175,13 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
         `/investigations/${investigationId}/hypotheses/${hypothesisId}/evidence`,
         { evidenceId: draggedEvidence.id, relevance: 'supporting' },
       );
-      setHypotheses((prev: any) =>
-        prev.map((h: any) =>
+      setHypotheses((prev: Hypothesis[]) =>
+        prev.map((h: Hypothesis) =>
           String(h.id) === String(hypothesisId)
-            ? {
+            ? ({
                 ...h,
-                evidenceLinks: [
-                  ...(h.evidenceLinks || []),
-                  {
-                    id: `temp-${Date.now()}`,
-                    evidenceId: draggedEvidence.id,
-                    evidence_title: draggedEvidence.title,
-                    relevance: 'supporting',
-                  },
-                ],
-              }
+                evidenceIds: [...(h.evidenceIds || []), draggedEvidence.id],
+              } as Hypothesis)
             : h,
         ),
       );
@@ -308,7 +326,7 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
                   {hypothesesVirtual.topSpacer > 0 && (
                     <Box style={{ height: hypothesesVirtual.topSpacer }} />
                   )}
-                  {displayedHypotheses.map((h: any) => (
+                  {displayedHypotheses.map((h: HypothesisWithLinks) => (
                     <Surface
                       key={h.id}
                       variant="glass"

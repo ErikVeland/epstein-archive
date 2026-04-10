@@ -17,7 +17,10 @@ export const SignalPanel: React.FC<SignalPanelProps> = ({ metrics }) => {
         <div className={styles.row}>
           <span className={styles.label}>Exposure</span>
           <div className={styles.track}>
-            <div className={styles.fill} style={{ width: `${Math.max(5, metrics.exposure)}%` }} />
+            <div
+              className={`${styles.fill} ${styles.exposureFill}`}
+              style={{ width: `${Math.max(5, metrics.exposure)}%` }}
+            />
           </div>
         </div>
       </Tooltip>
@@ -30,7 +33,7 @@ export const SignalPanel: React.FC<SignalPanelProps> = ({ metrics }) => {
           <span className={styles.label}>Network</span>
           <div className={styles.track}>
             <div
-              className={styles.fill}
+              className={`${styles.fill} ${styles.networkFill}`}
               style={{ width: `${Math.max(5, metrics.connectivity)}%` }}
             />
           </div>
@@ -45,7 +48,7 @@ export const SignalPanel: React.FC<SignalPanelProps> = ({ metrics }) => {
           <span className={styles.label}>Source</span>
           <div className={styles.track}>
             <div
-              className={styles.fill}
+              className={`${styles.fill} ${styles.sourceFill}`}
               style={{ width: `${Math.max(5, metrics.corroboration)}%` }}
             />
           </div>

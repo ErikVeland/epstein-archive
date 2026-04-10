@@ -7,6 +7,15 @@
   overflow: hidden;
 }
 
+@media (max-width: 767px) {
+  .boardContainer {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+  }
+}
+
 .exportButtonWrapper {
   position: absolute;
   top: var(--space-4);
@@ -41,6 +50,7 @@
   display: flex;
   flex-direction: column;
   min-width: 300px;
+  scroll-snap-align: start;
 }
 
 .columnHeader {
@@ -295,6 +305,7 @@
   flex-direction: column;
   min-width: 300px;
   background-color: var(--glass-bg);
+  scroll-snap-align: start;
 }
 
 .evidenceCount {
@@ -395,6 +406,7 @@
   display: flex;
   flex-direction: column;
   min-width: 300px;
+  scroll-snap-align: start;
 }
 
 .narrativeScrollArea {

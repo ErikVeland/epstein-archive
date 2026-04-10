@@ -37,7 +37,12 @@
   width: 100%;
   min-width: 10rem; /* min-w-[160px] */
   right: 0;
-  padding: var(--space-1);
+  padding: var(--space-2);
+  background: var(--lq-surface-2) !important;
+  border: 1px solid var(--lq-surface-focus);
+  box-shadow: var(--shadow-xl);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(16px);
 }
 
 @media (min-width: 768px) {
@@ -74,10 +79,12 @@
 }
 
 .option:hover {
-  background: color-mix(in srgb, var(--glass-bg-highlight) 55%, transparent);
+  background: var(--lq-surface-focus) !important;
+  color: var(--lq-text-white) !important;
 }
 
 .optionSelected {
-  background: color-mix(in srgb, var(--glass-bg-highlight) 65%, transparent);
-  color: var(--text-primary);
+  background: var(--lq-surface-focus) !important;
+  color: var(--lq-text-white) !important;
+  font-weight: 600;
 }

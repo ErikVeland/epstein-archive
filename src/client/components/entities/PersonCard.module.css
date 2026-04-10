@@ -1,8 +1,9 @@
 /* src/client/components/entities/PersonCard.module.css */
 
-/* ── Card root ── */
 .card {
   height: 100%;
+  padding: var(--space-5);
+  box-sizing: border-box !important;
 }
 
 /* ── Click target (invisible full-card button) ── */
@@ -22,7 +23,7 @@
 /* ── Identity header ── */
 .identityHeader {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--space-4);
   margin-bottom: var(--space-3);
 }

@@ -336,8 +336,18 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
     const fetchAnalyticalContext = async () => {
       if (!selectedInvestigation) return;
       try {
-        const stats = await apiClient.get(`/investigations/${selectedInvestigation.id}/stats`);
-        if (stats) setDbStats(stats as any);
+        const stats = await apiClient.get<Record<string, unknown>>(
+          `/investigations/${selectedInvestigation.id}/stats`,
+        );
+        if (stats)
+          setDbStats(
+            stats as {
+              totalEntities: number;
+              totalDocuments: number;
+              entitiesWithDocuments: number;
+              documentsWithMetadata: number;
+            },
+          );
       } catch (_err) {
         // Fallback or ignore
       }
@@ -373,7 +383,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
             id: `ev-${item.id}`,
             type: (item.type === 'document' || item.type === 'testimony'
               ? 'document'
-              : 'evidence') as any,
+              : 'evidence') as NetworkNode['type'],
             label: item.title || 'Untitled Evidence',
             importance: item.relevance === 'high' ? 4 : 2,
             metadata: {
@@ -482,7 +492,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   // --- Render Helpers ---
 
   const getStatusBadge = (status: Investigation['status']) => {
-    const variants: Record<string, any> = {
+    const variants: Record<string, 'accent' | 'warning' | 'success' | 'muted'> = {
       active: 'accent',
       review: 'warning',
       published: 'success',
@@ -492,7 +502,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
   };
 
   const getPriorityBadge = (priority: Investigation['priority']) => {
-    const variants: Record<string, any> = {
+    const variants: Record<string, 'error' | 'warning' | 'accent' | 'muted'> = {
       critical: 'error',
       high: 'warning',
       medium: 'accent',

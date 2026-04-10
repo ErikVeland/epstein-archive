@@ -55,19 +55,26 @@ interface InvestigationLeadsPanelProps {
   onConvertToHypothesis?: (lead: InvestigationLead) => void;
 }
 
-const STATUS_MAP: Record<LeadStatus, { label: string; Icon: any; variant: any; next: LeadStatus }> =
+const STATUS_MAP: Record<
+  LeadStatus,
   {
-    open: { label: 'Open Signal', Icon: Circle, variant: 'glass', next: 'pursued' },
-    pursued: { label: 'Active Pursuit', Icon: AlertCircle, variant: 'accent', next: 'resolved' },
-    dead_end: { label: 'Inert / Terminated', Icon: XCircle, variant: 'glass', next: 'open' },
-    resolved: { label: 'Resolved / Logged', Icon: CheckCircle2, variant: 'success', next: 'open' },
-  };
+    label: string;
+    Icon: React.ComponentType<{ size?: string | number; className?: string }>;
+    variant: 'glass' | 'accent' | 'success';
+    next: LeadStatus;
+  }
+> = {
+  open: { label: 'Open Signal', Icon: Circle, variant: 'glass', next: 'pursued' },
+  pursued: { label: 'Active Pursuit', Icon: AlertCircle, variant: 'accent', next: 'resolved' },
+  dead_end: { label: 'Inert / Terminated', Icon: XCircle, variant: 'glass', next: 'open' },
+  resolved: { label: 'Resolved / Logged', Icon: CheckCircle2, variant: 'success', next: 'open' },
+};
 
-const PRIORITY_VARIANT: Record<LeadPriority, any> = {
-  critical: 'error',
+const PRIORITY_VARIANT: Record<LeadPriority, 'danger' | 'warning' | 'accent' | 'neutral'> = {
+  critical: 'danger',
   high: 'warning',
   medium: 'accent',
-  low: 'glass',
+  low: 'neutral',
 };
 
 export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = ({
@@ -242,7 +249,7 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
                   appearance: 'none',
                 }}
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as any)}
+                onChange={(e) => setStatusFilter(e.target.value as LeadStatus | 'all')}
               >
                 <option value="all">All Statuses</option>
                 <option value="open">Open Leads</option>
@@ -311,7 +318,7 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
                       }}
                       value={newLead.priority}
                       onChange={(e) =>
-                        setNewLead((p) => ({ ...p, priority: e.target.value as any }))
+                        setNewLead((p) => ({ ...p, priority: e.target.value as LeadPriority }))
                       }
                     >
                       {['critical', 'high', 'medium', 'low'].map((p) => (

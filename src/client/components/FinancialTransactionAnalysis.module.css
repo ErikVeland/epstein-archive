@@ -498,7 +498,7 @@
 }
 
 .secondaryButton:hover {
-  background: color-mix(in srgb, var(--app-bg) 78%, white);
+  background: color-mix(in srgb, var(--app-bg) 78%, transparent);
 }
 
 .emptyState {

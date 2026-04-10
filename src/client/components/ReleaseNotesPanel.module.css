@@ -2,13 +2,20 @@
   position: fixed;
   inset: 0;
   z-index: var(--z-modal);
-  padding: 0;
+  padding: var(--space-4);
   background: var(--glass-bg-strong);
 }
 
 .dismissButton {
   position: absolute;
   inset: 0;
+  background: transparent !important;
+  border: none !important;
+  appearance: none !important;
+  padding: 0;
+  margin: 0;
+  outline: none;
+  cursor: default;
 }
 
 @media (min-width: 768px) {

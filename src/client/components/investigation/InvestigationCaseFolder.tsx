@@ -17,9 +17,9 @@ import {
   Eye,
   AlertCircle,
   FolderOpen,
-  Flag,
   Loader2,
   Clock,
+  LucideIcon,
 } from 'lucide-react';
 import type {
   InvestigationCaseEvidenceItemDto as EvidenceItem,
@@ -54,7 +54,7 @@ interface InvestigationCaseFolderProps {
 const typeConfig: Record<
   string,
   {
-    icon: any;
+    icon: LucideIcon;
     label: string;
     tone:
       | 'cyan'
@@ -81,10 +81,10 @@ const typeConfig: Record<
   other: { icon: File, label: 'Other', tone: 'slate' },
 };
 
-const relevanceVariants: Record<string, any> = {
-  high: 'error',
-  medium: 'warning',
-  low: 'accent',
+const relevanceVariants: Record<string, 'primary' | 'secondary' | 'danger' | 'ghost'> = {
+  high: 'danger',
+  medium: 'secondary',
+  low: 'ghost',
 };
 
 const readString = (value: unknown): string | null =>
@@ -169,7 +169,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
   };
 
   const getProvenance = (item: EvidenceItem) => {
-    let metadata: any = {};
+    let metadata: Record<string, unknown> = {};
     try {
       metadata = item.metadataJson ? JSON.parse(item.metadataJson) : {};
     } catch {
@@ -348,7 +348,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
             {['high', 'medium', 'low'].map((rel) => (
               <Button
                 key={rel}
-                variant={relevanceFilter === rel ? (relevanceVariants[rel] as any) : 'glass'}
+                variant={relevanceFilter === rel ? relevanceVariants[rel] : 'glass'}
                 onClick={() => setRelevanceFilter(relevanceFilter === rel ? null : rel)}
               >
                 {rel.toUpperCase()}
@@ -435,23 +435,18 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
                                 size="sm"
                               />
                               {item.redFlagRating > 0 && (
-                                <Badge
-                                  variant="error"
-                                  icon={Flag}
-                                  label={`RFI ${item.redFlagRating}`}
-                                  size="sm"
-                                />
+                                <Badge tone="danger" label={`RFI ${item.redFlagRating}`} />
                               )}
                             </Flex>
                           </Stack>
                           {onEvidenceClick && (
                             <Button
                               variant="glass"
-                              onClick={(e) => onEvidenceClick(item, e.currentTarget as any)}
+                              onClick={(e) => onEvidenceClick(item, e.currentTarget)}
                               className="focus:ring-2 focus:ring-[var(--lq-accent)]"
                               ref={(el) => {
                                 const key = resolveEvidenceKey(item);
-                                if (el) evidenceButtonRefs.current.set(key, el as any);
+                                if (el) evidenceButtonRefs.current.set(key, el);
                                 else evidenceButtonRefs.current.delete(key);
                               }}
                             >

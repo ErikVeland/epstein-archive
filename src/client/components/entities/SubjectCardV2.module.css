@@ -1,10 +1,17 @@
 .card {
   height: 100%;
   cursor: pointer;
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box !important;
 }
 
 .headerRow {
-  margin-bottom: var(--space-2);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
 }
 
 .avatarShell {
@@ -83,7 +90,7 @@
 .footerRow {
   margin-top: var(--space-3);
   padding-top: var(--space-3);
-  box-shadow: 0 -1px 0 var(--glass-border);
+  border-top: 1px solid var(--glass-border);
 }
 
 .viewButton {

@@ -130,6 +130,7 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
       });
     }
     persistLocalTeam(nextMembers);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [investigation.id]);
 
   const team = useMemo(
@@ -346,7 +347,7 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
                               outline: 'none',
                             }}
                             value={member.role}
-                            onChange={(e) => updateRole(member.id, e.target.value as any)}
+                            onChange={(e) => updateRole(member.id, e.target.value as TeamRole)}
                           >
                             <option value="researcher">Researcher</option>
                             <option value="analyst">Analyst</option>
@@ -460,7 +461,7 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
                       outline: 'none',
                     }}
                     value={newRole}
-                    onChange={(e) => setNewRole(e.target.value as any)}
+                    onChange={(e) => setNewRole(e.target.value as TeamRole)}
                   >
                     <option value="researcher">Researcher</option>
                     <option value="analyst">Analyst</option>

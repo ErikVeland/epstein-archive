@@ -112,7 +112,7 @@
 }
 
 .runButton:hover {
-  background: color-mix(in srgb, var(--risk-critical) 80%, white);
+  background: color-mix(in srgb, var(--risk-critical) 80%, transparent);
 }
 
 .runButton:disabled {
@@ -188,7 +188,7 @@
 }
 
 .exportButton:hover {
-  background: color-mix(in srgb, var(--accent) 80%, white);
+  background: color-mix(in srgb, var(--accent) 80%, transparent);
 }
 
 .summaryGrid {

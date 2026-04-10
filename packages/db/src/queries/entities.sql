@@ -14,7 +14,7 @@ SELECT
   (
     SELECT mi.id
     FROM media_items mi
-    LEFT JOIN media_item_people mip ON mi.id::text = mip.media_item_id
+    LEFT JOIN media_item_people mip ON mi.id::text = mip.media_item_id::text
     WHERE (mi.entity_id = e.id OR mip.entity_id = e.id)
       AND mi.file_type ILIKE 'image/%'
     ORDER BY mi.red_flag_rating DESC NULLS LAST, mi.id DESC

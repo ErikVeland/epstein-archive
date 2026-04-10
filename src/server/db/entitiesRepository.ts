@@ -59,8 +59,20 @@ function isLikelyInferredEntity(name: string, _role?: string): boolean {
   if (!n) return false;
   if (/^(to|from|cc|bcc|subject|re|fwd|fw|of)\b[:\s-]*/.test(n)) return true;
   if (/\b(to|from|cc|bcc|subject|re|fwd|fw)\s*$/.test(n)) return true;
-  if (/\b(?:.+?)'s\s+(lawyer|assistant|aide|counsel|staff|pilot|masseuse)\b/.test(n)) return true;
-  if (/^(lawyer|assistant|aide|counsel|staff|pilot|masseuse)\b\s+/.test(n)) return true;
+  if (/^(on|hi|hello|dear|sent|from|subject|regarding)\s+/i.test(n)) return true;
+  if (/\s+subject$/i.test(n)) return true;
+  const chronologicalPrefix =
+    /^(mon|tue|wed|thu|fri|sat|sun|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\b/i;
+  if (chronologicalPrefix.test(n)) return true;
+  if (['original message', 'hi jeffrey', 'professor'].includes(n)) {
+    return true;
+  }
+  if (/\b(?:.+?)'s\s+(lawyer|assistant|aide|counsel|staff|pilot|masseuse)\b/.test(n)) {
+    return true;
+  }
+  if (/^(lawyer|assistant|aide|counsel|staff|pilot|masseuse)\b\s+/.test(n)) {
+    return true;
+  }
   return false;
 }
 
@@ -180,7 +192,7 @@ async function loadTopPhotosByEntity(
             ORDER BY m.red_flag_rating DESC NULLS LAST, m.id DESC
           ) AS rn
         FROM media_items m
-        LEFT JOIN media_item_people mip ON m.id::text = mip.media_item_id
+        LEFT JOIN media_item_people mip ON m.id = mip.media_item_id::text
         WHERE (mip.entity_id::bigint = ANY($1::bigint[]) OR m.entity_id = ANY($1::bigint[]))
           AND m.file_type ILIKE 'image/%'
       ) t WHERE rn = 1
@@ -407,7 +419,7 @@ export const entitiesRepository = {
         whereParts.push(`COALESCE(e.is_vip, 0) > 0`);
       } else {
         const p = addParam(filters.entityType);
-        whereParts.push(`COALESCE(e.entity_type, 'Person') = ${p}`);
+        whereParts.push(`e.entity_type ILIKE ${p}`);
       }
     }
 
