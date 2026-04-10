@@ -13,6 +13,9 @@
 .toolbarMeta {
   color: var(--text-primary);
   font-size: 0.875rem;
+  line-height: var(--line-height-tight, 1.25);
+  margin: 0;
+  white-space: nowrap;
 }
 
 .toolbarIcon {
@@ -20,7 +23,10 @@
 }
 
 .toolbarControls {
-  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
   min-width: 20rem;
   font-family: var(--font-sans, inherit);
 }
@@ -52,20 +58,24 @@
 }
 
 .sortOrderButton {
-  width: 2.75rem;
-  height: 2.75rem;
+  width: 2.25rem; /* Match sm button height */
+  height: 2.25rem;
   flex-shrink: 0;
   padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .toolbarSummary {
   width: 100%;
-  margin-top: var(--space-1);
+  margin-top: var(--space-2);
   color: var(--text-muted);
-  font-size: 0.75rem;
-  letter-spacing: 0.12em;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
   text-align: right;
   text-transform: uppercase;
+  opacity: 0.8;
 }
 
 .resultsShell {
@@ -99,6 +109,19 @@
   color: var(--text-secondary);
 }
 
+.triggerButton {
+  padding-left: var(--space-2);
+  padding-right: var(--space-2);
+  font-size: var(--type-small);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  justify-content: space-between;
+  width: 100%;
+  min-width: 180px;
+  height: 2.25rem !important; /* Ensure sm height */
+}
+
 .pagination {
   margin-top: var(--space-4);
   padding-bottom: var(--space-4);
@@ -122,11 +145,17 @@
   background: var(--glass-bg-highlight);
 }
 
+.toolbarMetaRow {
+  height: 2.25rem; /* Match sm button height exactly */
+  display: flex;
+  align-items: center;
+}
+
 .pageChip {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  height: 2.75rem;
+  height: 2.25rem; /* Standardized footer chip height */
   padding: 0 var(--space-4);
 }
 

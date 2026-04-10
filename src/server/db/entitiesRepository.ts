@@ -403,8 +403,12 @@ export const entitiesRepository = {
       whereParts.push(`e.primary_role = ${p}`);
     }
     if (filters?.entityType && filters.entityType !== 'all') {
-      const p = addParam(filters.entityType);
-      whereParts.push(`COALESCE(e.entity_type, 'Person') = ${p}`);
+      if (filters.entityType === 'vip_only') {
+        whereParts.push(`COALESCE(e.is_vip, 0) > 0`);
+      } else {
+        const p = addParam(filters.entityType);
+        whereParts.push(`COALESCE(e.entity_type, 'Person') = ${p}`);
+      }
     }
 
     // Hard exclusion: never surface junk/OCR/role-fragment entities on the front page.

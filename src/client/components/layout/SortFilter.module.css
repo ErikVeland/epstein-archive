@@ -18,6 +18,7 @@
   justify-content: space-between;
   width: 100%;
   min-width: 8.75rem; /* min-w-[140px] */
+  height: 2.25rem !important; /* Standardize with ds-btn-sm */
 }
 
 .triggerInner {

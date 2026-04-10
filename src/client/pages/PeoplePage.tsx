@@ -145,27 +145,20 @@ export const PeoplePage: React.FC<PeoplePageProps> = ({
 
           <Surface variant="panel" className={styles.toolbarCard}>
             <Flex wrap="wrap" align="center" justify="between" gap="md" fullWidth>
-              <Flex align="center" gap="sm">
+              <Flex align="center" gap="sm" className={styles.toolbarMetaRow}>
                 <Icon name="Users" size="sm" color="info" className={styles.toolbarIcon} />
                 <p className={styles.toolbarMeta}>
                   {total.toLocaleString()} subjects • Page {page}/{totalPagesLocal || 1}
                 </p>
               </Flex>
 
-              <Flex
-                wrap="wrap"
-                align="center"
-                gap="sm"
-                className={styles.toolbarControls}
-                style={{ flex: 1, justifyContent: 'flex-end', minWidth: '320px' }}
-              >
+              <Flex gap="sm" align="center" className={styles.toolbarControls}>
                 {isAdmin && (
                   <Button
                     onClick={onAddSubject}
                     variant="secondary"
                     size="sm"
                     className={styles.addButton}
-                    style={{ display: 'flex' }}
                   >
                     <Icon name="Plus" size="sm" />
                     <span className={styles.addButtonLabel}>Add Subject</span>
@@ -214,9 +207,12 @@ export const PeoplePage: React.FC<PeoplePageProps> = ({
                   title={`Sort ${sortOrder === 'asc' ? 'Descending' : 'Ascending'}`}
                   aria-label={`Sort ${sortOrder === 'asc' ? 'Descending' : 'Ascending'}`}
                 >
-                  {sortOrder === 'asc' ? '↑' : '↓'}
+                  <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>
+                    {sortOrder === 'asc' ? '↑' : '↓'}
+                  </span>
                 </Button>
               </Flex>
+
               <div className={styles.toolbarSummary}>
                 Sort: {sortBy.replace('_', ' ')} ({sortOrder})
               </div>
@@ -231,12 +227,22 @@ export const PeoplePage: React.FC<PeoplePageProps> = ({
                 ))}
               </Grid>
             ) : subjects.length === 0 ? (
-              <EmptyState
-                title="No results found"
-                description="Try adjusting search or entity filters."
-                icon={<Icon name="Users" size="xl" color="gray" className={styles.emptyIcon} />}
-                className={styles.emptyState}
-              />
+              <Stack align="center" justify="center" gap="xl" className={styles.emptyState}>
+                <EmptyState
+                  title="No results found"
+                  description={
+                    searchTerm || entityType !== 'all' || selectedRiskLevel
+                      ? 'Try adjusting search or entity filters to broaden your investigation.'
+                      : 'The forensic corpus is currently empty or still being indexed.'
+                  }
+                  icon={<Icon name="Users" size="xl" color="gray" className={styles.emptyIcon} />}
+                />
+                {(searchTerm || entityType !== 'all' || selectedRiskLevel) && (
+                  <Button variant="glass" onClick={onResetFilters} size="sm">
+                    Clear All Filters
+                  </Button>
+                )}
+              </Stack>
             ) : (
               <Grid cols={{ base: 1, md: 2, xl: 3 }} gap={6}>
                 {subjects.map((subject) => (
