@@ -59,6 +59,46 @@ interface SingleMediaItemRow extends MediaItemRow {
 }
 
 export const mediaRepository = {
+  // Get the preferred profile photo for an entity (Face Crop > Media Item Thumbnail)
+  getEntityProfilePhoto: async (entityId: string): Promise<string | null> => {
+    const pool = getApiPool();
+    // 1. Try to get a representative face crop from a linked face cluster
+    const clusterRes = await pool.query(
+      `
+        SELECT f.crop_path
+        FROM face_clusters fc
+        JOIN faces f ON f.id = fc.representative_face_id
+        WHERE fc.entity_id = $1::bigint
+        LIMIT 1
+      `,
+      [BigInt(entityId)],
+    );
+
+    if (clusterRes.rows.length > 0 && clusterRes.rows[0].crop_path) {
+      return clusterRes.rows[0].crop_path;
+    }
+
+    // 2. Fallback to the first available media item thumbnail
+    const mediaRes = await pool.query(
+      `
+        SELECT m.thumbnail_path, m.file_path
+        FROM media_items m
+        LEFT JOIN media_item_people mip ON m.id = mip.media_item_id::text
+        WHERE (m.entity_id = $1::bigint OR mip.entity_id = $1::bigint)
+          AND m.file_type LIKE 'image/%'
+        ORDER BY m.red_flag_rating DESC, m.created_at DESC
+        LIMIT 1
+      `,
+      [BigInt(entityId)],
+    );
+
+    if (mediaRes.rows.length > 0) {
+      return mediaRes.rows[0].thumbnail_path || mediaRes.rows[0].file_path;
+    }
+
+    return null;
+  },
+
   // Get all albums with counts for a specific media type
   getAlbumsByMediaType: async (fileType: 'audio' | 'video') => {
     let likePattern: string;
@@ -81,12 +121,39 @@ export const mediaRepository = {
 
   // Get media items for an entity
   getMediaItems: async (entityId: string) => {
-    const mediaItems = (await mediaQueries.getMediaItemsByEntity.run(
-      { entityId },
-      getApiPool(),
-    )) as MediaItemRow[];
+    const pool = getApiPool();
+    const result = await pool.query(
+      `
+        SELECT
+          m.id,
+          m.entity_id as "entityId",
+          m.document_id as "documentId",
+          m.file_path as "filePath",
+          m.thumbnail_path as "thumbnailPath",
+          m.file_type as "fileType",
+          m.file_size as "fileSize",
+          m.width,
+          m.height,
+          m.title,
+          m.description,
+          m.is_sensitive as "isSensitive",
+          m.verification_status as "verificationStatus",
+          m.red_flag_rating as "redFlagRating",
+          m.metadata_json as "metadataJson",
+          m.date_taken as "dateTaken",
+          m.created_at as "createdAt"
+        FROM media_items m
+        LEFT JOIN media_item_people mip ON m.id = mip.media_item_id::text
+        WHERE (m.entity_id = $1::bigint OR mip.entity_id = $1::bigint)
+        GROUP BY m.id
+        ORDER BY m.red_flag_rating DESC, m.created_at DESC
+      `,
+      [BigInt(entityId)],
+    );
 
-    return mediaItems.map((item: MediaItemRow) => {
+    const rows = result.rows as MediaItemRow[];
+
+    return rows.map((item: MediaItemRow) => {
       let metadata: Record<string, unknown> = {};
       try {
         if (item.metadataJson) {
@@ -228,7 +295,14 @@ export const mediaRepository = {
     };
 
     if (filters?.entityId) {
-      whereParts.push(`m.entity_id = ${addParam(BigInt(filters.entityId))}::bigint`);
+      const p = addParam(BigInt(filters.entityId));
+      whereParts.push(
+        `(m.entity_id = ${p}::bigint OR EXISTS (
+          SELECT 1 FROM media_item_people mip
+          WHERE mip.media_item_id::text = m.id::text
+          AND mip.entity_id = ${p}::bigint
+        ))`,
+      );
     }
     if (filters?.personId != null) {
       whereParts.push(
@@ -430,19 +504,24 @@ export const mediaRepository = {
     const result = await pool.query(
       `
         SELECT * FROM (
-          SELECT DISTINCT
+          SELECT
             m.id,
             COALESCE(mip.entity_id, m.entity_id) as "entityId",
-            m.file_path as "filePath",
+            COALESCE(f.crop_path, m.file_path) as "filePath",
             m.title,
             m.is_sensitive as "isSensitive",
             m.red_flag_rating as "redFlagRating",
             ROW_NUMBER() OVER (
               PARTITION BY COALESCE(mip.entity_id, m.entity_id)
-              ORDER BY m.red_flag_rating DESC, m.created_at DESC
+              ORDER BY 
+                (CASE WHEN f.id IS NOT NULL THEN 1 ELSE 0 END) DESC,
+                m.red_flag_rating DESC, 
+                m.created_at DESC
             ) as rn
           FROM media_items m
           LEFT JOIN media_item_people mip ON m.id = mip.media_item_id::text
+          LEFT JOIN face_clusters fc ON fc.entity_id = COALESCE(mip.entity_id, m.entity_id)
+          LEFT JOIN faces f ON f.cluster_id = fc.id AND f.media_item_id::text = m.id::text
           WHERE (
             mip.entity_id = ANY($1::bigint[])
             OR m.entity_id = ANY($1::bigint[])

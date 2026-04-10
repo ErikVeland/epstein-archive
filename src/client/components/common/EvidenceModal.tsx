@@ -367,7 +367,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
         try {
           const response = (await apiClient.get(endpoint)) as Record<string, unknown>;
           if (response && typeof response === 'object') {
-            newDocs = Array.isArray(response.data)
+            const rawDocs = Array.isArray(response.data)
               ? response.data
               : Array.isArray(response.evidence)
                 ? response.evidence
@@ -376,6 +376,12 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                   : Array.isArray(response)
                     ? response
                     : [];
+
+            // Normalize documents for consistency
+            newDocs = (rawDocs as Record<string, unknown>[]).map(
+              (d) => normalizeEvidenceDocument(d) as unknown as EvidenceDocument,
+            );
+
             total = Number(
               response.total ??
                 response.count ??
@@ -671,12 +677,20 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
     if (entity?.significantPassages && entity.significantPassages.length > 0)
       return entity.significantPassages;
     if (Array.isArray(entityEvidence?.evidence)) {
-      return entityEvidence.evidence.slice(0, 5).map((item) => ({
-        documentId: item.document_id as string | number | undefined,
-        source: (item.evidence_type as string | undefined) || 'Document',
-        passage: (item.context_snippet || item.description || item.title || '') as string,
-        filename: (item.title || item.source_path || 'Untitled source') as string,
-        keyword: item.evidence_type as string | undefined,
+      return entityEvidence.evidence.slice(0, 5).map((item: any) => ({
+        documentId: (item.documentId || item.document_id) as string | number | undefined,
+        source: (item.evidenceType || item.evidence_type || 'Document') as string,
+        passage: (item.contentPreview ||
+          item.contextSnippet ||
+          item.context_snippet ||
+          item.description ||
+          item.title ||
+          '') as string,
+        filename: (item.title ||
+          item.sourcePath ||
+          item.source_path ||
+          'Untitled source') as string,
+        keyword: (item.evidenceType || item.evidence_type) as string | undefined,
       }));
     }
     return [];

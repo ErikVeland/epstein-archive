@@ -16,3 +16,4 @@ assets/
 *.dump
 *.sqlite
 *.db
+scratch/

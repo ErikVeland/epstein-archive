@@ -2,7 +2,7 @@
 
 .sidebar {
   display: none; /* hidden by default on mobile */
-  width: 15rem; /* w-60 */
+  width: 20rem; /* w-80 - enlarged for longer album names */
   background: var(--glass-bg-strong);
   border-right: 1px solid var(--glass-border);
   flex-direction: column;

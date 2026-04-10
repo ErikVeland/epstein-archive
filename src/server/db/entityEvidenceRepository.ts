@@ -64,10 +64,15 @@ export const entityEvidenceRepository = {
     const evidence = (evidenceRows as MentionEvidenceRow[]).map((row) => ({
       id: row.evidence_id,
       documentId: row.document_id,
+      document_id: row.document_id, // Add snake_case for FE compatibility
       evidenceType: row.evidence_type || 'document_context',
+      evidence_type: row.evidence_type || 'document_context',
       title: row.title || `Document ${row.document_id}`,
       description: '',
       sourcePath: row.file_path || '',
+      source_path: row.file_path || '',
+      contentPreview: row.mention_context || '', // Canonical FE name
+      context_snippet: row.mention_context || '', // Used in some FE parts
       cleanedPath: null,
       redFlagRating: row.red_flag_rating ?? 0,
       createdAt: row.date_created || null,

@@ -1,5 +1,20 @@
 # Release Notes
 
+## v18.7.0 - 2026-04-10 - Media Visibility & Archival Preservation
+
+This release resolves critical gaps in the media library, enabling full visibility for archival image collections, and hardens the search interface for forensic speed.
+
+### Media Visibility & Archival Gaps
+
+- **Image Gallery Promotion**: Fixed a long-standing ingestion gap where images were excluded from the media library. All archival evidence images (e.g., Sascha Riley adoption papers, receipts) are now promoted to the gallery.
+- **Entity Linking Accuracy**: Refactored the media search API to correctly join with the `media_item_people` junction table, ensuring all tagged media (including face cluster results) appears in an entity's direct photo feed.
+- **Sascha Riley Preservation**: Finalized the backfill for the Sascha Riley TikTok and associated forensic images, ensuring 100% visibility for the collection.
+
+### Visual Hardening
+
+- **Search Row Standardization**: Migrated the Photo Browser header to Liquid Glass design primitives, ensuring pixel-perfect 32px alignment and uniform spacing across all filter controls.
+- **Headshot Prioritization**: Upgraded entity profile pictures to prioritize detected face crops over full-media thumbnails for faster suspect identification.
+
 ## v18.6.0 - 2026-04-10 - Archival Hardening & Liquid Glass Standardization
 
 This minor release bundles significant "Hardening" improvements across the investigation suite, purifies the entity directory from archival noise, and completes the standardization of visualization surfaces using Liquid Glass tokens.

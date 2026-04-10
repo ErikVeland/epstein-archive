@@ -8,7 +8,6 @@ import {
   areEqual,
 } from 'react-window';
 import {
-  Search,
   Share2,
   Check,
   Users,
@@ -22,7 +21,17 @@ import {
   Clock,
   HardDrive,
 } from 'lucide-react';
-import { Surface, Flex, Box, Stack, LqText, Button, cn } from '../../design-system/lib';
+import {
+  Surface,
+  Flex,
+  Box,
+  Stack,
+  LqText,
+  Button,
+  SearchField,
+  Select,
+  cn,
+} from '../../design-system/lib';
 import AutoSizer from '../common/AutoSizer';
 import { MediaImage } from '../../types/media.types';
 import MediaViewerModal from './MediaViewerModal';
@@ -514,19 +523,16 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
             currentAlbumName={currentAlbum?.name}
           />
 
-          <Flex gap="md" align="center" grow className={styles.searchShell}>
-            <Box className={styles.searchField}>
-              <Search size={16} className={styles.searchIcon} />
-              <input
-                type="text"
-                placeholder="Search archive..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className={styles.searchInput}
-              />
-            </Box>
+          <Flex gap="md" align="center" grow>
+            <SearchField
+              placeholder="Search archive..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className={styles.searchField}
+              rootClassName={styles.searchRoot}
+            />
 
-            <Flex gap="sm" className={styles.desktopControls}>
+            <Flex gap="sm" align="center" className={styles.desktopControls}>
               <Button variant="glass" size="sm" onClick={handleShare}>
                 {showCopied ? (
                   <Check size={14} className={styles.shareSuccess} />
@@ -536,38 +542,35 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
                 <span>Share</span>
               </Button>
 
-              <Flex gap="xs" className={styles.filterControls}>
-                <select
+              <Flex gap="xs" align="center" className={styles.filterControls}>
+                <Select
                   value={selectedTag || ''}
                   onChange={(e) => setSelectedTag(e.target.value ? parseInt(e.target.value) : null)}
+                  options={[
+                    { value: '', label: 'All Tags' },
+                    ...availableTags.map((tag) => ({ value: tag.id, label: tag.name })),
+                  ]}
                   className={styles.filterSelect}
-                >
-                  <option value="">All Tags</option>
-                  {availableTags.map((tag) => (
-                    <option key={tag.id} value={tag.id}>
-                      {tag.name}
-                    </option>
-                  ))}
-                </select>
+                  rootClassName={styles.filterRoot}
+                />
 
-                <select
+                <Select
                   value={selectedPerson || ''}
                   onChange={(e) =>
                     setSelectedPerson(e.target.value ? parseInt(e.target.value) : null)
                   }
                   onFocus={loadPeopleOptions}
+                  options={[
+                    { value: '', label: 'All People' },
+                    ...availablePeople.map((p) => ({ value: p.id, label: p.name })),
+                  ]}
                   className={styles.filterSelect}
-                >
-                  <option value="">All People</option>
-                  {availablePeople.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}
-                    </option>
-                  ))}
-                </select>
+                  rootClassName={styles.filterRoot}
+                />
 
                 <Button
                   variant={hasPeopleOnly ? 'accent-solid' : 'glass'}
+                  size="sm"
                   onClick={() => setHasPeopleOnly(!hasPeopleOnly)}
                   title="Filter for people"
                 >
@@ -578,33 +581,38 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
               <Box className={styles.controlsDivider} />
 
               <Flex align="center" gap="xs" className={styles.sortControls}>
-                <select
+                <Select
                   value={sortField}
                   onChange={(e) => setSortField(e.target.value as SortField)}
+                  options={[
+                    { value: 'date_added', label: 'Added' },
+                    { value: 'date_taken', label: 'Taken' },
+                    { value: 'filename', label: 'Name' },
+                    { value: 'file_size', label: 'Size' },
+                  ]}
                   className={styles.sortSelect}
-                >
-                  <option value="date_added">Added</option>
-                  <option value="date_taken">Taken</option>
-                  <option value="filename">Name</option>
-                  <option value="file_size">Size</option>
-                </select>
+                  rootClassName={styles.sortRoot}
+                />
                 <Button
                   variant="glass"
+                  size="sm"
                   onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
                 >
                   {sortOrder === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
                 </Button>
               </Flex>
 
-              <Flex className={styles.viewToggle}>
+              <Flex className={styles.viewToggle} align="center">
                 <Button
                   variant={viewMode === 'tiles' ? 'accent-solid' : 'glass'}
+                  size="sm"
                   onClick={() => setViewMode('tiles')}
                 >
                   <LayoutGrid size={14} />
                 </Button>
                 <Button
                   variant={viewMode === 'rows' ? 'accent-solid' : 'glass'}
+                  size="sm"
                   onClick={() => setViewMode('rows')}
                 >
                   <ListIcon size={14} />
@@ -614,6 +622,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
               {isAdmin && (
                 <Button
                   variant={isBatchMode ? 'accent-solid' : 'glass-highlight'}
+                  size="sm"
                   onClick={isBatchMode ? exitBatchMode : enterBatchMode}
                 >
                   <CheckSquare size={14} />

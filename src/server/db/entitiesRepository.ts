@@ -1028,24 +1028,29 @@ export const entitiesRepository = {
     filters?: { search?: string; source?: string; sort?: string },
   ): Promise<Array<Record<string, unknown>>> => {
     const id = Number(entityId);
-    const safeLimit = Math.max(1, Math.min(200, limit));
-    const safePage = Math.max(1, page);
+    const safeLimit = Math.max(1, Math.min(200, limit || 50));
+    const safePage = Math.max(1, page || 1);
     const offset = (safePage - 1) * safeLimit;
     const pool = getApiPool();
 
-    const params: Array<unknown> = [id];
-    const whereParts: string[] = ['em.entity_id = $1::bigint'];
+    const params: Array<unknown> = [BigInt(id)];
+    let searchFilter = '';
+    let sourceFilter = '';
 
     if (filters?.search?.trim()) {
       params.push(`%${filters.search.trim()}%`);
-      whereParts.push(
-        `(d.file_name ILIKE $${params.length} OR d.title ILIKE $${params.length} OR d.content_preview ILIKE $${params.length})`,
-      );
+      searchFilter = `AND (d.file_name ILIKE $${params.length} OR d.title ILIKE $${params.length} OR d.content_preview ILIKE $${params.length})`;
     }
+
     if (filters?.source && filters.source !== 'all') {
       params.push(filters.source);
-      whereParts.push(`LOWER(COALESCE(d.evidence_type, '')) = LOWER($${params.length})`);
+      sourceFilter = `AND LOWER(COALESCE(d.evidence_type, '')) = LOWER($${params.length})`;
     }
+
+    params.push(safeLimit);
+    const limitIdx = params.length;
+    params.push(offset);
+    const offsetIdx = params.length;
 
     const ALLOWED_SORTS: Record<string, string> = {
       date: 'd.date_created DESC NULLS LAST',
@@ -1055,53 +1060,36 @@ export const entitiesRepository = {
     };
     const orderBy = ALLOWED_SORTS[filters?.sort ?? ''] ?? ALLOWED_SORTS['date'];
 
-    const result = await pool.query(
-      `WITH entity_docs AS (
-         SELECT DISTINCT ON (em.document_id)
-           em.document_id
-         FROM entity_mentions em
-         WHERE em.entity_id = $1::bigint
-       )
-       SELECT
-         ed.document_id                          AS id,
-         COALESCE(d.title, d.file_name)          AS title,
-         d.file_name                             AS file_name,
-         d.file_path                             AS file_path,
-         d.file_type                             AS file_type,
-         d.evidence_type                         AS evidence_type,
-         d.date_created                          AS date_created,
-         d.red_flag_rating                       AS red_flag_rating,
-         d.word_count                            AS word_count,
-         d.content_preview                       AS content_preview,
-         LEFT(d.content, 500)                    AS content,
-         d.content_refined                       AS content_refined,
-         d.metadata_json                         AS metadata_json
-       FROM entity_docs ed
-       JOIN documents d ON d.id = ed.document_id
-       WHERE 1=1
-         ${
-           filters?.search?.trim()
-             ? `AND (d.file_name ILIKE $2 OR d.title ILIKE $2 OR d.content_preview ILIKE $2)`
-             : ''
-         }
-         ${
-           filters?.source && filters.source !== 'all'
-             ? `AND LOWER(COALESCE(d.evidence_type, '')) = LOWER($${filters?.search?.trim() ? 3 : 2})`
-             : ''
-         }
-       ORDER BY ${orderBy}
-       LIMIT $${
-         (filters?.search?.trim() ? 1 : 0) +
-         (filters?.source && filters.source !== 'all' ? 1 : 0) +
-         2
-       }::int
-       OFFSET $${
-         (filters?.search?.trim() ? 1 : 0) +
-         (filters?.source && filters.source !== 'all' ? 1 : 0) +
-         3
-       }::int`,
-      params.concat([safeLimit, offset]),
-    );
+    const query = `
+      SELECT
+        em.document_id                          AS id,
+        COALESCE(d.title, d.file_name)          AS title,
+        d.file_name                             AS file_name,
+        d.file_path                             AS file_path,
+        d.file_type                             AS file_type,
+        d.evidence_type                         AS evidence_type,
+        d.date_created                          AS date_created,
+        d.red_flag_rating                       AS red_flag_rating,
+        d.word_count                            AS word_count,
+        d.content_preview                       AS content_preview,
+        LEFT(d.content, 500)                    AS content,
+        d.content_refined                       AS content_refined,
+        d.metadata_json                         AS metadata_json
+      FROM entity_mentions em
+      JOIN documents d ON d.id = em.document_id
+      WHERE em.entity_id = $1::bigint
+        ${searchFilter}
+        ${sourceFilter}
+      GROUP BY 
+        em.document_id,
+        d.id, d.title, d.file_name, d.file_path, d.file_type, 
+        d.evidence_type, d.date_created, d.red_flag_rating, 
+        d.word_count, d.content_preview, d.content, d.content_refined, d.metadata_json
+      ORDER BY ${orderBy}
+      LIMIT $${limitIdx} OFFSET $${offsetIdx}
+    `;
+
+    const result = await pool.query(query, params);
 
     return result.rows.map((row) => ({
       id: String(row.id),

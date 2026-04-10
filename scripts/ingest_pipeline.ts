@@ -106,7 +106,11 @@ async function syncMediaItemFromDocument(params: {
     dateTaken,
   } = params;
 
-  if (!mimeType.startsWith('audio/') && !mimeType.startsWith('video/')) {
+  if (
+    !mimeType.startsWith('audio/') &&
+    !mimeType.startsWith('video/') &&
+    !mimeType.startsWith('image/')
+  ) {
     return;
   }
 
