@@ -107,8 +107,20 @@ export function MobileTimelineView({
                     <div className={styles.eventTitle}>{evt.title}</div>
                   </div>
                 </button>
-                {expandedId === evt.id && evt.description && (
-                  <div className={styles.eventDetail}>{evt.description}</div>
+                {expandedId === evt.id && (
+                  <div className={styles.eventDetail}>
+                    {evt.description && <p>{evt.description}</p>}
+                    {evt.entities.length > 0 && (
+                      <p>
+                        <strong>Entities:</strong> {evt.entities.join(', ')}
+                      </p>
+                    )}
+                    {evt.documents.length > 0 && (
+                      <p>
+                        <strong>Documents:</strong> {evt.documents.length} linked
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
             ))}
