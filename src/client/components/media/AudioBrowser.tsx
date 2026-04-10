@@ -102,6 +102,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
   );
 
   const [isBatchMode, setIsBatchMode] = useState(false);
+  const [containerWidth, setContainerWidth] = useState(0);
   const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
 
   const {
@@ -399,6 +400,7 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
           <Box className={styles.virtualScrollArea} grow>
             <AutoSizer>
               {({ width, height }: { width: number; height: number }) => {
+                if (width !== containerWidth) setContainerWidth(width);
                 if (width === 0 || height === 0) return null;
                 if (items.length > 0) {
                   return (
