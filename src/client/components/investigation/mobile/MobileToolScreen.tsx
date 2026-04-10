@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import styles from './MobileToolScreen.module.css';
 
@@ -22,14 +22,7 @@ export function MobileToolScreen({
 }: MobileToolScreenProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const touchStartY = useRef<number>(0);
-  const [showHint, setShowHint] = useState(false);
-
-  useEffect(() => {
-    const seen = localStorage.getItem(HINT_KEY);
-    if (!seen) {
-      setShowHint(true);
-    }
-  }, []);
+  const [showHint, setShowHint] = useState<boolean>(() => localStorage.getItem(HINT_KEY) === null);
 
   const dismissHint = useCallback(() => {
     localStorage.setItem(HINT_KEY, '1');
