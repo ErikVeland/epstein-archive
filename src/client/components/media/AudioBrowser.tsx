@@ -1,9 +1,19 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { FixedSizeList as List, ListChildComponentProps } from 'react-window';
-import { Music, Play, Calendar, ExternalLink, Filter, ChevronRight } from 'lucide-react';
+import {
+  Music,
+  Play,
+  Calendar,
+  ExternalLink,
+  Filter,
+  ChevronRight,
+  Square,
+  CheckSquare,
+} from 'lucide-react';
 import { AudioPlayer, TranscriptSegment, Chapter } from './AudioPlayer';
 import { SensitiveContent } from '../common/SensitiveContent';
+import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
 
 import { usePaginatedMediaCollection } from '../../hooks/usePaginatedMediaCollection';
 import { MobileAlbumDropdown } from '../shared/MobileAlbumDropdown';
