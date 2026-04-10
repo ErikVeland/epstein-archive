@@ -21,7 +21,6 @@ This minor release bundles significant "Hardening" improvements across the inves
 - **Zero-Warning Hygiene**: Verified a clean production build with 100% pass rates on linting, type-checking, and automated smoke test suites.
 - **Rollback Safety**: Hardened the deployment pipeline with pre-migration Postgres backups and chunk-cache compatibility for zero-downtime serving.
 
-
 ## v18.5.1 - 2026-04-10 - Production Hardening & People Page Restoration
 
 This maintenance release finalizes the v18.5.0 migration by resolving critical data filtering logic, unifying toolbar layouts on the People page, and achieving a zero-warning TypeScript baseline for the Investigation Suite.
