@@ -72,7 +72,7 @@ export function EvidenceCaptureSheet({
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     touchDeltaY.current = e.touches[0].clientY - touchStartY.current;
     if (touchDeltaY.current > 0 && sheetRef.current) {
-      sheetRef.current.style.transform = `translateY(${touchDeltaY.current}px)`;
+      sheetRef.current.style.setProperty('--sheet-translate', `${touchDeltaY.current}px`);
     }
   }, []);
 
@@ -80,7 +80,7 @@ export function EvidenceCaptureSheet({
     if (touchDeltaY.current > SWIPE_DISMISS_THRESHOLD) {
       onClose();
     } else if (sheetRef.current) {
-      sheetRef.current.style.transform = '';
+      sheetRef.current.style.setProperty('--sheet-translate', '0px');
     }
   }, [onClose]);
 

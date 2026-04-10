@@ -16,6 +16,9 @@
   flex-direction: column;
   overflow: hidden;
   touch-action: none;
+  --sheet-translate: 0px;
+  transform: translateY(var(--sheet-translate));
+  transition: none;
 }
 
 .dragHandle {
