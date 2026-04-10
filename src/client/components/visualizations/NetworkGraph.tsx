@@ -345,7 +345,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
     });
 
     eligible.forEach(async (node) => {
-      const url = node.photoUrl || (node as any).image || `/api/entities/${node.id}/photo`;
+      const url = node.photoUrl || (node as GraphNode).photoUrl || `/api/entities/${node.id}/photo`;
       setAvatarUrls((prev) => ({ ...prev, [node.id]: 'pending' }));
 
       const release = await avatarSemaphore.acquire();

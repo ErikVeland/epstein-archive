@@ -1012,10 +1012,12 @@ export const entitiesRepository = {
     }
 
     const result = await pool.query(
-      `SELECT COUNT(DISTINCT em.document_id)::int AS total
-       FROM entity_mentions em
-       JOIN documents d ON d.id = em.document_id
-       WHERE ${whereParts.join(' AND ')}`,
+      `SELECT COUNT(DISTINCT d.id)::int AS total
+       FROM documents d
+       INNER JOIN entity_mentions em ON d.id = em.document_id
+       WHERE em.entity_id = $1::bigint
+       ${filters?.search?.trim() ? `AND (d.file_name ILIKE $2 OR d.title ILIKE $2 OR d.content_preview ILIKE $2)` : ''}
+       ${filters?.source && filters.source !== 'all' ? `AND LOWER(COALESCE(d.evidence_type, '')) = LOWER($${filters.search?.trim() ? 3 : 2})` : ''}`,
       params,
     );
     return Number(result.rows[0]?.total || 0);
@@ -1061,8 +1063,8 @@ export const entitiesRepository = {
     const orderBy = ALLOWED_SORTS[filters?.sort ?? ''] ?? ALLOWED_SORTS['date'];
 
     const query = `
-      SELECT
-        em.document_id                          AS id,
+      SELECT DISTINCT ON (d.id, ${orderBy.split(' ')[0]})
+        d.id                                    AS id,
         COALESCE(d.title, d.file_name)          AS title,
         d.file_name                             AS file_name,
         d.file_path                             AS file_path,
@@ -1075,17 +1077,12 @@ export const entitiesRepository = {
         LEFT(d.content, 500)                    AS content,
         d.content_refined                       AS content_refined,
         d.metadata_json                         AS metadata_json
-      FROM entity_mentions em
-      JOIN documents d ON d.id = em.document_id
+      FROM documents d
+      INNER JOIN entity_mentions em ON d.id = em.document_id
       WHERE em.entity_id = $1::bigint
         ${searchFilter}
         ${sourceFilter}
-      GROUP BY 
-        em.document_id,
-        d.id, d.title, d.file_name, d.file_path, d.file_type, 
-        d.evidence_type, d.date_created, d.red_flag_rating, 
-        d.word_count, d.content_preview, d.content, d.content_refined, d.metadata_json
-      ORDER BY ${orderBy}
+      ORDER BY ${orderBy}, d.id
       LIMIT $${limitIdx} OFFSET $${offsetIdx}
     `;
 

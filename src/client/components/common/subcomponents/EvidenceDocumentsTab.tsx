@@ -99,7 +99,7 @@ export const EvidenceDocumentsTab: React.FC<EvidenceDocumentsTabProps> = ({
               </div>
             ))}
           </div>
-        ) : !isDocsLoading && documents.length === 0 ? (
+        ) : !isDocsLoading && documents.length === 0 && totalDocs === 0 ? (
           <div className={s.emptyState}>
             <FileText size={44} className={s.emptyIcon} />
             <h4 className={s.emptyTitle}>No Linked Evidence Found</h4>
@@ -146,15 +146,26 @@ export const EvidenceDocumentsTab: React.FC<EvidenceDocumentsTabProps> = ({
                     height < 120 ||
                     width < 200 ? (
                     <div className={s.plainList} data-testid="entity-evidence-fallback-list">
-                      {documents.slice(0, 20).map((doc) => (
-                        <div key={String(doc.id)} className={s.itemWrapper}>
-                          <EvidenceCard
-                            document={doc}
-                            onOpen={openDocument}
-                            entityName={entityName}
-                          />
+                      {documents.length > 0 ? (
+                        documents.slice(0, 20).map((doc) => (
+                          <div key={String(doc.id)} className={s.itemWrapper}>
+                            <EvidenceCard
+                              document={doc}
+                              onOpen={openDocument}
+                              entityName={entityName}
+                            />
+                          </div>
+                        ))
+                      ) : (
+                        <div className={s.emptyState}>
+                          <FileText size={44} className={s.emptyIcon} />
+                          <h4 className={s.emptyTitle}>Syncing Evidence Records...</h4>
+                          <p className={s.emptyText}>
+                            The archive is currently retrieving and indexing evidence for "
+                            {entityName}". This may take a moment for high-exposure entities.
+                          </p>
                         </div>
-                      ))}
+                      )}
                     </div>
                   ) : (
                     <TypedInfiniteLoader

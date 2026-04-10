@@ -680,21 +680,23 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
     if (entity?.significantPassages && entity.significantPassages.length > 0)
       return entity.significantPassages;
     if (Array.isArray(entityEvidence?.evidence)) {
-      return entityEvidence.evidence.slice(0, 5).map((item: any) => ({
-        documentId: (item.documentId || item.document_id) as string | number | undefined,
-        source: (item.evidenceType || item.evidence_type || 'Document') as string,
-        passage: (item.contentPreview ||
-          item.contextSnippet ||
-          item.context_snippet ||
-          item.description ||
-          item.title ||
-          '') as string,
-        filename: (item.title ||
-          item.sourcePath ||
-          item.source_path ||
-          'Untitled source') as string,
-        keyword: (item.evidenceType || item.evidence_type) as string | undefined,
-      }));
+      return (entityEvidence.evidence as Array<Record<string, unknown>>)
+        .slice(0, 5)
+        .map((item) => ({
+          documentId: (item.documentId || item.document_id) as string | number | undefined,
+          source: (item.evidenceType || item.evidence_type || 'Document') as string,
+          passage: (item.contentPreview ||
+            item.contextSnippet ||
+            item.context_snippet ||
+            item.description ||
+            item.title ||
+            '') as string,
+          filename: (item.title ||
+            item.sourcePath ||
+            item.source_path ||
+            'Untitled source') as string,
+          keyword: (item.evidenceType || item.evidence_type) as string | undefined,
+        }));
     }
     return [];
   }, [entity, entityEvidence]);
