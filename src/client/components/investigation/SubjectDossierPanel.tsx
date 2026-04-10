@@ -75,9 +75,9 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
 
         setLoadingDocs(true);
         try {
-          const docs = await apiClient.get<{ data: any[] }>(
-            `/documents?entityId=${entityId}&limit=8&sortBy=date&sortOrder=desc`,
-          );
+          const docs = await apiClient.get<{
+            data: Array<{ id: string; title: string; file_path: string }>;
+          }>(`/documents?entityId=${entityId}&limit=8&sortBy=date&sortOrder=desc`);
           setRecentDocs(docs.data ?? []);
         } catch {
           setRecentDocs([]);
@@ -131,8 +131,8 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
   };
 
   const rfi = selectedEntity?.redFlagRating ?? 0;
-  const getRfiVariant = (val: number): any => {
-    if (val >= 4.0) return 'error';
+  const getRfiVariant = (val: number): 'danger' | 'warning' | 'accent' => {
+    if (val >= 4.0) return 'danger';
     if (val >= 2.5) return 'warning';
     return 'accent';
   };
@@ -264,7 +264,7 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
                     </LqText>
                     <Flex gap="sm" align="center" mt="xs">
                       <Badge
-                        variant="accent"
+                        tone="accent"
                         label={selectedEntity.entityType.toUpperCase()}
                         size="sm"
                       />

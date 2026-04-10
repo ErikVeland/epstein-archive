@@ -128,7 +128,12 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
         investigationId,
         title: h.title,
         description: h.description || '',
-        status: (h.status || 'proposed') as any,
+        status: (h.status || 'proposed') as
+          | 'draft'
+          | 'testing'
+          | 'supported'
+          | 'refuted'
+          | 'revised',
         confidence: h.confidence || 50,
         createdAt: parseDate(h.created_at),
         updatedAt: parseDate(h.updated_at),
@@ -177,7 +182,7 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
   const createHypothesis = () => {
     if (!newHypothesis.title.trim()) return;
     const hyp: Hypothesis = {
-      id: `hyp-${Date.now()}`,
+      id: `hyp-${crypto.randomUUID()}`,
       investigationId,
       title: newHypothesis.title,
       description: newHypothesis.description,
@@ -199,7 +204,10 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
     onHypothesesUpdate(updated);
   };
 
-  const updateStatus = (id: string, status: any) => {
+  const updateStatus = (
+    id: string,
+    status: 'draft' | 'testing' | 'supported' | 'refuted' | 'revised',
+  ) => {
     const updated = hypotheses.map((h) =>
       h.id === id ? { ...h, status, updatedAt: new Date() } : h,
     );
@@ -212,7 +220,7 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
   const linkEvidence = (id: string) => {
     if (!linkData.evidenceId) return;
     const link: EvidenceLink = {
-      id: `link-${Date.now()}`,
+      id: `link-${crypto.randomUUID()}`,
       evidenceId: linkData.evidenceId,
       hypothesisId: id,
       relevance: linkData.relevance,

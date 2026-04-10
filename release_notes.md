@@ -1,5 +1,21 @@
 # Release Notes
 
+## v18.5.1 - 2026-04-10 - Production Hardening & People Page Restoration
+
+This maintenance release finalizes the v18.5.0 migration by resolving critical data filtering logic, unifying toolbar layouts on the People page, and achieving a zero-warning TypeScript baseline for the Investigation Suite.
+
+### Forensic Restoration (People Page)
+
+- **VIP Filtering Fix**: Corrected the "VIP Only" filter to accurately target the `is_vip` database column, restoring visibility for high-value entities.
+- **Unified Toolbar**: Refactored the People page toolbar with flexbox to ensure perfect vertical alignment between metadata, filter dropdowns, and sort controls.
+- **Empty State UX**: Added a contextual "Clear All Filters" reset to the "No Results" view, improving the investigator recovery path.
+
+### Type-Safety & Stability
+
+- **Zero-Warning Hardening**: Resolved 9 critical TypeScript errors and 80+ linting warnings, including purity violations in the Hypothesis Testing Workbench.
+- **Infrastructure Sync**: Synchronized `pnpm` versioning between GitHub Actions and `package.json` to ensure stable CI/CD pipeline runs.
+- **Liquid Glass Alignment**: Standardized component heights (`2.25rem`) and icon baselines across the forensic toolbar and filter dropdowns.
+
 ## v18.5.0 - 2026-04-10 - Iconic Typography & Forensic Restoration
 
 This major release elevates the archive's visual identity with a high-impact **"Iconic & Bombastic"** typographic system, restores critical analytical tools, and achieves a zero-error production baseline for the "Liquid Glass" architecture.

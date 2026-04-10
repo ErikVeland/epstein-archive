@@ -1,0 +1,5 @@
+ WARN  Unsupported engine: wanted: {"node":">=20.19.0"} (current: {"node":"v20.9.0","pnpm":"10.28.2"})
+
+> epstein-archive@18.5.1 type-check /Volumes/Media/Epstein Files/epstein-archive
+> tsc --noEmit
+
