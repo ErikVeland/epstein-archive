@@ -1,7 +1,7 @@
 .container {
   position: relative;
-  height: 680px; /* Calibrated for ~2.25 rows of cards */
-  min-height: 60vh;
+  height: 750px; /* Increased to ensure clear ~2.25 row scroll affordance */
+  min-height: 70vh;
   overflow-y: auto;
   composes: custom-scrollbar from global;
   padding: var(--space-6);
@@ -135,11 +135,12 @@
 
 .blurLayer {
   position: absolute;
-  inset: -20px;
+  inset: -10px;
   z-index: 1;
-  filter: blur(40px) brightness(0.6) saturate(1.2);
+  filter: blur(30px) brightness(0.7) saturate(1.1);
   transform: scale(1.1);
   pointer-events: none;
+  background: var(--bg-dark-strong);
 }
 
 .blurImage {

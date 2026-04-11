@@ -107,13 +107,15 @@ router.get('/:entityId/investigations', async (req: Request, res: Response) => {
 
 // GET /api/entities/:id/media
 router.get('/:entityId/media', async (req: Request, res: Response) => {
+  const { entityId } = req.params as { entityId: string };
   try {
-    const { entityId } = req.params as { entityId: string };
     const { mediaRepository } = await import('../db/mediaRepository.js');
     const result = await mediaRepository.getMediaItems(entityId);
 
     if (!result || result.length === 0) {
-      return res.status(204).send();
+      // Return 200 OK with empty array instead of 204 No Content
+      // to avoid breaking frontend fetch().json() parsing.
+      return res.json([]);
     }
 
     const jsonString = JSON.stringify(result);
@@ -129,7 +131,7 @@ router.get('/:entityId/media', async (req: Request, res: Response) => {
 
     res.json(result);
   } catch (error) {
-    logger.error({ err: error }, 'Error fetching entity media');
+    logger.error({ err: error, entityId }, 'Error fetching entity media');
     res.status(500).json({ error: 'Failed to fetch entity media' });
   }
 });

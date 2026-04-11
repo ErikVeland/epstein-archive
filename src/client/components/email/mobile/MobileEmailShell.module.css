@@ -1,0 +1,49 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background: var(--lq-surface-1);
+}
+
+.screenHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  padding-top: calc(0.75rem + env(safe-area-inset-top));
+  background: var(--glass-bg-strong);
+  border-bottom: 1px solid var(--glass-border);
+  flex-shrink: 0;
+}
+
+.appTitle {
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.filterCount {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.04em;
+}
+
+.content {
+  flex: 1;
+  overflow: hidden;
+  padding-bottom: 4.5rem;
+}
+
+.noThread {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+  padding: 2rem;
+  text-align: center;
+}

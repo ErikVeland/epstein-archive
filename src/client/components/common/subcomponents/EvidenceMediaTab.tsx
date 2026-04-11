@@ -52,22 +52,23 @@ export const EvidenceMediaTab: React.FC<EvidenceMediaTabProps> = ({
   const getMediaType = (item: EntityPhoto): MediaCategory => {
     const type = String(item.sourceType || item.type || '').toLowerCase();
     const url = String(item.fullUrl || item.url || '').toLowerCase();
+    const fileName = String(item.filename || '').toLowerCase();
 
-    if (
+    const isVideo =
       type.includes('video') ||
-      url.includes('.mp4') ||
-      url.includes('.webm') ||
-      url.includes('.mov')
-    )
-      return 'videos';
-    if (
+      url.match(/\.(mp4|webm|mov|mkv|avi)$/) ||
+      fileName.match(/\.(mp4|webm|mov|mkv|avi)$/);
+    if (isVideo) return 'videos';
+
+    const isAudio =
       type.includes('audio') ||
-      url.includes('.mp3') ||
-      url.includes('.wav') ||
-      url.includes('.m4a')
-    )
-      return 'audio';
-    if (isVisualMediaItem(item)) return 'photos';
+      type.includes('recording') ||
+      url.match(/\.(mp3|wav|m4a|aac|ogg|flac)$/) ||
+      fileName.match(/\.(mp3|wav|m4a|aac|ogg|flac)$/);
+    if (isAudio) return 'audio';
+
+    if (isVisualMediaItem(item) || type.includes('photo') || type.includes('image'))
+      return 'photos';
     return 'all';
   };
 

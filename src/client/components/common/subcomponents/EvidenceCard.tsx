@@ -1,5 +1,5 @@
 import React from 'react';
-import { ExternalLink, Clock, Link2, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { ExternalLink, Clock, Link2, AlertTriangle } from 'lucide-react';
 import { highlightTerms, normalizeEvidenceSnippet } from '../../../utils/evidenceUtils';
 import s from './EvidenceCard.module.css';
 
@@ -33,13 +33,6 @@ export const EvidenceCard: React.FC<EvidenceCardProps> = ({
     doc.contentPreview || doc.content || doc.title || '',
     doc.title || doc.fileName || `Document ${doc.id}`,
   );
-
-  const significanceReason =
-    (doc.redFlagRating || 0) >= 4
-      ? 'High risk score in source record.'
-      : doc.evidenceType
-        ? `Matched in ${doc.evidenceType} evidence.`
-        : 'Directly linked through entity mention context.';
 
   return (
     <button data-testid={testId} type="button" className={s.card} onClick={() => onOpen(doc.id)}>
@@ -76,14 +69,12 @@ export const EvidenceCard: React.FC<EvidenceCardProps> = ({
           <Link2 size={10} />
           {doc.source_collection || 'Archive'}
         </span>
-        <span className={`${s.footerItem} ${s.warning}`}>
-          <AlertTriangle size={10} />
-          {significanceReason}
-        </span>
-        <span className={`${s.footerItem} ${s.provenance}`}>
-          <ShieldCheck size={10} />
-          #PROV-VERIFIED
-        </span>
+        {(doc.redFlagRating || 0) >= 4 && (
+          <span className={`${s.footerItem} ${s.warning}`}>
+            <AlertTriangle size={10} />
+            High risk score in source.
+          </span>
+        )}
       </div>
     </button>
   );

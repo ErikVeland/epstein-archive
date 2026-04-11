@@ -24,21 +24,6 @@
   opacity: 0.8;
 }
 
-.statsArea {
-  display: none;
-  align-items: center;
-  gap: var(--space-5);
-  margin-left: var(--space-6);
-  padding-left: var(--space-6);
-  border-left: 1px solid var(--glass-border);
-}
-
-@media (min-width: 1024px) {
-  .statsArea {
-    display: flex;
-  }
-}
-
 .actionsArea {
   display: flex;
   align-items: center;
@@ -218,41 +203,6 @@
   border-bottom: 1px solid var(--glass-border);
   transition: all 300ms ease;
   padding-top: env(safe-area-inset-top);
-}
-
-.headerStatItem {
-  display: flex;
-  flex-direction: column;
-  line-height: 1;
-  gap: 2px;
-}
-
-.headerStatLabel {
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-secondary);
-  font-weight: 600;
-  opacity: 0.8;
-}
-
-.headerStat {
-  font-size: var(--font-size-sm);
-  font-family: var(--font-mono);
-  font-weight: 500;
-  letter-spacing: -0.02em;
-}
-
-.headerStatPeople {
-  color: var(--accent);
-}
-
-.headerStatMentions {
-  color: var(--accent-info);
-}
-
-.headerStatFiles {
-  color: var(--accent-docs);
 }
 
 .adminIcon {
@@ -645,48 +595,6 @@
   margin: 0 auto;
   padding: 0 var(--space-4);
   box-sizing: border-box;
-}
-
-.mobileStatsGrid {
-  text-align: center;
-}
-
-@media (min-width: 768px) {
-  .mobileStatsGrid {
-    display: none;
-  }
-}
-
-.mobileStatCard {
-  transition: background-color 200ms ease;
-}
-
-.mobileStatCard:hover {
-  background: var(--glass-bg-strong);
-}
-
-.mobileStatLabel {
-  color: var(--text-secondary);
-  font-size: var(--font-size-xs);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.mobileStatValue {
-  font-size: var(--font-size-lg);
-  font-weight: 700;
-}
-
-.mobileStatPeople {
-  color: var(--accent);
-}
-
-.mobileStatMentions {
-  color: var(--accent-info);
-}
-
-.mobileStatFiles {
-  color: var(--accent-docs);
 }
 
 .navShell {

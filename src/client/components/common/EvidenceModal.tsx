@@ -444,9 +444,8 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
 
   useEffect(() => {
     if (!(isOpen && entityId && activeTab === 'evidence' && tabsLoaded.has('evidence'))) return;
-    if (!docsInitialized && !isDocsLoading) {
-      setIsDocsLoading(true);
-      loadNextPage(0).finally(() => setIsDocsLoading(false));
+    if (!docsInitialized && !isNextPageLoading) {
+      loadNextPage(0);
     }
   }, [
     activeTab,
@@ -455,7 +454,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
     isOpen,
     tabsLoaded,
     docsInitialized,
-    isDocsLoading,
+    isNextPageLoading,
     loadNextPage,
   ]);
 

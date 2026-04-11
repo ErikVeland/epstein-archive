@@ -1,5 +1,41 @@
 # Release Notes
 
+## v18.8.6 - 2026-04-11 - Evidence Navigation Restoration & SQL Optimization
+
+This release restores visibility for high-volume entity evidence and hardens the archival media browsing interface with premium "Liquid Glass" refinements and technical sorting fixes.
+
+### Evidence & Scaling
+- **High-Volume Restoration**: Resolved a critical data retrieval failure for high-exposure entities (e.g., Jeffrey Epstein, ID 1). Implemented a CTE-based SQL optimization that guarantees document uniqueness and reliable pagination for collections exceeding 111,000 records.
+- **BigInt Standardization**: Unified ID handling across the repository and API layer to prevent precision loss and ensure consistent archival retrieval.
+- **Natural Sort Implementation**: Enabled "Human" sort fallback for testimony documents (e.g., Sascha Barros Parts 1-6), ensuring they appear in logical numeric sequence instead of chronological/lexicographical order.
+
+### Media & UI Refinement
+- **Archival Media Stability**: Fixed a bug where empty media sets returned 204 status codes, crashing the frontend. Resolved media type detection regressions for robust integrated playback of forensic audio and video.
+- **Improved Scroll Affordance**: Increased the media browser height to 750px (approx. 2.25 rows) to provide a clear visual cue that content continues below the fold.
+- **UI Decluttering**: Purged redundant archival metadata chips (e.g., `#PROV-VERIFIED`) from document cards to improve scannability.
+- **Liquid Glass Aesthetics**: Integrated high-fidelity blurred background layers and glass-surface refinements across the media exploration suite.
+- **Zero-Error Standard**: Achieved 100% build hygiene by resolving all residual linting and formatting warnings in the core investigation workspace.
+
+
+## v18.8.5 - 2026-04-11 - Documentation Sync & Version Alignment
+
+This release synchronizes the archival version history with recent mobile investigation features and maintains UI stabilization across viewports.
+
+### Documentation & History
+
+- **Mobile Investigation Suite Enrichment**: Retroactively updated the v18.8.0 history to accurately reflect the launch of the Mobile Investigation Shell, Evidence Capture Sheet, and Forensic Workbench.
+- **Version Alignment**: Unified the local development baseline with the production deployment cycle.
+
+## v18.8.4 - 2026-04-11 - UI Decluttering & Stabilization
+
+This release focuses on streamlining the header and mobile layouts by removing redundant stat chips that duplicated information found in the primary dashboard cards.
+
+### UI & Layout
+
+- **Header Simplification**: Removed the redundant "People", "Mentions", and "Files" chips from the desktop header. This declutters the top navigation area and puts more focus on the branding and search tools.
+- **Mobile Stabilization**: Purged the redundant mobile stats grid. This ensures a more consistent experience across devices, as these metrics are already prominently displayed on the main dashboard.
+- **Code Hygiene**: Cleaned up the associated count-up animations and CSS modules, resulting in a slightly leaner application payload.
+
 ## v18.8.3 - 2026-04-11 - Integrated Media Playback & Browsing
 
 This release significantly enhances the archival media experience by introducing category-based sub-navigation and immersive integrated players for Photos, Video, and Audio evidence.
@@ -50,9 +86,16 @@ This patch release hardens the media browsing experience with human-readable sor
 - **Close Button Alignment**: Resolved a visual regression where the "What's New" dialog close button overran the panel boundaries.
 - **Header Geometry**: Refined the Release Notes panel header and footer for perfect pixel alignment within the Liquid Glass design system.
 
-## v18.8.0 - 2026-04-10 - Forensic Portraits & UI Hardening
+## v18.8.0 - 2026-04-10 - Forensic Portraits & Mobile Investigations
 
-This release introduces the standardized Forensic Portrait system and completes the UI hardening of the investigation media browsers, ensuring a high-fidelity and stable evidence exploration experience.
+This release introduces the standardized Forensic Portrait system and launches the comprehensive **Mobile Investigation Suite**, enabling full investigative capabilities and case management on-the-go.
+
+### Mobile Investigation Suite
+
+- **Mobile Investigation Shell**: A dedicated, high-fidelity workspace for mobile devices (`MobileInvestigationShell`). It provides a seamless transition from desktop, with persistent case state and tabbed tool access.
+- **Evidence Capture Sheet**: Introduced a gesture-driven capture interface for rapid evidence tagging and archival linking while in the field.
+- **Mobile Board & Timeline**: Optimized the investigation board and chronology views for small viewports, ensuring evidence maps and event sequences remain legible and interactive.
+- **Forensic Workbench**: Integrated communication analysis, hypothesis testing, and forensic metadata tools into a responsive mobile environment.
 
 ### Forensic UI & Portraits
 

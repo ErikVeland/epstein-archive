@@ -997,7 +997,7 @@ export const entitiesRepository = {
   ): Promise<number> => {
     const id = Number(entityId);
     const pool = getApiPool();
-    const params: Array<unknown> = [id];
+    const params: Array<unknown> = [BigInt(id)];
     const whereParts: string[] = ['em.entity_id = $1::bigint'];
 
     if (filters?.search?.trim()) {
@@ -1015,9 +1015,7 @@ export const entitiesRepository = {
       `SELECT COUNT(DISTINCT d.id)::int AS total
        FROM documents d
        INNER JOIN entity_mentions em ON d.id = em.document_id
-       WHERE em.entity_id = $1::bigint
-       ${filters?.search?.trim() ? `AND (d.file_name ILIKE $2 OR d.title ILIKE $2 OR d.content_preview ILIKE $2)` : ''}
-       ${filters?.source && filters.source !== 'all' ? `AND LOWER(COALESCE(d.evidence_type, '')) = LOWER($${filters.search?.trim() ? 3 : 2})` : ''}`,
+       WHERE ${whereParts.join(' AND ')}`,
       params,
     );
     return Number(result.rows[0]?.total || 0);
@@ -1029,24 +1027,25 @@ export const entitiesRepository = {
     limit: number = 50,
     filters?: { search?: string; source?: string; sort?: string },
   ): Promise<Array<Record<string, unknown>>> => {
-    const id = Number(entityId);
+    const id = BigInt(entityId);
     const safeLimit = Math.max(1, Math.min(200, limit || 50));
     const safePage = Math.max(1, page || 1);
     const offset = (safePage - 1) * safeLimit;
     const pool = getApiPool();
 
-    const params: Array<unknown> = [BigInt(id)];
-    let searchFilter = '';
-    let sourceFilter = '';
+    const params: Array<unknown> = [id];
+    const whereParts: string[] = ['em.entity_id = $1::bigint'];
 
     if (filters?.search?.trim()) {
       params.push(`%${filters.search.trim()}%`);
-      searchFilter = `AND (d.file_name ILIKE $${params.length} OR d.title ILIKE $${params.length} OR d.content_preview ILIKE $${params.length})`;
+      whereParts.push(
+        `(d.file_name ILIKE $${params.length} OR d.title ILIKE $${params.length} OR d.content_preview ILIKE $${params.length})`,
+      );
     }
 
     if (filters?.source && filters.source !== 'all') {
       params.push(filters.source);
-      sourceFilter = `AND LOWER(COALESCE(d.evidence_type, '')) = LOWER($${params.length})`;
+      whereParts.push(`LOWER(COALESCE(d.evidence_type, '')) = LOWER($${params.length})`);
     }
 
     params.push(safeLimit);
@@ -1054,39 +1053,66 @@ export const entitiesRepository = {
     params.push(offset);
     const offsetIdx = params.length;
 
-    const ALLOWED_SORTS: Record<string, string> = {
-      date: 'd.date_created DESC NULLS LAST',
-      date_asc: 'd.date_created ASC NULLS LAST',
-      red_flag: 'd.red_flag_rating DESC NULLS LAST, d.date_created DESC NULLS LAST',
-      title: 'd.file_name ASC NULLS LAST',
-    };
-    const orderBy = ALLOWED_SORTS[filters?.sort ?? ''] ?? ALLOWED_SORTS['date'];
+    // Check if we need natural sort for testimonies
+    // We can check the entity name if it was passed, but here we only have entityId.
+    // However, the requested sort can be triggered by a specific sort value or detected.
+    const isNaturalSort = filters?.sort === 'human' || filters?.sort === 'natural';
 
-    const query = `
-      SELECT DISTINCT ON (d.id, ${orderBy.split(' ')[0]})
-        d.id                                    AS id,
-        COALESCE(d.title, d.file_name)          AS title,
-        d.file_name                             AS file_name,
-        d.file_path                             AS file_path,
-        d.file_type                             AS file_type,
-        d.evidence_type                         AS evidence_type,
-        d.date_created                          AS date_created,
-        d.red_flag_rating                       AS red_flag_rating,
-        d.word_count                            AS word_count,
-        d.content_preview                       AS content_preview,
-        LEFT(d.content, 500)                    AS content,
-        d.content_refined                       AS content_refined,
-        d.metadata_json                         AS metadata_json
-      FROM documents d
-      INNER JOIN entity_mentions em ON d.id = em.document_id
-      WHERE em.entity_id = $1::bigint
-        ${searchFilter}
-        ${sourceFilter}
-      ORDER BY ${orderBy}, d.id
+    const ALLOWED_SORTS: Record<string, { select: string; order: string }> = {
+      date: {
+        select: 'date_created',
+        order: 'date_created DESC NULLS LAST',
+      },
+      date_asc: {
+        select: 'date_created',
+        order: 'date_created ASC NULLS LAST',
+      },
+      red_flag: {
+        select: 'red_flag_rating',
+        order: 'red_flag_rating DESC NULLS LAST, date_created DESC NULLS LAST',
+      },
+      title: {
+        select: 'file_name',
+        order: 'file_name ASC NULLS LAST',
+      },
+      human: {
+        select: "substring(COALESCE(title, file_name) from 'Part ([0-9]+)')::int",
+        order:
+          "substring(COALESCE(title, file_name) from 'Part ([0-9]+)')::int ASC NULLS LAST, date_created DESC NULLS LAST",
+      },
+    };
+
+    const sortConfig =
+      ALLOWED_SORTS[filters?.sort ?? ''] ??
+      (isNaturalSort ? ALLOWED_SORTS['human'] : ALLOWED_SORTS['date']);
+
+    const finalizedQuery = `
+      WITH UniqueDocs AS (
+        SELECT DISTINCT ON (d.id)
+          d.id,
+          COALESCE(d.title, d.file_name)          AS title,
+          d.file_name,
+          d.file_path,
+          d.file_type,
+          d.evidence_type,
+          d.date_created,
+          d.red_flag_rating,
+          d.word_count,
+          d.content_preview,
+          LEFT(d.content, 500)                    AS content,
+          d.content_refined,
+          d.metadata_json
+        FROM documents d
+        INNER JOIN entity_mentions em ON d.id = em.document_id
+        WHERE ${whereParts.join(' AND ')}
+        ORDER BY d.id
+      )
+      SELECT * FROM UniqueDocs
+      ORDER BY ${sortConfig.order}
       LIMIT $${limitIdx} OFFSET $${offsetIdx}
     `;
 
-    const result = await pool.query(query, params);
+    const result = await pool.query(finalizedQuery, params);
 
     return result.rows.map((row) => ({
       id: String(row.id),
@@ -1099,8 +1125,9 @@ export const entitiesRepository = {
       redFlagRating: Number(row.red_flag_rating ?? 0),
       wordCount: Number(row.word_count ?? 0),
       contentPreview: row.content_preview ?? null,
-      content: row.content ?? row.content_refined ?? null,
-      source_collection: row.file_path ?? null,
+      content: row.content ?? null,
+      content_refined: row.content_refined ?? null,
+      metadata: row.metadata_json ?? null,
     }));
   },
 };

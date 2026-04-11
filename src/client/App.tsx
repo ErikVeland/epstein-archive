@@ -25,7 +25,6 @@ import type {
 import { useNavigation } from './services/NavigationContext';
 import { apiClient } from './services/apiClient';
 // SECURITY: Removed non-authoritative document import paths
-import { useCountUp } from './hooks/useCountUp';
 import MobileMenu from './components/layout/MobileMenu';
 import UndoProvider from './components/UndoManager';
 import ToastProvider from './components/common/ToastProvider';
@@ -42,7 +41,7 @@ import { useFirstRunOnboarding } from './hooks/useFirstRunOnboarding';
 import { InvestigationsProvider } from './contexts/InvestigationsContext';
 import { useAuth } from './contexts/AuthContext';
 import { cn } from './utils/cn';
-import { Flex, Box, Grid, Surface, LqText, Button } from './design-system/lib';
+import { Flex, Box, Surface, LqText, Button } from './design-system/lib';
 import { useFilters } from './contexts/useFilters';
 import { LoginPage } from './pages/LoginPage';
 import { SEO } from './components/common/SEO';
@@ -653,11 +652,6 @@ function App() {
     return newStats;
   }, [globalStatsData]);
 
-  // Animate header stats
-  const headerTotalPeople = useCountUp(dataStats.totalPeople, 1000);
-  const headerTotalMentions = useCountUp(dataStats.totalMentions, 1200);
-  const headerTotalFiles = useCountUp(dataStats.totalFiles, 1100);
-
   const loadingProgress = isInitializing ? 'Loading subjects...' : 'Ready';
 
   const [attractShown, setAttractShown] = useState(false);
@@ -987,37 +981,6 @@ function App() {
                     <Link to="/" className={styles.logoArea}>
                       <RedactedLogo text="THE EPSTEIN FILES" />
                     </Link>
-
-                    {/* Stats - Desktop only, single-line */}
-                    <div className={styles.statsArea}>
-                      <div className={styles.headerStatItem}>
-                        <span className={styles.headerStatLabel}>People</span>
-                        <span
-                          className={cn(styles.headerStat, styles.headerStatPeople)}
-                          title="Subjects"
-                        >
-                          {(headerTotalPeople ?? 0).toLocaleString()}
-                        </span>
-                      </div>
-                      <div className={styles.headerStatItem}>
-                        <span className={styles.headerStatLabel}>Mentions</span>
-                        <span
-                          className={cn(styles.headerStat, styles.headerStatMentions)}
-                          title="Mentions"
-                        >
-                          {(headerTotalMentions ?? 0).toLocaleString()}
-                        </span>
-                      </div>
-                      <div className={styles.headerStatItem}>
-                        <span className={styles.headerStatLabel}>Files</span>
-                        <span
-                          className={cn(styles.headerStat, styles.headerStatFiles)}
-                          title="Files"
-                        >
-                          {(headerTotalFiles ?? 0).toLocaleString()}
-                        </span>
-                      </div>
-                    </div>
                   </div>
 
                   {/* RIGHT: Actions and Search */}
@@ -1312,60 +1275,6 @@ function App() {
             </header>
 
             <div className={cn(styles.contentShell, styles.mainShell)}>
-              {/* Mobile Stats Row */}
-              <Grid cols={3} gap={2} mb={6} className={styles.mobileStatsGrid}>
-                <Surface
-                  variant="glass"
-                  data-card
-                  onClick={() => navigate('/search')}
-                  p={2}
-                  style={{
-                    borderRadius: 'var(--radius-lg)',
-                    cursor: 'pointer',
-                    textAlign: 'center',
-                  }}
-                  className={styles.mobileStatCard}
-                >
-                  <div className={styles.mobileStatLabel}>People</div>
-                  <div className={cn(styles.mobileStatValue, styles.mobileStatPeople)}>
-                    {(headerTotalPeople ?? 0).toLocaleString()}
-                  </div>
-                </Surface>
-                <Surface
-                  variant="glass"
-                  data-card
-                  onClick={() => navigate('/search')}
-                  p={2}
-                  style={{
-                    borderRadius: 'var(--radius-lg)',
-                    cursor: 'pointer',
-                    textAlign: 'center',
-                  }}
-                  className={styles.mobileStatCard}
-                >
-                  <div className={styles.mobileStatLabel}>Mentions</div>
-                  <div className={cn(styles.mobileStatValue, styles.mobileStatMentions)}>
-                    {(headerTotalMentions ?? 0).toLocaleString()}
-                  </div>
-                </Surface>
-                <Surface
-                  variant="glass"
-                  data-card
-                  onClick={() => navigate('/documents')}
-                  p={2}
-                  style={{
-                    borderRadius: 'var(--radius-lg)',
-                    cursor: 'pointer',
-                    textAlign: 'center',
-                  }}
-                  className={styles.mobileStatCard}
-                >
-                  <div className={styles.mobileStatLabel}>Files</div>
-                  <div className={cn(styles.mobileStatValue, styles.mobileStatFiles)}>
-                    {(headerTotalFiles ?? 0).toLocaleString()}
-                  </div>
-                </Surface>
-              </Grid>
               {/* Simple loading indicator - no text labels */}
               <LoadingIndicator
                 isLoading={isInitializing || analyticsLoading}
