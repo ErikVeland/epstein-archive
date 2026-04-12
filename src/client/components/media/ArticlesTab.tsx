@@ -133,14 +133,17 @@ export const ArticlesTab: React.FC = () => {
   }, [articles]);
 
   const formatDate = (dateStr: string) => {
+    if (!dateStr) return '';
     try {
-      return new Date(dateStr).toLocaleDateString('en-US', {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return '';
+      return d.toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
       });
     } catch {
-      return dateStr;
+      return '';
     }
   };
 

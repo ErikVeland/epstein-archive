@@ -8,6 +8,140 @@
   overflow: hidden;
 }
 
+/* ─── Mobile nav / publication dropdown ─────────────────── */
+
+.mobileNav {
+  display: block;
+  position: relative;
+}
+
+@media (min-width: 768px) {
+  .mobileNav {
+    display: none;
+  }
+}
+
+/* ─── Sidebar ───────────────────────────────────────────── */
+
+.sidebarWrapper {
+  display: none;
+  flex: 0 0 13rem;
+  border-right: 1px solid var(--glass-border);
+  overflow-y: auto;
+  padding: var(--space-4) var(--space-2);
+  flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+  .sidebarWrapper {
+    display: block;
+  }
+}
+
+/* ─── Virtual scroll area ───────────────────────────────── */
+
+.virtualScrollArea {
+  flex: 1 1 auto;
+  overflow: hidden;
+  min-width: 0;
+}
+
+/* ─── Card header (image + overlay area) ────────────────── */
+
+.cardHeader {
+  position: relative;
+}
+
+.mediaArea {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: var(--glass-bg-strong);
+}
+
+.fallbackIcon {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.card:hover .overlay {
+  opacity: 1;
+}
+
+.playBtn {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: scale(0.9);
+  transition: transform 0.2s ease;
+}
+
+.card:hover .playBtn {
+  transform: scale(1);
+}
+
+.duration {
+  position: absolute;
+  bottom: var(--space-2);
+  right: var(--space-2);
+  padding: 0.125rem var(--space-2);
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono, monospace);
+  font-size: var(--type-xs);
+  color: var(--text-primary);
+}
+
+.batchTrigger {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  z-index: var(--z-content);
+}
+
+/* ─── Misc card elements ─────────────────────────────────── */
+
+.iconMuted {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.matches {
+  border-top: 1px solid var(--glass-border);
+  padding-top: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.matchItem {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.moreBtn {
+  flex-shrink: 0;
+}
+
 .cardMedia {
   position: relative;
   flex-shrink: 0;
