@@ -8,7 +8,7 @@ export interface DesignSystemSelectOption {
   label: string;
 }
 
-export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
+export interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'size'> {
   label?: React.ReactNode;
   hint?: React.ReactNode;
   message?: React.ReactNode;
