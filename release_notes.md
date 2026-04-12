@@ -1,5 +1,16 @@
 # Release Notes
 
+## v19.0.1 - 2026-04-12 — Systematic Layout & Design System Hardening
+
+This patch standardizes the application's layout primitives and form controls, ensuring pixel-perfect consistency across all investigative surfaces.
+
+### UI & Layout Standardisation
+
+- **Global Baseline Hardening**: Implemented a global CSS baseline for all native `select`, `input`, and `textarea` elements. This ensures consistent 36px/44px heights and Liquid Glass styling even in legacy components.
+- **Evidence Search Refactor**: Migrated the Evidence Search filters to official Design System components, resolving title/badge overlaps and alignment clumping.
+- **Breadcrumb Alignment**: Added standard vertical margins to the breadcrumb navigation to prevent content clumping with page headers.
+- **Design System Expansion**: Added `size="sm"` support to the `Select` component for compact forensic toolbars.
+
 ## v19.0.0 - 2026-04-12 — Mobile-First UX Overhaul & Media Browser Hardening
 
 This major release delivers a comprehensive mobile-first redesign across five core investigation pages, adds touch gesture support throughout, and fixes functional bugs in the media browser.
