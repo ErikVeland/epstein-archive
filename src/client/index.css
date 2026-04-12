@@ -317,8 +317,6 @@ input[type='checkbox'] {
   cursor: pointer;
 }
 
-
-
 /* Backdrop surface for app-level depth */
 @keyframes backdrop-drift-a {
   0%,

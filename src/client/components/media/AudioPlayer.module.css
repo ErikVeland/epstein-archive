@@ -763,7 +763,11 @@
   min-width: 3px;
   max-width: 8px;
   border-radius: 2px 2px 0 0;
-  background: linear-gradient(to top, var(--accent), color-mix(in srgb, var(--accent) 30%, transparent));
+  background: linear-gradient(
+    to top,
+    var(--accent),
+    color-mix(in srgb, var(--accent) 30%, transparent)
+  );
   transition: height 0.08s ease;
 }
 

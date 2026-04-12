@@ -338,7 +338,9 @@
   border: 1px solid var(--glass-border);
   color: var(--text-muted);
   cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .collapseButton:hover {
@@ -358,7 +360,9 @@
   border: 1px solid var(--glass-border);
   color: var(--text-muted);
   cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .expandButton:hover {
