@@ -81,3 +81,59 @@
     transform: rotate(360deg);
   }
 }
+
+/* ─── New-structure classes ──────────────────────────────── */
+
+.headerTitleGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.headerTitle {
+  margin: 0;
+  font-size: var(--type-h3);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.closeButton {
+  flex-shrink: 0;
+}
+
+.cancelButton {
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: var(--type-sm);
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.cancelButton:hover {
+  background: var(--glass-bg);
+}
+
+.submitButton {
+  padding: var(--space-2) var(--space-5);
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--accent);
+  color: var(--bg-dark, #0a0e1e);
+  font-size: var(--type-sm);
+  font-weight: var(--weight-bold);
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.submitButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

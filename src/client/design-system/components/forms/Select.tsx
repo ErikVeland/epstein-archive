@@ -13,12 +13,16 @@ export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElemen
   hint?: React.ReactNode;
   message?: React.ReactNode;
   invalid?: boolean;
+  size?: 'sm' | 'md';
   options: DesignSystemSelectOption[];
   rootClassName?: string;
 }
 
 export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
-  ({ className, label, hint, message, invalid, options, rootClassName, id, ...props }, ref) => (
+  (
+    { className, label, hint, message, invalid, size = 'md', options, rootClassName, id, ...props },
+    ref,
+  ) => (
     <div className={cn('ds-selectRoot', rootClassName)}>
       {(label || hint) && (
         <div className="ds-selectLabelRow">
@@ -32,11 +36,12 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
           {hint ? <p className="ds-selectHint">{hint}</p> : null}
         </div>
       )}
-      <div className="ds-selectControl">
+      <div className="ds-selectControl" data-size={size}>
         <select
           ref={ref}
           id={id}
           data-invalid={invalid || undefined}
+          data-size={size}
           className={cn('ds-selectField', className)}
           {...props}
         >

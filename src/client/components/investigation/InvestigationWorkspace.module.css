@@ -1661,3 +1661,10 @@
   box-shadow: var(--shadow-2xl);
   border: 1px solid var(--lq-surface-3);
 }
+
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-shrink: 0;
+}

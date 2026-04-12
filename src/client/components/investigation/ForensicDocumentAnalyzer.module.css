@@ -798,3 +798,10 @@
   border-style: solid;
   border-color: var(--lq-surface-3);
 }
+
+.autoGen107Bar {
+  height: 0.25rem;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
+  overflow: hidden;
+}

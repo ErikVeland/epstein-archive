@@ -656,3 +656,291 @@
   flex-direction: column;
   gap: var(--space-1);
 }
+
+/* ─── New-structure classes ──────────────────────────────── */
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.sectionTitle {
+  font-size: var(--type-small);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0;
+}
+
+/* Stat card labels / values */
+.statLabel {
+  font-size: var(--type-micro);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: var(--space-1);
+}
+
+.statLabelInfo {
+  color: var(--accent-info, var(--accent));
+}
+
+.statLabelDanger {
+  color: var(--accent-danger, #ef4444);
+}
+
+.statLabelSuccess {
+  color: var(--accent-success, #4ade80);
+}
+
+.statValue {
+  font-size: var(--type-h2);
+  font-weight: var(--weight-bold);
+  line-height: 1;
+}
+
+.statValueInfo {
+  color: var(--accent-info, var(--accent));
+}
+
+.statValueDanger {
+  color: var(--accent-danger, #ef4444);
+}
+
+.statValueSuccess {
+  color: var(--accent-success, #4ade80);
+}
+
+/* Type distribution rows */
+.typeRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.typeLabel {
+  font-size: var(--type-xs);
+  color: var(--text-secondary);
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.typeBarGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.typeCount {
+  font-size: var(--type-xs);
+  color: var(--text-muted);
+  width: 2rem;
+  text-align: right;
+}
+
+/* Related entities */
+.relatedName {
+  font-size: var(--type-small);
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.relatedShared {
+  font-size: var(--type-micro);
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* View toggle */
+.viewToggleBtn {
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+  font-size: var(--type-micro);
+  font-weight: var(--weight-medium);
+  border: 0;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.viewToggleBtnActive {
+  background: var(--accent);
+  color: var(--text-primary);
+}
+
+.viewToggleBtnInactive {
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.viewToggleBtnInactive:hover {
+  background: var(--glass-bg-highlight);
+  color: var(--text-secondary);
+}
+
+/* Communications */
+.commsScroll {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-height: 32rem;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #334155 transparent;
+}
+
+.commsHighlight {
+  color: var(--accent);
+  font-weight: var(--weight-semibold);
+}
+
+.commTopRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.commSubjectRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1);
+}
+
+.commIcon {
+  width: 0.875rem;
+  height: 0.875rem;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.commSubject {
+  font-size: var(--type-small);
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.commMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--type-micro);
+  color: var(--text-muted);
+  flex-wrap: wrap;
+}
+
+.commFrom {
+  color: var(--text-secondary);
+}
+
+.commTo {
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 14rem;
+}
+
+.commRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-1);
+  flex-shrink: 0;
+}
+
+.commDate {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--type-micro);
+  color: var(--text-muted);
+}
+
+.commDateIcon {
+  width: 0.75rem;
+  height: 0.75rem;
+  flex-shrink: 0;
+}
+
+.commTopicIcon {
+  width: 0.625rem;
+  height: 0.625rem;
+  flex-shrink: 0;
+}
+
+.commActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.commActionLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.commActionLink:hover {
+  background: var(--glass-bg-highlight);
+  color: var(--accent);
+}
+
+.commActionIcon {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.commSnippet {
+  font-size: var(--type-xs);
+  color: var(--text-muted);
+  font-style: italic;
+  margin-top: var(--space-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* Relation card header */
+.relationHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+}
+
+.relationPredicate {
+  font-size: var(--type-small);
+  font-weight: var(--weight-semibold);
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Filter select group */
+.filterSelectGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}

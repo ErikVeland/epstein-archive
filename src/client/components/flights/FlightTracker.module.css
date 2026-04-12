@@ -235,3 +235,27 @@
     height: 320px;
   }
 }
+
+/* ─── New-structure classes ──────────────────────────────── */
+
+.dateSeparator {
+  color: var(--text-muted);
+  font-size: var(--type-xs);
+}
+
+.errorFallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: var(--space-2);
+  color: var(--text-muted);
+}
+
+.errorFallbackTitle {
+  margin: 0;
+  font-size: var(--type-small);
+  font-weight: var(--weight-medium);
+  color: var(--text-secondary);
+}

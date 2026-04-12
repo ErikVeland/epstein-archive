@@ -17,6 +17,7 @@
   font-weight: var(--weight-medium);
 }
 
+
 .ds-selectHint {
   margin: 0;
   color: var(--text-muted);
@@ -42,6 +43,11 @@
   transition:
     border-color var(--duration-fast) var(--easing-swift),
     box-shadow var(--duration-fast) var(--easing-swift);
+}
+
+.ds-selectField[data-size='sm'] {
+  min-height: var(--control-height-compact);
+  font-size: var(--type-small);
 }
 
 .ds-selectField:focus-visible {

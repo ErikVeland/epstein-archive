@@ -75,3 +75,9 @@
   border-radius: 9999px;
   flex-shrink: 0;
 }
+
+.albumBtnActive {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  border-left-color: var(--accent);
+  color: var(--text-primary);
+}

@@ -42,3 +42,47 @@
 .passengerTag.witness {
   color: var(--accent-info);
 }
+
+/* ─── New-structure classes ──────────────────────────────── */
+
+.topRow {
+  margin-bottom: var(--space-2);
+}
+
+.dateLabel {
+  flex-shrink: 0;
+}
+
+.tailNumber {
+  font-family: var(--font-mono, monospace);
+}
+
+.passengerCount {
+  flex-shrink: 0;
+}
+
+.mutedIcon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.airport {
+  min-width: 0;
+}
+
+.airportCode {
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.airportCity {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.passengers {
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--glass-border);
+}

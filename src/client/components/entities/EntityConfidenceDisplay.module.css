@@ -97,3 +97,44 @@
   border-top: 1px solid var(--glass-border);
   padding-top: var(--space-2);
 }
+
+/* ─── New-structure classes ──────────────────────────────── */
+
+.sizeSm {
+  font-size: var(--type-xs);
+}
+
+.sizeMd {
+  font-size: var(--type-small);
+}
+
+.sizeLg {
+  font-size: var(--type-h3);
+}
+
+.mentionCount {
+  margin: 0;
+  font-size: var(--type-xs);
+  color: var(--text-muted);
+}
+
+.breakdownSection {
+  margin-top: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.breakdownLabel {
+  font-size: var(--type-xs);
+  font-weight: var(--weight-bold);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.breakdownChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}

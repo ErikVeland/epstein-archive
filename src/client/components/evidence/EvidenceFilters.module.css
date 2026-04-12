@@ -84,15 +84,153 @@
   }
 }
 
-/* Select controls */
-.select {
+/* ─── Layout shell ───────────────────────────────────────── */
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.topBar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.searchRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.resultBadge {
+  padding: 0.2rem 0.625rem;
+  border-radius: 9999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.stripRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: var(--control-height-compact);
+}
+
+/* ─── Category strip ─────────────────────────────────────── */
+
+.categoryScroll {
+  overflow-x: auto;
+  flex: 1 1 auto;
+  min-width: 0;
+  scrollbar-width: none;
+}
+
+.categoryScroll::-webkit-scrollbar {
+  display: none;
+}
+
+.categoryStrip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: max-content;
+}
+
+.stripBtn {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ─── Risk level tabs ────────────────────────────────────── */
+
+.riskStrip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-shrink: 0;
+}
+
+.riskTab {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  white-space: nowrap;
+}
+
+.riskDot {
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+
+.riskDotAll {
+  background: var(--text-muted);
+}
+
+.riskDotHigh {
+  background: #ef4444;
+}
+
+.riskDotMed {
+  background: #f59e0b;
+}
+
+.riskDotLow {
+  background: #22c55e;
+}
+
+/* ─── Details filter panel ───────────────────────────────── */
+
+.detailsPanel {
+  padding: var(--space-4) var(--space-5);
+}
+
+.titleWrapper {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.title {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.separatorText {
+  flex-shrink: 0;
+  padding-top: var(--space-1);
+}
+
+.fullWidthBtn {
   width: 100%;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: var(--radius-lg);
-  padding: 0 var(--space-3);
-  height: 2.5rem;
+  justify-content: flex-start;
+}
+
+/* ─── Select controls ────────────────────────────────────── */
+
+.select {
+  /* Native select fallback remains for compatibility, but DS Select is preferred */
+  width: 100%;
+  appearance: none;
+  background-color: var(--glass-bg, rgba(255, 255, 255, 0.05));
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--space-3) center;
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+  border-radius: var(--radius-md);
+  padding: 0 var(--space-8) 0 var(--space-3);
+  height: var(--control-height-compact);
   color: var(--text-primary);
+  font-size: var(--type-sm, 0.875rem);
+  font-family: inherit;
+  cursor: pointer;
   transition:
     box-shadow 0.15s,
     border-color 0.15s;
@@ -100,11 +238,13 @@
 
 .select:focus {
   outline: none;
-  box-shadow: 0 0 0 2px var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 54%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 
 .select:disabled {
   opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .selectOption {

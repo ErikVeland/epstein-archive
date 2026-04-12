@@ -511,3 +511,30 @@
     transform: rotate(360deg);
   }
 }
+
+/* ─── New-structure classes ──────────────────────────────── */
+
+.batchModeCard {
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+.mutedIcon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.overlayContent {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: var(--space-2);
+  gap: var(--space-1);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent);
+}
+
+.shareSuccess {
+  color: #4ade80;
+}

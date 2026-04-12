@@ -385,3 +385,9 @@
   color: var(--text-muted);
   white-space: nowrap;
 }
+
+.tagMuted {
+  background: var(--glass-bg);
+  color: var(--text-muted);
+  border-color: var(--glass-border);
+}

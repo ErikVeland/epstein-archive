@@ -869,3 +869,11 @@
 .autoGen94 {
   text-align: center;
 }
+
+.spin {
+  animation: faw-spin 1s linear infinite;
+}
+
+@keyframes faw-spin {
+  to { transform: rotate(360deg); }
+}

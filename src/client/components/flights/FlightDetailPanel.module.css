@@ -122,3 +122,45 @@
     flex-direction: column;
   }
 }
+
+/* ─── New-structure classes ──────────────────────────────── */
+
+.closeBtn {
+  flex-shrink: 0;
+}
+
+.iconDeparture {
+  color: #22c55e;
+  flex-shrink: 0;
+}
+
+.iconArrival {
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.mapSection {
+  padding: var(--space-3);
+  min-height: 160px;
+  border-radius: var(--radius-md);
+}
+
+.manifestSection {
+  padding: var(--space-3);
+}
+
+.aircraftSection {
+  padding: var(--space-3);
+}
+
+.sectionHeader {
+  margin-bottom: var(--space-2);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.passengerList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}

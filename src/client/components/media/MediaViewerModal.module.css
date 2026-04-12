@@ -489,3 +489,20 @@
     transform: rotate(360deg);
   }
 }
+
+.mapContainer {
+  flex: 1 1 auto;
+  min-height: 200px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.sectionIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  flex-shrink: 0;
+}

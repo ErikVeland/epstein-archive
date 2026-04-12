@@ -223,3 +223,12 @@
     transform: rotate(360deg);
   }
 }
+
+.categoryButtonActive {
+  transform: translateY(-2px);
+  opacity: 1;
+}
+
+.categoryButtonActive .categoryLabel {
+  color: var(--accent);
+}

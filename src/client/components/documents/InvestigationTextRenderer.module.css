@@ -431,3 +431,11 @@
 :global(.entity-trigger:hover) {
   color: #ecfeff;
 }
+
+.tooltipRole {
+  font-size: var(--type-xs);
+  color: var(--text-muted);
+  font-weight: var(--weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}

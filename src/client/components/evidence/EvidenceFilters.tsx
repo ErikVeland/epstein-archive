@@ -1,6 +1,17 @@
 import React from 'react';
 import { Info, Filter, Flag, FileText } from 'lucide-react';
-import { Surface, Button, Flex, Box, LqText, Grid, cn, SearchField } from '../../design-system/lib';
+import {
+  Surface,
+  Button,
+  Flex,
+  Box,
+  LqText,
+  Grid,
+  cn,
+  SearchField,
+  Select,
+  Stack,
+} from '../../design-system/lib';
 import ProgressBar from '../common/ProgressBar';
 import styles from './EvidenceFilters.module.css';
 
@@ -64,9 +75,9 @@ export const EvidenceFilters: React.FC<EvidenceFiltersProps> = ({
   return (
     <Box className={styles.wrapper}>
       <Flex direction="column" align="stretch" gap="md" className={styles.topBar}>
-        <Flex justify="between" align="center" gap="md" className={styles.searchRow}>
-          <Flex align="center" gap="md">
-            <LqText variant="h2" weight="bold">
+        <Flex justify="between" align="center" gap="lg" className={styles.searchRow}>
+          <Flex align="center" gap="md" className={styles.titleWrapper}>
+            <LqText variant="h2" weight="bold" className={styles.title}>
               Evidence Search
             </LqText>
             <Surface variant="glass-highlight" className={styles.resultBadge}>
@@ -159,72 +170,64 @@ export const EvidenceFilters: React.FC<EvidenceFiltersProps> = ({
       )}
 
       <Surface variant="glass" className={styles.detailsPanel}>
-        <Grid cols={{ base: 1, md: 2, lg: 4 }} gap="xl">
-          <Box>
-            <LqText variant="small" weight="bold" color="muted" style={{ marginBottom: '0.5rem' }}>
+        <Grid cols={{ base: 1, md: 2, lg: 4 }} gap="xl" align="end">
+          <Stack gap="xs">
+            <LqText variant="small" weight="bold" color="muted">
               Rating Threshold
             </LqText>
             <Flex align="center" gap="sm">
-              <select
+              <Select
+                size="sm"
                 value={minRedFlagRating}
                 onChange={(e) => onMinRedFlagRatingChange(Number(e.target.value))}
-                className={styles.select}
-              >
-                {filterOptions.redFlagRatings.map((r) => (
-                  <option key={r.value} value={r.value}>
-                    {r.label}
-                  </option>
-                ))}
-              </select>
-              <LqText variant="xs" color="muted">
+                options={filterOptions.redFlagRatings.map((r) => ({
+                  value: r.value,
+                  label: r.label,
+                }))}
+              />
+              <LqText variant="xs" color="muted" className={styles.separatorText}>
                 to
               </LqText>
-              <select
+              <Select
+                size="sm"
                 value={maxRedFlagRating}
                 onChange={(e) => onMaxRedFlagRatingChange(Number(e.target.value))}
-                className={styles.select}
-              >
-                {filterOptions.redFlagRatings.map((r) => (
-                  <option key={r.value} value={r.value}>
-                    {r.label}
-                  </option>
-                ))}
-              </select>
+                options={filterOptions.redFlagRatings.map((r) => ({
+                  value: r.value,
+                  label: r.label,
+                }))}
+              />
             </Flex>
-          </Box>
+          </Stack>
 
-          <Box>
-            <LqText variant="small" weight="bold" color="muted" style={{ marginBottom: '0.5rem' }}>
+          <Stack gap="xs">
+            <LqText variant="small" weight="bold" color="muted">
               Correlation Order
             </LqText>
-            <select
+            <Select
+              size="sm"
               value={sortBy}
               onChange={(e) => onSortByChange(e.target.value as SortBy)}
-              className={styles.select}
-            >
-              {filterOptions.sortByOptions.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
-          </Box>
+              options={filterOptions.sortByOptions}
+            />
+          </Stack>
 
-          <Box>
-            <LqText variant="small" weight="bold" color="muted" style={{ marginBottom: '0.5rem' }}>
+          <Stack gap="xs">
+            <LqText variant="small" weight="bold" color="muted">
               Intelligence Focus
             </LqText>
             <Button
               variant={showRedFlagOnly ? 'secondary' : 'ghost'}
               size="sm"
               onClick={() => onShowRedFlagOnlyChange(!showRedFlagOnly)}
+              className={styles.fullWidthBtn}
             >
               <Flag size={14} />
               {showRedFlagOnly ? 'Flagged Intelligence Only' : 'Include All Observations'}
             </Button>
-          </Box>
+          </Stack>
 
-          <Flex align="end">
+          <Flex justify="end">
             <Button variant="ghost" size="sm" onClick={onShowFiltersToggle}>
               <Info size={14} />
               Forensic Guidelines
