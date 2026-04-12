@@ -539,8 +539,14 @@
 
 .modalRow {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1fr;
   gap: var(--spacing-4);
+}
+
+@media (min-width: 480px) {
+  .modalRow {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .modalInfoBox {
@@ -683,4 +689,41 @@
 .entityBadgeStatic {
   color: var(--text-secondary);
   border: 1px solid var(--glass-border);
+}
+
+/* ── Mobile touch targets ── */
+@media (max-width: 767px) {
+  .filterButton,
+  .sortButton {
+    min-height: 44px;
+    padding-left: var(--spacing-4);
+    padding-right: var(--spacing-4);
+  }
+
+  .stickyHeader {
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: var(--spacing-3);
+    padding-right: var(--spacing-3);
+  }
+
+  .filterRow {
+    gap: var(--spacing-2);
+  }
+
+  .timelineContainer {
+    margin-left: var(--spacing-4);
+  }
+
+  .eventItem {
+    padding-left: var(--spacing-8);
+  }
+
+  .eventCard {
+    padding: var(--spacing-4);
+  }
+
+  .eventTitle {
+    font-size: var(--font-size-base);
+  }
 }

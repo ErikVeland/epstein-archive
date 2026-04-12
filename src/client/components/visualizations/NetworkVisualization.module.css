@@ -770,3 +770,52 @@
     display: block;
   }
 }
+
+/* ── Mobile overrides ── */
+@media (max-width: 767px) {
+  .header {
+    padding: var(--space-3);
+  }
+
+  .headerRow {
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .headerActions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  /* Show search on mobile */
+  .searchWrap {
+    display: flex;
+    flex: 1;
+    margin-right: var(--space-2);
+  }
+
+  .searchInput {
+    width: 100%;
+  }
+
+  /* Hide settings + export icon buttons on mobile (settings pane isn't usable on narrow screens) */
+  .iconButton {
+    display: none;
+  }
+
+  .tableOverlay {
+    position: static;
+    overflow: visible;
+    padding: var(--space-3);
+  }
+
+  .tableContent {
+    gap: var(--space-4);
+  }
+
+  /* Reduce table column count on very small screens */
+  .centerCell,
+  .rightCell {
+    display: none;
+  }
+}

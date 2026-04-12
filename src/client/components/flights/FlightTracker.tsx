@@ -135,7 +135,8 @@ export const FlightTracker: React.FC = () => {
             className={viewMode === 'timeline' ? 'active' : ''}
             onClick={() => setViewMode('timeline')}
           >
-            <Icon name="List" size="sm" /> Timeline
+            <Icon name="List" size="sm" />
+            <span className={styles.viewTabLabel}>Timeline</span>
           </GlassButton>
           <GlassButton
             variant={viewMode === 'map' ? 'primary' : 'ghost'}
@@ -143,7 +144,8 @@ export const FlightTracker: React.FC = () => {
             className={viewMode === 'map' ? 'active' : ''}
             onClick={() => setViewMode('map')}
           >
-            <Icon name="Globe" size="sm" /> Map
+            <Icon name="Globe" size="sm" />
+            <span className={styles.viewTabLabel}>Map</span>
           </GlassButton>
           <GlassButton
             variant={viewMode === 'stats' ? 'primary' : 'ghost'}
@@ -151,7 +153,8 @@ export const FlightTracker: React.FC = () => {
             className={viewMode === 'stats' ? 'active' : ''}
             onClick={() => setViewMode('stats')}
           >
-            <Icon name="BarChart3" size="sm" /> Stats
+            <Icon name="BarChart3" size="sm" />
+            <span className={styles.viewTabLabel}>Stats</span>
           </GlassButton>
           <GlassButton
             variant={viewMode === 'network' ? 'primary' : 'ghost'}
@@ -159,7 +162,8 @@ export const FlightTracker: React.FC = () => {
             className={viewMode === 'network' ? 'active' : ''}
             onClick={() => setViewMode('network')}
           >
-            <Icon name="Users" size="sm" /> Network
+            <Icon name="Users" size="sm" />
+            <span className={styles.viewTabLabel}>Network</span>
           </GlassButton>
         </div>
 

@@ -60,8 +60,8 @@ export const DataIntegrityPanel: React.FC<DataIntegrityPanelProps> = ({ stats })
             />
           </div>
           <div className={styles.metricFootnote}>
-            {stats.entitiesWithDocuments.toLocaleString()} of {stats.totalEntities.toLocaleString()}{' '}
-            entities linked
+            {(stats.entitiesWithDocuments ?? 0).toLocaleString()} of{' '}
+            {(stats.totalEntities ?? 0).toLocaleString()} entities linked
           </div>
         </div>
 
@@ -78,8 +78,8 @@ export const DataIntegrityPanel: React.FC<DataIntegrityPanelProps> = ({ stats })
             />
           </div>
           <div className={styles.metricFootnote}>
-            {stats.documentsWithMetadata.toLocaleString()} of{' '}
-            {stats.totalDocuments.toLocaleString()} documents complete
+            {(stats.documentsWithMetadata ?? 0).toLocaleString()} of{' '}
+            {(stats.totalDocuments ?? 0).toLocaleString()} documents complete
           </div>
         </div>
       </div>

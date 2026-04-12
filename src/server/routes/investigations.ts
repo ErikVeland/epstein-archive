@@ -325,6 +325,18 @@ router.get('/:id', validate(idParamSchema), async (req, res, next) => {
   }
 });
 
+// Get investigation statistics
+router.get('/:id/stats', validate(idParamSchema), async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const numericId = Number(id);
+    const stats = await investigationsRepository.getInvestigationStats(numericId);
+    res.json(stats);
+  } catch (error) {
+    next(error);
+  }
+});
+
 // Update investigation
 router.put(
   '/:id',

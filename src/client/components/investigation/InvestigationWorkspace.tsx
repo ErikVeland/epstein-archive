@@ -342,7 +342,12 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
         const stats = await apiClient.get<Record<string, unknown>>(
           `/investigations/${selectedInvestigation.id}/stats`,
         );
-        if (stats)
+        if (
+          stats &&
+          typeof stats === 'object' &&
+          'entitiesWithDocuments' in stats &&
+          'totalEntities' in stats
+        ) {
           setDbStats(
             stats as {
               totalEntities: number;
@@ -351,8 +356,17 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
               documentsWithMetadata: number;
             },
           );
-      } catch (_err) {
-        // Fallback or ignore
+        } else {
+          console.warn(
+            'Received malformed stats for investigation - likely hitting SPA fallback or missing route',
+            { stats, investigationId: selectedInvestigation.id },
+          );
+        }
+      } catch (err) {
+        console.error('Failed to fetch investigation analytics context', {
+          err,
+          investigationId: selectedInvestigation.id,
+        });
       }
     };
     fetchAnalyticalContext();

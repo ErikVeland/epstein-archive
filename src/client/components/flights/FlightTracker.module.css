@@ -205,3 +205,33 @@
   background: linear-gradient(180deg, var(--accent), transparent);
   transition: height var(--duration-slow) var(--easing-liquid);
 }
+
+/* ── View tab label: hidden on narrow screens ── */
+.viewTabLabel {
+  display: inline;
+}
+
+@media (max-width: 480px) {
+  .viewTabLabel {
+    display: none;
+  }
+
+  .filterRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .dateRangeWrapper {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .dateInput {
+    width: auto;
+    flex: 1;
+  }
+
+  .flightMapContainer {
+    height: 320px;
+  }
+}

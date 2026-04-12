@@ -804,6 +804,45 @@ export const investigationsRepository = {
     };
   },
 
+  getInvestigationStats: async (investigationId: number) => {
+    try {
+      const { evidenceRepository } = await import('./evidenceRepository.js');
+      const summary = await evidenceRepository.getInvestigationEvidenceSummary(
+        String(investigationId),
+      );
+
+      // totalEntities: Count of unique entities mentioned in any investigation evidence
+      const totalEntities = summary.entityCoverage.length;
+
+      // totalDocuments: Total number of evidence records in the investigation
+      const totalDocuments = summary.totalEvidence;
+
+      // entitiesWithDocuments: For investigation scoping, this is the count of entities
+      // that are explicitly linked via the evidence_entity table in this investigation.
+      const entitiesWithDocuments = totalEntities;
+
+      // documentsWithMetadata: Count of documents that have non-empty enrichment/metadata
+      const documentsWithMetadata = summary.evidence.filter(
+        (e: any) => e.metadata_json && Object.keys(e.metadata_json).length > 0,
+      ).length;
+
+      return {
+        totalEntities,
+        totalDocuments,
+        entitiesWithDocuments,
+        documentsWithMetadata,
+      };
+    } catch (e) {
+      logger.error({ err: e, investigationId }, 'Failed to fetch investigation stats');
+      return {
+        totalEntities: 0,
+        totalDocuments: 0,
+        entitiesWithDocuments: 0,
+        documentsWithMetadata: 0,
+      };
+    }
+  },
+
   getBoardSnapshot: async (
     investigationId: number,
     options?: { evidenceLimit?: number; hypothesisLimit?: number },

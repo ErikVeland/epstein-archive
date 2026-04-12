@@ -154,7 +154,7 @@ const ListRow = React.memo(({ index, style, data }: ListChildComponentProps<Item
   return (
     <div style={{ ...style, padding: '2px 6px' }}>
       <Surface
-        variant={isSelected ? 'glass-highlight' : 'glass-highlight'}
+        variant={isSelected ? 'glass-highlight' : 'glass-strong'}
         onClick={(e) => onImageClick(img, index, e)}
         className={cn(styles.listRow, isSelected && styles.listRowSelected)}
       >

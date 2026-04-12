@@ -65,8 +65,25 @@
 
 .filterWrap {
   flex: 1 1 0;
-  min-width: 9.375rem;
+  min-width: 7rem;
   max-width: 18.75rem;
+}
+
+@media (max-width: 479px) {
+  .filterWrap {
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
+
+  .toolbarControls {
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .sortOrderButton {
+    flex-shrink: 0;
+    align-self: flex-end;
+  }
 }
 
 .fullWidth {

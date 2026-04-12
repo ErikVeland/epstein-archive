@@ -181,6 +181,14 @@
   flex-direction: column;
 }
 
+@media (max-width: 767px) {
+  .networkSection {
+    max-height: none;
+    overflow: visible;
+    padding: var(--space-4);
+  }
+}
+
 /* ── Archive Integrity badge ── */
 .archiveBadgeWrap {
   position: absolute;
@@ -797,6 +805,40 @@
 .entityFlags {
   font-size: 1.125rem;
   flex-shrink: 0;
+}
+
+/* ── Mobile progressive disclosure ── */
+@media (max-width: 767px) {
+  .networkToolbar {
+    gap: var(--space-3);
+  }
+
+  /* Hide heavy slider controls on mobile — entity list is the mobile experience */
+  .sliderControl,
+  .timelineControl,
+  .pathModeButton {
+    display: none;
+  }
+
+  .vizPanel {
+    padding: var(--space-4);
+  }
+
+  .vizPanelIconDecor {
+    display: none;
+  }
+
+  .archiveBadgeWrap {
+    position: static;
+    transform: none;
+    margin-bottom: var(--space-3);
+    display: flex;
+    justify-content: center;
+  }
+
+  .mobileListNote {
+    display: none;
+  }
 }
 
 .iconSuccess {

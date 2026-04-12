@@ -1,21 +1,40 @@
 # Release Notes
 
+## v19.0.0 - 2026-04-12 — Mobile-First UX Overhaul & Media Browser Hardening
+
+This major release delivers a comprehensive mobile-first redesign across five core investigation pages, adds touch gesture support throughout, and fixes functional bugs in the media browser.
+
+### Mobile UX Overhaul
+
+- **Network Graph (D3 force graph)**: Added pinch-to-zoom via Touch Events API, single-finger pan, initial state lazy-initialization (no flash of incorrect layout), `collapsedWidth=0` on mobile so the settings panel fully collapses, and CSS hiding of desktop-only controls at ≤767px.
+- **Timeline**: Modal rows stack to single-column on narrow viewports; filter/sort buttons get 44px minimum touch targets; sticky header loses negative margin overflows on mobile; event card and timeline padding reduced for small screens.
+- **Analytics**: Removed `max-height: 85vh` constraint on the network section so it doesn't clip on mobile; hid slider, timeline, and path-mode controls that require hover/precision input; reduced viz panel padding.
+- **Flight Map**: Full pointer-events pan and pinch-zoom using `setPointerCapture` for reliable cross-device drag tracking. The map transforms via CSS `translate + scale` on a wrapper div (no SVG mutation). A "Reset view" button appears conditionally when the transform is non-identity.
+- **Flights tab bar**: View-mode labels (Timeline, Map, Stats, Network) are hidden on ≤480px via `viewTabLabel` CSS class — icons remain, saving horizontal space.
+- **People page**: Filter wrap shrinks to full-width on very narrow viewports; toolbar wraps gracefully.
+
+### Media Browser Fixes
+
+- **AudioBrowser — setState during render (React violation)**: Removed the `containerWidth` state that was being set inside the AutoSizer render callback (`setContainerWidth(width)`). React 18 flags this as "Cannot update a component while rendering a different component", causing an extra render cycle and a visible layout jump on load. Refactored: `columns` is now computed as a plain variable inside the AutoSizer callback (same pattern as `VideoBrowser` and `PhotoBrowser`). Converted the inline `Row` closure to a standalone `AudioRow = React.memo(...)` component using react-window's `itemData` prop, eliminating all closure-captured state.
+- **PhotoBrowser — list row selection variant bug**: In `ListRow`, both branches of the selection ternary returned `'glass-highlight'` — selected and unselected rows were visually identical in list view during batch mode. Fixed: unselected rows now use `'glass-strong'`.
+
 ## v18.8.6 - 2026-04-11 - Evidence Navigation Restoration & SQL Optimization
 
 This release restores visibility for high-volume entity evidence and hardens the archival media browsing interface with premium "Liquid Glass" refinements and technical sorting fixes.
 
 ### Evidence & Scaling
+
 - **High-Volume Restoration**: Resolved a critical data retrieval failure for high-exposure entities (e.g., Jeffrey Epstein, ID 1). Implemented a CTE-based SQL optimization that guarantees document uniqueness and reliable pagination for collections exceeding 111,000 records.
 - **BigInt Standardization**: Unified ID handling across the repository and API layer to prevent precision loss and ensure consistent archival retrieval.
 - **Natural Sort Implementation**: Enabled "Human" sort fallback for testimony documents (e.g., Sascha Barros Parts 1-6), ensuring they appear in logical numeric sequence instead of chronological/lexicographical order.
 
 ### Media & UI Refinement
+
 - **Archival Media Stability**: Fixed a bug where empty media sets returned 204 status codes, crashing the frontend. Resolved media type detection regressions for robust integrated playback of forensic audio and video.
 - **Improved Scroll Affordance**: Increased the media browser height to 750px (approx. 2.25 rows) to provide a clear visual cue that content continues below the fold.
 - **UI Decluttering**: Purged redundant archival metadata chips (e.g., `#PROV-VERIFIED`) from document cards to improve scannability.
 - **Liquid Glass Aesthetics**: Integrated high-fidelity blurred background layers and glass-surface refinements across the media exploration suite.
 - **Zero-Error Standard**: Achieved 100% build hygiene by resolving all residual linting and formatting warnings in the core investigation workspace.
-
 
 ## v18.8.5 - 2026-04-11 - Documentation Sync & Version Alignment
 

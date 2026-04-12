@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useIsMobile } from '../../hooks/useIsMobile';
 import {
   Network,
   FileText,
@@ -79,6 +80,7 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
   interactive = true,
   height = 600,
 }) => {
+  const isMobile = useIsMobile();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [nodes, setNodes] = useState<NetworkNode[]>([]);
   const [edges, setEdges] = useState<NetworkEdge[]>([]);
@@ -93,8 +95,15 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [lastPan, setLastPan] = useState({ x: 0, y: 0 });
   const [damningEvidenceOnly, setDamningEvidenceOnly] = useState(false);
-  const [showTableView, setShowTableView] = useState(false);
-  const [showSettings, setShowSettings] = useState(true);
+  // Default to table view on mobile — canvas graph is unusable without a mouse
+  const [showTableView, setShowTableView] = useState<boolean>(
+    () => typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches,
+  );
+  const [showSettings, setShowSettings] = useState<boolean>(
+    () => typeof window === 'undefined' || !window.matchMedia('(max-width: 767px)').matches,
+  );
+  // Ref for tracking pinch-zoom touch distance
+  const touchPinchRef = useRef<{ dist: number } | null>(null);
   const [settingsPaneWidth, setSettingsPaneWidth] = useState(320);
   const [minStrength, setMinStrength] = useState(0);
   const [maxHops, setMaxHops] = useState(3);
@@ -718,6 +727,63 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
     setIsDragging(false);
   };
 
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent<HTMLCanvasElement>) => {
+      if (!interactive) return;
+      e.preventDefault();
+      if (e.touches.length === 1) {
+        const t = e.touches[0];
+        setIsDragging(true);
+        setDragStart({ x: t.clientX, y: t.clientY });
+        setLastPan({ x: pan.x, y: pan.y });
+      } else if (e.touches.length === 2) {
+        const dx = e.touches[1].clientX - e.touches[0].clientX;
+        const dy = e.touches[1].clientY - e.touches[0].clientY;
+        touchPinchRef.current = { dist: Math.hypot(dx, dy) };
+      }
+    },
+    [interactive, pan],
+  );
+
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent<HTMLCanvasElement>) => {
+      if (!interactive) return;
+      e.preventDefault();
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+
+      if (e.touches.length === 1 && isDragging) {
+        const t = e.touches[0];
+        const deltaX = (t.clientX - dragStart.x) * scaleX;
+        const deltaY = (t.clientY - dragStart.y) * scaleY;
+        setPan({ x: lastPan.x + deltaX, y: lastPan.y + deltaY });
+      } else if (e.touches.length === 2 && touchPinchRef.current) {
+        const dx = e.touches[1].clientX - e.touches[0].clientX;
+        const dy = e.touches[1].clientY - e.touches[0].clientY;
+        const newDist = Math.hypot(dx, dy);
+        const scaleDelta = newDist / touchPinchRef.current.dist;
+        touchPinchRef.current = { dist: newDist };
+
+        const midX = ((e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left) * scaleX;
+        const midY = ((e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top) * scaleY;
+        const worldMidX = (midX - pan.x) / zoom;
+        const worldMidY = (midY - pan.y) / zoom;
+        const newZoom = Math.max(0.1, Math.min(3, zoom * scaleDelta));
+        setZoom(newZoom);
+        setPan({ x: midX - worldMidX * newZoom, y: midY - worldMidY * newZoom });
+      }
+    },
+    [interactive, isDragging, dragStart, lastPan, pan, zoom],
+  );
+
+  const handleTouchEnd = useCallback(() => {
+    setIsDragging(false);
+    touchPinchRef.current = null;
+  }, []);
+
   const exportNetwork = () => {
     const data = {
       nodes: filteredNodes,
@@ -938,12 +1004,16 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
                     width={800}
                     height={height}
                     className={styles.canvas}
+                    style={{ touchAction: 'none' }}
                     onClick={handleCanvasClick}
                     onWheel={handleWheelEnhanced}
                     onMouseDown={handleMouseDown}
                     onMouseMove={handleMouseMove}
                     onMouseUp={handleMouseUp}
                     onMouseLeave={handleMouseUp}
+                    onTouchStart={handleTouchStart}
+                    onTouchMove={handleTouchMove}
+                    onTouchEnd={handleTouchEnd}
                   />
 
                   <Surface className={styles.zoomControls}>
@@ -1236,7 +1306,7 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
           defaultRightWidth={settingsPaneWidth}
           minRightWidth={280}
           maxRightWidth={480}
-          collapsedWidth={84}
+          collapsedWidth={isMobile ? 0 : 84}
           rightCollapsed={!showSettings}
           onRightCollapsedChange={(next) => setShowSettings(!next)}
           onRightWidthChange={setSettingsPaneWidth}
