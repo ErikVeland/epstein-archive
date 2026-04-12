@@ -128,3 +128,26 @@
   color: var(--text-primary);
   box-shadow: none;
 }
+
+/* --- Icon-only square buttons --- */
+
+.ds-btn[data-icon-only] {
+  padding: 0;
+  min-height: unset;
+  flex-shrink: 0;
+}
+
+.ds-btn[data-size='sm'][data-icon-only] {
+  width: 2rem;
+  height: 2rem;
+}
+
+.ds-btn[data-size='md'][data-icon-only] {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.ds-btn[data-size='lg'][data-icon-only] {
+  width: 3rem;
+  height: 3rem;
+}

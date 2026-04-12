@@ -1,6 +1,6 @@
 import React from 'react';
 import { DriverChip } from '../../../utils/forensics';
-import Tooltip from '../../common/Tooltip';
+import { Tooltip, TooltipTrigger, TooltipPortal, TooltipContent } from '../../../design-system/lib';
 import styles from './DriverChips.module.css';
 
 interface DriverChipsProps {
@@ -31,8 +31,15 @@ export const DriverChips: React.FC<DriverChipsProps> = ({ chips, className = '' 
         const content = `${chip.label} — ${descriptions[chip.type] || ''}`;
 
         return (
-          <Tooltip key={idx} content={content} position="top-end">
-            <span className={`${styles.chip} ${style}`}>{chip.label}</span>
+          <Tooltip key={idx}>
+            <TooltipTrigger asChild>
+              <span className={`${styles.chip} ${style}`}>{chip.label}</span>
+            </TooltipTrigger>
+            <TooltipPortal>
+              <TooltipContent side="top" align="end">
+                {content}
+              </TooltipContent>
+            </TooltipPortal>
           </Tooltip>
         );
       })}

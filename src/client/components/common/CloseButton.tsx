@@ -1,25 +1,19 @@
 import React from 'react';
 import { X } from 'lucide-react';
+import { Button, type ButtonProps } from '../../design-system/lib';
 import { cn } from '../../utils/cn';
-import s from './CloseButton.module.css';
 
 type CloseButtonSize = 'sm' | 'md' | 'lg';
 
-interface CloseButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface CloseButtonProps extends Omit<ButtonProps, 'size'> {
   size?: CloseButtonSize;
   label?: string;
 }
 
-const sizeMap: Record<CloseButtonSize, string> = {
-  sm: s.sm,
-  md: s.md,
-  lg: s.lg,
-};
-
-const iconSizeMap: Record<CloseButtonSize, string> = {
-  sm: s.iconSm,
-  md: s.iconMd,
-  lg: s.iconLg,
+const iconSizes: Record<CloseButtonSize, number> = {
+  sm: 16,
+  md: 20,
+  lg: 24,
 };
 
 export const CloseButton: React.FC<CloseButtonProps> = ({
@@ -28,18 +22,19 @@ export const CloseButton: React.FC<CloseButtonProps> = ({
   className,
   type = 'button',
   ...rest
-}) => {
-  return (
-    <button
-      type={type}
-      aria-label={label}
-      title={label}
-      className={cn(s.root, sizeMap[size], className)}
-      {...rest}
-    >
-      <X className={cn(s.icon, iconSizeMap[size])} />
-    </button>
-  );
-};
+}) => (
+  <Button
+    type={type}
+    variant="secondary"
+    size={size}
+    iconOnly
+    aria-label={label}
+    title={label}
+    className={cn('rounded-full', className)}
+    {...rest}
+  >
+    <X size={iconSizes[size]} aria-hidden="true" />
+  </Button>
+);
 
 export default CloseButton;
