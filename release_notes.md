@@ -1,5 +1,17 @@
 # Release Notes
 
+## v19.0.2 - 2026-04-13 — Design System Specificity Fixes
+
+Fixes three CSS specificity regressions introduced by the DS consolidation refactor, where DS Button attribute selectors (`(0,3,0)`) silently won over consuming component module classes (`(0,1,0)`).
+
+### Bug Fixes
+
+- **Toast close button**: restored intended `1.5rem × 1.5rem` size — the DS `[data-size='sm'][data-icon-only]` rule was overriding the `.closeBtn` override to 2rem
+- **Mobile menu close button**: restored transparent background — the DS secondary variant was winning over the module's `background: transparent`
+- **Flight tracker passenger select**: added `size="sm"` to match all other filter selects (was defaulting to `md`, 44px)
+
+---
+
 ## v19.0.1 - 2026-04-12 — Systematic Layout & Design System Hardening
 
 This patch standardizes the application's layout primitives and form controls, ensuring pixel-perfect consistency across all investigative surfaces.

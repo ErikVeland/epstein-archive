@@ -105,6 +105,7 @@
   pointer-events: none;
 }
 
-.ds-inputSearchField {
+/* Doubled class raises specificity to (0,2,0) to beat global baseline input[type='text'] (0,1,1) */
+.ds-inputSearchField.ds-inputSearchField {
   padding-left: calc(var(--space-10) + var(--space-1));
 }

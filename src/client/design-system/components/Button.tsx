@@ -16,11 +16,22 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   size?: 'sm' | 'md' | 'lg';
   grow?: boolean;
   loading?: boolean;
+  /** Square icon-only button — removes padding and enforces equal width/height */
+  iconOnly?: boolean;
 }
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   (
-    { asChild = false, className, variant = 'primary', size = 'md', grow, style, ...props },
+    {
+      asChild = false,
+      className,
+      variant = 'primary',
+      size = 'md',
+      grow,
+      iconOnly,
+      style,
+      ...props
+    },
     ref,
   ) => {
     const Comp = asChild ? Slot : 'button';
@@ -31,6 +42,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         data-slot="button"
         data-variant={variant}
         data-size={size}
+        data-icon-only={iconOnly || undefined}
         className={cn('ds-btn', className)}
         style={grow ? { flexGrow: 1, ...style } : style}
         {...props}

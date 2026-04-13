@@ -64,11 +64,16 @@
 
 .closeBtn {
   margin-left: var(--space-2);
-  height: 1.5rem;
-  width: 1.5rem;
   border-color: transparent;
   background: transparent;
   color: currentColor;
+}
+
+/* DS button [data-size='sm'][data-icon-only] has specificity (0,3,0).
+   Add data-slot + data-icon-only + data-size to reach (0,4,0) and win. */
+.closeBtn[data-slot='button'][data-icon-only][data-size='sm'] {
+  width: 1.5rem;
+  height: 1.5rem;
 }
 
 .closeBtn:hover {

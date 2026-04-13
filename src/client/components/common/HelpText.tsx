@@ -1,12 +1,11 @@
 import React from 'react';
-import Tooltip from './Tooltip';
+import { Tooltip, TooltipTrigger, TooltipPortal, TooltipContent } from '../../design-system/lib';
 import s from './HelpText.module.css';
 
 interface HelpTextProps {
   text: string;
   children: React.ReactNode;
   position?: 'top' | 'right' | 'bottom' | 'left';
-  delay?: number;
   className?: string;
 }
 
@@ -14,16 +13,20 @@ const HelpText: React.FC<HelpTextProps> = ({
   text,
   children,
   position = 'top',
-  delay = 500,
   className = '',
 }) => {
   return (
     <div className={`${s.root} ${className}`}>
       <span>{children}</span>
-      <Tooltip content={text} position={position} delay={delay}>
-        <span className={s.badge} aria-label={`Help: ${text}`}>
-          ?
-        </span>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className={s.badge} aria-label={`Help: ${text}`}>
+            ?
+          </span>
+        </TooltipTrigger>
+        <TooltipPortal>
+          <TooltipContent side={position}>{text}</TooltipContent>
+        </TooltipPortal>
       </Tooltip>
     </div>
   );

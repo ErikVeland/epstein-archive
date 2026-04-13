@@ -251,12 +251,16 @@
 .searchInput {
   width: 100%;
   height: 100%;
-  padding-left: 2.5rem;
-  padding-right: 3rem;
   background: transparent;
   border: none;
   color: var(--text-primary);
   font-size: var(--font-size-sm);
+}
+
+/* Doubled class raises specificity to (0,2,0) to beat global baseline input[type='text'] (0,1,1) */
+.searchInput.searchInput {
+  padding-left: 2.5rem;
+  padding-right: 3rem;
 }
 
 .searchInput::placeholder {

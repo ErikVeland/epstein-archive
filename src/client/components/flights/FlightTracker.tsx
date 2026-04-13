@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Icon from '../common/Icon';
-import { Select } from '../common/Select';
-import { GlassButton } from '../ui/GlassButton';
+import { Button, Select } from '../../design-system/lib';
 import ScopedErrorBoundary from '../common/ScopedErrorBoundary';
 
 import '../FlightTracker.css';
@@ -129,7 +128,7 @@ export const FlightTracker: React.FC = () => {
 
       <div className="tracker-controls">
         <div className="view-toggle">
-          <GlassButton
+          <Button
             variant={viewMode === 'timeline' ? 'primary' : 'ghost'}
             size="sm"
             className={viewMode === 'timeline' ? 'active' : ''}
@@ -137,8 +136,8 @@ export const FlightTracker: React.FC = () => {
           >
             <Icon name="List" size="sm" />
             <span className={styles.viewTabLabel}>Timeline</span>
-          </GlassButton>
-          <GlassButton
+          </Button>
+          <Button
             variant={viewMode === 'map' ? 'primary' : 'ghost'}
             size="sm"
             className={viewMode === 'map' ? 'active' : ''}
@@ -146,8 +145,8 @@ export const FlightTracker: React.FC = () => {
           >
             <Icon name="Globe" size="sm" />
             <span className={styles.viewTabLabel}>Map</span>
-          </GlassButton>
-          <GlassButton
+          </Button>
+          <Button
             variant={viewMode === 'stats' ? 'primary' : 'ghost'}
             size="sm"
             className={viewMode === 'stats' ? 'active' : ''}
@@ -155,8 +154,8 @@ export const FlightTracker: React.FC = () => {
           >
             <Icon name="BarChart3" size="sm" />
             <span className={styles.viewTabLabel}>Stats</span>
-          </GlassButton>
-          <GlassButton
+          </Button>
+          <Button
             variant={viewMode === 'network' ? 'primary' : 'ghost'}
             size="sm"
             className={viewMode === 'network' ? 'active' : ''}
@@ -164,13 +163,14 @@ export const FlightTracker: React.FC = () => {
           >
             <Icon name="Users" size="sm" />
             <span className={styles.viewTabLabel}>Network</span>
-          </GlassButton>
+          </Button>
         </div>
 
         <div className="filters">
           <div className={styles.filterRow}>
             <Select
-              containerClassName="min-w-[200px]"
+              size="sm"
+              rootClassName="min-w-[200px]"
               value={selectedPassenger}
               onChange={(e) => setSelectedPassenger(e.target.value)}
               options={[

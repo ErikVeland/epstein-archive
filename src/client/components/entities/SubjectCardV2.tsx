@@ -8,7 +8,7 @@ import { getEntityTypeIcon } from '../../utils/entityTypeIcons';
 import { SignalPanel } from './cards/SignalPanel';
 import { EvidenceBadge } from './cards/EvidenceBadge';
 import { DriverChips } from './cards/DriverChips';
-import Tooltip from '../common/Tooltip';
+import { Tooltip, TooltipTrigger, TooltipPortal, TooltipContent } from '../../design-system/lib';
 import { riskToneFromRating } from '../../utils/riskSemantics';
 import { type EvidenceLadderLevel } from '../../utils/forensics';
 import { Flex } from '../../design-system/components/layout/Flex';
@@ -139,30 +139,44 @@ const SubjectCardV2: React.FC<SubjectCardV2Props> = React.memo(({ subject, style
         </Grid>
 
         <Flex align="center" justify="between" className={styles.footerRow}>
-          <Tooltip content="Add this entity to the current investigation" position="top-end">
-            <span>
-              <AddToInvestigationButton
-                item={{
-                  id: subject.id,
-                  title: subject.name,
-                  description: subject.role,
-                  type: 'entity',
-                  sourceId: subject.id,
-                }}
-                variant="icon"
-                stopPropagation
-              />
-            </span>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span>
+                <AddToInvestigationButton
+                  item={{
+                    id: subject.id,
+                    title: subject.name,
+                    description: subject.role,
+                    type: 'entity',
+                    sourceId: subject.id,
+                  }}
+                  variant="icon"
+                  stopPropagation
+                />
+              </span>
+            </TooltipTrigger>
+            <TooltipPortal>
+              <TooltipContent side="top" align="end">
+                Add this entity to the current investigation
+              </TooltipContent>
+            </TooltipPortal>
           </Tooltip>
-          <Tooltip content="Open full profile for this entity" position="top-end">
-            <Button
-              variant="glass"
-              size="sm"
-              onClick={handleProfileClick}
-              className={styles.viewButton}
-            >
-              View <Icon name="ArrowRight" />
-            </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="glass"
+                size="sm"
+                onClick={handleProfileClick}
+                className={styles.viewButton}
+              >
+                View <Icon name="ArrowRight" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipPortal>
+              <TooltipContent side="top" align="end">
+                Open full profile for this entity
+              </TooltipContent>
+            </TooltipPortal>
           </Tooltip>
         </Flex>
       </article>
@@ -187,15 +201,22 @@ const Metric = ({
   };
   const content = descriptions[label] || '';
   return (
-    <Tooltip content={content} position="top">
-      <Stack align="center" gap="xs">
-        <span className={styles.metricLabel}>{label}</span>
-        <span
-          className={`${styles.metricValue} ${highlight ? styles.metricValueHighlight : ''} data-emphasis`}
-        >
-          {formatNumber(value)}
-        </span>
-      </Stack>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Stack align="center" gap="xs">
+          <span className={styles.metricLabel}>{label}</span>
+          <span
+            className={`${styles.metricValue} ${highlight ? styles.metricValueHighlight : ''} data-emphasis`}
+          >
+            {formatNumber(value)}
+          </span>
+        </Stack>
+      </TooltipTrigger>
+      {content && (
+        <TooltipPortal>
+          <TooltipContent side="top">{content}</TooltipContent>
+        </TooltipPortal>
+      )}
     </Tooltip>
   );
 };
