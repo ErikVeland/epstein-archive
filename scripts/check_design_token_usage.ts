@@ -13,7 +13,7 @@ const enforcedFiles = [
   'src/client/App.tsx',
   // Core common primitives
   'src/client/components/common/FormField.tsx',
-  'src/client/components/common/Select.tsx',
+  'src/client/design-system/components/forms/Select.tsx',
   'src/client/components/common/SourceBadge.tsx',
   'src/client/components/common/Card.tsx',
   'src/client/components/common/BaseCard.tsx',
@@ -53,7 +53,7 @@ const moduleGovernedFiles = new Set(
     'src/client/components/common/LoadingIndicator.tsx',
     'src/client/components/common/Card.tsx',
     'src/client/components/common/FormField.tsx',
-    'src/client/components/common/Select.tsx',
+    'src/client/design-system/components/forms/Select.tsx',
     'src/client/components/common/Tabs.tsx',
     'src/client/components/common/Tooltip.tsx',
     'src/client/components/common/LoadingPill.tsx',
