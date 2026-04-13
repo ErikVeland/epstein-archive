@@ -3,7 +3,8 @@ import type { CSSProperties } from 'react';
 /**
  * Resolves a spacing prop value to a CSS string.
  * Integers 1-12 map to var(--space-N).
- * Named aliases: 'none' → '0', 'auto' → 'auto'.
+ * Named aliases: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl' map to var(--space-NAME).
+ * 'none' → '0', 'auto' → 'auto'.
  * Any other string passes through as a raw CSS value.
  */
 export type SpaceValue =
@@ -20,13 +21,22 @@ export type SpaceValue =
   | 12
   | 'none'
   | 'auto'
+  | 'xs'
+  | 'sm'
+  | 'md'
+  | 'lg'
+  | 'xl'
+  | 'xxl'
   | (string & Record<never, never>); // allows raw CSS strings like "40px"
+
+const NAMED_SPACE_ALIASES = new Set(['xs', 'sm', 'md', 'lg', 'xl', 'xxl']);
 
 export function resolveSpace(value: SpaceValue | undefined): string | undefined {
   if (value === undefined) return undefined;
   if (value === 'none') return '0';
   if (value === 'auto') return 'auto';
   if (typeof value === 'number') return `var(--space-${value})`;
+  if (typeof value === 'string' && NAMED_SPACE_ALIASES.has(value)) return `var(--space-${value})`;
   return value;
 }
 

@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
-import { ArrowRight, Filter, CheckCircle, Sparkles, Shield, Target, BookOpen } from 'lucide-react';
+import { ArrowRight, CheckCircle, FolderOpen, Search, Layers, FileOutput } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { CloseButton } from '../common/CloseButton';
 import { useScrollLock } from '../../hooks/useScrollLock';
-import { Link } from 'react-router-dom';
-
-// UI Library
-import { Surface, Button, Flex, Box, Stack, LqText, cn } from '../../design-system/lib';
+import { Surface, Button, Flex, Box, Stack, LqText } from '../../design-system/lib';
 import styles from './InvestigationOnboarding.module.css';
 
 interface InvestigationOnboardingProps {
@@ -13,12 +11,43 @@ interface InvestigationOnboardingProps {
   onSkip: () => void;
 }
 
+const STEPS = [
+  {
+    id: 1,
+    title: 'Your Investigation Workspace',
+    description:
+      'An investigation is a focused workspace for a single case or question. Bookmark documents, track entities, and build your narrative all in one place.',
+    icon: FolderOpen,
+  },
+  {
+    id: 2,
+    title: 'Find and Add Evidence',
+    description:
+      'Search the archive and pin relevant documents to your investigation. Flag key passages and link them to the people or organizations involved.',
+    icon: Search,
+  },
+  {
+    id: 3,
+    title: 'Map the Connections',
+    description:
+      'Use the Board to test hypotheses against your evidence. Drag documents onto theories to build a structured chain of proof.',
+    icon: Layers,
+  },
+  {
+    id: 4,
+    title: 'Export Your Findings',
+    description:
+      'When your investigation is complete, export a briefing document with your full evidence chain and source citations intact.',
+    icon: FileOutput,
+  },
+];
+
 export const InvestigationOnboarding: React.FC<InvestigationOnboardingProps> = ({
   onComplete,
   onSkip,
 }) => {
   const [step, setStep] = useState(1);
-  const totalSteps = 4; // Adding a welcome step for premium feel
+  const totalSteps = STEPS.length;
   useScrollLock(true);
 
   const handleNext = () => {
@@ -29,134 +58,89 @@ export const InvestigationOnboarding: React.FC<InvestigationOnboardingProps> = (
     }
   };
 
-  const steps = [
-    {
-      id: 1,
-      title: 'Initialize Mission',
-      description:
-        'Establish a secure investigation workspace. Define strategic goals and parameters for the mission stream.',
-      icon: Target,
-      tone: 'accent',
-    },
-    {
-      id: 2,
-      title: 'Signal Analysis',
-      description:
-        'Filter through massive datasets using the Red Flag Index. Focus on priority signals and high-risk intersections.',
-      icon: Filter,
-      tone: 'error',
-    },
-    {
-      id: 3,
-      title: 'Source Verification',
-      description:
-        'Each analytical claim is linked to its forensic source. Maintain 100% auditability across the case stream.',
-      icon: Shield,
-      tone: 'success',
-    },
-    {
-      id: 4,
-      title: 'Strategic Briefing',
-      description:
-        'Construct a sequential narrative from correlated evidence. Export professional-grade intelligence artifacts.',
-      icon: BookOpen,
-      tone: 'accent',
-    },
-  ];
-
-  const currentStep = steps[step - 1];
+  const currentStep = STEPS[step - 1];
   const Icon = currentStep.icon;
+  const pct = Math.round((step / totalSteps) * 100);
 
   return (
     <Box className={styles.overlay} onClick={onSkip}>
       <motion.div
-        initial={{ scale: 0.9, opacity: 0, y: 30 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.9, opacity: 0, y: 30 }}
-        transition={{ type: 'spring', duration: 0.6, bounce: 0.4 }}
+        className={styles.panelWrapper}
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        transition={{ type: 'spring', duration: 0.5, bounce: 0.2 }}
         onClick={(e) => e.stopPropagation()}
       >
-        <Surface variant="panel" width={520} p="none" className={styles.modal}>
-          {/* Decorative Elements */}
-          <Box className={styles.topGlow} />
-
-          <Stack gap="none" style={{ height: '100%' }}>
-            {/* Header */}
-            <Flex justify="between" align="center" p="xl" className={styles.header}>
-              <Flex gap="md" align="center">
-                <Sparkles size={18} className={styles.iconAccent} />
-                <LqText
-                  variant="xs"
-                  weight="bold"
-                  color="muted"
-                  style={{ textTransform: 'uppercase', letterSpacing: '0.1em' }}
-                >
-                  Protocol Induction
-                </LqText>
-              </Flex>
+        <Surface variant="panel" p="none" className={styles.panel}>
+          {/* Header */}
+          <Flex justify="between" align="center" className={styles.header}>
+            <Flex align="center" gap="md">
+              <Box className={styles.accentBar} />
+              <LqText variant="h2" weight="bold">
+                Getting Started
+              </LqText>
             </Flex>
+            <CloseButton onClick={onSkip} />
+          </Flex>
 
-            {/* Content Area */}
-            <Box className={styles.content}>
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={step}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <Stack align="center" gap="xl" textAlign="center">
-                    <Box
-                      className={cn(
-                        'p-6 rounded-3xl',
-                        currentStep.tone === 'error'
-                          ? 'bg-[var(--lq-error-dim)] text-[var(--lq-error)]'
-                          : currentStep.tone === 'success'
-                            ? 'bg-[var(--lq-success-dim)] text-[var(--lq-success)]'
-                            : 'bg-[var(--lq-accent-dim)] text-[var(--lq-accent)]',
-                      )}
-                    >
-                      <Icon size={48} />
-                    </Box>
-                    <Stack gap="md">
-                      <LqText variant="h2" weight="bold">
-                        {currentStep.title}
-                      </LqText>
-                      <LqText variant="small" color="muted" lineHeight="relaxed">
-                        {currentStep.description}
-                      </LqText>
-                    </Stack>
-                  </Stack>
-                </motion.div>
-              </AnimatePresence>
+          {/* Progress */}
+          <Box className={styles.progressSection}>
+            <Flex justify="between" align="center" className={styles.progressMeta}>
+              <LqText variant="xs" weight="bold" color="muted" className={styles.stepLabel}>
+                Step {step} of {totalSteps}
+              </LqText>
+              <LqText variant="xs" weight="bold" className={styles.pctLabel}>
+                {pct}% Complete
+              </LqText>
+            </Flex>
+            <Box className={styles.progressTrack}>
+              <motion.div
+                className={styles.progressFill}
+                initial={{ width: '0%' }}
+                animate={{ width: `${pct}%` }}
+                transition={{ duration: 0.4 }}
+              />
             </Box>
+          </Box>
 
-            {/* Footer */}
-            <Surface variant="glass" p="xl" className={styles.footer}>
-              <Stack gap="xl">
-                <Button variant="secondary" size="md" onClick={handleNext}>
-                  {step === totalSteps ? 'Initialize Mission' : 'Synchronize Next Section'}
-                  {step === totalSteps ? (
-                    <CheckCircle size={18} className="ml-2" />
-                  ) : (
-                    <ArrowRight size={18} className="ml-2" />
-                  )}
-                </Button>
+          {/* Content */}
+          <Box className={styles.content}>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={step}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12 }}
+                transition={{ duration: 0.25 }}
+                className={styles.stepContent}
+              >
+                <Box className={styles.iconWrapper}>
+                  <Box className={styles.iconGlow} />
+                  <Icon size={56} className={styles.stepIcon} />
+                </Box>
+                <Stack gap="md" className={styles.textBlock}>
+                  <LqText variant="h2" weight="bold">
+                    {currentStep.title}
+                  </LqText>
+                  <LqText variant="small" color="muted" className={styles.description}>
+                    {currentStep.description}
+                  </LqText>
+                </Stack>
+              </motion.div>
+            </AnimatePresence>
+          </Box>
 
-                <Flex justify="between" align="center">
-                  <Link to="/guide" className={styles.guideLink}>
-                    Neural Guide Documentation
-                  </Link>
-                  <Button variant="ghost" size="sm" onClick={onSkip}>
-                    <LqText variant="xs" className={styles.skipButtonText}>
-                      Skip Induction Protocol
-                    </LqText>
-                  </Button>
-                </Flex>
-              </Stack>
-            </Surface>
-          </Stack>
+          {/* Footer */}
+          <Flex justify="between" align="center" className={styles.footer}>
+            <Button variant="ghost" size="sm" onClick={onSkip}>
+              Skip Tour
+            </Button>
+            <Button variant="primary" size="md" onClick={handleNext}>
+              {step === totalSteps ? 'Get Started' : 'Next'}
+              {step === totalSteps ? <CheckCircle size={16} /> : <ArrowRight size={16} />}
+            </Button>
+          </Flex>
         </Surface>
       </motion.div>
     </Box>

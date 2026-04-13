@@ -25,6 +25,14 @@
   --space-10: 40px;
   --space-12: 48px;
 
+  /* Named spacing aliases (used in CSS modules and component gap/p props) */
+  --space-xs: var(--space-1);
+  --space-sm: var(--space-2);
+  --space-md: var(--space-4);
+  --space-lg: var(--space-6);
+  --space-xl: var(--space-8);
+  --space-xxl: var(--space-12);
+
   /* Size scale (for w, h, maxW, maxH props) */
   --size-xs: 320px;
   --size-sm: 384px;

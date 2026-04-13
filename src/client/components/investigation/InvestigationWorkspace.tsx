@@ -565,16 +565,14 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
               <LqText variant="bombastic" className={styles.headerTitle}>
                 Investigation
               </LqText>
-              <Stack pb="md">
-                <LqText
-                  variant="symbolic"
-                  color="secondary"
-                  weight="bold"
-                  className="tracking-symbolic"
-                >
-                  Forensic Intelligence • 12 Active Investigators • Collaborative Analysis
-                </LqText>
-              </Stack>
+              <LqText
+                variant="symbolic"
+                color="secondary"
+                weight="bold"
+                className="tracking-symbolic"
+              >
+                Forensic Intelligence • 12 Active Investigators • Collaborative Analysis
+              </LqText>
             </Stack>
 
             <Flex align="center" gap="sm">
@@ -635,7 +633,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
               </LqText>
             </Stack>
 
-            <Grid cols={{ sm: 1, md: 3 }} gap="xl" className={styles.dashboardActions}>
+            <Grid cols={{ sm: 1, md: 2 }} gap="xl" className={styles.dashboardActions}>
               <Surface
                 variant="glass-highlight"
                 className={styles.actionCard}

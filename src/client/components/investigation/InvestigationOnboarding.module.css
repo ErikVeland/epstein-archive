@@ -1,77 +1,124 @@
 .overlay {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(12px);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--space-xl);
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(12px);
+  z-index: var(--z-overlay);
+  padding: var(--space-6);
 }
 
-.modal {
-  position: relative;
+.panelWrapper {
   width: 100%;
-  max-width: 32.5rem;
-  overflow: hidden;
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-xxl);
-  background: var(--glass-bg-strong);
-  box-shadow: var(--glass-shadow-lg);
+  max-width: 56rem;
 }
 
-.topGlow {
-  position: absolute;
-  top: -6rem;
-  right: -6rem;
-  width: 12rem;
-  height: 12rem;
-  background-color: var(--lq-accent);
-  opacity: 0.1;
-  filter: blur(80px);
-  border-radius: 9999px;
-  pointer-events: none;
+.panel {
+  width: 100%;
+  overflow: hidden;
 }
+
+/* ── Header ────────────────────────────────── */
 
 .header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--space-xl);
+  padding: var(--space-5) var(--space-7);
   border-bottom: 1px solid var(--glass-border);
 }
 
-.iconAccent {
-  color: var(--lq-accent);
+.accentBar {
+  width: 4px;
+  height: 1.5rem;
+  background-color: var(--accent);
+  border-radius: 2px;
+  flex-shrink: 0;
 }
+
+/* ── Progress ──────────────────────────────── */
+
+.progressSection {
+  padding: var(--space-4) var(--space-7);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.progressMeta {
+  margin-bottom: var(--space-2);
+}
+
+.stepLabel {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.pctLabel {
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.progressTrack {
+  height: 4px;
+  background: var(--glass-border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(to right, #7c3aed, var(--accent));
+  border-radius: 2px;
+}
+
+/* ── Content ───────────────────────────────── */
 
 .content {
-  padding: var(--space-xxxl);
-  min-height: 20rem;
+  padding: var(--space-10) var(--space-7);
+  min-height: 22rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
+.stepContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: 100%;
+}
+
+.iconWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-8);
+}
+
+.iconGlow {
+  position: absolute;
+  inset: -3rem;
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 20%, transparent) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.stepIcon {
+  color: var(--accent);
+  position: relative;
+}
+
+.textBlock {
+  max-width: 36rem;
+}
+
+.description {
+  line-height: 1.7;
+}
+
+/* ── Footer ────────────────────────────────── */
 
 .footer {
-  padding: var(--space-xl);
+  padding: var(--space-5) var(--space-7);
   border-top: 1px solid var(--glass-border);
-  background: var(--glass-bg);
-}
-
-.guideLink {
-  color: var(--lq-accent);
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
-
-.guideLink:hover {
-  color: var(--lq-accent-2);
-  text-decoration: underline;
-}
-
-.skipButtonText {
-  color: var(--text-muted);
 }
