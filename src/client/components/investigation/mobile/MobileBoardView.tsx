@@ -2,6 +2,8 @@ import React, { useState, useRef, useCallback } from 'react';
 import { useInvestigationBoard } from '../../../domains/investigations';
 import { apiClient } from '../../../services/apiClient';
 import type { Hypothesis, EvidenceItem } from '../../../../types/investigation';
+import { Button, TextInput } from '../../../design-system/lib';
+import { SheetDialog } from '../../common/SheetDialog';
 import styles from './MobileBoardView.module.css';
 
 type Column = 'hypotheses' | 'evidence' | 'narrative';
@@ -220,62 +222,68 @@ export function MobileBoardView({ investigationId }: MobileBoardViewProps) {
 
       <div className={styles.columnContent}>
         {renderCards()}
-        <button
+        <Button
           className={styles.addBtn}
+          variant="glass"
           onClick={() => {
             setAddSheet({ column: activeColumn });
             setAddError(null);
           }}
         >
           + Add to {COLUMN_LABELS[activeColumn]}
-        </button>
+        </Button>
       </div>
 
-      {/* Add sheet */}
       {addSheet !== null && (
-        <div
-          className={styles.sheet}
-          onClick={() => {
-            setAddSheet(null);
-            setAddTitle('');
-            setAddError(null);
+        <SheetDialog
+          open
+          onOpenChange={(open) => {
+            if (!open) {
+              setAddSheet(null);
+              setAddTitle('');
+              setAddError(null);
+            }
           }}
-        >
-          <div className={styles.sheetInner} onClick={(ev) => ev.stopPropagation()}>
-            <div className={styles.sheetTitle}>Add to {COLUMN_LABELS[addSheet.column]}</div>
-            {addError !== null && <div className={styles.errorMsg}>{addError}</div>}
-            <input
-              type="text"
-              className={styles.sheetInput}
-              placeholder="Title"
-              value={addTitle}
-              onChange={(ev) => setAddTitle(ev.target.value)}
-              autoFocus
-            />
-            <button
-              className={styles.sheetBtn}
+          title={`Add to ${COLUMN_LABELS[addSheet.column]}`}
+          description="Use the same shared mobile sheet pattern as the rest of the app."
+          footer={
+            <Button
+              className={styles.sheetFooterButton}
               disabled={!addTitle.trim() || saving}
               onClick={handleAddSave}
             >
-              {saving ? 'Saving...' : 'Add'}
-            </button>
-          </div>
-        </div>
+              {saving ? 'Saving…' : 'Add'}
+            </Button>
+          }
+        >
+          {addError !== null && <div className={styles.errorMsg}>{addError}</div>}
+          <TextInput
+            autoFocus
+            label="Title"
+            placeholder="Title…"
+            value={addTitle}
+            onChange={(ev) => setAddTitle(ev.target.value)}
+          />
+        </SheetDialog>
       )}
 
-      {/* Move sheet — informs user full editing is on desktop */}
       {moveSheet !== null && (
-        <div className={styles.sheet} onClick={() => setMoveSheet(null)}>
-          <div className={styles.sheetInner} onClick={(ev) => ev.stopPropagation()}>
-            <div className={styles.sheetTitle}>Move Card</div>
-            <p className={styles.sheetNote}>
-              Full card editing and moving between columns is available on desktop.
-            </p>
-            <button className={styles.sheetBtn} onClick={() => setMoveSheet(null)}>
+        <SheetDialog
+          open
+          onOpenChange={(open) => {
+            if (!open) setMoveSheet(null);
+          }}
+          title="Move Card"
+          footer={
+            <Button className={styles.sheetFooterButton} onClick={() => setMoveSheet(null)}>
               OK
-            </button>
-          </div>
-        </div>
+            </Button>
+          }
+        >
+          <p className={styles.sheetNote}>
+            Full card editing and moving between columns is available on desktop.
+          </p>
+        </SheetDialog>
       )}
     </div>
   );

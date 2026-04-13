@@ -95,15 +95,30 @@
   align-items: center;
 }
 
+.filterSelectWrap {
+  position: relative;
+}
+
+.filterIcon {
+  position: absolute;
+  left: var(--space-2);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
 .select {
   flex: 1;
   background-color: var(--glass-bg-strong);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
-  padding: var(--space-1-5) var(--space-2);
+  padding: var(--space-1-5) var(--space-2) var(--space-1-5) calc(var(--space-2) * 3);
   font-size: var(--type-xs);
   color: var(--text-primary);
   outline: none;
+  width: 100%;
+  appearance: none;
 }
 
 .select:focus {

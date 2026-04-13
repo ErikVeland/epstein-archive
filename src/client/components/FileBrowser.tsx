@@ -135,6 +135,29 @@ const FileBrowser: React.FC = () => {
     }
   };
 
+  const handleDownload = (file: FileItem) => {
+    if (file.content) {
+      const blob = new Blob([file.content], { type: 'text/plain;charset=utf-8' });
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = file.name;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+      return;
+    }
+
+    const link = document.createElement('a');
+    link.href = file.path;
+    link.download = file.name;
+    link.rel = 'noopener noreferrer';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const getFileIcon = (file: FileItem) => {
     if (file.type === 'folder') return Folder;
 
@@ -318,7 +341,7 @@ const FileBrowser: React.FC = () => {
                   <Flex align="center" gap={3}>
                     <Button
                       variant="ghost"
-                      onClick={() => {}} // Download logic here
+                      onClick={() => handleDownload(selectedFile)}
                       className={styles.downloadButton}
                     >
                       <Download className={styles.downloadIcon} />

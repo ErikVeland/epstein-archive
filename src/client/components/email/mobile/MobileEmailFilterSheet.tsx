@@ -1,4 +1,5 @@
-import { X } from 'lucide-react';
+import { Button, SearchField, Select, TextInput } from '../../../design-system/lib';
+import { SheetDialog } from '../../common/SheetDialog';
 import styles from './MobileEmailFilterSheet.module.css';
 
 interface MobileEmailFilterSheetProps {
@@ -50,121 +51,104 @@ export function MobileEmailFilterSheet({
   onClose,
 }: MobileEmailFilterSheetProps) {
   return (
-    <div className={styles.backdrop} onClick={onClose}>
-      <div className={styles.sheet} onClick={(e) => e.stopPropagation()}>
-        <div className={styles.dragHandle} />
-
-        <div className={styles.titleRow}>
-          <span className={styles.title}>Search &amp; Filters</span>
-          <button className={styles.clearBtn} onClick={onClear} type="button">
-            Clear all
-          </button>
-          <button className={styles.closeBtn} onClick={onClose} type="button" aria-label="Close">
-            <X size={18} />
-          </button>
-        </div>
-
-        <div className={styles.body}>
-          <label className={styles.field}>
-            <span className={styles.fieldLabel}>Search</span>
-            <input
-              className={styles.textInput}
-              placeholder="Keywords in subject or body"
-              value={searchInput}
-              onChange={(e) => onSearchChange(e.target.value)}
-            />
-          </label>
-
-          <label className={styles.field}>
-            <span className={styles.fieldLabel}>From</span>
-            <input
-              className={styles.textInput}
-              placeholder="sender@domain.com or name"
-              value={fromFilter}
-              onChange={(e) => onFromChange(e.target.value)}
-            />
-          </label>
-
-          <label className={styles.field}>
-            <span className={styles.fieldLabel}>To</span>
-            <input
-              className={styles.textInput}
-              placeholder="recipient@domain.com or name"
-              value={toFilter}
-              onChange={(e) => onToChange(e.target.value)}
-            />
-          </label>
-
-          <div className={styles.dateRow}>
-            <label className={styles.field}>
-              <span className={styles.fieldLabel}>Date from</span>
-              <input
-                className={styles.dateInput}
-                type="date"
-                value={dateFrom}
-                onChange={(e) => onDateFromChange(e.target.value)}
-              />
-            </label>
-            <label className={styles.field}>
-              <span className={styles.fieldLabel}>Date to</span>
-              <input
-                className={styles.dateInput}
-                type="date"
-                value={dateTo}
-                onChange={(e) => onDateToChange(e.target.value)}
-              />
-            </label>
-          </div>
-
-          <div className={styles.sectionLabel}>Tab</div>
-          <div className={styles.chipRow}>
-            {TABS.map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                className={`${styles.chip} ${activeTab === tab.id ? styles.chipActive : ''}`}
-                onClick={() => onTabChange(tab.id)}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
-          <div className={styles.sectionLabel}>Quick filters</div>
-          <div className={styles.chipRow}>
-            <button
-              type="button"
-              className={`${styles.chip} ${hasAttachmentsOnly ? styles.chipActive : ''}`}
-              onClick={() => onHasAttachmentsChange(!hasAttachmentsOnly)}
-            >
-              Has attachments
-            </button>
-          </div>
-
-          <label className={styles.field}>
-            <span className={styles.fieldLabel}>Min risk</span>
-            <select
-              className={styles.select}
-              value={minRisk}
-              onChange={(e) => onMinRiskChange(Number(e.target.value))}
-              aria-label="Minimum risk level"
-            >
-              <option value={0}>Any</option>
-              <option value={1}>≥ 1 (Minimal)</option>
-              <option value={2}>≥ 2 (Low)</option>
-              <option value={3}>≥ 3 (Medium)</option>
-              <option value={4}>≥ 4 (High)</option>
-              <option value={5}>≥ 5 (Critical)</option>
-            </select>
-          </label>
-        </div>
-
-        <div className={styles.footer}>
-          <button className={styles.applyBtn} onClick={onClose} type="button">
+    <SheetDialog
+      open
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+      title="Search & Filters"
+      description="Refine the same email workspace using shared mobile sheet controls."
+      bodyClassName={styles.body}
+      footer={
+        <>
+          <Button variant="secondary" size="md" grow onClick={onClear} type="button">
+            Clear All
+          </Button>
+          <Button variant="primary" size="md" grow onClick={onClose} type="button">
             Apply Filters
-          </button>
-        </div>
+          </Button>
+        </>
+      }
+    >
+      <SearchField
+        label="Search"
+        placeholder="Keywords in subject or body…"
+        value={searchInput}
+        onChange={(e) => onSearchChange(e.target.value)}
+      />
+
+      <TextInput
+        label="From"
+        placeholder="sender@domain.com or name…"
+        value={fromFilter}
+        onChange={(e) => onFromChange(e.target.value)}
+      />
+
+      <TextInput
+        label="To"
+        placeholder="recipient@domain.com or name…"
+        value={toFilter}
+        onChange={(e) => onToChange(e.target.value)}
+      />
+
+      <div className={styles.dateRow}>
+        <TextInput
+          label="Date From"
+          type="date"
+          value={dateFrom}
+          onChange={(e) => onDateFromChange(e.target.value)}
+        />
+        <TextInput
+          label="Date To"
+          type="date"
+          value={dateTo}
+          onChange={(e) => onDateToChange(e.target.value)}
+        />
       </div>
-    </div>
+
+      <div className={styles.sectionLabel}>Tab</div>
+      <div className={styles.chipRow}>
+        {TABS.map((tab) => (
+          <Button
+            key={tab.id}
+            type="button"
+            variant={activeTab === tab.id ? 'primary' : 'glass'}
+            size="sm"
+            className={styles.chipButton}
+            onClick={() => onTabChange(tab.id)}
+          >
+            {tab.label}
+          </Button>
+        ))}
+      </div>
+
+      <div className={styles.sectionLabel}>Quick Filters</div>
+      <div className={styles.chipRow}>
+        <Button
+          type="button"
+          variant={hasAttachmentsOnly ? 'primary' : 'glass'}
+          size="sm"
+          className={styles.chipButton}
+          onClick={() => onHasAttachmentsChange(!hasAttachmentsOnly)}
+        >
+          Has Attachments
+        </Button>
+      </div>
+
+      <Select
+        label="Minimum Risk"
+        value={minRisk}
+        onChange={(e) => onMinRiskChange(Number(e.target.value))}
+        aria-label="Minimum risk level"
+        options={[
+          { value: 0, label: 'Any' },
+          { value: 1, label: '≥ 1 (Minimal)' },
+          { value: 2, label: '≥ 2 (Low)' },
+          { value: 3, label: '≥ 3 (Medium)' },
+          { value: 4, label: '≥ 4 (High)' },
+          { value: 5, label: '≥ 5 (Critical)' },
+        ]}
+      />
+    </SheetDialog>
   );
 }

@@ -25,10 +25,10 @@ import {
   Box,
   Stack,
   LqText,
-  cn,
-  Badge,
-  Skeleton,
+  TextInput,
+  Textarea,
 } from '../../design-system/lib';
+import styles from './InvestigationLeadsPanel.module.css';
 
 type LeadStatus = 'open' | 'pursued' | 'dead_end' | 'resolved';
 type LeadPriority = 'low' | 'medium' | 'high' | 'critical';
@@ -68,13 +68,6 @@ const STATUS_MAP: Record<
   pursued: { label: 'Active Pursuit', Icon: AlertCircle, variant: 'accent', next: 'resolved' },
   dead_end: { label: 'Inert / Terminated', Icon: XCircle, variant: 'glass', next: 'open' },
   resolved: { label: 'Resolved / Logged', Icon: CheckCircle2, variant: 'success', next: 'open' },
-};
-
-const PRIORITY_VARIANT: Record<LeadPriority, 'danger' | 'warning' | 'accent' | 'neutral'> = {
-  critical: 'danger',
-  high: 'warning',
-  medium: 'accent',
-  low: 'neutral',
 };
 
 export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = ({
@@ -160,94 +153,42 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
   };
 
   return (
-    <Box
-      className="fixed inset-0 z-[var(--lq-z-modal)] flex justify-end bg-black/40 backdrop-blur-sm"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
-    >
-      <Surface
-        variant="glass"
-        style={{ width: 480, height: '100%' }}
-        className="border-l border-l-[var(--lq-surface-3)] shadow-2xl"
-      >
+    <Box className={styles.overlay} onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <Surface variant="glass" className={styles.panel}>
         <Stack gap="xl" style={{ height: '100%' }}>
-          {/* Header */}
-          <Surface variant="glass" p="lg" className="border-b border-b-[var(--lq-surface-3)]">
-            <Flex justify="between" align="center">
-              <Stack gap="none">
-                <Flex align="center" gap="sm">
-                  <Flag size={20} className="text-[var(--lq-warning)]" />
-                  <LqText variant="h3" weight="bold">
-                    Investigation Leads
-                  </LqText>
-                </Flex>
-                <LqText
-                  variant="xs"
-                  color="muted"
-                  style={{ textTransform: 'uppercase' }}
-                  weight="bold"
-                >
-                  Operational Tracking • Signal Analysis
-                </LqText>
-              </Stack>
-              <Button variant="ghost" size="sm" onClick={onClose}>
-                <XCircle size={18} />
-              </Button>
-            </Flex>
-          </Surface>
+          <div className={styles.header}>
+            <div className={styles.headerGroup}>
+              <div className={styles.headerTitle}>
+                <Flag size={20} className={styles.iconAmber} />
+                Investigation Leads
+              </div>
+              <div className={styles.headerSubtitle}>Operational Tracking • Signal Analysis</div>
+            </div>
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              <XCircle size={18} />
+            </Button>
+          </div>
 
-          {/* Metrics HUD */}
-          <Box px="lg">
-            <Surface variant="glass-highlight" p="sm">
-              <Flex justify="around" align="center">
-                <Stack align="center" gap="none">
-                  <LqText variant="small" weight="bold" color="success">
-                    {totals.open}
-                  </LqText>
-                  <LqText variant="xs" color="muted" style={{ textTransform: 'uppercase' }}>
-                    Available
-                  </LqText>
-                </Stack>
-                <Box className="w-px h-6 bg-[var(--lq-surface-3)]" />
-                <Stack align="center" gap="none">
-                  <LqText variant="small" weight="bold" color="accent">
-                    {totals.active}
-                  </LqText>
-                  <LqText variant="xs" color="muted" style={{ textTransform: 'uppercase' }}>
-                    Active
-                  </LqText>
-                </Stack>
-                <Box className="w-px h-6 bg-[var(--lq-surface-3)]" />
-                <Stack align="center" gap="none">
-                  <LqText variant="small" weight="bold">
-                    {leads.length}
-                  </LqText>
-                  <LqText variant="xs" color="muted" style={{ textTransform: 'uppercase' }}>
-                    Total Signal
-                  </LqText>
-                </Stack>
-              </Flex>
-            </Surface>
-          </Box>
+          <div className={styles.statsBar}>
+            <div className={styles.statItem}>
+              <span className={styles.statValueEmerald}>{totals.open}</span>
+              <span className={styles.statLabel}>Available</span>
+            </div>
+            <div className={styles.statItem}>
+              <span className={styles.statValueBlue}>{totals.active}</span>
+              <span className={styles.statLabel}>Active</span>
+            </div>
+            <div className={`${styles.statItem} ${styles.statItemRight}`}>
+              <span>{leads.length}</span>
+              <span className={styles.statLabel}>Total Signal</span>
+            </div>
+          </div>
 
-          {/* Controls */}
-          <Flex px="lg" gap="md" align="center">
-            <Box grow className="relative">
-              <Filter
-                className="absolute left-2 top-1/2 -translate-y-1/2 text-[var(--lq-text-dim)]"
-                size={12}
-              />
+          <div className={styles.controlsBar}>
+            <Box grow className={styles.filterSelectWrap}>
+              <Filter className={styles.filterIcon} size={12} />
               <select
-                style={{
-                  width: '100%',
-                  background: 'var(--lq-surface-3)',
-                  border: '1px solid var(--lq-surface-4)',
-                  borderRadius: '0.375rem',
-                  padding: '0.5rem 0.75rem 0.5rem 2rem',
-                  fontSize: '0.875rem',
-                  color: 'var(--lq-text-primary)',
-                  outline: 'none',
-                  appearance: 'none',
-                }}
+                className={styles.select}
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as LeadStatus | 'all')}
               >
@@ -257,171 +198,135 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
                 <option value="resolved">Resolved</option>
               </select>
             </Box>
-            <Button variant="primary" size="sm" onClick={() => setShowNewForm(!showNewForm)}>
+            <Button
+              variant="primary"
+              size="sm"
+              className={styles.addButton}
+              onClick={() => setShowNewForm(!showNewForm)}
+            >
               <PlusCircle size={14} /> New Lead
             </Button>
-          </Flex>
+          </div>
 
-          {/* New Lead Entry */}
           {showNewForm && (
-            <Box px="lg">
-              <Surface
-                variant="glass-highlight"
-                p="lg"
-                className="border-dashed border-[var(--lq-surface-3)]"
-              >
-                <Stack gap="md">
-                  <input
-                    autoFocus
-                    style={{
-                      width: '100%',
-                      background: 'var(--lq-surface-3)',
-                      border: '1px solid var(--lq-surface-4)',
-                      borderRadius: '0.375rem',
-                      padding: '0.5rem 0.75rem',
-                      fontSize: '0.875rem',
-                      color: 'var(--lq-text-primary)',
-                      outline: 'none',
-                    }}
-                    placeholder="Lead Designation *"
-                    value={newLead.title}
-                    onChange={(e) => setNewLead((p) => ({ ...p, title: e.target.value }))}
+            <div className={styles.form}>
+              <Stack gap="md">
+                <TextInput
+                  className={styles.input}
+                  autoFocus
+                  placeholder="Lead Designation *"
+                  value={newLead.title}
+                  onChange={(e) => setNewLead((p) => ({ ...p, title: e.target.value }))}
+                />
+                <Textarea
+                  className={styles.textarea}
+                  placeholder="Qualitative description…"
+                  rows={2}
+                  value={newLead.description}
+                  onChange={(e) => setNewLead((p) => ({ ...p, description: e.target.value }))}
+                />
+                <Flex gap="md" className={styles.formRow}>
+                  <select
+                    className={styles.select}
+                    value={newLead.priority}
+                    onChange={(e) =>
+                      setNewLead((p) => ({ ...p, priority: e.target.value as LeadPriority }))
+                    }
+                  >
+                    {['critical', 'high', 'medium', 'low'].map((p) => (
+                      <option key={p} value={p}>
+                        {p.toUpperCase()}
+                      </option>
+                    ))}
+                  </select>
+                  <TextInput
+                    className={styles.input}
+                    placeholder="EFTA Reference…"
+                    value={newLead.source_efta_ref}
+                    onChange={(e) => setNewLead((p) => ({ ...p, source_efta_ref: e.target.value }))}
                   />
-                  <textarea
-                    style={{
-                      width: '100%',
-                      background: 'var(--lq-surface-3)',
-                      border: '1px solid var(--lq-surface-4)',
-                      borderRadius: '0.375rem',
-                      padding: '0.5rem 0.75rem',
-                      fontSize: '0.875rem',
-                      color: 'var(--lq-text-primary)',
-                      outline: 'none',
-                      resize: 'none',
-                    }}
-                    placeholder="Qualitative description..."
-                    rows={2}
-                    value={newLead.description}
-                    onChange={(e) => setNewLead((p) => ({ ...p, description: e.target.value }))}
-                  />
-                  <Flex gap="md">
-                    <select
-                      style={{
-                        flex: 1,
-                        background: 'var(--lq-surface-3)',
-                        border: '1px solid var(--lq-surface-4)',
-                        borderRadius: '0.375rem',
-                        padding: '0.5rem 0.75rem',
-                        fontSize: '0.875rem',
-                        color: 'var(--lq-text-primary)',
-                        outline: 'none',
-                      }}
-                      value={newLead.priority}
-                      onChange={(e) =>
-                        setNewLead((p) => ({ ...p, priority: e.target.value as LeadPriority }))
-                      }
-                    >
-                      {['critical', 'high', 'medium', 'low'].map((p) => (
-                        <option key={p} value={p}>
-                          {p.toUpperCase()}
-                        </option>
-                      ))}
-                    </select>
-                    <input
-                      style={{
-                        flex: 2,
-                        background: 'var(--lq-surface-3)',
-                        border: '1px solid var(--lq-surface-4)',
-                        borderRadius: '0.375rem',
-                        padding: '0.5rem 0.75rem',
-                        fontSize: '0.875rem',
-                        color: 'var(--lq-text-primary)',
-                        outline: 'none',
-                      }}
-                      placeholder="EFTA Reference..."
-                      value={newLead.source_efta_ref}
-                      onChange={(e) =>
-                        setNewLead((p) => ({ ...p, source_efta_ref: e.target.value }))
-                      }
-                    />
-                  </Flex>
-                  <Flex gap="sm" justify="end">
-                    <Button variant="ghost" size="sm" onClick={() => setShowNewForm(false)}>
-                      Abort
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      onClick={handleCreate}
-                      disabled={!newLead.title.trim() || creating}
-                    >
-                      {creating ? <Loader2 className="animate-spin" size={14} /> : 'Establish Lead'}
-                    </Button>
-                  </Flex>
-                </Stack>
-              </Surface>
-            </Box>
+                </Flex>
+                <Flex gap="sm" justify="end" className={styles.formActions}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={styles.cancelButton}
+                    onClick={() => setShowNewForm(false)}
+                  >
+                    Abort
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    className={styles.submitButton}
+                    onClick={handleCreate}
+                    disabled={!newLead.title.trim() || creating}
+                  >
+                    {creating ? <Loader2 className={styles.spin} size={14} /> : 'Establish Lead'}
+                  </Button>
+                </Flex>
+              </Stack>
+            </div>
           )}
 
-          {/* Leads Stream */}
-          <Box grow px="lg" className="overflow-y-auto">
+          <Box grow className={styles.leadsList}>
             {loading ? (
-              <Stack gap="md">
-                <Skeleton height={100} />
-                <Skeleton height={100} />
-                <Skeleton height={100} />
-              </Stack>
+              <div className={styles.loaderCentered}>
+                <Loader2 className={styles.spin} />
+              </div>
             ) : leads.length === 0 ? (
-              <Stack align="center" justify="center" gap="lg" py="xxxl" textAlign="center">
-                <Target size={48} className="text-[var(--lq-text-dim)]" />
-                <LqText
-                  variant="xs"
-                  color="muted"
-                  style={{ textTransform: 'uppercase' }}
-                  weight="bold"
-                >
+              <div className={styles.emptyState}>
+                <Target size={48} className={styles.emptyIcon} />
+                <LqText variant="xs" color="muted" weight="bold">
                   No Leads Identified
                 </LqText>
-              </Stack>
+                <div className={styles.emptySubtext}>
+                  Create the first operational signal to begin tracking.
+                </div>
+              </div>
             ) : (
               <Stack gap="md">
                 {leads.map((lead) => {
                   const cfg = STATUS_MAP[lead.status];
+                  const statusClass =
+                    lead.status === 'open'
+                      ? styles.statusOpen
+                      : lead.status === 'pursued'
+                        ? styles.statusPursued
+                        : lead.status === 'dead_end'
+                          ? styles.statusDeadEnd
+                          : styles.statusResolved;
+                  const priorityClass =
+                    lead.priority === 'critical'
+                      ? styles.priorityCritical
+                      : lead.priority === 'high'
+                        ? styles.priorityHigh
+                        : lead.priority === 'medium'
+                          ? styles.priorityMedium
+                          : styles.priorityLow;
                   return (
-                    <Surface
-                      key={lead.id}
-                      variant="glass-highlight"
-                      p="lg"
-                      className="border-l-4 border-l-[var(--lq-surface-3)]"
-                    >
+                    <Surface key={lead.id} variant="glass-highlight" className={styles.leadCard}>
                       <Stack gap="md">
-                        <Flex justify="between" align="start">
-                          <Flex gap="md" align="start">
+                        <div className={styles.leadTitleRow}>
+                          <div className={styles.statusIconWrapper}>
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="p-0 h-auto"
+                              className={styles.actionButton}
                               onClick={() => handleStatusCycle(lead)}
                             >
-                              <cfg.Icon
-                                size={18}
-                                className={cn(`text-[var(--lq-${cfg.variant})]`)}
-                              />
+                              <cfg.Icon size={18} className={styles.iconMd} />
                             </Button>
-                            <Stack gap="none">
-                              <LqText variant="small" weight="bold">
-                                {lead.title}
-                              </LqText>
-                              {lead.description && (
-                                <LqText variant="xs" color="muted" mt="xs">
-                                  {lead.description}
-                                </LqText>
-                              )}
-                            </Stack>
-                          </Flex>
+                          </div>
+                          <div className={styles.leadBody}>
+                            <div className={styles.leadTitle}>{lead.title}</div>
+                            {lead.description && (
+                              <div className={styles.leadDescription}>{lead.description}</div>
+                            )}
+                          </div>
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="text-[var(--lq-error)] opacity-30 hover:opacity-100"
+                            className={`${styles.deleteButton} ${styles.actionButtonDanger}`}
                             onClick={() => {
                               if (window.confirm('Delete signal?'))
                                 fetch(`/api/investigations/${investigationId}/leads/${lead.id}`, {
@@ -432,47 +337,42 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
                           >
                             <Trash2 size={12} />
                           </Button>
-                        </Flex>
+                        </div>
 
-                        <Flex
-                          justify="between"
-                          align="center"
-                          pt="sm"
-                          className="border-t border-t-[var(--lq-surface-3)]"
-                        >
-                          <Flex gap="xs">
-                            <Badge
-                              variant={cfg.variant}
-                              label={cfg.label.toUpperCase()}
+                        <div className={styles.badgeRow}>
+                          <span className={`${styles.badge} ${statusClass}`}>
+                            {cfg.label.toUpperCase()}
+                          </span>
+                          <span className={`${styles.badge} ${priorityClass}`}>
+                            {lead.priority.toUpperCase()}
+                          </span>
+                          {lead.sourceEftaRef && (
+                            <span className={styles.eftaLink}>{lead.sourceEftaRef}</span>
+                          )}
+                        </div>
+
+                        <div className={styles.actionsRow}>
+                          {onConvertToTask && (
+                            <Button
+                              variant="ghost"
                               size="sm"
-                            />
-                            <Badge
-                              variant={PRIORITY_VARIANT[lead.priority]}
-                              label={lead.priority.toUpperCase()}
+                              className={`${styles.actionButton} ${styles.actionButtonAccent}`}
+                              onClick={() => onConvertToTask(lead)}
+                            >
+                              <ArrowRight size={10} /> Task
+                            </Button>
+                          )}
+                          {onConvertToHypothesis && (
+                            <Button
+                              variant="ghost"
                               size="sm"
-                            />
-                          </Flex>
-                          <Flex gap="xs">
-                            {onConvertToTask && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => onConvertToTask(lead)}
-                              >
-                                <ArrowRight size={10} /> Task
-                              </Button>
-                            )}
-                            {onConvertToHypothesis && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => onConvertToHypothesis(lead)}
-                              >
-                                <Zap size={10} /> Hypo
-                              </Button>
-                            )}
-                          </Flex>
-                        </Flex>
+                              className={`${styles.actionButton} ${styles.actionButtonAccent}`}
+                              onClick={() => onConvertToHypothesis(lead)}
+                            >
+                              <Zap size={10} /> Hypo
+                            </Button>
+                          )}
+                        </div>
                       </Stack>
                     </Surface>
                   );

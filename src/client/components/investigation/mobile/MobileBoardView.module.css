@@ -98,83 +98,23 @@
 
 .addBtn {
   width: 100%;
-  padding: 0.875rem;
   border: 2px dashed var(--glass-border);
   border-radius: var(--radius-base);
-  background: none;
   color: var(--text-muted);
   font-size: 0.875rem;
   font-weight: 600;
-  cursor: pointer;
   min-height: 2.75rem;
   margin-top: 0.5rem;
 }
 
-.sheet {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.55);
-  z-index: 300;
-  display: flex;
-  align-items: flex-end;
-}
-
-.sheetInner {
+.sheetFooterButton {
   width: 100%;
-  background: var(--glass-bg-strong);
-  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-  padding: 1.5rem 1rem calc(1.5rem + env(safe-area-inset-bottom));
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.sheetTitle {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.sheetInput {
-  width: 100%;
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-base);
-  color: var(--text-primary);
-  font-size: 0.9375rem;
-  padding: 0.75rem;
-  box-sizing: border-box;
-  min-height: 2.75rem;
-  font-family: inherit;
-}
-
-.sheetInput:focus {
-  outline: none;
-  border-color: var(--accent);
-}
-
-.sheetBtn {
-  width: 100%;
-  padding: 0.875rem;
-  background: var(--accent);
-  border: none;
-  border-radius: var(--radius-base);
-  color: var(--text-on-accent, #fff);
-  font-size: 1rem;
-  font-weight: 700;
-  cursor: pointer;
-  min-height: 2.75rem;
-}
-
-.sheetBtn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
 }
 
 .sheetNote {
   font-size: 0.875rem;
   color: var(--text-muted);
-  text-align: center;
+  margin: 0;
 }
 
 .emptyState {

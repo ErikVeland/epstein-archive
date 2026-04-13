@@ -15,6 +15,7 @@ interface EntityLink {
 }
 
 interface TimelineEvent {
+  id: string;
   date: Date;
   title: string;
   description: string;
@@ -51,6 +52,7 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<TimelineEvent | null>(null);
+  const [supportLoading, setSupportLoading] = useState(false);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [filteredSignificance, setFilteredSignificance] = useState<('high' | 'medium' | 'low')[]>([
     'high',
@@ -87,6 +89,57 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
     loadTimelineData(startDate, endDate);
   }, [startDate, endDate]);
 
+  useEffect(() => {
+    const selectedId = selectedEvent?.id;
+    if (!selectedId) return;
+
+    const numericId = Number(String(selectedId).replace(/^evt-/, ''));
+    if (!Number.isInteger(numericId) || numericId <= 0) return;
+
+    const existingEvent = events.find((event) => event.id === selectedId);
+    const existingSupport = existingEvent?.support;
+    const alreadyLoaded =
+      !!existingSupport &&
+      (existingSupport.evidence_count > 0 ||
+        existingSupport.document_count > 0 ||
+        existingSupport.media_count > 0 ||
+        existingSupport.top_documents.length > 0);
+
+    if (alreadyLoaded) return;
+
+    let cancelled = false;
+
+    const loadEventSupport = async () => {
+      try {
+        setSupportLoading(true);
+        const response = await fetch(`/api/timeline/${numericId}/support`);
+        if (!response.ok) throw new Error(`Timeline support API error: ${response.status}`);
+        const support = (await response.json()) as NonNullable<TimelineEvent['support']>;
+        if (cancelled || !support) return;
+
+        setEvents((prev) =>
+          prev.map((event) => (event.id === selectedId ? { ...event, support } : event)),
+        );
+        setSelectedEvent((prev) => {
+          if (!prev || prev.id !== selectedId) return prev;
+          return { ...prev, support };
+        });
+      } catch (error) {
+        console.error('Error loading timeline support:', error);
+      } finally {
+        if (!cancelled) {
+          setSupportLoading(false);
+        }
+      }
+    };
+
+    void loadEventSupport();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [events, selectedEvent]);
+
   const loadTimelineData = async (start: string | null, end: string | null) => {
     try {
       setLoading(true);
@@ -102,6 +155,7 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
       if (Array.isArray(data) && data.length > 0) {
         const timelineEvents: TimelineEvent[] = data
           .map((event: Record<string, unknown>) => ({
+            id: String(event.id || ''),
             date: new Date(event.date as string),
             title: (event.title as string | undefined) || 'Untitled Event',
             description:
@@ -203,6 +257,16 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
       default:
         return '';
     }
+  };
+
+  const hasSupportSignal = (support?: TimelineEvent['support'] | null) => {
+    if (!support) return false;
+    return (
+      support.evidence_count > 0 ||
+      support.document_count > 0 ||
+      support.media_count > 0 ||
+      support.top_documents.length > 0
+    );
   };
 
   if (loading) {
@@ -338,7 +402,7 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
                       </div>
                     )}
 
-                    {event.support && (
+                    {hasSupportSignal(event.support) && event.support && (
                       <div className={styles.supportRow}>
                         <span className={styles.supportPill}>
                           Evidence: {event.support.evidence_count}
@@ -464,6 +528,10 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
                       ))}
                     </div>
                   </div>
+                )}
+
+                {supportLoading && (
+                  <div className={styles.mutedEmptyText}>Loading supporting evidence...</div>
                 )}
 
                 {selectedEvent.entities.length > 0 && (

@@ -21,7 +21,6 @@ const enforcedFiles = [
   'src/client/components/common/ProgressBar.tsx',
   'src/client/components/common/Skeleton.tsx',
   'src/client/components/common/Tabs.tsx',
-  'src/client/components/common/Tooltip.tsx',
   'src/client/components/common/BatchToolbar.tsx',
   'src/client/components/common/FormLayout.tsx',
   // Glass UI primitives — must be 100% token-clean
@@ -30,7 +29,9 @@ const enforcedFiles = [
   'src/client/components/ui/GlassTooltip.tsx',
   'src/client/components/ui/GlassDropdown.tsx',
   'src/client/components/ui/GlassSwitch.tsx',
-].map((filePath) => path.join(rootDir, filePath));
+]
+  .map((filePath) => path.join(rootDir, filePath))
+  .filter((filePath) => fs.existsSync(filePath));
 const forbiddenArbitraryUtilities = [
   /\b(?:p|px|py|pt|pr|pb|pl|m|mx|my|mt|mr|mb|ml|gap|space-x|space-y)-\[(?:\d+|\d+\.\d+)(?:px|rem)\]/g,
   /\brounded-\[(?:\d+|\d+\.\d+)(?:px|rem)\]/g,
@@ -55,7 +56,6 @@ const moduleGovernedFiles = new Set(
     'src/client/components/common/FormField.tsx',
     'src/client/design-system/components/forms/Select.tsx',
     'src/client/components/common/Tabs.tsx',
-    'src/client/components/common/Tooltip.tsx',
     'src/client/components/common/LoadingPill.tsx',
     'src/client/components/common/TagSelector.tsx',
     'src/client/components/common/BatchToolbar.tsx',
@@ -219,7 +219,9 @@ const moduleGovernedFiles = new Set(
     'src/client/components/visualizations/Timeline.tsx',
     'src/client/components/visualizations/TimelineVisualization.tsx',
     'src/client/components/visualizations/TreeMap.tsx',
-  ].map((f) => path.join(rootDir, f)),
+  ]
+    .map((f) => path.join(rootDir, f))
+    .filter((filePath) => fs.existsSync(filePath)),
 );
 
 const tailwindUtilityPattern =

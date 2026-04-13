@@ -1,12 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
+import React, { useState } from 'react';
 import { User, Save } from 'lucide-react';
 import { apiClient } from '../../services/apiClient';
-import FormField from '../common/FormField';
-import { useModalFocusTrap } from '../../hooks/useModalFocusTrap';
 import { useToasts } from '../common/useToasts';
-import { useScrollLock } from '../../hooks/useScrollLock';
 import { CloseButton } from '../common/CloseButton';
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  Flex,
+  Select,
+  TextInput,
+  Textarea,
+} from '../../design-system/lib';
 import styles from './CreateEntityModal.module.css';
 
 interface CreateEntityModalProps {
@@ -14,9 +22,13 @@ interface CreateEntityModalProps {
   onSuccess: () => void;
 }
 
+const riskOptions = [
+  { value: 'LOW', label: 'Low Risk' },
+  { value: 'MEDIUM', label: 'Medium Risk' },
+  { value: 'HIGH', label: 'High Risk' },
+];
+
 export const CreateEntityModal: React.FC<CreateEntityModalProps> = ({ onClose, onSuccess }) => {
-  const { modalRef } = useModalFocusTrap(true);
-  useScrollLock(true);
   const { addToast } = useToasts();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -29,23 +41,13 @@ export const CreateEntityModal: React.FC<CreateEntityModalProps> = ({ onClose, o
     red_flag_description: '',
   });
 
-  const fieldClassName = styles.field;
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
-
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name === 'red_flag_rating' ? parseInt(value) || 0 : value,
+      [name]: name === 'red_flag_rating' ? parseInt(value, 10) || 0 : value,
     }));
   };
 
@@ -69,17 +71,24 @@ export const CreateEntityModal: React.FC<CreateEntityModalProps> = ({ onClose, o
     }
   };
 
-  return createPortal(
-    <div id="CreateEntityModal" className={styles.overlay} role="dialog" aria-modal="true">
-      <div ref={modalRef} className={styles.modal}>
-        {/* Header */}
-        <div className={styles.header}>
-          <div className={styles.headerTitleGroup}>
-            <div className={styles.headerIconWrap}>
-              <User className={styles.headerIcon} />
-            </div>
-            <h2 className={styles.headerTitle}>Create New Subject</h2>
-          </div>
+  return (
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className={styles.dialogContent}>
+        <div className={styles.headerRow}>
+          <DialogHeader className={styles.headerMeta}>
+            <Flex align="center" gap="sm" className={styles.titleWrap}>
+              <div className={styles.headerIconWrap}>
+                <User className={styles.headerIcon} />
+              </div>
+              <div>
+                <DialogTitle>Create New Subject</DialogTitle>
+                <DialogDescription>
+                  Add a subject using the same shared form and modal language as the rest of the
+                  archive.
+                </DialogDescription>
+              </div>
+            </Flex>
+          </DialogHeader>
           <CloseButton
             onClick={onClose}
             size="md"
@@ -88,127 +97,90 @@ export const CreateEntityModal: React.FC<CreateEntityModalProps> = ({ onClose, o
           />
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.twoColumnGrid}>
-            <FormField label="Full Name" id="full_name" required>
-              <input
-                type="text"
-                id="full_name"
-                name="full_name"
-                value={formData.full_name}
-                onChange={handleChange}
-                required
-                className={fieldClassName}
-                placeholder="e.g. John Doe"
-              />
-            </FormField>
-
-            <FormField label="Primary Role" id="primary_role" required>
-              <input
-                type="text"
-                id="primary_role"
-                name="primary_role"
-                value={formData.primary_role}
-                onChange={handleChange}
-                required
-                className={fieldClassName}
-                placeholder="e.g. Associate"
-              />
-            </FormField>
+            <TextInput
+              id="full_name"
+              name="full_name"
+              label="Full Name"
+              placeholder="e.g. John Doe…"
+              value={formData.full_name}
+              onChange={handleChange}
+              required
+            />
+            <TextInput
+              id="primary_role"
+              name="primary_role"
+              label="Primary Role"
+              placeholder="e.g. Associate…"
+              value={formData.primary_role}
+              onChange={handleChange}
+              required
+            />
           </div>
 
-          <FormField
-            label="Secondary Roles"
+          <TextInput
             id="secondary_roles"
-            helpText="Comma separated list of other roles"
-          >
-            <input
-              type="text"
-              id="secondary_roles"
-              name="secondary_roles"
-              value={formData.secondary_roles}
-              onChange={handleChange}
-              className={fieldClassName}
-              placeholder="e.g. Pilot, Driver"
-            />
-          </FormField>
+            name="secondary_roles"
+            label="Secondary Roles"
+            hint="Comma-separated list"
+            placeholder="e.g. Pilot, Driver…"
+            value={formData.secondary_roles}
+            onChange={handleChange}
+          />
 
-          <FormField label="Description" id="description">
-            <textarea
-              id="description"
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              rows={3}
-              className={fieldClassName}
-              placeholder="Brief description of the subject..."
-            />
-          </FormField>
+          <Textarea
+            id="description"
+            name="description"
+            label="Description"
+            placeholder="Brief description of the subject…"
+            value={formData.description}
+            onChange={handleChange}
+            rows={4}
+          />
 
           <div className={styles.twoColumnGrid}>
-            <FormField label="Risk Level" id="likelihood_level" required>
-              <select
-                id="likelihood_level"
-                name="likelihood_level"
-                value={formData.likelihood_level}
-                onChange={handleChange}
-                className={fieldClassName}
-              >
-                <option value="LOW">Low Risk</option>
-                <option value="MEDIUM">Medium Risk</option>
-                <option value="HIGH">High Risk</option>
-              </select>
-            </FormField>
-
-            <FormField label="Red Flag Score (0-5)" id="red_flag_rating">
-              <input
-                type="number"
-                id="red_flag_rating"
-                name="red_flag_rating"
-                min="0"
-                max="5"
-                value={formData.red_flag_rating}
-                onChange={handleChange}
-                className={fieldClassName}
-              />
-            </FormField>
+            <Select
+              id="likelihood_level"
+              name="likelihood_level"
+              label="Risk Level"
+              value={formData.likelihood_level}
+              onChange={handleChange}
+              options={riskOptions}
+            />
+            <TextInput
+              id="red_flag_rating"
+              name="red_flag_rating"
+              type="number"
+              min="0"
+              max="5"
+              inputMode="numeric"
+              label="Red Flag Score (0-5)"
+              value={String(formData.red_flag_rating)}
+              onChange={handleChange}
+            />
           </div>
 
-          <FormField label="Red Flag Description" id="red_flag_description">
-            <input
-              type="text"
-              id="red_flag_description"
-              name="red_flag_description"
-              value={formData.red_flag_description}
-              onChange={handleChange}
-              className={fieldClassName}
-              placeholder="Why is this person flagged?"
-            />
-          </FormField>
+          <TextInput
+            id="red_flag_description"
+            name="red_flag_description"
+            label="Red Flag Description"
+            placeholder="Why is this person flagged?…"
+            value={formData.red_flag_description}
+            onChange={handleChange}
+          />
 
-          {/* Footer Actions */}
           <div className={styles.footer}>
-            <button type="button" onClick={onClose} className={styles.cancelButton}>
+            <Button type="button" variant="secondary" onClick={onClose}>
               Cancel
-            </button>
-            <button type="submit" disabled={loading} className={styles.submitButton}>
-              {loading ? (
-                <>
-                  <div className={styles.spinner} />
-                  Creating...
-                </>
-              ) : (
-                <>
-                  <Save className={styles.buttonIcon} />
-                  Create Subject
-                </>
-              )}
-            </button>
+            </Button>
+            <Button type="submit" variant="primary" disabled={loading}>
+              <Save size={16} aria-hidden="true" />
+              {loading ? 'Creating…' : 'Create Subject'}
+            </Button>
           </div>
         </form>
-      </div>
-    </div>,
-    document.body,
+      </DialogContent>
+    </Dialog>
   );
 };

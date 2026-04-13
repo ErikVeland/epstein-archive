@@ -7,17 +7,7 @@ import { CloseButton } from '../common/CloseButton';
 import { useScrollLock } from '../../hooks/useScrollLock';
 
 // UI Library
-import {
-  Surface,
-  Button,
-  Flex,
-  Box,
-  Stack,
-  LqText,
-  Grid,
-  Badge,
-  Skeleton,
-} from '../../design-system/lib';
+import { Surface, Button, Box, Stack, Grid, TextInput, Textarea } from '../../design-system/lib';
 import styles from './InvestigationMemoryPanel.module.css';
 
 interface InvestigationMemoryPanelProps {
@@ -108,130 +98,100 @@ export const InvestigationMemoryPanel: React.FC<InvestigationMemoryPanelProps> =
   }, [entries]);
 
   return (
-    <Box className={styles.autoGen240} onClick={onClose}>
-      <Surface
-        variant="panel"
-        style={{ width: 600, height: '100%' }}
-        className="border-l border-l-[var(--lq-surface-3)] shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <Stack style={{ height: '100%' }} gap="0">
-          {/* Header HUD */}
-          <Surface variant="glass" p="xl" className={styles.autoGen242}>
-            <Flex justify="between" align="start">
-              <Stack gap="none">
-                <Flex align="center" gap="md">
-                  <BookOpen size={24} className={styles.autoGen243} />
-                  <LqText variant="h1" weight="bold">
-                    Neural Repository
-                  </LqText>
-                </Flex>
-                <LqText
-                  variant="xs"
-                  color="muted"
-                  style={{ textTransform: 'uppercase' }}
-                  weight="bold"
-                  mt="xs"
-                >
-                  Persistent Investigative Context • AI Awareness Buffer
-                </LqText>
-              </Stack>
-              <CloseButton onClick={onClose} size="md" />
-            </Flex>
+    <Box className={styles.overlay} onClick={onClose}>
+      <Surface variant="panel" className={styles.panel} onClick={(e) => e.stopPropagation()}>
+        <Stack className={styles.panelStack} gap="0">
+          <div className={styles.header}>
+            <div>
+              <div className={styles.title}>
+                <BookOpen className={styles.titleIcon} />
+                Neural Repository
+              </div>
+              <div className={styles.subtitle}>
+                Persistent Investigative Context • AI Awareness Buffer
+              </div>
+            </div>
+            <CloseButton onClick={onClose} size="md" />
+          </div>
 
-            {/* In-Panel Search */}
-            <Box mt="xl" className={styles.autoGen244}>
-              <Search size={14} className={styles.autoGen245} />
-              <input
-                style={{
-                  width: '100%',
-                  background: 'var(--lq-surface-3)',
-                  border: '1px solid var(--lq-surface-4)',
-                  borderRadius: '0.375rem',
-                  padding: '0.5rem 0.75rem 0.5rem 2.5rem',
-                  fontSize: '0.875rem',
-                  color: 'var(--lq-text-primary)',
-                  outline: 'none',
-                }}
-                placeholder="Search memory stream..."
+          <form
+            className={styles.searchForm}
+            onSubmit={(e) => {
+              e.preventDefault();
+              setPage(1);
+              void loadEntries();
+            }}
+          >
+            <div className={styles.searchFieldWrap}>
+              <Search className={styles.searchIcon} />
+              <TextInput
+                className={styles.searchInput}
+                placeholder="Search memory stream…"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && setPage(1)}
               />
-            </Box>
-          </Surface>
+            </div>
+            <Button type="submit" variant="secondary" size="sm" className={styles.searchButton}>
+              Search
+            </Button>
+          </form>
 
-          {/* Memory Stream */}
-          <Box grow className={styles.autoGen246}>
+          <Box grow className={styles.entryList}>
             {isLoading ? (
-              <Stack gap="md">
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <Skeleton key={i} height={120} />
-                ))}
-              </Stack>
+              <div className={styles.loadingState}>
+                <Loader2 className={styles.loadingIcon} />
+                Loading memory stream
+              </div>
             ) : sortedEntries.length === 0 ? (
-              <Stack align="center" justify="center" style={{ height: '100%' }} p="xxxl" gap="md">
-                <Sparkles size={48} className={styles.autoGen247} />
-                <LqText variant="small" weight="bold" color="muted">
-                  Neural Buffer Clear
-                </LqText>
-                <LqText variant="xs" color="muted" style={{ textAlign: 'center' }}>
+              <div className={styles.emptyState}>
+                <Sparkles size={48} className={styles.emptyIcon} />
+                <div className={styles.emptyText}>Neural Buffer Clear</div>
+                <div className={styles.emptySubtext}>
                   No persistent context blocks found. Initialize an entry to prime the investigation
                   memory.
-                </LqText>
-              </Stack>
+                </div>
+              </div>
             ) : (
               <Stack gap="lg">
                 {sortedEntries.map((entry) => (
-                  <Surface
-                    key={entry.id}
-                    variant="glass-highlight"
-                    p="lg"
-                    className={styles.autoGen248}
-                  >
+                  <Surface key={entry.id} variant="glass-highlight" className={styles.entryCard}>
                     <Stack gap="md">
-                      <Flex justify="between" align="start">
-                        <Flex align="center" gap="sm">
-                          <Clock size={12} className={styles.autoGen249} />
-                          <LqText variant="xs" color="muted" weight="bold">
+                      <div className={styles.entryRow}>
+                        <div>
+                          <div className={styles.entryMeta}>
+                            <Clock size={12} />
                             {new Date(entry.createdAt).toLocaleDateString()}{' '}
                             {new Date(entry.createdAt).toLocaleTimeString([], {
                               hour: '2-digit',
                               minute: '2-digit',
                             })}
-                          </LqText>
-                        </Flex>
-                        <Flex gap="md" align="center">
-                          <Badge variant="glass" size="sm">
-                            <Star size={10} className={styles.autoGen250} />{' '}
+                          </div>
+                          <div className={styles.entryContent}>{entry.content}</div>
+                        </div>
+                        <div className={styles.entryActions}>
+                          <div className={styles.importanceBadge}>
+                            <Star size={10} className={styles.badgeIcon} />
                             {Math.round((entry.importanceScore ?? 0) * 100)}% PRIORITY
-                          </Badge>
+                          </div>
                           <Button
                             variant="ghost"
                             size="sm"
-                            className={styles.autoGen251}
+                            className={styles.deleteButton}
                             onClick={() => handleDeleteEntry(entry.id)}
                           >
-                            <Trash2 size={12} />
+                            <Trash2 size={12} className={styles.deleteIcon} />
                           </Button>
-                        </Flex>
-                      </Flex>
-
-                      <LqText variant="xs" lineHeight="relaxed" className="whitespace-pre-wrap">
-                        {entry.content}
-                      </LqText>
+                        </div>
+                      </div>
 
                       {entry.contextTags && entry.contextTags.length > 0 && (
-                        <Flex gap="xs" wrap="wrap">
+                        <div className={styles.tagList}>
                           {entry.contextTags.map((tag) => (
-                            <Badge
-                              key={tag}
-                              variant="glass-highlight"
-                              label={tag.toUpperCase()}
-                              size="sm"
-                            />
+                            <span key={tag} className={styles.tag}>
+                              {tag.toUpperCase()}
+                            </span>
                           ))}
-                        </Flex>
+                        </div>
                       )}
                     </Stack>
                   </Surface>
@@ -240,34 +200,18 @@ export const InvestigationMemoryPanel: React.FC<InvestigationMemoryPanelProps> =
             )}
           </Box>
 
-          {/* New Entry Formulation */}
-          <Surface variant="glass" p="xl" className={styles.autoGen252}>
+          <Surface variant="glass" className={styles.footerForm}>
             <form onSubmit={handleCreateEntry}>
               <Stack gap="lg">
-                <Flex align="center" gap="md">
-                  <Sparkles size={16} className={styles.autoGen253} />
-                  <LqText
-                    variant="xs"
-                    weight="bold"
-                    color="muted"
-                    style={{ textTransform: 'uppercase' }}
-                  >
+                <div className={styles.footerHeader}>
+                  <div className={styles.footerTitle}>
+                    <Sparkles size={16} className={styles.footerTitleIcon} />
                     Formulate Neural Context
-                  </LqText>
-                </Flex>
+                  </div>
+                </div>
 
-                <textarea
-                  style={{
-                    width: '100%',
-                    background: 'var(--lq-surface-3)',
-                    border: '1px solid var(--lq-surface-4)',
-                    borderRadius: '0.375rem',
-                    padding: '0.75rem',
-                    fontSize: '0.875rem',
-                    color: 'var(--lq-text-primary)',
-                    outline: 'none',
-                    resize: 'none',
-                  }}
+                <Textarea
+                  className={styles.field}
                   placeholder="Capture critical insights, lead extractions, or strategic decisions for AI persistence..."
                   value={newContent}
                   onChange={(e) => setNewContent(e.target.value)}
@@ -276,20 +220,16 @@ export const InvestigationMemoryPanel: React.FC<InvestigationMemoryPanelProps> =
 
                 <Grid cols={2} gap="xl" align="center">
                   <Stack gap="xs">
-                    <Flex justify="between">
-                      <LqText variant="xs" weight="bold" color="muted">
-                        IMPORTANCE SCALE
-                      </LqText>
-                      <LqText variant="xs" weight="bold" color="accent">
-                        {Math.round(importance * 100)}%
-                      </LqText>
-                    </Flex>
+                    <div className={styles.sliderRow}>
+                      <div className={styles.sliderMeta}>IMPORTANCE SCALE</div>
+                      <div className={styles.sliderMeta}>{Math.round(importance * 100)}%</div>
+                    </div>
                     <input
                       type="range"
                       min={0}
                       max={100}
                       step={5}
-                      style={{ width: '100%', accentColor: 'var(--lq-accent)' }}
+                      className={styles.slider}
                       value={Math.round(importance * 100)}
                       onChange={(e) => setImportance(parseInt(e.target.value, 10) / 100)}
                     />
@@ -299,11 +239,7 @@ export const InvestigationMemoryPanel: React.FC<InvestigationMemoryPanelProps> =
                     type="submit"
                     disabled={!newContent.trim() || isSaving}
                   >
-                    {isSaving ? (
-                      <Loader2 className="animate-spin mr-2" />
-                    ) : (
-                      <Send size={14} className="mr-2" />
-                    )}
+                    {isSaving ? <Loader2 className={styles.savingIcon} /> : <Send size={14} />}
                     Commit to Memory
                   </Button>
                 </Grid>

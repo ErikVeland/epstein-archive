@@ -19,6 +19,10 @@
   box-shadow: var(--glass-shadow);
 }
 
+.panelStack {
+  height: 100%;
+}
+
 .header,
 .searchForm,
 .footerForm {
