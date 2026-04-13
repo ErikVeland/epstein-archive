@@ -169,6 +169,7 @@ export const FlightTracker: React.FC = () => {
         <div className="filters">
           <div className={styles.filterRow}>
             <Select
+              size="sm"
               rootClassName="min-w-[200px]"
               value={selectedPassenger}
               onChange={(e) => setSelectedPassenger(e.target.value)}

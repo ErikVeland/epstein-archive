@@ -79,8 +79,12 @@
 }
 
 .closeBtn {
-  background: transparent;
   color: var(--text-secondary);
+}
+
+/* DS secondary variant is (0,2,0); add data-slot + data-size to reach (0,3,0) and win. */
+.closeBtn[data-slot='button'][data-size] {
+  background: transparent;
 }
 
 .closeBtn:hover {
