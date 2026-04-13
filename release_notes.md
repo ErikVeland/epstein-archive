@@ -1,5 +1,16 @@
 # Release Notes
 
+## v19.0.3 - 2026-04-13 — Design System Consolidation
+
+Completes the design system primitive consolidation across all UI components, eliminating ad-hoc styling in favour of centralized DS tokens and layout primitives.
+
+### Refactor
+
+- **DS Consolidation**: Migrated all remaining components to design system primitives — buttons, inputs, selects, and layout containers now consistently use DS-managed tokens
+- **CSS Specificity Hardening**: Resolved input padding specificity conflicts by doubling class selectors `(.cls.cls)` to (0,2,0), beating the global baseline `input[type='text']` at (0,1,1)
+
+---
+
 ## v19.0.2 - 2026-04-13 — Design System Specificity Fixes
 
 Fixes three CSS specificity regressions introduced by the DS consolidation refactor, where DS Button attribute selectors (`(0,3,0)`) silently won over consuming component module classes (`(0,1,0)`).
