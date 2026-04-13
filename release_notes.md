@@ -1,5 +1,19 @@
 # Release Notes
 
+## v19.0.4 - 2026-04-14 — Responsive UX Unification & Release Hardening
+
+This patch unifies complex mobile workflows with the broader product shell so email, investigation, panels, and overlays feel like one reliable system across desktop and handheld use.
+
+### UX & Design System
+
+- **Responsive email workspace**: Removed the parallel mobile email product surface and routed all email workflows through the shared responsive client, reducing UX drift between breakpoints
+- **Shared sheet/modal behavior**: Rebuilt the mobile email filters and investigation capture/add flows on top of shared dialog, button, and input primitives for consistent spacing, focus handling, accessibility, and motion
+- **Investigation panel consistency**: Reconnected the memory and leads panels to governed module styling so side surfaces align with the current design language instead of older ad-hoc presentation patterns
+- **Browser reliability**: Fixed the file preview modal's Download action so it now performs a real download instead of presenting a dead-end CTA
+- **Release governance**: Hardened the design-token audit script so release verification no longer fails on deleted legacy files, making the production gate more trustworthy
+
+---
+
 ## v19.0.3 - 2026-04-13 — Design System Consolidation
 
 Completes the design system primitive consolidation across all UI components, eliminating ad-hoc styling in favour of centralized DS tokens and layout primitives.
