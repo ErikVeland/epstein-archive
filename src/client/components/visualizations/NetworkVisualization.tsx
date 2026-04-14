@@ -1017,15 +1017,19 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
                   />
 
                   <Surface className={styles.zoomControls}>
-                    <button
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       onClick={() => setZoom((prev) => Math.min(3, prev * 1.2))}
                       className={styles.zoomButton}
                       title="Zoom In"
                     >
                       <Search className={styles.metaIcon} />
-                    </button>
+                    </Button>
                     <div className={styles.divider} />
-                    <button
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       onClick={() => {
                         setZoom(1);
                         setPan({ x: 0, y: 0 });
@@ -1033,10 +1037,15 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
                       className={styles.zoomTextButton}
                     >
                       RESET
-                    </button>
-                    <button onClick={centerNetwork} className={styles.zoomTextButton}>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={centerNetwork}
+                      className={styles.zoomTextButton}
+                    >
                       CENTER
-                    </button>
+                    </Button>
                   </Surface>
 
                   <Surface className={styles.legend}>
@@ -1064,9 +1073,14 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
                   <Sliders className={`${styles.metaIcon} ${styles.accentIcon}`} />
                   Graph Settings
                 </h4>
-                <button onClick={() => setShowSettings(false)} className={styles.panelClose}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowSettings(false)}
+                  className={styles.panelClose}
+                >
                   <ChevronRight className={styles.headerIcon} />
-                </button>
+                </Button>
               </div>
 
               {/* Range Filters */}
@@ -1169,7 +1183,9 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
                   <label className={styles.sectionLabel}>
                     <Shield className={styles.metaIcon} /> Relationship Types
                   </label>
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     className={styles.sectionAction}
                     onClick={() =>
                       setSelectedEdgeTypes(
@@ -1195,7 +1211,7 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
                     }
                   >
                     RE-SELECT ALL
-                  </button>
+                  </Button>
                 </div>
                 <div className={styles.checkboxList}>
                   {[

@@ -14,6 +14,7 @@ import {
   Download,
   User,
 } from 'lucide-react';
+import { Button, Select } from '../../design-system/lib';
 import Icon from '../common/Icon';
 import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
 import styles from './FinancialTransactionMapper.module.css';
@@ -311,31 +312,35 @@ export default function FinancialTransactionMapper({
             <div className={styles.filterGrid}>
               <div>
                 <label className={styles.fieldLabel}>Risk Level</label>
-                <select
+                <Select
+                  size="sm"
                   value={filterRisk}
                   onChange={(e) => setFilterRisk(e.target.value)}
                   className={styles.selectInput}
-                >
-                  <option value="all">All Risk Levels</option>
-                  <option value="low">Low Risk</option>
-                  <option value="medium">Medium Risk</option>
-                  <option value="high">High Risk</option>
-                  <option value="critical">Critical Risk</option>
-                </select>
+                  options={[
+                    { value: 'all', label: 'All Risk Levels' },
+                    { value: 'low', label: 'Low Risk' },
+                    { value: 'medium', label: 'Medium Risk' },
+                    { value: 'high', label: 'High Risk' },
+                    { value: 'critical', label: 'Critical Risk' },
+                  ]}
+                />
               </div>
 
               <div>
                 <label className={styles.fieldLabel}>Amount Range</label>
-                <select
+                <Select
+                  size="sm"
                   value={filterAmount}
                   onChange={(e) => setFilterAmount(e.target.value)}
                   className={styles.selectInput}
-                >
-                  <option value="all">All Amounts</option>
-                  <option value="small">Under $100K</option>
-                  <option value="medium">$100K - $5M</option>
-                  <option value="large">Over $5M</option>
-                </select>
+                  options={[
+                    { value: 'all', label: 'All Amounts' },
+                    { value: 'small', label: 'Under $100K' },
+                    { value: 'medium', label: '$100K - $5M' },
+                    { value: 'large', label: 'Over $5M' },
+                  ]}
+                />
               </div>
             </div>
 
@@ -365,28 +370,35 @@ export default function FinancialTransactionMapper({
           {/* Actions Row */}
           <div className={styles.actionsRow}>
             <div className={styles.actionsLeft}>
-              <select
+              <Select
+                size="sm"
                 value={viewMode}
                 onChange={(e) =>
                   setViewMode(e.target.value as 'flow' | 'network' | 'timeline' | 'patterns')
                 }
                 className={styles.selectInput}
-              >
-                <option value="flow">Flow Analysis</option>
-                <option value="network">Network View</option>
-                <option value="timeline">Timeline</option>
-                <option value="patterns">Detected Patterns</option>
-              </select>
+                options={[
+                  { value: 'flow', label: 'Flow Analysis' },
+                  { value: 'network', label: 'Network View' },
+                  { value: 'timeline', label: 'Timeline' },
+                  { value: 'patterns', label: 'Detected Patterns' },
+                ]}
+              />
 
               <span className={styles.transactionCount}>
                 {filteredTransactions.length} transactions
               </span>
             </div>
 
-            <button onClick={exportTransactionData} className={styles.exportButton}>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={exportTransactionData}
+              className={styles.exportButton}
+            >
               <Download className={styles.calendarIcon} />
               Export Data
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -645,12 +657,14 @@ export default function FinancialTransactionMapper({
               <div className={styles.detailsOverlay}>
                 <div className={styles.detailsCard}>
                   {/* Mobile Close Button */}
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => setSelectedTransaction(null)}
                     className={styles.mobileClose}
                   >
                     <Icon name="X" className={styles.closeIcon} />
-                  </button>
+                  </Button>
 
                   <div className={`${styles.detailsHeader} ${styles.detailsHeaderCompact}`}>
                     <h3 className={styles.sectionTitle}>Transaction Details</h3>
@@ -724,8 +738,10 @@ export default function FinancialTransactionMapper({
                         <label className={styles.sourceLabel}>Source Documents</label>
                         <div className={styles.sourceList}>
                           {selectedTransaction.sourceDocuments.map((doc, index) => (
-                            <button
+                            <Button
                               key={index}
+                              variant="ghost"
+                              size="sm"
                               className={styles.sourceButton}
                               onClick={() => {
                                 const normalized = String(doc).trim();
@@ -739,8 +755,8 @@ export default function FinancialTransactionMapper({
                               }}
                               title={doc}
                             >
-                              📄 {doc}
-                            </button>
+                              {doc}
+                            </Button>
                           ))}
                         </div>
                       </div>
