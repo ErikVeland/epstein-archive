@@ -1,5 +1,22 @@
 # Release Notes
 
+## v19.1.0 - 2026-04-15 — Full Design System Migration
+
+Completes the design system migration across the entire client codebase. Every raw `<button>`, `<select>`, `<textarea>`, and text/file `<input>` element has been replaced with DS primitives, establishing a single, token-governed UI layer with no ad-hoc native form elements remaining outside the design system itself.
+
+### Design System
+
+- **Complete form element migration**: All `<button>` → `Button`, `<select>` → `Select`, `<textarea>` → `Textarea`, `<input type="text/email/number/password/search">` → `TextInput`/`SearchField`, `<input type="file">` → `FileInput` across ~190 component files
+- **New DS primitives**: Added `FileInput`, `Input` (migration wrapper), `TextArea`, and `NativeSelect` components to the design system with full token support
+- **FileInput component**: New `FileInput.tsx` + `FileInput.css` with `::file-selector-button` styling via DS tokens, following the `BaseFieldProps` density/size pattern
+- **Zero raw form elements**: Verified with grep — no unmigrated form elements remain anywhere in `src/client/` outside the design system implementation itself
+
+### Infrastructure
+
+- Excluded `.pnpm-store` from Prettier to prevent false-positive parse errors during pre-flight QA
+
+---
+
 ## v19.0.4 - 2026-04-14 — Responsive UX Unification & Release Hardening
 
 This patch unifies complex mobile workflows with the broader product shell so email, investigation, panels, and overlays feel like one reliable system across desktop and handheld use.
