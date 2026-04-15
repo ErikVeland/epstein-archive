@@ -5,7 +5,7 @@ import './Button.css';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   asChild?: boolean;
-  /** Deprecated compatibility prop. DS button styling is always applied. */
+  /** When true, suppresses all DS classes/attributes — only the consumer's className is applied. */
   unstyled?: boolean;
   variant?:
     | 'primary'
@@ -27,7 +27,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     {
       asChild = false,
       className,
-      unstyled: _unstyled = false,
+      unstyled = false,
       variant = 'primary',
       size = 'md',
       grow,
@@ -38,6 +38,17 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref,
   ) => {
     const Comp = asChild ? Slot : 'button';
+
+    if (unstyled) {
+      return (
+        <Comp
+          ref={ref}
+          className={className}
+          style={grow ? { flexGrow: 1, ...style } : style}
+          {...props}
+        />
+      );
+    }
 
     return (
       <Comp
