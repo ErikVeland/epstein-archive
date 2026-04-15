@@ -1,5 +1,15 @@
 # Release Notes
 
+## 19.1.2 - 2026-04-15
+
+### Black Book UI
+
+- Restored DS-consistent padding on Black Book cards.
+- Fixed search icon/placeholder overlap by migrating to DS `SearchField`.
+- Improved thumbnail picking to prefer tagged entity face crops when available.
+
+---
+
 ## 19.1.1 - 2026-04-15
 
 ### CI, Type Safety, and Deploy Readiness

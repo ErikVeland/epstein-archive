@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Search, Phone, Mail, MapPin, User, Book, Eye, FileText, ExternalLink } from 'lucide-react';
+import { Phone, Mail, MapPin, User, Book, Eye, FileText, ExternalLink } from 'lucide-react';
 import { extractCleanName, formatPhoneNumber } from '../utils/prettifyOCR';
 import { Link } from 'react-router-dom';
 import { AddToInvestigationButton } from './common/AddToInvestigationButton';
@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { FixedSizeList as List } from 'react-window';
 import AutoSizer from './common/AutoSizer';
 import styles from './BlackBookViewer.module.css';
-import { Button, Input, Surface } from '../design-system/lib';
+import { Button, Input, SearchField, Surface } from '../design-system/lib';
 interface BlackBookEntry {
   id: number;
   person_id: number | null;
@@ -201,13 +201,12 @@ export const BlackBookViewer: React.FC = () => {
 
       {/* Search Bar */}
       <div className={styles.searchWrap}>
-        <Search className={styles.searchIcon} />
-        <Input
-          type="text"
+        <SearchField
+          density="comfortable"
           placeholder="Search by name, phone, email, or address..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className={styles.searchInput}
+          rootClassName={styles.searchFieldRoot}
         />
       </div>
 
@@ -315,6 +314,7 @@ export const BlackBookViewer: React.FC = () => {
                               }}
                               className={styles.card}
                               variant="glass"
+                              p={4}
                             >
                               {/* Name - clickable if known entity */}
                               <div className={styles.cardHeader}>

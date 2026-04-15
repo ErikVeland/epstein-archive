@@ -185,7 +185,7 @@ export const blackBookRepository = {
         personId: e.personId ? Number(e.personId) : null,
         documentId: e.documentId ? Number(e.documentId) : null,
         thumbnailPath:
-          (typeof e.personId === 'number' ? thumbnailsByPersonId.get(e.personId) : undefined) ??
+          (e.personId ? thumbnailsByPersonId.get(Number(e.personId)) : undefined) ??
           (typeof e.displayName === 'string' ? thumbnailsByName.get(e.displayName) : undefined),
       })),
     );
