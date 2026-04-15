@@ -33,11 +33,11 @@
   position: relative;
 }
 
-.headerContent {
+.headerControls {
   display: flex;
-  flex: 1 1 auto;
   align-items: center;
   gap: var(--space-3);
+  min-width: 0;
 }
 
 .controls {
@@ -48,8 +48,8 @@
 }
 
 .searchField {
-  flex: 1 1 200px;
-  max-width: 360px;
+  width: clamp(14rem, 26vw, 22.5rem);
+  max-width: 22.5rem;
 }
 
 .headerDivider {

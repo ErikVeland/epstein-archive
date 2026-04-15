@@ -30,7 +30,7 @@
 
 .titleGroup {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--space-3);
 }
 
@@ -38,17 +38,21 @@
   width: 2rem;
   height: 2rem;
   color: var(--accent);
+  margin-top: 0.125rem;
 }
 
 .title {
   color: var(--text-primary);
   font-size: var(--font-size-2xl);
   font-weight: 700;
+  margin: 0;
+  line-height: 1.1;
 }
 
 .subtitle {
   color: var(--text-muted);
   font-size: var(--font-size-sm);
+  margin: 0;
 }
 
 .toggleButton {
@@ -103,6 +107,7 @@
 
 .categoryBar {
   display: flex;
+  margin-left: auto;
 }
 
 .listShell {

@@ -169,40 +169,6 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
           </Button>
           <Button
             unstyled
-            className={`${s.navItem} ${s.navItemSlide} ${s.navItemDocuments}`}
-            onClick={() => handleNavigation('/documents')}
-          >
-            <div className={s.iconWrap}>
-              <Icon name="FileText" size="sm" className={s.iconDocuments} />
-            </div>
-            <span className={s.navLabel}>Documents</span>
-          </Button>
-          <Button
-            unstyled
-            className={`${s.navItem} ${s.navItemSlide} ${s.navItemEmails}`}
-            onClick={() => handleNavigation('/emails')}
-          >
-            <div className={s.iconWrap}>
-              <Icon name="Mail" size="sm" className={s.iconEmails} />
-            </div>
-            <span className={s.navLabel}>Emails</span>
-          </Button>
-          <Button
-            unstyled
-            className={`${s.navItem} ${s.navItemSlide} ${s.navItemMedia}`}
-            onClick={() => handleNavigation('/media')}
-          >
-            <div className={s.iconWrap}>
-              <Icon name="Newspaper" size="sm" className={s.iconMedia} />
-            </div>
-            <span className={s.navLabel}>Media</span>
-          </Button>
-
-          <div className={s.divider} />
-          <div className={`${s.sectionLabel} ${s.sectionLabelMid}`}>Intelligence</div>
-
-          <Button
-            unstyled
             className={`${s.navItem} ${s.navItemInvestigations} ${attract ? s.navItemAttract : ''}`}
             onClick={() => {
               try {
@@ -223,6 +189,52 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
           </Button>
           <Button
             unstyled
+            className={`${s.navItem} ${s.navItemSlide} ${s.navItemDocuments}`}
+            onClick={() => handleNavigation('/documents')}
+          >
+            <div className={s.iconWrap}>
+              <Icon name="FileText" size="sm" className={s.iconDocuments} />
+            </div>
+            <span className={s.navLabel}>Documents</span>
+          </Button>
+          <Button
+            unstyled
+            className={`${s.navItem} ${s.navItemSlide} ${s.navItemMedia}`}
+            onClick={() => handleNavigation('/media')}
+          >
+            <div className={s.iconWrap}>
+              <Icon name="Newspaper" size="sm" className={s.iconMedia} />
+            </div>
+            <span className={s.navLabel}>Media</span>
+          </Button>
+
+          <div className={s.divider} />
+          <div className={`${s.sectionLabel} ${s.sectionLabelMid}`}>Intelligence</div>
+
+          <Button
+            unstyled
+            className={`${s.navItem} ${s.navItemSlide} ${s.navItemEmails}`}
+            onClick={() => handleNavigation('/emails')}
+          >
+            <div className={s.iconWrap}>
+              <Icon name="Mail" size="sm" className={s.iconEmails} />
+            </div>
+            <span className={s.navLabel}>Emails</span>
+          </Button>
+          <Button unstyled className={s.navItem} onClick={() => handleNavigation('/flights')}>
+            <div className={`${s.iconWrap} ${s.iconWrapFlights}`}>
+              <Icon name="Navigation" size="sm" className={s.iconFlights} />
+            </div>
+            <span className={s.navLabel}>Flights</span>
+          </Button>
+          <Button unstyled className={s.navItem} onClick={() => handleNavigation('/properties')}>
+            <div className={s.iconWrap}>
+              <Icon name="Building" size="sm" />
+            </div>
+            <span className={s.navLabel}>Properties</span>
+          </Button>
+          <Button
+            unstyled
             className={`${s.navItem} ${s.navItemBlackBook}`}
             onClick={() => handleNavigation('/blackbook')}
           >
@@ -240,16 +252,6 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
               <Icon name="Clock" size="sm" className={s.iconTimeline} />
             </div>
             <span className={s.navLabel}>Timeline</span>
-          </Button>
-          <Button
-            unstyled
-            className={`${s.navItem} ${s.navItemFlights}`}
-            onClick={() => handleNavigation('/flights')}
-          >
-            <div className={`${s.iconWrap} ${s.iconWrapFlights}`}>
-              <Icon name="Navigation" size="sm" className={s.iconFlights} />
-            </div>
-            <span className={s.navLabel}>Flights</span>
           </Button>
           <Button
             unstyled

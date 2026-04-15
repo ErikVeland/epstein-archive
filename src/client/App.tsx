@@ -1356,16 +1356,6 @@ function App() {
                             <span className={navLabelClass}>People</span>
                           </Button>
                         </div>
-                        <div className={navItemClass}>
-                          <Button
-                            unstyled
-                            onClick={() => navigate('/documents')}
-                            className={getNavSegmentClass('documents', activeTab === 'documents')}
-                          >
-                            <Icon name="FileText" size="sm" />
-                            <span className={navLabelClass}>Documents</span>
-                          </Button>
-                        </div>
                         <div className={cn(styles.navItemRelative, navItemClass)}>
                           <Button
                             unstyled
@@ -1476,34 +1466,11 @@ function App() {
                         <div className={navItemClass}>
                           <Button
                             unstyled
-                            onClick={() => navigate('/timeline')}
-                            onMouseEnter={() => preloader.prefetchJson('/api/timeline')}
-                            className={getNavSegmentClass('timeline', activeTab === 'timeline')}
+                            onClick={() => navigate('/documents')}
+                            className={getNavSegmentClass('documents', activeTab === 'documents')}
                           >
-                            <Icon name="Clock" size="sm" />
-                            <span className={navLabelClass}>Timeline</span>
-                          </Button>
-                        </div>
-                        <div className={navItemClass}>
-                          <Button
-                            unstyled
-                            onClick={() => navigate('/flights')}
-                            onMouseEnter={() => preloader.prefetchJson('/api/flights')}
-                            className={getNavSegmentClass('flights', activeTab === 'flights')}
-                          >
-                            <Icon name="Navigation" size="sm" />
-                            <span className={navLabelClass}>Flights</span>
-                          </Button>
-                        </div>
-                        <div className={navItemClass}>
-                          <Button
-                            unstyled
-                            onClick={() => navigate('/properties')}
-                            onMouseEnter={() => preloader.prefetchJson('/api/properties/stats')}
-                            className={getNavSegmentClass('properties', activeTab === 'properties')}
-                          >
-                            <Icon name="Building" size="sm" />
-                            <span className={navLabelClass}>Properties</span>
+                            <Icon name="FileText" size="sm" />
+                            <span className={navLabelClass}>Documents</span>
                           </Button>
                         </div>
                         <div className={navItemClass}>
@@ -1534,12 +1501,45 @@ function App() {
                         <div className={navItemClass}>
                           <Button
                             unstyled
+                            onClick={() => navigate('/flights')}
+                            onMouseEnter={() => preloader.prefetchJson('/api/flights')}
+                            className={getNavSegmentClass('flights', activeTab === 'flights')}
+                          >
+                            <Icon name="Navigation" size="sm" />
+                            <span className={navLabelClass}>Flights</span>
+                          </Button>
+                        </div>
+                        <div className={navItemClass}>
+                          <Button
+                            unstyled
+                            onClick={() => navigate('/properties')}
+                            onMouseEnter={() => preloader.prefetchJson('/api/properties/stats')}
+                            className={getNavSegmentClass('properties', activeTab === 'properties')}
+                          >
+                            <Icon name="Building" size="sm" />
+                            <span className={navLabelClass}>Properties</span>
+                          </Button>
+                        </div>
+                        <div className={navItemClass}>
+                          <Button
+                            unstyled
                             onClick={() => navigate('/blackbook')}
                             onMouseEnter={() => preloader.prefetchJson('/api/media/albums')}
                             className={getNavSegmentClass('blackbook', activeTab === 'blackbook')}
                           >
                             <Icon name="BookOpen" size="sm" />
                             <span className={navLabelClass}>Black Book</span>
+                          </Button>
+                        </div>
+                        <div className={navItemClass}>
+                          <Button
+                            unstyled
+                            onClick={() => navigate('/timeline')}
+                            onMouseEnter={() => preloader.prefetchJson('/api/timeline')}
+                            className={getNavSegmentClass('timeline', activeTab === 'timeline')}
+                          >
+                            <Icon name="Clock" size="sm" />
+                            <span className={navLabelClass}>Timeline</span>
                           </Button>
                         </div>
                         <div className={navItemClass}>

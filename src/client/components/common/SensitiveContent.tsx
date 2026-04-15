@@ -9,6 +9,9 @@ interface SensitiveContentProps {
   children: React.ReactNode;
   className?: string;
   label?: string;
+  hint?: string;
+  ignoreGlobalSetting?: boolean;
+  resetKey?: string | number;
 }
 
 /**
@@ -21,6 +24,9 @@ export function SensitiveContent({
   children,
   className = '',
   label = 'Sensitive Content',
+  hint = 'Click to reveal',
+  ignoreGlobalSetting = false,
+  resetKey,
 }: SensitiveContentProps): React.ReactElement {
   const { showAllSensitive } = useSensitiveSettings();
   const [revealed, setRevealed] = useState(false);
@@ -36,7 +42,7 @@ export function SensitiveContent({
     secondary: 'transparent',
   });
 
-  const shouldHide = isSensitive && !showAllSensitive && !revealed;
+  const shouldHide = isSensitive && (ignoreGlobalSetting || !showAllSensitive) && !revealed;
 
   useEffect(() => {
     if (!shouldHide || !canvasRef.current || !containerRef.current) return;
@@ -189,6 +195,16 @@ export function SensitiveContent({
     };
   }, []);
 
+  useEffect(() => {
+    setRevealed(false);
+    setIsRevealing(false);
+    particlesRef.current = [];
+    if (requestRef.current) {
+      cancelAnimationFrame(requestRef.current);
+      requestRef.current = undefined;
+    }
+  }, [resetKey]);
+
   // If content should not be hidden, render children directly
   if (!shouldHide) {
     return <div className={className}>{children}</div>;
@@ -229,7 +245,7 @@ export function SensitiveContent({
             </div>
             <div className={styles.labelGroup}>
               <span className={styles.label}>{label}</span>
-              <span className={styles.hint}>Click to reveal</span>
+              <span className={styles.hint}>{hint}</span>
             </div>
           </div>
 

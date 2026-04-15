@@ -935,6 +935,7 @@ export const EmailClient: React.FC = () => {
                     />
                   </div>
                 }
+                className={styles.viewerShellRoot}
                 headerClassName={styles.viewerShellHeader}
                 bodyClassName={styles.viewerShellBody}
               >

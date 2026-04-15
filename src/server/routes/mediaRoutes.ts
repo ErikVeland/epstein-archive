@@ -525,7 +525,7 @@ const avListQuerySchema = z.object({
   query: z.object({
     page: z.coerce.number().int().min(1).default(1),
     limit: z.coerce.number().int().min(1).max(500).default(24),
-    albumId: z.coerce.number().int().positive().optional(),
+    albumId: z.coerce.number().int().optional(),
     sortBy: z.enum(['title', 'date', 'rating', 'date_taken']).optional(),
     transcriptQuery: z.string().optional(),
     hasPeople: z.preprocess((v) => v === 'true' || v === true, z.boolean()).optional(),

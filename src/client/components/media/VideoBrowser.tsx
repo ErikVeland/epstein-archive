@@ -153,7 +153,14 @@ const VideoCell = React.memo(({ columnIndex, rowIndex, style, data }: GridChildC
         tabIndex={isBatchMode ? 0 : -1}
       >
         <Box className={styles.thumbnail}>
-          <SensitiveContent isSensitive={video.isSensitive} className={styles.thumbnailMedia}>
+          <SensitiveContent
+            isSensitive={video.isSensitive}
+            ignoreGlobalSetting
+            className={styles.thumbnailMedia}
+            label="Sensitive content"
+            hint="Click to unblur"
+            resetKey={video.id}
+          >
             <img
               key={video.id}
               src={`/api/media/video/${video.id}/thumbnail?v=${new Date(video.createdAt).getTime()}`}
@@ -384,7 +391,7 @@ export const VideoBrowser: React.FC = () => {
             </Flex>
 
             {/* Controls */}
-            <Flex grow align="center" gap="md" className={styles.headerContent}>
+            <Flex align="center" gap="sm" className={styles.headerControls}>
               <SearchField
                 value={transcriptSearch}
                 onChange={(e) => setTranscriptSearch(e.target.value)}

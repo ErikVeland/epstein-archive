@@ -59,9 +59,23 @@
 .contentArea {
   position: relative;
   flex: 1 1 auto;
-  min-height: 0;
+  min-height: 500px;
   overflow: hidden;
   background: var(--glass-bg);
+}
+
+.tabPanel {
+  display: flex;
+  height: 100%;
+  min-height: 500px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.tabPanel > * {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
 }
 
 .loadingOverlay {

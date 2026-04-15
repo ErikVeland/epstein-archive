@@ -225,29 +225,39 @@ export const MediaAndArticlesTab: React.FC = () => {
             }
           >
             {activeSubTab === 'articles' && (
-              <ScopedErrorBoundary>
-                <ArticlesTab />
-              </ScopedErrorBoundary>
+              <div className={styles.tabPanel}>
+                <ScopedErrorBoundary>
+                  <ArticlesTab />
+                </ScopedErrorBoundary>
+              </div>
             )}
             {activeSubTab === 'photos' && (
-              <ScopedErrorBoundary>
-                <MediaTab />
-              </ScopedErrorBoundary>
+              <div className={styles.tabPanel}>
+                <ScopedErrorBoundary>
+                  <MediaTab />
+                </ScopedErrorBoundary>
+              </div>
             )}
             {activeSubTab === 'audio' && (
-              <ScopedErrorBoundary>
-                <AudioTab />
-              </ScopedErrorBoundary>
+              <div className={styles.tabPanel}>
+                <ScopedErrorBoundary>
+                  <AudioTab />
+                </ScopedErrorBoundary>
+              </div>
             )}
             {activeSubTab === 'video' && (
-              <ScopedErrorBoundary>
-                <VideoTab />
-              </ScopedErrorBoundary>
+              <div className={styles.tabPanel}>
+                <ScopedErrorBoundary>
+                  <VideoTab />
+                </ScopedErrorBoundary>
+              </div>
             )}
             {activeSubTab === 'faces' && isAdmin && (
-              <ScopedErrorBoundary>
-                <FaceGallery />
-              </ScopedErrorBoundary>
+              <div className={styles.tabPanel}>
+                <ScopedErrorBoundary>
+                  <FaceGallery />
+                </ScopedErrorBoundary>
+              </div>
             )}
           </Suspense>
         </ScopedErrorBoundary>

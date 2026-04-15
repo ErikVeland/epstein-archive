@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Newspaper, Search, ChevronDown, ChevronUp, Clock, Filter, Calendar } from 'lucide-react';
+import { Newspaper, ChevronDown, ChevronUp, Clock, Filter, Calendar } from 'lucide-react';
 import { Article } from './ArticleCard';
 import {
   Badge,
@@ -7,9 +7,9 @@ import {
   Button,
   Flex,
   Grid,
-  Input,
   LqText,
-  NativeSelect,
+  SearchField,
+  Select,
   Stack,
   Surface,
 } from '../../design-system/lib';
@@ -177,33 +177,27 @@ export const ArticlesTab: React.FC = () => {
             </Stack>
           </Flex>
 
-          <Flex align="center" gap="sm">
-            <Box className={styles.searchBox}>
-              <Search size={16} className={styles.searchIcon} />
-              <Input
-                type="text"
-                placeholder="Search articles..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className={styles.searchInput}
-              />
-            </Box>
-
-            <Surface variant="glass-highlight" className={styles.sortContainer}>
-              <Flex align="center" gap="xs" px="sm">
-                <LqText variant="xs" weight="bold" color="muted">
-                  SORT
-                </LqText>
-                <NativeSelect
-                  value={sortOrder}
-                  onChange={(e) => setSortOrder(e.target.value as 'date' | 'redFlag')}
-                  className={styles.sortSelect}
-                >
-                  <option value="redFlag">Red Flag Rating</option>
-                  <option value="date">Date Published</option>
-                </NativeSelect>
-              </Flex>
-            </Surface>
+          <Flex align="center" gap="sm" className={styles.headerControls}>
+            <SearchField
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search articles..."
+              rootClassName={styles.searchField}
+              density="compact"
+            />
+            <LqText variant="xs" weight="bold" color="muted" className={styles.sortLabel}>
+              SORT
+            </LqText>
+            <Select
+              size="sm"
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value as 'date' | 'redFlag')}
+              options={[
+                { value: 'redFlag', label: 'Red Flag Rating' },
+                { value: 'date', label: 'Date Published' },
+              ]}
+              rootClassName={styles.sortField}
+            />
           </Flex>
         </Flex>
 

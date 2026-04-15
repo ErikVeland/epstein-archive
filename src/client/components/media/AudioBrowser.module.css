@@ -21,23 +21,6 @@
   }
 }
 
-/* ─── Sidebar ───────────────────────────────────────────── */
-
-.sidebarWrapper {
-  display: none;
-  flex: 0 0 13rem;
-  border-right: 1px solid var(--glass-border);
-  overflow-y: auto;
-  padding: var(--space-4) var(--space-2);
-  flex-shrink: 0;
-}
-
-@media (min-width: 768px) {
-  .sidebarWrapper {
-    display: block;
-  }
-}
-
 /* ─── Virtual scroll area ───────────────────────────────── */
 
 .virtualScrollArea {
@@ -249,7 +232,8 @@
 }
 
 .searchField {
-  min-width: 320px;
+  min-width: 14rem;
+  width: clamp(14rem, 26vw, 22.5rem);
   flex-shrink: 0;
 }
 

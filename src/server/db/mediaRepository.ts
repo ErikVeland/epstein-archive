@@ -31,6 +31,86 @@ interface AlbumRow {
   sensitiveCount: string | number;
 }
 
+const SYNTHETIC_VIDEO_ALBUMS = {
+  doj: {
+    id: -101,
+    name: 'DOJ Videos',
+    description: 'DOJ video evidence and surveillance footage.',
+  },
+  saschaTikTok: {
+    id: -102,
+    name: 'Sascha Barros TikTok',
+    description: 'Standalone TikTok source video for Sascha Barros.',
+  },
+} as const;
+
+function isLegacyDojVideoAlbum(name: string): boolean {
+  return /doj/i.test(name);
+}
+
+function isLegacySaschaTikTokAlbum(name: string): boolean {
+  return /(sascha|sasha)/i.test(name) && /tiktok/i.test(name);
+}
+
+function buildSyntheticVideoAlbumPredicate(
+  albumId: number,
+  addParam: (value: string | number | bigint | null) => string,
+): string | null {
+  if (albumId === SYNTHETIC_VIDEO_ALBUMS.doj.id) {
+    const dojPath = addParam('%DOJ_VOL8%');
+    const dojMeta = addParam('%DOJ%');
+    const dojAlbum = addParam('%DOJ%');
+    return `(
+      COALESCE(m.file_path, '') ILIKE ${dojPath}::text
+      OR COALESCE(m.metadata_json::text, '') ILIKE ${dojMeta}::text
+      OR EXISTS (
+        SELECT 1
+        FROM media_albums a
+        WHERE a.id = m.album_id
+          AND (
+            a.name ILIKE ${dojAlbum}::text
+            OR COALESCE(a.description, '') ILIKE ${dojAlbum}::text
+          )
+      )
+    )`;
+  }
+
+  if (albumId === SYNTHETIC_VIDEO_ALBUMS.saschaTikTok.id) {
+    const saschaPath = addParam('%Sasha Riley TikTok Q&A%');
+    const saschaAltPath = addParam('%Sascha Riley TikTok Q&A%');
+    const saschaMeta = addParam('%tiktok%');
+    const saschaName = addParam('%sascha%');
+    const sashaName = addParam('%sasha%');
+    return `(
+      COALESCE(m.file_path, '') ILIKE ${saschaPath}::text
+      OR COALESCE(m.file_path, '') ILIKE ${saschaAltPath}::text
+      OR (
+        (
+          COALESCE(m.title, '') ILIKE ${saschaName}::text
+          OR COALESCE(m.title, '') ILIKE ${sashaName}::text
+          OR COALESCE(m.metadata_json::text, '') ILIKE ${saschaName}::text
+          OR COALESCE(m.metadata_json::text, '') ILIKE ${sashaName}::text
+        )
+        AND (
+          COALESCE(m.title, '') ILIKE ${saschaMeta}::text
+          OR COALESCE(m.metadata_json::text, '') ILIKE ${saschaMeta}::text
+          OR EXISTS (
+            SELECT 1
+            FROM media_albums a
+            WHERE a.id = m.album_id
+              AND (
+                a.name ILIKE ${saschaMeta}::text
+                OR COALESCE(a.description, '') ILIKE ${saschaMeta}::text
+              )
+          )
+        )
+      )
+    )`;
+  }
+
+  return null;
+}
+
 interface MediaItemRow {
   id: number;
   entityId: string | null;
@@ -112,11 +192,91 @@ export const mediaRepository = {
       { likePattern },
       getApiPool(),
     )) as AlbumRow[];
-    return result.map((row: AlbumRow) => ({
+    const albums = result.map((row: AlbumRow) => ({
       ...row,
       itemCount: Number(row.itemCount || 0),
       sensitiveCount: Number(row.sensitiveCount || 0),
     }));
+
+    if (fileType !== 'video') {
+      return albums;
+    }
+
+    const pool = getApiPool();
+    const [dojSummary, saschaSummary] = await Promise.all([
+      pool.query<{ itemCount: string | number; sensitiveCount: string | number }>(
+        `
+          SELECT
+            COUNT(*) as "itemCount",
+            SUM(CASE WHEN COALESCE(m.is_sensitive, false) = true THEN 1 ELSE 0 END) as "sensitiveCount"
+          FROM media_items m
+          WHERE m.file_type LIKE 'video/%'
+            AND (
+              COALESCE(m.file_path, '') ILIKE '%DOJ_VOL8%'
+              OR COALESCE(m.metadata_json::text, '') ILIKE '%DOJ%'
+              OR EXISTS (
+                SELECT 1
+                FROM media_albums a
+                WHERE a.id = m.album_id
+                  AND (a.name ILIKE '%DOJ%' OR COALESCE(a.description, '') ILIKE '%DOJ%')
+              )
+            )
+        `,
+      ),
+      pool.query<{ itemCount: string | number; sensitiveCount: string | number }>(
+        `
+          SELECT
+            COUNT(*) as "itemCount",
+            SUM(CASE WHEN COALESCE(m.is_sensitive, false) = true THEN 1 ELSE 0 END) as "sensitiveCount"
+          FROM media_items m
+          WHERE m.file_type LIKE 'video/%'
+            AND (
+              COALESCE(m.file_path, '') ILIKE '%Sasha Riley TikTok Q&A%'
+              OR COALESCE(m.file_path, '') ILIKE '%Sascha Riley TikTok Q&A%'
+              OR (
+                (
+                  COALESCE(m.title, '') ILIKE '%sascha%'
+                  OR COALESCE(m.title, '') ILIKE '%sasha%'
+                  OR COALESCE(m.metadata_json::text, '') ILIKE '%sascha%'
+                  OR COALESCE(m.metadata_json::text, '') ILIKE '%sasha%'
+                )
+                AND (
+                  COALESCE(m.title, '') ILIKE '%tiktok%'
+                  OR COALESCE(m.metadata_json::text, '') ILIKE '%tiktok%'
+                  OR EXISTS (
+                    SELECT 1
+                    FROM media_albums a
+                    WHERE a.id = m.album_id
+                      AND (
+                        a.name ILIKE '%tiktok%'
+                        OR COALESCE(a.description, '') ILIKE '%tiktok%'
+                      )
+                  )
+                )
+              )
+            )
+        `,
+      ),
+    ]);
+
+    const filteredAlbums = albums.filter(
+      (album) => !isLegacyDojVideoAlbum(album.name) && !isLegacySaschaTikTokAlbum(album.name),
+    );
+
+    const syntheticAlbums = [
+      {
+        ...SYNTHETIC_VIDEO_ALBUMS.doj,
+        itemCount: Number(dojSummary.rows[0]?.itemCount || 0),
+        sensitiveCount: Number(dojSummary.rows[0]?.sensitiveCount || 0),
+      },
+      {
+        ...SYNTHETIC_VIDEO_ALBUMS.saschaTikTok,
+        itemCount: Number(saschaSummary.rows[0]?.itemCount || 0),
+        sensitiveCount: Number(saschaSummary.rows[0]?.sensitiveCount || 0),
+      },
+    ].filter((album) => album.itemCount > 0);
+
+    return [...syntheticAlbums, ...filteredAlbums];
   },
 
   // Get media items for an entity
@@ -336,7 +496,12 @@ export const mediaRepository = {
       whereParts.push(`m.red_flag_rating >= ${addParam(filters.minRedFlagRating)}::int`);
     }
     if (filters?.albumId != null) {
-      whereParts.push(`m.album_id = ${addParam(filters.albumId)}::int`);
+      const syntheticAlbumPredicate = buildSyntheticVideoAlbumPredicate(filters.albumId, addParam);
+      if (syntheticAlbumPredicate) {
+        whereParts.push(syntheticAlbumPredicate);
+      } else {
+        whereParts.push(`m.album_id = ${addParam(filters.albumId)}::int`);
+      }
     }
     if (filters?.hasPeople) {
       whereParts.push(

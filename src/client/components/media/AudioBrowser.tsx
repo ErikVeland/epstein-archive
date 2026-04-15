@@ -403,15 +403,13 @@ export const AudioBrowser: React.FC<AudioBrowserProps> = ({
         </Surface>
 
         <Flex className={styles.body} grow>
-          <Box className={styles.sidebarWrapper}>
-            <AlbumSidebar
-              albums={albums}
-              selectedAlbum={selectedAlbum}
-              onSelectAlbum={setSelectedAlbum}
-              totalItemCount={libraryTotalCount}
-              allLabel="All Recordings"
-            />
-          </Box>
+          <AlbumSidebar
+            albums={albums}
+            selectedAlbum={selectedAlbum}
+            onSelectAlbum={setSelectedAlbum}
+            totalItemCount={libraryTotalCount}
+            allLabel="All Recordings"
+          />
 
           <Box className={styles.virtualScrollArea} grow>
             <AutoSizer>
