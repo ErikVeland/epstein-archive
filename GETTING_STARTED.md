@@ -1,12 +1,12 @@
 # Getting Started with Epstein Archive
 
-Welcome! This guide will help you get up and running with the Epstein Archive project, whether you want to explore with sample data or ingest the full dataset.
+Welcome! This guide will help you get up and running with the Epstein Archive project for local development and ingestion.
 
-## 🚀 Scenario A: Quick Start (Sample Data)
+## 🚀 Quick Start (UI + API)
 
-Perfect for developers who want to contribute to the UI or explore the codebase without downloading terabytes of data.
+Perfect for developers who want to contribute to the UI, run the API locally, and iterate quickly. The app can run without any ingested corpus data (it will show empty states until you ingest).
 
-### 1. Setup Environment
+### 1. Setup
 
 ```bash
 # Clone the repo
@@ -17,37 +17,24 @@ cd epstein-archive
 pnpm install
 ```
 
-### 2. Use the Sample Database
-
-We include a lightweight `sample.db` (whitelisted in git) containing:
-
-- ~50 Documents (Selected for high entity density)
-- ~130 Entities
-- ~250 Mentions
-
-To use it, update your `.env` file (or `start.sh`) to point to the sample:
+### 2. Configure Environment
 
 ```bash
 # .env.local
-DB_PATH=./sample.db
+DATABASE_URL=postgres://postgres:postgres@localhost:5432/epstein_archive
 ```
 
-### 3. Start the App
+### 3. Migrate + Start
 
 ```bash
+pnpm db:migrate:pg
 pnpm dev
 # App will run at http://localhost:5173
 ```
 
-You can regenerate the sample database anytime (requires a full `epstein-archive.db` source):
-
-```bash
-npx tsx scripts/create_sample_db.ts
-```
-
 ---
 
-## 🏗️ Scenario B: Full Ingestion (Real Data)
+## 🏗️ Ingestion (Real Data)
 
 For researchers or server admins setting up a full instance.
 
@@ -72,14 +59,14 @@ data/
 
 ### 2. Run the Pipeline
 
-The `ingest_pipeline.ts` script handles OCR, text extraction, hashing, and entity discovery.
+The pipeline handles OCR, text extraction, hashing, and entity discovery.
 
 ```bash
 # Run the core pipeline (processes 'data/ingest')
-npx tsx scripts/ingest_pipeline.ts
+pnpm pipeline:ingest
 
 # Run the intelligence layer (entity linking & scoring)
-npx tsx scripts/ingest_intelligence.ts
+pnpm ingest:intelligence
 ```
 
 **Note:** This process can take **days** for the full multi-terabyte corpus.
