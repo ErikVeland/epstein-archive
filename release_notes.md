@@ -1,5 +1,15 @@
 # Release Notes
 
+## 19.1.3 - 2026-04-15
+
+### Release Hygiene
+
+- Removed lingering native interactive elements from the client by adding a DS `Range` primitive and adopting it where needed.
+- Standardized slider styling to design tokens for consistent focus/track/thumb behavior.
+- Cleaned up docs and tooling lists to avoid references to removed legacy files.
+
+---
+
 ## 19.1.2 - 2026-04-15
 
 ### Black Book UI
