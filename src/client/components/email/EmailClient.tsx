@@ -265,7 +265,7 @@ export const EmailClient: React.FC = () => {
   }
 
   const {
-    mailboxes,
+    mailboxes: rawMailboxes,
     mailboxesLoading,
     mailboxesError,
     threads,
@@ -304,8 +304,6 @@ export const EmailClient: React.FC = () => {
     updateUrlState,
   });
 
-  const rawMailboxes = mailboxesData ?? [];
-
   const mailboxes = useMemo(() => {
     // Filter out junk entities and unverified/non-VIP accounts if junk is suppressed
     if (!showSuppressedJunk) {
@@ -323,22 +321,12 @@ export const EmailClient: React.FC = () => {
     );
   }, [mailboxes, selectedMailboxId]);
 
-  // Auto-select VIP if currently on 'all' and a real VIP exists
-  useEffect(() => {
-    if (selectedMailboxId === 'all' && mailboxes.length > 0) {
-      const firstVip = mailboxes.find((m) => m.isVip);
-      if (firstVip) {
-        setSelectedMailboxId(firstVip.mailboxId);
-      }
-    }
-  }, [mailboxes, selectedMailboxId]);
-
   const handleOpenThread = useCallback(
     (threadId: string) => {
       baseHandleOpenThread(threadId);
       setMobilePane('messages');
     },
-    [baseHandleOpenThread],
+    [baseHandleOpenThread, setMobilePane],
   );
 
   // j/k Navigation
