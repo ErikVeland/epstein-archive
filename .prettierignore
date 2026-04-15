@@ -5,6 +5,7 @@ coverage
 
 # Dependencies
 node_modules
+.pnpm-store
 .venv
 venv
 
