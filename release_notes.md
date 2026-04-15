@@ -1,5 +1,13 @@
 # Release Notes
 
+## 19.1.5 - 2026-04-15
+
+### Email Workspace Styling
+
+- Polished mailbox VIP highlighting and refined thread header/subheader spacing for consistency.
+
+---
+
 ## 19.1.4 - 2026-04-15
 
 ### Email Workspace
