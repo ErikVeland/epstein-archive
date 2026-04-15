@@ -89,24 +89,35 @@
 }
 
 .vipMailbox {
-  background: linear-gradient(90deg, rgba(var(--accent-yellow-rgb), 0.05) 0%, transparent 100%);
+  background: linear-gradient(90deg, rgba(var(--accent-yellow-rgb), 0.08) 0%, transparent 100%);
   border-left-width: 4px;
+  position: relative;
+}
+
+.vipMailbox::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 0% 50%, rgba(var(--accent-yellow-rgb), 0.1) 0%, transparent 40%);
+  pointer-events: none;
 }
 
 .active.vipMailbox {
   background: linear-gradient(
     90deg,
-    rgba(var(--accent-yellow-rgb), 0.12) 0%,
+    rgba(var(--accent-yellow-rgb), 0.15) 0%,
     var(--glass-bg-active) 100%
   );
   border-left-color: var(--accent-yellow);
-  box-shadow: inset 4px 0 10px -4px rgba(var(--accent-yellow-rgb), 0.3);
+  box-shadow: 
+    inset 4px 0 12px -4px rgba(var(--accent-yellow-rgb), 0.4),
+    0 0 20px -5px rgba(var(--accent-yellow-rgb), 0.2);
 }
 
 .vipMailbox:hover:not(.active) {
   background: linear-gradient(
     90deg,
-    rgba(var(--accent-yellow-rgb), 0.08) 0%,
+    rgba(var(--accent-yellow-rgb), 0.1) 0%,
     var(--glass-bg-highlight) 100%
   );
 }
@@ -356,19 +367,20 @@
 
 .mailboxVipBadge {
   display: flex;
-  width: 0.875rem;
-  height: 0.875rem;
+  width: 0.9375rem;
+  height: 0.9375rem;
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--color-amber-500) 20%, transparent);
-  color: var(--color-amber-500);
+  background: var(--accent-yellow);
+  color: var(--text-strong);
+  box-shadow: 0 0 10px rgba(var(--accent-yellow-rgb), 0.4);
 }
 
 .mailboxVipIcon {
-  width: 0.625rem;
-  height: 0.625rem;
+  width: 0.6875rem;
+  height: 0.6875rem;
 }
 
 .verifiedBadge {
@@ -394,9 +406,10 @@
   margin-top: 0.125rem;
   font-size: 10px;
   font-weight: var(--font-weight-bold);
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--text-muted);
+  opacity: 0.8;
 }
 
 .threadPaneVisible {
