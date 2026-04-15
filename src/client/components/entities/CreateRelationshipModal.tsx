@@ -14,6 +14,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  Range,
   SearchField,
   Select,
   Textarea,
@@ -293,8 +294,7 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProps> = (
 
           <div className={styles.sliderGrid}>
             <FormField label={`Strength (${formData.strength}/10)`} id="strength">
-              <input
-                type="range"
+              <Range
                 min="1"
                 max="10"
                 value={formData.strength}
@@ -307,8 +307,7 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProps> = (
               label={`Confidence (${Math.round(formData.confidence * 100)}%)`}
               id="confidence"
             >
-              <input
-                type="range"
+              <Range
                 min="0"
                 max="1"
                 step="0.1"

@@ -7,6 +7,7 @@ import { PropertyLocationMap } from '../visualizations/PropertyLocationMap';
 import { useScrollLock } from '../../hooks/useScrollLock';
 import { formatCurrency, formatNumber } from '@client/utils/formatters';
 import { cn } from '@client/utils/cn';
+import { Button } from '@client/design-system/lib';
 import type { Property } from './types';
 import styles from './PropertyDetailPanel.module.css';
 
@@ -57,9 +58,17 @@ export function PropertyDetailPanel({
             {property.owner_name_2 && <p className={styles.ownerName2}>{property.owner_name_2}</p>}
             <p className={styles.propertyValue}>{formatCurrency(property.total_tax_value)}</p>
           </div>
-          <button className={styles.closeBtn} onClick={onClose} aria-label="Close property details">
+          <Button
+            className={styles.closeBtn}
+            onClick={onClose}
+            aria-label="Close property details"
+            type="button"
+            size="sm"
+            variant="ghost"
+            iconOnly
+          >
             <X size={18} />
-          </button>
+          </Button>
         </div>
 
         <div className={styles.content}>
