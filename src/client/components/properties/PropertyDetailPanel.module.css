@@ -32,8 +32,12 @@
 }
 
 @keyframes slideInRight {
-  from { transform: translateX(100%); }
-  to   { transform: translateX(0); }
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
 }
 
 .header {
@@ -113,7 +117,9 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background var(--duration-fast, 150ms), color var(--duration-fast, 150ms);
+  transition:
+    background var(--duration-fast, 150ms),
+    color var(--duration-fast, 150ms);
 }
 
 .closeBtn:hover {

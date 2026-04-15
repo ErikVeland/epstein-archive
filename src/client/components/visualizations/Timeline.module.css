@@ -399,7 +399,6 @@
   box-shadow: var(--shadow-sm);
 }
 
-
 .loadingContainer {
   background: var(--glass-bg);
   backdrop-filter: blur(8px);

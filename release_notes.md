@@ -1,5 +1,18 @@
 # Release Notes
 
+## 19.1.1 - 2026-04-15
+
+### CI, Type Safety, and Deploy Readiness
+
+- Cleared all CI lint warnings and TypeScript errors across client and server.
+- Removed remaining `import.meta` `any` usage in API status/unavailable surfaces.
+- Fixed strict typing issues in repository utilities and black book ID filtering.
+- Refined property map loading flow to avoid set-state-in-effect lint regressions.
+- Preserved lazy import reliability while keeping chunk retry logic lint-clean.
+- Finalized deploy gate requirements for `release_notes.md` and shipped patch release.
+
+---
+
 ## v19.1.0 - 2026-04-15 — Full Design System Migration
 
 Completes the design system migration across the entire client codebase. Every raw `<button>`, `<select>`, `<textarea>`, and text/file `<input>` element has been replaced with DS primitives, establishing a single, token-governed UI layer with no ad-hoc native form elements remaining outside the design system itself.

@@ -106,7 +106,7 @@ export const blackBookRepository = {
             const id = Number(e.personId);
             return Number.isFinite(id) && id > 0 ? id : null;
           })
-          .filter((id): id is number => id != null),
+          .filter((id: number | null): id is number => id != null),
       ),
     ).slice(0, 2000);
     const dedupedNames = Array.from(new Set(names)).slice(0, 2000);

@@ -11,8 +11,8 @@ interface ApiStatusState {
 
 const ApiStatusContext = createContext<ApiStatusState | null>(null);
 
-const API_URL = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3012/api';
-const IS_DEV = Boolean((import.meta as any).env?.DEV);
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3012/api';
+const IS_DEV = Boolean(import.meta.env.DEV);
 
 async function pingApiHealth(timeoutMs = 2500): Promise<void> {
   const controller = new AbortController();
@@ -71,6 +71,7 @@ export const ApiStatusProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   return <ApiStatusContext.Provider value={value}>{children}</ApiStatusContext.Provider>;
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useApiStatus(): ApiStatusState {
   const ctx = useContext(ApiStatusContext);
   if (!ctx) throw new Error('useApiStatus must be used within ApiStatusProvider');

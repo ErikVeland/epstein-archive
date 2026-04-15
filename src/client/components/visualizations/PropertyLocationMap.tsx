@@ -39,26 +39,36 @@ async function geocode(address: string): Promise<Coords | null> {
 }
 
 export const PropertyLocationMap: React.FC<PropertyLocationMapProps> = ({ address, ownerName }) => {
-  const [coords, setCoords] = useState<Coords | null>(null);
-  const [status, setStatus] = useState<'loading' | 'found' | 'not_found'>('loading');
+  const [result, setResult] = useState<{
+    address: string;
+    coords: Coords | null;
+    status: 'loading' | 'found' | 'not_found';
+  }>({
+    address,
+    coords: null,
+    status: 'loading',
+  });
 
   useEffect(() => {
     let cancelled = false;
-    setStatus('loading');
-    setCoords(null);
 
     geocode(address)
       .then((result) => {
         if (cancelled) return;
-        if (result) {
-          setCoords(result);
-          setStatus('found');
-        } else {
-          setStatus('not_found');
-        }
+        setResult({
+          address,
+          coords: result,
+          status: result ? 'found' : 'not_found',
+        });
       })
       .catch(() => {
-        if (!cancelled) setStatus('not_found');
+        if (!cancelled) {
+          setResult({
+            address,
+            coords: null,
+            status: 'not_found',
+          });
+        }
       });
 
     return () => {
@@ -66,7 +76,10 @@ export const PropertyLocationMap: React.FC<PropertyLocationMapProps> = ({ addres
     };
   }, [address]);
 
-  if (status === 'loading') {
+  const isAddressPending = result.address !== address;
+  const isLoading = isAddressPending || result.status === 'loading';
+
+  if (isLoading) {
     return (
       <div className={styles.placeholder}>
         <div className={styles.spinner} />
@@ -75,7 +88,7 @@ export const PropertyLocationMap: React.FC<PropertyLocationMapProps> = ({ addres
     );
   }
 
-  if (status === 'not_found' || !coords) {
+  if (result.status === 'not_found' || !result.coords) {
     return (
       <div className={styles.placeholder}>
         <span className={styles.placeholderText}>Location unavailable for this address</span>
@@ -94,7 +107,7 @@ export const PropertyLocationMap: React.FC<PropertyLocationMapProps> = ({ addres
       >
         <MapContainer
           key={address}
-          center={[coords.lat, coords.lng]}
+          center={[result.coords.lat, result.coords.lng]}
           zoom={16}
           scrollWheelZoom={false}
           className={styles.map}
@@ -103,7 +116,7 @@ export const PropertyLocationMap: React.FC<PropertyLocationMapProps> = ({ addres
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-          <Marker position={[coords.lat, coords.lng]}>
+          <Marker position={[result.coords.lat, result.coords.lng]}>
             <Popup>
               <strong>{ownerName}</strong>
               <br />

@@ -47,7 +47,7 @@ interface InvestigationsProviderProps {
 export const InvestigationsProvider: React.FC<InvestigationsProviderProps> = ({ children }) => {
   const { user } = useAuth();
   const { status: apiStatus } = useApiStatus();
-  const isDev = Boolean((import.meta as any).env?.DEV);
+  const isDev = Boolean(import.meta.env.DEV);
   const [investigations, setInvestigations] = useState<Investigation[]>([]);
   const [selectedInvestigation, setSelectedInvestigation] = useState<Investigation | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -71,8 +71,13 @@ export const InvestigationsProvider: React.FC<InvestigationsProviderProps> = ({ 
         const body = await resp.text().catch(() => '');
         throw new Error(`Failed to load investigations (${resp.status})${body ? `: ${body}` : ''}`);
       }
-      const data = (await resp.json()) as any;
-      const mapped: Investigation[] = (data.data || []).map((inv: Record<string, unknown>) => ({
+      const payload: unknown = await resp.json();
+      const data =
+        typeof payload === 'object' && payload !== null
+          ? (payload as { data?: unknown })
+          : { data: [] };
+      const rows = Array.isArray(data.data) ? (data.data as Array<Record<string, unknown>>) : [];
+      const mapped: Investigation[] = rows.map((inv) => ({
         id: String(inv.id),
         title: String(inv.title || ''),
         description: String(inv.description || ''),
@@ -112,7 +117,7 @@ export const InvestigationsProvider: React.FC<InvestigationsProviderProps> = ({ 
     } finally {
       setIsLoading(false);
     }
-  }, [apiStatus]);
+  }, [apiStatus, isDev]);
 
   const selectInvestigation = useCallback(
     (id: string) => {

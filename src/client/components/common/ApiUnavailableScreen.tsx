@@ -6,8 +6,8 @@ import styles from './ApiUnavailableScreen.module.css';
 
 export const ApiUnavailableScreen: React.FC = () => {
   const { status, errorMessage, lastCheckedAt, recheck } = useApiStatus();
-  const apiUrl = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3012/api';
-  const isDev = Boolean((import.meta as any).env?.DEV);
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3012/api';
+  const isDev = Boolean(import.meta.env.DEV);
 
   return (
     <Surface variant="panel" p="xl">

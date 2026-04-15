@@ -822,9 +822,14 @@ export const investigationsRepository = {
       const entitiesWithDocuments = totalEntities;
 
       // documentsWithMetadata: Count of documents that have non-empty enrichment/metadata
-      const documentsWithMetadata = summary.evidence.filter(
-        (e: any) => e.metadata_json && Object.keys(e.metadata_json).length > 0,
-      ).length;
+      const documentsWithMetadata = summary.evidence.filter((e: Record<string, unknown>) => {
+        const metadata = e.metadata_json;
+        return (
+          typeof metadata === 'object' &&
+          metadata !== null &&
+          Object.keys(metadata as Record<string, unknown>).length > 0
+        );
+      }).length;
 
       return {
         totalEntities,
