@@ -758,7 +758,7 @@ This release completes a full cycle of platform improvements begun in v16.0. The
 - Fixed `BaseCard` malformed Tailwind class (`hover:shadow-[var(--shadow-[...])]` → `hover:shadow-[var(--glass-shadow)]`)
 - Fixed `BaseCard` undefined token: `--accent-primary` → `--accent`
 - Replaced hardcoded `text-[10px]`/`text-[9px]` in `PersonCard` with `text-[var(--type-xs)]`
-- Replaced hardcoded px values in `DocumentCard.css` with design tokens
+- Replaced hardcoded px values in DocumentCard styling with design tokens
 - Replaced 4-level ternary toast class logic with clean CSS utility classes (`.toast-success`, `.toast-error`, etc.)
 
 ## 16.6.0 - 2026-03-17 - Humanistic Design Refactor

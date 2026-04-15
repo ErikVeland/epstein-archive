@@ -59,8 +59,6 @@ Recent endgame passes completed:
   - `src/client/components/BlackBookReview.tsx`
   - `src/client/components/BlackBookViewer.tsx`
   - `src/client/components/EvidenceSearch.tsx`
-  - `src/client/components/FinancialTransactionAnalysis.tsx`
-  - `src/client/components/PatternRecognitionAI.tsx`
   - `src/client/components/email/EmailClient.tsx`
   - `src/client/components/entities/CreateRelationshipModal.tsx`
   - `src/client/components/faces/FaceGallery.tsx`

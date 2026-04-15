@@ -62,8 +62,6 @@ const moduleGovernedFiles = new Set(
     'src/client/components/common/AddToInvestigationButton.tsx',
     'src/client/components/BlackBookReview.tsx',
     'src/client/components/BlackBookViewer.tsx',
-    'src/client/components/FinancialTransactionAnalysis.tsx',
-    'src/client/components/PatternRecognitionAI.tsx',
     'src/client/components/pages/LegalPage.tsx',
     'src/client/components/shared/DegradedBanner.tsx',
     'src/client/components/shared/SensitiveWarningBanner.tsx',
@@ -91,7 +89,6 @@ const moduleGovernedFiles = new Set(
     'src/client/components/ReleaseNotesPanel.tsx',
     'src/client/components/UndoManager.tsx',
     'src/client/components/admin/ReviewQueuePanel.tsx',
-    'src/client/components/ArticleFeed.tsx',
     // Navigation and app shell migration
     'src/client/components/layout/MobileMenu.tsx',
     'src/client/components/layout/Footer.tsx',

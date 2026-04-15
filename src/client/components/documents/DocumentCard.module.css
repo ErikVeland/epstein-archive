@@ -204,22 +204,21 @@
   letter-spacing: 0.02em;
 }
 
-/* Risk dot colours — preserved from DocumentCard.css */
 .riskLevel5 {
-  background: #ef4444;
-  box-shadow: 0 0 8px #ef4444;
+  background: var(--accent-danger);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--accent-danger) 65%, transparent);
 }
 .riskLevel4 {
-  background: #f97316;
+  background: var(--nav-properties);
 }
 .riskLevel3 {
-  background: #f59e0b;
+  background: var(--accent-warning);
 }
 .riskLevel2 {
-  background: #10b981;
+  background: var(--accent-success);
 }
 .riskLevel1 {
-  background: #06b6d4;
+  background: var(--accent-info);
 }
 .riskLevel0 {
   background: var(--text-dim);

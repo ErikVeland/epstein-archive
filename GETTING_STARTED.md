@@ -91,8 +91,8 @@ npx tsx scripts/ingest_intelligence.ts
 
 You can check progress via the terminal or by querying the database:
 
-```sql
-sqlite3 epstein-archive.db "SELECT count(*) FROM documents;"
+```bash
+psql "$DATABASE_URL" -c "SELECT count(*) FROM documents;"
 ```
 
 ---
@@ -101,10 +101,10 @@ sqlite3 epstein-archive.db "SELECT count(*) FROM documents;"
 
 ### Database Management
 
-- **Backup:** `cp epstein-archive.db epstein-archive.db.bak`
-- **Reset:** `rm epstein-archive.db` (Starts fresh, requires re-ingestion)
+- **Backup:** `pg_dump "$DATABASE_URL" > epstein-archive.pg.sql`
+- **Reset:** drop/recreate schema and re-run migrations (`pnpm db:migrate:pg`)
 
 ### Troubleshooting
 
 - **Missing Images?** Ensure `data/thumbnails` is populated and permissions are correct.
-- **Node Errors?** Make sure you're using Node v18+ (`node -v`).
+- **Node Errors?** Make sure you're using Node v20.19+ (`node -v`).
