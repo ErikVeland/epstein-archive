@@ -19,13 +19,15 @@ import {
   MapPin,
 } from 'lucide-react';
 import {
-  Surface,
-  Flex,
   Box,
-  Stack,
-  LqText,
   Button,
+  Flex,
   Grid as LqGrid,
+  Input,
+  LqText,
+  Stack,
+  Surface,
+  TextArea,
   cn,
 } from '../../design-system/lib';
 import { MediaImage } from '../../types/media.types';
@@ -375,7 +377,7 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
                     <LqText variant="xs" weight="bold" color="muted">
                       EDIT TITLE
                     </LqText>
-                    <input
+                    <Input
                       type="text"
                       value={editTitle}
                       onChange={(e) => setEditTitle(e.target.value)}
@@ -457,7 +459,7 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
               </LqText>
             </Flex>
             {isEditing ? (
-              <textarea
+              <TextArea
                 value={editDesc}
                 onChange={(e) => setEditDesc(e.target.value)}
                 rows={4}

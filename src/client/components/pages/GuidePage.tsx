@@ -15,6 +15,8 @@ import {
 import { Link } from 'react-router-dom';
 import s from './GuidePage.module.css';
 
+const css = <T,>(style: T) => style;
+
 const GuidePage = () => {
   return (
     <div className={s.pageRoot}>
@@ -126,75 +128,75 @@ const GuidePage = () => {
             <div className={s.diagramPlaceholder}>
               <div className={s.diagramGlow} />
               <div
-                style={{
+                style={css({
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   gap: '2rem',
                   position: 'relative',
-                }}
+                })}
               >
                 <div
-                  style={{
+                  style={css({
                     padding: '1rem 2rem',
                     border: '1px solid var(--accent)',
                     borderRadius: '12px',
                     background: 'var(--glass-bg-strong)',
                     fontWeight: 600,
-                  }}
+                  })}
                 >
                   Researcher Interface
                 </div>
-                <div style={{ color: 'var(--text-muted)' }}>
+                <div style={css({ color: 'var(--text-muted)' })}>
                   <Layers size={24} />
                 </div>
-                <div style={{ display: 'flex', gap: '2rem' }}>
+                <div style={css({ display: 'flex', gap: '2rem' })}>
                   <div
-                    style={{
+                    style={css({
                       padding: '0.75rem 1.5rem',
                       border: '1px solid var(--glass-border)',
                       borderRadius: '8px',
                       background: 'var(--glass-bg)',
                       fontSize: '0.875rem',
-                    }}
+                    })}
                   >
                     Board
                   </div>
                   <div
-                    style={{
+                    style={css({
                       padding: '0.75rem 1.5rem',
                       border: '1px solid var(--glass-border)',
                       borderRadius: '8px',
                       background: 'var(--glass-bg)',
                       fontSize: '0.875rem',
-                    }}
+                    })}
                   >
                     Evidence
                   </div>
                   <div
-                    style={{
+                    style={css({
                       padding: '0.75rem 1.5rem',
                       border: '1px solid var(--glass-border)',
                       borderRadius: '8px',
                       background: 'var(--glass-bg)',
                       fontSize: '0.875rem',
-                    }}
+                    })}
                   >
                     Timeline
                   </div>
                 </div>
-                <div style={{ color: 'var(--text-muted)' }}>
-                  <ChevronRight size={24} style={{ transform: 'rotate(90deg)' }} />
+                <div style={css({ color: 'var(--text-muted)' })}>
+                  <ChevronRight size={24} style={css({ transform: 'rotate(90deg)' })} />
                 </div>
                 <div
-                  style={{
+                  style={css({
                     padding: '1rem 2rem',
                     border: '1px solid var(--accent-info)',
                     borderRadius: '12px',
                     background:
                       'color-mix(in srgb, var(--accent-info) 10%, var(--glass-bg-strong))',
                     fontWeight: 600,
-                  }}
+                  })}
                 >
                   Data Integrity & Sync Layer
                 </div>

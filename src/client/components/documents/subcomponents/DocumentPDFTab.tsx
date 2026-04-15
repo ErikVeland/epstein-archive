@@ -8,6 +8,8 @@ import { LqText } from '../../../design-system/components/typography/Text';
 import { Surface } from '../../../design-system/components/surfaces/Surface';
 import { Box } from '../../../design-system/components/layout/Box';
 
+import { Button } from '../../../design-system/lib';
+
 interface DocumentPDFTabProps {
   documentId: string;
   docId: string;
@@ -71,9 +73,14 @@ export const DocumentPDFTab: React.FC<DocumentPDFTabProps> = ({
             </Box>
           </Box>
           <Box mt="md">
-            <button type="button" onClick={openOriginalDocument} className={styles.controlButton}>
+            <Button
+              unstyled
+              type="button"
+              onClick={openOriginalDocument}
+              className={styles.controlButton}
+            >
               Open Original Email Source
-            </button>
+            </Button>
           </Box>
         </Surface>
       </Box>

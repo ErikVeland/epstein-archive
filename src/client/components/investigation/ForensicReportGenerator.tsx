@@ -13,8 +13,21 @@ import {
 } from 'lucide-react';
 
 // UI Library
-import { Surface, Button, Flex, Box, Stack, LqText, Grid, Badge } from '../../design-system/lib';
+import {
+  Badge,
+  Box,
+  Button,
+  Flex,
+  Grid,
+  Input,
+  LqText,
+  Select,
+  Stack,
+  Surface,
+} from '../../design-system/lib';
 import styles from './ForensicReportGenerator.module.css';
+
+const css = <T,>(style: T) => style;
 
 interface ReportTemplate {
   id: string;
@@ -214,7 +227,7 @@ export default function ForensicReportGenerator({
   };
 
   return (
-    <Box className={styles.autoGen117} style={{ backgroundColor: 'var(--lq-surface-1)' }}>
+    <Box className={styles.autoGen117} style={css({ backgroundColor: 'var(--lq-surface-1)' })}>
       {!mobileMode && (
         <Surface variant="glass" p="xl" className={styles.autoGen118}>
           <Stack gap="lg">
@@ -230,14 +243,14 @@ export default function ForensicReportGenerator({
                   variant="small"
                   color="muted"
                   weight="bold"
-                  style={{ textTransform: 'uppercase', marginTop: 'var(--spacing-xs)' }}
+                  style={css({ textTransform: 'uppercase', marginTop: 'var(--spacing-xs)' })}
                 >
                   Process Sigma • Automated Narrative Construction
                 </LqText>
               </Stack>
               <Flex gap="md">
                 <Button variant="ghost" size="sm">
-                  <Shield size={14} className="mr-1" /> SECURE MODE
+                  <Shield size={14} className={styles.mr1} /> SECURE MODE
                 </Button>
                 <Button variant="ghost" size="sm" onClick={() => window.print()}>
                   <Printer size={14} />
@@ -252,8 +265,8 @@ export default function ForensicReportGenerator({
                     <LqText variant="xs" weight="bold" color="muted">
                       REPORT DESIGNATION
                     </LqText>
-                    <input
-                      style={{
+                    <Input
+                      style={css({
                         width: '100%',
                         background: 'var(--lq-surface-3)',
                         border: '1px solid var(--lq-surface-4)',
@@ -262,7 +275,7 @@ export default function ForensicReportGenerator({
                         fontSize: '0.875rem',
                         color: 'var(--lq-text-primary)',
                         outline: 'none',
-                      }}
+                      })}
                       value={reportTitle}
                       onChange={(e) => setReportTitle(e.target.value)}
                       placeholder="Case ID / Mission Title..."
@@ -273,58 +286,32 @@ export default function ForensicReportGenerator({
                       <LqText variant="xs" weight="bold" color="muted">
                         TEMPLATE LENS
                       </LqText>
-                      <select
-                        style={{
-                          width: '100%',
-                          background: 'var(--lq-surface-3)',
-                          border: '1px solid var(--lq-surface-4)',
-                          borderRadius: '0.375rem',
-                          padding: '0.5rem 0.75rem',
-                          fontSize: '0.875rem',
-                          color: 'var(--lq-text-primary)',
-                          outline: 'none',
-                        }}
+                      <Select
                         value={selectedTemplate}
                         onChange={(e) => setSelectedTemplate(e.target.value)}
-                      >
-                        {templates.map((t) => (
-                          <option key={t.id} value={t.id}>
-                            {t.name}
-                          </option>
-                        ))}
-                      </select>
+                        size="sm"
+                        options={templates.map((t) => ({ value: t.id, label: t.name }))}
+                      />
                     </Stack>
                     <Stack gap="xs">
                       <LqText variant="xs" weight="bold" color="muted">
                         CLASSIFICATION LEVEL
                       </LqText>
-                      <select
-                        style={{
-                          width: '100%',
-                          background: 'var(--lq-surface-3)',
-                          border: '1px solid var(--lq-surface-4)',
-                          borderRadius: '0.375rem',
-                          padding: '0.5rem 0.75rem',
-                          fontSize: '0.875rem',
-                          color: 'var(--lq-text-primary)',
-                          outline: 'none',
-                        }}
+                      <Select
                         value={classification}
                         onChange={(e) => setClassification(e.target.value)}
-                      >
-                        {['unclassified', 'confidential', 'restricted', 'secret'].map((c) => (
-                          <option key={c} value={c}>
-                            {c.toUpperCase()}
-                          </option>
-                        ))}
-                      </select>
+                        size="sm"
+                        options={['unclassified', 'confidential', 'restricted', 'secret'].map(
+                          (c) => ({ value: c, label: c.toUpperCase() }),
+                        )}
+                      />
                     </Stack>
                   </Grid>
                 </Stack>
                 <Stack gap="md">
                   <Flex gap="md" py="xs">
                     <label className={styles.autoGen121}>
-                      <input
+                      <Input
                         type="checkbox"
                         checked={includeEvidence}
                         onChange={(e) => setIncludeEvidence(e.target.checked)}
@@ -334,7 +321,7 @@ export default function ForensicReportGenerator({
                       </LqText>
                     </label>
                     <label className={styles.autoGen122}>
-                      <input
+                      <Input
                         type="checkbox"
                         checked={includeCharts}
                         onChange={(e) => setIncludeCharts(e.target.checked)}
@@ -346,9 +333,9 @@ export default function ForensicReportGenerator({
                   </Flex>
                   <Button variant="secondary" onClick={generateReport} disabled={isGenerating}>
                     {isGenerating ? (
-                      <Loader2 className="animate-spin mr-2" size={16} />
+                      <Loader2 className={`animate-spin ${styles.mr2}`} size={16} />
                     ) : (
-                      <Zap className="mr-2" size={16} />
+                      <Zap className={styles.mr2} size={16} />
                     )}
                     {isGenerating
                       ? `Synthesizing Intelligence... ${generationProgress}%`
@@ -358,7 +345,7 @@ export default function ForensicReportGenerator({
                     <Box className={styles.autoGen123}>
                       <Box
                         className={styles.autoGen124}
-                        style={{ width: `${generationProgress}%` }}
+                        style={css({ width: `${generationProgress}%` })}
                       />
                     </Box>
                   )}
@@ -399,7 +386,7 @@ export default function ForensicReportGenerator({
                 <Box className={styles.autoGen129}>
                   <FileText size={40} />
                 </Box>
-                <Stack gap="md" style={{ flex: 1 }}>
+                <Stack gap="md" style={css({ flex: 1 })}>
                   <Stack gap="none">
                     <LqText variant="h3" weight="bold">
                       {generatedReport.title}
@@ -412,38 +399,54 @@ export default function ForensicReportGenerator({
 
                   <Grid cols={4} gap="md">
                     <Surface variant="glass-highlight" p="sm">
-                      <LqText variant="xs" color="muted" style={{ textTransform: 'uppercase' }}>
+                      <LqText
+                        variant="xs"
+                        color="muted"
+                        style={css({ textTransform: 'uppercase' })}
+                      >
                         Payload Volume
                       </LqText>
-                      <LqText variant="small" weight="bold" style={{ marginTop: 'xs' }}>
+                      <LqText variant="small" weight="bold" style={css({ marginTop: 'xs' })}>
                         {generatedReport.wordCount.toLocaleString()} Words
                       </LqText>
                     </Surface>
                     <Surface variant="glass-highlight" p="sm">
-                      <LqText variant="xs" color="muted" style={{ textTransform: 'uppercase' }}>
+                      <LqText
+                        variant="xs"
+                        color="muted"
+                        style={css({ textTransform: 'uppercase' })}
+                      >
                         Evidence Points
                       </LqText>
-                      <LqText variant="small" weight="bold" style={{ marginTop: 'xs' }}>
+                      <LqText variant="small" weight="bold" style={css({ marginTop: 'xs' })}>
                         {generatedReport.evidenceCount} Items
                       </LqText>
                     </Surface>
                     <Surface variant="glass-highlight" p="sm">
-                      <LqText variant="xs" color="muted" style={{ textTransform: 'uppercase' }}>
+                      <LqText
+                        variant="xs"
+                        color="muted"
+                        style={css({ textTransform: 'uppercase' })}
+                      >
                         Structural Confidence
                       </LqText>
                       <LqText
                         variant="small"
                         weight="bold"
-                        style={{ marginTop: 'xs', color: 'var(--lq-success)' }}
+                        style={css({ marginTop: 'xs', color: 'var(--lq-success)' })}
                       >
                         {generatedReport.confidence}%
                       </LqText>
                     </Surface>
                     <Surface variant="glass-highlight" p="sm">
-                      <LqText variant="xs" color="muted" style={{ textTransform: 'uppercase' }}>
+                      <LqText
+                        variant="xs"
+                        color="muted"
+                        style={css({ textTransform: 'uppercase' })}
+                      >
                         Physical Pages
                       </LqText>
-                      <LqText variant="small" weight="bold" style={{ marginTop: 'xs' }}>
+                      <LqText variant="small" weight="bold" style={css({ marginTop: 'xs' })}>
                         {generatedReport.totalPages}
                       </LqText>
                     </Surface>
@@ -451,16 +454,16 @@ export default function ForensicReportGenerator({
 
                   <Flex gap="sm">
                     <Button variant="secondary" size="sm" onClick={() => exportReport('pdf')}>
-                      <FileType size={14} className="mr-1" /> EXPORT PDF
+                      <FileType size={14} className={styles.mr1} /> EXPORT PDF
                     </Button>
                     <Button variant="ghost" size="sm" onClick={() => exportReport('docx')}>
-                      <FileType size={14} className="mr-1" /> DOCX
+                      <FileType size={14} className={styles.mr1} /> DOCX
                     </Button>
                     <Button variant="ghost" size="sm" onClick={() => exportReport('json')}>
-                      <FileJson size={14} className="mr-1" /> SOURCE JSON
+                      <FileJson size={14} className={styles.mr1} /> SOURCE JSON
                     </Button>
                     <Button variant="ghost" size="sm" onClick={() => window.print()}>
-                      <Printer size={14} className="mr-1" /> PRINT
+                      <Printer size={14} className={styles.mr1} /> PRINT
                     </Button>
                   </Flex>
                 </Stack>
@@ -475,7 +478,7 @@ export default function ForensicReportGenerator({
                   variant="xs"
                   weight="bold"
                   color="muted"
-                  style={{ textTransform: 'uppercase' }}
+                  style={css({ textTransform: 'uppercase' })}
                 >
                   Intelligence Stream Preview
                 </LqText>
@@ -494,7 +497,7 @@ export default function ForensicReportGenerator({
                           variant="small"
                           weight="bold"
                           color="accent"
-                          style={{ textTransform: 'uppercase' }}
+                          style={css({ textTransform: 'uppercase' })}
                         >
                           {section.title}
                         </LqText>
@@ -502,12 +505,12 @@ export default function ForensicReportGenerator({
                       </Flex>
                       <LqText variant="body">{section.content}</LqText>
                       {section.evidence.length > 0 && (
-                        <Flex gap="xs" style={{ marginTop: 'sm' }}>
+                        <Flex gap="xs" style={css({ marginTop: 'sm' })}>
                           <LqText
                             variant="xs"
                             weight="bold"
                             color="muted"
-                            style={{ marginRight: 'xs' }}
+                            style={css({ marginRight: 'xs' })}
                           >
                             SUPPORTING SIGNALS:{' '}
                           </LqText>

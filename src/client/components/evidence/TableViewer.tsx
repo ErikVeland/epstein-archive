@@ -9,6 +9,8 @@ import { Download, Info } from 'lucide-react';
 import { FixedSizeList as List } from 'react-window';
 import styles from './TableViewer.module.css';
 
+import { Button } from '../../design-system/lib';
+
 interface TableViewerProps {
   evidence: {
     extractedText: string;
@@ -69,10 +71,10 @@ export function TableViewer({ evidence }: TableViewerProps) {
           </p>
         </div>
 
-        <button onClick={downloadCSV} className={styles.downloadButton}>
+        <Button unstyled onClick={downloadCSV} className={styles.downloadButton}>
           <Download className={styles.downloadIcon} />
           Download CSV
-        </button>
+        </Button>
       </div>
 
       {rows.length > 100 && (

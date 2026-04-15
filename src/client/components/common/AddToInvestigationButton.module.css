@@ -9,13 +9,15 @@
   gap: var(--space-2);
   padding: var(--space-2) var(--space-3);
   background: var(--accent);
-  color: white;
+  color: var(--bg-dark);
   border: none;
   border-radius: var(--radius-lg);
   font-size: 0.875rem;
   font-weight: 600;
   transition: all var(--duration-fast) var(--easing-liquid);
-  box-shadow: 0 4px 12px rgba(184, 134, 11, 0.2);
+  box-shadow:
+    var(--glass-shadow-soft),
+    0 0 12px var(--accent-glow);
 }
 
 .triggerButton:hover {
@@ -136,12 +138,12 @@
 .toastSuccess {
   background: var(--accent-success);
   /* darken slightly so text is readable */
-  background: color-mix(in srgb, var(--accent-success) 80%, #000);
+  background: color-mix(in srgb, var(--accent-success) 80%, var(--bg-dark));
 }
 
 .toastError {
   background: var(--accent-danger);
-  background: color-mix(in srgb, var(--accent-danger) 80%, #000);
+  background: color-mix(in srgb, var(--accent-danger) 80%, var(--bg-dark));
 }
 
 @keyframes addToInvFadeIn {
@@ -417,7 +419,7 @@
 
 /* Selected states — semantic colors */
 .relevanceHigh {
-  background: color-mix(in srgb, var(--accent-danger) 80%, #000);
+  background: color-mix(in srgb, var(--accent-danger) 80%, var(--bg-dark));
   color: var(--text-primary);
 }
 
@@ -426,7 +428,7 @@
 }
 
 .relevanceMedium {
-  background: color-mix(in srgb, var(--accent-warning) 80%, #000);
+  background: color-mix(in srgb, var(--accent-warning) 80%, var(--bg-dark));
   color: var(--text-primary);
 }
 
@@ -435,7 +437,7 @@
 }
 
 .relevanceLow {
-  background: color-mix(in srgb, var(--accent-success) 80%, #000);
+  background: color-mix(in srgb, var(--accent-success) 80%, var(--bg-dark));
   color: var(--text-primary);
 }
 

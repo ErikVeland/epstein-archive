@@ -21,6 +21,8 @@ import { NetworkVisualization } from '../visualizations/NetworkVisualization';
 import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
 import styles from './EntityEvidencePanel.module.css';
 
+import { Button, Input, NativeSelect } from '../../design-system/lib';
+
 interface Evidence {
   id: string | number;
   documentId?: string | number | null;
@@ -303,18 +305,20 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
                 <h3 className={styles.sectionTitle}>Frequently Co-appears With</h3>
               </div>
               <div className={styles.viewToggle}>
-                <button
+                <Button
+                  unstyled
                   onClick={() => setViewMode('list')}
                   className={`${styles.viewToggleBtn} ${viewMode === 'list' ? styles.viewToggleBtnActive : styles.viewToggleBtnInactive}`}
                 >
                   List
-                </button>
-                <button
+                </Button>
+                <Button
+                  unstyled
                   onClick={() => setViewMode('graph')}
                   className={`${styles.viewToggleBtn} ${viewMode === 'graph' ? styles.viewToggleBtnActive : styles.viewToggleBtnInactive}`}
                 >
                   Graph
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -502,7 +506,7 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
 
         <div className={styles.filterRow}>
           <div className={styles.filterSearchWrap}>
-            <input
+            <Input
               type="text"
               placeholder="Filter evidence..."
               value={searchTerm}
@@ -511,7 +515,7 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
             />
           </div>
           <div className={styles.filterSelectGroup}>
-            <select
+            <NativeSelect
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
               className={styles.filterSelect}
@@ -522,8 +526,8 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
                   {getEvidenceTypeLabel(item.evidenceType)}
                 </option>
               ))}
-            </select>
-            <select
+            </NativeSelect>
+            <NativeSelect
               value={filterRole}
               onChange={(e) => setFilterRole(e.target.value)}
               className={styles.filterSelect}
@@ -534,7 +538,7 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
                   {item.role}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
           </div>
         </div>
 
@@ -626,12 +630,13 @@ export const EntityEvidencePanel: React.FC<EntityEvidencePanelProps> = ({
         {/* Load More Check */}
         {hasMore && (
           <div className={styles.loadMoreWrap}>
-            <button
+            <Button
+              unstyled
               onClick={() => setItemsToShow((prev) => prev + ITEMS_INCREMENT)}
               className={styles.loadMoreButton}
             >
               Show More ({filteredEvidence.length - itemsToShow} remaining)
-            </button>
+            </Button>
           </div>
         )}
       </div>

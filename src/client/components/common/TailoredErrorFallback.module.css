@@ -72,3 +72,8 @@
   background: var(--accent-hover, var(--accent));
   filter: brightness(1.1);
 }
+
+/* Used by the DS-based TailoredErrorFallback implementation */
+.iconBubble {
+  border-radius: 50%;
+}

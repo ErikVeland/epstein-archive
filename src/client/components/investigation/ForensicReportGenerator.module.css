@@ -589,3 +589,11 @@
   border-color: l-4;
   border-color: l-[var(--lq-surface-3)];
 }
+
+/* Spacing utilities — replaces Tailwind shorthands */
+.mr1 {
+  margin-right: var(--space-1);
+}
+.mr2 {
+  margin-right: var(--space-2);
+}

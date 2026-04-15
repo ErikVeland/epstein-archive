@@ -2,6 +2,8 @@ import React from 'react';
 import { ChevronRight, Home } from 'lucide-react';
 import s from './Breadcrumb.module.css';
 
+import { Button } from '../../design-system/lib';
+
 interface BreadcrumbItem {
   label: string;
   href?: string;
@@ -24,9 +26,9 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({ items, className = '' })
             {index === items.length - 1 ? (
               <span className={s.current}>{item.label}</span>
             ) : item.onClick ? (
-              <button onClick={item.onClick} className={s.link}>
+              <Button unstyled onClick={item.onClick} className={s.link}>
                 {item.label}
-              </button>
+              </Button>
             ) : (
               <span className={s.plain}>{item.label}</span>
             )}

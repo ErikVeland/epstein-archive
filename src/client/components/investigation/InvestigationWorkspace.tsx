@@ -85,18 +85,22 @@ import { PerformanceMonitor } from '../../utils/performanceMonitor';
 
 // UI Library
 import {
-  Surface,
+  Badge,
+  Box,
   Button,
   Flex,
-  Box,
-  Stack,
-  LqText,
   Grid,
-  Badge,
+  Input,
+  LqText,
+  Stack,
+  Surface,
+  TextArea,
   cn,
 } from '../../design-system/lib';
 import styles from './InvestigationWorkspace.module.css';
 import { CloseButton as _CloseButton } from '../common/CloseButton';
+
+const css = <T,>(style: T) => style;
 
 // --- Type Helpers & Normalizers ---
 
@@ -550,7 +554,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
               variant="xs"
               color="muted"
               onClick={() => navigate('/')}
-              style={{ cursor: 'pointer', opacity: 0.7 }}
+              style={css({ cursor: 'pointer', opacity: 0.7 })}
             >
               Home
             </LqText>
@@ -647,7 +651,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                     <LqText
                       variant="h3"
                       weight="black"
-                      style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}
+                      style={css({ textTransform: 'uppercase', letterSpacing: '0.05em' })}
                     >
                       Initiate
                     </LqText>
@@ -667,7 +671,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                     <LqText
                       variant="h3"
                       weight="black"
-                      style={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}
+                      style={css({ textTransform: 'uppercase', letterSpacing: '0.05em' })}
                     >
                       {investigations.length} Cases
                     </LqText>
@@ -707,7 +711,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                       className={styles.invCardInteractive}
                       onClick={() => loadInvestigation(inv.id)}
                     >
-                      <Stack style={{ height: '100%' }}>
+                      <Stack style={css({ height: '100%' })}>
                         <Box p="lg">
                           <Flex justify="between" mb="md">
                             {getStatusBadge(inv.status)}
@@ -859,7 +863,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                     <Search
                       size={20}
                       className={styles.iconAccent}
-                      style={{ marginRight: '0.75rem', verticalAlign: 'middle' }}
+                      style={css({ marginRight: '0.75rem', verticalAlign: 'middle' })}
                     />
                     Intelligence Overview
                   </LqText>
@@ -870,7 +874,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                           variant="xs"
                           weight="bold"
                           className={styles.infoLabel}
-                          style={{ color: 'var(--lq-accent-3)' }}
+                          style={css({ color: 'var(--lq-accent-3)' })}
                         >
                           Primary Hypothesis
                         </LqText>
@@ -885,7 +889,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                           variant="xs"
                           weight="bold"
                           className={styles.infoLabel}
-                          style={{ color: 'var(--lq-accent-3)' }}
+                          style={css({ color: 'var(--lq-accent-3)' })}
                         >
                           Operational Status
                         </LqText>
@@ -994,7 +998,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                 />
               )}
               {activeTab === 'analytics' && (
-                <Box fullHeight style={{ minHeight: '600px' }}>
+                <Box fullHeight style={css({ minHeight: '600px' })}>
                   {isNetworkLoading ? (
                     <Flex align="center" justify="center" h="100%">
                       <Loader2 className="animate-spin text-primary" size={48} />
@@ -1059,7 +1063,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                 <LqText
                   variant="xs"
                   color="muted"
-                  style={{ textTransform: 'uppercase' }}
+                  style={css({ textTransform: 'uppercase' })}
                   weight="bold"
                 >
                   Strategic Archive Penetration Protocol
@@ -1070,8 +1074,8 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                   <LqText variant="xs" weight="bold" color="muted">
                     TITLE
                   </LqText>
-                  <input
-                    style={{
+                  <Input
+                    style={css({
                       width: '100%',
                       background: 'var(--lq-surface-3)',
                       border: '1px solid var(--lq-surface-4)',
@@ -1080,7 +1084,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                       fontSize: '0.875rem',
                       color: 'var(--lq-text-primary)',
                       outline: 'none',
-                    }}
+                    })}
                     placeholder="Brief case title..."
                     value={newInvestigation.title}
                     onChange={(e) =>
@@ -1092,8 +1096,8 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                   <LqText variant="xs" weight="bold" color="muted">
                     BRIEF DESCRIPTION
                   </LqText>
-                  <textarea
-                    style={{
+                  <TextArea
+                    style={css({
                       width: '100%',
                       background: 'var(--lq-surface-3)',
                       border: '1px solid var(--lq-surface-4)',
@@ -1103,7 +1107,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                       color: 'var(--lq-text-primary)',
                       outline: 'none',
                       resize: 'none',
-                    }}
+                    })}
                     rows={3}
                     placeholder="Initial goals and scope..."
                     value={newInvestigation.description}
@@ -1171,19 +1175,8 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
 
       {/* Onboarding Overlay (Rendered last for correct stacking) */}
       {showImportModal && (
-        <Box
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 1000,
-            background: 'rgba(0,0,0,0.8)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-          onClick={() => setShowImportModal(false)}
-        >
-          <Surface p="xl" variant="glass-strong" style={{ maxWidth: 500 }}>
+        <Box className={styles.importOverlay} onClick={() => setShowImportModal(false)}>
+          <Surface p="xl" variant="glass-strong" style={css({ maxWidth: 500 })}>
             <Stack gap="md">
               <LqText variant="h3">Import Forensic Records</LqText>
               <LqText variant="body" color="muted">

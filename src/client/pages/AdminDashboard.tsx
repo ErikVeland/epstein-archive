@@ -31,6 +31,8 @@ import { LqText } from '../design-system/components/typography/Text';
 import { Grid } from '../design-system/components/layout/Grid';
 import styles from './AdminDashboard.module.css';
 
+import { Button, Input, NativeSelect } from '../design-system/lib';
+
 interface User {
   id: string;
   username: string;
@@ -370,57 +372,63 @@ export const AdminDashboard: React.FC = () => {
           </Box>
 
           <Flex align="center" gap={3}>
-            <button onClick={handleLogout} className={styles.logoutButton}>
+            <Button unstyled onClick={handleLogout} className={styles.logoutButton}>
               <LogOut size={18} />
               <span>Log Out</span>
-            </button>
+            </Button>
           </Flex>
         </Flex>
 
         {/* Tab Navigation */}
         <Flex gap={1} className={styles.tabNav}>
-          <button
+          <Button
+            unstyled
             onClick={() => setActiveTab('users')}
             className={getTabClassName(activeTab === 'users')}
           >
             <Users size={18} />
             User Management
-          </button>
-          <button
+          </Button>
+          <Button
+            unstyled
             onClick={() => setActiveTab('audit')}
             className={getTabClassName(activeTab === 'audit')}
           >
             <Activity size={18} />
             Audit Logs
-          </button>
-          <button
+          </Button>
+          <Button
+            unstyled
             onClick={() => setActiveTab('system')}
             className={getTabClassName(activeTab === 'system')}
           >
             <Server size={18} />
             System Health
-          </button>
-          <button
+          </Button>
+          <Button
+            unstyled
             onClick={() => setActiveTab('review')}
             className={getTabClassName(activeTab === 'review')}
           >
             <ShieldCheck size={18} />
             Agentic Review
-          </button>
-          <button
+          </Button>
+          <Button
+            unstyled
             onClick={() => setActiveTab('ingestion')}
             className={getTabClassName(activeTab === 'ingestion')}
           >
             <RefreshCw size={18} />
             Ingestion History
-          </button>
-          <button
+          </Button>
+          <Button
+            unstyled
             onClick={() => setActiveTab('backups')}
             className={getTabClassName(activeTab === 'backups')}
           >
             <Database size={18} />
             Backups
-          </button>
+          </Button>
         </Flex>
 
         {/* --- USERS TAB --- */}
@@ -483,7 +491,7 @@ export const AdminDashboard: React.FC = () => {
                 <Flex align="center" gap={3} className={styles.panelActions}>
                   <Box className={styles.searchField}>
                     <Search className={styles.leadingIcon} />
-                    <input
+                    <Input
                       type="text"
                       placeholder="Search users..."
                       value={searchTerm}
@@ -491,10 +499,10 @@ export const AdminDashboard: React.FC = () => {
                       className={`${styles.textInput} ${styles.searchInput}`}
                     />
                   </Box>
-                  <button onClick={openCreateModal} className={styles.primaryButton}>
+                  <Button unstyled onClick={openCreateModal} className={styles.primaryButton}>
                     <UserPlus size={18} />
                     <span>Add User</span>
-                  </button>
+                  </Button>
                 </Flex>
               </Flex>
 
@@ -554,21 +562,23 @@ export const AdminDashboard: React.FC = () => {
                               gap={2}
                               className={styles.actionCell}
                             >
-                              <button
+                              <Button
+                                unstyled
                                 onClick={() => openEditModal(user)}
                                 className={`${styles.iconButton} ${styles.editButton}`}
                                 title="Edit User"
                               >
                                 <Edit2 size={16} />
-                              </button>
+                              </Button>
                               {user.id !== currentUser?.id && (
-                                <button
+                                <Button
+                                  unstyled
                                   onClick={() => handleDelete(user.id)}
                                   className={`${styles.iconButton} ${styles.deleteButton}`}
                                   title="Delete User"
                                 >
                                   <Trash2 size={16} />
-                                </button>
+                                </Button>
                               )}
                             </Flex>
                           </td>
@@ -590,13 +600,14 @@ export const AdminDashboard: React.FC = () => {
                 <Activity className={`${styles.statIcon} ${styles.blueIcon}`} />
                 Audit Logs
               </LqText>
-              <button
+              <Button
+                unstyled
                 onClick={() => void refetchAuditLogs()}
                 className={styles.refreshButton}
                 title="Refresh"
               >
                 <RefreshCw size={18} className={auditLoading ? styles.spin : undefined} />
-              </button>
+              </Button>
             </Flex>
             <Box className={`${styles.tableScroll} ${styles.tableScrollTall}`}>
               <table className={styles.table}>
@@ -806,10 +817,10 @@ export const AdminDashboard: React.FC = () => {
                   Compressed database snapshots (Last 7 days retained)
                 </LqText>
               </Box>
-              <button onClick={triggerBackup} className={styles.primaryButton}>
+              <Button unstyled onClick={triggerBackup} className={styles.primaryButton}>
                 <RefreshCw size={18} />
                 Snapshot Now
-              </button>
+              </Button>
             </Flex>
 
             <Surface variant="panel" className={styles.panelShell}>
@@ -871,7 +882,7 @@ export const AdminDashboard: React.FC = () => {
             <form onSubmit={editingUser ? handleUpdate : handleCreate} className={styles.modalForm}>
               <div>
                 <label className={styles.formLabel}>Username</label>
-                <input
+                <Input
                   type="text"
                   value={formData.username}
                   onChange={(e) => setFormData({ ...formData, username: e.target.value })}
@@ -883,7 +894,7 @@ export const AdminDashboard: React.FC = () => {
 
               <div>
                 <label className={styles.formLabel}>Email (Optional)</label>
-                <input
+                <Input
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -897,7 +908,7 @@ export const AdminDashboard: React.FC = () => {
                 </label>
                 <div className={styles.searchField}>
                   <Lock className={styles.leadingIcon} />
-                  <input
+                  <Input
                     type="password"
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -910,7 +921,7 @@ export const AdminDashboard: React.FC = () => {
 
               <div>
                 <label className={styles.formLabel}>Role</label>
-                <select
+                <NativeSelect
                   value={formData.role}
                   onChange={(e) => {
                     const roleValue = e.target.value;
@@ -923,20 +934,26 @@ export const AdminDashboard: React.FC = () => {
                   <option value="viewer">Viewer (Read Only)</option>
                   <option value="investigator">Investigator (Can Edit)</option>
                   <option value="admin">Admin (Full Access)</option>
-                </select>
+                </NativeSelect>
               </div>
 
               <div className={styles.buttonRow}>
                 <Flex align="center" gap={3}>
-                  <button type="button" onClick={closeModal} className={styles.secondaryButton}>
+                  <Button
+                    unstyled
+                    type="button"
+                    onClick={closeModal}
+                    className={styles.secondaryButton}
+                  >
                     Cancel
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    unstyled
                     type="submit"
                     className={`${styles.primaryButton} ${styles.fullWidthButton}`}
                   >
                     {editingUser ? 'Save Changes' : 'Create User'}
-                  </button>
+                  </Button>
                 </Flex>
               </div>
             </form>

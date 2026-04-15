@@ -2,6 +2,8 @@ import React from 'react';
 import { ChevronUp, ChevronDown } from 'lucide-react';
 import styles from './HighlightNavigationControls.module.css';
 
+import { Button } from '../../design-system/lib';
+
 interface HighlightNavigationControlsProps {
   currentHighlightIndex: number;
   totalHighlights: number;
@@ -28,7 +30,8 @@ export const HighlightNavigationControls: React.FC<HighlightNavigationControlsPr
       <span className={styles.counter}>
         {currentHighlightIndex} / {totalHighlights}
       </span>
-      <button
+      <Button
+        unstyled
         onClick={onPrev}
         disabled={totalHighlights === 0}
         className={styles.button}
@@ -36,8 +39,9 @@ export const HighlightNavigationControls: React.FC<HighlightNavigationControlsPr
         aria-label="Previous highlight"
       >
         <ChevronUp className={styles.icon} />
-      </button>
-      <button
+      </Button>
+      <Button
+        unstyled
         onClick={onNext}
         disabled={totalHighlights === 0}
         className={styles.button}
@@ -45,7 +49,7 @@ export const HighlightNavigationControls: React.FC<HighlightNavigationControlsPr
         aria-label="Next highlight"
       >
         <ChevronDown className={styles.icon} />
-      </button>
+      </Button>
     </div>
   );
 };

@@ -1,7 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Tag, Plus, X, Check, Search } from 'lucide-react';
+import { Tag, Plus, X, Check } from 'lucide-react';
+import { Button, SearchField, TextInput } from '../../design-system/lib';
 import s from './TagSelector.module.css';
+
+const TAG_PRESET_COLORS = [
+  'var(--accent-danger)',
+  'var(--nav-properties)',
+  'var(--accent-warning)',
+  'var(--status-success)',
+  'var(--accent-success)',
+  'var(--nav-people)',
+  'var(--accent-agentic)',
+  'var(--nav-media)',
+  'var(--nav-investigations)',
+  'var(--text-dim)',
+];
+
+const TAG_DEFAULT_COLOR = 'var(--accent-agentic)';
 
 export interface TagData {
   id: number;
@@ -31,22 +47,8 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [newTagName, setNewTagName] = useState('');
-  const [newTagColor, setNewTagColor] = useState('#6366f1');
+  const [newTagColor, setNewTagColor] = useState(TAG_DEFAULT_COLOR);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Preset colors
-  const presetColors = [
-    '#ef4444',
-    '#f97316',
-    '#eab308',
-    '#22c55e',
-    '#10b981',
-    '#3b82f6',
-    '#6366f1',
-    '#8b5cf6',
-    '#ec4899',
-    '#64748b',
-  ];
 
   const { data: allTags = [] } = useQuery<TagData[]>({
     queryKey: ['media-tags'],
@@ -131,7 +133,7 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
           <span
             key={tag.id}
             className={`${s.tagPill} ${onTagClick ? s.clickable : ''}`}
-            style={{ backgroundColor: tag.color }}
+            style={{ '--tag-color': tag.color } as React.CSSProperties}
             onClick={(e) => {
               if (onTagClick) {
                 e.preventDefault();
@@ -142,54 +144,72 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
           >
             {tag.name}
             {isAdmin && (
-              <button
+              <Button
+                type="button"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleToggleTag(tag);
                 }}
+                variant="ghost"
+                size="sm"
                 className={s.tagRemove}
               >
                 <X size={12} />
-              </button>
+              </Button>
             )}
           </span>
         ))}
       </div>
 
       {/* Add Tag Button */}
-      <button onClick={() => setIsOpen(!isOpen)} className={s.addBtn}>
+      <Button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        variant="secondary"
+        size="sm"
+        className={s.addBtn}
+      >
         <Tag size={14} />
         Add Tag
-      </button>
+      </Button>
 
       {/* Dropdown */}
       {isOpen && (
         <div className={`${s.dropdown} dropdown-surface`}>
           {isAdmin && (
             <div className={s.searchWrap}>
-              <div className={s.searchInner}>
-                <Search className={s.searchIcon} />
-                <input
-                  type="text"
-                  placeholder="Search tags..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className={s.searchInput}
-                />
-              </div>
+              <SearchField
+                type="text"
+                placeholder="Search tags..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                density="compact"
+                rootClassName={s.searchInputRoot}
+                className={s.searchInput}
+              />
             </div>
           )}
 
           {/* Tags List */}
           <div className={s.tagListScroll}>
             {filteredTags.map((tag) => (
-              <button key={tag.id} onClick={() => handleToggleTag(tag)} className={s.tagOption}>
+              <Button
+                key={tag.id}
+                type="button"
+                onClick={() => handleToggleTag(tag)}
+                variant="ghost"
+                size="sm"
+                className={s.tagOption}
+              >
                 <span className={s.tagOptionInner}>
-                  <span className={s.tagDot} style={{ backgroundColor: tag.color }} />
+                  <span
+                    className={s.tagDot}
+                    style={{ '--tag-color': tag.color } as React.CSSProperties}
+                  />
                   <span className={s.tagName}>{tag.name}</span>
                 </span>
                 {isTagSelected(tag.id) && <Check className={s.tagCheck} />}
-              </button>
+              </Button>
             ))}
             {filteredTags.length === 0 && <p className={s.emptyMsg}>No tags found</p>}
           </div>
@@ -199,38 +219,60 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
             <div className={s.createWrap}>
               {isCreating ? (
                 <div className={s.createFields}>
-                  <input
+                  <TextInput
                     type="text"
                     placeholder="Tag name"
                     value={newTagName}
                     onChange={(e) => setNewTagName(e.target.value)}
+                    density="compact"
                     className={s.createInput}
                     autoFocus
                   />
                   <div className={s.colorSwatches}>
-                    {presetColors.map((color) => (
-                      <button
+                    {TAG_PRESET_COLORS.map((color) => (
+                      <Button
                         key={color}
+                        type="button"
                         onClick={() => setNewTagColor(color)}
+                        variant="ghost"
+                        size="sm"
                         className={`${s.colorSwatch} ${newTagColor === color ? s.selected : ''}`}
-                        style={{ backgroundColor: color }}
+                        style={{ '--swatch-color': color } as React.CSSProperties}
                       />
                     ))}
                   </div>
                   <div className={s.createActions}>
-                    <button onClick={handleCreateTag} className={s.createBtn}>
+                    <Button
+                      type="button"
+                      onClick={handleCreateTag}
+                      variant="primary"
+                      size="sm"
+                      className={s.createBtn}
+                    >
                       Create
-                    </button>
-                    <button onClick={() => setIsCreating(false)} className={s.cancelBtn}>
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={() => setIsCreating(false)}
+                      variant="secondary"
+                      size="sm"
+                      className={s.cancelBtn}
+                    >
                       Cancel
-                    </button>
+                    </Button>
                   </div>
                 </div>
               ) : (
-                <button onClick={() => setIsCreating(true)} className={s.createTrigger}>
+                <Button
+                  type="button"
+                  onClick={() => setIsCreating(true)}
+                  variant="ghost"
+                  size="sm"
+                  className={s.createTrigger}
+                >
                   <Plus size={16} />
                   Create new tag
-                </button>
+                </Button>
               )}
             </div>
           )}

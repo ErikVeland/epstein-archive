@@ -5,6 +5,8 @@ import { Tabs, TabItem } from '../Tabs';
 import { EntityPhoto } from '../EvidenceModal';
 import s from './EvidenceModalHeader.module.css';
 
+import { Button } from '../../../design-system/lib';
+
 interface EvidenceEntity {
   id?: string | number;
   fullName?: string;
@@ -127,18 +129,26 @@ export const EvidenceModalHeader: React.FC<EvidenceModalHeaderProps> = ({
             </div>
 
             <div className={s.quickActions}>
-              <button onClick={() => handleQuickAction('blackbook')} className={s.blackbookBtn}>
+              <Button
+                unstyled
+                onClick={() => handleQuickAction('blackbook')}
+                className={s.blackbookBtn}
+              >
                 <BookOpen size={14} />
                 Black Book Entry
-              </button>
-              <button onClick={() => handleQuickAction('timeline')} className={s.timelineBtn}>
+              </Button>
+              <Button
+                unstyled
+                onClick={() => handleQuickAction('timeline')}
+                className={s.timelineBtn}
+              >
                 <Calendar size={12} />
                 Timeline
-              </button>
-              <button onClick={() => handleQuickAction('search')} className={s.searchBtn}>
+              </Button>
+              <Button unstyled onClick={() => handleQuickAction('search')} className={s.searchBtn}>
                 <Search size={12} />
                 Search
-              </button>
+              </Button>
             </div>
 
             {activeQuickAction && (

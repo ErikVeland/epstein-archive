@@ -8,6 +8,8 @@ import { useState } from 'react';
 import { ZoomIn, ZoomOut, Maximize2, Download } from 'lucide-react';
 import styles from './ImageViewer.module.css';
 
+import { Button } from '../../design-system/lib';
+
 interface ImageViewerProps {
   evidence: {
     sourcePath: string;
@@ -33,29 +35,30 @@ export function ImageViewer({ evidence }: ImageViewerProps) {
       {/* Toolbar */}
       <div className={styles.toolbar}>
         <div className={styles.toolbarGroup}>
-          <button onClick={zoomOut} className={styles.iconButton} title="Zoom out">
+          <Button unstyled onClick={zoomOut} className={styles.iconButton} title="Zoom out">
             <ZoomOut className={styles.icon} />
-          </button>
+          </Button>
 
           <span className={styles.zoomBadge}>{zoom}%</span>
 
-          <button onClick={zoomIn} className={styles.iconButton} title="Zoom in">
+          <Button unstyled onClick={zoomIn} className={styles.iconButton} title="Zoom in">
             <ZoomIn className={styles.icon} />
-          </button>
+          </Button>
 
-          <button
+          <Button
+            unstyled
             onClick={() => setFullscreen(!fullscreen)}
             className={styles.iconButton}
             title="Fullscreen"
           >
             <Maximize2 className={styles.icon} />
-          </button>
+          </Button>
         </div>
 
-        <button className={styles.downloadButton}>
+        <Button unstyled className={styles.downloadButton}>
           <Download className={styles.downloadIcon} />
           Download Image
-        </button>
+        </Button>
       </div>
 
       {/* Image Container */}

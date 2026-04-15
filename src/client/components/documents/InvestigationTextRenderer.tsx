@@ -9,6 +9,8 @@ import { Flex } from '../../design-system/components/layout/Flex';
 import { Surface } from '../../design-system/components/surfaces/Surface';
 import { LqText } from '../../design-system/components/typography/Text';
 
+import { Button } from '../../design-system/lib';
+
 interface DocumentEntity {
   id?: string | number;
   entity_id?: string | number;
@@ -340,7 +342,7 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
           if (!entity) return match;
           const id = String(entity.id ?? entity.entity_id ?? '');
           const safeName = escapeHtml(match);
-          return `<button type="button" class="entity-trigger" data-entity-id="${id}" data-entity-name="${safeName}">${safeName}</button>`;
+          return `<Button unstyled type="button" class="entity-trigger" data-entity-id="${id}" data-entity-name="${safeName}">${safeName}</Button>`;
         });
       }
 
@@ -541,13 +543,14 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
           <LqText variant="xs" weight="black" color="muted" className={styles.modeLabel}>
             {mode === 'clean' ? 'Refined Content' : 'Original OCR Stream'}
           </LqText>
-          <button
+          <Button
+            unstyled
             onClick={onToggleReadingMode}
             className={`${styles.iconButton} ${isReadingMode ? styles.iconButtonActive : ''}`}
             title={isReadingMode ? 'Disable Reading Mode' : 'Enable Reading Mode'}
           >
             <FileText className={styles.iconMedium} />
-          </button>
+          </Button>
 
           {searchTerm && matchCount > 0 && (
             <Box className={styles.matchCounter}>
@@ -555,20 +558,22 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
                 {currentMatchIndex} OF {matchCount} MATCHES
               </LqText>
               <Box className={styles.navGroup}>
-                <button
+                <Button
+                  unstyled
                   onClick={() => navigateMatch('prev')}
                   className={styles.iconButton}
                   title="Previous match"
                 >
                   <ChevronLeft className={styles.iconSmall} />
-                </button>
-                <button
+                </Button>
+                <Button
+                  unstyled
                   onClick={() => navigateMatch('next')}
                   className={styles.iconButton}
                   title="Next match"
                 >
                   <ChevronRight className={styles.iconSmall} />
-                </button>
+                </Button>
               </Box>
             </Box>
           )}
@@ -581,7 +586,8 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
             </LqText>
             <Box className={styles.densityToggleGroup}>
               {(['off', 'subtle', 'strong'] as const).map((d) => (
-                <button
+                <Button
+                  unstyled
                   key={d}
                   onClick={() => setHighlightDensity(d)}
                   className={`${styles.densityButton} ${
@@ -589,10 +595,11 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
                   }`}
                 >
                   {d}
-                </button>
+                </Button>
               ))}
             </Box>
-            <button
+            <Button
+              unstyled
               type="button"
               onClick={() => onToggleRecoveryHighlights(!showRecoveryHighlights)}
               className={`${styles.recoveryToggle} ${
@@ -600,7 +607,7 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
               }`}
             >
               {showRecoveryHighlights ? 'Recovery On' : 'Recovery Off'}
-            </button>
+            </Button>
           </Box>
         )}
       </Box>
@@ -636,13 +643,14 @@ export const InvestigationTextRenderer: React.FC<InvestigationTextRendererProps>
         </div>
         {hasMoreLines && (
           <Box className={styles.loadMoreContainer}>
-            <button
+            <Button
+              unstyled
               type="button"
               onClick={() => setLineLimit((prev) => Math.min(totalLineCount, prev + 1200))}
               className={styles.loadMoreButton}
             >
               Load more text ({(totalLineCount - lineLimit).toLocaleString()} lines remaining)
-            </button>
+            </Button>
             <div ref={loadMoreRef} className={styles.loadMoreSentinel} aria-hidden="true" />
           </Box>
         )}

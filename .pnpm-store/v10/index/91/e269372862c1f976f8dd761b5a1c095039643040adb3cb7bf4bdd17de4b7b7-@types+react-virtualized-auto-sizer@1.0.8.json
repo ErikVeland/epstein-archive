@@ -1,0 +1,25 @@
+{
+  "name": "@types/react-virtualized-auto-sizer",
+  "version": "1.0.8",
+  "requiresBuild": false,
+  "files": {
+    "LICENSE": {
+      "checkedAt": 1776136549087,
+      "integrity": "sha512-HQaIQk9pwOcyKutyDk4o2a87WnotwYuLGYFW43emGm4FvIJFKPyg+OYaw5sTegKAKf+C5SKa1ACjzCLivbaHrQ==",
+      "mode": 420,
+      "size": 1141
+    },
+    "README.md": {
+      "checkedAt": 1776136549091,
+      "integrity": "sha512-CplqIHxDW5ZrRhYjBn2FBtEPMK+pfjz7F1SwK1OOXj/CtSRI2OfImgEZnbWRMsr33wz0ddD+SIbedTuG7iBLnQ==",
+      "mode": 420,
+      "size": 267
+    },
+    "package.json": {
+      "checkedAt": 1776136549095,
+      "integrity": "sha512-OXgAvoXec08gyBtMAjTCYLkhUjx5qhOyz0ZtsMrtYaUntRhBf8thzsHwBYAw7Rr9kMHv32g+NfAFdRoG2Kjcqw==",
+      "mode": 420,
+      "size": 491
+    }
+  }
+}

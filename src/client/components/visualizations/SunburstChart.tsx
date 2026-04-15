@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { Button } from '../../design-system/lib';
 import styles from './SunburstChart.module.css';
 
 interface SunburstChartProps {
@@ -208,8 +209,10 @@ export const SunburstChart: React.FC<SunburstChartProps> = ({ data, onSegmentCli
       {/* Legend below */}
       <div className={styles.legend}>
         {chartData.map((item, index) => (
-          <button
+          <Button
             key={item.type}
+            variant="ghost"
+            size="sm"
             onClick={() => onSegmentClick?.(item.type)}
             className={styles.legendChip}
             title={`${formatLabel(item.type)}: ${item.count.toLocaleString()}`}
@@ -223,7 +226,7 @@ export const SunburstChart: React.FC<SunburstChartProps> = ({ data, onSegmentCli
             />
             <span className={styles.legendLabel}>{formatLabel(item.type)}</span>
             <span className={styles.legendCount}>{item.count.toLocaleString()}</span>
-          </button>
+          </Button>
         ))}
       </div>
     </div>

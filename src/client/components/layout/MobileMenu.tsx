@@ -5,6 +5,8 @@ import { CloseButton } from '../common/CloseButton';
 import { useAuth } from '../../contexts/AuthContext';
 import { useScrollLock } from '../../hooks/useScrollLock';
 
+import { Button, Input } from '../../design-system/lib';
+
 interface MobileMenuProps {
   open: boolean;
   searchTerm: string;
@@ -80,7 +82,8 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
   return (
     <div className={`mobile-nav ${s.root} ${open ? s.rootOpen : s.rootClosed}`}>
       {/* Backdrop overlay - closes menu when clicked */}
-      <button
+      <Button
+        unstyled
         type="button"
         aria-label="Close menu"
         className={`app-backdrop ${s.backdrop}`}
@@ -115,7 +118,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
         {/* Mobile Search Input */}
         <div className={s.searchSection}>
           <div className={s.searchWrap}>
-            <input
+            <Input
               type="text"
               placeholder="Search people, documents..."
               className={s.searchInput}
@@ -141,16 +144,21 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
 
         {/* Scrollable Content Area - flex-1 takes remaining height */}
         <div className={`${s.navList} custom-scrollbar`}>
-          <button className={`${s.navItem} ${s.navItemHome}`} onClick={() => handleNavigation('/')}>
+          <Button
+            unstyled
+            className={`${s.navItem} ${s.navItemHome}`}
+            onClick={() => handleNavigation('/')}
+          >
             <div className={s.iconWrap}>
               <Icon name="Home" size="sm" />
             </div>
             <span className={s.navLabel}>Home</span>
-          </button>
+          </Button>
 
           <div className={`${s.sectionLabel} ${s.sectionLabelTop}`}>Explore</div>
 
-          <button
+          <Button
+            unstyled
             className={`${s.navItem} ${s.navItemSlide} ${s.navItemPeople}`}
             onClick={() => handleNavigation('/people')}
           >
@@ -158,8 +166,9 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
               <Icon name="Users" size="sm" className={s.iconPeople} />
             </div>
             <span className={s.navLabel}>People</span>
-          </button>
-          <button
+          </Button>
+          <Button
+            unstyled
             className={`${s.navItem} ${s.navItemSlide} ${s.navItemDocuments}`}
             onClick={() => handleNavigation('/documents')}
           >
@@ -167,8 +176,9 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
               <Icon name="FileText" size="sm" className={s.iconDocuments} />
             </div>
             <span className={s.navLabel}>Documents</span>
-          </button>
-          <button
+          </Button>
+          <Button
+            unstyled
             className={`${s.navItem} ${s.navItemSlide} ${s.navItemEmails}`}
             onClick={() => handleNavigation('/emails')}
           >
@@ -176,8 +186,9 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
               <Icon name="Mail" size="sm" className={s.iconEmails} />
             </div>
             <span className={s.navLabel}>Emails</span>
-          </button>
-          <button
+          </Button>
+          <Button
+            unstyled
             className={`${s.navItem} ${s.navItemSlide} ${s.navItemMedia}`}
             onClick={() => handleNavigation('/media')}
           >
@@ -185,12 +196,13 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
               <Icon name="Newspaper" size="sm" className={s.iconMedia} />
             </div>
             <span className={s.navLabel}>Media</span>
-          </button>
+          </Button>
 
           <div className={s.divider} />
           <div className={`${s.sectionLabel} ${s.sectionLabelMid}`}>Intelligence</div>
 
-          <button
+          <Button
+            unstyled
             className={`${s.navItem} ${s.navItemInvestigations} ${attract ? s.navItemAttract : ''}`}
             onClick={() => {
               try {
@@ -208,8 +220,9 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
             <div className={s.navLabelGroup}>
               <span className={s.navLabel}>Investigations</span>
             </div>
-          </button>
-          <button
+          </Button>
+          <Button
+            unstyled
             className={`${s.navItem} ${s.navItemBlackBook}`}
             onClick={() => handleNavigation('/blackbook')}
           >
@@ -217,8 +230,9 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
               <Icon name="Book" size="sm" />
             </div>
             <span className={s.navLabel}>Black Book</span>
-          </button>
-          <button
+          </Button>
+          <Button
+            unstyled
             className={`${s.navItem} ${s.navItemTimeline}`}
             onClick={() => handleNavigation('/timeline')}
           >
@@ -226,8 +240,9 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
               <Icon name="Clock" size="sm" className={s.iconTimeline} />
             </div>
             <span className={s.navLabel}>Timeline</span>
-          </button>
-          <button
+          </Button>
+          <Button
+            unstyled
             className={`${s.navItem} ${s.navItemFlights}`}
             onClick={() => handleNavigation('/flights')}
           >
@@ -235,8 +250,9 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
               <Icon name="Navigation" size="sm" className={s.iconFlights} />
             </div>
             <span className={s.navLabel}>Flights</span>
-          </button>
-          <button
+          </Button>
+          <Button
+            unstyled
             className={`${s.navItem} ${s.navItemAnalytics}`}
             onClick={() => handleNavigation('/analytics')}
           >
@@ -244,11 +260,12 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
               <Icon name="BarChart3" size="sm" className={s.iconAnalytics} />
             </div>
             <span className={s.navLabel}>Analytics</span>
-          </button>
+          </Button>
 
           <div className={s.divider} />
 
-          <button
+          <Button
+            unstyled
             className={`${s.navItem} ${s.navItemAbout}`}
             onClick={() => handleNavigation('/about')}
           >
@@ -256,10 +273,11 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
               <Icon name="Shield" size="sm" />
             </div>
             <span className={s.navLabel}>About</span>
-          </button>
+          </Button>
 
           {isAdmin && (
-            <button
+            <Button
+              unstyled
               className={`${s.navItem} ${s.navItemAbout}`}
               onClick={() => handleNavigation('/admin')}
             >
@@ -267,7 +285,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
                 <Icon name="Settings" size="sm" />
               </div>
               <span className={s.navLabel}>Admin</span>
-            </button>
+            </Button>
           )}
         </div>
 

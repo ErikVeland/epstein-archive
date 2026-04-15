@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { MapPin, Maximize2, Minimize2, ExternalLink, Navigation } from 'lucide-react';
+import { Button } from '../../design-system/lib';
 import ScopedErrorBoundary from '../common/ScopedErrorBoundary';
 import { useScrollLock } from '../../hooks/useScrollLock';
 import styles from './LocationMap.module.css';
@@ -60,9 +61,14 @@ export const LocationMap: React.FC<LocationMapProps> = ({
                 <Navigation className={styles.buttonIcon} />
                 Open in Maps
               </a>
-              <button onClick={() => setIsExpanded(false)} className={styles.collapseButton}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsExpanded(false)}
+                className={styles.collapseButton}
+              >
                 <Minimize2 className={styles.fullscreenTitleIcon} />
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -89,18 +95,21 @@ export const LocationMap: React.FC<LocationMapProps> = ({
             <MapPin className={styles.cardHeaderIcon} />
             <span className={styles.cardHeaderText}>Location</span>
           </div>
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setIsExpanded(true)}
             className={styles.expandButton}
             title="Expand map"
           >
             <Maximize2 className={styles.cardHeaderIcon} />
-          </button>
+          </Button>
         </div>
 
         {/* Mini map */}
-        <button
+        <Button
           type="button"
+          variant="ghost"
           className={styles.miniMapButton}
           onClick={() => setIsExpanded(true)}
           aria-label={`Expand map for ${title}`}
@@ -112,7 +121,7 @@ export const LocationMap: React.FC<LocationMapProps> = ({
             loading="lazy"
           />
           <div className={styles.miniMapOverlay} />
-        </button>
+        </Button>
 
         {/* Coordinates & Links */}
         <div className={styles.footer}>

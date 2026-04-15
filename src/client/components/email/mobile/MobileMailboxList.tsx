@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Search, ShieldCheck, Sparkles } from 'lucide-react';
+import { ShieldCheck, Sparkles } from 'lucide-react';
 import { EmailMailboxDTO } from '../../../services/apiClient';
 import { riskToneFromRating } from '../../../utils/riskSemantics';
+import { Button, SearchField } from '../../../design-system/lib';
 import styles from './MobileMailboxList.module.css';
 
 const RISK_RANK: Record<string, number> = {
@@ -55,17 +56,24 @@ export function MobileMailboxList({
     <div className={styles.root}>
       <div className={styles.toolbar}>
         <div className={styles.searchWrap}>
-          <Search className={styles.searchIcon} size={16} />
-          <input
-            className={styles.searchInput}
+          <SearchField
+            density="compact"
             placeholder="Search mailboxes"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            rootClassName={styles.searchFieldRoot}
+            className={styles.searchInput}
           />
         </div>
-        <button className={styles.junkToggle} onClick={onToggleJunk} type="button">
+        <Button
+          className={styles.junkToggle}
+          onClick={onToggleJunk}
+          type="button"
+          variant="ghost"
+          size="sm"
+        >
           {showSuppressedJunk ? 'Hide junk' : 'Show junk'}
-        </button>
+        </Button>
       </div>
 
       <div className={styles.list}>
@@ -74,13 +82,15 @@ export function MobileMailboxList({
           const riskTone = riskToneFromRating(RISK_RANK[mailbox.riskSummary ?? ''] ?? null);
 
           return (
-            <button
+            <Button
               key={mailbox.mailboxId}
               className={`${styles.row} ${active ? styles.rowActive : ''} ${
                 mailbox.isVip ? styles.rowVip : ''
               }`}
               onClick={() => onSelect(mailbox.mailboxId)}
               type="button"
+              variant="ghost"
+              size="sm"
             >
               <div className={styles.rowLeft}>
                 <div className={styles.nameRow}>
@@ -102,7 +112,7 @@ export function MobileMailboxList({
               <div className={styles.rowRight}>
                 <span className={styles.time}>{formatTime(mailbox.lastActivityAt)}</span>
               </div>
-            </button>
+            </Button>
           );
         })}
 

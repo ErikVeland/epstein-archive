@@ -5,6 +5,8 @@ import './Button.css';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   asChild?: boolean;
+  /** Deprecated compatibility prop. DS button styling is always applied. */
+  unstyled?: boolean;
   variant?:
     | 'primary'
     | 'secondary'
@@ -25,6 +27,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     {
       asChild = false,
       className,
+      unstyled: _unstyled = false,
       variant = 'primary',
       size = 'md',
       grow,

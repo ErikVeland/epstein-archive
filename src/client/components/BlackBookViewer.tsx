@@ -8,8 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { FixedSizeList as List } from 'react-window';
 import AutoSizer from './common/AutoSizer';
 import styles from './BlackBookViewer.module.css';
-import { Surface, Button } from '../design-system/lib';
-
+import { Button, Input, Surface } from '../design-system/lib';
 interface BlackBookEntry {
   id: number;
   person_id: number | null;
@@ -203,7 +202,7 @@ export const BlackBookViewer: React.FC = () => {
       {/* Search Bar */}
       <div className={styles.searchWrap}>
         <Search className={styles.searchIcon} />
-        <input
+        <Input
           type="text"
           placeholder="Search by name, phone, email, or address..."
           value={searchTerm}
@@ -236,7 +235,7 @@ export const BlackBookViewer: React.FC = () => {
       {/* Contact Filters */}
       <div className={styles.filtersRow}>
         <label className={styles.checkLabel}>
-          <input
+          <Input
             type="checkbox"
             checked={hasPhone}
             onChange={(e) => setHasPhone(e.target.checked)}
@@ -245,7 +244,7 @@ export const BlackBookViewer: React.FC = () => {
           <Phone className={styles.smIcon} />
         </label>
         <label className={styles.checkLabel}>
-          <input
+          <Input
             type="checkbox"
             checked={hasEmail}
             onChange={(e) => setHasEmail(e.target.checked)}
@@ -254,7 +253,7 @@ export const BlackBookViewer: React.FC = () => {
           <Mail className={styles.smIcon} />
         </label>
         <label className={styles.checkLabel}>
-          <input
+          <Input
             type="checkbox"
             checked={hasAddress}
             onChange={(e) => setHasAddress(e.target.checked)}

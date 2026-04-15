@@ -50,7 +50,7 @@ export const FlightCard: React.FC<FlightCardProps> = ({ flight, onSelect, format
         <Box className={styles.dashedLine} />
       </Flex>
 
-      <Box className={styles.airport} style={{ textAlign: 'right' }}>
+      <Box className={cn(styles.airport, styles.airportRight)}>
         <LqText variant="h4" weight="bold" className={styles.airportCode}>
           {flight.arrival_airport}
         </LqText>

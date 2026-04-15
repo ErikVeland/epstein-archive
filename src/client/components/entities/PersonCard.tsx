@@ -62,7 +62,8 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onClick, searchTerm }) 
 
   return (
     <article className={`surface-panel group ${styles.card}`}>
-      <button
+      <Button
+        unstyled
         type="button"
         onClick={onClick}
         className={styles.clickTarget}
@@ -147,7 +148,7 @@ const PersonCard: React.FC<PersonCardProps> = ({ person, onClick, searchTerm }) 
             </span>
           </div>
         </div>
-      </button>
+      </Button>
 
       {/* 4. FOOTER / ACTION */}
       <div className={styles.footer}>

@@ -284,7 +284,7 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
   };
 
   return (
-    <Box className={styles.autoGen30} style={{ backgroundColor: 'var(--lq-surface-1)' }}>
+    <Box className={styles.autoGen30} bgcolor="var(--lq-surface-1)">
       {!mobileMode && (
         <Surface variant="glass" p="xl" className={styles.autoGen31}>
           <Flex justify="between" align="center">
@@ -311,7 +311,7 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
 
       <Box p="xl">
         {isAnalyzing && (
-          <Surface variant="glass-highlight" p="lg" style={{ marginBottom: 'var(--spacing-xl)' }}>
+          <Surface variant="glass-highlight" p="lg" mb="xl">
             <Stack gap="md">
               <Flex justify="between">
                 <LqText variant="small" weight="bold">
@@ -333,14 +333,11 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
             <Surface variant="glass" p="sm">
               <Flex gap="sm" align="center">
                 <Filter size={14} className={styles.autoGen34} />
-                <LqText
-                  variant="xs"
-                  weight="bold"
-                  color="muted"
-                  style={{ marginRight: 'var(--space-sm)' }}
-                >
-                  FILTER SIGMA:
-                </LqText>
+                <Box mr="sm">
+                  <LqText variant="xs" weight="bold" color="muted">
+                    FILTER SIGMA:
+                  </LqText>
+                </Box>
                 {(['all', 'frequency', 'timing', 'network', 'anomaly'] as PatternFilterType[]).map(
                   (t) => (
                     <Button
@@ -447,7 +444,8 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
         <Box className={styles.autoGen40} onClick={() => setSelectedPattern(null)}>
           <Surface
             variant="panel"
-            style={{ width: 600, padding: 'var(--spacing-xxl)' }}
+            width={600}
+            p="var(--spacing-xxl)"
             className={styles.autoGen41}
             onClick={(e) => e.stopPropagation()}
           >
@@ -498,14 +496,7 @@ export const CommunicationAnalysis: React.FC<CommunicationAnalysisProps> = ({
                   <LqText variant="xs" weight="bold" color="muted">
                     OPERATIONAL INTELLIGENCE
                   </LqText>
-                  <ul
-                    style={{
-                      marginTop: '0.5rem',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '0.25rem',
-                    }}
-                  >
+                  <ul className={styles.recommendationsList}>
                     {selectedPattern.recommendations.map((r, i) => (
                       <li key={i} className={styles.autoGen42}>
                         <ArrowRight size={10} className={styles.autoGen43} />

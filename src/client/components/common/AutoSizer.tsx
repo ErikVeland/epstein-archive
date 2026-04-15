@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, ReactNode } from 'react';
+import styles from './AutoSizer.module.css';
 
 interface Size {
   width: number;
@@ -40,8 +41,8 @@ export const AutoSizer: React.FC<AutoSizerProps> = ({ children, className, style
   return (
     <div
       ref={containerRef}
-      className={className}
-      style={{ width: '100%', height: '100%', overflow: 'hidden', ...style }}
+      className={[styles.root, className].filter(Boolean).join(' ')}
+      style={style}
     >
       {size.width > 0 && size.height > 0 && children(size)}
     </div>

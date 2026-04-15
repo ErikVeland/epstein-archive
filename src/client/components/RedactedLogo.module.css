@@ -11,6 +11,13 @@
   inset: 0;
   z-index: 10;
   pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0px,
+    transparent 2px,
+    color-mix(in srgb, var(--glitch-cyan) 6%, transparent) 2px,
+    color-mix(in srgb, var(--glitch-cyan) 6%, transparent) 4px
+  );
 }
 
 .title {
@@ -18,4 +25,30 @@
   font-weight: 700;
   letter-spacing: -0.02em;
   white-space: nowrap;
+}
+
+.space {
+  display: inline-block;
+  width: 4px;
+}
+
+.letter {
+  display: inline-block;
+  width: 10.8px;
+  text-align: center;
+  position: relative;
+}
+
+.redactedBlock {
+  color: var(--bg-dark);
+  background: var(--bg-dark);
+  padding: 0 var(--space-1);
+}
+
+.normalChar {
+  color: var(--text-strong);
+}
+
+.staticText {
+  color: var(--text-strong);
 }

@@ -45,9 +45,9 @@ function HypothesisList({
             <span className={styles.badge}>{h.status}</span>
           </div>
           <div className={styles.cardActions}>
-            <button className={styles.cardBtn} onClick={() => onMove(h.title)}>
+            <Button unstyled className={styles.cardBtn} onClick={() => onMove(h.title)}>
               Move
-            </button>
+            </Button>
           </div>
         </div>
       ))}
@@ -73,9 +73,13 @@ function EvidenceList({
             <span className={styles.badge}>{ev.relevance}</span>
           </div>
           <div className={styles.cardActions}>
-            <button className={styles.cardBtn} onClick={() => onMove(ev.title ?? 'Untitled')}>
+            <Button
+              unstyled
+              className={styles.cardBtn}
+              onClick={() => onMove(ev.title ?? 'Untitled')}
+            >
               Move
-            </button>
+            </Button>
           </div>
         </div>
       ))}
@@ -100,9 +104,13 @@ function NarrativeList({
             <span className={styles.badge}>{ev.type}</span>
           </div>
           <div className={styles.cardActions}>
-            <button className={styles.cardBtn} onClick={() => onMove(ev.title ?? 'Untitled')}>
+            <Button
+              unstyled
+              className={styles.cardBtn}
+              onClick={() => onMove(ev.title ?? 'Untitled')}
+            >
               Move
-            </button>
+            </Button>
           </div>
         </div>
       ))}
@@ -210,13 +218,14 @@ export function MobileBoardView({ investigationId }: MobileBoardViewProps) {
     <div className={styles.root} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
       <div className={styles.columnTabs}>
         {COLUMNS.map((col) => (
-          <button
+          <Button
+            unstyled
             key={col}
             className={`${styles.columnTab} ${activeColumn === col ? styles.columnTabActive : ''}`}
             onClick={() => setActiveColumn(col)}
           >
             {COLUMN_LABELS[col]}
-          </button>
+          </Button>
         ))}
       </div>
 

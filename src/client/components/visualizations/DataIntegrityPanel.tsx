@@ -1,5 +1,6 @@
 import React from 'react';
 import { AlertTriangle, Clock, Database } from 'lucide-react';
+import { Button } from '../../design-system/lib';
 import styles from './DataIntegrityPanel.module.css';
 
 interface DataIntegrityStats {
@@ -86,10 +87,10 @@ export const DataIntegrityPanel: React.FC<DataIntegrityPanelProps> = ({ stats })
 
       {/* Footer */}
       <div className={styles.footer}>
-        <button className={styles.methodologyButton}>
+        <Button variant="ghost" size="sm" className={styles.methodologyButton}>
           Methodology & Sources
           <AlertTriangle className={styles.methodologyIcon} />
-        </button>
+        </Button>
       </div>
     </div>
   );

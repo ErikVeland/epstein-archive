@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import styles from './DocumentDiffView.module.css';
 
+import { Input } from '../../design-system/lib';
+
 interface DocumentDiffViewProps {
   cleanText: string;
   originalText: string;
@@ -44,7 +46,7 @@ export const DocumentDiffView: React.FC<DocumentDiffViewProps> = ({ cleanText, o
       <div className={styles.header}>
         <h3 className={styles.title}>Diff View</h3>
         <label className={styles.toggleLabel}>
-          <input
+          <Input
             type="checkbox"
             checked={onlyChanged}
             onChange={(event) => setOnlyChanged(event.target.checked)}

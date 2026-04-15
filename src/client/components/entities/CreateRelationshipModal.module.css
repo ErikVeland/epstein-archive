@@ -1,24 +1,23 @@
-.overlay {
-  position: fixed;
-  inset: 0;
-  z-index: var(--z-modal);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--space-4);
-  background: color-mix(in srgb, var(--app-bg) 80%, transparent);
-  backdrop-filter: blur(8px);
-}
-
-.modal {
+.dialogContent {
   width: 100%;
   max-width: 42rem;
   max-height: 90vh;
+  padding: 0;
+}
+
+.headerRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  border-bottom: 1px solid var(--glass-border);
 }
 
 .header {
-  padding: var(--space-6);
-  border-bottom: 1px solid var(--glass-border);
+  min-width: 0;
+  flex: 1 1 auto;
+  padding: 0;
 }
 
 .headerIconWrap {
@@ -62,7 +61,13 @@
 }
 
 .selectedEntity {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   padding: var(--space-3);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--glass-bg-strong) 70%, transparent);
 }
 
 .selectedEntityName {
@@ -74,20 +79,16 @@
   margin-left: auto;
 }
 
-.searchWrap {
-  padding: 0 var(--space-3);
-  height: 2.5rem;
-}
-
 .field {
   width: 100%;
 }
 
+.searchFieldRoot {
+  gap: 0;
+}
+
 .searchInput {
-  background: transparent !important;
-  border: 0 !important;
   font-size: var(--type-xs);
-  padding-left: var(--space-2) !important;
 }
 
 .resultsList {
@@ -96,11 +97,21 @@
   width: 100%;
   max-height: 15rem;
   margin-top: var(--space-1);
+  overflow-y: auto;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--glass-bg-strong) 92%, transparent);
+  box-shadow: var(--glass-shadow-strong);
 }
 
 .resultButton {
   width: 100%;
+  min-height: unset;
+  justify-content: flex-start;
+  flex-direction: column;
+  align-items: flex-start;
   padding: var(--space-3);
+  border-radius: 0;
 }
 
 .sliderGrid {
@@ -120,6 +131,9 @@
 }
 
 .footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
   padding: var(--space-4) var(--space-6);
   border-top: 1px solid var(--glass-border);
 }
@@ -148,11 +162,6 @@
   flex-shrink: 0;
 }
 
-.searchIcon {
-  color: var(--text-muted);
-  flex-shrink: 0;
-}
-
 .smallIcon {
   width: 1rem;
   height: 1rem;
@@ -175,33 +184,13 @@
 }
 
 .cancelButton {
-  padding: var(--space-2) var(--space-4);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--text-secondary);
-  font-size: var(--type-sm);
-  cursor: pointer;
-  transition: background-color 0.15s;
-}
-
-.cancelButton:hover {
-  background: var(--glass-bg);
+  min-width: 7rem;
 }
 
 .submitButton {
-  padding: var(--space-2) var(--space-5);
-  border: none;
-  border-radius: var(--radius-md);
-  background: var(--accent);
-  color: var(--bg-dark, #0a0e1e);
-  font-size: var(--type-sm);
-  font-weight: var(--weight-bold);
-  cursor: pointer;
-  transition: opacity 0.15s;
+  min-width: 10rem;
 }
 
 .submitButton:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+  opacity: 1;
 }

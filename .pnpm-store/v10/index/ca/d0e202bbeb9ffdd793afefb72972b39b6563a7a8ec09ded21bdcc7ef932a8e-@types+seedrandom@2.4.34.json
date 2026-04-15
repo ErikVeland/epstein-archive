@@ -1,0 +1,31 @@
+{
+  "name": "@types/seedrandom",
+  "version": "2.4.34",
+  "requiresBuild": false,
+  "files": {
+    "LICENSE": {
+      "checkedAt": 1776136531909,
+      "integrity": "sha512-HQaIQk9pwOcyKutyDk4o2a87WnotwYuLGYFW43emGm4FvIJFKPyg+OYaw5sTegKAKf+C5SKa1ACjzCLivbaHrQ==",
+      "mode": 420,
+      "size": 1141
+    },
+    "README.md": {
+      "checkedAt": 1776136531910,
+      "integrity": "sha512-D0Tb4lYzS/u5XQ8LjkdR4HE2mU4isyisMYYBrUualg7Jaat7KiSKnX+NvXJwNaB1xnlyVr/y7fTHRxQxPMXH0A==",
+      "mode": 420,
+      "size": 2096
+    },
+    "index.d.ts": {
+      "checkedAt": 1776136531913,
+      "integrity": "sha512-7HfoF/uPhoteDexGuOn9d1EueiJD0IS5HbC/yOZ9itQZbHiHlozc089SlcqIe/OgRzg9KYKi4ioANGcsMSYdRw==",
+      "mode": 420,
+      "size": 1436
+    },
+    "package.json": {
+      "checkedAt": 1776136531915,
+      "integrity": "sha512-//NkYVVobmrbXb5qbvxleRw24vz547DO9zdqLmiSAt3DaqbUAwvhfXc6XXntI5tHjGIMuyw03X5O0jiOSDIG7g==",
+      "mode": 420,
+      "size": 949
+    }
+  }
+}

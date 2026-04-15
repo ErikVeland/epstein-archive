@@ -6,6 +6,8 @@ import FinancialTransactionMapper from '../../visualizations/FinancialTransactio
 import { CommunicationAnalysis } from '../CommunicationAnalysis';
 import styles from './MobileForensicView.module.css';
 
+import { Button } from '../../../design-system/lib';
+
 type ForensicTab = 'documents' | 'correlation' | 'financial' | 'reports' | 'communication';
 
 interface Tab {
@@ -54,7 +56,8 @@ export function MobileForensicView({ investigation }: MobileForensicViewProps) {
     <div className={styles.root}>
       <div className={styles.tabs} role="tablist">
         {TABS.map((tab) => (
-          <button
+          <Button
+            unstyled
             key={tab.id}
             role="tab"
             aria-selected={activeTab === tab.id}
@@ -62,7 +65,7 @@ export function MobileForensicView({ investigation }: MobileForensicViewProps) {
             onClick={() => setActiveTab(tab.id)}
           >
             {tab.label}
-          </button>
+          </Button>
         ))}
       </div>
       <div className={styles.content} role="tabpanel">

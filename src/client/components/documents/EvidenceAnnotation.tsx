@@ -24,6 +24,8 @@ import { CloseButton } from '../common/CloseButton';
 import { Tabs } from '../common/Tabs';
 import styles from './EvidenceAnnotation.module.css';
 
+import { Button, Input, TextArea } from '../../design-system/lib';
+
 export interface EvidenceAnnotation {
   id: string;
   evidenceId: number;
@@ -48,11 +50,11 @@ interface EvidenceAnnotationPanelProps {
 }
 
 const HIGHLIGHT_COLORS = [
-  { name: 'Yellow', value: '#fef08a' },
-  { name: 'Green', value: '#bbf7d0' },
-  { name: 'Blue', value: '#bfdbfe' },
-  { name: 'Pink', value: '#fbcfe8' },
-  { name: 'Orange', value: '#fed7aa' },
+  { name: 'Yellow', value: 'var(--highlight-yellow)' },
+  { name: 'Green', value: 'var(--highlight-green)' },
+  { name: 'Blue', value: 'var(--highlight-blue)' },
+  { name: 'Pink', value: 'var(--highlight-pink)' },
+  { name: 'Orange', value: 'var(--highlight-orange)' },
 ];
 
 const CLASSIFICATION_OPTIONS = [
@@ -80,6 +82,11 @@ const COMMON_TAGS = [
   'key-evidence',
   'follow-up',
 ];
+
+const swatchStyle = (color?: string) => ({ backgroundColor: color || 'var(--accent)' });
+const highlightTextStyle = (color?: string) => ({
+  backgroundColor: `color-mix(in srgb, ${color || 'var(--accent)'} 18%, transparent)`,
+});
 
 export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = ({
   evidenceId,
@@ -410,7 +417,7 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                 <LqText variant="xs" weight="medium" color="secondary" className={styles.formLabel}>
                   Add a Note
                 </LqText>
-                <textarea
+                <TextArea
                   value={newNote}
                   onChange={(e) => setNewNote(e.target.value)}
                   placeholder="Write your observations, analysis, or comments..."
@@ -418,14 +425,15 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                   rows={3}
                 />
                 <Flex justify="end" className={styles.formActions}>
-                  <button
+                  <Button
+                    unstyled
                     onClick={handleAddNote}
                     disabled={!newNote.trim() || saving}
                     className={styles.addButton}
                   >
                     <Plus className={styles.iconMicro} />
                     Add Note
-                  </button>
+                  </Button>
                 </Flex>
               </Surface>
 
@@ -440,23 +448,28 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                     <Surface key={note.id} variant="glass-highlight" className={styles.listItem}>
                       {editingNote === note.id ? (
                         <Box>
-                          <textarea
+                          <TextArea
                             value={editNoteContent}
                             onChange={(e) => setEditNoteContent(e.target.value)}
                             className={styles.textarea}
                             rows={3}
                           />
                           <Box className={styles.editActions}>
-                            <button
+                            <Button
+                              unstyled
                               onClick={() => setEditingNote(null)}
                               className={styles.cancelTextButton}
                             >
                               Cancel
-                            </button>
-                            <button onClick={handleUpdateNoteEdit} className={styles.saveButton}>
+                            </Button>
+                            <Button
+                              unstyled
+                              onClick={handleUpdateNoteEdit}
+                              className={styles.saveButton}
+                            >
                               <Save className={styles.iconMicro} />
                               Save
-                            </button>
+                            </Button>
                           </Box>
                         </Box>
                       ) : (
@@ -470,7 +483,8 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                               {new Date(note.createdAt).toLocaleString()}
                             </LqText>
                             <Flex gap="xs" className={styles.itemActions}>
-                              <button
+                              <Button
+                                unstyled
                                 onClick={() => {
                                   setEditingNote(note.id);
                                   setEditNoteContent(note.content);
@@ -479,14 +493,15 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                                 title="Edit"
                               >
                                 <Edit3 className={styles.iconTiny} />
-                              </button>
-                              <button
+                              </Button>
+                              <Button
+                                unstyled
                                 onClick={() => deleteAnnotation(note.id)}
                                 className={`${styles.actionIcon} ${styles.deleteIcon}`}
                                 title="Delete"
                               >
                                 <Trash2 className={styles.iconTiny} />
-                              </button>
+                              </Button>
                             </Flex>
                           </Flex>
                         </>
@@ -506,7 +521,7 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                 <LqText variant="xs" weight="medium" color="secondary" className={styles.formLabel}>
                   Add a Highlight
                 </LqText>
-                <textarea
+                <TextArea
                   value={newHighlight.text}
                   onChange={(e) => setNewHighlight({ ...newHighlight, text: e.target.value })}
                   placeholder="Paste or type the text you want to highlight..."
@@ -519,7 +534,8 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                       Color:
                     </LqText>
                     {HIGHLIGHT_COLORS.map((color) => (
-                      <button
+                      <Button
+                        unstyled
                         key={color.value}
                         onClick={() => setNewHighlight({ ...newHighlight, color: color.value })}
                         className={
@@ -527,19 +543,20 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                             ? styles.colorSwatchSelected
                             : styles.colorSwatch
                         }
-                        style={{ backgroundColor: color.value }}
+                        style={swatchStyle(color.value)}
                         title={color.name}
                       />
                     ))}
                   </Flex>
-                  <button
+                  <Button
+                    unstyled
                     onClick={handleAddHighlight}
                     disabled={!newHighlight.text.trim() || saving}
                     className={styles.addButton}
                   >
                     <Highlighter className={styles.iconMicro} />
                     Add Highlight
-                  </button>
+                  </Button>
                 </Flex>
               </Surface>
 
@@ -557,15 +574,12 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                       className={styles.listItem}
                     >
                       <Flex align="start" gap="md">
-                        <Box
-                          className={styles.colorSwatch}
-                          style={{ backgroundColor: highlight.color }}
-                        />
+                        <Box className={styles.colorSwatch} style={swatchStyle(highlight.color)} />
                         <Box className={styles.highlightContent}>
                           <LqText
                             variant="body"
                             className={styles.highlightText}
-                            style={{ backgroundColor: highlight.color + '30' }}
+                            style={highlightTextStyle(highlight.color)}
                           >
                             {highlight.content}
                           </LqText>
@@ -573,13 +587,14 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                             <LqText variant="xs" color="muted">
                               {new Date(highlight.createdAt).toLocaleString()}
                             </LqText>
-                            <button
+                            <Button
+                              unstyled
                               onClick={() => deleteAnnotation(highlight.id)}
                               className={`${styles.actionIcon} ${styles.deleteIcon}`}
                               title="Delete"
                             >
                               <Trash2 className={styles.iconTiny} />
-                            </button>
+                            </Button>
                           </Box>
                         </Box>
                       </Flex>
@@ -605,7 +620,8 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                 </LqText>
                 <Box className={styles.tagList}>
                   {COMMON_TAGS.map((tag) => (
-                    <button
+                    <Button
+                      unstyled
                       key={tag}
                       onClick={() => handleToggleTag(tag)}
                       className={
@@ -614,7 +630,7 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                     >
                       {selectedTags.includes(tag) && <span className={styles.tagCheck}>✓</span>}
                       {tag}
-                    </button>
+                    </Button>
                   ))}
                 </Box>
               </Box>
@@ -630,7 +646,7 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                   Add Custom Tag
                 </LqText>
                 <Flex gap="sm">
-                  <input
+                  <Input
                     type="text"
                     value={customTag}
                     onChange={(e) => setCustomTag(e.target.value)}
@@ -638,13 +654,14 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                     placeholder="Enter custom tag..."
                     className={styles.customTagInput}
                   />
-                  <button
+                  <Button
+                    unstyled
                     onClick={handleAddCustomTag}
                     disabled={!customTag.trim() || saving}
                     className={styles.addButton}
                   >
                     Add
-                  </button>
+                  </Button>
                 </Flex>
               </Box>
 
@@ -671,13 +688,14 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                         >
                           {tag}
                         </LqText>
-                        <button
+                        <Button
+                          unstyled
                           onClick={() => handleToggleTag(tag)}
                           className={styles.tagRemove}
                           aria-label={`Remove tag ${tag}`}
                         >
                           <X className={styles.iconMicro} />
-                        </button>
+                        </Button>
                       </Surface>
                     ))}
                   </Box>
@@ -734,7 +752,7 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                 >
                   Classification Rationale
                 </LqText>
-                <textarea
+                <TextArea
                   value={classificationNotes}
                   onChange={(e) => setClassificationNotes(e.target.value)}
                   placeholder="Explain why you classified this evidence this way..."
@@ -743,7 +761,8 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                 />
                 {classification && (
                   <Flex justify="end" className={styles.formActions}>
-                    <button
+                    <Button
+                      unstyled
                       onClick={() => {
                         const existing = annotations.find((a) => a.type === 'classification');
                         if (existing) {
@@ -758,7 +777,7 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
                     >
                       <Save className={styles.iconTiny} />
                       Save Rationale
-                    </button>
+                    </Button>
                   </Flex>
                 )}
               </Box>
@@ -810,9 +829,9 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
             <LqText variant="xs" color="muted">
               {annotations.length} observation{annotations.length !== 1 ? 's' : ''} recorded
             </LqText>
-            <button onClick={onClose} className={styles.closeButton}>
+            <Button unstyled onClick={onClose} className={styles.closeButton}>
               Close Panel
-            </button>
+            </Button>
           </Flex>
         </Box>
       </Surface>

@@ -2,6 +2,8 @@ import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import s from './CollapsibleSplitPane.module.css';
 
+import { Button } from '../../design-system/lib';
+
 interface CollapsibleSplitPaneProps {
   mode?: 'split' | 'singleRight';
   left: React.ReactNode;
@@ -139,7 +141,8 @@ export const CollapsibleSplitPane: React.FC<CollapsibleSplitPaneProps> = ({
           <div className={s.singleRightContent}>
             <div className={s.sidebarInner}>{collapsed ? collapsedRight : right}</div>
 
-            <button
+            <Button
+              unstyled
               type="button"
               onClick={() => setCollapsed(!collapsed)}
               className={s.panelToggleBtn}
@@ -148,11 +151,12 @@ export const CollapsibleSplitPane: React.FC<CollapsibleSplitPaneProps> = ({
             >
               {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
               {!collapsed && <span className={s.toggleLabel}>Collapse Sidebar</span>}
-            </button>
+            </Button>
           </div>
 
           {!collapsed && (
-            <button
+            <Button
+              unstyled
               type="button"
               onPointerDown={startResize}
               onKeyDown={handleDividerKeyDown}
@@ -172,7 +176,8 @@ export const CollapsibleSplitPane: React.FC<CollapsibleSplitPaneProps> = ({
 
       <div className={s.rightPaneOuter} style={rightStyle}>
         {!collapsed && (
-          <button
+          <Button
+            unstyled
             type="button"
             onPointerDown={startResize}
             onKeyDown={handleDividerKeyDown}
@@ -182,7 +187,8 @@ export const CollapsibleSplitPane: React.FC<CollapsibleSplitPaneProps> = ({
           />
         )}
 
-        <button
+        <Button
+          unstyled
           type="button"
           onClick={() => setCollapsed(!collapsed)}
           className={s.splitCollapseBtn}
@@ -190,7 +196,7 @@ export const CollapsibleSplitPane: React.FC<CollapsibleSplitPaneProps> = ({
           title={collapsed ? expandAriaLabel : collapseAriaLabel}
         >
           {collapsed ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
-        </button>
+        </Button>
 
         <div className={s.splitRightContent}>{collapsed ? collapsedRight : right}</div>
       </div>

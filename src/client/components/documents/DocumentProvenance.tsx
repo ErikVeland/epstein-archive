@@ -8,6 +8,8 @@ import { Box } from '../../design-system/components/layout/Box';
 import { Flex } from '../../design-system/components/layout/Flex';
 import { LqText } from '../../design-system/components/typography/Text';
 
+import { Button } from '../../design-system/lib';
+
 interface DocumentLineage {
   document: {
     id: number;
@@ -136,7 +138,7 @@ export const DocumentProvenance: React.FC<DocumentProvenanceProps> = ({
   // Compact view for in-document display
   if (compact && !expanded) {
     return (
-      <button onClick={() => setExpanded(true)} className={styles.closeButton}>
+      <Button unstyled onClick={() => setExpanded(true)} className={styles.closeButton}>
         <Flex align="center" gap="sm">
           <Icon name="Shield" />
           <LqText variant="xs" color="muted">
@@ -147,7 +149,7 @@ export const DocumentProvenance: React.FC<DocumentProvenanceProps> = ({
           </LqText>
           <Icon name="ChevronDown" />
         </Flex>
-      </button>
+      </Button>
     );
   }
 
@@ -160,9 +162,9 @@ export const DocumentProvenance: React.FC<DocumentProvenanceProps> = ({
           Document Provenance
         </LqText>
         {compact && (
-          <button onClick={() => setExpanded(false)} className={styles.closeButton}>
+          <Button unstyled onClick={() => setExpanded(false)} className={styles.closeButton}>
             <Icon name="X" size="sm" />
-          </button>
+          </Button>
         )}
       </Box>
 

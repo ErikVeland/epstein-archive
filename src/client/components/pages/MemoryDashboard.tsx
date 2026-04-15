@@ -3,6 +3,8 @@ import { useMemory } from '../../contexts/MemoryContext';
 import type { MemoryEntry, MemorySearchFilters } from '../../types/memory';
 import s from './MemoryDashboard.module.css';
 
+import { Button, Input, NativeSelect, TextArea } from '../../design-system/lib';
+
 const MemoryDashboard: React.FC = () => {
   const {
     state,
@@ -78,7 +80,7 @@ const MemoryDashboard: React.FC = () => {
         <div className={s.filterGrid}>
           <div>
             <label className={s.label}>Memory Type</label>
-            <select
+            <NativeSelect
               value={searchFilters.memoryType || ''}
               onChange={(e) =>
                 setSearchFilters({
@@ -93,12 +95,12 @@ const MemoryDashboard: React.FC = () => {
               <option value="episodic">Episodic</option>
               <option value="working">Working</option>
               <option value="procedural">Procedural</option>
-            </select>
+            </NativeSelect>
           </div>
 
           <div>
             <label className={s.label}>Status</label>
-            <select
+            <NativeSelect
               value={searchFilters.status || ''}
               onChange={(e) =>
                 setSearchFilters({
@@ -112,12 +114,12 @@ const MemoryDashboard: React.FC = () => {
               <option value="active">Active</option>
               <option value="archived">Archived</option>
               <option value="deprecated">Deprecated</option>
-            </select>
+            </NativeSelect>
           </div>
 
           <div>
             <label className={s.label}>Search</label>
-            <input
+            <Input
               type="text"
               value={searchFilters.searchQuery || ''}
               onChange={(e) =>
@@ -132,9 +134,9 @@ const MemoryDashboard: React.FC = () => {
           </div>
 
           <div className={s.filterEnd}>
-            <button onClick={handleSearch} className={s.btn}>
+            <Button unstyled onClick={handleSearch} className={s.btn}>
               Search
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -143,16 +145,16 @@ const MemoryDashboard: React.FC = () => {
       <div className={s.section}>
         <div className={s.sectionHeader}>
           <h2 className={s.sectionTitle}>Create New Memory</h2>
-          <button onClick={() => setIsCreating(!isCreating)} className={s.toggleBtn}>
+          <Button unstyled onClick={() => setIsCreating(!isCreating)} className={s.toggleBtn}>
             {isCreating ? 'Cancel' : 'Create New'}
-          </button>
+          </Button>
         </div>
 
         {isCreating && (
           <div className={s.createForm}>
             <div>
               <label className={s.label}>Memory Type</label>
-              <select
+              <NativeSelect
                 value={newMemoryType}
                 onChange={(e) =>
                   setNewMemoryType(
@@ -165,12 +167,12 @@ const MemoryDashboard: React.FC = () => {
                 <option value="episodic">Episodic</option>
                 <option value="working">Working</option>
                 <option value="procedural">Procedural</option>
-              </select>
+              </NativeSelect>
             </div>
 
             <div>
               <label className={s.label}>Content</label>
-              <textarea
+              <TextArea
                 value={newMemoryContent}
                 onChange={(e) => setNewMemoryContent(e.target.value)}
                 rows={4}
@@ -181,7 +183,7 @@ const MemoryDashboard: React.FC = () => {
 
             <div>
               <label className={s.label}>Context Tags (comma-separated)</label>
-              <input
+              <Input
                 type="text"
                 value={newMemoryTags}
                 onChange={(e) => setNewMemoryTags(e.target.value)}
@@ -190,13 +192,14 @@ const MemoryDashboard: React.FC = () => {
               />
             </div>
 
-            <button
+            <Button
+              unstyled
               onClick={handleCreateMemory}
               disabled={!newMemoryContent.trim()}
               className={s.createBtn}
             >
               Create Memory
-            </button>
+            </Button>
           </div>
         )}
       </div>
@@ -261,7 +264,8 @@ const MemoryDashboard: React.FC = () => {
                   </div>
 
                   <div className={s.memoryActions}>
-                    <button
+                    <Button
+                      unstyled
                       onClick={(e) => {
                         e.stopPropagation();
                         handleDelete(memory.id);
@@ -281,7 +285,7 @@ const MemoryDashboard: React.FC = () => {
                           d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                         />
                       </svg>
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -301,7 +305,8 @@ const MemoryDashboard: React.FC = () => {
               of <span className={s.paginationEmphasis}>{state.totalEntries}</span> results
             </div>
             <div className={s.paginationButtons}>
-              <button
+              <Button
+                unstyled
                 onClick={() =>
                   loadMemoryEntries(searchFilters, Math.max(1, state.currentPage - 1), 20)
                 }
@@ -309,8 +314,9 @@ const MemoryDashboard: React.FC = () => {
                 className={s.pageBtn}
               >
                 Previous
-              </button>
-              <button
+              </Button>
+              <Button
+                unstyled
                 onClick={() =>
                   loadMemoryEntries(
                     searchFilters,
@@ -322,7 +328,7 @@ const MemoryDashboard: React.FC = () => {
                 className={s.pageBtn}
               >
                 Next
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -335,7 +341,8 @@ const MemoryDashboard: React.FC = () => {
             <h2 className={s.sectionTitle}>Memory Details</h2>
             <div className={s.detailHeaderActions}>
               {!isEditing && (
-                <button
+                <Button
+                  unstyled
                   onClick={() => {
                     setIsEditing(true);
                     setEditContent(selectedMemory.content);
@@ -345,9 +352,10 @@ const MemoryDashboard: React.FC = () => {
                   className={s.editLink}
                 >
                   Edit
-                </button>
+                </Button>
               )}
-              <button
+              <Button
+                unstyled
                 onClick={() => {
                   setSelectedMemory(null);
                   selectMemoryEntry(null);
@@ -363,7 +371,7 @@ const MemoryDashboard: React.FC = () => {
                     d="M6 18L18 6M6 6l12 12"
                   />
                 </svg>
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -387,7 +395,7 @@ const MemoryDashboard: React.FC = () => {
               <div>
                 <label className={s.detailLabel}>Status</label>
                 {isEditing ? (
-                  <select
+                  <NativeSelect
                     value={editStatus}
                     onChange={(e) =>
                       setEditStatus(e.target.value as 'active' | 'archived' | 'deprecated')
@@ -397,7 +405,7 @@ const MemoryDashboard: React.FC = () => {
                     <option value="active">Active</option>
                     <option value="archived">Archived</option>
                     <option value="deprecated">Deprecated</option>
-                  </select>
+                  </NativeSelect>
                 ) : (
                   <p className={s.detailValue}>{selectedMemory.status}</p>
                 )}
@@ -407,7 +415,7 @@ const MemoryDashboard: React.FC = () => {
             <div>
               <label className={s.detailLabel}>Tags</label>
               {isEditing ? (
-                <input
+                <Input
                   type="text"
                   value={editTags}
                   onChange={(e) => setEditTags(e.target.value)}
@@ -444,7 +452,8 @@ const MemoryDashboard: React.FC = () => {
 
             {isEditing && selectedMemory && (
               <div className={s.editActions}>
-                <button
+                <Button
+                  unstyled
                   type="button"
                   onClick={() => {
                     setIsEditing(false);
@@ -455,8 +464,9 @@ const MemoryDashboard: React.FC = () => {
                   className={s.cancelBtn}
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
+                  unstyled
                   type="button"
                   onClick={async () => {
                     const tags = editTags
@@ -475,7 +485,7 @@ const MemoryDashboard: React.FC = () => {
                   className={s.saveBtn}
                 >
                   Save Changes
-                </button>
+                </Button>
               </div>
             )}
 

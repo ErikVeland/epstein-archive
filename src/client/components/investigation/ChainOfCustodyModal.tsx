@@ -14,7 +14,16 @@ import {
 } from 'lucide-react';
 
 // UI Library
-import { Surface, Button, Flex, Box, Stack, Grid, LqText } from '../../design-system/lib';
+import {
+  Box,
+  Button,
+  Flex,
+  Grid,
+  LqText,
+  Stack,
+  Surface,
+  TextInput,
+} from '../../design-system/lib';
 import { useScrollLock } from '../../hooks/useScrollLock';
 import { CloseButton } from '../common/CloseButton';
 import styles from './ChainOfCustodyModal.module.css';
@@ -94,7 +103,8 @@ export const ChainOfCustodyModal: React.FC<Props> = ({ evidenceId, onClose }) =>
     <Box className={styles.autoGen10} onClick={onClose}>
       <Surface
         variant="panel"
-        style={{ width: 600, padding: 0 }}
+        width={600}
+        p="none"
         className={styles.autoGen11}
         onClick={(e) => e.stopPropagation()}
       >
@@ -113,7 +123,8 @@ export const ChainOfCustodyModal: React.FC<Props> = ({ evidenceId, onClose }) =>
                   variant="small"
                   color="muted"
                   weight="bold"
-                  style={{ textTransform: 'uppercase', marginTop: 'var(--spacing-xs)' }}
+                  mt="var(--space-xs)"
+                  style={{ textTransform: 'uppercase' }}
                 >
                   Forensic Audit Trail • Signal Integrity Preservation
                 </LqText>
@@ -121,12 +132,12 @@ export const ChainOfCustodyModal: React.FC<Props> = ({ evidenceId, onClose }) =>
               <CloseButton onClick={onClose} size="md" />
             </Flex>
 
-            <Flex gap="md" style={{ marginTop: 'var(--spacing-xl)' }}>
+            <Flex gap="md" mt="xl">
               <Button variant="ghost" size="sm" onClick={exportReport} className={styles.autoGen15}>
-                <FileText size={12} className="mr-1" /> EXPORT REPORT
+                <FileText size={12} className={styles.mr1} /> EXPORT REPORT
               </Button>
               <Button variant="ghost" size="sm" onClick={exportCsv} className={styles.autoGen16}>
-                <Download size={12} className="mr-1" /> EXPORT CSV
+                <Download size={12} className={styles.mr1} /> EXPORT CSV
               </Button>
               <Button
                 variant="ghost"
@@ -134,7 +145,7 @@ export const ChainOfCustodyModal: React.FC<Props> = ({ evidenceId, onClose }) =>
                 onClick={openPrintable}
                 className={styles.autoGen17}
               >
-                <Printer size={12} className="mr-1" /> PRINTABLE PDF
+                <Printer size={12} className={styles.mr1} /> PRINTABLE PDF
               </Button>
             </Flex>
           </Surface>
@@ -229,17 +240,7 @@ export const ChainOfCustodyModal: React.FC<Props> = ({ evidenceId, onClose }) =>
                   <LqText variant="xs" weight="bold" color="muted">
                     HANDLER NAME
                   </LqText>
-                  <input
-                    style={{
-                      width: '100%',
-                      background: 'var(--lq-surface-3)',
-                      border: '1px solid var(--lq-surface-4)',
-                      borderRadius: '0.375rem',
-                      padding: '0.5rem 0.75rem',
-                      fontSize: '0.875rem',
-                      color: 'var(--lq-text-primary)',
-                      outline: 'none',
-                    }}
+                  <TextInput
                     value={actor}
                     onChange={(e) => setActor(e.target.value)}
                     placeholder="Investigator Code..."
@@ -249,17 +250,7 @@ export const ChainOfCustodyModal: React.FC<Props> = ({ evidenceId, onClose }) =>
                   <LqText variant="xs" weight="bold" color="muted">
                     ACTION MODALITY
                   </LqText>
-                  <input
-                    style={{
-                      width: '100%',
-                      background: 'var(--lq-surface-3)',
-                      border: '1px solid var(--lq-surface-4)',
-                      borderRadius: '0.375rem',
-                      padding: '0.5rem 0.75rem',
-                      fontSize: '0.875rem',
-                      color: 'var(--lq-text-primary)',
-                      outline: 'none',
-                    }}
+                  <TextInput
                     value={action}
                     onChange={(e) => setAction(e.target.value)}
                     placeholder="Analyzed / Transfer..."
@@ -269,17 +260,7 @@ export const ChainOfCustodyModal: React.FC<Props> = ({ evidenceId, onClose }) =>
                   <LqText variant="xs" weight="bold" color="muted">
                     ANNOTATIONS
                   </LqText>
-                  <input
-                    style={{
-                      width: '100%',
-                      background: 'var(--lq-surface-3)',
-                      border: '1px solid var(--lq-surface-4)',
-                      borderRadius: '0.375rem',
-                      padding: '0.5rem 0.75rem',
-                      fontSize: '0.875rem',
-                      color: 'var(--lq-text-primary)',
-                      outline: 'none',
-                    }}
+                  <TextInput
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     placeholder="Optional context..."
@@ -288,7 +269,7 @@ export const ChainOfCustodyModal: React.FC<Props> = ({ evidenceId, onClose }) =>
               </Grid>
 
               <Button variant="secondary" size="sm" onClick={addEvent} disabled={!actor || !action}>
-                <CheckCircle size={14} className="mr-2" /> Commit Forensic Signature
+                <CheckCircle size={14} className={styles.mr2} /> Commit Forensic Signature
               </Button>
             </Stack>
           </Surface>

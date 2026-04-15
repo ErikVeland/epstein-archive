@@ -13,7 +13,7 @@ import {
 import { TranscriptSegment, Chapter } from './AudioPlayer';
 import { CloseButton } from '../common/CloseButton';
 import { useScrollLock } from '../../hooks/useScrollLock';
-import { Button, SearchField, Surface } from '../../design-system/lib';
+import { Button, Input, SearchField, Surface } from '../../design-system/lib';
 import { cn } from '@client/utils/cn';
 import styles from './VideoPlayer.module.css';
 
@@ -371,13 +371,13 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
             </div>
           </div>
           <div className={styles.headerActions}>
-            <button onClick={handleShare} className={styles.iconButton} title="Copy link">
+            <Button unstyled onClick={handleShare} className={styles.iconButton} title="Copy link">
               {showCopied ? (
                 <Check size={16} className={styles.successIcon} />
               ) : (
                 <Share2 size={16} />
               )}
-            </button>
+            </Button>
             <Button
               onClick={openFullTranscript}
               variant="secondary"
@@ -401,7 +401,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
               Read Full Transcript
             </Button>
             {(transcript.length > 0 || chapters.length > 0) && (
-              <button
+              <Button
+                unstyled
                 onClick={toggleTranscript}
                 className={styles.iconButton}
                 title={showTranscript ? 'Hide transcript' : 'Show transcript'}
@@ -419,7 +420,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                   />
                 </svg>
-              </button>
+              </Button>
             )}
             {onClose && (
               <CloseButton
@@ -449,13 +450,13 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
               <p className={styles.warningBody}>{warningText}</p>
               <div className={styles.warningActions}>
                 {onClose && (
-                  <button onClick={onClose} className={styles.warningCancel}>
+                  <Button unstyled onClick={onClose} className={styles.warningCancel}>
                     Cancel
-                  </button>
+                  </Button>
                 )}
-                <button onClick={handleReveal} className={styles.warningReveal}>
+                <Button unstyled onClick={handleReveal} className={styles.warningReveal}>
                   Reveal &amp; Play
-                </button>
+                </Button>
               </div>
             </div>
           )}
@@ -486,7 +487,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
               )}
             >
               <div className={styles.progressGroup}>
-                <input
+                <Input
                   type="range"
                   min="0"
                   max={duration || 100}
@@ -514,16 +515,17 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
               <div className={styles.bottomControls}>
                 <div className={styles.transportCluster}>
-                  <button onClick={togglePlay} className={styles.transportButton}>
+                  <Button unstyled onClick={togglePlay} className={styles.transportButton}>
                     {isPlaying ? (
                       <Pause size={24} fill="currentColor" />
                     ) : (
                       <Play size={24} fill="currentColor" />
                     )}
-                  </button>
+                  </Button>
 
                   <div className={styles.volumeCluster}>
-                    <button
+                    <Button
+                      unstyled
                       onClick={() => {
                         setIsMuted(!isMuted);
                         if (videoRef.current) videoRef.current.muted = !isMuted;
@@ -531,8 +533,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                       className={styles.volumeButton}
                     >
                       {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
-                    </button>
-                    <input
+                    </Button>
+                    <Input
                       type="range"
                       min="0"
                       max="1"
@@ -553,7 +555,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                 <div className={styles.rightControls}>
                   <div className={styles.rateGroup}>
                     {[0.5, 1, 1.5, 2].map((rate) => (
-                      <button
+                      <Button
+                        unstyled
                         key={rate}
                         onClick={() => {
                           setPlaybackRate(rate);
@@ -565,13 +568,13 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                         )}
                       >
                         {rate}x
-                      </button>
+                      </Button>
                     ))}
                   </div>
 
-                  <button onClick={toggleFullscreen} className={styles.fullscreenButton}>
+                  <Button unstyled onClick={toggleFullscreen} className={styles.fullscreenButton}>
                     {isFullscreen ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -586,7 +589,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
             )}
           >
             <div className={styles.tabRow}>
-              <button
+              <Button
+                unstyled
                 onClick={() => setShowChapters(false)}
                 className={cn(
                   styles.sidebarTab,
@@ -594,9 +598,10 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                 )}
               >
                 Transcript
-              </button>
+              </Button>
               {chapters.length > 0 && (
-                <button
+                <Button
+                  unstyled
                   onClick={() => setShowChapters(true)}
                   className={cn(
                     styles.sidebarTab,
@@ -604,7 +609,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                   )}
                 >
                   Chapters
-                </button>
+                </Button>
               )}
               <CloseButton
                 onClick={() => setShowTranscript(false)}
@@ -637,22 +642,24 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                               ? `${currentMatchIndex + 1}/${transcriptMatches.length}`
                               : '0/0'}
                           </span>
-                          <button
+                          <Button
+                            unstyled
                             type="button"
                             onClick={goToPrevTranscriptMatch}
                             disabled={!transcriptMatches.length}
                             className={styles.navMiniButton}
                           >
                             ↑
-                          </button>
-                          <button
+                          </Button>
+                          <Button
+                            unstyled
                             type="button"
                             onClick={goToNextTranscriptMatch}
                             disabled={!transcriptMatches.length}
                             className={styles.navMiniButton}
                           >
                             ↓
-                          </button>
+                          </Button>
                         </div>
                       )}
                     </div>
@@ -664,7 +671,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                           !!normalizedTranscriptQuery && transcriptMatches.includes(index);
                         const isCurrent = isMatch && transcriptMatches[currentMatchIndex] === index;
                         return (
-                          <button
+                          <Button
+                            unstyled
                             key={index}
                             onClick={() => seek(seg.start)}
                             className={cn(
@@ -688,7 +696,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                             >
                               {seg.text}
                             </p>
-                          </button>
+                          </Button>
                         );
                       })
                     ) : (
@@ -699,7 +707,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
               ) : (
                 <div className={styles.chapterList}>
                   {chapters.map((chapter, index) => (
-                    <button
+                    <Button
+                      unstyled
                       key={index}
                       onClick={() => seek(chapter.startTime)}
                       className={styles.chapterButton}
@@ -709,7 +718,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                       </div>
                       <div className={styles.chapterButtonTitle}>{chapter.title}</div>
                       <Play size={12} className={styles.chapterButtonIcon} />
-                    </button>
+                    </Button>
                   ))}
                 </div>
               )}
@@ -723,10 +732,11 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           <Surface className={styles.overlayPanel}>
             <div className={styles.overlayHeader}>
               <div className={styles.overlayActions}>
-                <button onClick={togglePlay} className={styles.overlayActionPrimary}>
+                <Button unstyled onClick={togglePlay} className={styles.overlayActionPrimary}>
                   {isPlaying ? 'Pause' : 'Play'}
-                </button>
-                <button
+                </Button>
+                <Button
+                  unstyled
                   onClick={() => {
                     setIsMuted(!isMuted);
                     if (videoRef.current) videoRef.current.muted = !isMuted;
@@ -734,7 +744,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                   className={styles.overlayActionSecondary}
                 >
                   {isMuted ? 'Unmute' : 'Mute'}
-                </button>
+                </Button>
               </div>
               <CloseButton
                 onClick={() => setShowFullTranscriptOverlay(false)}
@@ -763,22 +773,24 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                         ? `${currentMatchIndex + 1}/${transcriptMatches.length}`
                         : '0/0'}
                     </span>
-                    <button
+                    <Button
+                      unstyled
                       type="button"
                       onClick={goToPrevTranscriptMatch}
                       disabled={!transcriptMatches.length}
                       className={styles.navMiniButton}
                     >
                       ↑
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      unstyled
                       type="button"
                       onClick={goToNextTranscriptMatch}
                       disabled={!transcriptMatches.length}
                       className={styles.navMiniButton}
                     >
                       ↓
-                    </button>
+                    </Button>
                   </div>
                 )}
               </div>
@@ -787,7 +799,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                   const isMatch = !!normalizedTranscriptQuery && transcriptMatches.includes(index);
                   const isCurrent = isMatch && transcriptMatches[currentMatchIndex] === index;
                   return (
-                    <button
+                    <Button
+                      unstyled
                       key={index}
                       onClick={() => seek(seg.start)}
                       className={cn(
@@ -806,7 +819,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                         )}
                       </div>
                       <p className={styles.overlaySegmentText}>{seg.text}</p>
-                    </button>
+                    </Button>
                   );
                 })}
               </div>

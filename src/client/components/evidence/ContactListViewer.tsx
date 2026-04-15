@@ -9,6 +9,8 @@ import { Search, Phone, Mail, MapPin, User } from 'lucide-react';
 import { EmptyCorpus } from '../common/EmptyCorpus';
 import styles from './ContactListViewer.module.css';
 
+import { Input } from '../../design-system/lib';
+
 interface ContactListViewerProps {
   evidence: {
     extractedText: string;
@@ -91,7 +93,7 @@ export function ContactListViewer({ evidence }: ContactListViewerProps) {
       <div className={styles.searchWrapper}>
         <div className={styles.searchInputWrapper}>
           <Search className={styles.searchIcon} />
-          <input
+          <Input
             type="text"
             placeholder="Search contacts..."
             value={searchTerm}

@@ -11,6 +11,8 @@ import {
 import { CloseButton } from './common/CloseButton';
 import styles from './FinancialTransactionAnalysis.module.css';
 
+import { Button, NativeSelect } from '../design-system/lib';
+
 interface FinancialTransactionAnalysisProps {
   onTransactionPatternDetected?: (patterns: TransactionPattern[]) => void;
 }
@@ -237,14 +239,15 @@ export const FinancialTransactionAnalysis: React.FC<FinancialTransactionAnalysis
               Analyze financial flows, timing patterns, and transaction anomalies
             </p>
           </div>
-          <button
+          <Button
+            unstyled
             onClick={analyzeTransactions}
             disabled={isAnalyzing}
             className={`${styles.primaryButton} ${isAnalyzing ? styles.primaryButtonDisabled : ''}`}
           >
             <DollarSign className={styles.buttonIcon} />
             {isAnalyzing ? 'Analyzing...' : 'Start Financial Analysis'}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -273,7 +276,8 @@ export const FinancialTransactionAnalysis: React.FC<FinancialTransactionAnalysis
               <div className={styles.pillRow}>
                 {['all', 'flow', 'timing', 'amount', 'geographic', 'entity', 'anomaly'].map(
                   (type) => (
-                    <button
+                    <Button
+                      unstyled
                       key={type}
                       onClick={() => setFilterType(type as typeof filterType)}
                       className={`${styles.filterPill} ${
@@ -281,14 +285,14 @@ export const FinancialTransactionAnalysis: React.FC<FinancialTransactionAnalysis
                       }`}
                     >
                       {type.charAt(0).toUpperCase() + type.slice(1)}
-                    </button>
+                    </Button>
                   ),
                 )}
               </div>
             </div>
             <div className={styles.sortGroup}>
               <span className={styles.label}>Sort by:</span>
-              <select
+              <NativeSelect
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
                 className={styles.select}
@@ -296,7 +300,7 @@ export const FinancialTransactionAnalysis: React.FC<FinancialTransactionAnalysis
                 <option value="confidence">Confidence</option>
                 <option value="severity">Severity</option>
                 <option value="amount">Total Amount</option>
-              </select>
+              </NativeSelect>
             </div>
           </div>
         </div>
@@ -534,10 +538,16 @@ export const FinancialTransactionAnalysis: React.FC<FinancialTransactionAnalysis
             </div>
 
             <div className={styles.modalFooter}>
-              <button onClick={() => setSelectedPattern(null)} className={styles.secondaryButton}>
+              <Button
+                unstyled
+                onClick={() => setSelectedPattern(null)}
+                className={styles.secondaryButton}
+              >
                 Close
-              </button>
-              <button className={styles.primaryButton}>Add to Investigation</button>
+              </Button>
+              <Button unstyled className={styles.primaryButton}>
+                Add to Investigation
+              </Button>
             </div>
           </div>
         </div>
@@ -553,9 +563,9 @@ export const FinancialTransactionAnalysis: React.FC<FinancialTransactionAnalysis
             timing, amounts, and geographic distribution.
           </p>
           {analysisMessage ? <p className={styles.warningNote}>{analysisMessage}</p> : null}
-          <button onClick={analyzeTransactions} className={styles.primaryButton}>
+          <Button unstyled onClick={analyzeTransactions} className={styles.primaryButton}>
             Start Financial Analysis
-          </button>
+          </Button>
         </div>
       )}
     </div>

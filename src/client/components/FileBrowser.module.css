@@ -25,6 +25,12 @@
   transition: transform var(--duration-fast);
 }
 
+.categoryIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-bottom: var(--space-2);
+}
+
 .categoryButton:hover {
   transform: translateY(-2px);
 }
@@ -94,32 +100,9 @@
   position: relative;
 }
 
-.searchIcon {
-  position: absolute;
-  left: 0.75rem;
-  top: 50%;
-  width: 1.25rem;
-  height: 1.25rem;
-  color: var(--text-muted);
-  transform: translateY(-50%);
-}
-
 .searchInput {
   width: 100%;
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
-  background: var(--glass-bg-highlight);
-  color: var(--text-primary);
-}
-
-.searchInput::placeholder {
-  color: #9ca3af;
-}
-
-.searchInput:focus {
-  border-color: transparent;
-  outline: none;
-  box-shadow: 0 0 0 2px var(--accent);
+  background: transparent;
 }
 
 .fileListShell {
@@ -140,6 +123,10 @@
   font-size: 0.875rem;
 }
 
+.listHeader {
+  border-bottom: 1px solid var(--glass-border);
+}
+
 .fileTypeIcon {
   width: 1.25rem;
   height: 1.25rem;
@@ -156,14 +143,35 @@
   width: 3rem;
   height: 3rem;
   color: var(--text-muted);
-  margin: 0 auto;
+  margin: 0 auto var(--space-4);
+}
+
+.emptyState {
+  text-align: center;
 }
 
 .modalOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: var(--glass-bg-strong);
+  backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: var(--z-modal);
+}
+
+.modalShell {
+  overflow: hidden;
+}
+
+.modalHeader {
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.modalBody {
+  overflow-y: auto;
+  max-height: 60vh;
 }
 
 .modalFileIcon {
@@ -210,11 +218,26 @@
   text-transform: capitalize;
 }
 
+.previewSection {
+  border-top: 1px solid var(--glass-border);
+}
+
+.previewSurface {
+  max-height: 16rem;
+  overflow-y: auto;
+}
+
 .contentPreview {
   color: var(--text-secondary);
   font-size: 0.875rem;
   font-family: var(--font-mono);
   white-space: pre-wrap;
+  margin: 0;
+}
+
+.previewMessage {
+  color: var(--text-muted);
+  font-size: 0.875rem;
   margin: 0;
 }
 

@@ -7,6 +7,8 @@ import { Grid } from '../design-system/components/layout/Grid';
 import { LqText } from '../design-system/components/typography/Text';
 import styles from './TheEpsteinFilesPage.module.css';
 
+const css = <T,>(style: T) => style;
+
 type LandingVariant = 'overview' | 'documents' | 'people' | 'media' | 'timeline' | 'flights';
 
 interface TheEpsteinFilesPageProps {
@@ -146,7 +148,7 @@ export const TheEpsteinFilesPage: React.FC<TheEpsteinFilesPageProps> = ({ varian
                 key={item.href}
                 variant="glass"
                 className={styles.discoveryCard}
-                style={{ padding: 0 }}
+                style={css({ padding: 0 })}
               >
                 <Link to={item.href} className={styles.discoveryLink}>
                   {item.label}

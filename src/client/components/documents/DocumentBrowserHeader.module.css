@@ -128,7 +128,7 @@
 
 /* Select controls reusing .control global class but with explicit sizing */
 .selectControl {
-  height: 2.75rem;
+  min-height: var(--control-height-compact);
   padding-left: var(--space-3);
   padding-right: var(--space-3);
   font-size: var(--type-small);

@@ -29,17 +29,20 @@ import { computeForensicConfidence, type ConfidenceResult } from '../../utils/fo
 
 // UI Library
 import {
-  Surface,
+  Badge,
+  Box,
   Button,
   Flex,
-  Box,
-  Stack,
-  LqText,
   Grid,
+  Input,
+  LqText,
+  Stack,
+  Surface,
   cn,
-  Badge,
 } from '../../design-system/lib';
 import styles from './ForensicAnalysisWorkspace.module.css';
+
+const css = <T,>(style: T) => style;
 
 interface ForensicAnalysisWorkspaceProps {
   investigation: Investigation;
@@ -287,7 +290,7 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
   };
 
   return (
-    <Box className={styles.autoGen71} style={{ backgroundColor: 'var(--lq-surface-1)' }}>
+    <Box className={styles.autoGen71} style={css({ backgroundColor: 'var(--lq-surface-1)' })}>
       {/* Global Header */}
       <Surface variant="glass" p="xl" className={styles.autoGen72}>
         <Flex justify="between" align="center">
@@ -303,7 +306,7 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
                 variant="small"
                 color="muted"
                 weight="bold"
-                style={{ textTransform: 'uppercase', marginTop: 'var(--spacing-xs)' }}
+                style={css({ textTransform: 'uppercase', marginTop: 'var(--spacing-xs)' })}
               >
                 {investigation.title} • Agentic Reasoning Layer
               </LqText>
@@ -338,17 +341,22 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
         </Flex>
 
         {/* Reliability Explanation */}
-        <Box style={{ marginTop: 'var(--spacing-lg)' }}>
+        <Box style={css({ marginTop: 'var(--spacing-lg)' })}>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setShowReliabilityInfo(!showReliabilityInfo)}
-            style={{ paddingLeft: 0, paddingRight: 0 }}
+            style={css({ paddingLeft: 0, paddingRight: 0 })}
           >
-            <Info size={12} style={{ marginRight: '0.25rem' }} /> Understanding Forensic Confidence
+            <Info size={12} style={css({ marginRight: '0.25rem' })} /> Understanding Forensic
+            Confidence
           </Button>
           {showReliabilityInfo && (
-            <Surface variant="glass-highlight" p="md" style={{ marginTop: 'var(--spacing-sm)' }}>
+            <Surface
+              variant="glass-highlight"
+              p="md"
+              style={css({ marginTop: 'var(--spacing-sm)' })}
+            >
               <LqText variant="xs" color="muted">
                 Confidence represents the cumulative reliability score based on (40%) Coverage,
                 (25%) Signal Quality, (25%) Corroboration, and (10%) Model Certainty. Scores are
@@ -363,21 +371,21 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
           <Surface
             variant="glass-highlight"
             p="lg"
-            style={{ marginTop: 'var(--spacing-lg)' }}
+            style={css({ marginTop: 'var(--spacing-lg)' })}
             className={styles.autoGen80}
           >
             <LqText
               variant="small"
               weight="bold"
               color="muted"
-              style={{ textTransform: 'uppercase', marginBottom: 'var(--spacing-md)' }}
+              style={css({ textTransform: 'uppercase', marginBottom: 'var(--spacing-md)' })}
             >
               Authorized Forensic Modules
             </LqText>
             <Grid cols={5} gap="md">
               {forensicTools.map((tool) => (
                 <Flex key={tool.id} align="center" gap="sm" className={styles.autoGen81}>
-                  <input
+                  <Input
                     type="checkbox"
                     checked={enabledTools[tool.id as keyof typeof enabledTools]}
                     onChange={() =>
@@ -401,7 +409,7 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
         {/* Module Sidebar */}
         <Surface
           variant="glass-highlight"
-          style={{ width: toolsCollapsed ? 80 : 320 }}
+          style={css({ width: toolsCollapsed ? 80 : 320 })}
           className={styles.autoGen83}
         >
           <Stack gap="xl" p="lg" className={styles.autoGen84}>
@@ -411,7 +419,7 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
                   variant="small"
                   weight="bold"
                   color="muted"
-                  style={{ textTransform: 'uppercase' }}
+                  style={css({ textTransform: 'uppercase' })}
                 >
                   Forensic Tools
                 </LqText>
@@ -442,7 +450,8 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
                       <Flex align="center" gap="md">
                         <Box
                           className={cn(
-                            'p-2 rounded-lg',
+                            styles.p2,
+                            'rounded-lg',
                             isActive
                               ? 'bg-[var(--lq-accent)] text-white'
                               : 'bg-[var(--lq-surface-3)] text-[var(--lq-text-muted)]',
@@ -465,10 +474,10 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
                       {!toolsCollapsed && (
                         <Stack
                           gap="sm"
-                          style={{
+                          style={css({
                             marginTop: 'var(--spacing-md)',
                             paddingTop: 'var(--spacing-md)',
-                          }}
+                          })}
                           className={styles.autoGen87}
                         >
                           <Flex justify="between">
@@ -504,12 +513,12 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
                             >
                               {toolRunState[tool.id] === 'running' ? (
                                 <RefreshCw
-                                  style={{ marginRight: '0.25rem' }}
+                                  style={css({ marginRight: '0.25rem' })}
                                   className={styles.spin}
                                   size={10}
                                 />
                               ) : (
-                                <Activity size={10} style={{ marginRight: '0.25rem' }} />
+                                <Activity size={10} style={css({ marginRight: '0.25rem' })} />
                               )}
                               Process Signal
                             </Button>
@@ -531,7 +540,7 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
                   variant="xs"
                   weight="bold"
                   color="muted"
-                  style={{ textTransform: 'uppercase', marginBottom: 'var(--spacing-sm)' }}
+                  style={css({ textTransform: 'uppercase', marginBottom: 'var(--spacing-sm)' })}
                 >
                   Case Context
                 </LqText>
@@ -592,7 +601,7 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
         <Box className={styles.autoGen91} onClick={() => setSelectedConfidenceTool(null)}>
           <Surface
             variant="glass"
-            style={{ width: 500, padding: 'var(--spacing-xl)' }}
+            style={css({ width: 500, padding: 'var(--spacing-xl)' })}
             className={styles.autoGen92}
             onClick={(e) => e.stopPropagation()}
           >
@@ -691,8 +700,8 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
                       size="sm"
                       onClick={() => console.log(details.factorInputs)}
                     >
-                      <ShieldCheck size={14} style={{ marginRight: '0.25rem' }} /> Log Raw Factor
-                      Inputs to Console
+                      <ShieldCheck size={14} style={css({ marginRight: '0.25rem' })} /> Log Raw
+                      Factor Inputs to Console
                     </Button>
                   </Stack>
                 );

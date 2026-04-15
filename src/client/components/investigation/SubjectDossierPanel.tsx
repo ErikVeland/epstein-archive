@@ -17,18 +17,21 @@ import {
 
 // UI Library
 import {
-  Surface,
+  Badge,
+  Box,
   Button,
   Flex,
-  Box,
-  Stack,
-  LqText,
   Grid,
-  cn,
-  Badge,
+  Input,
+  LqText,
   Skeleton,
+  Stack,
+  Surface,
+  cn,
 } from '../../design-system/lib';
 import styles from './SubjectDossierPanel.module.css';
+
+const css = <T,>(style: T) => style;
 
 interface EntitySummary {
   id: string | number;
@@ -143,10 +146,10 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
         ref={modalRef}
         tabIndex={-1}
         variant="glass"
-        style={{ height: '100%', width: 500 }}
+        style={css({ height: '100%', width: 500 })}
         className={styles.panel}
       >
-        <Stack gap="xl" style={{ height: '100%' }}>
+        <Stack gap="xl" style={css({ height: '100%' })}>
           {/* Header */}
           <Surface variant="glass" p="lg" className={styles.header}>
             <Flex justify="between" align="center">
@@ -160,7 +163,7 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
                 <LqText
                   variant="xs"
                   color="muted"
-                  style={{ textTransform: 'uppercase' }}
+                  style={css({ textTransform: 'uppercase' })}
                   weight="bold"
                 >
                   Intel Extraction • Profile Metadata
@@ -177,9 +180,9 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
             <form onSubmit={handleSearch}>
               <Box className={styles.searchWrapper}>
                 <Search className={styles.searchIcon} size={16} />
-                <input
+                <Input
                   type="text"
-                  style={{
+                  style={css({
                     width: '100%',
                     background: 'var(--lq-surface-3)',
                     border: '1px solid var(--lq-surface-4)',
@@ -188,7 +191,7 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
                     fontSize: '0.875rem',
                     color: 'var(--lq-text-primary)',
                     outline: 'none',
-                  }}
+                  })}
                   placeholder="Search subjects by name…"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -202,14 +205,14 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
 
           {/* Search Results Dropdown */}
           {searchResults.length > 0 && !selectedEntity && (
-            <Box px="lg" style={{ zIndex: 10 }}>
+            <Box px="lg" style={css({ zIndex: 10 })}>
               <Surface variant="glass-highlight" p="sm" className={styles.searchResults}>
                 <Stack gap="xs">
                   {searchResults.map((entity) => (
                     <Button
                       key={entity.id}
                       variant="ghost"
-                      style={{ justifyContent: 'start' }}
+                      style={css({ justifyContent: 'start' })}
                       onClick={() => {
                         setSearchResults([]);
                         setSearchQuery('');
@@ -317,7 +320,7 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
                           variant="xs"
                           weight="bold"
                           color="muted"
-                          style={{ textTransform: 'uppercase' }}
+                          style={css({ textTransform: 'uppercase' })}
                         >
                           Red Flag Index
                         </LqText>
@@ -338,7 +341,7 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
                           variant="xs"
                           weight="bold"
                           color="muted"
-                          style={{ textTransform: 'uppercase' }}
+                          style={css({ textTransform: 'uppercase' })}
                         >
                           Mention Count
                         </LqText>
@@ -357,7 +360,7 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
                       variant="xs"
                       weight="bold"
                       color="muted"
-                      style={{ textTransform: 'uppercase' }}
+                      style={css({ textTransform: 'uppercase' })}
                     >
                       Known Identities & Aliases
                     </LqText>
@@ -380,7 +383,7 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
                     variant="xs"
                     weight="bold"
                     color="muted"
-                    style={{ textTransform: 'uppercase' }}
+                    style={css({ textTransform: 'uppercase' })}
                   >
                     Recent Linked Evidence
                   </LqText>
@@ -420,9 +423,10 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
                     onClick={() =>
                       window.open(`/documents?entityId=${selectedEntity.id}`, '_blank')
                     }
-                    style={{ marginTop: 'var(--space-sm)' }}
+                    style={css({ marginTop: 'var(--space-sm)' })}
                   >
-                    View All Mentions <ExternalLink size={10} style={{ marginLeft: '0.25rem' }} />
+                    View All Mentions{' '}
+                    <ExternalLink size={10} style={css({ marginLeft: '0.25rem' })} />
                   </Button>
                 </Stack>
               </Stack>

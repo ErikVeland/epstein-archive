@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Surface } from '../../design-system/lib';
+import { Button, Select, Surface, TextInput, Textarea } from '../../design-system/lib';
 import { Investigation } from '../../types/investigation';
 import Icon from './Icon';
 import { useInvestigations } from '../../contexts/InvestigationsContext';
@@ -179,66 +179,75 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
   return (
     <>
       {variant === 'button' && (
-        <button
+        <Button
           type="button"
           onClick={(event) => {
             maybeStopPropagation(event);
             if (!hasInvestigations) setIsCreatingNew(true);
             setShowModal(true);
           }}
-          className={`${s.triggerButton} ${size === 'sm' ? s.triggerButtonSm : size === 'lg' ? s.triggerButtonLg : ''} ${className}`}
+          variant="primary"
+          size={size}
+          className={`${s.triggerButton} ${className}`}
           title="Add to Investigation"
         >
           <Icon name="Plus" size="sm" />
           {hasInvestigations ? 'Add to Investigation' : 'Create Case + Add'}
-        </button>
+        </Button>
       )}
 
       {variant === 'icon' && (
-        <button
+        <Button
           type="button"
           onClick={(event) => {
             maybeStopPropagation(event);
             if (!hasInvestigations) setIsCreatingNew(true);
             setShowModal(true);
           }}
+          iconOnly
+          variant="ghost"
+          size="sm"
           className={`${s.triggerIcon} ${className}`}
           title="Add to Investigation"
         >
           <Icon name="Plus" size="sm" />
-        </button>
+        </Button>
       )}
 
       {variant === 'dropdown' && (
         <div className={s.dropdownWrapper}>
-          <button
+          <Button
             type="button"
             onClick={(event) => {
               maybeStopPropagation(event);
               if (!hasInvestigations) setIsCreatingNew(true);
               setShowModal(true);
             }}
+            variant="ghost"
+            size={size}
             className={`${s.triggerDropdown} ${className}`}
           >
             <Icon name="Plus" size="sm" />
             <span>Add to Investigation</span>
-          </button>
+          </Button>
         </div>
       )}
 
       {variant === 'quick' && (
-        <button
+        <Button
           type="button"
           onClick={(event) => {
             maybeStopPropagation(event);
             void handleQuickAdd();
           }}
           disabled={isLoading}
+          variant="glass"
+          size="sm"
           className={`${s.triggerQuick} ${className}`}
           title="Add to Investigation"
         >
           {isLoading ? <div className={s.quickSpinner} /> : <Icon name="Plus" />}
-        </button>
+        </Button>
       )}
 
       {/* Toast notification */}
@@ -285,9 +294,12 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
                   <label className={s.labelText}>
                     {isCreatingNew ? 'New Investigation Details' : 'Select Investigation'}
                   </label>
-                  <button
+                  <Button
+                    type="button"
                     onClick={() => setIsCreatingNew(!isCreatingNew || !hasInvestigations)}
                     disabled={!hasInvestigations}
+                    variant="ghost"
+                    size="sm"
                     className={s.toggleModeBtn}
                   >
                     {!hasInvestigations
@@ -295,39 +307,36 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
                       : isCreatingNew
                         ? 'Select existing...'
                         : '+ Create new'}
-                  </button>
+                  </Button>
                 </div>
 
                 {isCreatingNew || !hasInvestigations ? (
                   <div className={s.createFields}>
-                    <input
+                    <TextInput
                       type="text"
                       placeholder="Investigation Title"
                       value={newTitle}
                       onChange={(e) => setNewTitle(e.target.value)}
-                      className={s.textInput}
+                      density="compact"
                       autoFocus
                     />
-                    <textarea
+                    <Textarea
                       placeholder="Description (optional)"
                       value={newDescription}
                       onChange={(e) => setNewDescription(e.target.value)}
-                      className={s.textarea}
+                      density="compact"
                     />
                   </div>
                 ) : (
-                  <select
+                  <Select
                     value={selectedInvestigationId}
                     onChange={(e) => setSelectedInvestigationId(e.target.value)}
-                    className={s.invSelect}
-                  >
-                    <option value="">Choose an investigation...</option>
-                    {investigations.map((inv) => (
-                      <option key={inv.id} value={inv.id}>
-                        {inv.title}
-                      </option>
-                    ))}
-                  </select>
+                    size="sm"
+                    options={[
+                      { value: '', label: 'Choose an investigation...' },
+                      ...investigations.map((inv) => ({ value: inv.id, label: inv.title })),
+                    ]}
+                  />
                 )}
               </div>
 
@@ -336,36 +345,48 @@ export const AddToInvestigationButton: React.FC<AddToInvestigationButtonProps> =
                 <label className={s.relevanceLabel}>Evidence Relevance</label>
                 <div className={s.relevanceGrid}>
                   {(['high', 'medium', 'low'] as const).map((rel) => (
-                    <button
+                    <Button
                       key={rel}
+                      type="button"
                       onClick={() => setRelevance(rel)}
+                      variant="ghost"
+                      size="sm"
                       className={`${s.relevanceBtn} ${
                         relevance === rel ? getRelevanceClass(rel) : s.relevanceBtnOff
                       }`}
                     >
                       {rel.charAt(0).toUpperCase() + rel.slice(1)}
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>
             </div>
 
             <div className={s.modalFooter}>
-              <button onClick={() => setShowModal(false)} className={s.footerCancelBtn}>
+              <Button
+                type="button"
+                onClick={() => setShowModal(false)}
+                variant="ghost"
+                size="sm"
+                className={s.footerCancelBtn}
+              >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
+                type="button"
                 onClick={handleAddToInvestigation}
                 disabled={
                   (!selectedInvestigationId && !isCreatingNew) ||
                   (isCreatingNew && !newTitle.trim()) ||
                   isLoading
                 }
+                variant="primary"
+                size="sm"
                 className={s.footerSubmitBtn}
               >
                 {isLoading && <div className={s.submitSpinner} />}
                 {isLoading ? 'Adding...' : isCreatingNew ? 'Create & Add' : 'Add to Investigation'}
-              </button>
+              </Button>
             </div>
           </Surface>
         </div>

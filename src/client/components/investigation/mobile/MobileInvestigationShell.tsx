@@ -22,6 +22,8 @@ import { HypothesisTestingFramework } from '../HypothesisTestingFramework';
 import { InvestigationExportTools } from '../InvestigationExportTools';
 import styles from './MobileInvestigationShell.module.css';
 
+import { Button } from '../../../design-system/lib';
+
 type ActiveDest = 'board' | 'evidence' | 'activity';
 
 const TOOL_LABELS: Record<MoreTool, string> = {
@@ -121,9 +123,9 @@ export function MobileInvestigationShell({
     <div className={styles.root}>
       <div className={styles.header}>
         <span className={styles.invTitle}>{selectedInvestigation.title}</span>
-        <button className={styles.notifBtn} type="button" aria-label="Notifications">
+        <Button unstyled className={styles.notifBtn} type="button" aria-label="Notifications">
           <Bell size={20} />
-        </button>
+        </Button>
       </div>
 
       <div className={styles.content}>

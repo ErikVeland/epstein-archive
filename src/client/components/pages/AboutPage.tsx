@@ -25,7 +25,7 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Surface } from '../../design-system/lib';
+import { Button, Surface } from '../../design-system/lib';
 import s from './AboutPage.module.css';
 
 interface PipelineDataset {
@@ -491,13 +491,14 @@ export const AboutPage: React.FC = () => {
                         )}
                         {source.title !== 'Unredacted Black Book' &&
                           source.title !== 'Flight Logs' && (
-                            <button
+                            <Button
+                              unstyled
                               disabled
                               className={s.downloadBtnDisabled}
                               title="Download not available"
                             >
                               <Download size={14} />
-                            </button>
+                            </Button>
                           )}
                       </div>
                     </td>
@@ -1297,7 +1298,8 @@ export const AboutPage: React.FC = () => {
           <div className={s.carouselContent}>
             <div className={s.dotRow}>
               {faqs.map((_, i) => (
-                <button
+                <Button
+                  unstyled
                   key={i}
                   onClick={() => setActiveFaq(i)}
                   className={i === activeFaq ? s.dotBtnActive : s.dotBtnInactive}

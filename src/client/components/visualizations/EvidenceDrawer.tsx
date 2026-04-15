@@ -1,5 +1,6 @@
 import React from 'react';
 import { X, FileText, ArrowRight, ShieldAlert } from 'lucide-react';
+import { Button } from '../../design-system/lib';
 import styles from './EvidenceDrawer.module.css';
 
 export interface Evidence {
@@ -62,9 +63,9 @@ export const EvidenceDrawer: React.FC<EvidenceDrawerProps> = ({
             <div className={styles.relationshipBadge}>{relationshipType.replace(/_/g, ' ')}</div>
           )}
         </div>
-        <button onClick={onClose} className={styles.closeButton}>
+        <Button variant="ghost" size="sm" onClick={onClose} className={styles.closeButton}>
           <X className={styles.closeIcon} />
-        </button>
+        </Button>
       </div>
 
       {/* Content */}
@@ -86,9 +87,10 @@ export const EvidenceDrawer: React.FC<EvidenceDrawerProps> = ({
           <div className={styles.documentList}>
             <p className={styles.documentCount}>Found {documents.length} Shared Documents</p>
             {documents.map((doc) => (
-              <button
+              <Button
                 key={doc.id}
                 type="button"
+                variant="ghost"
                 onClick={() => onDocumentClick?.(doc.documentId)}
                 className={styles.documentButton}
                 aria-label={`Open shared document ${doc.title}`}
@@ -127,7 +129,7 @@ export const EvidenceDrawer: React.FC<EvidenceDrawerProps> = ({
                     </div>
                   </div>
                 </div>
-              </button>
+              </Button>
             ))}
           </div>
         )}

@@ -1,6 +1,29 @@
 import React, { Component, ReactNode } from 'react';
 import s from './ErrorBoundary.module.css';
 
+import { Button } from '../../design-system/lib';
+
+async function clearClientCaches(): Promise<void> {
+  try {
+    localStorage.clear();
+  } catch {
+    // ignore
+  }
+  try {
+    sessionStorage.clear();
+  } catch {
+    // ignore
+  }
+  try {
+    if ('caches' in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((k) => caches.delete(k)));
+    }
+  } catch {
+    // ignore
+  }
+}
+
 interface ErrorBoundaryState {
   hasError: boolean;
   error?: Error;
@@ -34,22 +57,21 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
             <h1 className={s.heading}>Something went wrong</h1>
             <p className={s.message}>{msg}</p>
             <div className={s.actions}>
-              <button onClick={() => window.location.reload()} className={s.reloadBtn}>
+              <Button unstyled onClick={() => window.location.reload()} className={s.reloadBtn}>
                 Reload
-              </button>
-              <button
-                onClick={() => {
-                  try {
-                    localStorage.clear();
-                  } catch {
-                    // Ignore localStorage errors
-                  }
-                  window.location.reload();
+              </Button>
+              <Button
+                unstyled
+                onClick={async () => {
+                  await clearClientCaches();
+                  const url = new URL(window.location.href);
+                  url.searchParams.set('cachebust', Date.now().toString());
+                  window.location.replace(url.toString());
                 }}
                 className={s.clearBtn}
               >
                 Clear cache &amp; reload
-              </button>
+              </Button>
             </div>
           </div>
         </div>

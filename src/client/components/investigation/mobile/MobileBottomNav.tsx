@@ -1,6 +1,8 @@
 import { LayoutDashboard, FileText, Plus, Activity, MoreHorizontal } from 'lucide-react';
 import styles from './MobileBottomNav.module.css';
 
+import { Button } from '../../../design-system/lib';
+
 type ActiveDest = 'board' | 'evidence' | 'activity';
 
 interface MobileBottomNavProps {
@@ -18,43 +20,46 @@ export function MobileBottomNav({
 }: MobileBottomNavProps) {
   return (
     <nav className={styles.nav} aria-label="Investigation navigation">
-      <button
+      <Button
+        unstyled
         className={`${styles.slot} ${activeDest === 'board' ? styles.slotActive : ''}`}
         onClick={() => onSetActiveDest('board')}
         aria-label="Board"
       >
         <LayoutDashboard size={20} />
         <span className={styles.label}>Board</span>
-      </button>
+      </Button>
 
-      <button
+      <Button
+        unstyled
         className={`${styles.slot} ${activeDest === 'evidence' ? styles.slotActive : ''}`}
         onClick={() => onSetActiveDest('evidence')}
         aria-label="Evidence"
       >
         <FileText size={20} />
         <span className={styles.label}>Evidence</span>
-      </button>
+      </Button>
 
       <div className={styles.fabSlot}>
-        <button className={styles.fab} onClick={onCapture} aria-label="Capture evidence">
+        <Button unstyled className={styles.fab} onClick={onCapture} aria-label="Capture evidence">
           <Plus size={24} />
-        </button>
+        </Button>
       </div>
 
-      <button
+      <Button
+        unstyled
         className={`${styles.slot} ${activeDest === 'activity' ? styles.slotActive : ''}`}
         onClick={() => onSetActiveDest('activity')}
         aria-label="Activity"
       >
         <Activity size={20} />
         <span className={styles.label}>Activity</span>
-      </button>
+      </Button>
 
-      <button className={styles.slot} onClick={onMore} aria-label="More tools">
+      <Button unstyled className={styles.slot} onClick={onMore} aria-label="More tools">
         <MoreHorizontal size={20} />
         <span className={styles.label}>More</span>
-      </button>
+      </Button>
     </nav>
   );
 }

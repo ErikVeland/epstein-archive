@@ -3,6 +3,8 @@ import { ExternalLink, Clock, Link2, AlertTriangle } from 'lucide-react';
 import { highlightTerms, normalizeEvidenceSnippet } from '../../../utils/evidenceUtils';
 import s from './EvidenceCard.module.css';
 
+import { Button } from '../../../design-system/lib';
+
 export interface EvidenceDocument {
   id?: string | number;
   title?: string;
@@ -35,7 +37,13 @@ export const EvidenceCard: React.FC<EvidenceCardProps> = ({
   );
 
   return (
-    <button data-testid={testId} type="button" className={s.card} onClick={() => onOpen(doc.id)}>
+    <Button
+      unstyled
+      data-testid={testId}
+      type="button"
+      className={s.card}
+      onClick={() => onOpen(doc.id)}
+    >
       <div className={s.content}>
         <div className={s.header}>
           <div className={s.metadata}>
@@ -45,7 +53,8 @@ export const EvidenceCard: React.FC<EvidenceCardProps> = ({
             </div>
             <h4 className={s.title}>{doc.title || doc.fileName || `Document ${doc.id}`}</h4>
           </div>
-          <button
+          <Button
+            unstyled
             onClick={(event) => {
               event.stopPropagation();
               onOpen(doc.id, { newTab: true });
@@ -53,7 +62,7 @@ export const EvidenceCard: React.FC<EvidenceCardProps> = ({
             className={s.openLink}
           >
             Open <ExternalLink size={12} />
-          </button>
+          </Button>
         </div>
         <p className={s.excerpt}>
           {highlightTerms(excerpt, [entityName, doc.keyword], s.highlight)}
@@ -76,6 +85,6 @@ export const EvidenceCard: React.FC<EvidenceCardProps> = ({
           </span>
         )}
       </div>
-    </button>
+    </Button>
   );
 };

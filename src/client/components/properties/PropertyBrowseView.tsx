@@ -1,6 +1,6 @@
 import React from 'react';
 import Icon from '../common/Icon';
-import { Button, Pagination, SearchField, Select } from '../../design-system/lib';
+import { Button, Input, Pagination, SearchField, Select } from '../../design-system/lib';
 import { PropertyCard } from './PropertyCard';
 import type { Property, PropertyStats } from './types';
 import styles from './PropertyBrowseView.module.css';
@@ -94,7 +94,7 @@ export function PropertyBrowseView({
 
             <div className={styles.checkboxWrapper}>
               <label className={styles.checkboxLabel}>
-                <input
+                <Input
                   type="checkbox"
                   checked={showAssociatesOnly}
                   onChange={(e) => {

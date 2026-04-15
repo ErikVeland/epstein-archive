@@ -89,14 +89,14 @@
   font-size: var(--type-xs);
   font-weight: var(--weight-bold);
   text-transform: uppercase;
-  color: #16a34a;
+  color: var(--accent-success);
 }
 
 .statusRejected {
   font-size: var(--type-xs);
   font-weight: var(--weight-bold);
   text-transform: uppercase;
-  color: #dc2626;
+  color: var(--accent-danger);
 }
 
 .claimText {
@@ -107,7 +107,7 @@
 
 .claimSubject {
   font-weight: var(--weight-bold);
-  color: #1e3a8a;
+  color: var(--nav-people);
 }
 
 .claimPredicate {
@@ -118,7 +118,7 @@
 
 .claimObject {
   font-weight: var(--weight-bold);
-  color: #1e3a8a;
+  color: var(--nav-people);
 }
 
 /* Feedback buttons */
@@ -144,11 +144,11 @@
 }
 
 .feedbackBtnVerify:hover {
-  color: #16a34a;
+  color: var(--accent-success);
 }
 
 .feedbackBtnReject:hover {
-  color: #dc2626;
+  color: var(--accent-danger);
 }
 
 /* Modality badge variants */
@@ -165,23 +165,23 @@
 
 .modalityTestified,
 .modalityDocumented {
-  background: rgba(187, 247, 208, 0.15);
-  color: #166534;
+  background: color-mix(in srgb, var(--accent-success) 12%, transparent);
+  color: var(--accent-success);
 }
 
 .modalityAlleged {
-  background: rgba(254, 215, 170, 0.15);
-  color: #9a3412;
+  background: color-mix(in srgb, var(--accent-warning) 12%, transparent);
+  color: var(--accent-warning);
 }
 
 .modalityDenied {
-  background: rgba(254, 202, 202, 0.15);
-  color: #991b1b;
+  background: color-mix(in srgb, var(--accent-danger) 12%, transparent);
+  color: var(--accent-danger);
 }
 
 .modalityInferred {
-  background: rgba(191, 219, 254, 0.15);
-  color: #1e40af;
+  background: color-mix(in srgb, var(--nav-people) 12%, transparent);
+  color: var(--nav-people);
 }
 
 .modalityQuoted,
@@ -202,11 +202,11 @@
 }
 
 .iconGreen {
-  color: #16a34a;
+  color: var(--accent-success);
 }
 
 .iconOrange {
-  color: #ea580c;
+  color: var(--nav-properties);
 }
 
 .iconAccent {

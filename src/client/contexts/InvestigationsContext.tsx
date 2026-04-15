@@ -9,6 +9,7 @@ import React, {
 } from 'react';
 import { Investigation } from '../types/investigation';
 import { useAuth } from './AuthContext';
+import { useApiStatus } from './ApiStatusContext';
 
 interface InvestigationsContextType {
   investigations: Investigation[];
@@ -45,17 +46,32 @@ interface InvestigationsProviderProps {
 
 export const InvestigationsProvider: React.FC<InvestigationsProviderProps> = ({ children }) => {
   const { user } = useAuth();
+  const { status: apiStatus } = useApiStatus();
+  const isDev = Boolean((import.meta as any).env?.DEV);
   const [investigations, setInvestigations] = useState<Investigation[]>([]);
   const [selectedInvestigation, setSelectedInvestigation] = useState<Investigation | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const loadInvestigations = useCallback(async () => {
+    if (apiStatus === 'down') {
+      setIsLoading(false);
+      setError(
+        isDev
+          ? 'API not available. Start the backend with "pnpm server" (default http://localhost:3012/api).'
+          : 'Service temporarily unavailable. Please try again shortly.',
+      );
+      return;
+    }
     setIsLoading(true);
     setError(null);
     try {
       const resp = await fetch('/api/investigations');
-      const data = await resp.json();
+      if (!resp.ok) {
+        const body = await resp.text().catch(() => '');
+        throw new Error(`Failed to load investigations (${resp.status})${body ? `: ${body}` : ''}`);
+      }
+      const data = (await resp.json()) as any;
       const mapped: Investigation[] = (data.data || []).map((inv: Record<string, unknown>) => ({
         id: String(inv.id),
         title: String(inv.title || ''),
@@ -96,7 +112,7 @@ export const InvestigationsProvider: React.FC<InvestigationsProviderProps> = ({ 
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [apiStatus]);
 
   const selectInvestigation = useCallback(
     (id: string) => {

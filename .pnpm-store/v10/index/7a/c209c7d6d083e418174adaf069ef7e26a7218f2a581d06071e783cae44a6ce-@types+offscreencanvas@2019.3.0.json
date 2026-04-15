@@ -1,0 +1,31 @@
+{
+  "name": "@types/offscreencanvas",
+  "version": "2019.3.0",
+  "requiresBuild": false,
+  "files": {
+    "LICENSE": {
+      "checkedAt": 1776136533126,
+      "integrity": "sha512-OA1NKix/qrKxxfRisVCbGmX70dPqjsRn88PFfBoDRzStaYjo80MtZWn8vDOnalp8LU4MLPJBnqCFq/O/53Wd/w==",
+      "mode": 438,
+      "size": 1183
+    },
+    "README.md": {
+      "checkedAt": 1776136533128,
+      "integrity": "sha512-v6TKIpt6CeBK6Ox+HwmCXMKNkTlM3gQv7SbtffjpzVN8HJ7K5wrcVTVCU4GX2rYsOGeGY6G+PCst0sVjw5mlwA==",
+      "mode": 438,
+      "size": 626
+    },
+    "index.d.ts": {
+      "checkedAt": 1776136533130,
+      "integrity": "sha512-dW86vlMVdKtKVo6wntIihxtJlAuUED+vLMvGu53s2kC5uYizy/sg1VByEuc1tupYFobx0s9TwS+uQ5CC92DWsw==",
+      "mode": 438,
+      "size": 2762
+    },
+    "package.json": {
+      "checkedAt": 1776136533133,
+      "integrity": "sha512-DhiAe2CiXrEyLwBbOcbB7jXXR0k7wufXJy2JZSCIYrfnk7CIKbk+ZFwo422dVVEvF1PQ+s/ha7VUW56KuxDGxw==",
+      "mode": 438,
+      "size": 716
+    }
+  }
+}

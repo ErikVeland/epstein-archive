@@ -24,18 +24,22 @@ import { format } from 'date-fns';
 
 // UI Library
 import {
-  Surface,
+  Badge,
+  Box,
   Button,
   Flex,
-  Box,
-  Stack,
-  LqText,
   Grid,
+  Input,
+  LqText,
+  Select,
+  Stack,
+  Surface,
   cn,
-  Badge,
 } from '../../design-system/lib';
 import { AddToInvestigationButton } from '../common/AddToInvestigationButton';
 import styles from './MultiSourceCorrelationEngine.module.css';
+
+const css = <T,>(style: T) => style;
 
 interface DataSource {
   id: string;
@@ -185,7 +189,7 @@ export const MultiSourceCorrelationEngine = ({
   };
 
   return (
-    <Box className={styles.autoGen307} style={{ backgroundColor: 'var(--lq-surface-1)' }}>
+    <Box className={styles.autoGen307} style={css({ backgroundColor: 'var(--lq-surface-1)' })}>
       <Stack gap="xl" className={styles.autoGen308}>
         {/* Header HUD */}
         {!mobileMode && (
@@ -202,7 +206,7 @@ export const MultiSourceCorrelationEngine = ({
                   variant="xs"
                   color="muted"
                   weight="bold"
-                  style={{ textTransform: 'uppercase' }}
+                  style={css({ textTransform: 'uppercase' })}
                   mt="xs"
                 >
                   Neural Cross-Reference • Forensic Pattern Derivation
@@ -215,7 +219,7 @@ export const MultiSourceCorrelationEngine = ({
                   onClick={exportCorrelations}
                   className={styles.autoGen311}
                 >
-                  <Download size={14} className="mr-2" /> Export Analysis
+                  <Download size={14} className={styles.mr2} /> Export Analysis
                 </Button>
                 <Button
                   variant="secondary"
@@ -224,9 +228,9 @@ export const MultiSourceCorrelationEngine = ({
                   disabled={isAnalyzing}
                 >
                   {isAnalyzing ? (
-                    <Loader2 size={14} className="animate-spin mr-2" />
+                    <Loader2 size={14} className={`animate-spin ${styles.mr2}`} />
                   ) : (
-                    <Zap size={14} className="mr-2" />
+                    <Zap size={14} className={styles.mr2} />
                   )}
                   {isAnalyzing ? `Analyzing Signals (${analysisProgress}%)` : 'Execute Analysis'}
                 </Button>
@@ -242,8 +246,8 @@ export const MultiSourceCorrelationEngine = ({
                   </LqText>
                   <Box className={styles.autoGen313}>
                     <Search size={14} className={styles.autoGen314} />
-                    <input
-                      style={{
+                    <Input
+                      style={css({
                         width: '100%',
                         background: 'var(--lq-surface-3)',
                         border: '1px solid var(--lq-surface-4)',
@@ -252,7 +256,7 @@ export const MultiSourceCorrelationEngine = ({
                         fontSize: '0.875rem',
                         color: 'var(--lq-text-primary)',
                         outline: 'none',
-                      }}
+                      })}
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       placeholder="Filter entities..."
@@ -263,50 +267,34 @@ export const MultiSourceCorrelationEngine = ({
                   <LqText variant="xs" weight="bold" color="muted">
                     CORRELATION TYPE
                   </LqText>
-                  <select
-                    style={{
-                      width: '100%',
-                      background: 'var(--lq-surface-3)',
-                      border: '1px solid var(--lq-surface-4)',
-                      borderRadius: '0.375rem',
-                      padding: '0.5rem 0.75rem',
-                      fontSize: '0.875rem',
-                      color: 'var(--lq-text-primary)',
-                      outline: 'none',
-                    }}
+                  <Select
+                    size="sm"
                     value={filterType}
                     onChange={(e) => setFilterType(e.target.value)}
-                  >
-                    <option value="all">All Modalities</option>
-                    <option value="temporal">Temporal</option>
-                    <option value="spatial">Spatial</option>
-                    <option value="entity">Entity</option>
-                    <option value="financial">Financial</option>
-                  </select>
+                    options={[
+                      { value: 'all', label: 'All Modalities' },
+                      { value: 'temporal', label: 'Temporal' },
+                      { value: 'spatial', label: 'Spatial' },
+                      { value: 'entity', label: 'Entity' },
+                      { value: 'financial', label: 'Financial' },
+                    ]}
+                  />
                 </Stack>
                 <Stack gap="xs">
                   <LqText variant="xs" weight="bold" color="muted">
                     SIGNIFICANCE SCALE
                   </LqText>
-                  <select
-                    style={{
-                      width: '100%',
-                      background: 'var(--lq-surface-3)',
-                      border: '1px solid var(--lq-surface-4)',
-                      borderRadius: '0.375rem',
-                      padding: '0.5rem 0.75rem',
-                      fontSize: '0.875rem',
-                      color: 'var(--lq-text-primary)',
-                      outline: 'none',
-                    }}
+                  <Select
+                    size="sm"
                     value={filterSignificance}
                     onChange={(e) => setFilterSignificance(e.target.value)}
-                  >
-                    <option value="all">All Significance</option>
-                    <option value="critical">Critical</option>
-                    <option value="high">High</option>
-                    <option value="medium">Medium</option>
-                  </select>
+                    options={[
+                      { value: 'all', label: 'All Significance' },
+                      { value: 'critical', label: 'Critical' },
+                      { value: 'high', label: 'High' },
+                      { value: 'medium', label: 'Medium' },
+                    ]}
+                  />
                 </Stack>
                 <Flex gap="md" align="center" className={styles.autoGen315}>
                   <Activity size={14} className={styles.autoGen316} />
@@ -354,7 +342,7 @@ export const MultiSourceCorrelationEngine = ({
                     variant="xs"
                     weight="bold"
                     color="muted"
-                    style={{ textTransform: 'uppercase' }}
+                    style={css({ textTransform: 'uppercase' })}
                   >
                     {m.label}
                   </LqText>
@@ -364,7 +352,8 @@ export const MultiSourceCorrelationEngine = ({
                 </Stack>
                 <Box
                   className={cn(
-                    'p-2 rounded-lg',
+                    styles.p2,
+                    'rounded-lg',
                     m.tone === 'error'
                       ? 'bg-[var(--lq-error-dim)] text-[var(--lq-error)]'
                       : m.tone === 'success'
@@ -381,14 +370,14 @@ export const MultiSourceCorrelationEngine = ({
 
         <Flex gap="xl" align="start">
           {/* Main Correlation Stream */}
-          <Stack gap="md" style={{ flex: 1 }}>
+          <Stack gap="md" style={css({ flex: 1 })}>
             <Flex align="center" gap="md">
               <Terminal size={16} className={styles.autoGen318} />
               <LqText
                 variant="xs"
                 weight="bold"
                 color="muted"
-                style={{ textTransform: 'uppercase' }}
+                style={css({ textTransform: 'uppercase' })}
               >
                 Forensic Intersection Stream
               </LqText>
@@ -482,7 +471,7 @@ export const MultiSourceCorrelationEngine = ({
                     variant="xs"
                     weight="bold"
                     color="muted"
-                    style={{ textTransform: 'uppercase' }}
+                    style={css({ textTransform: 'uppercase' })}
                   >
                     Signal Inventory
                   </LqText>
@@ -524,7 +513,7 @@ export const MultiSourceCorrelationEngine = ({
                           <Box className={styles.autoGen326}>
                             <Box
                               className={styles.autoGen327}
-                              style={{ width: `${s.coverage}%` }}
+                              style={css({ width: `${s.coverage}%` })}
                             />
                           </Box>
                         </Stack>
@@ -544,7 +533,7 @@ export const MultiSourceCorrelationEngine = ({
                       variant="xs"
                       weight="bold"
                       color="muted"
-                      style={{ textTransform: 'uppercase' }}
+                      style={css({ textTransform: 'uppercase' })}
                     >
                       Intersection Analysis
                     </LqText>

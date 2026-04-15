@@ -7,7 +7,16 @@ import { CloseButton } from '../common/CloseButton';
 import { useScrollLock } from '../../hooks/useScrollLock';
 
 // UI Library
-import { Surface, Button, Box, Stack, Grid, TextInput, Textarea } from '../../design-system/lib';
+import {
+  Box,
+  Button,
+  Grid,
+  Input,
+  Stack,
+  Surface,
+  TextInput,
+  Textarea,
+} from '../../design-system/lib';
 import styles from './InvestigationMemoryPanel.module.css';
 
 interface InvestigationMemoryPanelProps {
@@ -224,7 +233,7 @@ export const InvestigationMemoryPanel: React.FC<InvestigationMemoryPanelProps> =
                       <div className={styles.sliderMeta}>IMPORTANCE SCALE</div>
                       <div className={styles.sliderMeta}>{Math.round(importance * 100)}%</div>
                     </div>
-                    <input
+                    <Input
                       type="range"
                       min={0}
                       max={100}

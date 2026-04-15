@@ -18,15 +18,17 @@ import {
 
 // UI Library
 import {
-  Surface,
-  Flex,
-  Box,
-  Stack,
-  Grid,
-  LqText,
-  Button,
   Badge,
+  Box,
+  Button,
+  Flex,
+  Grid,
+  Input,
+  LqText,
+  Select,
   Skeleton,
+  Stack,
+  Surface,
 } from '../../design-system/lib';
 import { ENTITY_CATEGORY_ICONS, EntityCategory } from '../../../config/entityIcons';
 import { EvidenceAnnotationPanel, EvidenceAnnotation } from '../documents/EvidenceAnnotation';
@@ -34,6 +36,8 @@ import { useScrollLock } from '../../hooks/useScrollLock';
 import { CloseButton } from '../common/CloseButton';
 import { apiClient } from '../../services/apiClient';
 import styles from './InvestigationEvidencePanel.module.css';
+
+const css = <T,>(style: T) => style;
 
 type EntityRef = { entityId: string; fullName: string; entityCategory: string };
 
@@ -228,7 +232,7 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
     <Surface key={item.id} variant="glass" p="lg" className={styles.autoGen193}>
       <Stack gap="md">
         <Flex justify="between" align="start">
-          <Stack gap="sm" style={{ flex: 1 }}>
+          <Stack gap="sm" style={css({ flex: 1 })}>
             <Flex align="center" gap="md">
               <FileSearch size={16} className={styles.autoGen194} />
               <LqText variant="small" weight="bold">
@@ -266,7 +270,7 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
                         setPivotEntityName(ref.fullName);
                       }}
                     >
-                      <EntityIcon size={10} className="mr-1" /> {ref.fullName}
+                      <EntityIcon size={10} className={styles.mr1} /> {ref.fullName}
                     </Badge>
                   );
                 })}
@@ -350,7 +354,7 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
             <LqText
               variant="xs"
               color="muted"
-              style={{ textTransform: 'uppercase' }}
+              style={css({ textTransform: 'uppercase' })}
               weight="bold"
               mt="xs"
             >
@@ -418,7 +422,7 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
                   variant="xs"
                   weight="bold"
                   color="muted"
-                  style={{ textTransform: 'uppercase' }}
+                  style={css({ textTransform: 'uppercase' })}
                 >
                   Modal Distribution
                 </LqText>
@@ -446,7 +450,9 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
                         <Box className={styles.autoGen204}>
                           <Box
                             className={styles.autoGen205}
-                            style={{ width: `${(count / Math.max(1, evidence.length)) * 100}%` }}
+                            style={css({
+                              width: `${(count / Math.max(1, evidence.length)) * 100}%`,
+                            })}
                           />
                         </Box>
                       </Stack>
@@ -463,7 +469,7 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
                   variant="xs"
                   weight="bold"
                   color="muted"
-                  style={{ textTransform: 'uppercase' }}
+                  style={css({ textTransform: 'uppercase' })}
                 >
                   Primary Entities
                 </LqText>
@@ -484,7 +490,8 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
                           setPivotEntityName(e.fullName);
                         }}
                       >
-                        {e.fullName} <span className="ml-1 opacity-50">{e.evidenceCount}</span>
+                        {e.fullName}{' '}
+                        <span className={`${styles.ml1} opacity-50`}>{e.evidenceCount}</span>
                       </Badge>
                     ))}
               </Flex>
@@ -500,8 +507,8 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
               <Flex gap="md" align="center">
                 <Box grow className={styles.autoGen210}>
                   <Search size={14} className={styles.autoGen211} />
-                  <input
-                    style={{
+                  <Input
+                    style={css({
                       width: '100%',
                       background: 'var(--lq-surface-3)',
                       border: '1px solid var(--lq-surface-4)',
@@ -510,57 +517,42 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
                       fontSize: '0.875rem',
                       color: 'var(--lq-text-primary)',
                       outline: 'none',
-                    }}
+                    })}
                     placeholder="Search extraction stream..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </Box>
                 <Button variant="secondary" size="sm" onClick={() => setShowAddModal(true)}>
-                  <Plus size={14} className="mr-2" /> Link Signal
+                  <Plus size={14} className={styles.mr2} /> Link Signal
                 </Button>
               </Flex>
 
               <Flex justify="between" align="center">
                 <Flex gap="sm">
-                  <select
-                    style={{
-                      background: 'var(--lq-surface-3)',
-                      border: '1px solid var(--lq-surface-4)',
-                      borderRadius: '0.375rem',
-                      padding: '0.375rem 0.75rem',
-                      fontSize: '0.8125rem',
-                      color: 'var(--lq-text-primary)',
-                      outline: 'none',
-                    }}
+                  <Select
+                    size="sm"
                     value={filterType}
                     onChange={(e) => setFilterType(e.target.value)}
-                  >
-                    <option value="all">All Modalities</option>
-                    {Object.keys(typeBreakdown).map((t) => (
-                      <option key={t} value={t}>
-                        {getEvidenceTypeLabel(t)}
-                      </option>
-                    ))}
-                  </select>
-                  <select
-                    style={{
-                      background: 'var(--lq-surface-3)',
-                      border: '1px solid var(--lq-surface-4)',
-                      borderRadius: '0.375rem',
-                      padding: '0.375rem 0.75rem',
-                      fontSize: '0.8125rem',
-                      color: 'var(--lq-text-primary)',
-                      outline: 'none',
-                    }}
+                    options={[
+                      { value: 'all', label: 'All Modalities' },
+                      ...Object.keys(typeBreakdown).map((t) => ({
+                        value: t,
+                        label: getEvidenceTypeLabel(t),
+                      })),
+                    ]}
+                  />
+                  <Select
+                    size="sm"
                     value={filterRelevance}
                     onChange={(e) => setFilterRelevance(e.target.value)}
-                  >
-                    <option value="all">Global Relevance</option>
-                    <option value="high">Priority Extraction</option>
-                    <option value="medium">Standard Evidence</option>
-                    <option value="low">Ancillary Data</option>
-                  </select>
+                    options={[
+                      { value: 'all', label: 'Global Relevance' },
+                      { value: 'high', label: 'Priority Extraction' },
+                      { value: 'medium', label: 'Standard Evidence' },
+                      { value: 'low', label: 'Ancillary Data' },
+                    ]}
+                  />
                 </Flex>
 
                 <Flex gap="xs" className={styles.autoGen212}>
@@ -627,7 +619,7 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
                         variant="xs"
                         weight="bold"
                         color="muted"
-                        style={{ textTransform: 'uppercase' }}
+                        style={css({ textTransform: 'uppercase' })}
                       >
                         {group}
                       </LqText>
@@ -679,8 +671,8 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
                 <Flex gap="md">
                   <Box grow className={styles.autoGen218}>
                     <Search size={14} className={styles.autoGen219} />
-                    <input
-                      style={{
+                    <Input
+                      style={css({
                         width: '100%',
                         background: 'var(--lq-surface-3)',
                         border: '1px solid var(--lq-surface-4)',
@@ -689,7 +681,7 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
                         fontSize: '0.875rem',
                         color: 'var(--lq-text-primary)',
                         outline: 'none',
-                      }}
+                      })}
                       placeholder="Search global archive..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
@@ -711,7 +703,7 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
                         className={styles.autoGen221}
                       >
                         <Flex justify="between" align="center">
-                          <Stack gap="xs" style={{ flex: 1 }}>
+                          <Stack gap="xs" style={css({ flex: 1 })}>
                             <Flex align="center" gap="sm">
                               <Badge variant="glass" label={res.source.toUpperCase()} size="sm" />
                               <LqText variant="xs" weight="bold">

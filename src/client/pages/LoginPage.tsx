@@ -7,6 +7,8 @@ import { Box } from '../design-system/components/layout/Box';
 import { LqText } from '../design-system/components/typography/Text';
 import styles from './LoginPage.module.css';
 
+import { Button, Input } from '../design-system/lib';
+
 export const LoginPage: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -61,7 +63,7 @@ export const LoginPage: React.FC = () => {
             <LqText as="label" variant="small" color="muted" className={styles.label}>
               Username
             </LqText>
-            <input
+            <Input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
@@ -74,7 +76,7 @@ export const LoginPage: React.FC = () => {
             <LqText as="label" variant="small" color="muted" className={styles.label}>
               Password
             </LqText>
-            <input
+            <Input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -83,9 +85,9 @@ export const LoginPage: React.FC = () => {
             />
           </Box>
 
-          <button type="submit" disabled={loading} className={styles.submitButton}>
+          <Button unstyled type="submit" disabled={loading} className={styles.submitButton}>
             {loading ? 'Signing in...' : 'Sign In'}
-          </button>
+          </Button>
         </form>
       </Surface>
     </Flex>

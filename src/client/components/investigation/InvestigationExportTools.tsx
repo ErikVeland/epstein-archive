@@ -33,17 +33,17 @@ import {
 // UI Library
 import styles from './InvestigationExportTools.module.css';
 import {
-  Surface,
+  Badge,
+  Box,
   Button,
   Flex,
-  Box,
-  Stack,
-  LqText,
   Grid,
+  Input,
+  LqText,
+  Stack,
+  Surface,
   cn,
-  Badge,
 } from '../../design-system/lib';
-
 interface ExportToolsProps {
   investigation: Investigation;
   evidence: EvidenceItem[];
@@ -280,7 +280,8 @@ export const InvestigationExportTools: React.FC<ExportToolsProps> = ({
                     <Flex gap="md" align="center">
                       <Box
                         className={cn(
-                          'p-3 rounded-xl',
+                          styles.p3,
+                          'rounded-xl',
                           selectedType === o.id
                             ? 'bg-[var(--lq-accent)] text-white'
                             : 'bg-[var(--lq-surface-2)] text-[var(--lq-text-dim)]',
@@ -352,7 +353,7 @@ export const InvestigationExportTools: React.FC<ExportToolsProps> = ({
                       <LqText variant="xs" weight="bold">
                         {t.label}
                       </LqText>
-                      <input
+                      <Input
                         type="checkbox"
                         checked={t.val}
                         onChange={(e) => t.set(e.target.checked)}
@@ -371,7 +372,7 @@ export const InvestigationExportTools: React.FC<ExportToolsProps> = ({
                       Apply automated mask to detected PII and confidential signals.
                     </LqText>
                   </Stack>
-                  <input
+                  <Input
                     type="checkbox"
                     checked={redactSensitive}
                     onChange={(e) => setRedactSensitive(e.target.checked)}
@@ -464,9 +465,9 @@ export const InvestigationExportTools: React.FC<ExportToolsProps> = ({
                   disabled={isGenerating || !selectedOption.available}
                 >
                   {isGenerating ? (
-                    <Loader2 className="animate-spin mr-2" />
+                    <Loader2 className={`animate-spin ${styles.mr2}`} />
                   ) : (
-                    <Zap className="mr-2" />
+                    <Zap className={styles.mr2} />
                   )}
                   {isGenerating
                     ? `Synthesizing Artifact... ${progress}%`
@@ -554,7 +555,7 @@ export const InvestigationExportTools: React.FC<ExportToolsProps> = ({
               disabled={step === 1}
               onClick={() => setStep((s) => Math.max(1, s - 1) as 1 | 2 | 3 | 4)}
             >
-              <ChevronLeft size={16} className="mr-2" /> Back
+              <ChevronLeft size={16} className={styles.mr2} /> Back
             </Button>
             <Button
               variant="primary"
@@ -562,7 +563,7 @@ export const InvestigationExportTools: React.FC<ExportToolsProps> = ({
               disabled={step === 4 || (!selectedOption.available && step === 1)}
               onClick={() => setStep((s) => Math.min(4, s + 1) as 1 | 2 | 3 | 4)}
             >
-              Next <ChevronRight size={16} className="ml-2" />
+              Next <ChevronRight size={16} className={styles.ml2} />
             </Button>
           </Flex>
 

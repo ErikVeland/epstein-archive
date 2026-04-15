@@ -100,7 +100,8 @@ export const EvidencePacketExporter: React.FC<EvidencePacketExporterProps> = ({
                 <Flex gap="md" align="center">
                   <Box
                     className={cn(
-                      'p-3 rounded-xl',
+                      styles.p3,
+                      'rounded-xl',
                       selectedFormat === f.id
                         ? 'bg-[var(--lq-accent)] text-white'
                         : 'bg-[var(--lq-surface-2)] text-[var(--lq-text-dim)]',
@@ -137,9 +138,9 @@ export const EvidencePacketExporter: React.FC<EvidencePacketExporterProps> = ({
         <Box style={{ paddingTop: 'var(--spacing-md)' }}>
           <Button variant="secondary" size="md" onClick={handleExport} disabled={isExporting}>
             {isExporting ? (
-              <Loader2 className="animate-spin mr-2" />
+              <Loader2 className={`animate-spin ${styles.mr2}`} />
             ) : (
-              <Download className="mr-2" />
+              <Download className={styles.mr2} />
             )}
             {isExporting
               ? 'Packaging Materials...'

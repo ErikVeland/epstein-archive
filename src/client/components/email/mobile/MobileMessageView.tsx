@@ -5,6 +5,8 @@ import { AddToInvestigationButton } from '../../common/AddToInvestigationButton'
 import { riskToneFromRating } from '../../../utils/riskSemantics';
 import styles from './MobileMessageView.module.css';
 
+import { Button } from '../../../design-system/lib';
+
 const formatTime = (value: string | null): string => {
   if (!value) return '';
   const date = new Date(value);
@@ -72,10 +74,10 @@ export function MobileMessageView({
   return (
     <div className={styles.root}>
       <div className={styles.header}>
-        <button className={styles.backBtn} onClick={onBack} type="button">
+        <Button unstyled className={styles.backBtn} onClick={onBack} type="button">
           <ChevronLeft size={20} />
           Threads
-        </button>
+        </Button>
         <AddToInvestigationButton
           item={{
             id: thread.threadId,
@@ -120,7 +122,8 @@ export function MobileMessageView({
                 key={message.messageId}
                 className={`${styles.card} ${expanded ? styles.cardExpanded : ''}`}
               >
-                <button
+                <Button
+                  unstyled
                   className={styles.cardToggle}
                   onClick={() => onToggleMessage(message.messageId, !expanded)}
                   type="button"
@@ -149,7 +152,7 @@ export function MobileMessageView({
                     size={16}
                     className={`${styles.chevron} ${expanded ? styles.chevronDown : ''}`}
                   />
-                </button>
+                </Button>
 
                 {expanded && (
                   <div className={styles.cardBody}>
@@ -173,27 +176,30 @@ export function MobileMessageView({
                     </div>
 
                     <div className={styles.actions}>
-                      <button
+                      <Button
+                        unstyled
                         className={styles.actionBtn}
                         onClick={() => void copyText(citation)}
                         type="button"
                       >
                         Copy Citation
-                      </button>
-                      <button
+                      </Button>
+                      <Button
+                        unstyled
                         className={styles.actionBtn}
                         onClick={() => onToggleRaw(message.messageId)}
                         type="button"
                       >
                         {body?.showRaw ? 'Show Cleaned' : 'View MIME'}
-                      </button>
-                      <button
+                      </Button>
+                      <Button
+                        unstyled
                         className={styles.actionBtn}
                         onClick={() => onToggleQuoted(message.messageId)}
                         type="button"
                       >
                         {body?.showQuoted ? 'Hide History' : 'Show History'}
-                      </button>
+                      </Button>
                       <AddToInvestigationButton
                         item={{
                           id: message.messageId,
@@ -235,7 +241,8 @@ export function MobileMessageView({
                     {(message.linkedEntities ?? []).length > 0 && (
                       <div className={styles.entityPills}>
                         {(message.linkedEntities ?? []).map((entity) => (
-                          <button
+                          <Button
+                            unstyled
                             key={`${message.messageId}-${entity.entityId}`}
                             className={styles.entityChip}
                             onClick={() => onEntityClick(String(entity.entityId))}
@@ -243,7 +250,7 @@ export function MobileMessageView({
                           >
                             <User size={11} />
                             {entity.name}
-                          </button>
+                          </Button>
                         ))}
                       </div>
                     )}
@@ -268,13 +275,14 @@ export function MobileMessageView({
                                 </div>
                               </div>
                               {canOpen ? (
-                                <button
+                                <Button
+                                  unstyled
                                   className={styles.openBtn}
                                   onClick={() => navigate(`/documents/${att.linkedDocumentId}`)}
                                   type="button"
                                 >
                                   Open
-                                </button>
+                                </Button>
                               ) : (
                                 <span className={styles.notIngested}>Not ingested</span>
                               )}

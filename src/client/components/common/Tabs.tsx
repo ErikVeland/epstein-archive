@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { cn } from '../../utils/cn';
 import s from './Tabs.module.css';
 
+import { Button } from '../../design-system/lib';
+
 export interface TabItem {
   key: string;
   label: React.ReactNode;
@@ -71,7 +73,8 @@ export const Tabs: React.FC<TabsProps> = ({
   return (
     <div className={cn(s.root, variantClassName, className)} role="tablist" ref={containerRef}>
       {tabs.map((tab, index) => (
-        <button
+        <Button
+          unstyled
           key={tab.key}
           ref={(el) => (tabRefs.current[tab.key] = el)}
           data-testid={`tab-${tab.key}`}
@@ -87,7 +90,7 @@ export const Tabs: React.FC<TabsProps> = ({
           {tab.icon && <span className={s.tabIcon}>{tab.icon}</span>}
           <span>{tab.label}</span>
           {tab.count !== undefined && <span className={s.tabBadge}>{tab.count}</span>}
-        </button>
+        </Button>
       ))}
       <div className={s.tabIndicator} style={indicatorStyle} aria-hidden="true" />
     </div>

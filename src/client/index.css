@@ -130,6 +130,16 @@
   --accent-warning: #f59e0b;
   --accent-danger: #ef4444;
 
+  /* Highlight + glitch helpers (used by RedactedLogo / annotation tools) */
+  --highlight-yellow: #fef08a;
+  --highlight-green: #bbf7d0;
+  --highlight-blue: #bfdbfe;
+  --highlight-pink: #fbcfe8;
+  --highlight-orange: #fed7aa;
+
+  --glitch-magenta: #ff0040;
+  --glitch-cyan: #00ffff;
+
   /* z-index scale */
   --z-content: 10;
   --z-above: 20;
@@ -149,6 +159,11 @@
   --chip-accent-border: rgba(56, 189, 248, 0.25);
   --accent-investigate: #b95c42;
   --accent-evidence: #2f7a7a;
+  --accent-agentic: #a855f7;
+  --accent-agentic-text: #c084fc;
+  --accent-agentic-subtle: #d8b4fe;
+  --status-success: #22c55e;
+  --text-warning: #fbbf24;
 
   /* System Status Indicators */
   --status-checking: var(--accent-warning);

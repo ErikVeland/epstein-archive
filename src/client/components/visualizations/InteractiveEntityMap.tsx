@@ -156,9 +156,14 @@ export const InteractiveEntityMap: React.FC<InteractiveEntityMapProps> = ({
           <div className={styles.errorCard}>
             <AlertTriangle className={styles.alertIconLg} />
             <p className={styles.errorText}>{error}</p>
-            <button onClick={() => void fetchMapEntities()} className={styles.errorRetry}>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => void fetchMapEntities()}
+              className={styles.errorRetry}
+            >
               Retry
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -258,9 +263,14 @@ export const InteractiveEntityMap: React.FC<InteractiveEntityMapProps> = ({
             <MapPin className={styles.headerIcon} />
             Global Entity Map
           </h2>
-          <button onClick={() => setIsExpanded(false)} className={styles.collapseButton}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsExpanded(false)}
+            className={styles.collapseButton}
+          >
             <Minimize2 className={styles.headerIcon} />
-          </button>
+          </Button>
         </div>
         <div className={styles.expandedBody}>{mapContent}</div>
       </div>
@@ -270,14 +280,16 @@ export const InteractiveEntityMap: React.FC<InteractiveEntityMapProps> = ({
   return (
     <div className={`${styles.cardShell} ${className}`}>
       <div className={styles.expandButtonWrap}>
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => setIsExpanded(true)}
           className={styles.expandButton}
           title="Expand Map"
           aria-label="Expand map"
         >
           <Maximize2 className={styles.expandIcon} />
-        </button>
+        </Button>
       </div>
       {mapContent}
     </div>

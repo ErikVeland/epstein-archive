@@ -20,8 +20,22 @@ import {
 import { useScrollLock } from '../../hooks/useScrollLock';
 
 // UI Library
-import { Surface, Button, Flex, Box, Stack, LqText, Grid, Badge } from '../../design-system/lib';
+import {
+  Badge,
+  Box,
+  Button,
+  Flex,
+  Grid,
+  Input,
+  LqText,
+  NativeSelect,
+  Stack,
+  Surface,
+  TextArea,
+} from '../../design-system/lib';
 import styles from './InvestigationTimelineBuilder.module.css';
+
+const css = <T,>(style: T) => style;
 
 interface TimelineBuilderProps {
   investigation: Investigation;
@@ -167,7 +181,7 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
   const getTypeVariant = (t: string) => eventTypes.find((et) => et.value === t)?.variant || 'glass';
 
   return (
-    <Box className={styles.autoGen295} style={{ backgroundColor: 'var(--lq-surface-1)' }}>
+    <Box className={styles.autoGen295} style={css({ backgroundColor: 'var(--lq-surface-1)' })}>
       <Stack gap="xl">
         <Surface variant="glass" p="xl" className={styles.autoGen296}>
           <Flex justify="between" align="center">
@@ -178,7 +192,7 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
               <LqText
                 variant="xs"
                 color="muted"
-                style={{ textTransform: 'uppercase' }}
+                style={css({ textTransform: 'uppercase' })}
                 weight="bold"
               >
                 Forensic Timeline Reconstruction
@@ -196,12 +210,12 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
           <Flex gap="xl" wrap="wrap" align="center">
             <Flex align="center" gap="sm">
               <Calendar size={14} className={styles.autoGen297} />
-              <select
+              <NativeSelect
                 value={timelineScale}
                 onChange={(e) =>
                   setTimelineScale(e.target.value as 'day' | 'week' | 'month' | 'year')
                 }
-                style={{
+                style={css({
                   background: 'var(--lq-surface-3)',
                   border: '1px solid var(--lq-surface-4)',
                   borderRadius: '0.375rem',
@@ -209,12 +223,12 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
                   fontSize: '0.75rem',
                   color: 'var(--lq-text-primary)',
                   outline: 'none',
-                }}
+                })}
               >
                 <option value="day">Daily View</option>
                 <option value="week">Weekly View</option>
                 <option value="month">Monthly View</option>
-              </select>
+              </NativeSelect>
             </Flex>
 
             <Surface variant="glass-highlight" className={styles.autoGen298}>
@@ -245,7 +259,7 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
                 variant="xs"
                 weight="bold"
                 color="muted"
-                style={{ textTransform: 'uppercase' }}
+                style={css({ textTransform: 'uppercase' })}
               >
                 Filter by Event Signal:
               </LqText>
@@ -280,7 +294,7 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
                 <LqText
                   variant="small"
                   weight="bold"
-                  style={{ textTransform: 'uppercase' }}
+                  style={css({ textTransform: 'uppercase' })}
                   color="muted"
                 >
                   {group.startDate === 'narrative' ? 'Narrative Sequence' : group.startDate}
@@ -297,14 +311,14 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
                       key={event.id}
                       variant="glass-highlight"
                       p="lg"
-                      style={{
+                      style={css({
                         borderLeft: `4px solid var(--lq-${variant})`,
                         transition: 'all 0.2s ease',
-                      }}
+                      })}
                     >
                       <Flex gap="lg" align="start">
                         {orderingMode === 'narrative' && (
-                          <Box style={{ cursor: 'grab', opacity: 0.3, marginTop: '0.25rem' }}>
+                          <Box style={css({ cursor: 'grab', opacity: 0.3, marginTop: '0.25rem' })}>
                             <GripVertical size={16} />
                           </Box>
                         )}
@@ -314,12 +328,12 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
                               <Flex align="center" gap="sm">
                                 <Box
                                   p="xxs"
-                                  style={{
+                                  style={css({
                                     borderRadius: 'var(--radius-sm)',
                                     backgroundColor: `var(--lq-${variant})`,
                                     color: 'white',
                                     display: 'inline-flex',
-                                  }}
+                                  })}
                                 >
                                   <Icon size={12} />
                                 </Box>
@@ -421,13 +435,13 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
                     variant="xs"
                     weight="bold"
                     color="muted"
-                    style={{ textTransform: 'uppercase' }}
+                    style={css({ textTransform: 'uppercase' })}
                   >
                     Event Summary
                   </LqText>
-                  <input
+                  <Input
                     type="text"
-                    style={{
+                    style={css({
                       width: '100%',
                       background: 'var(--lq-surface-3)',
                       border: '1px solid var(--lq-surface-4)',
@@ -436,7 +450,7 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
                       fontSize: '0.875rem',
                       color: 'var(--lq-text-primary)',
                       outline: 'none',
-                    }}
+                    })}
                     value={newEvent.title}
                     onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
                     placeholder="e.g., Transfer to primary escrow"
@@ -447,12 +461,12 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
                     variant="xs"
                     weight="bold"
                     color="muted"
-                    style={{ textTransform: 'uppercase' }}
+                    style={css({ textTransform: 'uppercase' })}
                   >
                     Forensic Detail
                   </LqText>
-                  <textarea
-                    style={{
+                  <TextArea
+                    style={css({
                       width: '100%',
                       background: 'var(--lq-surface-3)',
                       border: '1px solid var(--lq-surface-4)',
@@ -462,7 +476,7 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
                       color: 'var(--lq-text-primary)',
                       outline: 'none',
                       resize: 'none',
-                    }}
+                    })}
                     rows={3}
                     value={newEvent.description}
                     onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
@@ -475,13 +489,13 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
                       variant="xs"
                       weight="bold"
                       color="muted"
-                      style={{ textTransform: 'uppercase' }}
+                      style={css({ textTransform: 'uppercase' })}
                     >
                       Temporal Reference
                     </LqText>
-                    <input
+                    <Input
                       type="datetime-local"
-                      style={{
+                      style={css({
                         width: '100%',
                         background: 'var(--lq-surface-3)',
                         border: '1px solid var(--lq-surface-4)',
@@ -490,7 +504,7 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
                         fontSize: '0.875rem',
                         color: 'var(--lq-text-primary)',
                         outline: 'none',
-                      }}
+                      })}
                       value={format(
                         parseISO(newEvent.startDateString || new Date().toISOString()),
                         "yyyy-MM-dd'T'HH:mm",
@@ -508,12 +522,12 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
                       variant="xs"
                       weight="bold"
                       color="muted"
-                      style={{ textTransform: 'uppercase' }}
+                      style={css({ textTransform: 'uppercase' })}
                     >
                       Signal Type
                     </LqText>
-                    <select
-                      style={{
+                    <NativeSelect
+                      style={css({
                         width: '100%',
                         background: 'var(--lq-surface-3)',
                         border: '1px solid var(--lq-surface-4)',
@@ -522,7 +536,7 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
                         fontSize: '0.875rem',
                         color: 'var(--lq-text-primary)',
                         outline: 'none',
-                      }}
+                      })}
                       value={newEvent.type}
                       onChange={(e) =>
                         setNewEvent({ ...newEvent, type: e.target.value as TimelineEvent['type'] })
@@ -533,7 +547,7 @@ export const InvestigationTimelineBuilder: React.FC<TimelineBuilderProps> = ({
                           {t.label}
                         </option>
                       ))}
-                    </select>
+                    </NativeSelect>
                   </Stack>
                 </Grid>
               </Stack>

@@ -5,6 +5,8 @@ import { useToasts } from './common/useToasts';
 import { apiClient } from '../services/apiClient';
 import styles from './BlackBookReview.module.css';
 
+import { Button, Input } from '../design-system/lib';
+
 interface ReviewEntry {
   id: number;
   person_id: number;
@@ -193,7 +195,7 @@ export const BlackBookReview: React.FC = () => {
         {/* Editable Name */}
         <div className={styles.fieldSection}>
           <label className={styles.label}>Corrected Name</label>
-          <input
+          <Input
             type="text"
             value={editedName}
             onChange={(e) => setEditedName(e.target.value)}
@@ -236,32 +238,35 @@ export const BlackBookReview: React.FC = () => {
 
         {/* Action Buttons */}
         <div className={styles.actions}>
-          <button
+          <Button
+            unstyled
             onClick={() => handleAction('approve')}
             disabled={saving || !editedName.trim()}
             className={`${styles.actionButton} ${styles.actionButtonPrimary}`}
           >
             <CheckCircle className={styles.actionIcon} />
             <span>Approve & Save</span>
-          </button>
+          </Button>
 
-          <button
+          <Button
+            unstyled
             onClick={() => handleAction('skip')}
             disabled={saving}
             className={`${styles.actionButton} ${styles.actionButtonSecondary}`}
           >
             <SkipForward className={styles.actionIcon} />
             <span>Skip</span>
-          </button>
+          </Button>
 
-          <button
+          <Button
+            unstyled
             onClick={() => handleAction('delete')}
             disabled={saving}
             className={`${styles.actionButton} ${styles.actionButtonDanger}`}
           >
             <XCircle className={styles.actionIcon} />
             <span>Delete</span>
-          </button>
+          </Button>
         </div>
 
         {/* Keyboard Shortcuts Hint */}

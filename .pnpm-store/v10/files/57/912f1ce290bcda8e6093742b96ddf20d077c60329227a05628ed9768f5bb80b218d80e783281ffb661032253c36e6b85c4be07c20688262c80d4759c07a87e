@@ -1,0 +1,38 @@
+{
+  "name": "ts-parse-database-url",
+  "version": "1.0.3",
+  "description": "Parse database urls",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "repository": "https://github.com/herlon214/ts-parse-database-url",
+  "scripts": {
+    "prepare": "npm run build && npm run format",
+    "build": "rm -rf dist/ && tsc",
+    "format": "prettier --write \"**/*.ts\"",
+    "test": "jest src/"
+  },
+  "author": "Herlon Aguiar",
+  "license": "ISC",
+  "dependencies": {
+    "mongodb-uri": "^0.9.7"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js"
+    ],
+    "transform": {
+      "\\.(ts|tsx)$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
+    },
+    "testRegex": "/__tests__/.*\\.(ts|tsx|js)$"
+  },
+  "devDependencies": {
+    "@types/jest": "^23.3.0",
+    "@types/node": "^10.5.3",
+    "jest": "^23.4.1",
+    "prettier": "^1.13.7",
+    "ts-jest": "^23.0.1",
+    "typescript": "^2.9.2"
+  }
+}

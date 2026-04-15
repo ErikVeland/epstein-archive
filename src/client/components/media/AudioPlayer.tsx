@@ -13,8 +13,10 @@ import {
 } from 'lucide-react';
 import { CloseButton } from '../common/CloseButton';
 
-import { Surface, Button, Flex, Box, Stack, LqText, cn } from '../../design-system/lib';
+import { Box, Button, Flex, Input, LqText, Stack, Surface, cn } from '../../design-system/lib';
 import styles from './AudioPlayer.module.css';
+
+const css = <T,>(style: T) => style;
 
 export interface TranscriptSegment {
   start: number;
@@ -225,7 +227,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                 <LqText variant="small" weight="bold">
                   {title}
                 </LqText>
-                <LqText variant="xs" color="muted" style={{ textTransform: 'uppercase' }}>
+                <LqText variant="xs" color="muted" style={css({ textTransform: 'uppercase' })}>
                   Forensic Signal Log
                 </LqText>
               </Stack>
@@ -250,7 +252,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
             <Surface variant="glass-highlight" className={styles.visualizerArea}>
               <Flex align="end" justify="center" gap="xs" fullHeight className={styles.bars}>
                 {barHeights.map((h, i) => (
-                  <Box key={i} className={styles.bar} style={{ height: `${h}%` }} />
+                  <Box key={i} className={styles.bar} style={css({ height: `${h}%` })} />
                 ))}
               </Flex>
               <Box className={styles.visualizerLabel}>
@@ -258,7 +260,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                   variant="xs"
                   weight="bold"
                   color="muted"
-                  style={{ textTransform: 'uppercase' }}
+                  style={css({ textTransform: 'uppercase' })}
                 >
                   Live Signal Analysis
                 </LqText>
@@ -268,7 +270,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
             {/* Controls */}
             <Stack gap="lg" className={styles.controlsArea}>
               <Stack gap="xs">
-                <input
+                <Input
                   type="range"
                   min="0"
                   max={duration || 100}
@@ -305,7 +307,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
               <Flex justify="between" align="center">
                 <Flex align="center" gap="md" className={styles.volumeArea}>
                   {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
-                  <input
+                  <Input
                     type="range"
                     min="0"
                     max="1"
@@ -341,10 +343,10 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
           {showTranscript && (
             <Surface variant="glass" className={styles.sidebar}>
               <Stack fullHeight gap="none">
-                <Box p="md" style={{ borderBottom: '1px solid var(--lq-border-dim)' }}>
+                <Box p="md" style={css({ borderBottom: '1px solid var(--lq-border-dim)' })}>
                   <Box className={styles.searchBox}>
                     <Search size={14} className={styles.searchIcon} />
-                    <input
+                    <Input
                       type="text"
                       placeholder="Search signals..."
                       value={transcriptSearch}
@@ -373,7 +375,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
                               <LqText
                                 variant="xs"
                                 color="muted"
-                                style={{ textTransform: 'uppercase' }}
+                                style={css({ textTransform: 'uppercase' })}
                               >
                                 {seg.speaker}
                               </LqText>

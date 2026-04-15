@@ -115,7 +115,7 @@ export const RedactedLogo: React.FC<RedactedLogoProps> = ({ text, className = ''
     return displayText.split('').map((char, i) => {
       if (char === ' ') {
         return (
-          <span key={i} style={{ display: 'inline-block', width: '4px' }}>
+          <span key={i} className={styles.space}>
             {' '}
           </span>
         );
@@ -132,35 +132,21 @@ export const RedactedLogo: React.FC<RedactedLogoProps> = ({ text, className = ''
         ? {
             transform: `translateX(${Math.random() > 0.5 ? 2 : -2}px) translateY(${Math.random() > 0.5 ? 1 : -1}px)`,
             filter: 'brightness(2) contrast(1.5)',
-            textShadow: '2px 0 #ff0040, -2px 0 #00ffff',
+            textShadow: `2px 0 var(--glitch-magenta), -2px 0 var(--glitch-cyan)`,
           }
         : {};
 
       return (
         <span
           key={i}
-          style={{
-            display: 'inline-block',
-            width: '10.8px', // Fixed pixel width per character
-            textAlign: 'center',
-            position: 'relative',
-            transition: isGlitching ? 'none' : 'all 0.05s',
-            ...glitchStyle,
-          }}
+          className={styles.letter}
+          style={{ transition: isGlitching ? 'none' : 'all 0.05s', ...glitchStyle }}
         >
           {isRedacted ? (
             // Redacted block - solid black bar
-            <span
-              style={{
-                color: '#000',
-                background: '#000',
-                padding: '0 1px',
-              }}
-            >
-              █
-            </span>
+            <span className={styles.redactedBlock}>█</span>
           ) : (
-            <span style={{ color: '#f1f5f9' }}>{char}</span>
+            <span className={styles.normalChar}>{char}</span>
           )}
         </span>
       );
@@ -170,15 +156,7 @@ export const RedactedLogo: React.FC<RedactedLogoProps> = ({ text, className = ''
   return (
     <div className={[styles.root, className].filter(Boolean).join(' ')}>
       {/* Global glitch overlay */}
-      {globalGlitch && (
-        <div
-          className={styles.globalGlitch}
-          style={{
-            background:
-              'repeating-linear-gradient(0deg, transparent 0px, transparent 2px, rgba(0,255,255,0.03) 2px, rgba(0,255,255,0.03) 4px)',
-          }}
-        />
-      )}
+      {globalGlitch && <div className={styles.globalGlitch} />}
 
       <h1
         className={styles.title}
@@ -187,7 +165,7 @@ export const RedactedLogo: React.FC<RedactedLogoProps> = ({ text, className = ''
           filter: globalGlitch ? 'hue-rotate(20deg)' : 'none',
         }}
       >
-        {isAnimating ? renderText() : <span style={{ color: '#f1f5f9' }}>{text}</span>}
+        {isAnimating ? renderText() : <span className={styles.staticText}>{text}</span>}
       </h1>
     </div>
   );

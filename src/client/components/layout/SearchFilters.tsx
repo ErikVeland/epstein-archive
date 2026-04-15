@@ -3,6 +3,8 @@ import { Filter, Users, Calendar, AlertTriangle } from 'lucide-react';
 import { SearchFilters as ISearchFilters } from '../../types';
 import s from './SearchFilters.module.css';
 
+import { Input, NativeSelect } from '../../design-system/lib';
+
 interface SearchFiltersProps {
   filters: ISearchFilters;
   setFilters: (filters: ISearchFilters) => void;
@@ -26,7 +28,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ filters, setFilters }) =>
             <AlertTriangle className={s.labelIcon} size={16} />
             Likelihood Level
           </label>
-          <select
+          <NativeSelect
             value={filters.likelihood}
             onChange={(e) => handleFilterChange('likelihood', e.target.value)}
             className={s.select}
@@ -35,7 +37,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ filters, setFilters }) =>
             <option value="HIGH">High Risk</option>
             <option value="MEDIUM">Medium Risk</option>
             <option value="LOW">Low Risk</option>
-          </select>
+          </NativeSelect>
         </div>
 
         <div className={s.field}>
@@ -43,7 +45,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ filters, setFilters }) =>
             <Users className={s.labelIcon} size={16} />
             Min Mentions
           </label>
-          <input
+          <Input
             type="number"
             min="0"
             value={filters.minMentions}
@@ -55,7 +57,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ filters, setFilters }) =>
 
         <div className={s.field}>
           <label className={s.label}>Role Type</label>
-          <select
+          <NativeSelect
             value={filters.role}
             onChange={(e) => handleFilterChange('role', e.target.value)}
             className={s.select}
@@ -66,7 +68,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ filters, setFilters }) =>
             <option value="legal">Legal</option>
             <option value="media">Media</option>
             <option value="victim">Victim</option>
-          </select>
+          </NativeSelect>
         </div>
 
         <div className={s.field}>
@@ -74,7 +76,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ filters, setFilters }) =>
             <Calendar className={s.labelIcon} size={16} />
             Current Status
           </label>
-          <select
+          <NativeSelect
             value={filters.status}
             onChange={(e) => handleFilterChange('status', e.target.value)}
             className={s.select}
@@ -84,7 +86,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({ filters, setFilters }) =>
             <option value="convicted">Convicted</option>
             <option value="deceased">Deceased</option>
             <option value="retired">Retired</option>
-          </select>
+          </NativeSelect>
         </div>
       </div>
     </div>

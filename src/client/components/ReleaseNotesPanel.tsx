@@ -8,6 +8,8 @@ import { Box } from '../design-system/components/layout/Box';
 import { LqText } from '../design-system/components/typography/Text';
 import styles from './ReleaseNotesPanel.module.css';
 
+import { Button } from '../design-system/lib';
+
 interface ReleaseNote {
   version: string;
   date: string;
@@ -53,7 +55,8 @@ export const ReleaseNotesPanel: React.FC<ReleaseNotesPanelProps> = ({
 
   return (
     <Flex align="center" justify="end" className={styles.overlay}>
-      <button
+      <Button
+        unstyled
         type="button"
         className={styles.dismissButton}
         aria-label="Close release notes"

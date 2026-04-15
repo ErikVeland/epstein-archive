@@ -10,7 +10,6 @@ import {
   Loader2,
   Mail,
   Paperclip,
-  Search,
   ShieldCheck,
   SlidersHorizontal,
   Sparkles,
@@ -25,6 +24,7 @@ import { riskToneFromRating } from '../../utils/riskSemantics';
 import { useFilters } from '../../contexts/useFilters';
 import { useEmailWorkspaceData } from '../../hooks/useEmailWorkspaceData';
 import { EmptyCorpus } from '../common/EmptyCorpus';
+import { Button, SearchField, Select, TextInput } from '../../design-system/lib';
 
 type EmailDensity = 'comfortable' | 'compact';
 
@@ -33,6 +33,14 @@ const tabOptions: Array<{ id: 'all' | 'primary' | 'updates' | 'promotions'; labe
   { id: 'primary', label: 'Primary' },
   { id: 'updates', label: 'Updates' },
   { id: 'promotions', label: 'Promotions' },
+];
+
+const minRiskOptions = [
+  { value: 0, label: 'Any' },
+  { value: 1, label: '≥ 1' },
+  { value: 2, label: '≥ 2' },
+  { value: 3, label: '≥ 3' },
+  { value: 4, label: '≥ 4' },
 ];
 
 const ladderTone = (ladder: string | null): string => {
@@ -87,9 +95,12 @@ const ThreadRow = React.memo(
     const compact = data.density === 'compact';
 
     return (
-      <button
+      <Button
         style={style}
         onClick={() => data.onOpen(thread.threadId)}
+        type="button"
+        variant="ghost"
+        size="sm"
         data-thread-id={thread.threadId}
         data-testid="email-thread-row"
         className={`${styles.emailRow} ${selected ? styles.active : ''} ${
@@ -116,7 +127,7 @@ const ThreadRow = React.memo(
             </div>
           </div>
         </div>
-      </button>
+      </Button>
     );
   },
 );
@@ -136,9 +147,12 @@ const MailboxRow = React.memo(
     const isVip = mailbox.isVip;
 
     return (
-      <button
+      <Button
         style={style}
         onClick={() => data.onSelect(mailbox.mailboxId)}
+        type="button"
+        variant="ghost"
+        size="sm"
         className={`${styles.emailRow} ${styles.mailboxRow} ${active ? styles.active : ''} ${
           isVip ? styles.vipMailbox : ''
         }`}
@@ -167,7 +181,7 @@ const MailboxRow = React.memo(
             {isVip && <div className={styles.mailboxPriority}>PRIORITY VIP</div>}
           </div>
         </div>
-      </button>
+      </Button>
     );
   },
 );
@@ -427,40 +441,49 @@ export const EmailClient: React.FC = () => {
             <div className={styles.mobileCount}>{threadsTotal.toLocaleString()} threads</div>
           </div>
           <div className={styles.mobileTabs}>
-            <button
+            <Button
               onClick={() => setMobilePane('mailboxes')}
+              type="button"
+              variant="ghost"
+              size="sm"
               className={`${styles.mobileTabButton} ${
                 mobilePane === 'mailboxes' ? styles.mobileTabActive : ''
               }`}
             >
               Mailboxes
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => setMobilePane('threads')}
+              type="button"
+              variant="ghost"
+              size="sm"
               className={`${styles.mobileTabButton} ${
                 mobilePane === 'threads' ? styles.mobileTabActive : ''
               }`}
             >
               Threads
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => selectedThreadId && setMobilePane('messages')}
+              type="button"
+              variant="ghost"
+              size="sm"
               disabled={!selectedThreadId}
               className={`${styles.mobileTabButton} ${
                 mobilePane === 'messages' ? styles.mobileTabActive : ''
               } ${!selectedThreadId ? styles.mobileTabDisabled : ''}`}
             >
               Message
-            </button>
+            </Button>
           </div>
           {mobilePane === 'threads' && (
             <div className={styles.searchWrap}>
-              <Search className={styles.searchIconInline} />
-              <input
+              <SearchField
                 value={searchInput}
                 onChange={(event) => setSearchInput(event.target.value)}
                 placeholder="Search threads"
-                className={styles.searchInputPill}
+                density="compact"
+                rootClassName={styles.searchFieldRoot}
               />
             </div>
           )}
@@ -470,24 +493,26 @@ export const EmailClient: React.FC = () => {
       <div
         ref={desktopLayoutRef}
         className={styles.desktopLayout}
-        style={{
-          display: window.innerWidth < 768 ? 'block' : 'grid',
-          gridTemplateColumns:
-            window.innerWidth < 768
-              ? '1fr'
-              : `${mailboxWidth}px 10px ${threadWidth}px 10px minmax(420px, 1fr)`,
-        }}
+        style={
+          {
+            '--mailbox-pane-width': `${mailboxWidth}px`,
+            '--thread-pane-width': `${threadWidth}px`,
+          } as React.CSSProperties
+        }
       >
         <aside
           className={`${styles.mailboxPane} ${
             mobilePane === 'mailboxes' ? styles.mobilePaneVisible : styles.mobilePaneHidden
-          } md:col-[1]`}
+          }`}
         >
           <div className={styles.mailboxHeader}>
             <div className={styles.mailboxHeaderTop}>
               <span>Entity mailboxes</span>
-              <button
+              <Button
                 onClick={() => setShowSuppressedJunk((prev) => !prev)}
+                type="button"
+                variant="ghost"
+                size="sm"
                 className={styles.mailboxToggle}
                 title={
                   showSuppressedJunk
@@ -496,38 +521,44 @@ export const EmailClient: React.FC = () => {
                 }
               >
                 {showSuppressedJunk ? 'Hide junk' : 'Show junk'}
-              </button>
+              </Button>
             </div>
             <div className={styles.mailboxSubnote}>
               All Inboxes + top-mentioned entities from email evidence
             </div>
             <div className={styles.searchWrap}>
-              <Search className={styles.searchIconInline} />
-              <input
+              <SearchField
                 data-testid="email-search-input"
                 value={searchInput}
                 onChange={(event) => setSearchInput(event.target.value)}
                 placeholder="Search threads"
-                className={styles.searchInputPill}
+                density="compact"
+                rootClassName={styles.searchFieldRoot}
               />
             </div>
             <div className={styles.tabPills}>
               {tabsWithData.map((option) => (
-                <button
+                <Button
                   key={option.id}
                   onClick={() => setActiveTab(option.id as Parameters<typeof setActiveTab>[0])}
+                  type="button"
+                  variant="ghost"
+                  size="sm"
                   className={`${styles.tabPill} ${
                     activeTab === option.id ? styles.tabPillActive : styles.tabPillInactive
                   }`}
                 >
                   {option.label}
-                </button>
+                </Button>
               ))}
             </div>
             <div className={styles.densityRow}>
               <div className={styles.densityToggle}>
-                <button
+                <Button
                   onClick={() => setDensity('comfortable')}
+                  type="button"
+                  variant="ghost"
+                  size="sm"
                   className={`${styles.densityButton} ${
                     density === 'comfortable'
                       ? styles.densityButtonActive
@@ -535,9 +566,12 @@ export const EmailClient: React.FC = () => {
                   }`}
                 >
                   Comfortable
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={() => setDensity('compact')}
+                  type="button"
+                  variant="ghost"
+                  size="sm"
                   className={`${styles.densityButton} ${
                     density === 'compact'
                       ? styles.densityButtonActive
@@ -545,7 +579,7 @@ export const EmailClient: React.FC = () => {
                   }`}
                 >
                   Compact
-                </button>
+                </Button>
               </div>
               <div className={styles.filterCountText}>
                 {activeQuickFilterCount > 0
@@ -610,12 +644,16 @@ export const EmailClient: React.FC = () => {
         >
           <div className={styles.paneHeader}>
             <div className={styles.threadHeaderLeft}>
-              <button
+              <Button
                 onClick={() => setMobilePane('mailboxes')}
+                type="button"
+                variant="ghost"
+                size="sm"
+                iconOnly
                 className={`${styles.backButtonMobile} ${styles.mobileOnly}`}
               >
                 <ArrowLeft className={styles.backIcon} />
-              </button>
+              </Button>
               <span className={styles.threadLabel}>Conversations</span>
             </div>
             <div className={styles.threadCount}>{threadsTotal.toLocaleString()} total</div>
@@ -634,8 +672,11 @@ export const EmailClient: React.FC = () => {
               </span>
             </div>
             <div className={styles.headerActions}>
-              <button
+              <Button
                 onClick={() => setShowFilterPanel((prev) => !prev)}
+                type="button"
+                variant="ghost"
+                size="sm"
                 className={`${styles.filterToggleButton} ${
                   showFilterPanel ? styles.filterToggleActive : styles.filterToggleInactive
                 }`}
@@ -649,15 +690,18 @@ export const EmailClient: React.FC = () => {
                 <ChevronDown
                   className={`${styles.chevronSmallIcon} ${showFilterPanel ? styles.rotate180 : ''}`}
                 />
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={clearQuickFilters}
+                type="button"
+                variant="ghost"
+                size="sm"
                 className={styles.clearButton}
                 disabled={activeQuickFilterCount === 0}
               >
                 <X className={styles.xIcon} />
                 Clear
-              </button>
+              </Button>
             </div>
           </div>
           {showFilterPanel && (
@@ -669,37 +713,45 @@ export const EmailClient: React.FC = () => {
                 <div className={styles.filterFormGrid}>
                   <label className={styles.filterField}>
                     <span className={styles.filterLabel}>From</span>
-                    <input
+                    <TextInput
                       value={fromFilter}
                       onChange={(event) => setFromFilter(event.target.value)}
                       placeholder="sender@domain.com or name"
+                      aria-label="From"
+                      density="compact"
                       className={styles.filterTextInput}
                     />
                   </label>
                   <label className={styles.filterField}>
                     <span className={styles.filterLabel}>To</span>
-                    <input
+                    <TextInput
                       value={toFilter}
                       onChange={(event) => setToFilter(event.target.value)}
                       placeholder="recipient@domain.com or name"
+                      aria-label="To"
+                      density="compact"
                       className={styles.filterTextInput}
                     />
                   </label>
                   <label className={styles.filterField}>
                     <span className={styles.filterLabel}>Date From</span>
-                    <input
+                    <TextInput
                       value={dateFrom}
                       onChange={(event) => setDateFrom(event.target.value)}
                       type="date"
+                      aria-label="Date from"
+                      density="compact"
                       className={styles.filterDateInput}
                     />
                   </label>
                   <label className={styles.filterField}>
                     <span className={styles.filterLabel}>Date To</span>
-                    <input
+                    <TextInput
                       value={dateTo}
                       onChange={(event) => setDateTo(event.target.value)}
                       type="date"
+                      aria-label="Date to"
+                      density="compact"
                       className={styles.filterDateInput}
                     />
                   </label>
@@ -707,28 +759,27 @@ export const EmailClient: React.FC = () => {
 
                 <div className={styles.filterQuickRow}>
                   <span className={styles.quickLabel}>Quick Toggles</span>
-                  <button
+                  <Button
                     onClick={() => setHasAttachmentsOnly((prev) => !prev)}
+                    type="button"
+                    variant="ghost"
+                    size="sm"
                     className={`${styles.toggleChip} ${
                       hasAttachmentsOnly ? styles.toggleChipActive : styles.toggleChipInactive
                     }`}
                   >
                     Has attachments
-                  </button>
+                  </Button>
                   <div className={styles.riskPicker}>
                     <span className={styles.riskLabel}>Min Risk</span>
-                    <select
+                    <Select
                       value={minRisk}
                       onChange={(event) => setMinRisk(Number(event.target.value))}
+                      options={minRiskOptions}
+                      size="sm"
                       className={styles.riskSelect}
                       aria-label="Minimum risk"
-                    >
-                      <option value={0}>Any</option>
-                      <option value={1}>≥ 1</option>
-                      <option value={2}>≥ 2</option>
-                      <option value={3}>≥ 3</option>
-                      <option value={4}>≥ 4</option>
-                    </select>
+                    />
                   </div>
                 </div>
               </div>
@@ -752,15 +803,24 @@ export const EmailClient: React.FC = () => {
                       : `The "${activeTab}" tab returned no threads for this mailbox.`}
                   </p>
                   <div className={styles.emptyActions}>
-                    <button
+                    <Button
                       onClick={() => setActiveTab('all')}
+                      type="button"
+                      variant="ghost"
+                      size="sm"
                       className={styles.emptyActionButton}
                     >
                       Use All tab
-                    </button>
-                    <button onClick={() => setSearchInput('')} className={styles.emptyActionButton}>
+                    </Button>
+                    <Button
+                      onClick={() => setSearchInput('')}
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className={styles.emptyActionButton}
+                    >
                       Clear search
-                    </button>
+                    </Button>
                   </div>
                 </div>
               ) : (
@@ -796,16 +856,19 @@ export const EmailClient: React.FC = () => {
 
           <div className={styles.footerBar}>
             {canLoadMore ? (
-              <button
+              <Button
                 onClick={() => {
                   if (!threadsNextCursor || loadingMoreThreads) return;
                   void loadThreads(threadsNextCursor, true);
                 }}
+                type="button"
+                variant="secondary"
+                size="sm"
                 className={styles.loadMoreButton}
                 disabled={loadingMoreThreads}
               >
                 {loadingMoreThreads ? 'Loading...' : 'Load more'}
-              </button>
+              </Button>
             ) : (
               <div className={styles.endText}>End of results</div>
             )}
@@ -845,7 +908,7 @@ export const EmailClient: React.FC = () => {
                 }
                 actions={
                   <div data-testid="email-thread-actions" className={styles.viewerActions}>
-                    <button
+                    <Button
                       onClick={() => {
                         if (window.innerWidth < 768) {
                           setMobilePane('threads');
@@ -854,10 +917,14 @@ export const EmailClient: React.FC = () => {
                           updateUrlState({ threadId: null, messageId: null });
                         }
                       }}
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      iconOnly
                       className={styles.backToThreadsButton}
                     >
                       <ArrowLeft className={styles.backIcon} />
-                    </button>
+                    </Button>
                     <AddToInvestigationButton
                       item={{
                         id: selectedThread.threadId,
@@ -891,8 +958,11 @@ export const EmailClient: React.FC = () => {
                         className={`${styles.messageCard} ${expanded ? styles.expanded : ''}`}
                         data-message-id={message.messageId}
                       >
-                        <button
+                        <Button
                           onClick={() => handleToggleMessage(message.messageId, !expanded)}
+                          type="button"
+                          variant="ghost"
+                          size="sm"
                           className={styles.messageToggle}
                         >
                           <div className={styles.messageHeader}>
@@ -914,7 +984,7 @@ export const EmailClient: React.FC = () => {
                               className={`${styles.chevronIcon} ${expanded ? styles.rotate90 : ''}`}
                             />
                           </div>
-                        </button>
+                        </Button>
 
                         {expanded && (
                           <div className={`${styles.messageBody} ${styles.messageBodyExpanded}`}>
@@ -947,24 +1017,33 @@ export const EmailClient: React.FC = () => {
                             </div>
 
                             <div className={styles.messageActionRow}>
-                              <button
+                              <Button
                                 onClick={() => void copyText(citation)}
+                                type="button"
+                                variant="ghost"
+                                size="sm"
                                 className={styles.messageActionButton}
                               >
                                 Copy Citation
-                              </button>
-                              <button
+                              </Button>
+                              <Button
                                 onClick={() => handleToggleRaw(message.messageId)}
+                                type="button"
+                                variant="ghost"
+                                size="sm"
                                 className={styles.messageActionButton}
                               >
                                 {body?.showRaw ? 'Show Cleaned' : 'View MIME'}
-                              </button>
-                              <button
+                              </Button>
+                              <Button
                                 onClick={() => handleToggleQuoted(message.messageId)}
+                                type="button"
+                                variant="ghost"
+                                size="sm"
                                 className={styles.messageActionButton}
                               >
                                 {body?.showQuoted ? 'Hide History' : 'Show History'}
-                              </button>
+                              </Button>
                               <AddToInvestigationButton
                                 item={{
                                   id: message.messageId,
@@ -1008,15 +1087,18 @@ export const EmailClient: React.FC = () => {
                             {(message.linkedEntities || []).length > 0 && (
                               <div className={styles.entityPills}>
                                 {(message.linkedEntities || []).map((entity) => (
-                                  <button
+                                  <Button
                                     key={`${message.messageId}-${entity.entityId}`}
                                     onClick={() => setSelectedEntityId(String(entity.entityId))}
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
                                     className={styles.entityChip}
                                     title={`Open entity ${entity.name}`}
                                   >
                                     <User className={styles.entityChipIcon} />
                                     {entity.name}
-                                  </button>
+                                  </Button>
                                 ))}
                               </div>
                             )}
@@ -1048,14 +1130,17 @@ export const EmailClient: React.FC = () => {
                                           </div>
                                         </div>
                                         {canOpen ? (
-                                          <button
+                                          <Button
                                             onClick={() =>
                                               navigate(`/documents/${linkedDocumentId}`)
                                             }
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
                                             className={styles.attachmentOpenButton}
                                           >
                                             Open
-                                          </button>
+                                          </Button>
                                         ) : (
                                           <span className={styles.attachmentMissingWrap}>
                                             <span className={styles.attachmentMissing}>

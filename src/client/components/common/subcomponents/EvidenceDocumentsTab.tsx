@@ -28,6 +28,8 @@ const TypedInfiniteLoader = InfiniteLoader as unknown as React.ComponentType<{
 
 import { EvidenceDocument } from '../EvidenceModal';
 
+import { Button, Input } from '../../../design-system/lib';
+
 interface DocFilterUpdates {
   search?: string;
   source?: string;
@@ -69,7 +71,7 @@ export const EvidenceDocumentsTab: React.FC<EvidenceDocumentsTabProps> = ({
       <div className={s.toolbar}>
         <div className={s.searchWrapper}>
           <Search className={s.searchIcon} size={18} />
-          <input
+          <Input
             type="text"
             placeholder="Search relevant documents..."
             className={s.searchInput}
@@ -123,7 +125,8 @@ export const EvidenceDocumentsTab: React.FC<EvidenceDocumentsTabProps> = ({
                 ))}
                 {hasNextPage && (
                   <div className={s.loadMoreWrapper}>
-                    <button
+                    <Button
+                      unstyled
                       type="button"
                       className={s.loadMoreBtn}
                       disabled={isNextPageLoading}
@@ -131,7 +134,7 @@ export const EvidenceDocumentsTab: React.FC<EvidenceDocumentsTabProps> = ({
                       data-testid="entity-evidence-load-more"
                     >
                       {isNextPageLoading ? 'Loading more…' : 'Load more evidence'}
-                    </button>
+                    </Button>
                   </div>
                 )}
               </div>

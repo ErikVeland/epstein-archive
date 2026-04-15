@@ -83,24 +83,39 @@ const sortVideosInDisplayOrder = (items: VideoItem[]) =>
     return a.id - b.id;
   });
 
-const VIDEO_THUMB_PLACEHOLDER =
-  'data:image/svg+xml;utf8,' +
-  encodeURIComponent(`
-    <svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
-      <defs>
-        <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
-          <stop offset="0%" stop-color="#020617"/>
-          <stop offset="100%" stop-color="#0f172a"/>
-        </linearGradient>
-      </defs>
-      <rect width="1280" height="720" fill="url(#bg)"/>
-      <rect x="420" y="210" width="440" height="300" rx="20" fill="#0b1220" stroke="#1e293b" stroke-width="4"/>
-      <polygon points="595,285 595,435 720,360" fill="#38bdf8" opacity="0.9"/>
-      <text x="640" y="565" text-anchor="middle" fill="#94a3b8" font-family="Arial, sans-serif" font-size="28">
-        Video thumbnail unavailable
-      </text>
-    </svg>
-  `);
+function getVideoThumbPlaceholder(): string {
+  if (typeof window === 'undefined') return '';
+  const root = getComputedStyle(document.documentElement);
+  const bgDark = root.getPropertyValue('--bg-dark').trim() || 'black';
+  const surface2 = root.getPropertyValue('--lq-surface-2').trim() || 'black';
+  const surface1 = root.getPropertyValue('--lq-surface-1').trim() || 'black';
+  const border = root.getPropertyValue('--glass-border-strong').trim() || 'gray';
+  const accent =
+    root.getPropertyValue('--nav-flights').trim() ||
+    root.getPropertyValue('--accent').trim() ||
+    'white';
+  const textMuted = root.getPropertyValue('--text-muted').trim() || 'gray';
+
+  return (
+    'data:image/svg+xml;utf8,' +
+    encodeURIComponent(`
+      <svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+        <defs>
+          <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+            <stop offset="0%" stop-color="${bgDark}"/>
+            <stop offset="100%" stop-color="${surface2}"/>
+          </linearGradient>
+        </defs>
+        <rect width="1280" height="720" fill="url(#bg)"/>
+        <rect x="420" y="210" width="440" height="300" rx="20" fill="${surface1}" stroke="${border}" stroke-width="4"/>
+        <polygon points="595,285 595,435 720,360" fill="${accent}" opacity="0.9"/>
+        <text x="640" y="565" text-anchor="middle" fill="${textMuted}" font-family="Arial, sans-serif" font-size="28">
+          Video thumbnail unavailable
+        </text>
+      </svg>
+    `)
+  );
+}
 
 function getInitialAlbumIdFromUrl(): number | null {
   if (typeof window === 'undefined') return null;
@@ -129,7 +144,7 @@ const VideoCell = React.memo(({ columnIndex, rowIndex, style, data }: GridChildC
   const isSelected = selectedItems.has(video.id);
 
   return (
-    <div style={{ ...style, padding: '6px' }}>
+    <div style={style} className={styles.videoCell}>
       <Surface
         variant={isSelected ? 'glass-highlight' : 'glass-strong'}
         onClick={() => onVideoClick(video, index)}
@@ -148,7 +163,7 @@ const VideoCell = React.memo(({ columnIndex, rowIndex, style, data }: GridChildC
                 const img = e.target as HTMLImageElement;
                 if (img.dataset.fallbackApplied === '1') return;
                 img.dataset.fallbackApplied = '1';
-                img.src = VIDEO_THUMB_PLACEHOLDER;
+                img.src = getVideoThumbPlaceholder();
               }}
             />
             <Box className={styles.playOverlay}>

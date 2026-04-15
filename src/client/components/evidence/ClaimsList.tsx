@@ -2,6 +2,8 @@ import React from 'react';
 import { ShieldCheck, ShieldAlert, BadgeCheck, HelpCircle } from 'lucide-react';
 import styles from './ClaimsList.module.css';
 
+import { Button } from '../../design-system/lib';
+
 interface Claim {
   id: number;
   subject_name: string;
@@ -143,20 +145,22 @@ export function ClaimsList({ claims }: ClaimsListProps) {
                 </div>
                 {!status && (
                   <div className={styles.feedbackGroup}>
-                    <button
+                    <Button
+                      unstyled
                       onClick={() => handleFeedback(claim.id, 'verify')}
                       className={`${styles.feedbackBtn} ${styles.feedbackBtnVerify}`}
                       title="Verify this fact"
                     >
                       <BadgeCheck className={styles.iconMd} />
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      unstyled
                       onClick={() => handleFeedback(claim.id, 'reject')}
                       className={`${styles.feedbackBtn} ${styles.feedbackBtnReject}`}
                       title="Reject this fact"
                     >
                       <ShieldAlert className={styles.iconMd} />
-                    </button>
+                    </Button>
                   </div>
                 )}
               </div>

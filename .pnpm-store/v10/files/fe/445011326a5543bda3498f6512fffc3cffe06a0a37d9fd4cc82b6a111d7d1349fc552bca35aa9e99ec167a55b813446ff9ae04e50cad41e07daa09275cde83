@@ -1,0 +1,35 @@
+{
+    "name": "@types/node-cache",
+    "version": "4.1.3",
+    "description": "TypeScript definitions for node-cache",
+    "license": "MIT",
+    "contributors": [
+        {
+            "name": "Ilya Mochalov",
+            "url": "https://github.com/chrootsu",
+            "githubUsername": "chrootsu"
+        },
+        {
+            "name": "Daniel Thunell",
+            "url": "https://github.com/dthunell",
+            "githubUsername": "dthunell"
+        },
+        {
+            "name": "Ulf Seltmann",
+            "url": "https://github.com/useltmann",
+            "githubUsername": "useltmann"
+        }
+    ],
+    "main": "",
+    "types": "index",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/DefinitelyTyped/DefinitelyTyped.git"
+    },
+    "scripts": {},
+    "dependencies": {
+        "@types/node": "*"
+    },
+    "typesPublisherContentHash": "5f180b26cd379401185385528cfc79106a881a4640cadead2a7223b9274091ae",
+    "typeScriptVersion": "2.0"
+}

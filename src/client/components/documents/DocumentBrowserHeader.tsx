@@ -104,6 +104,7 @@ export const DocumentBrowserHeader: React.FC<DocumentBrowserHeaderProps> = ({
           <Select
             value={selectedTranche}
             onChange={(e) => applyTrancheFilter(e.target.value)}
+            size="sm"
             className={styles.selectControl}
             aria-label="Filter by tranche"
             options={DOJ_TRANCHE_OPTIONS}
@@ -113,6 +114,7 @@ export const DocumentBrowserHeader: React.FC<DocumentBrowserHeaderProps> = ({
             onChange={(e) =>
               setSortBy(e.target.value as 'relevance' | 'date' | 'red_flag' | 'fileType' | 'size')
             }
+            size="sm"
             className={styles.selectControl}
             aria-label="Sort field"
             options={[
@@ -137,6 +139,7 @@ export const DocumentBrowserHeader: React.FC<DocumentBrowserHeaderProps> = ({
               setItemsPerPage(Number(e.target.value));
               setCurrentPage(1);
             }}
+            size="sm"
             className={styles.selectControl}
             aria-label="Results per page"
             options={[

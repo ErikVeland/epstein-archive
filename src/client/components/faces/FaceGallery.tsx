@@ -5,6 +5,8 @@ import { useToasts } from '../common/useToasts';
 import { apiClient } from '../../services/apiClient';
 import styles from './FaceGallery.module.css';
 
+import { Button, Input } from '../../design-system/lib';
+
 interface FaceCluster {
   id: string;
   name: string;
@@ -83,7 +85,7 @@ const EntitySearch: React.FC<{
 
   return (
     <div className={styles.entitySearch} ref={ref}>
-      <input
+      <Input
         type="text"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
@@ -98,7 +100,8 @@ const EntitySearch: React.FC<{
           ) : (
             <div className={styles.searchResultsList}>
               {results.map((entity) => (
-                <button
+                <Button
+                  unstyled
                   key={entity.id}
                   onClick={() => {
                     onSelect(entity);
@@ -112,7 +115,7 @@ const EntitySearch: React.FC<{
                     {entity.role && <div className={styles.searchResultRole}>{entity.role}</div>}
                   </div>
                   <Icon name="Link" className={styles.searchResultIcon} />
-                </button>
+                </Button>
               ))}
             </div>
           )}
@@ -207,10 +210,10 @@ export const FaceGallery: React.FC = () => {
     const cluster = clusterDetail?.cluster;
     return (
       <div className={styles.page}>
-        <button onClick={() => setSelectedClusterId(null)} className={styles.backButton}>
+        <Button unstyled onClick={() => setSelectedClusterId(null)} className={styles.backButton}>
           <Icon name="ChevronLeft" size="sm" className={styles.backIcon} />
           Back to Gallery
-        </button>
+        </Button>
 
         {detailLoading || !clusterDetail ? (
           <div className={styles.loadingCard}>
@@ -251,14 +254,15 @@ export const FaceGallery: React.FC = () => {
                         {cluster.entity_name ?? cluster.name}
                       </span>
                     </div>
-                    <button
+                    <Button
+                      unstyled
                       onClick={handleUnlink}
                       disabled={saving}
                       className={styles.unlinkButton}
                       title="Remove entity link"
                     >
                       <Icon name="Unlink" />
-                    </button>
+                    </Button>
                   </div>
                 ) : (
                   <div className={styles.linkPanel}>
@@ -325,7 +329,8 @@ export const FaceGallery: React.FC = () => {
 
       <div className={styles.galleryGrid}>
         {clusters.map((cluster) => (
-          <button
+          <Button
+            unstyled
             key={cluster.id}
             onClick={() => setSelectedClusterId(cluster.id)}
             className={styles.galleryCard}
@@ -361,7 +366,7 @@ export const FaceGallery: React.FC = () => {
                 {new Date(cluster.created_at).toLocaleDateString()}
               </div>
             </div>
-          </button>
+          </Button>
         ))}
       </div>
     </div>

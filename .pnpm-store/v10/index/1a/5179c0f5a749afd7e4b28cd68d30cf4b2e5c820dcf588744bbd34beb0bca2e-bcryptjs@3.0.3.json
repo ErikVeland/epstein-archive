@@ -1,0 +1,73 @@
+{
+  "name": "bcryptjs",
+  "version": "3.0.3",
+  "requiresBuild": false,
+  "files": {
+    "bin/bcrypt": {
+      "checkedAt": 1776136537975,
+      "integrity": "sha512-KKZOg1dOu+uLwes8D/z6ZKwICTWSWXOfXB6RAxChrqCq+TXPWTZg5dghQMP/vnT2kU1M087NZPwEQDwpwWE7iA==",
+      "mode": 420,
+      "size": 528
+    },
+    "LICENSE": {
+      "checkedAt": 1776136537979,
+      "integrity": "sha512-Btd+lm3/qtDx8MBI/AGvNdTuJ7pDD15ARrY+V+Rvd5uduxDUf1oBt8qa15sn/UAh1j9E3LvRLgY5IqhVylyBnw==",
+      "mode": 420,
+      "size": 1530
+    },
+    "index.js": {
+      "checkedAt": 1776136537983,
+      "integrity": "sha512-0viXe88QUd0QCCQ24YRyt63XdHaoJeKBldmjC+wM4exswqI+9CV4dHiUdS+SIiFp68a7rdrItoz9U4xcAv95MQ==",
+      "mode": 420,
+      "size": 41528
+    },
+    "umd/index.js": {
+      "checkedAt": 1776136537987,
+      "integrity": "sha512-HsvMKAj3OmdIYgNJZ4XCsHdnf/9Y2ptUGhwJPsu0qzWTFy/Uu4Xr1qH1chdTHNwK60sttTgD1YOwWJYVU4xLmQ==",
+      "mode": 420,
+      "size": 47507
+    },
+    "package.json": {
+      "checkedAt": 1776136537991,
+      "integrity": "sha512-gEpYSbE3oZGmwlDCWJPzLDezJq7n/UQrP3lPgTQltChjgqMAcEqH03fd32Cqr3x61Z5nrkS/3H7llueDdm1fAA==",
+      "mode": 420,
+      "size": 2068
+    },
+    "umd/package.json": {
+      "checkedAt": 1776136537994,
+      "integrity": "sha512-bFiTnaWPm3Fik6gyj3o2SbbiQr8jX64ABVoMx5+yeI5Kmd+qQi4M+tvoTg1eM7g29oYn5qQJZUh37cRDuU0ExA==",
+      "mode": 420,
+      "size": 25
+    },
+    "README.md": {
+      "checkedAt": 1776136537998,
+      "integrity": "sha512-jgGzg2867Jx+3fUH6QAteeL6aJjjV3DtEj3EvyqxjUf9ZUJ1Ue4bwL1E5hjdNiXibWh3lFy+XOjHpG9n+tCflg==",
+      "mode": 420,
+      "size": 7628
+    },
+    "index.d.ts": {
+      "checkedAt": 1776136538001,
+      "integrity": "sha512-LrZ+JHzFW3Sjm2Sa7taGk96lvDC6ImDBZs1BXu5OkMuixzvWNVddgcMYycPl25zu3+vxSBRj3IqVg/2W+tY+KA==",
+      "mode": 420,
+      "size": 89
+    },
+    "umd/index.d.ts": {
+      "checkedAt": 1776136538004,
+      "integrity": "sha512-wZJ1sSCYRfQ0aaKDVZiuHZ1WTvMgOik2o6Jvn8iCcLRlC/hMdCwDnFjxFrAMYtCC2wxCbbMJt23yQoDPvS2B/Q==",
+      "mode": 420,
+      "size": 83
+    },
+    "types.d.ts": {
+      "checkedAt": 1776136538007,
+      "integrity": "sha512-Pbw8UVyBILoTymQIr4dYiSSEYQ4Sd5OKU3dHBoShEbxtQnWRrLyVXtYNsWCW5X2fKOu6bvKkpEIqChxmq3YcPQ==",
+      "mode": 420,
+      "size": 5653
+    },
+    "umd/types.d.ts": {
+      "checkedAt": 1776136538007,
+      "integrity": "sha512-Pbw8UVyBILoTymQIr4dYiSSEYQ4Sd5OKU3dHBoShEbxtQnWRrLyVXtYNsWCW5X2fKOu6bvKkpEIqChxmq3YcPQ==",
+      "mode": 420,
+      "size": 5653
+    }
+  }
+}

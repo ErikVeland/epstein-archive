@@ -2,6 +2,8 @@ import React from 'react';
 import { AlertTriangle } from 'lucide-react';
 import s from './SensitiveWarningBanner.module.css';
 
+import { Button } from '../../design-system/lib';
+
 interface SensitiveWarningBannerProps {
   /** Type of media for contextual warning message */
   mediaType: 'audio' | 'video' | 'photo';
@@ -45,7 +47,12 @@ export function SensitiveWarningBanner({
           graphic, traumatic, and disturbing. {discretionLabel} discretion is strongly advised.
         </p>
       </div>
-      <button onClick={handleDismiss} className={s.dismissBtn} aria-label="Dismiss warning">
+      <Button
+        unstyled
+        onClick={handleDismiss}
+        className={s.dismissBtn}
+        aria-label="Dismiss warning"
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="16"
@@ -60,7 +67,7 @@ export function SensitiveWarningBanner({
           <line x1="18" y1="6" x2="6" y2="18"></line>
           <line x1="6" y1="6" x2="18" y2="18"></line>
         </svg>
-      </button>
+      </Button>
     </div>
   );
 }

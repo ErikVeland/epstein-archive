@@ -1,15 +1,23 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { createPortal } from 'react-dom';
-import { X, Network, Save, Search } from 'lucide-react';
+import { X, Network, Save } from 'lucide-react';
 import { apiClient } from '../../services/apiClient';
 import FormField from '../common/FormField';
-import { useModalFocusTrap } from '../../hooks/useModalFocusTrap';
 import { useToasts } from '../common/useToasts';
 import { Person } from '../../types';
-import { useScrollLock } from '../../hooks/useScrollLock';
 import { CloseButton } from '../common/CloseButton';
 import styles from './CreateRelationshipModal.module.css';
+
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  SearchField,
+  Select,
+  Textarea,
+} from '../../design-system/lib';
 
 interface CreateRelationshipModalProps {
   onClose: () => void;
@@ -24,8 +32,16 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProps> = (
   initialSourceId,
   initialTargetId,
 }) => {
-  const { modalRef } = useModalFocusTrap(true);
-  useScrollLock(true);
+  const relationshipTypeOptions = [
+    { value: 'associated', label: 'Associated' },
+    { value: 'financial', label: 'Financial' },
+    { value: 'legal', label: 'Legal' },
+    { value: 'social', label: 'Social' },
+    { value: 'co-conspirator', label: 'Co-conspirator' },
+    { value: 'victim', label: 'Victim' },
+    { value: 'employee', label: 'Employee' },
+  ];
+
   const { addToast } = useToasts();
   const [loading, setLoading] = useState(false);
 
@@ -125,16 +141,18 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProps> = (
     }
   };
 
-  return createPortal(
-    <div id="CreateRelationshipModal" className={styles.overlay} role="dialog" aria-modal="true">
-      <div ref={modalRef} className={styles.modal}>
-        <div className={styles.header}>
-          <div className={styles.headerTitleGroup}>
-            <div className={styles.headerIconWrap}>
-              <Network className={styles.headerIcon} />
+  return (
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className={styles.dialogContent}>
+        <div className={styles.headerRow}>
+          <DialogHeader className={styles.header}>
+            <div className={styles.headerTitleGroup}>
+              <div className={styles.headerIconWrap}>
+                <Network className={styles.headerIcon} />
+              </div>
+              <DialogTitle className={styles.headerTitle}>Create Connection</DialogTitle>
             </div>
-            <h2 className={styles.headerTitle}>Create Connection</h2>
-          </div>
+          </DialogHeader>
           <CloseButton
             onClick={onClose}
             size="sm"
@@ -151,46 +169,51 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProps> = (
               {selectedSource ? (
                 <div className={styles.selectedEntity}>
                   <span className={styles.selectedEntityName}>{selectedSource.name}</span>
-                  <button
+                  <Button
                     type="button"
                     onClick={() => {
                       setSelectedSource(null);
                       setSourceSearch('');
                     }}
+                    variant="ghost"
+                    size="sm"
+                    iconOnly
                     className={styles.iconButton}
                   >
                     <X className={styles.smallIcon} />
-                  </button>
+                  </Button>
                 </div>
               ) : (
                 <div>
-                  <div className={styles.searchWrap}>
-                    <Search className={styles.searchIcon} />
-                    <input
-                      type="text"
-                      value={sourceSearch}
-                      onChange={(e) => handleSearch(e.target.value, 'source')}
-                      className={`${styles.field} ${styles.searchInput}`}
-                      placeholder="Search entity..."
-                    />
-                  </div>
+                  <SearchField
+                    type="text"
+                    value={sourceSearch}
+                    onChange={(e) => handleSearch(e.target.value, 'source')}
+                    rootClassName={styles.searchFieldRoot}
+                    className={styles.searchInput}
+                    density="compact"
+                    placeholder="Search entity..."
+                    aria-label="Search source entity"
+                  />
                   {sourceResults.length > 0 && (
                     <div className={styles.resultsList}>
                       {sourceResults.map((p) => (
-                        <button
+                        <Button
                           key={p.id}
                           type="button"
                           onClick={() => {
                             setSelectedSource(p);
                             setSourceResults([]);
                           }}
+                          variant="ghost"
+                          size="sm"
                           className={styles.resultButton}
                         >
                           <div className={styles.resultTitle}>{p.name}</div>
                           {p.primaryRole && (
                             <div className={styles.resultMeta}>{p.primaryRole}</div>
                           )}
-                        </button>
+                        </Button>
                       ))}
                     </div>
                   )}
@@ -204,46 +227,51 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProps> = (
               {selectedTarget ? (
                 <div className={styles.selectedEntity}>
                   <span className={styles.selectedEntityName}>{selectedTarget.name}</span>
-                  <button
+                  <Button
                     type="button"
                     onClick={() => {
                       setSelectedTarget(null);
                       setTargetSearch('');
                     }}
+                    variant="ghost"
+                    size="sm"
+                    iconOnly
                     className={styles.iconButton}
                   >
                     <X className={styles.smallIcon} />
-                  </button>
+                  </Button>
                 </div>
               ) : (
                 <div>
-                  <div className={styles.searchWrap}>
-                    <Search className={styles.searchIcon} />
-                    <input
-                      type="text"
-                      value={targetSearch}
-                      onChange={(e) => handleSearch(e.target.value, 'target')}
-                      className={`${styles.field} ${styles.searchInput}`}
-                      placeholder="Search entity..."
-                    />
-                  </div>
+                  <SearchField
+                    type="text"
+                    value={targetSearch}
+                    onChange={(e) => handleSearch(e.target.value, 'target')}
+                    rootClassName={styles.searchFieldRoot}
+                    className={styles.searchInput}
+                    density="compact"
+                    placeholder="Search entity..."
+                    aria-label="Search target entity"
+                  />
                   {targetResults.length > 0 && (
                     <div className={styles.resultsList}>
                       {targetResults.map((p) => (
-                        <button
+                        <Button
                           key={p.id}
                           type="button"
                           onClick={() => {
                             setSelectedTarget(p);
                             setTargetResults([]);
                           }}
+                          variant="ghost"
+                          size="sm"
                           className={styles.resultButton}
                         >
                           <div className={styles.resultTitle}>{p.name}</div>
                           {p.primaryRole && (
                             <div className={styles.resultMeta}>{p.primaryRole}</div>
                           )}
-                        </button>
+                        </Button>
                       ))}
                     </div>
                   )}
@@ -253,20 +281,14 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProps> = (
           </div>
 
           <FormField label="Relationship Type" id="relationship_type" required>
-            <select
+            <Select
               id="relationship_type"
               value={formData.relationship_type}
               onChange={(e) => setFormData({ ...formData, relationship_type: e.target.value })}
               className={styles.field}
-            >
-              <option value="associated">Associated</option>
-              <option value="financial">Financial</option>
-              <option value="legal">Legal</option>
-              <option value="social">Social</option>
-              <option value="co-conspirator">Co-conspirator</option>
-              <option value="victim">Victim</option>
-              <option value="employee">Employee</option>
-            </select>
+              size="sm"
+              options={relationshipTypeOptions}
+            />
           </FormField>
 
           <div className={styles.sliderGrid}>
@@ -300,7 +322,7 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProps> = (
           </div>
 
           <FormField label="Description / Context" id="description">
-            <textarea
+            <Textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               className={styles.field}
@@ -310,12 +332,20 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProps> = (
           </FormField>
 
           <div className={styles.footer}>
-            <button type="button" onClick={onClose} className={styles.cancelButton}>
+            <Button
+              type="button"
+              onClick={onClose}
+              variant="secondary"
+              size="sm"
+              className={styles.cancelButton}
+            >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
               disabled={loading || !selectedSource || !selectedTarget}
+              variant="primary"
+              size="sm"
               className={styles.submitButton}
             >
               {loading ? (
@@ -326,11 +356,10 @@ export const CreateRelationshipModal: React.FC<CreateRelationshipModalProps> = (
                   Create Connection
                 </>
               )}
-            </button>
+            </Button>
           </div>
         </form>
-      </div>
-    </div>,
-    document.body,
+      </DialogContent>
+    </Dialog>
   );
 };

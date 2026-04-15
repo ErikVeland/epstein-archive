@@ -10,6 +10,8 @@ import { Flex } from '../../design-system/components/layout/Flex';
 import { Surface } from '../../design-system/components/surfaces/Surface';
 import { Box } from '../../design-system/components/layout/Box';
 
+import { Button, Input, TextArea } from '../../design-system/lib';
+
 type AnnotationType = 'highlight' | 'note' | 'evidence' | 'question' | 'contradiction' | 'tag';
 
 type PublicDocumentAnnotation = {
@@ -295,7 +297,8 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
       const typeMeta = getTypeMeta(annotation.type);
 
       fragments.push(
-        <button
+        <Button
+          unstyled
           key={`ann-${annotation.id}`}
           type="button"
           className={`${styles.annotationTrigger} ${styles[typeMeta.styleKey]} ${
@@ -305,7 +308,7 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
           onClick={() => setActiveAnnotationId(annotation.id)}
         >
           {renderSearchHighlighted(highlighted, `ann-${annotation.id}`)}
-        </button>,
+        </Button>,
       );
 
       cursor = annotation.end;
@@ -373,7 +376,8 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
                 const Icon = option.icon;
                 const active = draftType === option.type;
                 return (
-                  <button
+                  <Button
+                    unstyled
                     key={option.type}
                     type="button"
                     className={`${styles.typeOption} ${active ? styles.typeOptionActive : ''}`}
@@ -381,18 +385,18 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
                   >
                     <Icon className={styles.iconMicro} />
                     {option.label}
-                  </button>
+                  </Button>
                 );
               })}
             </Box>
-            <input
+            <Input
               value={draftAuthor}
               onChange={(event) => setDraftAuthor(event.target.value)}
               placeholder="Display name (optional)"
               className={styles.inputField}
               maxLength={32}
             />
-            <textarea
+            <TextArea
               value={draftNote}
               onChange={(event) => setDraftNote(event.target.value)}
               placeholder="Add note (optional)"
@@ -401,21 +405,23 @@ export const DocumentAnnotationSystem: React.FC<DocumentAnnotationSystemProps> =
               maxLength={4000}
             />
             <Box className={styles.formFooter}>
-              <button
+              <Button
+                unstyled
                 type="button"
                 onClick={clearSelectionDraft}
                 className={styles.secondaryButton}
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
+                unstyled
                 type="button"
                 onClick={createAnnotation}
                 disabled={isSaving}
                 className={styles.primaryButton}
               >
                 {isSaving ? 'Saving…' : 'Save Annotation'}
-              </button>
+              </Button>
             </Box>
           </Surface>
         )}

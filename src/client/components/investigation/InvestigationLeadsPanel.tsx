@@ -19,12 +19,13 @@ import {
 
 // UI Library
 import {
-  Surface,
+  Box,
   Button,
   Flex,
-  Box,
-  Stack,
   LqText,
+  NativeSelect,
+  Stack,
+  Surface,
   TextInput,
   Textarea,
 } from '../../design-system/lib';
@@ -187,7 +188,7 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
           <div className={styles.controlsBar}>
             <Box grow className={styles.filterSelectWrap}>
               <Filter className={styles.filterIcon} size={12} />
-              <select
+              <NativeSelect
                 className={styles.select}
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as LeadStatus | 'all')}
@@ -196,7 +197,7 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
                 <option value="open">Open Leads</option>
                 <option value="pursued">Active Pursuit</option>
                 <option value="resolved">Resolved</option>
-              </select>
+              </NativeSelect>
             </Box>
             <Button
               variant="primary"
@@ -226,7 +227,7 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
                   onChange={(e) => setNewLead((p) => ({ ...p, description: e.target.value }))}
                 />
                 <Flex gap="md" className={styles.formRow}>
-                  <select
+                  <NativeSelect
                     className={styles.select}
                     value={newLead.priority}
                     onChange={(e) =>
@@ -238,7 +239,7 @@ export const InvestigationLeadsPanel: React.FC<InvestigationLeadsPanelProps> = (
                         {p.toUpperCase()}
                       </option>
                     ))}
-                  </select>
+                  </NativeSelect>
                   <TextInput
                     className={styles.input}
                     placeholder="EFTA Reference…"

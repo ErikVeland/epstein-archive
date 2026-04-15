@@ -13,7 +13,7 @@ interface LazyImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
 export const LazyImage: React.FC<LazyImageProps> = ({
   src,
   alt,
-  placeholderSrc = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB2aWV3Qm94PSIwIDAgMSAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9IiMwMjA2MTciIC8+PC9zdmc+', // Slate-950 placeholder
+  placeholderSrc = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==',
   threshold = 0.1,
   className,
   ...props
@@ -61,10 +61,7 @@ export const LazyImage: React.FC<LazyImageProps> = ({
       decoding="async"
       onLoad={handleLoad}
       className={`${s.img} ${resolvedLoaded ? s.loaded : s.loading} ${className || ''}`}
-      style={{
-        transition: shouldAnimate ? 'opacity 0.4s ease-out' : 'none',
-        backgroundColor: '#020617', // slate-950, darker background for less visual gap
-      }}
+      data-animate={shouldAnimate || undefined}
       {...props}
     />
   );

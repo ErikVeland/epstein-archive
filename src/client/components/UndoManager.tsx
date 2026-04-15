@@ -3,6 +3,8 @@ import { UndoAction, UndoActionType, UndoContext, UndoState } from './undoContex
 import { CloseButton } from './common/CloseButton';
 import styles from './UndoManager.module.css';
 
+import { Button } from '../design-system/lib';
+
 // Create reducer for undo state
 const undoReducer = (state: UndoState, action: UndoActionType): UndoState => {
   switch (action.type) {
@@ -115,12 +117,13 @@ export const UndoProvider: React.FC<{ children: React.ReactNode }> = ({ children
           <div className={styles.notificationContent}>
             <p className={styles.notificationMessage}>{state.notification.message}</p>
             {state.notification.action && (
-              <button
+              <Button
+                unstyled
                 onClick={() => performUndo(state.notification!.action!.id)}
                 className={styles.undoButton}
               >
                 Undo
-              </button>
+              </Button>
             )}
             <CloseButton
               onClick={hideNotification}

@@ -7,19 +7,22 @@ import { useScrollLock } from '../../hooks/useScrollLock';
 
 // UI Library
 import {
-  Surface,
+  Badge,
+  Box,
   Button,
   Flex,
-  Box,
-  Stack,
-  LqText,
   Grid,
-  cn,
-  Badge,
+  Input,
+  LqText,
+  NativeSelect,
   Skeleton,
+  Stack,
+  Surface,
+  cn,
 } from '../../design-system/lib';
-
 import styles from './InvestigationTasksPanel.module.css';
+const css = <T,>(style: T) => style;
+
 import {
   InvestigationTaskDto as InvestigationTask,
   InvestigationTaskSummaryDto as TaskSummary,
@@ -136,8 +139,12 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
 
   return (
     <Box className={styles.autoGen263} onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <Surface variant="glass" style={{ height: '100%', width: 500 }} className={styles.autoGen264}>
-        <Stack gap="xl" style={{ height: '100%' }}>
+      <Surface
+        variant="glass"
+        style={css({ height: '100%', width: 500 })}
+        className={styles.autoGen264}
+      >
+        <Stack gap="xl" style={css({ height: '100%' })}>
           {/* Header */}
           <Surface variant="glass" p="lg" className={styles.autoGen265}>
             <Flex justify="between" align="center">
@@ -151,7 +158,7 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
                 <LqText
                   variant="xs"
                   color="muted"
-                  style={{ textTransform: 'uppercase' }}
+                  style={css({ textTransform: 'uppercase' })}
                   weight="bold"
                 >
                   Task Orchestration • Progress Analytics
@@ -171,7 +178,7 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
                   <LqText variant="h3" weight="bold">
                     {Object.values(summary.statusBreakdown).reduce((a, b) => a + b, 0)}
                   </LqText>
-                  <LqText variant="xs" color="muted" style={{ textTransform: 'uppercase' }}>
+                  <LqText variant="xs" color="muted" style={css({ textTransform: 'uppercase' })}>
                     Total Tasks
                   </LqText>
                 </Surface>
@@ -179,7 +186,7 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
                   <LqText variant="h3" weight="bold" color="danger">
                     {summary.overdueTasks}
                   </LqText>
-                  <LqText variant="xs" color="muted" style={{ textTransform: 'uppercase' }}>
+                  <LqText variant="xs" color="muted" style={css({ textTransform: 'uppercase' })}>
                     Overdue
                   </LqText>
                 </Surface>
@@ -187,7 +194,7 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
                   <LqText variant="h3" weight="bold" color="success">
                     {Math.round(summary.averageProgress)}%
                   </LqText>
-                  <LqText variant="xs" color="muted" style={{ textTransform: 'uppercase' }}>
+                  <LqText variant="xs" color="muted" style={css({ textTransform: 'uppercase' })}>
                     Avg Progress
                   </LqText>
                 </Surface>
@@ -197,9 +204,9 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
 
           {/* Filtering Hub */}
           <Flex px="lg" gap="sm">
-            <Box style={{ flex: 1 }}>
-              <select
-                style={{
+            <Box style={css({ flex: 1 })}>
+              <NativeSelect
+                style={css({
                   width: '100%',
                   background: 'var(--lq-surface-3)',
                   border: '1px solid var(--lq-surface-4)',
@@ -208,7 +215,7 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
                   fontSize: '0.875rem',
                   color: 'var(--lq-text-primary)',
                   outline: 'none',
-                }}
+                })}
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as TaskStatus | 'all')}
               >
@@ -216,11 +223,11 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
                 <option value="pending">Pending</option>
                 <option value="in_progress">In Progress</option>
                 <option value="completed">Completed</option>
-              </select>
+              </NativeSelect>
             </Box>
-            <Box style={{ flex: 1 }}>
-              <select
-                style={{
+            <Box style={css({ flex: 1 })}>
+              <NativeSelect
+                style={css({
                   width: '100%',
                   background: 'var(--lq-surface-3)',
                   border: '1px solid var(--lq-surface-4)',
@@ -229,14 +236,14 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
                   fontSize: '0.875rem',
                   color: 'var(--lq-text-primary)',
                   outline: 'none',
-                }}
+                })}
                 value={priorityFilter}
                 onChange={(e) => setPriorityFilter(e.target.value as TaskPriority | 'all')}
               >
                 <option value="all">Any Priority</option>
                 <option value="critical">Critical</option>
                 <option value="high">High</option>
-              </select>
+              </NativeSelect>
             </Box>
           </Flex>
 
@@ -254,7 +261,7 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
                 <LqText
                   variant="xs"
                   color="muted"
-                  style={{ textTransform: 'uppercase' }}
+                  style={css({ textTransform: 'uppercase' })}
                   weight="bold"
                 >
                   Clearance 100% • No Active Tasks
@@ -334,7 +341,7 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
                         <Box className={styles.autoGen273}>
                           <Box
                             className={styles.autoGen274}
-                            style={{ width: `${task.progress ?? 0}%` }}
+                            style={css({ width: `${task.progress ?? 0}%` })}
                           />
                         </Box>
                       </Stack>
@@ -355,13 +362,13 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
                     variant="xs"
                     weight="bold"
                     color="muted"
-                    style={{ textTransform: 'uppercase' }}
+                    style={css({ textTransform: 'uppercase' })}
                   >
                     Queue New Task
                   </LqText>
                 </Flex>
-                <input
-                  style={{
+                <Input
+                  style={css({
                     width: '100%',
                     background: 'var(--lq-surface-3)',
                     border: '1px solid var(--lq-surface-4)',
@@ -370,14 +377,14 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
                     fontSize: '0.875rem',
                     color: 'var(--lq-text-primary)',
                     outline: 'none',
-                  }}
+                  })}
                   placeholder="Task designation..."
                   value={newTask.title}
                   onChange={(e) => setNewTask((t) => ({ ...t, title: e.target.value }))}
                 />
                 <Grid cols={2} gap="md">
-                  <select
-                    style={{
+                  <NativeSelect
+                    style={css({
                       width: '100%',
                       background: 'var(--lq-surface-3)',
                       border: '1px solid var(--lq-surface-4)',
@@ -386,7 +393,7 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
                       fontSize: '0.875rem',
                       color: 'var(--lq-text-primary)',
                       outline: 'none',
-                    }}
+                    })}
                     value={newTask.priority}
                     onChange={(e) =>
                       setNewTask((t) => ({ ...t, priority: e.target.value as TaskPriority }))
@@ -397,10 +404,10 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
                         {p.toUpperCase()}
                       </option>
                     ))}
-                  </select>
-                  <input
+                  </NativeSelect>
+                  <Input
                     type="date"
-                    style={{
+                    style={css({
                       width: '100%',
                       background: 'var(--lq-surface-3)',
                       border: '1px solid var(--lq-surface-4)',
@@ -409,7 +416,7 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
                       fontSize: '0.875rem',
                       color: 'var(--lq-text-primary)',
                       outline: 'none',
-                    }}
+                    })}
                     value={newTask.dueDate}
                     onChange={(e) => setNewTask((t) => ({ ...t, dueDate: e.target.value }))}
                   />

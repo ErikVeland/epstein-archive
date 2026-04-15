@@ -1,0 +1,121 @@
+{
+  "name": "recharts-scale",
+  "version": "0.4.5",
+  "requiresBuild": false,
+  "files": {
+    "LICENSE": {
+      "checkedAt": 1776136547052,
+      "integrity": "sha512-ASJp7jhEhkX6eyPY8340IPyv687aiNBHXkQQFHuUFL6P23Kq8eQSN2/Lc2lxYDt8rA9Tt47HrgbIiUt3d/h2bw==",
+      "mode": 420,
+      "size": 1076
+    },
+    "es6/util/arithmetic.js": {
+      "checkedAt": 1776136547056,
+      "integrity": "sha512-7kQ6rGYW4zvUcIPU4OXwVxwtkZUkDzgwwkNh+1IE/2NjnsH+XHA07IevUAQWGU2DxdQTmsVSzcAE98CpCTNijQ==",
+      "mode": 420,
+      "size": 2667
+    },
+    "lib/util/arithmetic.js": {
+      "checkedAt": 1776136547058,
+      "integrity": "sha512-dt//2FlHywDYI63EdyXwIQNMuQztXmhsfyYj2Ll+HKZgojbvnve6Jsg3FagDrAv48g8qCEFfTxb+ayBQFvQYYA==",
+      "mode": 420,
+      "size": 2983
+    },
+    "src/util/arithmetic.js": {
+      "checkedAt": 1776136547069,
+      "integrity": "sha512-4jl0DKX0wT+IP89zgOANFb0qZ8UVuBf985Yo/bpXmxJhEcawWjtDVBOHt4D1j48L0+RDNU+EjfwV3iqyfjb9sQ==",
+      "mode": 420,
+      "size": 2588
+    },
+    "es6/getNiceTickValues.js": {
+      "checkedAt": 1776136547071,
+      "integrity": "sha512-ji1rDjhX60esmWdYOEXPoOVtyiPFosqb3yBvFaHYrukBygmeytpSsh81r+R1fnEEqFbU38ISwfl/Zv4hTHlaQw==",
+      "mode": 420,
+      "size": 12294
+    },
+    "lib/getNiceTickValues.js": {
+      "checkedAt": 1776136547078,
+      "integrity": "sha512-i+uzJ1reJBbPsZVuTehCDB6o6Kya2OE2duwVblnD1t0McnSgvUKh5Do6lWktV0h/LjnNtnDRW712Ig3Q3fbL2w==",
+      "mode": 420,
+      "size": 13084
+    },
+    "src/getNiceTickValues.js": {
+      "checkedAt": 1776136547080,
+      "integrity": "sha512-MpifQ6g1E21Zn35rCYJj6WkztlImk2Xq2xrposeTFY9vXGsnDk0G+z8/zHBJwSEJAHwCs7EfW/tKLLIreXgSdQ==",
+      "mode": 420,
+      "size": 8856
+    },
+    "es6/index.js": {
+      "checkedAt": 1776136547083,
+      "integrity": "sha512-0wFFfrI9UyXrZ2EKqa44HMMiowV6yyuc0kzpDBG8BXRFmyDLHaOFG5MR4lBEHPjnaJE0m6I5jbj0Yt8LF7EZ4w==",
+      "mode": 420,
+      "size": 97
+    },
+    "lib/index.js": {
+      "checkedAt": 1776136547086,
+      "integrity": "sha512-3hmeb5hyFFrIOAUSTDCYyK7aqbfGuVoB7djc7dRe0prAvw6hm0TilfreqZWJe6XJpBQzAirWorRNHNVLySOrvQ==",
+      "mode": 420,
+      "size": 608
+    },
+    "src/index.js": {
+      "checkedAt": 1776136547089,
+      "integrity": "sha512-h3Zifciqn3AsVsXDAd1tPrUHnP7a/hdN6l3wj65Yijl7PpUzgnEDhqfocbiRi2h7hqQ//adqZWFH519frkVygg==",
+      "mode": 420,
+      "size": 98
+    },
+    "umd/RechartsScale.js": {
+      "checkedAt": 1776136547092,
+      "integrity": "sha512-VBCWNAFEp8m5XcVRyaBiMtPaTSJLoQ2PXcb6aCypgdagaG+aUobEP6C7V7xS+agC+0fDR5k6QXz9zxbrPapWqA==",
+      "mode": 420,
+      "size": 82684
+    },
+    "umd/RechartsScale.min.js": {
+      "checkedAt": 1776136547095,
+      "integrity": "sha512-WQ9flt9nN8oGvQH/eKNz5+dHJ6G1KKqjOt3OsS4MQDf4tXnTrJY22XUCDs4XXo9mObPL5ZJfmcO5ER7PCS0Z+A==",
+      "mode": 420,
+      "size": 20540
+    },
+    "es6/util/utils.js": {
+      "checkedAt": 1776136547097,
+      "integrity": "sha512-LH7TpTntXXP54CTH4N5XlNyXD/peeBBJbR1xXhJJEZvxKd7DoIDDJEOYDU9h7p0VAI+UOrJu4qGXgyId97GGbg==",
+      "mode": 420,
+      "size": 4056
+    },
+    "lib/util/utils.js": {
+      "checkedAt": 1776136547100,
+      "integrity": "sha512-hE1DkTzTywmG6r6O8qmlRHqB/gbbTpHB45ivG+bbo7f6nntA3jttgr24fNRpQqRIW0pJfu6nymZ05uklEbvGkA==",
+      "mode": 420,
+      "size": 4411
+    },
+    "src/util/utils.js": {
+      "checkedAt": 1776136547102,
+      "integrity": "sha512-9iQX+CjRTfGfQIlf4ncnEUqGzRmnMW7fOgb5zYai660kUASQsXo+6P5Z9R8F36SOrvHmtEMRkd5mU0+w533IIA==",
+      "mode": 420,
+      "size": 1898
+    },
+    "package.json": {
+      "checkedAt": 1776136547104,
+      "integrity": "sha512-Rwv8DSRPQweCLsmQowiQUO2UQjp/qfdRf+bG5Bt6Ks3gu4K6Bmb4by3uSCtUCZGCtoWaw7Ut0gD4usslF7wyug==",
+      "mode": 420,
+      "size": 2447
+    },
+    "CHANGELOG.md": {
+      "checkedAt": 1776136547108,
+      "integrity": "sha512-4HGP71kwbDV4rFHHV23Hx1ia4M7Y2Er1fP+ukzHxI9fPMRvV50d+MKfaTnp8yBYR5JvwqKjFX0CPx+/iu/mqmA==",
+      "mode": 420,
+      "size": 1347
+    },
+    "README.md": {
+      "checkedAt": 1776136547111,
+      "integrity": "sha512-maGUaBtHzIf7STzkslswTBwUEGJtE/rpXKjluJBA4EEAc0nc0tIPH3Igat/fp7R3lAAPbLOBu7K8rYJMLTveSA==",
+      "mode": 420,
+      "size": 187
+    },
+    "umd/RechartsScale.min.js.LICENSE.txt": {
+      "checkedAt": 1776136547114,
+      "integrity": "sha512-8skTXKKjhgW7UNGAE7gc9IZkD7co2xS1PI3JpDJmc4eHIXm1UHE16QlK4XDlh0yHPU7sduXNdWBl55i2iPy0VQ==",
+      "mode": 420,
+      "size": 83
+    }
+  }
+}

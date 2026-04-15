@@ -37,6 +37,8 @@ import { Grid } from '../design-system/components/layout/Grid';
 import { LqText } from '../design-system/components/typography/Text';
 import styles from './EvidenceDetail.module.css';
 
+import { Button } from '../design-system/lib';
+
 interface Evidence {
   id: number;
   evidenceType: string;
@@ -248,27 +250,30 @@ export function EvidenceDetail() {
             </Flex>
 
             <Flex align="center" gap={2} className={styles.headerActions}>
-              <button
+              <Button
+                unstyled
                 onClick={handleShare}
                 className={styles.iconButton}
                 aria-label="Share evidence"
               >
                 <Share2 className={styles.actionIcon} />
-              </button>
-              <button
+              </Button>
+              <Button
+                unstyled
                 onClick={handleBookmark}
                 className={styles.iconButton}
                 aria-label="Bookmark evidence"
               >
                 <Bookmark className={styles.actionIcon} />
-              </button>
-              <button
+              </Button>
+              <Button
+                unstyled
                 onClick={handleDownload}
                 className={styles.iconButton}
                 aria-label="Download evidence file"
               >
                 <Download className={styles.actionIcon} />
-              </button>
+              </Button>
             </Flex>
           </Flex>
           {actionNotice && (

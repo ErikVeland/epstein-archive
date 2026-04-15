@@ -30,16 +30,18 @@ import { useCaseFolder } from '../../domains/investigations';
 // UI Library
 import styles from './InvestigationCaseFolder.module.css';
 import {
-  Surface,
+  Badge,
+  Box,
   Button,
   Flex,
-  Box,
-  Stack,
-  LqText,
   Grid,
-  Badge,
+  Input,
+  LqText,
+  Stack,
+  Surface,
   cn,
 } from '../../design-system/lib';
+const css = <T,>(style: T) => style;
 
 interface InvestigationCaseFolderProps {
   investigationId: number | string;
@@ -266,7 +268,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
   const types = Object.keys(evidence.byType);
 
   return (
-    <Stack gap="xl" style={{ width: '100%' }}>
+    <Stack gap="xl" style={css({ width: '100%' })}>
       {/* Category Summary Grid */}
       <Grid cols={{ sm: 2, md: 3, lg: 5 }} gap="md">
         <Surface
@@ -280,7 +282,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
             <LqText variant="body" weight="bold">
               {evidence.total}
             </LqText>
-            <LqText variant="xs" style={{ textTransform: 'uppercase' }} weight="bold">
+            <LqText variant="xs" style={css({ textTransform: 'uppercase' })} weight="bold">
               All Items
             </LqText>
           </Stack>
@@ -309,7 +311,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
                 <LqText variant="body" weight="bold">
                   {count}
                 </LqText>
-                <LqText variant="xs" style={{ textTransform: 'uppercase' }} weight="bold">
+                <LqText variant="xs" style={css({ textTransform: 'uppercase' })} weight="bold">
                   {config.label}
                 </LqText>
               </Stack>
@@ -323,12 +325,12 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
         <Flex gap="xl" wrap="wrap" align="center">
           <Flex grow align="center" gap="sm" className={styles.autoGen185}>
             <Search className={styles.autoGen186} size={16} />
-            <input
+            <Input
               type="text"
               placeholder="Search investigative records..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              style={{
+              style={css({
                 width: '100%',
                 background: 'var(--lq-surface-3)',
                 border: '1px solid var(--lq-surface-4)',
@@ -337,12 +339,17 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
                 fontSize: '0.875rem',
                 color: 'var(--lq-text-primary)',
                 outline: 'none',
-              }}
+              })}
             />
           </Flex>
 
           <Flex align="center" gap="sm">
-            <LqText variant="xs" weight="bold" color="muted" style={{ textTransform: 'uppercase' }}>
+            <LqText
+              variant="xs"
+              weight="bold"
+              color="muted"
+              style={css({ textTransform: 'uppercase' })}
+            >
               Relevance:
             </LqText>
             {['high', 'medium', 'low'].map((rel) => (
@@ -377,7 +384,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
           <LqText
             variant="small"
             weight="bold"
-            style={{ textTransform: 'uppercase' }}
+            style={css({ textTransform: 'uppercase' })}
             color="muted"
           >
             {selectedType ? typeConfig[selectedType]?.label : 'Active Evidence Stream'}
@@ -395,11 +402,11 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
           <Box
             fullWidth
             className={styles.autoGen187}
-            style={{ maxHeight: '800px' }}
+            style={css({ maxHeight: '800px' })}
             onScroll={(e) => setListScrollTop((e.currentTarget as HTMLDivElement).scrollTop)}
           >
             {shouldVirtualize && startIndex > 0 && (
-              <div style={{ height: startIndex * rowHeight }} />
+              <div style={css({ height: startIndex * rowHeight })} />
             )}
             <Stack gap="sm">
               {visibleRows.map((item) => {
@@ -466,7 +473,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
                               variant="xs"
                               color="accent"
                               weight="bold"
-                              style={{ textTransform: 'uppercase' }}
+                              style={css({ textTransform: 'uppercase' })}
                             >
                               Forensic Note:
                             </LqText>
@@ -514,7 +521,7 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
               })}
             </Stack>
             {shouldVirtualize && endIndex < filteredEvidence.length && (
-              <div style={{ height: (filteredEvidence.length - endIndex) * rowHeight }} />
+              <div style={css({ height: (filteredEvidence.length - endIndex) * rowHeight })} />
             )}
           </Box>
         )}

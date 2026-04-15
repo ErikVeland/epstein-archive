@@ -241,12 +241,20 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
                 {currentMatch}/{totalMatches}
               </span>
               <div className={styles.matchActions}>
-                <button onClick={() => navigateMatch('prev')} className={styles.matchButton}>
+                <Button
+                  unstyled
+                  onClick={() => navigateMatch('prev')}
+                  className={styles.matchButton}
+                >
                   <ChevronLeft className={styles.matchButtonIcon} />
-                </button>
-                <button onClick={() => navigateMatch('next')} className={styles.matchButton}>
+                </Button>
+                <Button
+                  unstyled
+                  onClick={() => navigateMatch('next')}
+                  className={styles.matchButton}
+                >
                   <ChevronRight className={styles.matchButtonIcon} />
-                </button>
+                </Button>
               </div>
             </div>
           )}
@@ -255,33 +263,36 @@ export function DocumentViewer({ evidence }: DocumentViewerProps) {
         <div className={styles.actions}>
           {/* Quick Actions */}
           <Surface className={styles.segmentedControl}>
-            <button
+            <Button
+              unstyled
               onClick={() => setShowRaw(false)}
               className={[styles.segmentedButton, !showRaw ? styles.segmentedButtonActive : '']
                 .filter(Boolean)
                 .join(' ')}
             >
               Refined
-            </button>
-            <button
+            </Button>
+            <Button
+              unstyled
               onClick={() => setShowRaw(true)}
               className={[styles.segmentedButton, showRaw ? styles.segmentedButtonRawActive : '']
                 .filter(Boolean)
                 .join(' ')}
             >
               Raw OCR
-            </button>
+            </Button>
           </Surface>
 
           {hasSentences && !showRaw && (
-            <button
+            <Button
+              unstyled
               onClick={() => setHideBoilerplate(!hideBoilerplate)}
               className={[styles.toggleButton, hideBoilerplate ? styles.toggleButtonActive : '']
                 .filter(Boolean)
                 .join(' ')}
             >
               {hideBoilerplate ? 'Show Boilerplate' : 'Hide Boilerplate'}
-            </button>
+            </Button>
           )}
 
           <Button onClick={copyText} variant="secondary" size="sm" className={styles.copyButton}>

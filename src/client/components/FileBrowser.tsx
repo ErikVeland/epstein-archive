@@ -5,7 +5,6 @@ import {
   Folder,
   Eye,
   Download,
-  Search,
   User,
   Mail,
   FileText,
@@ -15,9 +14,11 @@ import {
 import { CloseButton } from './common/CloseButton';
 import { cn } from '../utils/cn';
 import styles from './FileBrowser.module.css';
-import { Flex, Surface, Stack, Grid, Box, LqText, Button } from '../design-system/lib';
+import { apiClient } from '../services/apiClient';
+import { Flex, Surface, Stack, Grid, Box, LqText, Button, SearchField } from '../design-system/lib';
 
 interface FileItem {
+  id?: string;
   name: string;
   path: string;
   type: 'file' | 'folder';
@@ -27,12 +28,32 @@ interface FileItem {
   content?: string;
 }
 
+type DocumentDetail = {
+  content?: string;
+  contentRefined?: string;
+  contentPreview?: string;
+  content_preview?: string;
+  filePath?: string;
+  file_path?: string;
+};
+
+const getPreviewText = (document: DocumentDetail): string =>
+  String(
+    document.contentRefined ??
+      document.content ??
+      document.contentPreview ??
+      document.content_preview ??
+      '',
+  ).trim();
+
 const FileBrowser: React.FC = () => {
   const [files, setFiles] = useState<FileItem[]>([]);
   const [filteredFiles, setFilteredFiles] = useState<FileItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedFile, setSelectedFile] = useState<FileItem | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -65,6 +86,61 @@ const FileBrowser: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- filterFiles is stable and depends on filter state
   }, [files, selectedCategory, searchTerm]);
 
+  useEffect(() => {
+    if (!selectedFile?.id) {
+      setPreviewLoading(false);
+      setPreviewError(null);
+      return;
+    }
+
+    if (selectedFile.content?.trim()) {
+      setPreviewLoading(false);
+      setPreviewError(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadPreview = async () => {
+      setPreviewLoading(true);
+      setPreviewError(null);
+
+      try {
+        const document = (await apiClient.getDocument(selectedFile.id!)) as DocumentDetail;
+        if (cancelled) return;
+
+        const previewText = getPreviewText(document);
+        setSelectedFile((current) =>
+          current && current.id === selectedFile.id
+            ? {
+                ...current,
+                path: current.path || String(document.filePath ?? document.file_path ?? ''),
+                content: previewText,
+              }
+            : current,
+        );
+
+        if (!previewText) {
+          setPreviewError('No extracted preview text is available for this file yet.');
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setPreviewError(error instanceof Error ? error.message : 'Failed to load file preview');
+        }
+      } finally {
+        if (!cancelled) {
+          setPreviewLoading(false);
+        }
+      }
+    };
+
+    void loadPreview();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedFile?.id, selectedFile?.content]);
+
   const loadFiles = async () => {
     try {
       setLoadError(null);
@@ -92,6 +168,7 @@ const FileBrowser: React.FC = () => {
                   : 'documents';
 
         return {
+          id: String(doc.id ?? ''),
           name: String(doc.title || doc.fileName || `Document ${doc.id}`),
           path: String(doc.filePath || doc.file_path || `/api/documents/${doc.id}/file`),
           type: 'file',
@@ -149,8 +226,13 @@ const FileBrowser: React.FC = () => {
       return;
     }
 
+    const downloadPath = file.path || (file.id ? `/api/documents/${file.id}/file` : '');
+    if (!downloadPath) {
+      return;
+    }
+
     const link = document.createElement('a');
-    link.href = file.path;
+    link.href = downloadPath;
     link.download = file.name;
     link.rel = 'noopener noreferrer';
     document.body.appendChild(link);
@@ -218,10 +300,7 @@ const FileBrowser: React.FC = () => {
                 )}
                 p={4}
               >
-                <Icon
-                  className={cn('h-6 w-6', category.colorClass)}
-                  style={{ marginBottom: 'var(--space-2)' }}
-                />
+                <Icon className={cn(styles.categoryIcon, category.colorClass)} />
                 <span className={styles.categoryLabel}>{category.name}</span>
               </Surface>
             );
@@ -232,21 +311,21 @@ const FileBrowser: React.FC = () => {
       {/* Search */}
       <Surface variant="glass" p={4}>
         <div className={styles.searchWrap}>
-          <Search className={styles.searchIcon} />
-          <input
+          <SearchField
             type="text"
             placeholder="Search files by name or content..."
-            style={{ padding: 'var(--space-3) var(--space-4) var(--space-3) var(--space-10)' }}
+            density="compact"
             className={styles.searchInput}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            aria-label="Search files"
           />
         </div>
       </Surface>
 
       {/* File List */}
       <div className={styles.fileListShell}>
-        <Surface variant="glass" p={4} style={{ borderBottom: '1px solid var(--glass-border)' }}>
+        <Surface variant="glass" p={4} className={styles.listHeader}>
           <Flex align="center" justify="between">
             <h3 className={styles.listTitle}>
               {selectedCategory === 'all'
@@ -302,8 +381,8 @@ const FileBrowser: React.FC = () => {
         </div>
 
         {filteredFiles.length === 0 && (
-          <Surface p={8} style={{ textAlign: 'center' }}>
-            <File className={styles.emptyIcon} style={{ marginBottom: 'var(--space-4)' }} />
+          <Surface p={8} className={styles.emptyState}>
+            <File className={styles.emptyIcon} />
             <Box mb={2}>
               <LqText variant="h4" weight="medium" color="secondary">
                 No files found
@@ -317,22 +396,9 @@ const FileBrowser: React.FC = () => {
       {/* File Preview Modal */}
       {selectedFile &&
         createPortal(
-          <Box
-            style={{
-              position: 'fixed',
-              inset: 0,
-              backgroundColor: 'var(--glass-bg-strong)',
-              backdropFilter: 'blur(8px)',
-            }}
-            className={styles.modalOverlay}
-            p={4}
-          >
-            <Surface variant="glass" w="full" maxW="lg" maxH="80vh" style={{ overflow: 'hidden' }}>
-              <Surface
-                variant="glass"
-                p={6}
-                style={{ borderBottom: '1px solid var(--glass-border)' }}
-              >
+          <Box className={styles.modalOverlay} p={4}>
+            <Surface variant="glass" w="full" maxW="lg" maxH="80vh" className={styles.modalShell}>
+              <Surface variant="glass" p={6} className={styles.modalHeader}>
                 <Flex align="center" justify="between">
                   <Flex align="center" gap={3}>
                     <File className={styles.modalFileIcon} />
@@ -342,6 +408,7 @@ const FileBrowser: React.FC = () => {
                     <Button
                       variant="ghost"
                       onClick={() => handleDownload(selectedFile)}
+                      disabled={!selectedFile.content && !selectedFile.path && !selectedFile.id}
                       className={styles.downloadButton}
                     >
                       <Download className={styles.downloadIcon} />
@@ -356,7 +423,7 @@ const FileBrowser: React.FC = () => {
                   </Flex>
                 </Flex>
               </Surface>
-              <Box p={6} style={{ overflowY: 'auto', maxHeight: '60vh' }}>
+              <Box p={6} className={styles.modalBody}>
                 <Stack gap={4}>
                   <Grid cols={2} gap={4}>
                     <div>
@@ -380,18 +447,22 @@ const FileBrowser: React.FC = () => {
                       </div>
                     )}
                   </Grid>
-                  <Box pt={4} style={{ borderTop: '1px solid var(--glass-border)' }}>
+                  <Box pt={4} className={styles.previewSection}>
                     <Box mb={2}>
                       <LqText weight="medium">Content Preview</LqText>
                     </Box>
-                    <Surface
-                      variant="glass-strong"
-                      p={4}
-                      style={{ maxHeight: '16rem', overflowY: 'auto' }}
-                    >
-                      <pre className={styles.contentPreview}>
-                        {selectedFile.content || 'File content would be displayed here...'}
-                      </pre>
+                    <Surface variant="glass-strong" p={4} className={styles.previewSurface}>
+                      {previewLoading ? (
+                        <p className={styles.previewMessage}>Loading preview…</p>
+                      ) : previewError ? (
+                        <p className={styles.previewMessage}>{previewError}</p>
+                      ) : selectedFile.content ? (
+                        <pre className={styles.contentPreview}>{selectedFile.content}</pre>
+                      ) : (
+                        <p className={styles.previewMessage}>
+                          No extracted preview text is available for this file yet.
+                        </p>
+                      )}
                     </Surface>
                   </Box>
                 </Stack>

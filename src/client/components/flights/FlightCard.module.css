@@ -70,6 +70,10 @@
   min-width: 0;
 }
 
+.airportRight {
+  text-align: right;
+}
+
 .airportCode {
   line-height: 1;
   letter-spacing: -0.02em;

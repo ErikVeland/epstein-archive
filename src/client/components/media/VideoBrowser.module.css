@@ -74,6 +74,10 @@
   background: transparent;
 }
 
+.videoCell {
+  padding: 6px;
+}
+
 .loadingOverlay,
 .busyOverlay {
   position: absolute;

@@ -1,0 +1,187 @@
+{
+  "name": "@pgtyped/cli",
+  "version": "2.4.3",
+  "requiresBuild": false,
+  "files": {
+    "LICENSE": {
+      "checkedAt": 1776136557094,
+      "integrity": "sha512-h4qyaGDK4y4wpfHrPpY43Lv1dSHsKaG9jo5oPCWF3uveLm5rRb4boTF8KI1vS4rYaGZtLy7ezKvUJYVHpfvwAA==",
+      "mode": 420,
+      "size": 1068
+    },
+    "lib/config.js": {
+      "checkedAt": 1776136557397,
+      "integrity": "sha512-GsF0hMdsHk1MuKDaFuXUqXjVRRKbi0CX4JXoYp5IlIX+SJMVOCQfI4YIh2cSFkgSDV8QVkyvsVH4wnD5XbaVuw==",
+      "mode": 420,
+      "size": 6478
+    },
+    "lib/generator.js": {
+      "checkedAt": 1776136557400,
+      "integrity": "sha512-d6RRqyhYetj07m4RPmwHa2xnwF8s461HK9AIDu2jPbEj1yrQ3O6umZZ369maNMchrGFXyTO6Um22a1h36IvgLg==",
+      "mode": 420,
+      "size": 14431
+    },
+    "lib/index.js": {
+      "checkedAt": 1776136557404,
+      "integrity": "sha512-YzXn6/esl63m2E7vO7y1VEHL7BNTZyd/tbGcGPOCWmfDhFVX9vCyLO7zztwWhM626n4l3o6AsWUxdTtJ3vkwvg==",
+      "mode": 420,
+      "size": 5474
+    },
+    "lib/parseTypescript.js": {
+      "checkedAt": 1776136557407,
+      "integrity": "sha512-XsBQJHlhbVUPWVHdBq0pmOf70KfD57YqgWNE4jLxDHtWldcegoLfXA009SZqdbx1zrSVL0aimHq+M0aEmaqlgA==",
+      "mode": 420,
+      "size": 2068
+    },
+    "lib/typedSqlTagTransformer.js": {
+      "checkedAt": 1776136557411,
+      "integrity": "sha512-u5czmYhdiyhIZZD974UePn17tfM6fnQRmBa93Wq3MFYe+lcPMNcLa+8jCF9hOTfS2Ve74fpwuljjdF0TlDGI/A==",
+      "mode": 420,
+      "size": 6066
+    },
+    "lib/types.js": {
+      "checkedAt": 1776136557415,
+      "integrity": "sha512-LlPpVh75+q1lfwom1SU3g1XP0XmbxO2rWMGu2KWo5NR8xIXv4vW6pzwEs+/YggKtK5EieiVh8l53JgT1JGbj+Q==",
+      "mode": 420,
+      "size": 10736
+    },
+    "lib/typescriptAndSqlTransformer.js": {
+      "checkedAt": 1776136557420,
+      "integrity": "sha512-R72oLYZKv/RI56rkXIwzKLaEbMIsB3WJMVdA8CKquKP4WKLL28OA59dWj+o0n+HMzrhyfyC44KMTvHtEjXNCJw==",
+      "mode": 420,
+      "size": 4012
+    },
+    "lib/util.js": {
+      "checkedAt": 1776136557423,
+      "integrity": "sha512-RHFBwGI50bElslHU4bY/Dlwc6Vcml8esmwMJZtddZF/CVY6alCO5VWunIohp37N9IyEWJaod5bZiYXhZEyMjtQ==",
+      "mode": 420,
+      "size": 109
+    },
+    "lib/worker.js": {
+      "checkedAt": 1776136557427,
+      "integrity": "sha512-/bsTyBX92JiDwZxB2OeMnnYHo/f6mjZpCFC6yiYcW2zsM+8gZjCVRVGMmX0VrEQj3o2L3q0Bd87id2ZbJn8Odg==",
+      "mode": 420,
+      "size": 4000
+    },
+    "package.json": {
+      "checkedAt": 1776136557430,
+      "integrity": "sha512-VOgLT2JfX2lEe/YylTmj+1dTA6hL8yIZjyOpOOQrDi5DzUyy12LqBghgdjzJSD0oi+TAowbf+wDrBFzV111hMg==",
+      "mode": 420,
+      "size": 1526
+    },
+    "lib/config.js.map": {
+      "checkedAt": 1776136557434,
+      "integrity": "sha512-Ti5zTyiUkz3K/+4s90I2++q53t+TzySIWdsmFCT4l7s2rSMIWU8LkxTa1OBOWBxQ7C9LCmyEgw7PMaTLttBDmw==",
+      "mode": 420,
+      "size": 6603
+    },
+    "lib/generator.js.map": {
+      "checkedAt": 1776136557438,
+      "integrity": "sha512-wZsocdkGtp2ofyfDZHurebR9bMxgu5fjwlEz7DW94KwnUoCgrtz9p4rZdOWgjawC4UL33Z+0wWGHj5QkrqyRvA==",
+      "mode": 420,
+      "size": 10472
+    },
+    "lib/index.js.map": {
+      "checkedAt": 1776136557441,
+      "integrity": "sha512-ddPztUXuPU39wIWkeFCgAnZH1SRel7kWtf4a2y5C6/tIV22knSuz8Nxjf/wljhlXqtkPOY9kVj7NDbMK16MhZg==",
+      "mode": 420,
+      "size": 4152
+    },
+    "lib/parseTypescript.js.map": {
+      "checkedAt": 1776136557444,
+      "integrity": "sha512-mRXNfE79pES1wBpTUbSBn+giofnf4lzZ6wj6PhGpnaJx/kdkbZWUNlJqIMpxBLVzvw13Z105x8x9FYYrL/rzsQ==",
+      "mode": 420,
+      "size": 2028
+    },
+    "lib/typedSqlTagTransformer.js.map": {
+      "checkedAt": 1776136557447,
+      "integrity": "sha512-QBlHm1DraSLWx6inVXvkye+NgkAv7pmASXaeOWfp8aQcX5IuGVTNQFwr6+aNE6mPVd8vcpRlSZyzZdnQfg+TjA==",
+      "mode": 420,
+      "size": 4219
+    },
+    "lib/types.js.map": {
+      "checkedAt": 1776136557451,
+      "integrity": "sha512-qWmcqFwfGoIMAvma2VBPJLpS5u+534D/v3xgzijn1XILCRA3mW0ZlY9OCERsLN7sHrGh2xEodUmkrZE+6IkQug==",
+      "mode": 420,
+      "size": 9843
+    },
+    "lib/typescriptAndSqlTransformer.js.map": {
+      "checkedAt": 1776136557454,
+      "integrity": "sha512-rRMsh+cNU+Xp1cWvuudRktuFTANHaZC3vFdhnh8OL8e27WXaP1egNiCJAOfkFdMjLAsNdKAoCS6YstZuSd/o4A==",
+      "mode": 420,
+      "size": 2715
+    },
+    "lib/util.js.map": {
+      "checkedAt": 1776136557459,
+      "integrity": "sha512-WW+zUO1tR7J7s4UQh9/hrKCaitMMDjDiHpB9MvwLk7x9+CnELV0kCVqSoX78Sfhmum/hn1dDvdlFQf6pegjwrQ==",
+      "mode": 420,
+      "size": 185
+    },
+    "lib/worker.js.map": {
+      "checkedAt": 1776136557462,
+      "integrity": "sha512-i2S4qg+pbDe4EQmfB15n5jxFTSnLzBWbUIfzCT26xSmyBf1o6ccxPcrXX37i4jvIQ/4MZrIV0/MzWiFWK77MXg==",
+      "mode": 420,
+      "size": 2780
+    },
+    "README.md": {
+      "checkedAt": 1776136557466,
+      "integrity": "sha512-umbKF2ibQudVWmYX55iUKI0YBFECVtHWHB5NRhf8SKvcnE6AGpX3yiY76UE4O24vjCPwAysNEn1GlnKefx4a8w==",
+      "mode": 420,
+      "size": 2794
+    },
+    "lib/config.d.ts": {
+      "checkedAt": 1776136557470,
+      "integrity": "sha512-YXj1sSONB26dgxzQaVi/EyT1wpyTcpi1busjcu80FC1zvGfWqodckC/aMAV+wF55tGHmXGiADBfAoT95KO9fpw==",
+      "mode": 420,
+      "size": 3626
+    },
+    "lib/generator.d.ts": {
+      "checkedAt": 1776136557474,
+      "integrity": "sha512-1fAQI7W911pBLwKmRwF0PtgTsUBf8NGhP73ruD6xc/s2VvMNRD0hXSC9Mwuq7PyV5lIxrj09E3q+gmMhnwaBhg==",
+      "mode": 420,
+      "size": 2215
+    },
+    "lib/index.d.ts": {
+      "checkedAt": 1776136557479,
+      "integrity": "sha512-7Kbib1KM/Z/7EXET3S5Ksofy0YlyLxRuZbBCa/tKrtG7T0KyPpkyomlsu0LBhvmnvUJC0WAayZccKm8avCN2xA==",
+      "mode": 420,
+      "size": 329
+    },
+    "lib/parseTypescript.d.ts": {
+      "checkedAt": 1776136557483,
+      "integrity": "sha512-a7V9u+MaBunuW9cLEU2FtKdtk1A+fSMjjisQhFGUCOeFQLe31NExhcVf3lE+VTawQLuBJygSGhRK0qN9AVXczg==",
+      "mode": 420,
+      "size": 469
+    },
+    "lib/typedSqlTagTransformer.d.ts": {
+      "checkedAt": 1776136557487,
+      "integrity": "sha512-0GjsGjCsa3Im3WqxYVW9yTP38cW08x0ERRQGCpa4n77sAUu1p1YfnWcy56bRjTukr/ZXSbTANod5ctXOEgfuhA==",
+      "mode": 420,
+      "size": 999
+    },
+    "lib/types.d.ts": {
+      "checkedAt": 1776136557491,
+      "integrity": "sha512-68t8HSrvSMIFgGJrbHWcNkCaxdwGyvSTMSM7bJUQgjR7AJPUOGIx3ZHb1iAkEE5jFBvnKE4D4GTiqzkTzpkoiw==",
+      "mode": 420,
+      "size": 8259
+    },
+    "lib/typescriptAndSqlTransformer.d.ts": {
+      "checkedAt": 1776136557497,
+      "integrity": "sha512-paen3YjQJdbkUn1tes/9Oo+vbVrq7ZaKSjkpONkq837Mjm66bLh7/jSDf2k0ZbgZkv774eN91EhJKwD01R/9cA==",
+      "mode": 420,
+      "size": 614
+    },
+    "lib/util.d.ts": {
+      "checkedAt": 1776136557501,
+      "integrity": "sha512-gcHhUloPGeOqNjT4R7sTfYW2zAbZ9OHRZ5LdmIoj7d94Sc6+gV+9ESDpaBiX7hJQg+0WbezmkIDPNBB+/Vyk7A==",
+      "mode": 420,
+      "size": 79
+    },
+    "lib/worker.d.ts": {
+      "checkedAt": 1776136557504,
+      "integrity": "sha512-Uer8yoSZk+ty3NYLzNFSxs415KOcdKflDD2kdwzElHRmkHJBNgOIRiwmXMXq8XQABfuK9zxshwgrCNgY2Quvyg==",
+      "mode": 420,
+      "size": 658
+    }
+  }
+}

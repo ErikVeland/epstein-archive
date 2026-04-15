@@ -3,8 +3,16 @@ import { Folder, Scale, Mail, ScrollText, Image as ImageIcon, Landmark } from 'l
 import { BrowseFilters } from '../../types/documents';
 import { DOJ_TRANCHE_OPTIONS } from './documentTrancheOptions';
 import styles from './DocumentBrowserFilters.module.css';
-import { Surface, Button, Flex, Box, LqText, cn } from '../../design-system/lib';
-
+import {
+  Box,
+  Button,
+  Flex,
+  Input,
+  LqText,
+  NativeSelect,
+  Surface,
+  cn,
+} from '../../design-system/lib';
 interface DocumentBrowserFiltersProps {
   localFilters: BrowseFilters;
   handleFilterChange: (key: keyof BrowseFilters, value: BrowseFilters[keyof BrowseFilters]) => void;
@@ -243,7 +251,7 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
                       )}
                     >
                       <Flex align="center" gap="sm">
-                        <input
+                        <Input
                           type="checkbox"
                           checked={isVisible}
                           onChange={() => handleExcludedTypeToggle(option.value)}
@@ -277,7 +285,7 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
                 No source facets available.
               </LqText>
             ) : (
-              <select
+              <NativeSelect
                 multiple
                 value={localFilters.source || []}
                 onChange={(e) =>
@@ -293,7 +301,7 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
                     {opt.label}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
             )}
           </Box>
 
@@ -304,7 +312,7 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
             </LqText>
             <Box className={styles.dateStack}>
               <Box className={styles.dateInputWrapper}>
-                <input
+                <Input
                   type="date"
                   value={localFilters.dateRange?.start || ''}
                   onChange={(e) =>
@@ -320,7 +328,7 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
                 </Box>
               </Box>
               <Box className={styles.dateInputWrapper}>
-                <input
+                <Input
                   type="date"
                   value={localFilters.dateRange?.end || ''}
                   onChange={(e) =>
@@ -346,7 +354,7 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
               </LqText>
               <Box className={styles.checkboxGroup}>
                 <Surface as="label" variant="glass" className={styles.checkboxLabel}>
-                  <input
+                  <Input
                     type="checkbox"
                     checked={hideLowCredibility}
                     onChange={(e) => setHideLowCredibility(e.target.checked)}
@@ -358,7 +366,7 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
                 </Surface>
 
                 <Surface as="label" variant="glass" className={styles.checkboxLabelStart}>
-                  <input
+                  <Input
                     type="checkbox"
                     checked={localFilters.includeMedia || false}
                     onChange={(e) => handleFilterChange('includeMedia', e.target.checked)}
@@ -386,7 +394,7 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
                 >
                   Logical Collections
                 </LqText>
-                <select
+                <NativeSelect
                   className={styles.collectionsSelect}
                   value={localFilters.collectionId || ''}
                   onChange={(e) => handleFilterChange('collectionId', e.target.value || undefined)}
@@ -397,7 +405,7 @@ export const DocumentBrowserFilters: React.FC<DocumentBrowserFiltersProps> = ({
                       {col.name}
                     </option>
                   ))}
-                </select>
+                </NativeSelect>
               </Box>
             )}
           </Box>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Database, Shield, AlertTriangle, Globe, Bot, Flag, Sparkles } from 'lucide-react';
 import { format } from 'date-fns';
+import { semanticChartTokens } from '../../design-system/lib';
 import styles from './DocumentMetadataPanel.module.css';
 
 interface DocumentMetadata {
@@ -87,7 +88,7 @@ export const DocumentMetadataPanel: React.FC<DocumentMetadataPanelProps> = ({
       {metadata.ai_summary && (
         <section className={styles.aiCard}>
           <div className={styles.aiCardDecoration}>
-            <Bot size={64} color="#a78bfa" />
+            <Bot size={64} color={semanticChartTokens.series.media} />
           </div>
           <h3 className={styles.aiCardHeading}>
             <Sparkles size={12} />

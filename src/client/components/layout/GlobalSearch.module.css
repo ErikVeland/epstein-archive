@@ -35,6 +35,14 @@
   gap: var(--space-2);
 }
 
+.chevronIcon {
+  transition: transform 0.2s;
+}
+
+.chevronIconOpen {
+  transform: rotate(180deg);
+}
+
 .filterToggle:hover {
   background: var(--glass-bg-strong);
 }
@@ -53,24 +61,8 @@
 }
 
 .input {
-  width: 100%;
-  padding: var(--space-4) var(--space-12);
-  background: color-mix(in srgb, var(--glass-bg-strong) 50%, transparent);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
-  color: var(--text-primary);
+  min-height: calc(var(--control-height) + 8px);
   font-size: 1.125rem;
-  transition: all var(--duration-fast, 150ms);
-}
-
-.input::placeholder {
-  color: var(--text-muted);
-}
-
-.input:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px var(--accent);
 }
 
 .clearButton {
@@ -131,6 +123,10 @@
   flex-direction: column;
 }
 
+.filterGroupEnd {
+  justify-content: flex-end;
+}
+
 .filterLabel {
   display: block;
   color: var(--text-primary);
@@ -139,21 +135,8 @@
   margin-bottom: var(--space-2);
 }
 
-.filterSelect,
 .filterInput {
-  width: 100%;
-  padding: var(--space-2) var(--space-3);
-  background: var(--glass-bg-highlight);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-lg);
-  color: var(--text-primary);
-  transition: box-shadow var(--duration-fast, 150ms);
-}
-
-.filterSelect:focus,
-.filterInput:focus {
-  outline: none;
-  box-shadow: 0 0 0 2px var(--accent);
+  min-height: var(--control-height-compact);
 }
 
 .clearFilterButton {
@@ -166,8 +149,8 @@
 
 /* ── Error Banner ── */
 .errorBanner {
-  background: color-mix(in srgb, #ef4444 15%, transparent);
-  border: 1px solid color-mix(in srgb, #ef4444 50%, transparent);
+  background: color-mix(in srgb, var(--accent-danger) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-danger) 50%, transparent);
   border-radius: var(--radius-lg);
   padding: var(--space-4);
   display: flex;
@@ -175,16 +158,24 @@
   gap: var(--space-3);
 }
 
+.errorIcon {
+  color: color-mix(in srgb, var(--accent-danger) 75%, var(--text-strong) 25%);
+}
+
 .errorTitle {
-  color: #fca5a5;
+  color: var(--text-danger);
   font-size: 0.875rem;
   font-weight: 500;
 }
 
 .errorDesc {
-  color: color-mix(in srgb, #f87171 80%, transparent);
+  color: color-mix(in srgb, var(--accent-danger) 80%, transparent);
   font-size: 0.75rem;
   margin-top: 0.125rem;
+}
+
+.errorDismissButton {
+  margin-left: auto;
 }
 
 /* ── Entity Results ── */
@@ -259,8 +250,8 @@
 }
 
 .riskBadge[data-risk='high'] {
-  background: #7f1d1d;
-  color: #fecaca;
+  background: var(--bg-danger-deep);
+  color: var(--text-danger-strong);
 }
 
 .riskBadge[data-risk='low'] {
@@ -309,15 +300,15 @@
 }
 
 .resultItemDoc {
-  border-left-color: #10b981; /* emerald-500 */
+  border-left-color: var(--accent-success);
 }
 
 .resultItemInvestigation {
-  border-left-color: #8b5cf6; /* purple-500 */
+  border-left-color: var(--accent-agentic);
 }
 
 .resultItemArticle {
-  border-left-color: #f97316; /* orange-500 */
+  border-left-color: var(--nav-properties);
 }
 
 .resultItemMedia {
@@ -337,6 +328,30 @@
   font-size: 0.75rem;
   font-weight: 500;
   color: var(--text-primary);
+}
+
+.categoryBadgeDocument {
+  background: var(--accent-success);
+}
+
+.categoryBadgeInvestigation {
+  background: var(--risk-medium);
+}
+
+.categoryBadgeArticle {
+  background: var(--accent-warning);
+}
+
+.categoryBadgeMedia {
+  background: var(--accent);
+}
+
+.italicText {
+  font-style: italic;
+}
+
+.monoText {
+  font-family: monospace;
 }
 
 .itemWordCount {
@@ -383,8 +398,8 @@
 }
 
 .highlightText mark {
-  background: color-mix(in srgb, #eab308 30%, transparent);
-  color: #fef08a;
+  background: color-mix(in srgb, var(--accent-warning) 30%, transparent);
+  color: var(--text-warning);
   border-radius: 2px;
   padding-inline: 0.125rem;
 }
@@ -396,10 +411,18 @@
   gap: var(--space-2);
 }
 
+.entityHeaderStart {
+  align-items: flex-start;
+}
+
 /* ── Empty/Welcome ── */
 .emptyState {
   padding: 3rem;
   text-align: center;
+}
+
+.sectionTitleCentered {
+  justify-content: center;
 }
 
 .emptyIcon {
@@ -489,8 +512,7 @@
 .resultItemInner {
   display: block;
   cursor: pointer;
-  background: none;
-  border: none;
+  min-height: unset;
   padding: 0;
   text-align: left;
   flex: 1;
@@ -563,6 +585,15 @@
   display: flex;
   justify-content: flex-end;
   gap: var(--space-3);
+}
+
+.headerTopCompact {
+  margin-bottom: 0;
+}
+
+.itemTitleCompact {
+  margin-bottom: 0;
+  margin-left: 1rem;
 }
 
 .modalSecondaryButton,

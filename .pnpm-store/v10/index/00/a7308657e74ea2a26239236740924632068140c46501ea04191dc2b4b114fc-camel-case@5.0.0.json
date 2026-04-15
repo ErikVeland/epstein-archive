@@ -1,0 +1,37 @@
+{
+  "name": "camel-case",
+  "version": "5.0.0",
+  "requiresBuild": false,
+  "files": {
+    "dist/index.js": {
+      "checkedAt": 1776136556928,
+      "integrity": "sha512-ePuNtNACWeJ6hqYP5VCSewsG3Oi3pvHzJJp73FUvI4q9MNaS1zACbZhXM0AW5ZG/6L8/i8XQjAb/uFP1xUwYrA==",
+      "mode": 420,
+      "size": 539
+    },
+    "package.json": {
+      "checkedAt": 1776136556932,
+      "integrity": "sha512-Onm6o0TPuLfJIUQqG1Hhh5pGOJ5C41F7wheCHO+ecWZStSs2N8gF9YRNafxgoTQnG/TgBeRcGgiLGLu0D77WLA==",
+      "mode": 420,
+      "size": 1112
+    },
+    "dist/index.js.map": {
+      "checkedAt": 1776136556936,
+      "integrity": "sha512-sULd5v6C1h76vk9/SYQCfgwqvrqe55s1qEVQminTB41dO5n8styyEAMs30x8fiHFfzAzq9IlWZx4ydWibOlCYA==",
+      "mode": 420,
+      "size": 1354
+    },
+    "README.md": {
+      "checkedAt": 1776136556940,
+      "integrity": "sha512-17zlrFCm89xur3LGa8znpMJm7u5WXJrpZmIyFqtxfCIG9Y1R9ZoPXYz3RLqgUgLr9IOCMDhKT79/qNmnzPFaGw==",
+      "mode": 420,
+      "size": 765
+    },
+    "dist/index.d.ts": {
+      "checkedAt": 1776136556943,
+      "integrity": "sha512-WqMlQg0OmKVONSKuY5cYXuq+QqzhubrqdIp5EP/PCUA2vMVwwXJEJszUzydXxxgg/5ODhpVUm762Bd9CyVHRyw==",
+      "mode": 420,
+      "size": 137
+    }
+  }
+}

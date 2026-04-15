@@ -1,0 +1,25 @@
+{
+  "name": "@esbuild/linux-arm64",
+  "version": "0.27.3",
+  "requiresBuild": false,
+  "files": {
+    "bin/esbuild": {
+      "checkedAt": 1776136557702,
+      "integrity": "sha512-lyuzRwXb/2HkSKD/22mUQeZCm2fgabJ7Glp4ygeYI9lGkg8AqznT/AhjEIAwJFxGbeEV2Fhkb8jIXa6Ca6iI4w==",
+      "mode": 493,
+      "size": 10158264
+    },
+    "package.json": {
+      "checkedAt": 1776136557711,
+      "integrity": "sha512-ZD/6NVLTqpBWtmOOFQvm7iy03YR5jCcbg6TeaHoP09PANNDh7uBNov8787YfEmI2V+a7Zgc1CuqVKox2yMsVIA==",
+      "mode": 420,
+      "size": 380
+    },
+    "README.md": {
+      "checkedAt": 1776136557736,
+      "integrity": "sha512-4J4eVwaxw5poQxKE6h+lWDE77YYSqGw1WqDYR8qmp7f6HYjADhPyHQmkwa/utbLag4GbfaPImyFYXJaJIfWtQw==",
+      "mode": 420,
+      "size": 145
+    }
+  }
+}

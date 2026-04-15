@@ -18,6 +18,8 @@ import { EntityPhoto } from '../EvidenceModal';
 import { SignalMetrics, DriverChip } from '../../../../utils/forensics';
 import s from './EvidenceOverviewTab.module.css';
 
+import { Button } from '../../../design-system/lib';
+
 interface EvidenceEntity {
   id?: string | number;
   fullName?: string;
@@ -207,14 +209,15 @@ export const EvidenceOverviewTab: React.FC<EvidenceOverviewTabProps> = ({
             <h3 className={s.blackbookTitle}>
               <BookOpen size={16} className={s.investigateIcon} /> Black Book Entry
             </h3>
-            <button
+            <Button
+              unstyled
               onClick={() =>
                 navigateFromModal(`/blackbook?search=${encodeURIComponent(entity.fullName || '')}`)
               }
               className={s.viewFullLink}
             >
               View in Black Book <ExternalLink size={12} />
-            </button>
+            </Button>
           </div>
 
           <div className={s.blackbookContent}>

@@ -22,8 +22,7 @@ import { useAnalytics } from '../../contexts/AnalyticsContextState';
 import { apiClient } from '../../services/apiClient';
 import type { Evidence } from '../visualizations/EvidenceDrawer';
 import type { Person } from '../../../types';
-import { Surface } from '../../design-system/lib';
-
+import { Button, Input, Surface } from '../../design-system/lib';
 /** Raw node shape returned by /graph/global and /graph/global?mode=path */
 interface GraphApiNode {
   id: string | number;
@@ -518,10 +517,7 @@ export const EnhancedAnalytics: React.FC = () => {
     return (
       <div className={s.loadingWrapper}>
         <div className={s.loadingInner}>
-          <div
-            className={`${s.spin} ${s.loadingSpinner}`}
-            style={{ boxShadow: '0 0 30px rgba(6, 182, 212, 0.5)' }}
-          />
+          <div className={`${s.spin} ${s.loadingSpinner}`} />
           <p className={`${s.pulse} ${s.loadingText}`}>Loading analytics...</p>
         </div>
       </div>
@@ -532,9 +528,9 @@ export const EnhancedAnalytics: React.FC = () => {
     return (
       <div className={s.errorWrapper}>
         <p className={s.errorText}>{error || 'No data available'}</p>
-        <button onClick={fetchAnalytics} className={s.retryButton}>
+        <Button unstyled onClick={fetchAnalytics} className={s.retryButton}>
           Retry
-        </button>
+        </Button>
       </div>
     );
   }
@@ -614,7 +610,7 @@ export const EnhancedAnalytics: React.FC = () => {
           {/* Entity Count Slider */}
           <div className={s.sliderControl}>
             <label className={s.sliderLabel}>Entities:</label>
-            <input
+            <Input
               type="range"
               min="100"
               max="500"
@@ -636,7 +632,7 @@ export const EnhancedAnalytics: React.FC = () => {
                   {filters.timeRange[1]?.split('-')[0] || '2025'}
                 </span>
               </div>
-              <input
+              <Input
                 type="range"
                 min="1990"
                 max="2025"
@@ -652,7 +648,8 @@ export const EnhancedAnalytics: React.FC = () => {
           </div>
 
           {/* Path Mode Toggle */}
-          <button
+          <Button
+            unstyled
             onClick={() => {
               setPathMode(!pathMode);
               setPathSource(null);
@@ -664,7 +661,7 @@ export const EnhancedAnalytics: React.FC = () => {
           >
             <Share2 size={16} />
             <span className={s.pathModeLabel}>{pathMode ? 'Select Nodes...' : 'Find Path'}</span>
-          </button>
+          </Button>
         </div>
 
         <div className={s.infoHint}>
@@ -692,22 +689,24 @@ export const EnhancedAnalytics: React.FC = () => {
             onEdgeClick={handleEdgeClick}
             nodeRiskActions={
               <>
-                <button
+                <Button
+                  unstyled
                   onClick={handleReconcileJunk}
                   className={`${s.nodeActionButton} ${s.nodeActionButtonAmber}`}
                   title="Reconcile Junk Entities"
                 >
                   <Database size={16} />
                   <span className={s.nodeActionTooltip}>Reconcile Junk Entities</span>
-                </button>
-                <button
+                </Button>
+                <Button
+                  unstyled
                   onClick={handleResetJunk}
                   className={`${s.nodeActionButton} ${s.nodeActionButtonRed}`}
                   title="Reset Junk Flags"
                 >
                   <RotateCcw size={16} />
                   <span className={s.nodeActionTooltip}>Reset Junk Flags</span>
-                </button>
+                </Button>
               </>
             }
           />
@@ -767,7 +766,8 @@ export const EnhancedAnalytics: React.FC = () => {
           </p>
           <div className={s.mobileListStack}>
             {topConnectedEntities?.slice(0, 20).map((entity, i) => (
-              <button
+              <Button
+                unstyled
                 key={entity.id}
                 onClick={() => onEntitySelect?.(entity.id)}
                 className={s.mobileEntityButton}
@@ -787,7 +787,7 @@ export const EnhancedAnalytics: React.FC = () => {
                   </div>
                 </div>
                 <div className={s.entityFlags}>{'🚩'.repeat(Math.min(entity.riskLevel, 5))}</div>
-              </button>
+              </Button>
             ))}
           </div>
           {topConnectedEntities?.length > 20 && (

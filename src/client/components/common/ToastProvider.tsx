@@ -3,6 +3,8 @@ import { ToastCtx, Toast } from './toastContext';
 import { CloseButton } from './CloseButton';
 import s from './ToastProvider.module.css';
 
+import { Button } from '../../design-system/lib';
+
 export default function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const addToast = useCallback((t: Omit<Toast, 'id'>) => {
@@ -45,7 +47,8 @@ export default function ToastProvider({ children }: { children: ReactNode }) {
               {t.type === 'loading' && <div className={s.loadingSpinner} />}
             </div>
             {t.action && (
-              <button
+              <Button
+                unstyled
                 onClick={() => {
                   t.action!.onClick();
                   removeToast(t.id);
@@ -53,7 +56,7 @@ export default function ToastProvider({ children }: { children: ReactNode }) {
                 className={s.actionBtn}
               >
                 {t.action.label}
-              </button>
+              </Button>
             )}
             {t.type !== 'loading' && (
               <CloseButton

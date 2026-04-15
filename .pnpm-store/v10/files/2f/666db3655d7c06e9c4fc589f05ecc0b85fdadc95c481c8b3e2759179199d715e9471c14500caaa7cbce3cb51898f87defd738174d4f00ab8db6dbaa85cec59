@@ -1,0 +1,33 @@
+{
+    "name": "@types/react-window-infinite-loader",
+    "version": "1.0.9",
+    "description": "TypeScript definitions for react-window-infinite-loader",
+    "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/react-window-infinite-loader",
+    "license": "MIT",
+    "contributors": [
+        {
+            "name": "Nivesh Ravindran",
+            "githubUsername": "Nibblesh",
+            "url": "https://github.com/Nibblesh"
+        },
+        {
+            "name": "fnknzzz",
+            "githubUsername": "fnknzzz",
+            "url": "https://github.com/fnknzzz"
+        }
+    ],
+    "main": "",
+    "types": "index.d.ts",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+        "directory": "types/react-window-infinite-loader"
+    },
+    "scripts": {},
+    "dependencies": {
+        "@types/react": "*",
+        "@types/react-window": "*"
+    },
+    "typesPublisherContentHash": "fe8789b4f656cb3c2ea82358ce3c97157bdf23fe9113553c5458ed0357df1197",
+    "typeScriptVersion": "4.5"
+}

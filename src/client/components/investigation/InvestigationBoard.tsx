@@ -21,15 +21,18 @@ import { useInvestigationBoard } from '../../domains/investigations';
 // UI Library
 import styles from './InvestigationBoard.module.css';
 import {
-  Surface,
+  Badge,
+  Box,
   Button,
   Flex,
-  Box,
-  Stack,
+  Input,
   LqText,
-  Badge,
   Skeleton,
+  Stack,
+  Surface,
+  Textarea,
 } from '../../design-system/lib';
+const css = <T,>(style: T) => style;
 
 interface InvestigationBoardProps {
   investigationId: string;
@@ -213,7 +216,7 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
               <LqText
                 variant="xs"
                 color="muted"
-                style={{ textTransform: 'uppercase' }}
+                style={css({ textTransform: 'uppercase' })}
                 weight="bold"
               >
                 Strategic Evidence Orchestration Layer
@@ -233,7 +236,7 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
             variant="secondary"
             onClick={() => window.open(`/api/investigations/${investigationId}/briefing`, '_blank')}
           >
-            <Download size={14} className="mr-2" /> Export Strategic Briefing
+            <Download size={14} className={styles.mr2} /> Export Strategic Briefing
           </Button>
         </Flex>
       </Surface>
@@ -241,11 +244,11 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
       <Flex grow className={styles.autoGen155}>
         {/* Column 1: Hypotheses */}
         <Surface variant="glass-highlight" width={400} className={styles.autoGen156}>
-          <Stack style={{ height: '100%' }}>
+          <Stack style={css({ height: '100%' })}>
             <Flex justify="between" align="center" p="lg" className={styles.autoGen157}>
               <Flex align="center" gap="md">
                 <Target size={18} className={styles.autoGen158} />
-                <LqText variant="xs" weight="bold" style={{ textTransform: 'uppercase' }}>
+                <LqText variant="xs" weight="bold" style={css({ textTransform: 'uppercase' })}>
                   Theories & Hypotheses
                 </LqText>
               </Flex>
@@ -257,8 +260,8 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
             {showHypothesisModal && (
               <Box p="lg" className={styles.autoGen159}>
                 <Stack gap="md">
-                  <input
-                    style={{
+                  <Input
+                    style={css({
                       width: '100%',
                       background: 'var(--lq-surface-3)',
                       border: '1px solid var(--lq-surface-4)',
@@ -267,24 +270,13 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
                       fontSize: '0.875rem',
                       color: 'var(--lq-text-primary)',
                       outline: 'none',
-                    }}
+                    })}
                     placeholder="Theoretical Designation..."
                     value={newHypothesisTitle}
                     onChange={(e) => setNewHypothesisTitle(e.target.value)}
                     autoFocus
                   />
-                  <textarea
-                    style={{
-                      width: '100%',
-                      background: 'var(--lq-surface-3)',
-                      border: '1px solid var(--lq-surface-4)',
-                      borderRadius: '0.375rem',
-                      padding: '0.5rem 0.75rem',
-                      fontSize: '0.875rem',
-                      color: 'var(--lq-text-primary)',
-                      outline: 'none',
-                      resize: 'none',
-                    }}
+                  <Textarea
                     placeholder="Narrative description..."
                     rows={2}
                     value={newHypothesisDesc}
@@ -317,14 +309,14 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
               ) : hypotheses.length === 0 ? (
                 <Stack align="center" justify="center" p="xxxl" gap="md">
                   <Search size={32} className={styles.autoGen161} />
-                  <LqText variant="xs" color="muted" style={{ textAlign: 'center' }}>
+                  <LqText variant="xs" color="muted" style={css({ textAlign: 'center' })}>
                     No active theories defined. Initialize a hypothesis to begin correlation.
                   </LqText>
                 </Stack>
               ) : (
                 <Stack gap="md">
                   {hypothesesVirtual.topSpacer > 0 && (
-                    <Box style={{ height: hypothesesVirtual.topSpacer }} />
+                    <Box style={css({ height: hypothesesVirtual.topSpacer })} />
                   )}
                   {displayedHypotheses.map((h: HypothesisWithLinks) => (
                     <Surface
@@ -359,7 +351,7 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
                     </Surface>
                   ))}
                   {hypothesesVirtual.bottomSpacer > 0 && (
-                    <Box style={{ height: hypothesesVirtual.bottomSpacer }} />
+                    <Box style={css({ height: hypothesesVirtual.bottomSpacer })} />
                   )}
                 </Stack>
               )}
@@ -369,11 +361,11 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
 
         {/* Column 2: Evidence Pool */}
         <Surface variant="glass-highlight" width={400} className={styles.autoGen165}>
-          <Stack style={{ height: '100%' }}>
+          <Stack style={css({ height: '100%' })}>
             <Flex justify="between" align="center" p="lg" className={styles.autoGen166}>
               <Flex align="center" gap="md">
                 <FileText size={18} className={styles.autoGen167} />
-                <LqText variant="xs" weight="bold" style={{ textTransform: 'uppercase' }}>
+                <LqText variant="xs" weight="bold" style={css({ textTransform: 'uppercase' })}>
                   Evidence Matrix
                 </LqText>
               </Flex>
@@ -392,14 +384,14 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
               ) : evidence.length === 0 ? (
                 <Stack align="center" justify="center" p="xxxl" gap="md">
                   <FileText size={32} className={styles.autoGen169} />
-                  <LqText variant="xs" color="muted" style={{ textAlign: 'center' }}>
+                  <LqText variant="xs" color="muted" style={css({ textAlign: 'center' })}>
                     Storage buffer clear. Add signals from the database to populate.
                   </LqText>
                 </Stack>
               ) : (
                 <Stack gap="sm">
                   {evidenceVirtual.topSpacer > 0 && (
-                    <Box style={{ height: evidenceVirtual.topSpacer }} />
+                    <Box style={css({ height: evidenceVirtual.topSpacer })} />
                   )}
                   {displayedEvidence.map((e) => (
                     <Surface
@@ -416,7 +408,7 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
                     >
                       <Flex gap="md" align="center">
                         <GripVertical size={14} className={styles.autoGen171} />
-                        <Stack gap="none" style={{ flex: 1 }}>
+                        <Stack gap="none" style={css({ flex: 1 })}>
                           <LqText variant="xs" weight="bold">
                             {e.title}
                           </LqText>
@@ -431,7 +423,7 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
                     </Surface>
                   ))}
                   {evidenceVirtual.bottomSpacer > 0 && (
-                    <Box style={{ height: evidenceVirtual.bottomSpacer }} />
+                    <Box style={css({ height: evidenceVirtual.bottomSpacer })} />
                   )}
                 </Stack>
               )}
@@ -441,10 +433,10 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
 
         {/* Column 3: Case Narrative */}
         <Surface variant="glass-highlight" grow className={styles.autoGen172}>
-          <Stack style={{ height: '100%' }}>
+          <Stack style={css({ height: '100%' })}>
             <Flex align="center" gap="md" p="lg" className={styles.autoGen173}>
               <BookOpen size={18} className={styles.autoGen174} />
-              <LqText variant="xs" weight="bold" style={{ textTransform: 'uppercase' }}>
+              <LqText variant="xs" weight="bold" style={css({ textTransform: 'uppercase' })}>
                 Strategic Workspace Narrative
               </LqText>
             </Flex>
@@ -505,7 +497,7 @@ export const InvestigationBoard: React.FC<InvestigationBoardProps> = ({ investig
                     <LqText
                       variant="xs"
                       color="muted"
-                      style={{ textAlign: 'center', padding: 'var(--lq-space-lg) 0' }}
+                      style={css({ textAlign: 'center', padding: 'var(--lq-space-lg) 0' })}
                     >
                       Hydrating high-fidelity signal metrics...
                     </LqText>

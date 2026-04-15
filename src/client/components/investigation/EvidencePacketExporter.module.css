@@ -138,3 +138,11 @@
   color: var(--lq-success);
   /* Missing: opacity-50 */
 }
+
+/* Spacing utilities — replaces Tailwind shorthands */
+.mr2 {
+  margin-right: var(--space-2);
+}
+.p3 {
+  padding: var(--space-3);
+}

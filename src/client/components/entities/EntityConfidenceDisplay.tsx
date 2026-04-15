@@ -4,6 +4,8 @@ import Icon from '../common/Icon';
 import { apiClient } from '../../services/apiClient';
 import styles from './EntityConfidenceDisplay.module.css';
 
+import { Button } from '../../design-system/lib';
+
 interface EntityConfidence {
   entityId: string | number;
   entityName: string;
@@ -76,7 +78,8 @@ export const EntityConfidenceDisplay: React.FC<EntityConfidenceDisplayProps> = (
   // Simple badge
   if (!expanded) {
     return (
-      <button
+      <Button
+        unstyled
         onClick={() => setExpanded(true)}
         className={`${styles.badge} ${getColor(confidence.confidenceLevel)} ${sizeClasses[size]}`}
         title={`Data confidence: ${confidence.confidenceScore}% based on ${confidence.totalMentions} mentions`}
@@ -84,7 +87,7 @@ export const EntityConfidenceDisplay: React.FC<EntityConfidenceDisplayProps> = (
         <Icon name={getIcon(confidence.confidenceLevel)} />
         <span>{confidence.confidenceLevel}</span>
         <span className={styles.expandedScore}>({confidence.confidenceScore}%)</span>
-      </button>
+      </Button>
     );
   }
 
@@ -97,9 +100,9 @@ export const EntityConfidenceDisplay: React.FC<EntityConfidenceDisplayProps> = (
           <span className={styles.expandedLabel}>{confidence.confidenceLevel} Confidence</span>
           <span className={styles.expandedScore}>{confidence.confidenceScore}%</span>
         </div>
-        <button onClick={() => setExpanded(false)} className={styles.collapseButton}>
+        <Button unstyled onClick={() => setExpanded(false)} className={styles.collapseButton}>
           <Icon name="X" size="sm" />
-        </button>
+        </Button>
       </div>
 
       <div className={styles.expandedBody}>

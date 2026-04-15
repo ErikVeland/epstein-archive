@@ -3,11 +3,13 @@ import type { TimelineEvent } from '../../../types/investigation';
 import { apiClient } from '../../../services/apiClient';
 import styles from './MobileTimelineView.module.css';
 
+import { Button, Input, NativeSelect } from '../../../design-system/lib';
+
 const EVENT_TYPE_COLORS: Record<string, string> = {
   document: 'var(--accent)',
   meeting: 'var(--accent-yellow)',
   location: 'var(--accent-green)',
-  communication: '#8b5cf6',
+  communication: 'var(--accent-agentic)',
   hypothesis: 'var(--accent-red)',
   other: 'var(--text-muted)',
 };
@@ -81,7 +83,8 @@ export function MobileTimelineView({
             <div className={styles.yearDivider}>{year}</div>
             {byYear[year].map((evt) => (
               <div key={evt.id}>
-                <button
+                <Button
+                  unstyled
                   className={styles.eventRow}
                   onClick={() => setExpandedId(expandedId === evt.id ? null : evt.id)}
                   aria-expanded={expandedId === evt.id}
@@ -106,7 +109,7 @@ export function MobileTimelineView({
                     </div>
                     <div className={styles.eventTitle}>{evt.title}</div>
                   </div>
-                </button>
+                </Button>
                 {expandedId === evt.id && (
                   <div className={styles.eventDetail}>
                     {evt.description && <p>{evt.description}</p>}
@@ -135,20 +138,20 @@ export function MobileTimelineView({
         <div className={styles.addSheet} onClick={handleCloseSheet}>
           <div className={styles.addSheetInner} onClick={(e) => e.stopPropagation()}>
             <div className={styles.addSheetTitle}>Add Event</div>
-            <input
+            <Input
               type="date"
               className={styles.sheetInput}
               value={newDate}
               onChange={(e) => setNewDate(e.target.value)}
             />
-            <input
+            <Input
               type="text"
               className={styles.sheetInput}
               placeholder="Event title"
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
             />
-            <select
+            <NativeSelect
               className={styles.sheetSelect}
               value={newType}
               onChange={(e) => setNewType(e.target.value)}
@@ -158,15 +161,16 @@ export function MobileTimelineView({
                   {t.charAt(0).toUpperCase() + t.slice(1)}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
             {saveError !== null && <p className={styles.sheetError}>{saveError}</p>}
-            <button
+            <Button
+              unstyled
               className={styles.sheetSaveBtn}
               disabled={!newTitle.trim() || !newDate || saving}
               onClick={handleSaveEvent}
             >
               {saving ? 'Saving\u2026' : 'Save Event'}
-            </button>
+            </Button>
           </div>
         </div>
       )}

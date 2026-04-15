@@ -56,6 +56,21 @@ export const BoardOnboarding: React.FC<BoardOnboardingProps> = ({ onComplete, on
   const currentStep = steps[step - 1];
   const Icon = currentStep.icon;
 
+  const toneStyle = (tone: string) => ({
+    backgroundColor:
+      tone === 'error'
+        ? 'var(--lq-error-dim)'
+        : tone === 'success'
+          ? 'var(--lq-success-dim)'
+          : 'var(--lq-accent-dim)',
+    color:
+      tone === 'error'
+        ? 'var(--lq-error)'
+        : tone === 'success'
+          ? 'var(--lq-success)'
+          : 'var(--lq-accent)',
+  });
+
   return (
     <Box className={styles.autoGen1} onClick={onSkip}>
       <motion.div
@@ -65,7 +80,7 @@ export const BoardOnboarding: React.FC<BoardOnboardingProps> = ({ onComplete, on
         transition={{ type: 'spring', duration: 0.6, bounce: 0.4 }}
         onClick={(e) => e.stopPropagation()}
       >
-        <Surface variant="panel" style={{ width: 480, padding: 0 }} className={styles.autoGen2}>
+        <Surface variant="panel" width={480} p="none" className={styles.autoGen2}>
           <Stack gap="none" className={styles.autoGen3}>
             {/* Mission Progress HUD */}
             <Box className={styles.autoGen4}>
@@ -104,23 +119,7 @@ export const BoardOnboarding: React.FC<BoardOnboardingProps> = ({ onComplete, on
                   transition={{ duration: 0.3 }}
                 >
                   <Stack align="center" gap="xl" className={styles.autoGen8}>
-                    <Box
-                      className={styles.stepIconBox}
-                      style={{
-                        backgroundColor:
-                          currentStep.tone === 'error'
-                            ? 'var(--lq-error-dim)'
-                            : currentStep.tone === 'success'
-                              ? 'var(--lq-success-dim)'
-                              : 'var(--lq-accent-dim)',
-                        color:
-                          currentStep.tone === 'error'
-                            ? 'var(--lq-error)'
-                            : currentStep.tone === 'success'
-                              ? 'var(--lq-success)'
-                              : 'var(--lq-accent)',
-                      }}
-                    >
+                    <Box className={styles.stepIconBox} style={toneStyle(currentStep.tone)}>
                       <Icon size={48} />
                     </Box>
                     <Stack gap="md">
@@ -142,9 +141,9 @@ export const BoardOnboarding: React.FC<BoardOnboardingProps> = ({ onComplete, on
                 <Button variant="secondary" size="sm" onClick={handleNext}>
                   {step === totalSteps ? 'Initialize Investigation' : 'Proceed to Next Phase'}
                   {step === totalSteps ? (
-                    <CheckCircle size={18} style={{ marginLeft: '0.5rem' }} />
+                    <CheckCircle size={18} className={styles.iconAfter} />
                   ) : (
-                    <ArrowRight size={18} style={{ marginLeft: '0.5rem' }} />
+                    <ArrowRight size={18} className={styles.iconAfter} />
                   )}
                 </Button>
 

@@ -16,6 +16,7 @@ import { DegradedModeProvider } from './contexts/DegradedModeContext';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { queryClient } from './services/queryClient';
+import { ApiStatusProvider } from './contexts/ApiStatusContext';
 
 // Initialise Sentry before anything else renders.
 // VITE_SENTRY_DSN must be set at build time; placeholder/example values are ignored.
@@ -53,8 +54,10 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                   <DegradedModeProvider>
                     <FilterProvider>
                       <QueryClientProvider client={queryClient}>
-                        <App />
-                        {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
+                        <ApiStatusProvider>
+                          <App />
+                          {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
+                        </ApiStatusProvider>
                       </QueryClientProvider>
                     </FilterProvider>
                   </DegradedModeProvider>

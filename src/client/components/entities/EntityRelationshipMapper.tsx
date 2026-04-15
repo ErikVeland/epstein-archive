@@ -3,6 +3,7 @@ import * as d3Selection from 'd3-selection';
 import * as d3Quadtree from 'd3-quadtree';
 
 import { EntityType } from '../../services/GraphService';
+import { Button, runtimeTokens, semanticChartTokens } from '../../design-system/lib';
 import styles from './EntityRelationshipMapper.module.css';
 
 export interface Entity {
@@ -73,11 +74,11 @@ export const EntityRelationshipMapper: React.FC<EntityRelationshipMapperProps> =
   const getLinkColor = useMemo(() => {
     return (d: Relationship) => {
       const risk = typeof d.properties?.riskScore === 'number' ? d.properties.riskScore : undefined;
-      if (risk === undefined) return '#475569';
-      if (risk >= 8) return '#ef4444';
-      if (risk >= 5) return '#f59e0b';
-      if (risk >= 3) return '#eab308';
-      return '#10b981';
+      if (risk === undefined) return runtimeTokens.color.textMuted;
+      if (risk >= 8) return semanticChartTokens.risk.critical;
+      if (risk >= 5) return semanticChartTokens.risk.high;
+      if (risk >= 3) return semanticChartTokens.risk.medium;
+      return semanticChartTokens.risk.low;
     };
   }, []);
 
@@ -86,20 +87,20 @@ export const EntityRelationshipMapper: React.FC<EntityRelationshipMapperProps> =
     return (type: string) => {
       switch (type) {
         case 'person':
-          return '#3b82f6';
+          return semanticChartTokens.series.people;
         case 'organization':
-          return '#8b5cf6';
+          return 'var(--accent-agentic)';
         case 'location':
-          return '#06b6d4';
+          return runtimeTokens.color.warning;
         case 'document':
-          return '#10b981';
+          return semanticChartTokens.series.documents;
         case 'communication':
-          return '#f43f5e';
+          return semanticChartTokens.series.emails;
         case 'financial':
-          return '#f59e0b';
+          return runtimeTokens.color.warning;
         case 'unknown':
         default:
-          return '#64748b';
+          return 'var(--text-dim)';
       }
     };
   }, []);
@@ -343,7 +344,7 @@ export const EntityRelationshipMapper: React.FC<EntityRelationshipMapperProps> =
       .append('circle')
       .attr('r', (d: Entity) => (d.type === 'person' ? 15 : 10))
       .attr('fill', (d: Entity) => getNodeColor(d.type))
-      .attr('stroke', '#fff')
+      .attr('stroke', runtimeTokens.color.textStrong)
       .attr('stroke-width', 2);
 
     // Node Labels
@@ -352,7 +353,7 @@ export const EntityRelationshipMapper: React.FC<EntityRelationshipMapperProps> =
       .text((d: Entity) => d.label)
       .attr('dy', 25)
       .attr('text-anchor', 'middle')
-      .attr('fill', '#cbd5e1')
+      .attr('fill', 'var(--nav-about)')
       .attr('font-size', '10px')
       .style('pointer-events', 'none');
     // eslint-disable-next-line react-hooks/exhaustive-deps -- helper functions are stable, transform is handled in separate effect
@@ -412,7 +413,9 @@ export const EntityRelationshipMapper: React.FC<EntityRelationshipMapperProps> =
 
       img.onload = () => {
         // Draw background
-        ctx.fillStyle = '#0f172a'; // slate-900
+        ctx.fillStyle =
+          getComputedStyle(document.documentElement).getPropertyValue('--lq-surface-2').trim() ||
+          'transparent';
         ctx.fillRect(0, 0, width, height);
 
         // Draw image
@@ -450,19 +453,30 @@ export const EntityRelationshipMapper: React.FC<EntityRelationshipMapperProps> =
       <div className={styles.header}>
         <h2 className={styles.title}>Entity Relationship Map</h2>
         <div className={styles.controls}>
-          <button onClick={() => handleZoom(1)} className={styles.zoomButton} aria-label="Zoom in">
+          <Button
+            unstyled
+            onClick={() => handleZoom(1)}
+            className={styles.zoomButton}
+            aria-label="Zoom in"
+          >
             +
-          </button>
-          <button
+          </Button>
+          <Button
+            unstyled
             onClick={() => handleZoom(-1)}
             className={styles.zoomButton}
             aria-label="Zoom out"
           >
             -
-          </button>
-          <button onClick={exportAsPNG} disabled={exporting} className={styles.exportButton}>
+          </Button>
+          <Button
+            unstyled
+            onClick={exportAsPNG}
+            disabled={exporting}
+            className={styles.exportButton}
+          >
             {exporting ? 'Exporting...' : 'Export PNG'}
-          </button>
+          </Button>
         </div>
       </div>
 

@@ -4,7 +4,14 @@ import { investigationsApi } from '../../../domains/investigations';
 import { useSubjectsQuery } from '../../../hooks/useSubjectsQuery';
 import { useToasts } from '../../common/useToasts';
 import { SheetDialog } from '../../common/SheetDialog';
-import { Button, SearchField, Select, TextInput, Textarea } from '../../../design-system/lib';
+import {
+  Button,
+  Input,
+  SearchField,
+  Select,
+  TextInput,
+  Textarea,
+} from '../../../design-system/lib';
 import styles from './EvidenceCaptureSheet.module.css';
 
 type CaptureMode = 'note' | 'file' | 'url';
@@ -239,7 +246,7 @@ export function EvidenceCaptureSheet({
 
       {mode === 'file' && (
         <>
-          <input
+          <Input
             ref={fileInputRef}
             type="file"
             className={styles.fileInput}

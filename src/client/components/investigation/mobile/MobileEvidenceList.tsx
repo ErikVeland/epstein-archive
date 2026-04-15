@@ -4,6 +4,8 @@ import { investigationsApi } from '../../../domains/investigations';
 import type { InvestigationCaseEvidenceItemDto } from '@shared/dto/investigations';
 import styles from './MobileEvidenceList.module.css';
 
+import { Button, Input } from '../../../design-system/lib';
+
 const FILTER_CHIPS = ['All', 'Documents', 'Testimony', 'Unsorted', 'Flagged'] as const;
 type FilterChip = (typeof FILTER_CHIPS)[number];
 
@@ -89,7 +91,7 @@ export function MobileEvidenceList({ investigationId }: MobileEvidenceListProps)
   return (
     <div className={styles.root}>
       <div className={styles.stickyHeader}>
-        <input
+        <Input
           type="search"
           className={styles.searchInput}
           placeholder="Search evidence..."
@@ -98,13 +100,14 @@ export function MobileEvidenceList({ investigationId }: MobileEvidenceListProps)
         />
         <div className={styles.filterRow}>
           {FILTER_CHIPS.map((chip) => (
-            <button
+            <Button
+              unstyled
               key={chip}
               className={`${styles.chip} ${filter === chip ? styles.chipActive : ''}`}
               onClick={() => setFilter(chip)}
             >
               {chip}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
@@ -158,9 +161,14 @@ function EvidenceCard({ item, onView }: EvidenceCardProps) {
         {item.relevance && <span>{item.relevance}</span>}
       </div>
       <div className={styles.cardActions}>
-        <button className={styles.cardBtn} onClick={() => onView(item)} disabled={!canView}>
+        <Button
+          unstyled
+          className={styles.cardBtn}
+          onClick={() => onView(item)}
+          disabled={!canView}
+        >
           View
-        </button>
+        </Button>
       </div>
     </div>
   );

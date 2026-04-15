@@ -17,6 +17,7 @@ import {
   X,
   RotateCcw,
 } from 'lucide-react';
+import { Button, SearchField, Select, TextInput } from '../../design-system/lib';
 import { apiClient } from '../../services/apiClient';
 import { Person } from '../../types';
 import { useScrollLock } from '../../hooks/useScrollLock';
@@ -261,38 +262,44 @@ const GlobalSearch: React.FC = () => {
             <Search size={24} className={s.accentIcon} />
             <span>Global Evidence Search</span>
           </h2>
-          <button onClick={() => setShowFilters(!showFilters)} className={s.filterToggle}>
+          <Button
+            type="button"
+            onClick={() => setShowFilters(!showFilters)}
+            variant="secondary"
+            size="sm"
+            className={s.filterToggle}
+          >
             <Filter size={16} />
             <span>Filters</span>
             <ChevronDown
               size={16}
-              style={{
-                transform: showFilters ? 'rotate(180deg)' : 'none',
-                transition: 'transform 0.2s',
-              }}
+              className={showFilters ? `${s.chevronIcon} ${s.chevronIconOpen}` : s.chevronIcon}
             />
-          </button>
+          </Button>
         </div>
 
         {/* Search Input */}
         <div className={s.inputWrapper}>
-          <Search size={20} className={s.searchIcon} />
-          <input
+          <SearchField
             type="text"
             placeholder="Search across all evidence files... (e.g., Trump, Clinton, Epstein, flight logs, emails)"
             className={s.input}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            aria-label="Search global evidence"
           />
           {searchTerm && !loading && (
-            <button
+            <Button
+              type="button"
               onClick={() => setSearchTerm('')}
+              variant="ghost"
+              size="sm"
               className={s.clearButton}
               aria-label="Clear search"
               title="Clear search"
             >
               <X size={16} />
-            </button>
+            </Button>
           )}
           {loading && (
             <div className={s.loadingSpinner}>
@@ -315,46 +322,44 @@ const GlobalSearch: React.FC = () => {
           <div className={s.filterGrid}>
             <div className={s.filterGroup}>
               <label className={s.filterLabel}>Category</label>
-              <select
+              <Select
                 value={filters.category}
                 onChange={(e) => setFilters({ ...filters, category: e.target.value })}
+                size="sm"
                 className={s.filterSelect}
-              >
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
+                options={categories.map((cat) => ({ value: cat.id, label: cat.name }))}
+              />
             </div>
 
             <div className={s.filterGroup}>
               <label className={s.filterLabel}>Entity</label>
-              <input
+              <TextInput
                 type="text"
                 placeholder="e.g., Trump, Epstein, Clinton"
                 value={filters.entity}
                 onChange={(e) => setFilters({ ...filters, entity: e.target.value })}
+                density="compact"
                 className={s.filterInput}
               />
             </div>
 
             <div className={s.filterGroup}>
               <label className={s.filterLabel}>Min Word Count</label>
-              <input
+              <TextInput
                 type="number"
                 min="0"
                 value={filters.min_word_count}
                 onChange={(e) =>
                   setFilters({ ...filters, min_word_count: parseInt(e.target.value) || 0 })
                 }
+                density="compact"
                 className={s.filterInput}
               />
             </div>
 
             <div className={s.filterGroup}>
               <label className={s.filterLabel}>Start Date</label>
-              <input
+              <TextInput
                 type="date"
                 value={filters.date_range.start}
                 onChange={(e) =>
@@ -363,13 +368,14 @@ const GlobalSearch: React.FC = () => {
                     date_range: { ...filters.date_range, start: e.target.value },
                   })
                 }
+                density="compact"
                 className={s.filterInput}
               />
             </div>
 
             <div className={s.filterGroup}>
               <label className={s.filterLabel}>End Date</label>
-              <input
+              <TextInput
                 type="date"
                 value={filters.date_range.end}
                 onChange={(e) =>
@@ -378,12 +384,14 @@ const GlobalSearch: React.FC = () => {
                     date_range: { ...filters.date_range, end: e.target.value },
                   })
                 }
+                density="compact"
                 className={s.filterInput}
               />
             </div>
 
-            <div className={s.filterGroup} style={{ justifyContent: 'flex-end' }}>
-              <button
+            <div className={`${s.filterGroup} ${s.filterGroupEnd}`}>
+              <Button
+                type="button"
                 onClick={() =>
                   setFilters({
                     category: 'all',
@@ -392,10 +400,12 @@ const GlobalSearch: React.FC = () => {
                     min_word_count: 0,
                   })
                 }
+                variant="secondary"
+                size="sm"
                 className={s.clearFilterButton}
               >
                 Clear Filters
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -404,19 +414,21 @@ const GlobalSearch: React.FC = () => {
       {/* Error Banner */}
       {searchError && (
         <div role="alert" className={s.errorBanner}>
-          <AlertCircle size={20} style={{ color: '#f87171' }} />
+          <AlertCircle size={20} className={s.errorIcon} />
           <div>
             <p className={s.errorTitle}>Search failed</p>
             <p className={s.errorDesc}>{searchError}</p>
           </div>
-          <button
+          <Button
+            type="button"
             onClick={() => setSearchError(null)}
-            className={s.clearButton}
-            style={{ marginLeft: 'auto' }}
+            variant="ghost"
+            size="sm"
+            className={`${s.clearButton} ${s.errorDismissButton}`}
             aria-label="Dismiss error"
           >
             <X size={16} />
-          </button>
+          </Button>
         </div>
       )}
 
@@ -476,15 +488,17 @@ const GlobalSearch: React.FC = () => {
           {/* Investigations Section */}
           {investigationResults.length > 0 &&
             investigationResults.map((inv, index) => (
-              <button
+              <Button
                 key={`inv-${index}`}
                 type="button"
+                variant="ghost"
+                size="sm"
                 className={`${s.resultItem} ${s.resultItemInvestigation}`}
                 onClick={() => navigate(`/investigations/${asString(inv.uuid)}`)}
                 aria-label={`Open investigation ${asString(inv.title)}`}
               >
                 <div className={s.itemMeta}>
-                  <span className={s.categoryBadge} style={{ background: '#9333ea' }}>
+                  <span className={`${s.categoryBadge} ${s.categoryBadgeInvestigation}`}>
                     Investigation
                   </span>
                   <span className={s.helperText}>{asString(inv.status)}</span>
@@ -492,20 +506,21 @@ const GlobalSearch: React.FC = () => {
                 <h4 className={s.itemTitle}>{asString(inv.title)}</h4>
                 {Boolean(inv.snippet) && (
                   <div
-                    className={s.helperText}
-                    style={{ fontStyle: 'italic' }}
+                    className={`${s.helperText} ${s.italicText}`}
                     dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(asString(inv.snippet)) }}
                   />
                 )}
-              </button>
+              </Button>
             ))}
 
           {/* Articles Section */}
           {articleResults.length > 0 &&
             articleResults.map((art, index) => (
-              <button
+              <Button
                 key={`art-${index}`}
                 type="button"
+                variant="ghost"
+                size="sm"
                 className={`${s.resultItem} ${s.resultItemArticle}`}
                 onClick={() =>
                   setSelectedResult({
@@ -526,9 +541,7 @@ const GlobalSearch: React.FC = () => {
                 aria-label={`Open article result ${asString(art.title)}`}
               >
                 <div className={s.itemMeta}>
-                  <span className={s.categoryBadge} style={{ background: '#f97316' }}>
-                    Article
-                  </span>
+                  <span className={`${s.categoryBadge} ${s.categoryBadgeArticle}`}>Article</span>
                   <span className={s.helperText}>
                     {asString(art.source)} by {asString(art.author)}
                   </span>
@@ -545,15 +558,17 @@ const GlobalSearch: React.FC = () => {
                     dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(asString(art.snippet)) }}
                   />
                 )}
-              </button>
+              </Button>
             ))}
 
           {/* Media Section */}
           {mediaResults.length > 0 &&
             mediaResults.map((med, index) => (
-              <button
+              <Button
                 key={`med-${index}`}
                 type="button"
+                variant="ghost"
+                size="sm"
                 className={`${s.resultItem} ${s.resultItemMedia}`}
                 onClick={() =>
                   setSelectedResult({
@@ -573,12 +588,8 @@ const GlobalSearch: React.FC = () => {
                 aria-label={`Open media result ${asString(med.title) || asString(med.filename)}`}
               >
                 <div className={s.itemMeta}>
-                  <span className={s.categoryBadge} style={{ background: 'var(--accent)' }}>
-                    Media
-                  </span>
-                  <span className={s.helperText} style={{ fontFamily: 'monospace' }}>
-                    {asString(med.fileType)}
-                  </span>
+                  <span className={`${s.categoryBadge} ${s.categoryBadgeMedia}`}>Media</span>
+                  <span className={`${s.helperText} ${s.monoText}`}>{asString(med.fileType)}</span>
                 </div>
                 <h4 className={s.itemTitle}>{asString(med.title) || asString(med.filename)}</h4>
                 {Boolean(med.snippet) && (
@@ -587,28 +598,23 @@ const GlobalSearch: React.FC = () => {
                     dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(asString(med.snippet)) }}
                   />
                 )}
-              </button>
+              </Button>
             ))}
 
           {/* Existing Document Results */}
           {filteredResults.map((result, index) => (
             <div key={`doc-${index}`} className={`${s.resultItem} ${s.resultItemDoc}`}>
-              <div className={s.entityHeader} style={{ alignItems: 'flex-start' }}>
-                <button
+              <div className={`${s.entityHeader} ${s.entityHeaderStart}`}>
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   className={s.resultItemInner}
                   onClick={() => setSelectedResult(result)}
                   aria-label={`Open evidence result ${result.filename}`}
-                  style={{
-                    flex: 1,
-                    textAlign: 'left',
-                    background: 'none',
-                    border: 'none',
-                    padding: 0,
-                  }}
                 >
                   <div className={s.itemMeta}>
-                    <span className={s.categoryBadge} style={{ background: '#10b981' }}>
+                    <span className={`${s.categoryBadge} ${s.categoryBadgeDocument}`}>
                       {categories.find((c) => c.id === result.category)?.name || result.category}
                     </span>
                     <span className={s.itemWordCount}>
@@ -635,25 +641,33 @@ const GlobalSearch: React.FC = () => {
                       ))}
                     </div>
                   )}
-                </button>
+                </Button>
 
                 <div className={s.itemActions}>
-                  <button
+                  <Button
+                    type="button"
                     onClick={() => navigate(`/documents/${result.id}`)}
+                    variant="secondary"
+                    size="sm"
+                    iconOnly
                     className={s.actionButtonAccent}
                     aria-label={`View document: ${result.filename}`}
                     title="View document"
                   >
                     <Eye size={16} />
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    type="button"
                     onClick={() => handleDownload(result.id, result.filename)}
+                    variant="secondary"
+                    size="sm"
+                    iconOnly
                     className={s.actionButtonGlass}
                     aria-label={`Download document: ${result.filename}`}
                     title="Download document"
                   >
                     <Download size={16} />
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -668,9 +682,7 @@ const GlobalSearch: React.FC = () => {
           searchTerm && (
             <div className={s.emptyState}>
               <Search size={48} className={s.emptyIcon} />
-              <h4 className={s.sectionTitle} style={{ justifyContent: 'center' }}>
-                No results found
-              </h4>
+              <h4 className={`${s.sectionTitle} ${s.sectionTitleCentered}`}>No results found</h4>
               <p className={s.helperText}>Try adjusting your search terms or filters</p>
             </div>
           )}
@@ -678,7 +690,7 @@ const GlobalSearch: React.FC = () => {
         {!searchTerm && (
           <div className={s.emptyState}>
             <Search size={48} className={s.emptyIcon} />
-            <h4 className={s.sectionTitle} style={{ justifyContent: 'center' }}>
+            <h4 className={`${s.sectionTitle} ${s.sectionTitleCentered}`}>
               Start your investigation
             </h4>
             <p className={s.helperText}>
@@ -694,11 +706,11 @@ const GlobalSearch: React.FC = () => {
           <div className={s.modalOverlay}>
             <div className={s.modalContent}>
               <div className={s.modalHeader}>
-                <div className={s.headerTop} style={{ marginBottom: 0 }}>
-                  <span className={s.categoryBadge} style={{ background: 'var(--accent)' }}>
+                <div className={`${s.headerTop} ${s.headerTopCompact}`}>
+                  <span className={`${s.categoryBadge} ${s.categoryBadgeMedia}`}>
                     {categories.find((c) => c.id === selectedResult.category)?.name}
                   </span>
-                  <h3 className={s.itemTitle} style={{ marginBottom: 0, marginLeft: '1rem' }}>
+                  <h3 className={`${s.itemTitle} ${s.itemTitleCompact}`}>
                     {selectedResult.filename}
                   </h3>
                 </div>
@@ -774,19 +786,28 @@ const GlobalSearch: React.FC = () => {
               </div>
 
               <div className={s.modalFooter}>
-                <button onClick={() => setSelectedResult(null)} className={s.modalSecondaryButton}>
+                <Button
+                  type="button"
+                  onClick={() => setSelectedResult(null)}
+                  variant="secondary"
+                  size="sm"
+                  className={s.modalSecondaryButton}
+                >
                   Close
-                </button>
-                <button
+                </Button>
+                <Button
+                  type="button"
                   onClick={() => {
                     setSelectedResult(null);
                     navigate(`/documents/${selectedResult.id}`);
                   }}
+                  variant="primary"
+                  size="sm"
                   className={s.modalPrimaryButton}
                 >
                   <Eye className={s.modalButtonIcon} />
                   <span>View File</span>
-                </button>
+                </Button>
               </div>
             </div>
           </div>,

@@ -16,7 +16,11 @@ export * from '../components/typography/Text';
 // Primitives
 export * from '../components/Button';
 export * from '../components/forms/TextInput';
+export * from '../components/forms/Input';
+export * from '../components/forms/TextArea';
+export * from '../components/forms/FileInput';
 export * from '../components/forms/Select';
+export * from '../components/forms/NativeSelect';
 export * from '../components/feedback/Badge';
 export * from '../components/feedback/EmptyState';
 export * from '../../components/common/Skeleton';

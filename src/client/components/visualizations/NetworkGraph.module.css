@@ -9,6 +9,13 @@
   user-select: none;
 }
 
+.rootPanel {
+  border: 1px solid color-mix(in srgb, var(--glass-border) 80%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 8px 20px rgba(2, 6, 23, 0.24);
+}
+
 .softGlassOutline {
   border: 1px solid color-mix(in srgb, var(--glass-border) 80%, transparent);
   box-shadow:
@@ -120,8 +127,10 @@
   width: 16rem;
   padding: var(--space-4);
   border-radius: var(--radius-lg);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 82%, transparent);
   background: color-mix(in srgb, var(--glass-bg) 95%, transparent);
   backdrop-filter: blur(8px);
+  box-shadow: var(--glass-shadow-strong);
 }
 
 .filterTitle {
@@ -250,10 +259,12 @@
   z-index: 20;
   padding: var(--space-4);
   border-radius: var(--radius-lg);
+  border: 1px solid color-mix(in srgb, var(--glass-border) 78%, transparent);
   background: color-mix(in srgb, var(--glass-bg) 90%, transparent);
   pointer-events: none;
   opacity: 0.8;
   backdrop-filter: blur(8px);
+  box-shadow: var(--glass-shadow-soft);
   transition: opacity var(--duration-fast) var(--ease-out);
 }
 

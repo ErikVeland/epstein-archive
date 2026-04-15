@@ -79,7 +79,7 @@ export const DocumentCard = React.forwardRef<HTMLElement, DocumentCardProps>(fun
     >
       <Surface
         variant={active ? 'glass-highlight' : 'glass'}
-        className={active ? styles.surfaceActive : styles.surfaceDefault}
+        className={`${styles.surface} ${active ? styles.surfaceActive : styles.surfaceDefault}`}
       >
         <Flex align="center" justify="between" className={styles.headerRow}>
           <Flex align="center" gap="md">

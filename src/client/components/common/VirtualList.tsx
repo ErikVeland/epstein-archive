@@ -60,7 +60,7 @@ export const VirtualList: React.FC<VirtualListProps> = ({
         overflowY: 'auto',
         position: 'relative',
         scrollbarWidth: 'thin',
-        scrollbarColor: '#475569 #1e293b',
+        scrollbarColor: 'var(--text-muted) var(--lq-surface-2)',
       }}
       onScroll={handleScroll}
     >

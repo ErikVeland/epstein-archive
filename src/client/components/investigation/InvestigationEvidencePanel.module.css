@@ -1063,3 +1063,14 @@
   border-style: solid;
   border-color: var(--lq-surface-3);
 }
+
+/* Spacing utilities — replaces Tailwind shorthands */
+.mr1 {
+  margin-right: var(--space-1);
+}
+.ml1 {
+  margin-left: var(--space-1);
+}
+.mr2 {
+  margin-right: var(--space-2);
+}

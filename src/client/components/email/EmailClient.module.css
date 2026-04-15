@@ -12,9 +12,19 @@
 .desktopLayout {
   flex: 1;
   min-height: 0;
-  display: flex;
+  display: block;
   overflow: hidden;
   position: relative;
+}
+
+@media (min-width: 768px) {
+  .desktopLayout {
+    display: grid;
+    grid-template-columns:
+      var(--mailbox-pane-width, 340px) var(--pane-resizer-width, 10px)
+      var(--thread-pane-width, 420px) var(--pane-resizer-width, 10px)
+      minmax(420px, 1fr);
+  }
 }
 
 .mailboxPane {
@@ -56,6 +66,8 @@
 /* Row refinements */
 .emailRow {
   width: 100%;
+  display: block;
+  border: none;
   text-align: left;
   transition: all var(--transition-base);
   border-left: 3px solid transparent;
@@ -185,7 +197,7 @@
   background: linear-gradient(to right, transparent 0%, var(--accent) 50%, transparent 100%);
   opacity: 0.2;
   transition: opacity var(--transition-base);
-  width: 10px;
+  width: var(--pane-resizer-width, 10px);
 }
 
 .paneResizer:hover {
@@ -204,7 +216,7 @@
   border: 1px solid var(--glass-border);
   background: var(--glass-bg-strong);
   padding: var(--spacing-3);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--text-strong) 6%, transparent);
 }
 
 /* Mobile adjustments */
@@ -456,6 +468,10 @@
 
 .searchWrap {
   position: relative;
+}
+
+.searchFieldRoot {
+  width: 100%;
 }
 
 .searchIconInline {

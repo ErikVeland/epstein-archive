@@ -2,6 +2,7 @@ import React from 'react';
 import { cn } from '../../utils/cn';
 import Icon, { IconName } from './Icon';
 import { RedFlagIndex } from '../visualizations/RedFlagIndex';
+import { Button } from '../../design-system/lib';
 import s from './Card.module.css';
 
 interface CardProps {
@@ -112,17 +113,19 @@ export const Card: React.FC<CardProps> = ({
       {actionButtons.length > 0 && (
         <div className={s.actions}>
           {actionButtons.map((button, index) => (
-            <button
+            <Button
               key={index}
               onClick={(e) => {
                 e.stopPropagation();
                 button.onClick();
               }}
+              type="button"
+              size="sm"
+              variant={button.variant ?? 'secondary'}
               className={s.actionBtn}
-              data-variant={button.variant ?? 'secondary'}
             >
               {button.label}
-            </button>
+            </Button>
           ))}
         </div>
       )}

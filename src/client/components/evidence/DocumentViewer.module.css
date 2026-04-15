@@ -131,12 +131,12 @@
 
 .segmentedButtonRawActive {
   border: 1px solid rgba(245, 158, 11, 0.3);
-  background: rgba(245, 158, 11, 0.2);
-  color: #fcd34d;
+  background: color-mix(in srgb, var(--accent-warning) 20%, transparent);
+  color: var(--text-warning);
 }
 
 .segmentedButtonRawActive:hover {
-  color: #fcd34d;
+  color: var(--text-warning);
 }
 
 .toggleButton {
@@ -192,7 +192,7 @@
 }
 
 .copiedIcon {
-  color: #10b981;
+  color: var(--accent-success);
 }
 
 .redactionGroup {
@@ -243,7 +243,7 @@
 .highlightsIcon {
   width: 1rem;
   height: 1rem;
-  color: #a78bfa;
+  color: var(--nav-media);
 }
 
 .highlightsLabel {
@@ -251,7 +251,7 @@
   font-weight: var(--weight-black);
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: #c4b5fd;
+  color: var(--accent-agentic-subtle);
 }
 
 .excerpt {
@@ -321,8 +321,8 @@
 
 .highlightActive {
   box-shadow:
-    0 0 0 2px #fbbf24,
-    0 0 0 4px rgba(15, 23, 42, 0.9);
+    0 0 0 2px var(--text-warning),
+    0 0 0 4px var(--bg-surface);
 }
 
 @media (min-width: 768px) {

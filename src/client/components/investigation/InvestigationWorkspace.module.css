@@ -9,6 +9,16 @@
   background: linear-gradient(to bottom, var(--glass-bg-strong), rgba(0, 51, 51, 0.2));
 }
 
+.importOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: color-mix(in srgb, var(--bg-dark) 80%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .header {
   border-bottom: 1px solid var(--glass-border);
   padding: 1rem 1.5rem;

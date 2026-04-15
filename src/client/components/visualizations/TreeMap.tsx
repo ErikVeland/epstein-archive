@@ -3,6 +3,7 @@ import { ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 import { filterPeopleOnly } from '../../utils/entityFilters';
 import type { Person } from '../../types';
 import { useAnalytics } from '../../contexts/AnalyticsContextState';
+import { Button } from '../../design-system/lib';
 import styles from './TreeMap.module.css';
 
 export interface PersonLike {
@@ -113,15 +114,33 @@ export const TreeMap: React.FC<TreeMapProps> = ({ people }) => {
   return (
     <div className={styles.wrapper}>
       <div className={styles.controls}>
-        <button onClick={zoomIn} className={styles.controlButton} title="Zoom In">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={zoomIn}
+          className={styles.controlButton}
+          title="Zoom In"
+        >
           <ZoomIn size={16} />
-        </button>
-        <button onClick={zoomOut} className={styles.controlButton} title="Zoom Out">
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={zoomOut}
+          className={styles.controlButton}
+          title="Zoom Out"
+        >
           <ZoomOut size={16} />
-        </button>
-        <button onClick={resetZoom} className={styles.controlButton} title="Reset">
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={resetZoom}
+          className={styles.controlButton}
+          title="Reset"
+        >
           <RotateCcw size={16} />
-        </button>
+        </Button>
       </div>
 
       <div

@@ -5,6 +5,7 @@ import { FileText, Calendar, Users, ArrowUp, ArrowDown } from 'lucide-react';
 import { CloseButton } from '../common/CloseButton';
 import { useFilters } from '../../contexts/useFilters';
 import { useScrollLock } from '../../hooks/useScrollLock';
+import { Button, cn } from '../../design-system/lib';
 import ScopedErrorBoundary from '../common/ScopedErrorBoundary';
 import { EmptyCorpus } from '../common/EmptyCorpus';
 import styles from './Timeline.module.css';
@@ -311,32 +312,53 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
       <div className={styles.stickyHeader}>
         <div className={styles.filterRow}>
           <div className={styles.significanceFilters}>
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => toggleSignificanceFilter('high')}
-              className={`${styles.filterButton} ${filteredSignificance.includes('high') ? styles.filterHigh : styles.filterHighInactive}`}
+              className={cn(
+                styles.filterButton,
+                filteredSignificance.includes('high')
+                  ? styles.filterHigh
+                  : styles.filterHighInactive,
+              )}
             >
               <div className={`${styles.dot} ${styles.dotHigh}`}></div>
               <span>High</span>
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => toggleSignificanceFilter('medium')}
-              className={`${styles.filterButton} ${filteredSignificance.includes('medium') ? styles.filterMedium : styles.filterMediumInactive}`}
+              className={cn(
+                styles.filterButton,
+                filteredSignificance.includes('medium')
+                  ? styles.filterMedium
+                  : styles.filterMediumInactive,
+              )}
             >
               <div className={`${styles.dot} ${styles.dotMedium}`}></div>
               <span>Medium</span>
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => toggleSignificanceFilter('low')}
-              className={`${styles.filterButton} ${filteredSignificance.includes('low') ? styles.filterLow : styles.filterLowInactive}`}
+              className={cn(
+                styles.filterButton,
+                filteredSignificance.includes('low') ? styles.filterLow : styles.filterLowInactive,
+              )}
             >
               <div className={`${styles.dot} ${styles.dotLow}`}></div>
               <span>Low</span>
-            </button>
+            </Button>
           </div>
 
           <div className={styles.spacer}></div>
 
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setSortOrder((prev) => (prev === 'desc' ? 'asc' : 'desc'))}
             className={styles.sortButton}
             title={sortOrder === 'desc' ? 'Showing newest first' : 'Showing oldest first'}
@@ -352,7 +374,7 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
                 <span>Oldest First</span>
               </>
             )}
-          </button>
+          </Button>
         </div>
       </div>
 

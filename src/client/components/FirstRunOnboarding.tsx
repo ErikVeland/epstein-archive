@@ -4,6 +4,8 @@ import { CloseButton } from './common/CloseButton';
 import { useScrollLock } from '../hooks/useScrollLock';
 import styles from './FirstRunOnboarding.module.css';
 
+import { Button } from '../design-system/lib';
+
 interface FirstRunOnboardingProps {
   onComplete: () => void;
   onSkip: () => void;
@@ -119,19 +121,19 @@ export const FirstRunOnboarding: React.FC<FirstRunOnboardingProps> = ({ onComple
 
         {/* Footer */}
         <div className={styles.footer}>
-          <button onClick={handleSkip} className={styles.textButton}>
+          <Button unstyled onClick={handleSkip} className={styles.textButton}>
             Skip Tour
-          </button>
+          </Button>
           <div className={styles.footerActions}>
             {step > 1 && (
-              <button onClick={() => setStep(step - 1)} className={styles.textButton}>
+              <Button unstyled onClick={() => setStep(step - 1)} className={styles.textButton}>
                 Previous
-              </button>
+              </Button>
             )}
-            <button onClick={handleNext} className={styles.primaryButton}>
+            <Button unstyled onClick={handleNext} className={styles.primaryButton}>
               {step === totalSteps ? 'Get Started' : 'Next'}
               {step !== totalSteps && <ArrowRight className={styles.primaryButtonIcon} />}
-            </button>
+            </Button>
           </div>
         </div>
       </div>

@@ -6,6 +6,7 @@ import {
   Button,
   EmptyState,
   Flex,
+  Input,
   LqText,
   Pagination,
   Surface,
@@ -110,7 +111,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
             <LqText variant="xs" color="muted" className={styles.jumpToLabel}>
               Jump to
             </LqText>
-            <input
+            <Input
               type="number"
               min={1}
               max={totalPages}

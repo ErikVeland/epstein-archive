@@ -9,6 +9,8 @@ import { LqText } from '../design-system/components/typography/Text';
 import type { SpaceValue } from '../design-system/lib/resolveSpace';
 import styles from './ReviewDashboard.module.css';
 
+import { Button } from '../design-system/lib';
+
 interface MentionQueueItem {
   id: number;
   entity_name: string;
@@ -98,7 +100,8 @@ export function ReviewDashboard() {
 
         {/* Tabs */}
         <Flex gap={8} className={styles.tabs}>
-          <button
+          <Button
+            unstyled
             onClick={() => setActiveTab('mentions')}
             className={`${styles.tabButton} ${
               activeTab === 'mentions' ? styles.tabButtonActive : styles.tabButtonIdle
@@ -106,8 +109,9 @@ export function ReviewDashboard() {
           >
             Entity Mentions
             {activeTab === 'mentions' && <div className={styles.tabUnderline} />}
-          </button>
-          <button
+          </Button>
+          <Button
+            unstyled
             onClick={() => setActiveTab('claims')}
             className={`${styles.tabButton} ${
               activeTab === 'claims' ? styles.tabButtonActive : styles.tabButtonIdle
@@ -115,7 +119,7 @@ export function ReviewDashboard() {
           >
             Claims & Facts
             {activeTab === 'claims' && <div className={styles.tabUnderline} />}
-          </button>
+          </Button>
         </Flex>
 
         <Surface variant="glass" className={styles.surfaceShell}>
@@ -150,20 +154,22 @@ export function ReviewDashboard() {
                       </Flex>
                     </Box>
                     <Flex direction="column" gap={3} className={styles.actions}>
-                      <button
+                      <Button
+                        unstyled
                         onClick={() => verifyItem(item.id, 'mentions')}
                         className={`${styles.iconButton} ${styles.iconButtonApprove}`}
                         title="Verify"
                       >
                         <Check className={styles.actionIcon} />
-                      </button>
-                      <button
+                      </Button>
+                      <Button
+                        unstyled
                         onClick={() => rejectItem(item.id, 'mentions')}
                         className={`${styles.iconButton} ${styles.iconButtonReject}`}
                         title="Reject"
                       >
                         <X className={styles.actionIcon} />
-                      </button>
+                      </Button>
                     </Flex>
                   </Flex>
                 ))}
@@ -200,20 +206,22 @@ export function ReviewDashboard() {
                       </Flex>
                     </Box>
                     <Flex direction="column" gap={3} className={styles.actions}>
-                      <button
+                      <Button
+                        unstyled
                         onClick={() => verifyItem(item.id, 'claims')}
                         className={`${styles.iconButton} ${styles.iconButtonApprove}`}
                         title="Verify"
                       >
                         <Check className={styles.actionIcon} />
-                      </button>
-                      <button
+                      </Button>
+                      <Button
+                        unstyled
                         onClick={() => rejectItem(item.id, 'claims')}
                         className={`${styles.iconButton} ${styles.iconButtonReject}`}
                         title="Reject"
                       >
                         <X className={styles.actionIcon} />
-                      </button>
+                      </Button>
                     </Flex>
                   </Flex>
                 ))}

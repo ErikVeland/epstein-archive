@@ -130,7 +130,7 @@
 }
 
 .iconDeparture {
-  color: #22c55e;
+  color: var(--status-success);
   flex-shrink: 0;
 }
 

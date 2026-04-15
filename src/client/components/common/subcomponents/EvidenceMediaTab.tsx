@@ -25,6 +25,8 @@ import { AudioPlayer } from '../../media/AudioPlayer';
 import { VideoPlayer } from '../../media/VideoPlayer';
 import s from './EvidenceMediaTab.module.css';
 
+import { Button } from '../../../design-system/lib';
+
 interface EvidenceEntity {
   photos?: EntityPhoto[];
 }
@@ -120,14 +122,15 @@ export const EvidenceMediaTab: React.FC<EvidenceMediaTabProps> = ({
       {/* Sub-Tabs */}
       <div className={s.subNavBar}>
         {categories.map((cat) => (
-          <button
+          <Button
+            unstyled
             key={cat.id}
             onClick={() => setActiveCategory(cat.id)}
             className={cn(s.subTab, activeCategory === cat.id && s.subTabActive)}
           >
             {cat.icon}
             {cat.label}
-          </button>
+          </Button>
         ))}
       </div>
 
@@ -265,13 +268,14 @@ export const EvidenceMediaTab: React.FC<EvidenceMediaTabProps> = ({
                   )}
 
                   <div className={s.cardFooter}>
-                    <button
+                    <Button
+                      unstyled
                       onClick={() => setSelectedItemId(photo.id || id)}
                       className={s.openBtn}
                       aria-label={`Open media item ${title}`}
                     >
                       {category === 'photos' ? 'Inspect' : 'Play'} <Maximize2 size={12} />
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </article>
@@ -329,9 +333,13 @@ export const EvidenceMediaTab: React.FC<EvidenceMediaTabProps> = ({
                   <h3 className={s.imageViewerTitle}>
                     {finalSelectedItem.title || finalSelectedItem.filename}
                   </h3>
-                  <button className={s.closeViewer} onClick={() => setSelectedItemId(null)}>
+                  <Button
+                    unstyled
+                    className={s.closeViewer}
+                    onClick={() => setSelectedItemId(null)}
+                  >
                     <X size={20} />
-                  </button>
+                  </Button>
                 </div>
                 <div className={s.imageViewerMain}>
                   <img

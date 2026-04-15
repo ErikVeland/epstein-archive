@@ -296,6 +296,7 @@ function main() {
   for (const filePath of walk(clientDir)) {
     const content = fs.readFileSync(filePath, 'utf8');
     const relPath = path.relative(rootDir, filePath);
+    const isDesignSystemPrimitive = relPath.startsWith('src/client/design-system/components/');
     for (const pattern of forbiddenArbitraryUtilities) {
       pattern.lastIndex = 0;
       if (pattern.test(content)) {
@@ -340,7 +341,11 @@ function main() {
     }
 
     rawInteractivePattern.lastIndex = 0;
-    if (rawInteractivePattern.test(content) && !isExcepted(relPath, 'raw-interactive-element')) {
+    if (
+      !isDesignSystemPrimitive &&
+      rawInteractivePattern.test(content) &&
+      !isExcepted(relPath, 'raw-interactive-element')
+    ) {
       advisoryViolations.rawInteractiveElements.push(relPath);
     }
 

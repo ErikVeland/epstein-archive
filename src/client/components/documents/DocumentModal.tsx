@@ -26,6 +26,8 @@ import { DocumentAnalysisTab } from './subcomponents/DocumentAnalysisTab';
 import { deriveSummary, normalizeList } from './DocumentModalUtils';
 import { isVisualMediaItem } from '../../utils/evidenceUtils';
 
+import { Button } from '../../design-system/lib';
+
 export interface DocEntityRecord {
   id?: string | number;
   name?: string;
@@ -379,9 +381,9 @@ export const DocumentModal: React.FC<Props> = ({
           <LqText variant="body" color="muted">
             Please try again or open in the Document Browser.
           </LqText>
-          <button onClick={onClose} className={styles.errorCloseButton}>
+          <Button unstyled onClick={onClose} className={styles.errorCloseButton}>
             Close
-          </button>
+          </Button>
         </Surface>
       </Box>,
       document.body,
@@ -518,7 +520,8 @@ export const DocumentModal: React.FC<Props> = ({
             collapsedRight={
               <Flex direction="column" align="center" className={styles.collapsedPane}>
                 <Surface variant="glass-highlight" className={styles.collapsedIcons}>
-                  <button
+                  <Button
+                    unstyled
                     type="button"
                     onClick={() => {
                       setActiveRailSection('metadata');
@@ -528,9 +531,10 @@ export const DocumentModal: React.FC<Props> = ({
                     title="Core metadata"
                   >
                     <Sparkles className={styles.railIconGlyph} />
-                  </button>
+                  </Button>
                   <Box className={styles.railDivider} />
-                  <button
+                  <Button
+                    unstyled
                     type="button"
                     onClick={() => {
                       setActiveRailSection('entities');
@@ -545,8 +549,9 @@ export const DocumentModal: React.FC<Props> = ({
                         Live Entities
                       </LqText>
                     </Surface>
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    unstyled
                     type="button"
                     onClick={() => {
                       setActiveRailSection('case');
@@ -561,8 +566,9 @@ export const DocumentModal: React.FC<Props> = ({
                         Case References
                       </LqText>
                     </Surface>
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    unstyled
                     type="button"
                     onClick={() => {
                       setActiveRailSection('timeline');
@@ -577,7 +583,7 @@ export const DocumentModal: React.FC<Props> = ({
                         Timeline Hooks
                       </LqText>
                     </Surface>
-                  </button>
+                  </Button>
                 </Surface>
               </Flex>
             }

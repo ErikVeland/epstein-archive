@@ -8,6 +8,11 @@
   padding: var(--space-6);
 }
 
+.networkDescription {
+  color: var(--text-muted);
+  margin: 0;
+}
+
 .headerIconWrap {
   width: 2.5rem;
   height: 2.5rem;
@@ -28,55 +33,124 @@
 
 .coOccurrenceList,
 .connectedPassengers {
-  padding: var(--space-6);
-  flex: 1;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5);
+  margin-bottom: var(--space-5);
+}
+
+.coOccurrenceList h4,
+.connectedPassengers h4 {
+  margin: 0 0 var(--space-4) 0;
+  font-size: var(--type-body);
+}
+
+.coOccurrenceGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
 }
 
 .coOccurrenceCard,
 .passengerConnectionCard {
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
   padding: var(--space-3) var(--space-4);
 }
 
+.coPassengers {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.passengerName {
+  flex: 1;
+}
+
+.passengerName a,
 .passengerLink {
   color: var(--accent);
   text-decoration: none;
 }
 
+.passengerName a:hover,
 .passengerLink:hover {
   text-decoration: underline;
-  color: var(--accent-hover);
 }
 
 .connectionIndicator {
-  padding: 2px 8px;
-  background: color-mix(in srgb, var(--accent) 15%, transparent);
-  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--accent-success);
+  font-weight: var(--weight-bold);
+}
+
+.flightCount {
+  background: var(--accent-success);
+  color: var(--bg-dark);
+  padding: 2px var(--space-2);
+  border-radius: 9999px;
+  font-size: var(--type-xs);
 }
 
 .connectionBar {
   height: 4px;
   background: var(--glass-bg-strong);
-  border-radius: var(--radius-full);
+  border-radius: 9999px;
   overflow: hidden;
   margin-top: var(--space-1);
 }
 
 .connectionFill {
   height: 100%;
-  background: linear-gradient(90deg, var(--accent), #60a5fa);
+  background: linear-gradient(90deg, var(--accent), var(--nav-people));
   transition: width var(--duration-normal) var(--easing-liquid);
 }
 
+.passengerConnectionsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: var(--space-3);
+}
+
 .rank {
+  font-weight: var(--weight-bold);
+  color: var(--accent);
   min-width: 2rem;
+}
+
+.name {
+  flex: 1;
+}
+
+.name a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.name a:hover {
+  text-decoration: underline;
+}
+
+.connectionCount {
+  color: var(--text-muted);
+  font-size: var(--type-xs);
 }
 
 .loadingState {
   height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .loadingSpinner {
   text-align: center;
+  color: var(--text-muted);
 }
 
 .radarSweep {

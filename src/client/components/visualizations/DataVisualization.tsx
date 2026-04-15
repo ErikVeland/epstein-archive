@@ -5,6 +5,7 @@ import { Person } from '../../types';
 import { TreeMap } from './TreeMap';
 import { filterPeopleOnly, isJunkEntity } from '../../utils/entityFilters';
 import { useAnalytics } from '../../contexts/AnalyticsContextState';
+import { Button } from '../../design-system/lib';
 import ScopedErrorBoundary from '../common/ScopedErrorBoundary';
 import styles from './DataVisualization.module.css';
 
@@ -266,9 +267,9 @@ export const DataVisualization: React.FC = () => {
       <div className={`${styles.errorState} ${styles.glassPanel}`}>
         <AlertTriangle className={styles.errorIcon} />
         <p className={styles.errorText}>{error}</p>
-        <button onClick={onRetry} className={styles.retryButton}>
+        <Button variant="secondary" size="sm" onClick={onRetry} className={styles.retryButton}>
           Retry Analysis
-        </button>
+        </Button>
       </div>
     );
   }
@@ -319,9 +320,10 @@ export const DataVisualization: React.FC = () => {
                           : 'Low';
 
                 return (
-                  <button
+                  <Button
                     key={`${entry.name}-${index}`}
                     type="button"
+                    variant="ghost"
                     onClick={() =>
                       onPersonSelect && onPersonSelect(entry.person as unknown as Person)
                     }
@@ -354,7 +356,7 @@ export const DataVisualization: React.FC = () => {
                         </div>
                       </div>
                     </div>
-                  </button>
+                  </Button>
                 );
               })
             )}

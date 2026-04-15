@@ -1,0 +1,75 @@
+{
+  "name": "react-window-infinite-loader",
+  "version": "2.0.0",
+  "type": "module",
+  "author": "Brian Vaughn <brian.david.vaughn@gmail.com> (https://github.com/bvaughn/)",
+  "contributors": [
+    "Brian Vaughn <brian.david.vaughn@gmail.com> (https://github.com/bvaughn/)"
+  ],
+  "license": "MIT",
+  "homepage": "http://react-window-infinite-loader.now.sh/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bvaughn/react-window-infinite-loader.git"
+  },
+  "main": "dist/react-window-infinite-loader.cjs",
+  "module": "dist/react-window-infinite-loader.js",
+  "types": "dist/react-window-infinite-loader.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "TARGET=lib vite build",
+    "lint": "eslint .",
+    "prerelease": "rm -rf dist && rm -rf docs && pnpm run build",
+    "prettier": "prettier --config prettier.config.js --write \"**/*.{css,html,js,json,jsx,ts,tsx}\"",
+    "prettier:ci": "prettier --config prettier.config.js --check \"**/*.{css,html,js,json,jsx,ts,tsx}\"",
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:ci": "vitest run",
+    "tsc": "tsc -b"
+  },
+  "lint-staged": {
+    "{example,src}/**/*.{ts,tsx}": [
+      "prettier --config prettier.config.js --write",
+      "git add"
+    ],
+    "**/*.js": "eslint --max-warnings 0"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.30.1",
+    "@testing-library/jest-dom": "^6.6.4",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/node": "^24.2.0",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@vitejs/plugin-react-swc": "^3.10.2",
+    "eslint": "^9.30.1",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.20",
+    "globals": "^16.3.0",
+    "husky": "^9.1.7",
+    "jsdom": "^26.1.0",
+    "lint-staged": "^16.1.4",
+    "prettier": "3.6.2",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-window": "2",
+    "rollup-plugin-terser": "^7.0.2",
+    "rollup-plugin-visualizer": "^6.0.3",
+    "ts-node": "^10.9.2",
+    "typescript": "~5.8.3",
+    "typescript-eslint": "^8.35.1",
+    "typescript-json-schema": "^0.65.1",
+    "vite": "^7.0.4",
+    "vite-plugin-dts": "^4.5.4",
+    "vite-plugin-svgr": "^4.3.0",
+    "vitest": "^3.2.4"
+  }
+}

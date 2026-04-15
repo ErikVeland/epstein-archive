@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useSensitiveSettings } from '../../contexts/SensitiveSettingsContext';
 import { EyeOff } from 'lucide-react';
+import { Button } from '../../design-system/lib';
 import styles from './SensitiveContent.module.css';
 
 interface SensitiveContentProps {
@@ -30,6 +31,10 @@ export function SensitiveContent({
   const particlesRef = useRef<
     Array<{ x: number; y: number; vx: number; vy: number; alpha: number; size: number }>
   >([]);
+  const particleColorsRef = useRef<{ primary: string; secondary: string }>({
+    primary: 'transparent',
+    secondary: 'transparent',
+  });
 
   const shouldHide = isSensitive && !showAllSensitive && !revealed;
 
@@ -71,6 +76,11 @@ export function SensitiveContent({
     const rect = canvas.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
     const clickY = e.clientY - rect.top;
+
+    const rootStyles = getComputedStyle(document.documentElement);
+    const primary = rootStyles.getPropertyValue('--text-muted').trim() || 'transparent';
+    const secondary = rootStyles.getPropertyValue('--text-dim').trim() || primary;
+    particleColorsRef.current = { primary, secondary };
 
     // Create particle explosion from click point
     const particles: Array<{
@@ -145,18 +155,23 @@ export function SensitiveContent({
       // Fade out
       p.alpha *= 0.95;
 
-      // Draw particle with glow
-      const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
-      gradient.addColorStop(0, `rgba(148, 163, 184, ${p.alpha})`);
-      gradient.addColorStop(1, `rgba(71, 85, 105, ${p.alpha * 0.3})`);
+      const { primary, secondary } = particleColorsRef.current;
 
-      ctx.fillStyle = gradient;
+      ctx.globalAlpha = p.alpha;
+      ctx.fillStyle = primary;
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
       ctx.fill();
 
+      ctx.globalAlpha = p.alpha * 0.25;
+      ctx.fillStyle = secondary;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size * 2.2, 0, Math.PI * 2);
+      ctx.fill();
+
       activeParticles++;
     });
+    ctx.globalAlpha = 1;
 
     if (activeParticles > 0) {
       requestRef.current = requestAnimationFrame(animate);
@@ -187,9 +202,6 @@ export function SensitiveContent({
           styles.content,
           isRevealing ? styles.contentRevealing : styles.contentIdle,
         ].join(' ')}
-        style={{
-          filter: isRevealing ? 'blur(8px) brightness(0.7)' : 'blur(40px) brightness(0.5)',
-        }}
       >
         {children}
       </div>
@@ -199,10 +211,13 @@ export function SensitiveContent({
 
       {/* Click overlay - hidden during reveal to allow interaction */}
       {!isRevealing && (
-        <button
+        <Button
           onClick={handleReveal}
           className={styles.overlay}
           aria-label="Click to reveal sensitive content"
+          type="button"
+          variant="ghost"
+          size="sm"
         >
           {/* Backdrop */}
           <div className={styles.backdrop} />
@@ -219,13 +234,8 @@ export function SensitiveContent({
           </div>
 
           {/* Grain texture */}
-          <div
-            className={styles.grain}
-            style={{
-              backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='2' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-            }}
-          />
-        </button>
+          <div className={styles.grain} />
+        </Button>
       )}
     </div>
   );

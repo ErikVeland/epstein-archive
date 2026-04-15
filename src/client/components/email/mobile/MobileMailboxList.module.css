@@ -21,6 +21,10 @@
   align-items: center;
 }
 
+.searchFieldRoot {
+  width: 100%;
+}
+
 .searchIcon {
   position: absolute;
   left: 0.625rem;

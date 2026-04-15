@@ -879,3 +879,8 @@
     transform: rotate(360deg);
   }
 }
+
+/* Spacing utilities — replaces Tailwind shorthands */
+.p2 {
+  padding: var(--space-2);
+}

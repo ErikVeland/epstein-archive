@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Icon from '../common/Icon';
-import { Button, Select } from '../../design-system/lib';
+import { Button, Input, NativeSelect } from '../../design-system/lib';
 import ScopedErrorBoundary from '../common/ScopedErrorBoundary';
 
 import '../FlightTracker.css';
@@ -33,7 +33,12 @@ export const FlightTracker: React.FC = () => {
   const [dateRange, setDateRange] = useState({ start: '', end: '' });
   const [selectedFlight, setSelectedFlight] = useState<Flight | null>(null);
 
-  const { data: flightsPayload, isLoading: flightsLoading } = useQuery<{ flights: Flight[] }>({
+  const {
+    data: flightsPayload,
+    isLoading: flightsLoading,
+    isError: flightsIsError,
+    error: flightsError,
+  } = useQuery<{ flights: Flight[] }>({
     queryKey: ['flights-list', selectedPassenger, dateRange.start, dateRange.end],
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -42,6 +47,9 @@ export const FlightTracker: React.FC = () => {
       if (dateRange.end) params.append('endDate', dateRange.end);
       params.append('limit', '100');
       const flightsRes = await fetch(`/api/flights?${params}`);
+      if (!flightsRes.ok) {
+        throw new Error(`Failed to load flights: ${flightsRes.status}`);
+      }
       const flightsData = await flightsRes.json();
       return { flights: (flightsData.flights || []) as Flight[] };
     },
@@ -52,6 +60,9 @@ export const FlightTracker: React.FC = () => {
     queryKey: ['flights-stats'],
     queryFn: async () => {
       const statsRes = await fetch('/api/flights/stats');
+      if (!statsRes.ok) {
+        throw new Error(`Failed to load flight stats: ${statsRes.status}`);
+      }
       return (await statsRes.json()) as FlightStats;
     },
   });
@@ -60,6 +71,9 @@ export const FlightTracker: React.FC = () => {
     queryKey: ['flights-airports'],
     queryFn: async () => {
       const airportsRes = await fetch('/api/flights/airports');
+      if (!airportsRes.ok) {
+        throw new Error(`Failed to load airports: ${airportsRes.status}`);
+      }
       return (await airportsRes.json()) as AirportCoords;
     },
   });
@@ -68,6 +82,9 @@ export const FlightTracker: React.FC = () => {
     queryKey: ['flights-passengers'],
     queryFn: async () => {
       const passengersRes = await fetch('/api/flights/passengers');
+      if (!passengersRes.ok) {
+        throw new Error(`Failed to load passengers: ${passengersRes.status}`);
+      }
       const passengersData = await passengersRes.json();
       return Array.isArray(passengersData)
         ? passengersData
@@ -94,6 +111,21 @@ export const FlightTracker: React.FC = () => {
         <div className="loading-spinner">
           <div className="radar-sweep" />
           <span>Loading Flight Data...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (flightsIsError) {
+    return (
+      <div className="flight-tracker">
+        <div className={styles.errorFallback}>
+          <p className={styles.errorFallbackTitle}>Flights data unavailable</p>
+          <p>{flightsError instanceof Error ? flightsError.message : 'Unknown error'}</p>
+          <p className={styles.errorFallbackHint}>
+            If you’re running locally, confirm your API is reachable (Vite proxies /api to
+            VITE_API_URL).
+          </p>
         </div>
       </div>
     );
@@ -129,6 +161,7 @@ export const FlightTracker: React.FC = () => {
       <div className="tracker-controls">
         <div className="view-toggle">
           <Button
+            unstyled
             variant={viewMode === 'timeline' ? 'primary' : 'ghost'}
             size="sm"
             className={viewMode === 'timeline' ? 'active' : ''}
@@ -138,6 +171,7 @@ export const FlightTracker: React.FC = () => {
             <span className={styles.viewTabLabel}>Timeline</span>
           </Button>
           <Button
+            unstyled
             variant={viewMode === 'map' ? 'primary' : 'ghost'}
             size="sm"
             className={viewMode === 'map' ? 'active' : ''}
@@ -147,6 +181,7 @@ export const FlightTracker: React.FC = () => {
             <span className={styles.viewTabLabel}>Map</span>
           </Button>
           <Button
+            unstyled
             variant={viewMode === 'stats' ? 'primary' : 'ghost'}
             size="sm"
             className={viewMode === 'stats' ? 'active' : ''}
@@ -156,6 +191,7 @@ export const FlightTracker: React.FC = () => {
             <span className={styles.viewTabLabel}>Stats</span>
           </Button>
           <Button
+            unstyled
             variant={viewMode === 'network' ? 'primary' : 'ghost'}
             size="sm"
             className={viewMode === 'network' ? 'active' : ''}
@@ -168,35 +204,37 @@ export const FlightTracker: React.FC = () => {
 
         <div className="filters">
           <div className={styles.filterRow}>
-            <Select
-              size="sm"
-              rootClassName="min-w-[200px]"
+            <NativeSelect
+              unstyled
+              className="passenger-filter"
               value={selectedPassenger}
               onChange={(e) => setSelectedPassenger(e.target.value)}
-              options={[
-                { value: '', label: 'All Passengers' },
-                ...passengers.map((p) => ({
-                  value: p.name,
-                  label: `${p.name} (${p.flight_count})`,
-                })),
-              ]}
-            />
+            >
+              <option value="">All Passengers</option>
+              {passengers.map((p) => (
+                <option key={p.name} value={p.name}>
+                  {p.name} ({p.flight_count})
+                </option>
+              ))}
+            </NativeSelect>
 
             <div className={styles.dateRangeWrapper}>
               <Icon name="Calendar" size="sm" className={styles.dateSeparator} />
-              <input
+              <Input
+                unstyled
                 type="date"
                 value={dateRange.start}
                 onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-                className={styles.dateInput}
+                className="date-filter"
                 placeholder="Start Date"
               />
               <span className={styles.dateSeparator}>-</span>
-              <input
+              <Input
+                unstyled
                 type="date"
                 value={dateRange.end}
                 onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-                className={styles.dateInput}
+                className="date-filter"
                 placeholder="End Date"
               />
             </div>

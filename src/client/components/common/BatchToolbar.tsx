@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { Button, TextInput, Textarea } from '../../design-system/lib';
 import Icon from './Icon';
 import s from './BatchToolbar.module.css';
 
@@ -45,6 +46,7 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
   canUndo = false,
   hasChanges = false,
 }) => {
+  const fallbackTagColor = 'var(--accent-info)';
   const [showRotateMenu, setShowRotateMenu] = useState(false);
   const [showTagsMenu, setShowTagsMenu] = useState(false);
   const [showPeopleMenu, setShowPeopleMenu] = useState(false);
@@ -115,9 +117,16 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
         <div className={s.badge}>
           <span className={s.badgeCount}>{selectedCount} selected</span>
           {onDeselect && (
-            <button onClick={onDeselect} className={s.deselectBtn} title="Clear selection">
+            <Button
+              type="button"
+              onClick={onDeselect}
+              variant="ghost"
+              size="sm"
+              className={s.deselectBtn}
+              title="Clear selection"
+            >
               <Icon name="X" size="sm" />
-            </button>
+            </Button>
           )}
         </div>
 
@@ -126,43 +135,61 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
 
         {/* Rotate actions */}
         <div className={s.menuWrap}>
-          <button onClick={() => setShowRotateMenu(!showRotateMenu)} className={s.menuTrigger}>
+          <Button
+            type="button"
+            onClick={() => setShowRotateMenu(!showRotateMenu)}
+            variant="ghost"
+            size="sm"
+            className={s.menuTrigger}
+          >
             <Icon name="RotateCw" size="sm" />
             <span className={s.triggerLabel}>Rotate</span>
-          </button>
+          </Button>
 
           {showRotateMenu && (
             <div className={`${s.dropdown} dropdown-surface`}>
-              <button
+              <Button
+                type="button"
                 onClick={() => {
                   onRotate('left');
                   setShowRotateMenu(false);
                 }}
+                variant="ghost"
+                size="sm"
                 className={s.menuTrigger}
               >
                 <Icon name="RotateCcw" size="sm" />
                 Rotate Left
-              </button>
-              <button
+              </Button>
+              <Button
+                type="button"
                 onClick={() => {
                   onRotate('right');
                   setShowRotateMenu(false);
                 }}
+                variant="ghost"
+                size="sm"
                 className={s.menuTrigger}
               >
                 <Icon name="RotateCw" size="sm" />
                 Rotate Right
-              </button>
+              </Button>
             </div>
           )}
         </div>
 
         {/* Tags action */}
         <div className={s.menuWrap}>
-          <button onClick={() => setShowTagsMenu(!showTagsMenu)} className={s.menuTrigger}>
+          <Button
+            type="button"
+            onClick={() => setShowTagsMenu(!showTagsMenu)}
+            variant="ghost"
+            size="sm"
+            className={s.menuTrigger}
+          >
             <Icon name="Tag" size="sm" />
             <span className={s.triggerLabel}>Tags</span>
-          </button>
+          </Button>
 
           {showTagsMenu && (
             <div className={`${s.dropdown} ${s.dropdownWide} dropdown-surface`}>
@@ -173,19 +200,23 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
                   <div className={s.selectedTagsBar}>
                     {selectedTags.map((id) => {
                       const tag = tags.find((t) => t.id === id);
+                      const tagColor = tag?.color || fallbackTagColor;
                       return tag ? (
                         <span
                           key={id}
                           className={s.tagPill}
-                          style={{ backgroundColor: tag.color || '#06b6d4' }}
+                          style={{ '--tag-color': tagColor } as React.CSSProperties}
                         >
                           {tag.name}
-                          <button
+                          <Button
+                            type="button"
                             onClick={() => toggleTagSelection(id)}
+                            variant="ghost"
+                            size="sm"
                             className={s.tagPillRemove}
                           >
                             ×
-                          </button>
+                          </Button>
                         </span>
                       ) : null;
                     })}
@@ -199,49 +230,62 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
                   <div className={s.emptyMsg}>No tags available</div>
                 ) : (
                   <div className={s.tagsGrid}>
-                    {tags.map((tag) => (
-                      <button
-                        key={tag.id}
-                        onClick={() => toggleTagSelection(tag.id)}
-                        className={`${s.tagOption} ${selectedTags.includes(tag.id) ? s.tagOptionSelected : ''}`}
-                        style={{
-                          backgroundColor: selectedTags.includes(tag.id)
-                            ? tag.color || '#06b6d4'
-                            : `${tag.color}40` || '#06b6d440',
-                        }}
-                      >
-                        <div className={s.tagDot} style={{ backgroundColor: tag.color }}>
-                          {selectedTags.includes(tag.id) && (
-                            <span className={s.tagDotCheck}>✓</span>
-                          )}
-                        </div>
-                        <span
-                          className={`${s.tagName} ${selectedTags.includes(tag.id) ? s.tagNameSelected : s.tagNameUnselected}`}
-                        >
-                          {tag.name}
-                        </span>
-                      </button>
-                    ))}
+                    {tags.map((tag) =>
+                      (() => {
+                        const tagColor = tag.color || fallbackTagColor;
+                        const selected = selectedTags.includes(tag.id);
+                        return (
+                          <Button
+                            key={tag.id}
+                            type="button"
+                            onClick={() => toggleTagSelection(tag.id)}
+                            variant="ghost"
+                            size="sm"
+                            className={`${s.tagOption} ${selected ? s.tagOptionSelected : ''}`}
+                            style={{ '--tag-color': tagColor } as React.CSSProperties}
+                          >
+                            <div
+                              className={s.tagDot}
+                              style={{ '--tag-color': tagColor } as React.CSSProperties}
+                            >
+                              {selected && <Icon name="Check" size="xs" />}
+                            </div>
+                            <span
+                              className={`${s.tagName} ${selected ? s.tagNameSelected : s.tagNameUnselected}`}
+                            >
+                              {tag.name}
+                            </span>
+                          </Button>
+                        );
+                      })(),
+                    )}
                   </div>
                 )}
               </div>
               <div className={s.dropdownFooter}>
-                <button
+                <Button
+                  type="button"
                   onClick={() => {
                     setShowTagsMenu(false);
                     setSelectedTags([]);
                   }}
+                  variant="secondary"
+                  size="sm"
                   className={s.cancelBtn}
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
+                  type="button"
                   onClick={handleApplyTags}
                   disabled={selectedTags.length === 0}
+                  variant={selectedTags.length === 0 ? 'secondary' : 'primary'}
+                  size="sm"
                   className={selectedTags.length === 0 ? s.applyBtnInactive : s.applyBtnActive}
                 >
-                  💾 Save Tags ({selectedTags.length})
-                </button>
+                  <Icon name="Save" size="sm" />
+                  Save Tags ({selectedTags.length})
+                </Button>
               </div>
             </div>
           )}
@@ -249,21 +293,28 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
 
         {/* People action */}
         <div className={s.menuWrap}>
-          <button onClick={() => setShowPeopleMenu(!showPeopleMenu)} className={s.menuTrigger}>
+          <Button
+            type="button"
+            onClick={() => setShowPeopleMenu(!showPeopleMenu)}
+            variant="ghost"
+            size="sm"
+            className={s.menuTrigger}
+          >
             <Icon name="User" size="sm" />
             <span className={s.triggerLabel}>People</span>
-          </button>
+          </Button>
 
           {showPeopleMenu && (
             <div className={`${s.dropdown} ${s.dropdownWide} dropdown-surface`}>
               <div className={s.dropdownHeader}>
                 <h3 className={s.dropdownTitle}>Assign People</h3>
                 <p className={s.dropdownSubtitle}>Select people to tag in {selectedCount} images</p>
-                <input
+                <TextInput
                   type="text"
                   placeholder="Filter people..."
                   value={peopleFilter}
                   onChange={(e) => setPeopleFilter(e.target.value)}
+                  density="compact"
                   className={s.filterInput}
                 />
               </div>
@@ -282,9 +333,12 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
                           person.role.toLowerCase().includes(peopleFilter.toLowerCase()),
                       )
                       .map((person) => (
-                        <button
+                        <Button
                           key={person.id}
+                          type="button"
                           onClick={() => togglePersonSelection(person.id)}
+                          variant="ghost"
+                          size="sm"
                           className={`${s.personRow} ${selectedPeople.includes(person.id) ? s.personRowSelected : s.personRowUnselected}`}
                         >
                           <div className={s.personAvatar}>
@@ -295,32 +349,44 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
                             <div className={s.personRole}>{person.role}</div>
                           </div>
                           <div className={s.personFlags}>
-                            {person.redFlagRating > 0 && '🚩'.repeat(person.redFlagRating)}
+                            {person.redFlagRating > 0 && (
+                              <span className={s.personFlagPill}>
+                                <Icon name="Flag" size="xs" />
+                                <span className={s.personFlagCount}>{person.redFlagRating}</span>
+                              </span>
+                            )}
                           </div>
-                        </button>
+                        </Button>
                       ))}
                   </div>
                 )}
               </div>
               <div className={s.dropdownFooterEnd}>
-                <button
+                <Button
+                  type="button"
                   onClick={() => {
                     setShowPeopleMenu(false);
                     setSelectedPeople([]);
                   }}
+                  variant="secondary"
+                  size="sm"
                   className={s.cancelBtnSm}
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
+                  type="button"
                   onClick={handleApplyPeople}
                   disabled={selectedPeople.length === 0}
+                  variant={selectedPeople.length === 0 ? 'secondary' : 'primary'}
+                  size="sm"
                   className={
                     selectedPeople.length === 0 ? s.applyBtnSmInactive : s.applyBtnSmActive
                   }
                 >
-                  💾 Save People ({selectedPeople.length})
-                </button>
+                  <Icon name="Save" size="sm" />
+                  Save People ({selectedPeople.length})
+                </Button>
               </div>
             </div>
           )}
@@ -328,10 +394,16 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
 
         {/* Rating action */}
         <div className={s.menuWrap}>
-          <button onClick={() => setShowRatingMenu(!showRatingMenu)} className={s.menuTrigger}>
+          <Button
+            type="button"
+            onClick={() => setShowRatingMenu(!showRatingMenu)}
+            variant="ghost"
+            size="sm"
+            className={s.menuTrigger}
+          >
             <Icon name="Star" size="sm" />
             <span className={s.triggerLabel}>Rating</span>
-          </button>
+          </Button>
 
           {showRatingMenu && (
             <div className={`${s.dropdown} ${s.dropdownNarrow} dropdown-surface`}>
@@ -339,16 +411,19 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
                 <h3 className={s.dropdownTitle}>Assign Rating</h3>
                 <div className={s.starsRow}>
                   {[1, 2, 3, 4, 5].map((star) => (
-                    <button
+                    <Button
                       key={star}
+                      type="button"
                       onClick={() => {
                         onAssignRating(star);
                         setShowRatingMenu(false);
                       }}
+                      variant="ghost"
+                      size="sm"
                       className={s.starBtn}
                     >
                       <Icon name="Star" size="sm" />
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>
@@ -358,10 +433,16 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
 
         {/* Metadata action */}
         <div className={s.menuWrap}>
-          <button onClick={() => setShowMetadataMenu(!showMetadataMenu)} className={s.menuTrigger}>
+          <Button
+            type="button"
+            onClick={() => setShowMetadataMenu(!showMetadataMenu)}
+            variant="ghost"
+            size="sm"
+            className={s.menuTrigger}
+          >
             <Icon name="Edit3" size="sm" />
             <span className={s.triggerLabel}>Edit</span>
-          </button>
+          </Button>
 
           {showMetadataMenu && (
             <div className={`${s.dropdown} ${s.dropdownWide} dropdown-surface`}>
@@ -372,28 +453,37 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
               <div className={s.metaBody}>
                 <div>
                   <label className={s.fieldLabel}>Title</label>
-                  <input
+                  <TextInput
                     ref={metadataTitleRef}
                     type="text"
                     placeholder="Enter new title"
+                    density="compact"
                     className={s.textInput}
                   />
                 </div>
                 <div>
                   <label className={s.fieldLabel}>Description</label>
-                  <textarea
+                  <Textarea
                     ref={metadataDescRef}
                     placeholder="Enter new description"
                     rows={3}
+                    density="compact"
                     className={s.textareaInput}
                   />
                 </div>
               </div>
               <div className={s.dropdownFooterEnd}>
-                <button onClick={() => setShowMetadataMenu(false)} className={s.cancelBtnSm}>
+                <Button
+                  type="button"
+                  onClick={() => setShowMetadataMenu(false)}
+                  variant="secondary"
+                  size="sm"
+                  className={s.cancelBtnSm}
+                >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
+                  type="button"
                   onClick={() => {
                     const titleVal = metadataTitleRef.current?.value;
                     const descVal = metadataDescRef.current?.value;
@@ -401,10 +491,12 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
                     if (descVal) onEditMetadata('description', descVal);
                     setShowMetadataMenu(false);
                   }}
+                  variant="primary"
+                  size="sm"
                   className={s.applyBtnSmActive}
                 >
                   Apply to All
-                </button>
+                </Button>
               </div>
             </div>
           )}
@@ -415,35 +507,47 @@ export const BatchToolbar: React.FC<BatchToolbarProps> = ({
 
         {/* Undo button */}
         {onUndo && (
-          <button
+          <Button
+            type="button"
             onClick={onUndo}
             disabled={!canUndo}
+            variant={canUndo ? 'secondary' : 'ghost'}
+            size="sm"
             className={canUndo ? s.undoBtnActive : s.undoBtnDisabled}
             title={canUndo ? 'Undo last action' : 'Nothing to undo'}
           >
             <Icon name="Undo2" size="sm" />
             <span className={s.triggerLabel}>Undo</span>
-          </button>
+          </Button>
         )}
 
         {/* Save button */}
         {onSave && (
-          <button
+          <Button
+            type="button"
             onClick={onSave}
             disabled={!hasChanges}
+            variant={hasChanges ? 'primary' : 'secondary'}
+            size="sm"
             className={hasChanges ? s.saveBtnActive : s.saveBtnDisabled}
             title={hasChanges ? 'Save all changes' : 'No changes to save'}
           >
             <Icon name="Save" size="sm" />
             <span className={s.triggerLabel}>Save</span>
-          </button>
+          </Button>
         )}
 
         {/* Cancel button */}
-        <button onClick={onCancel} className={s.cancelActionBtn}>
+        <Button
+          type="button"
+          onClick={onCancel}
+          variant="secondary"
+          size="sm"
+          className={s.cancelActionBtn}
+        >
           <Icon name="X" size="sm" />
           <span className={s.triggerLabel}>Cancel</span>
-        </button>
+        </Button>
       </div>
     </div>
   );

@@ -2,6 +2,8 @@ import React from 'react';
 import { Calendar, Microscope, MessageSquare, Target, Download, ChevronRight } from 'lucide-react';
 import styles from './MobileMoreDrawer.module.css';
 
+import { Button } from '../../../design-system/lib';
+
 export type MoreTool = 'timeline' | 'forensic' | 'communications' | 'hypotheses' | 'export';
 
 interface ToolEntry {
@@ -46,7 +48,8 @@ export function MobileMoreDrawer({ onSelectTool, onClose }: MobileMoreDrawerProp
         <div className={styles.dragHandle} />
         <div className={styles.title}>More Tools</div>
         {TOOLS.map(({ id, title, subtitle, Icon }) => (
-          <button
+          <Button
+            unstyled
             key={id}
             className={styles.row}
             type="button"
@@ -63,7 +66,7 @@ export function MobileMoreDrawer({ onSelectTool, onClose }: MobileMoreDrawerProp
               <span className={styles.rowSubtitle}>{subtitle}</span>
             </div>
             <ChevronRight size={16} className={styles.chevron} />
-          </button>
+          </Button>
         ))}
       </div>
     </div>

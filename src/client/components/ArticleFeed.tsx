@@ -4,6 +4,8 @@ import { Article, ArticleFeedService } from '../services/articleFeedService';
 import { ExternalLink, Calendar, Tag, RefreshCw, AlertCircle } from 'lucide-react';
 import styles from './ArticleFeed.module.css';
 
+import { Button } from '../design-system/lib';
+
 interface ArticleFeedProps {
   feedUrl: string;
   tagFilter?: string;
@@ -76,10 +78,10 @@ export const ArticleFeed: React.FC<ArticleFeedProps> = ({
       <div className={styles.panel}>
         <div className={styles.header}>
           <h2 className={styles.title}>Latest Articles</h2>
-          <button onClick={() => void refetch()} className={styles.retryButton}>
+          <Button unstyled onClick={() => void refetch()} className={styles.retryButton}>
             <RefreshCw className={styles.buttonIcon} />
             <span>Retry</span>
-          </button>
+          </Button>
         </div>
         <div className={styles.errorCard}>
           <div className={styles.errorHeader}>
@@ -97,10 +99,10 @@ export const ArticleFeed: React.FC<ArticleFeedProps> = ({
       <div className={styles.panel}>
         <div className={styles.header}>
           <h2 className={styles.title}>Latest Articles</h2>
-          <button onClick={() => void refetch()} className={styles.refreshButton}>
+          <Button unstyled onClick={() => void refetch()} className={styles.refreshButton}>
             <RefreshCw className={styles.buttonIcon} />
             <span>Refresh</span>
-          </button>
+          </Button>
         </div>
         <div className={styles.emptyState}>
           <Tag className={styles.emptyIcon} />
@@ -141,10 +143,10 @@ export const ArticleFeed: React.FC<ArticleFeedProps> = ({
               Updated {formatDate(lastUpdated.toISOString())}
             </span>
           )}
-          <button onClick={() => void refetch()} className={styles.refreshButton}>
+          <Button unstyled onClick={() => void refetch()} className={styles.refreshButton}>
             <RefreshCw className={styles.buttonIcon} />
             <span>Refresh</span>
-          </button>
+          </Button>
         </div>
       </div>
 

@@ -527,3 +527,11 @@
 .autoGen66 {
   color: var(--lq-accent);
 }
+
+/* Spacing utilities — replaces Tailwind shorthands */
+.mr1 {
+  margin-right: var(--space-1);
+}
+.mr2 {
+  margin-right: var(--space-2);
+}

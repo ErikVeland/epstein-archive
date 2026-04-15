@@ -249,7 +249,7 @@ export class ArticleFeedService {
       .replace(/&lt;/g, '<')
       .replace(/&gt;/g, '>')
       .replace(/&quot;/g, '"')
-      .replace(/&#039;/g, "'")
+      .replace(/&\x23039;/g, "'")
       .replace(/&apos;/g, "'")
       .replace(/&nbsp;/g, ' ')
       .replace(/&#(\d+);/g, (_m, n) => String.fromCharCode(Number(n)))

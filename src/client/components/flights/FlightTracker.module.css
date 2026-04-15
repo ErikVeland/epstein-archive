@@ -133,6 +133,14 @@
   z-index: 10;
 }
 
+.resetViewButton {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  z-index: 10;
+  backdrop-filter: blur(8px);
+}
+
 .legendDot {
   width: 8px;
   height: 8px;
@@ -168,7 +176,7 @@
 
 .barFill {
   height: 100%;
-  background: linear-gradient(90deg, var(--accent), #60a5fa);
+  background: linear-gradient(90deg, var(--accent), var(--nav-people));
   transition: width var(--duration-slow) var(--easing-liquid);
 }
 
@@ -258,4 +266,12 @@
   font-size: var(--type-small);
   font-weight: var(--weight-medium);
   color: var(--text-secondary);
+}
+
+.errorFallbackHint {
+  margin: 0;
+  font-size: var(--type-xs);
+  color: var(--text-muted);
+  text-align: center;
+  max-width: 42rem;
 }

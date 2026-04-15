@@ -1,0 +1,25 @@
+{
+  "name": "@types/diff",
+  "version": "8.0.0",
+  "requiresBuild": false,
+  "files": {
+    "LICENSE": {
+      "checkedAt": 1776136535372,
+      "integrity": "sha512-HQaIQk9pwOcyKutyDk4o2a87WnotwYuLGYFW43emGm4FvIJFKPyg+OYaw5sTegKAKf+C5SKa1ACjzCLivbaHrQ==",
+      "mode": 420,
+      "size": 1141
+    },
+    "README.md": {
+      "checkedAt": 1776136535454,
+      "integrity": "sha512-M+Hmaray7PKiK7sCJRj3mV3Jw/HTZviU/j/CvyUCSGMvkxKHSjVeSl6ki6/OWnpUxpXeCKoBBeNkbbiVaPNV5A==",
+      "mode": 420,
+      "size": 142
+    },
+    "package.json": {
+      "checkedAt": 1776136535455,
+      "integrity": "sha512-8fjrI8I6SWPUPCzq2a8amzu+OTocz5bE6qVZfY2Yfq4YzcdmJyqGM7cnJe2JVVKj7gtiKbcG4Z/xumj3lPoItQ==",
+      "mode": 420,
+      "size": 395
+    }
+  }
+}

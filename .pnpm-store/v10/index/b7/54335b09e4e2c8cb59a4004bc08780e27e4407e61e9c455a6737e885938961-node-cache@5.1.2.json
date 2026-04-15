@@ -1,0 +1,67 @@
+{
+  "name": "node-cache",
+  "version": "5.1.2",
+  "requiresBuild": false,
+  "files": {
+    ".nvmrc": {
+      "checkedAt": 1776136544703,
+      "integrity": "sha512-hBo4ya10sUVTp40rtcAUDoghEXLlVuQZZDBULxh6OcCcXxlTOteiGZn/DXxKihTChMK9b6iKwcHH4yYY51CyJA==",
+      "mode": 420,
+      "size": 6
+    },
+    "LICENSE": {
+      "checkedAt": 1776136544707,
+      "integrity": "sha512-cysf36b3Rrg7LlvDS1lDZp3sBkBD1NguJNtSFW0z5RPDSIdfnhgyTTixvtYOgDRNElNSRKWtCmKz/xqDsvhpkw==",
+      "mode": 420,
+      "size": 1076
+    },
+    "index.js": {
+      "checkedAt": 1776136544709,
+      "integrity": "sha512-137SW55uq5KxYG91PPlwCetAXlpod5tECjdCQcKlD872DSPLcKGjniQeY3kNCkmPfaVv17t447istwubZrvJwA==",
+      "mode": 420,
+      "size": 346
+    },
+    "lib/node_cache.js": {
+      "checkedAt": 1776136544711,
+      "integrity": "sha512-FOKFf6eq4bpc1j20dQDBy3iYhd35upZwO5Y2gzf7KuR4ljkG9CCfEp9LHBfIC1uPA6mKJCJ1BfcTY5pjADcdlg==",
+      "mode": 420,
+      "size": 23235
+    },
+    "package.json": {
+      "checkedAt": 1776136544714,
+      "integrity": "sha512-M88xer9Sj73pTssCFP2H+eUcvTEORbjifH7wfVXFZal5VYmXXgUekzohymAi5pP5YCTKI4ZZq5oUT+34Zamh8Q==",
+      "mode": 420,
+      "size": 1825
+    },
+    "tsconfig.json": {
+      "checkedAt": 1776136544717,
+      "integrity": "sha512-Bb9qsqC0KVlEEAJ7fVmKZJazH9VYe3wG6aFoQc6FiKdTaYnmdzu+yid34dbXpALp2Zwdeqmsy5iOTIhUzdpLUQ==",
+      "mode": 420,
+      "size": 83
+    },
+    "README.md": {
+      "checkedAt": 1776136544736,
+      "integrity": "sha512-I1iyIDsPczIW/QrULxmx+txku/KsXEVApBPYLldvFGvSr2110frnwxlNd3CNMeekv3PgGbovEzroRjfwjanE+Q==",
+      "mode": 420,
+      "size": 20324
+    },
+    "index.d.ts": {
+      "checkedAt": 1776136544739,
+      "integrity": "sha512-f5KHRY85LKY0DMNUcsCmwDetn1I+QLTOKo5KcY7tdqNLOUYInv3JXLhTnYqZlgf0zji9uAq6C5M2Lqyw5w/+7A==",
+      "mode": 420,
+      "size": 7612
+    },
+    "_src/test/typedefinition_test.ts": {
+      "checkedAt": 1776136544745,
+      "integrity": "sha512-+sPohVdGztivzakrxQm6TEJSEpqKQAWB0G7ldcUgy+8R3XtF2Df9xFVEmv6SnfmnFM6kkm+JDa5ZLwzY3TBEMw==",
+      "mode": 420,
+      "size": 1958
+    },
+    ".nycrc.yaml": {
+      "checkedAt": 1776136544748,
+      "integrity": "sha512-i+JKJ5ZdvRcr67WyJ3uLQxN6jy1kaDqFrOKTHpDXoOCkZmnzG2ENmd51GNT+MatXC5yel+oZyTQsje6qafcjPQ==",
+      "mode": 420,
+      "size": 102
+    }
+  }
+}

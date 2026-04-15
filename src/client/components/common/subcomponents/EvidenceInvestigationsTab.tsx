@@ -4,6 +4,8 @@ import { formatMetaDate } from '../../../utils/evidenceUtils';
 import { cn } from '../../../utils/cn';
 import s from './EvidenceInvestigationsTab.module.css';
 
+import { Button } from '../../../design-system/lib';
+
 interface InvestigationEntity {
   id?: string | number;
   uuid?: string;
@@ -77,10 +79,14 @@ export const EvidenceInvestigationsTab: React.FC<EvidenceInvestigationsTabProps>
                       {inv.description || 'No case description provided.'}
                     </p>
                   </div>
-                  <button onClick={() => inv.uuid && onOpenCase(inv.uuid)} className={s.openBtn}>
+                  <Button
+                    unstyled
+                    onClick={() => inv.uuid && onOpenCase(inv.uuid)}
+                    className={s.openBtn}
+                  >
                     Open Case
                     <ExternalLink size={14} />
-                  </button>
+                  </Button>
                 </div>
 
                 <div className={s.cardFooter}>

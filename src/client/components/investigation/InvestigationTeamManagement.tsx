@@ -19,16 +19,20 @@ import { CloseButton } from '../common/CloseButton';
 // UI Library
 import styles from './InvestigationTeamManagement.module.css';
 import {
-  Surface,
-  Button,
-  Flex,
-  Box,
-  Stack,
-  LqText,
-  Grid,
-  cn,
   Badge,
+  Box,
+  Button,
+  FileInput,
+  Flex,
+  Grid,
+  Input,
+  LqText,
+  Select,
+  Stack,
+  Surface,
+  cn,
 } from '../../design-system/lib';
+const css = <T,>(style: T) => style;
 
 interface InvestigationTeamManagementProps {
   investigation: Investigation;
@@ -202,7 +206,7 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
             <LqText
               variant="xs"
               color="muted"
-              style={{ textTransform: 'uppercase' }}
+              style={css({ textTransform: 'uppercase' })}
               weight="bold"
               mt="xs"
             >
@@ -211,16 +215,16 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
           </Stack>
           <Flex gap="md">
             <Button variant="secondary" size="sm" onClick={() => setShowAddModal(true)}>
-              <UserPlus size={14} className="mr-2" /> Add Agent
+              <UserPlus size={14} className={styles.mr2} /> Add Agent
             </Button>
             <Button variant="ghost" onClick={() => {}} className={styles.autoGen279}>
-              <Download size={14} className="mr-2" /> Export JSON
+              <Download size={14} className={styles.mr2} /> Export JSON
             </Button>
             <label className={styles.autoGen280}>
               <Button variant="ghost" className={styles.autoGen281}>
-                <Upload size={14} className="mr-2" /> Import JSON
+                <Upload size={14} className={styles.mr2} /> Import JSON
               </Button>
-              <input type="file" className={styles.autoGen282} />
+              <FileInput className={styles.autoGen282} />
             </label>
           </Flex>
         </Flex>
@@ -254,7 +258,7 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
                       variant="xs"
                       weight="bold"
                       color="muted"
-                      style={{ textTransform: 'uppercase' }}
+                      style={css({ textTransform: 'uppercase' })}
                     >
                       {role}
                     </LqText>
@@ -285,7 +289,7 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
                 variant="xs"
                 weight="bold"
                 color="muted"
-                style={{ textTransform: 'uppercase' }}
+                style={css({ textTransform: 'uppercase' })}
               >
                 Active Agent Roster
               </LqText>
@@ -305,7 +309,8 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
                     <Flex gap="lg" align="center">
                       <Box
                         className={cn(
-                          'p-4 rounded-full',
+                          styles.p4,
+                          'rounded-full',
                           member.role === 'lead'
                             ? 'bg-[var(--lq-error)] text-white'
                             : 'bg-[var(--lq-surface-2)] text-[var(--lq-text-dim)]',
@@ -336,24 +341,17 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
                     <Flex gap="md" align="center">
                       {member.role !== 'lead' ? (
                         <Flex gap="sm">
-                          <select
-                            style={{
-                              background: 'var(--lq-surface-2)',
-                              border: '1px solid var(--lq-surface-3)',
-                              borderRadius: '0.375rem',
-                              padding: '0.25rem 0.5rem',
-                              fontSize: '0.75rem',
-                              color: 'var(--lq-text-primary)',
-                              outline: 'none',
-                            }}
+                          <Select
+                            size="sm"
                             value={member.role}
                             onChange={(e) => updateRole(member.id, e.target.value as TeamRole)}
-                          >
-                            <option value="researcher">Researcher</option>
-                            <option value="analyst">Analyst</option>
-                            <option value="reviewer">Reviewer</option>
-                            <option value="external">External</option>
-                          </select>
+                            options={[
+                              { value: 'researcher', label: 'Researcher' },
+                              { value: 'analyst', label: 'Analyst' },
+                              { value: 'reviewer', label: 'Reviewer' },
+                              { value: 'external', label: 'External' },
+                            ]}
+                          />
                           <Button
                             variant="ghost"
                             size="sm"
@@ -408,8 +406,8 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
                   <LqText variant="xs" weight="bold" color="muted">
                     CODENAME / DISPLAY NAME
                   </LqText>
-                  <input
-                    style={{
+                  <Input
+                    style={css({
                       width: '100%',
                       background: 'var(--lq-surface-3)',
                       border: '1px solid var(--lq-surface-4)',
@@ -418,7 +416,7 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
                       fontSize: '0.875rem',
                       color: 'var(--lq-text-primary)',
                       outline: 'none',
-                    }}
+                    })}
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
                     placeholder="Agent Identification..."
@@ -428,8 +426,8 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
                   <LqText variant="xs" weight="bold" color="muted">
                     COMMUNICATION VECTOR (EMAIL)
                   </LqText>
-                  <input
-                    style={{
+                  <Input
+                    style={css({
                       width: '100%',
                       background: 'var(--lq-surface-3)',
                       border: '1px solid var(--lq-surface-4)',
@@ -438,7 +436,7 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
                       fontSize: '0.875rem',
                       color: 'var(--lq-text-primary)',
                       outline: 'none',
-                    }}
+                    })}
                     type="email"
                     value={newEmail}
                     onChange={(e) => setNewEmail(e.target.value)}
@@ -449,25 +447,17 @@ export const InvestigationTeamManagement: React.FC<InvestigationTeamManagementPr
                   <LqText variant="xs" weight="bold" color="muted">
                     OPERATIONAL MODALITY (ROLE)
                   </LqText>
-                  <select
-                    style={{
-                      width: '100%',
-                      background: 'var(--lq-surface-3)',
-                      border: '1px solid var(--lq-surface-4)',
-                      borderRadius: '0.375rem',
-                      padding: '0.5rem 0.75rem',
-                      fontSize: '0.875rem',
-                      color: 'var(--lq-text-primary)',
-                      outline: 'none',
-                    }}
+                  <Select
+                    size="sm"
                     value={newRole}
                     onChange={(e) => setNewRole(e.target.value as TeamRole)}
-                  >
-                    <option value="researcher">Researcher</option>
-                    <option value="analyst">Analyst</option>
-                    <option value="reviewer">Reviewer</option>
-                    <option value="external">External</option>
-                  </select>
+                    options={[
+                      { value: 'researcher', label: 'Researcher' },
+                      { value: 'analyst', label: 'Analyst' },
+                      { value: 'reviewer', label: 'Reviewer' },
+                      { value: 'external', label: 'External' },
+                    ]}
+                  />
                 </Stack>
               </Stack>
 

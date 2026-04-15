@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Users, Plus, X, Search } from 'lucide-react';
 import styles from './PeopleSelector.module.css';
 
+import { Button, Input } from '../../design-system/lib';
+
 export interface PersonData {
   id: number;
   name: string;
@@ -128,7 +130,8 @@ export const PeopleSelector: React.FC<PeopleSelectorProps> = ({
               </div>
             </div>
             {isAdmin && (
-              <button
+              <Button
+                unstyled
                 onClick={(e) => {
                   e.stopPropagation();
                   handleRemovePerson(person);
@@ -136,7 +139,7 @@ export const PeopleSelector: React.FC<PeopleSelectorProps> = ({
                 className={styles.removeButton}
               >
                 <X className={styles.icon} />
-              </button>
+              </Button>
             )}
           </div>
         ))}
@@ -147,7 +150,7 @@ export const PeopleSelector: React.FC<PeopleSelectorProps> = ({
         <div className={styles.searchWrap} ref={dropdownRef}>
           <div className={styles.searchFieldWrap}>
             <Search className={styles.searchIcon} />
-            <input
+            <Input
               type="text"
               placeholder="Search people to add..."
               value={searchTerm}
@@ -165,7 +168,8 @@ export const PeopleSelector: React.FC<PeopleSelectorProps> = ({
               ) : (
                 <div className={styles.results}>
                   {searchResults.map((person) => (
-                    <button
+                    <Button
+                      unstyled
                       key={person.id}
                       onClick={() => handleAddPerson(person)}
                       className={styles.resultButton}
@@ -177,7 +181,7 @@ export const PeopleSelector: React.FC<PeopleSelectorProps> = ({
                         </div>
                       </div>
                       <Plus className={`${styles.icon} ${styles.riskMuted}`} />
-                    </button>
+                    </Button>
                   ))}
                 </div>
               )}

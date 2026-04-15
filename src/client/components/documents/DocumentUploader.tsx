@@ -9,6 +9,8 @@ import { LqText } from '../../design-system/components/typography/Text';
 
 import { DocumentProcessor } from '../../services/documentProcessor';
 
+import { Button, Input } from '../../design-system/lib';
+
 interface DocumentUploaderProps {
   processor: DocumentProcessor;
   onDocumentsLoaded: (count: number) => void;
@@ -143,7 +145,7 @@ export const DocumentUploader: React.FC<DocumentUploaderProps> = ({
               pipeline.
             </LqText>
           </div>
-          <input
+          <Input
             ref={fileInputRef}
             type="file"
             multiple
@@ -182,9 +184,9 @@ export const DocumentUploader: React.FC<DocumentUploaderProps> = ({
           <LqText variant="body" color="secondary" className={styles.marginTop1}>
             Processed {processedCount} documents
           </LqText>
-          <button onClick={resetUploader} className={styles.uploadButton}>
+          <Button unstyled onClick={resetUploader} className={styles.uploadButton}>
             Upload More
-          </button>
+          </Button>
         </Box>
       )}
 
@@ -197,9 +199,9 @@ export const DocumentUploader: React.FC<DocumentUploaderProps> = ({
           <LqText variant="xs" color="muted" className={styles.marginTop1}>
             {error}
           </LqText>
-          <button onClick={resetUploader} className={styles.uploadButton}>
+          <Button unstyled onClick={resetUploader} className={styles.uploadButton}>
             Try Again
-          </button>
+          </Button>
         </Box>
       )}
     </Box>

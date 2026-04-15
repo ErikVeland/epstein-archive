@@ -21,7 +21,17 @@ import { format } from 'date-fns';
 import { apiClient } from '../../services/apiClient';
 
 // UI Library
-import { Surface, Button, Flex, Box, Stack, LqText, Grid, Badge } from '../../design-system/lib';
+import {
+  Surface,
+  Button,
+  Flex,
+  Box,
+  Stack,
+  LqText,
+  Grid,
+  Badge,
+  Textarea,
+} from '../../design-system/lib';
 import styles from './EvidenceNotebook.module.css';
 
 interface EvidenceRecord {
@@ -370,7 +380,7 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
             size="sm"
             onClick={() => window.open(`/api/investigations/${investigationId}/briefing`, '_blank')}
           >
-            <Download size={14} className="mr-2" /> Publish Intelligence Briefing
+            <Download size={14} className={styles.mr2} /> Publish Intelligence Briefing
           </Button>
         </Flex>
       </Surface>
@@ -387,14 +397,14 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
                     size="sm"
                     onClick={() => setPreviewMode(false)}
                   >
-                    <Edit3 size={12} className="mr-1" /> EDITOR
+                    <Edit3 size={12} className={styles.mr1} /> EDITOR
                   </Button>
                   <Button
                     variant={previewMode ? 'primary' : 'ghost'}
                     size="sm"
                     onClick={() => setPreviewMode(true)}
                   >
-                    <Eye size={12} className="mr-1" /> PREVIEW
+                    <Eye size={12} className={styles.mr1} /> PREVIEW
                   </Button>
                 </Flex>
 
@@ -455,20 +465,8 @@ export const EvidenceNotebook: React.FC<NotebookProps> = ({ investigationId }) =
 
               <Box className={styles.autoGen55}>
                 {!previewMode ? (
-                  <textarea
+                  <Textarea
                     ref={editorRef}
-                    style={{
-                      width: '100%',
-                      minHeight: '500px',
-                      background: 'transparent',
-                      border: 'none',
-                      padding: '1.5rem',
-                      color: 'var(--lq-text-primary)',
-                      outline: 'none',
-                      resize: 'none',
-                      fontSize: '0.875rem',
-                      lineHeight: '1.6',
-                    }}
                     value={notesDraft}
                     placeholder="Formulate the mission narrative, correlate strategic claims, and document analytical extraction paths..."
                     onChange={(e) => {

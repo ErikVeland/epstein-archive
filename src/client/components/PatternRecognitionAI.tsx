@@ -4,6 +4,8 @@ import { apiClient } from '../services/apiClient';
 import { CloseButton } from './common/CloseButton';
 import styles from './PatternRecognitionAI.module.css';
 
+import { Button } from '../design-system/lib';
+
 interface PatternRecognitionAIProps {
   onPatternDetected?: (patterns: DetectedPattern[]) => void;
 }
@@ -293,14 +295,15 @@ export const PatternRecognitionAI: React.FC<PatternRecognitionAIProps> = ({
               Advanced AI analysis to detect suspicious patterns and anomalies
             </p>
           </div>
-          <button
+          <Button
+            unstyled
             onClick={analyzePatterns}
             disabled={isAnalyzing}
             className={`${styles.primaryButton} ${isAnalyzing ? styles.primaryButtonDisabled : ''}`}
           >
             <BarChart3 className={styles.buttonIcon} />
             {isAnalyzing ? 'Analyzing...' : 'Start Pattern Analysis'}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -461,10 +464,16 @@ export const PatternRecognitionAI: React.FC<PatternRecognitionAIProps> = ({
             </div>
 
             <div className={styles.modalFooter}>
-              <button onClick={() => setSelectedPattern(null)} className={styles.secondaryButton}>
+              <Button
+                unstyled
+                onClick={() => setSelectedPattern(null)}
+                className={styles.secondaryButton}
+              >
                 Close
-              </button>
-              <button className={styles.primaryButton}>Add to Investigation</button>
+              </Button>
+              <Button unstyled className={styles.primaryButton}>
+                Add to Investigation
+              </Button>
             </div>
           </div>
         </div>
@@ -479,9 +488,9 @@ export const PatternRecognitionAI: React.FC<PatternRecognitionAIProps> = ({
             Start pattern analysis to identify suspicious activities, behavioral patterns, and
             anomalies in your evidence.
           </p>
-          <button onClick={analyzePatterns} className={styles.primaryButton}>
+          <Button unstyled onClick={analyzePatterns} className={styles.primaryButton}>
             Start Pattern Analysis
-          </button>
+          </Button>
         </div>
       )}
     </div>

@@ -61,15 +61,15 @@
 }
 
 .riskBadgeHigh {
-  background: rgba(239, 68, 68, 0.2);
-  color: #f87171;
-  border-color: rgba(239, 68, 68, 0.3);
+  background: color-mix(in srgb, var(--accent-danger) 20%, transparent);
+  color: var(--text-danger);
+  border-color: color-mix(in srgb, var(--accent-danger) 30%, transparent);
 }
 
 .riskBadgeMedium {
-  background: rgba(234, 179, 8, 0.2);
-  color: #facc15;
-  border-color: rgba(234, 179, 8, 0.3);
+  background: color-mix(in srgb, var(--accent-warning) 20%, transparent);
+  color: var(--text-warning);
+  border-color: color-mix(in srgb, var(--accent-warning) 30%, transparent);
 }
 
 .riskBadgeLow {

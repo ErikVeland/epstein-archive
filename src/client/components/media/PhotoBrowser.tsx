@@ -47,6 +47,8 @@ import { SEO } from '../common/SEO';
 import { EmptyCorpus } from '../common/EmptyCorpus';
 import styles from './PhotoBrowser.module.css';
 
+const css = <T,>(style: T) => style;
+
 const EvidenceModal = React.lazy(() =>
   import('../common/EvidenceModal').then((module) => ({ default: module.EvidenceModal })),
 );
@@ -91,7 +93,7 @@ const GridCell = React.memo(
     const isSelected = selectedImages.has(img.id);
 
     return (
-      <div style={{ ...style, padding: '6px' }}>
+      <div style={css({ ...style, padding: '6px' })}>
         <Surface
           variant={isSelected ? 'glass-highlight' : 'glass-strong'}
           onClick={(e) => onImageClick(img, index, e)}
@@ -124,7 +126,7 @@ const GridCell = React.memo(
               <LqText
                 variant="xs"
                 weight="bold"
-                style={{ WebkitLineClamp: 1, display: '-webkit-box', overflow: 'hidden' }}
+                style={css({ WebkitLineClamp: 1, display: '-webkit-box', overflow: 'hidden' })}
                 title={img.title}
               >
                 {img.title}
@@ -152,7 +154,7 @@ const ListRow = React.memo(({ index, style, data }: ListChildComponentProps<Item
   const isSelected = selectedImages.has(img.id);
 
   return (
-    <div style={{ ...style, padding: '2px 6px' }}>
+    <div style={css({ ...style, padding: '2px 6px' })}>
       <Surface
         variant={isSelected ? 'glass-highlight' : 'glass-strong'}
         onClick={(e) => onImageClick(img, index, e)}
@@ -178,11 +180,11 @@ const ListRow = React.memo(({ index, style, data }: ListChildComponentProps<Item
             </SensitiveContent>
           </Box>
 
-          <Stack gap="0" style={{ flex: 1 }}>
+          <Stack gap="0" style={css({ flex: 1 })}>
             <LqText
               variant="xs"
               weight="bold"
-              style={{ WebkitLineClamp: 1, display: '-webkit-box', overflow: 'hidden' }}
+              style={css({ WebkitLineClamp: 1, display: '-webkit-box', overflow: 'hidden' })}
             >
               {img.title}
             </LqText>
@@ -677,7 +679,7 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
                   variant="xxxs"
                   weight="bold"
                   color="muted"
-                  style={{ textTransform: 'uppercase' }}
+                  style={css({ textTransform: 'uppercase' })}
                 >
                   Active Filters:
                 </LqText>
@@ -830,10 +832,20 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
 
         {/* Footer Status Bar */}
         <Flex justify="between" align="center" px="md" py="xs" className={styles.footer}>
-          <LqText variant="xs" color="muted" style={{ textTransform: 'uppercase' }} weight="bold">
+          <LqText
+            variant="xs"
+            color="muted"
+            style={css({ textTransform: 'uppercase' })}
+            weight="bold"
+          >
             {images.length} Objects Indexed
           </LqText>
-          <LqText variant="xs" color="muted" style={{ textTransform: 'uppercase' }} weight="bold">
+          <LqText
+            variant="xs"
+            color="muted"
+            style={css({ textTransform: 'uppercase' })}
+            weight="bold"
+          >
             Catalog: {selectedAlbum ? currentAlbum?.name : 'Master Archive'}
           </LqText>
         </Flex>

@@ -11,6 +11,8 @@ import { Box } from '../../../design-system/components/layout/Box';
 import { Flex } from '../../../design-system/components/layout/Flex';
 import { LqText } from '../../../design-system/components/typography/Text';
 
+import { Button } from '../../../design-system/lib';
+
 type TextSubview = 'clean' | 'ocr' | 'diff';
 
 interface DocEntity {
@@ -115,14 +117,15 @@ export const DocumentAnalysisTab: React.FC<DocumentAnalysisTabProps> = ({
       {hasAnyText && (
         <Flex gap="sm" className={styles.textModeTabs}>
           {(['clean', 'ocr', 'diff'] as TextSubview[]).map((mode) => (
-            <button
+            <Button
+              unstyled
               key={mode}
               type="button"
               onClick={() => setTextSubview(mode)}
               className={`${styles.modeButton} ${textSubview === mode ? styles.modeButtonActive : ''}`}
             >
               {mode === 'clean' ? 'Clean Text' : mode === 'ocr' ? 'Raw OCR' : 'Diff View'}
-            </button>
+            </Button>
           ))}
         </Flex>
       )}
@@ -203,13 +206,14 @@ export const DocumentAnalysisTab: React.FC<DocumentAnalysisTabProps> = ({
                         >
                           <Box className={styles.entityCardTop}>
                             <Flex direction="column" className={styles.entityCardBody}>
-                              <button
+                              <Button
+                                unstyled
                                 type="button"
                                 className={styles.entityButton}
                                 onClick={() => setSelectedEntity(entity)}
                               >
                                 {entity.name}
-                              </button>
+                              </Button>
                               <LqText variant="xs" className={styles.entityRole}>
                                 {entity.primaryRole || entity.role || entity.entityType || 'ENTITY'}
                               </LqText>
@@ -220,12 +224,13 @@ export const DocumentAnalysisTab: React.FC<DocumentAnalysisTabProps> = ({
                               <LqText variant="xs" className={styles.entityMentions}>
                                 {entity.mentions} Mentions
                               </LqText>
-                              <button
+                              <Button
+                                unstyled
                                 onClick={() => setEntityModalId(String(entity.id))}
                                 className={styles.entityAction}
                               >
                                 View Dossier
-                              </button>
+                              </Button>
                             </Flex>
                           )}
                         </Surface>

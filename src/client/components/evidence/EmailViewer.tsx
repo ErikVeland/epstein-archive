@@ -7,6 +7,8 @@
 import { Mail, Paperclip, Copy, Download, User, Calendar } from 'lucide-react';
 import styles from './EmailViewer.module.css';
 
+import { Button } from '../../design-system/lib';
+
 interface EmailViewerProps {
   evidence: {
     extractedText: string;
@@ -76,13 +78,14 @@ export function EmailViewer({ evidence }: EmailViewerProps) {
                 <div className={styles.metaLabel}>From</div>
                 <div className={styles.metaValueRow}>
                   <div className={styles.metaValue}>{metadata.from}</div>
-                  <button
+                  <Button
+                    unstyled
                     onClick={() => copyToClipboard(metadata.from!)}
                     className={styles.copyButton}
                     title="Copy email"
                   >
                     <Copy size={16} />
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -95,13 +98,14 @@ export function EmailViewer({ evidence }: EmailViewerProps) {
                 <div className={styles.metaLabel}>To</div>
                 <div className={styles.metaValueRow}>
                   <div className={styles.metaValue}>{metadata.to}</div>
-                  <button
+                  <Button
+                    unstyled
                     onClick={() => copyToClipboard(metadata.to!)}
                     className={styles.copyButton}
                     title="Copy email"
                   >
                     <Copy size={16} />
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>

@@ -18,6 +18,7 @@
   height: 4rem;
   border: 2px solid transparent;
   border-bottom-color: var(--accent);
+  box-shadow: 0 0 30px color-mix(in srgb, var(--accent-info) 50%, transparent);
   margin-inline: auto;
   margin-bottom: var(--space-4);
 }

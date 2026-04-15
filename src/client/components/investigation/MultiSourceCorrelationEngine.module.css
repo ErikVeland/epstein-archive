@@ -844,3 +844,11 @@
   color: var(--lq-error);
   margin-top: 0rem;
 }
+
+/* Spacing utilities — replaces Tailwind shorthands */
+.mr2 {
+  margin-right: var(--space-2);
+}
+.p2 {
+  padding: var(--space-2);
+}

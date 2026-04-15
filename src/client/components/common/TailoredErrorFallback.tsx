@@ -1,6 +1,7 @@
 import React from 'react';
 import { AlertTriangle, WifiOff, Database, FileText, RefreshCw, Home } from 'lucide-react';
-import { Surface, Stack, Flex, LqText, Button } from '../../design-system/lib';
+import { Surface, Stack, Flex, LqText, Button, Box } from '../../design-system/lib';
+import styles from './TailoredErrorFallback.module.css';
 
 interface TailoredErrorFallbackProps {
   errorType: 'network' | 'database' | 'document' | 'generic';
@@ -57,51 +58,53 @@ export const TailoredErrorFallback: React.FC<TailoredErrorFallbackProps> = ({
   const { icon, title, message, nextSteps, showRetry, showHome } = getErrorDetails();
 
   return (
-    <Surface variant="glass-strong" p="xl" style={{ maxWidth: '42rem', margin: '2rem auto' }}>
-      <Stack gap="xl">
-        <Flex align="center" gap="lg">
-          <Surface variant="glass-highlight" p="md" style={{ borderRadius: '50%' }}>
-            {icon}
-          </Surface>
-          <Stack gap="xs">
-            <LqText variant="h3" weight="bold">
-              {title}
+    <Box maxW="2xl" mx="auto" my="xl">
+      <Surface variant="glass-strong" p="xl">
+        <Stack gap="xl">
+          <Flex align="center" gap="lg">
+            <Surface variant="glass-highlight" p="md" className={styles.iconBubble}>
+              {icon}
+            </Surface>
+            <Stack gap="xs">
+              <LqText variant="h3" weight="bold">
+                {title}
+              </LqText>
+              <LqText variant="small" color="secondary">
+                SYSTEM_FAULT_DETECTED
+              </LqText>
+            </Stack>
+          </Flex>
+
+          <Stack gap="md">
+            <LqText variant="subtitle" color="foreground">
+              {message}
             </LqText>
-            <LqText variant="small" color="secondary">
-              SYSTEM_FAULT_DETECTED
+            <LqText variant="small" color="muted" italic>
+              {nextSteps}
             </LqText>
           </Stack>
-        </Flex>
 
-        <Stack gap="md">
-          <LqText variant="subtitle" color="foreground">
-            {message}
-          </LqText>
-          <LqText variant="small" color="muted" italic>
-            {nextSteps}
-          </LqText>
+          <Flex gap="md">
+            {showRetry && onRetry && (
+              <Button onClick={onRetry} variant="glass">
+                <Flex gap="sm" align="center">
+                  <RefreshCw size={16} />
+                  <span>Try Again</span>
+                </Flex>
+              </Button>
+            )}
+
+            {showHome && onGoHome && (
+              <Button onClick={onGoHome} variant="primary">
+                <Flex gap="sm" align="center">
+                  <Home size={16} />
+                  <span>Home</span>
+                </Flex>
+              </Button>
+            )}
+          </Flex>
         </Stack>
-
-        <Flex gap="md">
-          {showRetry && onRetry && (
-            <Button onClick={onRetry} variant="glass">
-              <Flex gap="sm" align="center">
-                <RefreshCw size={16} />
-                <span>Try Again</span>
-              </Flex>
-            </Button>
-          )}
-
-          {showHome && onGoHome && (
-            <Button onClick={onGoHome} variant="primary">
-              <Flex gap="sm" align="center">
-                <Home size={16} />
-                <span>Home</span>
-              </Flex>
-            </Button>
-          )}
-        </Flex>
-      </Stack>
-    </Surface>
+      </Surface>
+    </Box>
   );
 };

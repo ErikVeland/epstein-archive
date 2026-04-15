@@ -551,3 +551,11 @@
   border-color: t;
   border-color: t-[var(--lq-surface-3)];
 }
+
+/* Spacing utilities — replaces Tailwind shorthands */
+.mr2 {
+  margin-right: var(--space-2);
+}
+.p4 {
+  padding: var(--space-4);
+}

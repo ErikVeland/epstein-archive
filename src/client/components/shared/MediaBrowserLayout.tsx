@@ -3,6 +3,8 @@ import Icon from '../common/Icon';
 import type { IconName } from '../common/Icon';
 import s from './MediaBrowserLayout.module.css';
 
+import { Button } from '../../design-system/lib';
+
 interface MediaBrowserLayoutProps {
   /** Page title (e.g., "Audio Recordings", "Video Recordings") */
   title: string;
@@ -66,12 +68,13 @@ export function MediaBrowserLayout({
             <h2 className={s.titleText}>{title}</h2>
             <p className={s.subtitle}>{subtitle}</p>
           </div>
-          <button
+          <Button
+            unstyled
             onClick={onToggleBatchMode}
             className={`${s.batchBtn} ${isBatchMode ? s.batchBtnActive : ''}`}
           >
             {isBatchMode ? 'Exit Batch' : 'Batch Edit'}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -135,9 +138,9 @@ export function MediaEmptyState({
 export function LoadMoreButton({ onClick }: { onClick: () => void }): React.ReactElement {
   return (
     <div className={s.loadMoreWrap}>
-      <button onClick={onClick} className={s.loadMoreBtn}>
+      <Button unstyled onClick={onClick} className={s.loadMoreBtn}>
         Load More
-      </button>
+      </Button>
     </div>
   );
 }

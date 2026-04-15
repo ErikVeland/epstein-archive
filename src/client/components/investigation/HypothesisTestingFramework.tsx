@@ -17,16 +17,20 @@ import { EvidenceItem } from '../../types/investigation';
 // UI Library
 import styles from './HypothesisTestingFramework.module.css';
 import {
-  Surface,
+  Badge,
+  Box,
   Button,
   Flex,
-  Box,
-  Stack,
-  LqText,
   Grid,
+  Input,
+  LqText,
+  Select,
+  Stack,
+  Surface,
+  Textarea,
   cn,
-  Badge,
 } from '../../design-system/lib';
+const css = <T,>(style: T) => style;
 
 // Extended Hypothesis type with additional fields for testing
 interface Hypothesis {
@@ -246,7 +250,7 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
   };
 
   return (
-    <Box style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <Box style={css({ height: '100%', display: 'flex', flexDirection: 'column' })}>
       {/* Header */}
       {!mobileMode && (
         <Surface variant="glass" p="xl" className={styles.autoGen132}>
@@ -258,12 +262,13 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
                   Hypothesis Testing Workbench
                 </LqText>
               </Flex>
-              <LqText variant="xs" color="muted" weight="bold" style={{ marginTop: 'xs' }}>
+              <LqText variant="xs" color="muted" weight="bold" style={css({ marginTop: 'xs' })}>
                 Systematic Theory Analysis • Analytical Confidence Scoring
               </LqText>
             </Stack>
             <Button variant="secondary" size="sm" onClick={() => setShowNewForm(true)}>
-              <Plus size={16} /> <span style={{ marginLeft: '0.5rem' }}>Initialize Theory</span>
+              <Plus size={16} />{' '}
+              <span style={css({ marginLeft: '0.5rem' })}>Initialize Theory</span>
             </Button>
           </Flex>
         </Surface>
@@ -279,12 +284,12 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
                   variant="xs"
                   weight="bold"
                   color="muted"
-                  style={{ textTransform: 'uppercase' }}
+                  style={css({ textTransform: 'uppercase' })}
                 >
                   Draft New Investigative Signal
                 </LqText>
-                <input
-                  style={{
+                <Input
+                  style={css({
                     width: '100%',
                     background: 'var(--lq-surface-3)',
                     border: '1px solid var(--lq-surface-4)',
@@ -293,23 +298,12 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
                     fontSize: '0.875rem',
                     color: 'var(--lq-text-primary)',
                     outline: 'none',
-                  }}
+                  })}
                   placeholder="Theory Designation *"
                   value={newHypothesis.title}
                   onChange={(e) => setNewHypothesis({ ...newHypothesis, title: e.target.value })}
                 />
-                <textarea
-                  style={{
-                    width: '100%',
-                    background: 'var(--lq-surface-3)',
-                    border: '1px solid var(--lq-surface-4)',
-                    borderRadius: '0.375rem',
-                    padding: '0.5rem 0.75rem',
-                    fontSize: '0.875rem',
-                    color: 'var(--lq-text-primary)',
-                    outline: 'none',
-                    resize: 'none',
-                  }}
+                <Textarea
                   placeholder="Qualitative description of the hypothesis..."
                   rows={3}
                   value={newHypothesis.description}
@@ -342,7 +336,7 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
                 <LqText
                   variant="xs"
                   color="muted"
-                  style={{ textTransform: 'uppercase' }}
+                  style={css({ textTransform: 'uppercase' })}
                   weight="bold"
                 >
                   Intelligence Matrix Clear • Define Hypotheses
@@ -367,10 +361,10 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
                       <Flex
                         justify="between"
                         align="start"
-                        style={{ cursor: 'pointer' }}
+                        style={css({ cursor: 'pointer' })}
                         onClick={() => setActiveHypothesis(isActive ? null : h)}
                       >
-                        <Stack gap="sm" style={{ flex: 1 }}>
+                        <Stack gap="sm" style={css({ flex: 1 })}>
                           <Flex align="center" gap="md">
                             <LqText variant="small" weight="bold">
                               {h.title}
@@ -402,7 +396,7 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
                           <Box className={styles.autoGen136}>
                             <Box
                               className={styles.autoGen137}
-                              style={{ width: `${h.confidence ?? 0}%` }}
+                              style={css({ width: `${h.confidence ?? 0}%` })}
                             />
                           </Box>
                         </Stack>
@@ -418,7 +412,7 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
                                 variant="xs"
                                 weight="bold"
                                 color="muted"
-                                style={{ textTransform: 'uppercase' }}
+                                style={css({ textTransform: 'uppercase' })}
                               >
                                 Evidence Correlation Layer
                               </LqText>
@@ -433,7 +427,7 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
                                 })
                               }
                             >
-                              <Plus size={10} className="mr-1" /> Link Signal
+                              <Plus size={10} className={styles.mr1} /> Link Signal
                             </Button>
                           </Flex>
 
@@ -445,45 +439,27 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
                                   <LqText variant="xs" weight="bold">
                                     SELECT EVIDENCE
                                   </LqText>
-                                  <select
-                                    style={{
-                                      width: '100%',
-                                      background: 'var(--lq-surface-3)',
-                                      border: '1px solid var(--lq-surface-4)',
-                                      borderRadius: '0.375rem',
-                                      padding: '0.5rem 0.75rem',
-                                      fontSize: '0.875rem',
-                                      color: 'var(--lq-text-primary)',
-                                      outline: 'none',
-                                    }}
+                                  <Select
+                                    size="sm"
                                     value={linkData.evidenceId}
                                     onChange={(e) =>
                                       setLinkData({ ...linkData, evidenceId: e.target.value })
                                     }
-                                  >
-                                    <option value="">Choose item...</option>
-                                    {evidenceItems.map((item) => (
-                                      <option key={item.id} value={item.id}>
-                                        {item.title}
-                                      </option>
-                                    ))}
-                                  </select>
+                                    options={[
+                                      { value: '', label: 'Choose item...' },
+                                      ...evidenceItems.map((item) => ({
+                                        value: item.id,
+                                        label: item.title ?? item.id,
+                                      })),
+                                    ]}
+                                  />
                                 </Stack>
                                 <Stack gap="xs">
                                   <LqText variant="xs" weight="bold">
                                     SIGNAL RELEVANCE
                                   </LqText>
-                                  <select
-                                    style={{
-                                      width: '100%',
-                                      background: 'var(--lq-surface-3)',
-                                      border: '1px solid var(--lq-surface-4)',
-                                      borderRadius: '0.375rem',
-                                      padding: '0.5rem 0.75rem',
-                                      fontSize: '0.875rem',
-                                      color: 'var(--lq-text-primary)',
-                                      outline: 'none',
-                                    }}
+                                  <Select
+                                    size="sm"
                                     value={linkData.relevance}
                                     onChange={(e) =>
                                       setLinkData({
@@ -494,19 +470,20 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
                                           | 'neutral',
                                       })
                                     }
-                                  >
-                                    <option value="supporting">Supporting</option>
-                                    <option value="contradicting">Contradicting</option>
-                                    <option value="neutral">Neutral</option>
-                                  </select>
+                                    options={[
+                                      { value: 'supporting', label: 'Supporting' },
+                                      { value: 'contradicting', label: 'Contradicting' },
+                                      { value: 'neutral', label: 'Neutral' },
+                                    ]}
+                                  />
                                 </Stack>
-                                <div style={{ gridColumn: 'span 2' }}>
+                                <div style={css({ gridColumn: 'span 2' })}>
                                   <Stack gap="xs">
                                     <LqText variant="xs" weight="bold">
                                       ANALYTICAL NOTES
                                     </LqText>
-                                    <input
-                                      style={{
+                                    <Input
+                                      style={css({
                                         width: '100%',
                                         background: 'var(--lq-surface-3)',
                                         border: '1px solid var(--lq-surface-4)',
@@ -515,7 +492,7 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
                                         fontSize: '0.875rem',
                                         color: 'var(--lq-text-primary)',
                                         outline: 'none',
-                                      }}
+                                      })}
                                       value={linkData.notes}
                                       onChange={(e) =>
                                         setLinkData({ ...linkData, notes: e.target.value })
@@ -576,7 +553,7 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
                                                 : 'bg-[var(--lq-surface-3)]',
                                           )}
                                         />
-                                        <Stack gap="xs" style={{ flex: 1 }}>
+                                        <Stack gap="xs" style={css({ flex: 1 })}>
                                           <Flex justify="between">
                                             <LqText variant="xs" weight="bold">
                                               {ev?.title || 'Unknown Signal'}
@@ -624,7 +601,7 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
                                   variant="xs"
                                   weight="bold"
                                   color="muted"
-                                  style={{ textTransform: 'uppercase' }}
+                                  style={css({ textTransform: 'uppercase' })}
                                 >
                                   Revision Chain
                                 </LqText>
@@ -654,7 +631,7 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
                               onClick={() => updateStatus(h.id, 'supported')}
                               className="hover:text-[var(--lq-success)]"
                             >
-                              <CheckCircle2 size={14} className="mr-2" /> Mark Supported
+                              <CheckCircle2 size={14} className={styles.mr2} /> Mark Supported
                             </Button>
                             <Button
                               variant="ghost"
@@ -662,14 +639,14 @@ export const HypothesisTestingFramework: React.FC<HypothesisTestingFrameworkProp
                               onClick={() => updateStatus(h.id, 'refuted')}
                               className="hover:text-[var(--lq-error)]"
                             >
-                              <XCircle size={14} className="mr-2" /> Mark Refuted
+                              <XCircle size={14} className={styles.mr2} /> Mark Refuted
                             </Button>
                             <Button
                               variant="ghost"
                               grow
                               onClick={() => updateStatus(h.id, 'testing')}
                             >
-                              <RefreshCw size={14} className="mr-2" /> Reset Status
+                              <RefreshCw size={14} className={styles.mr2} /> Reset Status
                             </Button>
                           </Flex>
                         </Stack>

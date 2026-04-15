@@ -19,6 +19,8 @@ import { Surface } from '../../design-system/components/surfaces/Surface';
 import { Box } from '../../design-system/components/layout/Box';
 import styles from './DocumentContentRenderer.module.css';
 
+import { Button, Input } from '../../design-system/lib';
+
 interface EntityRecord {
   id?: string | number;
   name?: string;
@@ -975,7 +977,7 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
                   {Math.round((doc.unredaction_metrics.unredactedTextGain || 0) * 100)}%
                 </LqText>
                 <label className={styles.checkboxLabel}>
-                  <input
+                  <Input
                     type="checkbox"
                     className={styles.checkbox}
                     checked={showUnredactedHighlights}
@@ -985,7 +987,8 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
                 </label>
               </Flex>
             )}
-            <button
+            <Button
+              unstyled
               onClick={() => setShowAnnotations(!showAnnotations)}
               className={cx(
                 styles.toggleButton,
@@ -993,7 +996,7 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
               )}
             >
               {showAnnotations ? 'Hide Annotations' : 'Show Annotations'}
-            </button>
+            </Button>
           </Flex>
         )}
       </Flex>

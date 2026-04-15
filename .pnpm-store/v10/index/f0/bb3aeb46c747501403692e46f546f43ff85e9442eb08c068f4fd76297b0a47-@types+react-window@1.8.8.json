@@ -1,0 +1,31 @@
+{
+  "name": "@types/react-window",
+  "version": "1.8.8",
+  "requiresBuild": false,
+  "files": {
+    "LICENSE": {
+      "checkedAt": 1776136536282,
+      "integrity": "sha512-HQaIQk9pwOcyKutyDk4o2a87WnotwYuLGYFW43emGm4FvIJFKPyg+OYaw5sTegKAKf+C5SKa1ACjzCLivbaHrQ==",
+      "mode": 420,
+      "size": 1141
+    },
+    "README.md": {
+      "checkedAt": 1776136536285,
+      "integrity": "sha512-TkuvUdd9586hWEPV5rH7wg4yvSZ3JhEYoESdq4dlE4RvtEFNdLW5eBbEbWQH5vddrALJIHBAKY2SIDM4o18brA==",
+      "mode": 420,
+      "size": 634
+    },
+    "index.d.ts": {
+      "checkedAt": 1776136536288,
+      "integrity": "sha512-uUkoPPHOj+wWP1p5uhea3HELhmX4QT6ZYdxYw/acwa916F2QFb9o+AaXCO1njPzn4dOity6QShP8XSdfpxLu1A==",
+      "mode": 420,
+      "size": 22876
+    },
+    "package.json": {
+      "checkedAt": 1776136536291,
+      "integrity": "sha512-z/PmejMwsM/pzuoTFk374sCCoqctHH7DldB6ixxPMsthcqymaIbHNOTQf4mml8ch30MMlYBaov3RpQ+kIsie4w==",
+      "mode": 420,
+      "size": 1142
+    }
+  }
+}

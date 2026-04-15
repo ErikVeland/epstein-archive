@@ -1,7 +1,18 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Newspaper, Search, ChevronDown, ChevronUp, Clock, Filter, Calendar } from 'lucide-react';
 import { Article } from './ArticleCard';
-import { Surface, Button, Flex, Box, Stack, LqText, Grid, Badge } from '../../design-system/lib';
+import {
+  Badge,
+  Box,
+  Button,
+  Flex,
+  Grid,
+  Input,
+  LqText,
+  NativeSelect,
+  Stack,
+  Surface,
+} from '../../design-system/lib';
 import { EmptyCorpus } from '../common/EmptyCorpus';
 import styles from './ArticlesTab.module.css';
 
@@ -169,7 +180,7 @@ export const ArticlesTab: React.FC = () => {
           <Flex align="center" gap="sm">
             <Box className={styles.searchBox}>
               <Search size={16} className={styles.searchIcon} />
-              <input
+              <Input
                 type="text"
                 placeholder="Search articles..."
                 value={searchTerm}
@@ -183,14 +194,14 @@ export const ArticlesTab: React.FC = () => {
                 <LqText variant="xs" weight="bold" color="muted">
                   SORT
                 </LqText>
-                <select
+                <NativeSelect
                   value={sortOrder}
                   onChange={(e) => setSortOrder(e.target.value as 'date' | 'redFlag')}
                   className={styles.sortSelect}
                 >
                   <option value="redFlag">Red Flag Rating</option>
                   <option value="date">Date Published</option>
-                </select>
+                </NativeSelect>
               </Flex>
             </Surface>
           </Flex>

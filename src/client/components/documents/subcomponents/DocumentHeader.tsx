@@ -8,6 +8,8 @@ import { Flex } from '../../../design-system/components/layout/Flex';
 import { Surface } from '../../../design-system/components/surfaces/Surface';
 import { Box } from '../../../design-system/components/layout/Box';
 
+import { Button, Input } from '../../../design-system/lib';
+
 interface DocumentHeaderProps {
   doc: {
     title?: string | null;
@@ -68,7 +70,7 @@ export const DocumentHeader: React.FC<DocumentHeaderProps> = ({
       <Flex align="center" gap="sm" className={styles.controls}>
         <Box className={`${styles.searchWrapper} group`}>
           <Search size={16} className={styles.searchIcon} />
-          <input
+          <Input
             type="text"
             placeholder="Find in record..."
             className={styles.searchInput}
@@ -83,18 +85,19 @@ export const DocumentHeader: React.FC<DocumentHeaderProps> = ({
         </Box>
 
         {canReturnToCase && (
-          <button onClick={handleBackToCase} className={styles.backButton}>
+          <Button unstyled onClick={handleBackToCase} className={styles.backButton}>
             <ArrowLeft size={16} className={styles.backButtonIcon} />
             <span className={styles.backButtonLabel}>Case</span>
-          </button>
+          </Button>
         )}
-        <button
+        <Button
+          unstyled
           onClick={downloadOriginalDocument}
           className={`${styles.iconButton} ${styles.downloadButton}`}
           title="Download Original Document"
         >
           <Download size={20} />
-        </button>
+        </Button>
         <CloseButton onClick={onClose} size="md" label="Close" className={styles.closeButton} />
       </Flex>
     </Box>

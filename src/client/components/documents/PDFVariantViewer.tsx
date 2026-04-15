@@ -16,6 +16,8 @@ import styles from './PDFVariantViewer.module.css';
 // Design System
 import { LqText } from '../../design-system/components/typography/Text';
 
+import { Button, Input } from '../../design-system/lib';
+
 // Set up PDF.js worker
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
@@ -136,7 +138,7 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
           <div className={styles.toolGroup}>
             <div className={styles.searchContainer}>
               <Search size={14} className={styles.searchIcon} />
-              <input
+              <Input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -148,17 +150,17 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
 
           <div className={styles.toolGroup}>
             <div className={styles.zoomControls}>
-              <button onClick={zoomOut} className={styles.toolButton} title="Zoom Out">
+              <Button unstyled onClick={zoomOut} className={styles.toolButton} title="Zoom Out">
                 <ZoomOut size={16} />
-              </button>
+              </Button>
               <span className={styles.zoomLabel}>{Math.round(scale * 100)}%</span>
-              <button onClick={zoomIn} className={styles.toolButton} title="Zoom In">
+              <Button unstyled onClick={zoomIn} className={styles.toolButton} title="Zoom In">
                 <ZoomIn size={16} />
-              </button>
+              </Button>
             </div>
-            <button onClick={rotateClockwise} className={styles.toolButton} title="Rotate">
+            <Button unstyled onClick={rotateClockwise} className={styles.toolButton} title="Rotate">
               <RotateCw size={16} />
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -278,10 +280,15 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
 
       {numPages > 0 && (
         <div className={styles.pagination}>
-          <button onClick={goToPrevPage} disabled={pageNumber <= 1} className={styles.navButton}>
+          <Button
+            unstyled
+            onClick={goToPrevPage}
+            disabled={pageNumber <= 1}
+            className={styles.navButton}
+          >
             <ChevronLeft size={16} />
             Previous
-          </button>
+          </Button>
 
           <div className={styles.pageInfo}>
             <LqText className={styles.pageNumber}>
@@ -296,14 +303,15 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
             </div>
           </div>
 
-          <button
+          <Button
+            unstyled
             onClick={goToNextPage}
             disabled={pageNumber >= numPages}
             className={styles.navButton}
           >
             Next
             <ChevronRight size={16} />
-          </button>
+          </Button>
         </div>
       )}
     </div>

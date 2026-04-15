@@ -11,6 +11,8 @@ import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 import styles from './PDFViewer.module.css';
 
+import { Button } from '../../design-system/lib';
+
 // Set up worker for PDF.js
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
@@ -114,9 +116,9 @@ export function PDFViewer({ filePath, title }: PDFViewerProps) {
         </div>
         <h3 className={styles.errorTitle}>Unable to Load PDF</h3>
         <p className={styles.errorText}>{error}</p>
-        <button onClick={loadPDF} className={styles.retryButton}>
+        <Button unstyled onClick={loadPDF} className={styles.retryButton}>
           Retry
-        </button>
+        </Button>
       </div>
     );
   }
@@ -130,37 +132,39 @@ export function PDFViewer({ filePath, title }: PDFViewerProps) {
         </div>
 
         <div className={styles.toolbarGroup}>
-          <button onClick={downloadPDF} className={styles.iconButton} title="Download PDF">
+          <Button unstyled onClick={downloadPDF} className={styles.iconButton} title="Download PDF">
             <Download className={styles.icon} />
-          </button>
+          </Button>
 
           <div className={styles.divider} />
 
-          <button
+          <Button
+            unstyled
             onClick={zoomOut}
             className={`${styles.iconButton} ${scale <= 0.5 ? styles.iconButtonDisabled : ''}`}
             disabled={scale <= 0.5}
             title="Zoom Out"
           >
             <ZoomOut className={styles.icon} />
-          </button>
+          </Button>
 
           <span className={styles.zoomLabel}>{Math.round(scale * 100)}%</span>
 
-          <button
+          <Button
+            unstyled
             onClick={zoomIn}
             className={`${styles.iconButton} ${scale >= 3 ? styles.iconButtonDisabled : ''}`}
             disabled={scale >= 3}
             title="Zoom In"
           >
             <ZoomIn className={styles.icon} />
-          </button>
+          </Button>
 
           <div className={styles.divider} />
 
-          <button onClick={rotate} className={styles.iconButton} title="Rotate">
+          <Button unstyled onClick={rotate} className={styles.iconButton} title="Rotate">
             <RotateCw className={styles.icon} />
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -168,27 +172,29 @@ export function PDFViewer({ filePath, title }: PDFViewerProps) {
       <div className={styles.body}>
         {/* Page navigation */}
         <div className={styles.navBar}>
-          <button
+          <Button
+            unstyled
             onClick={goToPrevPage}
             disabled={pageNumber <= 1}
             className={`${styles.iconButton} ${pageNumber <= 1 ? styles.iconButtonDisabled : ''}`}
             title="Previous Page"
           >
             <ChevronLeft className={styles.icon} />
-          </button>
+          </Button>
 
           <span className={styles.pageLabel}>
             Page {pageNumber} of {numPages || '--'}
           </span>
 
-          <button
+          <Button
+            unstyled
             onClick={goToNextPage}
             disabled={!numPages || pageNumber >= numPages}
             className={`${styles.iconButton} ${!numPages || pageNumber >= numPages ? styles.iconButtonDisabled : ''}`}
             title="Next Page"
           >
             <ChevronRight className={styles.icon} />
-          </button>
+          </Button>
         </div>
 
         {/* PDF Content */}

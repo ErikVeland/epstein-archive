@@ -101,8 +101,19 @@ export class App {
     try {
       await validateStartup();
     } catch (error) {
-      logger.error({ err: error }, 'Startup validation failed');
-      process.exit(1);
+      const isProd = process.env.NODE_ENV === 'production';
+      if (isProd) {
+        logger.error({ err: error }, 'Startup validation failed');
+        process.exit(1);
+      }
+
+      // In development, keep the server up in a degraded state so the UI can show
+      // a clear "API unavailable" message instead of failing to connect.
+      process.env.DEGRADED_MODE = '1';
+      logger.warn(
+        { err: error },
+        'Startup validation failed (development) — continuing in degraded mode',
+      );
     }
 
     if (process.env.RUN_MIGRATIONS_ON_BOOT === '1') {

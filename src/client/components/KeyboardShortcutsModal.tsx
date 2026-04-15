@@ -5,6 +5,8 @@ import { useScrollLock } from '../hooks/useScrollLock';
 import { CloseButton } from './common/CloseButton';
 import styles from './KeyboardShortcutsModal.module.css';
 
+import { Button } from '../design-system/lib';
+
 interface KeyboardShortcutsModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -63,7 +65,8 @@ const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({ isOpen,
 
   return createPortal(
     <div className={styles.backdrop}>
-      <button
+      <Button
+        unstyled
         type="button"
         className={styles.dismissLayer}
         aria-label="Close keyboard shortcuts"
@@ -125,9 +128,9 @@ const KeyboardShortcutsModal: React.FC<KeyboardShortcutsModalProps> = ({ isOpen,
         </div>
 
         <div className={styles.footer}>
-          <button onClick={onClose} className={styles.footerButton}>
+          <Button unstyled onClick={onClose} className={styles.footerButton}>
             Close
-          </button>
+          </Button>
         </div>
       </div>
     </div>,

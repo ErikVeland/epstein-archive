@@ -659,3 +659,11 @@
   border-color: t;
   border-color: t-[var(--lq-surface-3)];
 }
+
+/* Spacing utilities — replaces Tailwind shorthands */
+.mr1 {
+  margin-right: var(--space-1);
+}
+.mr2 {
+  margin-right: var(--space-2);
+}

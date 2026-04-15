@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Shield, CheckCircle, XCircle, AlertTriangle, Eye, Clock } from 'lucide-react';
+import { Button, Textarea } from '../../design-system/lib';
 import styles from './ReviewQueuePanel.module.css';
 
 interface ReviewItem {
@@ -76,9 +77,12 @@ export const ReviewQueuePanel: React.FC = () => {
             </div>
           ) : (
             items.map((item) => (
-              <button
+              <Button
                 key={item.id}
                 onClick={() => setSelectedId(item.id)}
+                type="button"
+                variant="ghost"
+                size="sm"
                 className={getListItemClassName(selectedId === item.id)}
               >
                 <div className={styles.listItemHeader}>
@@ -90,7 +94,7 @@ export const ReviewQueuePanel: React.FC = () => {
                   <Clock className={styles.timestampIcon} />
                   {new Date(item.createdAt).toLocaleString()}
                 </div>
-              </button>
+              </Button>
             ))
           )}
         </div>
@@ -135,27 +139,33 @@ export const ReviewQueuePanel: React.FC = () => {
                   </div>
 
                   <div className={styles.decisionSection}>
-                    <textarea
+                    <Textarea
                       placeholder="Add forensic review notes..."
                       value={reviewNote}
                       onChange={(e) => setReviewNote(e.target.value)}
                       className={styles.reviewTextarea}
                     />
                     <div className={styles.decisionButtons}>
-                      <button
+                      <Button
                         onClick={() => handleDecision(item.id, 'reviewed')}
+                        type="button"
+                        variant="secondary"
+                        size="sm"
                         className={`${styles.decisionButton} ${styles.decisionApprove}`}
                       >
                         <CheckCircle className={styles.decisionIcon} />
                         VET & COMMIT
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         onClick={() => handleDecision(item.id, 'rejected')}
+                        type="button"
+                        variant="secondary"
+                        size="sm"
                         className={`${styles.decisionButton} ${styles.decisionReject}`}
                       >
                         <XCircle className={styles.decisionIcon} />
                         REJECT & PURGE
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 </div>

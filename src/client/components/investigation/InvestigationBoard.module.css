@@ -686,3 +686,8 @@
   font-weight: 700;
   /* Missing: shadow-lg */
 }
+
+/* Spacing utilities — replaces Tailwind shorthands */
+.mr2 {
+  margin-right: var(--space-2);
+}

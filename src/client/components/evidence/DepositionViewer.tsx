@@ -8,6 +8,8 @@ import { useState } from 'react';
 import { Scale, Search } from 'lucide-react';
 import styles from './DepositionViewer.module.css';
 
+import { Input } from '../../design-system/lib';
+
 interface DepositionViewerProps {
   evidence: {
     extractedText: string;
@@ -81,7 +83,7 @@ export function DepositionViewer({ evidence }: DepositionViewerProps) {
       <div className={styles.searchSection}>
         <div className={styles.searchWrapper}>
           <Search size={20} className={styles.searchIcon} />
-          <input
+          <Input
             type="text"
             placeholder="Search deposition..."
             value={searchTerm}

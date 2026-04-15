@@ -1,0 +1,31 @@
+/**
+ * @license
+ * Copyright 2023 Google LLC.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * =============================================================================
+ */
+import { StaticRegexReplace } from '@tensorflow/tfjs-core';
+import { createSimpleUnaryImpl } from '../utils/unary_impl';
+import { unaryKernelFuncFromImpl } from '../utils/unary_utils';
+export const staticRegexReplaceImpl = createSimpleUnaryImpl((x, attrs) => {
+    const { pattern, replaceGlobal, rewrite } = attrs;
+    // TODO(mattSoulanille): Don't create a regex each time.
+    return x.replace(new RegExp(pattern, replaceGlobal ? 'g' : ''), rewrite);
+});
+const staticRegexReplace = unaryKernelFuncFromImpl(StaticRegexReplace, staticRegexReplaceImpl);
+export const staticRegexReplaceConfig = {
+    kernelName: StaticRegexReplace,
+    backendName: 'cpu',
+    kernelFunc: staticRegexReplace,
+};
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiU3RhdGljUmVnZXhSZXBsYWNlLmpzIiwic291cmNlUm9vdCI6IiIsInNvdXJjZXMiOlsiLi4vLi4vLi4vLi4vLi4vLi4vdGZqcy1iYWNrZW5kLWNwdS9zcmMva2VybmVscy9TdGF0aWNSZWdleFJlcGxhY2UudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IkFBQUE7Ozs7Ozs7Ozs7Ozs7OztHQWVHO0FBRUgsT0FBTyxFQUFlLGtCQUFrQixFQUEwQixNQUFNLHVCQUF1QixDQUFDO0FBQ2hHLE9BQU8sRUFBQyxxQkFBcUIsRUFBQyxNQUFNLHFCQUFxQixDQUFDO0FBQzFELE9BQU8sRUFBQyx1QkFBdUIsRUFBQyxNQUFNLHNCQUFzQixDQUFDO0FBRTdELE1BQU0sQ0FBQyxNQUFNLHNCQUFzQixHQUFHLHFCQUFxQixDQUNqRCxDQUFDLENBQVMsRUFBRSxLQUFLLEVBQUUsRUFBRTtJQUMzQixNQUFNLEVBQUMsT0FBTyxFQUFFLGFBQWEsRUFBRSxPQUFPLEVBQUMsR0FDckMsS0FBMkMsQ0FBQztJQUM5Qyx3REFBd0Q7SUFDeEQsT0FBTyxDQUFDLENBQUMsT0FBTyxDQUFDLElBQUksTUFBTSxDQUFDLE9BQU8sRUFBRSxhQUFhLENBQUMsQ0FBQyxDQUFDLEdBQUcsQ0FBQyxDQUFDLENBQUMsRUFBRSxDQUFDLEVBQUUsT0FBTyxDQUFDLENBQUM7QUFDN0UsQ0FBQyxDQUFDLENBQUM7QUFFSCxNQUFNLGtCQUFrQixHQUN0Qix1QkFBdUIsQ0FBQyxrQkFBa0IsRUFBRSxzQkFBc0IsQ0FBQyxDQUFDO0FBRXRFLE1BQU0sQ0FBQyxNQUFNLHdCQUF3QixHQUFpQjtJQUNwRCxVQUFVLEVBQUUsa0JBQWtCO0lBQzlCLFdBQVcsRUFBRSxLQUFLO0lBQ2xCLFVBQVUsRUFBRSxrQkFBa0I7Q0FDL0IsQ0FBQyIsInNvdXJjZXNDb250ZW50IjpbIi8qKlxuICogQGxpY2Vuc2VcbiAqIENvcHlyaWdodCAyMDIzIEdvb2dsZSBMTEMuXG4gKiBMaWNlbnNlZCB1bmRlciB0aGUgQXBhY2hlIExpY2Vuc2UsIFZlcnNpb24gMi4wICh0aGUgXCJMaWNlbnNlXCIpO1xuICogeW91IG1heSBub3QgdXNlIHRoaXMgZmlsZSBleGNlcHQgaW4gY29tcGxpYW5jZSB3aXRoIHRoZSBMaWNlbnNlLlxuICogWW91IG1heSBvYnRhaW4gYSBjb3B5IG9mIHRoZSBMaWNlbnNlIGF0XG4gKlxuICogaHR0cDovL3d3dy5hcGFjaGUub3JnL2xpY2Vuc2VzL0xJQ0VOU0UtMi4wXG4gKlxuICogVW5sZXNzIHJlcXVpcmVkIGJ5IGFwcGxpY2FibGUgbGF3IG9yIGFncmVlZCB0byBpbiB3cml0aW5nLCBzb2Z0d2FyZVxuICogZGlzdHJpYnV0ZWQgdW5kZXIgdGhlIExpY2Vuc2UgaXMgZGlzdHJpYnV0ZWQgb24gYW4gXCJBUyBJU1wiIEJBU0lTLFxuICogV0lUSE9VVCBXQVJSQU5USUVTIE9SIENPTkRJVElPTlMgT0YgQU5ZIEtJTkQsIGVpdGhlciBleHByZXNzIG9yIGltcGxpZWQuXG4gKiBTZWUgdGhlIExpY2Vuc2UgZm9yIHRoZSBzcGVjaWZpYyBsYW5ndWFnZSBnb3Zlcm5pbmcgcGVybWlzc2lvbnMgYW5kXG4gKiBsaW1pdGF0aW9ucyB1bmRlciB0aGUgTGljZW5zZS5cbiAqID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09XG4gKi9cblxuaW1wb3J0IHtLZXJuZWxDb25maWcsIFN0YXRpY1JlZ2V4UmVwbGFjZSwgU3RhdGljUmVnZXhSZXBsYWNlQXR0cnN9IGZyb20gJ0B0ZW5zb3JmbG93L3RmanMtY29yZSc7XG5pbXBvcnQge2NyZWF0ZVNpbXBsZVVuYXJ5SW1wbH0gZnJvbSAnLi4vdXRpbHMvdW5hcnlfaW1wbCc7XG5pbXBvcnQge3VuYXJ5S2VybmVsRnVuY0Zyb21JbXBsfSBmcm9tICcuLi91dGlscy91bmFyeV91dGlscyc7XG5cbmV4cG9ydCBjb25zdCBzdGF0aWNSZWdleFJlcGxhY2VJbXBsID0gY3JlYXRlU2ltcGxlVW5hcnlJbXBsPHN0cmluZyxcbiAgc3RyaW5nPigoeDogc3RyaW5nLCBhdHRycykgPT4ge1xuICAgIGNvbnN0IHtwYXR0ZXJuLCByZXBsYWNlR2xvYmFsLCByZXdyaXRlfSA9XG4gICAgICBhdHRycyBhcyB1bmtub3duIGFzIFN0YXRpY1JlZ2V4UmVwbGFjZUF0dHJzO1xuICAgIC8vIFRPRE8obWF0dFNvdWxhbmlsbGUpOiBEb24ndCBjcmVhdGUgYSByZWdleCBlYWNoIHRpbWUuXG4gICAgcmV0dXJuIHgucmVwbGFjZShuZXcgUmVnRXhwKHBhdHRlcm4sIHJlcGxhY2VHbG9iYWwgPyAnZycgOiAnJyksIHJld3JpdGUpO1xufSk7XG5cbmNvbnN0IHN0YXRpY1JlZ2V4UmVwbGFjZSA9XG4gIHVuYXJ5S2VybmVsRnVuY0Zyb21JbXBsKFN0YXRpY1JlZ2V4UmVwbGFjZSwgc3RhdGljUmVnZXhSZXBsYWNlSW1wbCk7XG5cbmV4cG9ydCBjb25zdCBzdGF0aWNSZWdleFJlcGxhY2VDb25maWc6IEtlcm5lbENvbmZpZyA9IHtcbiAga2VybmVsTmFtZTogU3RhdGljUmVnZXhSZXBsYWNlLFxuICBiYWNrZW5kTmFtZTogJ2NwdScsXG4gIGtlcm5lbEZ1bmM6IHN0YXRpY1JlZ2V4UmVwbGFjZSxcbn07XG4iXX0=

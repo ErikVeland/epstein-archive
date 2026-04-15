@@ -4,6 +4,8 @@ import { EmailThreadDTO } from '../../../services/apiClient';
 import { riskToneFromRating } from '../../../utils/riskSemantics';
 import styles from './MobileThreadList.module.css';
 
+import { Button, Input } from '../../../design-system/lib';
+
 const formatTime = (value: string | null): string => {
   if (!value) return '';
   const date = new Date(value);
@@ -73,7 +75,7 @@ export function MobileThreadList({
         </div>
         <div className={styles.searchWrap}>
           <Search className={styles.searchIcon} size={16} />
-          <input
+          <Input
             className={styles.searchInput}
             placeholder="Search threads"
             value={searchInput}
@@ -101,7 +103,8 @@ export function MobileThreadList({
               const active = thread.threadId === selectedThreadId;
 
               return (
-                <button
+                <Button
+                  unstyled
                   key={thread.threadId}
                   className={`${styles.row} ${active ? styles.rowActive : ''}`}
                   onClick={() => onOpenThread(thread.threadId)}
@@ -125,7 +128,7 @@ export function MobileThreadList({
                       </span>
                     </div>
                   </div>
-                </button>
+                </Button>
               );
             })}
 

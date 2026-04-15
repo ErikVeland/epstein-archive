@@ -7,6 +7,8 @@ import { Surface } from '../../../design-system/components/surfaces/Surface';
 import { Box } from '../../../design-system/components/layout/Box';
 import { LqText } from '../../../design-system/components/typography/Text';
 
+import { Button } from '../../../design-system/lib';
+
 interface DocRecord {
   id?: string | number;
   title?: string;
@@ -106,7 +108,8 @@ export const DocumentMetadataRail: React.FC<DocumentMetadataRailProps> = ({
         data-rail-section="entities"
         className={`${styles.sectionCard} ${styles.section} ${activeRailSection === 'entities' ? styles.sectionActive : ''}`}
       >
-        <button
+        <Button
+          unstyled
           type="button"
           onClick={() => setExpandedEntities((prev) => !prev)}
           className={styles.entitiesToggle}
@@ -116,7 +119,7 @@ export const DocumentMetadataRail: React.FC<DocumentMetadataRailProps> = ({
             size={16}
             className={`${styles.chevronIcon} ${expandedEntities ? styles.chevronRotated : ''}`}
           />
-        </button>
+        </Button>
         {expandedEntities && (
           <Box className={styles.entitiesList}>
             {entities.length === 0 && (
@@ -125,7 +128,8 @@ export const DocumentMetadataRail: React.FC<DocumentMetadataRailProps> = ({
               </LqText>
             )}
             {entities.map((entity, index) => (
-              <button
+              <Button
+                unstyled
                 key={`${entity.id || entity.name}-${index}`}
                 className={`${styles.entityButton} ${
                   selectedEntity?.name === entity.name
@@ -138,7 +142,7 @@ export const DocumentMetadataRail: React.FC<DocumentMetadataRailProps> = ({
                   <span className={styles.entityName}>{entity.name}</span>
                   <span className={styles.entityType}>{entity.entityType || 'ENT'}</span>
                 </Box>
-              </button>
+              </Button>
             ))}
           </Box>
         )}
@@ -149,24 +153,26 @@ export const DocumentMetadataRail: React.FC<DocumentMetadataRailProps> = ({
               <LqText variant="xs" className={styles.selectedEntityLabel}>
                 Active Focus
               </LqText>
-              <button
+              <Button
+                unstyled
                 onClick={() => setSelectedEntity(null)}
                 className={styles.clearButton}
                 aria-label="Clear active focus"
               >
                 <X size={16} />
-              </button>
+              </Button>
             </Box>
             <LqText variant="body" weight="semibold" className={styles.selectedEntityName}>
               {selectedEntity.name}
             </LqText>
             {Number.isFinite(Number(selectedEntity.id)) && (
-              <button
+              <Button
+                unstyled
                 className={styles.deepLinkButton}
                 onClick={() => onOpenDossier(String(selectedEntity.id))}
               >
                 Deep Link
-              </button>
+              </Button>
             )}
           </Box>
         )}

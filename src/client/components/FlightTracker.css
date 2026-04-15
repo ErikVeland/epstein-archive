@@ -155,8 +155,8 @@
   align-items: center;
 }
 
-.filters > select,
-.filters > input,
+.filters select,
+.filters input,
 .filters .legacy-filter-input {
   padding: 0.6rem 1rem;
   border: 1px solid rgba(0, 200, 255, 0.3);
@@ -166,8 +166,8 @@
   font-size: 0.9rem;
 }
 
-.filters > select:focus,
-.filters > input:focus,
+.filters select:focus,
+.filters input:focus,
 .filters .legacy-filter-input:focus {
   outline: none;
   border-color: #00c8ff;

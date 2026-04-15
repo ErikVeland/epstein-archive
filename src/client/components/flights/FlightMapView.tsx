@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState, useCallback } from 'react';
-import { Surface, Flex, Box, Stack, LqText, cn } from '../../design-system/lib';
+import { Surface, Flex, Box, Stack, LqText, Button, cn } from '../../design-system/lib';
 import type { Flight, AirportCoords, FlightStats } from './types';
 import styles from './FlightTracker.module.css';
 
@@ -95,7 +95,13 @@ export const FlightMapView: React.FC<FlightMapViewProps> = ({ flights, airports,
         >
           <svg viewBox="0 0 800 400" className={styles.flightMap}>
             {/* Simple world background */}
-            <rect x="0" y="0" width="800" height="400" fill="rgba(6, 6, 15, 0.4)" />
+            <rect
+              x="0"
+              y="0"
+              width="800"
+              height="400"
+              fill="color-mix(in srgb, var(--bg-dark) 40%, transparent)"
+            />
 
             {/* Grid lines */}
             {[...Array(9)].map((_, i) => (
@@ -219,25 +225,14 @@ export const FlightMapView: React.FC<FlightMapViewProps> = ({ flights, airports,
       </Surface>
 
       {mapTransform.scale !== 1 || mapTransform.x !== 0 || mapTransform.y !== 0 ? (
-        <button
+        <Button
           onClick={resetTransform}
-          style={{
-            position: 'absolute',
-            top: 'var(--space-4)',
-            right: 'var(--space-4)',
-            background: 'var(--glass-bg-strong)',
-            border: '1px solid var(--glass-border)',
-            borderRadius: 'var(--radius-md)',
-            color: 'var(--text-secondary)',
-            fontSize: '0.75rem',
-            padding: '4px 10px',
-            cursor: 'pointer',
-            zIndex: 10,
-            backdropFilter: 'blur(8px)',
-          }}
+          variant="glass"
+          size="sm"
+          className={styles.resetViewButton}
         >
           Reset view
-        </button>
+        </Button>
       ) : null}
     </Surface>
   );

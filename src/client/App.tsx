@@ -5,7 +5,6 @@ import {
   useCallback,
   useMemo,
   Suspense,
-  lazy,
   useRef,
 } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -41,82 +40,122 @@ import { useFirstRunOnboarding } from './hooks/useFirstRunOnboarding';
 import { InvestigationsProvider } from './contexts/InvestigationsContext';
 import { useAuth } from './contexts/AuthContext';
 import { cn } from './utils/cn';
-import { Flex, Box, Surface, LqText, Button, TooltipProvider } from './design-system/lib';
+import { Box, Button, Flex, Input, LqText, Surface, TooltipProvider } from './design-system/lib';
 import { useFilters } from './contexts/useFilters';
 import { LoginPage } from './pages/LoginPage';
 import { SEO } from './components/common/SEO';
 import { useSeoConfig } from './hooks/useSeoConfig';
 import { useAppNavigation, tabLabels } from './hooks/useAppNavigation';
 import { parseReleaseNotes } from './utils/releaseNotes';
-const PeoplePage = lazy(() =>
-  import('./pages/PeoplePage').then((m) => ({ default: m.PeoplePage })),
+import { lazyWithRetry } from './utils/lazyWithRetry';
+import { useApiStatus } from './contexts/ApiStatusContext';
+import { ApiUnavailableScreen } from './components/common/ApiUnavailableScreen';
+const PeoplePage = lazyWithRetry(
+  () => import('./pages/PeoplePage').then((m) => ({ default: m.PeoplePage })),
+  'PeoplePage',
 );
-const DocumentsPage = lazy(() =>
-  import('./pages/DocumentsPage').then((m) => ({ default: m.DocumentsPage })),
+const DocumentsPage = lazyWithRetry(
+  () => import('./pages/DocumentsPage').then((m) => ({ default: m.DocumentsPage })),
+  'DocumentsPage',
 );
-const TimelinePage = lazy(() =>
-  import('./pages/TimelinePage').then((m) => ({ default: m.TimelinePage })),
+const TimelinePage = lazyWithRetry(
+  () => import('./pages/TimelinePage').then((m) => ({ default: m.TimelinePage })),
+  'TimelinePage',
 );
-const FlightsPage = lazy(() =>
-  import('./pages/FlightsPage').then((m) => ({ default: m.FlightsPage })),
+const FlightsPage = lazyWithRetry(
+  () => import('./pages/FlightsPage').then((m) => ({ default: m.FlightsPage })),
+  'FlightsPage',
 );
-const PropertyPage = lazy(() =>
-  import('./pages/PropertyPage').then((m) => ({ default: m.PropertyPage })),
+const PropertyPage = lazyWithRetry(
+  () => import('./pages/PropertyPage').then((m) => ({ default: m.PropertyPage })),
+  'PropertyPage',
 );
-const EmailPage = lazy(() => import('./pages/EmailPage').then((m) => ({ default: m.EmailPage })));
-const MediaPage = lazy(() => import('./pages/MediaPage').then((m) => ({ default: m.MediaPage })));
-const AnalyticsPage = lazy(() =>
-  import('./pages/AnalyticsPage').then((m) => ({ default: m.AnalyticsPage })),
+const EmailPage = lazyWithRetry(
+  () => import('./pages/EmailPage').then((m) => ({ default: m.EmailPage })),
+  'EmailPage',
 );
-const EvidenceModal = lazy(() =>
-  import('./components/common/EvidenceModal').then((module) => ({ default: module.EvidenceModal })),
+const MediaPage = lazyWithRetry(
+  () => import('./pages/MediaPage').then((m) => ({ default: m.MediaPage })),
+  'MediaPage',
 );
-const BlackBookViewer = lazy(() =>
-  import('./components/BlackBookViewer').then((module) => ({ default: module.BlackBookViewer })),
+const AnalyticsPage = lazyWithRetry(
+  () => import('./pages/AnalyticsPage').then((m) => ({ default: m.AnalyticsPage })),
+  'AnalyticsPage',
 );
-const EvidenceSearch = lazy(() =>
-  import('./components/EvidenceSearch').then((module) => ({ default: module.EvidenceSearch })),
+const EvidenceModal = lazyWithRetry(
+  () =>
+    import('./components/common/EvidenceModal').then((module) => ({
+      default: module.EvidenceModal,
+    })),
+  'EvidenceModal',
 );
-const DocumentModal = lazy(() =>
-  import('./components/documents/DocumentModal').then((module) => ({
-    default: module.DocumentModal,
-  })),
+const BlackBookViewer = lazyWithRetry(
+  () =>
+    import('./components/BlackBookViewer').then((module) => ({ default: module.BlackBookViewer })),
+  'BlackBookViewer',
 );
-const InvestigationWorkspace = lazy(() =>
-  import('./components/investigation/InvestigationWorkspace').then((module) => ({
-    default: module.InvestigationWorkspace,
-  })),
+const EvidenceSearch = lazyWithRetry(
+  () =>
+    import('./components/EvidenceSearch').then((module) => ({ default: module.EvidenceSearch })),
+  'EvidenceSearch',
 );
-const ReleaseNotesPanel = lazy(() =>
-  import('./components/ReleaseNotesPanel').then((module) => ({
-    default: module.ReleaseNotesPanel,
-  })),
+const DocumentModal = lazyWithRetry(
+  () =>
+    import('./components/documents/DocumentModal').then((module) => ({
+      default: module.DocumentModal,
+    })),
+  'DocumentModal',
 );
-const AboutPage = lazy(() =>
-  import('./components/pages/AboutPage').then((module) => ({ default: module.default })),
+const InvestigationWorkspace = lazyWithRetry(
+  () =>
+    import('./components/investigation/InvestigationWorkspace').then((module) => ({
+      default: module.InvestigationWorkspace,
+    })),
+  'InvestigationWorkspace',
 );
-const FAQPage = lazy(() =>
-  import('./components/pages/FAQPage').then((module) => ({ default: module.default })),
+const ReleaseNotesPanel = lazyWithRetry(
+  () =>
+    import('./components/ReleaseNotesPanel').then((module) => ({
+      default: module.ReleaseNotesPanel,
+    })),
+  'ReleaseNotesPanel',
 );
-const LegalPage = lazy(() =>
-  import('./components/pages/LegalPage').then((module) => ({ default: module.LegalPage })),
+const AboutPage = lazyWithRetry(
+  () => import('./components/pages/AboutPage').then((module) => ({ default: module.default })),
+  'AboutPage',
+);
+const FAQPage = lazyWithRetry(
+  () => import('./components/pages/FAQPage').then((module) => ({ default: module.default })),
+  'FAQPage',
+);
+const LegalPage = lazyWithRetry(
+  () => import('./components/pages/LegalPage').then((module) => ({ default: module.LegalPage })),
+  'LegalPage',
 );
 import type { DocRecord } from './components/documents/DocumentModal';
-const GuidePage = lazy(() =>
-  import('./components/pages/GuidePage').then((module) => ({ default: module.default })),
+const GuidePage = lazyWithRetry(
+  () => import('./components/pages/GuidePage').then((module) => ({ default: module.default })),
+  'GuidePage',
 );
-const TheEpsteinFilesPage = lazy(() =>
-  import('./pages/TheEpsteinFilesPage').then((module) => ({ default: module.TheEpsteinFilesPage })),
+const TheEpsteinFilesPage = lazyWithRetry(
+  () =>
+    import('./pages/TheEpsteinFilesPage').then((module) => ({
+      default: module.TheEpsteinFilesPage,
+    })),
+  'TheEpsteinFilesPage',
 );
 
-const AdminDashboard = lazy(() =>
-  import('./pages/AdminDashboard').then((module) => ({ default: module.AdminDashboard })),
+const AdminDashboard = lazyWithRetry(
+  () => import('./pages/AdminDashboard').then((module) => ({ default: module.AdminDashboard })),
+  'AdminDashboard',
 );
-const EvidenceDetail = lazy(() =>
-  import('./pages/EvidenceDetail').then((module) => ({ default: module.EvidenceDetail })),
+const EvidenceDetail = lazyWithRetry(
+  () => import('./pages/EvidenceDetail').then((module) => ({ default: module.EvidenceDetail })),
+  'EvidenceDetail',
 );
-const ReviewDashboard = lazy(() =>
-  import('./pages/ReviewDashboard').then((module) => ({ default: module.ReviewDashboard })),
+const ReviewDashboard = lazyWithRetry(
+  () => import('./pages/ReviewDashboard').then((module) => ({ default: module.ReviewDashboard })),
+  'ReviewDashboard',
 );
 
 import releaseNotesRaw from '../../release_notes.md?raw';
@@ -128,6 +167,8 @@ import { CreateEntityModal } from './components/entities/CreateEntityModal';
 import Footer from './components/layout/Footer';
 
 function App() {
+  const { status: apiStatus } = useApiStatus();
+  const apiEnabled = apiStatus !== 'down';
   const { filters, setFilters } = useFilters();
   const { activeTab, location } = useAppNavigation();
   const navigate = useNavigate();
@@ -256,7 +297,7 @@ function App() {
         }));
       return [...entitySuggestions, ...documentSuggestions];
     },
-    enabled: debouncedSearchTerm.trim().length >= 2,
+    enabled: apiEnabled && debouncedSearchTerm.trim().length >= 2,
     staleTime: 30_000,
     placeholderData: (prev) => prev,
   });
@@ -312,7 +353,7 @@ function App() {
       const res = await fetch(`/api/entities/${urlEntityId}`);
       return (await res.json()) as EntityByIdResponse;
     },
-    enabled: needsEntityFetch,
+    enabled: apiEnabled && needsEntityFetch,
     staleTime: 60_000,
   });
 
@@ -420,7 +461,7 @@ function App() {
       if (!response.ok) return null;
       return (await response.json()) as { redirectTo?: string; documentId?: string };
     },
-    enabled: !!legacyFileSuffix,
+    enabled: apiEnabled && !!legacyFileSuffix,
     staleTime: Infinity,
   });
 
@@ -609,6 +650,7 @@ function App() {
     },
     staleTime: Infinity,
     retry: false,
+    enabled: apiEnabled,
   });
 
   // Fetch global stats for header counters
@@ -616,6 +658,7 @@ function App() {
     queryKey: ['globalStats'],
     queryFn: async () => (await apiClient.getStats()) as GlobalStatsPayload,
     staleTime: 5 * 60_000,
+    enabled: apiEnabled,
   });
 
   const dataStats = useMemo(() => {
@@ -819,7 +862,7 @@ function App() {
       )) as GlobalStatsPayload;
       return stats;
     },
-    enabled: activeTab === 'analytics',
+    enabled: apiEnabled && activeTab === 'analytics',
     staleTime: 60_000,
   });
 
@@ -989,48 +1032,53 @@ function App() {
                       {/* Button Group */}
                       <div className={styles.buttonGroup}>
                         {/* New Investigation */}
-                        <button
+                        <Button
+                          unstyled
                           onClick={() => navigate('/investigations')}
                           className={styles.controlButton}
                           title="New Investigation"
                         >
                           <Icon name="Plus" size="sm" color="white" />
                           <span className={styles.buttonText}>New</span>
-                        </button>
+                        </Button>
 
                         {/* Shortcuts */}
-                        <button
+                        <Button
+                          unstyled
                           onClick={() => setShowKeyboardShortcuts(true)}
                           className={styles.controlButton}
                           title="Keyboard Shortcuts"
                         >
                           <Icon name="Command" size="sm" color="info" />
                           <span className={styles.buttonText}>Shortcuts</span>
-                        </button>
+                        </Button>
 
                         {/* Sources */}
-                        <button
+                        <Button
+                          unstyled
                           onClick={() => navigate('/about')}
                           className={styles.controlButton}
                           title="Verified Sources"
                         >
                           <Icon name="Shield" size="sm" color="success" />
                           <span className={styles.buttonText}>Sources</span>
-                        </button>
+                        </Button>
 
                         {/* What's New */}
-                        <button
+                        <Button
+                          unstyled
                           onClick={() => setShowReleaseNotes(true)}
                           className={styles.controlButton}
                           title="What's New"
                         >
                           <Icon name="Book" size="sm" color="info" />
                           <span className={styles.buttonText}>What's New</span>
-                        </button>
+                        </Button>
 
                         {/* Admin Dashboard */}
                         {isAdmin && (
-                          <button
+                          <Button
+                            unstyled
                             onClick={() => navigate('/admin')}
                             className={styles.controlButton}
                             title="Admin Dashboard"
@@ -1039,7 +1087,7 @@ function App() {
                             <span className={cn(styles.buttonText, styles.adminButtonText)}>
                               Admin
                             </span>
-                          </button>
+                          </Button>
                         )}
                       </div>
 
@@ -1053,7 +1101,7 @@ function App() {
                               color="gray"
                               className={styles.searchIcon}
                             />
-                            <input
+                            <Input
                               type="text"
                               placeholder="Search evidence..."
                               className={styles.searchInput}
@@ -1069,17 +1117,19 @@ function App() {
                               }}
                             />
                             {searchTerm.trim().length > 0 && (
-                              <button
+                              <Button
+                                unstyled
                                 type="button"
                                 onClick={() => setSearchTerm('')}
                                 aria-label="Clear search"
                                 className={styles.searchClearButton}
                               >
                                 <Icon name="X" size="xs" />
-                              </button>
+                              </Button>
                             )}
                           </div>
-                          <button
+                          <Button
+                            unstyled
                             onClick={() => {
                               if (searchTerm.trim()) {
                                 navigate(`/search?q=${encodeURIComponent(searchTerm)}`);
@@ -1091,7 +1141,7 @@ function App() {
                             className={cn(styles.searchButton)}
                           >
                             <Icon name="Search" size="sm" />
-                          </button>
+                          </Button>
                         </div>
                         {searchTerm.trim().length >= 2 && (
                           <Surface className={styles.searchDropdown}>
@@ -1106,7 +1156,8 @@ function App() {
                             ) : searchSuggestions.length > 0 ? (
                               searchSuggestions.slice(0, 8).map((suggestion, i) =>
                                 suggestion.kind === 'entity' ? (
-                                  <button
+                                  <Button
+                                    unstyled
                                     key={`entity-sugg-${suggestion.id}-${i}`}
                                     className={styles.searchSuggestionButton}
                                     onClick={() => handlePersonClick(suggestion)}
@@ -1123,9 +1174,10 @@ function App() {
                                     <span className={styles.searchSuggestionMeta}>
                                       {suggestion.role !== 'Unknown' ? suggestion.role : 'Subject'}
                                     </span>
-                                  </button>
+                                  </Button>
                                 ) : (
-                                  <button
+                                  <Button
+                                    unstyled
                                     key={`doc-sugg-${suggestion.id}-${i}`}
                                     className={styles.searchDocButton}
                                     onClick={() => handleDocumentSuggestionClick(suggestion.id)}
@@ -1149,7 +1201,7 @@ function App() {
                                     <span className={styles.searchDocMeta}>
                                       {suggestion.evidenceType || 'Document'}
                                     </span>
-                                  </button>
+                                  </Button>
                                 ),
                               )
                             ) : (
@@ -1158,7 +1210,8 @@ function App() {
                               </div>
                             )}
                             <div className={styles.searchDropdownFooter}>
-                              <button
+                              <Button
+                                unstyled
                                 className={styles.searchAllButton}
                                 onClick={() =>
                                   navigate(`/search?q=${encodeURIComponent(searchTerm)}`)
@@ -1166,7 +1219,7 @@ function App() {
                               >
                                 <Icon name="Search" size="sm" />
                                 <span>Search all documents for "{searchTerm}"</span>
-                              </button>
+                              </Button>
                             </div>
                           </Surface>
                         )}
@@ -1220,7 +1273,7 @@ function App() {
                                 >
                                   From
                                 </label>
-                                <input
+                                <Input
                                   id="global-date-from"
                                   type="date"
                                   className={styles.dateInput}
@@ -1236,7 +1289,7 @@ function App() {
                                 <label htmlFor="global-date-to" className={styles.dateFilterLabel}>
                                   To
                                 </label>
-                                <input
+                                <Input
                                   id="global-date-to"
                                   type="date"
                                   className={styles.dateInput}
@@ -1249,7 +1302,8 @@ function App() {
                                 />
                               </div>
                               {(filters.timeRange[0] || filters.timeRange[1]) && (
-                                <button
+                                <Button
+                                  unstyled
                                   onClick={() => {
                                     setFilters({ timeRange: [null, null] });
                                     setShowDateRangePicker(false);
@@ -1257,7 +1311,7 @@ function App() {
                                   className={styles.dateClearButton}
                                 >
                                   Clear date filter
-                                </button>
+                                </Button>
                               )}
                             </div>
                           </Surface>
@@ -1265,7 +1319,8 @@ function App() {
                       </div>
 
                       {/* Mobile Menu Toggle */}
-                      <button
+                      <Button
+                        unstyled
                         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                         className={styles.mobileMenuButton}
                       >
@@ -1274,7 +1329,7 @@ function App() {
                         ) : (
                           <Icon name="Menu" size="sm" />
                         )}
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -1292,25 +1347,28 @@ function App() {
                     <div ref={navTrackRef} className={styles.navTrack}>
                       <div className={cn(styles.navPillContainer, navPillClass)}>
                         <div className={navItemClass}>
-                          <button
+                          <Button
+                            unstyled
                             onClick={() => navigate('/people')}
                             className={getNavSegmentClass('people', activeTab === 'people')}
                           >
                             <Icon name="Users" size="sm" />
                             <span className={navLabelClass}>People</span>
-                          </button>
+                          </Button>
                         </div>
                         <div className={navItemClass}>
-                          <button
+                          <Button
+                            unstyled
                             onClick={() => navigate('/documents')}
                             className={getNavSegmentClass('documents', activeTab === 'documents')}
                           >
                             <Icon name="FileText" size="sm" />
                             <span className={navLabelClass}>Documents</span>
-                          </button>
+                          </Button>
                         </div>
                         <div className={cn(styles.navItemRelative, navItemClass)}>
-                          <button
+                          <Button
+                            unstyled
                             onClick={() => {
                               try {
                                 localStorage.setItem('investigate_attract_shown', 'true');
@@ -1336,7 +1394,7 @@ function App() {
                           >
                             <Icon name="Target" size="sm" />
                             <span className={navLabelClass}>Investigations</span>
-                          </button>
+                          </Button>
                           {investigatePopoverOpen &&
                             activeTab !== 'investigations' &&
                             investigatePopoverPos.x !== 0 &&
@@ -1369,7 +1427,8 @@ function App() {
                                   </LqText>
                                 </Box>
                                 <Flex align="center" gap={2}>
-                                  <button
+                                  <Button
+                                    unstyled
                                     className={styles.popoverButton}
                                     onClick={() => {
                                       try {
@@ -1385,8 +1444,9 @@ function App() {
                                     }}
                                   >
                                     Got it
-                                  </button>
-                                  <button
+                                  </Button>
+                                  <Button
+                                    unstyled
                                     className={cn(
                                       styles.popoverButton,
                                       styles.popoverButtonPrimary,
@@ -1407,44 +1467,48 @@ function App() {
                                     }}
                                   >
                                     Try it
-                                  </button>
+                                  </Button>
                                 </Flex>
                               </Surface>,
                               document.body,
                             )}
                         </div>
                         <div className={navItemClass}>
-                          <button
+                          <Button
+                            unstyled
                             onClick={() => navigate('/timeline')}
                             onMouseEnter={() => preloader.prefetchJson('/api/timeline')}
                             className={getNavSegmentClass('timeline', activeTab === 'timeline')}
                           >
                             <Icon name="Clock" size="sm" />
                             <span className={navLabelClass}>Timeline</span>
-                          </button>
+                          </Button>
                         </div>
                         <div className={navItemClass}>
-                          <button
+                          <Button
+                            unstyled
                             onClick={() => navigate('/flights')}
                             onMouseEnter={() => preloader.prefetchJson('/api/flights')}
                             className={getNavSegmentClass('flights', activeTab === 'flights')}
                           >
                             <Icon name="Navigation" size="sm" />
                             <span className={navLabelClass}>Flights</span>
-                          </button>
+                          </Button>
                         </div>
                         <div className={navItemClass}>
-                          <button
+                          <Button
+                            unstyled
                             onClick={() => navigate('/properties')}
                             onMouseEnter={() => preloader.prefetchJson('/api/properties/stats')}
                             className={getNavSegmentClass('properties', activeTab === 'properties')}
                           >
                             <Icon name="Building" size="sm" />
                             <span className={navLabelClass}>Properties</span>
-                          </button>
+                          </Button>
                         </div>
                         <div className={navItemClass}>
-                          <button
+                          <Button
+                            unstyled
                             onClick={() => navigate('/media')}
                             onMouseEnter={() => {
                               preloader.prefetchJson('/api/media/albums');
@@ -1454,45 +1518,49 @@ function App() {
                           >
                             <Icon name="Newspaper" size="sm" />
                             <span className={navLabelClass}>Media</span>
-                          </button>
+                          </Button>
                         </div>
                         <div className={navItemClass}>
-                          <button
+                          <Button
+                            unstyled
                             onClick={() => navigate('/emails')}
                             onMouseEnter={() => preloader.prefetchJson('/api/emails')}
                             className={getNavSegmentClass('emails', activeTab === 'emails')}
                           >
                             <Icon name="Mail" size="sm" />
                             <span className={navLabelClass}>Emails</span>
-                          </button>
+                          </Button>
                         </div>
                         <div className={navItemClass}>
-                          <button
+                          <Button
+                            unstyled
                             onClick={() => navigate('/blackbook')}
                             onMouseEnter={() => preloader.prefetchJson('/api/media/albums')}
                             className={getNavSegmentClass('blackbook', activeTab === 'blackbook')}
                           >
                             <Icon name="BookOpen" size="sm" />
                             <span className={navLabelClass}>Black Book</span>
-                          </button>
+                          </Button>
                         </div>
                         <div className={navItemClass}>
-                          <button
+                          <Button
+                            unstyled
                             onClick={() => navigate('/analytics')}
                             className={getNavSegmentClass('analytics', activeTab === 'analytics')}
                           >
                             <Icon name="BarChart3" size="sm" />
                             <span className={navLabelClass}>Analytics</span>
-                          </button>
+                          </Button>
                         </div>
                         <div className={navItemClass}>
-                          <button
+                          <Button
+                            unstyled
                             onClick={() => navigate('/about')}
                             className={getNavSegmentClass('about', activeTab === 'about')}
                           >
                             <Icon name="Shield" size="sm" />
                             <span className={navLabelClass}>About</span>
-                          </button>
+                          </Button>
                         </div>
                       </div>
                     </div>
@@ -1537,295 +1605,315 @@ function App() {
                         </div>
                       }
                     >
-                      <Routes>
-                        <Route
-                          path="/"
-                          element={
-                            <PeoplePage
-                              dataStats={dataStats}
-                              selectedRiskLevel={selectedRiskLevel}
-                              onRiskLevelClick={handleRiskLevelClick}
-                              onResetFilters={handleResetFilters}
-                              isAdmin={isAdmin}
-                              onAddSubject={() => setShowCreateEntityModal(true)}
-                              entityType={entityType}
-                              onEntityTypeChange={setEntityType}
-                              sortBy={sortBy}
-                              onSortByChange={(val) => {
-                                if (
-                                  val === 'name' ||
-                                  val === 'mentions' ||
-                                  val === 'red_flag' ||
-                                  val === 'risk'
-                                ) {
-                                  setSortBy(val);
+                      {apiStatus === 'down' &&
+                      !(
+                        location.pathname === '/login' ||
+                        location.pathname.startsWith('/about') ||
+                        location.pathname.startsWith('/privacy') ||
+                        location.pathname.startsWith('/terms') ||
+                        location.pathname.startsWith('/faq') ||
+                        location.pathname.startsWith('/guide')
+                      ) ? (
+                        <ApiUnavailableScreen />
+                      ) : (
+                        <Routes>
+                          <Route
+                            path="/"
+                            element={
+                              <PeoplePage
+                                dataStats={dataStats}
+                                selectedRiskLevel={selectedRiskLevel}
+                                onRiskLevelClick={handleRiskLevelClick}
+                                onResetFilters={handleResetFilters}
+                                isAdmin={isAdmin}
+                                onAddSubject={() => setShowCreateEntityModal(true)}
+                                entityType={entityType}
+                                onEntityTypeChange={setEntityType}
+                                sortBy={sortBy}
+                                onSortByChange={(val) => {
+                                  if (
+                                    val === 'name' ||
+                                    val === 'mentions' ||
+                                    val === 'red_flag' ||
+                                    val === 'risk'
+                                  ) {
+                                    setSortBy(val);
+                                  }
+                                }}
+                                sortOrder={sortOrder}
+                                onSortOrderToggle={() =>
+                                  setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
                                 }
-                              }}
-                              sortOrder={sortOrder}
-                              onSortOrderToggle={() =>
-                                setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
-                              }
-                              searchTerm={searchTerm}
-                              onPersonClick={handlePersonClick}
-                            />
-                          }
-                        />
-                        <Route
-                          path="/people"
-                          element={
-                            <PeoplePage
-                              dataStats={dataStats}
-                              selectedRiskLevel={selectedRiskLevel}
-                              onRiskLevelClick={handleRiskLevelClick}
-                              onResetFilters={handleResetFilters}
-                              isAdmin={isAdmin}
-                              onAddSubject={() => setShowCreateEntityModal(true)}
-                              entityType={entityType}
-                              onEntityTypeChange={setEntityType}
-                              sortBy={sortBy}
-                              onSortByChange={(val) => {
-                                if (
-                                  val === 'name' ||
-                                  val === 'mentions' ||
-                                  val === 'red_flag' ||
-                                  val === 'risk'
-                                ) {
-                                  setSortBy(val);
+                                searchTerm={searchTerm}
+                                onPersonClick={handlePersonClick}
+                              />
+                            }
+                          />
+                          <Route
+                            path="/people"
+                            element={
+                              <PeoplePage
+                                dataStats={dataStats}
+                                selectedRiskLevel={selectedRiskLevel}
+                                onRiskLevelClick={handleRiskLevelClick}
+                                onResetFilters={handleResetFilters}
+                                isAdmin={isAdmin}
+                                onAddSubject={() => setShowCreateEntityModal(true)}
+                                entityType={entityType}
+                                onEntityTypeChange={setEntityType}
+                                sortBy={sortBy}
+                                onSortByChange={(val) => {
+                                  if (
+                                    val === 'name' ||
+                                    val === 'mentions' ||
+                                    val === 'red_flag' ||
+                                    val === 'risk'
+                                  ) {
+                                    setSortBy(val);
+                                  }
+                                }}
+                                sortOrder={sortOrder}
+                                onSortOrderToggle={() =>
+                                  setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
                                 }
-                              }}
-                              sortOrder={sortOrder}
-                              onSortOrderToggle={() =>
-                                setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
-                              }
-                              searchTerm={searchTerm}
-                              onPersonClick={handlePersonClick}
-                            />
-                          }
-                        />
-                        {/* Entity deep-link — modal is handled separately; render people tab underneath */}
-                        <Route
-                          path="/entity/:id"
-                          element={
-                            <PeoplePage
-                              dataStats={dataStats}
-                              selectedRiskLevel={selectedRiskLevel}
-                              onRiskLevelClick={handleRiskLevelClick}
-                              onResetFilters={handleResetFilters}
-                              isAdmin={isAdmin}
-                              onAddSubject={() => setShowCreateEntityModal(true)}
-                              entityType={entityType}
-                              onEntityTypeChange={setEntityType}
-                              sortBy={sortBy}
-                              onSortByChange={(val) => {
-                                if (
-                                  val === 'name' ||
-                                  val === 'mentions' ||
-                                  val === 'red_flag' ||
-                                  val === 'risk'
-                                ) {
-                                  setSortBy(val);
+                                searchTerm={searchTerm}
+                                onPersonClick={handlePersonClick}
+                              />
+                            }
+                          />
+                          {/* Entity deep-link — modal is handled separately; render people tab underneath */}
+                          <Route
+                            path="/entity/:id"
+                            element={
+                              <PeoplePage
+                                dataStats={dataStats}
+                                selectedRiskLevel={selectedRiskLevel}
+                                onRiskLevelClick={handleRiskLevelClick}
+                                onResetFilters={handleResetFilters}
+                                isAdmin={isAdmin}
+                                onAddSubject={() => setShowCreateEntityModal(true)}
+                                entityType={entityType}
+                                onEntityTypeChange={setEntityType}
+                                sortBy={sortBy}
+                                onSortByChange={(val) => {
+                                  if (
+                                    val === 'name' ||
+                                    val === 'mentions' ||
+                                    val === 'red_flag' ||
+                                    val === 'risk'
+                                  ) {
+                                    setSortBy(val);
+                                  }
+                                }}
+                                sortOrder={sortOrder}
+                                onSortOrderToggle={() =>
+                                  setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
                                 }
-                              }}
-                              sortOrder={sortOrder}
-                              onSortOrderToggle={() =>
-                                setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
-                              }
-                              searchTerm={searchTerm}
-                              onPersonClick={handlePersonClick}
-                            />
-                          }
-                        />
-                        <Route
-                          path="/analytics"
-                          element={
-                            <AnalyticsPage
-                              analyticsData={analyticsData ?? undefined}
-                              loading={analyticsLoading}
-                              error={analyticsError}
-                              onRetry={refetchAnalytics}
-                              onPersonSelect={handlePersonClick}
-                            />
-                          }
-                        />
-                        <Route
-                          path="/search"
-                          element={<EvidenceSearch onPersonClick={handlePersonClick} />}
-                        />
-                        <Route
-                          path="/documents/*"
-                          element={
-                            <DocumentsPage
-                              searchTerm={selectedDocumentSearchTerm}
-                              onSearchTermChange={setSelectedDocumentSearchTerm}
-                              selectedDocumentId={documentModalId || ''}
-                            />
-                          }
-                        />
-                        <Route path="/timeline/*" element={<TimelinePage />} />
-                        <Route path="/flights/*" element={<FlightsPage />} />
-                        <Route path="/properties/*" element={<PropertyPage />} />
-                        <Route path="/emails/*" element={<EmailPage />} />
-                        <Route path="/media/*" element={<MediaPage />} />
-                        <Route path="/about/*" element={<AboutPage />} />
-                        <Route path="/privacy" element={<LegalPage mode="privacy" />} />
-                        <Route path="/terms" element={<LegalPage mode="terms" />} />
-                        <Route path="/faq" element={<FAQPage />} />
-                        <Route path="/guide" element={<GuidePage />} />
-                        <Route
-                          path="/the-epstein-files"
-                          element={<TheEpsteinFilesPage variant="overview" />}
-                        />
-                        <Route
-                          path="/epstein-documents"
-                          element={<TheEpsteinFilesPage variant="documents" />}
-                        />
-                        <Route
-                          path="/epstein-people"
-                          element={<TheEpsteinFilesPage variant="people" />}
-                        />
-                        <Route
-                          path="/epstein-media"
-                          element={<TheEpsteinFilesPage variant="media" />}
-                        />
-                        <Route
-                          path="/epstein-timeline"
-                          element={<TheEpsteinFilesPage variant="timeline" />}
-                        />
-                        <Route
-                          path="/epstein-flights"
-                          element={<TheEpsteinFilesPage variant="flights" />}
-                        />
-                        <Route path="/login" element={<LoginPage />} />
-                        <Route path="/admin/*" element={<AdminDashboard />} />
-                        <Route path="/evidence/:id" element={<EvidenceDetail />} />
-                        <Route
-                          path="/review/*"
-                          element={
-                            <Suspense
-                              fallback={
-                                <LoadingIndicator
-                                  isLoading={true}
-                                  label="Loading Review Dashboard..."
-                                />
-                              }
-                            >
-                              <ReviewDashboard />
-                            </Suspense>
-                          }
-                        />
-                        <Route
-                          path="/investigations/*"
-                          element={
-                            <InvestigationWorkspace
-                              investigationId={(() => {
-                                const parts = location.pathname.split('/');
-                                return parts[1] === 'investigations' && parts[2]
-                                  ? parts[2]
-                                  : undefined;
-                              })()}
-                              currentUser={
-                                currentUser
-                                  ? {
-                                      id: currentUser.id,
-                                      name: currentUser.username,
-                                      email: currentUser.email || 'investigator@example.com',
-                                      role: isAdmin ? 'lead' : 'analyst',
-                                      permissions: ['read', 'write', ...(isAdmin ? ['admin'] : [])],
-                                      joinedAt: new Date(),
-                                      expertise: ['investigative journalism', 'data analysis'],
-                                    }
-                                  : {
-                                      id: 'guest',
-                                      name: 'Guest',
-                                      email: 'guest@example.com',
-                                      role: 'analyst',
-                                      permissions: ['read'],
-                                      joinedAt: new Date(),
-                                      expertise: [],
-                                    }
-                              }
-                            />
-                          }
-                        />
-                        <Route
-                          path="/investigate/case/:id/*"
-                          element={
-                            <InvestigationWorkspace
-                              investigationId={location.pathname.split('/')[3]}
-                              currentUser={
-                                currentUser
-                                  ? {
-                                      id: currentUser.id,
-                                      name: currentUser.username,
-                                      email: currentUser.email || 'investigator@example.com',
-                                      role: isAdmin ? 'lead' : 'analyst',
-                                      permissions: ['read', 'write', ...(isAdmin ? ['admin'] : [])],
-                                      joinedAt: new Date(),
-                                      expertise: ['investigative journalism', 'data analysis'],
-                                    }
-                                  : {
-                                      id: 'guest',
-                                      name: 'Guest',
-                                      email: 'guest@example.com',
-                                      role: 'analyst',
-                                      permissions: ['read'],
-                                      joinedAt: new Date(),
-                                      expertise: [],
-                                    }
-                              }
-                            />
-                          }
-                        />
-                        <Route
-                          path="/blackbook/*"
-                          element={
-                            <Box mt={6}>
+                                searchTerm={searchTerm}
+                                onPersonClick={handlePersonClick}
+                              />
+                            }
+                          />
+                          <Route
+                            path="/analytics"
+                            element={
+                              <AnalyticsPage
+                                analyticsData={analyticsData ?? undefined}
+                                loading={analyticsLoading}
+                                error={analyticsError}
+                                onRetry={refetchAnalytics}
+                                onPersonSelect={handlePersonClick}
+                              />
+                            }
+                          />
+                          <Route
+                            path="/search"
+                            element={<EvidenceSearch onPersonClick={handlePersonClick} />}
+                          />
+                          <Route
+                            path="/documents/*"
+                            element={
+                              <DocumentsPage
+                                searchTerm={selectedDocumentSearchTerm}
+                                onSearchTermChange={setSelectedDocumentSearchTerm}
+                                selectedDocumentId={documentModalId || ''}
+                              />
+                            }
+                          />
+                          <Route path="/timeline/*" element={<TimelinePage />} />
+                          <Route path="/flights/*" element={<FlightsPage />} />
+                          <Route path="/properties/*" element={<PropertyPage />} />
+                          <Route path="/emails/*" element={<EmailPage />} />
+                          <Route path="/media/*" element={<MediaPage />} />
+                          <Route path="/about/*" element={<AboutPage />} />
+                          <Route path="/privacy" element={<LegalPage mode="privacy" />} />
+                          <Route path="/terms" element={<LegalPage mode="terms" />} />
+                          <Route path="/faq" element={<FAQPage />} />
+                          <Route path="/guide" element={<GuidePage />} />
+                          <Route
+                            path="/the-epstein-files"
+                            element={<TheEpsteinFilesPage variant="overview" />}
+                          />
+                          <Route
+                            path="/epstein-documents"
+                            element={<TheEpsteinFilesPage variant="documents" />}
+                          />
+                          <Route
+                            path="/epstein-people"
+                            element={<TheEpsteinFilesPage variant="people" />}
+                          />
+                          <Route
+                            path="/epstein-media"
+                            element={<TheEpsteinFilesPage variant="media" />}
+                          />
+                          <Route
+                            path="/epstein-timeline"
+                            element={<TheEpsteinFilesPage variant="timeline" />}
+                          />
+                          <Route
+                            path="/epstein-flights"
+                            element={<TheEpsteinFilesPage variant="flights" />}
+                          />
+                          <Route path="/login" element={<LoginPage />} />
+                          <Route path="/admin/*" element={<AdminDashboard />} />
+                          <Route path="/evidence/:id" element={<EvidenceDetail />} />
+                          <Route
+                            path="/review/*"
+                            element={
                               <Suspense
                                 fallback={
-                                  <div className={styles.centerLoader}>
-                                    <div className={styles.largeSpinner}></div>
-                                  </div>
+                                  <LoadingIndicator
+                                    isLoading={true}
+                                    label="Loading Review Dashboard..."
+                                  />
                                 }
                               >
-                                <BlackBookViewer />
+                                <ReviewDashboard />
                               </Suspense>
-                            </Box>
-                          }
-                        />
-                        {/* Fallback — default to people */}
-                        <Route
-                          path="*"
-                          element={
-                            <PeoplePage
-                              dataStats={dataStats}
-                              selectedRiskLevel={selectedRiskLevel}
-                              onRiskLevelClick={handleRiskLevelClick}
-                              onResetFilters={handleResetFilters}
-                              isAdmin={isAdmin}
-                              onAddSubject={() => setShowCreateEntityModal(true)}
-                              entityType={entityType}
-                              onEntityTypeChange={setEntityType}
-                              sortBy={sortBy}
-                              onSortByChange={(val) => {
-                                if (
-                                  val === 'name' ||
-                                  val === 'mentions' ||
-                                  val === 'red_flag' ||
-                                  val === 'risk'
-                                ) {
-                                  setSortBy(val);
+                            }
+                          />
+                          <Route
+                            path="/investigations/*"
+                            element={
+                              <InvestigationWorkspace
+                                investigationId={(() => {
+                                  const parts = location.pathname.split('/');
+                                  return parts[1] === 'investigations' && parts[2]
+                                    ? parts[2]
+                                    : undefined;
+                                })()}
+                                currentUser={
+                                  currentUser
+                                    ? {
+                                        id: currentUser.id,
+                                        name: currentUser.username,
+                                        email: currentUser.email || 'investigator@example.com',
+                                        role: isAdmin ? 'lead' : 'analyst',
+                                        permissions: [
+                                          'read',
+                                          'write',
+                                          ...(isAdmin ? ['admin'] : []),
+                                        ],
+                                        joinedAt: new Date(),
+                                        expertise: ['investigative journalism', 'data analysis'],
+                                      }
+                                    : {
+                                        id: 'guest',
+                                        name: 'Guest',
+                                        email: 'guest@example.com',
+                                        role: 'analyst',
+                                        permissions: ['read'],
+                                        joinedAt: new Date(),
+                                        expertise: [],
+                                      }
                                 }
-                              }}
-                              sortOrder={sortOrder}
-                              onSortOrderToggle={() =>
-                                setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
-                              }
-                              searchTerm={searchTerm}
-                              onPersonClick={handlePersonClick}
-                            />
-                          }
-                        />
-                      </Routes>
+                              />
+                            }
+                          />
+                          <Route
+                            path="/investigate/case/:id/*"
+                            element={
+                              <InvestigationWorkspace
+                                investigationId={location.pathname.split('/')[3]}
+                                currentUser={
+                                  currentUser
+                                    ? {
+                                        id: currentUser.id,
+                                        name: currentUser.username,
+                                        email: currentUser.email || 'investigator@example.com',
+                                        role: isAdmin ? 'lead' : 'analyst',
+                                        permissions: [
+                                          'read',
+                                          'write',
+                                          ...(isAdmin ? ['admin'] : []),
+                                        ],
+                                        joinedAt: new Date(),
+                                        expertise: ['investigative journalism', 'data analysis'],
+                                      }
+                                    : {
+                                        id: 'guest',
+                                        name: 'Guest',
+                                        email: 'guest@example.com',
+                                        role: 'analyst',
+                                        permissions: ['read'],
+                                        joinedAt: new Date(),
+                                        expertise: [],
+                                      }
+                                }
+                              />
+                            }
+                          />
+                          <Route
+                            path="/blackbook/*"
+                            element={
+                              <Box mt={6}>
+                                <Suspense
+                                  fallback={
+                                    <div className={styles.centerLoader}>
+                                      <div className={styles.largeSpinner}></div>
+                                    </div>
+                                  }
+                                >
+                                  <BlackBookViewer />
+                                </Suspense>
+                              </Box>
+                            }
+                          />
+                          {/* Fallback — default to people */}
+                          <Route
+                            path="*"
+                            element={
+                              <PeoplePage
+                                dataStats={dataStats}
+                                selectedRiskLevel={selectedRiskLevel}
+                                onRiskLevelClick={handleRiskLevelClick}
+                                onResetFilters={handleResetFilters}
+                                isAdmin={isAdmin}
+                                onAddSubject={() => setShowCreateEntityModal(true)}
+                                entityType={entityType}
+                                onEntityTypeChange={setEntityType}
+                                sortBy={sortBy}
+                                onSortByChange={(val) => {
+                                  if (
+                                    val === 'name' ||
+                                    val === 'mentions' ||
+                                    val === 'red_flag' ||
+                                    val === 'risk'
+                                  ) {
+                                    setSortBy(val);
+                                  }
+                                }}
+                                sortOrder={sortOrder}
+                                onSortOrderToggle={() =>
+                                  setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
+                                }
+                                searchTerm={searchTerm}
+                                onPersonClick={handlePersonClick}
+                              />
+                            }
+                          />
+                        </Routes>
+                      )}
                     </Suspense>
                   </div>
                 </div>

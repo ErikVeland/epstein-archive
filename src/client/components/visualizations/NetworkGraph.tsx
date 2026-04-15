@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useRef, useEffect, useCallback } from 'react';
 import { GraphService, GraphNode as ServiceGraphNode } from '../../services/GraphService';
 import { ZoomIn, ZoomOut, Move, RefreshCw, AlertTriangle, Link2, Filter } from 'lucide-react';
+import { Button, cn } from '../../design-system/lib';
 import { Semaphore } from '../../utils/semaphore';
 import styles from './NetworkGraph.module.css';
 
@@ -628,33 +629,35 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
   );
 
   return (
-    <div className={`glass-panel ${styles.root} ${spacePressed ? styles.panMode : ''}`}>
+    <div className={`${styles.root} ${styles.rootPanel} ${spacePressed ? styles.panMode : ''}`}>
       {/* Controls */}
       <div className={styles.controls}>
-        <button onClick={zoomIn} className={`glass-surface ${styles.controlButton}`}>
+        <Button variant="ghost" size="sm" onClick={zoomIn} className={styles.controlButton}>
           <ZoomIn className={styles.controlIcon} />
-        </button>
-        <button onClick={zoomOut} className={`glass-surface ${styles.controlButton}`}>
+        </Button>
+        <Button variant="ghost" size="sm" onClick={zoomOut} className={styles.controlButton}>
           <ZoomOut className={styles.controlIcon} />
-        </button>
-        <button onClick={resetView} className={`glass-surface ${styles.controlButton}`}>
+        </Button>
+        <Button variant="ghost" size="sm" onClick={resetView} className={styles.controlButton}>
           <RefreshCw className={styles.controlIcon} />
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => {
             setShowFilters(!showFilters);
             setHasInteractedWithFilter(true);
           }}
-          className={
-            showFilters
-              ? `${styles.controlButton} ${styles.filterButton} ${styles.filterButtonActive}`
-              : `glass-surface ${styles.controlButton} ${styles.filterButton}`
-          }
+          className={cn(
+            styles.controlButton,
+            styles.filterButton,
+            showFilters && styles.filterButtonActive,
+          )}
         >
           <Filter className={styles.controlIcon} />
           {!hasInteractedWithFilter && !showFilters && <span className={styles.filterPing} />}
           {!hasInteractedWithFilter && !showFilters && <span className={styles.filterDot} />}
-        </button>
+        </Button>
       </div>
 
       {/* Hover Tooltip */}
@@ -677,7 +680,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
       )}
       {/* Filter Panel */}
       {showFilters && (
-        <div className={`soft-glass-panel-strong ${styles.filterPanel}`}>
+        <div className={styles.filterPanel}>
           <p className={styles.filterTitle}>
             <Filter className={styles.tinyIcon} /> Node Filters
           </p>
@@ -729,22 +732,23 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
                 <label className={styles.typeLabel}>Rel Types:</label>
                 <div className={`custom-scrollbar ${styles.typeTags}`}>
                   {availableRelTypes.map((type) => (
-                    <button
+                    <Button
                       key={type}
+                      variant="ghost"
+                      size="sm"
                       onClick={() => {
                         const next = new Set(excludedRelTypes);
                         if (next.has(type)) next.delete(type);
                         else next.add(type);
                         setExcludedRelTypes(next);
                       }}
-                      className={`${
-                        !excludedRelTypes.has(type)
-                          ? `${styles.typeTag} ${styles.typeTagSelected}`
-                          : styles.typeTag
-                      }`}
+                      className={cn(
+                        styles.typeTag,
+                        !excludedRelTypes.has(type) && styles.typeTagSelected,
+                      )}
                     >
                       {type}
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>
@@ -759,7 +763,7 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
       )}
 
       {/* Legend */}
-      <div className={`soft-glass-panel ${styles.legend} ${styles.legendInteractive}`}>
+      <div className={`${styles.legend} ${styles.legendInteractive}`}>
         <div className={styles.legendHeader}>
           <p className={styles.legendTitle}>Node Risk</p>
           {nodeRiskActions ? <div className={styles.legendActions}>{nodeRiskActions}</div> : null}
@@ -1046,7 +1050,9 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
               </div>
             </div>
             <div className={styles.inspectorActions}>
-              <button
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => handleExpandNode(selectedNode.id)}
                 disabled={isExpanding}
                 className={styles.expandButton}
@@ -1057,14 +1063,16 @@ export const NetworkGraph: React.FC<NetworkGraphProps> = ({
                   <Link2 className={styles.tinyIcon} />
                 )}
                 Discover Connections
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => setSelectedNodeId(null)}
                 className={styles.closeButton}
                 title="Close"
               >
                 ×
-              </button>
+              </Button>
             </div>
           </div>
         </div>

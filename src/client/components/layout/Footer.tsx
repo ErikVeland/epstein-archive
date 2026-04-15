@@ -4,7 +4,7 @@ import { ExternalLink, Github, Eye, EyeOff, ArrowRight } from 'lucide-react';
 import { useSensitiveSettings } from '../../contexts/SensitiveSettingsContext';
 import { Link } from 'react-router-dom';
 import { apiClient } from '../../services/apiClient';
-import { Surface } from '../../design-system/lib';
+import { Button, Surface } from '../../design-system/lib';
 import s from './Footer.module.css';
 
 interface FooterProps {
@@ -216,14 +216,20 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
           <div className={s.bottomBarLeft}>
             <span className={s.copyright}>&copy; 2025 Glass Academy. All rights reserved.</span>
             <span className={s.divider}>|</span>
-            <button onClick={onVersionClick} className={s.versionBtn} title="View Release Notes">
+            <Button
+              unstyled
+              onClick={onVersionClick}
+              className={s.versionBtn}
+              title="View Release Notes"
+            >
               <span className={s.versionText}>v{__APP_VERSION__}</span>
               <span className={s.versionDot} />
               <span>Updated: {__BUILD_DATE__}</span>
-            </button>
+            </Button>
           </div>
           <div className={s.bottomBarRight}>
-            <button
+            <Button
+              unstyled
               onClick={toggleShowAllSensitive}
               className={`${s.sensitiveBtn} ${showAllSensitive ? s.sensitiveBtnActive : ''}`}
               title={
@@ -236,7 +242,7 @@ const Footer: React.FC<FooterProps> = ({ onVersionClick }) => {
               <span className={s.sensitiveBtnLabel}>
                 {showAllSensitive ? 'Sensitive Content Visible' : 'Sensitive Content'}
               </span>
-            </button>
+            </Button>
             <Link to="/privacy" className={s.footerLink}>
               Privacy Policy
             </Link>
