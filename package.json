@@ -1,7 +1,7 @@
 {
   "name": "epstein-archive",
   "private": true,
-  "version": "19.0.4",
+  "version": "19.1.0",
   "description": "Epstein Archive Analyzer",
   "type": "module",
   "engines": {
@@ -9,12 +9,13 @@
   },
   "scripts": {
     "dev": "vite",
+    "dev:clean": "rm -rf node_modules/.vite && vite --force",
     "build": "vite build",
-    "prebuild:prod": "bash scripts/ci_pg_nuclear_gates.sh",
+    "prebuild:prod": "bash scripts/ci_pg_nuclear_gates.sh && STRICT_DESIGN_TOKENS=1 node --import tsx/esm scripts/check_design_token_usage.ts",
     "build:prod": "pnpm --filter @epstein/db build && vite build && tsc -p tsconfig.server.json",
     "start": "NODE_ENV=production RAW_CORPUS_BASE_PATH=./data node dist/server.js",
-    "server": "tsx src/server.ts",
-    "api": "tsx src/server.ts",
+    "server": "pnpm exec tsx src/server.ts",
+    "api": "pnpm exec tsx src/server.ts",
     "preview": "vite preview",
     "go:prod": "tsx scripts/go_prod.ts",
     "db:migrate:pg": "tsx scripts/pg_migrate.ts && tsx scripts/pg_analyze_after_migrate.ts",
