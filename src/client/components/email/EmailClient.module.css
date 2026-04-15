@@ -124,7 +124,7 @@
 }
 
 .paneSubheader {
-  padding: var(--spacing-3) var(--spacing-4);
+  padding: var(--spacing-4) var(--spacing-4);
   border-bottom: 1px solid var(--glass-border);
   background: var(--glass-bg-highlight);
   display: flex;
@@ -183,9 +183,10 @@
 
 /* Typography refinements */
 .subjectLine {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--letter-spacing-tight);
+  font-size: var(--font-size-base, 1rem);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0;
+  line-height: 1.4;
   color: var(--text-primary);
 }
 

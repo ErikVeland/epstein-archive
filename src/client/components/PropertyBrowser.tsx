@@ -5,6 +5,7 @@ import { PropertyBrowseView } from './properties/PropertyBrowseView';
 import { PropertyAssociatesView } from './properties/PropertyAssociatesView';
 import { PropertyAnalyticsView } from './properties/PropertyAnalyticsView';
 import { PropertyStatsHeader } from './properties/PropertyStatsHeader';
+import { PropertyDetailPanel } from './properties/PropertyDetailPanel';
 import { cn } from '@client/utils/cn';
 import { Button, EmptyState } from '../design-system/lib';
 import type { Property, PropertyStats, ValueDistribution, TopOwner } from './properties/types';
@@ -16,6 +17,7 @@ type ViewMode = 'browse' | 'associates' | 'analytics';
 
 export function PropertyBrowser(): React.ReactElement {
   const [viewMode, setViewMode] = useState<ViewMode>('browse');
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
 
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -170,6 +172,7 @@ export function PropertyBrowser(): React.ReactElement {
 
   return (
     <div className={styles.browser}>
+      <PropertyDetailPanel property={selectedProperty} onClose={() => setSelectedProperty(null)} />
       <PropertyStatsHeader stats={stats} />
 
       {/* View Tabs */}
@@ -223,6 +226,7 @@ export function PropertyBrowser(): React.ReactElement {
             onShowAssociatesOnlyChange={setShowAssociatesOnly}
             onPageChange={setPage}
             onViewModeChange={setViewMode}
+            onSelectProperty={setSelectedProperty}
           />
         )}
         {viewMode === 'associates' && <PropertyAssociatesView knownAssociates={knownAssociates} />}

@@ -8,6 +8,7 @@ import {
   areEqual,
 } from 'react-window';
 import {
+  Image as ImageIcon,
   Share2,
   Check,
   Users,
@@ -512,128 +513,153 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
         description="Forensic photo evidence from the Epstein files."
       />
       <Surface variant="glass-container" className={styles.browser}>
-        {/* Header with controls */}
-        <Flex justify="between" align="center" className={styles.header}>
-          <MobileAlbumDropdown
-            albums={adaptedAlbums}
-            selectedAlbum={selectedAlbum}
-            onSelectAlbum={setSelectedAlbum}
-            isOpen={showAlbumDropdown}
-            onToggle={() => setShowAlbumDropdown((v) => !v)}
-            totalItemCount={libraryTotalCount}
-            allLabel="All Photos"
-            currentAlbumName={currentAlbum?.name}
-          />
+        {/* Header */}
+        <Surface variant="glass" className={styles.header}>
+          <Flex justify="between" align="center" gap="md" fullWidth>
+            {/* Identity */}
+            <Flex align="center" gap="md">
+              <Box className={styles.iconBox}>
+                <ImageIcon size={24} />
+              </Box>
+              <Stack gap="none">
+                <LqText variant="h2" weight="bold">
+                  Photo Archive
+                </LqText>
+                <LqText variant="xs" color="muted" style={css({ textTransform: 'uppercase' })}>
+                  Forensic Archive • {libraryTotalCount} Objects
+                </LqText>
+              </Stack>
+            </Flex>
 
-          <Flex gap="md" align="center" grow>
-            <SearchField
-              placeholder="Search archive..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className={styles.searchField}
-              rootClassName={styles.searchRoot}
-            />
+            {/* Controls */}
+            <Flex align="center" gap="sm">
+              <SearchField
+                placeholder="Search archive..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                density="compact"
+                rootClassName={styles.searchRoot}
+              />
 
-            <Flex gap="sm" align="center" className={styles.desktopControls}>
-              <Button variant="glass" size="sm" onClick={handleShare}>
-                {showCopied ? (
-                  <Check size={14} className={styles.shareSuccess} />
-                ) : (
-                  <Share2 size={14} />
-                )}
-                <span>Share</span>
-              </Button>
+              <Flex align="center" gap="xs" className={styles.desktopControls}>
+                <Flex gap="xs" align="center" className={styles.filterControls}>
+                  <Select
+                    size="sm"
+                    value={selectedTag || ''}
+                    onChange={(e) =>
+                      setSelectedTag(e.target.value ? parseInt(e.target.value) : null)
+                    }
+                    options={[
+                      { value: '', label: 'All Tags' },
+                      ...availableTags.map((tag) => ({ value: tag.id, label: tag.name })),
+                    ]}
+                    rootClassName={styles.filterRoot}
+                  />
+                  <Select
+                    size="sm"
+                    value={selectedPerson || ''}
+                    onChange={(e) =>
+                      setSelectedPerson(e.target.value ? parseInt(e.target.value) : null)
+                    }
+                    onFocus={loadPeopleOptions}
+                    options={[
+                      { value: '', label: 'All People' },
+                      ...availablePeople.map((p) => ({ value: p.id, label: p.name })),
+                    ]}
+                    rootClassName={styles.filterRoot}
+                  />
+                  <Button
+                    variant={hasPeopleOnly ? 'accent-solid' : 'glass'}
+                    size="sm"
+                    onClick={() => setHasPeopleOnly(!hasPeopleOnly)}
+                    title="Filter for people"
+                  >
+                    <Users size={14} />
+                  </Button>
+                </Flex>
 
-              <Flex gap="xs" align="center" className={styles.filterControls}>
-                <Select
-                  value={selectedTag || ''}
-                  onChange={(e) => setSelectedTag(e.target.value ? parseInt(e.target.value) : null)}
-                  options={[
-                    { value: '', label: 'All Tags' },
-                    ...availableTags.map((tag) => ({ value: tag.id, label: tag.name })),
-                  ]}
-                  className={styles.filterSelect}
-                  rootClassName={styles.filterRoot}
-                />
+                <Box className={styles.controlsDivider} />
 
-                <Select
-                  value={selectedPerson || ''}
-                  onChange={(e) =>
-                    setSelectedPerson(e.target.value ? parseInt(e.target.value) : null)
-                  }
-                  onFocus={loadPeopleOptions}
-                  options={[
-                    { value: '', label: 'All People' },
-                    ...availablePeople.map((p) => ({ value: p.id, label: p.name })),
-                  ]}
-                  className={styles.filterSelect}
-                  rootClassName={styles.filterRoot}
-                />
+                <Flex align="center" gap="xs" className={styles.sortControls}>
+                  <Select
+                    size="sm"
+                    value={sortField}
+                    onChange={(e) => setSortField(e.target.value as SortField)}
+                    options={[
+                      { value: 'date_added', label: 'Added' },
+                      { value: 'date_taken', label: 'Taken' },
+                      { value: 'filename', label: 'Name' },
+                      { value: 'file_size', label: 'Size' },
+                    ]}
+                    rootClassName={styles.sortRoot}
+                  />
+                  <Button
+                    variant="glass"
+                    size="sm"
+                    onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                  >
+                    {sortOrder === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
+                  </Button>
+                </Flex>
 
-                <Button
-                  variant={hasPeopleOnly ? 'accent-solid' : 'glass'}
-                  size="sm"
-                  onClick={() => setHasPeopleOnly(!hasPeopleOnly)}
-                  title="Filter for people"
-                >
-                  <Users size={14} />
-                </Button>
-              </Flex>
+                <Flex className={styles.viewToggle} align="center">
+                  <Button
+                    variant={viewMode === 'tiles' ? 'accent-solid' : 'glass'}
+                    size="sm"
+                    onClick={() => setViewMode('tiles')}
+                  >
+                    <LayoutGrid size={14} />
+                  </Button>
+                  <Button
+                    variant={viewMode === 'rows' ? 'accent-solid' : 'glass'}
+                    size="sm"
+                    onClick={() => setViewMode('rows')}
+                  >
+                    <ListIcon size={14} />
+                  </Button>
+                </Flex>
 
-              <Box className={styles.controlsDivider} />
-
-              <Flex align="center" gap="xs" className={styles.sortControls}>
-                <Select
-                  value={sortField}
-                  onChange={(e) => setSortField(e.target.value as SortField)}
-                  options={[
-                    { value: 'date_added', label: 'Added' },
-                    { value: 'date_taken', label: 'Taken' },
-                    { value: 'filename', label: 'Name' },
-                    { value: 'file_size', label: 'Size' },
-                  ]}
-                  className={styles.sortSelect}
-                  rootClassName={styles.sortRoot}
-                />
                 <Button
                   variant="glass"
                   size="sm"
-                  onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                  onClick={handleShare}
+                  title={showCopied ? 'Link copied!' : 'Share'}
                 >
-                  {sortOrder === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
+                  {showCopied ? (
+                    <Check size={14} className={styles.shareSuccess} />
+                  ) : (
+                    <Share2 size={14} />
+                  )}
                 </Button>
-              </Flex>
 
-              <Flex className={styles.viewToggle} align="center">
-                <Button
-                  variant={viewMode === 'tiles' ? 'accent-solid' : 'glass'}
-                  size="sm"
-                  onClick={() => setViewMode('tiles')}
-                >
-                  <LayoutGrid size={14} />
-                </Button>
-                <Button
-                  variant={viewMode === 'rows' ? 'accent-solid' : 'glass'}
-                  size="sm"
-                  onClick={() => setViewMode('rows')}
-                >
-                  <ListIcon size={14} />
-                </Button>
+                {isAdmin && (
+                  <Button
+                    variant={isBatchMode ? 'accent-solid' : 'glass-highlight'}
+                    size="sm"
+                    onClick={isBatchMode ? exitBatchMode : enterBatchMode}
+                  >
+                    <CheckSquare size={14} />
+                    <span>{isBatchMode ? 'Finish' : 'Batch'}</span>
+                  </Button>
+                )}
               </Flex>
-
-              {isAdmin && (
-                <Button
-                  variant={isBatchMode ? 'accent-solid' : 'glass-highlight'}
-                  size="sm"
-                  onClick={isBatchMode ? exitBatchMode : enterBatchMode}
-                >
-                  <CheckSquare size={14} />
-                  <span>{isBatchMode ? 'Finish' : 'Batch'}</span>
-                </Button>
-              )}
             </Flex>
           </Flex>
-        </Flex>
+
+          {/* Mobile album dropdown */}
+          <Box className={styles.mobileNav}>
+            <MobileAlbumDropdown
+              albums={adaptedAlbums}
+              selectedAlbum={selectedAlbum}
+              onSelectAlbum={setSelectedAlbum}
+              isOpen={showAlbumDropdown}
+              onToggle={() => setShowAlbumDropdown((v) => !v)}
+              totalItemCount={libraryTotalCount}
+              allLabel="All Photos"
+              currentAlbumName={currentAlbum?.name}
+            />
+          </Box>
+        </Surface>
 
         <Flex className={styles.contentLayout}>
           <AlbumSidebar

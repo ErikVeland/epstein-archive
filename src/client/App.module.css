@@ -511,7 +511,7 @@
   top: 100%;
   bottom: auto; /* Prevent any floating above the anchor */
   right: 0;
-  z-index: 2000; /* Distinct high z-index to overlay nav bar */
+  z-index: var(--z-dropdown); /* Above header/nav */
   width: min(18rem, calc(100vw - 2rem));
   margin-top: 0.5rem;
   padding: var(--space-4);
@@ -582,6 +582,11 @@
   .mobileMenuButton {
     display: none;
   }
+}
+
+.hFull {
+  height: 100%;
+  overflow: hidden;
 }
 
 .mainShell {

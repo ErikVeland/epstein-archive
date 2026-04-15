@@ -24,6 +24,7 @@ interface PropertyBrowseViewProps {
   onShowAssociatesOnlyChange: (value: boolean) => void;
   onPageChange: (page: number) => void;
   onViewModeChange: (mode: ViewMode) => void;
+  onSelectProperty: (property: Property) => void;
 }
 
 export function PropertyBrowseView({
@@ -43,6 +44,7 @@ export function PropertyBrowseView({
   onShowAssociatesOnlyChange,
   onPageChange,
   onViewModeChange,
+  onSelectProperty,
 }: PropertyBrowseViewProps): React.ReactElement {
   return (
     <div className={styles.browser}>
@@ -151,7 +153,7 @@ export function PropertyBrowseView({
           <>
             <div className={styles.propertyGrid}>
               {properties.map((property) => (
-                <PropertyCard key={property.id} property={property} />
+                <PropertyCard key={property.id} property={property} onSelect={onSelectProperty} />
               ))}
             </div>
 

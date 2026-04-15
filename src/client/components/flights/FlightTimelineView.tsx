@@ -31,7 +31,7 @@ export const FlightTimelineView: React.FC<FlightTimelineViewProps> = ({
           <List
             height={height ?? 600}
             itemCount={flights.length}
-            itemSize={window.innerWidth <= 1024 ? 240 : 130}
+            itemSize={window.innerWidth <= 1024 ? 240 : 200}
             width={width ?? '100%'}
           >
             {({ index, style }) => {

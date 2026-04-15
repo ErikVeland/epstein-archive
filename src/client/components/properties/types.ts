@@ -19,6 +19,7 @@ export interface Property {
   is_epstein_property: number;
   is_known_associate: number;
   linked_entity_id: number | null;
+  address_source: 'original' | 'name_derived' | null;
 }
 
 export interface PropertyStats {

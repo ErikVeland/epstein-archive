@@ -97,8 +97,66 @@ export const blackBookRepository = {
       .map((e: { displayName?: string | null }) => e.displayName)
       .filter((n: unknown): n is string => typeof n === 'string' && n.length > 0);
 
+    const thumbnailsByPersonId = new Map<number, string>();
     const thumbnailsByName = new Map<string, string>();
+    const dedupedPersonIds = Array.from(
+      new Set(
+        filteredEntries
+          .map((e: Record<string, unknown>) => {
+            const id = Number(e.personId);
+            return Number.isFinite(id) && id > 0 ? id : null;
+          })
+          .filter((id): id is number => id != null),
+      ),
+    ).slice(0, 2000);
     const dedupedNames = Array.from(new Set(names)).slice(0, 2000);
+
+    if (dedupedPersonIds.length > 0) {
+      try {
+        const thumbRes = await getApiPool().query(
+          `
+          SELECT
+            entity_ids.entity_id,
+            COALESCE(representative_face.crop_path, tagged_face.crop_path) AS thumbnail_path
+          FROM UNNEST($1::bigint[]) AS entity_ids(entity_id)
+          LEFT JOIN LATERAL (
+            SELECT f.crop_path
+            FROM face_clusters fc
+            JOIN faces f ON f.id = fc.representative_face_id
+            WHERE fc.entity_id = entity_ids.entity_id
+              AND fc.is_hidden = false
+              AND f.crop_path IS NOT NULL
+            LIMIT 1
+          ) representative_face ON TRUE
+          LEFT JOIN LATERAL (
+            SELECT f.crop_path
+            FROM media_item_people mip
+            JOIN faces f ON f.media_item_id::text = mip.media_item_id::text
+            LEFT JOIN face_clusters fc ON fc.id = f.cluster_id
+            WHERE mip.entity_id = entity_ids.entity_id
+              AND f.crop_path IS NOT NULL
+              AND (fc.is_hidden = false OR fc.is_hidden IS NULL)
+            ORDER BY
+              CASE WHEN fc.entity_id = entity_ids.entity_id THEN 0 ELSE 1 END,
+              f.detection_confidence DESC NULLS LAST,
+              f.id
+            LIMIT 1
+          ) tagged_face ON TRUE
+          `,
+          [dedupedPersonIds],
+        );
+
+        for (const row of thumbRes.rows) {
+          if (typeof row.thumbnail_path === 'string' && row.thumbnail_path.length > 0) {
+            thumbnailsByPersonId.set(Number(row.entity_id), row.thumbnail_path);
+          }
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        logger.warn({ message }, '[BlackBook] Entity thumbnail enrichment skipped');
+      }
+    }
+
     if (dedupedNames.length > 0) {
       try {
         const thumbRes = await getApiPool().query(
@@ -127,7 +185,8 @@ export const blackBookRepository = {
         personId: e.personId ? Number(e.personId) : null,
         documentId: e.documentId ? Number(e.documentId) : null,
         thumbnailPath:
-          typeof e.displayName === 'string' ? thumbnailsByName.get(e.displayName) : undefined,
+          (typeof e.personId === 'number' ? thumbnailsByPersonId.get(e.personId) : undefined) ??
+          (typeof e.displayName === 'string' ? thumbnailsByName.get(e.displayName) : undefined),
       })),
     );
   },

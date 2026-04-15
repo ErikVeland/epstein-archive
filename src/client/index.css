@@ -146,8 +146,9 @@
   --z-header: 40;
   --z-dropdown: 60;
   --z-overlay: 100;
-  --z-modal: 200;
-  --z-toast: 300;
+  --z-modal: 9999;
+  --lq-z-modal: 9999;
+  --z-toast: 10000;
 
   /* Danger / warning background tokens (for non-Tailwind components) */
   --bg-danger-deep: rgba(127, 29, 29, 0.8); /* Tailwind red-900/80 */

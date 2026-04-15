@@ -6,6 +6,7 @@
   border-radius: var(--radius-xl);
   padding: var(--space-4);
   position: relative;
+  cursor: pointer;
   transition:
     border-color 0.2s,
     transform 0.2s,
@@ -99,6 +100,13 @@
 
 .valueText {
   font-weight: 600;
+}
+
+.derivedBadge {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-left: 2px;
+  cursor: help;
 }
 
 .associateLink {

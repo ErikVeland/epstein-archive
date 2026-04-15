@@ -2,6 +2,7 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { FixedSizeGrid as Grid, GridChildComponentProps, areEqual } from 'react-window';
 import { createPortal } from 'react-dom';
 import {
+  Film,
   Play,
   Calendar,
   CheckSquare,
@@ -365,62 +366,79 @@ export const VideoBrowser: React.FC = () => {
         description="Forensic video evidence from the Epstein files."
       />
       <Surface variant="glass-container" className={styles.browser}>
-        <Flex justify="between" align="center" className={styles.header}>
-          <MobileAlbumDropdown
-            albums={albums}
-            selectedAlbum={selectedAlbum}
-            onSelectAlbum={setSelectedAlbum}
-            isOpen={showAlbumDropdown}
-            onToggle={() => setShowAlbumDropdown((v) => !v)}
-            totalItemCount={libraryTotalCount}
-            allLabel="All Videos"
-            currentAlbumName={currentAlbum?.name}
-          />
+        <Surface variant="glass" className={styles.header}>
+          <Flex justify="between" align="center" gap="md" fullWidth>
+            {/* Identity */}
+            <Flex align="center" gap="md">
+              <Box className={styles.iconBox}>
+                <Film size={24} />
+              </Box>
+              <Stack gap="none">
+                <LqText variant="h2" weight="bold">
+                  Video Archive
+                </LqText>
+                <LqText variant="xs" color="muted" style={{ textTransform: 'uppercase' }}>
+                  Forensic Archive • {libraryTotalCount || 0} Streams
+                </LqText>
+              </Stack>
+            </Flex>
 
-          <Flex grow align="center" gap="md" className={styles.headerContent}>
-            <SearchField
-              value={transcriptSearch}
-              onChange={(e) => setTranscriptSearch(e.target.value)}
-              placeholder={
-                selectedAlbum ? 'Search transcripts in album...' : 'Search transcripts...'
-              }
-              rootClassName={styles.searchField}
-              density="compact"
-            />
+            {/* Controls */}
+            <Flex grow align="center" gap="md" className={styles.headerContent}>
+              <SearchField
+                value={transcriptSearch}
+                onChange={(e) => setTranscriptSearch(e.target.value)}
+                placeholder={
+                  selectedAlbum ? 'Search transcripts in album...' : 'Search transcripts...'
+                }
+                rootClassName={styles.searchField}
+                density="compact"
+              />
 
-            <Flex gap="md" align="center" className={styles.controls}>
-              <LqText
-                variant="xs"
-                weight="bold"
-                color="muted"
-                style={{ textTransform: 'uppercase' }}
-              >
-                {items.length} of {libraryTotalCount || 0}
-              </LqText>
-
-              <Button variant="glass" onClick={() => void refresh()} title="Reload archive">
-                <RefreshCw size={14} />
-              </Button>
-
-              <Button
-                variant={hasPeopleOnly ? 'accent-solid' : 'glass'}
-                onClick={() => setHasPeopleOnly((v) => !v)}
-                title="Filter by people"
-              >
-                <Users size={14} />
-                <span>People</span>
-              </Button>
-
-              <Button
-                variant={isBatchMode ? 'accent-solid' : 'glass-highlight'}
-                onClick={() => setIsBatchMode(!isBatchMode)}
-              >
-                <CheckSquare size={14} />
-                <span>{isBatchMode ? 'Finish' : 'Batch'}</span>
-              </Button>
+              <Flex gap="sm" align="center" className={styles.controls}>
+                <Button
+                  variant="glass"
+                  size="sm"
+                  onClick={() => void refresh()}
+                  title="Reload archive"
+                >
+                  <RefreshCw size={14} />
+                </Button>
+                <Button
+                  variant={hasPeopleOnly ? 'accent-solid' : 'glass'}
+                  size="sm"
+                  onClick={() => setHasPeopleOnly((v) => !v)}
+                  title="Filter by people"
+                >
+                  <Users size={14} />
+                  <span>People</span>
+                </Button>
+                <Button
+                  variant={isBatchMode ? 'accent-solid' : 'glass-highlight'}
+                  size="sm"
+                  onClick={() => setIsBatchMode(!isBatchMode)}
+                >
+                  <CheckSquare size={14} />
+                  <span>{isBatchMode ? 'Finish' : 'Batch'}</span>
+                </Button>
+              </Flex>
             </Flex>
           </Flex>
-        </Flex>
+
+          {/* Mobile album dropdown */}
+          <Box className={styles.mobileNav}>
+            <MobileAlbumDropdown
+              albums={albums}
+              selectedAlbum={selectedAlbum}
+              onSelectAlbum={setSelectedAlbum}
+              isOpen={showAlbumDropdown}
+              onToggle={() => setShowAlbumDropdown((v) => !v)}
+              totalItemCount={libraryTotalCount}
+              allLabel="All Videos"
+              currentAlbumName={currentAlbum?.name}
+            />
+          </Box>
+        </Surface>
 
         <Flex className={styles.contentLayout}>
           <AlbumSidebar

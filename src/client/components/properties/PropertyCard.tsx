@@ -9,11 +9,18 @@ import styles from './PropertyCard.module.css';
 
 interface PropertyCardProps {
   property: Property;
+  onSelect: (property: Property) => void;
 }
 
-export function PropertyCard({ property }: PropertyCardProps): React.ReactElement {
+export function PropertyCard({ property, onSelect }: PropertyCardProps): React.ReactElement {
   return (
-    <div className={cn(styles.card, property.is_known_associate === 1 && styles.flagged)}>
+    <div
+      className={cn(styles.card, property.is_known_associate === 1 && styles.flagged)}
+      onClick={() => onSelect(property)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => e.key === 'Enter' && onSelect(property)}
+    >
       {property.is_known_associate === 1 && (
         <div className={styles.associateBadge}>
           <Icon name="AlertTriangle" size="sm" />
@@ -33,6 +40,11 @@ export function PropertyCard({ property }: PropertyCardProps): React.ReactElemen
       <div className={styles.address}>
         <Icon name="MapPin" size="sm" />
         {property.site_address || property.street_name || 'Address N/A'}
+        {property.address_source === 'name_derived' && (
+          <span className={styles.derivedBadge} title="Address inferred from owner name">
+            ~
+          </span>
+        )}
       </div>
       <div className={styles.details}>
         <span>

@@ -387,16 +387,27 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
             </div>
           }
         >
-          {sortedEvents.map((event, index) => (
-            <div key={index} className={styles.eventItem}>
-              <div className={`${styles.timelineDot} ${getDotClass(event.significance)}`}></div>
+          {sortedEvents.map((event, index) => {
+            const year = event.date.getFullYear();
+            const prevYear = index > 0 ? sortedEvents[index - 1].date.getFullYear() : null;
+            const showYearDivider = year !== prevYear;
 
-              <div
-                className={`${styles.eventCard} ${getSignificanceCardClass(event)}`}
-                onClick={() => setSelectedEvent(event)}
-              >
-                <div className={styles.eventHeader}>
-                  <div className={styles.eventMainInfo}>
+            return (
+              <React.Fragment key={event.id}>
+                {showYearDivider && (
+                  <div className={styles.yearDivider}>
+                    <div className={styles.yearDividerDot} />
+                    <span className={styles.yearDividerLabel}>{year}</span>
+                    <div className={styles.yearDividerLine} />
+                  </div>
+                )}
+                <div className={styles.eventItem}>
+                  <div className={`${styles.timelineDot} ${getDotClass(event.significance)}`}></div>
+
+                  <div
+                    className={`${styles.eventCard} ${getSignificanceCardClass(event)}`}
+                    onClick={() => setSelectedEvent(event)}
+                  >
                     <div className={styles.eventMetaRow}>
                       <span className={styles.datePill}>{formatDate(event.date)}</span>
                       <div className={`${styles.typeBadge} ${getTypeBadgeClass(event.type)}`}>
@@ -438,21 +449,10 @@ export const Timeline: React.FC<TimelineProps> = React.memo(({ className = '' })
                       </div>
                     )}
                   </div>
-
-                  <div className={styles.sourcePreview}>
-                    <div className={styles.sourcePreviewCard}>
-                      <FileText className={styles.sourcePreviewIcon} />
-                      <div className={styles.sourcePreviewOverlay}>
-                        <span className={styles.sourcePreviewText}>
-                          {event.is_curated ? 'View Details' : 'View Source'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
                 </div>
-              </div>
-            </div>
-          ))}
+              </React.Fragment>
+            );
+          })}
         </ScopedErrorBoundary>
       </div>
 

@@ -176,10 +176,53 @@
   padding-bottom: var(--spacing-4);
 }
 
+.yearDivider {
+  position: relative;
+  padding-left: var(--spacing-12);
+  margin-bottom: var(--spacing-5);
+  margin-top: var(--spacing-2);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  pointer-events: none;
+}
+
+.yearDividerDot {
+  position: absolute;
+  left: -13px;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-full);
+  background: var(--glass-bg-strong);
+  border: 2px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.yearDividerLabel {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: var(--glass-bg-strong);
+  padding: 2px var(--spacing-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--glass-border);
+}
+
+.yearDividerLine {
+  flex: 1;
+  height: 1px;
+  background: var(--glass-border);
+}
+
 .eventItem {
   position: relative;
   padding-left: var(--spacing-12);
-  margin-bottom: var(--spacing-8);
+  margin-bottom: var(--spacing-4);
 }
 
 .timelineDot {
@@ -195,7 +238,7 @@
 .eventCard {
   border-radius: var(--radius-xl);
   border: 1px solid var(--glass-border);
-  padding: var(--spacing-5);
+  padding: var(--spacing-3) var(--spacing-4);
   cursor: pointer;
   backdrop-filter: blur(8px);
   transition: all var(--transition-base);
@@ -223,24 +266,6 @@
 
 .eventCard:hover {
   background: rgba(255, 255, 255, 0.05);
-}
-
-.eventHeader {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-4);
-}
-
-@media (min-width: 768px) {
-  .eventHeader {
-    flex-direction: row;
-    align-items: flex-start;
-    justify-content: space-between;
-  }
-}
-
-.eventMainInfo {
-  flex: 1;
 }
 
 .eventMetaRow {
@@ -313,11 +338,12 @@
 }
 
 .eventTitle {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
   color: var(--text-primary);
-  margin-bottom: var(--spacing-2);
+  margin-bottom: var(--spacing-1);
   transition: color var(--transition-base);
+  line-height: var(--line-height-tight);
 }
 
 .eventCard:hover .eventTitle {
@@ -373,63 +399,6 @@
   box-shadow: var(--shadow-sm);
 }
 
-.sourcePreview {
-  display: none;
-  flex-shrink: 0;
-}
-
-@media (min-width: 768px) {
-  .sourcePreview {
-    display: block;
-  }
-}
-
-.sourcePreviewCard {
-  width: 128px;
-  height: 96px;
-  background: var(--glass-bg);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--glass-border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  position: relative;
-}
-
-.sourcePreviewIcon {
-  width: 32px;
-  height: 32px;
-  color: var(--text-muted);
-  transition: color var(--transition-base);
-}
-
-.sourcePreviewCard:hover .sourcePreviewIcon {
-  color: var(--text-secondary);
-}
-
-.sourcePreviewOverlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, var(--app-bg), transparent);
-  opacity: 0;
-  transition: opacity var(--transition-base);
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding-bottom: var(--spacing-2);
-}
-
-.sourcePreviewCard:hover .sourcePreviewOverlay {
-  opacity: 1;
-}
-
-.sourcePreviewText {
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-  color: var(--text-primary);
-  text-shadow: var(--glass-shadow);
-}
 
 .loadingContainer {
   background: var(--glass-bg);
@@ -724,6 +693,6 @@
   }
 
   .eventTitle {
-    font-size: var(--font-size-base);
+    font-size: var(--font-size-sm);
   }
 }

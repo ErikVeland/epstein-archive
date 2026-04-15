@@ -875,14 +875,6 @@ export const EmailClient: React.FC = () => {
           </div>
         </section>
 
-        <div
-          className={`${styles.paneResizer} ${styles.desktopOnly}`}
-          onMouseDown={startResize('thread')}
-          role="separator"
-          aria-orientation="vertical"
-          aria-label="Resize thread pane"
-        />
-
         <section
           className={`${styles.contentPane} ${styles.contentPaneShell} ${
             mobilePane === 'messages' ? styles.threadPaneVisible : styles.threadPaneHidden
