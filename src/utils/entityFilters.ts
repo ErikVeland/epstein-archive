@@ -69,7 +69,15 @@ const JUNK_PATTERNS = [
   /Little\s+James/i,
   /Englewood/i,
 
-  // Specific mangled strings from user screenshot
+  // Specific mangled strings or spam categories observed in UI
+  /Free\s+Shippi/i,
+  /Free\s+Returns/i,
+  /Return\s+Need/i,
+  /Cat\s+Scratch/i,
+  /Deck\s+Toy/i,
+  /Day\s+Exchange/i,
+  /Shipping\s+Over/i,
+  /Recommended/i,
   /TheInformation/i,
   /Had Epstein/i,
   /Uh Floor/i,

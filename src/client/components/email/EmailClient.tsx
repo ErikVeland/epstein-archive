@@ -24,6 +24,7 @@ import { riskToneFromRating } from '../../utils/riskSemantics';
 import { useFilters } from '../../contexts/useFilters';
 import { useEmailWorkspaceData } from '../../hooks/useEmailWorkspaceData';
 import { EmptyCorpus } from '../common/EmptyCorpus';
+import { isJunkEntity } from '../../utils/entityFilters';
 import { Button, SearchField, Select, TextInput } from '../../design-system/lib';
 
 type EmailDensity = 'comfortable' | 'compact';
@@ -224,12 +225,9 @@ export const EmailClient: React.FC = () => {
   const desktopLayoutRef = useRef<HTMLDivElement | null>(null);
   const [mailboxWidth, setMailboxWidth] = useState(() => {
     const saved = window.localStorage.getItem('email-pane-mailbox-width');
-    return saved ? Number(saved) : 300;
+    return saved ? Number(saved) : 320;
   });
-  const [threadWidth, setThreadWidth] = useState(() => {
-    const saved = window.localStorage.getItem('email-pane-thread-width');
-    return saved ? Number(saved) : 440;
-  });
+  const threadWidth = 440; // Standardized fixed width now that adjuster is removed
 
   const updateUrlState = useCallback(
     (updates: Record<string, string | null>) => {
@@ -306,8 +304,34 @@ export const EmailClient: React.FC = () => {
     updateUrlState,
   });
 
-  const selectedMailbox =
-    mailboxes.find((mailbox) => mailbox.mailboxId === selectedMailboxId) || mailboxes[0] || null;
+  const rawMailboxes = mailboxesData ?? [];
+
+  const mailboxes = useMemo(() => {
+    // Filter out junk entities and unverified/non-VIP accounts if junk is suppressed
+    if (!showSuppressedJunk) {
+      return rawMailboxes.filter((m) => (m.isVip || m.isVerified) && !isJunkEntity(m.displayName));
+    }
+    return rawMailboxes;
+  }, [rawMailboxes, showSuppressedJunk]);
+
+  const selectedMailbox = useMemo(() => {
+    return (
+      mailboxes.find((mailbox) => mailbox.mailboxId === selectedMailboxId) ||
+      mailboxes.find((m) => m.isVip) ||
+      mailboxes[0] ||
+      null
+    );
+  }, [mailboxes, selectedMailboxId]);
+
+  // Auto-select VIP if currently on 'all' and a real VIP exists
+  useEffect(() => {
+    if (selectedMailboxId === 'all' && mailboxes.length > 0) {
+      const firstVip = mailboxes.find((m) => m.isVip);
+      if (firstVip) {
+        setSelectedMailboxId(firstVip.mailboxId);
+      }
+    }
+  }, [mailboxes, selectedMailboxId]);
 
   const handleOpenThread = useCallback(
     (threadId: string) => {
@@ -350,37 +374,27 @@ export const EmailClient: React.FC = () => {
   const canLoadMore = threadsHasMore && !!threadsNextCursor;
   const threadRowHeight = density === 'compact' ? 72 : 94;
 
-  const clampWidths = useCallback(
-    (nextMailbox: number, nextThread: number, containerWidth: number) => {
-      const contentMin = 480;
-      const handles = 20;
-      const maxMailbox = Math.max(240, containerWidth - nextThread - contentMin - handles);
-      const mailbox = Math.min(Math.max(nextMailbox, 240), maxMailbox);
-      const maxThread = Math.max(320, containerWidth - mailbox - contentMin - handles);
-      const thread = Math.min(Math.max(nextThread, 320), maxThread);
-      return { mailbox, thread };
-    },
-    [],
-  );
+  const clampWidths = useCallback((nextMailbox: number, containerWidth: number) => {
+    const contentMin = 480;
+    const threadWidthFixed = 440;
+    const handleWidth = 10;
+    const maxMailbox = Math.max(240, containerWidth - threadWidthFixed - contentMin - handleWidth);
+    const mailbox = Math.min(Math.max(nextMailbox, 240), maxMailbox);
+    return { mailbox };
+  }, []);
 
   const startResize = useCallback(
-    (target: 'mailbox' | 'thread') => (event: React.MouseEvent<HTMLDivElement>) => {
+    () => (event: React.MouseEvent<HTMLDivElement>) => {
       if (window.innerWidth < 768) return;
       event.preventDefault();
       const startX = event.clientX;
       const startMailbox = mailboxWidth;
-      const startThread = threadWidth;
 
       const onMove = (moveEvent: MouseEvent) => {
         const delta = moveEvent.clientX - startX;
         const containerWidth = desktopLayoutRef.current?.clientWidth || window.innerWidth;
-        if (target === 'mailbox') {
-          const { mailbox } = clampWidths(startMailbox + delta, startThread, containerWidth);
-          setMailboxWidth(mailbox);
-        } else {
-          const { thread } = clampWidths(startMailbox, startThread + delta, containerWidth);
-          setThreadWidth(thread);
-        }
+        const { mailbox } = clampWidths(startMailbox + delta, containerWidth);
+        setMailboxWidth(mailbox);
       };
 
       const onUp = () => {
@@ -391,7 +405,7 @@ export const EmailClient: React.FC = () => {
       window.addEventListener('mousemove', onMove);
       window.addEventListener('mouseup', onUp);
     },
-    [mailboxWidth, threadWidth, clampWidths],
+    [mailboxWidth, clampWidths],
   );
 
   // Layout clamping using useLayoutEffect to avoid visual flickering
@@ -400,17 +414,15 @@ export const EmailClient: React.FC = () => {
   useLayoutEffect(() => {
     if (typeof window !== 'undefined' && window.innerWidth >= 768) {
       const containerWidth = window.innerWidth;
-      const { mailbox, thread } = clampWidths(mailboxWidth, threadWidth, containerWidth);
+      const { mailbox } = clampWidths(mailboxWidth, containerWidth);
       if (mailbox !== mailboxWidth) setMailboxWidth(mailbox);
-      if (thread !== threadWidth) setThreadWidth(thread);
     }
-  }, [mailboxWidth, threadWidth, clampWidths]);
+  }, [mailboxWidth, clampWidths]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
   useEffect(() => {
     window.localStorage.setItem('email-pane-mailbox-width', String(Math.round(mailboxWidth)));
-    window.localStorage.setItem('email-pane-thread-width', String(Math.round(threadWidth)));
-  }, [mailboxWidth, threadWidth]);
+  }, [mailboxWidth]);
 
   const clearQuickFilters = useCallback(() => {
     setFromFilter('');
@@ -507,24 +519,21 @@ export const EmailClient: React.FC = () => {
         >
           <div className={styles.mailboxHeader}>
             <div className={styles.mailboxHeaderTop}>
-              <span>Entity mailboxes</span>
-              <Button
-                onClick={() => setShowSuppressedJunk((prev) => !prev)}
-                type="button"
-                variant="ghost"
-                size="sm"
-                className={styles.mailboxToggle}
-                title={
-                  showSuppressedJunk
-                    ? 'Hide junk-tagged entities from the mailbox list'
-                    : 'Include junk-tagged entities in the mailbox list'
-                }
-              >
-                {showSuppressedJunk ? 'Hide junk' : 'Show junk'}
-              </Button>
+              <span>Real People & VIPs</span>
+              {showSuppressedJunk && (
+                <Button
+                  onClick={() => setShowSuppressedJunk(false)}
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className={styles.mailboxToggle}
+                >
+                  Clear Filters
+                </Button>
+              )}
             </div>
             <div className={styles.mailboxSubnote}>
-              All Inboxes + top-mentioned entities from email evidence
+              Verified human entities and prioritized forensic targets
             </div>
             <div className={styles.searchWrap}>
               <SearchField
@@ -631,7 +640,7 @@ export const EmailClient: React.FC = () => {
 
         <div
           className={`${styles.paneResizer} ${styles.desktopOnly}`}
-          onMouseDown={startResize('mailbox')}
+          onMouseDown={startResize()}
           role="separator"
           aria-orientation="vertical"
           aria-label="Resize mailbox pane"

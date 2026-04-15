@@ -22,8 +22,8 @@
     display: grid;
     grid-template-columns:
       var(--mailbox-pane-width, 340px) var(--pane-resizer-width, 10px)
-      var(--thread-pane-width, 420px) var(--pane-resizer-width, 10px)
-      minmax(420px, 1fr);
+      var(--thread-pane-width, 440px)
+      minmax(480px, 1fr);
   }
 }
 
@@ -114,7 +114,7 @@
 /* Glass headers */
 .paneHeader {
   height: 56px;
-  padding: 0 var(--spacing-5);
+  padding: 0 var(--spacing-6);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -124,7 +124,7 @@
 }
 
 .paneSubheader {
-  padding: var(--spacing-4) var(--spacing-5);
+  padding: var(--spacing-4) var(--spacing-6);
   border-bottom: 1px solid var(--glass-border);
   background: var(--glass-bg-highlight);
   display: flex;
@@ -406,6 +406,14 @@
 
 .threadPaneHidden {
   display: none;
+}
+
+@media (min-width: 768px) {
+  .threadPaneVisible,
+  .threadPaneHidden {
+    display: flex;
+    width: 100%;
+  }
 }
 
 .mailboxPriority {

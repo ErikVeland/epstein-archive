@@ -1,5 +1,14 @@
 # Release Notes
 
+## 19.1.4 - 2026-04-15
+
+### Email Workspace
+
+- Fixed desktop layout so the message pane is always visible (mobile-only pane toggling no longer hides the third column on desktop).
+- Increased horizontal padding for conversation totals and thread counts for consistent spacing.
+
+---
+
 ## 19.1.3 - 2026-04-15
 
 ### Release Hygiene
