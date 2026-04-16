@@ -178,6 +178,9 @@ importers:
       open:
         specifier: ^11.0.0
         version: 11.0.0
+      pdfjs-dist:
+        specifier: 5.4.296
+        version: 5.4.296
       pg:
         specifier: ^8.18.0
         version: 8.18.0
