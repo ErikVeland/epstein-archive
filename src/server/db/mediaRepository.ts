@@ -132,6 +132,7 @@ interface MediaItemRow {
   createdAt: Date | null;
   entityName?: string | null;
   relatedEntities?: string | null;
+  taggedPeople?: string[] | null;
 }
 
 interface SingleMediaItemRow extends MediaItemRow {
@@ -163,8 +164,22 @@ export const mediaRepository = {
       `
         SELECT m.thumbnail_path, m.file_path
         FROM media_items m
-        LEFT JOIN media_item_people mip ON m.id = mip.media_item_id::text
-        WHERE (m.entity_id = $1::bigint OR mip.entity_id = $1::bigint)
+        WHERE (
+          m.entity_id = $1::bigint
+          OR EXISTS (
+            SELECT 1
+            FROM media_item_people mip
+            WHERE mip.media_item_id::text = m.id::text
+              AND mip.entity_id = $1::bigint
+          )
+          OR EXISTS (
+            SELECT 1
+            FROM faces f
+            JOIN face_clusters fc ON fc.id = f.cluster_id
+            WHERE f.media_item_id::text = m.id::text
+              AND fc.entity_id = $1::bigint
+          )
+        )
           AND m.file_type LIKE 'image/%'
         ORDER BY m.red_flag_rating DESC, m.created_at DESC
         LIMIT 1
@@ -301,11 +316,41 @@ export const mediaRepository = {
           m.red_flag_rating as "redFlagRating",
           m.metadata_json as "metadataJson",
           m.date_taken as "dateTaken",
-          m.created_at as "createdAt"
+          m.created_at as "createdAt",
+          tags.tagged_people as "taggedPeople"
         FROM media_items m
-        LEFT JOIN media_item_people mip ON m.id = mip.media_item_id::text
-        WHERE (m.entity_id = $1::bigint OR mip.entity_id = $1::bigint)
-        GROUP BY m.id
+        LEFT JOIN LATERAL (
+          SELECT ARRAY_REMOVE(ARRAY_AGG(DISTINCT tagged_name), NULL) as tagged_people
+          FROM (
+            SELECT e.full_name as tagged_name
+            FROM media_item_people mip2
+            JOIN entities e ON e.id = mip2.entity_id
+            WHERE mip2.media_item_id::text = m.id::text
+            UNION
+            SELECT e2.full_name as tagged_name
+            FROM faces f2
+            JOIN face_clusters fc2 ON fc2.id = f2.cluster_id
+            JOIN entities e2 ON e2.id = fc2.entity_id
+            WHERE f2.media_item_id::text = m.id::text
+              AND fc2.entity_id IS NOT NULL
+          ) tagged_people_union
+        ) tags ON true
+        WHERE (
+          m.entity_id = $1::bigint
+          OR EXISTS (
+            SELECT 1
+            FROM media_item_people mip
+            WHERE mip.media_item_id::text = m.id::text
+              AND mip.entity_id = $1::bigint
+          )
+          OR EXISTS (
+            SELECT 1
+            FROM faces f
+            JOIN face_clusters fc ON fc.id = f.cluster_id
+            WHERE f.media_item_id::text = m.id::text
+              AND fc.entity_id = $1::bigint
+          )
+        )
         ORDER BY m.red_flag_rating DESC, m.created_at DESC
       `,
       [BigInt(entityId)],
@@ -331,6 +376,11 @@ export const mediaRepository = {
         id: Number(item.id),
         fileSize: 0,
         redFlagRating: Number(item.redFlagRating || 0),
+        taggedPeople: Array.isArray(item.taggedPeople)
+          ? item.taggedPeople.filter(
+              (name): name is string => typeof name === 'string' && name.length > 0,
+            )
+          : [],
         metadata,
       };
     });

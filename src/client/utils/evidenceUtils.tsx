@@ -129,6 +129,30 @@ export const resolveEntityPhotoUrl = (
   preferThumbnail = false,
 ): string | null => {
   if (!photo) return null;
+  const mediaId =
+    photo && typeof photo === 'object' && 'id' in photo && photo.id != null
+      ? String(photo.id)
+      : null;
+  const normalizeAssetUrl = (value: unknown, kind: 'thumbnail' | 'file'): string | null => {
+    if (typeof value !== 'string' || value.trim().length === 0) return null;
+    const trimmed = value.trim();
+    if (
+      trimmed.startsWith('/api/') ||
+      trimmed.startsWith('http://') ||
+      trimmed.startsWith('https://') ||
+      trimmed.startsWith('data:') ||
+      trimmed.startsWith('blob:')
+    ) {
+      return trimmed;
+    }
+    if (mediaId) {
+      return kind === 'thumbnail'
+        ? `/api/media/images/${encodeURIComponent(mediaId)}/thumbnail`
+        : `/api/media/images/${encodeURIComponent(mediaId)}/file`;
+    }
+    return trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+  };
+
   if (preferThumbnail) {
     const thumb =
       photo.thumbnailUrl ||
@@ -136,11 +160,12 @@ export const resolveEntityPhotoUrl = (
       photo.thumbUrl ||
       photo.thumb_url ||
       photo.thumbnailPath;
-    if (thumb) return String(thumb);
+    const normalizedThumb = normalizeAssetUrl(thumb, 'thumbnail');
+    if (normalizedThumb) return normalizedThumb;
   }
   const url =
     photo.url || photo.fullUrl || photo.imageUrl || photo.image_url || photo.src || photo.filePath;
-  return url ? String(url) : null;
+  return normalizeAssetUrl(url, 'file');
 };
 
 /**
@@ -168,12 +193,30 @@ export const normalizeEntityMediaItem = (
   item: Record<string, unknown>,
   index: number,
 ): Record<string, unknown> => {
+  const rawId = item.id || `media-${index}`;
+  const normalizedId = String(rawId);
+  const fileType = String(item.fileType || item.file_type || item.sourceType || item.type || '');
+  const isImageLike =
+    fileType.toLowerCase().includes('image') ||
+    /\.(png|jpe?g|webp|gif)$/i.test(
+      String(item.filePath || item.file_path || item.thumbnailPath || item.thumbnail_path || ''),
+    );
+  const thumbnailUrl = isImageLike
+    ? `/api/media/images/${encodeURIComponent(normalizedId)}/thumbnail`
+    : undefined;
+  const fileUrl = isImageLike
+    ? `/api/media/images/${encodeURIComponent(normalizedId)}/file`
+    : undefined;
+
   return {
     ...item,
-    id: item.id || `media-${index}`,
+    id: rawId,
     title: item.title || item.caption || item.filename,
-    url: item.url || item.fullUrl || item.image_url,
-    sourceType: item.sourceType || item.type || 'Media',
+    url: item.url || item.fullUrl || item.image_url || thumbnailUrl || fileUrl,
+    fullUrl: item.fullUrl || item.url || item.image_url || fileUrl,
+    thumbnailUrl:
+      item.thumbnailUrl || item.thumbnail_url || item.thumbUrl || item.thumb_url || thumbnailUrl,
+    sourceType: item.sourceType || item.type || item.fileType || item.file_type || 'Media',
   };
 };
 

@@ -1569,6 +1569,48 @@
   border-bottom: 1px solid var(--lq-surface-3);
 }
 
+.heroTitleRow {
+  flex-wrap: wrap;
+}
+
+.heroTitleBlock {
+  min-width: 0;
+  flex: 1 1 32rem;
+}
+
+.heroTitle {
+  letter-spacing: -0.04em;
+  line-height: 0.92;
+}
+
+.heroSubtitle {
+  margin-top: var(--space-sm);
+  max-width: 38rem;
+}
+
+.heroActions {
+  margin-left: auto;
+  flex: 0 0 auto;
+}
+
+.heroCountLabel {
+  text-align: right;
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .heroActions {
+    width: 100%;
+    align-items: flex-start;
+    margin-left: 0;
+  }
+
+  .heroCountLabel {
+    text-align: left;
+    white-space: normal;
+  }
+}
+
 .scopeToggleSurface {
   border-radius: var(--radius-lg);
   border: 1px solid var(--lq-surface-3);

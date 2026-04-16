@@ -564,52 +564,74 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
             </LqText>
           </Flex>
 
-          <Flex justify="between" align="center" fullWidth>
-            <Stack gap="none">
-              <LqText variant="bombastic" className={styles.headerTitle}>
-                Investigation
-              </LqText>
-              <LqText
-                variant="symbolic"
-                color="secondary"
-                weight="bold"
-                className="tracking-symbolic"
-              >
-                Forensic Intelligence • 12 Active Investigators • Collaborative Analysis
-              </LqText>
-            </Stack>
+          {selectedInvestigation ? (
+            <Flex justify="between" align="center" fullWidth>
+              <Stack gap="none">
+                <LqText variant="bombastic" className={styles.headerTitle}>
+                  Investigation
+                </LqText>
+                <LqText
+                  variant="symbolic"
+                  color="secondary"
+                  weight="bold"
+                  className="tracking-symbolic"
+                >
+                  Forensic Intelligence • 12 Active Investigators • Collaborative Analysis
+                </LqText>
+              </Stack>
 
-            <Flex align="center" gap="sm">
-              {selectedInvestigation ? (
-                <>
-                  <Surface variant="glass-highlight" p="xs" className={styles.scopeToggleSurface}>
-                    <Button
-                      variant={!useGlobalContext ? 'accent-solid' : 'ghost'}
-                      onClick={() => setUseGlobalContext(false)}
-                    >
-                      Investigation Scope
-                    </Button>
-                    <Button
-                      variant={useGlobalContext ? 'accent-solid' : 'ghost'}
-                      onClick={() => setUseGlobalContext(true)}
-                    >
-                      Global Context
-                    </Button>
-                  </Surface>
-                  <Button variant="glass" size="sm" onClick={() => setShowTasksPanel(true)}>
-                    <Flag size={16} className={styles.iconWarning} /> Tasks
+              <Flex align="center" gap="sm">
+                <Surface variant="glass-highlight" p="xs" className={styles.scopeToggleSurface}>
+                  <Button
+                    variant={!useGlobalContext ? 'accent-solid' : 'ghost'}
+                    onClick={() => setUseGlobalContext(false)}
+                  >
+                    Investigation Scope
                   </Button>
-                  <Button variant="glass" size="sm" onClick={() => setShowLeadsPanel(true)}>
-                    <Crosshair size={16} className={styles.iconWarning} /> Leads
+                  <Button
+                    variant={useGlobalContext ? 'accent-solid' : 'ghost'}
+                    onClick={() => setUseGlobalContext(true)}
+                  >
+                    Global Context
                   </Button>
-                  <Button variant="glass" size="sm" onClick={() => setShowDossierPanel(true)}>
-                    <User size={16} className={styles.iconAccent} /> Subject
-                  </Button>
-                  <Button variant="primary" size="sm" onClick={() => setShowImportModal(true)}>
-                    <Upload size={16} /> Import Report
-                  </Button>
-                </>
-              ) : (
+                </Surface>
+                <Button variant="glass" size="sm" onClick={() => setShowTasksPanel(true)}>
+                  <Flag size={16} className={styles.iconWarning} /> Tasks
+                </Button>
+                <Button variant="glass" size="sm" onClick={() => setShowLeadsPanel(true)}>
+                  <Crosshair size={16} className={styles.iconWarning} /> Leads
+                </Button>
+                <Button variant="glass" size="sm" onClick={() => setShowDossierPanel(true)}>
+                  <User size={16} className={styles.iconAccent} /> Subject
+                </Button>
+                <Button variant="primary" size="sm" onClick={() => setShowImportModal(true)}>
+                  <Upload size={16} /> Import Report
+                </Button>
+              </Flex>
+            </Flex>
+          ) : (
+            <Flex
+              justify="between"
+              align="start"
+              gap="lg"
+              fullWidth
+              className={styles.heroTitleRow}
+            >
+              <Box className={styles.heroTitleBlock}>
+                <LqText as="h1" variant="h1" weight="bold" className={styles.heroTitle}>
+                  Investigations
+                </LqText>
+                <LqText variant="xs" color="secondary" className={styles.heroSubtitle}>
+                  High-signal case orchestration, evidence chaining, and collaborative analysis
+                  across the archive.
+                </LqText>
+              </Box>
+
+              <Flex direction="column" align="end" gap="md" className={styles.heroActions}>
+                <LqText variant="xs" color="muted" className={styles.heroCountLabel}>
+                  {investigations.filter((i) => i.status === 'active').length} active of{' '}
+                  {investigations.length.toLocaleString()} total investigations
+                </LqText>
                 <Button
                   variant="primary"
                   size="md"
@@ -617,9 +639,9 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                 >
                   <Plus size={20} /> New Investigation
                 </Button>
-              )}
+              </Flex>
             </Flex>
-          </Flex>
+          )}
         </Flex>
       </Surface>
 

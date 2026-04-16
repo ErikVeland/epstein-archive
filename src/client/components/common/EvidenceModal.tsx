@@ -725,7 +725,9 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
   const headerMediaItems = mediaItems.length > 0 ? mediaItems : entity?.photos || [];
   const headerPhoto =
     headerMediaItems.find((item) => isVisualMediaItem(item)) || headerMediaItems[0];
-  const headerPhotoUrl = resolveEntityPhotoUrl(headerPhoto, true);
+  const headerPhotoUrl =
+    resolveEntityPhotoUrl(headerPhoto, true) ||
+    (entityId ? `/api/entities/${encodeURIComponent(entityId)}/portrait` : null);
 
   return createPortal(
     <Profiler id="EvidenceModal" onRender={onRenderCallback}>
@@ -793,7 +795,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
                   hasNextPage={hasNextPage}
                   isItemLoaded={isItemLoaded}
                   isNextPageLoading={isNextPageLoading}
-                  usePlainEvidenceList={totalDocs > 0 && totalDocs <= 500}
+                  usePlainEvidenceList
                   entityName={entity?.fullName || ''}
                   openDocument={openDocumentFromEvidence}
                 />
