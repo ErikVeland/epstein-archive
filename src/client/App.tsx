@@ -320,22 +320,23 @@ function App() {
   const pathMatch = location.pathname.match(/^\/documents\/([^/?#]+)/);
   const params = new URLSearchParams(location.search);
   const queryDocId = params.get('id') || params.get('docId') || params.get('documentId');
-  const docId = pathMatch?.[1] || queryDocId;
+  const docId = pathMatch?.[1] ?? queryDocId;
 
-  const [prevDocIdForModal, setPrevDocIdForModal] = useState<string | null>(docId);
+  const [prevDocIdForModal, setPrevDocIdForModal] = useState<string | null>(null);
   /* eslint-disable react-hooks/set-state-in-effect -- Intentional: track docId changes to sync modal state */
   useEffect(() => {
     if (docId !== prevDocIdForModal) {
       setPrevDocIdForModal(docId);
-      if (docId) {
-        if (documentModalId !== docId) {
-          if (selectedPerson) setSelectedPerson(null);
-          setDocumentModalId(docId);
-        }
-      } else if (documentModalId) {
-        setDocumentModalId('');
-        setDocumentModalInitial(null);
+    }
+
+    if (docId) {
+      if (documentModalId !== docId) {
+        if (selectedPerson) setSelectedPerson(null);
+        setDocumentModalId(docId);
       }
+    } else if (documentModalId) {
+      setDocumentModalId('');
+      setDocumentModalInitial(null);
     }
   }, [docId, prevDocIdForModal, documentModalId, selectedPerson]);
   /* eslint-enable react-hooks/set-state-in-effect */

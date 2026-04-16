@@ -1,5 +1,13 @@
 # Release Notes
 
+## 19.1.8 - 2026-04-16
+
+### Document Viewer
+
+- Fixed deep links and full-page navigations to `/documents/:id` so the document modal reliably opens on first load.
+
+---
+
 ## 19.1.7 - 2026-04-16
 
 ### Document Open Fix
