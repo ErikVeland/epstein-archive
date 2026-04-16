@@ -164,7 +164,7 @@ export const DocumentModal: React.FC<Props> = ({
   } = useQuery<DocRecord | null>({
     queryKey: ['document', id],
     queryFn: () => apiClient.getDocument(id) as Promise<DocRecord>,
-    initialData: initialDoc as DocRecord | undefined,
+    initialData: (initialDoc ?? undefined) as DocRecord | undefined,
     staleTime: 30_000,
   });
   const doc = fetchedDoc ?? null;

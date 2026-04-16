@@ -1,5 +1,13 @@
 # Release Notes
 
+## 19.1.9 - 2026-04-16
+
+### Document Viewer
+
+- Fixed document modal loading by preventing null `initialDoc` from poisoning the query cache (restores `/api/documents/:id` fetch on open).
+
+---
+
 ## 19.1.8 - 2026-04-16
 
 ### Document Viewer

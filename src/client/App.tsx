@@ -132,7 +132,6 @@ const LegalPage = lazyWithRetry(
   () => import('./components/pages/LegalPage').then((module) => ({ default: module.LegalPage })),
   'LegalPage',
 );
-import type { DocRecord } from './components/documents/DocumentModal';
 const GuidePage = lazyWithRetry(
   () => import('./components/pages/GuidePage').then((module) => ({ default: module.default })),
   'GuidePage',
@@ -160,6 +159,7 @@ const ReviewDashboard = lazyWithRetry(
 
 import releaseNotesRaw from '../../release_notes.md?raw';
 import styles from './App.module.css';
+import type { DocRecord } from './components/documents/DocumentModal';
 
 // Release notes logic and interface moved to src/client/utils/releaseNotes.ts
 
@@ -194,9 +194,7 @@ function App() {
   const [, setSelectedDocumentId] = useState<string | null>(null);
   const [selectedDocumentSearchTerm, setSelectedDocumentSearchTerm] = useState<string>('');
   const [documentModalId, setDocumentModalId] = useState<string | null>(null);
-  const [documentModalInitial, setDocumentModalInitial] = useState<Record<string, unknown> | null>(
-    null,
-  );
+  const [documentModalInitial, setDocumentModalInitial] = useState<DocRecord | null>(null);
 
   const [investigateAttract, setInvestigateAttract] = useState<boolean>(false);
   const [investigatePopoverOpen, setInvestigatePopoverOpen] = useState<boolean>(false);
@@ -1953,7 +1951,7 @@ function App() {
                   <DocumentModal
                     id={documentModalId}
                     searchTerm={selectedDocumentSearchTerm}
-                    initialDoc={documentModalInitial as DocRecord}
+                    initialDoc={documentModalInitial ?? undefined}
                     onClose={() => {
                       setDocumentModalId('');
                       setDocumentModalInitial(null);
