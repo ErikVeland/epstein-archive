@@ -1,5 +1,13 @@
 # Release Notes
 
+## 19.1.7 - 2026-04-16
+
+### Document Open Fix
+
+- Fixed document opening from evidence flows by preferring canonical document identifiers over evidence-row IDs.
+
+---
+
 ## 19.1.6 - 2026-04-15
 
 ### Email Workspace Styling

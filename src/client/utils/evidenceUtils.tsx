@@ -174,8 +174,18 @@ export const resolveEntityPhotoUrl = (
 export const normalizeEvidenceDocument = (
   item: Record<string, unknown>,
 ): Record<string, unknown> => {
+  // Prefer canonical document identifiers from evidence payloads.
+  // Some endpoints include an evidence-row `id` plus a separate `document_id`.
+  const documentId =
+    item.documentId ||
+    item.document_id ||
+    item.sourceDocumentId ||
+    item.source_document_id ||
+    item.id;
+
   return {
-    id: item.id || item.document_id,
+    id: documentId,
+    evidenceId: item.id,
     title: item.title || item.fileName || item.filename,
     fileName: item.fileName || item.filename,
     contentPreview: item.contentPreview || item.context_snippet || item.description,
