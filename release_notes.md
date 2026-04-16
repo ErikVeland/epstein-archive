@@ -1,5 +1,13 @@
 # Release Notes
 
+## 19.1.10 - 2026-04-16
+
+### PDF Viewer
+
+- Fixed PDF rendering under strict CSP by bundling the PDF.js worker locally (no external CDN worker).
+
+---
+
 ## 19.1.9 - 2026-04-16
 
 ### Document Viewer
