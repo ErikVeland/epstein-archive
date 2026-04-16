@@ -1,26 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Document, Page, pdfjs } from 'react-pdf';
-import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+import { Document, Page } from 'react-pdf';
 import {
   ZoomIn,
   ZoomOut,
   RotateCw,
   ChevronLeft,
   ChevronRight,
-  Search,
   Fingerprint,
   Info,
 } from 'lucide-react';
 import styles from './PDFVariantViewer.module.css';
 
-// Design System
+import { Button, SearchField } from '../../design-system/lib';
+import { ensurePdfWorker } from '../../utils/ensurePdfWorker';
 import { LqText } from '../../design-system/components/typography/Text';
 
-import { Button, Input } from '../../design-system/lib';
-
-// Set up PDF.js worker
-pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
+ensurePdfWorker();
 
 interface PDFVariantViewerProps {
   documentId: string;
@@ -137,16 +133,13 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
       {showToolbar && (
         <div className={styles.toolbar}>
           <div className={styles.toolGroup}>
-            <div className={styles.searchContainer}>
-              <Search size={14} className={styles.searchIcon} />
-              <Input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Find in page..."
-                className={styles.searchInput}
-              />
-            </div>
+            <SearchField
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Find in page..."
+              density="compact"
+              rootClassName={styles.searchFieldRoot}
+            />
           </div>
 
           <div className={styles.toolGroup}>

@@ -37,37 +37,8 @@
   height: 1rem;
 }
 
-.searchContainer {
-  position: relative;
-}
-
-.searchIcon {
-  position: absolute;
-  left: 0.75rem;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 0.875rem;
-  height: 0.875rem;
-  color: var(--text-muted);
-}
-
-.searchInput {
-  padding-left: 2.25rem;
-  padding-right: 0.75rem;
-  padding-top: 0.375rem;
-  padding-bottom: 0.375rem;
-  background-color: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-md);
-  font-size: var(--type-xs);
-  color: var(--text-primary);
+.searchFieldRoot {
   width: 10rem;
-  transition: border-color var(--duration-fast);
-}
-
-.searchInput:focus {
-  outline: none;
-  border-color: rgba(34, 211, 238, 0.5); /* accent/50 */
 }
 
 .toolGroup {

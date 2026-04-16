@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, Download, FileText, Search, ArrowLeft } from 'lucide-react';
+import { Calendar, Download, FileText, ArrowLeft } from 'lucide-react';
 import { CloseButton } from '../../common/CloseButton';
 import { formatDate } from '../DocumentModalUtils';
 import styles from './DocumentHeader.module.css';
@@ -8,7 +8,7 @@ import { Flex } from '../../../design-system/components/layout/Flex';
 import { Surface } from '../../../design-system/components/surfaces/Surface';
 import { Box } from '../../../design-system/components/layout/Box';
 
-import { Button, Input } from '../../../design-system/lib';
+import { Button, SearchField } from '../../../design-system/lib';
 
 interface DocumentHeaderProps {
   doc: {
@@ -68,21 +68,13 @@ export const DocumentHeader: React.FC<DocumentHeaderProps> = ({
       </Flex>
 
       <Flex align="center" gap="sm" className={styles.controls}>
-        <Box className={`${styles.searchWrapper} group`}>
-          <Search size={16} className={styles.searchIcon} />
-          <Input
-            type="text"
-            placeholder="Find in record..."
-            className={styles.searchInput}
-            value={localSearchTerm}
-            onChange={(e) => setLocalSearchTerm(e.target.value)}
-            autoComplete="off"
-            autoCorrect="off"
-            autoCapitalize="off"
-            spellCheck={false}
-            name="document_record_search"
-          />
-        </Box>
+        <SearchField
+          placeholder="Find in record..."
+          value={localSearchTerm}
+          onChange={(e) => setLocalSearchTerm(e.target.value)}
+          density="comfortable"
+          rootClassName={styles.searchFieldRoot}
+        />
 
         {canReturnToCase && (
           <Button unstyled onClick={handleBackToCase} className={styles.backButton}>

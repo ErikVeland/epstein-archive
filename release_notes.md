@@ -1,5 +1,14 @@
 # Release Notes
 
+## 19.1.11 - 2026-04-16
+
+### Document Viewer
+
+- Fixed PDF rendering under strict CSP by initializing a module worker via `workerPort` (prevents worker import fallback).
+- Migrated document viewer search fields to DS `SearchField` to prevent icon/placeholder overlap.
+
+---
+
 ## 19.1.10 - 2026-04-16
 
 ### PDF Viewer

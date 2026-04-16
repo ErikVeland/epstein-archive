@@ -5,17 +5,17 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Document, Page, pdfjs } from 'react-pdf';
-import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+import { Document, Page } from 'react-pdf';
 import { Download, ZoomIn, ZoomOut, RotateCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 import styles from './PDFViewer.module.css';
 
 import { Button } from '../../design-system/lib';
+import { ensurePdfWorker } from '../../utils/ensurePdfWorker';
 
 // Set up worker for PDF.js
-pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
+ensurePdfWorker();
 
 interface PDFViewerProps {
   filePath: string;
