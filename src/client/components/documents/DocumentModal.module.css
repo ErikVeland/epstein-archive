@@ -52,6 +52,14 @@
   }
 }
 
+/* Mobile: full-screen modal with safe areas */
+@media (max-width: 767px) {
+  .modal {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
 /* Tabs bar */
 .tabsBar {
   padding: 0 var(--space-4);

@@ -45,6 +45,8 @@
     max-width: 100%;
     height: 100dvh;
     border-radius: 0;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
   }
 }
 

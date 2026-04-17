@@ -7,6 +7,7 @@ import { apiClient } from '../../services/apiClient';
 import { useModalFocusTrap } from '../../hooks/useModalFocusTrap';
 import { useScrollLock } from '../../hooks/useScrollLock';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { useSwipeGesture } from '../../hooks/useSwipeGesture';
 import { EvidenceModal } from '../common/EvidenceModal';
 import { CollapsibleSplitPane } from '../common/CollapsibleSplitPane';
 import { ViewerShell } from '../viewer/ViewerShell';
@@ -217,8 +218,29 @@ export const DocumentModal: React.FC<Props> = ({
     [hasAnyText, doc],
   );
 
-  const { modalRef } = useModalFocusTrap({ isActive: true, onEscape: onClose });
+const { modalRef } = useModalFocusTrap({ isActive: true, onEscape: onClose });
   useScrollLock(true);
+  const swipeRef = useRef<HTMLDivElement>(null);
+
+  useSwipeGesture(swipeRef, {
+    onSwipeDown: onClose,
+    threshold: 100,
+  });
+
+  const combinedRef = useCallback(
+    (el: HTMLDivElement | null) => {
+      if (el) {
+        (modalRef as unknown as { current: HTMLDivElement | null }).current = el;
+      }
+      swipeRef.current = el;
+    },
+    [modalRef],
+  );
+
+  const setRefs = useCallback((el: HTMLDivElement | null) => {
+    (modalRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
+    swipeRef.current = el;
+  }, []);
 
   useEffect(() => {
     hasAutoSwitchedNoOcrRef.current = false;
@@ -473,7 +495,12 @@ export const DocumentModal: React.FC<Props> = ({
       aria-labelledby="document-modal-title"
       onClick={onClose}
     >
-      <Surface variant="glass-strong" className={styles.modal} onClick={(e) => e.stopPropagation()}>
+      <Surface
+        variant="glass-strong"
+        className={styles.modal}
+        onClick={(e) => e.stopPropagation()}
+        ref={setRefs}
+      >
         <ViewerShell
           header={
             <DocumentHeader

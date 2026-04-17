@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback, Profiler } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, Profiler, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { apiClient } from '../../services/apiClient';
 import { useScrollLock } from '../../hooks/useScrollLock';
 import { useModalFocusTrap } from '../../hooks/useModalFocusTrap';
+import { useSwipeGesture } from '../../hooks/useSwipeGesture';
 import { TabItem } from './Tabs';
 
 // Subcomponents
@@ -702,6 +703,17 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
 
   useScrollLock(isOpen);
   const { modalRef } = useModalFocusTrap({ isActive: isOpen, onEscape: onClose });
+  const swipeRef = useRef<HTMLDivElement>(null);
+
+  useSwipeGesture(swipeRef, {
+    onSwipeDown: onClose,
+    threshold: 100,
+  });
+
+  const combinedRef = useCallback((el: HTMLDivElement | null) => {
+    (modalRef as unknown as { current: HTMLDivElement | null }).current = el;
+    swipeRef.current = el;
+  }, [modalRef]);
 
   const onRenderCallback = useCallback(
     (id: string, phase: 'mount' | 'update' | 'nested-update', actualDuration: number) => {
@@ -741,7 +753,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
             onClick={onClose}
           />
           <motion.div
-            ref={modalRef}
+            ref={combinedRef}
             initial={{ scale: 0.95, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 20 }}

@@ -344,6 +344,16 @@
   transition: color var(--duration-fast) var(--easing-liquid);
 }
 
+@media (max-width: 767px) {
+  .closeBtn {
+    min-width: var(--touch-target-min, 44px);
+    min-height: var(--touch-target-min, 44px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
 .closeBtn:hover {
   color: var(--text-primary);
 }
