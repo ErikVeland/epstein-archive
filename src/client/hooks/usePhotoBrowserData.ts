@@ -436,7 +436,6 @@ export function usePhotoBrowserData() {
     setHasPeopleOnly,
     setSortField,
     setSortOrder,
-    setSortOrder,
     setSearchQuery,
     setExcludeTextScans,
     loadPeopleOptions,
