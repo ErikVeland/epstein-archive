@@ -237,6 +237,17 @@ export class MediaService {
     return !!row;
   }
 
+  /**
+   * Check if an image with the given hash already exists in metadata
+   */
+  async imageByHashExists(hash: string): Promise<boolean> {
+    const result = await this.pgRow(
+      "SELECT id FROM media_items WHERE metadata_json->>'sha256' = $1",
+      [hash],
+    );
+    return !!result;
+  }
+
   // ============ IMAGE OPERATIONS ============
 
   async getAllImages(filter?: ImageFilter, sort?: ImageSort): Promise<MediaImage[]> {
@@ -390,43 +401,48 @@ export class MediaService {
   }
 
   async createImage(
-    image: Omit<MediaImage, 'id' | 'dateAdded' | 'dateModified'>,
+    image: Omit<MediaImage, 'id' | 'dateAdded' | 'dateModified'> & { documentId?: string | number },
   ): Promise<MediaImage> {
+    // Determine the next numeric ID if none exists in this schema's serials
+    const idRes = await this.pgRow<{ max_id: string }>(
+      "SELECT MAX(CASE WHEN id ~ '^[0-9]+$' THEN id::bigint END)::text as max_id FROM media_items",
+    );
+    const nextId = (BigInt(idRes?.max_id || '0') + 1n).toString();
+
     const query = `
       INSERT INTO media_items (
-        filename, original_filename, file_path, thumbnail_path, title, description,
-        album_id, width, height, file_size, file_type, date_taken,
-        camera_make, camera_model, lens, focal_length, aperture, shutter_speed,
-        iso, latitude, longitude, color_profile, orientation,
-        created_at, date_modified
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        id, document_id, album_id, file_type, file_path, thumbnail_path, 
+        title, description, verification_status, red_flag_rating, 
+        is_sensitive, metadata_json, created_at, file_size, 
+        width, height, date_taken
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, CURRENT_TIMESTAMP, $13, $14, $15, $16)
       RETURNING id
     `;
 
-    const result = await this.pgRow<{ id: number }>(query, [
-      image.filename,
-      image.originalFilename,
-      image.path,
+    // Ensure metadata contains extra fields
+    const metadata = {
+      ...(image.metadata || {}),
+      camera: image.cameraMake ? { make: image.cameraMake, model: image.cameraModel } : undefined,
+      location: image.latitude ? { lat: image.latitude, lng: image.longitude } : undefined,
+    };
+
+    const result = await this.pgRow<{ id: string | number }>(query, [
+      nextId,
+      image.documentId || null,
+      image.albumId || null,
+      image.format || 'image/jpeg',
+      image.path || image.file_path,
       image.thumbnailPath || null,
       image.title || null,
       image.description || null,
-      image.albumId || null,
+      'unverified', // verification_status
+      0, // red_flag_rating
+      Boolean(image.isSensitive),
+      JSON.stringify(metadata),
+      image.fileSize || 0,
       image.width || 0,
       image.height || 0,
-      image.fileSize,
-      image.format,
       image.dateTaken || null,
-      image.cameraMake || null,
-      image.cameraModel || null,
-      image.lens || null,
-      image.focalLength || null,
-      image.aperture || null,
-      image.shutterSpeed || null,
-      image.iso || null,
-      image.latitude || null,
-      image.longitude || null,
-      image.colorProfile || null,
-      image.orientation || 1,
     ]);
 
     if (!result) throw new Error('Failed to create image');

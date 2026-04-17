@@ -1,6 +1,5 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { FileText } from 'lucide-react';
 import styles from './DocumentHoverPreview.module.css';
 
 // Design System
@@ -10,7 +9,12 @@ import { Surface } from '../../design-system/components/surfaces/Surface';
 import { LqText } from '../../design-system/components/typography/Text';
 
 import { Document } from '../../types/documents';
-import { getSafePreviewText, getSourceLabel, formatDate } from '../../utils/documentUtils';
+import {
+  formatDate,
+  getRenderTypeIcon,
+  getSafePreviewText,
+  getSourceLabel,
+} from '../../utils/documentUtils';
 
 interface DocumentHoverPreviewProps {
   doc: Document;
@@ -20,6 +24,12 @@ interface DocumentHoverPreviewProps {
 export const DocumentHoverPreview: React.FC<DocumentHoverPreviewProps> = ({ doc, rect }) => {
   const displayTitle = doc.title || doc.filename || 'Untitled document';
   const previewText = getSafePreviewText(doc);
+  const type = (doc.evidenceType || doc.fileType || '').toLowerCase();
+  const isPhoto =
+    type.includes('photo') ||
+    type.includes('image') ||
+    type.includes('jpg') ||
+    type.includes('png');
 
   // Calculate position
   const x = rect.right + 20 + 420 > window.innerWidth ? rect.left - 420 - 20 : rect.right + 20;
@@ -37,7 +47,7 @@ export const DocumentHoverPreview: React.FC<DocumentHoverPreviewProps> = ({ doc,
       <Surface variant="glass-strong" className={styles.root}>
         <Box className={styles.header}>
           <Flex align="center" gap="sm" className={styles.marginBottomSmall}>
-            <FileText size={16} className={styles.iconAccent} />
+            {getRenderTypeIcon(doc, { width: 16, height: 16, className: styles.iconAccent })}
             <LqText
               variant="xs"
               weight="black"
@@ -72,6 +82,16 @@ export const DocumentHoverPreview: React.FC<DocumentHoverPreviewProps> = ({ doc,
           </Box>
 
           <Box className={styles.previewText}>
+            {isPhoto && (
+              <Box className={styles.photoPreviewContainer}>
+                <img
+                  src={`/api/documents/${encodeURIComponent(String(doc.id))}/file?variant=original`}
+                  alt={displayTitle}
+                  className={styles.photoThumbnail}
+                  loading="lazy"
+                />
+              </Box>
+            )}
             <LqText variant="xs" color="secondary">
               {previewText}
             </LqText>

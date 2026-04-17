@@ -73,6 +73,18 @@ export const getSafePreviewText = (doc: Document): string => {
 
   const fromPreview = (doc.previewText || doc.contentPreview || '').trim();
   if (fromPreview && !looksLikePreviewJunk(fromPreview)) return fromPreview;
+
+  const type = (doc.evidenceType || doc.fileType || '').toLowerCase();
+  const isPhoto =
+    type.includes('photo') ||
+    type.includes('image') ||
+    type.includes('jpg') ||
+    type.includes('png');
+
+  if (isPhoto) {
+    return 'Evidence photo asset; open to view original image.';
+  }
+
   if (doc.previewKind === 'ai_summary') {
     return 'AI Summary available; open document for full contextual evidence.';
   }

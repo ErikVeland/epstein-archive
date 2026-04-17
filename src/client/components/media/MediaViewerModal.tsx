@@ -430,24 +430,109 @@ const MediaViewerModal: React.FC<MediaViewerModalProps> = ({
               </LqText>
             </Flex>
             <LqGrid cols={2} gap="sm">
-              <Surface variant="glass-highlight" p="sm" className={styles.infoCard}>
-                <LqText variant="xs" color="muted" weight="bold">
-                  SIZE
-                </LqText>
-                <LqText variant="xs" weight="bold">
-                  {formatFileSize(currentImage.fileSize)}
-                </LqText>
+              <Surface variant="glass-highlight" p="sm">
+                <Stack gap="xs">
+                  <LqText
+                    variant="xxs"
+                    weight="bold"
+                    color="muted"
+                    style={{ textTransform: 'uppercase' }}
+                  >
+                    Format
+                  </LqText>
+                  <LqText variant="xs">{currentImage.format || 'Unknown'}</LqText>
+                </Stack>
               </Surface>
-              <Surface variant="glass-highlight" p="sm" className={styles.infoCard}>
-                <LqText variant="xs" color="muted" weight="bold">
-                  FORMAT
-                </LqText>
-                <LqText variant="xs" weight="bold" style={{ textTransform: 'uppercase' }}>
-                  {currentImage.format}
-                </LqText>
+              <Surface variant="glass-highlight" p="sm">
+                <Stack gap="xs">
+                  <LqText
+                    variant="xxs"
+                    weight="bold"
+                    color="muted"
+                    style={{ textTransform: 'uppercase' }}
+                  >
+                    Size
+                  </LqText>
+                  <LqText variant="xs">{formatFileSize(currentImage.fileSize)}</LqText>
+                </Stack>
+              </Surface>
+              <Surface variant="glass-highlight" p="sm">
+                <Stack gap="xs">
+                  <LqText
+                    variant="xxs"
+                    weight="bold"
+                    color="muted"
+                    style={{ textTransform: 'uppercase' }}
+                  >
+                    Dimensions
+                  </LqText>
+                  <LqText variant="xs">
+                    {currentImage.width && currentImage.height
+                      ? `${currentImage.width}×${currentImage.height}`
+                      : 'Unknown'}
+                  </LqText>
+                </Stack>
+              </Surface>
+              <Surface variant="glass-highlight" p="sm">
+                <Stack gap="xs">
+                  <LqText
+                    variant="xxs"
+                    weight="bold"
+                    color="muted"
+                    style={{ textTransform: 'uppercase' }}
+                  >
+                    Added
+                  </LqText>
+                  <LqText variant="xs">
+                    {currentImage.dateAdded || currentImage.created_at || 'Unknown'}
+                  </LqText>
+                </Stack>
               </Surface>
             </LqGrid>
           </Stack>
+
+          {currentImage.documentId && (
+            <Stack gap="md">
+              <Flex align="center" gap="sm">
+                <Box className={styles.sectionIcon}>
+                  <Info size={14} />
+                </Box>
+                <LqText variant="xs" weight="bold" style={{ textTransform: 'uppercase' }}>
+                  Archival Provenance
+                </LqText>
+              </Flex>
+              <Surface variant="glass-highlight" p="md">
+                <Stack gap="sm">
+                  <LqText variant="xs" color="muted">
+                    This asset was extracted from:
+                  </LqText>
+                  <Button
+                    variant="glass-highlight"
+                    size="sm"
+                    style={{ width: '100%' }}
+                    onClick={() =>
+                      navigate(`/documents/${encodeURIComponent(String(currentImage.documentId))}`)
+                    }
+                    className={styles.provenanceLink}
+                  >
+                    <FileImage size={14} />
+                    <span
+                      style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                    >
+                      {currentImage.metadata?.['source_document']
+                        ? String(currentImage.metadata['source_document'])
+                        : `Document ID: ${currentImage.documentId}`}
+                    </span>
+                  </Button>
+                  {currentImage.metadata?.['source_page'] ? (
+                    <LqText variant="xxs" color="muted">
+                      Located on Page {String(currentImage.metadata['source_page'])}
+                    </LqText>
+                  ) : null}
+                </Stack>
+              </Surface>
+            </Stack>
+          )}
 
           <Stack gap="md">
             <Flex align="center" gap="sm">

@@ -36,6 +36,7 @@ export interface MediaImage {
   dateModified: string;
   created_at?: string;
   date_modified?: string;
+  metadata?: Record<string, unknown>;
 
   // EXIF data
   cameraMake?: string;
@@ -51,11 +52,11 @@ export interface MediaImage {
   orientation?: number;
 
   // Related data
-  // Related data
   tags?: string[];
   rating?: number;
   redFlagRating?: number;
   isSensitive?: boolean;
+  documentId?: string | number;
 }
 
 export interface Album {

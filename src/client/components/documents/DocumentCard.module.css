@@ -146,6 +146,30 @@
   font-size: 0.85rem;
 }
 
+.photoThumbnailContainer {
+  margin-bottom: var(--space-4);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg-strong);
+  aspect-ratio: 16 / 9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+}
+
+.photoThumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s var(--transition-base);
+}
+
+.card:hover .photoThumbnail {
+  transform: scale(1.05);
+}
+
 /* Entities row */
 .entitiesRow {
   margin-bottom: var(--space-4);

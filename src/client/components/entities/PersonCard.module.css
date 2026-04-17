@@ -233,3 +233,40 @@
 .profileLink {
   gap: var(--space-1);
 }
+
+@media (max-width: 640px) {
+  .card {
+    padding: var(--space-4);
+  }
+
+  .identityHeader {
+    gap: var(--space-3);
+  }
+
+  .avatar {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .nameRow {
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+
+  .name {
+    white-space: normal;
+    line-height: 1.15;
+  }
+
+  .metricsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .metricCellBordered {
+    border-left: none;
+  }
+
+  .bioSnippet {
+    max-width: 12rem;
+  }
+}

@@ -82,7 +82,7 @@
 .floatingMenu {
   position: absolute;
   z-index: 50;
-  width: 340px;
+  width: min(340px, calc(100vw - var(--space-6)));
   padding: var(--space-3);
   box-shadow: var(--glass-shadow);
 }
@@ -175,7 +175,7 @@
 
 /* Sidebar */
 .sidebar {
-  width: 20rem; /* 80 equivalent */
+  width: min(20rem, calc(100vw - var(--space-6)));
   background-color: rgba(15, 23, 42, 0.7);
   border-left: 1px solid var(--glass-border);
   padding: var(--space-4);

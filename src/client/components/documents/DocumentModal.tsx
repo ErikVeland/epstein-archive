@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '../../services/apiClient';
 import { useModalFocusTrap } from '../../hooks/useModalFocusTrap';
 import { useScrollLock } from '../../hooks/useScrollLock';
+import { useIsMobile } from '../../hooks/useIsMobile';
 import { EvidenceModal } from '../common/EvidenceModal';
 import { CollapsibleSplitPane } from '../common/CollapsibleSplitPane';
 import { ViewerShell } from '../viewer/ViewerShell';
@@ -137,7 +138,8 @@ export const DocumentModal: React.FC<Props> = ({
   const [showRecoveryHighlights, setShowRecoveryHighlights] = useState(true);
   const [expandedEntities, setExpandedEntities] = useState(false);
   const [rightPaneCollapsed, setRightPaneCollapsed] = useState(true);
-  const [rightPaneWidth, setRightPaneWidth] = useState(320);
+  const isMobile = useIsMobile();
+  const [rightPaneWidth, setRightPaneWidth] = useState(() => (isMobile ? 300 : 320));
   const [textSubview, setTextSubviewState] = useState<TextSubview>(
     (urlParams.get('textMode') as TextSubview) || 'clean',
   );
@@ -591,9 +593,9 @@ export const DocumentModal: React.FC<Props> = ({
               </Flex>
             }
             defaultRightWidth={rightPaneWidth}
-            minRightWidth={360}
-            maxRightWidth={520}
-            collapsedWidth={88}
+            minRightWidth={isMobile ? 280 : 360}
+            maxRightWidth={isMobile ? 420 : 520}
+            collapsedWidth={isMobile ? 72 : 88}
             rightCollapsed={rightPaneCollapsed}
             onRightCollapsedChange={setRightPaneCollapsed}
             onRightWidthChange={setRightPaneWidth}

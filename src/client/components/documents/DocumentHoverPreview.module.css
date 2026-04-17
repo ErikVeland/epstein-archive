@@ -5,6 +5,12 @@
   pointer-events: none;
 }
 
+@media (hover: none), (pointer: coarse), (max-width: 767px) {
+  .pastedPreviewRoot {
+    display: none;
+  }
+}
+
 .root {
   border-radius: var(--radius-xl);
   border: 1px solid var(--glass-border-highlight);
@@ -46,10 +52,33 @@
   font-family: var(--font-serif);
   line-height: 1.625;
   color: var(--text-secondary);
-  max-height: 10rem;
+  max-height: 20rem;
   overflow: hidden;
   position: relative;
   font-size: var(--type-xs);
+}
+
+.photoPreviewContainer {
+  margin-bottom: var(--space-4);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg-highlight);
+  aspect-ratio: 16 / 9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.photoThumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.previewText:hover .photoThumbnail {
+  transform: scale(1.05);
 }
 
 .previewFade {

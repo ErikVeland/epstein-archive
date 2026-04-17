@@ -138,6 +138,16 @@
   padding: var(--space-6);
 }
 
+@media (max-width: 767px) {
+  .detailsPanel {
+    padding: var(--space-4);
+  }
+
+  .detailGrid {
+    gap: var(--space-6);
+  }
+}
+
 /* Detail filters grid */
 .detailGrid {
   display: grid;

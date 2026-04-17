@@ -8,6 +8,12 @@
   padding: var(--space-4);
 }
 
+@media (max-width: 639px) {
+  .overlay {
+    padding: 0;
+  }
+}
+
 @media (min-width: 640px) {
   .overlay {
     padding: var(--space-6);
@@ -32,6 +38,14 @@
   display: flex;
   flex-direction: column;
   box-shadow: var(--glass-shadow);
+}
+
+@media (max-width: 639px) {
+  .modal {
+    max-width: 100%;
+    height: 100dvh;
+    border-radius: 0;
+  }
 }
 
 .contentArea {

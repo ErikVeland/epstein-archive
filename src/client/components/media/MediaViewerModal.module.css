@@ -506,3 +506,18 @@
   color: var(--accent);
   flex-shrink: 0;
 }
+
+.provenanceLink {
+  justify-content: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--glass-bg-highlight);
+  border: 1px solid var(--glass-border);
+  transition: all 0.2s ease;
+}
+
+.provenanceLink:hover {
+  background: var(--glass-bg-strong);
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}

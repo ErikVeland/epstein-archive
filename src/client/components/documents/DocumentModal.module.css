@@ -47,8 +47,8 @@
 @media (min-width: 768px) {
   .modal {
     border-radius: var(--radius-xl);
-    width: clamp(960px, 94vw, 1500px);
-    height: clamp(600px, 90vh, 1000px);
+    width: min(94vw, 1500px);
+    height: clamp(560px, 90dvh, 1000px);
   }
 }
 
@@ -77,7 +77,7 @@
 .contentPane {
   height: 100%;
   overflow-y: auto;
-  padding: var(--space-8) var(--space-5);
+  padding: var(--space-6) var(--space-4);
 }
 
 @media (min-width: 768px) {

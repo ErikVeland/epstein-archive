@@ -111,6 +111,27 @@ export const DocumentCard = React.forwardRef<HTMLElement, DocumentCardProps>(fun
           {searchTerm ? highlightSearchTerm(displayTitle, searchTerm) : displayTitle}
         </LqText>
 
+        {(() => {
+          const type = (document.evidenceType || document.fileType || '').toLowerCase();
+          const isPhoto =
+            type.includes('photo') ||
+            type.includes('image') ||
+            type.includes('jpg') ||
+            type.includes('png');
+          if (!isPhoto) return null;
+
+          return (
+            <Box className={styles.photoThumbnailContainer} data-testid="document-thumbnail">
+              <img
+                src={`/api/documents/${document.id}/file?variant=original`}
+                alt={displayTitle}
+                className={styles.photoThumbnail}
+                loading="lazy"
+              />
+            </Box>
+          );
+        })()}
+
         <LqText variant="xs" color="secondary" className={styles.preview}>
           {searchTerm ? highlightSearchTerm(previewText, searchTerm) : previewText}
         </LqText>
