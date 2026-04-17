@@ -1,5 +1,13 @@
 # Release Notes
 
+## 19.1.16 - 2026-04-17
+
+### Document Viewer
+
+- Fixed DOJ “Original Document” proxying by setting the required `justiceGovAgeVerified=true` cookie on upstream requests (prevents age-gate HTML responses and restores file access where local corpus is missing).
+
+---
+
 ## 19.1.15 - 2026-04-17
 
 ### Document Viewer

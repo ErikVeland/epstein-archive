@@ -550,10 +550,16 @@ router.get('/:id/file', validate(documentIdSchema), async (req, res, next) => {
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 30_000);
         try {
+          const parsedUpstreamUrl = new URL(candidateUrl);
+          const ageGateCookie = parsedUpstreamUrl.hostname.endsWith('justice.gov')
+            ? 'justiceGovAgeVerified=true'
+            : '';
+
           const upstream = await fetch(candidateUrl, {
             headers: {
               ...(rangeHeader ? { range: rangeHeader } : {}),
               'user-agent': 'epstein-archive',
+              ...(ageGateCookie ? { cookie: ageGateCookie } : {}),
             },
             redirect: 'follow',
             signal: controller.signal,
