@@ -1,5 +1,14 @@
 # Release Notes
 
+## 19.1.17 - 2026-04-17
+
+### Mobile UX
+
+- Made entity cards and entity dossier modal header mobile-first (smaller padding/typography; titles wrap instead of truncating; reduced media overlay padding).
+- Made document browser and document viewer mobile-first (no modal width overflow near 768px; scrollable toolbars; disabled hover-only previews on touch; responsive annotation panels).
+
+---
+
 ## 19.1.16 - 2026-04-17
 
 ### Document Viewer
