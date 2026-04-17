@@ -200,10 +200,11 @@ export const dataQualityRepository = {
    */
   logAudit: async (entry: AuditLogEntry): Promise<number> => {
     const pool = getApiPool();
+    const payload = entry.payload || {};
     const { rows } = await pool.query(
       `
-      INSERT INTO audit_log (actor_id, action, target_type, target_id, payload_json)
-      VALUES ($1, $2, $3, $4, $5)
+      INSERT INTO audit_log (actor_id, action, target_type, target_id, payload_json, doc_id, ent_id)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING id
     `,
       [
@@ -211,7 +212,11 @@ export const dataQualityRepository = {
         entry.action,
         entry.targetType,
         entry.targetId || null,
-        entry.payload ? JSON.stringify(entry.payload) : null,
+        JSON.stringify(payload),
+        entry.targetType === 'document'
+          ? entry.targetId
+          : payload.docId || payload.document_id || null,
+        entry.targetType === 'entity' ? entry.targetId : payload.entId || payload.entity_id || null,
       ],
     );
 
@@ -369,7 +374,8 @@ export const dataQualityRepository = {
       `
       SELECT timestamp, actor_id, action, payload_json
       FROM audit_log
-      WHERE target_type = 'document' AND target_id = $1
+      WHERE (target_type = 'document' AND target_id = $1)
+         OR (doc_id = $1)
       ORDER BY timestamp DESC
       LIMIT 20
     `,

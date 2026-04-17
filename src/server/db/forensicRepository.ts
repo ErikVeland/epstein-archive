@@ -1,5 +1,9 @@
 import { getApiPool } from './connection.js';
 
+// We'll use this for the generated queries once the db package is rebuilt
+// For now we'll use raw queries to ensure immediate functionality
+// import { forensicQueries } from '@epstein/db';
+
 export const forensicRepository = {
   /**
    * Get forensic metrics for a document
@@ -32,6 +36,84 @@ export const forensicRepository = {
     `;
 
     await pool.query(sql, [documentId, JSON.stringify(metrics), authenticityScore || 0]);
+  },
+
+  /**
+   * Get forensic signals (Relational)
+   */
+  getSignals: async (
+    filters: { status?: string; type?: string; limit?: number; offset?: number } = {},
+  ) => {
+    const pool = getApiPool();
+    const { status = null, type = null, limit = 50, offset = 0 } = filters;
+
+    const sql = `
+      SELECT s.*, 
+             (SELECT json_agg(json_build_object('id', e.id, 'name', e.full_name, 'role', se.role))
+              FROM forensic_signal_entities se
+              JOIN entities e ON se.entity_id = e.id
+              WHERE se.signal_id = s.id) as entities,
+             (SELECT json_agg(json_build_object('id', d.id, 'file_name', d.file_name, 'snippet', sev.snippet))
+              FROM forensic_signal_evidence sev
+              JOIN documents d ON sev.document_id = d.id
+              WHERE sev.signal_id = s.id) as evidence
+      FROM forensic_signals s
+      WHERE ($1::text IS NULL OR s.status = $1)
+        AND ($2::text IS NULL OR s.signal_type = $2)
+      ORDER BY s.created_at DESC
+      LIMIT $3 OFFSET $4
+    `;
+
+    const res = await pool.query(sql, [status, type, limit, offset]);
+    return res.rows;
+  },
+
+  /**
+   * Create a new forensic signal with links
+   */
+  createSignal: async (data: {
+    type: string;
+    confidence: number;
+    riskScore: number;
+    entities: Array<{ id: number; role?: string }>;
+    evidence: Array<{ id: number; snippet?: string }>;
+    metadata?: Record<string, unknown>;
+  }) => {
+    const pool = getApiPool();
+    const client = await pool.connect();
+
+    try {
+      await client.query('BEGIN');
+
+      const signalRes = await client.query(
+        'INSERT INTO forensic_signals (signal_type, confidence, risk_score, metadata_json) VALUES ($1, $2, $3, $4) RETURNING id',
+        [data.type, data.confidence, data.riskScore, JSON.stringify(data.metadata || {})],
+      );
+
+      const signalId = signalRes.rows[0].id;
+
+      for (const ent of data.entities) {
+        await client.query(
+          'INSERT INTO forensic_signal_entities (signal_id, entity_id, role) VALUES ($1, $2, $3)',
+          [signalId, ent.id, ent.role || 'primary'],
+        );
+      }
+
+      for (const ev of data.evidence) {
+        await client.query(
+          'INSERT INTO forensic_signal_evidence (signal_id, document_id, snippet) VALUES ($1, $2, $3)',
+          [signalId, ev.id, ev.snippet || ''],
+        );
+      }
+
+      await client.query('COMMIT');
+      return signalId;
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
   },
 
   /**

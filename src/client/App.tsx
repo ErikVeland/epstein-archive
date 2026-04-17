@@ -25,6 +25,7 @@ import { useNavigation } from './services/NavigationContext';
 import { apiClient } from './services/apiClient';
 // SECURITY: Removed non-authoritative document import paths
 import MobileMenu from './components/layout/MobileMenu';
+import MobileBottomNav from './components/layout/MobileBottomNav';
 import UndoProvider from './components/UndoManager';
 import ToastProvider from './components/common/ToastProvider';
 import ScopedErrorBoundary from './components/common/ScopedErrorBoundary';
@@ -1993,6 +1994,9 @@ function App() {
               )}
 
               <Footer onVersionClick={() => setShowReleaseNotes(true)} />
+
+              {/* Mobile Bottom Navigation */}
+              <MobileBottomNav />
             </div>
           </InvestigationsProvider>
         </UndoProvider>

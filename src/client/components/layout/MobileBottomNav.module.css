@@ -1,0 +1,71 @@
+.nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: var(--glass-bg-strong, rgba(15, 23, 42, 0.88));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--glass-border);
+  z-index: var(--z-header, 40);
+  padding: var(--space-1) var(--space-2);
+  padding-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+  justify-content: space-around;
+  align-items: center;
+}
+
+.navItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  min-width: 64px;
+  min-height: var(--touch-target-min, 44px);
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--easing-swift),
+              transform var(--duration-fast) var(--easing-swift);
+  border-radius: var(--radius-md);
+}
+
+.navItem:active {
+  transform: scale(0.95);
+}
+
+.navItem.active {
+  color: var(--accent);
+}
+
+.icon {
+  opacity: 0.7;
+}
+
+.navItem.active .icon {
+  opacity: 1;
+}
+
+.label {
+  font-size: var(--font-size-xs, 0.75rem);
+  font-weight: var(--weight-medium, 500);
+  white-space: nowrap;
+}
+
+/* Show on mobile only */
+@media (max-width: 767px) {
+  .nav {
+    display: flex;
+  }
+}
+
+/* Safe area adjustment for notched phones */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .nav {
+    padding-bottom: calc(var(--space-1) + env(safe-area-inset-bottom));
+  }
+}

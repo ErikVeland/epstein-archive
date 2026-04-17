@@ -172,6 +172,13 @@
   min-height: 100vh;
   overflow-x: hidden;
   overflow-y: auto;
+  padding-bottom: 80px;
+}
+
+@media (min-width: 768px) {
+  .appRoot {
+    padding-bottom: 0;
+  }
 }
 
 .srOnly {

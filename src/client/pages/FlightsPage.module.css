@@ -1,4 +1,11 @@
 .root {
   min-height: 500px;
   padding: var(--space-6);
+  padding-bottom: calc(var(--space-6) + 80px);
+}
+
+@media (min-width: 768px) {
+  .root {
+    padding-bottom: var(--space-6);
+  }
 }

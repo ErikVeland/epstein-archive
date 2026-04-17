@@ -1,4 +1,11 @@
 .pageShell {
   padding: var(--space-6);
   min-height: 500px;
+  padding-bottom: calc(var(--space-6) + 80px);
+}
+
+@media (min-width: 768px) {
+  .pageShell {
+    padding-bottom: var(--space-6);
+  }
 }

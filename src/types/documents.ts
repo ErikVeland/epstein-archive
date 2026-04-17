@@ -1,3 +1,12 @@
+export interface ForensicSignal {
+  id: string;
+  type: string;
+  confidence: number;
+  riskScore: number;
+  metadata: Record<string, unknown>;
+  entities: string[];
+}
+
 export interface Document {
   id: string;
   filename?: string;
@@ -17,6 +26,7 @@ export interface Document {
   metadata?: DocumentMetadata;
   entities?: Entity[];
   passages?: Passage[];
+  signals?: ForensicSignal[];
   redFlagScore?: number;
   redFlagRating?: number;
   redFlagPeppers?: string;

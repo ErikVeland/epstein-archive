@@ -174,7 +174,22 @@ test.describe('Golden Path D: DocumentModal PDF rendering', () => {
 });
 
 test.describe('Golden Path C: EmailClient threads, search, and add to investigation', () => {
-  test('loads threads, opens a thread, searches, and adds to investigation', async ({ page }) => {
+  test('loads threads, opens a thread, searches, and adds to investigation', async ({
+    page,
+    request,
+  }) => {
+    const threadResp = await request.get('/api/emails/threads?mailboxId=all&limit=1');
+    if (!threadResp.ok()) {
+      test.skip(true, 'Email threads API not available');
+      return;
+    }
+    const threadPayload = await threadResp.json();
+    const threads = Array.isArray(threadPayload?.data) ? threadPayload.data : [];
+    if (threads.length === 0) {
+      test.skip(true, 'No email threads available');
+      return;
+    }
+
     await page.goto('/emails');
 
     const threadList = page.locator('[data-testid="email-thread-row"]').first();

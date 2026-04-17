@@ -90,22 +90,100 @@
   background: linear-gradient(transparent, var(--glass-bg-strong));
 }
 
-.entitySection {
+.entitySection, .signalSection {
   margin-top: var(--space-6);
 }
 
-.entityList {
+.entityList, .signalList {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
   margin-top: var(--space-3);
 }
 
-.entityTag {
+/* Forensic Signals Styles */
+.signalSection {
+  padding: var(--space-3);
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: var(--radius-lg);
+  border-left: 3px solid var(--accent);
+}
+
+.signalItem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  width: 100%;
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.signalItem:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.riskGauge {
+  height: 4px;
+  background: var(--glass-bg-highlight);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: var(--space-1);
+}
+
+.riskFill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.riskHigh {
+  background: #f97316; /* Orange-500 */
+}
+
+.riskCritical {
+  background: #ef4444; /* Red-500 */
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+}
+
+/* Liquid Fire High-Priority Highlight */
+.liquidFire {
+  border-color: rgba(249, 115, 22, 0.8) !important;
+  box-shadow: 0 0 25px rgba(249, 115, 22, 0.2), 0 15px 35px -10px rgba(0, 0, 0, 0.6) !important;
+}
+
+.riskBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
   padding: 0.125rem 0.5rem;
-  border: 1px solid rgba(34, 211, 238, 0.3);
-  background-color: rgba(34, 211, 238, 0.05);
   border-radius: var(--radius-sm);
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.riskBadgeHigh {
+  background: rgba(249, 115, 22, 0.1);
+  color: #fb923c;
+  border: 1px solid rgba(249, 115, 22, 0.3);
+}
+
+.riskBadgeCritical {
+  background: rgba(239, 68, 68, 0.1);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  animation: pulse-danger 2s infinite;
+}
+
+@keyframes pulse-danger {
+  0% { opacity: 0.8; }
+  50% { opacity: 1; border-color: rgba(239, 68, 68, 0.8); box-shadow: 0 0 8px rgba(239, 68, 68, 0.3); }
+  100% { opacity: 0.8; }
+}
+
+.textGold {
+  color: #fbbf24;
 }
 
 /* Utilities */

@@ -8,6 +8,7 @@ export * from '../components/layout/Box';
 export * from '../components/layout/Flex';
 export * from '../components/layout/Stack';
 export * from '../components/layout/Grid';
+export * from '../components/layout/Responsive';
 
 // Surfaces & Typography
 export * from '../components/surfaces/Surface';

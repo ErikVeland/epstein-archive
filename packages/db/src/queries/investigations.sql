@@ -67,10 +67,25 @@ SET
   description = COALESCE(:description, description),
   status = COALESCE(:status, status),
   scope = COALESCE(:scope, scope),
-  collaborator_ids = COALESCE(:collaboratorIds, collaborator_ids),
   updated_at = CURRENT_TIMESTAMP
 WHERE id = :id!
 RETURNING *;
+
+/* @name addCollaborator */
+INSERT INTO investigation_collaborators (investigation_id, user_id, permission_level)
+VALUES (:investigationId!, :userId!, :permissionLevel)
+ON CONFLICT (investigation_id, user_id) DO UPDATE SET
+  permission_level = EXCLUDED.permission_level,
+  joined_at = CURRENT_TIMESTAMP;
+
+/* @name removeCollaborator */
+DELETE FROM investigation_collaborators 
+WHERE investigation_id = :investigationId! AND user_id = :userId!;
+
+/* @name getCollaborators */
+SELECT user_id, permission_level, joined_at
+FROM investigation_collaborators
+WHERE investigation_id = :investigationId!;
 
 /* @name getEvidence */
 SELECT 
@@ -192,8 +207,13 @@ WHERE hypothesis_id = :hypothesisId! AND evidence_id = :evidenceId!;
 /* @name logActivity */
 INSERT INTO investigation_activity (
   investigation_id, user_id, user_name, action_type, 
-  target_type, target_id, target_title, metadata_json
-) VALUES (:investigationId!, :userId, :userName, :actionType!, :targetType, :targetId, :targetTitle, :metadata)
+  target_type, target_id, target_title, metadata_json,
+  doc_id, ent_id, lead_id
+) VALUES (
+  :investigationId!, :userId, :userName, :actionType!, 
+  :targetType, :targetId, :targetTitle, :metadata,
+  :docId, :entId, :leadId
+)
 RETURNING id;
 
 /* @name getActivity */

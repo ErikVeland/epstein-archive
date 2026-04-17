@@ -263,6 +263,21 @@
   --shadow-md: 0 8px 24px rgba(2, 6, 23, 0.22);
   --shadow-lg: var(--glass-shadow);
   --z-tooltip: 210;
+
+  /* Responsive Breakpoints */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+
+  /* Mobile-first safe area for notched devices */
+  --safe-area-inset-top: env(safe-area-inset-top, 0px);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-inset-left: env(safe-area-inset-left, 0px);
+  --safe-area-inset-right: env(safe-area-inset-right, 0px);
+
+  /* Touch target minimum */
+  --touch-target-min: 44px;
 }
 
 html,

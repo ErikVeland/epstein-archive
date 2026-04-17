@@ -121,6 +121,32 @@ export interface TextPosition {
   };
 }
 
+export type LeadStatus = 'open' | 'pursued' | 'dead_end' | 'resolved';
+export type LeadPriority = 'low' | 'medium' | 'high' | 'critical';
+
+export interface InvestigationLead {
+  id: number;
+  investigationId: number;
+  title: string;
+  description: string | null;
+  status: LeadStatus;
+  priority: LeadPriority;
+  sourceDocumentId: number | null;
+  sourceEftaRef: string | null;
+  assignedTo: string | null;
+  resolutionNotes: string | null;
+  forensicSignalId?: string | null;
+  signalType?: string | null;
+  confidence?: number | null;
+  riskScore?: number | null;
+  signalMetadata?: Record<string, unknown> | null;
+  entityIds?: number[] | null;
+  entityNames?: string[] | null;
+  document_title?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Hypothesis {
   id: string;
   investigationId: string;

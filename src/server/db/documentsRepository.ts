@@ -601,11 +601,50 @@ export const documentsRepository = {
       ),
     };
 
+    // Fetch associated forensic signals
+    const signalRowsRes = await getApiPool().query(
+      `
+      SELECT 
+        fs.id,
+        fs.signal_type as "signalType",
+        fs.confidence,
+        fs.risk_score as "riskScore",
+        fs.metadata_json as "metadata",
+        ARRAY(
+          SELECT full_name FROM entities WHERE id = ANY(fs.entity_ids)
+        ) as "entityNames"
+      FROM forensic_signals fs
+      WHERE (fs.source_source = 'documents' AND fs.source_ref_id = $1)
+         OR (
+           fs.source_source = 'media' AND fs.source_ref_id IN (
+             SELECT id::text FROM media_items WHERE document_id = $2
+           )
+         )
+         OR (
+           fs.source_source = 'flights' AND fs.source_ref_id IN (
+             SELECT id::text FROM flight_passengers WHERE document_id = $2
+           )
+         )
+      ORDER BY fs.risk_score DESC
+      `,
+      [String(docId), docId],
+    );
+
+    const signals = signalRowsRes.rows.map((row) => ({
+      id: row.id,
+      type: row.signalType,
+      confidence: row.confidence,
+      riskScore: row.riskScore,
+      metadata: row.metadata,
+      entities: row.entityNames,
+    }));
+
     return {
       ...normalizedDocument,
       source_collection: 'Epstein Files',
       entities,
       mentionedEntities: entities,
+      signals,
       original_file_path: document.originalFilePath || document.filePath,
       redaction_spans: redactionSpans.map((s) => ({
         ...s,

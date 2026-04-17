@@ -12,6 +12,13 @@
   position: relative;
 }
 
+/* Hide footer on mobile - bottom nav replaces it */
+@media (max-width: 767px) {
+  .footer {
+    display: none;
+  }
+}
+
 .container {
   max-width: 1920px;
   margin-left: auto;

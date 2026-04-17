@@ -55,9 +55,8 @@ import { InvestigationTeamManagement } from './InvestigationTeamManagement';
 import { InvestigationBoard } from './InvestigationBoard';
 import { InvestigationLeadsPanel } from './InvestigationLeadsPanel';
 import { SubjectDossierPanel } from './SubjectDossierPanel';
-import { InvestigationActivityFeed } from './InvestigationActivityFeed';
-import { InvestigationCaseFolder } from './InvestigationCaseFolder';
 import { CommunicationAnalysis } from './CommunicationAnalysis';
+import { AgenticDiscoveryBoard } from './AgenticDiscoveryBoard';
 import { DocumentModal } from '../documents/DocumentModal';
 import { EvidenceModal } from '../common/EvidenceModal';
 
@@ -218,6 +217,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
     | 'forensic'
     | 'export'
     | 'activity'
+    | 'intelligence'
     | 'casefolder';
 
   const getActiveTab = useCallback((): ActiveTab => {
@@ -239,6 +239,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
       'forensic',
       'export',
       'activity',
+      'intelligence',
       'casefolder',
     ];
     return tab && validTabs.includes(tab) ? tab : 'overview';
@@ -833,6 +834,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                 <Stack gap="xs" className={styles.nav}>
                   {[
                     { id: 'board', label: 'Investigation Board', icon: LayoutDashboard },
+                    { id: 'intelligence', label: 'Discovery Intelligence', icon: Cpu },
                     { id: 'overview', label: 'Intelligence Overview', icon: Search },
                     { id: 'activity', label: 'Activity Log', icon: Activity },
                     { id: 'casefolder', label: 'Primary Evidence Folder', icon: FolderOpen },
@@ -878,6 +880,9 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
             <Box p="xl" className={styles.scrollArea}>
               {activeTab === 'board' && (
                 <InvestigationBoard investigationId={selectedInvestigation.id} />
+              )}
+              {activeTab === 'intelligence' && (
+                <AgenticDiscoveryBoard investigationId={selectedInvestigation.id} />
               )}
               {activeTab === 'overview' && (
                 <Stack gap="xl">

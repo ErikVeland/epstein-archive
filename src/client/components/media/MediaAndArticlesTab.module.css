@@ -4,6 +4,13 @@
   height: 100%;
   overflow: hidden;
   background: var(--glass-bg);
+  padding-bottom: 80px;
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding-bottom: 0;
+  }
 }
 
 .tabBar {
