@@ -1,11 +1,19 @@
 # Release Notes
 
-## 19.1.12 - 2026-04-17
+## 19.1.15 - 2026-04-17
 
 ### Document Viewer
 
-- Fixed “Original Document” viewing by serving the best available file variant when a dirty/original path is missing.
-- Prevented intermittent 500s when attempting to send non-file paths from `/api/documents/:id/file` (now verifies regular files and surfaces send errors consistently).
+- Fixed missing corpus resolution by trying both `data/...` and `...` relative paths against the mounted corpus roots (eliminates `/data/data/...` mis-resolve and reduces 404s).
+- Prevented proxy fallback from serving DOJ age-gate HTML as if it were a document payload.
+
+---
+
+## 19.1.14 - 2026-04-17
+
+### Document Viewer
+
+- Fixed remaining 404s for DOJ-ingested paths by deriving and proxying the matching justice.gov URL when the local corpus file is missing.
 
 ---
 
@@ -17,11 +25,12 @@
 
 ---
 
-## 19.1.14 - 2026-04-17
+## 19.1.12 - 2026-04-17
 
 ### Document Viewer
 
-- Fixed remaining 404s for DOJ-ingested paths by deriving and proxying the matching justice.gov URL when the local corpus file is missing.
+- Fixed “Original Document” viewing by serving the best available file variant when a dirty/original path is missing.
+- Prevented intermittent 500s when attempting to send non-file paths from `/api/documents/:id/file` (now verifies regular files and surfaces send errors consistently).
 
 ---
 

@@ -443,6 +443,7 @@ router.get('/:id/file', validate(documentIdSchema), async (req, res, next) => {
 
       const attemptedPaths: string[] = [];
       const normalizedCandidate = candidatePath.replace(/^\/+/, '');
+      const normalizedNoDataPrefix = normalizedCandidate.replace(/^(?:\.\/)?data\//, '');
 
       // Build list of potential absolute paths to check
       const potentialPaths: string[] = [];
@@ -454,6 +455,9 @@ router.get('/:id/file', validate(documentIdSchema), async (req, res, next) => {
         // Try relative to each allowed root
         for (const root of allowedRoots) {
           potentialPaths.push(path.resolve(root, normalizedCandidate));
+          if (normalizedNoDataPrefix !== normalizedCandidate) {
+            potentialPaths.push(path.resolve(root, normalizedNoDataPrefix));
+          }
         }
       }
 
@@ -561,6 +565,8 @@ router.get('/:id/file', validate(documentIdSchema), async (req, res, next) => {
           if (!body) continue;
 
           const contentType = upstream.headers.get('content-type');
+          const contentTypeLower = String(contentType || '').toLowerCase();
+          if (contentTypeLower.includes('text/html')) continue;
           const contentLength = upstream.headers.get('content-length');
           const acceptRanges = upstream.headers.get('accept-ranges');
           const contentRange = upstream.headers.get('content-range');
