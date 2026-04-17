@@ -7,6 +7,8 @@ type RunQuery = {
   run: (params: unknown, client: unknown) => Promise<Array<Record<string, unknown>>>;
 };
 
+type CollaboratorRow = { user_id: string; permission_level: string; joined_at: string };
+
 export interface Investigation {
   id: number;
   uuid: string;
@@ -37,21 +39,24 @@ type InvestigationEvidenceAnnotationRow = {
   updated_at: string;
 };
 
-const mapInvestigation = (inv: Record<string, unknown>, collaborators: any[] = []) => ({
+const mapInvestigation = (
+  inv: Record<string, unknown>,
+  collaborators: CollaboratorRow[] = [],
+) => ({
   id: Number(inv.id),
-  uuid: inv.uuid,
-  title: inv.title,
-  description: inv.description,
-  ownerId: inv.owner_id,
-  status: inv.status,
-  scope: inv.scope,
+  uuid: String(inv.uuid),
+  title: String(inv.title),
+  description: inv.description ? String(inv.description) : undefined,
+  ownerId: String(inv.owner_id),
+  status: inv.status as Investigation['status'],
+  scope: inv.scope ? String(inv.scope) : undefined,
   collaborators: collaborators.map((c) => ({
     userId: c.user_id,
     permissionLevel: c.permission_level,
     joinedAt: c.joined_at,
   })),
-  createdAt: inv.created_at,
-  updatedAt: inv.updated_at,
+  createdAt: String(inv.created_at),
+  updatedAt: String(inv.updated_at),
 });
 
 export const investigationsRepository = {
@@ -114,10 +119,10 @@ export const investigationsRepository = {
     const inv = rows[0];
     if (!inv) return null;
 
-    const collaborators = await (investigationsQueries.getCollaborators as RunQuery).run(
+    const collaborators = (await (investigationsQueries.getCollaborators as RunQuery).run(
       { investigationId: id },
       getApiPool(),
-    );
+    )) as CollaboratorRow[];
 
     return mapInvestigation(inv, collaborators);
   },
@@ -130,10 +135,10 @@ export const investigationsRepository = {
     const inv = rows[0];
     if (!inv) return null;
 
-    const collaborators = await (investigationsQueries.getCollaborators as RunQuery).run(
+    const collaborators = (await (investigationsQueries.getCollaborators as RunQuery).run(
       { investigationId: Number(inv.id) },
       getApiPool(),
-    );
+    )) as CollaboratorRow[];
 
     return mapInvestigation(inv, collaborators);
   },
@@ -393,10 +398,10 @@ export const investigationsRepository = {
 
       await client.query('COMMIT');
 
-      const collaborators = await (investigationsQueries.getCollaborators as RunQuery).run(
+      const collaborators = (await (investigationsQueries.getCollaborators as RunQuery).run(
         { investigationId: id },
         getApiPool(),
-      );
+      )) as CollaboratorRow[];
 
       return mapInvestigation(updated, collaborators);
     } catch (err) {

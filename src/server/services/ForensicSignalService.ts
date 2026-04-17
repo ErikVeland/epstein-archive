@@ -9,7 +9,7 @@ export interface ForensicSignal {
   source_source: string;
   source_ref_id: string;
   entity_ids: number[];
-  metadata_json: Record<string, any>;
+  metadata_json: Record<string, unknown>;
   status?: string;
   created_at?: Date;
 }

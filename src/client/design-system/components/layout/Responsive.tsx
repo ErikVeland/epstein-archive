@@ -1,5 +1,5 @@
 import React from 'react';
-import { useResponsive, useMediaQuery } from '../../../hooks/useResponsive';
+import { useResponsive, useMediaQuery, useIsMobile, useIsTablet, useIsDesktop } from '../../../hooks/useResponsive';
 import { cn } from '../../lib';
 
 export interface ResponsiveProps {
@@ -67,20 +67,5 @@ export function Responsive({
   return <div className={cn(className)}>{children}</div>;
 }
 
-/**
- * Hook version for use inside components
- */
-export function useIsMobile(): boolean {
-  const { mobile } = useResponsive();
-  return mobile;
-}
-
-export function useIsTablet(): boolean {
-  const { tablet } = useResponsive();
-  return tablet;
-}
-
-export function useIsDesktop(): boolean {
-  const { desktop } = useResponsive();
-  return desktop;
+  return <div className={cn(className)}>{children}</div>;
 }

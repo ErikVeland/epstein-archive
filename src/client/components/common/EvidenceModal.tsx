@@ -709,23 +709,6 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
     threshold: 100,
   });
 
-  const onRenderCallback = useCallback(
-    (id: string, phase: 'mount' | 'update' | 'nested-update', actualDuration: number) => {
-      if (actualDuration > 16) {
-        import('../../utils/performanceMonitor.js')
-          .then(({ PerformanceMonitor }) => {
-            PerformanceMonitor.logRender(
-              `EvidenceModal-${id}`,
-              actualDuration,
-              phase === 'nested-update' ? 'update' : phase,
-            );
-          })
-          .catch(() => {});
-      }
-    },
-    [],
-  );
-
   if (!isOpen) return null;
 
   const headerMediaItems = mediaItems.length > 0 ? mediaItems : entity?.photos || [];
@@ -736,8 +719,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
     (entityId ? `/api/entities/${encodeURIComponent(entityId)}/portrait` : null);
 
   return createPortal(
-    <Profiler id="EvidenceModal" onRender={onRenderCallback}>
-      <AnimatePresence>
+    <AnimatePresence>
         <div className={s.overlay}>
           <motion.div
             initial={{ opacity: 0 }}
@@ -855,8 +837,7 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
             </div>
           </motion.div>
         </div>
-      </AnimatePresence>
-    </Profiler>,
+    </AnimatePresence>,
     document.body,
   );
 };

@@ -91,3 +91,18 @@ export const BREAKPOINT_VALUES = {
   tablet: 1023,
   desktop: 1024,
 } as const;
+
+export function useIsMobile(): boolean {
+  const { mobile } = useResponsive();
+  return mobile;
+}
+
+export function useIsTablet(): boolean {
+  const { tablet } = useResponsive();
+  return tablet;
+}
+
+export function useIsDesktop(): boolean {
+  const { desktop } = useResponsive();
+  return desktop;
+}
