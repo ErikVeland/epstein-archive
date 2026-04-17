@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useMemo, useCallback, Profiler } from 'react';
+/* eslint-disable prettier/prettier */
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -720,123 +721,123 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
 
   return createPortal(
     <AnimatePresence>
-        <div className={s.overlay}>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className={s.backdrop}
-            onClick={onClose}
+      <div className={s.overlay}>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className={s.backdrop}
+          onClick={onClose}
+        />
+        <motion.div
+          ref={modalRef}
+          initial={{ scale: 0.95, opacity: 0, y: 20 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.95, opacity: 0, y: 20 }}
+          data-testid="evidence-modal"
+          className={s.modal}
+          tabIndex={-1}
+          onPointerDown={(e) => {
+            const startY = e.clientY;
+            const handlePointerMove = (moveEvent: PointerEvent) => {
+              const deltaY = moveEvent.clientY - startY;
+              if (deltaY > 100) {
+                onClose();
+                document.removeEventListener('pointermove', handlePointerMove);
+              }
+            };
+            document.addEventListener('pointermove', handlePointerMove);
+            document.addEventListener(
+              'pointerup',
+              () => document.removeEventListener('pointermove', handlePointerMove),
+              { once: true },
+            );
+          }}
+        >
+          <EvidenceModalHeader
+            entity={entity ?? null}
+            loading={loading}
+            headerPhotoUrl={headerPhotoUrl}
+            brokenMediaIds={brokenMediaIds}
+            setBrokenMediaIds={setBrokenMediaIds}
+            handleQuickAction={handleQuickAction}
+            activeQuickAction={activeQuickAction}
+            tabs={EVIDENCE_TABS}
+            activeTab={activeTab}
+            onTabChange={(key) => isEvidenceModalTab(key) && handleTabChange(key)}
+            onClose={onClose}
+            forensicSummary={forensicSummary}
+            getRiskClass={getRiskClass}
+            resolveEntityPhotoUrl={resolveEntityPhotoUrl}
+            isVisualMediaItem={isVisualMediaItem}
+            headerPhoto={headerPhoto ?? null}
           />
-          <motion.div
-            ref={modalRef}
-            initial={{ scale: 0.95, opacity: 0, y: 20 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.95, opacity: 0, y: 20 }}
-            data-testid="evidence-modal"
-            className={s.modal}
-            tabIndex={-1}
-            onPointerDown={(e) => {
-              const startY = e.clientY;
-              const handlePointerMove = (moveEvent: PointerEvent) => {
-                const deltaY = moveEvent.clientY - startY;
-                if (deltaY > 100) {
-                  onClose();
-                  document.removeEventListener('pointermove', handlePointerMove);
+
+          <div className={s.contentArea}>
+            {activeTab === 'overview' && (
+              <EvidenceOverviewTab
+                entity={entity ?? null}
+                loading={loading}
+                forensicData={forensicData}
+                totalDocs={totalDocs}
+                mediaItems={mediaItems}
+                overviewEvidenceTypesCount={overviewEvidenceTypesCount}
+                overviewSignificantPassages={overviewSignificantPassages}
+                openDocumentFromEvidence={openDocumentFromEvidence}
+                navigateFromModal={navigateFromModal}
+                blackBookSectionRef={blackBookSectionRef}
+              />
+            )}
+
+            {activeTab === 'evidence' && (
+              <EvidenceDocumentsTab
+                docFilters={docFilters}
+                handleFilterChange={handleFilterChange}
+                isDocsLoading={isDocsLoading}
+                totalDocs={totalDocs}
+                documents={documents}
+                loadNextPage={loadNextPage}
+                hasNextPage={hasNextPage}
+                isItemLoaded={isItemLoaded}
+                isNextPageLoading={isNextPageLoading}
+                usePlainEvidenceList
+                entityName={entity?.fullName || ''}
+                openDocument={openDocumentFromEvidence}
+              />
+            )}
+
+            {activeTab === 'media' && (
+              <EvidenceMediaTab
+                entity={entity ?? null}
+                mediaItems={mediaItems}
+                isMediaLoading={isMediaLoading}
+                brokenMediaIds={brokenMediaIds}
+                setBrokenMediaIds={setBrokenMediaIds}
+              />
+            )}
+
+            {activeTab === 'network' && (
+              <EvidenceNetworkTab
+                networkLoading={networkLoading}
+                relationships={relationships as GraphRelationship[]}
+                graphData={
+                  graphData as { entities: GraphNode[]; relationships: GraphRelationship[] }
                 }
-              };
-              document.addEventListener('pointermove', handlePointerMove);
-              document.addEventListener(
-                'pointerup',
-                () => document.removeEventListener('pointermove', handlePointerMove),
-                { once: true },
-              );
-            }}
-          >
-            <EvidenceModalHeader
-              entity={entity ?? null}
-              loading={loading}
-              headerPhotoUrl={headerPhotoUrl}
-              brokenMediaIds={brokenMediaIds}
-              setBrokenMediaIds={setBrokenMediaIds}
-              handleQuickAction={handleQuickAction}
-              activeQuickAction={activeQuickAction}
-              tabs={EVIDENCE_TABS}
-              activeTab={activeTab}
-              onTabChange={(key) => isEvidenceModalTab(key) && handleTabChange(key)}
-              onClose={onClose}
-              forensicSummary={forensicSummary}
-              getRiskClass={getRiskClass}
-              resolveEntityPhotoUrl={resolveEntityPhotoUrl}
-              isVisualMediaItem={isVisualMediaItem}
-              headerPhoto={headerPhoto ?? null}
-            />
+                entity={entity ?? null}
+              />
+            )}
 
-            <div className={s.contentArea}>
-              {activeTab === 'overview' && (
-                <EvidenceOverviewTab
-                  entity={entity ?? null}
-                  loading={loading}
-                  forensicData={forensicData}
-                  totalDocs={totalDocs}
-                  mediaItems={mediaItems}
-                  overviewEvidenceTypesCount={overviewEvidenceTypesCount}
-                  overviewSignificantPassages={overviewSignificantPassages}
-                  openDocumentFromEvidence={openDocumentFromEvidence}
-                  navigateFromModal={navigateFromModal}
-                  blackBookSectionRef={blackBookSectionRef}
-                />
-              )}
-
-              {activeTab === 'evidence' && (
-                <EvidenceDocumentsTab
-                  docFilters={docFilters}
-                  handleFilterChange={handleFilterChange}
-                  isDocsLoading={isDocsLoading}
-                  totalDocs={totalDocs}
-                  documents={documents}
-                  loadNextPage={loadNextPage}
-                  hasNextPage={hasNextPage}
-                  isItemLoaded={isItemLoaded}
-                  isNextPageLoading={isNextPageLoading}
-                  usePlainEvidenceList
-                  entityName={entity?.fullName || ''}
-                  openDocument={openDocumentFromEvidence}
-                />
-              )}
-
-              {activeTab === 'media' && (
-                <EvidenceMediaTab
-                  entity={entity ?? null}
-                  mediaItems={mediaItems}
-                  isMediaLoading={isMediaLoading}
-                  brokenMediaIds={brokenMediaIds}
-                  setBrokenMediaIds={setBrokenMediaIds}
-                />
-              )}
-
-              {activeTab === 'network' && (
-                <EvidenceNetworkTab
-                  networkLoading={networkLoading}
-                  relationships={relationships as GraphRelationship[]}
-                  graphData={
-                    graphData as { entities: GraphNode[]; relationships: GraphRelationship[] }
-                  }
-                  entity={entity ?? null}
-                />
-              )}
-
-              {activeTab === 'investigations' && (
-                <EvidenceInvestigationsTab
-                  investigations={investigations}
-                  isInvestigationsLoading={isInvestigationsLoading}
-                  investigationsInitialized={investigationsInitialized}
-                  onOpenCase={(uuid) => navigateFromModal(`/investigations/${uuid}`)}
-                />
-              )}
-            </div>
-          </motion.div>
-        </div>
+            {activeTab === 'investigations' && (
+              <EvidenceInvestigationsTab
+                investigations={investigations}
+                isInvestigationsLoading={isInvestigationsLoading}
+                investigationsInitialized={investigationsInitialized}
+                onOpenCase={(uuid) => navigateFromModal(`/investigations/${uuid}`)}
+              />
+            )}
+          </div>
+        </motion.div>
+      </div>
     </AnimatePresence>,
     document.body,
   );

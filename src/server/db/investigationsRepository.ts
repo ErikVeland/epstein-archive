@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { investigationsQueries } from '@epstein/db';
 import { getApiPool } from './connection.js';
 import { logger } from '../services/Logger.js';
@@ -39,10 +40,7 @@ type InvestigationEvidenceAnnotationRow = {
   updated_at: string;
 };
 
-const mapInvestigation = (
-  inv: Record<string, unknown>,
-  collaborators: CollaboratorRow[] = [],
-) => ({
+const mapInvestigation = (inv: Record<string, unknown>, collaborators: CollaboratorRow[] = []) => ({
   id: Number(inv.id),
   uuid: String(inv.uuid),
   title: String(inv.title),

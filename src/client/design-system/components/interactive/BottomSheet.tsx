@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useIsMobile } from '../layout/Responsive';
+import { useResponsive } from '../../../hooks/useResponsive';
 import { useSwipeGesture } from '../../../hooks/useSwipeGesture';
 import { cn } from '../../lib';
 import styles from './BottomSheet.module.css';
@@ -23,7 +23,7 @@ export function BottomSheet({
   snapPoints: _snapPoints = [0.25, 0.5, 0.9],
   className,
 }: BottomSheetProps) {
-  const isMobile = useIsMobile();
+  const { mobile: isMobile } = useResponsive();
   const sheetRef = useRef<HTMLDivElement>(null);
 
   const handleSwipeDown = useCallback(() => {
