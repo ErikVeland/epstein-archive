@@ -1,6 +1,5 @@
-/* eslint-disable prettier/prettier */
 import React from 'react';
-import { useResponsive, useMediaQuery, useIsMobile, useIsTablet, useIsDesktop } from '../../../hooks/useResponsive';
+import { useMediaQuery, useResponsive } from '../../../hooks/useResponsive';
 import { cn } from '../../lib';
 
 export interface ResponsiveProps {
