@@ -9,6 +9,14 @@
 
 ---
 
+## 19.1.13 - 2026-04-17
+
+### Document Viewer
+
+- Fixed remaining 404s for “Original Document” by proxy-streaming whitelisted remote source URLs when no local asset path exists.
+
+---
+
 ## 19.1.11 - 2026-04-16
 
 ### Document Viewer

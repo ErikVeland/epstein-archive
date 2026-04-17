@@ -234,7 +234,7 @@ export const blackBookRepository = {
         );
 
         await getApiPool().query(
-          'INSERT INTO audit_log (operation, entity_type, entity_id, details_json) VALUES ($1, $2, $3, $4)',
+          'INSERT INTO audit_log (action, target_type, target_id, payload_json) VALUES ($1, $2, $3, $4)',
           [
             'black_book_review',
             'person',

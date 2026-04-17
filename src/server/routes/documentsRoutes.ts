@@ -10,6 +10,8 @@ import fs from 'fs';
 import path from 'path';
 import rateLimit from 'express-rate-limit';
 import { createHash } from 'crypto';
+import { Readable } from 'stream';
+import type { ReadableStream as WebReadableStream } from 'stream/web';
 
 const router = Router();
 
@@ -307,6 +309,40 @@ router.get('/:id/file', validate(documentIdSchema), async (req, res, next) => {
       }
       return '';
     };
+    const firstHttpUrl = (values: unknown[]): string => {
+      for (const candidate of values) {
+        const normalized = String(candidate || '').trim();
+        if (!normalized) continue;
+        if (!isHttpUrl(normalized)) continue;
+        return normalized;
+      }
+      return '';
+    };
+
+    const isAllowedRemoteUrl = (rawUrl: string): boolean => {
+      try {
+        const url = new URL(rawUrl);
+        if (url.protocol !== 'https:' && url.protocol !== 'http:') return false;
+        const host = url.hostname.toLowerCase();
+        if (
+          host === 'localhost' ||
+          host === '127.0.0.1' ||
+          host === '::1' ||
+          host.endsWith('.local') ||
+          host.endsWith('.internal')
+        ) {
+          return false;
+        }
+        const allowed =
+          host === 'epstein.academy' ||
+          host.endsWith('.epstein.academy') ||
+          host === 'justice.gov' ||
+          host.endsWith('.justice.gov');
+        return allowed;
+      } catch {
+        return false;
+      }
+    };
 
     const dirtyPath = firstNonUrl([
       doc.filePath,
@@ -328,16 +364,41 @@ router.get('/:id/file', validate(documentIdSchema), async (req, res, next) => {
       docAny.cleaned_path,
       metadata.cleanedPath,
       metadata.cleaned_path,
+      metadata.cleaned_path_refined,
+    ]);
+    const dirtyUrl = firstHttpUrl([
+      doc.filePath,
+      docAny.file_path,
+      metadata.filePath,
+      metadata.file_path,
+      metadata.originalPath,
+      metadata.original_path,
+    ]);
+    const originalUrl = firstHttpUrl([
+      docAny.originalFilePath,
+      docAny.original_file_path,
+      metadata.originalFilePath,
+      metadata.original_file_path,
+      metadata.source_path,
+    ]);
+    const cleanedUrl = firstHttpUrl([
+      docAny.cleanedPath,
+      docAny.cleaned_path,
+      metadata.cleanedPath,
+      metadata.cleaned_path,
+      metadata.cleaned_path_refined,
     ]);
 
-    let selectedPath = dirtyPath;
-    if (variant === 'original') {
-      selectedPath = originalPath || dirtyPath || cleanedPath;
-    } else if (variant === 'cleaned') {
-      selectedPath = cleanedPath || dirtyPath || originalPath;
-    } else {
-      selectedPath = dirtyPath || originalPath || cleanedPath;
-    }
+    const variants = {
+      dirty: dirtyPath,
+      original: originalPath,
+      cleaned: cleanedPath,
+    };
+    const variantUrls = {
+      dirty: dirtyUrl,
+      original: originalUrl,
+      cleaned: cleanedUrl,
+    };
 
     const allowedRoots = [
       normalizeExistingRoot(path.resolve(process.cwd(), 'data')),
@@ -346,29 +407,95 @@ router.get('/:id/file', validate(documentIdSchema), async (req, res, next) => {
         : null,
     ].filter((root): root is string => Boolean(root));
 
-    const absolutePath = selectedPath
-      ? path.isAbsolute(selectedPath)
-        ? selectedPath
-        : path.resolve(process.cwd(), selectedPath.replace(/^\/+/, ''))
-      : '';
-    const fileExists = Boolean(absolutePath) && fs.existsSync(absolutePath);
-    const canonicalFilePath = fileExists ? fs.realpathSync(absolutePath) : '';
-    const withinAllowedRoots =
-      Boolean(canonicalFilePath) &&
-      allowedRoots.some((allowedRoot) => isWithinRoot(canonicalFilePath, allowedRoot));
-    const isRegularFile = (() => {
-      try {
-        return Boolean(canonicalFilePath) && fs.statSync(canonicalFilePath).isFile();
-      } catch {
-        return false;
+    const checkFile = (
+      candidatePath: string,
+    ): {
+      absolutePath: string;
+      exists: boolean;
+      allowed: boolean;
+      isFile: boolean;
+      attemptedPaths: string[];
+    } => {
+      if (!candidatePath) {
+        return {
+          absolutePath: '',
+          exists: false,
+          allowed: false,
+          isFile: false,
+          attemptedPaths: [],
+        };
       }
-    })();
 
-    const isEmailRecord = String(docAny.evidenceType || docAny.evidence_type || '')
-      .toLowerCase()
-      .includes('email');
+      const attemptedPaths: string[] = [];
+      const normalizedCandidate = candidatePath.replace(/^\/+/, '');
 
-    if (!selectedPath || !withinAllowedRoots || !fileExists || !isRegularFile) {
+      // Build list of potential absolute paths to check
+      const potentialPaths: string[] = [];
+      if (path.isAbsolute(candidatePath)) {
+        potentialPaths.push(candidatePath);
+      } else {
+        // Try project root
+        potentialPaths.push(path.resolve(process.cwd(), normalizedCandidate));
+        // Try relative to each allowed root
+        for (const root of allowedRoots) {
+          potentialPaths.push(path.resolve(root, normalizedCandidate));
+        }
+      }
+
+      for (const absPath of potentialPaths) {
+        attemptedPaths.push(absPath);
+        if (fs.existsSync(absPath)) {
+          try {
+            const canonical = fs.realpathSync(absPath);
+            const stats = fs.statSync(canonical);
+            if (stats.isFile()) {
+              const allowed = allowedRoots.some((root) => isWithinRoot(canonical, root));
+              if (allowed) {
+                return {
+                  absolutePath: canonical,
+                  exists: true,
+                  allowed: true,
+                  isFile: true,
+                  attemptedPaths,
+                };
+              }
+            }
+          } catch (_e) {
+            // Skip paths that fail to resolve (e.g. symlink loops, permission denied)
+            continue;
+          }
+        }
+      }
+
+      return { absolutePath: '', exists: false, allowed: false, isFile: false, attemptedPaths };
+    };
+
+    // Attempt resolution with fallback
+    const primaryVariant = variant as keyof typeof variants;
+    const variantOrder: (keyof typeof variants)[] = [primaryVariant];
+    if (primaryVariant === 'original') variantOrder.push('dirty', 'cleaned');
+    else if (primaryVariant === 'cleaned') variantOrder.push('dirty', 'original');
+    else variantOrder.push('original', 'cleaned');
+
+    let finalFileResult: ReturnType<typeof checkFile> | null = null;
+    let fallbackUsed = false;
+    const allAttempted: Record<string, string[]> = {};
+
+    for (const v of variantOrder) {
+      const res = checkFile(variants[v]);
+      allAttempted[v] = res.attemptedPaths;
+      if (res.exists && res.allowed && res.isFile) {
+        finalFileResult = res;
+        if (v !== primaryVariant) fallbackUsed = true;
+        break;
+      }
+    }
+
+    if (!finalFileResult) {
+      const isEmailRecord = String(docAny.evidenceType || docAny.evidence_type || '')
+        .toLowerCase()
+        .includes('email');
+
       if (isEmailRecord) {
         const from = String(metadata.from || metadata.sender || 'unknown@archive.local');
         const to = String(metadata.to || metadata.recipients || 'undisclosed-recipients');
@@ -395,11 +522,64 @@ router.get('/:id/file', validate(documentIdSchema), async (req, res, next) => {
         return res.status(200).send(eml);
       }
 
-      return res.status(404).json({ error: 'No local file path available for document' });
+      for (const v of variantOrder) {
+        const candidateUrl = variantUrls[v];
+        if (!candidateUrl) continue;
+        if (!isAllowedRemoteUrl(candidateUrl)) continue;
+
+        const rangeHeader = req.header('range') || undefined;
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 30_000);
+        try {
+          const upstream = await fetch(candidateUrl, {
+            headers: rangeHeader ? { range: rangeHeader } : undefined,
+            redirect: 'follow',
+            signal: controller.signal,
+          });
+
+          if (!upstream.ok && upstream.status !== 206) continue;
+
+          const body = upstream.body;
+          if (!body) continue;
+
+          const contentType = upstream.headers.get('content-type');
+          const contentLength = upstream.headers.get('content-length');
+          const acceptRanges = upstream.headers.get('accept-ranges');
+          const contentRange = upstream.headers.get('content-range');
+
+          res.status(upstream.status);
+          res.setHeader('Content-Disposition', 'inline');
+          res.setHeader('X-Asset-Proxy', 'true');
+          if (v !== primaryVariant) res.setHeader('X-Asset-Fallback', 'true');
+          if (contentType) res.setHeader('Content-Type', contentType);
+          if (contentLength) res.setHeader('Content-Length', contentLength);
+          if (acceptRanges) res.setHeader('Accept-Ranges', acceptRanges);
+          if (contentRange) res.setHeader('Content-Range', contentRange);
+
+          Readable.fromWeb(body as unknown as WebReadableStream<Uint8Array>).pipe(res);
+          return;
+        } catch {
+          continue;
+        } finally {
+          clearTimeout(timeout);
+        }
+      }
+
+      return res.status(404).json({
+        error: 'No valid local file path found for document',
+        id,
+        requestedVariant: variant,
+        checkedVariants: variantOrder,
+        attemptedPaths: allAttempted,
+      });
     }
 
     res.setHeader('Content-Disposition', 'inline');
-    return res.sendFile(canonicalFilePath, (err) => {
+    if (fallbackUsed) {
+      res.setHeader('X-Asset-Fallback', 'true');
+    }
+
+    return res.sendFile(finalFileResult.absolutePath, (err) => {
       if (err) next(err);
     });
   } catch (error) {

@@ -36,10 +36,10 @@ export interface DataQualityMetrics {
 export interface AuditLogEntry {
   id?: number;
   timestamp?: string;
-  userId?: string;
+  actorId?: string;
   action: string;
-  objectType: string;
-  objectId?: string;
+  targetType: string;
+  targetId?: string;
   payload?: Record<string, unknown>;
 }
 
@@ -202,15 +202,15 @@ export const dataQualityRepository = {
     const pool = getApiPool();
     const { rows } = await pool.query(
       `
-      INSERT INTO audit_log (user_id, action, object_type, object_id, payload_json)
+      INSERT INTO audit_log (actor_id, action, target_type, target_id, payload_json)
       VALUES ($1, $2, $3, $4, $5)
       RETURNING id
     `,
       [
-        entry.userId || 'system',
+        entry.actorId || 'system',
         entry.action,
-        entry.objectType,
-        entry.objectId || null,
+        entry.targetType,
+        entry.targetId || null,
         entry.payload ? JSON.stringify(entry.payload) : null,
       ],
     );
@@ -222,7 +222,7 @@ export const dataQualityRepository = {
    * Get audit log entries, optionally filtered
    */
   getAuditLog: async (
-    filters: { objectType?: string; objectId?: string; action?: string } = {},
+    filters: { targetType?: string; targetId?: string; action?: string } = {},
     limit: number = 100,
   ): Promise<AuditLogEntry[]> => {
     const pool = getApiPool();
@@ -231,13 +231,13 @@ export const dataQualityRepository = {
     const params: (string | number)[] = [];
     let paramCounter = 1;
 
-    if (filters.objectType) {
-      conditions.push(`object_type = $${paramCounter++}`);
-      params.push(filters.objectType);
+    if (filters.targetType) {
+      conditions.push(`target_type = $${paramCounter++}`);
+      params.push(filters.targetType);
     }
-    if (filters.objectId) {
-      conditions.push(`object_id = $${paramCounter++}`);
-      params.push(filters.objectId);
+    if (filters.targetId) {
+      conditions.push(`target_id = $${paramCounter++}`);
+      params.push(filters.targetId);
     }
     if (filters.action) {
       conditions.push(`action = $${paramCounter++}`);
@@ -249,8 +249,8 @@ export const dataQualityRepository = {
 
     const { rows } = await pool.query(
       `
-      SELECT id, timestamp, user_id as "userId", action, object_type as "objectType", 
-             object_id as "objectId", payload_json as "payloadJson"
+      SELECT id, timestamp, actor_id as "actorId", action, target_type as "targetType", 
+             target_id as "targetId", payload_json as "payloadJson"
       FROM audit_log
       ${whereClause}
       ORDER BY timestamp DESC
@@ -263,18 +263,18 @@ export const dataQualityRepository = {
       (row: {
         id: number;
         timestamp: string;
-        userId: string;
+        actorId: string;
         action: string;
-        objectType: string;
-        objectId: string;
+        targetType: string;
+        targetId: string;
         payloadJson: string | Record<string, unknown> | null;
       }) => ({
         id: row.id,
         timestamp: row.timestamp,
-        userId: row.userId,
+        actorId: row.actorId,
         action: row.action,
-        objectType: row.objectType,
-        objectId: row.objectId,
+        targetType: row.targetType,
+        targetId: row.targetId,
         payload: row.payloadJson
           ? typeof row.payloadJson === 'string'
             ? JSON.parse(row.payloadJson)
@@ -367,9 +367,9 @@ export const dataQualityRepository = {
     // Get related audit entries
     const { rows: auditEntries } = await pool.query(
       `
-      SELECT timestamp, user_id, action, payload_json
+      SELECT timestamp, actor_id, action, payload_json
       FROM audit_log
-      WHERE object_type = 'document' AND object_id = $1
+      WHERE target_type = 'document' AND target_id = $1
       ORDER BY timestamp DESC
       LIMIT 20
     `,
@@ -404,12 +404,12 @@ export const dataQualityRepository = {
       auditTrail: auditEntries.map(
         (e: {
           timestamp: string;
-          user_id: string;
+          actor_id: string;
           action: string;
           payload_json: string | Record<string, unknown> | null;
         }) => ({
           timestamp: e.timestamp,
-          user: e.user_id,
+          user: e.actor_id,
           action: e.action,
           details: e.payload_json
             ? typeof e.payload_json === 'string'

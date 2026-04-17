@@ -190,7 +190,7 @@ export function EvidenceDetail() {
   const handleDownload = () => {
     if (!evidence) return;
     window.open(
-      `/api/documents/${encodeURIComponent(String(evidence.id))}/file`,
+      `/api/documents/${encodeURIComponent(String(evidence.id))}/file?variant=original`,
       '_blank',
       'noopener,noreferrer',
     );

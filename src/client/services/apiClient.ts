@@ -824,12 +824,12 @@ class ApiClient {
   }
 
   async getEntityGraph(entityId: string, depth: number = 2): Promise<unknown> {
-    const url = `${API_BASE_URL}/entities/${entityId}/analytics/graph?depth=${depth}`;
+    const url = `${API_BASE_URL}/entities/${encodeURIComponent(entityId)}/analytics/graph?depth=${depth}`;
     return this.fetchWithErrorHandling<unknown>(url);
   }
 
   async getEntityDocuments(entityId: string): Promise<unknown[]> {
-    const url = `${API_BASE_URL}/entities/${entityId}/documents`;
+    const url = `${API_BASE_URL}/entities/${encodeURIComponent(entityId)}/documents`;
     const response = await this.fetchWithErrorHandling<unknown>(url);
 
     // Handle both array (dev/legacy) and paginated object (prod) formats
@@ -843,7 +843,7 @@ class ApiClient {
   }
 
   async analyzeDocument(documentId: string): Promise<unknown> {
-    const url = `${API_BASE_URL}/documents/${documentId}/analytics/analyze`;
+    const url = `${API_BASE_URL}/documents/${encodeURIComponent(documentId)}/analytics/analyze`;
     return this.fetchWithErrorHandling<unknown>(url, { method: 'POST' });
   }
 
@@ -858,12 +858,12 @@ class ApiClient {
   }
 
   async getEvidenceMetrics(documentId: string): Promise<unknown> {
-    const url = `${API_BASE_URL}/documents/${documentId}/analytics/metrics`;
+    const url = `${API_BASE_URL}/documents/${encodeURIComponent(documentId)}/analytics/metrics`;
     return this.fetchWithErrorHandling<unknown>(url);
   }
 
   async getChainOfCustody(documentId: string): Promise<unknown> {
-    const url = `${API_BASE_URL}/documents/${documentId}/analytics/custody`;
+    const url = `${API_BASE_URL}/documents/${encodeURIComponent(documentId)}/analytics/custody`;
     return this.fetchWithErrorHandling<unknown>(url);
   }
 
@@ -877,7 +877,7 @@ class ApiClient {
   }
 
   async getInvestigationEvidenceSummary(investigationId: string): Promise<unknown> {
-    const url = `${API_BASE_URL}/investigations/${investigationId}/analytics/evidence-summary`;
+    const url = `${API_BASE_URL}/investigations/${encodeURIComponent(investigationId)}/analytics/evidence-summary`;
     return this.fetchWithErrorHandling<unknown>(url, { useCache: false });
   }
 
