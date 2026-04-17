@@ -113,12 +113,17 @@ export class MediaExtractionService {
       const savePath = path.join(docSubDir, filename);
 
       const sharpImg = sharp(buffer);
-      const metadata = await sharpImg.metadata();
+      const [metadata, stats] = await Promise.all([sharpImg.metadata(), sharpImg.stats()]);
 
       // Filter out non-image assets or extremely low-res graphics
       if (!metadata.width || !metadata.height || (metadata.width < 50 && metadata.height < 50)) {
         return false;
       }
+
+      // Heuristic: Scanned text pages usually have low stdev (lots of white/black) and lower entropy.
+      // Photos usually have stdev > 40 and entropy > 7.
+      const avgStdev = stats.channels.reduce((sum, c) => sum + c.stdev, 0) / stats.channels.length;
+      const isTextOnly = stats.entropy < 6.8 && avgStdev < 35;
 
       await sharpImg.jpeg({ quality: 90 }).toFile(savePath);
 
@@ -149,6 +154,10 @@ export class MediaExtractionService {
           source_document: docName,
           source_collection: sourceCollection,
           extraction_engine: 'pdfimages-cli',
+          is_document_extract: true,
+          is_text_only: isTextOnly,
+          stdev: avgStdev,
+          entropy: stats.entropy,
         },
       });
 

@@ -1,5 +1,17 @@
 # Release Notes
 
+## 19.2.0 - 2026-04-17
+
+### Media & Forensic Extraction
+
+- Implemented a sharp-based text-detection heuristic (entropy + stdev analysis) to automatically flag OCR-heavy scanned document pages.
+- Focused the Media Browser on photographic evidence by defaulting to "Hide Archival Scans" for a cleaner investigative gallery.
+- Added a "Show Archival Scans" toggle to the Photo Browser to allow viewing raw document extracts when needed.
+- Integrated a new **"Recovered Assets"** tab into the Document Modal, providing direct access to photos extracted from the specific document being reviewed.
+- Enhanced relational data integrity by linking all extracted assets directly to their source `document_id`.
+
+---
+
 ## 19.1.17 - 2026-04-17
 
 ### Mobile UX

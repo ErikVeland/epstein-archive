@@ -418,6 +418,7 @@
   display: none;
   flex-shrink: 0;
   height: 100%;
+  width: 320px;
   border-right: 1px solid var(--glass-border);
   background: rgba(var(--glass-bg-strong-rgb), 0.4);
   backdrop-filter: blur(4px);
@@ -426,6 +427,12 @@
 @media (min-width: 768px) {
   .desktopSidebar {
     display: block;
+  }
+}
+
+@media (max-width: 1023px) {
+  .desktopSidebar {
+    width: 260px;
   }
 }
 
@@ -540,6 +547,12 @@
   overflow-y: auto;
   overflow-x: hidden;
   background: var(--glass-bg-strong);
+}
+
+@media (max-width: 1023px) {
+  .mainContent {
+    padding: 1rem;
+  }
 }
 
 .tabTitle {

@@ -1342,6 +1342,14 @@ class ApiClient {
       return [];
     }
   }
+
+  async getMediaByDocumentId(
+    documentId: string | number,
+  ): Promise<import('../types/media.types').MediaImage[]> {
+    return this.get<import('../types/media.types').MediaImage[]>(
+      `/media/images?documentId=${documentId}`,
+    );
+  }
 }
 
 export const apiClient = new ApiClient();

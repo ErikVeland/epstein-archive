@@ -227,7 +227,6 @@ export const EmailClient: React.FC = () => {
     const saved = window.localStorage.getItem('email-pane-mailbox-width');
     return saved ? Number(saved) : 320;
   });
-  const threadWidth = 440; // Standardized fixed width now that adjuster is removed
 
   const updateUrlState = useCallback(
     (updates: Record<string, string | null>) => {
@@ -363,10 +362,10 @@ export const EmailClient: React.FC = () => {
   const threadRowHeight = density === 'compact' ? 72 : 94;
 
   const clampWidths = useCallback((nextMailbox: number, containerWidth: number) => {
-    const contentMin = 480;
-    const threadWidthFixed = 440;
+    const threadMin = 280;
+    const contentMin = 320;
     const handleWidth = 10;
-    const maxMailbox = Math.max(240, containerWidth - threadWidthFixed - contentMin - handleWidth);
+    const maxMailbox = Math.max(240, containerWidth - threadMin - contentMin - handleWidth);
     const mailbox = Math.min(Math.max(nextMailbox, 240), maxMailbox);
     return { mailbox };
   }, []);
@@ -496,7 +495,6 @@ export const EmailClient: React.FC = () => {
         style={
           {
             '--mailbox-pane-width': `${mailboxWidth}px`,
-            '--thread-pane-width': `${threadWidth}px`,
           } as React.CSSProperties
         }
       >
@@ -586,7 +584,7 @@ export const EmailClient: React.FC = () => {
             </div>
           </div>
 
-          <div className={styles.rowMain}>
+          <div className={styles.paneBody}>
             {mailboxesLoading ? (
               <div className={styles.stateLoading}>
                 <Loader2 className={styles.loaderInline} /> Loading mailboxes

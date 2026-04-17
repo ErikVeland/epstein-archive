@@ -642,12 +642,11 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
 
       {/* Add Evidence Modal */}
       {showAddModal && (
-        <Box className={styles.autoGen216} onClick={() => setShowAddModal(false)}>
+        <Box className={styles.modalOverlay} onClick={() => setShowAddModal(false)}>
           <Surface
             variant="panel"
-            width={600}
             p="xl"
-            className={styles.autoGen217}
+            className={styles.modalCard}
             onClick={(e) => e.stopPropagation()}
           >
             <Stack gap="xl">

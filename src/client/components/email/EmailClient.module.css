@@ -21,9 +21,9 @@
   .desktopLayout {
     display: grid;
     grid-template-columns:
-      var(--mailbox-pane-width, 340px) var(--pane-resizer-width, 10px)
-      var(--thread-pane-width, 440px)
-      minmax(480px, 1fr);
+      minmax(240px, var(--mailbox-pane-width, 340px)) var(--pane-resizer-width, 10px)
+      clamp(280px, 38vw, 440px)
+      minmax(0, 1fr);
   }
 }
 
@@ -61,6 +61,11 @@
   background: transparent;
   position: relative;
   overflow-y: auto;
+}
+
+.paneBody {
+  flex: 1;
+  min-height: 0;
 }
 
 /* Row refinements */

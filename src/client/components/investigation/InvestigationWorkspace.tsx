@@ -804,7 +804,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
       {selectedInvestigation && !isMobile && (
         <Flex grow fullWidth className={styles.layoutContainer}>
           {/* Dashboard Sidebar (Fixed Width) */}
-          <Box className={styles.desktopSidebar} w="320px">
+          <Box className={styles.desktopSidebar}>
             <Surface variant="glass" className={styles.sidebarInner} h="100%">
               <Stack p="lg" gap="xl">
                 <Button

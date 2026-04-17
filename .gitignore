@@ -59,15 +59,12 @@ temp/
 *.tar.gz
 *.zip
 
-# Large binaries
+# Large binaries and Archival Data
 eng.traineddata
-data/media/images/
-data/media/originals/
-data/media/audio/
-data/media/videos/
+data/media/
 data/thumbnails/
 data/faces_crops/
-data/models/
+data/temp/
 thumbnails/
 originals/
 

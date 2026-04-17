@@ -24,6 +24,7 @@ import { DocumentHeader } from './subcomponents/DocumentHeader';
 import { DocumentMetadataRail } from './subcomponents/DocumentMetadataRail';
 import { DocumentPDFTab } from './subcomponents/DocumentPDFTab';
 import { DocumentAnalysisTab } from './subcomponents/DocumentAnalysisTab';
+import { DocumentAssetsTab } from './subcomponents/DocumentAssetsTab';
 import { deriveSummary, normalizeList } from './DocumentModalUtils';
 import { isVisualMediaItem } from '../../utils/evidenceUtils';
 
@@ -67,7 +68,7 @@ interface Props {
   initialDoc?: DocRecord;
 }
 
-type ViewerTab = 'analysis' | 'pdf' | 'provenance';
+type ViewerTab = 'analysis' | 'pdf' | 'provenance' | 'assets';
 type TextSubview = 'clean' | 'ocr' | 'diff';
 
 const BASE_VIEWER_TABS: Array<{
@@ -78,6 +79,7 @@ const BASE_VIEWER_TABS: Array<{
 }> = [
   { key: 'pdf', label: 'Original Document' },
   { key: 'analysis', label: 'Summary & Analysis' },
+  { key: 'assets', label: 'Recovered Assets' },
   { key: 'provenance', label: 'Provenance' },
 ];
 
@@ -454,6 +456,8 @@ export const DocumentModal: React.FC<Props> = ({
         );
       case 'provenance':
         return <ProvenancePanel document={doc as never} />; // Workaround for slight interface mismatch without using any
+      case 'assets':
+        return <DocumentAssetsTab documentId={id} />;
       default:
         return null;
     }

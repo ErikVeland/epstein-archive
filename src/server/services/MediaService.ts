@@ -271,6 +271,12 @@ export class MediaService {
 
     if (filter) {
       if (filter.albumId) conditions.push(`i.album_id = ${bind(filter.albumId)}`);
+      if (filter.documentId) conditions.push(`i.document_id = ${bind(filter.documentId)}`);
+      if (filter.excludeTextScans) {
+        conditions.push(
+          `(i.metadata_json->>'is_text_only' IS NULL OR i.metadata_json->>'is_text_only' != 'true')`,
+        );
+      }
       if (filter.personId) {
         conditions.push(
           `i.id IN (SELECT media_item_id FROM media_item_people WHERE entity_id = ${bind(filter.personId)})`,
@@ -336,6 +342,12 @@ export class MediaService {
 
     if (filter) {
       if (filter.albumId) conditions.push(`i.album_id = ${bind(filter.albumId)}`);
+      if (filter.documentId) conditions.push(`i.document_id = ${bind(filter.documentId)}`);
+      if (filter.excludeTextScans) {
+        conditions.push(
+          `(i.metadata_json->>'is_text_only' IS NULL OR i.metadata_json->>'is_text_only' != 'true')`,
+        );
+      }
       if (filter.personId) {
         conditions.push(
           `i.id IN (SELECT media_item_id FROM media_item_people WHERE entity_id = ${bind(filter.personId)})`,

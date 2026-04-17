@@ -19,6 +19,7 @@ interface PhotoBrowserFilters {
   sortField: PhotoSortField;
   sortOrder: PhotoSortOrder;
   searchQuery: string;
+  excludeTextScans: boolean;
 }
 
 interface PhotoBrowserState {
@@ -91,6 +92,7 @@ function buildInitialState(): PhotoBrowserState {
       sortField: 'date_added',
       sortOrder: 'desc',
       searchQuery: '',
+      excludeTextScans: params.get('excludeTextScans') !== 'false', // Default to true
     },
     images: [],
     availablePeople: [],
@@ -170,6 +172,7 @@ function buildImageQuery(filters: PhotoBrowserFilters, page: number): string {
   if (filters.selectedTag) params.append('tagId', filters.selectedTag.toString());
   if (filters.selectedPerson) params.append('personId', filters.selectedPerson.toString());
   if (filters.hasPeopleOnly) params.append('hasPeople', 'true');
+  if (filters.excludeTextScans) params.append('excludeTextScans', 'true');
   if (filters.searchQuery.trim()) params.append('search', filters.searchQuery.trim());
   params.append('sortField', filters.sortField);
   params.append('sortOrder', filters.sortOrder);
@@ -207,6 +210,7 @@ export function usePhotoBrowserData() {
         sortField: state.filters.sortField,
         sortOrder: state.filters.sortOrder,
         searchQuery: state.filters.searchQuery.trim(),
+        excludeTextScans: state.filters.excludeTextScans,
       }),
     [state.filters],
   );
@@ -326,12 +330,16 @@ export function usePhotoBrowserData() {
     if (state.filters.hasPeopleOnly) url.searchParams.set('hasPeople', 'true');
     else url.searchParams.delete('hasPeople');
 
+    if (state.filters.excludeTextScans === false) url.searchParams.set('excludeTextScans', 'false');
+    else url.searchParams.delete('excludeTextScans');
+
     window.history.replaceState({}, '', url);
   }, [
     state.filters.hasPeopleOnly,
     state.filters.selectedAlbum,
     state.filters.selectedPerson,
     state.filters.selectedTag,
+    state.filters.excludeTextScans,
   ]);
 
   useEffect(() => {
@@ -367,6 +375,10 @@ export function usePhotoBrowserData() {
 
   const setSearchQuery = useCallback((value: string) => {
     dispatch({ type: 'SET_FILTER', key: 'searchQuery', value });
+  }, []);
+
+  const setExcludeTextScans = useCallback((value: boolean) => {
+    dispatch({ type: 'SET_FILTER', key: 'excludeTextScans', value });
   }, []);
 
   const loadMore = useCallback(async () => {
@@ -424,7 +436,9 @@ export function usePhotoBrowserData() {
     setHasPeopleOnly,
     setSortField,
     setSortOrder,
+    setSortOrder,
     setSearchQuery,
+    setExcludeTextScans,
     loadPeopleOptions,
     loadMore,
     updateImages,

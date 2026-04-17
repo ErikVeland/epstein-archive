@@ -87,6 +87,8 @@ export interface ImageFilter {
   dateTo?: string;
   searchQuery?: string;
   hasPeople?: boolean;
+  documentId?: string | number;
+  excludeTextScans?: boolean;
   limit?: number;
   offset?: number;
 }

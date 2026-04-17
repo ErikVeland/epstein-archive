@@ -255,6 +255,8 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
     loadMore,
     updateImages,
     consumePendingViewerIndex,
+    excludeTextScans,
+    setExcludeTextScans,
   } = usePhotoBrowserData();
 
   const selectedTagLabel =
@@ -575,6 +577,14 @@ export const PhotoBrowser: React.FC<PhotoBrowserProps> = React.memo(({ onImageCl
                     title="Filter for people"
                   >
                     <Users size={14} />
+                  </Button>
+                  <Button
+                    variant={!excludeTextScans ? 'accent-solid' : 'glass'}
+                    size="sm"
+                    onClick={() => setExcludeTextScans(!excludeTextScans)}
+                    title={excludeTextScans ? 'Show Archival Scans' : 'Hide Archival Scans'}
+                  >
+                    <ImageIcon size={14} />
                   </Button>
                 </Flex>
 

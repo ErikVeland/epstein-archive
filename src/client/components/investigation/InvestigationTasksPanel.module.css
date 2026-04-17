@@ -1,7 +1,7 @@
 .overlay {
   position: fixed;
   inset: 0;
-  z-index: 40;
+  z-index: var(--z-modal);
   display: flex;
   align-items: stretch;
   justify-content: flex-end;
@@ -24,8 +24,18 @@
   border-bottom: 1px solid var(--glass-border);
 }
 
+.footer {
+  padding: var(--space-4);
+  border-top: 1px solid var(--glass-border);
+}
+
 @media (min-width: 640px) {
   .section {
+    padding-right: var(--space-6);
+    padding-left: var(--space-6);
+  }
+
+  .footer {
     padding-right: var(--space-6);
     padding-left: var(--space-6);
   }
@@ -144,6 +154,7 @@
 
 .scrollArea {
   flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
   padding: var(--space-4);
 }

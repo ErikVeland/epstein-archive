@@ -1,7 +1,8 @@
 .root {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  min-height: 100dvh;
+  height: 100dvh;
   overflow: hidden;
   background: var(--lq-surface-1);
 }
@@ -41,6 +42,8 @@
 
 .content {
   flex: 1;
-  overflow: hidden;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   padding-bottom: 4.5rem;
 }

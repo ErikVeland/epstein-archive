@@ -138,19 +138,20 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
   };
 
   return (
-    <Box className={styles.autoGen263} onClick={(e) => e.target === e.currentTarget && onClose()}>
+    <Box className={styles.overlay} onClick={(e) => e.target === e.currentTarget && onClose()}>
       <Surface
         variant="glass"
-        style={css({ height: '100%', width: 500 })}
-        className={styles.autoGen264}
+        p="none"
+        className={styles.panel}
+        onClick={(e) => e.stopPropagation()}
       >
-        <Stack gap="xl" style={css({ height: '100%' })}>
+        <Stack gap="none" style={css({ height: '100%' })}>
           {/* Header */}
-          <Surface variant="glass" p="lg" className={styles.autoGen265}>
+          <Surface variant="glass" p="lg" className={styles.section}>
             <Flex justify="between" align="center">
               <Stack gap="none">
                 <Flex align="center" gap="sm">
-                  <BarChart3 size={20} className={styles.autoGen266} />
+                  <BarChart3 size={20} />
                   <LqText variant="h3" weight="bold">
                     Mission Control
                   </LqText>
@@ -170,194 +171,192 @@ export const InvestigationTasksPanel: React.FC<InvestigationTasksPanelProps> = (
             </Flex>
           </Surface>
 
-          {/* Summary HUD */}
-          {summary && (
-            <Box px="lg">
-              <Grid cols={3} gap="md">
-                <Surface variant="glass-highlight" p="md">
-                  <LqText variant="h3" weight="bold">
-                    {Object.values(summary.statusBreakdown).reduce((a, b) => a + b, 0)}
-                  </LqText>
-                  <LqText variant="xs" color="muted" style={css({ textTransform: 'uppercase' })}>
-                    Total Tasks
-                  </LqText>
-                </Surface>
-                <Surface variant="glass-highlight" p="md" className={styles.autoGen267}>
-                  <LqText variant="h3" weight="bold" color="danger">
-                    {summary.overdueTasks}
-                  </LqText>
-                  <LqText variant="xs" color="muted" style={css({ textTransform: 'uppercase' })}>
-                    Overdue
-                  </LqText>
-                </Surface>
-                <Surface variant="glass-highlight" p="md">
-                  <LqText variant="h3" weight="bold" color="success">
-                    {Math.round(summary.averageProgress)}%
-                  </LqText>
-                  <LqText variant="xs" color="muted" style={css({ textTransform: 'uppercase' })}>
-                    Avg Progress
-                  </LqText>
-                </Surface>
-              </Grid>
-            </Box>
-          )}
+          <Box className={styles.scrollArea}>
+            {/* Summary HUD */}
+            {summary && (
+              <Box>
+                <Grid cols={3} gap="md">
+                  <Surface variant="glass-highlight" p="md">
+                    <LqText variant="h3" weight="bold">
+                      {Object.values(summary.statusBreakdown).reduce((a, b) => a + b, 0)}
+                    </LqText>
+                    <LqText variant="xs" color="muted" style={css({ textTransform: 'uppercase' })}>
+                      Total Tasks
+                    </LqText>
+                  </Surface>
+                  <Surface variant="glass-highlight" p="md">
+                    <LqText variant="h3" weight="bold" color="danger">
+                      {summary.overdueTasks}
+                    </LqText>
+                    <LqText variant="xs" color="muted" style={css({ textTransform: 'uppercase' })}>
+                      Overdue
+                    </LqText>
+                  </Surface>
+                  <Surface variant="glass-highlight" p="md">
+                    <LqText variant="h3" weight="bold" color="success">
+                      {Math.round(summary.averageProgress)}%
+                    </LqText>
+                    <LqText variant="xs" color="muted" style={css({ textTransform: 'uppercase' })}>
+                      Avg Progress
+                    </LqText>
+                  </Surface>
+                </Grid>
+              </Box>
+            )}
 
-          {/* Filtering Hub */}
-          <Flex px="lg" gap="sm">
-            <Box style={css({ flex: 1 })}>
-              <NativeSelect
-                style={css({
-                  width: '100%',
-                  background: 'var(--lq-surface-3)',
-                  border: '1px solid var(--lq-surface-4)',
-                  borderRadius: '0.375rem',
-                  padding: '0.5rem 0.75rem',
-                  fontSize: '0.875rem',
-                  color: 'var(--lq-text-primary)',
-                  outline: 'none',
-                })}
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as TaskStatus | 'all')}
-              >
-                <option value="all">Any Status</option>
-                <option value="pending">Pending</option>
-                <option value="in_progress">In Progress</option>
-                <option value="completed">Completed</option>
-              </NativeSelect>
-            </Box>
-            <Box style={css({ flex: 1 })}>
-              <NativeSelect
-                style={css({
-                  width: '100%',
-                  background: 'var(--lq-surface-3)',
-                  border: '1px solid var(--lq-surface-4)',
-                  borderRadius: '0.375rem',
-                  padding: '0.5rem 0.75rem',
-                  fontSize: '0.875rem',
-                  color: 'var(--lq-text-primary)',
-                  outline: 'none',
-                })}
-                value={priorityFilter}
-                onChange={(e) => setPriorityFilter(e.target.value as TaskPriority | 'all')}
-              >
-                <option value="all">Any Priority</option>
-                <option value="critical">Critical</option>
-                <option value="high">High</option>
-              </NativeSelect>
-            </Box>
-          </Flex>
-
-          {/* Task Stream */}
-          <Box grow px="lg" className={styles.autoGen268}>
-            {isLoading ? (
-              <Stack gap="md">
-                <Skeleton height={120} />
-                <Skeleton height={120} />
-                <Skeleton height={120} />
-              </Stack>
-            ) : filteredTasks.length === 0 ? (
-              <Stack align="center" justify="center" gap="lg" py="xxxl" textAlign="center">
-                <CheckCircle2 size={48} className={styles.autoGen269} />
-                <LqText
-                  variant="xs"
-                  color="muted"
-                  style={css({ textTransform: 'uppercase' })}
-                  weight="bold"
+            {/* Filtering Hub */}
+            <Flex gap="sm">
+              <Box style={css({ flex: 1 })}>
+                <NativeSelect
+                  style={css({
+                    width: '100%',
+                    background: 'var(--lq-surface-3)',
+                    border: '1px solid var(--lq-surface-4)',
+                    borderRadius: '0.375rem',
+                    padding: '0.5rem 0.75rem',
+                    fontSize: '0.875rem',
+                    color: 'var(--lq-text-primary)',
+                    outline: 'none',
+                  })}
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value as TaskStatus | 'all')}
                 >
-                  Clearance 100% • No Active Tasks
-                </LqText>
-              </Stack>
-            ) : (
-              <Stack gap="md">
-                {filteredTasks.map((task) => (
-                  <Surface
-                    key={task.id}
-                    variant="glass-highlight"
-                    p="lg"
-                    className={styles.autoGen270}
-                  >
-                    <Stack gap="md">
-                      <Flex justify="between" align="start">
-                        <Flex gap="md" align="start">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className={styles.autoGen271}
-                            onClick={() => handleToggleComplete(task)}
-                          >
-                            <CheckCircle2
-                              size={18}
-                              className={cn(
-                                task.status === 'completed'
-                                  ? 'text-[var(--lq-success)]'
-                                  : 'text-[var(--lq-text-dim)]',
-                              )}
-                            />
-                          </Button>
-                          <Stack gap="none">
-                            <LqText
-                              variant="small"
-                              weight="bold"
-                              className={
-                                task.status === 'completed' ? 'line-through opacity-50' : ''
-                              }
-                            >
-                              {task.title}
-                            </LqText>
-                            {task.description && (
-                              <LqText variant="xs" color="muted" mt="xxs">
-                                {task.description}
-                              </LqText>
-                            )}
-                          </Stack>
-                        </Flex>
-                        <Flex direction="column" align="end" gap="xs">
-                          <Badge
-                            variant={STATUS_VARIANT[task.status]}
-                            label={task.status.replace('_', ' ').toUpperCase()}
-                            size="sm"
-                          />
-                          <Badge
-                            variant={PRIORITY_VARIANT[task.priority]}
-                            label={task.priority.toUpperCase()}
-                            size="sm"
-                          />
-                        </Flex>
-                      </Flex>
+                  <option value="all">Any Status</option>
+                  <option value="pending">Pending</option>
+                  <option value="in_progress">In Progress</option>
+                  <option value="completed">Completed</option>
+                </NativeSelect>
+              </Box>
+              <Box style={css({ flex: 1 })}>
+                <NativeSelect
+                  style={css({
+                    width: '100%',
+                    background: 'var(--lq-surface-3)',
+                    border: '1px solid var(--lq-surface-4)',
+                    borderRadius: '0.375rem',
+                    padding: '0.5rem 0.75rem',
+                    fontSize: '0.875rem',
+                    color: 'var(--lq-text-primary)',
+                    outline: 'none',
+                  })}
+                  value={priorityFilter}
+                  onChange={(e) => setPriorityFilter(e.target.value as TaskPriority | 'all')}
+                >
+                  <option value="all">Any Priority</option>
+                  <option value="critical">Critical</option>
+                  <option value="high">High</option>
+                </NativeSelect>
+              </Box>
+            </Flex>
 
-                      <Stack gap="xs">
-                        <Flex justify="between" align="center">
-                          <Flex align="center" gap="xs">
-                            <Clock size={10} className={styles.autoGen272} />
-                            <LqText variant="xs" color="muted">
-                              Due:{' '}
-                              {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'Unset'}
+            {/* Task Stream */}
+            <Box>
+              {isLoading ? (
+                <Stack gap="md">
+                  <Skeleton height={120} />
+                  <Skeleton height={120} />
+                  <Skeleton height={120} />
+                </Stack>
+              ) : filteredTasks.length === 0 ? (
+                <Stack align="center" justify="center" gap="lg" py="xxxl" textAlign="center">
+                  <CheckCircle2 size={48} />
+                  <LqText
+                    variant="xs"
+                    color="muted"
+                    style={css({ textTransform: 'uppercase' })}
+                    weight="bold"
+                  >
+                    Clearance 100% • No Active Tasks
+                  </LqText>
+                </Stack>
+              ) : (
+                <Stack gap="md">
+                  {filteredTasks.map((task) => (
+                    <Surface key={task.id} variant="glass-highlight" p="lg">
+                      <Stack gap="md">
+                        <Flex justify="between" align="start">
+                          <Flex gap="md" align="start">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleToggleComplete(task)}
+                            >
+                              <CheckCircle2
+                                size={18}
+                                className={cn(
+                                  task.status === 'completed'
+                                    ? 'text-[var(--lq-success)]'
+                                    : 'text-[var(--lq-text-dim)]',
+                                )}
+                              />
+                            </Button>
+                            <Stack gap="none">
+                              <LqText
+                                variant="small"
+                                weight="bold"
+                                className={
+                                  task.status === 'completed' ? 'line-through opacity-50' : ''
+                                }
+                              >
+                                {task.title}
+                              </LqText>
+                              {task.description && (
+                                <LqText variant="xs" color="muted" mt="xxs">
+                                  {task.description}
+                                </LqText>
+                              )}
+                            </Stack>
+                          </Flex>
+                          <Flex direction="column" align="end" gap="xs">
+                            <Badge
+                              variant={STATUS_VARIANT[task.status]}
+                              label={task.status.replace('_', ' ').toUpperCase()}
+                              size="sm"
+                            />
+                            <Badge
+                              variant={PRIORITY_VARIANT[task.priority]}
+                              label={task.priority.toUpperCase()}
+                              size="sm"
+                            />
+                          </Flex>
+                        </Flex>
+
+                        <Stack gap="xs">
+                          <Flex justify="between" align="center">
+                            <Flex align="center" gap="xs">
+                              <Clock size={10} />
+                              <LqText variant="xs" color="muted">
+                                Due:{' '}
+                                {task.dueDate
+                                  ? new Date(task.dueDate).toLocaleDateString()
+                                  : 'Unset'}
+                              </LqText>
+                            </Flex>
+                            <LqText variant="xs" weight="bold">
+                              {Math.round(task.progress ?? 0)}%
                             </LqText>
                           </Flex>
-                          <LqText variant="xs" weight="bold">
-                            {Math.round(task.progress ?? 0)}%
-                          </LqText>
-                        </Flex>
-                        <Box className={styles.autoGen273}>
-                          <Box
-                            className={styles.autoGen274}
-                            style={css({ width: `${task.progress ?? 0}%` })}
-                          />
-                        </Box>
+                          <Box className={styles.progressTrack}>
+                            <Box
+                              className={styles.progressFill}
+                              style={css({ width: `${task.progress ?? 0}%` })}
+                            />
+                          </Box>
+                        </Stack>
                       </Stack>
-                    </Stack>
-                  </Surface>
-                ))}
-              </Stack>
-            )}
+                    </Surface>
+                  ))}
+                </Stack>
+              )}
+            </Box>
           </Box>
 
           {/* Rapid Task Entry */}
-          <Surface variant="glass" p="lg" className={styles.autoGen275}>
+          <Surface variant="glass" p="lg" className={styles.footer}>
             <form onSubmit={handleCreateTask}>
               <Stack gap="md">
                 <Flex align="center" gap="sm">
-                  <Plus size={14} className={styles.autoGen276} />
+                  <Plus size={14} />
                   <LqText
                     variant="xs"
                     weight="bold"
