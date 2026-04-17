@@ -319,6 +319,21 @@ router.get('/:id/file', validate(documentIdSchema), async (req, res, next) => {
       return '';
     };
 
+    const deriveRemoteUrlFromPath = (candidatePath: string): string => {
+      const normalized = String(candidatePath || '').trim();
+      if (!normalized) return '';
+      if (isHttpUrl(normalized)) return normalized;
+
+      const cleaned = normalized.replace(/\\/g, '/');
+      const match = cleaned.match(
+        /(epstein\.academy|www\.justice\.gov|justice\.gov)(\/epstein\/files\/.+)/i,
+      );
+      if (!match) return '';
+      const host = match[1].toLowerCase();
+      const pathname = match[2];
+      return `https://${host}${pathname}`;
+    };
+
     const isAllowedRemoteUrl = (rawUrl: string): boolean => {
       try {
         const url = new URL(rawUrl);
@@ -523,7 +538,7 @@ router.get('/:id/file', validate(documentIdSchema), async (req, res, next) => {
       }
 
       for (const v of variantOrder) {
-        const candidateUrl = variantUrls[v];
+        const candidateUrl = variantUrls[v] || deriveRemoteUrlFromPath(variants[v] || '');
         if (!candidateUrl) continue;
         if (!isAllowedRemoteUrl(candidateUrl)) continue;
 
@@ -532,7 +547,10 @@ router.get('/:id/file', validate(documentIdSchema), async (req, res, next) => {
         const timeout = setTimeout(() => controller.abort(), 30_000);
         try {
           const upstream = await fetch(candidateUrl, {
-            headers: rangeHeader ? { range: rangeHeader } : undefined,
+            headers: {
+              ...(rangeHeader ? { range: rangeHeader } : {}),
+              'user-agent': 'epstein-archive',
+            },
             redirect: 'follow',
             signal: controller.signal,
           });

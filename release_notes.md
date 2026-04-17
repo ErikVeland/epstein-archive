@@ -17,6 +17,14 @@
 
 ---
 
+## 19.1.14 - 2026-04-17
+
+### Document Viewer
+
+- Fixed remaining 404s for DOJ-ingested paths by deriving and proxying the matching justice.gov URL when the local corpus file is missing.
+
+---
+
 ## 19.1.11 - 2026-04-16
 
 ### Document Viewer
