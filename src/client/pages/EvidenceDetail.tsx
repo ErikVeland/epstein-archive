@@ -189,7 +189,11 @@ export function EvidenceDetail() {
 
   const handleDownload = () => {
     if (!evidence) return;
-    window.open(`/api/documents/${evidence.id}/file`, '_blank', 'noopener,noreferrer');
+    window.open(
+      `/api/documents/${encodeURIComponent(String(evidence.id))}/file`,
+      '_blank',
+      'noopener,noreferrer',
+    );
   };
 
   if (loading) {

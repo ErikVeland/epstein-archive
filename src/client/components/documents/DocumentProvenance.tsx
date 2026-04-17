@@ -71,7 +71,7 @@ export const DocumentProvenance: React.FC<DocumentProvenanceProps> = ({
     queryKey: ['documentLineage', documentId],
     queryFn: async () => {
       if (!documentId) return null;
-      const res = await fetch(`/api/documents/${documentId}/lineage`);
+      const res = await fetch(`/api/documents/${encodeURIComponent(documentId)}/lineage`);
       if (!res.ok) throw new Error('Failed to fetch lineage');
       return res.json() as Promise<DocumentLineage>;
     },
@@ -222,7 +222,7 @@ export const DocumentProvenance: React.FC<DocumentProvenanceProps> = ({
                 Extracted from:
               </LqText>
               <a
-                href={`/documents/${lineage.originalDocument.id}`}
+                href={`/documents/${encodeURIComponent(String(lineage.originalDocument.id))}`}
                 className={`link ${styles.documentLink}`}
               >
                 {lineage.originalDocument.fileName}

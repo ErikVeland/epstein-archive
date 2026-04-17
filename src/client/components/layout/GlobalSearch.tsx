@@ -103,7 +103,7 @@ const GlobalSearch: React.FC = () => {
 
   const handleDownload = (id: string, filename: string) => {
     const a = document.createElement('a');
-    a.href = `/api/documents/${id}/file`;
+    a.href = `/api/documents/${encodeURIComponent(String(id))}/file`;
     a.download = filename;
     document.body.appendChild(a);
     a.click();
@@ -646,7 +646,7 @@ const GlobalSearch: React.FC = () => {
                 <div className={s.itemActions}>
                   <Button
                     type="button"
-                    onClick={() => navigate(`/documents/${result.id}`)}
+                    onClick={() => navigate(`/documents/${encodeURIComponent(String(result.id))}`)}
                     variant="secondary"
                     size="sm"
                     iconOnly
@@ -799,7 +799,7 @@ const GlobalSearch: React.FC = () => {
                   type="button"
                   onClick={() => {
                     setSelectedResult(null);
-                    navigate(`/documents/${selectedResult.id}`);
+                    navigate(`/documents/${encodeURIComponent(String(selectedResult.id))}`);
                   }}
                   variant="primary"
                   size="sm"

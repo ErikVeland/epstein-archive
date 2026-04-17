@@ -997,6 +997,21 @@
   color: var(--lq-text-dim);
 }
 
+.searchFieldRoot {
+  width: 100%;
+}
+
+.searchFieldRoot .ds-inputField {
+  background: var(--lq-surface-3);
+  border-color: var(--lq-surface-4);
+  border-radius: 0.375rem;
+  box-shadow: none;
+}
+
+.searchFieldInput.searchFieldInput {
+  padding-right: 2.5rem;
+}
+
 .autoGen212 {
   background-color: var(--lq-surface-2);
   padding: 0.25rem;

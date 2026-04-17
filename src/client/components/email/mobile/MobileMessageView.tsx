@@ -278,7 +278,11 @@ export function MobileMessageView({
                                 <Button
                                   unstyled
                                   className={styles.openBtn}
-                                  onClick={() => navigate(`/documents/${att.linkedDocumentId}`)}
+                                  onClick={() =>
+                                    navigate(
+                                      `/documents/${encodeURIComponent(String(att.linkedDocumentId))}`,
+                                    )
+                                  }
                                   type="button"
                                 >
                                   Open

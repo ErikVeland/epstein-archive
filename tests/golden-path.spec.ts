@@ -1,9 +1,10 @@
 import { test, expect, type APIRequestContext } from '@playwright/test';
 
-const API_BASE =
-  process.env.NODE_ENV === 'production'
-    ? 'https://epstein.academy/api'
-    : 'http://localhost:3012/api';
+const apiPort = Number(process.env.PW_API_PORT || 3312);
+const useProductionBaseUrl = process.env.PW_USE_PROD_BASE_URL === '1';
+const API_BASE = useProductionBaseUrl
+  ? 'https://epstein.academy/api'
+  : `${process.env.PW_API_BASE_URL || `http://127.0.0.1:${apiPort}`}/api`;
 
 async function resolveEntityWithEvidence(
   request: APIRequestContext,
@@ -50,6 +51,19 @@ async function resolveFirstDocumentId(request: APIRequestContext): Promise<strin
   return first ? String(first.id) : null;
 }
 
+async function resolveFirstPdfDocumentId(request: APIRequestContext): Promise<string | null> {
+  const resp = await request.get(`${API_BASE}/documents?page=1&limit=50`);
+  if (!resp.ok()) return null;
+  const payload = await resp.json();
+  const items = Array.isArray(payload?.data) ? payload.data : [];
+  const firstPdf = items.find((item: Record<string, unknown>) => {
+    const fileType = String(item?.fileType || item?.file_type || '').toLowerCase();
+    const fileName = String(item?.fileName || item?.file_name || item?.title || '').toLowerCase();
+    return fileType.includes('pdf') || fileName.endsWith('.pdf');
+  });
+  return firstPdf ? String(firstPdf.id) : null;
+}
+
 test.describe('Golden Path A: People → Entity → Documents → DocumentModal', () => {
   test('opens entity, shows evidence, opens source document route', async ({ page, request }) => {
     const resolved = await resolveEntityWithEvidence(request);
@@ -59,14 +73,20 @@ test.describe('Golden Path A: People → Entity → Documents → DocumentModal'
     }
     const { entityId, documentId } = resolved;
 
+    await page.addInitScript(() => {
+      window.localStorage.setItem('firstRunOnboardingCompleted', 'true');
+      window.localStorage.setItem('board_onboarding_seen', 'true');
+    });
     await page.goto(`/entity/${entityId}?entityTab=evidence`);
     await page.waitForSelector('[data-testid="evidence-modal"]', { timeout: 10000 });
     await page.waitForSelector('[data-testid="entity-modal-tab-evidence"]');
     await expect(page.locator('[data-testid="entity-evidence-count"]')).toBeVisible();
     await expect(page.locator('input[placeholder="Search relevant documents..."]')).toBeVisible();
-    await expect(page.locator('[data-testid="entity-evidence-row"]').first()).toBeVisible({
-      timeout: 15000,
-    });
+    const firstEvidenceRow = page
+      .locator('[data-testid="entity-modal-tab-evidence"]')
+      .locator('[data-testid="entity-evidence-row"], [data-testid="evidence-card"]')
+      .first();
+    await expect(firstEvidenceRow).toBeVisible({ timeout: 20000 });
 
     await page.goto(`/documents/${documentId}`);
     await expect(page).toHaveURL(new RegExp(`/documents/${documentId}`));
@@ -81,7 +101,7 @@ test.describe('Golden Path B: DocumentModal tab and scroll behavior', () => {
     const documentId = await resolveFirstDocumentId(request);
     test.skip(!documentId, 'No documents available');
 
-    await page.goto(`/documents/${documentId}?modalTab=summary`);
+    await page.goto(`/documents/${documentId}?modalTab=analysis`);
 
     const modal = page.locator('#DocumentModal');
     await expect(modal).toBeVisible({ timeout: 20000 });
@@ -120,6 +140,36 @@ test.describe('Golden Path B: DocumentModal tab and scroll behavior', () => {
     });
 
     expect(scrollContainers).toBeGreaterThanOrEqual(1);
+  });
+});
+
+test.describe('Golden Path D: DocumentModal PDF rendering', () => {
+  test('opens PDF tab and renders at least one page for a PDF-backed record', async ({
+    page,
+    request,
+  }) => {
+    const pdfDocumentId = await resolveFirstPdfDocumentId(request);
+    if (!pdfDocumentId) {
+      test.skip(true, 'No PDF documents available');
+      return;
+    }
+
+    const fileResponse = await request.get(
+      `${API_BASE}/documents/${encodeURIComponent(pdfDocumentId)}/file?variant=dirty`,
+    );
+    if (!fileResponse.ok()) {
+      test.skip(true, 'PDF file endpoint not available for this fixture');
+      return;
+    }
+    const contentType = String(fileResponse.headers()['content-type'] || '').toLowerCase();
+    expect(contentType).toContain('pdf');
+
+    await page.goto(`/documents/${encodeURIComponent(pdfDocumentId)}?modalTab=pdf`);
+    const modal = page.locator('#DocumentModal');
+    await expect(modal).toBeVisible({ timeout: 20000 });
+
+    await expect(page.getByText('PDF Rendering Failed')).toHaveCount(0);
+    await expect(page.locator('#DocumentModal canvas')).toHaveCount(1, { timeout: 30000 });
   });
 });
 

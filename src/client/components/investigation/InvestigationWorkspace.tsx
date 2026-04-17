@@ -344,7 +344,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
       if (!selectedInvestigation) return;
       try {
         const stats = await apiClient.get<Record<string, unknown>>(
-          `/investigations/${selectedInvestigation.id}/stats`,
+          `/investigations/${encodeURIComponent(selectedInvestigation.id)}/stats`,
         );
         if (
           stats &&
@@ -743,7 +743,7 @@ export const InvestigationWorkspace: React.FC<InvestigationWorkspaceProps> = ({
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   if (confirm('Purge this record?')) {
-                                    fetch(`/api/investigations/${inv.id}`, {
+                                    fetch(`/api/investigations/${encodeURIComponent(inv.id)}`, {
                                       method: 'DELETE',
                                     }).then(() => loadInvestigations());
                                   }

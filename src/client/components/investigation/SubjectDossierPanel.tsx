@@ -6,7 +6,6 @@ import {
   ExternalLink,
   FileText,
   Loader2,
-  Search,
   ShieldAlert,
   User,
   Plus,
@@ -22,8 +21,8 @@ import {
   Button,
   Flex,
   Grid,
-  Input,
   LqText,
+  SearchField,
   Skeleton,
   Stack,
   Surface,
@@ -179,22 +178,13 @@ export const SubjectDossierPanel: React.FC<SubjectDossierPanelProps> = ({
           <Box px="lg">
             <form onSubmit={handleSearch}>
               <Box className={styles.searchWrapper}>
-                <Search className={styles.searchIcon} size={16} />
-                <Input
+                <SearchField
                   type="text"
-                  style={css({
-                    width: '100%',
-                    background: 'var(--lq-surface-3)',
-                    border: '1px solid var(--lq-surface-4)',
-                    borderRadius: '0.375rem',
-                    padding: '0.5rem 0.75rem 0.5rem 2.5rem',
-                    fontSize: '0.875rem',
-                    color: 'var(--lq-text-primary)',
-                    outline: 'none',
-                  })}
                   placeholder="Search subjects by name…"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  rootClassName={styles.searchFieldRoot}
+                  className={styles.searchFieldInput}
                 />
                 {searching && (
                   <Loader2 className={cn(styles.searchLoader, styles.spin)} size={16} />

@@ -12,7 +12,6 @@ import {
   Scale,
   Image,
   File,
-  Search,
   ExternalLink,
   Eye,
   AlertCircle,
@@ -35,8 +34,8 @@ import {
   Button,
   Flex,
   Grid,
-  Input,
   LqText,
+  SearchField,
   Stack,
   Surface,
   cn,
@@ -162,8 +161,8 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
 
   const getSourceLink = (item: EvidenceItem): string | null => {
     const [type, id] = (item.sourcePath || '').split(':');
-    if (type === 'entity' && id) return `/entity/${id}`;
-    if (type === 'document' && id) return `/documents/${id}`;
+    if (type === 'entity' && id) return `/entity/${encodeURIComponent(id)}`;
+    if (type === 'document' && id) return `/documents/${encodeURIComponent(id)}`;
     if (type === 'flight' && id) return `/flights?id=${id}`;
     if (type === 'property' && id) return `/properties?id=${id}`;
     if (type === 'email' && id) return `/emails?id=${id}`;
@@ -323,23 +322,14 @@ export const InvestigationCaseFolder: React.FC<InvestigationCaseFolderProps> = (
       {/* Modern Filter Strip */}
       <Surface variant="glass" p="md">
         <Flex gap="xl" wrap="wrap" align="center">
-          <Flex grow align="center" gap="sm" className={styles.autoGen185}>
-            <Search className={styles.autoGen186} size={16} />
-            <Input
+          <Flex grow align="center" gap="sm">
+            <SearchField
               type="text"
               placeholder="Search investigative records..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              style={css({
-                width: '100%',
-                background: 'var(--lq-surface-3)',
-                border: '1px solid var(--lq-surface-4)',
-                borderRadius: '0.375rem',
-                padding: '0.5rem 0.75rem 0.5rem 2.5rem',
-                fontSize: '0.875rem',
-                color: 'var(--lq-text-primary)',
-                outline: 'none',
-              })}
+              rootClassName={styles.searchFieldRoot}
+              className={styles.searchFieldInput}
             />
           </Flex>
 

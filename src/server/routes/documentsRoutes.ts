@@ -331,8 +331,13 @@ router.get('/:id/file', validate(documentIdSchema), async (req, res, next) => {
     ]);
 
     let selectedPath = dirtyPath;
-    if (variant === 'original' && originalPath) selectedPath = originalPath;
-    if (variant === 'cleaned' && cleanedPath) selectedPath = cleanedPath;
+    if (variant === 'original') {
+      selectedPath = originalPath || dirtyPath || cleanedPath;
+    } else if (variant === 'cleaned') {
+      selectedPath = cleanedPath || dirtyPath || originalPath;
+    } else {
+      selectedPath = dirtyPath || originalPath || cleanedPath;
+    }
 
     const allowedRoots = [
       normalizeExistingRoot(path.resolve(process.cwd(), 'data')),
@@ -351,12 +356,19 @@ router.get('/:id/file', validate(documentIdSchema), async (req, res, next) => {
     const withinAllowedRoots =
       Boolean(canonicalFilePath) &&
       allowedRoots.some((allowedRoot) => isWithinRoot(canonicalFilePath, allowedRoot));
+    const isRegularFile = (() => {
+      try {
+        return Boolean(canonicalFilePath) && fs.statSync(canonicalFilePath).isFile();
+      } catch {
+        return false;
+      }
+    })();
 
     const isEmailRecord = String(docAny.evidenceType || docAny.evidence_type || '')
       .toLowerCase()
       .includes('email');
 
-    if (!selectedPath || !withinAllowedRoots || !fileExists) {
+    if (!selectedPath || !withinAllowedRoots || !fileExists || !isRegularFile) {
       if (isEmailRecord) {
         const from = String(metadata.from || metadata.sender || 'unknown@archive.local');
         const to = String(metadata.to || metadata.recipients || 'undisclosed-recipients');
@@ -387,7 +399,9 @@ router.get('/:id/file', validate(documentIdSchema), async (req, res, next) => {
     }
 
     res.setHeader('Content-Disposition', 'inline');
-    return res.sendFile(canonicalFilePath);
+    return res.sendFile(canonicalFilePath, (err) => {
+      if (err) next(err);
+    });
   } catch (error) {
     next(error);
   }

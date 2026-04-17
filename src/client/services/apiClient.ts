@@ -587,7 +587,7 @@ class ApiClient {
   }
 
   async getEntity(id: string): Promise<Person> {
-    const url = `${API_BASE_URL}/entities/${id}`;
+    const url = `${API_BASE_URL}/entities/${encodeURIComponent(id)}`;
     const e = await this.fetchWithErrorHandling<Record<string, unknown>>(url);
     return {
       ...(e as object),
@@ -618,14 +618,14 @@ class ApiClient {
     if (options?.limit != null) params.append('limit', String(options.limit));
 
     const query = params.toString();
-    const url = `${API_BASE_URL}/entities/${id}/analytics/communications${query ? `?${query}` : ''}`;
+    const url = `${API_BASE_URL}/entities/${encodeURIComponent(id)}/analytics/communications${query ? `?${query}` : ''}`;
     return this.fetchWithErrorHandling<{ data: unknown[]; total: number }>(url, {
       useCache: true,
     });
   }
 
   async getDocumentThread(id: string): Promise<{ threadId: string; messages: unknown[] }> {
-    const url = `${API_BASE_URL}/documents/${id}/thread`;
+    const url = `${API_BASE_URL}/documents/${encodeURIComponent(id)}/thread`;
     return this.fetchWithErrorHandling<{ threadId: string; messages: unknown[] }>(url, {
       useCache: true,
     });
@@ -814,7 +814,7 @@ class ApiClient {
 
   async getDocumentPages(id: string): Promise<{ pages: string[]; total: number }> {
     try {
-      const response = await fetch(`${API_BASE_URL}/documents/${id}/pages`);
+      const response = await fetch(`${API_BASE_URL}/documents/${encodeURIComponent(id)}/pages`);
       if (!response.ok) throw new Error('Failed to fetch document pages');
       return (await response.json()) as { pages: string[]; total: number };
     } catch (error) {
@@ -887,7 +887,7 @@ class ApiClient {
   }
 
   async getDocument(id: string): Promise<unknown> {
-    const url = `${API_BASE_URL}/documents/${id}`;
+    const url = `${API_BASE_URL}/documents/${encodeURIComponent(id)}`;
     const d = await this.fetchWithErrorHandling<Record<string, unknown>>(url);
     return {
       ...(d as object),
@@ -917,7 +917,7 @@ class ApiClient {
     }>
   > {
     const response = await this.fetchWithErrorHandling<{ annotations?: unknown[] }>(
-      `${API_BASE_URL}/documents/${documentId}/annotations`,
+      `${API_BASE_URL}/documents/${encodeURIComponent(documentId)}/annotations`,
       { useCache: false },
     );
     return (Array.isArray(response.annotations) ? response.annotations : []) as Array<{
@@ -961,7 +961,7 @@ class ApiClient {
     updatedAt: string;
   }> {
     const response = await this.fetchWithErrorHandling<{ annotation: unknown }>(
-      `${API_BASE_URL}/documents/${documentId}/annotations`,
+      `${API_BASE_URL}/documents/${encodeURIComponent(documentId)}/annotations`,
       {
         method: 'POST',
         body: JSON.stringify({
@@ -993,7 +993,7 @@ class ApiClient {
   }
 
   async getRelatedDocuments(id: string, limit: number = 10): Promise<unknown[]> {
-    const url = `${API_BASE_URL}/documents/${id}/related?limit=${limit}`;
+    const url = `${API_BASE_URL}/documents/${encodeURIComponent(id)}/related?limit=${limit}`;
     return this.fetchWithErrorHandling<unknown[]>(url);
   }
 
@@ -1075,11 +1075,14 @@ class ApiClient {
     id: number,
     updates: Partial<InvestigationTaskDto>,
   ): Promise<InvestigationTaskDto> {
-    return this.fetchWithErrorHandling<InvestigationTaskDto>(`${API_BASE_URL}/tasks/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(updates),
-      useCache: false,
-    });
+    return this.fetchWithErrorHandling<InvestigationTaskDto>(
+      `${API_BASE_URL}/tasks/${encodeURIComponent(id)}`,
+      {
+        method: 'PUT',
+        body: JSON.stringify(updates),
+        useCache: false,
+      },
+    );
   }
 
   async updateInvestigativeTaskProgress(
@@ -1087,7 +1090,7 @@ class ApiClient {
     progress: number,
   ): Promise<InvestigationTaskDto> {
     return this.fetchWithErrorHandling<InvestigationTaskDto>(
-      `${API_BASE_URL}/tasks/${id}/progress`,
+      `${API_BASE_URL}/tasks/${encodeURIComponent(id)}/progress`,
       {
         method: 'PATCH',
         body: JSON.stringify({ progress }),
@@ -1150,7 +1153,7 @@ class ApiClient {
     updates: import('../types/memory').UpdateMemoryEntryInput,
   ): Promise<import('../types/memory').MemoryEntry> {
     return this.fetchWithErrorHandling<import('../types/memory').MemoryEntry>(
-      `${API_BASE_URL}/memory/${id}`,
+      `${API_BASE_URL}/memory/${encodeURIComponent(id)}`,
       {
         method: 'PUT',
         body: JSON.stringify(updates),
@@ -1160,10 +1163,13 @@ class ApiClient {
   }
 
   async deleteMemoryEntry(id: number): Promise<{ success: boolean }> {
-    return this.fetchWithErrorHandling<{ success: boolean }>(`${API_BASE_URL}/memory/${id}`, {
-      method: 'DELETE',
-      useCache: false,
-    });
+    return this.fetchWithErrorHandling<{ success: boolean }>(
+      `${API_BASE_URL}/memory/${encodeURIComponent(id)}`,
+      {
+        method: 'DELETE',
+        useCache: false,
+      },
+    );
   }
 
   async createInvestigation(body: {
@@ -1180,7 +1186,9 @@ class ApiClient {
   }
 
   async getInvestigation(id: string): Promise<unknown> {
-    return this.fetchWithErrorHandling<unknown>(`${API_BASE_URL}/investigations/${id}`);
+    return this.fetchWithErrorHandling<unknown>(
+      `${API_BASE_URL}/investigations/${encodeURIComponent(id)}`,
+    );
   }
 
   async getInvestigationBoard(
@@ -1191,7 +1199,7 @@ class ApiClient {
     if (params.evidenceLimit) usp.append('evidenceLimit', String(params.evidenceLimit));
     if (params.hypothesisLimit) usp.append('hypothesisLimit', String(params.hypothesisLimit));
     return this.fetchWithErrorHandling<unknown>(
-      `${API_BASE_URL}/investigations/${id}/board${usp.toString() ? `?${usp.toString()}` : ''}`,
+      `${API_BASE_URL}/investigations/${encodeURIComponent(id)}/board${usp.toString() ? `?${usp.toString()}` : ''}`,
       { useCache: false },
     );
   }
@@ -1205,7 +1213,7 @@ class ApiClient {
       offset: String(params.offset),
     });
     const raw = await this.fetchWithErrorHandling<unknown>(
-      `${API_BASE_URL}/investigations/${id}/evidence?${usp.toString()}`,
+      `${API_BASE_URL}/investigations/${encodeURIComponent(id)}/evidence?${usp.toString()}`,
       { useCache: false },
     );
     return parseWithSchema<InvestigationEvidenceListResponseDto>(
@@ -1216,20 +1224,26 @@ class ApiClient {
   }
 
   async getInvestigationNotebook(id: string): Promise<unknown> {
-    return this.fetchWithErrorHandling<unknown>(`${API_BASE_URL}/investigations/${id}/notebook`, {
-      useCache: false,
-    });
+    return this.fetchWithErrorHandling<unknown>(
+      `${API_BASE_URL}/investigations/${encodeURIComponent(id)}/notebook`,
+      {
+        useCache: false,
+      },
+    );
   }
 
   async updateInvestigationNotebook(
     id: string,
     payload: { order?: number[]; annotations?: unknown[] },
   ): Promise<unknown> {
-    return this.fetchWithErrorHandling<unknown>(`${API_BASE_URL}/investigations/${id}/notebook`, {
-      method: 'PUT',
-      body: JSON.stringify(payload),
-      useCache: false,
-    });
+    return this.fetchWithErrorHandling<unknown>(
+      `${API_BASE_URL}/investigations/${encodeURIComponent(id)}/notebook`,
+      {
+        method: 'PUT',
+        body: JSON.stringify(payload),
+        useCache: false,
+      },
+    );
   }
 
   async getDocuments(

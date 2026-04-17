@@ -170,7 +170,11 @@ const FileBrowser: React.FC = () => {
         return {
           id: String(doc.id ?? ''),
           name: String(doc.title || doc.fileName || `Document ${doc.id}`),
-          path: String(doc.filePath || doc.file_path || `/api/documents/${doc.id}/file`),
+          path: String(
+            doc.filePath ||
+              doc.file_path ||
+              `/api/documents/${encodeURIComponent(String(doc.id))}/file`,
+          ),
           type: 'file',
           category,
           size: Number(doc.fileSize || doc.file_size || 0),
@@ -226,7 +230,8 @@ const FileBrowser: React.FC = () => {
       return;
     }
 
-    const downloadPath = file.path || (file.id ? `/api/documents/${file.id}/file` : '');
+    const downloadPath =
+      file.path || (file.id ? `/api/documents/${encodeURIComponent(file.id)}/file` : '');
     if (!downloadPath) {
       return;
     }

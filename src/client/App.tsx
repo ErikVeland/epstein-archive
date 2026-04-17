@@ -40,7 +40,16 @@ import { useFirstRunOnboarding } from './hooks/useFirstRunOnboarding';
 import { InvestigationsProvider } from './contexts/InvestigationsContext';
 import { useAuth } from './contexts/AuthContext';
 import { cn } from './utils/cn';
-import { Box, Button, Flex, Input, LqText, Surface, TooltipProvider } from './design-system/lib';
+import {
+  Box,
+  Button,
+  Flex,
+  Input,
+  LqText,
+  SearchField,
+  Surface,
+  TooltipProvider,
+} from './design-system/lib';
 import { useFilters } from './contexts/useFilters';
 import { LoginPage } from './pages/LoginPage';
 import { SEO } from './components/common/SEO';
@@ -315,10 +324,10 @@ function App() {
   }, [activeTab, prevActiveTab]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
-  const pathMatch = location.pathname.match(/^\/documents\/([^/?#]+)/);
+  const pathMatch = location.pathname.match(/^\/(?:documents|evidence)\/(.+)$/);
   const params = new URLSearchParams(location.search);
   const queryDocId = params.get('id') || params.get('docId') || params.get('documentId');
-  const docId = pathMatch?.[1] ?? queryDocId;
+  const docId = pathMatch?.[1] ? decodeURIComponent(pathMatch[1]) : queryDocId;
 
   const [prevDocIdForModal, setPrevDocIdForModal] = useState<string | null>(null);
   /* eslint-disable react-hooks/set-state-in-effect -- Intentional: track docId changes to sync modal state */
@@ -469,7 +478,7 @@ function App() {
     if (legacyFilePayload.redirectTo) {
       navigate(legacyFilePayload.redirectTo, { replace: true });
     } else if (legacyFilePayload.documentId) {
-      navigate(`/documents/${legacyFilePayload.documentId}`, { replace: true });
+      navigate(`/documents/${encodeURIComponent(legacyFilePayload.documentId)}`, { replace: true });
     }
   }, [legacyFilePayload, navigate]);
 
@@ -905,7 +914,7 @@ function App() {
       setSelectedPerson(null);
       setDocumentModalInitial(null);
       setDocumentModalId(documentId);
-      navigate(`/documents/${documentId}`);
+      navigate(`/documents/${encodeURIComponent(documentId)}`);
     },
     [location.pathname, location.search, navigate],
   );
@@ -1093,40 +1102,33 @@ function App() {
                       {/* Search Bar */}
                       <div className={styles.searchWrapper}>
                         <div className={styles.headerSearchPill}>
-                          <div className={styles.searchInner}>
-                            <Icon
-                              name="Search"
-                              size="sm"
-                              color="gray"
-                              className={styles.searchIcon}
-                            />
-                            <Input
-                              type="text"
-                              placeholder="Search evidence..."
-                              className={styles.searchInput}
-                              value={searchTerm}
-                              onChange={(e) => setSearchTerm(e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' && searchTerm.trim()) {
-                                  navigate(`/search?q=${encodeURIComponent(searchTerm)}`);
-                                } else if (e.key === 'Escape') {
-                                  setSearchTerm('');
-                                  e.currentTarget.blur();
-                                }
-                              }}
-                            />
-                            {searchTerm.trim().length > 0 && (
-                              <Button
-                                unstyled
-                                type="button"
-                                onClick={() => setSearchTerm('')}
-                                aria-label="Clear search"
-                                className={styles.searchClearButton}
-                              >
-                                <Icon name="X" size="xs" />
-                              </Button>
-                            )}
-                          </div>
+                          <SearchField
+                            type="text"
+                            placeholder="Search evidence..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' && searchTerm.trim()) {
+                                navigate(`/search?q=${encodeURIComponent(searchTerm)}`);
+                              } else if (e.key === 'Escape') {
+                                setSearchTerm('');
+                                e.currentTarget.blur();
+                              }
+                            }}
+                            rootClassName={styles.headerSearchFieldRoot}
+                            className={styles.headerSearchFieldInput}
+                          />
+                          {searchTerm.trim().length > 0 && (
+                            <Button
+                              unstyled
+                              type="button"
+                              onClick={() => setSearchTerm('')}
+                              aria-label="Clear search"
+                              className={styles.searchClearButton}
+                            >
+                              <Icon name="X" size="xs" />
+                            </Button>
+                          )}
                           <Button
                             unstyled
                             onClick={() => {
@@ -1948,20 +1950,22 @@ function App() {
                 }
               >
                 {documentModalId && (
-                  <DocumentModal
-                    id={documentModalId}
-                    searchTerm={selectedDocumentSearchTerm}
-                    initialDoc={documentModalInitial ?? undefined}
-                    onClose={() => {
-                      setDocumentModalId('');
-                      setDocumentModalInitial(null);
-                      if (activeTab === 'documents') {
-                        navigate('/documents');
-                      } else if (location.pathname.startsWith('/documents/')) {
-                        navigate('/documents');
-                      }
-                    }}
-                  />
+                  <ScopedErrorBoundary>
+                    <DocumentModal
+                      id={documentModalId}
+                      searchTerm={selectedDocumentSearchTerm}
+                      initialDoc={documentModalInitial ?? undefined}
+                      onClose={() => {
+                        setDocumentModalId('');
+                        setDocumentModalInitial(null);
+                        if (activeTab === 'documents') {
+                          navigate('/documents');
+                        } else if (location.pathname.startsWith('/documents/')) {
+                          navigate('/documents');
+                        }
+                      }}
+                    />
+                  </ScopedErrorBoundary>
                 )}
               </Suspense>
 

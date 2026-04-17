@@ -709,7 +709,7 @@ export const DocumentContentRenderer: React.FC<DocumentContentRendererProps> = (
     <Flex direction="column" align="center" gap="lg" className={styles.section}>
       <Surface variant="glass-strong" className={styles.imageShell}>
         <img
-          src={`/api/documents/${doc.id}/file`}
+          src={`/api/documents/${encodeURIComponent(String(doc.id))}/file`}
           alt={doc.title}
           className={styles.imagePreview}
           onError={(event) => {

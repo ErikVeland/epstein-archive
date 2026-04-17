@@ -114,7 +114,7 @@ export const ProvenancePanel: React.FC<ProvenancePanelProps> = ({ document }) =>
       queryKey: ['documentLineage', documentId],
       queryFn: async () => {
         if (!documentId) return null;
-        const response = await fetch(`/api/documents/${documentId}/lineage`);
+        const response = await fetch(`/api/documents/${encodeURIComponent(documentId)}/lineage`);
         if (!response.ok) {
           throw new Error('Failed to load durable provenance');
         }

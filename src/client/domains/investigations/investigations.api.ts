@@ -58,11 +58,15 @@ export const investigationsApi = {
   },
 
   getCaseFolder: async (id: string): Promise<InvestigationEvidenceByTypeResponseDto> => {
-    return apiClient.get(`/investigations/${id}/evidence-by-type`, { useCache: false });
+    return apiClient.get(`/investigations/${encodeURIComponent(id)}/evidence-by-type`, {
+      useCache: false,
+    });
   },
 
   getHypotheses: async (id: string): Promise<unknown[]> => {
-    return apiClient.get(`/investigations/${id}/hypotheses`, { useCache: false });
+    return apiClient.get(`/investigations/${encodeURIComponent(id)}/hypotheses`, {
+      useCache: false,
+    });
   },
 
   getNotebook: async (id: string): Promise<InvestigationNotebookDto> => {
@@ -77,14 +81,18 @@ export const investigationsApi = {
   },
 
   getTimelineEvents: async (id: string): Promise<unknown[]> => {
-    return apiClient.get(`/investigations/${id}/timeline-events`, { useCache: false });
+    return apiClient.get(`/investigations/${encodeURIComponent(id)}/timeline-events`, {
+      useCache: false,
+    });
   },
 
   addEvidence: async (id: string, payload: Record<string, unknown>): Promise<unknown> => {
-    return apiClient.post(`/investigations/${id}/evidence`, payload);
+    return apiClient.post(`/investigations/${encodeURIComponent(id)}/evidence`, payload);
   },
 
   removeEvidenceLink: async (investigationEvidenceId: number | string): Promise<unknown> => {
-    return apiClient.delete(`/investigation/remove-evidence/${investigationEvidenceId}`);
+    return apiClient.delete(
+      `/investigation/remove-evidence/${encodeURIComponent(investigationEvidenceId)}`,
+    );
   },
 };

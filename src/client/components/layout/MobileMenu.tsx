@@ -5,7 +5,7 @@ import { CloseButton } from '../common/CloseButton';
 import { useAuth } from '../../contexts/AuthContext';
 import { useScrollLock } from '../../hooks/useScrollLock';
 
-import { Button, Input } from '../../design-system/lib';
+import { Button, SearchField } from '../../design-system/lib';
 
 interface MobileMenuProps {
   open: boolean;
@@ -117,29 +117,24 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
 
         {/* Mobile Search Input */}
         <div className={s.searchSection}>
-          <div className={s.searchWrap}>
-            <Input
-              type="text"
-              placeholder="Search people, documents..."
-              className={s.searchInput}
-              value={searchTerm}
-              onChange={(e) => onSearchTermChange(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  const query = searchTerm.trim();
-                  if (query && onSearch) {
-                    onSearch(query);
-                    onClose();
-                  } else if (query) {
-                    handleNavigation(`/search?q=${encodeURIComponent(query)}`);
-                  }
+          <SearchField
+            type="text"
+            placeholder="Search people, documents..."
+            value={searchTerm}
+            onChange={(e) => onSearchTermChange(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                const query = searchTerm.trim();
+                if (query && onSearch) {
+                  onSearch(query);
+                  onClose();
+                } else if (query) {
+                  handleNavigation(`/search?q=${encodeURIComponent(query)}`);
                 }
-              }}
-            />
-            <div className={s.searchIconWrap}>
-              <Icon name="Search" />
-            </div>
-          </div>
+              }
+            }}
+            rootClassName={s.searchFieldRoot}
+          />
         </div>
 
         {/* Scrollable Content Area - flex-1 takes remaining height */}

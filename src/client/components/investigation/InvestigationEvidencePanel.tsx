@@ -23,8 +23,8 @@ import {
   Button,
   Flex,
   Grid,
-  Input,
   LqText,
+  SearchField,
   Select,
   Skeleton,
   Stack,
@@ -316,7 +316,7 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => window.open(`/evidence/${item.id}`, '_blank')}
+              onClick={() => window.open(`/evidence/${encodeURIComponent(item.id)}`, '_blank')}
             >
               <ExternalLink size={14} />
             </Button>
@@ -505,22 +505,13 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
           <Surface variant="glass" p="lg" className={styles.autoGen209}>
             <Stack gap="md">
               <Flex gap="md" align="center">
-                <Box grow className={styles.autoGen210}>
-                  <Search size={14} className={styles.autoGen211} />
-                  <Input
-                    style={css({
-                      width: '100%',
-                      background: 'var(--lq-surface-3)',
-                      border: '1px solid var(--lq-surface-4)',
-                      borderRadius: '0.375rem',
-                      padding: '0.5rem 0.75rem 0.5rem 2.5rem',
-                      fontSize: '0.875rem',
-                      color: 'var(--lq-text-primary)',
-                      outline: 'none',
-                    })}
+                <Box grow>
+                  <SearchField
                     placeholder="Search extraction stream..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
+                    rootClassName={styles.searchFieldRoot}
+                    className={styles.searchFieldInput}
                   />
                 </Box>
                 <Button variant="secondary" size="sm" onClick={() => setShowAddModal(true)}>
@@ -669,23 +660,14 @@ export const InvestigationEvidencePanel: React.FC<InvestigationEvidencePanelProp
 
               <Stack gap="md">
                 <Flex gap="md">
-                  <Box grow className={styles.autoGen218}>
-                    <Search size={14} className={styles.autoGen219} />
-                    <Input
-                      style={css({
-                        width: '100%',
-                        background: 'var(--lq-surface-3)',
-                        border: '1px solid var(--lq-surface-4)',
-                        borderRadius: '0.375rem',
-                        padding: '0.5rem 0.75rem 0.5rem 2.5rem',
-                        fontSize: '0.875rem',
-                        color: 'var(--lq-text-primary)',
-                        outline: 'none',
-                      })}
+                  <Box grow>
+                    <SearchField
                       placeholder="Search global archive..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && searchEvidence()}
+                      onKeyDown={(e) => e.key === 'Enter' && searchEvidence()}
+                      rootClassName={styles.searchFieldRoot}
+                      className={styles.searchFieldInput}
                     />
                   </Box>
                   <Button variant="secondary" size="sm" onClick={searchEvidence}>

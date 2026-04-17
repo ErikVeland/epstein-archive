@@ -135,7 +135,7 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
     setLoading(true);
     try {
       const response = await fetch(
-        `/api/investigations/${investigationId}/evidence/${evidenceId}/annotations`,
+        `/api/investigations/${encodeURIComponent(investigationId)}/evidence/${encodeURIComponent(evidenceId)}/annotations`,
       );
       if (response.ok) {
         const data = await response.json();
@@ -177,7 +177,7 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
 
     try {
       const response = await fetch(
-        `/api/investigations/${investigationId}/evidence/${evidenceId}/annotations`,
+        `/api/investigations/${encodeURIComponent(investigationId)}/evidence/${encodeURIComponent(evidenceId)}/annotations`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -209,7 +209,7 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
 
     try {
       const response = await fetch(
-        `/api/investigations/${investigationId}/evidence/${evidenceId}/annotations/${id}`,
+        `/api/investigations/${encodeURIComponent(investigationId)}/evidence/${encodeURIComponent(evidenceId)}/annotations/${encodeURIComponent(id)}`,
         {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
@@ -232,7 +232,7 @@ export const EvidenceAnnotationPanel: React.FC<EvidenceAnnotationPanelProps> = (
     setSaving(true);
     try {
       const response = await fetch(
-        `/api/investigations/${investigationId}/evidence/${evidenceId}/annotations/${id}`,
+        `/api/investigations/${encodeURIComponent(investigationId)}/evidence/${encodeURIComponent(evidenceId)}/annotations/${encodeURIComponent(id)}`,
         { method: 'DELETE' },
       );
       if (!response.ok) {

@@ -115,7 +115,7 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
         params.delete('search');
       }
       const query = params.toString();
-      navigate(`/documents/${document.id}${query ? `?${query}` : ''}`);
+      navigate(`/documents/${encodeURIComponent(document.id)}${query ? `?${query}` : ''}`);
     },
     [effectiveSearchTerm, navigate],
   );

@@ -6,5 +6,10 @@ let initialized = false;
 export function ensurePdfWorker(): void {
   if (initialized) return;
   initialized = true;
-  pdfjs.GlobalWorkerOptions.workerPort = new Worker(pdfWorkerUrl, { type: 'module' });
+  pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
+  try {
+    pdfjs.GlobalWorkerOptions.workerPort = new Worker(pdfWorkerUrl, { type: 'module' });
+  } catch {
+    void 0;
+  }
 }

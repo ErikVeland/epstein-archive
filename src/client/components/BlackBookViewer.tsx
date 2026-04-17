@@ -453,7 +453,7 @@ export const BlackBookViewer: React.FC = () => {
 
                                 {entry.document_id && (
                                   <Link
-                                    to={`/documents/${entry.document_id}`}
+                                    to={`/documents/${encodeURIComponent(String(entry.document_id))}`}
                                     className={styles.documentLink}
                                   >
                                     <FileText className={styles.tinyExternal} />

@@ -63,8 +63,9 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
   } = useQuery<DocMeta | null>({
     queryKey: ['pdfVariantMeta', documentId],
     queryFn: async () => {
-      const primaryRes = await fetch(`/api/documents/${documentId}`);
-      const fallbackRes = !primaryRes.ok ? await fetch(`/api/evidence/${documentId}`) : null;
+      const encodedId = encodeURIComponent(String(documentId));
+      const primaryRes = await fetch(`/api/documents/${encodedId}`);
+      const fallbackRes = !primaryRes.ok ? await fetch(`/api/evidence/${encodedId}`) : null;
       const res = primaryRes.ok ? primaryRes : fallbackRes;
       if (!res || !res.ok) throw new Error('Failed to fetch document metadata');
       const data = (await res.json()) as Record<string, unknown>;
@@ -122,7 +123,7 @@ export const PDFVariantViewer: React.FC<PDFVariantViewerProps> = ({
   const getCurrentUrl = () => {
     if (!docMeta) return '';
     // Single-file mode: always load the canonical/original asset.
-    return `/api/documents/${documentId}/file?variant=dirty`;
+    return `/api/documents/${encodeURIComponent(String(documentId))}/file?variant=original`;
   };
 
   const currentUrl = getCurrentUrl();

@@ -100,7 +100,7 @@ export const DocumentModal: React.FC<Props> = ({
 
   const handleBackToCase = () => {
     if (caseIdFromQuery) {
-      navigate(`/investigations/${caseIdFromQuery}?tab=casefolder`);
+      navigate(`/investigations/${encodeURIComponent(caseIdFromQuery)}?tab=casefolder`);
       return;
     }
     onClose();
@@ -390,7 +390,8 @@ export const DocumentModal: React.FC<Props> = ({
     );
   }
 
-  const getOriginalDocumentUrl = () => `/api/documents/${id}/file?variant=dirty`;
+  const getOriginalDocumentUrl = () =>
+    `/api/documents/${encodeURIComponent(String(id))}/file?variant=original`;
 
   const downloadOriginalDocument = () => {
     const link = document.createElement('a');
@@ -442,7 +443,9 @@ export const DocumentModal: React.FC<Props> = ({
             groupedEntities={groupedEntities}
             relatedDocs={(relatedDocs || []).filter((d): d is DocRecord => d.id !== undefined)}
             isLoadingRelated={isLoadingRelated}
-            onNavigateToDoc={(newId) => navigate(`${location.pathname}?documentId=${newId}`)}
+            onNavigateToDoc={(newId) =>
+              navigate(`${location.pathname}?documentId=${encodeURIComponent(newId)}`)
+            }
             cleanText={cleanText}
             ocrText={ocrText}
           />

@@ -443,6 +443,21 @@
   color: var(--lq-text-dim);
 }
 
+.searchFieldRoot {
+  width: 100%;
+}
+
+.searchFieldRoot .ds-inputField {
+  background: var(--lq-surface-3);
+  border-color: var(--lq-surface-4);
+  border-radius: 0.375rem;
+  box-shadow: none;
+}
+
+.searchFieldInput.searchFieldInput {
+  padding-right: 2.5rem;
+}
+
 .autoGen187 {
   overflow-y: auto;
   /* Missing: pr-2 */

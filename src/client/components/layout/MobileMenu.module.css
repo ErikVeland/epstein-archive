@@ -98,42 +98,20 @@
   border-bottom: 1px solid var(--glass-border);
 }
 
-.searchWrap {
-  position: relative;
-}
-
-.searchInput {
+.searchFieldRoot {
   width: 100%;
+}
+
+.searchFieldRoot .ds-inputField {
   background: var(--glass-bg);
-  color: var(--text-primary);
-  border: 1px solid var(--glass-border);
+  border-color: var(--glass-border);
   border-radius: var(--radius-lg);
-  padding: 0.75rem var(--space-4) 0.75rem 2.5rem;
-  outline: none;
-  transition: border-color var(--duration-fast) var(--easing-liquid);
+  box-shadow: none;
 }
 
-.searchInput::placeholder {
-  color: var(--text-muted);
-}
-
-.searchInput:focus {
+.searchFieldRoot .ds-inputField:focus-visible {
   border-color: var(--accent);
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent);
-}
-
-.searchIconWrap {
-  position: absolute;
-  left: 0.75rem;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-  color: var(--text-muted);
-  transition: color var(--duration-fast) var(--easing-liquid);
-}
-
-.searchWrap:focus-within .searchIconWrap {
-  color: var(--accent);
 }
 
 /* ── Nav list ─────────────────────────────────────────────── */

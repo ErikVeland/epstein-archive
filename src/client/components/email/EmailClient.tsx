@@ -1122,7 +1122,11 @@ export const EmailClient: React.FC = () => {
                                         {canOpen ? (
                                           <Button
                                             onClick={() =>
-                                              navigate(`/documents/${linkedDocumentId}`)
+                                              navigate(
+                                                `/documents/${encodeURIComponent(
+                                                  String(linkedDocumentId),
+                                                )}`,
+                                              )
                                             }
                                             type="button"
                                             variant="ghost"

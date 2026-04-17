@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import {
-  Search,
   Download,
   AlertTriangle,
   CheckCircle,
@@ -29,8 +28,8 @@ import {
   Button,
   Flex,
   Grid,
-  Input,
   LqText,
+  SearchField,
   Select,
   Stack,
   Surface,
@@ -244,24 +243,13 @@ export const MultiSourceCorrelationEngine = ({
                   <LqText variant="xs" weight="bold" color="muted">
                     SIGNAL SEARCH
                   </LqText>
-                  <Box className={styles.autoGen313}>
-                    <Search size={14} className={styles.autoGen314} />
-                    <Input
-                      style={css({
-                        width: '100%',
-                        background: 'var(--lq-surface-3)',
-                        border: '1px solid var(--lq-surface-4)',
-                        borderRadius: '0.375rem',
-                        padding: '0.5rem 0.75rem 0.5rem 2.5rem',
-                        fontSize: '0.875rem',
-                        color: 'var(--lq-text-primary)',
-                        outline: 'none',
-                      })}
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      placeholder="Filter entities..."
-                    />
-                  </Box>
+                  <SearchField
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Filter entities..."
+                    rootClassName={styles.searchFieldRoot}
+                    className={styles.searchFieldInput}
+                  />
                 </Stack>
                 <Stack gap="xs">
                   <LqText variant="xs" weight="bold" color="muted">
