@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback, Profiler, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, Profiler } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -703,17 +703,11 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
 
   useScrollLock(isOpen);
   const { modalRef } = useModalFocusTrap({ isActive: isOpen, onEscape: onClose });
-  const swipeRef = useRef<HTMLDivElement>(null);
 
-  useSwipeGesture(swipeRef, {
+  useSwipeGesture(modalRef, {
     onSwipeDown: onClose,
     threshold: 100,
   });
-
-  const combinedRef = useCallback((el: HTMLDivElement | null) => {
-    (modalRef as unknown as { current: HTMLDivElement | null }).current = el;
-    swipeRef.current = el;
-  }, [modalRef]);
 
   const onRenderCallback = useCallback(
     (id: string, phase: 'mount' | 'update' | 'nested-update', actualDuration: number) => {
@@ -753,13 +747,29 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
             onClick={onClose}
           />
           <motion.div
-            ref={combinedRef}
+            ref={modalRef}
             initial={{ scale: 0.95, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 20 }}
             data-testid="evidence-modal"
             className={s.modal}
             tabIndex={-1}
+            onPointerDown={(e) => {
+              const startY = e.clientY;
+              const handlePointerMove = (moveEvent: PointerEvent) => {
+                const deltaY = moveEvent.clientY - startY;
+                if (deltaY > 100) {
+                  onClose();
+                  document.removeEventListener('pointermove', handlePointerMove);
+                }
+              };
+              document.addEventListener('pointermove', handlePointerMove);
+              document.addEventListener(
+                'pointerup',
+                () => document.removeEventListener('pointermove', handlePointerMove),
+                { once: true },
+              );
+            }}
           >
             <EvidenceModalHeader
               entity={entity ?? null}
