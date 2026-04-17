@@ -133,3 +133,27 @@ FROM media_items
 WHERE to_tsvector('english', file_path || ' ' || coalesce(title, '') || ' ' || coalesce(description, '')) @@ websearch_to_tsquery('english', :searchTerm!)
 ORDER BY rank DESC
 LIMIT :limit!;
+
+/* @name searchDocumentsSemantic */
+SELECT
+  id,
+  file_name           AS "fileName",
+  file_path           AS "filePath",
+  evidence_type       AS "evidenceType",
+  red_flag_rating     AS "redFlagRating",
+  1 - (content_embedding <=> :embedding) AS similarity
+FROM documents
+WHERE (:evidenceType::text IS NULL OR evidence_type = :evidenceType::text)
+ORDER BY similarity DESC
+LIMIT :limit!;
+
+/* @name searchEntitiesSemantic */
+SELECT
+  id,
+  full_name          AS "fullName",
+  primary_role       AS "primaryRole",
+  1 - (description_embedding <=> :embedding) AS similarity
+FROM entities
+WHERE COALESCE(junk_tier, 'clean') = 'clean'
+ORDER BY similarity DESC
+LIMIT :limit!;

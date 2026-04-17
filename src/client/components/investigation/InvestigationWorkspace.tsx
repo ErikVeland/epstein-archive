@@ -11,6 +11,7 @@ import {
 } from '../../types/investigation';
 import {
   Calendar,
+  Cpu,
   User,
   ArrowRight,
   Search,
@@ -49,6 +50,8 @@ import { EvidencePacketExporter } from './EvidencePacketExporter';
 import { InvestigationTasksPanel } from './InvestigationTasksPanel';
 
 import { InvestigationEvidencePanel } from './InvestigationEvidencePanel';
+import { InvestigationActivityFeed } from './InvestigationActivityFeed';
+import { InvestigationCaseFolder } from './InvestigationCaseFolder';
 import { EvidenceNotebook } from './EvidenceNotebook';
 import { HypothesisTestingFramework } from './HypothesisTestingFramework';
 import { InvestigationTeamManagement } from './InvestigationTeamManagement';

@@ -1,7 +1,6 @@
-import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { cn } from '../../design-system/lib';
-import Icon from '../common/Icon';
+import Icon, { type IconName } from '../common/Icon';
 import styles from './MobileBottomNav.module.css';
 
 interface MobileBottomNavProps {
@@ -13,7 +12,7 @@ type NavTab = 'people' | 'search' | 'investigations' | 'more';
 interface NavItem {
   id: NavTab;
   label: string;
-  icon: string;
+  icon: IconName;
   path: string;
 }
 
@@ -35,7 +34,6 @@ export function MobileBottomNav({ className }: MobileBottomNavProps) {
 
   const handleNav = (item: NavItem) => {
     if (item.id === 'more') {
-      // For 'more', toggle the existing mobile menu
       const event = new CustomEvent('toggleMobileMenu');
       window.dispatchEvent(event);
       return;
@@ -53,11 +51,7 @@ export function MobileBottomNav({ className }: MobileBottomNavProps) {
           aria-current={isActive(item.path) ? 'page' : undefined}
           type="button"
         >
-          <Icon
-            name={item.icon as keyof typeof import('lucide-react').LucideIcon}
-            size="sm"
-            className={styles.icon}
-          />
+          <Icon name={item.icon} size="sm" className={styles.icon} />
           <span className={styles.label}>{item.label}</span>
         </button>
       ))}

@@ -90,11 +90,13 @@
   background: linear-gradient(transparent, var(--glass-bg-strong));
 }
 
-.entitySection, .signalSection {
+.entitySection,
+.signalSection {
   margin-top: var(--space-6);
 }
 
-.entityList, .signalList {
+.entityList,
+.signalList {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
@@ -149,7 +151,9 @@
 /* Liquid Fire High-Priority Highlight */
 .liquidFire {
   border-color: rgba(249, 115, 22, 0.8) !important;
-  box-shadow: 0 0 25px rgba(249, 115, 22, 0.2), 0 15px 35px -10px rgba(0, 0, 0, 0.6) !important;
+  box-shadow:
+    0 0 25px rgba(249, 115, 22, 0.2),
+    0 15px 35px -10px rgba(0, 0, 0, 0.6) !important;
 }
 
 .riskBadge {
@@ -177,9 +181,17 @@
 }
 
 @keyframes pulse-danger {
-  0% { opacity: 0.8; }
-  50% { opacity: 1; border-color: rgba(239, 68, 68, 0.8); box-shadow: 0 0 8px rgba(239, 68, 68, 0.3); }
-  100% { opacity: 0.8; }
+  0% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+    border-color: rgba(239, 68, 68, 0.8);
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.3);
+  }
+  100% {
+    opacity: 0.8;
+  }
 }
 
 .textGold {

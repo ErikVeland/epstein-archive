@@ -29,8 +29,9 @@
   border: none;
   color: var(--text-muted);
   cursor: pointer;
-  transition: color var(--duration-fast) var(--easing-swift),
-              transform var(--duration-fast) var(--easing-swift);
+  transition:
+    color var(--duration-fast) var(--easing-swift),
+    transform var(--duration-fast) var(--easing-swift);
   border-radius: var(--radius-md);
 }
 

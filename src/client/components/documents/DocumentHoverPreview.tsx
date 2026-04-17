@@ -1,4 +1,15 @@
+import React from 'react';
+import { motion } from 'framer-motion';
 import { AlertTriangle, Plane, User, Camera, ShieldAlert } from 'lucide-react';
+import { Box, Flex, LqText, Surface } from '../../design-system/lib';
+import type { Document } from '../../../types/documents';
+import {
+  formatDate,
+  getRenderTypeIcon,
+  getSafePreviewText,
+  getSourceLabel,
+} from '../../../utils/documentUtils';
+import styles from './DocumentHoverPreview.module.css';
 
 interface DocumentHoverPreviewProps {
   doc: Document;
@@ -45,7 +56,7 @@ export const DocumentHoverPreview: React.FC<DocumentHoverPreviewProps> = ({ doc,
         className={`${styles.root} ${isHighRisk ? styles.liquidFire : ''}`}
       >
         <Box className={styles.header}>
-          <Flex align="center" justify="space-between">
+          <Flex align="center" justify="between">
             <Flex align="center" gap="sm" className={styles.marginBottomSmall}>
               {getRenderTypeIcon(doc, { width: 16, height: 16, className: styles.iconAccent })}
               <LqText
@@ -122,7 +133,7 @@ export const DocumentHoverPreview: React.FC<DocumentHoverPreviewProps> = ({ doc,
               <Box className={styles.signalList}>
                 {signals.map((signal) => (
                   <div key={signal.id} className={styles.signalItem}>
-                    <Flex align="center" justify="space-between">
+                    <Flex align="center" justify="between">
                       <Flex align="center" gap="xs">
                         <span className={styles.iconAccent}>{getSignalIcon(signal.type)}</span>
                         <LqText variant="xs" weight="bold" color="primary">

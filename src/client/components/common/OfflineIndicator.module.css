@@ -1,0 +1,51 @@
+.indicator {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  padding-top: calc(var(--space-2) + env(safe-area-inset-top, 0px));
+  font-size: var(--font-size-sm);
+  font-weight: var(--weight-medium);
+  z-index: var(--z-toast, 10000);
+  animation: slideDown 300ms ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.offline {
+  background: var(--accent-danger);
+  color: white;
+}
+
+.reconnecting {
+  background: var(--accent-warning);
+  color: var(--bg-dark);
+}
+
+.icon {
+  flex-shrink: 0;
+}
+
+.message {
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .indicator {
+    top: 64px;
+  }
+}

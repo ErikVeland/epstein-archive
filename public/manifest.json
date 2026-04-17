@@ -1,0 +1,28 @@
+{
+  "name": "Epstein Files Archive",
+  "short_name": "Epstein Files",
+  "description": "Search and analyze the Epstein Files archive: documents, emails, media, entities, timelines, flights, and linked evidence.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0b",
+  "theme_color": "#d4a84b",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["news", "reference", "utilities"],
+  "lang": "en",
+  "scope": "/",
+  "prefer_related_applications": false
+}

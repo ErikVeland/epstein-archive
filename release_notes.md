@@ -1,5 +1,31 @@
 # Release Notes
 
+## 19.3.0 - 2026-04-18
+
+### Archival Hardening & Relational Integrity
+
+- **Strict Relational Migration**: Completely replaced polymorphic associations and array-based columns (`BIGINT[]`, `UUID[]`) with explicit junction tables and foreign key constraints for `investigation_collaborators`, `forensic_signals`, and `audit_log`.
+- **Fuzzy Identity Fusion**: Upgraded the `IdentityFusionService` to support trigram-based fuzzy matching (threshold > 0.85) and phonetic similarity, significantly improving subject resolution across disparate datasets.
+- **Semantic Discovery Core**: Implemented the database foundation for conceptual search using `pgvector`, enabling high-performance semantic similarity queries for documents and entities.
+- **Forensic Provenance UI**: Launched a new "Liquid Glass" Provenance Panel that visualizes the evidentiary trail behind a risk score or signal, ensuring full investigative transparency.
+- **Repository Optimization**: Refactored the core investigation, forensic, and data quality repositories to utilize the new strict relational architecture.
+
+---
+
+## 19.3.0 - 2026-04-17
+
+### Mobile UX
+
+- Fixed Email Client layout on narrow/tablet widths by removing impossible minimum pane widths and ensuring list panes measure/scroll correctly.
+- Fixed Investigation mobile overlays/sheets (consistent modal z-index, responsive widths/heights, and reliable scrolling inside the mobile shell).
+
+### UI Stability
+
+- Fixed the shared icon registry to include all referenced icons (prevents runtime icon lookup failures).
+- Hardened offline indicator state handling (correct initial state, correct reconnect dismissal timing).
+
+---
+
 ## 19.2.0 - 2026-04-17
 
 ### Media & Forensic Extraction

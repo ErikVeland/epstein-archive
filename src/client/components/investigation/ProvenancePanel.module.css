@@ -1,0 +1,82 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  min-width: 320px;
+  max-width: 500px;
+  background: var(--surface-glass-card);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-glass-lg);
+}
+
+.header {
+  border-bottom: 1px solid var(--border-glass);
+  padding-bottom: var(--space-sm);
+  margin-bottom: var(--space-xs);
+}
+
+.item {
+  position: relative;
+  padding-left: var(--space-lg);
+  padding-vertical: var(--space-xs);
+}
+
+.item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 8px;
+  height: 8px;
+  background: var(--accent-primary);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--accent-primary);
+}
+
+.connector {
+  position: absolute;
+  left: 3px;
+  top: 16px;
+  bottom: -8px;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--accent-primary), transparent);
+}
+
+.item:last-child .connector {
+  display: none;
+}
+
+.scoreBadge {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.scoreHigh {
+  background: var(--risk-high-surface, rgba(255, 60, 0, 0.2));
+  color: var(--risk-high, #ff3c00);
+  border: 1px solid var(--risk-high);
+}
+
+.scoreMedium {
+  background: var(--risk-medium-surface, rgba(255, 180, 0, 0.2));
+  color: var(--risk-medium, #ffb400);
+  border: 1px solid var(--risk-medium);
+}
+
+.evidenceSnippet {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  background: rgba(0, 0, 0, 0.2);
+  padding: var(--space-xs);
+  border-radius: var(--radius-sm);
+  margin-top: var(--space-xs);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-glass-subtle);
+}

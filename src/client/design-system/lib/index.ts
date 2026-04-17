@@ -31,3 +31,4 @@ export * from '../components/interactive/Dialog';
 export * from '../components/interactive/DropdownMenu';
 export * from '../components/interactive/Tooltip';
 export * from '../components/interactive/Switch';
+export * from '../components/interactive/BottomSheet';

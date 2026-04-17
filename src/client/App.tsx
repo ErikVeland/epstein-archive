@@ -60,6 +60,7 @@ import { parseReleaseNotes } from './utils/releaseNotes';
 import { lazyWithRetry } from './utils/lazyWithRetry';
 import { useApiStatus } from './contexts/ApiStatusContext';
 import { ApiUnavailableScreen } from './components/common/ApiUnavailableScreen';
+import { OfflineIndicator } from './components/common/OfflineIndicator';
 const PeoplePage = lazyWithRetry(
   () => import('./pages/PeoplePage').then((m) => ({ default: m.PeoplePage })),
   'PeoplePage',
@@ -1992,6 +1993,8 @@ function App() {
                   }}
                 />
               )}
+
+              <OfflineIndicator />
 
               <Footer onVersionClick={() => setShowReleaseNotes(true)} />
 

@@ -162,7 +162,7 @@ export const AgenticDiscoveryBoard: React.FC<AgenticDiscoveryBoardProps> = ({
                       >
                         {lead.signalType || 'Manual Lead'}
                       </LqText>
-                      <LqText variant="tiny" color="muted">
+                      <LqText variant="xxs" color="muted">
                         Identified {new Date(lead.createdAt).toLocaleDateString()}
                       </LqText>
                     </Stack>
@@ -179,7 +179,7 @@ export const AgenticDiscoveryBoard: React.FC<AgenticDiscoveryBoardProps> = ({
                         Risk: {Math.round(lead.riskScore * 100)}%
                       </div>
                     )}
-                    <LqText variant="tiny" color="muted">
+                    <LqText variant="xxs" color="muted">
                       Conf. {Math.round((lead.confidence || 0.5) * 100)}%
                     </LqText>
                   </div>
@@ -208,21 +208,21 @@ export const AgenticDiscoveryBoard: React.FC<AgenticDiscoveryBoardProps> = ({
                         style={{ width: `${(lead.confidence || 0.5) * 100}%` }}
                       />
                     </div>
-                    <LqText variant="tiny" color="muted" weight="bold">
+                    <LqText variant="xxs" color="muted" weight="bold">
                       Neural Match
                     </LqText>
                   </div>
 
                   <Flex gap="sm">
-                    <Button variant="ghost" size="xs">
+                    <Button variant="ghost" size="sm">
                       <ExternalLink size={12} />
                     </Button>
-                    <Button variant="ghost" size="xs">
+                    <Button variant="ghost" size="sm">
                       <Trash2 size={12} />
                     </Button>
                     <Button
                       variant="glass-highlight"
-                      size="xs"
+                      size="sm"
                       onClick={() => handlePromote(lead)}
                       disabled={lead.status === 'pursued'}
                     >
