@@ -1746,3 +1746,139 @@
 .accentIconLowOp {
   color: color-mix(in srgb, var(--accent) 30%, transparent);
 }
+
+/* ---------- Enhanced Ingestion Dashboard Extras ---------- */
+
+.mediaProgressRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-bottom: var(--space-4);
+  margin-bottom: var(--space-4);
+  border-bottom: 1px dashed var(--glass-border);
+}
+
+.mediaProgressHeader {
+  display: flex;
+  flex-direction: column;
+}
+
+.mediaSubtext {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  font-weight: 400;
+  margin-top: 0.125rem;
+}
+
+.progressMedia {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  background: linear-gradient(90deg, var(--accent-purple), var(--accent));
+  box-shadow: 0 0 15px rgba(168, 85, 247, 0.4);
+  transition: width 1s ease;
+}
+
+.exoMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.exoStatus {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+
+.exoLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+  margin-left: var(--space-2);
+}
+
+.exoLink:hover {
+  text-decoration: underline;
+}
+
+.pipelineControlBar {
+  margin-top: var(--space-6);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--glass-border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.controlButtons {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.controlButtons button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--easing-liquid);
+  border: 1px solid transparent;
+}
+
+.controlBtnPause {
+  background: color-mix(in srgb, var(--accent-warning) 15%, transparent);
+  color: var(--accent-warning);
+  border-color: color-mix(in srgb, var(--accent-warning) 30%, transparent);
+}
+
+.controlBtnPause:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent-warning) 25%, transparent);
+  transform: translateY(-1px);
+}
+
+.controlBtnResume {
+  background: color-mix(in srgb, var(--accent-success) 15%, transparent);
+  color: var(--accent-success);
+  border-color: color-mix(in srgb, var(--accent-success) 30%, transparent);
+}
+
+.controlBtnResume:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent-success) 25%, transparent);
+  transform: translateY(-1px);
+}
+
+.controlBtnStop {
+  background: color-mix(in srgb, var(--accent-danger) 15%, transparent);
+  color: var(--accent-danger);
+  border-color: color-mix(in srgb, var(--accent-danger) 30%, transparent);
+}
+
+.controlBtnStop:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent-danger) 25%, transparent);
+  transform: translateY(-1px);
+}
+
+.controlButtons button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.signalPending {
+  font-size: 0.65rem;
+  font-family: var(--font-mono, monospace);
+  color: var(--accent);
+  text-align: right;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  opacity: 0.8;
+}
+

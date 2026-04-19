@@ -19,7 +19,7 @@ export function useSwipeGesture(
     onSwipeUp,
     onSwipeDown,
     threshold = 50,
-    preventDefault = true,
+    preventDefault = false,
   } = options;
 
   const touchStartX = useRef(0);

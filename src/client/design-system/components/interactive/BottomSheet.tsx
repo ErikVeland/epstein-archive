@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useResponsive } from '../../../hooks/useResponsive';
+import { useScrollLock } from '../../../hooks/useScrollLock';
 import { useSwipeGesture } from '../../../hooks/useSwipeGesture';
 import { cn } from '../../lib';
 import styles from './BottomSheet.module.css';
@@ -33,18 +34,10 @@ export function BottomSheet({
   useSwipeGesture(sheetRef, {
     onSwipeDown: handleSwipeDown,
     threshold: 100,
+    preventDefault: false,
   });
 
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isOpen]);
+  useScrollLock(isOpen);
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {

@@ -161,6 +161,12 @@
 
 @media (min-width: 1024px) {
   .toolSettingsGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1440px) {
+  .toolSettingsGrid {
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 }
@@ -222,6 +228,14 @@
 
   .sidebarCollapsed {
     width: 64px;
+  }
+}
+
+@media (max-width: 767px) {
+  .sidebar {
+    max-height: 40vh;
+    overflow-y: auto;
+    border-bottom: 2px solid var(--glass-border);
   }
 }
 
@@ -573,7 +587,8 @@
   position: fixed;
   inset: 0;
   z-index: 1100;
-  background: var(--glass-bg-strong);
+  background: color-mix(in srgb, var(--glass-bg-strong) 80%, transparent);
+  backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -589,6 +604,15 @@
   color: var(--text-primary);
   max-height: 90vh;
   overflow: auto;
+  box-shadow: var(--shadow-2xl);
+}
+
+@media (max-width: 639px) {
+  .modalContent {
+    max-height: 100vh;
+    border-radius: 0;
+    border: none;
+  }
 }
 
 .modalHeader {

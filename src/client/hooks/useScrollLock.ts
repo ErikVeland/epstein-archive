@@ -1,15 +1,12 @@
 import { useEffect } from 'react';
 
 let lockCount = 0;
-let previousBodyOverflow = '';
-let previousBodyPaddingRight = '';
-let previousHtmlOverflow = '';
-let previousBodyPosition = '';
-let previousBodyTop = '';
-let previousBodyWidth = '';
-let previousBodyTouchAction = '';
+let previousTargetOverflow = '';
+let previousTargetPaddingRight = '';
+let previousTargetOverscrollBehavior = '';
 let previousHtmlOverscrollBehavior = '';
-let lockedScrollY = 0;
+let lockedScrollTop = 0;
+let lockedTarget: HTMLElement | null = null;
 
 /**
  * Hook to lock body scroll when a modal is open.
@@ -24,43 +21,37 @@ export const useScrollLock = (isOpen: boolean) => {
 
     lockCount += 1;
     if (lockCount === 1) {
-      const bodyStyle = window.getComputedStyle(document.body);
-      const htmlStyle = window.getComputedStyle(document.documentElement);
-      lockedScrollY = window.scrollY;
-      previousBodyOverflow = bodyStyle.overflow;
-      previousBodyPaddingRight = document.body.style.paddingRight;
-      previousBodyPosition = document.body.style.position;
-      previousBodyTop = document.body.style.top;
-      previousBodyWidth = document.body.style.width;
-      previousBodyTouchAction = document.body.style.touchAction;
-      previousHtmlOverflow = htmlStyle.overflow;
+      lockedTarget =
+        (document.querySelector('[data-scroll-lock-root="true"]') as HTMLElement | null) ??
+        (document.scrollingElement as HTMLElement | null) ??
+        document.documentElement;
+
+      lockedScrollTop = lockedTarget.scrollTop;
+      previousTargetOverflow = lockedTarget.style.overflow;
+      previousTargetPaddingRight = lockedTarget.style.paddingRight;
+      previousTargetOverscrollBehavior = lockedTarget.style.overscrollBehavior;
       previousHtmlOverscrollBehavior = document.documentElement.style.overscrollBehavior;
 
-      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+      const scrollbarWidth = lockedTarget.offsetWidth - lockedTarget.clientWidth;
       if (scrollbarWidth > 0) {
-        document.body.style.paddingRight = `${scrollbarWidth}px`;
+        lockedTarget.style.paddingRight = `${scrollbarWidth}px`;
       }
-      document.body.style.overflow = 'hidden';
-      document.body.style.position = 'fixed';
-      document.body.style.top = `-${lockedScrollY}px`;
-      document.body.style.width = '100%';
-      document.body.style.touchAction = 'none';
-      document.documentElement.style.overflow = 'hidden';
+      lockedTarget.style.overflow = 'hidden';
+      lockedTarget.style.overscrollBehavior = 'none';
       document.documentElement.style.overscrollBehavior = 'none';
     }
 
     return () => {
       lockCount = Math.max(0, lockCount - 1);
       if (lockCount === 0) {
-        document.body.style.overflow = previousBodyOverflow;
-        document.body.style.paddingRight = previousBodyPaddingRight;
-        document.body.style.position = previousBodyPosition;
-        document.body.style.top = previousBodyTop;
-        document.body.style.width = previousBodyWidth;
-        document.body.style.touchAction = previousBodyTouchAction;
-        document.documentElement.style.overflow = previousHtmlOverflow;
+        if (lockedTarget) {
+          lockedTarget.style.overflow = previousTargetOverflow;
+          lockedTarget.style.paddingRight = previousTargetPaddingRight;
+          lockedTarget.style.overscrollBehavior = previousTargetOverscrollBehavior;
+          lockedTarget.scrollTop = lockedScrollTop;
+        }
         document.documentElement.style.overscrollBehavior = previousHtmlOverscrollBehavior;
-        window.scrollTo(0, lockedScrollY);
+        lockedTarget = null;
       }
     };
   }, [isOpen]);

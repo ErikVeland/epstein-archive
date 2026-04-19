@@ -70,9 +70,19 @@
 }
 
 .tableShell {
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 767px) {
+  .tableShell {
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
 }
 
 .headerRow {
@@ -80,18 +90,22 @@
   top: 0;
   z-index: 10;
   display: flex;
-  border-bottom: 1px solid var(--glass-border);
-  background: var(--app-bg);
+  width: max-content;
+  min-width: 100%;
+  border-bottom: 2px solid var(--glass-border);
+  background: var(--bg-surface);
 }
 
 .row {
   display: flex;
+  width: max-content;
+  min-width: 100%;
   border-bottom: 1px solid var(--glass-border);
   transition: background-color 0.2s ease;
 }
 
 .row:hover {
-  background: var(--app-bg);
+  background: color-mix(in srgb, var(--accent) 5%, transparent);
 }
 
 .indexCell {

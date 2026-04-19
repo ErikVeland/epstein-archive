@@ -1,5 +1,16 @@
 # Release Notes
 
+## 19.3.1 - 2026-04-18
+
+### Mobile Overlays & Onboarding
+
+- Fixed Mobile “More” menu toggle and restored reliable interaction.
+- Standardized scroll locking to the actual app scroll container, restoring scroll within mobile overlays/sheets.
+- Made mobile overlays render as full-screen, scrollable sheets with safe-area padding.
+- Ensured the First Run Onboarding overlay always stacks above the footer.
+
+---
+
 ## 19.3.0 - 2026-04-18
 
 ### Archival Hardening & Relational Integrity

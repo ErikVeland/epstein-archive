@@ -227,6 +227,8 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
+  gap: var(--space-2);
+  flex-wrap: wrap;
 }
 
 .entityName {
@@ -411,6 +413,13 @@
   gap: var(--space-2);
 }
 
+@media (max-width: 639px) {
+  .itemActions {
+    flex-direction: column;
+    margin-left: var(--space-2);
+  }
+}
+
 .entityHeaderStart {
   align-items: flex-start;
 }
@@ -474,9 +483,15 @@
 
 .modalGrid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1fr;
   gap: var(--space-4);
   margin-bottom: var(--space-6);
+}
+
+@media (min-width: 640px) {
+  .modalGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .modalLabel {

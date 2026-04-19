@@ -310,7 +310,9 @@ export const DocumentBrowser: React.FC<DocumentBrowserProps> = ({
         />
 
         <AnimatePresence>
-          {hoveredDoc && hoverRect && <DocumentHoverPreview doc={hoveredDoc} rect={hoverRect} />}
+          {hoveredDoc && hoverRect && (
+            <DocumentHoverPreview doc={hoveredDoc} rect={hoverRect} onClose={handleHoverEnd} />
+          )}
         </AnimatePresence>
       </Box>
     </Surface>

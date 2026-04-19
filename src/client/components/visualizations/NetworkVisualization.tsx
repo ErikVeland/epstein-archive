@@ -95,10 +95,8 @@ export const NetworkVisualization: React.FC<NetworkVisualizationProps> = ({
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [lastPan, setLastPan] = useState({ x: 0, y: 0 });
   const [damningEvidenceOnly, setDamningEvidenceOnly] = useState(false);
-  // Default to table view on mobile — canvas graph is unusable without a mouse
-  const [showTableView, setShowTableView] = useState<boolean>(
-    () => typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches,
-  );
+  // Re-enabled canvas by default on mobile after touch hardening refactor
+  const [showTableView, setShowTableView] = useState(false);
   const [showSettings, setShowSettings] = useState<boolean>(
     () => typeof window === 'undefined' || !window.matchMedia('(max-width: 767px)').matches,
   );

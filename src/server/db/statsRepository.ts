@@ -373,6 +373,25 @@ export const statsRepository = {
     const totalIngested = results.reduce((sum, r) => sum + r.ingested, 0);
     const remaining = Math.max(0, totalTarget - totalIngested);
 
+    // Media Progress Stats
+    const mediaStatsRes = await getApiPool().query(
+      'SELECT count(*) as total, sum(case when has_text is not null then 1 else 0 end) as processed FROM media_items',
+    );
+    const media = {
+      total: Number(mediaStatsRes.rows[0].total || 0),
+      processed: Number(mediaStatsRes.rows[0].processed || 0),
+      percent:
+        mediaStatsRes.rows[0].total > 0
+          ? (Number(mediaStatsRes.rows[0].processed) / Number(mediaStatsRes.rows[0].total)) * 100
+          : 0,
+    };
+
+    // Current Run Control Signal
+    const currentRunRes = await getApiPool().query(
+      "SELECT id, status, control_signal FROM pipeline_runs WHERE status IN ('running', 'paused') ORDER BY started_at DESC LIMIT 1",
+    );
+    const currentRun = currentRunRes.rows[0] || null;
+
     let throughput_docs_sec = 0;
     try {
       const recentProcessedRows = await statsQueries.getRecentProcessedCount.run(
@@ -401,11 +420,17 @@ export const statsRepository = {
 
     return {
       datasets: results,
+      media,
+      current_run: currentRun,
       eta_minutes: total_eta_minutes,
       remaining_docs: remaining,
       active_workers: activeWorkers,
       throughput_docs_sec,
       last_updated: new Date().toISOString(),
+      exo: {
+        host: process.env.EXO_HOST || 'http://127.0.0.1:52415',
+        model: process.env.EXO_MODEL || 'auto',
+      },
     };
   },
 

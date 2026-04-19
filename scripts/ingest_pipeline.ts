@@ -93,6 +93,7 @@ async function syncMediaItemFromDocument(params: {
   title: string;
   metadata: Record<string, unknown>;
   dateTaken?: string | Date | null;
+  hasText?: boolean;
 }): Promise<void> {
   const {
     documentId,
@@ -104,6 +105,7 @@ async function syncMediaItemFromDocument(params: {
     title,
     metadata,
     dateTaken,
+    hasText = false,
   } = params;
 
   if (
@@ -114,7 +116,20 @@ async function syncMediaItemFromDocument(params: {
     return;
   }
 
-  const albumId = await getOrCreateMediaAlbumId(collectionName, collectionDescription);
+  let albumId = await getOrCreateMediaAlbumId(collectionName, collectionDescription);
+
+  // Requirement: "make a separate album for the extracted images"
+  // If the file path indicates it was extracted from an archive or email, place it in "Extracted Media"
+  const isExtracted =
+    filePath.includes('data/extracted') ||
+    filePath.includes('data/attachments') ||
+    filePath.includes('data/temp_extraction');
+  if (isExtracted) {
+    albumId = await getOrCreateMediaAlbumId(
+      'Extracted Media',
+      'Media assets extracted from archives, emails, and forensic bundles.',
+    );
+  }
   const existing =
     (
       await db.query<{ id: string }>(
@@ -148,7 +163,8 @@ async function syncMediaItemFromDocument(params: {
            title = $5,
            metadata_json = $6::jsonb,
            file_size = $7,
-           date_taken = COALESCE($8::timestamp, date_taken)
+           date_taken = COALESCE($8::timestamp, date_taken),
+           has_text = $10
        WHERE id = $9`,
       [
         documentId,
@@ -159,7 +175,8 @@ async function syncMediaItemFromDocument(params: {
         metadataJson,
         fileSize,
         dateTakenValue,
-        existing.id,
+        Number(existing.id),
+        hasText,
       ],
     );
     return;
@@ -188,9 +205,10 @@ async function syncMediaItemFromDocument(params: {
        metadata_json,
        created_at,
        file_size,
-       date_taken
+       date_taken,
+       has_text
      ) VALUES (
-       $1, $2, $3, $4, $5, $6, 'unverified', 0, false, $7::jsonb, CURRENT_TIMESTAMP, $8, $9
+       $1, $2, $3, $4, $5, $6, 'unverified', 0, false, $7::jsonb, CURRENT_TIMESTAMP, $8, $9, $10
      )`,
     [
       nextId,
@@ -202,6 +220,7 @@ async function syncMediaItemFromDocument(params: {
       metadataJson,
       fileSize,
       dateTakenValue,
+      hasText,
     ],
   );
 }
@@ -302,6 +321,12 @@ const STEP_VERSIONS = {
 // and fall back to Tesseract page rendering.
 const OCR_FALLBACK_WORD_THRESHOLD = 50;
 
+// Threshold for flagging an image as "text-heavy"
+const MEDIA_TEXT_THRESHOLD = 5;
+
+// Global force flags
+let SHOULD_REHASH = false;
+
 // Pipeline metadata
 
 // Default AI integration to Exo cluster unless explicitly disabled
@@ -330,7 +355,7 @@ const COLLECTIONS: CollectionConfig[] = [
     name: 'Epstein Estate Documents - Seventh Production',
     rootPath: 'data/originals/Epstein Estate Documents - Seventh Production',
     description: 'Seventh Production of Estate Documents',
-    enabled: false,
+    enabled: true,
   },
   {
     name: 'DOJ Data Set 1',
@@ -1475,7 +1500,7 @@ async function processDocument(
 
     let sha256: string = '';
 
-    if (pathCheck && pathCheck.content_sha256) {
+    if (pathCheck && pathCheck.content_sha256 && !SHOULD_REHASH) {
       // Use existing hash and skip expensive readFileSync/sha256
       sha256 = pathCheck.content_sha256;
       existingDoc = pathCheck;
@@ -1491,7 +1516,7 @@ async function processDocument(
 
       console.log(`   ♻️  Resuming (existing hash): ${basename(filePath)}`);
     } else {
-      // Hard path: Read and hash the file
+      // Hard path: Read and hash the file (Forced rehash or path not in DB)
       const buffer = readFileSync(filePath);
       sha256 = crypto.createHash('sha256').update(buffer).digest('hex');
 
@@ -1500,11 +1525,19 @@ async function processDocument(
         (
           await db.query(
             `SELECT id, processing_status,
-                    (content IS NOT NULL AND length(content) > 50) AS has_content
+                    (content IS NOT NULL AND length(content) > 50) AS has_content,
+                    content_sha256
              FROM documents WHERE content_sha256 = $1`,
             [sha256],
           )
         ).rows[0] ?? null;
+
+      // If we are rehashing and the hash changed, we treat it as a new document version or an updated file
+      if (SHOULD_REHASH && pathCheck && pathCheck.content_sha256 !== sha256) {
+        console.log(`   🚨 File signature changed for: ${basename(filePath)} (Updating hash)`);
+        // We'll let the rest of the logic handle it - it will either find the NEW hash in existingDoc
+        // Or if it's a completely new hash, it will create/update the document entry.
+      }
     }
 
     if (!existingDoc) {
@@ -1560,6 +1593,7 @@ async function processDocument(
     }
 
     if (
+      !SHOULD_REHASH &&
       (existingDoc.processing_status === 'succeeded' ||
         existingDoc.processing_status === 'completed') &&
       existingDoc.has_content
@@ -1619,10 +1653,11 @@ async function processDocument(
         sha256,
         (existingPath as any).id,
       ]);
-      return { success: true, documentId: (existingPath as any).id };
+      documentId = (existingPath as any).id;
     }
 
     // Register Asset
+    await checkControlSignal();
     const mimeType = await detectMimeType(filePath);
     const stats = statSync(filePath);
     const ext = extname(filePath).toLowerCase();
@@ -1676,31 +1711,6 @@ async function processDocument(
     });
 
     if (documentId) {
-      await syncMediaItemFromDocument({
-        documentId,
-        filePath,
-        mimeType,
-        fileSize: stats.size,
-        collectionName: collection.name,
-        collectionDescription: collection.description,
-        title: deriveMediaTitle(filePath, collection.name),
-        metadata: {
-          duration:
-            typeof (meta as { durationSeconds?: unknown }).durationSeconds === 'number'
-              ? (meta as { durationSeconds: number }).durationSeconds
-              : undefined,
-          durationFormatted:
-            typeof (meta as { durationFormatted?: unknown }).durationFormatted === 'string'
-              ? (meta as { durationFormatted: string }).durationFormatted
-              : undefined,
-          transcribedBy:
-            typeof (meta as { transcribedBy?: unknown }).transcribedBy === 'string'
-              ? (meta as { transcribedBy: string }).transcribedBy
-              : undefined,
-        },
-        dateTaken: meta.date_created || null,
-      });
-
       await documentProvenanceService.upsertEvent(
         {
           documentId,
@@ -2201,6 +2211,35 @@ async function processDocument(
       await storeRedactions(documentId, content, unredactedSpans || null);
     }
 
+    if (documentId) {
+      const hasText = mimeType.startsWith('image/') && wordCount >= MEDIA_TEXT_THRESHOLD;
+      await syncMediaItemFromDocument({
+        documentId,
+        filePath,
+        mimeType,
+        fileSize: stats.size,
+        collectionName: collection.name,
+        collectionDescription: collection.description,
+        title: deriveMediaTitle(filePath, collection.name),
+        metadata: {
+          duration:
+            typeof (meta as { durationSeconds?: unknown }).durationSeconds === 'number'
+              ? (meta as { durationSeconds: number }).durationSeconds
+              : undefined,
+          durationFormatted:
+            typeof (meta as { durationFormatted?: unknown }).durationFormatted === 'string'
+              ? (meta as { durationFormatted: string }).durationFormatted
+              : undefined,
+          transcribedBy:
+            typeof (meta as { transcribedBy?: unknown }).transcribedBy === 'string'
+              ? (meta as { transcribedBy: string }).transcribedBy
+              : undefined,
+        },
+        dateTaken: meta.date_created || null,
+        hasText,
+      });
+    }
+
     return { success: true, documentId: documentId };
   } catch (error) {
     if (typeof documentId !== 'undefined') {
@@ -2222,6 +2261,54 @@ async function processDocument(
       }
     }
     return { success: false, error: (error as Error).message };
+  }
+}
+
+/**
+ * Check for pause/stop signals from the database
+ */
+async function checkControlSignal() {
+  if (!currentRun) return; // Not in a run context
+
+  const { status, control_signal } = await PipelineService.getRunStatus(currentRun.id);
+
+  if (control_signal === 'stop') {
+    console.log('\n🛑 STOP signal received from dashboard. Exiting cleanly...');
+    await PipelineService.updateRunStatus(
+      currentRun.id,
+      'cancelled',
+      'Stopped by user via dashboard',
+    );
+    process.exit(0);
+  }
+
+  if (control_signal === 'pause' || status === 'paused') {
+    if (status !== 'paused') {
+      await PipelineService.updateRunStatus(currentRun.id, 'paused');
+    }
+    console.log('\n⏳ PAUSE signal active (Run ID: ' + currentRun.id + '). Waiting for resume...');
+
+    // Poll every 5 seconds until the status is no longer paused
+    let waiting = true;
+    while (waiting) {
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+      const poll = await PipelineService.getRunStatus(currentRun.id);
+      if (poll.control_signal === 'stop') {
+        console.log('\n🛑 STOP signal received during pause. Exiting...');
+        await PipelineService.updateRunStatus(
+          currentRun.id,
+          'cancelled',
+          'Stopped by user via dashboard',
+        );
+        process.exit(0);
+      }
+      if (poll.control_signal === 'resume' || poll.status === 'running') {
+        process.stdout.write('▶️ RESUME signal received. Continuing...\n');
+        await PipelineService.updateRunStatus(currentRun.id, 'running');
+        await PipelineService.setControlSignal(currentRun.id, null);
+        waiting = false;
+      }
+    }
   }
 }
 
@@ -2426,11 +2513,14 @@ async function main() {
   const modeIdx = args.indexOf('--mode');
   const mode = modeIdx >= 0 ? args[modeIdx + 1] : 'full';
 
+  SHOULD_REHASH = args.includes('--rehash') || args.includes('-r');
+
   console.log('='.repeat(80));
   console.log('🚀 UNIFIED DATA INGESTION PIPELINE');
   console.log('='.repeat(80));
   console.log();
   console.log(`🧭 Mode: ${mode}`);
+  console.log(`🔄 Rehash: ${SHOULD_REHASH}`);
   console.log();
 
   // Enforce Exo Cluster for Max Performance

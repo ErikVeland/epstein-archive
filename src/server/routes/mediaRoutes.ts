@@ -36,6 +36,7 @@ const mediaImagesQuerySchema = z.object({
     minRedFlagRating: z.coerce.number().int().min(0).max(5).optional(),
     hasPeople: z.preprocess((v) => v === 'true' || v === true, z.boolean()).optional(),
     search: z.string().optional(),
+    excludeTextScans: z.preprocess((v) => v === 'true' || v === true, z.boolean()).optional(),
   }),
 });
 
@@ -179,6 +180,7 @@ router.get('/images', validate(mediaImagesQuerySchema), async (req, res, next) =
       sortOrder,
       fileType: 'image',
       transcriptQuery: query.search,
+      excludeTextScans: query.excludeTextScans === 'true',
     });
 
     res.setHeader('X-Total-Count', String(total));

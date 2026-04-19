@@ -13,6 +13,7 @@ import { EvidenceModal } from '../common/EvidenceModal';
 import { CollapsibleSplitPane } from '../common/CollapsibleSplitPane';
 import { ViewerShell } from '../viewer/ViewerShell';
 import { ProvenancePanel } from './ProvenancePanel';
+import { LiquidSheet } from '../common/LiquidSheet';
 import styles from './DocumentModal.module.css';
 
 // Design System
@@ -30,7 +31,7 @@ import { DocumentAssetsTab } from './subcomponents/DocumentAssetsTab';
 import { deriveSummary, normalizeList } from './DocumentModalUtils';
 import { isVisualMediaItem } from '../../utils/evidenceUtils';
 
-import { Button } from '../../design-system/lib';
+import { Button, cn } from '../../design-system/lib';
 
 export interface DocEntityRecord {
   id?: string | number;
@@ -219,7 +220,7 @@ export const DocumentModal: React.FC<Props> = ({
     [hasAnyText, doc],
   );
 
-  const { modalRef } = useModalFocusTrap({ isActive: true, onEscape: onClose });
+  const { modalRef } = useModalFocusTrap({ isActive: true && !isMobile, onEscape: onClose });
   useScrollLock(true);
 
   useEffect(() => {
@@ -465,10 +466,142 @@ export const DocumentModal: React.FC<Props> = ({
     }
   };
 
+  if (isMobile) {
+    return (
+      <LiquidSheet
+        isOpen={id !== undefined}
+        onClose={onClose}
+        title={doc.title || doc.fileName || 'Record'}
+      >
+        <div className={styles.mobileLayout}>
+          <div className={styles.viewerWrapper}>
+            <DocumentHeader
+              doc={doc}
+              localSearchTerm={localSearchTerm}
+              setLocalSearchTerm={setLocalSearchTerm}
+              canReturnToCase={canReturnToCase}
+              handleBackToCase={handleBackToCase}
+              downloadOriginalDocument={downloadOriginalDocument}
+              onClose={onClose}
+            />
+            <div className={styles.tabsScroller}>
+              {viewerTabs.map((tab) => (
+                <Button
+                  unstyled
+                  key={tab.key}
+                  onClick={() => setActiveTab(tab.key)}
+                  className={cn(styles.mobileTab, activeTab === tab.key && styles.mobileTabActive)}
+                >
+                  {tab.label}
+                </Button>
+              ))}
+            </div>
+            <div className={styles.mobileScrollArea}>{renderTabContent()}</div>
+          </div>
+
+          <div className={styles.mobileBottomBar}>
+            <Button
+              unstyled
+              onClick={() => {
+                setActiveRailSection('metadata');
+                setRightPaneCollapsed(false);
+              }}
+              className={cn(
+                styles.bottomBarItem,
+                activeRailSection === 'metadata' && styles.bottomBarItemActive,
+              )}
+            >
+              <Sparkles size={20} />
+              <span>Metadata</span>
+            </Button>
+            <Button
+              unstyled
+              onClick={() => {
+                setActiveRailSection('entities');
+                setRightPaneCollapsed(false);
+              }}
+              className={cn(
+                styles.bottomBarItem,
+                activeRailSection === 'entities' && styles.bottomBarItemActive,
+              )}
+            >
+              <Users size={20} />
+              <span>Entities</span>
+            </Button>
+            <Button
+              unstyled
+              onClick={() => {
+                setActiveRailSection('case');
+                setRightPaneCollapsed(false);
+              }}
+              className={cn(
+                styles.bottomBarItem,
+                activeRailSection === 'case' && styles.bottomBarItemActive,
+              )}
+            >
+              <Link2 size={20} />
+              <span>Case</span>
+            </Button>
+            <Button
+              unstyled
+              onClick={() => {
+                setActiveRailSection('timeline');
+                setRightPaneCollapsed(false);
+              }}
+              className={cn(
+                styles.bottomBarItem,
+                activeRailSection === 'timeline' && styles.bottomBarItemActive,
+              )}
+            >
+              <Calendar size={20} />
+              <span>Timeline</span>
+            </Button>
+          </div>
+
+          {/* Metadata Overlay when not collapsed on mobile */}
+          {!rightPaneCollapsed && (
+            <div className={styles.mobileMetadataOverlay}>
+              <div className={styles.overlayHeader}>
+                <LqText variant="h3" weight="bold">
+                  {activeRailSection === 'metadata'
+                    ? 'Record Intelligence'
+                    : activeRailSection === 'entities'
+                      ? 'Live Entities'
+                      : activeRailSection === 'case'
+                        ? 'Case References'
+                        : 'Timeline Hooks'}
+                </LqText>
+                <Button unstyled onClick={() => setRightPaneCollapsed(true)}>
+                  Close
+                </Button>
+              </div>
+              <div className={styles.overlayContent}>
+                <DocumentMetadataRail
+                  doc={doc}
+                  id={id}
+                  activeRailSection={activeRailSection}
+                  expandedEntities={expandedEntities}
+                  setExpandedEntities={setExpandedEntities}
+                  entities={entities as never[]}
+                  selectedEntity={selectedEntity as never}
+                  setSelectedEntity={setSelectedEntity as never}
+                  caseLinks={caseLinks}
+                  timelineReferences={timelineReferences}
+                  rightPaneScrollRef={rightPaneScrollRef as React.RefObject<HTMLDivElement>}
+                  onOpenDossier={setEntityModalId}
+                  threadCount={thread?.messages?.length || 0}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      </LiquidSheet>
+    );
+  }
+
   return createPortal(
     <Box
       id="DocumentModal"
-      ref={modalRef}
       className={styles.overlay}
       role="dialog"
       aria-modal="true"
@@ -480,6 +613,7 @@ export const DocumentModal: React.FC<Props> = ({
         className={styles.modal}
         onClick={(e) => e.stopPropagation()}
         ref={modalRef}
+        tabIndex={-1}
         onPointerDown={(e) => {
           const startY = e.clientY;
           const handlePointerMove = (moveEvent: PointerEvent) => {

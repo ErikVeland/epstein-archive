@@ -18,6 +18,10 @@ const HISTORICAL_PLACEHOLDER_RULES: HistoricalPlaceholderRule[] = [
     name: '1740214500000_align_schema_v2',
     satisfiedByAny: ['1741540000000_align_schema_v2'],
   },
+  {
+    name: '1754000000000_reconcile_restore_seed_conflicts',
+    satisfiedByAny: ['1754000000100_document_provenance'],
+  },
 ];
 
 function resolveMigrationDir(): string {

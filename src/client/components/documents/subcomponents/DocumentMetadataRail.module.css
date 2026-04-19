@@ -11,6 +11,14 @@
   gap: var(--space-6);
 }
 
+@media (max-width: 767px) {
+  .railContainer {
+    height: auto;
+    overflow-y: visible;
+    padding-bottom: var(--space-20); /* Ensure bottom content is accessible above bar */
+  }
+}
+
 /* Section base and active/inactive states */
 .section {
   border-left: 3px solid transparent;

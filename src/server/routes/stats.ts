@@ -10,7 +10,6 @@ import {
   getSampleEntityWithMentions,
   pingDatabase,
 } from '../db/routesDb.js';
-import { ingestRunsRepository } from '../db/ingestRunsRepository.js';
 import { BackupService } from '../services/BackupService.js';
 import { cacheMiddleware } from '../middleware/cache.js';
 import { authenticateRequest } from '../auth/middleware.js';
@@ -361,33 +360,24 @@ router.get('/health/deep', async (_req, res) => {
   res.status(httpStatus).json(response);
 });
 
-// --- ADMIN OPS ENDPOINTS (Phase 4) ---
-
-// Get Ingestion History
-router.get('/ingest-runs', authenticateRequest, async (_req, res, next) => {
+// Manual Ingestion Control
+router.post('/pipeline/control', authenticateRequest, async (req, res, next) => {
   try {
-    const runs = ingestRunsRepository.getRuns(50);
-    res.json(runs);
-  } catch (e) {
-    next(e);
-  }
-});
+    const { runId, signal } = req.body;
+    if (!runId || !['pause', 'resume', 'stop'].includes(signal)) {
+      return res.status(400).json({ error: 'Invalid runId or signal' });
+    }
 
-// List Backups
-router.get('/backups', authenticateRequest, async (_req, res, next) => {
-  try {
-    const backups = BackupService.listBackups();
-    res.json(backups);
-  } catch (e) {
-    next(e);
-  }
-});
+    const { PipelineService } = await import('../services/pipelineService.js');
+    await PipelineService.setControlSignal(Number(runId), signal);
 
-// Trigger Manual Backup
-router.post('/backups/trigger', authenticateRequest, async (_req, res, next) => {
-  try {
-    const path = await BackupService.createBackup();
-    res.json({ success: true, path });
+    // If signal is resume, also set status back to running immediately
+    if (signal === 'resume') {
+      await PipelineService.updateRunStatus(Number(runId), 'running');
+      await PipelineService.setControlSignal(Number(runId), null);
+    }
+
+    res.json({ success: true, signal });
   } catch (e) {
     next(e);
   }

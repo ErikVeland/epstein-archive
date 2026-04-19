@@ -208,6 +208,14 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: var(--space-4);
+  gap: var(--space-4);
+}
+
+@media (max-width: 639px) {
+  .relatedHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
 .viewToggle {
@@ -237,6 +245,12 @@
   border-radius: var(--radius-lg);
   border: 1px solid var(--glass-border);
   overflow: hidden;
+}
+
+@media (max-width: 639px) {
+  .graphContainer {
+    height: 300px;
+  }
 }
 
 /* Communications */
@@ -335,6 +349,13 @@
   flex-wrap: wrap;
 }
 
+@media (max-width: 639px) {
+  .filterRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
 .filterSearchWrap {
   display: flex;
   align-items: center;
@@ -352,7 +373,7 @@
   border: 0 !important;
   font-size: var(--type-xs);
   color: var(--text-primary);
-  padding: 0 !important;
+  padding: var(--space-2) !important;
 }
 
 .filterInput:focus {
@@ -382,6 +403,14 @@
   align-items: flex-start;
   justify-content: space-between;
   margin-bottom: var(--space-2);
+  gap: var(--space-3);
+}
+
+@media (max-width: 639px) {
+  .evidenceCardHeader {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }
 
 .evidenceCardMain {
@@ -433,6 +462,19 @@
   align-items: flex-end;
   gap: var(--space-1);
   margin-left: var(--space-4);
+  flex-shrink: 0;
+}
+
+@media (max-width: 639px) {
+  .evidenceBadgeColumn {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    margin-left: 0;
+    margin-top: var(--space-2);
+    gap: var(--space-2);
+  }
 }
 
 .itemRoleChip {
@@ -498,6 +540,8 @@
   padding-top: var(--space-2);
   border-top: 1px solid var(--glass-border);
   margin-top: var(--space-3);
+  gap: var(--space-2);
+  flex-wrap: wrap;
 }
 
 .evidenceFooterMeta {
@@ -812,6 +856,13 @@
   gap: var(--space-3);
 }
 
+@media (max-width: 639px) {
+  .commTopRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
 .commSubjectRow {
   display: flex;
   align-items: center;
@@ -862,6 +913,17 @@
   align-items: flex-end;
   gap: var(--space-1);
   flex-shrink: 0;
+}
+
+@media (max-width: 639px) {
+  .commRight {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    margin-top: var(--space-2);
+    gap: var(--space-3);
+  }
 }
 
 .commDate {
@@ -947,4 +1009,14 @@
   align-items: center;
   gap: var(--space-2);
   flex-shrink: 0;
+}
+
+@media (max-width: 639px) {
+  .filterSelectGroup {
+    width: 100%;
+  }
+  
+  .filterSelect {
+    flex: 1;
+  }
 }

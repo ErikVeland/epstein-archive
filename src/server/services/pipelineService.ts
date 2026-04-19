@@ -54,18 +54,42 @@ export const PipelineService = {
    */
   async updateRunStatus(
     id: number,
-    status: 'succeeded' | 'failed' | 'cancelled',
+    status: 'running' | 'succeeded' | 'failed' | 'cancelled' | 'paused',
     errorMessage?: string,
   ): Promise<void> {
     const pool = getApiPool();
     await pool.query(
       `
       UPDATE pipeline_runs 
-      SET status = $1, error_message = $2, finished_at = CURRENT_TIMESTAMP 
+      SET status = $1, error_message = $2, 
+          finished_at = CASE WHEN $1 IN ('succeeded', 'failed', 'cancelled') THEN CURRENT_TIMESTAMP ELSE finished_at END
       WHERE id = $3
     `,
       [status, errorMessage || null, id],
     );
+  },
+
+  /**
+   * Set a control signal for a run.
+   */
+  async setControlSignal(id: number, signal: 'pause' | 'resume' | 'stop' | null): Promise<void> {
+    const pool = getApiPool();
+    await pool.query('UPDATE pipeline_runs SET control_signal = $1 WHERE id = $2', [signal, id]);
+  },
+
+  /**
+   * Get the current status/signal for a run.
+   */
+  async getRunStatus(id: number): Promise<{ status: string; control_signal: string | null }> {
+    const pool = getApiPool();
+    const { rows } = await pool.query(
+      'SELECT status, control_signal FROM pipeline_runs WHERE id = $1',
+      [id],
+    );
+    return {
+      status: rows[0]?.status || 'unknown',
+      control_signal: rows[0]?.control_signal || null,
+    };
   },
 
   /**

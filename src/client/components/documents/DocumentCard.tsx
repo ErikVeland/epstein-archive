@@ -1,6 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles, User, Database, Calendar, Eye } from 'lucide-react';
+import { Button } from '../../design-system/components/Button';
 import { Surface } from '../../design-system/components/surfaces/Surface';
 import { Box } from '../../design-system/components/layout/Box';
 import { Flex } from '../../design-system/components/layout/Flex';
@@ -14,6 +15,7 @@ import {
   getSourceLabel,
   highlightSearchTerm,
 } from '../../utils/documentUtils';
+import { useIsMobile } from '../../hooks/useResponsive';
 import styles from './DocumentCard.module.css';
 
 interface DocumentCardProps {
@@ -57,6 +59,7 @@ export const DocumentCard = React.forwardRef<HTMLElement, DocumentCardProps>(fun
   const risk = Number(document.redFlagRating || 0);
   const entitiesCount = document.entitiesCount || document.entities?.length || 0;
   const iconElement = getRenderTypeIcon(document, { className: styles.iconGlyph });
+  const isMobile = useIsMobile();
 
   const handleMouseEnter = () => {
     if (onHoverStart && cardRef.current) {
@@ -104,6 +107,18 @@ export const DocumentCard = React.forwardRef<HTMLElement, DocumentCardProps>(fun
                 R{risk}
               </LqText>
             </Surface>
+            {isMobile && (
+              <Button
+                unstyled
+                onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+                  e.stopPropagation();
+                  handleMouseEnter();
+                }}
+                className={styles.peekButton}
+              >
+                <Eye size={16} />
+              </Button>
+            )}
           </Flex>
         </Flex>
 

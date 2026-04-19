@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Database,
   Search,
@@ -23,6 +23,11 @@ import {
   BookOpen,
   Scale,
   TrendingUp,
+  Cpu,
+  Play,
+  Pause,
+  Square,
+  ExternalLink,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button, Surface } from '../../design-system/lib';
@@ -52,6 +57,20 @@ interface PipelineStatus {
   eta_minutes?: number;
   throughput_docs_sec?: number;
   active_workers?: number;
+  media?: {
+    total: number;
+    processed: number;
+    percent: number;
+  };
+  current_run?: {
+    id: number;
+    status: string;
+    control_signal: string | null;
+  } | null;
+  exo?: {
+    host: string;
+    model: string;
+  };
 }
 
 const asRecord = (value: unknown): Record<string, unknown> =>
@@ -144,6 +163,99 @@ export const AboutPage: React.FC = () => {
   const [pipelineStatus, setPipelineStatus] = useState<PipelineStatus | null>(null);
   const [activeFaq, setActiveFaq] = useState(0);
 
+  const fetchData = useCallback(async () => {
+    const fetchJson = async (url: string): Promise<Record<string, unknown>> => {
+      const response = await fetch(url);
+      const contentType = response.headers.get('content-type') || '';
+      if (!response.ok || !contentType.includes('application/json')) {
+        throw new Error(`Failed to fetch ${url}: ${response.status} ${response.statusText}`);
+      }
+      return asRecord(await response.json());
+    };
+
+    try {
+      const [statsResult, blackBookResult, mediaResult] = await Promise.allSettled([
+        fetchJson('/api/stats'),
+        fetchJson('/api/black-book?limit=1'),
+        fetchJson('/api/media/stats'),
+      ]);
+
+      const statsRes = statsResult.status === 'fulfilled' ? statsResult.value : {};
+      const blackBookRes = blackBookResult.status === 'fulfilled' ? blackBookResult.value : {};
+      const mediaRes = mediaResult.status === 'fulfilled' ? mediaResult.value : {};
+
+      setStats({
+        documents: Number(statsRes.totalDocuments || 0),
+        entities: Number(statsRes.totalEntities || 0),
+        blackBook: Number(blackBookRes.total || 0),
+        media: Number(mediaRes.totalImages || 0),
+        albums: Number(mediaRes.totalAlbums || 0),
+        documentsFixed: Number(statsRes.documentsFixed || 0),
+      });
+
+      if (statsRes.collectionStats) {
+        const enhancedStats: SourceStat[] = (
+          Array.isArray(statsRes.collectionStats) ? statsRes.collectionStats : []
+        ).map((src) => {
+          const source = asRecord(src);
+          let link: string | null = null;
+          let search: string | null = asString(source.title);
+
+          if (asString(source.title).includes('Black Book')) {
+            link = '/blackbook';
+            search = null;
+          } else if (asString(source.title).includes('Flight Logs')) {
+            search = 'Flight Log';
+          } else if (
+            asString(source.title).includes('Video') ||
+            asString(source.title).includes('Media') ||
+            asString(source.title).includes('Testimony')
+          ) {
+            link = '/media';
+            search = null;
+          }
+
+          return {
+            title: asString(source.title),
+            count: asNumber(source.count, 0),
+            documentCount: asNumber(source.documentCount ?? source.count, 0),
+            impact: asString(source.impact, 'Reference'),
+            impactColor: asString(source.impactColor, 'slate'),
+            redactionColor: asString(source.redactionColor, 'green'),
+            redactionStatus: asString(source.redactionStatus, 'Minimal redactions'),
+            link,
+            search,
+          };
+        });
+        setDocumentSources(enhancedStats);
+      }
+
+      if (statsRes.pipeline_status && typeof statsRes.pipeline_status === 'object') {
+        setPipelineStatus(statsRes.pipeline_status as PipelineStatus);
+      }
+    } catch (e) {
+      console.error('Failed to fetch about page stats', e);
+    }
+  }, []);
+
+  const handlePipelineControl = async (signal: 'pause' | 'resume' | 'stop') => {
+    if (!pipelineStatus?.current_run?.id) return;
+
+    try {
+      const response = await fetch('/api/stats/pipeline/control', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ runId: pipelineStatus.current_run.id, signal }),
+      });
+
+      if (response.ok) {
+        fetchData();
+      }
+    } catch (e) {
+      console.error('Failed to send pipeline control signal:', e);
+    }
+  };
+
   const pipelineOverview = useMemo(() => {
     const datasets = Array.isArray(pipelineStatus?.datasets) ? pipelineStatus.datasets : [];
     if (datasets.length === 0) return null;
@@ -180,90 +292,12 @@ export const AboutPage: React.FC = () => {
   }, [pipelineOverview]);
 
   useEffect(() => {
-    const fetchJson = async (url: string): Promise<Record<string, unknown>> => {
-      const response = await fetch(url);
-      const contentType = response.headers.get('content-type') || '';
-      if (!response.ok || !contentType.includes('application/json')) {
-        throw new Error(`Failed to fetch ${url}: ${response.status} ${response.statusText}`);
-      }
-      return asRecord(await response.json());
-    };
-
-    const fetchData = async () => {
-      try {
-        const [statsResult, blackBookResult, mediaResult] = await Promise.allSettled([
-          fetchJson('/api/stats'),
-          fetchJson('/api/black-book?limit=1'),
-          fetchJson('/api/media/stats'),
-        ]);
-
-        const statsRes = statsResult.status === 'fulfilled' ? statsResult.value : {};
-        const blackBookRes = blackBookResult.status === 'fulfilled' ? blackBookResult.value : {};
-        const mediaRes = mediaResult.status === 'fulfilled' ? mediaResult.value : {};
-
-        setStats({
-          documents: Number(statsRes.totalDocuments || 0),
-          entities: Number(statsRes.totalEntities || 0),
-          blackBook: Number(blackBookRes.total || 0),
-          media: Number(mediaRes.totalImages || 0),
-          albums: Number(mediaRes.totalAlbums || 0),
-          documentsFixed: Number(statsRes.documentsFixed || 0),
-        });
-
-        if (statsRes.collectionStats) {
-          // Merge with static metadata for links/searches if needed
-          const enhancedStats: SourceStat[] = (
-            Array.isArray(statsRes.collectionStats) ? statsRes.collectionStats : []
-          ).map((src) => {
-            const source = asRecord(src);
-            // Manual overrides for known collections to add links/search
-            let link: string | null = null;
-            let search: string | null = asString(source.title);
-
-            if (asString(source.title).includes('Black Book')) {
-              link = '/blackbook';
-              search = null;
-            } else if (asString(source.title).includes('Flight Logs')) {
-              search = 'Flight Log';
-            } else if (
-              asString(source.title).includes('Video') ||
-              asString(source.title).includes('Media') ||
-              asString(source.title).includes('Testimony')
-            ) {
-              link = '/media';
-              search = null;
-            }
-
-            return {
-              title: asString(source.title),
-              count: asNumber(source.count, 0),
-              documentCount: asNumber(source.documentCount ?? source.count, 0),
-              impact: asString(source.impact, 'Reference'),
-              impactColor: asString(source.impactColor, 'slate'),
-              redactionColor: asString(source.redactionColor, 'green'),
-              redactionStatus: asString(source.redactionStatus, 'Minimal redactions'),
-              link,
-              search,
-            };
-          });
-          setDocumentSources(enhancedStats);
-        }
-
-        if (statsRes.pipeline_status && typeof statsRes.pipeline_status === 'object') {
-          setPipelineStatus(statsRes.pipeline_status as PipelineStatus);
-        }
-      } catch (e) {
-        console.error('Failed to fetch about page stats', e);
-      }
-    };
     fetchData();
-
-    // Carousel auto-play
     const timer = setInterval(() => {
       setActiveFaq((prev) => (prev + 1) % faqs.length);
     }, 8000);
     return () => clearInterval(timer);
-  }, []);
+  }, [fetchData]);
 
   return (
     <div className={s.pageRoot}>
@@ -615,6 +649,35 @@ export const AboutPage: React.FC = () => {
               </span>
             </h3>
             <div className={s.datasetList}>
+              {/* Media Optimization Pass Progress */}
+              {pipelineStatus?.media && (
+                <div className={s.mediaProgressRow}>
+                  <div className={s.datasetRowMeta}>
+                    <div className={s.mediaProgressHeader}>
+                      <span className={s.datasetName}>Media Optimization Pass (Forensic)</span>
+                      <span className={s.mediaSubtext}>
+                        Optimizing images, detection archival text, & categorization
+                      </span>
+                    </div>
+                    <div className={s.datasetNumbers}>
+                      <span className={s.datasetIngestStat}>
+                        PROCESSED: {pipelineStatus.media.processed.toLocaleString()} /{' '}
+                        {pipelineStatus.media.total.toLocaleString()} (
+                        {pipelineStatus.media.percent.toFixed(1)}%)
+                      </span>
+                    </div>
+                  </div>
+                  <div className={`soft-glass-inset ${s.progressTrack}`}>
+                    <div
+                      className={s.progressMedia}
+                      style={{ width: `${pipelineStatus.media.percent}%` }}
+                    >
+                      {pipelineStatus.media.percent < 100 && <div className={s.progressShimmer} />}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {(pipelineStatus?.datasets || []).map((dataset: PipelineDataset) => {
                 const currentIngested = dataset.ingested;
                 const currentDownloaded = dataset.downloaded;
@@ -690,9 +753,68 @@ export const AboutPage: React.FC = () => {
                         />
                       ))}
                     </div>
-                    <span className={s.workerLabel}>
-                      {pipelineStatus.active_workers || 12} Exo Workers Active
-                    </span>
+                    <div className={s.exoMeta}>
+                      <span className={s.workerLabel}>
+                        {pipelineStatus.active_workers || 12} Exo Workers Active
+                      </span>
+                      {pipelineStatus.exo && (
+                        <div className={s.exoStatus}>
+                          <Cpu size={12} className={s.iconAccent} />
+                          <span>{pipelineStatus.exo.model}</span>
+                          <a
+                            href={pipelineStatus.exo.host}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={s.exoLink}
+                          >
+                            EXO Dashboard <ExternalLink size={12} />
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Pipeline Controls */}
+                {pipelineStatus?.current_run && (
+                  <div className={s.pipelineControlBar}>
+                    <div className={s.controlButtons}>
+                      {pipelineStatus.current_run.status === 'running' ? (
+                        <button
+                          className={s.controlBtnPause}
+                          onClick={() => handlePipelineControl('pause')}
+                          disabled={pipelineStatus.current_run.control_signal === 'pause'}
+                        >
+                          <Pause size={14} />{' '}
+                          {pipelineStatus.current_run.control_signal === 'pause'
+                            ? 'Pausing...'
+                            : 'Pause Ingestion'}
+                        </button>
+                      ) : pipelineStatus.current_run.status === 'paused' ? (
+                        <button
+                          className={s.controlBtnResume}
+                          onClick={() => handlePipelineControl('resume')}
+                        >
+                          <Play size={14} /> Resume Ingestion
+                        </button>
+                      ) : null}
+
+                      <button
+                        className={s.controlBtnStop}
+                        onClick={() => handlePipelineControl('stop')}
+                        disabled={pipelineStatus.current_run.control_signal === 'stop'}
+                      >
+                        <Square size={14} />{' '}
+                        {pipelineStatus.current_run.control_signal === 'stop'
+                          ? 'Stopping...'
+                          : 'Stop Pipeline'}
+                      </button>
+                    </div>
+                    {pipelineStatus.current_run.control_signal && (
+                      <span className={s.signalPending}>
+                        Pending Signal: {pipelineStatus.current_run.control_signal.toUpperCase()}
+                      </span>
+                    )}
                   </div>
                 )}
               </div>

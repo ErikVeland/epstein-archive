@@ -632,6 +632,12 @@ function App() {
   ]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  useEffect(() => {
+    const handleToggleMobileMenu = () => setIsMobileMenuOpen((v) => !v);
+    window.addEventListener('toggleMobileMenu', handleToggleMobileMenu);
+    return () => window.removeEventListener('toggleMobileMenu', handleToggleMobileMenu);
+  }, []);
+
   // Initialize optimized data service (caches first page to sessionStorage)
   const { isLoading: isInitializing } = useQuery<boolean>({
     queryKey: ['initDataService'],
@@ -1006,7 +1012,7 @@ function App() {
       <ToastProvider>
         <UndoProvider>
           <InvestigationsProvider>
-            <div className={cn(styles.appRoot)}>
+            <div className={cn(styles.appRoot)} data-scroll-lock-root="true">
               <SEO {...seoConfig} />
               {shouldShowOnboarding && (
                 <FirstRunOnboarding onComplete={completeOnboarding} onSkip={skipOnboarding} />

@@ -96,8 +96,11 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
         onClick={(e) => e.stopPropagation()} // Prevent clicks inside menu from closing it
         onTouchStart={(e) => {
           const startX = e.touches[0].clientX;
+          const startY = e.touches[0].clientY;
           const handleTouchMove = (moveEvent: TouchEvent) => {
-            if (startX - moveEvent.touches[0].clientX > 50) onClose();
+            const deltaX = startX - moveEvent.touches[0].clientX;
+            const deltaY = startY - moveEvent.touches[0].clientY;
+            if (deltaX > 50 && Math.abs(deltaX) > Math.abs(deltaY)) onClose();
           };
           const cleanup = () => {
             window.removeEventListener('touchmove', handleTouchMove);

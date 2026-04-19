@@ -481,6 +481,7 @@ export const mediaRepository = {
       sortOrder?: 'asc' | 'desc';
       transcriptQuery?: string;
       hasPeople?: boolean;
+      excludeTextScans?: boolean;
     },
   ) => {
     const offset = (page - 1) * limit;
@@ -567,6 +568,9 @@ export const mediaRepository = {
       whereParts.push(
         `(COALESCE(m.metadata_json::text, '') ILIKE ${addParam(q)}::text OR COALESCE(m.description, '') ILIKE ${addParam(q)}::text OR COALESCE(m.title, '') ILIKE ${addParam(q)}::text)`,
       );
+    }
+    if (filters?.excludeTextScans) {
+      whereParts.push(`m.has_text IS NOT TRUE`);
     }
 
     const whereSql = whereParts.length ? `WHERE ${whereParts.join(' AND ')}` : '';

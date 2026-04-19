@@ -601,7 +601,13 @@ export const ForensicAnalysisWorkspace: React.FC<ForensicAnalysisWorkspaceProps>
         <Box className={styles.autoGen91} onClick={() => setSelectedConfidenceTool(null)}>
           <Surface
             variant="glass"
-            style={css({ width: 500, padding: 'var(--spacing-xl)' })}
+            style={css({
+              width: '95vw',
+              maxWidth: 500,
+              padding: 'var(--spacing-xl)',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+            })}
             className={styles.autoGen92}
             onClick={(e) => e.stopPropagation()}
           >

@@ -8,8 +8,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { apiClient } from '../../services/apiClient';
 import { useScrollLock } from '../../hooks/useScrollLock';
 import { useModalFocusTrap } from '../../hooks/useModalFocusTrap';
-import { useSwipeGesture } from '../../hooks/useSwipeGesture';
 import { TabItem } from './Tabs';
+import { LiquidSheet } from './LiquidSheet';
+import { useIsMobile } from '../../hooks/useResponsive';
 
 // Subcomponents
 import { EvidenceModalHeader } from './subcomponents/EvidenceModalHeader';
@@ -172,6 +173,7 @@ interface EntityEvidenceResponse extends EntityEvidenceFallbackResponse {
 export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, onClose }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const getTabFromUrl = useCallback((): EvidenceModalTab => {
     const params = new URLSearchParams(location.search);
@@ -703,21 +705,106 @@ export const EvidenceModal: React.FC<EvidenceModalProps> = ({ entityId, isOpen, 
   }, [entity, entityEvidence]);
 
   useScrollLock(isOpen);
-  const { modalRef } = useModalFocusTrap({ isActive: isOpen, onEscape: onClose });
-
-  useSwipeGesture(modalRef, {
-    onSwipeDown: onClose,
-    threshold: 100,
-  });
-
-  if (!isOpen) return null;
+  const { modalRef } = useModalFocusTrap({ isActive: isOpen && !isMobile, onEscape: onClose });
 
   const headerMediaItems = mediaItems.length > 0 ? mediaItems : entity?.photos || [];
   const headerPhoto =
     headerMediaItems.find((item) => isVisualMediaItem(item)) || headerMediaItems[0];
+
   const headerPhotoUrl =
     resolveEntityPhotoUrl(headerPhoto, true) ||
     (entityId ? `/api/entities/${encodeURIComponent(entityId)}/portrait` : null);
+
+  if (isMobile) {
+    return (
+      <LiquidSheet isOpen={isOpen} onClose={onClose} title={entity?.fullName}>
+        <div className={s.mobileContent}>
+          <EvidenceModalHeader
+            entity={entity ?? null}
+            loading={loading}
+            headerPhotoUrl={headerPhotoUrl}
+            brokenMediaIds={brokenMediaIds}
+            setBrokenMediaIds={setBrokenMediaIds}
+            handleQuickAction={handleQuickAction}
+            activeQuickAction={activeQuickAction}
+            tabs={EVIDENCE_TABS}
+            activeTab={activeTab}
+            onTabChange={(key) => isEvidenceModalTab(key) && handleTabChange(key)}
+            onClose={onClose}
+            forensicSummary={forensicSummary}
+            getRiskClass={getRiskClass}
+            resolveEntityPhotoUrl={resolveEntityPhotoUrl}
+            isVisualMediaItem={isVisualMediaItem}
+            headerPhoto={headerPhoto ?? null}
+          />
+
+          <div className={s.contentArea}>
+            {activeTab === 'overview' && (
+              <EvidenceOverviewTab
+                entity={entity ?? null}
+                loading={loading}
+                forensicData={forensicData}
+                totalDocs={totalDocs}
+                mediaItems={mediaItems}
+                overviewEvidenceTypesCount={overviewEvidenceTypesCount}
+                overviewSignificantPassages={overviewSignificantPassages}
+                openDocumentFromEvidence={openDocumentFromEvidence}
+                navigateFromModal={navigateFromModal}
+                blackBookSectionRef={blackBookSectionRef}
+              />
+            )}
+
+            {activeTab === 'evidence' && (
+              <EvidenceDocumentsTab
+                docFilters={docFilters}
+                handleFilterChange={handleFilterChange}
+                isDocsLoading={isDocsLoading}
+                totalDocs={totalDocs}
+                documents={documents}
+                loadNextPage={loadNextPage}
+                hasNextPage={hasNextPage}
+                isItemLoaded={isItemLoaded}
+                isNextPageLoading={isNextPageLoading}
+                usePlainEvidenceList
+                entityName={entity?.fullName || ''}
+                openDocument={openDocumentFromEvidence}
+              />
+            )}
+
+            {activeTab === 'media' && (
+              <EvidenceMediaTab
+                entity={entity ?? null}
+                mediaItems={mediaItems}
+                isMediaLoading={isMediaLoading}
+                brokenMediaIds={brokenMediaIds}
+                setBrokenMediaIds={setBrokenMediaIds}
+              />
+            )}
+
+            {activeTab === 'network' && (
+              <EvidenceNetworkTab
+                networkLoading={networkLoading}
+                relationships={relationships as GraphRelationship[]}
+                graphData={
+                  graphData as { entities: GraphNode[]; relationships: GraphRelationship[] }
+                }
+                entity={entity ?? null}
+              />
+            )}
+
+            {activeTab === 'investigations' && (
+              <EvidenceInvestigationsTab
+                investigations={investigations}
+                isInvestigationsLoading={isInvestigationsLoading}
+                investigationsInitialized={investigationsInitialized}
+                onOpenCase={(uuid) => navigateFromModal(`/investigations/${uuid}`)}
+              />
+            )}
+          </div>
+        </div>
+      </LiquidSheet>
+    );
+  }
 
   return createPortal(
     <AnimatePresence>

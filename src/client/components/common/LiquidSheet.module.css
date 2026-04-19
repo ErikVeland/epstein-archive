@@ -1,0 +1,77 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  z-index: var(--z-modal);
+}
+
+.sheet {
+  position: fixed;
+  inset: 0;
+  height: 100dvh;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(148, 163, 184, 0.015)),
+    rgba(10, 10, 13, 0.94);
+  backdrop-filter: blur(28px);
+  border-top: 1px solid var(--glass-border-highlight);
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.6);
+  z-index: var(--z-modal);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  touch-action: pan-y;
+  padding-top: env(safe-area-inset-top);
+}
+
+.handleContainer {
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  flex-shrink: 0;
+  touch-action: none;
+}
+
+.handle {
+  width: 40px;
+  height: 4px;
+  background: var(--glass-border-highlight);
+  border-radius: 9999px;
+  opacity: 0.6;
+}
+
+.header {
+  padding: 0 var(--space-6) var(--space-4);
+  flex-shrink: 0;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: var(--type-h2);
+  color: var(--text-strong);
+  margin: 0;
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 var(--space-4) calc(var(--space-6) + env(safe-area-inset-bottom));
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (min-width: 768px) {
+  .sheet {
+    max-width: 500px;
+    height: 80vh;
+    inset: auto;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    border-radius: 24px;
+    bottom: var(--space-8);
+    padding-top: 0;
+  }
+}
+

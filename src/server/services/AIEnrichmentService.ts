@@ -714,6 +714,7 @@ Content: "${content.slice(0, 2000)}"
 
       return null;
     } catch (_e) {
+      logger.warn({ err: _e }, '⚠️ AI Summarization failed - returning null');
       return null;
     }
   }
