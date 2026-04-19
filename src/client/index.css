@@ -325,8 +325,8 @@ button {
 }
 
 @media (max-width: 767px) {
-  button, 
-  [role="button"],
+  button,
+  [role='button'],
   .clickable {
     min-height: 48px;
     min-width: 44px;
