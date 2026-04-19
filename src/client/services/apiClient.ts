@@ -1347,7 +1347,14 @@ class ApiClient {
     documentId: string | number,
   ): Promise<import('../types/media.types').MediaImage[]> {
     return this.get<import('../types/media.types').MediaImage[]>(
-      `/media/images?documentId=${documentId}`,
+      `/media/images?documentId=${encodeURIComponent(String(documentId))}&limit=200&slim=true&excludeTextScans=false`,
+    );
+  }
+
+  async extractMediaForDocument(documentId: string | number): Promise<{ extractedCount: number }> {
+    return this.post<{ extractedCount: number }>(
+      `/media/images/extract/${encodeURIComponent(String(documentId))}`,
+      {},
     );
   }
 }

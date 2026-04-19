@@ -127,12 +127,10 @@ export class MediaExtractionService {
 
       await sharpImg.jpeg({ quality: 90 }).toFile(savePath);
 
-      // Organization: Per-document album prefixed by collection
-      const collectionPrefix = sourceCollection ? `[${sourceCollection}] ` : '';
-      const albumName = `${collectionPrefix}${docName} Assets`;
-      const albumDescription = `Visual assets extracted from ${docName} (${sourceCollection || 'Archive'}).`;
-
-      const album = await this.mediaService.getOrCreateAlbum(albumName, albumDescription);
+      const album = await this.mediaService.getOrCreateAlbum(
+        'Extracted Media',
+        'Media assets extracted from documents and forensic bundles.',
+      );
 
       // Register in database
       const relativePath = path.relative(process.cwd(), savePath);
@@ -149,9 +147,11 @@ export class MediaExtractionService {
         height: metadata.height,
         fileSize: fs.statSync(savePath).size,
         format: 'image/jpeg',
+        hasText: isTextOnly,
         metadata: {
           sha256: hash,
           source_document: docName,
+          source_document_id: String(documentId),
           source_collection: sourceCollection,
           extraction_engine: 'pdfimages-cli',
           is_document_extract: true,

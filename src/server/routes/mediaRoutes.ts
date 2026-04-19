@@ -9,6 +9,8 @@ import { MediaService } from '../services/MediaService.js';
 import { ThumbnailService } from '../services/ThumbnailService.js';
 import { authenticateRequest } from '../auth/middleware.js';
 import { findFirstExistingPath } from '../utils/pathResolver.js';
+import { documentsRepository } from '../db/documentsRepository.js';
+import { MediaExtractionService } from '../services/MediaExtractionService.js';
 
 const DATA_ROOT = path.resolve(process.cwd(), 'data');
 
@@ -29,6 +31,7 @@ const mediaImagesQuerySchema = z.object({
     albumId: z.coerce.number().int().positive().optional(),
     tagId: z.coerce.number().int().positive().optional(),
     personId: z.coerce.number().int().positive().optional(),
+    documentId: z.coerce.number().int().positive().optional(),
     sortField: z.string().optional(),
     sortOrder: z.enum(['asc', 'desc', 'ASC', 'DESC']).optional(),
     slim: z.preprocess((v) => v === 'true' || v === true, z.boolean()).optional(),
@@ -154,20 +157,22 @@ router.get('/tags', cacheResponse(120), async (_req, res, next) => {
 
 router.get('/images', validate(mediaImagesQuerySchema), async (req, res, next) => {
   try {
-    const query = req.query as Record<string, string | undefined>;
+    const query = req.query as Record<string, unknown>;
     const page = Number(query.page || 1);
     const limit = Number(query.limit || 24);
     const sortField = String(query.sortField || 'date_added').toLowerCase();
     const sortOrder = String(query.sortOrder || 'desc').toLowerCase() === 'asc' ? 'asc' : 'desc';
-    const slim = query.slim === 'true';
+    const slim = query.slim === true;
 
     const { mediaItems, total } = await mediaRepository.getMediaItemsPaginated(page, limit, {
       albumId: query.albumId ? Number(query.albumId) : undefined,
       tagId: query.tagId ? Number(query.tagId) : undefined,
       personId: query.personId ? Number(query.personId) : undefined,
-      verificationStatus: query.verificationStatus,
+      documentId: query.documentId ? Number(query.documentId) : undefined,
+      verificationStatus:
+        typeof query.verificationStatus === 'string' ? query.verificationStatus : undefined,
       minRedFlagRating: query.minRedFlagRating ? Number(query.minRedFlagRating) : undefined,
-      hasPeople: query.hasPeople === 'true',
+      hasPeople: query.hasPeople === true,
       sortBy: sortField as
         | 'date_added'
         | 'date_taken'
@@ -179,8 +184,8 @@ router.get('/images', validate(mediaImagesQuerySchema), async (req, res, next) =
         | undefined,
       sortOrder,
       fileType: 'image',
-      transcriptQuery: query.search,
-      excludeTextScans: query.excludeTextScans === 'true',
+      transcriptQuery: typeof query.search === 'string' ? query.search : undefined,
+      excludeTextScans: query.excludeTextScans === true,
     });
 
     res.setHeader('X-Total-Count', String(total));
@@ -210,6 +215,48 @@ router.get('/images', validate(mediaImagesQuerySchema), async (req, res, next) =
     next(error);
   }
 });
+
+router.post(
+  '/images/extract/:id',
+  authenticateRequest,
+  validate(mediaIdParamSchema),
+  async (req, res, next) => {
+    try {
+      const id = String(req.params.id);
+      const doc = await documentsRepository.getDocumentById(id);
+      if (!doc) return res.status(404).json({ error: 'Document not found' });
+
+      const filePathRaw =
+        (doc as Record<string, unknown>).filePath ?? (doc as Record<string, unknown>).file_path;
+      const fileTypeRaw =
+        (doc as Record<string, unknown>).fileType ?? (doc as Record<string, unknown>).file_type;
+      const titleRaw =
+        (doc as Record<string, unknown>).title ??
+        (doc as Record<string, unknown>).filename ??
+        (doc as Record<string, unknown>).fileName;
+      const sourceCollectionRaw =
+        (doc as Record<string, unknown>).sourceCollection ??
+        (doc as Record<string, unknown>).source_collection;
+
+      const filePath = typeof filePathRaw === 'string' ? filePathRaw : '';
+      const fileType = typeof fileTypeRaw === 'string' ? fileTypeRaw : '';
+      const title = typeof titleRaw === 'string' ? titleRaw : `Document ${id}`;
+      const sourceCollection =
+        typeof sourceCollectionRaw === 'string' ? sourceCollectionRaw : undefined;
+
+      if (!filePath) return res.status(400).json({ error: 'Document has no file path' });
+      if (!fileType.toLowerCase().includes('pdf')) {
+        return res.status(400).json({ error: 'Only PDF documents are supported for extraction' });
+      }
+
+      const extractor = new MediaExtractionService(mediaService);
+      const extractedCount = await extractor.extractFromPdf(id, filePath, title, sourceCollection);
+      res.json({ extractedCount });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 router.get('/images/:id', validate(mediaIdParamSchema), async (req, res, next) => {
   try {

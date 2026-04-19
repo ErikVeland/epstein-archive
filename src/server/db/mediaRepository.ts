@@ -471,6 +471,7 @@ export const mediaRepository = {
     limit: number = 24,
     filters?: {
       entityId?: string;
+      documentId?: number;
       tagId?: number;
       personId?: number;
       verificationStatus?: string;
@@ -514,6 +515,9 @@ export const mediaRepository = {
           AND mip.entity_id = ${p}::bigint
         ))`,
       );
+    }
+    if (filters?.documentId != null) {
+      whereParts.push(`m.document_id = ${addParam(filters.documentId)}::bigint`);
     }
     if (filters?.personId != null) {
       whereParts.push(

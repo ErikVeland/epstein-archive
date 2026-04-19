@@ -246,9 +246,11 @@
 }
 
 .virtualScroller {
-  padding: var(--space-6);
+  box-sizing: border-box;
+  padding: var(--space-4);
   scrollbar-width: thin;
   scrollbar-color: #334155 transparent;
+  overflow-x: hidden;
 }
 
 .gridScroller {

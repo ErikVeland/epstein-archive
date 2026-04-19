@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Image as ImageIcon } from 'lucide-react';
 import { apiClient } from '../../../services/apiClient';
 import { MediaImage } from '../../../types/media.types';
+import { useToasts } from '../../common/useToasts';
 import LazyImage from '../../common/LazyImage';
 import { SensitiveContent } from '../../common/SensitiveContent';
-import { Surface, Flex, Box, Stack, LqText } from '../../../design-system/lib';
+import { Surface, Flex, Box, Stack, LqText, Button } from '../../../design-system/lib';
 import styles from './DocumentAssetsTab.module.css';
 
 interface Props {
@@ -14,7 +15,13 @@ interface Props {
 }
 
 export const DocumentAssetsTab: React.FC<Props> = ({ documentId, onImageClick }) => {
-  const { data: assets = [], isLoading } = useQuery({
+  const { addToast } = useToasts();
+  const [isExtracting, setIsExtracting] = useState(false);
+  const {
+    data: assets = [],
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ['documentAssets', documentId],
     queryFn: () => apiClient.getMediaByDocumentId(documentId),
     staleTime: 60_000,
@@ -44,6 +51,31 @@ export const DocumentAssetsTab: React.FC<Props> = ({ documentId, onImageClick })
           No photographic or visual assets were detected in this document during the extraction
           pass.
         </LqText>
+        <Button
+          variant="glass"
+          size="sm"
+          loading={isExtracting}
+          onClick={async () => {
+            try {
+              setIsExtracting(true);
+              const result = await apiClient.extractMediaForDocument(documentId);
+              await refetch();
+              addToast({
+                text: `Extracted ${Number(result?.extractedCount || 0)} asset(s)`,
+                type: 'success',
+              });
+            } catch (e) {
+              addToast({
+                text: e instanceof Error ? e.message : 'Extraction failed',
+                type: 'error',
+              });
+            } finally {
+              setIsExtracting(false);
+            }
+          }}
+        >
+          Extract Assets
+        </Button>
       </Flex>
     );
   }
@@ -87,10 +119,10 @@ export const DocumentAssetsTab: React.FC<Props> = ({ documentId, onImageClick })
                   <LqText variant="xxs" color="muted">
                     {asset.width} × {asset.height}
                   </LqText>
-                  {asset.metadata?.is_text_only === 'true' && (
+                  {asset.metadata?.is_text_only === true && (
                     <Surface variant="glass-highlight" className={styles.textBadge}>
                       <LqText variant="xxxs" weight="bold">
-                        DOCUMENT EXTRACT
+                        TEXT SCAN
                       </LqText>
                     </Surface>
                   )}

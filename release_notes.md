@@ -1,5 +1,15 @@
 # Release Notes
 
+## 19.3.2 - 2026-04-19
+
+### Media Browser
+
+- Added a PDF asset extraction endpoint and UI trigger so extracted photos populate the global Media Browser (Extracted Media album).
+- Fixed per-document “Recovered Assets” fetch by supporting `documentId` filtering on `/api/media/images`.
+- Removed layout overflow sources causing horizontal scrolling in the Media browser.
+
+---
+
 ## 19.3.1 - 2026-04-18
 
 ### Mobile Overlays & Onboarding

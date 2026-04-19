@@ -413,7 +413,10 @@ export class MediaService {
   }
 
   async createImage(
-    image: Omit<MediaImage, 'id' | 'dateAdded' | 'dateModified'> & { documentId?: string | number },
+    image: Omit<MediaImage, 'id' | 'dateAdded' | 'dateModified'> & {
+      documentId?: string | number;
+      hasText?: boolean;
+    },
   ): Promise<MediaImage> {
     // Determine the next numeric ID if none exists in this schema's serials
     const idRes = await this.pgRow<{ max_id: string }>(
@@ -426,8 +429,8 @@ export class MediaService {
         id, document_id, album_id, file_type, file_path, thumbnail_path, 
         title, description, verification_status, red_flag_rating, 
         is_sensitive, metadata_json, created_at, file_size, 
-        width, height, date_taken
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, CURRENT_TIMESTAMP, $13, $14, $15, $16)
+        width, height, date_taken, has_text
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, CURRENT_TIMESTAMP, $13, $14, $15, $16, $17)
       RETURNING id
     `;
 
@@ -455,6 +458,7 @@ export class MediaService {
       image.width || 0,
       image.height || 0,
       image.dateTaken || null,
+      image.hasText ?? null,
     ]);
 
     if (!result) throw new Error('Failed to create image');
