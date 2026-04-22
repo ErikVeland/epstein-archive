@@ -51,7 +51,7 @@ export class IngestRunsRepository {
         status: string;
         gitCommit: string | null;
         pipelineVersion: string;
-        config: Record<string, unknown> | null;
+        config: Record<string, any> | null;
       }>
     ).map((row) => ({
       id: String(row.id),
