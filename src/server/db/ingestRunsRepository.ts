@@ -17,6 +17,12 @@ export interface IngestRun {
   notes: string | null;
 }
 
+interface IngestConfig {
+  agentic_enabled?: boolean;
+  step_versions?: Record<string, unknown>;
+  notes?: string;
+}
+
 export class IngestRunsRepository {
   /**
    * Get all ingest runs
@@ -51,7 +57,7 @@ export class IngestRunsRepository {
         status: string;
         gitCommit: string | null;
         pipelineVersion: string;
-        config: Record<string, any> | null;
+        config: IngestConfig | null;
       }>
     ).map((row) => ({
       id: String(row.id),
